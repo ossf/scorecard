@@ -60,7 +60,7 @@ func FrozenDeps(c *checker.Checker) CheckResult {
 				Pass:       true,
 				Confidence: 10,
 			}
-		case "vendor", "third_party":
+		case "vendor/", "third_party/":
 			return CheckResult{
 				Pass:       true,
 				Confidence: 10,
