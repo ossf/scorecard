@@ -60,7 +60,7 @@ You can create a personal access token by following these steps: https://docs.gi
 Set that as an environment variable:
 
 ```shell
-export GITHUB_OAUTH_TOKEN=<your token>
+export GITHUB_AUTH_TOKEN=<your token>
 ```
 
 ## Checks
