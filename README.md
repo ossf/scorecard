@@ -5,7 +5,9 @@ Consumers of open source projects need to understand the security posture of the
 One proposed solution is to define a set of automate-able and objective data to produce a security "scorecard" for projects.
 An organization could then create an internal policy such as "projects with a score less than X, need to be further reviewed."
 
-In addition, this score is something that is actionable and can provide maintainers, contributors and other stakeholders concrete ways to improve the security posture of the projects they work or depend on. 
+In addition, this score is something that is actionable and can provide maintainers, contributors and other stakeholders concrete ways to improve the security posture of the projects they work or depend on.
+
+A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You passed! All D's ... and an A!"
 
 ### Goals
 1. Fill the gaps that prevent automated analysis and trust decisions for measuring and reporting on the security posture of open source projects. 
