@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 
@@ -17,6 +18,11 @@ import (
 
 var repo = flag.String("repo", "", "url to the repo")
 var checksToRun = flag.String("checks", "", "specific checks to run, instead of all")
+
+type result struct {
+	cr   checks.CheckResult
+	name string
+}
 
 func main() {
 	flag.Parse()
@@ -32,6 +38,7 @@ func main() {
 
 	ctx := context.Background()
 
+	// Use our custom roundtripper
 	rt := roundtripper.NewTransport(ctx)
 
 	client := &http.Client{
@@ -47,10 +54,12 @@ func main() {
 		Repo:       repo,
 	}
 
+	resultsCh := make(chan result)
 	wg := sync.WaitGroup{}
 	for _, check := range checks.AllChecks {
 		check := check
 		wg.Add(1)
+		log.Printf("Starting [%s]\n", check.Name)
 		go func() {
 			defer wg.Done()
 			var r checks.CheckResult
@@ -62,9 +71,33 @@ func main() {
 				}
 				break
 			}
-			fmt.Println(check.Name, r.Confidence, r.Pass)
+			resultsCh <- result{
+				name: check.Name,
+				cr:   r,
+			}
 		}()
 	}
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(resultsCh)
+	}()
 
+	// Collect results
+	results := []result{}
+	for result := range resultsCh {
+		log.Printf("Finished [%s]\n", result.name)
+		results = append(results, result)
+	}
+
+	// Sort them by name
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].name < results[j].name
+	})
+
+	fmt.Println()
+	fmt.Println("RESULTS")
+	fmt.Println("-------")
+	for _, r := range results {
+		fmt.Println(r.name, r.cr.Pass, r.cr.Confidence)
+	}
 }

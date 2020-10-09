@@ -8,13 +8,30 @@ The program only requires one argument to run, the name of the repo:
 
 ```shell
 $ scorecards --repo=github.com/kubernetes/kubernetes
-Security-MD 10 true
-Contributors 10 true
-Signed-Tags 7 false
-Signed-Releases 0 false
-Code-Review 10 true
-CI-Tests 10 true
-Frozen-Deps 10 true
+2020/10/09 10:25:12 Starting [Code-Review]
+2020/10/09 10:25:12 Starting [Contributors]
+2020/10/09 10:25:12 Starting [Frozen-Deps]
+2020/10/09 10:25:12 Starting [Signed-Releases]
+2020/10/09 10:25:12 Starting [Security-MD]
+2020/10/09 10:25:12 Starting [Signed-Tags]
+2020/10/09 10:25:12 Starting [CI-Tests]
+2020/10/09 10:25:12 Finished [Security-MD]
+2020/10/09 10:25:14 Finished [Contributors]
+2020/10/09 10:25:16 Finished [Signed-Tags]
+2020/10/09 10:25:16 Finished [Signed-Releases]
+2020/10/09 10:25:25 Finished [Code-Review]
+2020/10/09 10:25:28 Finished [CI-Tests]
+2020/10/09 10:25:38 Finished [Frozen-Deps]
+
+RESULTS
+-------
+CI-Tests true 10
+Code-Review true 10
+Contributors true 10
+Frozen-Deps true 10
+Security-MD true 10
+Signed-Releases false 0
+Signed-Tags false 7
 ```
 
 You'll probably also need to set an Oauth token to avoid rate limits.
