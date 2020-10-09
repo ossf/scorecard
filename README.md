@@ -19,7 +19,6 @@ In addition, this score is something that is actionable and can provide maintain
 * Maintainers must be provided with a mechanism to correct any automated scorecard findings they feel were made in error, provide "hints" for anything we can't detect automatically, and even dispute the applicability of a given scorecard finding for that repository.
 * Any criteria in the scorecard must be actionable. It should be possible, with help, for any project to "check all the boxes".
 * Any solution to compile a scorecard should be usable by the greater open source community to monitor upstream security.
-* Skeleton repos should be provided that set new projects up for success.
 
 ## Usage
 
