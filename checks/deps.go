@@ -40,6 +40,12 @@ func FrozenDeps(c *checker.Checker) CheckResult {
 
 	for {
 		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return RetryResult(err)
+		}
+
 		// Strip the repo name
 		names := strings.SplitN(hdr.Name, "/", 2)
 		if len(names) < 2 {
@@ -47,11 +53,6 @@ func FrozenDeps(c *checker.Checker) CheckResult {
 		}
 
 		name := names[1]
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return RetryResult(err)
-		}
 
 		switch strings.ToLower(name) {
 		case "go.mod", "go.sum":
