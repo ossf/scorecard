@@ -1,7 +1,9 @@
 # Open Source Scorecards
 
 ### Motivation
-Consumers of open source projects need to understand the security posture of the software they depend on, and in many cases, have the ability to automate checks or policies using this data. One proposed solution is to define a set of auomate-able and objective data to produce a security "scorecard" for projects. An organization could then create an internal policy such as "projects with a score less than X, need to be further reviewed."
+Consumers of open source projects need to understand the security posture of the software they depend on, and in many cases, have the ability to automate checks or policies using this data.
+One proposed solution is to define a set of automate-able and objective data to produce a security "scorecard" for projects.
+An organization could then create an internal policy such as "projects with a score less than X, need to be further reviewed."
 
 In addition, this score is something that is actionable and can provide maintainers, contributors and other stakeholders concrete ways to improve the security posture of the projects they work or depend on. 
 
