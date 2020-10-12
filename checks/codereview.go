@@ -120,6 +120,10 @@ func ProwCodeReview(c *checker.Checker) CheckResult {
 			Confidence: int(actual * 10),
 		}
 	}
+
+	if totalReviewed == 0 {
+		return InconclusiveResult
+	}
 	return CheckResult{
 		Pass:       false,
 		Confidence: int(10 - int(actual*10)),
