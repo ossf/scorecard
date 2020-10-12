@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -84,11 +85,15 @@ type CachingRoundTripper struct {
 	innerTransport http.RoundTripper
 	respCache      map[url.URL]*http.Response
 	bodyCache      map[url.URL][]byte
+	mutex          sync.Mutex
 }
 
 func (rt *CachingRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	// Check the cache
+	rt.mutex.Lock()
+	defer rt.mutex.Unlock()
 	resp, ok := rt.respCache[*r.URL]
+
 	if ok {
 		log.Printf("Cache hit on %s", r.URL.String())
 		resp.Body = ioutil.NopCloser(bytes.NewReader(rt.bodyCache[*r.URL]))
