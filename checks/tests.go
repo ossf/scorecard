@@ -43,21 +43,10 @@ func GithubStatuses(c *checker.Checker) CheckResult {
 			}
 		}
 	}
-	// Threshold is 3/4 of merged PRs
-	actual := float32(totalTested) / float32(totalMerged)
-	if actual >= .75 {
-		return CheckResult{
-			Pass:       true,
-			Confidence: int(actual * 10),
-		}
-	}
 	if totalTested == 0 {
 		return InconclusiveResult
 	}
-	return CheckResult{
-		Pass:       false,
-		Confidence: int(10 - int(actual*10)),
-	}
+	return ProportionalResult(totalTested, totalMerged, .75)
 }
 
 func isTest(s string) bool {
@@ -104,19 +93,8 @@ func GithubCheckRuns(c *checker.Checker) CheckResult {
 			}
 		}
 	}
-	// Threshold is 3/4 of merged PRs
-	actual := float32(totalTested) / float32(totalMerged)
-	if actual >= .75 {
-		return CheckResult{
-			Pass:       true,
-			Confidence: int(actual * 10),
-		}
-	}
 	if totalTested == 0 {
 		return InconclusiveResult
 	}
-	return CheckResult{
-		Pass:       false,
-		Confidence: int(10 - int(actual*10)),
-	}
+	return ProportionalResult(totalTested, totalMerged, .75)
 }

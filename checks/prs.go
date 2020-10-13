@@ -30,15 +30,5 @@ func PullRequests(c *checker.Checker) CheckResult {
 			totalWithPrs++
 		}
 	}
-	actual := float32(totalWithPrs) / float32(total)
-	if actual >= .9 {
-		return CheckResult{
-			Pass:       true,
-			Confidence: int(actual * 10),
-		}
-	}
-	return CheckResult{
-		Pass:       false,
-		Confidence: int(10 - int(actual*10)),
-	}
+	return ProportionalResult(totalWithPrs, total, .9)
 }

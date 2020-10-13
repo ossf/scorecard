@@ -54,18 +54,7 @@ func GithubCodeReview(c *checker.Checker) CheckResult {
 		}
 	}
 
-	// Threshold is 3/4 of merged PRs
-	actual := float32(totalReviewed) / float32(totalMerged)
-	if actual >= .75 {
-		return CheckResult{
-			Pass:       true,
-			Confidence: int(actual * 10),
-		}
-	}
-	return CheckResult{
-		Pass:       false,
-		Confidence: int(10 - int(actual*10)),
-	}
+	return ProportionalResult(totalReviewed, totalMerged, .75)
 }
 
 func IsPrReviewRequired(c *checker.Checker) CheckResult {
@@ -112,20 +101,10 @@ func ProwCodeReview(c *checker.Checker) CheckResult {
 			}
 		}
 	}
-	// Threshold is 3/4 of merged PRs
-	actual := float32(totalReviewed) / float32(totalMerged)
-	if actual >= .75 {
-		return CheckResult{
-			Pass:       true,
-			Confidence: int(actual * 10),
-		}
-	}
 
 	if totalReviewed == 0 {
 		return InconclusiveResult
 	}
-	return CheckResult{
-		Pass:       false,
-		Confidence: int(10 - int(actual*10)),
-	}
+
+	return ProportionalResult(totalReviewed, totalMerged, .75)
 }

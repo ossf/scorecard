@@ -49,15 +49,5 @@ func SignedReleases(c *checker.Checker) CheckResult {
 	if totalReleases == 0 {
 		return InconclusiveResult
 	}
-	actual := float32(totalSigned) / float32(totalReleases)
-	if actual >= .75 {
-		return CheckResult{
-			Pass:       true,
-			Confidence: int(actual * 10),
-		}
-	}
-	return CheckResult{
-		Pass:       false,
-		Confidence: int(10 - int(actual*10)),
-	}
+	return ProportionalResult(totalSigned, totalReleases, .75)
 }

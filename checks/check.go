@@ -47,6 +47,20 @@ func MultiCheck(fns ...CheckFn) CheckFn {
 	}
 }
 
+func ProportionalResult(numerator, denominator int, threshold float32) CheckResult {
+	actual := float32(numerator) / float32(denominator)
+	if actual >= threshold {
+		return CheckResult{
+			Pass:       true,
+			Confidence: int(actual * 10),
+		}
+	}
+	return CheckResult{
+		Pass:       false,
+		Confidence: int(10 - int(actual*10)),
+	}
+}
+
 type NamedCheck struct {
 	Name string
 	Fn   CheckFn

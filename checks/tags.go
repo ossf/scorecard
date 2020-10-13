@@ -31,16 +31,5 @@ func SignedTags(c *checker.Checker) CheckResult {
 		}
 	}
 
-	// Threshold is 3/4 of releases
-	actual := float32(totalSigned) / float32(totalReleases)
-	if actual >= .75 {
-		return CheckResult{
-			Pass:       true,
-			Confidence: int(actual * 10),
-		}
-	}
-	return CheckResult{
-		Pass:       false,
-		Confidence: int(10 - int(actual*10)),
-	}
+	return ProportionalResult(totalSigned, totalReleases, .75)
 }
