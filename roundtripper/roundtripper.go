@@ -73,7 +73,7 @@ func (gh *RateLimitRoundTripper) RoundTrip(r *http.Request) (*http.Response, err
 		}
 
 		duration := time.Until(time.Unix(int64(reset), 0))
-		gh.Logger.Debugf("Rate limit exceeded. Waiting %s to retry...", duration)
+		gh.Logger.Warnf("Rate limit exceeded. Waiting %s to retry...", duration)
 
 		// Retry
 		time.Sleep(duration)
