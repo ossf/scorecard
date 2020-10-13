@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
 
@@ -19,11 +19,12 @@ const GITHUB_AUTH_TOKEN = "GITHUB_AUTH_TOKEN"
 
 // RateLimitRoundTripper is a rate-limit aware http.Transport for Github.
 type RateLimitRoundTripper struct {
+	Logger         *zap.SugaredLogger
 	InnerTransport http.RoundTripper
 }
 
 // NewTransport returns a configured http.Transport for use with GitHub
-func NewTransport(ctx context.Context) http.RoundTripper {
+func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
 	token := os.Getenv(GITHUB_AUTH_TOKEN)
 
 	// Start with oauth
@@ -37,11 +38,13 @@ func NewTransport(ctx context.Context) http.RoundTripper {
 
 	// Wrap that with the rate limiter
 	rateLimit := &RateLimitRoundTripper{
+		Logger:         logger,
 		InnerTransport: transport,
 	}
 
 	// Wrap that with the response cacher
 	cache := &CachingRoundTripper{
+		Logger:         logger,
 		innerTransport: rateLimit,
 		respCache:      map[url.URL]*http.Response{},
 		bodyCache:      map[url.URL][]byte{},
@@ -70,11 +73,11 @@ func (gh *RateLimitRoundTripper) RoundTrip(r *http.Request) (*http.Response, err
 		}
 
 		duration := time.Until(time.Unix(int64(reset), 0))
-		log.Printf("Rate limit exceeded. Waiting %s to retry...", duration)
+		gh.Logger.Debugf("Rate limit exceeded. Waiting %s to retry...", duration)
 
 		// Retry
 		time.Sleep(duration)
-		log.Print("Rate limit exceeded. Retrying...")
+		gh.Logger.Warnf("Rate limit exceeded. Retrying...")
 		return gh.RoundTrip(r)
 	}
 
@@ -86,6 +89,7 @@ type CachingRoundTripper struct {
 	respCache      map[url.URL]*http.Response
 	bodyCache      map[url.URL][]byte
 	mutex          sync.Mutex
+	Logger         *zap.SugaredLogger
 }
 
 func (rt *CachingRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -95,7 +99,7 @@ func (rt *CachingRoundTripper) RoundTrip(r *http.Request) (*http.Response, error
 	resp, ok := rt.respCache[*r.URL]
 
 	if ok {
-		log.Printf("Cache hit on %s", r.URL.String())
+		rt.Logger.Debugf("Cache hit on %s", r.URL.String())
 		resp.Body = ioutil.NopCloser(bytes.NewReader(rt.bodyCache[*r.URL]))
 		return resp, nil
 	}

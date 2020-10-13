@@ -3,7 +3,6 @@ package checker
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/google/go-github/v32/github"
@@ -38,7 +37,7 @@ func (r *Runner) Run(f CheckFn) CheckResult {
 		checker.Logf = l.Logf
 		res = f(checker)
 		if res.ShouldRetry {
-			log.Println(res.Error)
+			r.Checker.Logf("error, retrying: %s", res.Error)
 			continue
 		}
 		break

@@ -50,7 +50,7 @@ Each check is currently just a function of type `CheckFn`.
 The signature is:
 
 ```golang
-type CheckFn func(*checker.Checker) CheckResult
+type CheckFn func(c.Checker) CheckResult
 ```
 
 Checks are registered in an init function:

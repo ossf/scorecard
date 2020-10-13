@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -14,6 +14,8 @@ import (
 	"github.com/dlorenc/scorecard/checks"
 	"github.com/dlorenc/scorecard/roundtripper"
 	"github.com/google/go-github/v32/github"
+	"github.com/prometheus/common/log"
+	"go.uber.org/zap"
 )
 
 var repo = flag.String("repo", "", "url to the repo")
@@ -26,6 +28,9 @@ type result struct {
 
 func main() {
 	flag.Parse()
+	logger, _ := zap.NewProduction()
+	defer logger.Sync() // flushes buffer, if any
+	sugar := logger.Sugar()
 
 	split := strings.SplitN(*repo, "/", 3)
 	host, owner, repo := split[0], split[1], split[2]
@@ -39,7 +44,7 @@ func main() {
 	ctx := context.Background()
 
 	// Use our custom roundtripper
-	rt := roundtripper.NewTransport(ctx)
+	rt := roundtripper.NewTransport(ctx, sugar)
 
 	client := &http.Client{
 		Transport: rt,
@@ -59,7 +64,7 @@ func main() {
 	for _, check := range checks.AllChecks {
 		check := check
 		wg.Add(1)
-		log.Printf("Starting [%s]\n", check.Name)
+		fmt.Fprintf(os.Stderr, "Starting [%s]\n", check.Name)
 		go func() {
 			defer wg.Done()
 			runner := checker.Runner{Checker: c}
@@ -78,7 +83,7 @@ func main() {
 	// Collect results
 	results := []result{}
 	for result := range resultsCh {
-		log.Printf("Finished [%s]\n", result.name)
+		fmt.Fprintf(os.Stderr, "Finished [%s]\n", result.name)
 		results = append(results, result)
 	}
 
