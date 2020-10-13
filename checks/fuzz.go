@@ -21,22 +21,22 @@ func init() {
 		ossFuzzRepos[r] = struct{}{}
 	}
 
-	AllChecks = append(AllChecks, NamedCheck{
+	AllChecks = append(AllChecks, checker.NamedCheck{
 		Name: "Fuzzing",
 		Fn:   Fuzzing,
 	})
 
 }
 
-func Fuzzing(c *checker.Checker) CheckResult {
+func Fuzzing(c checker.Checker) checker.CheckResult {
 	url := fmt.Sprintf("github.com/%s/%s", c.Owner, c.Repo)
 	if _, ok := ossFuzzRepos[url]; ok {
-		return CheckResult{
+		return checker.CheckResult{
 			Pass:       true,
 			Confidence: 10,
 		}
 	}
-	return CheckResult{
+	return checker.CheckResult{
 		Pass:       false,
 		Confidence: 3,
 	}

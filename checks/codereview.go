@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, NamedCheck{
+	AllChecks = append(AllChecks, checker.NamedCheck{
 		Name: "Code-Review",
 		Fn:   DoesCodeReview,
 	})
@@ -17,21 +17,21 @@ func init() {
 // - Looking at the repo configuration to see if reviews are required
 // - Checking if most of the recent merged PRs were "Approved"
 // - Looking for other well-known review labels
-func DoesCodeReview(c *checker.Checker) CheckResult {
-	return MultiCheck(
+func DoesCodeReview(c checker.Checker) checker.CheckResult {
+	return checker.MultiCheck(
 		IsPrReviewRequired,
 		GithubCodeReview,
 		ProwCodeReview,
 	)(c)
 }
 
-func GithubCodeReview(c *checker.Checker) CheckResult {
+func GithubCodeReview(c checker.Checker) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
 	if err != nil {
-		return InconclusiveResult
+		return checker.InconclusiveResult
 	}
 
 	totalMerged := 0
@@ -54,37 +54,37 @@ func GithubCodeReview(c *checker.Checker) CheckResult {
 		}
 	}
 
-	return ProportionalResult(totalReviewed, totalMerged, .75)
+	return checker.ProportionalResult(totalReviewed, totalMerged, .75)
 }
 
-func IsPrReviewRequired(c *checker.Checker) CheckResult {
+func IsPrReviewRequired(c checker.Checker) checker.CheckResult {
 	// Look to see if review is enforced.
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
-		return RetryResult(err)
+		return checker.RetryResult(err)
 	}
 
 	// Check the branch protection rules, we may not be able to get these though.
 	bp, _, err := c.Client.Repositories.GetBranchProtection(c.Ctx, c.Owner, c.Repo, r.GetDefaultBranch())
 	if err != nil {
-		return InconclusiveResult
+		return checker.InconclusiveResult
 	}
 	if bp.GetRequiredPullRequestReviews().RequiredApprovingReviewCount >= 1 {
-		return CheckResult{
+		return checker.CheckResult{
 			Pass:       true,
 			Confidence: 10,
 		}
 	}
-	return InconclusiveResult
+	return checker.InconclusiveResult
 }
 
-func ProwCodeReview(c *checker.Checker) CheckResult {
+func ProwCodeReview(c checker.Checker) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
 	if err != nil {
-		return InconclusiveResult
+		return checker.InconclusiveResult
 	}
 
 	totalMerged := 0
@@ -103,8 +103,10 @@ func ProwCodeReview(c *checker.Checker) CheckResult {
 	}
 
 	if totalReviewed == 0 {
-		return InconclusiveResult
+		return checker.InconclusiveResult
 	}
 
-	return ProportionalResult(totalReviewed, totalMerged, .75)
+	c.Logf("prow code reviews found")
+
+	return checker.ProportionalResult(totalReviewed, totalMerged, .75)
 }

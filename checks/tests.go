@@ -8,18 +8,18 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, NamedCheck{
+	AllChecks = append(AllChecks, checker.NamedCheck{
 		Name: "CI-Tests",
-		Fn:   MultiCheck(GithubStatuses, GithubCheckRuns),
+		Fn:   checker.MultiCheck(GithubStatuses, GithubCheckRuns),
 	})
 }
 
-func GithubStatuses(c *checker.Checker) CheckResult {
+func GithubStatuses(c checker.Checker) checker.CheckResult {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
 	if err != nil {
-		return RetryResult(err)
+		return checker.RetryResult(err)
 	}
 
 	totalMerged := 0
@@ -31,22 +31,23 @@ func GithubStatuses(c *checker.Checker) CheckResult {
 		totalMerged++
 		statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListOptions{})
 		if err != nil {
-			return RetryResult(err)
+			return checker.RetryResult(err)
 		}
 		for _, status := range statuses {
 			if status.GetState() != "success" {
 				continue
 			}
 			if isTest(status.GetContext()) {
+				c.Logf("CI test found: %s", status.GetContext())
 				totalTested++
 				break
 			}
 		}
 	}
 	if totalTested == 0 {
-		return InconclusiveResult
+		return checker.InconclusiveResult
 	}
-	return ProportionalResult(totalTested, totalMerged, .75)
+	return checker.ProportionalResult(totalTested, totalMerged, .75)
 }
 
 func isTest(s string) bool {
@@ -61,12 +62,12 @@ func isTest(s string) bool {
 	return false
 }
 
-func GithubCheckRuns(c *checker.Checker) CheckResult {
+func GithubCheckRuns(c checker.Checker) checker.CheckResult {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
 	if err != nil {
-		return RetryResult(err)
+		return checker.RetryResult(err)
 	}
 
 	totalMerged := 0
@@ -78,7 +79,7 @@ func GithubCheckRuns(c *checker.Checker) CheckResult {
 		totalMerged++
 		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
 		if err != nil {
-			return RetryResult(err)
+			return checker.RetryResult(err)
 		}
 		for _, cr := range crs.CheckRuns {
 			if cr.GetStatus() != "completed" {
@@ -94,7 +95,7 @@ func GithubCheckRuns(c *checker.Checker) CheckResult {
 		}
 	}
 	if totalTested == 0 {
-		return InconclusiveResult
+		return checker.InconclusiveResult
 	}
-	return ProportionalResult(totalTested, totalMerged, .75)
+	return checker.ProportionalResult(totalTested, totalMerged, .75)
 }

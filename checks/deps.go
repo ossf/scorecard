@@ -10,16 +10,21 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, NamedCheck{
+	AllChecks = append(AllChecks, checker.NamedCheck{
 		Name: "Frozen-Deps",
 		Fn:   FrozenDeps,
 	})
 }
 
-func FrozenDeps(c *checker.Checker) CheckResult {
+var passResult = checker.CheckResult{
+	Pass:       true,
+	Confidence: 10,
+}
+
+func FrozenDeps(c checker.Checker) checker.CheckResult {
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
-		return RetryResult(err)
+		return checker.RetryResult(err)
 	}
 	url := r.GetArchiveURL()
 	url = strings.Replace(url, "{archive_format}", "tarball", 1)
@@ -28,13 +33,13 @@ func FrozenDeps(c *checker.Checker) CheckResult {
 	// Download
 	resp, err := c.HttpClient.Get(url)
 	if err != nil {
-		return RetryResult(err)
+		return checker.RetryResult(err)
 	}
 	defer resp.Body.Close()
 
 	gz, err := gzip.NewReader(resp.Body)
 	if err != nil {
-		return RetryResult(err)
+		return checker.RetryResult(err)
 	}
 	tr := tar.NewReader(gz)
 
@@ -43,7 +48,7 @@ func FrozenDeps(c *checker.Checker) CheckResult {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			return RetryResult(err)
+			return checker.RetryResult(err)
 		}
 
 		// Strip the repo name
@@ -56,33 +61,23 @@ func FrozenDeps(c *checker.Checker) CheckResult {
 
 		switch strings.ToLower(name) {
 		case "go.mod", "go.sum":
-			return CheckResult{
-				Pass:       true,
-				Confidence: 10,
-			}
+			c.Logf("go modules found: %s", name)
+			return passResult
 		case "vendor/", "third_party/", "third-party/":
-			return CheckResult{
-				Pass:       true,
-				Confidence: 10,
-			}
+			c.Logf("vendor dir found: %s", name)
+			return passResult
 		case "package-lock.json":
-			return CheckResult{
-				Pass:       true,
-				Confidence: 10,
-			}
+			c.Logf("package-lock found: %s", name)
+			return passResult
 		case "requirements.txt":
-			return CheckResult{
-				Pass:       true,
-				Confidence: 10,
-			}
+			c.Logf("python requirements found: %s", name)
+			return passResult
 		case "gemfile.lock":
-			return CheckResult{
-				Pass:       true,
-				Confidence: 10,
-			}
+			c.Logf("ruby requirements found: %s", name)
+			return passResult
 		}
 	}
-	return CheckResult{
+	return checker.CheckResult{
 		Pass:       false,
 		Confidence: 5,
 	}

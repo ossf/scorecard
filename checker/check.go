@@ -1,10 +1,8 @@
-package checks
-
-import "github.com/dlorenc/scorecard/checker"
+package checker
 
 type CheckResult struct {
 	Pass        bool
-	Message     string
+	Details     string
 	Confidence  int
 	ShouldRetry bool
 	Error       error
@@ -26,12 +24,12 @@ func RetryResult(err error) CheckResult {
 	return r
 }
 
-type CheckFn func(*checker.Checker) CheckResult
+type CheckFn func(Checker) CheckResult
 
 func MultiCheck(fns ...CheckFn) CheckFn {
 	threshold := 7
 
-	return func(c *checker.Checker) CheckResult {
+	return func(c Checker) CheckResult {
 		var maxResult CheckResult
 
 		for _, fn := range fns {
@@ -65,5 +63,3 @@ type NamedCheck struct {
 	Name string
 	Fn   CheckFn
 }
-
-var AllChecks = []NamedCheck{}

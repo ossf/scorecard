@@ -8,16 +8,16 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, NamedCheck{
+	AllChecks = append(AllChecks, checker.NamedCheck{
 		Name: "Signed-Releases",
 		Fn:   SignedReleases,
 	})
 }
 
-func SignedReleases(c *checker.Checker) CheckResult {
+func SignedReleases(c checker.Checker) checker.CheckResult {
 	releases, _, err := c.Client.Repositories.ListReleases(c.Ctx, c.Owner, c.Repo, &github.ListOptions{})
 	if err != nil {
-		return RetryResult(err)
+		return checker.RetryResult(err)
 	}
 
 	totalReleases := 0
@@ -25,7 +25,7 @@ func SignedReleases(c *checker.Checker) CheckResult {
 	for _, r := range releases {
 		assets, _, err := c.Client.Repositories.ListReleaseAssets(c.Ctx, c.Owner, c.Repo, r.GetID(), &github.ListOptions{})
 		if err != nil {
-			return RetryResult(err)
+			return checker.RetryResult(err)
 		}
 		if len(assets) <= 1 {
 			continue
@@ -34,6 +34,7 @@ func SignedReleases(c *checker.Checker) CheckResult {
 		signed := false
 		for _, asset := range assets {
 			for _, suffix := range []string{".sig", ".minisig"} {
+				c.Logf("signed release found: %s", asset)
 				if strings.HasSuffix(asset.GetName(), suffix) {
 					signed = true
 					break
@@ -47,7 +48,7 @@ func SignedReleases(c *checker.Checker) CheckResult {
 	}
 
 	if totalReleases == 0 {
-		return InconclusiveResult
+		return checker.InconclusiveResult
 	}
-	return ProportionalResult(totalSigned, totalReleases, .75)
+	return checker.ProportionalResult(totalSigned, totalReleases, .75)
 }

@@ -6,16 +6,16 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, NamedCheck{
+	AllChecks = append(AllChecks, checker.NamedCheck{
 		Name: "PullRequests",
 		Fn:   PullRequests,
 	})
 }
 
-func PullRequests(c *checker.Checker) CheckResult {
+func PullRequests(c checker.Checker) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return RetryResult(err)
+		return checker.RetryResult(err)
 	}
 
 	total := 0
@@ -23,12 +23,12 @@ func PullRequests(c *checker.Checker) CheckResult {
 	for _, commit := range commits {
 		prs, _, err := c.Client.PullRequests.ListPullRequestsWithCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA(), &github.PullRequestListOptions{})
 		if err != nil {
-			return RetryResult(err)
+			return checker.RetryResult(err)
 		}
 		total++
 		if len(prs) > 0 {
 			totalWithPrs++
 		}
 	}
-	return ProportionalResult(totalWithPrs, total, .9)
+	return checker.ProportionalResult(totalWithPrs, total, .9)
 }

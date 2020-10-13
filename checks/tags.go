@@ -6,16 +6,16 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, NamedCheck{
+	AllChecks = append(AllChecks, checker.NamedCheck{
 		Name: "Signed-Tags",
 		Fn:   SignedTags,
 	})
 }
 
-func SignedTags(c *checker.Checker) CheckResult {
+func SignedTags(c checker.Checker) checker.CheckResult {
 	tags, _, err := c.Client.Repositories.ListTags(c.Ctx, c.Owner, c.Repo, &github.ListOptions{})
 	if err != nil {
-		return RetryResult(err)
+		return checker.RetryResult(err)
 	}
 
 	totalReleases := 0
@@ -24,12 +24,13 @@ func SignedTags(c *checker.Checker) CheckResult {
 		totalReleases++
 		gt, _, err := c.Client.Git.GetCommit(c.Ctx, c.Owner, c.Repo, t.GetCommit().GetSHA())
 		if err != nil {
-			return RetryResult(err)
+			return checker.RetryResult(err)
 		}
 		if gt.GetVerification().GetVerified() {
+			c.Logf("signed tag found: %s", t.GetCommit().GetSHA())
 			totalSigned++
 		}
 	}
 
-	return ProportionalResult(totalSigned, totalReleases, .75)
+	return checker.ProportionalResult(totalSigned, totalReleases, .75)
 }

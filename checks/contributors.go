@@ -6,16 +6,16 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, NamedCheck{
+	AllChecks = append(AllChecks, checker.NamedCheck{
 		Name: "Contributors",
 		Fn:   Contributors,
 	})
 }
 
-func Contributors(c *checker.Checker) CheckResult {
+func Contributors(c checker.Checker) checker.CheckResult {
 	contribs, _, err := c.Client.Repositories.ListContributors(c.Ctx, c.Owner, c.Repo, &github.ListContributorsOptions{})
 	if err != nil {
-		return RetryResult(err)
+		return checker.RetryResult(err)
 	}
 
 	companies := map[string]struct{}{}
@@ -23,20 +23,21 @@ func Contributors(c *checker.Checker) CheckResult {
 		if contrib.GetContributions() >= 5 {
 			u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
 			if err != nil {
-				return RetryResult(err)
+				return checker.RetryResult(err)
 			}
 			if u.GetCompany() != "" {
 				companies[u.GetCompany()] = struct{}{}
 			}
 		}
+		c.Logf("companies found: %v", companies)
 		if len(companies) > 2 {
-			return CheckResult{
+			return checker.CheckResult{
 				Pass:       true,
 				Confidence: 10,
 			}
 		}
 	}
-	return CheckResult{
+	return checker.CheckResult{
 		Pass:       false,
 		Confidence: 10,
 	}

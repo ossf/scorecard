@@ -20,7 +20,7 @@ var repo = flag.String("repo", "", "url to the repo")
 var checksToRun = flag.String("checks", "", "specific checks to run, instead of all")
 
 type result struct {
-	cr   checks.CheckResult
+	cr   checker.CheckResult
 	name string
 }
 
@@ -46,7 +46,7 @@ func main() {
 	}
 	ghClient := github.NewClient(client)
 
-	c := &checker.Checker{
+	c := checker.Checker{
 		Ctx:        ctx,
 		Client:     ghClient,
 		HttpClient: client,
@@ -62,15 +62,8 @@ func main() {
 		log.Printf("Starting [%s]\n", check.Name)
 		go func() {
 			defer wg.Done()
-			var r checks.CheckResult
-			for retriesRemaining := 3; retriesRemaining > 0; retriesRemaining-- {
-				r = check.Fn(c)
-				if r.ShouldRetry {
-					log.Println(r.Error)
-					continue
-				}
-				break
-			}
+			runner := checker.Runner{Checker: c}
+			r := runner.Run(check.Fn)
 			resultsCh <- result{
 				name: check.Name,
 				cr:   r,
