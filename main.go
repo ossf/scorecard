@@ -20,6 +20,7 @@ import (
 
 var repo = flag.String("repo", "", "url to the repo")
 var checksToRun = flag.String("checks", "", "specific checks to run, instead of all")
+var logLevel = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
 
 type result struct {
 	cr   checker.CheckResult
@@ -28,7 +29,9 @@ type result struct {
 
 func main() {
 	flag.Parse()
-	logger, _ := zap.NewProduction()
+	cfg := zap.NewProductionConfig()
+	cfg.Level.SetLevel(*logLevel)
+	logger, _ := cfg.Build()
 	defer logger.Sync() // flushes buffer, if any
 	sugar := logger.Sugar()
 
