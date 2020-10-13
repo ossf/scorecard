@@ -6,10 +6,7 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, checker.NamedCheck{
-		Name: "Code-Review",
-		Fn:   DoesCodeReview,
-	})
+	registerCheck("Code-Review", DoesCodeReview)
 }
 
 // DoesCodeReview attempts to determine whether a project requires review before code gets merged.

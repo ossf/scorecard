@@ -8,10 +8,7 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, checker.NamedCheck{
-		Name: "Signed-Releases",
-		Fn:   SignedReleases,
-	})
+	registerCheck("Signed-Releases", SignedReleases)
 }
 
 func SignedReleases(c checker.Checker) checker.CheckResult {

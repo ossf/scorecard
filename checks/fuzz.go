@@ -21,11 +21,7 @@ func init() {
 		ossFuzzRepos[r] = struct{}{}
 	}
 
-	AllChecks = append(AllChecks, checker.NamedCheck{
-		Name: "Fuzzing",
-		Fn:   Fuzzing,
-	})
-
+	registerCheck("Fuzzing", Fuzzing)
 }
 
 func Fuzzing(c checker.Checker) checker.CheckResult {

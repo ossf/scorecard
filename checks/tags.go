@@ -6,10 +6,7 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, checker.NamedCheck{
-		Name: "Signed-Tags",
-		Fn:   SignedTags,
-	})
+	registerCheck("Signed-Tags", SignedTags)
 }
 
 func SignedTags(c checker.Checker) checker.CheckResult {

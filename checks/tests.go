@@ -8,10 +8,7 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, checker.NamedCheck{
-		Name: "CI-Tests",
-		Fn:   checker.MultiCheck(GithubStatuses, GithubCheckRuns),
-	})
+	registerCheck("CI-Tests", checker.MultiCheck(GithubStatuses, GithubCheckRuns))
 }
 
 func GithubStatuses(c checker.Checker) checker.CheckResult {

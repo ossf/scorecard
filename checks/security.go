@@ -6,10 +6,7 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, checker.NamedCheck{
-		Name: "Security-MD",
-		Fn:   Securitymd,
-	})
+	registerCheck("Security-Policy", Securitymd)
 }
 
 func Securitymd(c checker.Checker) checker.CheckResult {
