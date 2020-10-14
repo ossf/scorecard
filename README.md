@@ -1,11 +1,6 @@
 # Open Source Scorecards
 
 ### Motivation
-Consumers of open source projects need to understand the security posture of the software they depend on, and in many cases, have the ability to automate checks or policies using this data.
-One proposed solution is to define a set of automate-able and objective data to produce a security "scorecard" for projects.
-An organization could then create an internal policy such as "projects with a score less than X, need to be further reviewed."
-
-In addition, this score is something that is actionable and can provide maintainers, contributors and other stakeholders concrete ways to improve the security posture of the projects they work or depend on.
 
 A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You passed! All D's ... and an A!"
 
@@ -73,6 +68,13 @@ The following checks are all run against the target project:
 | Fuzzing | Does the project use OSS Fuzz? |
 
 To see detailed information on how each check works, see the check-specific documentation pages.
+
+If you'd like to add a check, make sure it is something that meets the following criteria:
+* automate-able 
+* objective
+* actionable
+
+and then create a new GitHub Issue.
 
 ## Results
 
