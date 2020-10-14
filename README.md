@@ -68,6 +68,9 @@ The following checks are all run against the target project:
 | Signed-Releases | Does the project cryptographically sign releases? |
 | CI-Tests | Does the project run tests in CI? |
 | Code-Review | Does the project require code review before code is merged? |
+| CII-Best-Practices | Does the project have a CII Best Practices Badge? |
+| Pull-Requests | Does the project use Pull Requests for all changes? |
+| Fuzzing | Does the project use OSS Fuzz? |
 
 To see detailed information on how each check works, see the check-specific documentation pages.
 
