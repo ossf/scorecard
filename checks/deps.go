@@ -10,10 +10,7 @@ import (
 )
 
 func init() {
-	AllChecks = append(AllChecks, checker.NamedCheck{
-		Name: "Frozen-Deps",
-		Fn:   FrozenDeps,
-	})
+	registerCheck("Frozen-Deps", FrozenDeps)
 }
 
 var passResult = checker.CheckResult{
