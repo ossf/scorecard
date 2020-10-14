@@ -36,6 +36,9 @@ func main() {
 	sugar := logger.Sugar()
 
 	split := strings.SplitN(*repo, "/", 3)
+	if len(split) != 3 {
+		log.Fatalf("invalid repo flag: %s, pass the full repository URL", *repo)
+	}
 	host, owner, repo := split[0], split[1], split[2]
 
 	switch host {
