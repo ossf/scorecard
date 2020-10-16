@@ -22,7 +22,7 @@ func PullRequests(c checker.Checker) checker.CheckResult {
 	for _, commit := range commits {
 		isBot := false
 		committer := commit.GetCommitter().GetLogin()
-		for _, substring := range []string{"bot", "gardener",} {
+		for _, substring := range []string{"bot", "gardener"} {
 			if strings.Contains(committer, substring) {
 				isBot = true
 				break
