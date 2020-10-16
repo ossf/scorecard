@@ -45,7 +45,14 @@ func MultiCheck(fns ...CheckFn) CheckFn {
 	}
 }
 
-func ProportionalResult(numerator, denominator int, threshold float32) CheckResult {
+func ProportionalResult(numerator int, denominator int, threshold float32) CheckResult {
+	if numerator == 0 {
+		return CheckResult{
+			Pass:       false,
+			Confidence: 10,
+		}
+	}
+
 	actual := float32(numerator) / float32(denominator)
 	if actual >= threshold {
 		return CheckResult{
@@ -53,6 +60,7 @@ func ProportionalResult(numerator, denominator int, threshold float32) CheckResu
 			Confidence: int(actual * 10),
 		}
 	}
+
 	return CheckResult{
 		Pass:       false,
 		Confidence: int(10 - int(actual*10)),
