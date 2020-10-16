@@ -5,6 +5,8 @@ import (
 	"github.com/google/go-github/v32/github"
 )
 
+var tagLookBack int = 5
+
 func init() {
 	registerCheck("Signed-Tags", SignedTags)
 }
@@ -27,7 +29,10 @@ func SignedTags(c checker.Checker) checker.CheckResult {
 			c.Logf("signed tag found: %s", t.GetCommit().GetSHA())
 			totalSigned++
 		}
+		if totalReleases > tagLookBack {
+			break
+		}
 	}
 
-	return checker.ProportionalResult(totalSigned, totalReleases, .75)
+	return checker.ProportionalResult(totalSigned, totalReleases, 0.8)
 }
