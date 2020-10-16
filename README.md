@@ -1,10 +1,10 @@
 # Open Source Scorecards
 
-### Motivation
+## Motivation
 
 A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You passed! All D's ... and an A!"
 
-### Goals
+## Goals
 1. Fill the gaps that prevent automated analysis and trust decisions for measuring and reporting on the security posture of open source projects. 
 
 1. Use this data to proactively improve the security posture of the critical projects the world depends on.
