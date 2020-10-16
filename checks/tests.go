@@ -51,7 +51,7 @@ func isTest(s string) bool {
 	l := strings.ToLower(s)
 
 	// Add more patterns here!
-	for _, pattern := range []string{"travis-ci", "buildkite", "e2e", "test", "mergeable", "appveyor"} {
+	for _, pattern := range []string{"appveyor", "buildkite", "e2e", "github-actions", "mergeable", "test", "travis-ci"} {
 		if strings.Contains(l, pattern) {
 			return true
 		}
@@ -85,7 +85,8 @@ func GithubCheckRuns(c checker.Checker) checker.CheckResult {
 			if cr.GetConclusion() != "success" {
 				continue
 			}
-			if isTest(cr.GetName()) {
+			if isTest(cr.GetApp().GetSlug()) {
+				c.Logf("CI test found: %s", cr.GetApp().GetSlug())
 				totalTested++
 				break
 			}
