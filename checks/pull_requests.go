@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	registerCheck("PullRequests", PullRequests)
+	registerCheck("Pull-Requests", PullRequests)
 }
 
 func PullRequests(c checker.Checker) checker.CheckResult {

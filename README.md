@@ -21,7 +21,7 @@ Starting [Code-Review]
 Starting [Contributors]
 Starting [Frozen-Deps]
 Starting [Fuzzing]
-Starting [PullRequests]
+Starting [Pull-Requests]
 Starting [Signed-Releases]
 Starting [Security-Policy]
 Starting [Signed-Tags]
@@ -33,7 +33,7 @@ Finished [Security-Policy]
 Finished [Contributors]
 Finished [CI-Tests]
 Finished [Code-Review]
-Finished [PullRequests]
+Finished [Pull-Requests]
 Finished [Signed-Tags]
 Finished [Signed-Releases]
 
@@ -45,7 +45,7 @@ Code-Review false 9
 Contributors true 10
 Frozen-Deps true 10
 Fuzzing true 10
-PullRequests true 9
+Pull-Requests true 9
 Security-Policy true 10
 Signed-Releases false 0
 Signed-Tags false 7
