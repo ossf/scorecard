@@ -7,6 +7,8 @@ import (
 	"github.com/google/go-github/v32/github"
 )
 
+var releaseLookBack int = 5
+
 func init() {
 	registerCheck("Signed-Releases", SignedReleases)
 }
@@ -24,14 +26,14 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 		if err != nil {
 			return checker.RetryResult(err)
 		}
-		if len(assets) <= 1 {
+		if len(assets) == 0 {
 			continue
 		}
 		totalReleases++
 		signed := false
 		for _, asset := range assets {
-			for _, suffix := range []string{".sig", ".minisig"} {
-				c.Logf("signed release found: %s", asset)
+			c.Logf("signed release found: %s", asset.GetName())
+			for _, suffix := range []string{".asc", ".minisig", ".sig"} {
 				if strings.HasSuffix(asset.GetName(), suffix) {
 					signed = true
 					break
@@ -42,10 +44,13 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 				break
 			}
 		}
+		if totalReleases > releaseLookBack {
+			break
+		}
 	}
 
 	if totalReleases == 0 {
 		return checker.InconclusiveResult
 	}
-	return checker.ProportionalResult(totalSigned, totalReleases, .75)
+	return checker.ProportionalResult(totalSigned, totalReleases, 0.8)
 }
