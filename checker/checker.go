@@ -43,5 +43,8 @@ func (r *Runner) Run(f CheckFn) CheckResult {
 		break
 	}
 	res.Details = l.message
+	if len(l.message) > 0 {
+		fmt.Print("%v", l.message)
+	}
 	return res
 }
