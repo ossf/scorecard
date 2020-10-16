@@ -14,40 +14,51 @@ A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You
 The program only requires one argument to run, the name of the repo:
 
 ```shell
-$ scorecards --repo=github.com/kubernetes/kubernetes
-2020/10/09 10:25:12 Starting [Code-Review]
-2020/10/09 10:25:12 Starting [Contributors]
-2020/10/09 10:25:12 Starting [Frozen-Deps]
-2020/10/09 10:25:12 Starting [Signed-Releases]
-2020/10/09 10:25:12 Starting [Security-MD]
-2020/10/09 10:25:12 Starting [Signed-Tags]
-2020/10/09 10:25:12 Starting [CI-Tests]
-2020/10/09 10:25:12 Finished [Security-MD]
-2020/10/09 10:25:14 Finished [Contributors]
-2020/10/09 10:25:16 Finished [Signed-Tags]
-2020/10/09 10:25:16 Finished [Signed-Releases]
-2020/10/09 10:25:25 Finished [Code-Review]
-2020/10/09 10:25:28 Finished [CI-Tests]
-2020/10/09 10:25:38 Finished [Frozen-Deps]
+$ go build
+$ ./scorecard --repo=github.com/kubernetes/kubernetes
+Starting [CII-Best-Practices]
+Starting [Code-Review]
+Starting [Contributors]
+Starting [Frozen-Deps]
+Starting [Fuzzing]
+Starting [PullRequests]
+Starting [Signed-Releases]
+Starting [Security-Policy]
+Starting [Signed-Tags]
+Starting [CI-Tests]
+Finished [Fuzzing]
+Finished [CII-Best-Practices]
+Finished [Frozen-Deps]
+Finished [Security-Policy]
+Finished [Contributors]
+Finished [CI-Tests]
+Finished [Code-Review]
+Finished [PullRequests]
+Finished [Signed-Tags]
+Finished [Signed-Releases]
 
 RESULTS
 -------
-CI-Tests true 10
-Code-Review true 10
+CI-Tests false 0
+CII-Best-Practices true 10
+Code-Review false 9
 Contributors true 10
 Frozen-Deps true 10
-Security-MD true 10
+Fuzzing true 10
+PullRequests true 9
+Security-Policy true 10
 Signed-Releases false 0
 Signed-Tags false 7
 ```
 
-You'll probably also need to set an Oauth token to avoid rate limits.
-You can create a personal access token by following these steps: https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens
+It is recommended to use an OAuth token to avoid rate limits.
+You can create one by the following the instructions
+[here](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens).
 
 Set that as an environment variable:
 
 ```shell
-export GITHUB_AUTH_TOKEN=<your token>
+export GITHUB_AUTH_TOKEN=<your access token>
 ```
 
 ## Checks
@@ -68,6 +79,8 @@ The following checks are all run against the target project:
 | Fuzzing | Does the project use OSS Fuzz? |
 
 To see detailed information on how each check works, see the check-specific documentation pages.
+To use a particular check, add the `--checks` argument with a list of check
+names (for example `--checks=CI-Tests,Code-Review`).
 
 If you'd like to add a check, make sure it is something that meets the following criteria:
 * automate-able 
@@ -84,7 +97,6 @@ should be ignored.
 A confidence of 10 indicates the check is completely sure of the result.
 
 Many of the checks are based on heuristics, contributions are welcome to improve the detection!
-
 
 ### Requirements
 * The scorecard must only be composed of automate-able, objective data. For example, a project having 10 contributors doesn’t necessarily mean it’s more secure than a project with say 50 contributors. But, having two maintainers might be preferable to only having one -  the larger bus factor and ability to provide code reviews is objectively better.

@@ -27,6 +27,18 @@ type result struct {
 	name string
 }
 
+func stringInListOrEmpty(s string, list []string) bool {
+	if len(list) == 0 {
+		return true
+	}
+	for _, le := range list {
+		if le == s {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
 	flag.Parse()
 	cfg := zap.NewProductionConfig()
@@ -67,8 +79,15 @@ func main() {
 
 	resultsCh := make(chan result)
 	wg := sync.WaitGroup{}
+	checksToRunList := []string{}
+	if len(*checksToRun) > 0 {
+		checksToRunList = strings.Split(*checksToRun, ",")
+	}
 	for _, check := range checks.AllChecks {
 		check := check
+		if !stringInListOrEmpty(check.Name, checksToRunList) {
+			continue
+		}
 		wg.Add(1)
 		fmt.Fprintf(os.Stderr, "Starting [%s]\n", check.Name)
 		go func() {
