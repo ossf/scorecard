@@ -26,7 +26,7 @@ func SignedTags(c checker.Checker) checker.CheckResult {
 			return checker.RetryResult(err)
 		}
 		if gt.GetVerification().GetVerified() {
-			c.Logf("signed tag found: %s", t.GetCommit().GetSHA())
+			c.Logf("signed tag found: %s, commit: %s", *t.Name, t.GetCommit().GetSHA())
 			totalSigned++
 		}
 		if totalReleases > tagLookBack {
