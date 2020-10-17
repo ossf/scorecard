@@ -16,46 +16,45 @@ The program only requires one argument to run, the name of the repo:
 ```shell
 $ go build
 $ ./scorecard --repo=github.com/kubernetes/kubernetes
+Starting [CI-Tests]
 Starting [CII-Best-Practices]
 Starting [Code-Review]
 Starting [Contributors]
 Starting [Frozen-Deps]
 Starting [Fuzzing]
 Starting [Pull-Requests]
-Starting [Signed-Releases]
 Starting [Security-Policy]
+Starting [Signed-Releases]
 Starting [Signed-Tags]
-Starting [CI-Tests]
 Finished [Fuzzing]
 Finished [CII-Best-Practices]
 Finished [Frozen-Deps]
 Finished [Security-Policy]
 Finished [Contributors]
+Finished [Signed-Tags]
+Finished [Signed-Releases]
 Finished [CI-Tests]
 Finished [Code-Review]
 Finished [Pull-Requests]
-Finished [Signed-Tags]
-Finished [Signed-Releases]
 
 RESULTS
 -------
-CI-Tests false 0
+CI-Tests true 10
 CII-Best-Practices true 10
-Code-Review false 9
+Code-Review true 10
 Contributors true 10
 Frozen-Deps true 10
 Fuzzing true 10
 Pull-Requests true 9
 Security-Policy true 10
-Signed-Releases false 0
-Signed-Tags false 7
+Signed-Releases false 10
+Signed-Tags false 5
 ```
 
 It is recommended to use an OAuth token to avoid rate limits.
 You can create one by the following the instructions
 [here](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens).
-
-Set that as an environment variable:
+Set the access token as an environment variable:
 
 ```shell
 export GITHUB_AUTH_TOKEN=<your access token>
