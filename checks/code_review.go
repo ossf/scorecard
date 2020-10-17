@@ -67,9 +67,10 @@ func IsPrReviewRequired(c checker.Checker) checker.CheckResult {
 		return checker.InconclusiveResult
 	}
 	if bp.GetRequiredPullRequestReviews().RequiredApprovingReviewCount >= 1 {
+		c.Logf("pr review policy enforced")
 		return checker.CheckResult{
 			Pass:       true,
-			Confidence: 10,
+			Confidence: 5,
 		}
 	}
 	return checker.InconclusiveResult
@@ -102,7 +103,6 @@ func ProwCodeReview(c checker.Checker) checker.CheckResult {
 	if totalReviewed == 0 {
 		return checker.InconclusiveResult
 	}
-
 	c.Logf("prow code reviews found")
 
 	return checker.ProportionalResult(totalReviewed, totalMerged, .75)
