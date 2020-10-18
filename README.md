@@ -31,24 +31,24 @@ Finished [CII-Best-Practices]
 Finished [Frozen-Deps]
 Finished [Security-Policy]
 Finished [Contributors]
-Finished [Signed-Tags]
 Finished [Signed-Releases]
+Finished [Signed-Tags]
 Finished [CI-Tests]
 Finished [Code-Review]
 Finished [Pull-Requests]
 
 RESULTS
 -------
-CI-Tests true 10
-CII-Best-Practices true 10
-Code-Review true 10
-Contributors true 10
-Frozen-Deps true 10
-Fuzzing true 10
-Pull-Requests true 9
-Security-Policy true 10
-Signed-Releases false 10
-Signed-Tags false 5
+CI-Tests pass 10
+CII-Best-Practices pass 10
+Code-Review pass 10
+Contributors pass 10
+Frozen-Deps pass 10
+Fuzzing pass 10
+Pull-Requests pass 9
+Security-Policy pass 10
+Signed-Releases fail 10
+Signed-Tags fail 5
 ```
 
 It is recommended to use an OAuth token to avoid rate limits.

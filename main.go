@@ -39,6 +39,14 @@ func stringInListOrEmpty(s string, list []string) bool {
 	return false
 }
 
+func displayResult(result bool) string {
+	if result {
+		return "pass"
+	} else {
+		return "fail"
+	}
+}
+
 func main() {
 	flag.Parse()
 	cfg := zap.NewProductionConfig()
@@ -121,6 +129,6 @@ func main() {
 	fmt.Println("RESULTS")
 	fmt.Println("-------")
 	for _, r := range results {
-		fmt.Println(r.name, r.cr.Pass, r.cr.Confidence)
+		fmt.Println(r.name, displayResult(r.cr.Pass), r.cr.Confidence)
 	}
 }
