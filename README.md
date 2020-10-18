@@ -76,6 +76,7 @@ The following checks are all run against the target project:
 | CII-Best-Practices | Does the project have a CII Best Practices Badge? |
 | Pull-Requests | Does the project use Pull Requests for all changes? |
 | Fuzzing | Does the project use OSS Fuzz? |
+| Active | Did the project get any commits and releases in last 90 days? |
 
 To see detailed information on how each check works, see the check-specific documentation pages.
 To use a particular check, add the `--checks` argument with a list of check

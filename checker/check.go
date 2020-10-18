@@ -18,6 +18,8 @@ var retryResult = CheckResult{
 	ShouldRetry: true,
 }
 
+var maxConfidence int = 10
+
 func RetryResult(err error) CheckResult {
 	r := retryResult
 	r.Error = err
@@ -26,15 +28,23 @@ func RetryResult(err error) CheckResult {
 
 type CheckFn func(Checker) CheckResult
 
-func MultiCheck(fns ...CheckFn) CheckFn {
-	threshold := 7
+func Bool2int(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
 
+func MultiCheck(fns ...CheckFn) CheckFn {
 	return func(c Checker) CheckResult {
 		var maxResult CheckResult
 
 		for _, fn := range fns {
 			result := fn(c)
-			if result.Confidence > threshold {
+			if Bool2int(result.Pass) < Bool2int(maxResult.Pass) {
+				continue
+			}
+			if result.Pass && result.Confidence >= maxConfidence {
 				return result
 			}
 			if result.Confidence >= maxResult.Confidence {
@@ -49,7 +59,7 @@ func ProportionalResult(numerator int, denominator int, threshold float32) Check
 	if numerator == 0 {
 		return CheckResult{
 			Pass:       false,
-			Confidence: 10,
+			Confidence: maxConfidence,
 		}
 	}
 
@@ -63,7 +73,7 @@ func ProportionalResult(numerator int, denominator int, threshold float32) Check
 
 	return CheckResult{
 		Pass:       false,
-		Confidence: int(10 - int(actual*10)),
+		Confidence: int(maxConfidence - int(actual*10)),
 	}
 }
 
