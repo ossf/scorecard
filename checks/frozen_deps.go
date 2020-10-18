@@ -64,13 +64,16 @@ func FrozenDeps(c checker.Checker) checker.CheckResult {
 			c.Logf("vendor dir found: %s", name)
 			return passResult
 		case "package-lock.json":
-			c.Logf("nodejs package-lock found: %s", name)
+			c.Logf("nodejs packages found: %s", name)
 			return passResult
 		case "requirements.txt":
 			c.Logf("python requirements found: %s", name)
 			return passResult
 		case "gemfile.lock":
-			c.Logf("ruby requirements found: %s", name)
+			c.Logf("ruby gems found: %s", name)
+			return passResult
+		case "cargo.lock":
+			c.Logf("rust crates found: %s", name)
 			return passResult
 		}
 	}
