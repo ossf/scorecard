@@ -37,7 +37,7 @@ func (r *Runner) Run(f CheckFn) CheckResult {
 		checker.Logf = l.Logf
 		res = f(checker)
 		if res.ShouldRetry {
-			r.Checker.Logf("error, retrying: %s", res.Error)
+			checker.Logf("error, retrying: %s", res.Error)
 			continue
 		}
 		break
