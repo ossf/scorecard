@@ -27,9 +27,9 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "scorecard",
-	Short: "Security scorecards!",
-	Long:  `A scorecard program!`,
+	Use:   "./scorecard --repo=<repo_url> [--checks=check1,...]",
+	Short: "Open Source Scorecards",
+	Long:  "A program that shows scorecard for an open source software.",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
@@ -99,7 +99,7 @@ var rootCmd = &cobra.Command{
 		fmt.Println("RESULTS")
 		fmt.Println("-------")
 		for _, r := range results {
-			fmt.Println(r.name, displayResult(r.cr.Pass), r.cr.Confidence)
+			fmt.Println(r.name+":", displayResult(r.cr.Pass), r.cr.Confidence)
 		}
 	},
 }
@@ -130,9 +130,9 @@ func stringInListOrEmpty(s string, list []string) bool {
 
 func displayResult(result bool) string {
 	if result {
-		return "pass"
+		return "Pass"
 	} else {
-		return "fail"
+		return "Fail"
 	}
 }
 

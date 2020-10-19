@@ -27,7 +27,7 @@ func PeriodicCommits(c checker.Checker) checker.CheckResult {
 	}
 
 	tz, _ := time.LoadLocation("UTC")
-	threshold := time.Now().In(tz).AddDate(0, 0, -1 * lookbackDays)
+	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookbackDays)
 	totalCommits := 0
 	for _, commit := range commits {
 		commitFull, _, err := c.Client.Git.GetCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA())
@@ -52,7 +52,7 @@ func PeriodicReleases(c checker.Checker) checker.CheckResult {
 	}
 
 	tz, _ := time.LoadLocation("UTC")
-	threshold := time.Now().In(tz).AddDate(0, 0, -1 * lookbackDays)
+	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookbackDays)
 	totalReleases := 0
 	for _, r := range releases {
 		if r.GetCreatedAt().After(threshold) {
@@ -65,6 +65,3 @@ func PeriodicReleases(c checker.Checker) checker.CheckResult {
 		Confidence: 10,
 	}
 }
-
-
-
