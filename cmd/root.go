@@ -28,8 +28,8 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "hugo",
-	Short: "Hugo is a very fast static site generator",
+	Use:   "scorecard",
+	Short: "Security scorecards!",
 	Long:  `A scorecard program!`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := zap.NewProductionConfig()
