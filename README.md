@@ -16,6 +16,7 @@ The program only requires one argument to run, the name of the repo:
 ```shell
 $ go build
 $ ./scorecard --repo=github.com/kubernetes/kubernetes
+Starting [Active]
 Starting [CI-Tests]
 Starting [CII-Best-Practices]
 Starting [Code-Review]
@@ -27,28 +28,30 @@ Starting [Security-Policy]
 Starting [Signed-Releases]
 Starting [Signed-Tags]
 Finished [Fuzzing]
-Finished [CII-Best-Practices]
 Finished [Frozen-Deps]
+Finished [CII-Best-Practices]
 Finished [Security-Policy]
 Finished [Contributors]
 Finished [Signed-Releases]
 Finished [Signed-Tags]
 Finished [CI-Tests]
 Finished [Code-Review]
+Finished [Active]
 Finished [Pull-Requests]
 
 RESULTS
 -------
-CI-Tests pass 10
-CII-Best-Practices pass 10
-Code-Review pass 10
-Contributors pass 10
-Frozen-Deps pass 10
-Fuzzing pass 10
-Pull-Requests pass 9
-Security-Policy pass 10
-Signed-Releases fail 10
-Signed-Tags fail 5
+Active: Pass 10
+CI-Tests: Pass 10
+CII-Best-Practices: Pass 10
+Code-Review: Pass 10
+Contributors: Pass 10
+Frozen-Deps: Pass 10
+Fuzzing: Pass 10
+Pull-Requests: Pass 10
+Security-Policy: Pass 10
+Signed-Releases: Fail 10
+Signed-Tags: Fail 5
 ```
 
 It is recommended to use an OAuth token to avoid rate limits.
@@ -91,7 +94,7 @@ and then create a new GitHub Issue.
 
 ## Results
 
-Each check returns a pass/fail decision, as well as a confidence score between 0 and 10.
+Each check returns a Pass/Fail decision, as well as a confidence score between 0 and 10.
 A confidence of 0 should indicate the check was unable to achieve any real signal, and the result
 should be ignored.
 A confidence of 10 indicates the check is completely sure of the result.

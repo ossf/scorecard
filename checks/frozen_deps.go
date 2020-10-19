@@ -66,7 +66,7 @@ func FrozenDeps(c checker.Checker) checker.CheckResult {
 		case "package-lock.json":
 			c.Logf("nodejs packages found: %s", name)
 			return passResult
-		case "requirements.txt":
+		case "requirements.txt", "pipfile.lock":
 			c.Logf("python requirements found: %s", name)
 			return passResult
 		case "gemfile.lock":
