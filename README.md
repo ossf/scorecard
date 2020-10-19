@@ -24,20 +24,22 @@ Starting [Contributors]
 Starting [Frozen-Deps]
 Starting [Fuzzing]
 Starting [Pull-Requests]
+Starting [SAST]
 Starting [Security-Policy]
 Starting [Signed-Releases]
 Starting [Signed-Tags]
 Finished [Fuzzing]
-Finished [Frozen-Deps]
 Finished [CII-Best-Practices]
+Finished [Frozen-Deps]
 Finished [Security-Policy]
 Finished [Contributors]
 Finished [Signed-Releases]
 Finished [Signed-Tags]
 Finished [CI-Tests]
+Finished [SAST]
 Finished [Code-Review]
-Finished [Active]
 Finished [Pull-Requests]
+Finished [Active]
 
 RESULTS
 -------
@@ -49,6 +51,7 @@ Contributors: Pass 10
 Frozen-Deps: Pass 10
 Fuzzing: Pass 10
 Pull-Requests: Pass 10
+SAST: Fail 0
 Security-Policy: Pass 10
 Signed-Releases: Fail 10
 Signed-Tags: Fail 5
@@ -78,7 +81,8 @@ The following checks are all run against the target project:
 | Code-Review | Does the project require code review before code is merged? |
 | CII-Best-Practices | Does the project have a CII Best Practices Badge? |
 | Pull-Requests | Does the project use Pull Requests for all changes? |
-| Fuzzing | Does the project use OSS Fuzz? |
+| Fuzzing | Does the project use OSS-Fuzz? |
+| SAST | Does the project use static code analysis tools, e.g. CodeQL? |
 | Active | Did the project get any commits and releases in last 90 days? |
 
 To see detailed information on how each check works, see the check-specific documentation pages.
