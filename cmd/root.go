@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"sort"
@@ -21,7 +20,7 @@ import (
 )
 
 var (
-	repo        string
+	repo        repoFlag
 	checksToRun string
 	// This one has to use goflag instead of pflag because it's defined by zap
 	logLevel = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
@@ -38,18 +37,6 @@ var rootCmd = &cobra.Command{
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()
 
-		split := strings.SplitN(repo, "/", 3)
-		if len(split) != 3 {
-			log.Fatalf("invalid repo flag: %s, pass the full repository URL", repo)
-		}
-		host, owner, repo := split[0], split[1], split[2]
-
-		switch host {
-		case "github.com":
-		default:
-			log.Fatalf("unsupported host: %s", host)
-		}
-
 		ctx := context.Background()
 
 		// Use our custom roundtripper
@@ -64,8 +51,8 @@ var rootCmd = &cobra.Command{
 			Ctx:        ctx,
 			Client:     ghClient,
 			HttpClient: client,
-			Owner:      owner,
-			Repo:       repo,
+			Owner:      repo.owner,
+			Repo:       repo.repo,
 		}
 
 		resultsCh := make(chan result)
@@ -152,6 +139,7 @@ func displayResult(result bool) string {
 func init() {
 	// Add the zap flag manually
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
-	rootCmd.PersistentFlags().StringVar(&repo, "repo", "", "repository to check")
+	rootCmd.PersistentFlags().Var(&repo, "repo", "repository to check")
+	rootCmd.MarkPersistentFlagRequired("repo")
 	rootCmd.PersistentFlags().StringVar(&checksToRun, "checks", "", "specific checks to run, instead of all")
 }
