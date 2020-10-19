@@ -21,7 +21,7 @@ func (r *repoFlag) Type() string {
 
 func (r *repoFlag) Set(s string) error {
 	rgx, _ := regexp.Compile("^https?://")
-	repo = rgx.ReplaceAllString(repo, "")
+	s = rgx.ReplaceAllString(s, "")
 	split := strings.SplitN(s, "/", 3)
 	if len(split) != 3 {
 		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
