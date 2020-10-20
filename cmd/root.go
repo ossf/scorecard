@@ -8,6 +8,8 @@ import (
 
 	goflag "flag"
 
+	"github.com/dlorenc/scorecard/checker"
+	"github.com/dlorenc/scorecard/checks"
 	"github.com/dlorenc/scorecard/pkg"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -31,12 +33,26 @@ var rootCmd = &cobra.Command{
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()
 
-		checksToRunList := []string{}
-		if len(checksToRun) > 0 {
-			checksToRunList = strings.Split(checksToRun, ",")
+		enabledChecks := []checker.NamedCheck{}
+
+		if len(checksToRun) != 0 {
+			split := strings.Split(checksToRun, ",")
+			checkNames := map[string]struct{}{}
+			for _, s := range split {
+				checkNames[s] = struct{}{}
+			}
+			for _, c := range checks.AllChecks {
+				if _, ok := checkNames[c.Name]; ok {
+					fmt.Fprintf(os.Stderr, "Starting [%s]\n", c.Name)
+					enabledChecks = append(enabledChecks, c)
+				}
+			}
+		} else {
+			enabledChecks = checks.AllChecks
 		}
 		ctx := context.Background()
-		results := pkg.RunScorecards(ctx, sugar, repo, checksToRunList)
+
+		results := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
 
 		fmt.Println()
 		fmt.Println("RESULTS")

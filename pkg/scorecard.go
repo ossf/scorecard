@@ -12,7 +12,6 @@ import (
 	"sync"
 
 	"github.com/dlorenc/scorecard/checker"
-	"github.com/dlorenc/scorecard/checks"
 	"github.com/dlorenc/scorecard/roundtripper"
 	"github.com/google/go-github/v32/github"
 	"go.uber.org/zap"
@@ -52,19 +51,7 @@ func (r *RepoURL) Set(s string) error {
 	}
 }
 
-func stringInListOrEmpty(s string, list []string) bool {
-	if len(list) == 0 {
-		return true
-	}
-	for _, le := range list {
-		if le == s {
-			return true
-		}
-	}
-	return false
-}
-
-func RunScorecards(ctx context.Context, logger *zap.SugaredLogger, repo RepoURL, checksToRun []string) []Result {
+func RunScorecards(ctx context.Context, logger *zap.SugaredLogger, repo RepoURL, checksToRun []checker.NamedCheck) []Result {
 	// Use our custom roundtripper
 	rt := roundtripper.NewTransport(ctx, logger)
 
@@ -83,13 +70,9 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger, repo RepoURL,
 
 	resultsCh := make(chan Result)
 	wg := sync.WaitGroup{}
-	for _, check := range checks.AllChecks {
+	for _, check := range checksToRun {
 		check := check
-		if !stringInListOrEmpty(check.Name, checksToRun) {
-			continue
-		}
 		wg.Add(1)
-		fmt.Fprintf(os.Stderr, "Starting [%s]\n", check.Name)
 		go func() {
 			defer wg.Done()
 			runner := checker.Runner{Checker: c}
