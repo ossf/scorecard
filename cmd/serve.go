@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"fmt"
+	"html/template"
 	"net/http"
+	"strings"
 
 	"github.com/dlorenc/scorecard/checks"
 	"github.com/dlorenc/scorecard/pkg"
@@ -23,14 +26,55 @@ var serveCmd = &cobra.Command{
 		logger, _ := cfg.Build()
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()
+		t, err := template.New("webpage").Parse(tpl)
+		if err != nil {
+			sugar.Panic(err)
+		}
 
 		http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-			// r := r.URL.Query().Get("repo")
-			var repo pkg.RepoURL
+			repoParam := r.URL.Query().Get("repo")
+			s := strings.SplitN(repoParam, "/", 3)
+			sugar.Info(repoParam)
+			repo := pkg.RepoURL{
+				Host:  s[0],
+				Owner: s[1],
+				Repo:  s[2],
+			}
 			ctx := r.Context()
-			pkg.RunScorecards(ctx, sugar, repo, checks.AllChecks)
-
+			resultCh := pkg.RunScorecards(ctx, sugar, repo, checks.AllChecks)
+			tc := tc{
+				URL: repoParam,
+			}
+			for r := range resultCh {
+				sugar.Info(r)
+				tc.Results = append(tc.Results, r)
+			}
+			if err := t.Execute(rw, tc); err != nil {
+				sugar.Warn(err)
+			}
 		})
+		fmt.Println("Listening on localhost:8080")
 		http.ListenAndServe("localhost:8080", nil)
 	},
 }
+
+type tc struct {
+	URL     string
+	Results []pkg.Result
+}
+
+const tpl = `
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Scorecard Results for: {{.URL}}</title>
+	</head>
+	<body>
+		{{range .Results}}
+			<div>
+				<p>{{ .Name }}: {{ .Cr.Pass }}</p>
+			</div>
+		{{end}}
+	</body>
+</html>`
