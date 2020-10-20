@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	goflag "flag"
@@ -43,16 +44,29 @@ var rootCmd = &cobra.Command{
 			}
 			for _, c := range checks.AllChecks {
 				if _, ok := checkNames[c.Name]; ok {
-					fmt.Fprintf(os.Stderr, "Starting [%s]\n", c.Name)
 					enabledChecks = append(enabledChecks, c)
 				}
 			}
 		} else {
 			enabledChecks = checks.AllChecks
 		}
+		for _, c := range enabledChecks {
+			fmt.Fprintf(os.Stderr, "Starting [%s]\n", c.Name)
+		}
 		ctx := context.Background()
 
-		results := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
+		resultsCh := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
+		// Collect results
+		results := []pkg.Result{}
+		for result := range resultsCh {
+			fmt.Fprintf(os.Stderr, "Finished [%s]\n", result.Name)
+			results = append(results, result)
+		}
+
+		// Sort them by name
+		sort.Slice(results, func(i, j int) bool {
+			return results[i].Name < results[j].Name
+		})
 
 		fmt.Println()
 		fmt.Println("RESULTS")
