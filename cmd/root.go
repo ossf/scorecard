@@ -18,7 +18,7 @@ import (
 
 var (
 	repo        pkg.RepoURL
-	checksToRun string
+	checksToRun []string
 	// This one has to use goflag instead of pflag because it's defined by zap
 	logLevel = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
 )
@@ -35,11 +35,9 @@ var rootCmd = &cobra.Command{
 		sugar := logger.Sugar()
 
 		enabledChecks := []checker.NamedCheck{}
-
 		if len(checksToRun) != 0 {
-			split := strings.Split(checksToRun, ",")
 			checkNames := map[string]struct{}{}
-			for _, s := range split {
+			for _, s := range checksToRun {
 				checkNames[s] = struct{}{}
 			}
 			for _, c := range checks.AllChecks {
@@ -95,7 +93,12 @@ func displayResult(result bool) string {
 func init() {
 	// Add the zap flag manually
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
-	rootCmd.PersistentFlags().Var(&repo, "repo", "repository to check")
-	rootCmd.MarkPersistentFlagRequired("repo")
-	rootCmd.PersistentFlags().StringVar(&checksToRun, "checks", "", "specific checks to run, instead of all")
+	rootCmd.Flags().Var(&repo, "repo", "repository to check")
+	rootCmd.MarkFlagRequired("repo")
+	checkNames := []string{}
+	for _, c := range checks.AllChecks {
+		checkNames = append(checkNames, c.Name)
+	}
+	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
+		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
 }
