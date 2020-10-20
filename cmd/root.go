@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	repo        repoFlag
+	repo        pkg.RepoURL
 	checksToRun string
 	// This one has to use goflag instead of pflag because it's defined by zap
 	logLevel = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
@@ -36,7 +36,7 @@ var rootCmd = &cobra.Command{
 			checksToRunList = strings.Split(checksToRun, ",")
 		}
 		ctx := context.Background()
-		results := pkg.RunScorecards(ctx, sugar, repo.host, repo.owner, repo.repo, checksToRunList)
+		results := pkg.RunScorecards(ctx, sugar, repo, checksToRunList)
 
 		fmt.Println()
 		fmt.Println("RESULTS")

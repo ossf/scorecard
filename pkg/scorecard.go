@@ -3,9 +3,12 @@ package pkg
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/dlorenc/scorecard/checker"
@@ -20,6 +23,35 @@ type Result struct {
 	Name string
 }
 
+type RepoURL struct {
+	Host, Owner, Repo string
+}
+
+func (r *RepoURL) String() string {
+	return fmt.Sprintf("%s/%s/%s", r.Host, r.Owner, r.Repo)
+}
+
+func (r *RepoURL) Type() string {
+	return "repo"
+}
+
+func (r *RepoURL) Set(s string) error {
+	rgx, _ := regexp.Compile("^https?://")
+	s = rgx.ReplaceAllString(s, "")
+	split := strings.SplitN(s, "/", 3)
+	if len(split) != 3 {
+		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
+	}
+	r.Host, r.Owner, r.Repo = split[0], split[1], split[2]
+
+	switch r.Host {
+	case "github.com":
+		return nil
+	default:
+		return fmt.Errorf("unsupported host: %s", r.Host)
+	}
+}
+
 func stringInListOrEmpty(s string, list []string) bool {
 	if len(list) == 0 {
 		return true
@@ -32,7 +64,7 @@ func stringInListOrEmpty(s string, list []string) bool {
 	return false
 }
 
-func RunScorecards(ctx context.Context, logger *zap.SugaredLogger, host, owner, repo string, checksToRun []string) []Result {
+func RunScorecards(ctx context.Context, logger *zap.SugaredLogger, repo RepoURL, checksToRun []string) []Result {
 	// Use our custom roundtripper
 	rt := roundtripper.NewTransport(ctx, logger)
 
@@ -45,8 +77,8 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger, host, owner, 
 		Ctx:        ctx,
 		Client:     ghClient,
 		HttpClient: client,
-		Owner:      owner,
-		Repo:       repo,
+		Owner:      repo.Owner,
+		Repo:       repo.Repo,
 	}
 
 	resultsCh := make(chan Result)
