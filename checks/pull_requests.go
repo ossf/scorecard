@@ -39,9 +39,9 @@ func PullRequests(c checker.Checker) checker.CheckResult {
 		}
 		total++
 		if len(prs) > 0 {
-			c.Logf("found PRs, example: #%v", prs[0].GetNumber())
 			totalWithPrs++
 		}
 	}
+	c.Logf("Found PRs for %d out of %d commits", totalWithPrs, total)
 	return checker.ProportionalResult(totalWithPrs, total, .75)
 }

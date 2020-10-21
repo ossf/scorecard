@@ -2,7 +2,7 @@ package checker
 
 type CheckResult struct {
 	Pass        bool
-	Details     string
+	Details     []string
 	Confidence  int
 	ShouldRetry bool
 	Error       error

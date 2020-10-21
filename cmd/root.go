@@ -20,7 +20,8 @@ var (
 	repo        pkg.RepoURL
 	checksToRun []string
 	// This one has to use goflag instead of pflag because it's defined by zap
-	logLevel = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
+	logLevel    = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
+	showDetails bool
 )
 
 var rootCmd = &cobra.Command{
@@ -71,6 +72,11 @@ var rootCmd = &cobra.Command{
 		fmt.Println("-------")
 		for _, r := range results {
 			fmt.Println(r.Name+":", displayResult(r.Cr.Pass), r.Cr.Confidence)
+			if showDetails {
+				for _, d := range r.Cr.Details {
+					fmt.Println("    " + d)
+				}
+			}
 		}
 	},
 }
@@ -95,6 +101,7 @@ func init() {
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
 	rootCmd.Flags().Var(&repo, "repo", "repository to check")
 	rootCmd.MarkFlagRequired("repo")
+	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
 	for _, c := range checks.AllChecks {
 		checkNames = append(checkNames, c.Name)

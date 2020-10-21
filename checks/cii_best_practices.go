@@ -43,11 +43,12 @@ func CiiBestPractices(c checker.Checker) checker.CheckResult {
 	}
 
 	result := parsedResponse[0]
+	c.Logf("badge level: %s", result.BadgeLevel)
+
 	if result.BadgeLevel != "" {
 		return checker.CheckResult{
 			Pass:       true,
 			Confidence: 10,
-			Details:    result.BadgeLevel,
 		}
 	}
 

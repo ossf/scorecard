@@ -17,11 +17,11 @@ type Checker struct {
 }
 
 type logger struct {
-	message string
+	messages []string
 }
 
 func (l *logger) Logf(s string, f ...interface{}) {
-	l.message += fmt.Sprintf(s+"\n", f...)
+	l.messages = append(l.messages, fmt.Sprintf(s+"\n", f...))
 }
 
 type Runner struct {
@@ -41,7 +41,8 @@ func (r *Runner) Run(f CheckFn) CheckResult {
 			continue
 		}
 		break
+
 	}
-	res.Details = l.message
+	res.Details = l.messages
 	return res
 }
