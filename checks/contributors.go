@@ -1,6 +1,8 @@
 package checks
 
 import (
+	"strings"
+
 	"github.com/dlorenc/scorecard/checker"
 	"github.com/google/go-github/v32/github"
 )
@@ -26,12 +28,16 @@ func Contributors(c checker.Checker) checker.CheckResult {
 				companies[u.GetCompany()] = struct{}{}
 			}
 		}
-		c.Logf("companies found: %v", companies)
-		if len(companies) > 2 {
-			return checker.CheckResult{
-				Pass:       true,
-				Confidence: 10,
-			}
+	}
+	names := []string{}
+	for c := range companies {
+		names = append(names, c)
+	}
+	c.Logf("Companies found: %v", strings.Join(names, ","))
+	if len(companies) > 2 {
+		return checker.CheckResult{
+			Pass:       true,
+			Confidence: 10,
 		}
 	}
 	return checker.CheckResult{
