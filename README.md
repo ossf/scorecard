@@ -85,7 +85,8 @@ The following checks are all run against the target project:
 | SAST | Does the project use static code analysis tools, e.g. CodeQL? |
 | Active | Did the project get any commits and releases in last 90 days? |
 
-To see detailed information on how each check works, see the check-specific documentation pages.
+To see detailed information on how each check works, see the [check-specific documentation page](checks.md).
+
 To use a particular check, add the `--checks` argument with a list of check
 names (for example `--checks=CI-Tests,Code-Review`).
 
