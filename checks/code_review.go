@@ -51,10 +51,9 @@ func GithubCodeReview(c checker.Checker) checker.CheckResult {
 		}
 	}
 
-	if totalReviewed == 0 {
-		return checker.InconclusiveResult
+	if totalReviewed > 0 {
+		c.Logf("github code reviews found")
 	}
-	c.Logf("github code reviews found")
 	return checker.ProportionalResult(totalReviewed, totalMerged, .75)
 }
 
