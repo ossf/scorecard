@@ -36,6 +36,7 @@ func CiiBestPractices(c checker.Checker) checker.CheckResult {
 	}
 
 	if len(parsedResponse) < 1 {
+		c.Logf("no badge found")
 		return checker.CheckResult{
 			Pass:       false,
 			Confidence: 10,

@@ -38,7 +38,7 @@ func PeriodicCommits(c checker.Checker) checker.CheckResult {
 			totalCommits++
 		}
 	}
-
+	c.Logf("commits in last %d days: %d", lookbackDays, totalCommits)
 	return checker.CheckResult{
 		Pass:       totalCommits >= 2,
 		Confidence: 7,
@@ -59,7 +59,7 @@ func PeriodicReleases(c checker.Checker) checker.CheckResult {
 			totalReleases++
 		}
 	}
-
+	c.Logf("releases in last %d days: %d", lookbackDays, totalReleases)
 	return checker.CheckResult{
 		Pass:       totalReleases > 0,
 		Confidence: 10,

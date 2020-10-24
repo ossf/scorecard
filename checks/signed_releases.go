@@ -32,9 +32,9 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 		totalReleases++
 		signed := false
 		for _, asset := range assets {
-			c.Logf("signed release found: %s", asset.GetName())
 			for _, suffix := range []string{".asc", ".minisig", ".sig"} {
 				if strings.HasSuffix(asset.GetName(), suffix) {
+					c.Logf("signed release found: %s, url: %s", asset.GetName(), asset.GetURL())
 					signed = true
 					break
 				}

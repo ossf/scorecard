@@ -25,7 +25,8 @@ func Contributors(c checker.Checker) checker.CheckResult {
 				return checker.RetryResult(err)
 			}
 			if u.GetCompany() != "" {
-				companies[u.GetCompany()] = struct{}{}
+				company := strings.ToLower(strings.Trim(strings.TrimSpace(u.GetCompany()), "@"))
+				companies[company] = struct{}{}
 			}
 		}
 	}
@@ -33,7 +34,7 @@ func Contributors(c checker.Checker) checker.CheckResult {
 	for c := range companies {
 		names = append(names, c)
 	}
-	c.Logf("Companies found: %v", strings.Join(names, ","))
+	c.Logf("companies found: %v", strings.Join(names, ","))
 	if len(companies) > 2 {
 		return checker.CheckResult{
 			Pass:       true,

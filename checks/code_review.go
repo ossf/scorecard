@@ -51,6 +51,9 @@ func GithubCodeReview(c checker.Checker) checker.CheckResult {
 		}
 	}
 
+	if totalReviewed > 0 {
+		c.Logf("github code reviews found")
+	}
 	return checker.ProportionalResult(totalReviewed, totalMerged, .75)
 }
 
@@ -104,6 +107,5 @@ func ProwCodeReview(c checker.Checker) checker.CheckResult {
 		return checker.InconclusiveResult
 	}
 	c.Logf("prow code reviews found")
-
 	return checker.ProportionalResult(totalReviewed, totalMerged, .75)
 }
