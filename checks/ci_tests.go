@@ -35,7 +35,7 @@ func GithubStatuses(c checker.Checker) checker.CheckResult {
 				continue
 			}
 			if isTest(status.GetContext()) {
-				c.Logf("CI test found: %s", status.GetContext())
+				c.Logf("CI test found: context: %s, url: %s", status.GetContext(), status.GetURL())
 				totalTested++
 				break
 			}
@@ -86,7 +86,7 @@ func GithubCheckRuns(c checker.Checker) checker.CheckResult {
 				continue
 			}
 			if isTest(cr.GetApp().GetSlug()) {
-				c.Logf("CI test found: %s", cr.GetApp().GetSlug())
+				c.Logf("CI test found: context: %s, url: %s", cr.GetApp().GetSlug(), cr.GetURL())
 				totalTested++
 				break
 			}

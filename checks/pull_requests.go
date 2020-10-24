@@ -42,6 +42,6 @@ func PullRequests(c checker.Checker) checker.CheckResult {
 			totalWithPrs++
 		}
 	}
-	c.Logf("Found PRs for %d out of %d commits", totalWithPrs, total)
+	c.Logf("found PRs for %d out of %d commits", totalWithPrs, total)
 	return checker.ProportionalResult(totalWithPrs, total, .75)
 }

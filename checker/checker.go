@@ -21,7 +21,7 @@ type logger struct {
 }
 
 func (l *logger) Logf(s string, f ...interface{}) {
-	l.messages = append(l.messages, fmt.Sprintf(s+"\n", f...))
+	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
 
 type Runner struct {

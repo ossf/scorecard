@@ -27,6 +27,7 @@ func init() {
 func Fuzzing(c checker.Checker) checker.CheckResult {
 	url := fmt.Sprintf("github.com/%s/%s", c.Owner, c.Repo)
 	if _, ok := ossFuzzRepos[url]; ok {
+		c.Logf("found project in OSS-Fuzz")
 		return checker.CheckResult{
 			Pass:       true,
 			Confidence: 10,
