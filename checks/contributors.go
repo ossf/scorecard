@@ -35,7 +35,7 @@ func Contributors(c checker.Checker) checker.CheckResult {
 		names = append(names, c)
 	}
 	c.Logf("companies found: %v", strings.Join(names, ","))
-	if len(companies) > 2 {
+	if len(companies) >= 2 {
 		return checker.CheckResult{
 			Pass:       true,
 			Confidence: 10,
