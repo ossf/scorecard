@@ -25,9 +25,9 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "./scorecard --repo=<repo_url> [--checks=check1,...]",
-	Short: "Open Source Scorecards",
-	Long:  "A program that shows scorecard for an open source software.",
+	Use:   "./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details]",
+	Short: "Security Scorecards",
+	Long:  "A program that shows security scorecard for an open source software.",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
