@@ -1,9 +1,9 @@
-# Contributing to OSS Scorecards!
+# Contributing to Security Scorecards!
 
-Thank you for contributing your time and expertise to the OSS Scorecards project.
+Thank you for contributing your time and expertise to the Security Scorecards project.
 This document describes the contribution guidelines for the project.
 
-**Note:** Before you start contributing, you must read and abide by our **[Code of Conduct](./code-of-conduct.md)**.
+**Note:** Before you start contributing, you must read and abide by our **[Code of Conduct](./CODE_OF_CONDUCT.md)**.
 
 ## Contributing code
 
@@ -15,7 +15,7 @@ This document describes the contribution guidelines for the project.
 
 Then you can [iterate](#iterating).
     
-## Environment Setup
+### Environment Setup
 
 You must install these tools:
 
