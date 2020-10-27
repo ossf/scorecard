@@ -1,7 +1,7 @@
 # Check Documentation
 
 This page contains information on how each check works and calculates scores.
-All of these checks are basically "best-geusses" currently, and operate on a series of heuristics.
+All of these checks are basically "best-guesses" currently, and operate on a set of heuristics.
 
 They are all subject to change, and have much room for improvement!
 If you have ideas for things to add, or new ways to detect things, please contribute!
@@ -57,8 +57,8 @@ It currently works by checking if the repo name is in the [OSS-Fuzz](https://git
 
 ## SAST
 
-This check tries to determine if the project uses static analysis systems.
-It currently works by looking for well-known results (CodeQL, etc.) in GitHub pull requests.
+This check tries to determine if the project uses static code analysis systems.
+It currently works by looking for well-known results ([CodeQL](https://securitylab.github.com/tools/codeql), etc.) in GitHub pull requests.
 
 ## Active
 
