@@ -14,7 +14,7 @@
 
 package checks
 
-import "github.com/dlorenc/scorecard/checker"
+import "github.com/ossf/scorecard/checker"
 
 var AllChecks = []checker.NamedCheck{}
 

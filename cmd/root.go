@@ -23,9 +23,9 @@ import (
 
 	goflag "flag"
 
-	"github.com/dlorenc/scorecard/checker"
-	"github.com/dlorenc/scorecard/checks"
-	"github.com/dlorenc/scorecard/pkg"
+	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/pkg"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
