@@ -20,7 +20,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/dlorenc/scorecard/checker"
+	"github.com/ossf/scorecard/checker"
 )
 
 func init() {

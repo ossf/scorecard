@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"strings"
 
-	"github.com/dlorenc/scorecard/checks"
-	"github.com/dlorenc/scorecard/pkg"
+	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/pkg"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -48,6 +49,9 @@ var serveCmd = &cobra.Command{
 		http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 			repoParam := r.URL.Query().Get("repo")
 			s := strings.SplitN(repoParam, "/", 3)
+			if len(s) != 3 {
+				rw.WriteHeader(http.StatusBadRequest)
+			}
 			sugar.Info(repoParam)
 			repo := pkg.RepoURL{
 				Host:  s[0],
@@ -67,8 +71,12 @@ var serveCmd = &cobra.Command{
 				sugar.Warn(err)
 			}
 		})
-		fmt.Println("Listening on localhost:8080")
-		http.ListenAndServe("localhost:8080", nil)
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "8080"
+		}
+		fmt.Printf("Listening on localhost:%s\n", port)
+		http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil)
 	},
 }
 

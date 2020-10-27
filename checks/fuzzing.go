@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dlorenc/scorecard/checker"
+	"github.com/ossf/scorecard/checker"
 )
 
 //go:generate ../gen_github.sh

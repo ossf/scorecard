@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/dlorenc/scorecard/checker"
+	"github.com/ossf/scorecard/checker"
 )
 
 func init() {

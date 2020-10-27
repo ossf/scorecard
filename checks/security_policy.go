@@ -17,8 +17,8 @@ package checks
 import (
 	"path"
 
-	"github.com/dlorenc/scorecard/checker"
 	"github.com/google/go-github/v32/github"
+	"github.com/ossf/scorecard/checker"
 )
 
 func init() {

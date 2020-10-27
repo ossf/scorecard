@@ -17,8 +17,8 @@ package checks
 import (
 	"strings"
 
-	"github.com/dlorenc/scorecard/checker"
 	"github.com/google/go-github/v32/github"
+	"github.com/ossf/scorecard/checker"
 )
 
 var releaseLookBack int = 5

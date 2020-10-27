@@ -1,4 +1,4 @@
-module github.com/dlorenc/scorecard
+module github.com/ossf/scorecard
 
 go 1.15
 

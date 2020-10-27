@@ -23,9 +23,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/dlorenc/scorecard/checker"
-	"github.com/dlorenc/scorecard/roundtripper"
 	"github.com/google/go-github/v32/github"
+	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/roundtripper"
 	"go.uber.org/zap"
 )
 
