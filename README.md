@@ -97,6 +97,15 @@ If you'd like to add a check, make sure it is something that meets the following
 
 and then create a new GitHub Issue.
 
+## Contributing
+
+If you want to get involved or have ideas you'd like to chat about, we discuss this project in the [OSSF Best Practices Working Group](https://github.com/ossf/wg-best-practices-os-developers) meetings.
+
+See the [Community Calendar](https://calendar.google.com/calendar?cid=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ) for the schedule and meeting invitations.
+
+See the [Contributing](CONTRIBUTING.md) documentation for guidance on how to contribute.
+
+
 ## Results
 
 Each check returns a Pass/Fail decision, as well as a confidence score between 0 and 10.
@@ -113,7 +122,3 @@ Many of the checks are based on heuristics, contributions are welcome to improve
 * Maintainers must be provided with a mechanism to correct any automated scorecard findings they feel were made in error, provide "hints" for anything we can't detect automatically, and even dispute the applicability of a given scorecard finding for that repository.
 * Any criteria in the scorecard must be actionable. It should be possible, with help, for any project to "check all the boxes".
 * Any solution to compile a scorecard should be usable by the greater open source community to monitor upstream security.
-
-## Contributing
-
-See the [Contributing](CONTRIBUTING.md) documentation for guidance on how to contribute.
