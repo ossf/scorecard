@@ -20,11 +20,13 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/v32/github"
+	"github.com/shurcooL/githubv4"
 )
 
 type Checker struct {
 	Ctx         context.Context
 	Client      *github.Client
+	GraphClient *githubv4.Client
 	HttpClient  *http.Client
 	Owner, Repo string
 	Logf        func(s string, f ...interface{})
