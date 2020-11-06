@@ -1,5 +1,7 @@
 # Security Scorecards
 
+<img align="right" src="artwork/openssf_security.png" width="200" height="400">
+
 ## Motivation
 
 A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You passed! All D's ... and an A!"
