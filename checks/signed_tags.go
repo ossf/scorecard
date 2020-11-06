@@ -15,8 +15,8 @@
 package checks
 
 import (
-	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checker"
+	"github.com/shurcooL/githubv4"
 )
 
 var tagLookBack int = 5
@@ -26,21 +26,41 @@ func init() {
 }
 
 func SignedTags(c checker.Checker) checker.CheckResult {
-	tags, _, err := c.Client.Repositories.ListTags(c.Ctx, c.Owner, c.Repo, &github.ListOptions{})
-	if err != nil {
+
+	type ref struct {
+		Name   githubv4.String
+		Target struct {
+			Oid githubv4.String
+		}
+	}
+	var query struct {
+		Repository struct {
+			Refs struct {
+				Nodes []ref
+			} `graphql:"refs(refPrefix: \"refs/tags/\", last: 20)"`
+		} `graphql:"repository(owner: $owner, name: $name)"`
+	}
+
+	variables := map[string]interface{}{
+		"owner": githubv4.String(c.Owner),
+		"name":  githubv4.String(c.Repo),
+	}
+
+	if err := c.GraphClient.Query(c.Ctx, &query, variables); err != nil {
 		return checker.RetryResult(err)
 	}
 
 	totalReleases := 0
 	totalSigned := 0
-	for _, t := range tags {
+	for _, t := range query.Repository.Refs.Nodes {
+		sha := string(t.Target.Oid)
 		totalReleases++
-		gt, _, err := c.Client.Git.GetCommit(c.Ctx, c.Owner, c.Repo, t.GetCommit().GetSHA())
+		gt, _, err := c.Client.Git.GetTag(c.Ctx, c.Owner, c.Repo, sha)
 		if err != nil {
 			return checker.RetryResult(err)
 		}
 		if gt.GetVerification().GetVerified() {
-			c.Logf("signed tag found: %s, commit: %s", *t.Name, t.GetCommit().GetSHA())
+			c.Logf("signed tag found: %s, commit: %s", t.Name, sha)
 			totalSigned++
 		}
 		if totalReleases > tagLookBack {

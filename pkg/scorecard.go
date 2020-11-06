@@ -26,6 +26,7 @@ import (
 	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/roundtripper"
+	"github.com/shurcooL/githubv4"
 	"go.uber.org/zap"
 )
 
@@ -71,13 +72,15 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger, repo RepoURL,
 		Transport: rt,
 	}
 	ghClient := github.NewClient(client)
+	graphClient := githubv4.NewClient(client)
 
 	c := checker.Checker{
-		Ctx:        ctx,
-		Client:     ghClient,
-		HttpClient: client,
-		Owner:      repo.Owner,
-		Repo:       repo.Repo,
+		Ctx:         ctx,
+		Client:      ghClient,
+		HttpClient:  client,
+		Owner:       repo.Owner,
+		Repo:        repo.Repo,
+		GraphClient: graphClient,
 	}
 
 	resultsCh := make(chan Result)
