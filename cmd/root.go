@@ -63,7 +63,7 @@ var rootCmd = &cobra.Command{
 		case formatCSV:
 			outputFn = outputCSV
 		case formatDefault:
-			outputFn = outputCSV
+			outputFn = outputDefault
 		default:
 			log.Fatalf("invalid format flag %s. allowed values are: [default, csv]", format)
 		}
