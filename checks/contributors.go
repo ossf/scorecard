@@ -38,8 +38,14 @@ func Contributors(c checker.Checker) checker.CheckResult {
 			if err != nil {
 				return checker.RetryResult(err)
 			}
-			if u.GetCompany() != "" {
-				company := strings.ToLower(strings.Trim(strings.TrimSpace(u.GetCompany()), "@"))
+			company := u.GetCompany()
+			if company != "" {
+				company = strings.ToLower(company)
+				company = strings.ReplaceAll(company, "inc.", "")
+				company = strings.ReplaceAll(company, "llc", "")
+				company = strings.ReplaceAll(company, ",", "")
+				company = strings.TrimLeft(company, "@")
+				company = strings.Trim(company, " ")
 				companies[company] = struct{}{}
 			}
 		}
