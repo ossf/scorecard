@@ -37,13 +37,14 @@ func SignedTags(c checker.Checker) checker.CheckResult {
 		Repository struct {
 			Refs struct {
 				Nodes []ref
-			} `graphql:"refs(refPrefix: \"refs/tags/\", last: 20)"`
+			} `graphql:"refs(refPrefix: \"refs/tags/\", last: $count)"`
 		} `graphql:"repository(owner: $owner, name: $name)"`
 	}
 
 	variables := map[string]interface{}{
 		"owner": githubv4.String(c.Owner),
 		"name":  githubv4.String(c.Repo),
+		"count": githubv4.Int(tagLookBack),
 	}
 
 	if err := c.GraphClient.Query(c.Ctx, &query, variables); err != nil {
@@ -62,9 +63,6 @@ func SignedTags(c checker.Checker) checker.CheckResult {
 		if gt.GetVerification().GetVerified() {
 			c.Logf("signed tag found: %s, commit: %s", t.Name, sha)
 			totalSigned++
-		}
-		if totalReleases > tagLookBack {
-			break
 		}
 	}
 
