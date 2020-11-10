@@ -77,7 +77,7 @@ func FrozenDeps(c checker.Checker) checker.CheckResult {
 		case "vendor/", "third_party/", "third-party/":
 			c.Logf("vendor dir found: %s", name)
 			return passResult
-		case "package-lock.json":
+		case "package-lock.json", "npm-shrinkwrap.json":
 			c.Logf("nodejs packages found: %s", name)
 			return passResult
 		case "requirements.txt", "pipfile.lock":
