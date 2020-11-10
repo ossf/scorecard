@@ -15,7 +15,10 @@
 package checks
 
 import (
+    "fmt"
+    "net/http"
 	"path"
+    "strings"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checker"
@@ -26,6 +29,7 @@ func init() {
 }
 
 func SecurityPolicy(c checker.Checker) checker.CheckResult {
+    // check repository for repository-specific policy
 	for _, securityFile := range []string{"SECURITY.md", "security.md"} {
 		for _, dirs := range []string{"", ".github", "docs"} {
 			fp := path.Join(dirs, securityFile)
@@ -41,6 +45,25 @@ func SecurityPolicy(c checker.Checker) checker.CheckResult {
 			}
 		}
 	}
+    // alternatively check repository owner for default community health file
+    r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, ".github")
+    if err != nil {
+        return checker.RetryResult(err)
+    }
+    url := fmt.Sprintf("https://raw.githubusercontent.com/%s/.github/{/ref}/SECURITY.md", c.Owner)
+    url = strings.Replace(url, "{/ref}", r.GetDefaultBranch(), 1)
+    resp, err := c.HttpClient.Get(url)
+    if err != nil {
+        return checker.RetryResult(err)
+    }
+    if resp.StatusCode == http.StatusOK {
+        c.Logf("security policy found (default community health file): %s", url)
+        return checker.CheckResult{
+            Pass:   true,
+            Confidence: 10,
+        }
+    }
+    // policy wasn't found, return failure case
 	return checker.CheckResult{
 		Pass:       false,
 		Confidence: 10,
