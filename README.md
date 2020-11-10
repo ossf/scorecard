@@ -89,9 +89,6 @@ The following checks are all run against the target project:
 
 To see detailed information on how each check works, see the [check-specific documentation page](checks.md).
 
-To use a particular check, add the `--checks` argument with a list of check
-names (for example `--checks=CI-Tests,Code-Review`).
-
 If you'd like to add a check, make sure it is something that meets the following criteria:
 * automate-able 
 * objective
@@ -99,22 +96,29 @@ If you'd like to add a check, make sure it is something that meets the following
 
 and then create a new GitHub Issue.
 
-### Formatting Results
-
-There are two formats currently: `default` and `csv`.
-Others may be added in the future.
-These may be specified with the `--format` flag.
-
 ## Results
 
-Each check returns a Pass/Fail decision, as well as a confidence score between 0 and 10.
+Each check returns a **Pass / Fail** decision, as well as a confidence score between **0 and 10**.
 A confidence of 0 should indicate the check was unable to achieve any real signal, and the result
 should be ignored.
 A confidence of 10 indicates the check is completely sure of the result.
 
 Many of the checks are based on heuristics, contributions are welcome to improve the detection!
 
-### Requirements
+### Running specific checks
+
+To use a particular check(s), add the `--checks` argument with a list of check
+names.
+
+For example, `--checks=CI-Tests,Code-Review`.
+
+### Formatting Results
+
+There are two formats currently: `default` and `csv`. Others may be added in the future.
+
+These may be specified with the `--format` flag.
+
+## Requirements
 * The scorecard must only be composed of automate-able, objective data. For example, a project having 10 contributors doesn’t necessarily mean it’s more secure than a project with say 50 contributors. But, having two maintainers might be preferable to only having one -  the larger bus factor and ability to provide code reviews is objectively better.
 * The scorecard criteria can be as specific as possible and not limited general recommendations. For example, for Go, we can recommend/require specific linters and analyzers to be run on the codebase.
 * The scorecard can be populated for any open source project without any work or interaction from maintainers. 
