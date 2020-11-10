@@ -26,6 +26,7 @@ func init() {
 }
 
 func SecurityPolicy(c checker.Checker) checker.CheckResult {
+    // check repository for repository-specific policy
 	for _, securityFile := range []string{"SECURITY.md", "security.md"} {
 		for _, dirs := range []string{"", ".github", "docs"} {
 			fp := path.Join(dirs, securityFile)
@@ -41,6 +42,17 @@ func SecurityPolicy(c checker.Checker) checker.CheckResult {
 			}
 		}
 	}
+    // alternatively check repository owner for default community health file
+    dc, err := c.Client.Repositories.DownloadContents(c.Ctx, c.Owner, ".github", "SECURITY.md", &github.RepositoryContentGetOptions{})
+    if err == nil {
+        dc.Close()
+        c.Logf("security policy found (default community health file)", )
+        return checker.CheckResult{
+            Pass:   true,
+            Confidence: 10,
+        }
+    }
+    // policy wasn't found, return failure case
 	return checker.CheckResult{
 		Pass:       false,
 		Confidence: 10,
