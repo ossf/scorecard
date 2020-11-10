@@ -16,9 +16,12 @@ package cmd
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 
 	goflag "flag"
@@ -35,7 +38,13 @@ var (
 	checksToRun []string
 	// This one has to use goflag instead of pflag because it's defined by zap
 	logLevel    = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
+	format      string
 	showDetails bool
+)
+
+const (
+	formatCSV     = "csv"
+	formatDefault = "default"
 )
 
 var rootCmd = &cobra.Command{
@@ -48,6 +57,16 @@ var rootCmd = &cobra.Command{
 		logger, _ := cfg.Build()
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()
+
+		var outputFn func([]pkg.Result)
+		switch format {
+		case formatCSV:
+			outputFn = outputCSV
+		case formatDefault:
+			outputFn = outputCSV
+		default:
+			log.Fatalf("invalid format flag %s. allowed values are: [default, csv]", format)
+		}
 
 		enabledChecks := []checker.NamedCheck{}
 		if len(checksToRun) != 0 {
@@ -81,18 +100,36 @@ var rootCmd = &cobra.Command{
 			return results[i].Name < results[j].Name
 		})
 
-		fmt.Println()
-		fmt.Println("RESULTS")
-		fmt.Println("-------")
-		for _, r := range results {
-			fmt.Println(r.Name+":", displayResult(r.Cr.Pass), r.Cr.Confidence)
-			if showDetails {
-				for _, d := range r.Cr.Details {
-					fmt.Println("    " + d)
-				}
+		outputFn(results)
+	},
+}
+
+func outputCSV(results []pkg.Result) {
+	w := csv.NewWriter(os.Stdout)
+	record := []string{repo.String()}
+	columns := []string{"Repository"}
+	for _, r := range results {
+		columns = append(columns, r.Name+"-Pass", r.Name+"-Confidence")
+		record = append(record, strconv.FormatBool(r.Cr.Pass), strconv.Itoa(r.Cr.Confidence))
+	}
+	fmt.Fprintln(os.Stderr, "CSV COLUMN NAMES")
+	fmt.Fprintf(os.Stderr, "%s\n", strings.Join(columns, ","))
+	w.Write(record)
+	w.Flush()
+}
+
+func outputDefault(results []pkg.Result) {
+	fmt.Println()
+	fmt.Println("RESULTS")
+	fmt.Println("-------")
+	for _, r := range results {
+		fmt.Println(r.Name+":", displayResult(r.Cr.Pass), r.Cr.Confidence)
+		if showDetails {
+			for _, d := range r.Cr.Details {
+				fmt.Println("    " + d)
 			}
 		}
-	},
+	}
 }
 
 func Execute() {
@@ -114,6 +151,7 @@ func init() {
 	// Add the zap flag manually
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
 	rootCmd.Flags().Var(&repo, "repo", "repository to check")
+	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv]")
 	rootCmd.MarkFlagRequired("repo")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}

@@ -99,6 +99,12 @@ If you'd like to add a check, make sure it is something that meets the following
 
 and then create a new GitHub Issue.
 
+### Formatting Results
+
+There are two formats currently: `default` and `csv`.
+Others may be added in the future.
+These may be specified with the `--format` flag.
+
 ## Results
 
 Each check returns a Pass/Fail decision, as well as a confidence score between 0 and 10.
