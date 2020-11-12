@@ -11,6 +11,22 @@ A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You
 
 1. Use this data to proactively improve the security posture of the critical projects the world depends on.
 
+## Public Data
+
+If you're only interested in seeing the results over time, we run this program nightly and publish the results in
+`csv` format.
+
+This data is available on Google Cloud Storage and can be downloaded via the `gsutil` command-line tool.
+
+```shell
+$ gsutil ls gs://ossf-scorecards/
+gs://ossf-scorecards/11-11-2020.csv
+...
+```
+
+The list of projects that are checked each night is available in the `cron/projects.txt` file in this repository.
+If you would like us to track more, please feel free to send a Pull Request with others.
+
 ## Usage
 
 The program only requires one argument to run, the name of the repo:
