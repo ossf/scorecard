@@ -130,7 +130,7 @@ For example, `--checks=CI-Tests,Code-Review`.
 
 ### Formatting Results
 
-There are two formats currently: `default` and `csv`. Others may be added in the future.
+There are two formats currently: `default`, `json`, and `csv`. Others may be added in the future.
 
 These may be specified with the `--format` flag.
 
