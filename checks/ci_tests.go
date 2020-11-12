@@ -89,7 +89,7 @@ func GithubCheckRuns(c checker.Checker) checker.CheckResult {
 		}
 		totalMerged++
 		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
-		if err != nil {
+		if err != nil || crs == nil {
 			return checker.RetryResult(err)
 		}
 		for _, cr := range crs.CheckRuns {
