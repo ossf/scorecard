@@ -17,12 +17,14 @@ package cmd
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	goflag "flag"
 
@@ -44,6 +46,7 @@ var (
 
 const (
 	formatCSV     = "csv"
+	formatJSON    = "json"
 	formatDefault = "default"
 )
 
@@ -64,8 +67,10 @@ var rootCmd = &cobra.Command{
 			outputFn = outputCSV
 		case formatDefault:
 			outputFn = outputDefault
+		case formatJSON:
+			outputFn = outputJSON
 		default:
-			log.Fatalf("invalid format flag %s. allowed values are: [default, csv]", format)
+			log.Fatalf("invalid format flag %s. allowed values are: [default, csv, json]", format)
 		}
 
 		enabledChecks := []checker.NamedCheck{}
@@ -102,6 +107,38 @@ var rootCmd = &cobra.Command{
 
 		outputFn(results)
 	},
+}
+
+type checkResult struct {
+	CheckName  string
+	Pass       bool
+	Confidence int
+}
+
+type record struct {
+	Repo   string
+	Date   string
+	Checks []checkResult
+}
+
+func outputJSON(results []pkg.Result) {
+	d := time.Now()
+	or := record{
+		Repo: repo.String(),
+		Date: d.Format("2006-01-01"),
+	}
+	for _, r := range results {
+		or.Checks = append(or.Checks, checkResult{
+			CheckName:  r.Name,
+			Pass:       r.Cr.Pass,
+			Confidence: r.Cr.Confidence,
+		})
+	}
+	output, err := json.Marshal(or)
+	if err != nil {
+		log.Panic(err)
+	}
+	fmt.Println(string(output))
 }
 
 func outputCSV(results []pkg.Result) {
@@ -151,7 +188,7 @@ func init() {
 	// Add the zap flag manually
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
 	rootCmd.Flags().Var(&repo, "repo", "repository to check")
-	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv]")
+	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv, json]")
 	rootCmd.MarkFlagRequired("repo")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
