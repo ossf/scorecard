@@ -1,0 +1,28 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: daily-score
+spec:
+  schedule: "0 8 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: run-score
+            image: gcr.io/openssf/cron:latest
+            imagePullPolicy: Always
+            args:
+            - /bin/sh
+            - -c
+            - /cron/cron.sh
+            env:
+            - name: GITHUB_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github
+                  key: token
+            - name: GCS_BUCKET
+              value: ossf-scorecards
+
+          restartPolicy: OnFailure
