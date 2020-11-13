@@ -26,6 +26,9 @@ gs://ossf-scorecards/11-11-2020.json
 ...
 ```
 
+The latest results are also always available at
+`https://storage.googleapis.com/ossf-scorecards/latest.json`.
+
 The list of projects that are checked each night is available in the
 [`cron/projects.txt`](https://github.com/ossf/scorecard/blob/main/cron/projects.txt)
 file in this repository. If you would like us to track more, please feel free to
@@ -79,6 +82,8 @@ Signed-Releases: Fail 10
 Signed-Tags: Fail 5
 ```
 
+### Authentication
+
 Before running Scorecard, you need to
 [create a GitHub access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
 and set it in environment variable `GITHUB_AUTH_TOKEN`.
@@ -93,6 +98,19 @@ export GITHUB_AUTH_TOKEN=<your access token>
 # For windows:
 set GITHUB_AUTH_TOKEN=<your access token>
 ```
+
+As an alternative to personal access tokens, we also support GitHub App Installations
+for higher rate-limit quotas.
+If you have an installed GitHub App and key file, you can use these three environment
+variables, following the commands shown above for your platform.
+
+```
+GITHUB_APP_KEY_PATH=<path to the key file on disk>
+GITHUB_APP_INSTALLATION_ID=<installation id>
+GITHUB_APP_ID=<app id>
+```
+
+These can be obtained from the GitHub [developer settings](https://github.com/settings/apps) page.
 
 ## Checks
 

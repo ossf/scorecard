@@ -24,3 +24,5 @@ do
 done < "$input"
 
 gsutil cp $output gs://$GCS_BUCKET
+# Also copy the most recent run into a "latest.json" file
+gsutil cp gs://$GCS_BUCKET/$output gs://$GCS_BUCKET/latest.json
