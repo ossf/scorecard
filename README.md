@@ -16,7 +16,9 @@ A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You
 If you're only interested in seeing the results over time, we run this program nightly and publish the results in
 `json` format.
 
-This data is available on Google Cloud Storage and can be downloaded via the `gsutil` command-line tool.
+This data is available on Google Cloud Storage and can be downloaded via the
+[`gsutil`](https://cloud.google.com/storage/docs/gsutil_install)
+command-line tool.
 
 ```shell
 $ gsutil ls gs://ossf-scorecards/
@@ -24,8 +26,10 @@ gs://ossf-scorecards/11-11-2020.json
 ...
 ```
 
-The list of projects that are checked each night is available in the `cron/projects.txt` file in this repository.
-If you would like us to track more, please feel free to send a Pull Request with others.
+The list of projects that are checked each night is available in the
+[`cron/projects.txt`](https://github.com/ossf/scorecard/blob/main/cron/projects.txt)
+file in this repository. If you would like us to track more, please feel free to
+send a Pull Request with others.
 
 ## Usage
 
@@ -101,10 +105,10 @@ The following checks are all run against the target project:
 | Frozen-Deps | Does the project declare and freeze [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)? |
 | Signed-Releases | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)? |
 | Signed-Tags | Does the project cryptographically sign release tags? |
-| CI-Tests | Does the project run tests in CI? |
+| CI-Tests | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)? |
 | Code-Review | Does the project require code review before code is merged? |
 | CII-Best-Practices | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)? |
-| Pull-Requests | Does the project use Pull Requests for all code changes? |
+| Pull-Requests | Does the project use [Pull Requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) for all code changes? |
 | Fuzzing | Does the project use [OSS-Fuzz](https://github.com/google/oss-fuzz)? |
 | SAST | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions)? |
 | Active | Did the project get any commits and releases in last 90 days? |
