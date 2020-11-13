@@ -14,13 +14,13 @@ A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You
 ## Public Data
 
 If you're only interested in seeing the results over time, we run this program nightly and publish the results in
-`csv` format.
+`json` format.
 
 This data is available on Google Cloud Storage and can be downloaded via the `gsutil` command-line tool.
 
 ```shell
 $ gsutil ls gs://ossf-scorecards/
-gs://ossf-scorecards/11-11-2020.csv
+gs://ossf-scorecards/11-11-2020.json
 ...
 ```
 
