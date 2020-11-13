@@ -15,12 +15,12 @@
 
 SOURCE="${BASH_SOURCE[0]}"
 input=$(dirname $SOURCE)/projects.txt
-output=$(date +"%m-%d-%Y").csv
+output=$(date +"%m-%d-%Y").json
 touch $output
 while read -r line
 do
     echo $line
-    ./scorecard --repo=$line --format=csv >> $output
+    ./scorecard --repo=$line --format=json >> $output
 done < "$input"
 
 gsutil cp $output gs://$GCS_BUCKET
