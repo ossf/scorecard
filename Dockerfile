@@ -19,4 +19,4 @@ RUN [ "go", "build", "."]
 FROM gcr.io/cloud-builders/gsutil
 WORKDIR /go/src/github.com/ossf/scorecard
 COPY --from=0 /go/src/github.com/ossf/scorecard /go/src/github.com/ossf/scorecard
-ENTRYPOINT [ "./cron/cron.sh" ]
+ENTRYPOINT [ "./scorecard" ]
