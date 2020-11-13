@@ -12,10 +12,10 @@ spec:
           - name: run-score
             image: gcr.io/openssf/cron:latest
             imagePullPolicy: Always
-            args:
+            command:
             - /bin/sh
             - -c
-            - /cron/cron.sh
+            - ./cron/cron.sh
             volumeMounts:
             - name: github-app-key
               mountPath: "/etc/github/"
