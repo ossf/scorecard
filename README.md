@@ -75,13 +75,19 @@ Signed-Releases: Fail 10
 Signed-Tags: Fail 5
 ```
 
-It is recommended to use an OAuth token to avoid rate limits.
-You can create one by the following the instructions
-[here](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens).
-Set the access token as an environment variable:
+Before running Scorecard, you need to
+[create a GitHub access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
+and set it in environment variable `GITHUB_AUTH_TOKEN`.
+This helps to avoid the GitHub's
+[api rate limits](https://developer.github.com/v3/#rate-limiting)
+with unauthenticated requests.
 
 ```shell
+# For posix platforms, e.g. linux, mac:
 export GITHUB_AUTH_TOKEN=<your access token>
+
+# For windows:
+set GITHUB_AUTH_TOKEN=<your access token>
 ```
 
 ## Checks
