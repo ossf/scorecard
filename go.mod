@@ -3,6 +3,7 @@ module github.com/ossf/scorecard
 go 1.15
 
 require (
+	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/go-github/v32 v32.1.0
 	github.com/kr/text v0.2.0 // indirect

@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,11 +26,17 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bradleyfalzon/ghinstallation"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
 
-const GITHUB_AUTH_TOKEN = "GITHUB_AUTH_TOKEN"
+const (
+	GITHUB_AUTH_TOKEN          = "GITHUB_AUTH_TOKEN"
+	GITHUB_APP_KEY_PATH        = "GITHUB_APP_KEY_PATH"
+	GITHUB_APP_ID              = "GITHUB_APP_ID"
+	GITHUB_APP_INSTALLATION_ID = "GITHUB_APP_INSTALLATION_ID"
+)
 
 // RateLimitRoundTripper is a rate-limit aware http.Transport for Github.
 type RateLimitRoundTripper struct {
@@ -39,15 +46,27 @@ type RateLimitRoundTripper struct {
 
 // NewTransport returns a configured http.Transport for use with GitHub
 func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
-	token := os.Getenv(GITHUB_AUTH_TOKEN)
 
 	// Start with oauth
 	transport := http.DefaultTransport
-	if token != "" {
+	if token := os.Getenv(GITHUB_AUTH_TOKEN); token != "" {
 		ts := oauth2.StaticTokenSource(
 			&oauth2.Token{AccessToken: token},
 		)
 		transport = oauth2.NewClient(ctx, ts).Transport
+	} else if key_path := os.Getenv(GITHUB_APP_KEY_PATH); key_path != "" { // Also try a GITHUB_APP
+		app_id, err := strconv.Atoi(os.Getenv(GITHUB_APP_ID))
+		if err != nil {
+			log.Panic(err)
+		}
+		installation_id, err := strconv.Atoi(os.Getenv(GITHUB_APP_ID))
+		if err != nil {
+			log.Panic(err)
+		}
+		transport, err = ghinstallation.NewKeyFromFile(transport, int64(app_id), int64(installation_id), key_path)
+		if err != nil {
+			log.Panic(err)
+		}
 	}
 
 	// Wrap that with the rate limiter
