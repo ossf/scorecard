@@ -59,6 +59,8 @@ func (r *RepoURL) Set(s string) error {
 	switch r.Host {
 	case "github.com":
 		return nil
+	case "gitlab.com":
+		return nil
 	default:
 		return fmt.Errorf("unsupported host: %s", r.Host)
 	}
