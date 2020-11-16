@@ -125,7 +125,7 @@ func outputJSON(results []pkg.Result) {
 	d := time.Now()
 	or := record{
 		Repo: repo.String(),
-		Date: d.Format("2006-01-01"),
+		Date: d.Format("2006-01-02"),
 	}
 	for _, r := range results {
 		or.Checks = append(or.Checks, checkResult{
