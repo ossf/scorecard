@@ -59,7 +59,7 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 		if err != nil {
 			log.Panic(err)
 		}
-		installation_id, err := strconv.Atoi(os.Getenv(GITHUB_APP_ID))
+		installation_id, err := strconv.Atoi(os.Getenv(GITHUB_APP_INSTALLATION_ID))
 		if err != nil {
 			log.Panic(err)
 		}
