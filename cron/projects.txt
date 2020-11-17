@@ -97,3 +97,4 @@ github.com/jetstack/cert-manager
 github.com/microsoft/vcpkg
 github.com/telegramdesktop/tdesktop
 github.com/ccxt/ccxt
+github.com/apache/druid
