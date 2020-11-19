@@ -15,6 +15,8 @@
 package checks
 
 import (
+	"strings"
+
 	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checker"
 )
@@ -33,6 +35,7 @@ func DoesCodeReview(c checker.Checker) checker.CheckResult {
 		IsPrReviewRequired,
 		GithubCodeReview,
 		ProwCodeReview,
+		GerritCodeReview,
 	)(c)
 }
 
@@ -122,4 +125,44 @@ func ProwCodeReview(c checker.Checker) checker.CheckResult {
 	}
 	c.Logf("prow code reviews found")
 	return checker.ProportionalResult(totalReviewed, totalMerged, .75)
+}
+
+func GerritCodeReview(c checker.Checker) checker.CheckResult {
+	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
+	if err != nil {
+		return checker.RetryResult(err)
+	}
+
+	total := 0
+	totalReviewed := 0
+	for _, commit := range commits {
+		isBot := false
+		committer := commit.GetCommitter().GetLogin()
+		for _, substring := range []string{"bot", "gardener"} {
+			if strings.Contains(committer, substring) {
+				isBot = true
+				break
+			}
+		}
+		if isBot {
+			c.Logf("skip commit from bot account: %s", committer)
+			continue
+		}
+
+		total++
+
+		// check for gerrit use via Reviewed-on and Reviewed-by
+		commitMessage := commit.GetCommit().GetMessage()
+		if strings.Contains(commitMessage, "\nReviewed-on: ") &&
+			strings.Contains(commitMessage, "\nReviewed-by: ") {
+			totalReviewed++
+			continue
+		}
+	}
+
+	if totalReviewed == 0 {
+		return checker.InconclusiveResult
+	}
+	c.Logf("gerrit code reviews found")
+	return checker.ProportionalResult(totalReviewed, total, .75)
 }

@@ -47,11 +47,19 @@ func PullRequests(c checker.Checker) checker.CheckResult {
 			continue
 		}
 
+		total++
+
+		// check for gerrit use via Reviewed-on
+		commitMessage := commit.GetCommit().GetMessage()
+		if strings.Contains(commitMessage, "\nReviewed-on: ") {
+			totalWithPrs++
+			continue
+		}
+
 		prs, _, err := c.Client.PullRequests.ListPullRequestsWithCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA(), &github.PullRequestListOptions{})
 		if err != nil {
 			return checker.RetryResult(err)
 		}
-		total++
 		if len(prs) > 0 {
 			totalWithPrs++
 		}
