@@ -76,11 +76,11 @@ func GithubCodeReview(c checker.Checker) checker.CheckResult {
 		// time on clicking the approve button.
 		if !foundApprovedReview {
 			commit, _, err := c.Client.Repositories.GetCommit(c.Ctx, c.Owner, c.Repo, pr.GetMergeCommitSHA())
-			if err != nil {
+			if err == nil {
 				commitAuthor := commit.GetAuthor().GetLogin()
 				commitCommitter := commit.GetCommitter().GetLogin()
 				if commitAuthor != "" && commitCommitter != "" && commitAuthor != commitCommitter {
-					c.Logf("found different author and committer for pr: %d", pr.GetNumber())
+					c.Logf("found pr with committer different than author: %d", pr.GetNumber())
 					totalReviewed++
 				}
 			}
