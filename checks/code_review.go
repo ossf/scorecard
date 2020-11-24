@@ -55,17 +55,37 @@ func GithubCodeReview(c checker.Checker) checker.CheckResult {
 			continue
 		}
 		totalMerged++
-		// Merged PR!
+
+		// check if the PR is approved by a reviewer
+		foundApprovedReview := false
 		reviews, _, err := c.Client.PullRequests.ListReviews(c.Ctx, c.Owner, c.Repo, pr.GetNumber(), &github.ListOptions{})
 		if err != nil {
 			continue
 		}
 		for _, r := range reviews {
 			if r.GetState() == "APPROVED" {
+				c.Logf("found review approved pr: %d", pr.GetNumber())
 				totalReviewed++
+				foundApprovedReview = true
 				break
 			}
 		}
+
+		// check if the PR is committed by someone other than author. this is kind
+		// of equivalent to a review and is done several times on small prs to save
+		// time on clicking the approve button.
+		if !foundApprovedReview {
+			commit, _, err := c.Client.Repositories.GetCommit(c.Ctx, c.Owner, c.Repo, pr.GetMergeCommitSHA())
+			if err == nil {
+				commitAuthor := commit.GetAuthor().GetLogin()
+				commitCommitter := commit.GetCommitter().GetLogin()
+				if commitAuthor != "" && commitCommitter != "" && commitAuthor != commitCommitter {
+					c.Logf("found pr with committer different than author: %d", pr.GetNumber())
+					totalReviewed++
+				}
+			}
+		}
+
 	}
 
 	if totalReviewed > 0 {

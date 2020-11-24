@@ -113,6 +113,7 @@ type checkResult struct {
 	CheckName  string
 	Pass       bool
 	Confidence int
+	Details    []string
 }
 
 type record struct {
@@ -127,11 +128,17 @@ func outputJSON(results []pkg.Result) {
 		Repo: repo.String(),
 		Date: d.Format("2006-01-02"),
 	}
+
 	for _, r := range results {
+		var details []string
+		if showDetails {
+			details = r.Cr.Details
+		}
 		or.Checks = append(or.Checks, checkResult{
 			CheckName:  r.Name,
 			Pass:       r.Cr.Pass,
 			Confidence: r.Cr.Confidence,
+			Details:    details,
 		})
 	}
 	output, err := json.Marshal(or)
