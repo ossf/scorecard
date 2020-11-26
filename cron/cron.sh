@@ -17,11 +17,16 @@ SOURCE="${BASH_SOURCE[0]}"
 input=$(dirname $SOURCE)/projects.txt
 output=$(date +"%m-%d-%Y").json
 touch $output
-while read -r line
-do
-    echo $line
-    ./scorecard --repo=$line --format=json >> $output
-done < "$input"
+
+# sort and uniqify these, in case there are duplicates
+projects=$(cat $input | sort | uniq)
+while read -r proj; do
+    if [[ $proj =~ ^#.* ]]; then
+        continue
+    fi
+    echo $proj
+    ./scorecard --repo=$proj --format=json >> $output
+done <<< "$projects"
 
 gsutil cp $output gs://$GCS_BUCKET
 # Also copy the most recent run into a "latest.json" file
