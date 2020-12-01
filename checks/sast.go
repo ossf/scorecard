@@ -19,7 +19,7 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-var sast_tools map[string]bool = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
+var sastTools map[string]bool = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
 
 func init() {
 	registerCheck("SAST", checker.MultiCheck(CodeQLActionRuns))
@@ -51,7 +51,7 @@ func CodeQLActionRuns(c checker.Checker) checker.CheckResult {
 			if cr.GetConclusion() != "success" {
 				continue
 			}
-			if sast_tools[cr.GetApp().GetSlug()] {
+			if sastTools[cr.GetApp().GetSlug()] {
 				c.Logf("SAST Tool found: %s", cr.GetHTMLURL())
 				totalTested++
 				break
