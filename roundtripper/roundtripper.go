@@ -23,7 +23,9 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/bradleyfalzon/ghinstallation"
@@ -44,15 +46,28 @@ type RateLimitRoundTripper struct {
 	InnerTransport http.RoundTripper
 }
 
+type RoundRobinTokenSource struct {
+	counter      int64
+	AccessTokens []string
+}
+
+func (r *RoundRobinTokenSource) Token() (*oauth2.Token, error) {
+	c := atomic.AddInt64(&r.counter, 1)
+	index := c % int64(len(r.AccessTokens))
+	return &oauth2.Token{
+		AccessToken: r.AccessTokens[index],
+	}, nil
+}
+
 // NewTransport returns a configured http.Transport for use with GitHub
 func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
 
 	// Start with oauth
 	transport := http.DefaultTransport
 	if token := os.Getenv(GITHUB_AUTH_TOKEN); token != "" {
-		ts := oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: token},
-		)
+		ts := &RoundRobinTokenSource{
+			AccessTokens: strings.Split(token, ","),
+		}
 		transport = oauth2.NewClient(ctx, ts).Transport
 	} else if key_path := os.Getenv(GITHUB_APP_KEY_PATH); key_path != "" { // Also try a GITHUB_APP
 		app_id, err := strconv.Atoi(os.Getenv(GITHUB_APP_ID))
