@@ -128,7 +128,7 @@ The following checks are all run against the target project:
 | CII-Best-Practices | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)? |
 | Pull-Requests | Does the project use [Pull Requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) for all code changes? |
 | Fuzzing | Does the project use [OSS-Fuzz](https://github.com/google/oss-fuzz)? |
-| SAST | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io/features)? |
+| SAST | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)? |
 | Active | Did the project get any commits and releases in last 90 days? |
 
 To see detailed information on how each check works, see the [check-specific documentation page](checks.md).
