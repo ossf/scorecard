@@ -89,6 +89,12 @@ func FrozenDeps(c checker.Checker) checker.CheckResult {
 		case "cargo.lock":
 			c.Logf("rust crates found: %s", name)
 			return passResult
+		case "yarn.lock":
+			c.Logf("yarn packages found: %s", name)
+			return passResult
+		case "composer.lock":
+			c.Logf("composer packages found: %s", name)
+			return passResult
 		}
 	}
 	return checker.CheckResult{
