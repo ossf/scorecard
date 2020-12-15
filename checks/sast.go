@@ -22,10 +22,10 @@ import (
 var sastTools map[string]bool = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
 
 func init() {
-	registerCheck("SAST", checker.MultiCheck(CodeQLActionRuns))
+	registerCheck("SAST", checker.MultiCheck(CodeQLInCheckDefinitions, SASTToolInCheckRuns))
 }
 
-func CodeQLActionRuns(c checker.Checker) checker.CheckResult {
+func SASTToolInCheckRuns(c checker.Checker) checker.CheckResult {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
@@ -62,4 +62,21 @@ func CodeQLActionRuns(c checker.Checker) checker.CheckResult {
 		return checker.InconclusiveResult
 	}
 	return checker.ProportionalResult(totalTested, totalMerged, .75)
+}
+
+func CodeQLInCheckDefinitions(c checker.Checker) checker.CheckResult {
+	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
+	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
+	if err != nil {
+		return checker.RetryResult(err)
+	}
+
+	for _, result := range results.CodeResults {
+		c.Logf("found CodeQL definition: %s", result.GetPath())
+	}
+
+	return checker.CheckResult{
+		Pass:       *results.Total > 0,
+		Confidence: 10,
+	}
 }
