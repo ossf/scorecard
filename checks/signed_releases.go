@@ -33,6 +33,8 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 		return checker.RetryResult(err)
 	}
 
+	artifactExtensions := []string{".asc", ".minisig", ".sig"}
+
 	totalReleases := 0
 	totalSigned := 0
 	for _, r := range releases {
@@ -47,7 +49,7 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 		totalReleases++
 		signed := false
 		for _, asset := range assets {
-			for _, suffix := range []string{".asc", ".minisig", ".sig"} {
+			for _, suffix := range artifactExtensions {
 				if strings.HasSuffix(asset.GetName(), suffix) {
 					c.Logf("signed release artifact found: %s, url: %s", asset.GetName(), asset.GetURL())
 					signed = true
@@ -59,13 +61,19 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 				break
 			}
 		}
+		if !signed {
+			c.Logf("!! release %s has no signed artifacts", r.GetName())
+		}
 		if totalReleases > releaseLookBack {
 			break
 		}
 	}
 
 	if totalReleases == 0 {
+		c.Logf("no releases found")
 		return checker.InconclusiveResult
 	}
+
+	c.Logf("found signed artifacts for %d of %d releases", totalSigned, totalReleases)
 	return checker.ProportionalResult(totalSigned, totalReleases, 0.8)
 }
