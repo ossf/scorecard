@@ -26,7 +26,6 @@ func init() {
 }
 
 func SignedTags(c checker.Checker) checker.CheckResult {
-
 	type ref struct {
 		Name   githubv4.String
 		Target struct {
@@ -51,20 +50,28 @@ func SignedTags(c checker.Checker) checker.CheckResult {
 		return checker.RetryResult(err)
 	}
 
-	totalReleases := 0
+	totalTags := 0
 	totalSigned := 0
 	for _, t := range query.Repository.Refs.Nodes {
 		sha := string(t.Target.Oid)
-		totalReleases++
+		totalTags++
 		gt, _, err := c.Client.Git.GetTag(c.Ctx, c.Owner, c.Repo, sha)
 		if err != nil {
 			return checker.RetryResult(err)
 		}
 		if gt.GetVerification().GetVerified() {
-			c.Logf("signed tag found: %s, commit: %s", t.Name, sha)
+			c.Logf("verified tag found: %s, commit: %s", t.Name, sha)
 			totalSigned++
+		} else {
+			c.Logf("!! unverified tag found: %s, commit: %s, reason: %s", t.Name, sha, gt.GetVerification().GetReason())
 		}
 	}
 
-	return checker.ProportionalResult(totalSigned, totalReleases, 0.8)
+	if totalTags == 0 {
+		c.Logf("no tags found")
+		return checker.InconclusiveResult
+	}
+
+	c.Logf("found %d out of %d verified tags", totalSigned, totalTags)
+	return checker.ProportionalResult(totalSigned, totalTags, 0.8)
 }
