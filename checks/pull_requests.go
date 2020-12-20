@@ -62,6 +62,8 @@ func PullRequests(c checker.Checker) checker.CheckResult {
 		}
 		if len(prs) > 0 {
 			totalWithPrs++
+		} else {
+			c.Logf("!! found commit without PR: %s, committer: %s", commit.GetSHA(), commit.GetCommitter().GetLogin())
 		}
 	}
 	c.Logf("found PRs for %d out of %d commits", totalWithPrs, total)
