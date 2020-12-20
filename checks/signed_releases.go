@@ -74,6 +74,6 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 		return checker.InconclusiveResult
 	}
 
-	c.Logf("found signed artifacts for %d of %d releases", totalSigned, totalReleases)
+	c.Logf("found signed artifacts for %d out of %d releases", totalSigned, totalReleases)
 	return checker.ProportionalResult(totalSigned, totalReleases, 0.8)
 }

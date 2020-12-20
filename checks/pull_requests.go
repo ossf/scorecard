@@ -53,6 +53,7 @@ func PullRequests(c checker.Checker) checker.CheckResult {
 		commitMessage := commit.GetCommit().GetMessage()
 		if strings.Contains(commitMessage, "\nReviewed-on: ") {
 			totalWithPrs++
+			c.Logf("found gerrit reviewed commit: %s", commit.GetSHA())
 			continue
 		}
 
@@ -62,6 +63,7 @@ func PullRequests(c checker.Checker) checker.CheckResult {
 		}
 		if len(prs) > 0 {
 			totalWithPrs++
+			c.Logf("found commit with PR: %s", commit.GetSHA())
 		} else {
 			c.Logf("!! found commit without PR: %s, committer: %s", commit.GetSHA(), commit.GetCommitter().GetLogin())
 		}
