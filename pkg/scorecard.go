@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
+	"net/url"
 	"strings"
 	"sync"
 
@@ -48,13 +48,21 @@ func (r *RepoURL) Type() string {
 }
 
 func (r *RepoURL) Set(s string) error {
-	rgx, _ := regexp.Compile("^https?://")
-	s = rgx.ReplaceAllString(s, "")
-	split := strings.SplitN(s, "/", 3)
-	if len(split) != 3 {
+	u, e := url.Parse(s)
+	if e != nil {
+		return e
+	}
+
+	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", 2)
+	if len(split) != 2 {
 		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
 	}
-	r.Host, r.Owner, r.Repo = split[0], split[1], split[2]
+
+	if len(strings.TrimSpace(split[0])) == 0 || len(strings.TrimSpace(split[1])) == 0 {
+		log.Fatalf("invalid repo flag: [%s] pass the full repository URL", s)
+	}
+
+	r.Host, r.Owner, r.Repo = u.Host, split[0], split[1]
 
 	switch r.Host {
 	case "github.com":
