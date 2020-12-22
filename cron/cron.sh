@@ -14,20 +14,21 @@
 # limitations under the License.
 
 SOURCE="${BASH_SOURCE[0]}"
-input=$(dirname $SOURCE)/projects.txt
+input=$(dirname "$SOURCE")/projects.txt
 output=$(date +"%m-%d-%Y").json
-touch $output
+touch "$output"
 
 # sort and uniqify these, in case there are duplicates
-projects=$(cat $input | sort | uniq)
+# shellcheck disable=SC2002
+projects=$(cat "$input" | sort | uniq)
 while read -r proj; do
     if [[ $proj =~ ^#.* ]]; then
         continue
     fi
-    echo $proj
-    ./scorecard --repo=$proj --format=json >> $output
+    echo "$proj"
+    ./scorecard --repo="$proj" --format=json >> "$output"
 done <<< "$projects"
 
-gsutil cp $output gs://$GCS_BUCKET
+gsutil cp "$output" gs://"$GCS_BUCKET"
 # Also copy the most recent run into a "latest.json" file
-gsutil cp gs://$GCS_BUCKET/$output gs://$GCS_BUCKET/latest.json
+gsutil cp gs://"$GCS_BUCKET"/"$output" gs://"$GCS_BUCKET"/latest.json
