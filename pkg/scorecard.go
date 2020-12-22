@@ -59,7 +59,7 @@ func (r *RepoURL) Set(s string) error {
 	}
 
 	if len(strings.TrimSpace(split[0])) == 0 || len(strings.TrimSpace(split[1])) == 0 {
-		log.Fatalf("invalid repo flag: [%s] pass the full repository URL", s)
+		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
 	}
 
 	r.Host, r.Owner, r.Repo = u.Host, split[0], split[1]
