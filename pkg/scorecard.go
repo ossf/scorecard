@@ -48,6 +48,11 @@ func (r *RepoURL) Type() string {
 }
 
 func (r *RepoURL) Set(s string) error {
+	// Allow skipping scheme for ease-of-use, default to https.
+	if !strings.Contains(s, "://") {
+		s = "https://" + s
+	}
+
 	u, e := url.Parse(s)
 	if e != nil {
 		return e
