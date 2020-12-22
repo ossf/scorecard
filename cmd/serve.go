@@ -17,6 +17,7 @@ package cmd
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -39,6 +40,7 @@ var serveCmd = &cobra.Command{
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
 		logger, _ := cfg.Build()
+		//nolint
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()
 		t, err := template.New("webpage").Parse(tpl)
@@ -76,7 +78,10 @@ var serveCmd = &cobra.Command{
 			port = "8080"
 		}
 		fmt.Printf("Listening on localhost:%s\n", port)
-		http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil)
+		err = http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil)
+		if err != nil {
+			log.Fatal("ListenAndServe ", err)
+		}
 	},
 }
 
