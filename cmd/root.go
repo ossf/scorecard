@@ -58,6 +58,7 @@ var rootCmd = &cobra.Command{
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
 		logger, _ := cfg.Build()
+		// nolint
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()
 
@@ -158,7 +159,9 @@ func outputCSV(results []pkg.Result) {
 	}
 	fmt.Fprintln(os.Stderr, "CSV COLUMN NAMES")
 	fmt.Fprintf(os.Stderr, "%s\n", strings.Join(columns, ","))
-	w.Write(record)
+	if err := w.Write(record); err != nil {
+		log.Panic(err)
+	}
 	w.Flush()
 }
 
@@ -196,7 +199,10 @@ func init() {
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
 	rootCmd.Flags().Var(&repo, "repo", "repository to check")
 	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv, json]")
-	rootCmd.MarkFlagRequired("repo")
+	if err := rootCmd.MarkFlagRequired("repo"); err != nil {
+		log.Panic(err)
+	}
+
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
 	for _, c := range checks.AllChecks {
