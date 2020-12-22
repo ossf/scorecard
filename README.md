@@ -40,7 +40,7 @@ The program only requires one argument to run, the name of the repo:
 
 ```shell
 $ go build
-$ ./scorecard --repo=github.com/kubernetes/kubernetes
+$ ./scorecard --repo=https://github.com/kubernetes/kubernetes
 Starting [Active]
 Starting [CI-Tests]
 Starting [CII-Best-Practices]
