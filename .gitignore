@@ -14,7 +14,10 @@ scorecard
 # Output of the go coverage tool, specifically when used with LiteIDE.
 *.out
 
+
 # IDE directories.
 .vscode/
 *.iml
 
+# tools 
+bin
