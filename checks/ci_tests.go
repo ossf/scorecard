@@ -22,10 +22,10 @@ import (
 )
 
 func init() {
-	registerCheck("CI-Tests", checker.MultiCheck(GithubStatuses, GithubCheckRuns))
+	registerCheck("CI-Tests", CITests)
 }
 
-func GithubStatuses(c checker.Checker) checker.CheckResult {
+func CITests(c checker.Checker) checker.CheckResult {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
@@ -33,6 +33,14 @@ func GithubStatuses(c checker.Checker) checker.CheckResult {
 		return checker.RetryResult(err)
 	}
 
+	const (
+		// States for which CI system is in use.
+		unknown = iota
+		githubStatuses
+		githubCheckRuns
+	)
+
+	usedSystem := unknown
 	totalMerged := 0
 	totalTested := 0
 	for _, pr := range prs {
@@ -40,24 +48,64 @@ func GithubStatuses(c checker.Checker) checker.CheckResult {
 			continue
 		}
 		totalMerged++
-		statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListOptions{})
-		if err != nil {
-			return checker.RetryResult(err)
-		}
-		for _, status := range statuses {
-			if status.GetState() != "success" {
+
+		var foundCI bool
+
+		// Github Statuses
+		if usedSystem <= githubStatuses {
+			statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListOptions{})
+			if err != nil {
+				return checker.RetryResult(err)
+			}
+
+			for _, status := range statuses {
+				if status.GetState() != "success" {
+					continue
+				}
+				if isTest(status.GetContext()) {
+					c.Logf("CI test found: pr: %d, context: %s, url: %s", pr.GetNumber(), status.GetContext(), status.GetURL())
+					totalTested++
+					foundCI = true
+					usedSystem = githubStatuses
+					break
+				}
+			}
+
+			if foundCI {
 				continue
 			}
-			if isTest(status.GetContext()) {
-				c.Logf("CI test found: context: %s, url: %s", status.GetContext(), status.GetURL())
-				totalTested++
-				break
+		}
+
+		// Github Check Runs
+		if usedSystem == githubCheckRuns || usedSystem == unknown {
+			crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
+			if err != nil || crs == nil {
+				return checker.RetryResult(err)
+			}
+
+			for _, cr := range crs.CheckRuns {
+				if cr.GetStatus() != "completed" {
+					continue
+				}
+				if cr.GetConclusion() != "success" {
+					continue
+				}
+				if isTest(cr.GetApp().GetSlug()) {
+					c.Logf("CI test found: pr: %d, context: %s, url: %s", pr.GetNumber(), cr.GetApp().GetSlug(), cr.GetURL())
+					totalTested++
+					foundCI = true
+					usedSystem = githubCheckRuns
+					break
+				}
 			}
 		}
+
+		if !foundCI {
+			c.Logf("!! found merged PR without CI test: %d", pr.GetNumber())
+		}
 	}
-	if totalTested == 0 {
-		return checker.InconclusiveResult
-	}
+
+	c.Logf("found CI tests for %d of %d merged PRs", totalTested, totalMerged)
 	return checker.ProportionalResult(totalTested, totalMerged, .75)
 }
 
@@ -71,43 +119,4 @@ func isTest(s string) bool {
 		}
 	}
 	return false
-}
-
-func GithubCheckRuns(c checker.Checker) checker.CheckResult {
-	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
-		State: "closed",
-	})
-	if err != nil {
-		return checker.RetryResult(err)
-	}
-
-	totalMerged := 0
-	totalTested := 0
-	for _, pr := range prs {
-		if pr.MergedAt == nil {
-			continue
-		}
-		totalMerged++
-		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
-		if err != nil || crs == nil {
-			return checker.RetryResult(err)
-		}
-		for _, cr := range crs.CheckRuns {
-			if cr.GetStatus() != "completed" {
-				continue
-			}
-			if cr.GetConclusion() != "success" {
-				continue
-			}
-			if isTest(cr.GetApp().GetSlug()) {
-				c.Logf("CI test found: context: %s, url: %s", cr.GetApp().GetSlug(), cr.GetURL())
-				totalTested++
-				break
-			}
-		}
-	}
-	if totalTested == 0 {
-		return checker.InconclusiveResult
-	}
-	return checker.ProportionalResult(totalTested, totalMerged, .75)
 }
