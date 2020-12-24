@@ -45,7 +45,7 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 		if len(assets) == 0 {
 			continue
 		}
-		c.Logf("release found: %s", r.GetName())
+		c.Logf("release found: %s", r.GetTagName())
 		totalReleases++
 		signed := false
 		for _, asset := range assets {
@@ -62,7 +62,7 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 			}
 		}
 		if !signed {
-			c.Logf("!! release %s has no signed artifacts", r.GetName())
+			c.Logf("!! release %s has no signed artifacts", r.GetTagName())
 		}
 		if totalReleases > releaseLookBack {
 			break
