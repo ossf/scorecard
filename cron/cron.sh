@@ -26,7 +26,7 @@ while read -r proj; do
         continue
     fi
     echo "$proj"
-    ./scorecard --repo="$proj" --format=json >> "$output"
+    ./scorecard --repo="$proj" --show-details --format=json >> "$output"
 done <<< "$projects"
 
 gsutil cp "$output" gs://"$GCS_BUCKET"
