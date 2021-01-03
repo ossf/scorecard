@@ -170,6 +170,9 @@ These may be specified with the `--format` flag.
 * Any criteria in the scorecard must be actionable. It should be possible, with help, for any project to "check all the boxes".
 * Any solution to compile a scorecard should be usable by the greater open source community to monitor upstream security.
 
+## Docker
+* The Dockerfile in the root directory utilizes [experminetal features](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md)
+
 ## Contributing
 
 If you want to get involved or have ideas you'd like to chat about, we discuss this project in the [OSSF Best Practices Working Group](https://github.com/ossf/wg-best-practices-os-developers) meetings.
