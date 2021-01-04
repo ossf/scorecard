@@ -171,7 +171,7 @@ These may be specified with the `--format` flag.
 * Any solution to compile a scorecard should be usable by the greater open source community to monitor upstream security.
 
 ## Docker
-* The Dockerfile in the root directory utilizes [experminetal features](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md)
+* The Dockerfile in the root directory utilizes [experimental features](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md) which is available in Docker v18.09 or later.
 
 ## Contributing
 
