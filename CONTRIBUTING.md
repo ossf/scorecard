@@ -1,4 +1,4 @@
-# Contributing to Security Scorecards!
+# Contributing to Security Scorecards
 
 Thank you for contributing your time and expertise to the Security Scorecards project.
 This document describes the contribution guidelines for the project.
@@ -9,40 +9,52 @@ This document describes the contribution guidelines for the project.
 
 ### Getting started
 
-1.  Create [a GitHub account](https://github.com/join)
-1.  Create a [personal access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
-1.  Set up your [development environment](#environment-setup)
+1. Create [a GitHub account](https://github.com/join)
+1. Create a [personal access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
+1. Set up your [development environment](#environment-setup)
 
-Then you can [iterate](#iterating).
-    
 ### Environment Setup
 
 You must install these tools:
 
-1.  [`git`](https://help.github.com/articles/set-up-git/): For source control
+1. [`git`](https://help.github.com/articles/set-up-git/): For source control
 
-1.  [`go`](https://golang.org/doc/install): The language Tekton Pipelines is
-    built in. You need go version [v1.15](https://golang.org/dl/) or higher.
+1. [`go`](https://golang.org/doc/install): You need go version [v1.15](https://golang.org/dl/) or higher.
 
-## Iterating
+1. [`docker`](https://docs.docker.com/engine/install/): `v18.9` or higher.
 
-You can build the project with:
+## Contributing steps
 
-```shell
-go build .
-```
+1. Submit an issue describing your proposed change to the repo in question.
+1. The repo owners will respond to your issue promptly.
+1. Fork the desired repo, develop and test your code changes.
+1. Submit a pull request.
 
-You can also use `go run` to iterate without a separate rebuild step:
+## How to build scorecard locally
 
-```shell
-go run . --repo=<repo>
-```
+Note that, by building the scorecard from the source code we are allowed to test the changes made locally.
 
-You can run tests with:
+1. Run the following command to clone your fork of the project locally
 
 ```shell
-go test .
+git clone git@github.com:<user>/scorecard.git $GOPATH/src/github.com/<user>/scorecard.git
 ```
+
+1. Ensure you activate module support before continue (`$ export GO111MODULE=on`)
+1. Run the command `make build` to build the source code
+
+## What to do before submitting a pull request
+
+Following the targets that can be used to test your changes locally.
+
+| Command    | Description                                         | Is called in the CI? |
+| ---------- | --------------------------------------------------- | -------------------- |
+| make all   | Runs go test,golangci lint checks, fmt, go mod tidy | yes                  |
+| make build | Runs go build                                       | yes                  |
+
+## Where the CI Tests are configured
+
+1. See the [action files](.github/workflows) to check its tests, and the scripts used on it.
 
 ## Adding New Checks
 
