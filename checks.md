@@ -64,3 +64,7 @@ It currently works by looking for well-known results ([CodeQL](https://securityl
 
 This check tries to determine if the project is still "actively maintained".
 It currently works by looking for releases or commits within the last 90 days.
+
+## Branch-Protection
+
+This check tries to determine if the project has branch protection enabled.

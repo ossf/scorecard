@@ -7,7 +7,8 @@
 A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You passed! All D's ... and an A!"
 
 ## Goals
-1. Automate analysis and trust decisions on the security posture of open source projects. 
+
+1. Automate analysis and trust decisions on the security posture of open source projects.
 
 1. Use this data to proactively improve the security posture of the critical projects the world depends on.
 
@@ -42,6 +43,7 @@ The program only requires one argument to run, the name of the repo:
 $ go build
 $ ./scorecard --repo=github.com/kubernetes/kubernetes
 Starting [Active]
+Starting [Branch-Protection]
 Starting [CI-Tests]
 Starting [CII-Best-Practices]
 Starting [Code-Review]
@@ -59,6 +61,7 @@ Finished [Frozen-Deps]
 Finished [Security-Policy]
 Finished [Contributors]
 Finished [Signed-Releases]
+Finished [Branch-Protection]
 Finished [Signed-Tags]
 Finished [CI-Tests]
 Finished [SAST]
@@ -69,6 +72,7 @@ Finished [Active]
 RESULTS
 -------
 Active: Pass 10
+Branch-Protection: Fail 5
 CI-Tests: Pass 10
 CII-Best-Practices: Pass 10
 Code-Review: Pass 10
@@ -116,27 +120,29 @@ These can be obtained from the GitHub [developer settings](https://github.com/se
 
 The following checks are all run against the target project:
 
-| Name  | Description |
-|---|---|
-| Security-MD | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)? |
-| Contributors  | Does the project have contributors from at least two different organizations? |
-| Frozen-Deps | Does the project declare and freeze [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)? |
-| Signed-Releases | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)? |
-| Signed-Tags | Does the project cryptographically sign release tags? |
-| CI-Tests | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)? |
-| Code-Review | Does the project require code review before code is merged? |
-| CII-Best-Practices | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)? |
-| Pull-Requests | Does the project use [Pull Requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) for all code changes? |
-| Fuzzing | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)? |
-| SAST | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)? |
-| Active | Did the project get any commits in the last 90 days? |
+| Name               | Description                                                                                                                                                                                                                                                                                        |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Security-MD        | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?                                                                                                                |
+| Contributors       | Does the project have contributors from at least two different organizations?                                                                                                                                                                                                                      |
+| Frozen-Deps        | Does the project declare and freeze [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?                                                                                        |
+| Signed-Releases    | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?                                                                                                                                                                                 |
+| Signed-Tags        | Does the project cryptographically sign release tags?                                                                                                                                                                                                                                              |
+| CI-Tests           | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?                                                                                                               |
+| Code-Review        | Does the project require code review before code is merged?                                                                                                                                                                                                                                        |
+| CII-Best-Practices | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?                                                                                                                                                                                               |
+| Pull-Requests      | Does the project use [Pull Requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) for all code changes?                                                                                                                 |
+| Fuzzing            | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)? |
+| SAST               | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)? |
+| Active             | Did the project get any commits in the last 90 days?                                                                                                                                                                                                                                      |
+| Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                             |
 
 To see detailed information on how each check works, see the [check-specific documentation page](checks.md).
 
 If you'd like to add a check, make sure it is something that meets the following criteria:
-* automate-able 
-* objective
-* actionable
+
+- automate-able
+- objective
+- actionable
 
 and then create a new GitHub Issue.
 
@@ -163,15 +169,17 @@ There are three formats currently: `default`, `json`, and `csv`. Others may be a
 These may be specified with the `--format` flag.
 
 ## Requirements
-* The scorecard must only be composed of automate-able, objective data. For example, a project having 10 contributors doesn’t necessarily mean it’s more secure than a project with say 50 contributors. But, having two maintainers might be preferable to only having one -  the larger bus factor and ability to provide code reviews is objectively better.
-* The scorecard criteria can be as specific as possible and not limited general recommendations. For example, for Go, we can recommend/require specific linters and analyzers to be run on the codebase.
-* The scorecard can be populated for any open source project without any work or interaction from maintainers. 
-* Maintainers must be provided with a mechanism to correct any automated scorecard findings they feel were made in error, provide "hints" for anything we can't detect automatically, and even dispute the applicability of a given scorecard finding for that repository.
-* Any criteria in the scorecard must be actionable. It should be possible, with help, for any project to "check all the boxes".
-* Any solution to compile a scorecard should be usable by the greater open source community to monitor upstream security.
+
+- The scorecard must only be composed of automate-able, objective data. For example, a project having 10 contributors doesn’t necessarily mean it’s more secure than a project with say 50 contributors. But, having two maintainers might be preferable to only having one - the larger bus factor and ability to provide code reviews is objectively better.
+- The scorecard criteria can be as specific as possible and not limited general recommendations. For example, for Go, we can recommend/require specific linters and analyzers to be run on the codebase.
+- The scorecard can be populated for any open source project without any work or interaction from maintainers.
+- Maintainers must be provided with a mechanism to correct any automated scorecard findings they feel were made in error, provide "hints" for anything we can't detect automatically, and even dispute the applicability of a given scorecard finding for that repository.
+- Any criteria in the scorecard must be actionable. It should be possible, with help, for any project to "check all the boxes".
+- Any solution to compile a scorecard should be usable by the greater open source community to monitor upstream security.
 
 ## Docker
-* The Dockerfile in the root directory utilizes [experimental features](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md) which is available in Docker v18.09 or later.
+
+- The Dockerfile in the root directory utilizes [experimental features](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md) which is available in Docker v18.09 or later.
 
 ## Contributing
 
