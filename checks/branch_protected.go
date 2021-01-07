@@ -47,44 +47,56 @@ func IsBranchProtected(protection *github.Protection, c checker.Checker) checker
 	totalChecks := 6
 	totalSuccess := 0
 
-	if protection.AllowForcePushes.Enabled {
-		c.Logf("!! branch protection AllowForcePushes enabled")
-	} else {
-		totalSuccess++
-	}
-
-	if protection.AllowDeletions.Enabled {
-		c.Logf("!! branch protection AllowDeletions enabled")
-	} else {
-		totalSuccess++
-	}
-
-	if !protection.EnforceAdmins.Enabled {
-		c.Logf("!! branch protection EnforceAdmins not enabled")
-	} else {
-		totalSuccess++
-	}
-
-	if !protection.RequireLinearHistory.Enabled {
-		c.Logf("!! branch protection require linear history not enabled")
-	} else {
-		totalSuccess++
-	}
-
-	if !protection.RequiredStatusChecks.Strict {
-		c.Logf("!! branch protection require status checks to pass before merging not enabled")
-	} else {
-		if len(protection.RequiredStatusChecks.Contexts) == 0 {
-			c.Logf("!! branch protection require status checks to pass before merging has no specific status to check for")
+	if protection.GetAllowForcePushes() != nil {
+		if protection.AllowForcePushes.Enabled {
+			c.Logf("!! branch protection AllowForcePushes enabled")
 		} else {
 			totalSuccess++
 		}
 	}
 
-	if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount < 1 {
-		c.Logf("!! branch protection require pullrequest before merging not enabled")
-	} else {
-		totalSuccess++
+	if protection.GetAllowDeletions() != nil {
+		if protection.AllowDeletions.Enabled {
+			c.Logf("!! branch protection AllowDeletions enabled")
+		} else {
+			totalSuccess++
+		}
+	}
+
+	if protection.GetEnforceAdmins() != nil {
+		if !protection.EnforceAdmins.Enabled {
+			c.Logf("!! branch protection EnforceAdmins not enabled")
+		} else {
+			totalSuccess++
+		}
+	}
+
+	if protection.GetRequireLinearHistory() != nil {
+		if !protection.RequireLinearHistory.Enabled {
+			c.Logf("!! branch protection require linear history not enabled")
+		} else {
+			totalSuccess++
+		}
+	}
+
+	if protection.GetRequiredStatusChecks() != nil {
+		if !protection.RequiredStatusChecks.Strict {
+			c.Logf("!! branch protection require status checks to pass before merging not enabled")
+		} else {
+			if len(protection.RequiredStatusChecks.Contexts) == 0 {
+				c.Logf("!! branch protection require status checks to pass before merging has no specific status to check for")
+			} else {
+				totalSuccess++
+			}
+		}
+	}
+
+	if protection.GetRequiredPullRequestReviews() != nil {
+		if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount < 1 {
+			c.Logf("!! branch protection require pullrequest before merging not enabled")
+		} else {
+			totalSuccess++
+		}
 	}
 
 	return checker.ProportionalResult(totalSuccess, totalChecks, 1.0)
