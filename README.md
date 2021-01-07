@@ -1,4 +1,7 @@
 # Security Scorecards
+![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
+![golangci-lint](https://github.com/ossf/scorecard/workflows/golangci-lint/badge.svg?branch=main)
+![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
 
 <img align="right" src="artwork/openssf_security.png" width="200" height="400">
 
