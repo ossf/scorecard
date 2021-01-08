@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/google/go-github/v32/github"
@@ -32,6 +33,13 @@ func TestE2e(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	// making sure the GITHUB_AUTH_TOKEN is set prior to running e2e tests
+	token, contains := os.LookupEnv("GITHUB_AUTH_TOKEN")
+
+	Expect(contains).ShouldNot(BeFalse(),
+		"GITHUB_AUTH_TOKEN env variable is not set.The GITHUB_AUTH_TOKEN env variable has to be set to run e2e test.")
+	Expect(len(token)).ShouldNot(BeZero(), "Length of the GITHUB_AUTH_TOKEN env variable is zero.")
+
 	ctx := context.TODO()
 
 	logLevel := zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
