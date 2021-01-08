@@ -17,7 +17,14 @@ jobs:
         run: make fmt
       - name: go mod tidy
         run: make tidy
-      - name: Run tests
+      - name: Run unit tests
         run: make test
       - name: Build
         run: make build
+      - name: Run e2e
+        env:  
+          GITHUB_AUTH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}
+        run: |
+          go get github.com/onsi/ginkgo/ginkgo@v1.14.2
+          go mod download
+          make e2e

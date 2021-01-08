@@ -52,6 +52,14 @@ Following the targets that can be used to test your changes locally.
 | make all   | Runs go test,golangci lint checks, fmt, go mod tidy | yes                  |
 | make build | Runs go build                                       | yes                  |
 
+## Permission for GitHub personal access tokens
+
+The personal access tokens need scopes that are required are
+
+- `repo:status` - Access commit status
+- `repo_deployment` - Access deployment status
+- `public_repo` - Access public repositories
+
 ## Where the CI Tests are configured
 
 1. See the [action files](.github/workflows) to check its tests, and the scripts used on it.
