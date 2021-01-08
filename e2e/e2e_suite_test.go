@@ -33,7 +33,7 @@ func TestE2e(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	//making sure the GITHUB_AUTH_TOKEN is set prior to running e2e tests
+	// making sure the GITHUB_AUTH_TOKEN is set prior to running e2e tests
 	token, contains := os.LookupEnv("GITHUB_AUTH_TOKEN")
 
 	Expect(contains).ShouldNot(BeFalse(),

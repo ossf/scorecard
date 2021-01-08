@@ -54,7 +54,7 @@ Following the targets that can be used to test your changes locally.
 
 ## Permission for GitHub personal access tokens
 
-The personal access tokens need scopes that are required are
+The personal access token need the following scopes:
 
 - `repo:status` - Access commit status
 - `repo_deployment` - Access deployment status
