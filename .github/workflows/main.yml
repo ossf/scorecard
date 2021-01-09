@@ -23,7 +23,7 @@ jobs:
         run: make build
       - name: Run e2e
         env:  
-          GITHUB_AUTH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
         run: |
           go get github.com/onsi/ginkgo/ginkgo@v1.14.2
           go mod download
