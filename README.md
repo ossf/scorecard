@@ -1,4 +1,5 @@
 # Security Scorecards
+
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
 ![golangci-lint](https://github.com/ossf/scorecard/workflows/golangci-lint/badge.svg?branch=main)
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
@@ -106,6 +107,10 @@ export GITHUB_AUTH_TOKEN=<your access token>
 set GITHUB_AUTH_TOKEN=<your access token>
 ```
 
+#### GITHUB_AUTH_TOKEN
+
+Multiple `GITHUB_AUTH_TOKEN` can be provided separated by comma to be utilized in a round robin fashion.
+
 As an alternative to personal access tokens, we also support GitHub App Installations
 for higher rate-limit quotas.
 If you have an installed GitHub App and key file, you can use these three environment
@@ -134,9 +139,9 @@ The following checks are all run against the target project:
 | Code-Review        | Does the project require code review before code is merged?                                                                                                                                                                                                                                        |
 | CII-Best-Practices | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?                                                                                                                                                                                               |
 | Pull-Requests      | Does the project use [Pull Requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) for all code changes?                                                                                                                 |
-| Fuzzing            | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)? |
+| Fuzzing            | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?                                                                                                                                                                                                           |
 | SAST               | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)? |
-| Active             | Did the project get any commits in the last 90 days?                                                                                                                                                                                                                                      |
+| Active             | Did the project get any commits in the last 90 days?                                                                                                                                                                                                                                               |
 | Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                             |
 
 To see detailed information on how each check works, see the [check-specific documentation page](checks.md).
