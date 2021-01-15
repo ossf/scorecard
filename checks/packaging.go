@@ -73,7 +73,7 @@ func Packaging(c checker.Checker) checker.CheckResult {
 func isPackagingWorkflow(s string, fp string, c checker.Checker) bool {
 	// nodejs packages
 	if strings.Contains(s, "uses: actions/setup-node@") {
-		r1, _ := regexp.Compile("(?s)registry-url.*https://registry.npmjs.org")
+		r1, _ := regexp.Compile("(?s)registry-url.*https://registry\.npmjs\.org")
 		r2, _ := regexp.Compile("(?s)npm.*publish")
 
 		if r1.MatchString(s) && r2.MatchString(s) {
