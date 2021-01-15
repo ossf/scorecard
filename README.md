@@ -54,6 +54,7 @@ Starting [Code-Review]
 Starting [Contributors]
 Starting [Frozen-Deps]
 Starting [Fuzzing]
+Starting [Packaging]
 Starting [Pull-Requests]
 Starting [SAST]
 Starting [Security-Policy]
@@ -61,33 +62,35 @@ Starting [Signed-Releases]
 Starting [Signed-Tags]
 Finished [Fuzzing]
 Finished [CII-Best-Practices]
-Finished [Frozen-Deps]
-Finished [Security-Policy]
-Finished [Contributors]
-Finished [Signed-Releases]
 Finished [Branch-Protection]
+Finished [Packaging]
+Finished [Security-Policy]
+Finished [Frozen-Deps]
 Finished [Signed-Tags]
-Finished [CI-Tests]
+Finished [Signed-Releases]
 Finished [SAST]
-Finished [Code-Review]
-Finished [Pull-Requests]
+Finished [CI-Tests]
 Finished [Active]
+Finished [Contributors]
+Finished [Pull-Requests]
+Finished [Code-Review]
 
 RESULTS
 -------
 Active: Pass 10
-Branch-Protection: Fail 5
+Branch-Protection: Fail 10
 CI-Tests: Pass 10
 CII-Best-Practices: Pass 10
 Code-Review: Pass 10
 Contributors: Pass 10
 Frozen-Deps: Pass 10
 Fuzzing: Pass 10
+Packaging: Fail 0
 Pull-Requests: Pass 10
-SAST: Fail 0
+SAST: Fail 10
 Security-Policy: Pass 10
 Signed-Releases: Fail 10
-Signed-Tags: Fail 5
+Signed-Tags: Fail 10
 ```
 
 ### Authentication
@@ -142,7 +145,8 @@ The following checks are all run against the target project:
 | Fuzzing            | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?                                                                                                                                                                                                           |
 | SAST               | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)? |
 | Active             | Did the project get any commits in the last 90 days?                                                                                                                                                                                                                                               |
-| Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                             |
+| Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                          |
+| Packaging  | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
 
 To see detailed information on how each check works, see the [check-specific documentation page](checks.md).
 
