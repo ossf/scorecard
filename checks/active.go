@@ -24,10 +24,10 @@ import (
 var lookbackDays int = 90
 
 func init() {
-	registerCheck("Active", PeriodicCommits)
+	registerCheck("Active", IsActive)
 }
 
-func PeriodicCommits(c checker.Checker) checker.CheckResult {
+func IsActive(c checker.Checker) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
 		return checker.RetryResult(err)

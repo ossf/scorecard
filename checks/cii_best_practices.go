@@ -23,14 +23,14 @@ import (
 )
 
 func init() {
-	registerCheck("CII-Best-Practices", CiiBestPractices)
+	registerCheck("CII-Best-Practices", CIIBestPractices)
 }
 
 type response struct {
 	BadgeLevel string `json:"badge_level"`
 }
 
-func CiiBestPractices(c checker.Checker) checker.CheckResult {
+func CIIBestPractices(c checker.Checker) checker.CheckResult {
 	repoUrl := fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoUrl)
 	resp, err := c.HttpClient.Get(url)
