@@ -9,20 +9,20 @@ import (
 	"github.com/ossf/scorecard/checks"
 )
 
-var _ = Describe("E2E TEST:Packaging", func() {
-	Context("E2E TEST:Validating use of packaging in CI/CD", func() {
-		It("Should return use of packaging in CI/CD", func() {
+var _ = Describe("E2E TEST:SecurityPolicy", func() {
+	Context("E2E TEST:Validating security policy", func() {
+		It("Should return valid security policy", func() {
 			l := log{}
 			checker := checker.Checker{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,
-				Owner:       "apache",
-				Repo:        "orc",
+				Owner:       "tensorflow",
+				Repo:        "tensorflow",
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.Packaging(checker)
+			result := checks.SecurityPolicy(checker)
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})

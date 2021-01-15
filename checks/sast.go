@@ -22,7 +22,14 @@ import (
 var sastTools map[string]bool = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
 
 func init() {
-	registerCheck("SAST", checker.MultiCheck(CodeQLInCheckDefinitions, SASTToolInCheckRuns))
+	registerCheck("SAST", SAST)
+}
+
+func SAST(c checker.Checker) checker.CheckResult {
+	return checker.MultiCheck(
+		CodeQLInCheckDefinitions,
+		SASTToolInCheckRuns,
+	)(c)
 }
 
 func SASTToolInCheckRuns(c checker.Checker) checker.CheckResult {
