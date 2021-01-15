@@ -73,8 +73,8 @@ func Packaging(c checker.Checker) checker.CheckResult {
 func isPackagingWorkflow(s string, fp string, c checker.Checker) bool {
 	// nodejs packages
 	if strings.Contains(s, "uses: actions/setup-node@") {
-		r1, _ := regexp.Compile("(?s)registry-url.*https://registry\\.npmjs\\.org")
-		r2, _ := regexp.Compile("(?s)npm.*publish")
+		r1, _ := regexp.Compile(`(?s)registry-url.*https://registry\.npmjs\.org`)
+		r2, _ := regexp.Compile(`(?s)npm.*publish`)
 
 		if r1.MatchString(s) && r2.MatchString(s) {
 			c.Logf("found node packaging workflow using npm: %s", fp)
@@ -84,14 +84,14 @@ func isPackagingWorkflow(s string, fp string, c checker.Checker) bool {
 
 	if strings.Contains(s, "uses: actions/setup-java@") {
 		// java packages with maven
-		r1, _ := regexp.Compile("(?s)mvn.*deploy")
+		r1, _ := regexp.Compile(`(?s)mvn.*deploy`)
 		if r1.MatchString(s) {
 			c.Logf("found java packaging workflow using maven: %s", fp)
 			return true
 		}
 
 		// java packages with gradle
-		r2, _ := regexp.Compile("(?s)gradle.*publish")
+		r2, _ := regexp.Compile(`(?s)gradle.*publish`)
 		if r2.MatchString(s) {
 			c.Logf("found java packaging workflow using gradle: %s", fp)
 			return true
