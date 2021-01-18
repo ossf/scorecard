@@ -51,6 +51,9 @@ func SASTToolInCheckRuns(c checker.Checker) checker.CheckResult {
 		if err != nil {
 			return checker.RetryResult(err)
 		}
+		if crs == nil {
+			return checker.InconclusiveResult
+		}
 		for _, cr := range crs.CheckRuns {
 			if cr.GetStatus() != "completed" {
 				continue
