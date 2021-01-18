@@ -21,3 +21,5 @@ scorecard
 
 # tools 
 bin
+
+dist/
