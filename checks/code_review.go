@@ -35,7 +35,7 @@ func DoesCodeReview(c checker.Checker) checker.CheckResult {
 		IsPrReviewRequired,
 		GithubCodeReview,
 		ProwCodeReview,
-		GerritCodeReview,
+		CommitMessageHints,
 	)(c)
 }
 
@@ -147,7 +147,7 @@ func ProwCodeReview(c checker.Checker) checker.CheckResult {
 	return checker.ProportionalResult(totalReviewed, totalMerged, .75)
 }
 
-func GerritCodeReview(c checker.Checker) checker.CheckResult {
+func CommitMessageHints(c checker.Checker) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
 		return checker.RetryResult(err)
@@ -183,6 +183,6 @@ func GerritCodeReview(c checker.Checker) checker.CheckResult {
 	if totalReviewed == 0 {
 		return checker.InconclusiveResult
 	}
-	c.Logf("gerrit code reviews found")
+	c.Logf("code reviews found")
 	return checker.ProportionalResult(totalReviewed, total, .75)
 }
