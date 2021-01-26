@@ -1,0 +1,33 @@
+---
+codecov:
+  notify:
+    after_n_builds: 1
+    require_ci_to_pass: false
+
+coverage:
+  precision: 2
+  round: down
+  range: 50..75
+
+  status:
+    project:
+      default:
+        enabled: true
+        # allowed to drop coverage and still result in a "success" commit status
+        threshold: null
+        if_not_found: success
+        if_no_uploads: success
+        if_ci_failed: error
+    patch:
+      default:
+        enabled: true
+        threshold: null
+        if_not_found: success
+        if_no_uploads: success
+        if_ci_failed: error
+    changes: false
+
+comment:
+  layout: "header, diff"
+  behavior: default
+  require_changes: false
