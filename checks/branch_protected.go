@@ -29,8 +29,11 @@ func BranchProtection(c checker.Checker) checker.CheckResult {
 		return checker.RetryResult(err)
 	}
 
-	protection, _, err := c.Client.Repositories.
+	protection, resp, err := c.Client.Repositories.
 		GetBranchProtection(c.Ctx, c.Owner, c.Repo, *repo.DefaultBranch)
+	if resp.StatusCode == 404 {
+		return checker.RetryResult(err)
+	}
 
 	if err != nil {
 		c.Logf("!! branch protection not enabled")
