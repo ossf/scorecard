@@ -149,7 +149,8 @@ The following checks are all run against the target project:
 | Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                             |
 | Packaging          | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?                                                                  |
 
-To see detailed information on how each check works, see the [check-specific documentation page](checks.md).
+To see detailed information about each check and remediation steps,
+check out the [checks documentation page](checks.md).
 
 If you'd like to add a check, make sure it is something that meets the following criteria:
 
