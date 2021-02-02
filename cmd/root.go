@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sort"
 	"strconv"
@@ -41,6 +42,7 @@ var (
 	// This one has to use goflag instead of pflag because it's defined by zap
 	logLevel    = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
 	format      string
+	npm         string
 	showDetails bool
 )
 
@@ -51,7 +53,7 @@ const (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details]",
+	Use:   "./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details] or ./scorecard --npm=<npm packagename> [--checks=check1,...] [--show-details]",
 	Short: "Security Scorecards",
 	Long:  "A program that shows security scorecard for an open source software.",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -72,6 +74,20 @@ var rootCmd = &cobra.Command{
 			outputFn = outputJSON
 		default:
 			log.Fatalf("invalid format flag %s. allowed values are: [default, csv, json]", format)
+		}
+
+		if len(npm) != 0 {
+			if git, err := fetchGitRepoistoryFromNPM(npm); err != nil {
+				log.Fatal(err)
+			} else {
+				if err := cmd.Flags().Set("repo", git); err != nil {
+					log.Fatal(err)
+				}
+			}
+		} else {
+			if err := cmd.MarkFlagRequired("repo"); err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		enabledChecks := []checker.NamedCheck{}
@@ -115,6 +131,16 @@ type checkResult struct {
 	Pass       bool
 	Confidence int
 	Details    []string
+}
+
+type npmSearchResults struct {
+	Objects []struct {
+		Package struct {
+			Links struct {
+				Repository string `json:"repository"`
+			} `json:"links"`
+		} `json:"package"`
+	} `json:"objects"`
 }
 
 type record struct {
@@ -194,14 +220,35 @@ func displayResult(result bool) string {
 	}
 }
 
+// Gets the GitHub repository URL for the npm package
+func fetchGitRepoistoryFromNPM(packageName string) (string, error) {
+	npmsearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Get(fmt.Sprintf(npmsearchURL, packageName))
+
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+	v := &npmSearchResults{}
+	err = json.NewDecoder(resp.Body).Decode(v)
+	if err != nil {
+		return "", err
+	}
+	if len(v.Objects) == 0 {
+		return "", fmt.Errorf("could not find search results for npm package %s", packageName)
+	}
+	return v.Objects[0].Package.Links.Repository, nil
+}
 func init() {
 	// Add the zap flag manually
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
 	rootCmd.Flags().Var(&repo, "repo", "repository to check")
+	rootCmd.Flags().StringVar(&npm, "npm", "", "npm package to check. If the npm package has a GitHub repository")
 	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv, json]")
-	if err := rootCmd.MarkFlagRequired("repo"); err != nil {
-		log.Panic(err)
-	}
 
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
