@@ -94,6 +94,59 @@ Signed-Releases: Fail 10
 Signed-Tags: Fail 10
 ```
 
+### Package manager support
+
+scorecard has an option to provide `--npm` package name and it would fetch the corresponding GitHub code.
+
+```
+./scorecard --npm=angular
+Starting [Active]
+Starting [Branch-Protection]
+Starting [CI-Tests]
+Starting [CII-Best-Practices]
+Starting [Code-Review]
+Starting [Contributors]
+Starting [Frozen-Deps]
+Starting [Fuzzing]
+Starting [Packaging]
+Starting [Pull-Requests]
+Starting [SAST]
+Starting [Security-Policy]
+Starting [Signed-Releases]
+Starting [Signed-Tags]
+Finished [Signed-Releases]
+Finished [Fuzzing]
+Finished [CII-Best-Practices]
+Finished [Security-Policy]
+Finished [CI-Tests]
+Finished [Packaging]
+Finished [SAST]
+Finished [Code-Review]
+Finished [Branch-Protection]
+Finished [Frozen-Deps]
+Finished [Signed-Tags]
+Finished [Active]
+Finished [Pull-Requests]
+Finished [Contributors]
+
+RESULTS
+-------
+Active: Fail 10
+Branch-Protection: Fail 0
+CI-Tests: Pass 10
+CII-Best-Practices: Fail 10
+Code-Review: Pass 10
+Contributors: Pass 10
+Frozen-Deps: Fail 0
+Fuzzing: Fail 10
+Packaging: Fail 0
+Pull-Requests: Fail 9
+SAST: Fail 10
+Security-Policy: Pass 10
+Signed-Releases: Fail 0
+Signed-Tags: Fail 10
+```
+
 ### Authentication
 
 Before running Scorecard, you need to
