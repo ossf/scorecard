@@ -113,7 +113,7 @@ func isTest(s string) bool {
 	l := strings.ToLower(s)
 
 	// Add more patterns here!
-	for _, pattern := range []string{"appveyor", "buildkite", "circleci", "e2e", "github-actions", "mergeable", "test", "travis-ci"} {
+	for _, pattern := range []string{"appveyor", "buildkite", "circleci", "e2e", "github-actions", "jenkins", "mergeable", "test", "travis-ci"} {
 		if strings.Contains(l, pattern) {
 			return true
 		}

@@ -38,7 +38,7 @@ func FrozenDeps(c checker.Checker) checker.CheckResult {
 		return checker.RetryResult(err)
 	}
 	url := r.GetArchiveURL()
-	url = strings.Replace(url, "{archive_format}", "tarball", 1)
+	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
 	url = strings.Replace(url, "{/ref}", r.GetDefaultBranch(), 1)
 
 	// Download

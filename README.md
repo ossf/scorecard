@@ -3,6 +3,7 @@
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
 ![golangci-lint](https://github.com/ossf/scorecard/workflows/golangci-lint/badge.svg?branch=main)
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
+[![codecov](https://codecov.io/gh/ossf/scorecard/branch/main/graph/badge.svg?token=PMJ6NAN9J3)](https://codecov.io/gh/ossf/scorecard)
 
 <img align="right" src="artwork/openssf_security.png" width="200" height="400">
 
@@ -93,6 +94,59 @@ Signed-Releases: Fail 10
 Signed-Tags: Fail 10
 ```
 
+### Package manager support
+
+scorecard has an option to provide `--npm` package name and it would fetch the corresponding GitHub code.
+
+```
+./scorecard --npm=angular
+Starting [Active]
+Starting [Branch-Protection]
+Starting [CI-Tests]
+Starting [CII-Best-Practices]
+Starting [Code-Review]
+Starting [Contributors]
+Starting [Frozen-Deps]
+Starting [Fuzzing]
+Starting [Packaging]
+Starting [Pull-Requests]
+Starting [SAST]
+Starting [Security-Policy]
+Starting [Signed-Releases]
+Starting [Signed-Tags]
+Finished [Signed-Releases]
+Finished [Fuzzing]
+Finished [CII-Best-Practices]
+Finished [Security-Policy]
+Finished [CI-Tests]
+Finished [Packaging]
+Finished [SAST]
+Finished [Code-Review]
+Finished [Branch-Protection]
+Finished [Frozen-Deps]
+Finished [Signed-Tags]
+Finished [Active]
+Finished [Pull-Requests]
+Finished [Contributors]
+
+RESULTS
+-------
+Active: Fail 10
+Branch-Protection: Fail 0
+CI-Tests: Pass 10
+CII-Best-Practices: Fail 10
+Code-Review: Pass 10
+Contributors: Pass 10
+Frozen-Deps: Fail 0
+Fuzzing: Fail 10
+Packaging: Fail 0
+Pull-Requests: Fail 9
+SAST: Fail 10
+Security-Policy: Pass 10
+Signed-Releases: Fail 0
+Signed-Tags: Fail 10
+```
+
 ### Authentication
 
 Before running Scorecard, you need to
@@ -145,10 +199,11 @@ The following checks are all run against the target project:
 | Fuzzing            | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?                                                                                                                                                                                                           |
 | SAST               | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)? |
 | Active             | Did the project get any commits in the last 90 days?                                                                                                                                                                                                                                               |
-| Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                          |
-| Packaging  | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
+| Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                             |
+| Packaging          | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?                                                                  |
 
-To see detailed information on how each check works, see the [check-specific documentation page](checks.md).
+To see detailed information about each check and remediation steps,
+check out the [checks documentation page](checks.md).
 
 If you'd like to add a check, make sure it is something that meets the following criteria:
 

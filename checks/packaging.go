@@ -39,6 +39,10 @@ func Packaging(c checker.Checker) checker.CheckResult {
 		if err != nil {
 			return checker.RetryResult(err)
 		}
+		if fo == nil {
+			// path is a directory, not a file. skip.
+			continue
+		}
 		fc, err := fo.GetContent()
 		if err != nil {
 			return checker.RetryResult(err)
