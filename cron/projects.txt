@@ -182,3 +182,6 @@ github.com/google/gtm-session-fetcher
 github.com/googlecloudplatform/webapp2
 github.com/golang/mock
 github.com/google/jsonnet
+github.com/Hack23/cia
+github.com/Hack23/sonar-cloudformation-plugin
+github.com/Hack23/securityfixerbot
