@@ -4,7 +4,7 @@ on:
   repository_dispatch:
     types: [ok-to-test-command]
 
-name: Integration tests
+name: Integration-tests
 
 jobs:
   integration-trusted:
