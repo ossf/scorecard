@@ -1,5 +1,13 @@
 name: build
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.txt'
+  pull_request:
+    paths-ignore:
+      - '**.txt'
 jobs:
   validate:
     name: Validate 
