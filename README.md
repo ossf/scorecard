@@ -42,6 +42,12 @@ send a Pull Request with others.
 
 ## Usage
 
+`scorecard` is available as a Docker container:
+
+```
+$ docker pull docker.pkg.github.com/ossf/scorecard/scorecard
+```
+
 The program only requires one argument to run, the name of the repo:
 
 ```shell
