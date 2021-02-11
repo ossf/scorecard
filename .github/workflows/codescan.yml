@@ -1,0 +1,32 @@
+name: "Codescanning"
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 1'
+  watch:
+    types: [started]
+
+jobs:
+  Trivy-Scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build an image from Dockerfile
+        run: |
+          docker build -t docker.pkg.github.com/ossf/scorecard:${{ github.sha }} .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'docker.pkg.github.com/ossf/scorecard:${{ github.sha }}'
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'trivy-results.sarif'
