@@ -26,5 +26,20 @@ var _ = Describe("E2E TEST:Packaging", func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})
+		It("Should return use of packaging in CI/CD for scorecard", func() {
+			l := log{}
+			checker := checker.Checker{
+				Ctx:         context.Background(),
+				Client:      ghClient,
+				HttpClient:  client,
+				Owner:       "ossf",
+				Repo:        "scorecard",
+				GraphClient: graphClient,
+				Logf:        l.Logf,
+			}
+			result := checks.Packaging(checker)
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+		})
 	})
 })
