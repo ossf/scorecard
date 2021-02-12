@@ -49,7 +49,6 @@ func SignedTags(c checker.Checker) checker.CheckResult {
 	if err := c.GraphClient.Query(c.Ctx, &query, variables); err != nil {
 		return checker.RetryResult(err)
 	}
-
 	totalTags := 0
 	totalSigned := 0
 	for _, t := range query.Repository.Refs.Nodes {
@@ -57,7 +56,8 @@ func SignedTags(c checker.Checker) checker.CheckResult {
 		totalTags++
 		gt, _, err := c.Client.Git.GetTag(c.Ctx, c.Owner, c.Repo, sha)
 		if err != nil {
-			return checker.RetryResult(err)
+			c.Logf("!! unable to find the annotated commit: %s", sha)
+			continue
 		}
 		if gt.GetVerification().GetVerified() {
 			c.Logf("verified tag found: %s, commit: %s", t.Name, sha)
