@@ -21,18 +21,20 @@ jobs:
         run: make test
       - name: Build
         run: make build
-      - name: Run e2e
+      - name: Run ci-e2e
         env:  
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
         run: |
           if [[ ! -v GITHUB_AUTH_TOKEN ]]; then
               echo "GITHUB_AUTH_TOKEN is not set, skip test"
+              exit 1
           elif [[ -z "$GITHUB_AUTH_TOKEN" ]]; then
               echo "GITHUB_AUTH_TOKEN is set to the empty string, skip test"
+              exit 1
           else
             go get github.com/onsi/ginkgo/ginkgo@v1.14.2
             go mod download
-            make e2e
+            make ci-e2e
           fi
       - uses: codecov/codecov-action@v1
         with:
