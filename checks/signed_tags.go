@@ -56,7 +56,7 @@ func SignedTags(c checker.Checker) checker.CheckResult {
 		totalTags++
 		gt, _, err := c.Client.Git.GetTag(c.Ctx, c.Owner, c.Repo, sha)
 		if err != nil {
-			c.Logf("!! unable to find the annotated commit %s", sha)
+			c.Logf("!! unable to find the annotated commit: %s", sha)
 			continue
 		}
 		if gt.GetVerification().GetVerified() {
