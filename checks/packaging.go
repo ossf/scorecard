@@ -112,6 +112,11 @@ func isPackagingWorkflow(s string, fp string, c checker.Checker) bool {
 		return true
 	}
 
+	if strings.Contains(s, "docker push") {
+		c.Logf("found docker publishing workflow: %s", fp)
+		return true
+	}
+
 	c.Logf("!! not a packaging workflow: %s", fp)
 	return false
 }
