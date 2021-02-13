@@ -105,7 +105,10 @@ var rootCmd = &cobra.Command{
 			enabledChecks = checks.AllChecks
 		}
 		for _, c := range enabledChecks {
-			fmt.Fprintf(os.Stderr, "Starting [%s]\n", c.Name)
+			if format == formatDefault {
+				fmt.Fprintf(os.Stderr, "Starting [%s]\n", c.Name)
+
+			}
 		}
 		ctx := context.Background()
 
@@ -113,7 +116,9 @@ var rootCmd = &cobra.Command{
 		// Collect results
 		results := []pkg.Result{}
 		for result := range resultsCh {
-			fmt.Fprintf(os.Stderr, "Finished [%s]\n", result.Name)
+			if format == formatDefault {
+				fmt.Fprintf(os.Stderr, "Finished [%s]\n", result.Name)
+			}
 			results = append(results, result)
 		}
 
