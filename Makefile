@@ -23,22 +23,22 @@ golangci-lint:
 lint: golangci-lint ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run 
 
-
 check-env:
 ifndef GITHUB_AUTH_TOKEN
 	$(error GITHUB_AUTH_TOKEN is undefined)
 endif
 
 .PHONY: e2e
-# export GITHUB_AUTH_TOKEN with  personal access token to run the e2e
-e2e: build  check-env
-	ginkgo --skip="E2E TEST:executable" -p  -v -cover  ./...
+# export GITHUB_AUTH_TOKEN with personal access token to run the e2e
+e2e: build check-env
+	ginkgo --skip="E2E TEST:executable" -p -v -cover  ./...
 
 
 .PHONY: ci-e2e
-# export GITHUB_AUTH_TOKEN with  personal access token to run the e2e
+# export GITHUB_AUTH_TOKEN with personal access token to run the e2e
 ci-e2e: build check-env
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	mkdir -p bin
 	./scorecard --repo=https://github.com/ossf/scorecard --format json > ./bin/results.json
-	ginkgo  -p  -v -cover  ./...
+	ginkgo -p  -v -cover  ./...
+
