@@ -24,7 +24,7 @@ COPY . ./
 FROM base AS build
 ARG TARGETOS
 ARG TARGETARCH
-RUN --mount=type=cache,target=/root/.cache/go-build  go build -o /out/scorecard .
+RUN --mount=type=cache,target=/root/.cache/go-build  CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o /out/scorecard .
 
 FROM gcr.io/distroless/base:nonroot
 COPY --from=build /out/scorecard /
