@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 all: fmt tidy lint test
 build: 
-	go build 
+	CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"'
 
 fmt:
 	go fmt ./...
