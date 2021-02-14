@@ -55,6 +55,8 @@ var _ = Describe("E2E TEST:executable", func() {
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
 				case "SAST":
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
+				case "Security-Policy":
+					Expect(c.Pass).Should(BeTrue(), c.CheckName)
 				case "Signed-Releases":
 					Expect(c.Pass).Should(BeFalse(), c.CheckName)
 				case "Signed-Tags":

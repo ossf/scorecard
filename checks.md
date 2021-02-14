@@ -8,7 +8,7 @@ They are all subject to change, and have room for improvement!
 If you have ideas for things to add, or new ways to detect things,
 please contribute!
 
-## Security-MD
+## Security-Policy
 
 This check tries to determine if a project has published a security policy.
 It works by looking for a file named `SECURITY.md` (case-insensitive) in a
