@@ -15,12 +15,14 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
@@ -54,12 +56,11 @@ var serveCmd = &cobra.Command{
 			if len(s) != 3 {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
-			sugar.Info(repoParam)
-			repo := pkg.RepoURL{
-				Host:  s[0],
-				Owner: s[1],
-				Repo:  s[2],
+			repo := pkg.RepoURL{}
+			if err := repo.Set(repoParam); err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
 			}
+			sugar.Info(repoParam)
 			ctx := r.Context()
 			resultCh := pkg.RunScorecards(ctx, sugar, repo, checks.AllChecks)
 			tc := tc{
@@ -69,6 +70,19 @@ var serveCmd = &cobra.Command{
 				sugar.Info(r)
 				tc.Results = append(tc.Results, r)
 			}
+
+			if r.Header.Get("Content-Type") == "application/json" {
+				result, err := encodeJson(repo.String(), tc.Results)
+				if err != nil {
+					sugar.Error(err)
+					rw.WriteHeader(http.StatusInternalServerError)
+				}
+				if _, err := rw.Write(result); err != nil {
+					sugar.Error(err)
+				}
+				return
+			}
+
 			if err := t.Execute(rw, tc); err != nil {
 				sugar.Warn(err)
 			}
@@ -83,6 +97,33 @@ var serveCmd = &cobra.Command{
 			log.Fatal("ListenAndServe ", err)
 		}
 	},
+}
+
+// encodeJson encodes the result to json
+func encodeJson(repo string, results []pkg.Result) ([]byte, error) {
+	d := time.Now()
+	or := record{
+		Repo: repo,
+		Date: d.Format("2006-01-02"),
+	}
+
+	for _, r := range results {
+		var details []string
+		if showDetails {
+			details = r.Cr.Details
+		}
+		or.Checks = append(or.Checks, checkResult{
+			CheckName:  r.Name,
+			Pass:       r.Cr.Pass,
+			Confidence: r.Cr.Confidence,
+			Details:    details,
+		})
+	}
+	output, err := json.Marshal(or)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 type tc struct {
