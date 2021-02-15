@@ -1,0 +1,141 @@
+---
+run:
+  concurrency: 6
+  deadline: 5m
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - exhaustive
+    - exportloopref
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - goerr113
+    - gofmt
+    - gofumpt
+    - goheader
+    - goimports
+    - golint
+    - gomnd
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - lll
+    - maligned
+    - misspell
+    - nakedret
+    - nestif
+    - noctx
+    - nolintlint
+    - paralleltest
+    - prealloc
+    - predeclared
+    - rowserrcheck
+    - scopelint
+    - sqlclosecheck
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - thelper
+    - tparallel
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+    - wrapcheck
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  godox:
+    keywords:
+      - BUG
+      - FIXME
+      - HACK
+  gocritic:
+    enabled-checks:
+      # Diagnostic
+      - appendAssign
+      - argOrder
+      - badCond
+      - caseOrder
+      - codegenComment
+      - commentedOutCode
+      - deprecatedComment
+      - dupArg
+      - dupBranchBody
+      - dupCase
+      - dupSubExpr
+      - exitAfterDefer
+      - flagDeref
+      - flagName
+      - nilValReturn
+      - offBy1
+      - sloppyReassign
+      - weakCond
+      - octalLiteral
+
+      # Performance
+      - appendCombine
+      - equalFold
+      - hugeParam
+      - indexAlloc
+      - rangeExprCopy
+      - rangeValCopy
+
+      # Style
+      - assignOp
+      - boolExprSimplify
+      - captLocal
+      - commentFormatting
+      - commentedOutImport
+      - defaultCaseOrder
+      - docStub
+      - elseif
+      - emptyFallthrough
+      - emptyStringTest
+      - hexLiteral
+      - ifElseChain
+      - methodExprCall
+      - regexpMust
+      - singleCaseSwitch
+      - sloppyLen
+      - stringXbytes
+      - switchTrue
+      - typeAssertChain
+      - typeSwitchVar
+      - underef
+      - unlabelStmt
+      - unlambda
+      - unslice
+      - valSwap
+      - wrapperFunc
+      - yodaStyleExpr
+
+      # Opinionated
+      - builtinShadow
+      - importShadow
+      - initClause
+      - nestingReduce
+      - paramTypeCombine
+      - ptrToRefParam
+      - typeUnparen
+      - unnamedResult
+      - unnecessaryBlock
