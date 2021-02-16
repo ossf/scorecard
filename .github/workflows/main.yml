@@ -27,10 +27,8 @@ jobs:
         run: |
           if [[ ! -v GITHUB_AUTH_TOKEN ]]; then
               echo "GITHUB_AUTH_TOKEN is not set, skip test"
-              exit 1
           elif [[ -z "$GITHUB_AUTH_TOKEN" ]]; then
               echo "GITHUB_AUTH_TOKEN is set to the empty string, skip test"
-              exit 1
           else
             go get github.com/onsi/ginkgo/ginkgo@v1.14.2
             go mod download
