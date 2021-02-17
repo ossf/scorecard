@@ -46,8 +46,10 @@ func IsActive(c checker.Checker) checker.CheckResult {
 		}
 	}
 	c.Logf("commits in last %d days: %d", lookbackDays, totalCommits)
+	const numCommits = 2
+	const confidence = 10
 	return checker.CheckResult{
-		Pass:       totalCommits >= 2,
-		Confidence: 10,
+		Pass:       totalCommits >= numCommits,
+		Confidence: confidence,
 	}
 }

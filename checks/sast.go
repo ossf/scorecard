@@ -85,8 +85,9 @@ func CodeQLInCheckDefinitions(c checker.Checker) checker.CheckResult {
 		c.Logf("found CodeQL definition: %s", result.GetPath())
 	}
 
+	const confidence = 10
 	return checker.CheckResult{
 		Pass:       *results.Total > 0,
-		Confidence: 10,
+		Confidence: confidence,
 	}
 }

@@ -33,16 +33,17 @@ func Fuzzing(c checker.Checker) checker.CheckResult {
 		return checker.RetryResult(err)
 	}
 
+	const confidence = 10
 	if *results.Total > 0 {
 		c.Logf("found project in OSS-Fuzz")
 		return checker.CheckResult{
 			Pass:       true,
-			Confidence: 10,
+			Confidence: confidence,
 		}
 	}
 
 	return checker.CheckResult{
 		Pass:       false,
-		Confidence: 10,
+		Confidence: confidence,
 	}
 }

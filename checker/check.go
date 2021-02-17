@@ -78,16 +78,17 @@ func ProportionalResult(numerator int, denominator int, threshold float32) Check
 	}
 
 	actual := float32(numerator) / float32(denominator)
+	const confidence = 10
 	if actual >= threshold {
 		return CheckResult{
 			Pass:       true,
-			Confidence: int(actual * 10),
+			Confidence: int(actual * confidence),
 		}
 	}
 
 	return CheckResult{
 		Pass:       false,
-		Confidence: int(maxConfidence - int(actual*10)),
+		Confidence: maxConfidence - int(actual*confidence),
 	}
 }
 
