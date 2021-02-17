@@ -52,8 +52,9 @@ var serveCmd = &cobra.Command{
 
 		http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 			repoParam := r.URL.Query().Get("repo")
-			s := strings.SplitN(repoParam, "/", 3)
-			if len(s) != 3 {
+			const length = 3
+			s := strings.SplitN(repoParam, "/", length)
+			if len(s) != length {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
 			repo := pkg.RepoURL{}

@@ -28,7 +28,8 @@ func init() {
 }
 
 var passResult = checker.CheckResult{
-	Pass:       true,
+	Pass: true,
+	//nolint:gomnd
 	Confidence: 10,
 }
 
@@ -63,8 +64,9 @@ func FrozenDeps(c checker.Checker) checker.CheckResult {
 		}
 
 		// Strip the repo name
-		names := strings.SplitN(hdr.Name, "/", 2)
-		if len(names) < 2 {
+		const splitLength = 2
+		names := strings.SplitN(hdr.Name, "/", splitLength)
+		if len(names) < splitLength {
 			continue
 		}
 
@@ -97,8 +99,9 @@ func FrozenDeps(c checker.Checker) checker.CheckResult {
 			return passResult
 		}
 	}
+	const confidence = 5
 	return checker.CheckResult{
 		Pass:       false,
-		Confidence: 5,
+		Confidence: confidence,
 	}
 }

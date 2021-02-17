@@ -58,8 +58,9 @@ func (r *RepoURL) Set(s string) error {
 		return e
 	}
 
-	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", 2)
-	if len(split) != 2 {
+	const splitLen = 2
+	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
+	if len(split) != splitLen {
 		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
 	}
 

@@ -108,9 +108,10 @@ func IsPrReviewRequired(c checker.Checker) checker.CheckResult {
 	}
 	if bp.GetRequiredPullRequestReviews().RequiredApprovingReviewCount >= 1 {
 		c.Logf("pr review policy enforced")
+		const confidence = 5
 		return checker.CheckResult{
 			Pass:       true,
-			Confidence: 5,
+			Confidence: confidence,
 		}
 	}
 	return checker.InconclusiveResult

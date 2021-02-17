@@ -19,6 +19,7 @@ results.json
 # IDE directories.
 .vscode/
 *.iml
+.idea
 
 # tools 
 bin

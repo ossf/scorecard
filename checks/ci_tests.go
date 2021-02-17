@@ -52,6 +52,7 @@ func CITests(c checker.Checker) checker.CheckResult {
 		var foundCI bool
 
 		// Github Statuses
+		const s = "success"
 		if usedSystem <= githubStatuses {
 			statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListOptions{})
 			if err != nil {
@@ -59,7 +60,7 @@ func CITests(c checker.Checker) checker.CheckResult {
 			}
 
 			for _, status := range statuses {
-				if status.GetState() != "success" {
+				if status.GetState() != s {
 					continue
 				}
 				if isTest(status.GetContext()) {
@@ -87,7 +88,7 @@ func CITests(c checker.Checker) checker.CheckResult {
 				if cr.GetStatus() != "completed" {
 					continue
 				}
-				if cr.GetConclusion() != "success" {
+				if cr.GetConclusion() != s {
 					continue
 				}
 				if isTest(cr.GetApp().GetSlug()) {

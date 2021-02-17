@@ -49,11 +49,12 @@ func CIIBestPractices(c checker.Checker) checker.CheckResult {
 		return checker.RetryResult(err)
 	}
 
+	const confidence = 10
 	if len(parsedResponse) < 1 {
 		c.Logf("no badge found")
 		return checker.CheckResult{
 			Pass:       false,
-			Confidence: 10,
+			Confidence: confidence,
 		}
 	}
 
@@ -63,12 +64,12 @@ func CIIBestPractices(c checker.Checker) checker.CheckResult {
 	if result.BadgeLevel != "" {
 		return checker.CheckResult{
 			Pass:       true,
-			Confidence: 10,
+			Confidence: confidence,
 		}
 	}
 
 	return checker.CheckResult{
 		Pass:       false,
-		Confidence: 10,
+		Confidence: confidence,
 	}
 }
