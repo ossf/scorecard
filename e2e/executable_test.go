@@ -58,8 +58,10 @@ var _ = Describe("E2E TEST:executable", func() {
 				case "Security-Policy":
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
 				case "Signed-Releases":
+					Expect(c.Confidence).ShouldNot(Equal(10))
 					Expect(c.Pass).Should(BeFalse(), c.CheckName)
 				case "Signed-Tags":
+					Expect(c.Confidence).ShouldNot(Equal(10))
 					Expect(c.Pass).Should(BeFalse(), c.CheckName)
 				}
 			}
