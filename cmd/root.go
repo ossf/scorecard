@@ -228,8 +228,9 @@ func displayResult(result bool) string {
 // Gets the GitHub repository URL for the npm package
 func fetchGitRepoistoryFromNPM(packageName string) (string, error) {
 	npmsearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
+	const timeout = 10
 	client := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: timeout * time.Second,
 	}
 	resp, err := client.Get(fmt.Sprintf(npmsearchURL, packageName))
 

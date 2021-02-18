@@ -33,6 +33,7 @@ func Packaging(c checker.Checker) checker.CheckResult {
 		return checker.RetryResult(err)
 	}
 
+	const confidence = 10
 	for _, f := range dc {
 		fp := f.GetPath()
 		fo, _, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, fp, &github.RepositoryContentGetOptions{})
@@ -62,7 +63,7 @@ func Packaging(c checker.Checker) checker.CheckResult {
 			c.Logf("found a completed run: %s", runs.WorkflowRuns[0].GetHTMLURL())
 			return checker.CheckResult{
 				Pass:       true,
-				Confidence: 10,
+				Confidence: confidence,
 			}
 		}
 		c.Logf("!! no run completed")
@@ -70,7 +71,7 @@ func Packaging(c checker.Checker) checker.CheckResult {
 
 	return checker.CheckResult{
 		Pass:       false,
-		Confidence: 10,
+		Confidence: confidence,
 	}
 }
 

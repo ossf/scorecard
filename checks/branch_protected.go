@@ -31,15 +31,17 @@ func BranchProtection(c checker.Checker) checker.CheckResult {
 
 	protection, resp, err := c.Client.Repositories.
 		GetBranchProtection(c.Ctx, c.Owner, c.Repo, *repo.DefaultBranch)
-	if resp.StatusCode == 404 {
+	const fileNotFound = 404
+	if resp.StatusCode == fileNotFound {
 		return checker.RetryResult(err)
 	}
 
 	if err != nil {
 		c.Logf("!! branch protection not enabled")
+		const confidence = 10
 		return checker.CheckResult{
 			Pass:       false,
-			Confidence: 10,
+			Confidence: confidence,
 		}
 	}
 	return IsBranchProtected(protection, c)
