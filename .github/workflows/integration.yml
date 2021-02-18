@@ -79,7 +79,7 @@ jobs:
           issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
           comment-id: ${{ steps.fc.outputs.comment-id }}
           body: |
-            Integration tests ${{ job.status }} for [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}](https://github.com/chanzuckerberg/terraform-provider-snowflake/actions/runs/${{ github.run_id }})
+            Integration tests ${{ job.status }} for [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}](https://github.com/ossf/scorecard/actions/runs/${{ github.run_id }})
 
       - name: set fork job status
         uses: actions/github-script@v3
