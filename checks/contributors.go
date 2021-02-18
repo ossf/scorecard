@@ -38,7 +38,9 @@ func Contributors(c checker.Checker) checker.CheckResult {
 
 	companies := map[string]struct{}{}
 	for _, contrib := range contribs {
-		if contrib.GetContributions() >= 5 {
+		const contributorsCount = 5
+		//nolint:nestif
+		if contrib.GetContributions() >= contributorsCount {
 			u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
 			if err != nil {
 				return checker.RetryResult(err)
@@ -82,14 +84,16 @@ func Contributors(c checker.Checker) checker.CheckResult {
 		names = append(names, c)
 	}
 	c.Logf("companies found: %v", strings.Join(names, ","))
-	if len(companies) >= 2 {
+	const numContributors = 2
+	const confidence = 10
+	if len(companies) >= numContributors {
 		return checker.CheckResult{
 			Pass:       true,
-			Confidence: 10,
+			Confidence: confidence,
 		}
 	}
 	return checker.CheckResult{
 		Pass:       false,
-		Confidence: 10,
+		Confidence: confidence,
 	}
 }
