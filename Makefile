@@ -1,16 +1,13 @@
 SHELL := /bin/bash
-GOBIN ?= $(GOPATH)/bin
-GINKGO ?= $(GOBIN)/ginkgo
 all: fmt tidy lint test
 build: 
-	CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"'
-
+	CGO_ENABLED=0 go build -a -tags tools,netgo -ldflags '-w -extldflags "-static"'
 fmt:
 	go fmt ./...
 
 # ignoring e2e tests
 test: 
-	go test -covermode atomic  `go list ./... | grep -v e2e`
+	go test -covermode atomic  `go list ./... | grep -vE "e2e|tools"`
 
 tidy:
 	go mod tidy
@@ -22,7 +19,7 @@ golangci-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) v1.36.0 ;\
 
 lint: golangci-lint ## Run golangci-lint linter
-	$(GOLANGCI_LINT) run  -n
+	$(GOLANGCI_LINT) run -n
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN
@@ -31,16 +28,14 @@ endif
 
 .PHONY: e2e
 # export GITHUB_AUTH_TOKEN with personal access token to run the e2e
-e2e: build check-env ginkgo
-	$(GINKGO) --skip="E2E TEST:executable" -p -v -cover  ./...
+e2e: build check-env 
+	go run github.com/onsi/ginkgo/ginkgo --skip="E2E TEST:executable" -p -v -cover  ./...
 
-ginkgo:
-	GO111MODULE=off go get -u github.com/onsi/ginkgo/ginkgo
 .PHONY: ci-e2e
 # export GITHUB_AUTH_TOKEN with personal access token to run the e2e
-ci-e2e: build check-env
+ci-e2e: build check-env 
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	mkdir -p bin
 	./scorecard --repo=https://github.com/ossf/scorecard --format json > ./bin/results.json
-	ginkgo -p  -v -cover  ./...
+	go run github.com/onsi/ginkgo/ginkgo  -p  -v -cover  ./...
 
