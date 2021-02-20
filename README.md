@@ -1,6 +1,5 @@
 # Security Scorecards
 
-
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
 [![codecov](https://codecov.io/gh/ossf/scorecard/branch/main/graph/badge.svg?token=PMJ6NAN9J3)](https://codecov.io/gh/ossf/scorecard)
@@ -152,6 +151,20 @@ Security-Policy: Pass 10
 Signed-Releases: Fail 0
 Signed-Tags: Fail 10
 ```
+
+### Caching
+
+Scorecard uses `httpcache` with <https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests> for caching httpresponse. The default cache is in-memory.
+
+#### Disk Cache
+
+Scorecard results can be cached into a disk for increasing throughput for subsequent runs.
+
+To use disk cache two env variables have to be set `USE_DISK_CACHE=true` and `DISK_CACHE_PATH=./cache`.
+
+There is no TTL on cache.
+
+Some details on caching <https://github.com/ossf/scorecard/issues/80#issuecomment-782723182>
 
 ### Authentication
 

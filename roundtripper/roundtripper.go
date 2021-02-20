@@ -15,29 +15,30 @@
 package roundtripper
 
 import (
-	"bytes"
 	"context"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/bradleyfalzon/ghinstallation"
+	cache "github.com/naveensrinivasan/httpcache"
+	"github.com/naveensrinivasan/httpcache/diskcache"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
 
 const (
-	GITHUB_AUTH_TOKEN          = "GITHUB_AUTH_TOKEN" // #nosec G101
-	GITHUB_APP_KEY_PATH        = "GITHUB_APP_KEY_PATH"
-	GITHUB_APP_ID              = "GITHUB_APP_ID"
-	GITHUB_APP_INSTALLATION_ID = "GITHUB_APP_INSTALLATION_ID"
+	GithubAuthToken         = "GITHUB_AUTH_TOKEN" // #nosec G101
+	GithubAppKeyPath        = "GITHUB_APP_KEY_PATH"
+	GithubAppID             = "GITHUB_APP_ID"
+	GithubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
+	UseDiskCache            = "USE_DISK_CACHE"
+	DiskCachePath           = "DISK_CACHE_PATH"
 )
 
 // RateLimitRoundTripper is a rate-limit aware http.Transport for Github.
@@ -59,26 +60,25 @@ func (r *RoundRobinTokenSource) Token() (*oauth2.Token, error) {
 	}, nil
 }
 
-// NewTransport returns a configured http.Transport for use with GitHub
+// NewTransport returns a configured http.Transport for use with GitHub.
 func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
-
 	// Start with oauth
 	transport := http.DefaultTransport
-	if token := os.Getenv(GITHUB_AUTH_TOKEN); token != "" {
+	if token := os.Getenv(GithubAuthToken); token != "" {
 		ts := &RoundRobinTokenSource{
 			AccessTokens: strings.Split(token, ","),
 		}
 		transport = oauth2.NewClient(ctx, ts).Transport
-	} else if key_path := os.Getenv(GITHUB_APP_KEY_PATH); key_path != "" { // Also try a GITHUB_APP
-		app_id, err := strconv.Atoi(os.Getenv(GITHUB_APP_ID))
+	} else if keyPath := os.Getenv(GithubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
+		appID, err := strconv.Atoi(os.Getenv(GithubAppID))
 		if err != nil {
 			log.Panic(err)
 		}
-		installation_id, err := strconv.Atoi(os.Getenv(GITHUB_APP_INSTALLATION_ID))
+		installationID, err := strconv.Atoi(os.Getenv(GithubAppInstallationID))
 		if err != nil {
 			log.Panic(err)
 		}
-		transport, err = ghinstallation.NewKeyFromFile(transport, int64(app_id), int64(installation_id), key_path)
+		transport, err = ghinstallation.NewKeyFromFile(transport, int64(appID), int64(installationID), keyPath)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -90,22 +90,37 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 		InnerTransport: transport,
 	}
 
-	// Wrap that with the response cacher
-	cache := &CachingRoundTripper{
-		Logger:         logger,
-		innerTransport: rateLimit,
-		respCache:      map[url.URL]*http.Response{},
-		bodyCache:      map[url.URL][]byte{},
+	// uses the disk cache
+	if cachePath, useDisk := shouldUseDiskCache(); useDisk {
+		c := cache.NewTransport(diskcache.New(cachePath))
+		c.Transport = rateLimit
+		return c
 	}
 
-	return cache
+	// uses memory cache
+	c := cache.NewTransport(cache.NewMemoryCache())
+	c.Transport = rateLimit
+	return c
+}
+
+// shouldUseDiskCache checks the env variables USE_DISK_CACHE and DISK_CACHE_PATH to determine if
+// disk should be used for caching.
+func shouldUseDiskCache() (string, bool) {
+	if isDiskCache := os.Getenv(UseDiskCache); isDiskCache != "" {
+		if result, err := strconv.ParseBool(isDiskCache); err == nil && result {
+			if cachePath := os.Getenv(DiskCachePath); cachePath != "" {
+				return cachePath, true
+			}
+		}
+	}
+	return "", false
 }
 
 // Roundtrip handles caching and ratelimiting of responses from GitHub.
 func (gh *RateLimitRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	resp, err := gh.InnerTransport.RoundTrip(r)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error in round trip")
 	}
 
 	rateLimit := resp.Header.Get("X-RateLimit-Remaining")
@@ -128,48 +143,5 @@ func (gh *RateLimitRoundTripper) RoundTrip(r *http.Request) (*http.Response, err
 		gh.Logger.Warnf("Rate limit exceeded. Retrying...")
 		return gh.RoundTrip(r)
 	}
-
-	return resp, err
-}
-
-type CachingRoundTripper struct {
-	innerTransport http.RoundTripper
-	respCache      map[url.URL]*http.Response
-	bodyCache      map[url.URL][]byte
-	mutex          sync.Mutex
-	Logger         *zap.SugaredLogger
-}
-
-func (rt *CachingRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
-	// Check the cache
-	rt.mutex.Lock()
-	defer rt.mutex.Unlock()
-	resp, ok := rt.respCache[*r.URL]
-
-	if ok {
-		rt.Logger.Debugf("Cache hit on %s", r.URL.String())
-		resp.Body = ioutil.NopCloser(bytes.NewReader(rt.bodyCache[*r.URL]))
-		return resp, nil
-	}
-
-	// Get the real value
-	resp, err := rt.innerTransport.RoundTrip(r)
-	if err != nil {
-		return nil, err
-	}
-
-	// Add to cache
-	if resp.StatusCode == http.StatusOK {
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-
-		rt.respCache[*r.URL] = resp
-		rt.bodyCache[*r.URL] = body
-
-		resp.Body = ioutil.NopCloser(bytes.NewReader(body))
-	}
-	return resp, err
+	return resp, nil
 }

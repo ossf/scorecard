@@ -63,6 +63,9 @@ ci-e2e: build check-env
 	mkdir -p bin
 	./scorecard --repo=https://github.com/ossf/scorecard --format json > ./bin/results.json
 	ginkgo -p  -v -cover  ./...
+	mkdir -p cache
+	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ./scorecard --repo=https://github.com/ossf/scorecard --format json > ./bin/results.json
+	ginkgo -p  -v -cover  ./...
 
 
 # Verification targets
