@@ -27,6 +27,7 @@ import (
 	"github.com/bradleyfalzon/ghinstallation"
 	cache "github.com/naveensrinivasan/httpcache"
 	"github.com/naveensrinivasan/httpcache/diskcache"
+	"github.com/peterbourgon/diskv"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
@@ -89,10 +90,11 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 		Logger:         logger,
 		InnerTransport: transport,
 	}
-
+	const cacheSize uint64 = 10000 * 1024 * 1024 // 10gb
 	// uses the disk cache
 	if cachePath, useDisk := shouldUseDiskCache(); useDisk {
-		c := cache.NewTransport(diskcache.New(cachePath))
+		c := cache.NewTransport(diskcache.NewWithDiskv(
+			diskv.New(diskv.Options{BasePath: cachePath, CacheSizeMax: cacheSize})))
 		c.Transport = rateLimit
 		return c
 	}
