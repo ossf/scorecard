@@ -78,7 +78,8 @@ func (r *RepoURL) Set(s string) error {
 	}
 }
 
-func RunScorecards(ctx context.Context, logger *zap.SugaredLogger, repo RepoURL, checksToRun []checker.NamedCheck) <-chan (Result) {
+func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
+	repo RepoURL, checksToRun []checker.NamedCheck) <-chan Result {
 	// Use our custom roundtripper
 	rt := roundtripper.NewTransport(ctx, logger)
 
