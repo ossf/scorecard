@@ -31,8 +31,9 @@ import (
 )
 
 type Result struct {
-	Cr   checker.CheckResult
-	Name string
+	Cr       checker.CheckResult
+	Name     string
+	MetaData []string
 }
 
 type RepoURL struct {
