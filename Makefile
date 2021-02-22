@@ -61,10 +61,10 @@ ci-e2e:  ## Runs ci e2e tests
 ci-e2e: build check-env
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	mkdir -p bin
-	./scorecard --repo=https://github.com/ossf/scorecard --format json > ./bin/results.json
+	./scorecard --repo=https://github.com/ossf/scorecard --show-details --format json > ./bin/results.json
 	ginkgo -p  -v -cover  ./...
 	mkdir -p cache
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ./scorecard --repo=https://github.com/ossf/scorecard --format json > ./bin/results.json
+	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ./scorecard --repo=https://github.com/ossf/scorecard --show-details --format json > ./bin/results.json
 	ginkgo -p  -v -cover  ./...
 
 
