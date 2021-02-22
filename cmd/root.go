@@ -39,7 +39,8 @@ import (
 var (
 	repo        pkg.RepoURL
 	checksToRun []string
-	// This one has to use goflag instead of pflag because it's defined by zap
+	metaData    []string
+	// This one has to use goflag instead of pflag because it's defined by zap.
 	logLevel    = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
 	format      string
 	npm         string
@@ -149,16 +150,18 @@ type npmSearchResults struct {
 }
 
 type record struct {
-	Repo   string
-	Date   string
-	Checks []checkResult
+	Repo     string
+	Date     string
+	Checks   []checkResult
+	MetaData []string
 }
 
 func outputJSON(results []pkg.Result) {
 	d := time.Now()
 	or := record{
-		Repo: repo.String(),
-		Date: d.Format("2006-01-02"),
+		Repo:     repo.String(),
+		Date:     d.Format("2006-01-02"),
+		MetaData: metaData,
 	}
 
 	for _, r := range results {
@@ -255,6 +258,8 @@ func init() {
 	rootCmd.Flags().Var(&repo, "repo", "repository to check")
 	rootCmd.Flags().StringVar(&npm, "npm", "", "npm package to check. If the npm package has a GitHub repository")
 	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv, json]")
+	rootCmd.Flags().StringSliceVar(
+		&metaData, "metadata", []string{}, "metadata for the project.It can be multiple separated by commas")
 
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
