@@ -38,7 +38,7 @@ func Test_shouldUseDiskCache(t *testing.T) {
 			useDiskCache:  true,
 		},
 		{
-			name:          "Want to use Disk Cache",
+			name:          "Don't want to use Disk Cache",
 			diskCachePath: "",
 			useDiskCache:  false,
 		},
@@ -63,6 +63,48 @@ func Test_shouldUseDiskCache(t *testing.T) {
 			}
 			if got1 != tt.useDiskCache {
 				t.Errorf("shouldUseDiskCache() got1 = %v, want %v", got1, tt.useDiskCache)
+			}
+		})
+	}
+}
+
+func Test_shouldUseBlobCache(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name         string
+		blobCacheURL string
+		useBlobCache bool
+	}{
+		{
+			name:         "Want to use blob Cache",
+			blobCacheURL: "foo",
+			useBlobCache: true,
+		},
+		{
+			name:         "Don't want to use Disk Cache",
+			blobCacheURL: "",
+			useBlobCache: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if tt.useBlobCache {
+				e := os.Setenv(UseBlobCache, "1")
+				thelperHandleError(t, e)
+				e = os.Setenv(BucketURL, tt.blobCacheURL)
+				thelperHandleError(t, e)
+			} else {
+				os.Unsetenv(UseBlobCache)
+				os.Unsetenv(BucketURL)
+			}
+			got, got1 := shouldUseBlobCache()
+			if got != tt.blobCacheURL {
+				t.Errorf("shouldUseBlobCache() got = %v, want %v", got, tt.blobCacheURL)
+			}
+			if got1 != tt.useBlobCache {
+				t.Errorf("shouldUseBlobCache() got1 = %v, want %v", got1, tt.useBlobCache)
 			}
 		})
 	}

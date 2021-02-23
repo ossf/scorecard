@@ -8,23 +8,23 @@
 
 <!-- vim-markdown-toc GFM -->
 
-- [Security Scorecards](#security-scorecards)
-  - [Motivation](#motivation)
-  - [Goals](#goals)
-  - [Public Data](#public-data)
-  - [Usage](#usage)
-    - [Package manager support](#package-manager-support)
-    - [Docker](#docker)
-    - [Caching](#caching)
-      - [Disk Cache](#disk-cache)
-    - [Authentication](#authentication)
-      - [GITHUB_AUTH_TOKEN](#github_auth_token)
-  - [Checks](#checks)
-  - [Results](#results)
-    - [Running specific checks](#running-specific-checks)
-    - [Formatting Results](#formatting-results)
-  - [Requirements](#requirements)
-  - [Contributing](#contributing)
+* [Motivation](#motivation)
+* [Goals](#goals)
+* [Public Data](#public-data)
+* [Usage](#usage)
+  * [Package manager support](#package-manager-support)
+  * [Docker](#docker)
+  * [Caching](#caching)
+    * [Blob Cache](#blob-cache)
+    * [Disk Cache](#disk-cache)
+  * [Authentication](#authentication)
+    * [GITHUB_AUTH_TOKEN](#github_auth_token)
+* [Checks](#checks)
+* [Results](#results)
+  * [Running specific checks](#running-specific-checks)
+  * [Formatting Results](#formatting-results)
+* [Requirements](#requirements)
+* [Contributing](#contributing)
 
 <!-- vim-markdown-toc -->
 ## Motivation
@@ -183,6 +183,16 @@ The Dockerfile in the root directory utilizes [experimental features](https://gi
 
 Scorecard uses `httpcache` with <https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests> for caching httpresponse. The default cache is in-memory.
 
+Some details on caching <https://github.com/ossf/scorecard/issues/80#issuecomment-782723182>
+
+#### Blob Cache
+
+Scorecard results can be cached into a blob for increasing throughput for subsequent runs.
+
+To use blob cache two env variables have to be set `USE_BLOB_CACHE=true` and `BLOB_URL=gs://scorecards-cache/`.
+
+The code uses <https://github.com/google/go-cloud> for blob caching. It is compatible with GCS,S3 and Azure blob.
+
 #### Disk Cache
 
 Scorecard results can be cached into a disk for increasing throughput for subsequent runs.
@@ -191,7 +201,8 @@ To use disk cache two env variables have to be set `USE_DISK_CACHE=true` and `DI
 
 There is no TTL on cache.
 
-Some details on caching <https://github.com/ossf/scorecard/issues/80#issuecomment-782723182>
+The default cache size is 10GB.
+
 
 ### Authentication
 

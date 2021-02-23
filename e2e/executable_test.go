@@ -23,7 +23,6 @@ type scorecard struct {
 var _ = Describe("E2E TEST:executable", func() {
 	Context("E2E TEST:Validating executable test", func() {
 		It("Should return valid test results for scorecard", func() {
-
 			file, err := ioutil.ReadFile("../bin/results.json")
 
 			Expect(err).Should(BeNil())
@@ -31,6 +30,7 @@ var _ = Describe("E2E TEST:executable", func() {
 			data := scorecard{}
 
 			err = json.Unmarshal(file, &data)
+			Expect(err).Should(BeNil())
 
 			Expect(len(data.MetaData)).ShouldNot(BeZero())
 			Expect(data.MetaData[0]).Should(BeEquivalentTo("openssf"))
