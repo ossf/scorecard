@@ -6,6 +6,27 @@
 
 <img align="right" src="artwork/openssf_security.png" width="200" height="400">
 
+<!-- vim-markdown-toc GFM -->
+
+- [Security Scorecards](#security-scorecards)
+  - [Motivation](#motivation)
+  - [Goals](#goals)
+  - [Public Data](#public-data)
+  - [Usage](#usage)
+    - [Package manager support](#package-manager-support)
+    - [Docker](#docker)
+    - [Caching](#caching)
+      - [Disk Cache](#disk-cache)
+    - [Authentication](#authentication)
+      - [GITHUB_AUTH_TOKEN](#github_auth_token)
+  - [Checks](#checks)
+  - [Results](#results)
+    - [Running specific checks](#running-specific-checks)
+    - [Formatting Results](#formatting-results)
+  - [Requirements](#requirements)
+  - [Contributing](#contributing)
+
+<!-- vim-markdown-toc -->
 ## Motivation
 
 A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You passed! All D's ... and an A!"
@@ -40,12 +61,6 @@ file in this repository. If you would like us to track more, please feel free to
 send a Pull Request with others.
 
 ## Usage
-
-`scorecard` is available as a Docker container:
-
-```
-$ docker pull docker.pkg.github.com/ossf/scorecard/scorecard
-```
 
 The program only requires one argument to run, the name of the repo:
 
@@ -103,7 +118,7 @@ Signed-Tags: Fail 10
 
 scorecard has an option to provide `--npm` package name and it would fetch the corresponding GitHub code.
 
-```
+``` shell
 ./scorecard --npm=angular
 Starting [Active]
 Starting [Branch-Protection]
@@ -151,6 +166,18 @@ Security-Policy: Pass 10
 Signed-Releases: Fail 0
 Signed-Tags: Fail 10
 ```
+
+### Docker
+
+`scorecard` is available as a Docker container:
+
+The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#github_auth_token)
+
+``` shell
+docker run -e GITHUB_AUTH_TOKEN=token docker.pkg.github.com/ossf/scorecard/scorecard --show-details --repo=https://github.com/ossf/scorecard
+```
+
+The Dockerfile in the root directory utilizes [experimental features](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md) which is available in Docker v18.09 or later.
 
 ### Caching
 
@@ -263,9 +290,7 @@ These may be specified with the `--format` flag.
 - Any criteria in the scorecard must be actionable. It should be possible, with help, for any project to "check all the boxes".
 - Any solution to compile a scorecard should be usable by the greater open source community to monitor upstream security.
 
-## Docker
 
-- The Dockerfile in the root directory utilizes [experimental features](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md) which is available in Docker v18.09 or later.
 
 ## Contributing
 
