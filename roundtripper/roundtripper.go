@@ -40,6 +40,8 @@ const (
 	GithubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
 	UseDiskCache            = "USE_DISK_CACHE"
 	DiskCachePath           = "DISK_CACHE_PATH"
+	UseBlobCache            = "USE_BLOB_CACHE"
+	BucketURL               = "BLOB_URL"
 )
 
 // RateLimitRoundTripper is a rate-limit aware http.Transport for Github.
@@ -90,9 +92,22 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 		Logger:         logger,
 		InnerTransport: transport,
 	}
-	const cacheSize uint64 = 10000 * 1024 * 1024 // 10gb
+
+	// uses blob cache like GCS,S3.
+	if cachePath, useBlob := shouldUseBlobCache(); useBlob {
+		b, e := New(context.Background(), cachePath)
+		if e != nil {
+			log.Panic(e)
+		}
+
+		c := cache.NewTransport(b)
+		c.Transport = rateLimit
+		return c
+	}
+
 	// uses the disk cache
 	if cachePath, useDisk := shouldUseDiskCache(); useDisk {
+		const cacheSize uint64 = 10000 * 1024 * 1024 // 10gb
 		c := cache.NewTransport(diskcache.NewWithDiskv(
 			diskv.New(diskv.Options{BasePath: cachePath, CacheSizeMax: cacheSize})))
 		c.Transport = rateLimit
@@ -113,6 +128,17 @@ func shouldUseDiskCache() (string, bool) {
 			if cachePath := os.Getenv(DiskCachePath); cachePath != "" {
 				return cachePath, true
 			}
+		}
+	}
+	return "", false
+}
+
+// shouldUseBlobCache checks the env variables USE_BLOB_CACHE and BLOB_URL to determine if
+// blob should be used for caching.
+func shouldUseBlobCache() (string, bool) {
+	if result, err := strconv.ParseBool(os.Getenv(UseBlobCache)); err == nil && result {
+		if cachePath := os.Getenv(BucketURL); cachePath != "" {
+			return cachePath, true
 		}
 	}
 	return "", false

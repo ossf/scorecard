@@ -61,11 +61,10 @@ ci-e2e:  ## Runs ci e2e tests
 ci-e2e: build check-env
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	mkdir -p bin
-	./scorecard --repo=https://github.com/ossf/scorecard --format json --metadata=openssf > ./bin/results.json
-	ginkgo -p  -v -cover  ./...
 	mkdir -p cache
 	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ./scorecard --repo=https://github.com/ossf/scorecard --show-details --metadata=openssf  --format json > ./bin/results.json
-	ginkgo -p  -v -cover  ./...
+	@sleep 30
+	ginkgo -p  -v -cover --skip="E2E TEST:blob"  ./...
 
 
 # Verification targets

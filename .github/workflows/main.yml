@@ -15,19 +15,6 @@ jobs:
           go-version: '^1.15'
       - name: Run presubmit tests
         run: make all
-      - name: Run integration tests
-        env:  
-          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-        run: |
-          if [[ ! -v GITHUB_AUTH_TOKEN ]]; then
-              echo "GITHUB_AUTH_TOKEN is not set, skip test"
-          elif [[ -z "$GITHUB_AUTH_TOKEN" ]]; then
-              echo "GITHUB_AUTH_TOKEN is set to the empty string, skip test"
-          else
-            go get github.com/onsi/ginkgo/ginkgo@v1.14.2
-            go mod download
-            make ci-e2e
-          fi
       - uses: codecov/codecov-action@v1
         with:
           files: e2e/e2e.coverprofile,pkg/pkg.coverprofile,checks/checks.coverprofile
