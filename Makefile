@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 GOBIN ?= $(GOPATH)/bin
 GINKGO ?= $(GOBIN)/ginkgo
+IMAGE_NAME = scorecard
 
 .PHONY: help
 help:  ## Display this help
@@ -77,3 +78,8 @@ verify-go-mod: ## Verify the go modules
 		go mod tidy && \
 		go mod verify
 	./hack/tree-status 
+
+.PHONY: dockerbuild
+dockerbuild: ## Runs docker build
+	$(call ndef, GITHUB_AUTH_TOKEN)
+	docker build . --file Dockerfile --tag $(IMAGE_NAME) 

@@ -1,0 +1,12 @@
+# Ignore everything
+**
+
+# Allow files and directories
+!go.mod
+!go.sum
+!main.go
+!/pkg/**
+!/roundtripper/**
+!/cmd/**
+!/checks/**
+!/checker/**
