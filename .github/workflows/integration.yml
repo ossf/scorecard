@@ -5,7 +5,8 @@ on:
     types: [ok-to-test-command]
 
 name: Integration tests
-
+env:
+  IMAGE_NAME: scorecard
 jobs:
   integration-trusted:
     runs-on: ubuntu-latest
@@ -90,6 +91,27 @@ jobs:
            	mkdir -p bin
             ./scorecard --repo=https://github.com/ossf/scorecard --show-details --metadata=openssf  --format json > ./bin/results.json
             ginkgo --focus="E2E TEST:executable|E2E TEST:blob" ./...
+          fi
+
+      - name: Build docker image
+        run: docker build . --file Dockerfile --tag $IMAGE_NAME
+
+      - name: Test docker image
+        env:  
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+        run: |
+          if [[ ! -v GITHUB_AUTH_TOKEN ]]; then
+              echo "GITHUB_AUTH_TOKEN is not set, skip test"
+              exit 1
+          elif [[ -z "$GITHUB_AUTH_TOKEN" ]]; then
+              echo "GITHUB_AUTH_TOKEN is set to the empty string, skip test"
+              exit 1
+          else
+            go get github.com/onsi/ginkgo/ginkgo@v1.14.2
+            go mod download
+           	mkdir -p bin
+            docker run -e GITHUB_AUTH_TOKEN=$GITHUB_AUTH_TOKEN  $IMAGE_NAME  --show-details  --repo=https://github.com/ossf/scorecard --metadata=openssf --format json > ./bin/results.json
+            ginkgo -p -v --focus="E2E TEST:executable" ./...
           fi
 
       - name: find comment
