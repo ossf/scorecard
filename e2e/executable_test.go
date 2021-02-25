@@ -23,8 +23,7 @@ type scorecard struct {
 var _ = Describe("E2E TEST:executable", func() {
 	Context("E2E TEST:Validating executable test", func() {
 		It("Should return valid test results for scorecard", func() {
-			file, err := ioutil.ReadFile("../bin/results.json")
-
+			file, err := ioutil.ReadFile("../output/results.json")
 			Expect(err).Should(BeNil())
 
 			data := scorecard{}

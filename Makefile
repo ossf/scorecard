@@ -2,6 +2,7 @@ SHELL := /bin/bash
 GOBIN ?= $(GOPATH)/bin
 GINKGO ?= $(GOBIN)/ginkgo
 IMAGE_NAME = scorecard
+OUTPUT = output
 
 .PHONY: help
 help:  ## Display this help
@@ -61,9 +62,9 @@ ci-e2e:  ## Runs ci e2e tests
 # export GITHUB_AUTH_TOKEN with personal access token to run the e2e
 ci-e2e: build check-env
 	$(call ndef, GITHUB_AUTH_TOKEN)
-	mkdir -p bin
+	mkdir -p $(OUTPUT)
 	mkdir -p cache
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ./scorecard --repo=https://github.com/ossf/scorecard --show-details --metadata=openssf  --format json > ./bin/results.json
+	DISK_CACHE_PATH="./cache" ./scorecard --repo=https://github.com/ossf/scorecard --show-details --metadata=openssf  --format json > ./$(OUTPUT)/results.json
 	@sleep 30
 	ginkgo -p  -v -cover --skip="E2E TEST:blob"  ./...
 
