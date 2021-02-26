@@ -3,7 +3,8 @@ GOBIN ?= $(GOPATH)/bin
 GINKGO ?= $(GOBIN)/ginkgo
 IMAGE_NAME = scorecard
 OUTPUT = output
-
+FOCUS_DISK_TEST="E2E TEST:Disk Cache|E2E TEST:executable"
+IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:Disk Cache|E2E TEST:executable"
 .PHONY: help
 help:  ## Display this help
 	@awk \
@@ -57,16 +58,37 @@ e2e: build check-env ginkgo
 ginkgo:
 	GO111MODULE=off go get -u github.com/onsi/ginkgo/ginkgo
 
+unexport USE_DISK_CACHE
+unexport USE_BLOB_CACHE
 ci-e2e:  ## Runs ci e2e tests
 .PHONY: ci-e2e
 # export GITHUB_AUTH_TOKEN with personal access token to run the e2e
 ci-e2e: build check-env
 	$(call ndef, GITHUB_AUTH_TOKEN)
-	mkdir -p $(OUTPUT)
-	mkdir -p cache
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ./scorecard --repo=https://github.com/ossf/scorecard --show-details --metadata=openssf  --format json > ./$(OUTPUT)/results.json
-	@sleep 30
-	ginkgo -p  -v -cover --skip="E2E TEST:blob"  ./...
+	@echo Ignoring these test for ci-e2e $(IGNORED_CI_TEST)
+	ginkgo -p  -v -cover --skip=$(IGNORED_CI_TEST)  ./e2e/...
+
+.PHONY: test-disk-cache
+test-disk-cache: build  ## Runs disk cache tests
+	$(call ndef, GITHUB_AUTH_TOKEN)
+	# Start with clean cache
+	rm -rf $(OUTPUT)
+	rm -rf cache
+	mkdir $(OUTPUT)
+	mkdir cache
+	@echo Focusing on these tests $(FOCUS_DISK_TEST)
+	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" \
+				   ./scorecard \
+				   --repo=https://github.com/ossf/scorecard \
+				   --show-details --metadata=openssf  --format json > ./$(OUTPUT)/results.json
+	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
+	# Rerun the same test with the disk cache filled to make sure the cache is working.
+	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" \
+				   ./scorecard \
+				   --repo=https://github.com/ossf/scorecard --show-details \
+				   --metadata=openssf  --format json > ./$(OUTPUT)/results.json
+	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
+
 
 
 # Verification targets
@@ -84,3 +106,4 @@ verify-go-mod: ## Verify the go modules
 dockerbuild: ## Runs docker build
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	docker build . --file Dockerfile --tag $(IMAGE_NAME) 
+
