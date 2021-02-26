@@ -15,9 +15,8 @@
 package checks
 
 import (
-	"path"
+	"strings"
 
-	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checker"
 )
 
@@ -27,36 +26,28 @@ func init() {
 
 func SecurityPolicy(c checker.Checker) checker.CheckResult {
 	// check repository for repository-specific policy
-	const confidence = 10
-	for _, securityFile := range []string{"SECURITY.md", "SECURITY.MD", "security.md", "security.MD"} {
-		for _, dirs := range []string{"", ".github", "docs"} {
-			fp := path.Join(dirs, securityFile)
-			dc, err := c.Client.Repositories.DownloadContents(c.Ctx, c.Owner, c.Repo, fp, &github.RepositoryContentGetOptions{})
-			if err != nil {
-				continue
-			}
-			dc.Close()
-			c.Logf("security policy found: %s", fp)
-			return checker.CheckResult{
-				Pass:       true,
-				Confidence: confidence,
-			}
+	result := CheckIfFileExists(c, func(name string, logf func(s string, f ...interface{})) bool {
+		if strings.EqualFold(name, "security.md") {
+			logf("security policy : %s", name)
+			return true
 		}
+		return false
+	})
 
-		// alternatively check repository owner for default community health file
-		dc, err := c.Client.Repositories.DownloadContents(c.Ctx, c.Owner, ".github", securityFile, &github.RepositoryContentGetOptions{})
-		if err == nil {
-			dc.Close()
-			c.Logf("security policy found (default community health file): %s", securityFile)
-			return checker.CheckResult{
-				Pass:       true,
-				Confidence: confidence,
-			}
+	if result.Pass {
+		return result
+	}
+
+	// checking for community default within the .github folder
+	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file
+	dotGitHub := c
+	dotGitHub.Repo = ".github"
+
+	return CheckIfFileExists(dotGitHub, func(name string, logf func(s string, f ...interface{})) bool {
+		if strings.EqualFold(name, "security.md") {
+			logf("security policy within .github folder : %s", name)
+			return true
 		}
-	}
-	// policy wasn't found, return failure case
-	return checker.CheckResult{
-		Pass:       false,
-		Confidence: confidence,
-	}
+		return false
+	})
 }
