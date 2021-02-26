@@ -63,15 +63,16 @@ jobs:
         run: |
             go get github.com/onsi/ginkgo/ginkgo@v1.14.2
             go mod download
-            mkdir -p $OUTPUT_PATH
 
-      - name: Run E2E with Disk Cache
+      - name: Run E2E 
         env:  
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-        run: |
-            go get github.com/onsi/ginkgo/ginkgo@v1.14.2
-            make ci-e2e
-            sleep 1m # this required to avoid 403 from GitHub API's
+        run: make ci-e2e
+
+      - name: Test disk cache
+        env:  
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+        run: make test-disk-cache
 
       - name: Test Blob cache
         env:  
@@ -80,7 +81,7 @@ jobs:
           BLOB_URL: ${{secrets.BUCKET_URL}}
         run: |
             ./scorecard --repo=https://github.com/ossf/scorecard --show-details --metadata=openssf  --format json > ./$OUTPUT_PATH/results.json
-            ginkgo --focus="E2E TEST:executable|E2E TEST:blob" ./...
+            ginkgo --focus="E2E TEST:executable|E2E TEST:blob" ./e2e/...
 
       - name: Build docker image
         run: docker build . --file Dockerfile --tag $IMAGE_NAME

@@ -11,7 +11,7 @@ import (
 
 var _ = Describe("E2E TEST:Branch Protection", func() {
 	Context("E2E TEST:Validating branch protection", func() {
-		It("Should fail to return branch protection on other respositories", func() {
+		It("Should fail to return branch protection on other repositories", func() {
 			l := log{}
 			checker := checker.Checker{
 				Ctx:         context.Background(),
