@@ -32,6 +32,13 @@ var retryResult = CheckResult{
 	ShouldRetry: true,
 }
 
+const pass int = 10
+
+var PassResult = CheckResult{
+	Pass:       true,
+	Confidence: pass,
+}
+
 var maxConfidence int = 10
 
 func RetryResult(err error) CheckResult {
