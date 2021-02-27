@@ -44,6 +44,8 @@ var (
 	logLevel    = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
 	format      string
 	npm         string
+	pypi        string
+	rubygems    string
 	showDetails bool
 )
 
@@ -54,7 +56,8 @@ const (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details] or ./scorecard --npm=<npm packagename> [--checks=check1,...] [--show-details]",
+	Use: `./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details]
+or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show-details]`,
 	Short: "Security Scorecards",
 	Long:  "A program that shows security scorecard for an open source software.",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -77,8 +80,24 @@ var rootCmd = &cobra.Command{
 			log.Fatalf("invalid format flag %s. allowed values are: [default, csv, json]", format)
 		}
 
-		if len(npm) != 0 {
-			if git, err := fetchGitRepoistoryFromNPM(npm); err != nil {
+		if npm != "" {
+			if git, err := fetchGitRepositoryFromNPM(npm); err != nil {
+				log.Fatal(err)
+			} else {
+				if err := cmd.Flags().Set("repo", git); err != nil {
+					log.Fatal(err)
+				}
+			}
+		} else if pypi != "" {
+			if git, err := fetchGitRepositoryFromPYPI(pypi); err != nil {
+				log.Fatal(err)
+			} else {
+				if err := cmd.Flags().Set("repo", git); err != nil {
+					log.Fatal(err)
+				}
+			}
+		} else if rubygems != "" {
+			if git, err := fetchGitRepositoryFromRubyGems(rubygems); err != nil {
 				log.Fatal(err)
 			} else {
 				if err := cmd.Flags().Set("repo", git); err != nil {
@@ -108,7 +127,6 @@ var rootCmd = &cobra.Command{
 		for _, c := range enabledChecks {
 			if format == formatDefault {
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", c.Name)
-
 			}
 		}
 		ctx := context.Background()
@@ -147,6 +165,18 @@ type npmSearchResults struct {
 			} `json:"links"`
 		} `json:"package"`
 	} `json:"objects"`
+}
+
+type pypiSearchResults struct {
+	Info struct {
+		ProjectUrls struct {
+			Source string `json:"Source"`
+		} `json:"project_urls"`
+	} `json:"info"`
+}
+
+type rubyGemsSearchResults struct {
+	SourceCodeURI string `json:"source_code_uri"`
 }
 
 type record struct {
@@ -228,35 +258,94 @@ func displayResult(result bool) string {
 	}
 }
 
-// Gets the GitHub repository URL for the npm package
-func fetchGitRepoistoryFromNPM(packageName string) (string, error) {
-	npmsearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
+// Gets the GitHub repository URL for the npm package.
+//nolint:noctx,goerr113
+func fetchGitRepositoryFromNPM(packageName string) (string, error) {
+	npmSearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
 	const timeout = 10
 	client := &http.Client{
 		Timeout: timeout * time.Second,
 	}
-	resp, err := client.Get(fmt.Sprintf(npmsearchURL, packageName))
-
+	resp, err := client.Get(fmt.Sprintf(npmSearchURL, packageName))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get npm package json: %v", err)
 	}
 
 	defer resp.Body.Close()
 	v := &npmSearchResults{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to parse npm package json: %v", err)
 	}
 	if len(v.Objects) == 0 {
-		return "", fmt.Errorf("could not find search results for npm package %s", packageName)
+		return "", fmt.Errorf("could not find source repo for npm package: %s", packageName)
 	}
 	return v.Objects[0].Package.Links.Repository, nil
 }
+
+// Gets the GitHub repository URL for the pypi package.
+//nolint:noctx,goerr113
+func fetchGitRepositoryFromPYPI(packageName string) (string, error) {
+	pypiSearchURL := "https://pypi.org/pypi/%s/json"
+	const timeout = 10
+	client := &http.Client{
+		Timeout: timeout * time.Second,
+	}
+	resp, err := client.Get(fmt.Sprintf(pypiSearchURL, packageName))
+	if err != nil {
+		return "", fmt.Errorf("failed to get pypi package json: %v", err)
+	}
+
+	defer resp.Body.Close()
+	v := &pypiSearchResults{}
+	err = json.NewDecoder(resp.Body).Decode(v)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse pypi package json: %v", err)
+	}
+	if v.Info.ProjectUrls.Source == "" {
+		return "", fmt.Errorf("could not find source repo for pypi package: %s", packageName)
+	}
+	return v.Info.ProjectUrls.Source, nil
+}
+
+// Gets the GitHub repository URL for the rubygems package.
+//nolint:noctx,goerr113
+func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
+	rubyGemsSearchURL := "https://rubygems.org/api/v1/gems/%s.json"
+	const timeout = 10
+	client := &http.Client{
+		Timeout: timeout * time.Second,
+	}
+	resp, err := client.Get(fmt.Sprintf(rubyGemsSearchURL, packageName))
+	if err != nil {
+		return "", fmt.Errorf("failed to get ruby gem json: %v", err)
+	}
+
+	defer resp.Body.Close()
+	v := &rubyGemsSearchResults{}
+	err = json.NewDecoder(resp.Body).Decode(v)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse ruby gem json: %v", err)
+	}
+	if v.SourceCodeURI == "" {
+		return "", fmt.Errorf("could not find source repo for ruby gem: %s", packageName)
+	}
+	return v.SourceCodeURI, nil
+}
+
 func init() {
 	// Add the zap flag manually
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
 	rootCmd.Flags().Var(&repo, "repo", "repository to check")
-	rootCmd.Flags().StringVar(&npm, "npm", "", "npm package to check. If the npm package has a GitHub repository")
+	rootCmd.Flags().StringVar(
+		&npm, "npm", "",
+		"npm package to check, given that the npm package has a GitHub repository")
+	rootCmd.Flags().StringVar(
+		&pypi, "pypi", "",
+		"pypi package to check, given that the pypi package has a GitHub repository")
+	rootCmd.Flags().StringVar(
+		&rubygems, "rubygems", "",
+		"rubygems package to check, given that the rubygems package has a GitHub repository")
 	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv, json]")
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project.It can be multiple separated by commas")

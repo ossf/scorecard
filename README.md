@@ -116,7 +116,11 @@ Signed-Tags: Fail 10
 
 ### Package manager support
 
-scorecard has an option to provide `--npm` package name and it would fetch the corresponding GitHub code.
+scorecard has an option to provide either `--npm` / `--pypi` / `--rubygems`
+package name and it would run the checks on the corresponding GitHub source
+code.
+
+For example:
 
 ``` shell
 ./scorecard --npm=angular

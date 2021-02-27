@@ -100,7 +100,7 @@ verify-go-mod: ## Verify the go modules
 	export GO111MODULE=on && \
 		go mod tidy && \
 		go mod verify
-	./hack/tree-status 
+	./scripts/tree-status 
 
 .PHONY: dockerbuild
 dockerbuild: ## Runs docker build
