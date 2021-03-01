@@ -1,5 +1,7 @@
-# Scorecard binary.
+# binary.
 scorecard
+gitblobcache
+
 
 # Binaries for programs and plugins.
 *.exe

@@ -33,7 +33,7 @@ func (c *Cache) Set(key string, resp []byte) error {
 	return c.Bucket.WriteAll(context.Background(), key, resp, nil)
 }
 
-// Delete removes key from the cache.The error is not returned to maintain compatability
+// Delete removes key from the cache.The error is not returned to maintain compatibility
 // with the httpcache Cache interface.
 func (c *Cache) Delete(key string) error {
 	return c.Bucket.Delete(context.Background(), key)
