@@ -35,7 +35,7 @@ https://github.com/ossf/scorecard/issues/202
 This is a separate package that has to ran to populate the blob storage. The scorecard will have a flag to either load from the `gitcache` which is the blob store or use the standard API
 
 ## What does the gitcache do? 
-
+![image](https://user-images.githubusercontent.com/172697/109535822-fcc86880-7a8a-11eb-86c0-314c3cdcecfb.png)
 - It fetches the git repository only with the **lastcommit**
 - Extracts the `lastcommit` time.
 - Removes the `.git` folder.
