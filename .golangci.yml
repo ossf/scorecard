@@ -34,9 +34,7 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - lll
-    - maligned
     - misspell
     - nakedret
     - nestif
@@ -64,6 +62,9 @@ linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
+  govet:
+    enable:
+      - fieldalignment
   godox:
     keywords:
       - BUG
