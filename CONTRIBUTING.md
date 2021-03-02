@@ -19,7 +19,7 @@ You must install these tools:
 
 1. [`git`](https://help.github.com/articles/set-up-git/): For source control
 
-1. [`go`](https://golang.org/doc/install): You need go version [v1.15](https://golang.org/dl/) or higher.
+1. [`go`](https://golang.org/doc/install): You need go version [v1.16](https://golang.org/dl/) or higher.
 
 1. [`docker`](https://docs.docker.com/engine/install/): `v18.9` or higher.
 
