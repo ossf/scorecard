@@ -32,7 +32,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	dir, err := ioutil.TempDir(cwd, repo.Owner+repo.Repo)
+	dir, err := ioutil.TempDir(path, repo.Owner+repo.Owner)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -58,7 +58,6 @@ func main() {
 		log.Panic(err)
 	}
 
-	// ... retriev the commit object
 	commit, err := r.CommitObject(lastRef.Hash())
 	if err != nil {
 		log.Panic(err)
