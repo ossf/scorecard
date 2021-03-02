@@ -3,7 +3,7 @@
 
 To scale 1000's repositories, the codebase must be aware of the GitHub API's usage.
 
-One of the strategies to avoid using the API directly cloning the repository.
+One of the strategies to avoid using the API directly is cloning the repository.
 
 ### In the initial run
 1. Clone the repository anonymously (not using GitHub API token).
@@ -32,7 +32,7 @@ Scorecard checks for these don't need GitHub API. It requires a Git API.
 1. Security-Policy - Checks for a file name within the tarball.
 1. Packaging - Checks for a file content within the tarball.
 
-The number of checks within scorecard https://github.com/ossf/scorecard#checks is `14` out of which12` use GitHub API's. The two that do not use the GitHub APIs are `Fuzzing` and `CII`.
+The number of checks within scorecard https://github.com/ossf/scorecard#checks is `14` out of which `12` use GitHub API's. The two that do not use the GitHub APIs are `Fuzzing` and `CII`.
 
 With the above strategy, we have reduced around **41%** of the GitHub API calls.
 
