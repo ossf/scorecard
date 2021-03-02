@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// opening the blob
-	bucket, e := New(blob)
+	bucket, e := NewBucket(blob)
 	if e != nil {
 		sugar.Panic(e)
 	}
@@ -63,17 +63,16 @@ func main() {
 	defer os.RemoveAll(storage.BlobArchiveDir)
 	defer os.RemoveAll(gittar)
 
-	// checks if there is an existing git repo in the bucket
-	data, exists := bucket.Get(storage.BlobGitFolderPath)
 	alreadyUptoDate := false
-
-	if exists {
+	// checks if there is an existing git repo in the bucket
+	if data, exists := bucket.Get(storage.BlobGitFolderPath); exists {
 		sugar.Info("bucket ", blob, " already has git folder")
 		gitRepo, alreadyUptoDate, err = fetchGitRepo(&storage, data)
 	} else {
 		sugar.Info("bucket ", blob, " does not have a git folder")
 		gitRepo, err = cloneGitRepo(&storage, repo)
 	}
+
 	if err != nil {
 		sugar.Panic(err)
 	}
@@ -100,14 +99,7 @@ func main() {
 		sugar.Panic(err)
 	}
 
-	sugar.Info("Storing the last commit ", commit.Author.When)
-	// storing the last commit to the blob
-	err = bucket.Set(storage.BlobLastCommitPath, []byte(fmt.Sprintf("%64b", commit.Author.When.Unix())))
-	if err != nil {
-		log.Panic(err)
-	}
-
-	data, err = archiveFolder(storage.GitDir, storage.GitTarFile)
+	data, err := archiveFolder(storage.GitDir, storage.GitTarFile)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -129,6 +121,13 @@ func main() {
 	}
 
 	err = bucket.Set(storage.BlobArchivePath, data)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	sugar.Info("Storing the last commit ", commit.Author.When)
+	// storing the last commit to the blob
+	err = bucket.Set(storage.BlobLastCommitPath, []byte(fmt.Sprintf("%64b", commit.Author.When.Unix())))
 	if err != nil {
 		log.Panic(err)
 	}

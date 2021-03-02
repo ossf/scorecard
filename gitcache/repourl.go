@@ -9,16 +9,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+// RepoURL parses and stores URL into fields.
 type RepoURL struct {
-	Host, Owner, Repo string
+	Host  string // Host where the repo is stored. Example GitHub.com
+	Owner string // Owner of the repo. Example ossf.
+	Repo  string // The actual repo. Example scorecard.
 }
 
 func (r *RepoURL) String() string {
 	return fmt.Sprintf("%s/%s/%s", r.Host, r.Owner, r.Repo)
-}
-
-func (r *RepoURL) Type() string {
-	return "repo"
 }
 
 func (r *RepoURL) Set(s string) error {
@@ -39,6 +38,5 @@ func (r *RepoURL) Set(s string) error {
 	}
 
 	r.Host, r.Owner, r.Repo = parsedURL.Host, split[0], split[1]
-
 	return nil
 }
