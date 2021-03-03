@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang:1.15 as app
+FROM golang:1.16 as app
 COPY . /go/src/github.com/ossf/scorecard
 WORKDIR /go/src/github.com/ossf/scorecard
 RUN [ "go", "build", "."]
