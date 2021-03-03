@@ -1,30 +1,40 @@
 # gitcache - Reducing the GitHub API usage for scaling scorecard
 
 
-To scale 1000's of repositories it is important that the codebase is cognizant on the usage of the GitHub API's.
+To scale 1000's repositories, the codebase must be aware of the GitHub API's usage.
 
-One of the stratergies to avoid using the API directly cloning the repository.
+One of the strategies to avoid using the API directly is cloning the repository.
 
-1. Clone the repository anonymously (not using GitHub API using token).
-2. Tarball the default branch and compress it.
+### In the initial run
+1. Clone the repository anonymously (not using GitHub API token).
+2. Tarball and compress it.
 3. Store the compressed file into a blob store GCS.
-4. Store the last commit date with in the blob.
+4. Store the last commit date within the blob.
+5. Also compress the folder without `.git` for the consumers.
+
+### On the subsequent runs
+1. pull gzip from GCS
+1. unzip git repo
+1. git pull origin
+1. update metadata (last sync, etc.)
+1. gzip, reupload to GCS
+
+
 
 
 
 ## How is the above going to scale scorecard scans?
 
-
-Scorecard checks for these don't need GitHub API, it requires a Git API.
-1. Active - Checks for the last commit in 90 days. This is can be fetched from the above blob storage.
+Scorecard checks for these don't need GitHub API. It requires a Git API.
+1. Active - Checks for the last commit in 90 days. This can be fetched from the above blob storage.
 1. Frozen-Deps - Checks for a file with in the tarball.
 1. CodeQLInCheckDefinitions - Checks for a file content within the tarball.
 1. Security-Policy - Checks for a file name within the tarball.
 1. Packaging - Checks for a file content within the tarball.
 
-The number of checks within scorecard https://github.com/ossf/scorecard#checks is `14` out of which `12` use GitHub API's. The two that does not use the GitHub API's are `Fuzzing` and `CII`.
+The number of checks within scorecard https://github.com/ossf/scorecard#checks is `14` out of which `12` use GitHub API's. The two that do not use the GitHub APIs are `Fuzzing` and `CII`.
 
-With the above stratergy we have reduced around **41%** of the GitHub API calls.
+With the above strategy, we have reduced around **41%** of the GitHub API calls.
 
 
 https://github.com/ossf/scorecard/issues/202
@@ -32,18 +42,8 @@ https://github.com/ossf/scorecard/issues/202
 
 ## Is this an optional feature? Can the scorecard run without this option?
 
-This is a separate package that has to ran to populate the blob storage. The scorecard will have a flag to either load from the `gitcache` which is the blob store or use the standard API
+This is a separate package that has to run to populate the blob storage. The scorecard will have a flag to either load from the `gitcache`, which is the blob store, or use the standard API
 
-## What does the gitcache do? 
-![image](https://user-images.githubusercontent.com/172697/109535822-fcc86880-7a8a-11eb-86c0-314c3cdcecfb.png)
-- It fetches the git repository only with the **lastcommit**
-- Extracts the `lastcommit` time.
-- Removes the `.git` folder.
-- `tar` and `gzip` the folder.
-- Updates the `blob` with 
-    - `lastcommit` - time of the last commit.
-    - `lastsynctime` - The time that this git repository was synced with the blob cache.
-    - `tar` - The tarball of the git repository.
 
 ## Can this be used for Non-GitHub repositories like Gitlab?
 
@@ -51,12 +51,12 @@ Yes, this can be used for GitLab or other Non-GitHub repositories.
 
 ## Can gitcache be scaled?
 
-Yes, gitcache can be scaled because it does not hold any state or need to be throttled by an exteranl API. gitcache would be exposed as an HTTP API which can be deployed with in `k8s` with autoscaling capabilities.
+Yes, gitcache can be scaled because it does not hold any state or need to be throttled by an external API. gitcache would be exposed as an HTTP API that can be deployed in `k8s` with autoscaling capabilities.
 
 
-## How can scorecard determine when was the last sync?
+## How can scorecard determine when the last sync was?
 
-gitcache stores last sync for each repository within its folder.
+gitcache stores the last sync for each repository within its folder.
 
 ![](https://i.imgur.com/dWszY76.png)
 
@@ -73,7 +73,3 @@ Yes, this has been tested with real data. It is syncing `2000` git repositories 
 ![](https://i.imgur.com/xLwy7jx.png)
 
 The bottom of the picture shows `588` folders.
-
-## Can this be used for non-scorecard repoistories?
-
-Yes, this data can be used by other projects like https://github.com/ossf/criticality_score

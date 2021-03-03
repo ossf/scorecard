@@ -58,10 +58,7 @@ func main() {
 		sugar.Panic(err)
 	}
 
-	defer os.RemoveAll(storage.GitDir)
-	defer os.RemoveAll(storage.GitTarDir)
-	defer os.RemoveAll(storage.BlobArchiveDir)
-	defer os.RemoveAll(gittar)
+	defer storage.Cleanup()
 
 	alreadyUptoDate := false
 	// checks if there is an existing git repo in the bucket

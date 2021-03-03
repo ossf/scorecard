@@ -56,3 +56,10 @@ func getStoragePath(repo RepoURL) (StoragePath, error) {
 		BlobArchivePath:    fmt.Sprintf("%s/tar", bucketPath),
 	}, nil
 }
+
+// Cleanup removes the directories that were created.
+func (s *StoragePath) Cleanup() {
+	os.RemoveAll(s.GitDir)
+	os.RemoveAll(s.GitTarDir)
+	os.RemoveAll(s.BlobArchiveDir)
+}
