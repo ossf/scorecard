@@ -23,7 +23,7 @@ all: build
 
 .PHONY: build
 build: ## Runs go build and generates executable
-	CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o gitblobcache
+	CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"'  -o gitblobcache
 
 .phony: dockerbuild
 dockerbuild: ## runs docker build
