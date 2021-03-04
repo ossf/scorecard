@@ -1,3 +1,17 @@
+// Copyright 2020 Security Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -10,12 +24,12 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/mholt/archiver"
+	"github.com/ossf/scorecard/gitcache/pkg"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
 func main() {
-	const gittar string = "gitfolder.tar.gz"
 	var gitRepo *git.Repository
 
 	logLevel := zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
@@ -37,14 +51,14 @@ func main() {
 	}
 
 	// opening the blob
-	bucket, e := NewBucket(blob)
+	bucket, e := pkg.NewBucket(blob)
 	if e != nil {
 		sugar.Panic(e)
 	}
 
 	sugar.Debugf("The bucket was opened %s", blob)
 
-	repo := RepoURL{}
+	repo := pkg.RepoURL{}
 	err = repo.Set(os.Args[1])
 	if err != nil {
 		sugar.Panic(err)
@@ -53,7 +67,7 @@ func main() {
 	sugar.Debugf("Fetching %+v", repo)
 
 	// gets all the path configuration.
-	storage, err := getStoragePath(repo)
+	storage, err := pkg.NewStoragePath(repo)
 	if err != nil {
 		sugar.Panic(err)
 	}
@@ -136,7 +150,7 @@ func main() {
 }
 
 // clones the repository if it does not exists. If the git repo already exists then it fetches from the remote.
-func cloneGitRepo(storagePath *StoragePath, repo RepoURL) (*git.Repository, error) {
+func cloneGitRepo(storagePath *pkg.StoragePath, repo pkg.RepoURL) (*git.Repository, error) {
 	// Clone the given repository to the given directory
 	gitRepo, err := git.PlainClone(storagePath.GitDir, false, &git.CloneOptions{
 		URL: fmt.Sprintf("http://%s/%s/%s", repo.Host, repo.Owner, repo.Repo),
@@ -163,7 +177,7 @@ func archiveFolder(folderToArchive, archivePath string) ([]byte, error) {
 }
 
 // fetchGitRepo fetches the git repo. Returns git repository, bool if it is already up to date and error.
-func fetchGitRepo(storagePath *StoragePath, data []byte) (*git.Repository, bool, error) {
+func fetchGitRepo(storagePath *pkg.StoragePath, data []byte) (*git.Repository, bool, error) {
 	const fileMode os.FileMode = 0600
 	if err := ioutil.WriteFile("gitfolder.tar.gz", data, fileMode); err != nil {
 		return nil, false, errors.Wrapf(err, "unable write targz file %s", storagePath.BlobArchiveFile)
