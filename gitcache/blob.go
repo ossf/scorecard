@@ -33,14 +33,14 @@ func (c *Cache) Set(key string, resp []byte) error {
 	return c.Bucket.WriteAll(context.Background(), key, resp, nil)
 }
 
-// Delete removes key from the cache.The error is not returned to maintain compatability
+// Delete removes key from the cache.The error is not returned to maintain compatibility
 // with the httpcache Cache interface.
 func (c *Cache) Delete(key string) error {
 	return c.Bucket.Delete(context.Background(), key)
 }
 
-// New opens the bucket for caching.
-func New(bucketKey string) (*Cache, error) {
+// NewBucket opens the bucket for caching.
+func NewBucket(bucketKey string) (*Cache, error) {
 	b, err := blob.OpenBucket(context.Background(), bucketKey)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("error in opening the bucket %s", bucketKey))
