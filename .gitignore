@@ -3,6 +3,7 @@ scorecard
 gitblobcache
 
 
+
 # Binaries for programs and plugins.
 *.exe
 *.exe~
@@ -28,3 +29,4 @@ bin
 
 cache
 output
+gitfolder.*

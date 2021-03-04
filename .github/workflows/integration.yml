@@ -91,7 +91,7 @@ jobs:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
         run: |
             docker run -e GITHUB_AUTH_TOKEN=$GITHUB_AUTH_TOKEN  $IMAGE_NAME  --show-details  --repo=https://github.com/ossf/scorecard --metadata=openssf --format json > ./$OUTPUT_PATH/results.json
-            ginkgo -p -v --focus="E2E TEST:executable" ./...
+            ginkgo -p -v --focus="E2E TEST:executable" ./e2e/...
 
       - name: find comment
         if: ${{ always() }}
