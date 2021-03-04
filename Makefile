@@ -56,7 +56,7 @@ e2e: build check-env ginkgo
 	$(GINKGO) --skip="E2E TEST:executable" -p -v -cover  ./...
 
 ginkgo:
-	GO111MODULE=off go get -u github.com/onsi/ginkgo/ginkgo
+	go get -u github.com/onsi/ginkgo/ginkgo
 
 unexport USE_DISK_CACHE
 unexport USE_BLOB_CACHE
@@ -97,7 +97,6 @@ verify: verify-go-mod lint ## Run all verification targets
 
 .PHONY: verify-go-mod
 verify-go-mod: ## Verify the go modules
-	export GO111MODULE=on && \
 		go mod tidy && \
 		go mod verify
 	./scripts/tree-status 

@@ -1,6 +1,6 @@
 module github.com/ossf/scorecard
 
-go 1.15
+go 1.16
 
 require (
 	github.com/bradleyfalzon/ghinstallation v1.1.1
