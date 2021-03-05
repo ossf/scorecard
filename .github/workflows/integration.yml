@@ -84,7 +84,7 @@ jobs:
             ginkgo --focus="E2E TEST:executable|E2E TEST:blob" ./e2e/...
 
       - name: Build docker image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME
+        run: make dockerbuild
 
       - name: Test docker image
         env:  
