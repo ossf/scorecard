@@ -15,7 +15,6 @@ package pkg
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"strings"
 
@@ -47,7 +46,7 @@ func (r *RepoURL) Set(s string) error {
 	const splitLen = 2
 	split := strings.SplitN(strings.Trim(parsedURL.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
-		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
+		return errors.Errorf("invalid repo flag: [%s], pass the full repository URL", s)
 	}
 
 	r.Host, r.Owner, r.Repo = parsedURL.Host, split[0], split[1]
