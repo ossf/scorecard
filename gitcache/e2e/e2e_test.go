@@ -14,13 +14,33 @@
 package e2e
 
 import (
+	"os"
+
 	. "github.com/onsi/ginkgo"
-	_ "github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
+	"github.com/ossf/scorecard/gitcache/pkg"
 )
 
-var _ = Describe("E2E TEST:gitcache", func() {
-	Context("E2E TEST:Validating gitcache", func() {
+var _ = Describe("E2E TEST:bucket cache", func() {
+	Context("E2E TEST:Validating bucket cache", func() {
+		var cache *pkg.Cache
+		var err error
 		It("Should be able to connect to the blob store", func() {
+			bucketURI := os.Getenv("BLOB_URL")
+			Expect(len(bucketURI)).ShouldNot(BeZero())
+			cache, err = pkg.NewBucket(bucketURI)
+			Expect(err).Should(BeNil())
+			Expect(cache).ShouldNot(BeNil())
+		})
+		It("should be able to add content to the bucket", func() {
+			const key string = "E2E_TEST_BUCKET"
+			//nolint
+			cache.Delete(key) // ignoring if the delete throws an error key not found
+			Expect(cache.Set(key, []byte(key))).Should(BeNil())
+			s, b := cache.Get(key)
+			Expect(b).Should(BeTrue())
+			Expect(string(s)).Should(BeEquivalentTo(key))
+			Expect(cache.Delete(key)).Should(BeNil())
 		})
 	})
 })
