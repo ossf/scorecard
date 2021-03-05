@@ -32,6 +32,10 @@ func (r *RepoURL) String() string {
 	return fmt.Sprintf("%s/%s/%s", r.Host, r.Owner, r.Repo)
 }
 
+func (r *RepoURL) NonURLString() string {
+	return fmt.Sprintf("%s-%s-%s", r.Host, r.Owner, r.Repo)
+}
+
 func (r *RepoURL) Set(s string) error {
 	// Allow skipping scheme for ease-of-use, default to https.
 	if !strings.Contains(s, "://") {

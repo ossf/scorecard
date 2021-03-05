@@ -15,7 +15,6 @@ package pkg
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -36,24 +35,20 @@ type StoragePath struct {
 }
 
 // NewStoragePath returns path for blob, archiving and also creates temp directories for archiving.
-func NewStoragePath(repo RepoURL) (StoragePath, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return StoragePath{}, errors.Wrap(err, "unable to the current working dir")
-	}
-
+func NewStoragePath(repo RepoURL, tempDir string) (StoragePath, error) {
 	bucketPath := fmt.Sprintf("gitcache/%s/%s/%s", repo.Host, repo.Owner, repo.Repo)
-	gitDir := repo.Host + repo.Owner + repo.Repo
+	gitDir := path.Join(tempDir, repo.NonURLString())
 
-	err = os.Mkdir(gitDir, 0755)
+	err := os.Mkdir(gitDir, 0755)
 	if err != nil {
-		return StoragePath{}, errors.Wrapf(err, "unable to create temp directory %s", gitDir)
+		return StoragePath{}, errors.Wrapf(err, "unable to temp directory %s", gitDir)
 	}
 	gitTarPath := path.Join(gitDir, "gitfolder.tar.gz")
 
-	blobArchiveDir, err := ioutil.TempDir(cwd, gitDir+"tar")
+	blobArchiveDir := gitDir + "tar"
+	err = os.Mkdir(blobArchiveDir, 0755)
 	if err != nil {
-		return StoragePath{}, errors.Wrapf(err, "unable to create temp directory %s", gitDir+"tar")
+		return StoragePath{}, errors.Wrapf(err, "unable to create temp directory for blob archive %s", blobArchiveDir)
 	}
 	blobArchivePath := path.Join(blobArchiveDir, fmt.Sprintf("%s.tar.gz", repo.Repo))
 

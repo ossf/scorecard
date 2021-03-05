@@ -14,6 +14,7 @@ import (
 
 type cacheService struct {
 	BlobURL string
+	TempDir string
 	Logf    func(s string, f ...interface{})
 }
 
@@ -24,9 +25,12 @@ type CacheService interface {
 }
 
 // NewCacheService returns new CacheService.
-func NewCacheService(blobURL string, logf func(s string, f ...interface{})) (CacheService, error) {
+func NewCacheService(blobURL, tempDir string, logf func(s string, f ...interface{})) (CacheService, error) {
 	if blobURL == "" {
 		return nil, errors.New("BLOB_URL env cannot be empty")
+	}
+	if tempDir == "" {
+		return nil, errors.New("TEMP_DIR  env cannot be empty")
 	}
 	if logf == nil {
 		return nil, errors.New("Log function cannot be nil")
@@ -34,6 +38,7 @@ func NewCacheService(blobURL string, logf func(s string, f ...interface{})) (Cac
 	return cacheService{
 		BlobURL: blobURL,
 		Logf:    logf,
+		TempDir: tempDir,
 	}, nil
 }
 
@@ -52,7 +57,7 @@ func (c cacheService) UpdateCache(s string) error {
 	}
 
 	// gets all the path configuration.
-	storage, err := NewStoragePath(repo)
+	storage, err := NewStoragePath(repo, c.TempDir)
 	if err != nil {
 		return errors.Wrapf(err, "unable get storage")
 	}
@@ -63,7 +68,7 @@ func (c cacheService) UpdateCache(s string) error {
 	// checks if there is an existing git repo in the bucket
 	if data, exists := bucket.Get(storage.BlobGitFolderPath); exists {
 		c.Logf("bucket ", c.BlobURL, " already has git folder")
-		gitRepo, alreadyUptoDate, err = fetchGitRepo(&storage, data)
+		gitRepo, alreadyUptoDate, err = fetchGitRepo(&storage, data, repo)
 	} else {
 		c.Logf("bucket ", c.BlobURL, " does not have a git folder")
 		gitRepo, err = cloneGitRepo(&storage, repo)
@@ -163,7 +168,7 @@ func archiveFolder(folderToArchive, archivePath string) ([]byte, error) {
 }
 
 // fetchGitRepo fetches the git repo. Returns git repository, bool if it is already up to date and error.
-func fetchGitRepo(storagePath *StoragePath, data []byte) (*git.Repository, bool, error) {
+func fetchGitRepo(storagePath *StoragePath, data []byte, repo RepoURL) (*git.Repository, bool, error) {
 	const fileMode os.FileMode = 0600
 	if err := ioutil.WriteFile("gitfolder.tar.gz", data, fileMode); err != nil {
 		return nil, false, errors.Wrapf(err, "unable write targz file %s", storagePath.BlobArchiveFile)
@@ -172,7 +177,7 @@ func fetchGitRepo(storagePath *StoragePath, data []byte) (*git.Repository, bool,
 		return nil, false,
 			errors.Wrapf(err, "unable unarchive targz file %s in %s", storagePath.BlobArchiveFile, storagePath.BlobArchiveDir)
 	}
-	p := path.Join(storagePath.GitDir, storagePath.GitDir)
+	p := path.Join(storagePath.GitDir, repo.NonURLString())
 	gitRepo, err := git.PlainOpen(p)
 	if err != nil {
 		return nil, false, errors.Wrapf(err, "unable to open the git dir %s", p)
