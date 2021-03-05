@@ -30,8 +30,8 @@ type cache struct {
 }
 
 var (
-	blob string
-	logf func(s string, f ...interface{})
+	blob, tempDir string
+	logf          func(s string, f ...interface{})
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		cache, err := pkg.NewCacheService(blob, logf)
+		cache, err := pkg.NewCacheService(blob, tempDir, logf)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -76,6 +76,13 @@ func main() {
 	blob = os.Getenv("BLOB_URL")
 	if blob == "" {
 		log.Panic("BLOB_URL env is not set.")
+	}
+	// tempDir is the storage space for archiving the repository.
+	// not using the tempfs https://en.wikipedia.org/wiki/Tmpfs as it is in memory and some of the
+	// repositories can be in large.
+	tempDir = os.Getenv("TEMP_DIR")
+	if tempDir == "" {
+		log.Panic("TEMP_DIR env is not set.")
 	}
 	sugar.Info("BLOB_URL ", blob)
 	// no need to lock this as it being written only within this method.
