@@ -105,4 +105,5 @@ verify-go-mod: ## Verify the go modules
 dockerbuild: ## Runs docker build
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	docker build . --file Dockerfile --tag $(IMAGE_NAME) 
+	docker build . --file Dockerfile.gsutil --tag $(IMAGE_NAME)-gsutil
 
