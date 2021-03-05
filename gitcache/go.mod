@@ -8,7 +8,7 @@ require (
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/onsi/ginkgo v1.15.0
-	github.com/onsi/gomega v1.10.1
+	github.com/onsi/gomega v1.10.5
 	github.com/pierrec/lz4 v2.6.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1
 	go.uber.org/zap v1.16.0
