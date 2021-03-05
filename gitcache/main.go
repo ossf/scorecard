@@ -41,13 +41,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		c := &cache{}
 		if err := d.Decode(c); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 		cache, err := pkg.NewCacheService(blob, logf)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		if err := cache.UpdateCache(c.URL); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 	default:
