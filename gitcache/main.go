@@ -84,7 +84,8 @@ func main() {
 	if tempDir == "" {
 		log.Panic("TEMP_DIR env is not set.")
 	}
-	sugar.Info("BLOB_URL ", blob)
+	sugar.Info("BLOB_URL:%s", blob)
+	sugar.Info("TEMP_DIR:%s", tempDir)
 	// no need to lock this as it being written only within this method.
 	logf = sugar.Infof
 
