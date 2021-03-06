@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitcache-deployment
+  namespace: gitcache
+  labels:
+    app: gitcache
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: gitcache
+  template:
+    metadata:
+      labels:
+        app: gitcache
+    spec:
+      containers:
+      - name: gitcache
+        env:
+        - name: BLOB_URL
+          value: "gs://ossf-scorecards-cache"
+        - name: TEMP_DIR 
+          value: "/data/gitcache"
+        image: ko://github.com/ossf/scorecard/gitcache
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+            - name: gitcache-storage
+              mountPath: /data/gitcache
+      volumes:
+      - name: gitcache-storage
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitcache
+  namespace: gitcache
+spec:
+  selector:
+    app: gitcache
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
