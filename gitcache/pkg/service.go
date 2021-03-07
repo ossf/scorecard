@@ -68,7 +68,7 @@ func (c cacheService) UpdateCache(s string) error {
 	// checks if there is an existing git repo in the bucket
 	if data, exists := bucket.Get(storage.BlobGitFolderPath); exists {
 		c.Logf("bucket ", c.BlobURL, " already has git folder")
-		gitRepo, alreadyUptoDate, err = fetchGitRepo(&storage, data, repo)
+		gitRepo, alreadyUptoDate, err = fetchGitRepo(&storage, data, repo, c.TempDir)
 	} else {
 		c.Logf("bucket ", c.BlobURL, " does not have a git folder")
 		gitRepo, err = cloneGitRepo(&storage, repo)
@@ -168,12 +168,13 @@ func archiveFolder(folderToArchive, archivePath string) ([]byte, error) {
 }
 
 // fetchGitRepo fetches the git repo. Returns git repository, bool if it is already up to date and error.
-func fetchGitRepo(storagePath *StoragePath, data []byte, repo RepoURL) (*git.Repository, bool, error) {
+func fetchGitRepo(storagePath *StoragePath, data []byte, repo RepoURL, tempDir string) (*git.Repository, bool, error) {
 	const fileMode os.FileMode = 0600
-	if err := ioutil.WriteFile("gitfolder.tar.gz", data, fileMode); err != nil {
+	gitZipFile := path.Join(tempDir, "gitfolder.tar.gz")
+	if err := ioutil.WriteFile(gitZipFile, data, fileMode); err != nil {
 		return nil, false, errors.Wrapf(err, "unable write targz file %s", storagePath.BlobArchiveFile)
 	}
-	if err := archiver.Unarchive("gitfolder.tar.gz", storagePath.GitDir); err != nil {
+	if err := archiver.Unarchive(gitZipFile, storagePath.GitDir); err != nil {
 		return nil, false,
 			errors.Wrapf(err, "unable unarchive targz file %s in %s", storagePath.BlobArchiveFile, storagePath.BlobArchiveDir)
 	}
