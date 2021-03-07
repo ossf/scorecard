@@ -52,6 +52,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+	case "GET":
+		// liveness and readiness probe.
+		fmt.Fprintf(w, "I am alive.")
+		w.WriteHeader(http.StatusOK)
+		return
 
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
