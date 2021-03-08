@@ -6,7 +6,7 @@ metadata:
   labels:
     app: gitcache
 spec:
-  replicas: 3
+  replicas: 70
   selector:
     matchLabels:
       app: gitcache

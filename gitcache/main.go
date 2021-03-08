@@ -16,7 +16,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -54,13 +53,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	case "GET":
 		// liveness and readiness probe.
-		fmt.Fprintf(w, "I am alive.")
 		w.WriteHeader(http.StatusOK)
 		return
 
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(w, "I can't do that.")
 	}
 }
 
