@@ -28,4 +28,4 @@ RUN --mount=type=cache,target=/root/.cache/go-build  CGO_ENABLED=0 go build -a -
 
 FROM gcr.io/distroless/base:nonroot
 COPY --from=build /out/gitblobcache /
-ENTRYPOINT [ "/scorecard" ]
+ENTRYPOINT [ "/gitblobcache" ]
