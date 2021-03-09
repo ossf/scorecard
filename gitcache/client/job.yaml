@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gitcache-client
+  namespace: gitcache
+  labels:
+    app: gitcache-client
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        app: gitcache-client
+    spec:
+      securityContext:
+         runAsNonRoot : true
+      containers:
+      - name: gitcache-client
+        image: ko://github.com/ossf/scorecard/gitcache/client
+        env:
+        - name: TEMP_DIR 
+          value: "/data/gitcache"
+        - name: GITCACHE_URL
+          value: "http://gitcache:8080"
+        securityContext:
+          allowPrivilegeEscalation: false 
+          readOnlyRootFilesystem: true
+        volumeMounts:
+            - name: gitcache-storage
+              mountPath: /data/gitcache
+      restartPolicy: Never
+      volumes:
+      - name: gitcache-storage
+        emptyDir: {}

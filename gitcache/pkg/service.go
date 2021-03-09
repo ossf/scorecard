@@ -67,37 +67,37 @@ func (c cacheService) UpdateCache(s string) error {
 	alreadyUptoDate := false
 	// checks if there is an existing git repo in the bucket
 	if data, exists := bucket.Get(storage.BlobGitFolderPath); exists {
-		c.Logf("bucket ", c.BlobURL, " already has git folder")
+		c.Logf("bucket %s already has a git folder", storage.BlobGitFolderPath)
 		gitRepo, alreadyUptoDate, err = fetchGitRepo(&storage, data, repo, c.TempDir)
 	} else {
-		c.Logf("bucket ", c.BlobURL, " does not have a git folder")
+		c.Logf("bucket %s does not have a git folder", storage.BlobGitFolderPath)
 		gitRepo, err = cloneGitRepo(&storage, repo)
 	}
 
 	if err != nil {
-		return errors.Wrapf(err, "unable open the git repo")
+		return errors.Wrapf(err, "unable open the git repo for %s", storage.BlobGitFolderPath)
 	}
 
 	// case where the git repository hasn't changed and it need not be updated into the blob
 	if alreadyUptoDate {
-		c.Logf("bucketb ", c.BlobURL, " git folder is already up to date.")
+		c.Logf("bucket %s git folder is same as origin.", storage.BlobGitFolderPath)
 		// Just update the last sync time and return
 		err = bucket.Set(storage.BlobLastSyncPath, []byte(fmt.Sprintf("%64b", time.Now().Unix())))
 		if err != nil {
 			return errors.Wrapf(err, "unable set storage last sync path")
 		}
-		c.Logf("Finished processing ", repo)
+		c.Logf("Finished processing as it same as the origin %s", repo.String())
 		return nil
 	}
 
 	lastRef, err := gitRepo.Head()
 	if err != nil {
-		return errors.Wrapf(err, "unable get last ref")
+		return errors.Wrapf(err, "unable get last ref for %s the error is %s", repo.String(), err.Error())
 	}
 
 	commit, err := gitRepo.CommitObject(lastRef.Hash())
 	if err != nil {
-		return errors.Wrapf(err, "unable get commit object")
+		return errors.Wrapf(err, "unable get commit object for repo %s and the error is %s", repo.String(), err.Error())
 	}
 
 	data, err := archiveFolder(storage.GitDir, storage.GitTarFile)
@@ -130,13 +130,13 @@ func (c cacheService) UpdateCache(s string) error {
 	// storing the last commit to the blob
 	err = bucket.Set(storage.BlobLastCommitPath, []byte(fmt.Sprintf("%64b", commit.Author.When.Unix())))
 	if err != nil {
-		return errors.Wrapf(err, "unable set storage last commit")
+		return errors.Wrapf(err, "unable set commit object for repo %s and the error is %s", repo.String(), err.Error())
 	}
 	err = bucket.Set(storage.BlobLastSyncPath, []byte(fmt.Sprintf("%64b", time.Now().Unix())))
 	if err != nil {
-		return errors.Wrapf(err, "unable set storage last sync")
+		return errors.Wrapf(err, "unable set last sync time for repo %s and the error is %s", repo.String(), err.Error())
 	}
-	c.Logf("Finished processing for the first time ", repo)
+	c.Logf("Finished processing for the first time %s", repo.String())
 	return nil
 }
 
@@ -174,6 +174,7 @@ func fetchGitRepo(storagePath *StoragePath, data []byte, repo RepoURL, tempDir s
 	if err := ioutil.WriteFile(gitZipFile, data, fileMode); err != nil {
 		return nil, false, errors.Wrapf(err, "unable write targz file %s", storagePath.BlobArchiveFile)
 	}
+
 	if err := archiver.Unarchive(gitZipFile, storagePath.GitDir); err != nil {
 		return nil, false,
 			errors.Wrapf(err, "unable unarchive targz file %s in %s", storagePath.BlobArchiveFile, storagePath.BlobArchiveDir)

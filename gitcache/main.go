@@ -31,6 +31,7 @@ type cache struct {
 var (
 	blob, tempDir string
 	logf          func(s string, f ...interface{})
+	errorf        func(s string, f ...interface{})
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -48,6 +49,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if err := cache.UpdateCache(c.URL); err != nil {
+			errorf("failed for the request %s and the error is %s", c.URL, err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -90,6 +92,7 @@ func main() {
 	sugar.Info("TEMP_DIR:%s", tempDir)
 	// no need to lock this as it being written only within this method.
 	logf = sugar.Infof
+	errorf = sugar.Errorf
 
 	http.HandleFunc("/", handler)
 	sugar.Info("Starting server for testing HTTP POST...\n")
