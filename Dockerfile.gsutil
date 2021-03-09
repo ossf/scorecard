@@ -28,4 +28,5 @@ RUN CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o
 
 FROM gcr.io/cloud-builders/gsutil
 COPY --from=build /out/scorecard /
+COPY ./cron/ /cron/
 ENTRYPOINT [ "/scorecard" ] 

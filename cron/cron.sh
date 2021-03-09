@@ -17,6 +17,7 @@ SOURCE="${BASH_SOURCE[0]}"
 input=$(dirname "$SOURCE")/projects.txt
 output=$(date +"%m-%d-%Y").json
 touch "$output"
+curl https://raw.githubusercontent.com/ossf/scorecard/main/cron/projects.txt >projects.txt
 
 # sort and uniqify these, in case there are duplicates
 # shellcheck disable=SC2002
@@ -26,7 +27,7 @@ while read -r proj; do
         continue
     fi
     echo "$proj"
-    ./scorecard --repo="$proj" --show-details --format=json >> "$output"
+    ../scorecard --repo="$proj" --show-details --format=json >> "$output"
 done <<< "$projects"
 
 gsutil cp "$output" gs://"$GCS_BUCKET"
