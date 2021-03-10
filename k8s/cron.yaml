@@ -24,4 +24,8 @@ spec:
                   key: token
             - name: GCS_BUCKET
               value: ossf-scorecards
+            - name: BLOB_URL
+              value: "gs://ossf-scorecards-cache"
+            - name: USE_BLOB_CACHE
+              value: true
           restartPolicy: OnFailure
