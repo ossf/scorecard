@@ -27,5 +27,5 @@ spec:
             - name: BLOB_URL
               value: "gs://ossf-scorecards-cache"
             - name: USE_BLOB_CACHE
-              value: true
+              value: "true"
           restartPolicy: OnFailure
