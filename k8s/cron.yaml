@@ -28,4 +28,9 @@ spec:
               value: "gs://ossf-scorecards-cache"
             - name: USE_BLOB_CACHE
               value: "true"
+            resources:
+              limits:
+                memory: 1Gi
+              requests:
+                memory: 1Gi
           restartPolicy: OnFailure
