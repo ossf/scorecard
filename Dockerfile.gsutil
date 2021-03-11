@@ -26,7 +26,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o /out/scorecard .
 
-FROM gcr.io/cloud-builders/gsutil
+FROM gcr.io/google.com/cloudsdktool/cloud-sdk:slim 
 COPY --from=build /out/scorecard /
 COPY ./cron/ /cron/
 ENTRYPOINT [ "/scorecard" ] 
