@@ -18,8 +18,8 @@ var _ = Describe("E2E TEST:Signedtags", func() {
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,
-				Owner:       "apache",
-				Repo:        "airflow",
+				Owner:       "bitcoin",
+				Repo:        "bitcoin",
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
