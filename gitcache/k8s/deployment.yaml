@@ -15,6 +15,8 @@ spec:
       labels:
         app: gitcache
     spec:
+      securityContext:
+         runAsNonRoot : true
       containers:
       - name: gitcache
         env:
@@ -28,6 +30,21 @@ spec:
         volumeMounts:
             - name: gitcache-storage
               mountPath: /data/gitcache
+        securityContext:
+          allowPrivilegeEscalation: false 
+          readOnlyRootFilesystem: true
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
       volumes:
       - name: gitcache-storage
         emptyDir: {}

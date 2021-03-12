@@ -17,6 +17,7 @@ SOURCE="${BASH_SOURCE[0]}"
 input=$(dirname "$SOURCE")/projects.txt
 output=$(date +"%m-%d-%Y").json
 touch "$output"
+echo "{ \"results\": [" >> "$output"
 
 # sort and uniqify these, in case there are duplicates
 # shellcheck disable=SC2002
@@ -26,8 +27,11 @@ while read -r proj; do
         continue
     fi
     echo "$proj"
-    ./scorecard --repo="$proj" --show-details --format=json >> "$output"
+    ../scorecard --repo="$proj" --show-details --format=json >> "$output"
+    echo "," >> "$output"
 done <<< "$projects"
+sed -i '$d' "$output" # removing the trailing comma which will be last line.
+echo "]}" >> "$output"
 
 gsutil cp "$output" gs://"$GCS_BUCKET"
 # Also copy the most recent run into a "latest.json" file
