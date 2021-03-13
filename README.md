@@ -17,6 +17,9 @@
   * [Caching](#caching)
     * [Blob Cache](#blob-cache)
     * [Disk Cache](#disk-cache)
+  * [Gitcache](#gitcache)
+    * [In the initial run](#in-the-initial-run)
+    * [On the subsequent runs](#on-the-subsequent-runs)
   * [Authentication](#authentication)
     * [GITHUB_AUTH_TOKEN](#github_auth_token)
 * [Checks](#checks)
@@ -207,6 +210,25 @@ There is no TTL on cache.
 
 The default cache size is 10GB.
 
+### Gitcache
+
+Gitcache reduces the GitHub API usage by cloning the Git repository without authentication and checking for updates. 
+
+#### In the initial run
+  - Clone the repository anonymously (not using GitHub API token).
+  - Tarball and compress it.
+  - Store the compressed file into a blob store GCS.
+  - Store the last commit date within the blob.
+  - Also compress the folder without .git for the consumers.
+
+#### On the subsequent runs
+  - pull gzip from GCS
+  - unzip git repo
+  - git pull origin
+  - update metadata (last sync, etc.)
+  - gzip, reupload to GCS
+
+[gitcache](gitcache/README.md) documentation for more details.
 
 ### Authentication
 
