@@ -14,7 +14,15 @@
 # limitations under the License.
 
 SOURCE="${BASH_SOURCE[0]}"
-input=$(dirname "$SOURCE")/projects.txt
+if [[ ! -v TEST_CRON ]]; then
+  input=$(dirname "$SOURCE")/projects.txt
+elif [[ -z "$TEST_CRON" ]]; then
+  input=$(dirname "$SOURCE")/projects.txt
+else
+  input=$(dirname "$SOURCE")/test_projects.txt
+fi
+
+
 output=$(date +"%m-%d-%Y").json
 touch "$output"
 echo "{ \"results\": [" >> "$output"

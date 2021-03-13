@@ -2,9 +2,10 @@ SHELL := /bin/bash
 GOBIN ?= $(GOPATH)/bin
 GINKGO ?= $(GOBIN)/ginkgo
 IMAGE_NAME = scorecard
+CRON_IMAGE_NAME = scorecard-gsutil
 OUTPUT = output
 FOCUS_DISK_TEST="E2E TEST:Disk Cache|E2E TEST:executable"
-IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:Disk Cache|E2E TEST:executable"
+IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:Disk Cache|E2E TEST:executable|E2E TEST:Validate cron job"
 .PHONY: help
 help:  ## Display this help
 	@awk \
@@ -53,7 +54,7 @@ e2e:  ## Runs e2e tests
 .PHONY: e2e
 # export GITHUB_AUTH_TOKEN with personal access token to run the e2e
 e2e: build check-env ginkgo
-	$(GINKGO) --skip="E2E TEST:executable" -p -v -cover  ./...
+	$(GINKGO) --skip="E2E TEST:executable|E2E TEST:Validate cron job" -p -v -cover  ./...
 
 ginkgo:
 	go get -u github.com/onsi/ginkgo/ginkgo
@@ -105,5 +106,5 @@ verify-go-mod: ## Verify the go modules
 dockerbuild: ## Runs docker build
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	docker build . --file Dockerfile --tag $(IMAGE_NAME) 
-	docker build . --file Dockerfile.gsutil --tag $(IMAGE_NAME)-gsutil
+	docker build . --file Dockerfile.gsutil --tag $(CRON_IMAGE_NAME)
 

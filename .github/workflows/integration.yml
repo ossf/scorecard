@@ -7,6 +7,7 @@ on:
 name: Integration tests
 env:
   IMAGE_NAME: scorecard
+  CRON_IMAGE_NAME: scorecard-gsutil
   OUTPUT_PATH: output
 jobs:
   integration-trusted:
@@ -92,6 +93,13 @@ jobs:
         run: |
             docker run -e GITHUB_AUTH_TOKEN=$GITHUB_AUTH_TOKEN  $IMAGE_NAME  --show-details  --repo=https://github.com/ossf/scorecard --metadata=openssf --format json > ./$OUTPUT_PATH/results.json
             ginkgo -p -v --focus="E2E TEST:executable" ./e2e/...
+
+      - name: Test cron docker image
+        env:  
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+        run: |
+            docker run -e GITHUB_AUTH_TOKEN=$GITHUB_AUTH_TOKEN,GCS_BUCKET=ossf-scorecards-dev,TEST_CRON=1  $CRON_IMAGE_NAME  
+            ginkgo -p -v --focus="E2E TEST:Validate cron job" ./e2e/...
 
       - name: find comment
         if: ${{ always() }}
