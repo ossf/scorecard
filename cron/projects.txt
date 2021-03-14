@@ -2288,3 +2288,4 @@ github.com/zsh-users/zsh-completions
 github.com/zsh-users/zsh-syntax-highlighting
 github.com/z-song/laravel-admin
 github.com/zulip/zulip
+github.com/mwiede/jsch
