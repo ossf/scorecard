@@ -5,6 +5,24 @@ This document describes the contribution guidelines for the project.
 
 **Note:** Before you start contributing, you must read and abide by our **[Code of Conduct](./CODE_OF_CONDUCT.md)**.
 
+
+<!-- vim-markdown-toc GFM -->
+
+* [Contributing code](#contributing-code)
+  * [Getting started](#getting-started)
+  * [Environment Setup](#environment-setup)
+* [Contributing steps](#contributing-steps)
+* [How to build scorecard locally](#how-to-build-scorecard-locally)
+* [What to do before submitting a pull request](#what-to-do-before-submitting-a-pull-request)
+* [Permission for GitHub personal access tokens](#permission-for-github-personal-access-tokens)
+* [Where the CI Tests are configured](#where-the-ci-tests-are-configured)
+* [dailyscore-cronjob](#dailyscore-cronjob)
+  * [Deploying the cron job](#deploying-the-cron-job)
+* [How do I add additional GitHub repositories to be scanned by scorecard dailyscore?](#how-do-i-add-additional-github-repositories-to-be-scanned-by-scorecard-dailyscore)
+* [Adding New Checks](#adding-new-checks)
+
+<!-- vim-markdown-toc -->
+
 ## Contributing code
 
 ### Getting started
@@ -63,6 +81,27 @@ The personal access token need the following scopes:
 ## Where the CI Tests are configured
 
 1. See the [action files](.github/workflows) to check its tests, and the scripts used on it.
+
+## dailyscore-cronjob
+
+scorecard scans https://github.com/ossf/scorecard/blob/main/cron/projects.txt repositories in GCP k8s and publishes the results in GCS bucket `ossf-scorecards`.
+
+The `cron` definition ./scorecard/cron/cron.sh and the `k8s` for the `cron` is in ./scorecard/k8s/cron.yaml
+
+The logs for the cron are available at https://console.cloud.google.com/kubernetes/cronjob/us-central1-c/openssf/default/daily-score/logs?project=openssf
+
+### Deploying the cron job
+
+The cronjob can be deployed into k8s by running the ./scorecard/k8s/cron.yaml
+
+Any updates to the ./scorecard/cron/cron.sh will be deployed by the docker container ./scorecard/Dockerfile.gsutil
+
+
+## How do I add additional GitHub repositories to be scanned by scorecard dailyscore?
+
+Scorecard maintains the list of repositories in a file https://github.com/ossf/scorecard/blob/main/cron/projects.txt 
+
+Submit a PR for this file and scorecard would start scanning in subsequent runs.
 
 ## Adding New Checks
 
