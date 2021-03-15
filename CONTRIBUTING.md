@@ -92,7 +92,8 @@ The logs for the cron are available at https://console.cloud.google.com/kubernet
 
 ### Deploying the cron job
 
-The cronjob can be deployed into k8s by running the ./scorecard/k8s/cron.yaml
+The cronjob can be deployed into k8s by running `kubectl apply -f ./scorecard/k8s/cron.yaml`. 
+This will deploy a k8s cron job.
 
 Any updates to the ./scorecard/cron/cron.sh will be deployed by the docker container ./scorecard/Dockerfile.gsutil
 
