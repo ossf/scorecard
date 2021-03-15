@@ -18,6 +18,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"io"
+	"net/http"
 	"strings"
 
 	"github.com/ossf/scorecard/checker"
@@ -35,8 +36,12 @@ func CheckIfFileExists(c checker.Checker, predicate func(name string,
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
 	url = strings.Replace(url, "{/ref}", r.GetDefaultBranch(), 1)
 
-	// Download
-	resp, err := c.HttpClient.Get(url)
+	// Using the http.get instead of the checker httpClient because
+	// the default checker.HTTPClient caches everything in the memory and it causes oom.
+
+	//https://securego.io/docs/rules/g107.html
+	//nolint
+	resp, err := http.Get(url)
 	if err != nil {
 		return checker.RetryResult(err)
 	}
