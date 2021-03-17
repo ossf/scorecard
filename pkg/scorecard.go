@@ -81,30 +81,29 @@ func (r *RepoURL) Set(s string) error {
 
 func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
 	repo RepoURL, checksToRun []checker.NamedCheck) <-chan Result {
-	// Use our custom roundtripper
-	rt := roundtripper.NewTransport(ctx, logger)
-
-	client := &http.Client{
-		Transport: rt,
-	}
-	ghClient := github.NewClient(client)
-	graphClient := githubv4.NewClient(client)
-
-	c := checker.Checker{
-		Ctx:         ctx,
-		Client:      ghClient,
-		HttpClient:  client,
-		Owner:       repo.Owner,
-		Repo:        repo.Repo,
-		GraphClient: graphClient,
-	}
-
 	resultsCh := make(chan Result)
 	wg := sync.WaitGroup{}
 	for _, check := range checksToRun {
 		check := check
 		wg.Add(1)
 		go func() {
+			// Use our custom roundtripper
+			rt := roundtripper.NewTransport(ctx, logger)
+
+			client := &http.Client{
+				Transport: rt,
+			}
+			ghClient := github.NewClient(client)
+			graphClient := githubv4.NewClient(client)
+
+			c := checker.Checker{
+				Ctx:         ctx,
+				Client:      ghClient,
+				HttpClient:  client,
+				Owner:       repo.Owner,
+				Repo:        repo.Repo,
+				GraphClient: graphClient,
+			}
 			defer wg.Done()
 			runner := checker.Runner{Checker: c}
 			r := runner.Run(check.Fn)
