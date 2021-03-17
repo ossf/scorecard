@@ -44,6 +44,8 @@ const (
 	BucketURL               = "BLOB_URL"
 )
 
+var counter int64
+
 // RateLimitRoundTripper is a rate-limit aware http.Transport for Github.
 type RateLimitRoundTripper struct {
 	Logger         *zap.SugaredLogger
@@ -51,13 +53,16 @@ type RateLimitRoundTripper struct {
 }
 
 type RoundRobinTokenSource struct {
-	counter      int64
 	AccessTokens []string
+	log          *zap.SugaredLogger
 }
 
 func (r *RoundRobinTokenSource) Token() (*oauth2.Token, error) {
-	c := atomic.AddInt64(&r.counter, 1)
-	index := c % int64(len(r.AccessTokens))
+	c := atomic.AddInt64(&counter, 1)
+	// not locking it because it is never modified
+	l := len(r.AccessTokens)
+	index := c % int64(l)
+	r.log.Infof("using token %d of total %d.", index, l)
 	return &oauth2.Token{
 		AccessToken: r.AccessTokens[index],
 	}, nil
@@ -70,6 +75,7 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 	if token := os.Getenv(GithubAuthToken); token != "" {
 		ts := &RoundRobinTokenSource{
 			AccessTokens: strings.Split(token, ","),
+			log:          logger,
 		}
 		transport = oauth2.NewClient(ctx, ts).Transport
 	} else if keyPath := os.Getenv(GithubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
@@ -171,5 +177,6 @@ func (gh *RateLimitRoundTripper) RoundTrip(r *http.Request) (*http.Response, err
 		gh.Logger.Warnf("Rate limit exceeded. Retrying...")
 		return gh.RoundTrip(r)
 	}
+
 	return resp, nil
 }
