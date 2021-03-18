@@ -27,7 +27,7 @@ while read -r proj; do
         continue
     fi
     echo "$proj"
-    ../scorecard --repo="$proj" --show-details --format=json >> "$output"
+    ../scorecard --repo="$proj" --checks=Active,CI-Tests,CII-Best-Practices,Code-Review,Contributors,Frozen-Deps,Fuzzing,Packaging,Pull-Requests,SAST,Security-Policy,Signed-Releases,Signed-Tags --show-details --format=json >> "$output"
     echo "," >> "$output"
 done <<< "$projects"
 sed -i '$d' "$output" # removing the trailing comma which will be last line.
