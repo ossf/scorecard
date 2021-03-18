@@ -62,7 +62,6 @@ func (r *RoundRobinTokenSource) Token() (*oauth2.Token, error) {
 	// not locking it because it is never modified
 	l := len(r.AccessTokens)
 	index := c % int64(l)
-	r.log.Infof("using token %d of total %d.", index, l)
 	return &oauth2.Token{
 		AccessToken: r.AccessTokens[index],
 	}, nil
