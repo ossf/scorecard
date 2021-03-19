@@ -2289,3 +2289,26 @@ github.com/zsh-users/zsh-syntax-highlighting
 github.com/z-song/laravel-admin
 github.com/zulip/zulip
 github.com/mwiede/jsch
+# Envoy deps
+github.com/grailbio/bazel-compilation-database
+github.com/bazelbuild/bazel-gazelle
+github.com/bazelbuild/bazel-toolchains
+github.com/google/libprotobuf-mutator
+github.com/LuaJIT/LuaJIT
+github.com/mirror/tclap
+github.com/ncopa/su-exec
+github.com/SkyAPM/cpp2sky
+github.com/Tencent/rapidjson
+github.com/WAVM/WAVM
+github.com/abseil/abseil-cpp
+github.com/emscripten-core/emsdk
+github.com/envoyproxy/envoy-build-tools
+github.com/opentracing/opentracing-cpp
+github.com/dpkp/kafka-python
+github.com/madler/zlib
+github.com/proxy-wasm/proxy-wasm-rust-sdk
+github.com/bazelbuild/rules_cc
+github.com/bazelbuild/rules_foreign_cc
+github.com/bazelbuild/rules_fuzzing
+github.com/bazelbuild/rules_python
+github.com/apache/skywalking-data-collect-protocol
