@@ -12,10 +12,6 @@ spec:
           - name: run-score
             image: gcr.io/openssf/cron:latest
             imagePullPolicy: Always
-            command:
-            - /bin/sh
-            - -c
-            - ./cron/cron.sh
             env:
             - name: GITHUB_AUTH_TOKEN
               valueFrom:

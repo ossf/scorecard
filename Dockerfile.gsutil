@@ -26,7 +26,15 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o /out/scorecard .
 
+
+FROM base AS cron
+ARG TARGETOS
+ARG TARGETARCH
+WORKDIR ./cron/
+RUN CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o /out/cron .
+
 FROM gcr.io/google.com/cloudsdktool/cloud-sdk:slim 
+COPY ./cron/projects.txt /cron/projects.txt
 COPY --from=build /out/scorecard /
-COPY ./cron/ /cron/
-ENTRYPOINT [ "/scorecard" ] 
+COPY --from=cron /out/cron ./cron/cron
+ENTRYPOINT [ "/cron/cron", "/cron/projects.txt"] 
