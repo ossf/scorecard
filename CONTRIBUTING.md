@@ -13,6 +13,7 @@ This document describes the contribution guidelines for the project.
   * [Environment Setup](#environment-setup)
 * [Contributing steps](#contributing-steps)
 * [How to build scorecard locally](#how-to-build-scorecard-locally)
+* [PR Process](#pr-process)
 * [What to do before submitting a pull request](#what-to-do-before-submitting-a-pull-request)
 * [Permission for GitHub personal access tokens](#permission-for-github-personal-access-tokens)
 * [Where the CI Tests are configured](#where-the-ci-tests-are-configured)
@@ -60,6 +61,29 @@ git clone git@github.com:<user>/scorecard.git $GOPATH/src/github.com/<user>/scor
 
 1. Ensure you activate module support before continue (`$ export GO111MODULE=on`)
 1. Run the command `make build` to build the source code
+
+## PR Process
+
+Every PR should be annotated with an icon indicating whether it's a:
+
+- Breaking change: :warning: (`:warning:`)
+- Non-breaking feature: :sparkles: (`:sparkles:`)
+- Patch fix: :bug: (`:bug:`)
+- Docs: :book: (`:book:`)
+- Infra/Tests/Other: :seedling: (`:seedling:`)
+- No release note: :ghost: (`:ghost:`)
+
+Use :ghost: (no release note) only for the PRs that change or revert unreleased
+changes, which don't deserve a release note. Please don't abuse it.
+
+You can also use the equivalent emoji directly, since GitHub doesn't
+render the `:xyz:` aliases in PR titles.
+
+Individual commits should not be tagged separately, but will generally be
+assumed to match the PR. For instance, if you have a bugfix in with
+a breaking change, it's generally encouraged to submit the bugfix
+separately, but if you must put them in one PR, you should mark the whole
+PR as breaking.
 
 ## What to do before submitting a pull request
 
