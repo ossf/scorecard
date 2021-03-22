@@ -24,11 +24,20 @@ help:  ## Display this help
 
 all:  ## Runs build, test and verify
 .PHONY: all
-all: build test verify checkprojects
+all: build test checkprojects build-cron build-scripts verify 
 
 .PHONY: build
 build: ## Runs go build and generates executable
 	CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"'
+
+.PHONY: build-cron
+build-cron: ## Runs go build on the cronjob
+	cd cron && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o scorecardcron
+
+
+.PHONY: build-scripts
+build-scripts: ## Runs go build on the scripts
+	cd scripts && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o validate
 
 .PHONY: test
 test: ## Runs unit test
@@ -42,7 +51,7 @@ golangci-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) v1.36.0 ;\
 
 lint: golangci-lint ## Runs golangci-lint linter
-	$(GOLANGCI_LINT) run  -n
+	$(GOLANGCI_LINT) run -n 
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN
