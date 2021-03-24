@@ -1,6 +1,6 @@
 * **Please check if the PR fulfills these requirements**
 - [ ] Tests for the changes have been added (for bug fixes / features)
-
+- [ ] PR title follows the guidelines defined in  https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md#pr-process
 
 * **What kind of change does this PR introduce?** (Bug fix, feature, docs update, ...)
 
