@@ -33,7 +33,9 @@ func SecurityPolicy(c checker.Checker) checker.CheckResult {
 		}
 		return false
 	})
-
+	//nolint
+	result.Description = `This check tries to determine if a project has published a security policy. It works by looking for a file named SECURITY.md (case-insensitive) in a few well-known directories.`
+	result.HelpURL = "https://github.com/ossf/scorecard/blob/main/checks.md#security-policy"
 	if result.Pass {
 		return result
 	}
@@ -43,11 +45,16 @@ func SecurityPolicy(c checker.Checker) checker.CheckResult {
 	dotGitHub := c
 	dotGitHub.Repo = ".github"
 
-	return CheckIfFileExists(dotGitHub, func(name string, logf func(s string, f ...interface{})) bool {
+	result = CheckIfFileExists(dotGitHub, func(name string, logf func(s string, f ...interface{})) bool {
 		if strings.EqualFold(name, "security.md") {
 			logf("security policy within .github folder : %s", name)
 			return true
 		}
 		return false
 	})
+
+	//nolint
+	result.Description = `This check tries to determine if a project has published a security policy. It works by looking for a file named SECURITY.md (case-insensitive) in a few well-known directories.`
+	result.HelpURL = "https://github.com/ossf/scorecard/blob/main/checks.md#security-policy"
+	return result
 }

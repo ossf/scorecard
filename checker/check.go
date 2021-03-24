@@ -20,6 +20,8 @@ type CheckResult struct {
 	Confidence  int
 	ShouldRetry bool
 	Error       error
+	Description string
+	HelpURL     string
 }
 
 var InconclusiveResult = CheckResult{

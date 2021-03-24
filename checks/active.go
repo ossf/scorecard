@@ -51,5 +51,8 @@ func IsActive(c checker.Checker) checker.CheckResult {
 	return checker.CheckResult{
 		Pass:       totalCommits >= numCommits,
 		Confidence: confidence,
+		Description: `This check tries to determine if the project is still "actively maintained". 
+		It currently works by looking for commits within the last 90 days.`,
+		HelpURL: "https://github.com/ossf/scorecard/blob/main/checks.md#active",
 	}
 }

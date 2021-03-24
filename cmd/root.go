@@ -151,10 +151,12 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 }
 
 type checkResult struct {
-	CheckName  string
-	Pass       bool
-	Confidence int
-	Details    []string
+	CheckName   string
+	Pass        bool
+	Confidence  int
+	Details     []string
+	Description string
+	HelpURL     string
 }
 
 type npmSearchResults struct {
@@ -200,10 +202,12 @@ func outputJSON(results []pkg.Result) {
 			details = r.Cr.Details
 		}
 		or.Checks = append(or.Checks, checkResult{
-			CheckName:  r.Name,
-			Pass:       r.Cr.Pass,
-			Confidence: r.Cr.Confidence,
-			Details:    details,
+			CheckName:   r.Name,
+			Pass:        r.Cr.Pass,
+			Confidence:  r.Cr.Confidence,
+			Details:     details,
+			Description: r.Cr.Description,
+			HelpURL:     r.Cr.HelpURL,
 		})
 	}
 	output, err := json.Marshal(or)

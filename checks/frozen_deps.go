@@ -26,7 +26,11 @@ func init() {
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
 func FrozenDeps(c checker.Checker) checker.CheckResult {
-	return CheckIfFileExists(c, filePredicate)
+	r := CheckIfFileExists(c, filePredicate)
+	//nolint
+	r.Description = `This check tries to determine if a project has declared and pinned its dependencies. It works by looking for a set of well-known package management lock files.`
+	r.HelpURL = "https://github.com/ossf/scorecard/blob/main/checks.md#frozen-deps"
+	return r
 }
 
 // filePredicate will validate the if frozen dependecies file name exists.

@@ -21,6 +21,12 @@ import (
 
 var sastTools map[string]bool = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
 
+const (
+	//nolint
+	description string = `This check tries to determine if the project uses static code analysis systems. It currently works by looking for well-known results (CodeQL, etc.) in GitHub pull requests.`
+	helpURL     string = "https://github.com/ossf/scorecard/blob/main/checks.md#sast"
+)
+
 func init() {
 	registerCheck("SAST", SAST)
 }
@@ -37,7 +43,10 @@ func SASTToolInCheckRuns(c checker.Checker) checker.CheckResult {
 		State: "closed",
 	})
 	if err != nil {
-		return checker.RetryResult(err)
+		r := checker.RetryResult(err)
+		r.Description = description
+		r.HelpURL = helpURL
+		return r
 	}
 
 	totalMerged := 0
@@ -47,12 +56,19 @@ func SASTToolInCheckRuns(c checker.Checker) checker.CheckResult {
 			continue
 		}
 		totalMerged++
-		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
+		crs, _, err := c.Client.Checks.
+			ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
 		if err != nil {
-			return checker.RetryResult(err)
+			r := checker.RetryResult(err)
+			r.Description = description
+			r.HelpURL = helpURL
+			return r
 		}
 		if crs == nil {
-			return checker.InconclusiveResult
+			r := checker.InconclusiveResult
+			r.Description = description
+			r.HelpURL = helpURL
+			return r
 		}
 		for _, cr := range crs.CheckRuns {
 			if cr.GetStatus() != "completed" {
@@ -69,16 +85,25 @@ func SASTToolInCheckRuns(c checker.Checker) checker.CheckResult {
 		}
 	}
 	if totalTested == 0 {
-		return checker.InconclusiveResult
+		r := checker.InconclusiveResult
+		r.Description = description
+		r.HelpURL = helpURL
+		return r
 	}
-	return checker.ProportionalResult(totalTested, totalMerged, .75)
+	r := checker.ProportionalResult(totalTested, totalMerged, .75)
+	r.Description = description
+	r.HelpURL = helpURL
+	return r
 }
 
 func CodeQLInCheckDefinitions(c checker.Checker) checker.CheckResult {
 	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
 	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
 	if err != nil {
-		return checker.RetryResult(err)
+		r := checker.RetryResult(err)
+		r.Description = description
+		r.HelpURL = helpURL
+		return r
 	}
 
 	for _, result := range results.CodeResults {
@@ -87,7 +112,9 @@ func CodeQLInCheckDefinitions(c checker.Checker) checker.CheckResult {
 
 	const confidence = 10
 	return checker.CheckResult{
-		Pass:       *results.Total > 0,
-		Confidence: confidence,
+		Pass:        *results.Total > 0,
+		Confidence:  confidence,
+		Description: description,
+		HelpURL:     helpURL,
 	}
 }
