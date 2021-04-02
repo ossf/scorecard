@@ -16,6 +16,13 @@ A project which is not active may not be patched, may not have its dependencies 
 **Remediation steps**
 - There is *NO* remediation work needed here. This is just to indicate your project activity and maintenance commitment.
 
+## Automatic-Dependency-Update 
+
+This check tries to determine if a project has dependencies automatically updated. The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/).This check only looks if  it is enabled and does not ensure that it is run and PullRequests are merged. 
+
+**Remediation steps**
+- Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.
+
 ## Branch-Protection 
 
 Branch protection allows defining rules to enforce certain workflows for branches, such as requiring a review or passing certain status checks. This check would work only when the token has [Admin access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197) to the repository. This check determines if the default branch is protected. More specifically, the checks for AllowForcePushes (disabled), AllowDeletions (disabled),  EnforceAdmins (enabled), RequireLinearHistory (enabled), RequiredStatusChecks (enabled and must have non-empty context enabled), RequiredPullRequestReviews (>=1), DismissStaleReviews (enabled), RequireCodeOwnerReviews (enabled). 
