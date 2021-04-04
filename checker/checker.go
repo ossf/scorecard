@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/shurcooL/githubv4"
@@ -52,7 +53,7 @@ func (r *Runner) Run(f CheckFn) CheckResult {
 		l = logger{}
 		checker.Logf = l.Logf
 		res = f(checker)
-		if res.ShouldRetry {
+		if res.ShouldRetry && !strings.Contains(res.Error.Error(), "invalid header field value") {
 			checker.Logf("error, retrying: %s", res.Error)
 			continue
 		}
