@@ -32,7 +32,7 @@ type Repository struct {
 }
 
 func main() {
-	fileName := fmt.Sprintf("%d-%d-%d.json", time.Now().Month(), time.Now().Day(), time.Now().Year())
+	fileName := fmt.Sprintf("%02d-%02d-%d.json", time.Now().Month(), time.Now().Day(), time.Now().Year())
 	result, err := os.Create(fileName)
 	if err != nil {
 		panic(err)
