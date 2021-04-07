@@ -18,13 +18,20 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
+	"os/exec"
 	"regexp"
+	"strings"
 
+	"github.com/go-git/go-git/v5"
 	"github.com/google/go-github/v33/github"
 	"github.com/jszwec/csvutil"
+	"github.com/pkg/errors"
+	"golang.org/x/tools/go/vcs"
 )
 
 type RepositoryDepsURL struct {
@@ -34,6 +41,12 @@ type RepositoryDepsURL struct {
 type Repository struct {
 	Repo     string `csv:"repo"`
 	Metadata string `csv:"metadata,omitempty"`
+}
+
+type gomod struct {
+	Require []struct {
+		Path string `json:"Path"`
+	} `json:"Require"`
 }
 
 // Programmatically gets Envoy's dependencies and add to projects.
@@ -61,10 +74,86 @@ func GetBazelDeps(repo RepositoryDepsURL) []Repository {
 
 	// TODO: Replace with a starlark interpreter that can be used for any project.
 	for _, match := range re.FindAllString(fc, -1) {
-		repos = append(repos, Repository{match, ""})
+		repos = append(repos, Repository{strings.TrimSuffix(match, ".git"), ""})
 	}
 
 	return repos
+}
+
+// GetGoDeps returns go repo dependencies.
+func GetGoDeps(repo RepositoryDepsURL) []Repository {
+	repos := []Repository{}
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Default().Println(err)
+		return nil
+	}
+
+	// creating temp dir for git clone
+	gitDir, err := ioutil.TempDir(pwd, "")
+	if err != nil {
+		log.Default().Println("Cannot create temporary dir", err)
+		return nil
+	}
+	defer os.RemoveAll(gitDir)
+
+	// cloning git repo to get `go list -m all` out for getting all the dependencies
+	_, err = git.PlainClone(gitDir, false,
+		&git.CloneOptions{URL: fmt.Sprintf("http://github.com/%s/%s", repo.Owner, repo.Repo)})
+	if err != nil {
+		log.Default().Println(err)
+		return nil
+	}
+
+	if err := os.Chdir(gitDir); err != nil {
+		log.Default().Println(err)
+		return nil
+	}
+
+	cmd := exec.Command("go", "list", "-m", "all")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err = cmd.Run()
+	if err != nil {
+		log.Default().Println(err)
+		return nil
+	}
+
+	/*
+		   example output of go list -m all
+			gopkg.in/resty.v1 v1.12.0
+			gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
+	*/
+	for _, l := range strings.Split(out.String(), "\n") {
+		dependency := strings.Split(l, " ")[0]
+		//nolint
+		if strings.HasPrefix(dependency, "github.com") {
+			repourl := RepoURL{}
+			if err := repourl.Set(dependency); err == nil {
+				repos = append(repos, Repository{repourl.String(), ""})
+			}
+		} else {
+			repo := getVanityRepoURL(dependency)
+			if strings.Contains(repo, "github.com") {
+				repourl := RepoURL{}
+				if err := repourl.Set(repo); err == nil {
+					repos = append(repos, Repository{repourl.String(), ""})
+				}
+			}
+		}
+	}
+	return repos
+}
+
+// getVanityRepoURL returns actual git repository for the go vanity URL
+// https://github.com/GoogleCloudPlatform/govanityurls.
+func getVanityRepoURL(u string) string {
+	repo, err := vcs.RepoRootForImportDynamic(u, false)
+	if err != nil {
+		log.Default().Println("unable to parse the vanity URL", u, err)
+		return ""
+	}
+	return repo.Repo
 }
 
 // Runs scripts to update projects.txt with a projects dependencies.
@@ -72,6 +161,7 @@ func GetBazelDeps(repo RepositoryDepsURL) []Repository {
 // Args:
 //     file path to projects.txt
 func main() {
+	// TODO = move them outside the sourcecode
 	bazelRepos := []RepositoryDepsURL{
 		{
 			Owner: "envoyproxy",
@@ -87,6 +177,17 @@ func main() {
 			Owner: "grpc",
 			Repo:  "grpc",
 			File:  "bazel/grpc_deps.bzl",
+		},
+	}
+	// TODO = move them outside the sourcecode
+	gorepos := []RepositoryDepsURL{
+		{
+			Owner: "ossf",
+			Repo:  "scorecard",
+		},
+		{
+			Owner: "sigstore",
+			Repo:  "cosign",
 		},
 	}
 
@@ -123,6 +224,15 @@ func main() {
 			}
 		}
 	}
+	for _, repo := range gorepos {
+		for _, item := range GetGoDeps(repo) {
+			if _, ok := m[item.Repo]; !ok {
+				// Also add to m to avoid dupes.
+				m[item.Repo] = item.Metadata
+				newRepos = append(newRepos, item)
+			}
+		}
+	}
 
 	// Append new repos to projects.txt without the header.
 	var buf bytes.Buffer
@@ -138,4 +248,40 @@ func main() {
 	if _, err := projects.Write(buf.Bytes()); err != nil {
 		panic(err)
 	}
+}
+
+// RepoURL parses and stores URL into fields.
+type RepoURL struct {
+	Host  string // Host where the repo is stored. Example GitHub.com
+	Owner string // Owner of the repo. Example ossf.
+	Repo  string // The actual repo. Example scorecard.
+}
+
+func (r *RepoURL) String() string {
+	return fmt.Sprintf("%s/%s/%s", r.Host, r.Owner, r.Repo)
+}
+
+func (r *RepoURL) NonURLString() string {
+	return fmt.Sprintf("%s-%s-%s", r.Host, r.Owner, r.Repo)
+}
+
+func (r *RepoURL) Set(s string) error {
+	// Allow skipping scheme for ease-of-use, default to https.
+	if !strings.Contains(s, "://") {
+		s = "https://" + s
+	}
+
+	parsedURL, err := url.Parse(s)
+	if err != nil {
+		return errors.Wrap(err, "unable to parse the URL")
+	}
+
+	const splitLen = 2
+	split := strings.SplitN(strings.Trim(parsedURL.Path, "/"), "/", splitLen)
+	if len(split) != splitLen {
+		return errors.Errorf("invalid repo flag: [%s], pass the full repository URL", s)
+	}
+
+	r.Host, r.Owner, r.Repo = parsedURL.Host, split[0], split[1]
+	return nil
 }
