@@ -16,30 +16,33 @@ package checks
 
 import (
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/lib"
 )
 
+const branchProtectionStr = "Branch-Protection"
+
 func init() {
-	registerCheck("Branch-Protection", BranchProtection)
+	registerCheck(branchProtectionStr, BranchProtection)
 }
 
-func BranchProtection(c checker.Checker) checker.CheckResult {
+func BranchProtection(c lib.CheckRequest) lib.CheckResult {
 	repo, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
-		return checker.RetryResult(err)
+		return lib.MakeRetryResult(branchProtectionStr, err)
 	}
 
 	protection, resp, err := c.Client.Repositories.
 		GetBranchProtection(c.Ctx, c.Owner, c.Repo, *repo.DefaultBranch)
 	const fileNotFound = 404
 	if resp.StatusCode == fileNotFound {
-		return checker.RetryResult(err)
+		return lib.MakeRetryResult(branchProtectionStr, err)
 	}
 
 	if err != nil {
 		c.Logf("!! branch protection not enabled")
 		const confidence = 10
-		return checker.CheckResult{
+		return lib.CheckResult{
+			Name:       branchProtectionStr,
 			Pass:       false,
 			Confidence: confidence,
 		}
@@ -48,7 +51,7 @@ func BranchProtection(c checker.Checker) checker.CheckResult {
 
 }
 
-func IsBranchProtected(protection *github.Protection, c checker.Checker) checker.CheckResult {
+func IsBranchProtected(protection *github.Protection, c lib.CheckRequest) lib.CheckResult {
 	totalChecks := 6
 	totalSuccess := 0
 
@@ -104,5 +107,5 @@ func IsBranchProtected(protection *github.Protection, c checker.Checker) checker
 		}
 	}
 
-	return checker.ProportionalResult(totalSuccess, totalChecks, 1.0)
+	return lib.MakeProportionalResult(branchProtectionStr, totalSuccess, totalChecks, 1.0)
 }

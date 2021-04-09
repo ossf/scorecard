@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package lib
 
-import "github.com/ossf/scorecard/lib"
+const MaxResultConfidence = 10
 
-var AllChecks = lib.CheckNameToFnMap{}
-
-func registerCheck(name string, fn lib.CheckFn) {
-	AllChecks[name] = fn
+type CheckResult struct {
+	Name        string
+	Pass        bool
+	Confidence  int
+	Details     []string
+	ShouldRetry bool
+	Error       error
 }

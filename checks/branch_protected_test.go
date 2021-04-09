@@ -19,9 +19,10 @@ import (
 	"testing"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/lib"
 )
 
+// TODO: these logging functions are repeated from lib/check_fn.go. Reuse code.
 type log struct {
 	messages []string
 }
@@ -33,14 +34,14 @@ func (l *log) Logf(s string, f ...interface{}) {
 func TestIsBranchProtected(t *testing.T) {
 	type args struct {
 		protection *github.Protection
-		c          checker.Checker
+		c          lib.CheckRequest
 	}
 
 	l := log{}
 	tests := []struct {
 		name string
 		args args
-		want checker.CheckResult
+		want lib.CheckResult
 	}{
 		{
 			name: "Nothing is enabled",
@@ -77,8 +78,9 @@ func TestIsBranchProtected(t *testing.T) {
 					Enabled: false,
 				},
 			},
-				c: checker.Checker{Logf: l.Logf}},
-			want: checker.CheckResult{
+				c: lib.CheckRequest{Logf: l.Logf}},
+			want: lib.CheckResult{
+				Name:        branchProtectionStr,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  7,
@@ -120,8 +122,9 @@ func TestIsBranchProtected(t *testing.T) {
 					Enabled: false,
 				},
 			},
-				c: checker.Checker{Logf: l.Logf}},
-			want: checker.CheckResult{
+				c: lib.CheckRequest{Logf: l.Logf}},
+			want: lib.CheckResult{
+				Name:        branchProtectionStr,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  5,
@@ -163,8 +166,9 @@ func TestIsBranchProtected(t *testing.T) {
 					Enabled: false,
 				},
 			},
-				c: checker.Checker{Logf: l.Logf}},
-			want: checker.CheckResult{
+				c: lib.CheckRequest{Logf: l.Logf}},
+			want: lib.CheckResult{
+				Name:        branchProtectionStr,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  7,
@@ -207,8 +211,9 @@ func TestIsBranchProtected(t *testing.T) {
 					Enabled: false,
 				},
 			},
-				c: checker.Checker{Logf: l.Logf}},
-			want: checker.CheckResult{
+				c: lib.CheckRequest{Logf: l.Logf}},
+			want: lib.CheckResult{
+				Name:        branchProtectionStr,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  5,
@@ -250,8 +255,9 @@ func TestIsBranchProtected(t *testing.T) {
 					Enabled: false,
 				},
 			},
-				c: checker.Checker{Logf: l.Logf}},
-			want: checker.CheckResult{
+				c: lib.CheckRequest{Logf: l.Logf}},
+			want: lib.CheckResult{
+				Name:        branchProtectionStr,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  5,
@@ -293,8 +299,9 @@ func TestIsBranchProtected(t *testing.T) {
 					Enabled: false,
 				},
 			},
-				c: checker.Checker{Logf: l.Logf}},
-			want: checker.CheckResult{
+				c: lib.CheckRequest{Logf: l.Logf}},
+			want: lib.CheckResult{
+				Name:        branchProtectionStr,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  5,
@@ -336,8 +343,9 @@ func TestIsBranchProtected(t *testing.T) {
 					Enabled: false,
 				},
 			},
-				c: checker.Checker{Logf: l.Logf}},
-			want: checker.CheckResult{
+				c: lib.CheckRequest{Logf: l.Logf}},
+			want: lib.CheckResult{
+				Name:        branchProtectionStr,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  9,
@@ -378,8 +386,9 @@ func TestIsBranchProtected(t *testing.T) {
 					Enabled: true,
 				},
 			},
-				c: checker.Checker{Logf: l.Logf}},
-			want: checker.CheckResult{
+				c: lib.CheckRequest{Logf: l.Logf}},
+			want: lib.CheckResult{
+				Name:        branchProtectionStr,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  9,
@@ -419,8 +428,9 @@ func TestIsBranchProtected(t *testing.T) {
 					Enabled: false,
 				},
 			},
-				c: checker.Checker{Logf: l.Logf}},
-			want: checker.CheckResult{
+				c: lib.CheckRequest{Logf: l.Logf}},
+			want: lib.CheckResult{
+				Name:        branchProtectionStr,
 				Pass:        true,
 				Details:     nil,
 				Confidence:  10,

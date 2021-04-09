@@ -12,26 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package lib
 
 import (
-	"context"
 	"fmt"
-	"net/http"
 	"strings"
-
-	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
 )
 
-type Checker struct {
-	Ctx         context.Context
-	Client      *github.Client
-	GraphClient *githubv4.Client
-	HttpClient  *http.Client
-	Owner, Repo string
-	Logf        func(s string, f ...interface{})
+const numRetries = 3
+
+type Runner struct {
+	CheckRequest CheckRequest
 }
+
+type CheckFn func(CheckRequest) CheckResult
+
+type CheckNameToFnMap map[string]CheckFn
 
 type logger struct {
 	messages []string
@@ -41,20 +37,16 @@ func (l *logger) Logf(s string, f ...interface{}) {
 	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
 
-type Runner struct {
-	Checker Checker
-}
-
 func (r *Runner) Run(f CheckFn) CheckResult {
 	var res CheckResult
 	var l logger
-	for retriesRemaining := 3; retriesRemaining > 0; retriesRemaining-- {
-		checker := r.Checker
+	for retriesRemaining := numRetries; retriesRemaining > 0; retriesRemaining-- {
+		checkRequest := r.CheckRequest
 		l = logger{}
-		checker.Logf = l.Logf
-		res = f(checker)
+		checkRequest.Logf = l.Logf
+		res = f(checkRequest)
 		if res.ShouldRetry && !strings.Contains(res.Error.Error(), "invalid header field value") {
-			checker.Logf("error, retrying: %s", res.Error)
+			checkRequest.Logf("error, retrying: %s", res.Error)
 			continue
 		}
 		break

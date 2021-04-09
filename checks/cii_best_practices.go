@@ -19,42 +19,44 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/lib"
 )
 
+const ciiBestPracticesStr = "CII-Best-Practices"
+
 func init() {
-	registerCheck("CII-Best-Practices", CIIBestPractices)
+	registerCheck(ciiBestPracticesStr, CIIBestPractices)
 }
 
 type response struct {
 	BadgeLevel string `json:"badge_level"`
 }
 
-func CIIBestPractices(c checker.Checker) checker.CheckResult {
+func CIIBestPractices(c lib.CheckRequest) lib.CheckResult {
 	repoUrl := fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoUrl)
 	resp, err := c.HttpClient.Get(url)
 	if err != nil {
-		return checker.RetryResult(err)
+		return lib.MakeRetryResult(ciiBestPracticesStr, err)
 	}
 	defer resp.Body.Close()
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return checker.RetryResult(err)
+		return lib.MakeRetryResult(ciiBestPracticesStr, err)
 	}
 
 	parsedResponse := []response{}
 	if err := json.Unmarshal(b, &parsedResponse); err != nil {
-		return checker.RetryResult(err)
+		return lib.MakeRetryResult(ciiBestPracticesStr, err)
 	}
 
-	const confidence = 10
 	if len(parsedResponse) < 1 {
 		c.Logf("no badge found")
-		return checker.CheckResult{
+		return lib.CheckResult{
+			Name:       ciiBestPracticesStr,
 			Pass:       false,
-			Confidence: confidence,
+			Confidence: lib.MaxResultConfidence,
 		}
 	}
 
@@ -62,14 +64,16 @@ func CIIBestPractices(c checker.Checker) checker.CheckResult {
 	c.Logf("badge level: %s", result.BadgeLevel)
 
 	if result.BadgeLevel != "" {
-		return checker.CheckResult{
+		return lib.CheckResult{
+			Name:       ciiBestPracticesStr,
 			Pass:       true,
-			Confidence: confidence,
+			Confidence: lib.MaxResultConfidence,
 		}
 	}
 
-	return checker.CheckResult{
+	return lib.CheckResult{
+		Name:       ciiBestPracticesStr,
 		Pass:       false,
-		Confidence: confidence,
+		Confidence: lib.MaxResultConfidence,
 	}
 }

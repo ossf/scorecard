@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/lib"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -101,7 +102,7 @@ var serveCmd = &cobra.Command{
 }
 
 // encodeJson encodes the result to json
-func encodeJson(repo string, results []pkg.Result) ([]byte, error) {
+func encodeJson(repo string, results []lib.CheckResult) ([]byte, error) {
 	d := time.Now()
 	or := record{
 		Repo: repo,
@@ -109,16 +110,15 @@ func encodeJson(repo string, results []pkg.Result) ([]byte, error) {
 	}
 
 	for _, r := range results {
-		var details []string
-		if showDetails {
-			details = r.Cr.Details
+		tmp_result := lib.CheckResult{
+			Name:       r.Name,
+			Pass:       r.Pass,
+			Confidence: r.Confidence,
 		}
-		or.Checks = append(or.Checks, checkResult{
-			CheckName:  r.Name,
-			Pass:       r.Cr.Pass,
-			Confidence: r.Cr.Confidence,
-			Details:    details,
-		})
+		if showDetails {
+			tmp_result.Details = r.Details
+		}
+		or.Checks = append(or.Checks, tmp_result)
 	}
 	output, err := json.Marshal(or)
 	if err != nil {
@@ -129,7 +129,7 @@ func encodeJson(repo string, results []pkg.Result) ([]byte, error) {
 
 type tc struct {
 	URL     string
-	Results []pkg.Result
+	Results []lib.CheckResult
 }
 
 const tpl = `
@@ -142,7 +142,7 @@ const tpl = `
 	<body>
 		{{range .Results}}
 			<div>
-				<p>{{ .Name }}: {{ .Cr.Pass }}</p>
+				<p>{{ .Name }}: {{ .Pass }}</p>
 			</div>
 		{{end}}
 	</body>

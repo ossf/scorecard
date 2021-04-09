@@ -18,32 +18,35 @@ import (
 	"fmt"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/lib"
 )
 
+const fuzzingStr = "Fuzzing"
+
 func init() {
-	registerCheck("Fuzzing", Fuzzing)
+	registerCheck(fuzzingStr, Fuzzing)
 }
 
-func Fuzzing(c checker.Checker) checker.CheckResult {
+func Fuzzing(c lib.CheckRequest) lib.CheckResult {
 	url := fmt.Sprintf("github.com/%s/%s", c.Owner, c.Repo)
 	searchString := url + " repo:google/oss-fuzz in:file filename:project.yaml"
 	results, _, err := c.Client.Search.Code(c.Ctx, searchString, &github.SearchOptions{})
 	if err != nil {
-		return checker.RetryResult(err)
+		return lib.MakeRetryResult(fuzzingStr, err)
 	}
 
-	const confidence = 10
 	if *results.Total > 0 {
 		c.Logf("found project in OSS-Fuzz")
-		return checker.CheckResult{
+		return lib.CheckResult{
+			Name:       fuzzingStr,
 			Pass:       true,
-			Confidence: confidence,
+			Confidence: lib.MaxResultConfidence,
 		}
 	}
 
-	return checker.CheckResult{
+	return lib.CheckResult{
+		Name:       fuzzingStr,
 		Pass:       false,
-		Confidence: confidence,
+		Confidence: lib.MaxResultConfidence,
 	}
 }

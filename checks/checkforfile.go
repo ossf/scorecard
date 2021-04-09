@@ -21,35 +21,35 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/lib"
 )
 
 // CheckIfFileExists downloads the tar of the repository and calls the predicate to check
 // for the occurrence.
-func CheckIfFileExists(c checker.Checker, predicate func(name string,
-	Logf func(s string, f ...interface{})) bool) checker.CheckResult {
+func CheckIfFileExists(checkName string, c lib.CheckRequest, predicate func(name string,
+	Logf func(s string, f ...interface{})) bool) lib.CheckResult {
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
-		return checker.RetryResult(err)
+		return lib.MakeRetryResult(checkName, err)
 	}
 	url := r.GetArchiveURL()
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
 	url = strings.Replace(url, "{/ref}", r.GetDefaultBranch(), 1)
 
-	// Using the http.get instead of the checker httpClient because
-	// the default checker.HTTPClient caches everything in the memory and it causes oom.
+	// Using the http.get instead of the lib httpClient because
+	// the default lib.HTTPClient caches everything in the memory and it causes oom.
 
 	//https://securego.io/docs/rules/g107.html
 	//nolint
 	resp, err := http.Get(url)
 	if err != nil {
-		return checker.RetryResult(err)
+		return lib.MakeRetryResult(checkName, err)
 	}
 	defer resp.Body.Close()
 
 	gz, err := gzip.NewReader(resp.Body)
 	if err != nil {
-		return checker.RetryResult(err)
+		return lib.MakeRetryResult(checkName, err)
 	}
 	tr := tar.NewReader(gz)
 
@@ -58,7 +58,7 @@ func CheckIfFileExists(c checker.Checker, predicate func(name string,
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			return checker.RetryResult(err)
+			return lib.MakeRetryResult(checkName, err)
 		}
 
 		// Strip the repo name
@@ -70,11 +70,12 @@ func CheckIfFileExists(c checker.Checker, predicate func(name string,
 
 		name := names[1]
 		if predicate(name, c.Logf) {
-			return checker.PassResult
+			return lib.MakePassResult(checkName)
 		}
 	}
 	const confidence = 5
-	return checker.CheckResult{
+	return lib.CheckResult{
+		Name:       checkName,
 		Pass:       false,
 		Confidence: confidence,
 	}

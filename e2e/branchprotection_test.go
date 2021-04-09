@@ -19,15 +19,15 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/lib"
 )
 
 var _ = Describe("E2E TEST:Branch Protection", func() {
 	Context("E2E TEST:Validating branch protection", func() {
 		It("Should fail to return branch protection on other repositories", func() {
 			l := log{}
-			checker := checker.Checker{
+			checkRequest := lib.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,
@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST:Branch Protection", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.BranchProtection(checker)
+			result := checks.BranchProtection(checkRequest)
 			Expect(result.Error).ShouldNot(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 		})
