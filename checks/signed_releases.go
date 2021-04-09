@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 const (
@@ -30,10 +30,10 @@ func init() {
 	registerCheck(signedReleasesStr, SignedReleases)
 }
 
-func SignedReleases(c lib.CheckRequest) lib.CheckResult {
+func SignedReleases(c checker.CheckRequest) checker.CheckResult {
 	releases, _, err := c.Client.Repositories.ListReleases(c.Ctx, c.Owner, c.Repo, &github.ListOptions{})
 	if err != nil {
-		return lib.MakeRetryResult(signedReleasesStr, err)
+		return checker.MakeRetryResult(signedReleasesStr, err)
 	}
 
 	artifactExtensions := []string{".asc", ".minisig", ".sig"}
@@ -43,7 +43,7 @@ func SignedReleases(c lib.CheckRequest) lib.CheckResult {
 	for _, r := range releases {
 		assets, _, err := c.Client.Repositories.ListReleaseAssets(c.Ctx, c.Owner, c.Repo, r.GetID(), &github.ListOptions{})
 		if err != nil {
-			return lib.MakeRetryResult(signedReleasesStr, err)
+			return checker.MakeRetryResult(signedReleasesStr, err)
 		}
 		if len(assets) == 0 {
 			continue
@@ -74,9 +74,9 @@ func SignedReleases(c lib.CheckRequest) lib.CheckResult {
 
 	if totalReleases == 0 {
 		c.Logf("no releases found")
-		return lib.MakeInconclusiveResult(signedReleasesStr)
+		return checker.MakeInconclusiveResult(signedReleasesStr)
 	}
 
 	c.Logf("found signed artifacts for %d out of %d releases", totalSigned, totalReleases)
-	return lib.MakeProportionalResult(signedReleasesStr, totalSigned, totalReleases, 0.8)
+	return checker.MakeProportionalResult(signedReleasesStr, totalSigned, totalReleases, 0.8)
 }

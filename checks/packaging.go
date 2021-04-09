@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 const packagingStr = "Packaging"
@@ -29,17 +29,17 @@ func init() {
 	registerCheck(packagingStr, Packaging)
 }
 
-func Packaging(c lib.CheckRequest) lib.CheckResult {
+func Packaging(c checker.CheckRequest) checker.CheckResult {
 	_, dc, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, ".github/workflows", &github.RepositoryContentGetOptions{})
 	if err != nil {
-		return lib.MakeRetryResult(packagingStr, err)
+		return checker.MakeRetryResult(packagingStr, err)
 	}
 
 	for _, f := range dc {
 		fp := f.GetPath()
 		fo, _, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, fp, &github.RepositoryContentGetOptions{})
 		if err != nil {
-			return lib.MakeRetryResult(packagingStr, err)
+			return checker.MakeRetryResult(packagingStr, err)
 		}
 		if fo == nil {
 			// path is a directory, not a file. skip.
@@ -47,7 +47,7 @@ func Packaging(c lib.CheckRequest) lib.CheckResult {
 		}
 		fc, err := fo.GetContent()
 		if err != nil {
-			return lib.MakeRetryResult(packagingStr, err)
+			return checker.MakeRetryResult(packagingStr, err)
 		}
 
 		if !isPackagingWorkflow(fc, fp, c) {
@@ -58,27 +58,27 @@ func Packaging(c lib.CheckRequest) lib.CheckResult {
 			Status: "success",
 		})
 		if err != nil {
-			return lib.MakeRetryResult(packagingStr, err)
+			return checker.MakeRetryResult(packagingStr, err)
 		}
 		if *runs.TotalCount > 0 {
 			c.Logf("found a completed run: %s", runs.WorkflowRuns[0].GetHTMLURL())
-			return lib.CheckResult{
+			return checker.CheckResult{
 				Name:       packagingStr,
 				Pass:       true,
-				Confidence: lib.MaxResultConfidence,
+				Confidence: checker.MaxResultConfidence,
 			}
 		}
 		c.Logf("!! no run completed")
 	}
 
-	return lib.CheckResult{
+	return checker.CheckResult{
 		Name:       packagingStr,
 		Pass:       false,
-		Confidence: lib.MaxResultConfidence,
+		Confidence: checker.MaxResultConfidence,
 	}
 }
 
-func isPackagingWorkflow(s string, fp string, c lib.CheckRequest) bool {
+func isPackagingWorkflow(s string, fp string, c checker.CheckRequest) bool {
 	// nodejs packages
 	if strings.Contains(s, "uses: actions/setup-node@") {
 		r1, _ := regexp.Compile(`(?s)registry-url.*https://registry\.npmjs\.org`)

@@ -16,7 +16,7 @@ package checks
 
 import (
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 const sastStr = "SAST"
@@ -27,19 +27,19 @@ func init() {
 	registerCheck(sastStr, SAST)
 }
 
-func SAST(c lib.CheckRequest) lib.CheckResult {
-	return lib.MultiCheck(
+func SAST(c checker.CheckRequest) checker.CheckResult {
+	return checker.MultiCheck(
 		CodeQLInCheckDefinitions,
 		SASTToolInCheckRuns,
 	)(c)
 }
 
-func SASTToolInCheckRuns(c lib.CheckRequest) lib.CheckResult {
+func SASTToolInCheckRuns(c checker.CheckRequest) checker.CheckResult {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
 	if err != nil {
-		return lib.MakeRetryResult(sastStr, err)
+		return checker.MakeRetryResult(sastStr, err)
 	}
 
 	totalMerged := 0
@@ -51,10 +51,10 @@ func SASTToolInCheckRuns(c lib.CheckRequest) lib.CheckResult {
 		totalMerged++
 		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
 		if err != nil {
-			return lib.MakeRetryResult(sastStr, err)
+			return checker.MakeRetryResult(sastStr, err)
 		}
 		if crs == nil {
-			return lib.MakeInconclusiveResult(sastStr)
+			return checker.MakeInconclusiveResult(sastStr)
 		}
 		for _, cr := range crs.CheckRuns {
 			if cr.GetStatus() != "completed" {
@@ -71,25 +71,25 @@ func SASTToolInCheckRuns(c lib.CheckRequest) lib.CheckResult {
 		}
 	}
 	if totalTested == 0 {
-		return lib.MakeInconclusiveResult(sastStr)
+		return checker.MakeInconclusiveResult(sastStr)
 	}
-	return lib.MakeProportionalResult(sastStr, totalTested, totalMerged, .75)
+	return checker.MakeProportionalResult(sastStr, totalTested, totalMerged, .75)
 }
 
-func CodeQLInCheckDefinitions(c lib.CheckRequest) lib.CheckResult {
+func CodeQLInCheckDefinitions(c checker.CheckRequest) checker.CheckResult {
 	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
 	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
 	if err != nil {
-		return lib.MakeRetryResult(sastStr, err)
+		return checker.MakeRetryResult(sastStr, err)
 	}
 
 	for _, result := range results.CodeResults {
 		c.Logf("found CodeQL definition: %s", result.GetPath())
 	}
 
-	return lib.CheckResult{
+	return checker.CheckResult{
 		Name:       sastStr,
 		Pass:       *results.Total > 0,
-		Confidence: lib.MaxResultConfidence,
+		Confidence: checker.MaxResultConfidence,
 	}
 }

@@ -14,10 +14,10 @@
 
 package checks
 
-import "github.com/ossf/scorecard/lib"
+import "github.com/ossf/scorecard/checker"
 
-var AllChecks = lib.CheckNameToFnMap{}
+var AllChecks = checker.CheckNameToFnMap{}
 
-func registerCheck(name string, fn lib.CheckFn) {
+func registerCheck(name string, fn checker.CheckFn) {
 	AllChecks[name] = fn
 }

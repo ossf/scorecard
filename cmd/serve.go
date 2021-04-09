@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/ossf/scorecard/checks"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -102,7 +102,7 @@ var serveCmd = &cobra.Command{
 }
 
 // encodeJson encodes the result to json
-func encodeJson(repo string, results []lib.CheckResult) ([]byte, error) {
+func encodeJson(repo string, results []checker.CheckResult) ([]byte, error) {
 	d := time.Now()
 	or := record{
 		Repo: repo,
@@ -110,7 +110,7 @@ func encodeJson(repo string, results []lib.CheckResult) ([]byte, error) {
 	}
 
 	for _, r := range results {
-		tmp_result := lib.CheckResult{
+		tmp_result := checker.CheckResult{
 			Name:       r.Name,
 			Pass:       r.Pass,
 			Confidence: r.Confidence,
@@ -129,7 +129,7 @@ func encodeJson(repo string, results []lib.CheckResult) ([]byte, error) {
 
 type tc struct {
 	URL     string
-	Results []lib.CheckResult
+	Results []checker.CheckResult
 }
 
 const tpl = `

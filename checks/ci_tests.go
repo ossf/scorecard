@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 const ciTestsStr = "CI-Tests"
@@ -27,12 +27,12 @@ func init() {
 	registerCheck(ciTestsStr, CITests)
 }
 
-func CITests(c lib.CheckRequest) lib.CheckResult {
+func CITests(c checker.CheckRequest) checker.CheckResult {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
 	if err != nil {
-		return lib.MakeRetryResult(ciTestsStr, err)
+		return checker.MakeRetryResult(ciTestsStr, err)
 	}
 
 	const (
@@ -58,7 +58,7 @@ func CITests(c lib.CheckRequest) lib.CheckResult {
 		if usedSystem <= githubStatuses {
 			statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListOptions{})
 			if err != nil {
-				return lib.MakeRetryResult(ciTestsStr, err)
+				return checker.MakeRetryResult(ciTestsStr, err)
 			}
 
 			for _, status := range statuses {
@@ -83,7 +83,7 @@ func CITests(c lib.CheckRequest) lib.CheckResult {
 		if usedSystem == githubCheckRuns || usedSystem == unknown {
 			crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
 			if err != nil || crs == nil {
-				return lib.MakeRetryResult(ciTestsStr, err)
+				return checker.MakeRetryResult(ciTestsStr, err)
 			}
 
 			for _, cr := range crs.CheckRuns {
@@ -109,7 +109,7 @@ func CITests(c lib.CheckRequest) lib.CheckResult {
 	}
 
 	c.Logf("found CI tests for %d of %d merged PRs", totalTested, totalMerged)
-	return lib.MakeProportionalResult(ciTestsStr, totalTested, totalMerged, .75)
+	return checker.MakeProportionalResult(ciTestsStr, totalTested, totalMerged, .75)
 }
 
 func isTest(s string) bool {

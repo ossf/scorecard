@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 const (
@@ -30,10 +30,10 @@ func init() {
 	registerCheck(activeStr, IsActive)
 }
 
-func IsActive(c lib.CheckRequest) lib.CheckResult {
+func IsActive(c checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return lib.MakeRetryResult(activeStr, err)
+		return checker.MakeRetryResult(activeStr, err)
 	}
 
 	tz, _ := time.LoadLocation("UTC")
@@ -42,7 +42,7 @@ func IsActive(c lib.CheckRequest) lib.CheckResult {
 	for _, commit := range commits {
 		commitFull, _, err := c.Client.Git.GetCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA())
 		if err != nil {
-			return lib.MakeRetryResult(activeStr, err)
+			return checker.MakeRetryResult(activeStr, err)
 		}
 		if commitFull.GetAuthor().GetDate().After(threshold) {
 			totalCommits++
@@ -51,7 +51,7 @@ func IsActive(c lib.CheckRequest) lib.CheckResult {
 	c.Logf("commits in last %d days: %d", lookbackDays, totalCommits)
 	const numCommits = 2
 	const confidence = 10
-	return lib.CheckResult{
+	return checker.CheckResult{
 		Name:       activeStr,
 		Pass:       totalCommits >= numCommits,
 		Confidence: confidence,

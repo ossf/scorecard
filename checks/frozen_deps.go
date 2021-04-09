@@ -17,7 +17,7 @@ package checks
 import (
 	"strings"
 
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 const frozenDepsStr = "Frozen-Deps"
@@ -27,7 +27,7 @@ func init() {
 }
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
-func FrozenDeps(c lib.CheckRequest) lib.CheckResult {
+func FrozenDeps(c checker.CheckRequest) checker.CheckResult {
 	return CheckIfFileExists(frozenDepsStr, c, filePredicate)
 }
 

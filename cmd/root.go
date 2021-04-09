@@ -30,7 +30,7 @@ import (
 	goflag "flag"
 
 	"github.com/ossf/scorecard/checks"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -68,7 +68,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()
 
-		var outputFn func([]lib.CheckResult)
+		var outputFn func([]checker.CheckResult)
 		switch format {
 		case formatCSV:
 			outputFn = outputCSV
@@ -110,7 +110,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			}
 		}
 
-		enabledChecks := lib.CheckNameToFnMap{}
+		enabledChecks := checker.CheckNameToFnMap{}
 		if len(checksToRun) != 0 {
 			for _, checkToRun := range checksToRun {
 				if checkFn, ok := checks.AllChecks[checkToRun]; ok {
@@ -129,7 +129,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 
 		resultsCh := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
 		// Collect results
-		results := []lib.CheckResult{}
+		results := []checker.CheckResult{}
 		for result := range resultsCh {
 			if format == formatDefault {
 				fmt.Fprintf(os.Stderr, "Finished [%s]\n", result.Name)
@@ -171,11 +171,11 @@ type rubyGemsSearchResults struct {
 type record struct {
 	Repo     string
 	Date     string
-	Checks   []lib.CheckResult
+	Checks   []checker.CheckResult
 	MetaData []string
 }
 
-func outputJSON(results []lib.CheckResult) {
+func outputJSON(results []checker.CheckResult) {
 	d := time.Now()
 	or := record{
 		Repo:     repo.String(),
@@ -184,7 +184,7 @@ func outputJSON(results []lib.CheckResult) {
 	}
 
 	for _, r := range results {
-		tmp_result := lib.CheckResult{
+		tmp_result := checker.CheckResult{
 			Name:       r.Name,
 			Pass:       r.Pass,
 			Confidence: r.Confidence,
@@ -201,7 +201,7 @@ func outputJSON(results []lib.CheckResult) {
 	fmt.Println(string(output))
 }
 
-func outputCSV(results []lib.CheckResult) {
+func outputCSV(results []checker.CheckResult) {
 	w := csv.NewWriter(os.Stdout)
 	record := []string{repo.String()}
 	columns := []string{"Repository"}
@@ -217,7 +217,7 @@ func outputCSV(results []lib.CheckResult) {
 	w.Flush()
 }
 
-func outputDefault(results []lib.CheckResult) {
+func outputDefault(results []checker.CheckResult) {
 	fmt.Println()
 	fmt.Println("RESULTS")
 	fmt.Println("-------")

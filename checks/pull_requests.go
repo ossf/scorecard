@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 const pullRequestsStr = "Pull-Requests"
@@ -27,10 +27,10 @@ func init() {
 	registerCheck(pullRequestsStr, PullRequests)
 }
 
-func PullRequests(c lib.CheckRequest) lib.CheckResult {
+func PullRequests(c checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return lib.MakeRetryResult(pullRequestsStr, err)
+		return checker.MakeRetryResult(pullRequestsStr, err)
 	}
 
 	total := 0
@@ -61,7 +61,7 @@ func PullRequests(c lib.CheckRequest) lib.CheckResult {
 
 		prs, _, err := c.Client.PullRequests.ListPullRequestsWithCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA(), &github.PullRequestListOptions{})
 		if err != nil {
-			return lib.MakeRetryResult(pullRequestsStr, err)
+			return checker.MakeRetryResult(pullRequestsStr, err)
 		}
 		if len(prs) > 0 {
 			totalWithPrs++
@@ -71,5 +71,5 @@ func PullRequests(c lib.CheckRequest) lib.CheckResult {
 		}
 	}
 	c.Logf("found PRs for %d out of %d commits", totalWithPrs, total)
-	return lib.MakeProportionalResult(pullRequestsStr, totalWithPrs, total, .75)
+	return checker.MakeProportionalResult(pullRequestsStr, totalWithPrs, total, .75)
 }

@@ -20,14 +20,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/ossf/scorecard/checks"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 var _ = Describe("E2E TEST:Branch Protection", func() {
 	Context("E2E TEST:Validating branch protection", func() {
 		It("Should fail to return branch protection on other repositories", func() {
 			l := log{}
-			checkRequest := lib.CheckRequest{
+			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,

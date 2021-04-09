@@ -20,14 +20,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/ossf/scorecard/checks"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 var _ = Describe("E2E TEST:FrozenDeps", func() {
 	Context("E2E TEST:Validating deps are frozen", func() {
 		It("Should return deps are frozen", func() {
 			l := log{}
-			checkRequest := lib.CheckRequest{
+			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,

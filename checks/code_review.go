@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 const codeReviewStr = "Code-Review"
@@ -32,8 +32,8 @@ func init() {
 // - Looking at the repo configuration to see if reviews are required
 // - Checking if most of the recent merged PRs were "Approved"
 // - Looking for other well-known review labels
-func DoesCodeReview(c lib.CheckRequest) lib.CheckResult {
-	return lib.MultiCheck(
+func DoesCodeReview(c checker.CheckRequest) checker.CheckResult {
+	return checker.MultiCheck(
 		IsPrReviewRequired,
 		GithubCodeReview,
 		ProwCodeReview,
@@ -41,13 +41,13 @@ func DoesCodeReview(c lib.CheckRequest) lib.CheckResult {
 	)(c)
 }
 
-func GithubCodeReview(c lib.CheckRequest) lib.CheckResult {
+func GithubCodeReview(c checker.CheckRequest) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
 	if err != nil {
-		return lib.MakeInconclusiveResult(codeReviewStr)
+		return checker.MakeInconclusiveResult(codeReviewStr)
 	}
 
 	totalMerged := 0
@@ -93,40 +93,40 @@ func GithubCodeReview(c lib.CheckRequest) lib.CheckResult {
 	if totalReviewed > 0 {
 		c.Logf("github code reviews found")
 	}
-	return lib.MakeProportionalResult(codeReviewStr, totalReviewed, totalMerged, .75)
+	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, totalMerged, .75)
 }
 
-func IsPrReviewRequired(c lib.CheckRequest) lib.CheckResult {
+func IsPrReviewRequired(c checker.CheckRequest) checker.CheckResult {
 	// Look to see if review is enforced.
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
-		return lib.MakeRetryResult(codeReviewStr, err)
+		return checker.MakeRetryResult(codeReviewStr, err)
 	}
 
 	// Check the branch protection rules, we may not be able to get these though.
 	bp, _, err := c.Client.Repositories.GetBranchProtection(c.Ctx, c.Owner, c.Repo, r.GetDefaultBranch())
 	if err != nil {
-		return lib.MakeInconclusiveResult(codeReviewStr)
+		return checker.MakeInconclusiveResult(codeReviewStr)
 	}
 	if bp.GetRequiredPullRequestReviews().RequiredApprovingReviewCount >= 1 {
 		c.Logf("pr review policy enforced")
 		const confidence = 5
-		return lib.CheckResult{
+		return checker.CheckResult{
 			Name:       codeReviewStr,
 			Pass:       true,
 			Confidence: confidence,
 		}
 	}
-	return lib.MakeInconclusiveResult(codeReviewStr)
+	return checker.MakeInconclusiveResult(codeReviewStr)
 }
 
-func ProwCodeReview(c lib.CheckRequest) lib.CheckResult {
+func ProwCodeReview(c checker.CheckRequest) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
 	if err != nil {
-		return lib.MakeInconclusiveResult(codeReviewStr)
+		return checker.MakeInconclusiveResult(codeReviewStr)
 	}
 
 	totalMerged := 0
@@ -145,16 +145,16 @@ func ProwCodeReview(c lib.CheckRequest) lib.CheckResult {
 	}
 
 	if totalReviewed == 0 {
-		return lib.MakeInconclusiveResult(codeReviewStr)
+		return checker.MakeInconclusiveResult(codeReviewStr)
 	}
 	c.Logf("prow code reviews found")
-	return lib.MakeProportionalResult(codeReviewStr, totalReviewed, totalMerged, .75)
+	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, totalMerged, .75)
 }
 
-func CommitMessageHints(c lib.CheckRequest) lib.CheckResult {
+func CommitMessageHints(c checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return lib.MakeRetryResult(codeReviewStr, err)
+		return checker.MakeRetryResult(codeReviewStr, err)
 	}
 
 	total := 0
@@ -185,8 +185,8 @@ func CommitMessageHints(c lib.CheckRequest) lib.CheckResult {
 	}
 
 	if totalReviewed == 0 {
-		return lib.MakeInconclusiveResult(codeReviewStr)
+		return checker.MakeInconclusiveResult(codeReviewStr)
 	}
 	c.Logf("code reviews found")
-	return lib.MakeProportionalResult(codeReviewStr, totalReviewed, total, .75)
+	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, total, .75)
 }

@@ -24,7 +24,7 @@ import (
 	"sync"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/roundtripper"
 	"github.com/shurcooL/githubv4"
 	"go.uber.org/zap"
@@ -74,8 +74,8 @@ func (r *RepoURL) Set(s string) error {
 }
 
 func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
-	repo RepoURL, checksToRun lib.CheckNameToFnMap) <-chan lib.CheckResult {
-	resultsCh := make(chan lib.CheckResult)
+	repo RepoURL, checksToRun checker.CheckNameToFnMap) <-chan checker.CheckResult {
+	resultsCh := make(chan checker.CheckResult)
 	wg := sync.WaitGroup{}
 	for _, checkFn := range checksToRun {
 		checkFn := checkFn
@@ -90,7 +90,7 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
 			ghClient := github.NewClient(client)
 			graphClient := githubv4.NewClient(client)
 
-			c := lib.CheckRequest{
+			c := checker.CheckRequest{
 				Ctx:         ctx,
 				Client:      ghClient,
 				HttpClient:  client,
@@ -99,7 +99,7 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
 				GraphClient: graphClient,
 			}
 			defer wg.Done()
-			runner := lib.Runner{CheckRequest: c}
+			runner := checker.Runner{CheckRequest: c}
 			resultsCh <- runner.Run(checkFn)
 		}()
 	}

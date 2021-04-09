@@ -15,7 +15,7 @@
 package checks
 
 import (
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 	"github.com/shurcooL/githubv4"
 )
 
@@ -28,7 +28,7 @@ func init() {
 	registerCheck(signedTagsStr, SignedTags)
 }
 
-func SignedTags(c lib.CheckRequest) lib.CheckResult {
+func SignedTags(c checker.CheckRequest) checker.CheckResult {
 	type ref struct {
 		Name   githubv4.String
 		Target struct {
@@ -50,7 +50,7 @@ func SignedTags(c lib.CheckRequest) lib.CheckResult {
 	}
 
 	if err := c.GraphClient.Query(c.Ctx, &query, variables); err != nil {
-		return lib.MakeRetryResult(signedTagsStr, err)
+		return checker.MakeRetryResult(signedTagsStr, err)
 	}
 	totalTags := 0
 	totalSigned := 0
@@ -72,9 +72,9 @@ func SignedTags(c lib.CheckRequest) lib.CheckResult {
 
 	if totalTags == 0 {
 		c.Logf("no tags found")
-		return lib.MakeInconclusiveResult(signedTagsStr)
+		return checker.MakeInconclusiveResult(signedTagsStr)
 	}
 
 	c.Logf("found %d out of %d verified tags", totalSigned, totalTags)
-	return lib.MakeProportionalResult(signedTagsStr, totalSigned, totalTags, 0.8)
+	return checker.MakeProportionalResult(signedTagsStr, totalSigned, totalTags, 0.8)
 }

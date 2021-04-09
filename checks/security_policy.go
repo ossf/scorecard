@@ -17,7 +17,7 @@ package checks
 import (
 	"strings"
 
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 const securityPolicyStr = "Security-Policy"
@@ -26,7 +26,7 @@ func init() {
 	registerCheck(securityPolicyStr, SecurityPolicy)
 }
 
-func SecurityPolicy(c lib.CheckRequest) lib.CheckResult {
+func SecurityPolicy(c checker.CheckRequest) checker.CheckResult {
 	// check repository for repository-specific policy
 	result := CheckIfFileExists(securityPolicyStr, c, func(name string, logf func(s string, f ...interface{})) bool {
 		if strings.EqualFold(name, "security.md") {

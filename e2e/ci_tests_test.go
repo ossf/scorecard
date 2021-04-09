@@ -20,14 +20,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/ossf/scorecard/checks"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 var _ = Describe("E2E TEST:CITests", func() {
 	Context("E2E TEST:Validating use of CI tests", func() {
 		It("Should return use of CI tests", func() {
 			l := log{}
-			checkRequest := lib.CheckRequest{
+			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,

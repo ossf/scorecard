@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/lib"
+	"github.com/ossf/scorecard/checker"
 )
 
 const contributorsStr = "Contributors"
@@ -27,10 +27,10 @@ func init() {
 	registerCheck(contributorsStr, Contributors)
 }
 
-func Contributors(c lib.CheckRequest) lib.CheckResult {
+func Contributors(c checker.CheckRequest) checker.CheckResult {
 	contribs, _, err := c.Client.Repositories.ListContributors(c.Ctx, c.Owner, c.Repo, &github.ListContributorsOptions{})
 	if err != nil {
-		return lib.MakeRetryResult(contributorsStr, err)
+		return checker.MakeRetryResult(contributorsStr, err)
 	}
 
 	companies := map[string]struct{}{}
@@ -40,7 +40,7 @@ func Contributors(c lib.CheckRequest) lib.CheckResult {
 		if contrib.GetContributions() >= contributorsCount {
 			u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
 			if err != nil {
-				return lib.MakeRetryResult(contributorsStr, err)
+				return checker.MakeRetryResult(contributorsStr, err)
 			}
 			orgs, _, err := c.Client.Organizations.List(c.Ctx, contrib.GetLogin(), nil)
 			if err != nil {
@@ -69,15 +69,15 @@ func Contributors(c lib.CheckRequest) lib.CheckResult {
 	c.Logf("companies found: %v", strings.Join(names, ","))
 	const numContributors = 2
 	if len(companies) >= numContributors {
-		return lib.CheckResult{
+		return checker.CheckResult{
 			Name:       contributorsStr,
 			Pass:       true,
-			Confidence: lib.MaxResultConfidence,
+			Confidence: checker.MaxResultConfidence,
 		}
 	}
-	return lib.CheckResult{
+	return checker.CheckResult{
 		Name:       contributorsStr,
 		Pass:       false,
-		Confidence: lib.MaxResultConfidence,
+		Confidence: checker.MaxResultConfidence,
 	}
 }
