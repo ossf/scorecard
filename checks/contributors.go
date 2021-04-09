@@ -21,7 +21,11 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const contributorsStr = "Contributors"
+const (
+	minContributions = 5
+	numContributors  = 2
+	contributorsStr  = "Contributors"
+)
 
 func init() {
 	registerCheck(contributorsStr, Contributors)
@@ -35,9 +39,8 @@ func Contributors(c checker.CheckRequest) checker.CheckResult {
 
 	companies := map[string]struct{}{}
 	for _, contrib := range contribs {
-		const contributorsCount = 5
 		//nolint:nestif
-		if contrib.GetContributions() >= contributorsCount {
+		if contrib.GetContributions() >= minContributions {
 			u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
 			if err != nil {
 				return checker.MakeRetryResult(contributorsStr, err)
@@ -67,7 +70,6 @@ func Contributors(c checker.CheckRequest) checker.CheckResult {
 		names = append(names, c)
 	}
 	c.Logf("companies found: %v", strings.Join(names, ","))
-	const numContributors = 2
 	if len(companies) >= numContributors {
 		return checker.CheckResult{
 			Name:       contributorsStr,
