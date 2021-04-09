@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	signedReleasesStr = "Signed-Releases"
-	releaseLookBack   = 5
+	signedReleasesStr   = "Signed-Releases"
+	releaseLookBackDays = 5
 )
 
 func init() {
@@ -67,7 +67,7 @@ func SignedReleases(c checker.CheckRequest) checker.CheckResult {
 		if !signed {
 			c.Logf("!! release %s has no signed artifacts", r.GetTagName())
 		}
-		if totalReleases > releaseLookBack {
+		if totalReleases > releaseLookBackDays {
 			break
 		}
 	}

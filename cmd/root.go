@@ -29,8 +29,8 @@ import (
 
 	goflag "flag"
 
-	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -184,15 +184,15 @@ func outputJSON(results []checker.CheckResult) {
 	}
 
 	for _, r := range results {
-		tmp_result := checker.CheckResult{
+		tmpResult := checker.CheckResult{
 			Name:       r.Name,
 			Pass:       r.Pass,
 			Confidence: r.Confidence,
 		}
 		if showDetails {
-			tmp_result.Details = r.Details
+			tmpResult.Details = r.Details
 		}
-		or.Checks = append(or.Checks, tmp_result)
+		or.Checks = append(or.Checks, tmpResult)
 	}
 	output, err := json.Marshal(or)
 	if err != nil {

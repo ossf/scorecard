@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	minContributions = 5
-	numContributors  = 2
-	contributorsStr  = "Contributors"
+	minContributionsPerUser = 5
+	minOrganizationCount    = 2
+	contributorsStr         = "Contributors"
 )
 
 func init() {
@@ -40,7 +40,7 @@ func Contributors(c checker.CheckRequest) checker.CheckResult {
 	companies := map[string]struct{}{}
 	for _, contrib := range contribs {
 		//nolint:nestif
-		if contrib.GetContributions() >= minContributions {
+		if contrib.GetContributions() >= minContributionsPerUser {
 			u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
 			if err != nil {
 				return checker.MakeRetryResult(contributorsStr, err)
@@ -70,7 +70,7 @@ func Contributors(c checker.CheckRequest) checker.CheckResult {
 		names = append(names, c)
 	}
 	c.Logf("companies found: %v", strings.Join(names, ","))
-	if len(companies) >= numContributors {
+	if len(companies) >= minOrganizationCount {
 		return checker.CheckResult{
 			Name:       contributorsStr,
 			Pass:       true,
