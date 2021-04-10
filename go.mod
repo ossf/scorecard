@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/google/go-github/v32 v32.1.0
+	github.com/jszwec/csvutil v1.5.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/naveensrinivasan/httpcache v1.2.2
 	github.com/onsi/ginkgo v1.16.1
@@ -17,7 +18,7 @@ require (
 	go.uber.org/zap v1.16.0
 	gocloud.dev v0.22.0
 	golang.org/x/oauth2 v0.0.0-20201203001011-0b49973bad19
-	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect
+	golang.org/x/sys v0.0.0-20210414055047-fe65e336abe0 // indirect
 	golang.org/x/tools v0.1.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 )
