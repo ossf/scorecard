@@ -65,13 +65,14 @@ var serveCmd = &cobra.Command{
 			}
 			sugar.Info(repoParam)
 			ctx := r.Context()
-			resultCh := pkg.RunScorecards(ctx, sugar, repo, checks.AllChecks)
-			tc := tc{
-				URL: repoParam,
+			repoRequest := repos.RepoRequest{
+				Repo:          repo,
+				EnabledChecks: checks.AllChecks,
 			}
-			for r := range resultCh {
-				sugar.Info(r)
-				tc.Results = append(tc.Results, r)
+			repoResult := pkg.RunScorecards(ctx, sugar, repoRequest)
+			tc := tc{
+				URL:     repoParam,
+				Results: repoResult.CheckResults,
 			}
 
 			if r.Header.Get("Content-Type") == "application/json" {

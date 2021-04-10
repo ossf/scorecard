@@ -27,11 +27,11 @@ import (
 	"go.uber.org/zap"
 )
 
-func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
-	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap) <-chan checker.CheckResult {
+func runEnabledChecks(ctx context.Context, logger *zap.SugaredLogger, repo repos.RepoURL,
+	enabledChecks checker.CheckNameToFnMap) <-chan checker.CheckResult {
 	resultsCh := make(chan checker.CheckResult)
 	wg := sync.WaitGroup{}
-	for _, checkFn := range checksToRun {
+	for _, checkFn := range enabledChecks {
 		checkFn := checkFn
 		wg.Add(1)
 		go func() {
@@ -62,4 +62,17 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
 		close(resultsCh)
 	}()
 	return resultsCh
+}
+
+func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
+	repoRequest repos.RepoRequest) repos.RepoResult {
+	ret := repos.RepoResult{
+		Repo: repoRequest.Repo.Url(),
+		Date: "",
+	}
+	resultsCh := runEnabledChecks(ctx, logger, repoRequest.Repo, repoRequest.EnabledChecks)
+	for result := range resultsCh {
+		ret.CheckResults = append(ret.CheckResults, result)
+	}
+	return ret
 }

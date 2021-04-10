@@ -132,22 +132,18 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		}
 		ctx := context.Background()
 
-		resultsCh := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
-		// Collect results
-		results := []checker.CheckResult{}
-		for result := range resultsCh {
-			if format == formatDefault {
-				fmt.Fprintf(os.Stderr, "Finished [%s]\n", result.Name)
-			}
-			results = append(results, result)
+		repoRequest := repos.RepoRequest{
+			Repo:          repo,
+			EnabledChecks: enabledChecks,
 		}
+		repoResult := pkg.RunScorecards(ctx, sugar, repoRequest)
 
 		// Sort them by name
-		sort.Slice(results, func(i, j int) bool {
-			return results[i].Name < results[j].Name
+		sort.Slice(repoResult.CheckResults, func(i, j int) bool {
+			return repoResult.CheckResults[i].Name < repoResult.CheckResults[j].Name
 		})
 
-		outputFn(results)
+		outputFn(repoResult.CheckResults)
 	},
 }
 
@@ -223,6 +219,9 @@ func outputCSV(results []checker.CheckResult) {
 }
 
 func outputDefault(results []checker.CheckResult) {
+	for _, r := range results {
+		fmt.Fprintf(os.Stderr, "Finished [%s]\n", r.Name)
+	}
 	fmt.Println()
 	fmt.Println("RESULTS")
 	fmt.Println("-------")
