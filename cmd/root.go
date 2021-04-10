@@ -32,12 +32,13 @@ import (
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
+	"github.com/ossf/scorecard/repos"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
 
 var (
-	repo        pkg.RepoURL
+	repo        repos.RepoURL
 	checksToRun []string
 	metaData    []string
 	// This one has to use goflag instead of pflag because it's defined by zap.
@@ -108,6 +109,10 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			if err := cmd.MarkFlagRequired("repo"); err != nil {
 				log.Fatal(err)
 			}
+		}
+
+		if err := repo.ValidGitHubUrl(); err != nil {
+			log.Fatal(err)
 		}
 
 		enabledChecks := checker.CheckNameToFnMap{}
@@ -337,7 +342,6 @@ func init() {
 	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv, json]")
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project.It can be multiple separated by commas")
-
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
 	for checkName := range checks.AllChecks {

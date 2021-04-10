@@ -16,65 +16,19 @@ package pkg
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"net/http"
-	"net/url"
-	"strings"
 	"sync"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/roundtripper"
 	"github.com/shurcooL/githubv4"
 	"go.uber.org/zap"
 )
 
-type RepoURL struct {
-	Host, Owner, Repo string
-}
-
-func (r *RepoURL) String() string {
-	return fmt.Sprintf("%s/%s/%s", r.Host, r.Owner, r.Repo)
-}
-
-func (r *RepoURL) Type() string {
-	return "repo"
-}
-
-func (r *RepoURL) Set(s string) error {
-	// Allow skipping scheme for ease-of-use, default to https.
-	if !strings.Contains(s, "://") {
-		s = "https://" + s
-	}
-
-	u, e := url.Parse(s)
-	if e != nil {
-		return e
-	}
-
-	const splitLen = 2
-	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
-	if len(split) != splitLen {
-		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
-	}
-
-	if len(strings.TrimSpace(split[0])) == 0 || len(strings.TrimSpace(split[1])) == 0 {
-		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
-	}
-
-	r.Host, r.Owner, r.Repo = u.Host, split[0], split[1]
-
-	switch r.Host {
-	case "github.com":
-		return nil
-	default:
-		return fmt.Errorf("unsupported host: %s", r.Host)
-	}
-}
-
 func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
-	repo RepoURL, checksToRun checker.CheckNameToFnMap) <-chan checker.CheckResult {
+	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap) <-chan checker.CheckResult {
 	resultsCh := make(chan checker.CheckResult)
 	wg := sync.WaitGroup{}
 	for _, checkFn := range checksToRun {

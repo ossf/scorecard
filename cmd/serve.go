@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
+	"github.com/ossf/scorecard/repos"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -58,7 +59,7 @@ var serveCmd = &cobra.Command{
 			if len(s) != length {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
-			repo := pkg.RepoURL{}
+			repo := repos.RepoURL{}
 			if err := repo.Set(repoParam); err != nil {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
