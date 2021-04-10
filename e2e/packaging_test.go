@@ -27,7 +27,7 @@ var _ = Describe("E2E TEST:Packaging", func() {
 	Context("E2E TEST:Validating use of packaging in CI/CD", func() {
 		It("Should return use of packaging in CI/CD", func() {
 			l := log{}
-			checker := checker.Checker{
+			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,
@@ -36,13 +36,13 @@ var _ = Describe("E2E TEST:Packaging", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.Packaging(checker)
+			result := checks.Packaging(checkRequest)
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})
 		It("Should return use of packaging in CI/CD for scorecard", func() {
 			l := log{}
-			checker := checker.Checker{
+			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,
@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST:Packaging", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.Packaging(checker)
+			result := checks.Packaging(checkRequest)
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})

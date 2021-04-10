@@ -12,12 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package checker
 
-import "github.com/ossf/scorecard/checker"
+import (
+	"context"
+	"net/http"
 
-var AllChecks = checker.CheckNameToFnMap{}
+	"github.com/google/go-github/v32/github"
+	"github.com/shurcooL/githubv4"
+)
 
-func registerCheck(name string, fn checker.CheckFn) {
-	AllChecks[name] = fn
+type CheckRequest struct {
+	Ctx         context.Context
+	Client      *github.Client
+	GraphClient *githubv4.Client
+	HttpClient  *http.Client
+	Owner, Repo string
+	Logf        func(s string, f ...interface{})
 }

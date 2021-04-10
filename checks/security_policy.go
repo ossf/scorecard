@@ -20,13 +20,15 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
+const securityPolicyStr = "Security-Policy"
+
 func init() {
-	registerCheck("Security-Policy", SecurityPolicy)
+	registerCheck(securityPolicyStr, SecurityPolicy)
 }
 
-func SecurityPolicy(c checker.Checker) checker.CheckResult {
+func SecurityPolicy(c checker.CheckRequest) checker.CheckResult {
 	// check repository for repository-specific policy
-	result := CheckIfFileExists(c, func(name string, logf func(s string, f ...interface{})) bool {
+	result := CheckIfFileExists(securityPolicyStr, c, func(name string, logf func(s string, f ...interface{})) bool {
 		if strings.EqualFold(name, "security.md") {
 			logf("security policy : %s", name)
 			return true
@@ -43,7 +45,7 @@ func SecurityPolicy(c checker.Checker) checker.CheckResult {
 	dotGitHub := c
 	dotGitHub.Repo = ".github"
 
-	return CheckIfFileExists(dotGitHub, func(name string, logf func(s string, f ...interface{})) bool {
+	return CheckIfFileExists(securityPolicyStr, dotGitHub, func(name string, logf func(s string, f ...interface{})) bool {
 		if strings.EqualFold(name, "security.md") {
 			logf("security policy within .github folder : %s", name)
 			return true

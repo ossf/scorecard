@@ -30,12 +30,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type Result struct {
-	Cr       checker.CheckResult
-	Name     string
-	MetaData []string
-}
-
 type RepoURL struct {
 	Host, Owner, Repo string
 }
@@ -80,11 +74,11 @@ func (r *RepoURL) Set(s string) error {
 }
 
 func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
-	repo RepoURL, checksToRun []checker.NamedCheck) <-chan Result {
-	resultsCh := make(chan Result)
+	repo RepoURL, checksToRun checker.CheckNameToFnMap) <-chan checker.CheckResult {
+	resultsCh := make(chan checker.CheckResult)
 	wg := sync.WaitGroup{}
-	for _, check := range checksToRun {
-		check := check
+	for _, checkFn := range checksToRun {
+		checkFn := checkFn
 		wg.Add(1)
 		go func() {
 			// Use our custom roundtripper
@@ -96,7 +90,7 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
 			ghClient := github.NewClient(client)
 			graphClient := githubv4.NewClient(client)
 
-			c := checker.Checker{
+			c := checker.CheckRequest{
 				Ctx:         ctx,
 				Client:      ghClient,
 				HttpClient:  client,
@@ -105,12 +99,8 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
 				GraphClient: graphClient,
 			}
 			defer wg.Done()
-			runner := checker.Runner{Checker: c}
-			r := runner.Run(check.Fn)
-			resultsCh <- Result{
-				Name: check.Name,
-				Cr:   r,
-			}
+			runner := checker.Runner{CheckRequest: c}
+			resultsCh <- runner.Run(checkFn)
 		}()
 	}
 	go func() {

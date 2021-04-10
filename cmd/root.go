@@ -68,7 +68,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()
 
-		var outputFn func([]pkg.Result)
+		var outputFn func([]checker.CheckResult)
 		switch format {
 		case formatCSV:
 			outputFn = outputCSV
@@ -110,30 +110,26 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			}
 		}
 
-		enabledChecks := []checker.NamedCheck{}
+		enabledChecks := checker.CheckNameToFnMap{}
 		if len(checksToRun) != 0 {
-			checkNames := map[string]struct{}{}
-			for _, s := range checksToRun {
-				checkNames[s] = struct{}{}
-			}
-			for _, c := range checks.AllChecks {
-				if _, ok := checkNames[c.Name]; ok {
-					enabledChecks = append(enabledChecks, c)
+			for _, checkToRun := range checksToRun {
+				if checkFn, ok := checks.AllChecks[checkToRun]; ok {
+					enabledChecks[checkToRun] = checkFn
 				}
 			}
 		} else {
 			enabledChecks = checks.AllChecks
 		}
-		for _, c := range enabledChecks {
+		for checkName := range enabledChecks {
 			if format == formatDefault {
-				fmt.Fprintf(os.Stderr, "Starting [%s]\n", c.Name)
+				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
 		ctx := context.Background()
 
 		resultsCh := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
 		// Collect results
-		results := []pkg.Result{}
+		results := []checker.CheckResult{}
 		for result := range resultsCh {
 			if format == formatDefault {
 				fmt.Fprintf(os.Stderr, "Finished [%s]\n", result.Name)
@@ -148,13 +144,6 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 
 		outputFn(results)
 	},
-}
-
-type checkResult struct {
-	CheckName  string
-	Pass       bool
-	Confidence int
-	Details    []string
 }
 
 type npmSearchResults struct {
@@ -182,11 +171,11 @@ type rubyGemsSearchResults struct {
 type record struct {
 	Repo     string
 	Date     string
-	Checks   []checkResult
+	Checks   []checker.CheckResult
 	MetaData []string
 }
 
-func outputJSON(results []pkg.Result) {
+func outputJSON(results []checker.CheckResult) {
 	d := time.Now()
 	or := record{
 		Repo:     repo.String(),
@@ -195,16 +184,15 @@ func outputJSON(results []pkg.Result) {
 	}
 
 	for _, r := range results {
-		var details []string
-		if showDetails {
-			details = r.Cr.Details
+		tmpResult := checker.CheckResult{
+			Name:       r.Name,
+			Pass:       r.Pass,
+			Confidence: r.Confidence,
 		}
-		or.Checks = append(or.Checks, checkResult{
-			CheckName:  r.Name,
-			Pass:       r.Cr.Pass,
-			Confidence: r.Cr.Confidence,
-			Details:    details,
-		})
+		if showDetails {
+			tmpResult.Details = r.Details
+		}
+		or.Checks = append(or.Checks, tmpResult)
 	}
 	output, err := json.Marshal(or)
 	if err != nil {
@@ -213,13 +201,13 @@ func outputJSON(results []pkg.Result) {
 	fmt.Println(string(output))
 }
 
-func outputCSV(results []pkg.Result) {
+func outputCSV(results []checker.CheckResult) {
 	w := csv.NewWriter(os.Stdout)
 	record := []string{repo.String()}
 	columns := []string{"Repository"}
 	for _, r := range results {
 		columns = append(columns, r.Name+"-Pass", r.Name+"-Confidence")
-		record = append(record, strconv.FormatBool(r.Cr.Pass), strconv.Itoa(r.Cr.Confidence))
+		record = append(record, strconv.FormatBool(r.Pass), strconv.Itoa(r.Confidence))
 	}
 	fmt.Fprintln(os.Stderr, "CSV COLUMN NAMES")
 	fmt.Fprintf(os.Stderr, "%s\n", strings.Join(columns, ","))
@@ -229,14 +217,14 @@ func outputCSV(results []pkg.Result) {
 	w.Flush()
 }
 
-func outputDefault(results []pkg.Result) {
+func outputDefault(results []checker.CheckResult) {
 	fmt.Println()
 	fmt.Println("RESULTS")
 	fmt.Println("-------")
 	for _, r := range results {
-		fmt.Println(r.Name+":", displayResult(r.Cr.Pass), r.Cr.Confidence)
+		fmt.Println(r.Name+":", displayResult(r.Pass), r.Confidence)
 		if showDetails {
-			for _, d := range r.Cr.Details {
+			for _, d := range r.Details {
 				fmt.Println("    " + d)
 			}
 		}
@@ -352,8 +340,8 @@ func init() {
 
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
-	for _, c := range checks.AllChecks {
-		checkNames = append(checkNames, c.Name)
+	for checkName := range checks.AllChecks {
+		checkNames = append(checkNames, checkName)
 	}
 	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))

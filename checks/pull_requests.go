@@ -21,14 +21,16 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
+const pullRequestsStr = "Pull-Requests"
+
 func init() {
-	registerCheck("Pull-Requests", PullRequests)
+	registerCheck(pullRequestsStr, PullRequests)
 }
 
-func PullRequests(c checker.Checker) checker.CheckResult {
+func PullRequests(c checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.RetryResult(err)
+		return checker.MakeRetryResult(pullRequestsStr, err)
 	}
 
 	total := 0
@@ -59,7 +61,7 @@ func PullRequests(c checker.Checker) checker.CheckResult {
 
 		prs, _, err := c.Client.PullRequests.ListPullRequestsWithCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA(), &github.PullRequestListOptions{})
 		if err != nil {
-			return checker.RetryResult(err)
+			return checker.MakeRetryResult(pullRequestsStr, err)
 		}
 		if len(prs) > 0 {
 			totalWithPrs++
@@ -69,5 +71,5 @@ func PullRequests(c checker.Checker) checker.CheckResult {
 		}
 	}
 	c.Logf("found PRs for %d out of %d commits", totalWithPrs, total)
-	return checker.ProportionalResult(totalWithPrs, total, .75)
+	return checker.MakeProportionalResult(pullRequestsStr, totalWithPrs, total, .75)
 }
