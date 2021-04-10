@@ -21,6 +21,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: This is an exact replica of repos.RepoURL. Combine them somehow.
 // RepoURL parses and stores URL into fields.
 type RepoURL struct {
 	Host  string // Host where the repo is stored. Example GitHub.com
