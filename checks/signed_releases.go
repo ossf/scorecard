@@ -21,16 +21,19 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-var releaseLookBack int = 5
+const (
+	signedReleasesStr   = "Signed-Releases"
+	releaseLookBackDays = 5
+)
 
 func init() {
-	registerCheck("Signed-Releases", SignedReleases)
+	registerCheck(signedReleasesStr, SignedReleases)
 }
 
-func SignedReleases(c checker.Checker) checker.CheckResult {
+func SignedReleases(c checker.CheckRequest) checker.CheckResult {
 	releases, _, err := c.Client.Repositories.ListReleases(c.Ctx, c.Owner, c.Repo, &github.ListOptions{})
 	if err != nil {
-		return checker.RetryResult(err)
+		return checker.MakeRetryResult(signedReleasesStr, err)
 	}
 
 	artifactExtensions := []string{".asc", ".minisig", ".sig"}
@@ -40,7 +43,7 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 	for _, r := range releases {
 		assets, _, err := c.Client.Repositories.ListReleaseAssets(c.Ctx, c.Owner, c.Repo, r.GetID(), &github.ListOptions{})
 		if err != nil {
-			return checker.RetryResult(err)
+			return checker.MakeRetryResult(signedReleasesStr, err)
 		}
 		if len(assets) == 0 {
 			continue
@@ -64,16 +67,16 @@ func SignedReleases(c checker.Checker) checker.CheckResult {
 		if !signed {
 			c.Logf("!! release %s has no signed artifacts", r.GetTagName())
 		}
-		if totalReleases > releaseLookBack {
+		if totalReleases > releaseLookBackDays {
 			break
 		}
 	}
 
 	if totalReleases == 0 {
 		c.Logf("no releases found")
-		return checker.InconclusiveResult
+		return checker.MakeInconclusiveResult(signedReleasesStr)
 	}
 
 	c.Logf("found signed artifacts for %d out of %d releases", totalSigned, totalReleases)
-	return checker.ProportionalResult(totalSigned, totalReleases, 0.8)
+	return checker.MakeProportionalResult(signedReleasesStr, totalSigned, totalReleases, 0.8)
 }

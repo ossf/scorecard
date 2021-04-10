@@ -20,13 +20,15 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
+const frozenDepsStr = "Frozen-Deps"
+
 func init() {
-	registerCheck("Frozen-Deps", FrozenDeps)
+	registerCheck(frozenDepsStr, FrozenDeps)
 }
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
-func FrozenDeps(c checker.Checker) checker.CheckResult {
-	return CheckIfFileExists(c, filePredicate)
+func FrozenDeps(c checker.CheckRequest) checker.CheckResult {
+	return CheckIfFileExists(frozenDepsStr, c, filePredicate)
 }
 
 // filePredicate will validate the if frozen dependecies file name exists.

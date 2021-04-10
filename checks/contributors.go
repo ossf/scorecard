@@ -21,24 +21,29 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
+const (
+	minContributionsPerUser = 5
+	minOrganizationCount    = 2
+	contributorsStr         = "Contributors"
+)
+
 func init() {
-	registerCheck("Contributors", Contributors)
+	registerCheck(contributorsStr, Contributors)
 }
 
-func Contributors(c checker.Checker) checker.CheckResult {
+func Contributors(c checker.CheckRequest) checker.CheckResult {
 	contribs, _, err := c.Client.Repositories.ListContributors(c.Ctx, c.Owner, c.Repo, &github.ListContributorsOptions{})
 	if err != nil {
-		return checker.RetryResult(err)
+		return checker.MakeRetryResult(contributorsStr, err)
 	}
 
 	companies := map[string]struct{}{}
 	for _, contrib := range contribs {
-		const contributorsCount = 5
 		//nolint:nestif
-		if contrib.GetContributions() >= contributorsCount {
+		if contrib.GetContributions() >= minContributionsPerUser {
 			u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
 			if err != nil {
-				return checker.RetryResult(err)
+				return checker.MakeRetryResult(contributorsStr, err)
 			}
 			orgs, _, err := c.Client.Organizations.List(c.Ctx, contrib.GetLogin(), nil)
 			if err != nil {
@@ -65,16 +70,16 @@ func Contributors(c checker.Checker) checker.CheckResult {
 		names = append(names, c)
 	}
 	c.Logf("companies found: %v", strings.Join(names, ","))
-	const numContributors = 2
-	const confidence = 10
-	if len(companies) >= numContributors {
+	if len(companies) >= minOrganizationCount {
 		return checker.CheckResult{
+			Name:       contributorsStr,
 			Pass:       true,
-			Confidence: confidence,
+			Confidence: checker.MaxResultConfidence,
 		}
 	}
 	return checker.CheckResult{
+		Name:       contributorsStr,
 		Pass:       false,
-		Confidence: confidence,
+		Confidence: checker.MaxResultConfidence,
 	}
 }

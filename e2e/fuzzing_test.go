@@ -19,15 +19,15 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/checker"
 )
 
 var _ = Describe("E2E TEST:Fuzzing", func() {
 	Context("E2E TEST:Validating use of fuzzing tools", func() {
 		It("Should return use of fuzzing tools", func() {
 			l := log{}
-			checker := checker.Checker{
+			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,
@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST:Fuzzing", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.Fuzzing(checker)
+			result := checks.Fuzzing(checkRequest)
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})

@@ -19,25 +19,27 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
+const sastStr = "SAST"
+
 var sastTools map[string]bool = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
 
 func init() {
-	registerCheck("SAST", SAST)
+	registerCheck(sastStr, SAST)
 }
 
-func SAST(c checker.Checker) checker.CheckResult {
+func SAST(c checker.CheckRequest) checker.CheckResult {
 	return checker.MultiCheck(
 		CodeQLInCheckDefinitions,
 		SASTToolInCheckRuns,
 	)(c)
 }
 
-func SASTToolInCheckRuns(c checker.Checker) checker.CheckResult {
+func SASTToolInCheckRuns(c checker.CheckRequest) checker.CheckResult {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
 	if err != nil {
-		return checker.RetryResult(err)
+		return checker.MakeRetryResult(sastStr, err)
 	}
 
 	totalMerged := 0
@@ -49,10 +51,10 @@ func SASTToolInCheckRuns(c checker.Checker) checker.CheckResult {
 		totalMerged++
 		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
 		if err != nil {
-			return checker.RetryResult(err)
+			return checker.MakeRetryResult(sastStr, err)
 		}
 		if crs == nil {
-			return checker.InconclusiveResult
+			return checker.MakeInconclusiveResult(sastStr)
 		}
 		for _, cr := range crs.CheckRuns {
 			if cr.GetStatus() != "completed" {
@@ -69,25 +71,25 @@ func SASTToolInCheckRuns(c checker.Checker) checker.CheckResult {
 		}
 	}
 	if totalTested == 0 {
-		return checker.InconclusiveResult
+		return checker.MakeInconclusiveResult(sastStr)
 	}
-	return checker.ProportionalResult(totalTested, totalMerged, .75)
+	return checker.MakeProportionalResult(sastStr, totalTested, totalMerged, .75)
 }
 
-func CodeQLInCheckDefinitions(c checker.Checker) checker.CheckResult {
+func CodeQLInCheckDefinitions(c checker.CheckRequest) checker.CheckResult {
 	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
 	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
 	if err != nil {
-		return checker.RetryResult(err)
+		return checker.MakeRetryResult(sastStr, err)
 	}
 
 	for _, result := range results.CodeResults {
 		c.Logf("found CodeQL definition: %s", result.GetPath())
 	}
 
-	const confidence = 10
 	return checker.CheckResult{
+		Name:       sastStr,
 		Pass:       *results.Total > 0,
-		Confidence: confidence,
+		Confidence: checker.MaxResultConfidence,
 	}
 }

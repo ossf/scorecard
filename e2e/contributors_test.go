@@ -27,7 +27,7 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 	Context("E2E TEST:Validating project contributors", func() {
 		It("Should return valid project contributors", func() {
 			l := log{}
-			checker := checker.Checker{
+			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,
@@ -36,13 +36,13 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.Contributors(checker)
+			result := checks.Contributors(checkRequest)
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})
 		It("Should return valid project contributors", func() {
 			l := log{}
-			checker := checker.Checker{
+			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HttpClient:  client,
@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.Contributors(checker)
+			result := checks.Contributors(checkRequest)
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})
