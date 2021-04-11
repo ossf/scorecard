@@ -24,7 +24,7 @@ help:  ## Display this help
 
 all:  ## Runs build, test and verify
 .PHONY: all
-all: build test checkprojects build-cron build-scripts verify 
+all: build test checkprojects build-cron build-scripts verify  build-update
 
 .PHONY: build
 build: ## Runs go build and generates executable
@@ -116,6 +116,13 @@ dockerbuild: ## Runs docker build
 	docker build . --file Dockerfile --tag $(IMAGE_NAME) 
 	docker build . --file Dockerfile.gsutil --tag $(IMAGE_NAME)-gsutil
 
+.PHONY: checkprojects
 checkprojects: ## Validates ./cron/projects.txt
 	cd ./scripts && go build  -o validate
 	./scripts/validate ./cron/projects.txt
+
+.PHONY: build-update
+build-update: ## builds the scripts/update binary
+	cd ./scripts/update && go mod tidy && go mod verify	
+	cd ./scripts/update && CGO=0 go build .
+	./scripts/tree-status
