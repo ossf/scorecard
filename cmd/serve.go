@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
+	"github.com/ossf/scorecard/repos"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -58,19 +59,20 @@ var serveCmd = &cobra.Command{
 			if len(s) != length {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
-			repo := pkg.RepoURL{}
+			repo := repos.RepoURL{}
 			if err := repo.Set(repoParam); err != nil {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
 			sugar.Info(repoParam)
 			ctx := r.Context()
-			resultCh := pkg.RunScorecards(ctx, sugar, repo, checks.AllChecks)
-			tc := tc{
-				URL: repoParam,
+			repoRequest := repos.RepoRequest{
+				Repo:          repo,
+				EnabledChecks: checks.AllChecks,
 			}
-			for r := range resultCh {
-				sugar.Info(r)
-				tc.Results = append(tc.Results, r)
+			repoResult := pkg.RunScorecards(ctx, sugar, repoRequest)
+			tc := tc{
+				URL:     repoParam,
+				Results: repoResult.CheckResults,
 			}
 
 			if r.Header.Get("Content-Type") == "application/json" {

@@ -32,12 +32,13 @@ import (
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
+	"github.com/ossf/scorecard/repos"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
 
 var (
-	repo        pkg.RepoURL
+	repo        repos.RepoURL
 	checksToRun []string
 	metaData    []string
 	// This one has to use goflag instead of pflag because it's defined by zap.
@@ -110,6 +111,10 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			}
 		}
 
+		if err := repo.ValidGitHubUrl(); err != nil {
+			log.Fatal(err)
+		}
+
 		enabledChecks := checker.CheckNameToFnMap{}
 		if len(checksToRun) != 0 {
 			for _, checkToRun := range checksToRun {
@@ -127,22 +132,18 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		}
 		ctx := context.Background()
 
-		resultsCh := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
-		// Collect results
-		results := []checker.CheckResult{}
-		for result := range resultsCh {
-			if format == formatDefault {
-				fmt.Fprintf(os.Stderr, "Finished [%s]\n", result.Name)
-			}
-			results = append(results, result)
+		repoRequest := repos.RepoRequest{
+			Repo:          repo,
+			EnabledChecks: enabledChecks,
 		}
+		repoResult := pkg.RunScorecards(ctx, sugar, repoRequest)
 
 		// Sort them by name
-		sort.Slice(results, func(i, j int) bool {
-			return results[i].Name < results[j].Name
+		sort.Slice(repoResult.CheckResults, func(i, j int) bool {
+			return repoResult.CheckResults[i].Name < repoResult.CheckResults[j].Name
 		})
 
-		outputFn(results)
+		outputFn(repoResult.CheckResults)
 	},
 }
 
@@ -218,6 +219,9 @@ func outputCSV(results []checker.CheckResult) {
 }
 
 func outputDefault(results []checker.CheckResult) {
+	for _, r := range results {
+		fmt.Fprintf(os.Stderr, "Finished [%s]\n", r.Name)
+	}
 	fmt.Println()
 	fmt.Println("RESULTS")
 	fmt.Println("-------")
@@ -337,7 +341,6 @@ func init() {
 	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv, json]")
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project.It can be multiple separated by commas")
-
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
 	for checkName := range checks.AllChecks {
