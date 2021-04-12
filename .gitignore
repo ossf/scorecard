@@ -3,7 +3,7 @@ scorecard
 gitblobcache
 validate
 scorecardcron
-scripts/update/update
+scripts/update/projects-update
 
 
 
