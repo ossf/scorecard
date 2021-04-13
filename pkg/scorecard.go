@@ -18,6 +18,7 @@ import (
 	"context"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checker"
@@ -28,10 +29,9 @@ import (
 )
 
 func runEnabledChecks(ctx context.Context, logger *zap.SugaredLogger, repo repos.RepoURL,
-	enabledChecks checker.CheckNameToFnMap) <-chan checker.CheckResult {
-	resultsCh := make(chan checker.CheckResult)
+	checksToRun checker.CheckNameToFnMap, resultsCh chan checker.CheckResult) {
 	wg := sync.WaitGroup{}
-	for _, checkFn := range enabledChecks {
+	for _, checkFn := range checksToRun {
 		checkFn := checkFn
 		wg.Add(1)
 		go func() {
@@ -57,20 +57,18 @@ func runEnabledChecks(ctx context.Context, logger *zap.SugaredLogger, repo repos
 			resultsCh <- runner.Run(checkFn)
 		}()
 	}
-	go func() {
-		wg.Wait()
-		close(resultsCh)
-	}()
-	return resultsCh
+	wg.Wait()
+	close(resultsCh)
 }
 
 func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
-	repoRequest repos.RepoRequest) repos.RepoResult {
+	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap) repos.RepoResult {
 	ret := repos.RepoResult{
-		Repo: repoRequest.Repo.Url(),
-		Date: "",
+		Repo: repo.Url(),
+		Date: time.Now().Format("2016-01-02"),
 	}
-	resultsCh := runEnabledChecks(ctx, logger, repoRequest.Repo, repoRequest.EnabledChecks)
+	resultsCh := make(chan checker.CheckResult)
+	go runEnabledChecks(ctx, logger, repo, checksToRun, resultsCh)
 	for result := range resultsCh {
 		ret.CheckResults = append(ret.CheckResults, result)
 	}

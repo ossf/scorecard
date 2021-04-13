@@ -16,14 +16,12 @@ package cmd
 
 import (
 	"context"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -68,18 +66,6 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		// nolint
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()
-
-		var outputFn func([]checker.CheckResult)
-		switch format {
-		case formatCSV:
-			outputFn = outputCSV
-		case formatDefault:
-			outputFn = outputDefault
-		case formatJSON:
-			outputFn = outputJSON
-		default:
-			log.Fatalf("invalid format flag %s. allowed values are: [default, csv, json]", format)
-		}
 
 		if npm != "" {
 			if git, err := fetchGitRepositoryFromNPM(npm); err != nil {
@@ -126,24 +112,38 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			enabledChecks = checks.AllChecks
 		}
 		for checkName := range enabledChecks {
-			if format == formatDefault {
-				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
-			}
+			fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 		}
 		ctx := context.Background()
 
-		repoRequest := repos.RepoRequest{
-			Repo:          repo,
-			EnabledChecks: enabledChecks,
-		}
-		repoResult := pkg.RunScorecards(ctx, sugar, repoRequest)
+		repoResult := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
 
 		// Sort them by name
 		sort.Slice(repoResult.CheckResults, func(i, j int) bool {
 			return repoResult.CheckResults[i].Name < repoResult.CheckResults[j].Name
 		})
 
-		outputFn(repoResult.CheckResults)
+		for checkName := range enabledChecks {
+			fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
+		}
+		fmt.Println("\nRESULTS\n-------")
+
+		switch format {
+		case formatDefault:
+			if err := repoResult.AsString(showDetails, os.Stdout); err != nil {
+				panic(err)
+			}
+		case formatCSV:
+			if err := repoResult.AsCSV(showDetails, os.Stdout); err != nil {
+				panic(err)
+			}
+		case formatJSON:
+			if err := repoResult.AsJSON(showDetails, os.Stdout); err != nil {
+				panic(err)
+			}
+		default:
+			log.Fatalf("invalid format flag %s. allowed values are: [default, csv, json]", format)
+		}
 	},
 }
 
@@ -169,84 +169,10 @@ type rubyGemsSearchResults struct {
 	SourceCodeURI string `json:"source_code_uri"`
 }
 
-type record struct {
-	Repo     string
-	Date     string
-	Checks   []checker.CheckResult
-	MetaData []string
-}
-
-func outputJSON(results []checker.CheckResult) {
-	d := time.Now()
-	or := record{
-		Repo:     repo.String(),
-		Date:     d.Format("2006-01-02"),
-		MetaData: metaData,
-	}
-
-	for _, r := range results {
-		tmpResult := checker.CheckResult{
-			Name:       r.Name,
-			Pass:       r.Pass,
-			Confidence: r.Confidence,
-		}
-		if showDetails {
-			tmpResult.Details = r.Details
-		}
-		or.Checks = append(or.Checks, tmpResult)
-	}
-	output, err := json.Marshal(or)
-	if err != nil {
-		log.Panic(err)
-	}
-	fmt.Println(string(output))
-}
-
-func outputCSV(results []checker.CheckResult) {
-	w := csv.NewWriter(os.Stdout)
-	record := []string{repo.String()}
-	columns := []string{"Repository"}
-	for _, r := range results {
-		columns = append(columns, r.Name+"-Pass", r.Name+"-Confidence")
-		record = append(record, strconv.FormatBool(r.Pass), strconv.Itoa(r.Confidence))
-	}
-	fmt.Fprintln(os.Stderr, "CSV COLUMN NAMES")
-	fmt.Fprintf(os.Stderr, "%s\n", strings.Join(columns, ","))
-	if err := w.Write(record); err != nil {
-		log.Panic(err)
-	}
-	w.Flush()
-}
-
-func outputDefault(results []checker.CheckResult) {
-	for _, r := range results {
-		fmt.Fprintf(os.Stderr, "Finished [%s]\n", r.Name)
-	}
-	fmt.Println()
-	fmt.Println("RESULTS")
-	fmt.Println("-------")
-	for _, r := range results {
-		fmt.Println(r.Name+":", displayResult(r.Pass), r.Confidence)
-		if showDetails {
-			for _, d := range r.Details {
-				fmt.Println("    " + d)
-			}
-		}
-	}
-}
-
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
-	}
-}
-
-func displayResult(result bool) string {
-	if result {
-		return "Pass"
-	} else {
-		return "Fail"
 	}
 }
 
