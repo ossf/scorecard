@@ -36,6 +36,7 @@ import (
 
 type RepositoryDepsURL struct {
 	Owner, Repo, File string
+	Vendor            bool
 }
 
 type Repository struct {
@@ -88,7 +89,8 @@ func GetGoDeps(repo RepositoryDepsURL) []Repository {
 		log.Default().Println(err)
 		return nil
 	}
-
+	//nolint
+	defer os.Chdir(pwd)
 	// creating temp dir for git clone
 	gitDir, err := ioutil.TempDir(pwd, "")
 	if err != nil {
@@ -110,7 +112,12 @@ func GetGoDeps(repo RepositoryDepsURL) []Repository {
 		return nil
 	}
 
-	cmd := exec.Command("go", "list", "-m", "all")
+	var cmd *exec.Cmd
+	if repo.Vendor {
+		cmd = exec.Command("go", "list", "-e", "mod=vendor", "all")
+	} else {
+		cmd = exec.Command("go", "list", "-m", "all")
+	}
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err = cmd.Run()
@@ -126,20 +133,11 @@ func GetGoDeps(repo RepositoryDepsURL) []Repository {
 	*/
 	for _, l := range strings.Split(out.String(), "\n") {
 		dependency := strings.Split(l, " ")[0]
-		//nolint
 		if strings.HasPrefix(dependency, "github.com") {
-			repourl := RepoURL{}
-			if err := repourl.Set(dependency); err == nil {
-				repos = append(repos, Repository{repourl.String(), ""})
-			}
+			parseGoModURL(dependency, repos)
 		} else {
-			repo := getVanityRepoURL(dependency)
-			if strings.Contains(repo, "github.com") {
-				repourl := RepoURL{}
-				if err := repourl.Set(repo); err == nil {
-					repos = append(repos, Repository{repourl.String(), ""})
-				}
-			}
+			dependency = getVanityRepoURL(dependency)
+			parseGoModURL(dependency, repos)
 		}
 	}
 	return repos
@@ -188,6 +186,11 @@ func main() {
 		{
 			Owner: "sigstore",
 			Repo:  "cosign",
+		},
+		{
+			Owner:  "kubernetes",
+			Repo:   "kubernetes",
+			Vendor: true,
 		},
 	}
 
@@ -285,4 +288,17 @@ func (r *RepoURL) Set(s string) error {
 
 	r.Host, r.Owner, r.Repo = parsedURL.Host, split[0], split[1]
 	return nil
+}
+
+func parseGoModURL(dependency string, repos []Repository) {
+	repourl := RepoURL{}
+	splitURL := strings.Split(dependency, "/")
+	if len(splitURL) < 3 {
+		return
+	}
+	u := fmt.Sprintf("%s/%s/%s", splitURL[0], splitURL[1], splitURL[2])
+	var err error
+	if err = repourl.Set(u); err == nil {
+		repos = append(repos, Repository{repourl.String(), ""})
+	}
 }
