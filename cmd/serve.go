@@ -65,7 +65,7 @@ var serveCmd = &cobra.Command{
 			repoResult := pkg.RunScorecards(ctx, sugar, repo, checks.AllChecks)
 
 			if r.Header.Get("Content-Type") == "application/json" {
-				if err := repoResult.AsJSON( /*showDetails=*/ false, rw); err != nil {
+				if err := repoResult.AsJSON(showDetails, rw); err != nil {
 					sugar.Error(err)
 					rw.WriteHeader(http.StatusInternalServerError)
 				}
