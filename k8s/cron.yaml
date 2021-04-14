@@ -18,6 +18,7 @@ metadata:
   name: daily-score
 spec:
   schedule: "0 2 * * *"
+  concurrencyPolicy: "Forbid"
   jobTemplate:
     spec:
       template:
