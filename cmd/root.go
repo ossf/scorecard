@@ -111,8 +111,10 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		} else {
 			enabledChecks = checks.AllChecks
 		}
-		for checkName := range enabledChecks {
-			fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
+		if format == formatDefault {
+			for checkName := range enabledChecks {
+				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
+			}
 		}
 		ctx := context.Background()
 
@@ -124,10 +126,12 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			return repoResult.CheckResults[i].Name < repoResult.CheckResults[j].Name
 		})
 
-		for checkName := range enabledChecks {
-			fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
+		if format == formatDefault {
+			for checkName := range enabledChecks {
+				fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
+			}
+			fmt.Println("\nRESULTS\n-------")
 		}
-		fmt.Println("\nRESULTS\n-------")
 
 		switch format {
 		case formatDefault:
