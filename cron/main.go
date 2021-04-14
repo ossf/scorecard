@@ -65,7 +65,6 @@ func main() {
 			panic(err)
 		}
 
-		// TODO: pass the github token.
 		ctx := context.Background()
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(zap.InfoLevel)
