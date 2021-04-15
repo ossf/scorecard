@@ -285,7 +285,7 @@ The following checks are all run against the target project:
 | Packaging          | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?                                                                  |
 
 To see detailed information about each check and remediation steps,
-check out the [checks documentation page](docs/checks.md).
+check out the [checks documentation page](checks/checks.md).
 
 If you'd like to add a check, make sure it is something that meets the following criteria:
 
