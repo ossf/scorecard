@@ -50,7 +50,6 @@ func (r *Runner) Run(f CheckFn) CheckResult {
 			continue
 		}
 		break
-
 	}
 	res.Details = l.messages
 	return res

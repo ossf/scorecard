@@ -87,7 +87,6 @@ func GithubCodeReview(c checker.CheckRequest) checker.CheckResult {
 				}
 			}
 		}
-
 	}
 
 	if totalReviewed > 0 {

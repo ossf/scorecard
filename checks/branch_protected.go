@@ -48,7 +48,6 @@ func BranchProtection(c checker.CheckRequest) checker.CheckResult {
 		}
 	}
 	return IsBranchProtected(protection, c)
-
 }
 
 func IsBranchProtected(protection *github.Protection, c checker.CheckRequest) checker.CheckResult {
