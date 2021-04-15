@@ -36,7 +36,10 @@ func IsActive(c checker.CheckRequest) checker.CheckResult {
 		return checker.MakeRetryResult(activeStr, err)
 	}
 
-	tz, _ := time.LoadLocation("UTC")
+	tz, err := time.LoadLocation("UTC")
+	if err != nil {
+		return checker.MakeRetryResult(activeStr, err)
+	}
 	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookbackDays)
 	totalCommits := 0
 	for _, commit := range commits {
