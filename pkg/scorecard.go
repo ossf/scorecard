@@ -50,7 +50,7 @@ func (r *RepoURL) Set(s string) error {
 
 	u, e := url.Parse(s)
 	if e != nil {
-		return e
+		return fmt.Errorf("failed to parse repo url: %w", e)
 	}
 
 	const splitLen = 2

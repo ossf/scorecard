@@ -122,7 +122,7 @@ func encodeJson(repo string, results []checker.CheckResult) ([]byte, error) {
 	}
 	output, err := json.Marshal(or)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to json encode results: %w", err)
 	}
 	return output, nil
 }
