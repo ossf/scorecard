@@ -32,13 +32,12 @@ type RepoResult struct {
 	Metadata     []string
 }
 
+// Adds a newline at the end of JSON output.
+// If called on []RepoResult will create NDJson formatted output.
 func (r *RepoResult) AsJSON(showDetails bool, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	if showDetails {
-		if err := encoder.Encode(r); err != nil {
-			return err
-		}
-		return nil
+		return encoder.Encode(r)
 	}
 	out := RepoResult{
 		Repo:     r.Repo,
@@ -53,10 +52,7 @@ func (r *RepoResult) AsJSON(showDetails bool, writer io.Writer) error {
 		}
 		out.CheckResults = append(out.CheckResults, tmpResult)
 	}
-	if err := encoder.Encode(out); err != nil {
-		return err
-	}
-	return nil
+	return encoder.Encode(out)
 }
 
 func (r *RepoResult) AsCSV(showDetails bool, writer io.Writer) error {
@@ -74,10 +70,10 @@ func (r *RepoResult) AsCSV(showDetails bool, writer io.Writer) error {
 	}
 	fmt.Fprintf(writer, "%s\n", strings.Join(columns, ","))
 	if err := w.Write(record); err != nil {
-		panic(err)
+		return err
 	}
 	w.Flush()
-	return nil
+	return w.Error()
 }
 
 func (r *RepoResult) AsString(showDetails bool, writer io.Writer) error {

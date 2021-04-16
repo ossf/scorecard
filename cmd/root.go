@@ -133,21 +133,19 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			fmt.Println("\nRESULTS\n-------")
 		}
 
+		var err = error(nil)
 		switch format {
 		case formatDefault:
-			if err := repoResult.AsString(showDetails, os.Stdout); err != nil {
-				panic(err)
-			}
+			err = repoResult.AsString(showDetails, os.Stdout)
 		case formatCSV:
-			if err := repoResult.AsCSV(showDetails, os.Stdout); err != nil {
-				panic(err)
-			}
+			err = repoResult.AsCSV(showDetails, os.Stdout)
 		case formatJSON:
-			if err := repoResult.AsJSON(showDetails, os.Stdout); err != nil {
-				panic(err)
-			}
+			err = repoResult.AsJSON(showDetails, os.Stdout)
 		default:
-			log.Fatalf("invalid format flag %s. allowed values are: [default, csv, json]", format)
+			err = fmt.Errorf("invalid format flag %s. allowed values are: [default, csv, json]", format)
+		}
+		if err != nil {
+			log.Fatalf("Failed to output results: %w", err)
 		}
 	},
 }

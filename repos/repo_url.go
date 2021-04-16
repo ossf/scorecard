@@ -62,7 +62,7 @@ func (r *RepoURL) Set(s string) error {
 func (r *RepoURL) ValidGitHubUrl() error {
 	switch r.Host {
 	case "github.com":
-		return nil
+		break
 	default:
 		return fmt.Errorf("unsupported host: %s", r.Host)
 	}
