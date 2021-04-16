@@ -145,7 +145,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			err = fmt.Errorf("invalid format flag %s. allowed values are: [default, csv, json]", format)
 		}
 		if err != nil {
-			log.Fatalf("Failed to output results: %w", err)
+			log.Fatalf("Failed to output results: %v", err)
 		}
 	},
 }
