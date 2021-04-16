@@ -25,6 +25,7 @@ import (
 type scorecard struct {
 	Repo   string `json:"Repo"`
 	Date   string `json:"Date"`
+	Score  int    `json:"Score"`
 	Checks []struct {
 		CheckName  string   `json:"CheckName"`
 		Pass       bool     `json:"Pass"`
@@ -47,6 +48,7 @@ var _ = Describe("E2E TEST:executable", func() {
 
 			Expect(len(data.MetaData)).ShouldNot(BeZero())
 			Expect(data.MetaData[0]).Should(BeEquivalentTo("openssf"))
+			Expect(data.Score).Should(BeNumerically(">", 60))
 
 			for _, c := range data.Checks {
 				switch c.CheckName {

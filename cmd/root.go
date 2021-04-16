@@ -173,9 +173,11 @@ type record struct {
 	Date     string
 	Checks   []checker.CheckResult
 	MetaData []string
+	Score    int
 }
 
 func outputJSON(results []checker.CheckResult) {
+	pass := 0
 	d := time.Now()
 	or := record{
 		Repo:     repo.String(),
@@ -189,10 +191,18 @@ func outputJSON(results []checker.CheckResult) {
 			Pass:       r.Pass,
 			Confidence: r.Confidence,
 		}
+		if tmpResult.Pass {
+			pass++
+		}
 		if showDetails {
 			tmpResult.Details = r.Details
 		}
 		or.Checks = append(or.Checks, tmpResult)
+		// calcualtes the score based on results that were run.
+		// simple check for now to get the result.
+		// The score calculation will be based on tiers when it is decided.
+		const hundred int = 100
+		or.Score = (hundred * pass) / len(results)
 	}
 	output, err := json.Marshal(or)
 	if err != nil {
