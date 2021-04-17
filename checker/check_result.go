@@ -23,6 +23,8 @@ type CheckResult struct {
 	Details     []string
 	ShouldRetry bool  `json:"-"`
 	Error       error `json:"-"`
+	Description string
+	HelpURL     string
 }
 
 func MakeInconclusiveResult(name string) CheckResult {

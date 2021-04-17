@@ -49,11 +49,18 @@ func IsActive(c checker.CheckRequest) checker.CheckResult {
 		}
 	}
 	c.Logf("commits in last %d days: %d", lookbackDays, totalCommits)
+	docs, err := ActiveHelpDocumentation()
+	if err != nil {
+		c.Logf("unable to load documentation %s", err.Error())
+	}
+
 	const numCommits = 2
 	const confidence = 10
 	return checker.CheckResult{
-		Name:       activeStr,
-		Pass:       totalCommits >= numCommits,
-		Confidence: confidence,
+		Name:        activeStr,
+		Pass:        totalCommits >= numCommits,
+		Confidence:  confidence,
+		Description: docs.Description,
+		HelpURL:     docs.HelpURL,
 	}
 }

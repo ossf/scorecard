@@ -185,9 +185,11 @@ func outputJSON(results []checker.CheckResult) {
 
 	for _, r := range results {
 		tmpResult := checker.CheckResult{
-			Name:       r.Name,
-			Pass:       r.Pass,
-			Confidence: r.Confidence,
+			Name:        r.Name,
+			Pass:        r.Pass,
+			Confidence:  r.Confidence,
+			Description: r.Description,
+			HelpURL:     r.HelpURL,
 		}
 		if showDetails {
 			tmpResult.Details = r.Details
