@@ -32,7 +32,7 @@ type RepoResult struct {
 	Metadata     []string
 }
 
-// Adds a newline at the end of JSON output.
+// AsJSON outputs the result in JSON format with a newline at the end.
 // If called on []RepoResult will create NDJson formatted output.
 func (r *RepoResult) AsJSON(showDetails bool, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
