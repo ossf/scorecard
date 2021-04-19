@@ -50,7 +50,7 @@ func (r *RepoURL) Set(s string) error {
 
 	u, e := url.Parse(s)
 	if e != nil {
-		return e
+		return fmt.Errorf("failed to parse repo url: %w", e)
 	}
 
 	const splitLen = 2
@@ -59,7 +59,7 @@ func (r *RepoURL) Set(s string) error {
 		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
 	}
 
-	if len(strings.TrimSpace(split[0])) == 0 || len(strings.TrimSpace(split[1])) == 0 {
+	if strings.TrimSpace(split[0]) == "" || strings.TrimSpace(split[1]) == "" {
 		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
 	}
 

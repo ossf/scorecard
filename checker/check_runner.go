@@ -25,7 +25,7 @@ type Runner struct {
 	CheckRequest CheckRequest
 }
 
-type CheckFn func(CheckRequest) CheckResult
+type CheckFn func(*CheckRequest) CheckResult
 
 type CheckNameToFnMap map[string]CheckFn
 
@@ -44,13 +44,12 @@ func (r *Runner) Run(f CheckFn) CheckResult {
 		checkRequest := r.CheckRequest
 		l = logger{}
 		checkRequest.Logf = l.Logf
-		res = f(checkRequest)
+		res = f(&checkRequest)
 		if res.ShouldRetry && !strings.Contains(res.Error.Error(), "invalid header field value") {
 			checkRequest.Logf("error, retrying: %s", res.Error)
 			continue
 		}
 		break
-
 	}
 	res.Details = l.messages
 	return res
@@ -64,7 +63,7 @@ func Bool2int(b bool) int {
 }
 
 func MultiCheck(fns ...CheckFn) CheckFn {
-	return func(c CheckRequest) CheckResult {
+	return func(c *CheckRequest) CheckResult {
 		var maxResult CheckResult
 
 		for _, fn := range fns {

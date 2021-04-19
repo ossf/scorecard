@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST:Packaging", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.Packaging(checkRequest)
+			result := checks.Packaging(&checkRequest)
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})
@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST:Packaging", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.Packaging(checkRequest)
+			result := checks.Packaging(&checkRequest)
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})

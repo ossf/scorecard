@@ -26,7 +26,7 @@ import (
 
 // CheckIfFileExists downloads the tar of the repository and calls the predicate to check
 // for the occurrence.
-func CheckIfFileExists(checkName string, c checker.CheckRequest, predicate func(name string,
+func CheckIfFileExists(checkName string, c *checker.CheckRequest, predicate func(name string,
 	Logf func(s string, f ...interface{})) bool) checker.CheckResult {
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {

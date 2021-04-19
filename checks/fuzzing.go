@@ -27,7 +27,7 @@ func init() {
 	registerCheck(fuzzingStr, Fuzzing)
 }
 
-func Fuzzing(c checker.CheckRequest) checker.CheckResult {
+func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	url := fmt.Sprintf("github.com/%s/%s", c.Owner, c.Repo)
 	searchString := url + " repo:google/oss-fuzz in:file filename:project.yaml"
 	results, _, err := c.Client.Search.Code(c.Ctx, searchString, &github.SearchOptions{})

@@ -25,7 +25,7 @@ func init() {
 	registerCheck(branchProtectionStr, BranchProtection)
 }
 
-func BranchProtection(c checker.CheckRequest) checker.CheckResult {
+func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	repo, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
 		return checker.MakeRetryResult(branchProtectionStr, err)
@@ -48,10 +48,9 @@ func BranchProtection(c checker.CheckRequest) checker.CheckResult {
 		}
 	}
 	return IsBranchProtected(protection, c)
-
 }
 
-func IsBranchProtected(protection *github.Protection, c checker.CheckRequest) checker.CheckResult {
+func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) checker.CheckResult {
 	totalChecks := 6
 	totalSuccess := 0
 

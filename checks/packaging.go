@@ -29,7 +29,7 @@ func init() {
 	registerCheck(packagingStr, Packaging)
 }
 
-func Packaging(c checker.CheckRequest) checker.CheckResult {
+func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	_, dc, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, ".github/workflows", &github.RepositoryContentGetOptions{})
 	if err != nil {
 		return checker.MakeRetryResult(packagingStr, err)
@@ -78,11 +78,11 @@ func Packaging(c checker.CheckRequest) checker.CheckResult {
 	}
 }
 
-func isPackagingWorkflow(s string, fp string, c checker.CheckRequest) bool {
+func isPackagingWorkflow(s, fp string, c *checker.CheckRequest) bool {
 	// nodejs packages
 	if strings.Contains(s, "uses: actions/setup-node@") {
-		r1, _ := regexp.Compile(`(?s)registry-url.*https://registry\.npmjs\.org`)
-		r2, _ := regexp.Compile(`(?s)npm.*publish`)
+		r1 := regexp.MustCompile(`(?s)registry-url.*https://registry\.npmjs\.org`)
+		r2 := regexp.MustCompile(`(?s)npm.*publish`)
 
 		if r1.MatchString(s) && r2.MatchString(s) {
 			c.Logf("found node packaging workflow using npm: %s", fp)
@@ -92,14 +92,14 @@ func isPackagingWorkflow(s string, fp string, c checker.CheckRequest) bool {
 
 	if strings.Contains(s, "uses: actions/setup-java@") {
 		// java packages with maven
-		r1, _ := regexp.Compile(`(?s)mvn.*deploy`)
+		r1 := regexp.MustCompile(`(?s)mvn.*deploy`)
 		if r1.MatchString(s) {
 			c.Logf("found java packaging workflow using maven: %s", fp)
 			return true
 		}
 
 		// java packages with gradle
-		r2, _ := regexp.Compile(`(?s)gradle.*publish`)
+		r2 := regexp.MustCompile(`(?s)gradle.*publish`)
 		if r2.MatchString(s) {
 			c.Logf("found java packaging workflow using gradle: %s", fp)
 			return true
