@@ -15,18 +15,16 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
-	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
+	"github.com/ossf/scorecard/repos"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -61,34 +59,22 @@ var serveCmd = &cobra.Command{
 			if len(s) != length {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
-			repo := pkg.RepoURL{}
+			repo := repos.RepoURL{}
 			if err := repo.Set(repoParam); err != nil {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
 			sugar.Info(repoParam)
 			ctx := r.Context()
-			resultCh := pkg.RunScorecards(ctx, sugar, repo, checks.AllChecks)
-			tc := tc{
-				URL: repoParam,
-			}
-			for r := range resultCh {
-				sugar.Info(r)
-				tc.Results = append(tc.Results, r)
-			}
+			repoResult := pkg.RunScorecards(ctx, sugar, repo, checks.AllChecks)
 
 			if r.Header.Get("Content-Type") == "application/json" {
-				result, err := encodeJson(repo.String(), tc.Results)
-				if err != nil {
+				if err := repoResult.AsJSON(showDetails, rw); err != nil {
 					sugar.Error(err)
 					rw.WriteHeader(http.StatusInternalServerError)
 				}
-				if _, err := rw.Write(result); err != nil {
-					sugar.Error(err)
-				}
 				return
 			}
-
-			if err := t.Execute(rw, tc); err != nil {
+			if err := t.Execute(rw, repoResult); err != nil {
 				sugar.Warn(err)
 			}
 		})
@@ -104,46 +90,15 @@ var serveCmd = &cobra.Command{
 	},
 }
 
-// encodeJson encodes the result to json
-func encodeJson(repo string, results []checker.CheckResult) ([]byte, error) {
-	d := time.Now()
-	or := record{
-		Repo: repo,
-		Date: d.Format("2006-01-02"),
-	}
-
-	for _, r := range results {
-		tmpResult := checker.CheckResult{
-			Name:       r.Name,
-			Pass:       r.Pass,
-			Confidence: r.Confidence,
-		}
-		if showDetails {
-			tmpResult.Details = r.Details
-		}
-		or.Checks = append(or.Checks, tmpResult)
-	}
-	output, err := json.Marshal(or)
-	if err != nil {
-		return nil, fmt.Errorf("failed to json encode results: %w", err)
-	}
-	return output, nil
-}
-
-type tc struct {
-	URL     string
-	Results []checker.CheckResult
-}
-
 const tpl = `
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Scorecard Results for: {{.URL}}</title>
+		<title>Scorecard Results for: {{.Repo}}</title>
 	</head>
 	<body>
-		{{range .Results}}
+		{{range .CheckResults}}
 			<div>
 				<p>{{ .Name }}: {{ .Pass }}</p>
 			</div>

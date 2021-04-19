@@ -16,14 +16,12 @@ package cmd
 
 import (
 	"context"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -32,12 +30,13 @@ import (
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
+	"github.com/ossf/scorecard/repos"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
 
 var (
-	repo        pkg.RepoURL
+	repo        repos.RepoURL
 	checksToRun []string
 	metaData    []string
 	// This one has to use goflag instead of pflag because it's defined by zap.
@@ -71,18 +70,6 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()
 
-		var outputFn func([]checker.CheckResult)
-		switch format {
-		case formatCSV:
-			outputFn = outputCSV
-		case formatDefault:
-			outputFn = outputDefault
-		case formatJSON:
-			outputFn = outputJSON
-		default:
-			log.Fatalf("invalid format flag %s. allowed values are: [default, csv, json]", format)
-		}
-
 		if npm != "" {
 			if git, err := fetchGitRepositoryFromNPM(npm); err != nil {
 				log.Fatal(err)
@@ -113,6 +100,10 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			}
 		}
 
+		if err := repo.ValidGitHubUrl(); err != nil {
+			log.Fatal(err)
+		}
+
 		enabledChecks := checker.CheckNameToFnMap{}
 		if len(checksToRun) != 0 {
 			for _, checkToRun := range checksToRun {
@@ -123,29 +114,42 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		} else {
 			enabledChecks = checks.AllChecks
 		}
-		for checkName := range enabledChecks {
-			if format == formatDefault {
+		if format == formatDefault {
+			for checkName := range enabledChecks {
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
 		ctx := context.Background()
 
-		resultsCh := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
-		// Collect results
-		results := []checker.CheckResult{}
-		for result := range resultsCh {
-			if format == formatDefault {
-				fmt.Fprintf(os.Stderr, "Finished [%s]\n", result.Name)
-			}
-			results = append(results, result)
-		}
+		repoResult := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
+		repoResult.Metadata = append(repoResult.Metadata, metaData...)
 
 		// Sort them by name
-		sort.Slice(results, func(i, j int) bool {
-			return results[i].Name < results[j].Name
+		sort.Slice(repoResult.CheckResults, func(i, j int) bool {
+			return repoResult.CheckResults[i].Name < repoResult.CheckResults[j].Name
 		})
 
-		outputFn(results)
+		if format == formatDefault {
+			for checkName := range enabledChecks {
+				fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
+			}
+			fmt.Println("\nRESULTS\n-------")
+		}
+
+		err = error(nil)
+		switch format {
+		case formatDefault:
+			err = repoResult.AsString(showDetails, os.Stdout)
+		case formatCSV:
+			err = repoResult.AsCSV(showDetails, os.Stdout)
+		case formatJSON:
+			err = repoResult.AsJSON(showDetails, os.Stdout)
+		default:
+			err = fmt.Errorf("invalid format flag %s. allowed values are: [default, csv, json]", format)
+		}
+		if err != nil {
+			log.Fatalf("Failed to output results: %v", err)
+		}
 	},
 }
 
@@ -171,81 +175,10 @@ type rubyGemsSearchResults struct {
 	SourceCodeURI string `json:"source_code_uri"`
 }
 
-type record struct {
-	Repo     string
-	Date     string
-	Checks   []checker.CheckResult
-	MetaData []string
-}
-
-func outputJSON(results []checker.CheckResult) {
-	d := time.Now()
-	or := record{
-		Repo:     repo.String(),
-		Date:     d.Format("2006-01-02"),
-		MetaData: metaData,
-	}
-
-	for _, r := range results {
-		tmpResult := checker.CheckResult{
-			Name:       r.Name,
-			Pass:       r.Pass,
-			Confidence: r.Confidence,
-		}
-		if showDetails {
-			tmpResult.Details = r.Details
-		}
-		or.Checks = append(or.Checks, tmpResult)
-	}
-	output, err := json.Marshal(or)
-	if err != nil {
-		log.Panic(err)
-	}
-	fmt.Println(string(output))
-}
-
-func outputCSV(results []checker.CheckResult) {
-	w := csv.NewWriter(os.Stdout)
-	record := []string{repo.String()}
-	columns := []string{"Repository"}
-	for _, r := range results {
-		columns = append(columns, r.Name+"-Pass", r.Name+"-Confidence")
-		record = append(record, strconv.FormatBool(r.Pass), strconv.Itoa(r.Confidence))
-	}
-	fmt.Fprintln(os.Stderr, "CSV COLUMN NAMES")
-	fmt.Fprintf(os.Stderr, "%s\n", strings.Join(columns, ","))
-	if err := w.Write(record); err != nil {
-		log.Panic(err)
-	}
-	w.Flush()
-}
-
-func outputDefault(results []checker.CheckResult) {
-	fmt.Println()
-	fmt.Println("RESULTS")
-	fmt.Println("-------")
-	for _, r := range results {
-		fmt.Println(r.Name+":", displayResult(r.Pass), r.Confidence)
-		if showDetails {
-			for _, d := range r.Details {
-				fmt.Println("    " + d)
-			}
-		}
-	}
-}
-
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
-	}
-}
-
-func displayResult(result bool) string {
-	if result {
-		return "Pass"
-	} else {
-		return "Fail"
 	}
 }
 
@@ -340,7 +273,6 @@ func init() {
 	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv, json]")
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project.It can be multiple separated by commas")
-
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
 	for checkName := range checks.AllChecks {

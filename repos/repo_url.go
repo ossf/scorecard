@@ -11,29 +11,30 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package pkg
+
+package repos
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
-// TODO: This is an exact replica of repos.RepoURL. Combine them somehow.
-// RepoURL parses and stores URL into fields.
 type RepoURL struct {
-	Host  string // Host where the repo is stored. Example GitHub.com
-	Owner string // Owner of the repo. Example ossf.
-	Repo  string // The actual repo. Example scorecard.
+	Host, Owner, Repo string
 }
 
-func (r *RepoURL) String() string {
+// Type method is needed so that this struct can be used as cmd flag.
+func (r *RepoURL) Type() string {
+	return "repo"
+}
+
+func (r *RepoURL) Url() string {
 	return fmt.Sprintf("%s/%s/%s", r.Host, r.Owner, r.Repo)
 }
 
-func (r *RepoURL) NonURLString() string {
+func (r *RepoURL) String() string {
 	return fmt.Sprintf("%s-%s-%s", r.Host, r.Owner, r.Repo)
 }
 
@@ -43,17 +44,31 @@ func (r *RepoURL) Set(s string) error {
 		s = "https://" + s
 	}
 
-	parsedURL, err := url.Parse(s)
-	if err != nil {
-		return errors.Wrap(err, "unable to parse the URL")
+	u, e := url.Parse(s)
+	if e != nil {
+		return e
 	}
 
 	const splitLen = 2
-	split := strings.SplitN(strings.Trim(parsedURL.Path, "/"), "/", splitLen)
+	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
-		return errors.Errorf("invalid repo flag: [%s], pass the full repository URL", s)
+		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
 	}
 
-	r.Host, r.Owner, r.Repo = parsedURL.Host, split[0], split[1]
+	r.Host, r.Owner, r.Repo = u.Host, split[0], split[1]
+	return nil
+}
+
+func (r *RepoURL) ValidGitHubUrl() error {
+	switch r.Host {
+	case "github.com":
+		break
+	default:
+		return fmt.Errorf("unsupported host: %s", r.Host)
+	}
+
+	if len(strings.TrimSpace(r.Owner)) == 0 || len(strings.TrimSpace(r.Repo)) == 0 {
+		return fmt.Errorf("invalid GitHub repo url: [%s], pass the full repository URL", r.Url())
+	}
 	return nil
 }

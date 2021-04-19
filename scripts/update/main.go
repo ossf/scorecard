@@ -253,6 +253,7 @@ func main() {
 	}
 }
 
+// TODO: This code is duplicated from repos/. Consolidate it.
 // RepoURL parses and stores URL into fields.
 type RepoURL struct {
 	Host  string // Host where the repo is stored. Example GitHub.com

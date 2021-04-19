@@ -20,9 +20,9 @@ type CheckResult struct {
 	Name        string
 	Pass        bool
 	Confidence  int
-	Details     []string
-	ShouldRetry bool  `json:"-"`
-	Error       error `json:"-"`
+	Details     []string `json:omitempty`
+	ShouldRetry bool     `json:"-"`
+	Error       error    `json:"-"`
 }
 
 func MakeInconclusiveResult(name string) CheckResult {

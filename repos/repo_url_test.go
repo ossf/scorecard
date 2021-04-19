@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package repos
 
 import (
 	"testing"
 )
 
-func TestRepoURL_Set(t *testing.T) {
+func TestRepoURL_ValidGitHubUrl(t *testing.T) {
 	t.Parallel()
 	type fields struct {
 		Host  string
@@ -75,8 +75,11 @@ func TestRepoURL_Set(t *testing.T) {
 				Repo:  tt.fields.Repo,
 			}
 			t.Log("Test")
-			if err := r.Set(tt.args.s); (err != nil) != tt.wantErr {
-				t.Errorf("RepoURL.Set() error = %v, wantErr %v", err, tt.wantErr)
+			if err := r.Set(tt.args.s); err != nil {
+				t.Errorf("RepoURL.Set() error = %v", err)
+			}
+			if err := r.ValidGitHubUrl(); (err != nil) != tt.wantErr {
+				t.Errorf("RepoURL.ValidGitHubUrl() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr {
 				if tt.fields.Host != r.Host {

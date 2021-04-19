@@ -16,66 +16,20 @@ package pkg
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"net/http"
-	"net/url"
-	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/roundtripper"
 	"github.com/shurcooL/githubv4"
 	"go.uber.org/zap"
 )
 
-type RepoURL struct {
-	Host, Owner, Repo string
-}
-
-func (r *RepoURL) String() string {
-	return fmt.Sprintf("%s/%s/%s", r.Host, r.Owner, r.Repo)
-}
-
-func (r *RepoURL) Type() string {
-	return "repo"
-}
-
-func (r *RepoURL) Set(s string) error {
-	// Allow skipping scheme for ease-of-use, default to https.
-	if !strings.Contains(s, "://") {
-		s = "https://" + s
-	}
-
-	u, e := url.Parse(s)
-	if e != nil {
-		return fmt.Errorf("failed to parse repo url: %w", e)
-	}
-
-	const splitLen = 2
-	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
-	if len(split) != splitLen {
-		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
-	}
-
-	if strings.TrimSpace(split[0]) == "" || strings.TrimSpace(split[1]) == "" {
-		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
-	}
-
-	r.Host, r.Owner, r.Repo = u.Host, split[0], split[1]
-
-	switch r.Host {
-	case "github.com":
-		return nil
-	default:
-		return fmt.Errorf("unsupported host: %s", r.Host)
-	}
-}
-
-func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
-	repo RepoURL, checksToRun checker.CheckNameToFnMap) <-chan checker.CheckResult {
-	resultsCh := make(chan checker.CheckResult)
+func runEnabledChecks(ctx context.Context, logger *zap.SugaredLogger, repo repos.RepoURL,
+	checksToRun checker.CheckNameToFnMap, resultsCh chan checker.CheckResult) {
 	wg := sync.WaitGroup{}
 	for _, checkFn := range checksToRun {
 		checkFn := checkFn
@@ -103,9 +57,20 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
 			resultsCh <- runner.Run(checkFn)
 		}()
 	}
-	go func() {
-		wg.Wait()
-		close(resultsCh)
-	}()
-	return resultsCh
+	wg.Wait()
+	close(resultsCh)
+}
+
+func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
+	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap) repos.RepoResult {
+	ret := repos.RepoResult{
+		Repo: repo.Url(),
+		Date: time.Now().Format("2016-01-02"),
+	}
+	resultsCh := make(chan checker.CheckResult)
+	go runEnabledChecks(ctx, logger, repo, checksToRun, resultsCh)
+	for result := range resultsCh {
+		ret.CheckResults = append(ret.CheckResults, result)
+	}
+	return ret
 }
