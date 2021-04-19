@@ -28,7 +28,7 @@ func init() {
 	registerCheck(signedTagsStr, SignedTags)
 }
 
-func SignedTags(c checker.CheckRequest) checker.CheckResult {
+func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 	type ref struct {
 		Name   githubv4.String
 		Target struct {

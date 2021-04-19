@@ -32,6 +32,7 @@ func (l *log) Logf(s string, f ...interface{}) {
 }
 
 func TestIsBranchProtected(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		protection *github.Protection
 		c          checker.CheckRequest
@@ -440,9 +441,11 @@ func TestIsBranchProtected(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		l.messages = []string{}
 		t.Run(tt.name, func(t *testing.T) {
-			got := IsBranchProtected(tt.args.protection, tt.args.c)
+			t.Parallel()
+			got := IsBranchProtected(tt.args.protection, &tt.args.c)
 			got.Details = l.messages
 			if got.Confidence != tt.want.Confidence || got.Pass != tt.want.Pass {
 				t.Errorf("IsBranchProtected() = %s, %v, want %v", tt.name, got, tt.want)

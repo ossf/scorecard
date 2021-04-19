@@ -30,7 +30,7 @@ func init() {
 	registerCheck(signedReleasesStr, SignedReleases)
 }
 
-func SignedReleases(c checker.CheckRequest) checker.CheckResult {
+func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	releases, _, err := c.Client.Repositories.ListReleases(c.Ctx, c.Owner, c.Repo, &github.ListOptions{})
 	if err != nil {
 		return checker.MakeRetryResult(signedReleasesStr, err)

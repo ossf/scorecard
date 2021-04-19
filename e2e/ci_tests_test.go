@@ -19,8 +19,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/checks"
 )
 
 var _ = Describe("E2E TEST:CITests", func() {
@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST:CITests", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.CITests(checkRequest)
+			result := checks.CITests(&checkRequest)
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})

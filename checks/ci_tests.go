@@ -27,7 +27,7 @@ func init() {
 	registerCheck(ciTestsStr, CITests)
 }
 
-func CITests(c checker.CheckRequest) checker.CheckResult {
+func CITests(c *checker.CheckRequest) checker.CheckResult {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})

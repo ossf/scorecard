@@ -31,7 +31,7 @@ func init() {
 	registerCheck(contributorsStr, Contributors)
 }
 
-func Contributors(c checker.CheckRequest) checker.CheckResult {
+func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	contribs, _, err := c.Client.Repositories.ListContributors(c.Ctx, c.Owner, c.Repo, &github.ListContributorsOptions{})
 	if err != nil {
 		return checker.MakeRetryResult(contributorsStr, err)
@@ -40,29 +40,30 @@ func Contributors(c checker.CheckRequest) checker.CheckResult {
 	companies := map[string]struct{}{}
 	for _, contrib := range contribs {
 		//nolint:nestif
-		if contrib.GetContributions() >= minContributionsPerUser {
-			u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
-			if err != nil {
-				return checker.MakeRetryResult(contributorsStr, err)
-			}
-			orgs, _, err := c.Client.Organizations.List(c.Ctx, contrib.GetLogin(), nil)
-			if err != nil {
-				c.Logf("unable to get org members for %s", contrib.GetLogin())
-			} else if len(orgs) > 0 {
-				companies[*orgs[0].Login] = struct{}{}
-				continue
-			}
+		if contrib.GetContributions() < minContributionsPerUser {
+			continue
+		}
+		u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
+		if err != nil {
+			return checker.MakeRetryResult(contributorsStr, err)
+		}
+		orgs, _, err := c.Client.Organizations.List(c.Ctx, contrib.GetLogin(), nil)
+		if err != nil {
+			c.Logf("unable to get org members for %s", contrib.GetLogin())
+		} else if len(orgs) > 0 {
+			companies[*orgs[0].Login] = struct{}{}
+			continue
+		}
 
-			company := u.GetCompany()
-			if company != "" {
-				company = strings.ToLower(company)
-				company = strings.ReplaceAll(company, "inc.", "")
-				company = strings.ReplaceAll(company, "llc", "")
-				company = strings.ReplaceAll(company, ",", "")
-				company = strings.TrimLeft(company, "@")
-				company = strings.Trim(company, " ")
-				companies[company] = struct{}{}
-			}
+		company := u.GetCompany()
+		if company != "" {
+			company = strings.ToLower(company)
+			company = strings.ReplaceAll(company, "inc.", "")
+			company = strings.ReplaceAll(company, "llc", "")
+			company = strings.ReplaceAll(company, ",", "")
+			company = strings.TrimLeft(company, "@")
+			company = strings.Trim(company, " ")
+			companies[company] = struct{}{}
 		}
 	}
 	names := []string{}

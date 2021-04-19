@@ -62,7 +62,10 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
-		logger, _ := cfg.Build()
+		logger, err := cfg.Build()
+		if err != nil {
+			log.Fatalf("unable to construct logger: %v", err)
+		}
 		// nolint
 		defer logger.Sync() // flushes buffer, if any
 		sugar := logger.Sugar()

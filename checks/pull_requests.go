@@ -27,7 +27,7 @@ func init() {
 	registerCheck(pullRequestsStr, PullRequests)
 }
 
-func PullRequests(c checker.CheckRequest) checker.CheckResult {
+func PullRequests(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
 		return checker.MakeRetryResult(pullRequestsStr, err)

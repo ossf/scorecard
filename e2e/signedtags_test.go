@@ -20,8 +20,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/checks"
 )
 
 var _ = Describe("E2E TEST:Signedtags", func() {
@@ -37,7 +37,7 @@ var _ = Describe("E2E TEST:Signedtags", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.SignedTags(checkRequest)
+			result := checks.SignedTags(&checkRequest)
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 		})

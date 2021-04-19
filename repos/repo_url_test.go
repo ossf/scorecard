@@ -19,6 +19,7 @@ import (
 )
 
 func TestRepoURL_ValidGitHubUrl(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		Host  string
 		Owner string
@@ -65,8 +66,14 @@ func TestRepoURL_ValidGitHubUrl(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
-			r := &RepoURL{}
+			t.Parallel()
+			r := &RepoURL{
+				Host:  tt.fields.Host,
+				Owner: tt.fields.Owner,
+				Repo:  tt.fields.Repo,
+			}
 			t.Log("Test")
 			if err := r.Set(tt.args.s); err != nil {
 				t.Errorf("RepoURL.Set() error = %v", err)

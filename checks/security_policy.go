@@ -26,7 +26,7 @@ func init() {
 	registerCheck(securityPolicyStr, SecurityPolicy)
 }
 
-func SecurityPolicy(c checker.CheckRequest) checker.CheckResult {
+func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	// check repository for repository-specific policy
 	result := CheckIfFileExists(securityPolicyStr, c, func(name string, logf func(s string, f ...interface{})) bool {
 		if strings.EqualFold(name, "security.md") {
