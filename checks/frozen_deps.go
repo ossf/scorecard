@@ -27,7 +27,7 @@ func init() {
 }
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
-func FrozenDeps(c checker.CheckRequest) checker.CheckResult {
+func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 	return CheckIfFileExists(frozenDepsStr, c, filePredicate)
 }
 

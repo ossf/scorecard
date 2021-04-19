@@ -19,8 +19,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/checks"
 )
 
 var _ = Describe("E2E TEST:Branch Protection", func() {
@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST:Branch Protection", func() {
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
-			result := checks.BranchProtection(checkRequest)
+			result := checks.BranchProtection(&checkRequest)
 			Expect(result.Error).ShouldNot(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 		})

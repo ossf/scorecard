@@ -27,14 +27,14 @@ func init() {
 	registerCheck(sastStr, SAST)
 }
 
-func SAST(c checker.CheckRequest) checker.CheckResult {
+func SAST(c *checker.CheckRequest) checker.CheckResult {
 	return checker.MultiCheck(
 		CodeQLInCheckDefinitions,
 		SASTToolInCheckRuns,
 	)(c)
 }
 
-func SASTToolInCheckRuns(c checker.CheckRequest) checker.CheckResult {
+func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
@@ -76,7 +76,7 @@ func SASTToolInCheckRuns(c checker.CheckRequest) checker.CheckResult {
 	return checker.MakeProportionalResult(sastStr, totalTested, totalMerged, .75)
 }
 
-func CodeQLInCheckDefinitions(c checker.CheckRequest) checker.CheckResult {
+func CodeQLInCheckDefinitions(c *checker.CheckRequest) checker.CheckResult {
 	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
 	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
 	if err != nil {

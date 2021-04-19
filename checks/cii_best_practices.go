@@ -32,7 +32,7 @@ type response struct {
 	BadgeLevel string `json:"badge_level"`
 }
 
-func CIIBestPractices(c checker.CheckRequest) checker.CheckResult {
+func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 	repoUrl := fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoUrl)
 	resp, err := c.HttpClient.Get(url)

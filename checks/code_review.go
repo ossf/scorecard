@@ -32,7 +32,7 @@ func init() {
 // - Looking at the repo configuration to see if reviews are required
 // - Checking if most of the recent merged PRs were "Approved"
 // - Looking for other well-known review labels
-func DoesCodeReview(c checker.CheckRequest) checker.CheckResult {
+func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	return checker.MultiCheck(
 		IsPrReviewRequired,
 		GithubCodeReview,
@@ -41,7 +41,7 @@ func DoesCodeReview(c checker.CheckRequest) checker.CheckResult {
 	)(c)
 }
 
-func GithubCodeReview(c checker.CheckRequest) checker.CheckResult {
+func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
@@ -95,7 +95,7 @@ func GithubCodeReview(c checker.CheckRequest) checker.CheckResult {
 	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, totalMerged, .75)
 }
 
-func IsPrReviewRequired(c checker.CheckRequest) checker.CheckResult {
+func IsPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
 	// Look to see if review is enforced.
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
@@ -119,7 +119,7 @@ func IsPrReviewRequired(c checker.CheckRequest) checker.CheckResult {
 	return checker.MakeInconclusiveResult(codeReviewStr)
 }
 
-func ProwCodeReview(c checker.CheckRequest) checker.CheckResult {
+func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
@@ -150,7 +150,7 @@ func ProwCodeReview(c checker.CheckRequest) checker.CheckResult {
 	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, totalMerged, .75)
 }
 
-func CommitMessageHints(c checker.CheckRequest) checker.CheckResult {
+func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
 		return checker.MakeRetryResult(codeReviewStr, err)

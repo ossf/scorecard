@@ -30,7 +30,7 @@ func init() {
 	registerCheck(activeStr, IsActive)
 }
 
-func IsActive(c checker.CheckRequest) checker.CheckResult {
+func IsActive(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
 		return checker.MakeRetryResult(activeStr, err)
