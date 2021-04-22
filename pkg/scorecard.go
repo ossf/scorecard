@@ -65,7 +65,7 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
 	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap) repos.RepoResult {
 	ret := repos.RepoResult{
 		Repo: repo.Url(),
-		Date: time.Now().Format("2016-01-02"),
+		Date: time.Now().Format("2006-01-02"),
 	}
 	resultsCh := make(chan checker.CheckResult)
 	go runEnabledChecks(ctx, logger, repo, checksToRun, resultsCh)
