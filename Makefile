@@ -113,8 +113,8 @@ verify-go-mod: ## Verify the go modules
 .PHONY: dockerbuild
 dockerbuild: ## Runs docker build
 	$(call ndef, GITHUB_AUTH_TOKEN)
-	docker build . --file Dockerfile --tag $(IMAGE_NAME) 
-	docker build . --file Dockerfile.gsutil --tag $(IMAGE_NAME)-gsutil
+	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME) 
+	DOCKER_BUILDKIT=1 docker build . --file Dockerfile.gsutil --tag $(IMAGE_NAME)-gsutil
 
 .PHONY: check-projects
 check-projects: ## Validates ./cron/projects.txt
