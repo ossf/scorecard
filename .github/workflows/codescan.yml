@@ -30,7 +30,7 @@ jobs:
 
       - name: Build an image from Dockerfile
         run: |
-          docker build -t docker.pkg.github.com/ossf/scorecard:${{ github.sha }} .
+          DOCKER_BUILDKIT=1 docker build -t docker.pkg.github.com/ossf/scorecard:${{ github.sha }} .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master

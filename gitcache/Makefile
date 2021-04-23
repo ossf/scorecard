@@ -28,7 +28,7 @@ build: ## Runs go build and generates executable
 .phony: dockerbuild
 dockerbuild: ## runs docker build
 	$(call ndef, github_auth_token)
-	docker build .  --tag $(IMAGE_NAME)
+	DOCKER_BUILDKIT=1 docker build .  --tag $(IMAGE_NAME)
 
 
 check-env:
