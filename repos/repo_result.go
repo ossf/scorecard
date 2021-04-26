@@ -26,10 +26,10 @@ import (
 )
 
 type RepoResult struct {
-	Repo         string
-	Date         string
-	CheckResults []checker.CheckResult
-	Metadata     []string
+	Repo     string
+	Date     string
+	Checks   []checker.CheckResult
+	Metadata []string
 }
 
 // AsJSON outputs the result in JSON format with a newline at the end.
@@ -44,13 +44,13 @@ func (r *RepoResult) AsJSON(showDetails bool, writer io.Writer) error {
 		Date:     r.Date,
 		Metadata: r.Metadata,
 	}
-	for _, checkResult := range r.CheckResults {
+	for _, checkResult := range r.Checks {
 		tmpResult := checker.CheckResult{
 			Name:       checkResult.Name,
 			Pass:       checkResult.Pass,
 			Confidence: checkResult.Confidence,
 		}
-		out.CheckResults = append(out.CheckResults, tmpResult)
+		out.Checks = append(out.Checks, tmpResult)
 	}
 	return encoder.Encode(out)
 }
@@ -59,7 +59,7 @@ func (r *RepoResult) AsCSV(showDetails bool, writer io.Writer) error {
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo}
 	columns := []string{"Repository"}
-	for _, checkResult := range r.CheckResults {
+	for _, checkResult := range r.Checks {
 		columns = append(columns, checkResult.Name+"_Pass", checkResult.Name+"_Confidence")
 		record = append(record, strconv.FormatBool(checkResult.Pass),
 			strconv.Itoa(checkResult.Confidence))
@@ -78,7 +78,7 @@ func (r *RepoResult) AsCSV(showDetails bool, writer io.Writer) error {
 
 func (r *RepoResult) AsString(showDetails bool, writer io.Writer) error {
 	fmt.Fprintf(writer, "Repo: %s\n", r.Repo)
-	for _, checkResult := range r.CheckResults {
+	for _, checkResult := range r.Checks {
 		fmt.Fprintf(writer, "%s: %s %d\n", checkResult.Name, displayResult(checkResult.Pass), checkResult.Confidence)
 		if showDetails {
 			for _, d := range checkResult.Details {
