@@ -102,13 +102,25 @@ test-disk-cache: build  ## Runs disk cache tests
 
 # Verification targets
 .PHONY: verify
-verify: verify-go-mod lint ## Run all verification targets
+verify: verify-go-mod verify-go-mod-cron verify-go-mod-scripts  lint ## Run all verification targets
 
 .PHONY: verify-go-mod
 verify-go-mod: ## Verify the go modules
 		go mod tidy && \
 		go mod verify
 	./scripts/tree-status 
+
+verify-go-mod-cron: ## Verify the go modules for cron
+	cd cron && \
+    go mod tidy && \
+	go mod verify 
+	./scripts/tree-status
+
+verify-go-mod-scripts: ## Verify the go modules for scripts
+	cd scripts && \
+    go mod tidy && \
+	go mod verify 
+	./scripts/tree-status
 
 .PHONY: dockerbuild
 dockerbuild: ## Runs docker build
