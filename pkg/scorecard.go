@@ -70,7 +70,7 @@ func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
 	resultsCh := make(chan checker.CheckResult)
 	go runEnabledChecks(ctx, logger, repo, checksToRun, resultsCh)
 	for result := range resultsCh {
-		ret.CheckResults = append(ret.CheckResults, result)
+		ret.Checks = append(ret.Checks, result)
 	}
 	return ret
 }

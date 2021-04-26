@@ -125,8 +125,8 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		repoResult.Metadata = append(repoResult.Metadata, metaData...)
 
 		// Sort them by name
-		sort.Slice(repoResult.CheckResults, func(i, j int) bool {
-			return repoResult.CheckResults[i].Name < repoResult.CheckResults[j].Name
+		sort.Slice(repoResult.Checks, func(i, j int) bool {
+			return repoResult.Checks[i].Name < repoResult.Checks[j].Name
 		})
 
 		if format == formatDefault {

@@ -98,7 +98,7 @@ const tpl = `
 		<title>Scorecard Results for: {{.Repo}}</title>
 	</head>
 	<body>
-		{{range .CheckResults}}
+		{{range .Checks}}
 			<div>
 				<p>{{ .Name }}: {{ .Pass }}</p>
 			</div>
