@@ -57,23 +57,27 @@ func main() {
 	for _, r := range inputRepos {
 		fmt.Println(r.Repo)
 
-		repoUrl := repos.RepoURL{}
-		if err := repoUrl.Set(r.Repo); err != nil {
+		repoURL := repos.RepoURL{}
+		if err := repoURL.Set(r.Repo); err != nil {
 			panic(err)
 		}
-		if err := repoUrl.ValidGitHubUrl(); err != nil {
+		if err := repoURL.ValidGitHubUrl(); err != nil {
 			panic(err)
 		}
 
 		ctx := context.Background()
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(zap.InfoLevel)
-		logger, _ := cfg.Build()
+		logger, err := cfg.Build()
+		if err != nil {
+			panic(err)
+		}
 		sugar := logger.Sugar()
-		repoResult := pkg.RunScorecards(ctx, sugar, repoUrl, checks.AllChecks)
+		repoResult := pkg.RunScorecards(ctx, sugar, repoURL, checks.AllChecks)
 		if err := repoResult.AsJSON( /*showDetails=*/ true, result); err != nil {
 			panic(err)
 		}
+		//nolint
 		logger.Sync() // flushes buffer, if any
 	}
 	result.Close()
