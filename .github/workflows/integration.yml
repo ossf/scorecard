@@ -126,7 +126,7 @@ jobs:
             Integration tests ${{ job.status }} for [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}](https://github.com/ossf/scorecard/actions/runs/${{ github.run_id }})
 
       - name: set fork job status
-        uses: actions/github-script@v3
+        uses: actions/github-script@v4.0.2
         if: ${{ always() }}
         id: update-check-run
         env:
