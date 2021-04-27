@@ -29,9 +29,11 @@ import (
 	"go.uber.org/zap"
 )
 
-var ghClient *github.Client
-var graphClient *githubv4.Client
-var client *http.Client
+var (
+	ghClient    *github.Client
+	graphClient *githubv4.Client
+	client      *http.Client
+)
 
 type log struct {
 	messages []string
@@ -76,7 +78,6 @@ var _ = BeforeSuite(func() {
 
 	ghClient = github.NewClient(client)
 	graphClient = githubv4.NewClient(client)
-
 })
 
 var _ = AfterSuite(func() {
