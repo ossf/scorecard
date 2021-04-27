@@ -2,6 +2,8 @@
 run:
   concurrency: 6
   deadline: 5m
+issues:
+  new-from-rev: ""
 linters:
   disable-all: true
   enable:
@@ -44,7 +46,6 @@ linters:
     - prealloc
     - predeclared
     - rowserrcheck
-    - scopelint
     - sqlclosecheck
     - staticcheck
     - structcheck
