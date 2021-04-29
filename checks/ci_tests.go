@@ -56,7 +56,8 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		// Github Statuses
 		const success = "success"
 		if usedSystem <= githubStatuses {
-			statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListOptions{})
+			statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
+				&github.ListOptions{})
 			if err != nil {
 				return checker.MakeRetryResult(ciTestsStr, err)
 			}
@@ -66,7 +67,8 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 					continue
 				}
 				if isTest(status.GetContext()) {
-					c.Logf("CI test found: pr: %d, context: %success, url: %success", pr.GetNumber(), status.GetContext(), status.GetURL())
+					c.Logf("CI test found: pr: %d, context: %success, url: %success", pr.GetNumber(),
+						status.GetContext(), status.GetURL())
 					totalTested++
 					foundCI = true
 					usedSystem = githubStatuses
@@ -81,7 +83,8 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 
 		// Github Check Runs
 		if usedSystem == githubCheckRuns || usedSystem == unknown {
-			crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
+			crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
+				&github.ListCheckRunsOptions{})
 			if err != nil || crs == nil {
 				return checker.MakeRetryResult(ciTestsStr, err)
 			}
@@ -94,7 +97,8 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 					continue
 				}
 				if isTest(cr.GetApp().GetSlug()) {
-					c.Logf("CI test found: pr: %d, context: %success, url: %success", pr.GetNumber(), cr.GetApp().GetSlug(), cr.GetURL())
+					c.Logf("CI test found: pr: %d, context: %success, url: %success", pr.GetNumber(),
+						cr.GetApp().GetSlug(), cr.GetURL())
 					totalTested++
 					foundCI = true
 					usedSystem = githubCheckRuns
@@ -116,7 +120,10 @@ func isTest(s string) bool {
 	l := strings.ToLower(s)
 
 	// Add more patterns here!
-	for _, pattern := range []string{"appveyor", "buildkite", "circleci", "e2e", "github-actions", "jenkins", "mergeable", "test", "travis-ci"} {
+	for _, pattern := range []string{
+		"appveyor", "buildkite", "circleci", "e2e", "github-actions", "jenkins",
+		"mergeable", "test", "travis-ci",
+	} {
 		if strings.Contains(l, pattern) {
 			return true
 		}
