@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"time"
@@ -35,6 +36,11 @@ type Repository struct {
 }
 
 func main() {
+	bucket := os.Getenv("GCS_BUCKET")
+	if bucket == "" {
+		log.Fatal("env variable GCS_BUCKET is empty")
+	}
+
 	projects, err := os.OpenFile(os.Args[1], os.O_RDONLY, 0644)
 	if err != nil {
 		panic(err)
@@ -73,6 +79,12 @@ func main() {
 			panic(err)
 		}
 		sugar := logger.Sugar()
+		//nolint
+		// FIXME :- deleting branch-protection
+		// The branch protection check needs an admin access to the repository.
+		// All of the checks from cron would fail and uses another call to the API.
+		// This will reduce usage of the API.
+		delete(checks.AllChecks, "Branch-Protection")
 		repoResult := pkg.RunScorecards(ctx, sugar, repoURL, checks.AllChecks)
 		if err := repoResult.AsJSON( /*showDetails=*/ true, result); err != nil {
 			panic(err)
@@ -83,13 +95,13 @@ func main() {
 	result.Close()
 
 	// copying the file to the GCS bucket
-	if err := exec.Command("gsutil", "cp", fileName, fmt.Sprintf("gs://%s", os.Getenv("GCS_BUCKET"))).Run(); err != nil {
+	if err := exec.Command("gsutil", "cp", fileName, fmt.Sprintf("gs://%s", bucket)).Run(); err != nil {
 		panic(err)
 	}
 	//copying the results to the latest.json
 	//nolint
-	if err := exec.Command("gsutil", "cp", fmt.Sprintf("gs://%s/%s", os.Getenv("GCS_BUCKET"), fileName),
-		fmt.Sprintf("gs://%s/latest.json", os.Getenv("GCS_BUCKET"))).Run(); err != nil {
+	if err := exec.Command("gsutil", "cp", fmt.Sprintf("gs://%s/%s", bucket, fileName),
+		fmt.Sprintf("gs://%s/latest.json", bucket)).Run(); err != nil {
 		panic(err)
 	}
 
