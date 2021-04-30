@@ -72,7 +72,7 @@ unexport USE_BLOB_CACHE
 ci-e2e:  ## Runs ci e2e tests
 .PHONY: ci-e2e
 # export GITHUB_AUTH_TOKEN with personal access token to run the e2e
-ci-e2e: build check-env
+ci-e2e: build check-env e2e-cron
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	@echo Ignoring these test for ci-e2e $(IGNORED_CI_TEST)
 	ginkgo -p  -v -cover --skip=$(IGNORED_CI_TEST)  ./e2e/...
@@ -97,6 +97,9 @@ test-disk-cache: build  ## Runs disk cache tests
 				   --repo=https://github.com/ossf/scorecard --show-details \
 				   --metadata=openssf  --format json > ./$(OUTPUT)/results.json
 	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
+
+e2e-cron: ## validates cron
+	GCS_BUCKET=ossf-scorecards-dev go run ./cron/main.go ./e2e/cron-projects.txt
 
 
 
