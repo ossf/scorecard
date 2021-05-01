@@ -30,7 +30,7 @@ func (r *RepoURL) Type() string {
 	return "repo"
 }
 
-func (r *RepoURL) Url() string {
+func (r *RepoURL) URL() string {
 	return fmt.Sprintf("%s/%s/%s", r.Host, r.Owner, r.Repo)
 }
 
@@ -59,7 +59,7 @@ func (r *RepoURL) Set(s string) error {
 	return nil
 }
 
-func (r *RepoURL) ValidGitHubUrl() error {
+func (r *RepoURL) ValidGitHubURL() error {
 	switch r.Host {
 	case "github.com":
 		break
@@ -68,7 +68,7 @@ func (r *RepoURL) ValidGitHubUrl() error {
 	}
 
 	if len(strings.TrimSpace(r.Owner)) == 0 || len(strings.TrimSpace(r.Repo)) == 0 {
-		return fmt.Errorf("invalid GitHub repo url: [%s], pass the full repository URL", r.Url())
+		return fmt.Errorf("invalid GitHub repo url: [%s], pass the full repository URL", r.URL())
 	}
 	return nil
 }

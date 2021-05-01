@@ -34,13 +34,13 @@ type response struct {
 }
 
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
-	repoUrl := fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
-	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoUrl)
+	repoURL := fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
+	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURL)
 	req, err := http.NewRequestWithContext(c.Ctx, "GET", url, nil)
 	if err != nil {
 		return checker.MakeRetryResult(ciiBestPracticesStr, err)
 	}
-	resp, err := c.HttpClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return checker.MakeRetryResult(ciiBestPracticesStr, err)
 	}

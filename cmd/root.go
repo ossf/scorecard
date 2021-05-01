@@ -100,7 +100,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			}
 		}
 
-		if err := repo.ValidGitHubUrl(); err != nil {
+		if err := repo.ValidGitHubURL(); err != nil {
 			log.Fatal(err)
 		}
 
