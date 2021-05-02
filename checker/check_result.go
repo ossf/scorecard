@@ -17,12 +17,12 @@ package checker
 const MaxResultConfidence = 10
 
 type CheckResult struct {
+	Error       error `json:"-"`
 	Name        string
-	Pass        bool
-	Confidence  int
 	Details     []string `json:omitempty`
-	ShouldRetry bool     `json:"-"`
-	Error       error    `json:"-"`
+	Confidence  int
+	Pass        bool
+	ShouldRetry bool `json:"-"`
 }
 
 func MakeInconclusiveResult(name string) CheckResult {

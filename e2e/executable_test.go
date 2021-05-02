@@ -27,9 +27,9 @@ type scorecard struct {
 	Date   string `json:"Date"`
 	Checks []struct {
 		CheckName  string   `json:"CheckName"`
-		Pass       bool     `json:"Pass"`
-		Confidence int      `json:"Confidence"`
 		Details    []string `json:"Details"`
+		Confidence int      `json:"Confidence"`
+		Pass       bool     `json:"Pass"`
 	} `json:"Checks"`
 	MetaData []string `json:"MetaData"`
 }
