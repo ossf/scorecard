@@ -15,10 +15,16 @@
 package repos
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
 	"strings"
+)
+
+var (
+	ErrorUnsupportedHost  = errors.New("unsupported host")
+	ErrorInvalidGithubURL = errors.New("invalid GitHub repo url")
 )
 
 type RepoURL struct {
@@ -64,12 +70,11 @@ func (r *RepoURL) ValidGitHubURL() error {
 	case "github.com":
 		break
 	default:
-		return fmt.Errorf("unsupported host: %s", r.Host)
+		return fmt.Errorf("%w: %s", ErrorUnsupportedHost, r.Host)
 	}
 
 	if len(strings.TrimSpace(r.Owner)) == 0 || len(strings.TrimSpace(r.Repo)) == 0 {
-		//nolint:goerr113 // This is not passing an error as an argument.
-		return fmt.Errorf("invalid GitHub repo url: [%s], pass the full repository URL", r.URL())
+		return fmt.Errorf("%w: [%s], pass the full repository URL", ErrorInvalidGithubURL, r.URL())
 	}
 	return nil
 }
