@@ -43,10 +43,8 @@ func Test_shouldUseDiskCache(t *testing.T) {
 			useDiskCache:  false,
 		},
 	}
-	for _, tt := range tests {
-		tt := tt
+	for _, tt := range tests { //nolint:paralleltest // Since we're calling os.Setenv, we can't run these in parallel.
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			if tt.useDiskCache {
 				if tt.diskCachePath != "" {
 					e := os.Setenv(UseDiskCache, "1")
@@ -86,10 +84,8 @@ func Test_shouldUseBlobCache(t *testing.T) {
 			useBlobCache: false,
 		},
 	}
-	for _, tt := range tests {
-		tt := tt
+	for _, tt := range tests { //nolint:paralleltest // Since we're calling os.Setenv, we can't run these in parallel.
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			if tt.useBlobCache {
 				e := os.Setenv(UseBlobCache, "1")
 				thelperHandleError(t, e)

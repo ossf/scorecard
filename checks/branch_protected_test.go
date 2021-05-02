@@ -44,42 +44,44 @@ func TestIsBranchProtected(t *testing.T) {
 		args args
 		want checker.CheckResult
 	}{
-		{
+		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
 			name: "Nothing is enabled",
-			args: args{protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
-					Strict:   false,
-					Contexts: nil,
-				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
+			args: args{
+				protection: &github.Protection{
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   false,
+						Contexts: nil,
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          false,
+						RequireCodeOwnerReviews:      false,
+						RequiredApprovingReviewCount: 0,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
+						Enabled: false,
+					},
+					Restrictions: &github.BranchRestrictions{
 						Users: nil,
 						Teams: nil,
+						Apps:  nil,
 					},
-					DismissStaleReviews:          false,
-					RequireCodeOwnerReviews:      false,
-					RequiredApprovingReviewCount: 0,
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: false,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: false,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: false,
+					},
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
-					Enabled: false,
-				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
-					Enabled: false,
-				},
-				AllowForcePushes: &github.AllowForcePushes{
-					Enabled: false,
-				},
-				AllowDeletions: &github.AllowDeletions{
-					Enabled: false,
-				},
+				c: checker.CheckRequest{Logf: l.Logf},
 			},
-				c: checker.CheckRequest{Logf: l.Logf}},
 			want: checker.CheckResult{
 				Name:        branchProtectionStr,
 				Pass:        false,
@@ -89,41 +91,44 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{name: "Required status check enabled",
-			args: args{protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
-					Strict:   true,
-					Contexts: []string{"foo"},
-				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
+		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+			name: "Required status check enabled",
+			args: args{
+				protection: &github.Protection{
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   true,
+						Contexts: []string{"foo"},
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          false,
+						RequireCodeOwnerReviews:      false,
+						RequiredApprovingReviewCount: 0,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
+						Enabled: false,
+					},
+					Restrictions: &github.BranchRestrictions{
 						Users: nil,
 						Teams: nil,
+						Apps:  nil,
 					},
-					DismissStaleReviews:          false,
-					RequireCodeOwnerReviews:      false,
-					RequiredApprovingReviewCount: 0,
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: false,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: false,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: false,
+					},
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
-					Enabled: false,
-				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
-					Enabled: false,
-				},
-				AllowForcePushes: &github.AllowForcePushes{
-					Enabled: false,
-				},
-				AllowDeletions: &github.AllowDeletions{
-					Enabled: false,
-				},
+				c: checker.CheckRequest{Logf: l.Logf},
 			},
-				c: checker.CheckRequest{Logf: l.Logf}},
 			want: checker.CheckResult{
 				Name:        branchProtectionStr,
 				Pass:        false,
@@ -133,41 +138,44 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{name: "Required status check enabled without checking for status string",
-			args: args{protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
-					Strict:   true,
-					Contexts: nil,
-				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
+		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+			name: "Required status check enabled without checking for status string",
+			args: args{
+				protection: &github.Protection{
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   true,
+						Contexts: nil,
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          false,
+						RequireCodeOwnerReviews:      false,
+						RequiredApprovingReviewCount: 0,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
+						Enabled: false,
+					},
+					Restrictions: &github.BranchRestrictions{
 						Users: nil,
 						Teams: nil,
+						Apps:  nil,
 					},
-					DismissStaleReviews:          false,
-					RequireCodeOwnerReviews:      false,
-					RequiredApprovingReviewCount: 0,
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: false,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: false,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: false,
+					},
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
-					Enabled: false,
-				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
-					Enabled: false,
-				},
-				AllowForcePushes: &github.AllowForcePushes{
-					Enabled: false,
-				},
-				AllowDeletions: &github.AllowDeletions{
-					Enabled: false,
-				},
+				c: checker.CheckRequest{Logf: l.Logf},
 			},
-				c: checker.CheckRequest{Logf: l.Logf}},
 			want: checker.CheckResult{
 				Name:        branchProtectionStr,
 				Pass:        false,
@@ -178,41 +186,44 @@ func TestIsBranchProtected(t *testing.T) {
 			},
 		},
 
-		{name: "Required pull request enabled",
-			args: args{protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
-					Strict:   false,
-					Contexts: []string{"foo"},
-				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
+		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+			name: "Required pull request enabled",
+			args: args{
+				protection: &github.Protection{
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   false,
+						Contexts: []string{"foo"},
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          false,
+						RequireCodeOwnerReviews:      false,
+						RequiredApprovingReviewCount: 1,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
+						Enabled: false,
+					},
+					Restrictions: &github.BranchRestrictions{
 						Users: nil,
 						Teams: nil,
+						Apps:  nil,
 					},
-					DismissStaleReviews:          false,
-					RequireCodeOwnerReviews:      false,
-					RequiredApprovingReviewCount: 1,
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: false,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: false,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: false,
+					},
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
-					Enabled: false,
-				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
-					Enabled: false,
-				},
-				AllowForcePushes: &github.AllowForcePushes{
-					Enabled: false,
-				},
-				AllowDeletions: &github.AllowDeletions{
-					Enabled: false,
-				},
+				c: checker.CheckRequest{Logf: l.Logf},
 			},
-				c: checker.CheckRequest{Logf: l.Logf}},
 			want: checker.CheckResult{
 				Name:        branchProtectionStr,
 				Pass:        false,
@@ -222,41 +233,44 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{name: "Required admin enforcement enabled",
-			args: args{protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
-					Strict:   false,
-					Contexts: []string{"foo"},
-				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
+		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+			name: "Required admin enforcement enabled",
+			args: args{
+				protection: &github.Protection{
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   false,
+						Contexts: []string{"foo"},
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          false,
+						RequireCodeOwnerReviews:      false,
+						RequiredApprovingReviewCount: 0,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
+						Enabled: true,
+					},
+					Restrictions: &github.BranchRestrictions{
 						Users: nil,
 						Teams: nil,
+						Apps:  nil,
 					},
-					DismissStaleReviews:          false,
-					RequireCodeOwnerReviews:      false,
-					RequiredApprovingReviewCount: 0,
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: false,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: false,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: false,
+					},
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
-					Enabled: true,
-				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
-					Enabled: false,
-				},
-				AllowForcePushes: &github.AllowForcePushes{
-					Enabled: false,
-				},
-				AllowDeletions: &github.AllowDeletions{
-					Enabled: false,
-				},
+				c: checker.CheckRequest{Logf: l.Logf},
 			},
-				c: checker.CheckRequest{Logf: l.Logf}},
 			want: checker.CheckResult{
 				Name:        branchProtectionStr,
 				Pass:        false,
@@ -266,41 +280,44 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{name: "Required linear history enabled",
-			args: args{protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
-					Strict:   false,
-					Contexts: []string{"foo"},
-				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
+		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+			name: "Required linear history enabled",
+			args: args{
+				protection: &github.Protection{
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   false,
+						Contexts: []string{"foo"},
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          false,
+						RequireCodeOwnerReviews:      false,
+						RequiredApprovingReviewCount: 0,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
+						Enabled: false,
+					},
+					Restrictions: &github.BranchRestrictions{
 						Users: nil,
 						Teams: nil,
+						Apps:  nil,
 					},
-					DismissStaleReviews:          false,
-					RequireCodeOwnerReviews:      false,
-					RequiredApprovingReviewCount: 0,
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: true,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: false,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: false,
+					},
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
-					Enabled: false,
-				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
-					Enabled: true,
-				},
-				AllowForcePushes: &github.AllowForcePushes{
-					Enabled: false,
-				},
-				AllowDeletions: &github.AllowDeletions{
-					Enabled: false,
-				},
+				c: checker.CheckRequest{Logf: l.Logf},
 			},
-				c: checker.CheckRequest{Logf: l.Logf}},
 			want: checker.CheckResult{
 				Name:        branchProtectionStr,
 				Pass:        false,
@@ -310,41 +327,44 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{name: "Allow force push enabled",
-			args: args{protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
-					Strict:   false,
-					Contexts: []string{"foo"},
-				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
+		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+			name: "Allow force push enabled",
+			args: args{
+				protection: &github.Protection{
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   false,
+						Contexts: []string{"foo"},
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          false,
+						RequireCodeOwnerReviews:      false,
+						RequiredApprovingReviewCount: 0,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
+						Enabled: false,
+					},
+					Restrictions: &github.BranchRestrictions{
 						Users: nil,
 						Teams: nil,
+						Apps:  nil,
 					},
-					DismissStaleReviews:          false,
-					RequireCodeOwnerReviews:      false,
-					RequiredApprovingReviewCount: 0,
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: false,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: true,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: false,
+					},
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
-					Enabled: false,
-				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
-					Enabled: false,
-				},
-				AllowForcePushes: &github.AllowForcePushes{
-					Enabled: true,
-				},
-				AllowDeletions: &github.AllowDeletions{
-					Enabled: false,
-				},
+				c: checker.CheckRequest{Logf: l.Logf},
 			},
-				c: checker.CheckRequest{Logf: l.Logf}},
 			want: checker.CheckResult{
 				Name:        branchProtectionStr,
 				Pass:        false,
@@ -353,41 +373,45 @@ func TestIsBranchProtected(t *testing.T) {
 				ShouldRetry: false,
 				Error:       nil,
 			},
-		}, {name: "Allow deletions enabled",
-			args: args{protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
-					Strict:   false,
-					Contexts: []string{"foo"},
-				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
+		},
+		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+			name: "Allow deletions enabled",
+			args: args{
+				protection: &github.Protection{
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   false,
+						Contexts: []string{"foo"},
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          false,
+						RequireCodeOwnerReviews:      false,
+						RequiredApprovingReviewCount: 0,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
+						Enabled: false,
+					},
+					Restrictions: &github.BranchRestrictions{
 						Users: nil,
 						Teams: nil,
+						Apps:  nil,
 					},
-					DismissStaleReviews:          false,
-					RequireCodeOwnerReviews:      false,
-					RequiredApprovingReviewCount: 0,
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: false,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: false,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: true,
+					},
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
-					Enabled: false,
-				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
-					Enabled: false,
-				},
-				AllowForcePushes: &github.AllowForcePushes{
-					Enabled: false,
-				},
-				AllowDeletions: &github.AllowDeletions{
-					Enabled: true,
-				},
+				c: checker.CheckRequest{Logf: l.Logf},
 			},
-				c: checker.CheckRequest{Logf: l.Logf}},
 			want: checker.CheckResult{
 				Name:        branchProtectionStr,
 				Pass:        false,
@@ -396,40 +420,44 @@ func TestIsBranchProtected(t *testing.T) {
 				ShouldRetry: false,
 				Error:       nil,
 			},
-		}, {name: "Branches are protected",
-			args: args{protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
-					Strict:   true,
-					Contexts: []string{"foo"},
-				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
+		},
+		{
+			name: "Branches are protected",
+			args: args{
+				protection: &github.Protection{
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   true,
+						Contexts: []string{"foo"},
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          true,
+						RequireCodeOwnerReviews:      true,
+						RequiredApprovingReviewCount: 1,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						Enabled: true,
+					},
+					Restrictions: &github.BranchRestrictions{
 						Users: nil,
 						Teams: nil,
+						Apps:  nil,
 					},
-					DismissStaleReviews:          true,
-					RequireCodeOwnerReviews:      true,
-					RequiredApprovingReviewCount: 1,
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: true,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: false,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: false,
+					},
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					Enabled: true,
-				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
-					Enabled: true,
-				},
-				AllowForcePushes: &github.AllowForcePushes{
-					Enabled: false,
-				},
-				AllowDeletions: &github.AllowDeletions{
-					Enabled: false,
-				},
+				c: checker.CheckRequest{Logf: l.Logf},
 			},
-				c: checker.CheckRequest{Logf: l.Logf}},
 			want: checker.CheckResult{
 				Name:        branchProtectionStr,
 				Pass:        true,

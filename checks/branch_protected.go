@@ -87,14 +87,13 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 	}
 
 	if protection.GetRequiredStatusChecks() != nil {
-		if !protection.RequiredStatusChecks.Strict {
+		switch {
+		case !protection.RequiredStatusChecks.Strict:
 			c.Logf("!! branch protection require status checks to pass before merging not enabled")
-		} else {
-			if len(protection.RequiredStatusChecks.Contexts) == 0 {
-				c.Logf("!! branch protection require status checks to pass before merging has no specific status to check for")
-			} else {
-				totalSuccess++
-			}
+		case len(protection.RequiredStatusChecks.Contexts) == 0:
+			c.Logf("!! branch protection require status checks to pass before merging has no specific status to check for")
+		default:
+			totalSuccess++
 		}
 	}
 

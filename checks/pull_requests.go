@@ -59,7 +59,8 @@ func PullRequests(c *checker.CheckRequest) checker.CheckResult {
 			continue
 		}
 
-		prs, _, err := c.Client.PullRequests.ListPullRequestsWithCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA(), &github.PullRequestListOptions{})
+		prs, _, err := c.Client.PullRequests.ListPullRequestsWithCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA(),
+			&github.PullRequestListOptions{})
 		if err != nil {
 			return checker.MakeRetryResult(pullRequestsStr, err)
 		}
