@@ -49,7 +49,8 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 			continue
 		}
 		totalMerged++
-		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(), &github.ListCheckRunsOptions{})
+		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
+			&github.ListCheckRunsOptions{})
 		if err != nil {
 			return checker.MakeRetryResult(sastStr, err)
 		}

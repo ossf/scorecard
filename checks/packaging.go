@@ -30,7 +30,8 @@ func init() {
 }
 
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
-	_, dc, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, ".github/workflows", &github.RepositoryContentGetOptions{})
+	_, dc, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, ".github/workflows",
+		&github.RepositoryContentGetOptions{})
 	if err != nil {
 		return checker.MakeRetryResult(packagingStr, err)
 	}
@@ -54,9 +55,10 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			continue
 		}
 
-		runs, _, err := c.Client.Actions.ListWorkflowRunsByFileName(c.Ctx, c.Owner, c.Repo, filepath.Base(fp), &github.ListWorkflowRunsOptions{
-			Status: "success",
-		})
+		runs, _, err := c.Client.Actions.ListWorkflowRunsByFileName(c.Ctx, c.Owner, c.Repo, filepath.Base(fp),
+			&github.ListWorkflowRunsOptions{
+				Status: "success",
+			})
 		if err != nil {
 			return checker.MakeRetryResult(packagingStr, err)
 		}
