@@ -30,7 +30,7 @@ var _ = Describe("E2E TEST:Fuzzing", func() {
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
-				HttpClient:  client,
+				HTTPClient:  client,
 				Owner:       "tensorflow",
 				Repo:        "tensorflow",
 				GraphClient: graphClient,
