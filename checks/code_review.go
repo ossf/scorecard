@@ -29,9 +29,9 @@ func init() {
 
 // DoesCodeReview attempts to determine whether a project requires review before code gets merged.
 // It uses a set of heuristics:
-// - Looking at the repo configuration to see if reviews are required
-// - Checking if most of the recent merged PRs were "Approved"
-// - Looking for other well-known review labels
+// - Looking at the repo configuration to see if reviews are required.
+// - Checking if most of the recent merged PRs were "Approved".
+// - Looking for other well-known review labels.
 func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	return checker.MultiCheck(
 		IsPrReviewRequired,
