@@ -19,7 +19,7 @@ const MaxResultConfidence = 10
 type CheckResult struct {
 	Error       error `json:"-"`
 	Name        string
-	Details     []string `json:omitempty`
+	Details     []string `json:",omitempty"`
 	Confidence  int
 	Pass        bool
 	ShouldRetry bool `json:"-"`
