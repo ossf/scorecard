@@ -18,7 +18,7 @@ This check tries to determine if the project is still "actively maintained". It 
 
 ## Branch-Protection 
 
-This check tries to determine if the project has branch protection enabled. 
+This check tries to determine if the project has branch protection enabled. This check would work only when the token has [Admin access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197) to the repository. 
 
 **Remediation steps**
 - Enable branch protection settings in your source hosting provider to avoid force pushes or deletion of your important branches.
