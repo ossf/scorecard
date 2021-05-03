@@ -26,7 +26,7 @@ type CheckRequest struct {
 	Ctx         context.Context
 	Client      *github.Client
 	GraphClient *githubv4.Client
-	HttpClient  *http.Client
+	HTTPClient  *http.Client
 	Owner, Repo string
 	Logf        func(s string, f ...interface{})
 }

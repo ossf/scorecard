@@ -100,7 +100,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			}
 		}
 
-		if err := repo.ValidGitHubUrl(); err != nil {
+		if err := repo.ValidGitHubURL(); err != nil {
 			log.Fatal(err)
 		}
 
@@ -136,7 +136,6 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			fmt.Println("\nRESULTS\n-------")
 		}
 
-		err = error(nil)
 		switch format {
 		case formatDefault:
 			err = repoResult.AsString(showDetails, os.Stdout)

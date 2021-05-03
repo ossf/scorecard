@@ -158,7 +158,8 @@ checks:
         your project activity and maintenance commitment.
   Branch-Protection:
     description: >-
-      This check tries to determine if the project has branch protection enabled.
+      This check tries to determine if the project has branch protection enabled. This check would
+      work only when the token has [Admin access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197) to the repository.
     remediation:
       - >-
         Enable branch protection settings in your source hosting provider to avoid
