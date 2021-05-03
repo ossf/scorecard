@@ -67,7 +67,7 @@ func main() {
 		if err := repoURL.Set(r.Repo); err != nil {
 			panic(err)
 		}
-		if err := repoURL.ValidGitHubUrl(); err != nil {
+		if err := repoURL.ValidGitHubURL(); err != nil {
 			panic(err)
 		}
 

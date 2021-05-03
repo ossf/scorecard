@@ -30,7 +30,7 @@ var _ = Describe("E2E TEST:CITests", func() {
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
-				HttpClient:  client,
+				HTTPClient:  client,
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,

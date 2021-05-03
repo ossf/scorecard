@@ -78,7 +78,7 @@ func TestRepoURL_ValidGitHubUrl(t *testing.T) {
 			if err := r.Set(tt.args.s); err != nil {
 				t.Errorf("RepoURL.Set() error = %v", err)
 			}
-			if err := r.ValidGitHubUrl(); (err != nil) != tt.wantErr {
+			if err := r.ValidGitHubURL(); (err != nil) != tt.wantErr {
 				t.Errorf("RepoURL.ValidGitHubUrl() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr {

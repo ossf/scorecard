@@ -47,7 +47,7 @@ func runEnabledChecks(ctx context.Context, logger *zap.SugaredLogger, repo repos
 			c := checker.CheckRequest{
 				Ctx:         ctx,
 				Client:      ghClient,
-				HttpClient:  client,
+				HTTPClient:  client,
 				Owner:       repo.Owner,
 				Repo:        repo.Repo,
 				GraphClient: graphClient,
@@ -64,7 +64,7 @@ func runEnabledChecks(ctx context.Context, logger *zap.SugaredLogger, repo repos
 func RunScorecards(ctx context.Context, logger *zap.SugaredLogger,
 	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap) repos.RepoResult {
 	ret := repos.RepoResult{
-		Repo: repo.Url(),
+		Repo: repo.URL(),
 		Date: time.Now().Format("2006-01-02"),
 	}
 	resultsCh := make(chan checker.CheckResult)
