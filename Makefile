@@ -100,7 +100,6 @@ e2e-cron: ## validates cron
 	GCS_BUCKET=ossf-scorecards-dev go run ./cron/main.go ./e2e/cron-projects.txt
 
 
-
 # Verification targets
 .PHONY: verify
 verify: verify-go-mod verify-go-mod-cron verify-go-mod-scripts  lint ## Run all verification targets
