@@ -1,7 +1,6 @@
 SHELL := /bin/bash
 GOBIN ?= $(GOPATH)/bin
 GINKGO ?= $(GOBIN)/ginkgo
-GOLANGCI_LINT ?= $(GOBIN)/golangci-lint
 IMAGE_NAME = scorecard
 OUTPUT = output
 FOCUS_DISK_TEST="E2E TEST:Disk Cache|E2E TEST:executable"
@@ -49,7 +48,7 @@ golangci-lint:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.39.0
 
 lint: golangci-lint ## Runs golangci-lint linter
-	$(GOLANGCI_LINT) run -n 
+	golangci-lint run -n
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN
