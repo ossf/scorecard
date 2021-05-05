@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 GOBIN ?= $(GOPATH)/bin
 GINKGO ?= $(GOBIN)/ginkgo
+GOLANGCI_LINT ?= $(GOBIN)/golangci-lint
 IMAGE_NAME = scorecard
 OUTPUT = output
 FOCUS_DISK_TEST="E2E TEST:Disk Cache|E2E TEST:executable"
@@ -44,11 +45,8 @@ test: ## Runs unit test
 	# ignoring e2e tests
 	go test -covermode atomic  `go list ./... | grep -v e2e`
 
-GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
 golangci-lint:
-	rm -f $(GOLANGCI_LINT) || :
-	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) v1.39.0 ;\
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.39.0
 
 lint: golangci-lint ## Runs golangci-lint linter
 	$(GOLANGCI_LINT) run -n 
@@ -65,7 +63,7 @@ e2e: build check-env ginkgo
 	$(GINKGO) --skip="E2E TEST:executable" -p -v -cover  ./...
 
 ginkgo:
-	go get -u github.com/onsi/ginkgo/ginkgo
+	go get -u github.com/onsi/ginkgo/ginkgo@v1.16.2
 
 unexport USE_DISK_CACHE
 unexport USE_BLOB_CACHE
