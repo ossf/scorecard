@@ -44,14 +44,11 @@ test: ## Runs unit test
 	# ignoring e2e tests
 	go test -covermode atomic  `go list ./... | grep -v e2e`
 
-GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
 golangci-lint:
-	rm -f $(GOLANGCI_LINT) || :
-	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) v1.39.0 ;\
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.39.0
 
 lint: golangci-lint ## Runs golangci-lint linter
-	$(GOLANGCI_LINT) run -n 
+	golangci-lint run -n
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN
@@ -65,7 +62,7 @@ e2e: build check-env ginkgo
 	$(GINKGO) --skip="E2E TEST:executable" -p -v -cover  ./...
 
 ginkgo:
-	go get -u github.com/onsi/ginkgo/ginkgo
+	go get -u github.com/onsi/ginkgo/ginkgo@v1.16.2
 
 unexport USE_DISK_CACHE
 unexport USE_BLOB_CACHE
@@ -100,7 +97,6 @@ test-disk-cache: build  ## Runs disk cache tests
 
 e2e-cron: ## validates cron
 	GCS_BUCKET=ossf-scorecards-dev go run ./cron/main.go ./e2e/cron-projects.txt
-
 
 
 # Verification targets
