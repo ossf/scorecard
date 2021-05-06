@@ -17,6 +17,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -40,12 +41,13 @@ var (
 	checksToRun []string
 	metaData    []string
 	// This one has to use goflag instead of pflag because it's defined by zap.
-	logLevel    = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
-	format      string
-	npm         string
-	pypi        string
-	rubygems    string
-	showDetails bool
+	logLevel               = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
+	format                 string
+	npm                    string
+	pypi                   string
+	rubygems               string
+	showDetails            bool
+	ErrorInvalidFormatFlag = errors.New("invalid format flag")
 )
 
 const (
@@ -144,7 +146,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		case formatJSON:
 			err = repoResult.AsJSON(showDetails, os.Stdout)
 		default:
-			err = fmt.Errorf("invalid format flag %s. allowed values are: [default, csv, json]", format)
+			err = fmt.Errorf("%w %s. allowed values are: [default, csv, json]", ErrorInvalidFormatFlag, format)
 		}
 		if err != nil {
 			log.Fatalf("Failed to output results: %v", err)
