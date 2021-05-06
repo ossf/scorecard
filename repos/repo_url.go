@@ -24,7 +24,7 @@ import (
 
 var (
 	ErrorUnsupportedHost  = errors.New("unsupported host")
-	ErrorInvalidGithubURL = errors.New("invalid GitHub repo url")
+	ErrorInvalidGithubURL = errors.New("invalid GitHub repo URL")
 )
 
 type RepoURL struct {
