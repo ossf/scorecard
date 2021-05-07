@@ -1,4 +1,3 @@
-# syntax = docker/dockerfile:experimental
 # Copyright 2020 Security Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +23,7 @@ COPY . ./
 FROM base AS build
 ARG TARGETOS
 ARG TARGETARCH
-RUN --mount=type=cache,target=/root/.cache/go-build  CGO_ENABLED=0 make build
+RUN CGO_ENABLED=0 make build
 
 FROM gcr.io/distroless/base:nonroot
 COPY --from=build /src/scorecard /
