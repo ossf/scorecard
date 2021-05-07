@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-FROM  golang:1.16.3 as base
+FROM  golang:1.16.4 as base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
