@@ -183,8 +183,6 @@ The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#github_auth_token)
 docker run -e GITHUB_AUTH_TOKEN=token docker.pkg.github.com/ossf/scorecard/scorecard --show-details --repo=https://github.com/ossf/scorecard
 ```
 
-The Dockerfile in the root directory utilizes [experimental features](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md) which is available in Docker v18.09 or later.
-
 ### Caching
 
 Scorecard uses `httpcache` with <https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests> for caching httpresponse. The default cache is in-memory.
