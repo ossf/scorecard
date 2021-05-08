@@ -33,7 +33,8 @@ jobs:
           DOCKER_BUILDKIT=1 docker build -t docker.pkg.github.com/ossf/scorecard:${{ github.sha }} .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        # https://github.com/aquasecurity/trivy-action/releases/tag/0.0.15
+        uses: aquasecurity/trivy-action@341f810bd602419f966a081da3f4debedc3e5c8e
         with:
           image-ref: 'docker.pkg.github.com/ossf/scorecard:${{ github.sha }}'
           format: 'template'
