@@ -73,7 +73,7 @@ func (r *RepoURL) ValidGitHubURL() error {
 		return fmt.Errorf("%w: %s", ErrorUnsupportedHost, r.Host)
 	}
 
-	if len(strings.TrimSpace(r.Owner)) == 0 || len(strings.TrimSpace(r.Repo)) == 0 {
+	if strings.TrimSpace(r.Owner) == "" || strings.TrimSpace(r.Repo) == "" {
 		return fmt.Errorf("%w: [%s], pass the full repository URL", ErrorInvalidGithubURL, r.URL())
 	}
 	return nil
