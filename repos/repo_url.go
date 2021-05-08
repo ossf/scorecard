@@ -17,7 +17,6 @@ package repos
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"strings"
 )
@@ -25,6 +24,7 @@ import (
 var (
 	ErrorUnsupportedHost  = errors.New("unsupported host")
 	ErrorInvalidGithubURL = errors.New("invalid GitHub repo URL")
+	ErrorInvalidURL       = errors.New("invalid repo flag")
 )
 
 type RepoURL struct {
@@ -58,7 +58,7 @@ func (r *RepoURL) Set(s string) error {
 	const splitLen = 2
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
-		log.Fatalf("invalid repo flag: [%s], pass the full repository URL", s)
+		return fmt.Errorf("%w: [%s], pass the full repository URL", ErrorInvalidURL, s)
 	}
 
 	r.Host, r.Owner, r.Repo = u.Host, split[0], split[1]
