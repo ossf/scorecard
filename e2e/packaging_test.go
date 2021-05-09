@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//nolint:dupl // repeating test cases that are slightly different is acceptable
 package e2e
 
 import (
