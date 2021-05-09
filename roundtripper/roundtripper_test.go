@@ -25,6 +25,7 @@ func thelperHandleError(t *testing.T, e error) {
 	}
 }
 
+//nolint:tparallel // Since we're calling os.Setenv, we can't run the subtests in parallel.
 func Test_shouldUseDiskCache(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -66,6 +67,7 @@ func Test_shouldUseDiskCache(t *testing.T) {
 	}
 }
 
+//nolint:tparallel // Since we're calling os.Setenv, we can't run the subtests in parallel.
 func Test_shouldUseBlobCache(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
