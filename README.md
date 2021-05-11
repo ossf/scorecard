@@ -180,7 +180,7 @@ Signed-Tags: Fail 10
 The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#github_auth_token)
 
 ``` shell
-docker run -e GITHUB_AUTH_TOKEN=token docker.pkg.github.com/ossf/scorecard/scorecard --show-details --repo=https://github.com/ossf/scorecard
+docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:latest --show-details --repo=https://github.com/ossf/scorecard
 ```
 
 ### Caching
