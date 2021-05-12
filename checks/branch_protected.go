@@ -60,7 +60,7 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 	// This is disabled by default (good).
 	if protection.GetAllowForcePushes() != nil &&
 		protection.AllowForcePushes.Enabled {
-		c.Logf("!! branch protection AllowForcePushes enabled")
+		c.Logf("!! branch protection - AllowForcePushes should be disabled")
 	} else {
 		totalSuccess++
 	}
@@ -68,7 +68,7 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 	// This is disabled by default (good).
 	if protection.GetAllowDeletions() != nil &&
 		protection.AllowDeletions.Enabled {
-		c.Logf("!! branch protection AllowDeletions enabled")
+		c.Logf("!! branch protection - AllowDeletions should be disabled")
 	} else {
 		totalSuccess++
 	}
@@ -78,7 +78,7 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 		protection.EnforceAdmins.Enabled {
 		totalSuccess++
 	} else {
-		c.Logf("!! branch protection EnforceAdmins not enabled")
+		c.Logf("!! branch protection - EnforceAdmins should be enabled")
 	}
 
 	// This is disabled by default (bad).
@@ -86,7 +86,7 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 		protection.RequireLinearHistory.Enabled {
 		totalSuccess++
 	} else {
-		c.Logf("!! branch protection require linear history not enabled")
+		c.Logf("!! branch protection - Linear history should be enabled")
 	}
 
 	// This is disabled by default (bad).
@@ -98,11 +98,11 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 		switch {
 		case protection.RequiredStatusChecks == nil ||
 			!protection.RequiredStatusChecks.Strict:
-			c.Logf("!! branch protection require status checks to pass before merging not enabled")
+			c.Logf("!! branch protection - Status checks for merging should be enabled")
 		case len(protection.RequiredStatusChecks.Contexts) == 0:
-			c.Logf("!! branch protection require status checks to pass before merging has no specific status to check for")
+			c.Logf("!! branch protection - Status checks for merging should have specific status to check for")
 		default:
-			panic("unhandled status check error")
+			panic("!! branch protection - Unhandled status checks error")
 		}
 	}
 
@@ -118,23 +118,18 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 	} else {
 		switch {
 		case protection.RequiredPullRequestReviews == nil:
-			c.Logf("!! branch protection require pullrequest before merging not enabled")
+			c.Logf("!! branch protection - Pullrequest reviews should be enabled")
 			fallthrough
 		case protection.RequiredPullRequestReviews.RequiredApprovingReviewCount < minReviews:
-			c.Logf("!! branch protection require %v pullrequest reviews before merging not enabled", minReviews)
+			c.Logf("!! branch protection - %v pullrequest reviews should be enabled", minReviews)
 			fallthrough
 		case !protection.RequiredPullRequestReviews.DismissStaleReviews:
-			c.Logf("!! branch protection require dismissal stale reviews before merging not enabled")
-			fallthrough
-		case protection.RequiredPullRequestReviews.DismissalRestrictions != nil ||
-			protection.RequiredPullRequestReviews.DismissalRestrictions.Users != nil ||
-			protection.RequiredPullRequestReviews.DismissalRestrictions.Teams != nil:
-			c.Logf("!! branch protection require no dismissal restriction before merging not enabled")
+			c.Logf("!! branch protection rule - Dismiss stale reviews on new commits should be enabled")
 			fallthrough
 		case !protection.RequiredPullRequestReviews.RequireCodeOwnerReviews:
-			c.Logf("!! branch protection require owner review before merging not enabled")
+			c.Logf("!! branch protection - Owner review should be enabled")
 		default:
-			panic("unhandled pull request error")
+			panic("!! branch protection - Unhandled pull request error")
 		}
 	}
 
