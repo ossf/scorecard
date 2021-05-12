@@ -213,7 +213,7 @@ func TestIsBranchProtected(t *testing.T) {
 						Apps:  nil,
 					},
 					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
+						Enabled: true,
 					},
 					AllowForcePushes: &github.AllowForcePushes{
 						Enabled: false,
@@ -439,6 +439,7 @@ func TestIsBranchProtected(t *testing.T) {
 						RequiredApprovingReviewCount: 1,
 					},
 					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
 						Enabled: true,
 					},
 					Restrictions: &github.BranchRestrictions{
