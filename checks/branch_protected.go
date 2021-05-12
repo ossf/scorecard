@@ -21,7 +21,7 @@ import (
 
 const (
 	branchProtectionStr = "Branch-Protection"
-	minReviews          = 2
+	minReviews          = 1
 )
 
 func init() {
