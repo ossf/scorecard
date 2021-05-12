@@ -50,11 +50,11 @@ jobs:
 
       - name: pull_request actions/checkout
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.3.4
 
       - name: pull_request actions/checkout
         if: github.event_name == 'repository_dispatch'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.3.4
         with:
           ref: 'refs/pull/${{ github.event.client_payload.pull_request.number }}/merge'
 
