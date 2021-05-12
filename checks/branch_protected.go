@@ -124,7 +124,7 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 			c.Logf("!! branch protection - %v pullrequest reviews should be enabled", minReviews)
 			fallthrough
 		case !protection.RequiredPullRequestReviews.DismissStaleReviews:
-			c.Logf("!! branch protection rule - Dismiss stale reviews on new commits should be enabled")
+			c.Logf("!! branch protection - Dismiss stale reviews on new commits should be enabled")
 			fallthrough
 		case !protection.RequiredPullRequestReviews.RequireCodeOwnerReviews:
 			c.Logf("!! branch protection - Owner review should be enabled")
