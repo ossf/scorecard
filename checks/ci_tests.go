@@ -27,9 +27,11 @@ const (
 	success    = "success"
 )
 
+// States for which CI system is in use.
+type ciSystemState int
+
 const (
-	// States for which CI system is in use.
-	unknown = iota
+	unknown ciSystemState = iota
 	githubStatuses
 	githubCheckRuns
 )
@@ -58,12 +60,12 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		var foundCI bool
 
 		// Github Statuses.
-		if usedSystem <= githubStatuses {
-			prHasStatus, err := prHasSuccessStatus(pr, c)
+		if usedSystem != githubCheckRuns {
+			prSuccessStatus, err := prHasSuccessStatus(pr, c)
 			if err != nil {
 				return checker.MakeRetryResult(ciTestsStr, err)
 			}
-			if prHasStatus {
+			if prSuccessStatus {
 				totalTested++
 				foundCI = true
 				usedSystem = githubStatuses
@@ -72,12 +74,12 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		}
 
 		// Github Check Runs
-		if usedSystem == githubCheckRuns || usedSystem == unknown {
-			prHasCheck, err := prHasSuccessfulCheck(pr, c)
+		if usedSystem != githubStatuses {
+			prCheckSuccessful, err := prHasSuccessfulCheck(pr, c)
 			if err != nil {
 				return checker.MakeRetryResult(ciTestsStr, err)
 			}
-			if prHasCheck {
+			if prCheckSuccessful {
 				totalTested++
 				foundCI = true
 				usedSystem = githubCheckRuns
