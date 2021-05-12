@@ -19,8 +19,10 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const branchProtectionStr = "Branch-Protection"
-const minReviews = 2
+const (
+	branchProtectionStr = "Branch-Protection"
+	minReviews          = 2
+)
 
 func init() {
 	registerCheck(branchProtectionStr, BranchProtection)
@@ -113,7 +115,6 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 				protection.RequiredPullRequestReviews.DismissalRestrictions.Teams == nil)) &&
 		protection.RequiredPullRequestReviews.RequireCodeOwnerReviews {
 		totalSuccess++
-
 	} else {
 		switch {
 		case protection.RequiredPullRequestReviews == nil:
@@ -135,7 +136,6 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 		default:
 			panic("unhandled pull request error")
 		}
-
 	}
 
 	return checker.MakeProportionalResult(branchProtectionStr, totalSuccess, totalChecks, 1.0)
