@@ -19,7 +19,10 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const branchProtectionStr = "Branch-Protection"
+const (
+	branchProtectionStr = "Branch-Protection"
+	minReviews          = 1
+)
 
 func init() {
 	registerCheck(branchProtectionStr, BranchProtection)
@@ -54,54 +57,76 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 	totalChecks := 6
 	totalSuccess := 0
 
-	if protection.GetAllowForcePushes() != nil {
-		if protection.AllowForcePushes.Enabled {
-			c.Logf("!! branch protection AllowForcePushes enabled")
-		} else {
-			totalSuccess++
-		}
+	// This is disabled by default (good).
+	if protection.GetAllowForcePushes() != nil &&
+		protection.AllowForcePushes.Enabled {
+		c.Logf("!! branch protection - AllowForcePushes should be disabled")
+	} else {
+		totalSuccess++
 	}
 
-	if protection.GetAllowDeletions() != nil {
-		if protection.AllowDeletions.Enabled {
-			c.Logf("!! branch protection AllowDeletions enabled")
-		} else {
-			totalSuccess++
-		}
+	// This is disabled by default (good).
+	if protection.GetAllowDeletions() != nil &&
+		protection.AllowDeletions.Enabled {
+		c.Logf("!! branch protection - AllowDeletions should be disabled")
+	} else {
+		totalSuccess++
 	}
 
-	if protection.GetEnforceAdmins() != nil {
-		if !protection.EnforceAdmins.Enabled {
-			c.Logf("!! branch protection EnforceAdmins not enabled")
-		} else {
-			totalSuccess++
-		}
+	// This is disabled by default (bad).
+	if protection.GetEnforceAdmins() != nil &&
+		protection.EnforceAdmins.Enabled {
+		totalSuccess++
+	} else {
+		c.Logf("!! branch protection - EnforceAdmins should be enabled")
 	}
 
-	if protection.GetRequireLinearHistory() != nil {
-		if !protection.RequireLinearHistory.Enabled {
-			c.Logf("!! branch protection require linear history not enabled")
-		} else {
-			totalSuccess++
-		}
+	// This is disabled by default (bad).
+	if protection.GetRequireLinearHistory() != nil &&
+		protection.RequireLinearHistory.Enabled {
+		totalSuccess++
+	} else {
+		c.Logf("!! branch protection - Linear history should be enabled")
 	}
 
-	if protection.GetRequiredStatusChecks() != nil {
+	// This is disabled by default (bad).
+	if protection.GetRequiredStatusChecks() != nil &&
+		protection.RequiredStatusChecks.Strict &&
+		len(protection.RequiredStatusChecks.Contexts) > 0 {
+		totalSuccess++
+	} else {
 		switch {
-		case !protection.RequiredStatusChecks.Strict:
-			c.Logf("!! branch protection require status checks to pass before merging not enabled")
+		case protection.RequiredStatusChecks == nil ||
+			!protection.RequiredStatusChecks.Strict:
+			c.Logf("!! branch protection - Status checks for merging should be enabled")
 		case len(protection.RequiredStatusChecks.Contexts) == 0:
-			c.Logf("!! branch protection require status checks to pass before merging has no specific status to check for")
+			c.Logf("!! branch protection - Status checks for merging should have specific status to check for")
 		default:
-			totalSuccess++
+			panic("!! branch protection - Unhandled status checks error")
 		}
 	}
 
-	if protection.GetRequiredPullRequestReviews() != nil {
-		if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount < 1 {
-			c.Logf("!! branch protection require pullrequest before merging not enabled")
-		} else {
-			totalSuccess++
+	// This is disabled by default (bad).
+	if protection.GetRequiredPullRequestReviews() != nil &&
+		protection.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews &&
+		protection.RequiredPullRequestReviews.DismissStaleReviews &&
+		protection.RequiredPullRequestReviews.RequireCodeOwnerReviews {
+		totalSuccess++
+	} else {
+		switch {
+		case protection.RequiredPullRequestReviews == nil:
+			c.Logf("!! branch protection - Pullrequest reviews should be enabled")
+			fallthrough
+		case protection.RequiredPullRequestReviews.RequiredApprovingReviewCount < minReviews:
+			c.Logf("!! branch protection - %v pullrequest reviews should be enabled", minReviews)
+			fallthrough
+		case !protection.RequiredPullRequestReviews.DismissStaleReviews:
+			c.Logf("!! branch protection - Stale review dismissal should be enabled")
+			fallthrough
+		case !protection.RequiredPullRequestReviews.RequireCodeOwnerReviews:
+			c.Logf("!! branch protection - Owner review should be enabled")
+		default:
+			panic("!! branch protection - Unhandled pull request error")
 		}
 	}
 

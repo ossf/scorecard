@@ -53,8 +53,8 @@ type RateLimitRoundTripper struct {
 }
 
 type RoundRobinTokenSource struct {
-	AccessTokens []string
 	log          *zap.SugaredLogger
+	AccessTokens []string
 }
 
 func (r *RoundRobinTokenSource) Token() (*oauth2.Token, error) {

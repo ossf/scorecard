@@ -64,8 +64,8 @@ jobs:
           go-version: '1.16'
 
       - name: Set up Cloud SDK
-        # https://github.com/google-github-actions/setup-gcloud/releases/tag/v0.2.0
-        uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
+        # https://github.com/google-github-actions/setup-gcloud/releases/tag/v0.2.1
+        uses: google-github-actions/setup-gcloud@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCRTOKEN }}
@@ -110,7 +110,7 @@ jobs:
 
       - name: find comment
         if: ${{ always() }}
-        uses: peter-evans/find-comment@v1
+        uses: peter-evans/find-comment@v1.2.0
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}

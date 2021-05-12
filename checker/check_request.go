@@ -27,6 +27,6 @@ type CheckRequest struct {
 	Client      *github.Client
 	GraphClient *githubv4.Client
 	HTTPClient  *http.Client
-	Owner, Repo string
 	Logf        func(s string, f ...interface{})
+	Owner, Repo string
 }
