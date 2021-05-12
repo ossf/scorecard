@@ -33,7 +33,7 @@ jobs:
     if: github.event_name == 'push'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
 
       - name: Build image
         run: DOCKER_BUILDKIT=1 docker build . --file ./gitcache/Dockerfile --tag $IMAGE_NAME
