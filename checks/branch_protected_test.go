@@ -201,7 +201,7 @@ func TestIsBranchProtected(t *testing.T) {
 						},
 						DismissStaleReviews:          false,
 						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 1,
+						RequiredApprovingReviewCount: 2,
 					},
 					EnforceAdmins: &github.AdminEnforcement{
 						URL:     nil,
@@ -213,7 +213,7 @@ func TestIsBranchProtected(t *testing.T) {
 						Apps:  nil,
 					},
 					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
+						Enabled: true,
 					},
 					AllowForcePushes: &github.AllowForcePushes{
 						Enabled: false,
@@ -436,9 +436,10 @@ func TestIsBranchProtected(t *testing.T) {
 						},
 						DismissStaleReviews:          true,
 						RequireCodeOwnerReviews:      true,
-						RequiredApprovingReviewCount: 1,
+						RequiredApprovingReviewCount: 2,
 					},
 					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
 						Enabled: true,
 					},
 					Restrictions: &github.BranchRestrictions{
