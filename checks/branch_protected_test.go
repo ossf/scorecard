@@ -201,7 +201,7 @@ func TestIsBranchProtected(t *testing.T) {
 						},
 						DismissStaleReviews:          false,
 						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 2,
+						RequiredApprovingReviewCount: 1,
 					},
 					EnforceAdmins: &github.AdminEnforcement{
 						URL:     nil,
@@ -436,7 +436,7 @@ func TestIsBranchProtected(t *testing.T) {
 						},
 						DismissStaleReviews:          true,
 						RequireCodeOwnerReviews:      true,
-						RequiredApprovingReviewCount: 2,
+						RequiredApprovingReviewCount: 1,
 					},
 					EnforceAdmins: &github.AdminEnforcement{
 						URL:     nil,
