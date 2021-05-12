@@ -31,7 +31,7 @@ jobs:
           go-version: '^1.16'
       - name: Run presubmit tests
         run: make all
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v1.5.0
         with:
           files: e2e/e2e.coverprofile,pkg/pkg.coverprofile,checks/checks.coverprofile
   license-check:
