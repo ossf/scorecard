@@ -20,6 +20,7 @@ import (
 )
 
 func thelperHandleError(t *testing.T, e error) {
+	t.Helper()
 	if e != nil {
 		t.Errorf(e.Error())
 	}
