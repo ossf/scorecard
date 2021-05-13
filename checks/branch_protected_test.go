@@ -31,6 +31,7 @@ func (l *log) Logf(s string, f ...interface{}) {
 	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
 
+//nolint:dupl // repeating test cases that are slightly different is acceptable
 func TestIsBranchProtected(t *testing.T) {
 	t.Parallel()
 	type args struct {
@@ -44,7 +45,7 @@ func TestIsBranchProtected(t *testing.T) {
 		args args
 		want checker.CheckResult
 	}{
-		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+		{
 			name: "Nothing is enabled",
 			args: args{
 				protection: &github.Protection{
@@ -91,7 +92,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+		{
 			name: "Required status check enabled",
 			args: args{
 				protection: &github.Protection{
@@ -138,7 +139,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+		{
 			name: "Required status check enabled without checking for status string",
 			args: args{
 				protection: &github.Protection{
@@ -186,7 +187,7 @@ func TestIsBranchProtected(t *testing.T) {
 			},
 		},
 
-		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+		{
 			name: "Required pull request enabled",
 			args: args{
 				protection: &github.Protection{
@@ -233,7 +234,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+		{
 			name: "Required admin enforcement enabled",
 			args: args{
 				protection: &github.Protection{
@@ -280,7 +281,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+		{
 			name: "Required linear history enabled",
 			args: args{
 				protection: &github.Protection{
@@ -327,7 +328,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+		{
 			name: "Allow force push enabled",
 			args: args{
 				protection: &github.Protection{
@@ -374,7 +375,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:       nil,
 			},
 		},
-		{ //nolint:dupl // repeating test cases that are slightly different is acceptable
+		{
 			name: "Allow deletions enabled",
 			args: args{
 				protection: &github.Protection{
