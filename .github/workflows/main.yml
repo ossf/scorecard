@@ -22,7 +22,7 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - name: Clone the code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.3.4
         with:
           fetch-depth: 0
       - name: Setup Go
@@ -31,14 +31,14 @@ jobs:
           go-version: '^1.16'
       - name: Run presubmit tests
         run: make all
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v1.5.0
         with:
           files: e2e/e2e.coverprofile,pkg/pkg.coverprofile,checks/checks.coverprofile
   license-check:
     name: license boilerplate check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16'
