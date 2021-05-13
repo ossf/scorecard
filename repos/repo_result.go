@@ -37,7 +37,10 @@ type RepoResult struct {
 func (r *RepoResult) AsJSON(showDetails bool, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	if showDetails {
-		return encoder.Encode(r)
+		if err := encoder.Encode(r); err != nil {
+			return fmt.Errorf("error encoding repo result as detailed JSON: %w", err)
+		}
+		return nil
 	}
 	out := RepoResult{
 		Repo:     r.Repo,
@@ -52,7 +55,10 @@ func (r *RepoResult) AsJSON(showDetails bool, writer io.Writer) error {
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
-	return encoder.Encode(out)
+	if err := encoder.Encode(out); err != nil {
+		return fmt.Errorf("error encoding repo result as JSON: %w", err)
+	}
+	return nil
 }
 
 func (r *RepoResult) AsCSV(showDetails bool, writer io.Writer) error {
@@ -70,10 +76,13 @@ func (r *RepoResult) AsCSV(showDetails bool, writer io.Writer) error {
 	}
 	fmt.Fprintf(writer, "%s\n", strings.Join(columns, ","))
 	if err := w.Write(record); err != nil {
-		return err
+		return fmt.Errorf("error writing repo result as CSV: %w", err)
 	}
 	w.Flush()
-	return w.Error()
+	if err := w.Error(); err != nil {
+		return fmt.Errorf("error flushing repo result as CSV: %w", err)
+	}
+	return nil
 }
 
 func (r *RepoResult) AsString(showDetails bool, writer io.Writer) error {

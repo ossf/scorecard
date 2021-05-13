@@ -45,7 +45,7 @@ test: ## Runs unit test
 	go test -covermode atomic  `go list ./... | grep -v e2e`
 
 golangci-lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.39.0
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.40.0
 
 lint: golangci-lint ## Runs golangci-lint linter
 	golangci-lint run -n
