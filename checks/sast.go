@@ -15,6 +15,8 @@
 package checks
 
 import (
+	"errors"
+
 	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checker"
 )
@@ -55,7 +57,7 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 			return checker.MakeRetryResult(sastStr, err)
 		}
 		if crs == nil {
-			return checker.MakeInconclusiveResult(sastStr)
+			return checker.MakeInconclusiveResult(sastStr, errors.New("no check runs found"))
 		}
 		for _, cr := range crs.CheckRuns {
 			if cr.GetStatus() != "completed" {
@@ -72,7 +74,7 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 	if totalTested == 0 {
-		return checker.MakeInconclusiveResult(sastStr)
+		return checker.MakeInconclusiveResult(sastStr, errors.New("no merges found"))
 	}
 	return checker.MakeProportionalResult(sastStr, totalTested, totalMerged, .75)
 }

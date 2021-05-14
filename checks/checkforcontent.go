@@ -28,8 +28,8 @@ import (
 
 // CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
 // shellPathFnPattern is used for https://golang.org/pkg/path/#Match
-func CheckFilesContent(checkName string, shellPathFnPattern string, c *checker.CheckRequest, onFileContent func(path string, content []byte,
-	Logf func(s string, f ...interface{})) bool) checker.CheckResult {
+func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckRequest,
+	onFileContent func(path string, content []byte, Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
@@ -55,12 +55,15 @@ func CheckFilesContent(checkName string, shellPathFnPattern string, c *checker.C
 	}
 	tr := tar.NewReader(gz)
 	res := true
+
 	for {
 		hdr, err := tr.Next()
+		if err != nil && err != io.EOF {
+			return checker.MakeRetryResult(checkName, err)
+		}
+
 		if err == io.EOF {
 			break
-		} else if err != nil {
-			return checker.MakeRetryResult(checkName, err)
 		}
 
 		// Only consider regular files.
@@ -98,7 +101,18 @@ func CheckFilesContent(checkName string, shellPathFnPattern string, c *checker.C
 		}
 
 		// We truncate the file to remove tailing 0 (sparse format).
-		if !onFileContent(name, content[:n], c.Logf) {
+		rr, err := onFileContent(name, content[:n], c.Logf)
+		if err != nil {
+			return checker.CheckResult{
+				Name:       checkName,
+				Pass:       false,
+				Confidence: 10,
+				Error:      err,
+			}
+		}
+		// We don't return rightway to give the onFileContent()
+		// handler to log.
+		if !rr {
 			res = false
 		}
 	}

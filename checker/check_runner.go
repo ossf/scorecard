@@ -62,7 +62,7 @@ func Bool2int(b bool) int {
 	return 0
 }
 
-// Returns the best check out of several ones performed.
+// Returns the best check result out of several ones performed.
 func MultiCheckOr(fns ...CheckFn) CheckFn {
 	return func(c *CheckRequest) CheckResult {
 		var maxResult CheckResult
