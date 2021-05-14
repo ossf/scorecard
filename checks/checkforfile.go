@@ -24,10 +24,10 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-// CheckIfFileExists downloads the tar of the repository and calls the predicate to check
+// CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
 // for the occurrence.
-func CheckIfFileExists(checkName string, c *checker.CheckRequest, predicate func(name string,
-	Logf func(s string, f ...interface{})) bool) checker.CheckResult {
+func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(name string,
+	Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
@@ -69,7 +69,17 @@ func CheckIfFileExists(checkName string, c *checker.CheckRequest, predicate func
 		}
 
 		name := names[1]
-		if predicate(name, c.Logf) {
+		rr, err := onFile(name, c.Logf)
+		if err != nil {
+			return checker.CheckResult{
+				Name:       checkName,
+				Pass:       false,
+				Confidence: 10,
+				Error:      err,
+			}
+		}
+
+		if rr {
 			return checker.MakePassResult(checkName)
 		}
 	}

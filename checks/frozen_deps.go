@@ -32,21 +32,30 @@ func init() {
 // FrozenDeps will check the repository if it contains frozen dependecies.
 func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 	return checker.MultiCheckAnd(
-		lockFilesPresent,
-		workflowActionsPinned,
+		isPackageManagerLockFilePresent,
+		isGitHubActionsWorkflowPinned,
 	)(c)
 }
 
-// TODO: need to support Docker https://github.com/ossf/scorecard/issues/403
+// TODO(laurent): need to support Docker https://github.com/ossf/scorecard/issues/403
+
+// ============================================================
+// ===================== Github workflows =====================
+// ============================================================
+
+// Check pinning of github actions in workflows.
+func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
+	return CheckFilesContent(frozenDepsStr, ".github/workflows/*", c, validateGitHubActionWorkflow)
+}
 
 // Check file content
-func onFileContent(path string, content []byte,
-	logf func(s string, f ...interface{})) bool {
+func validateGitHubActionWorkflow(path string, content []byte,
+	logf func(s string, f ...interface{})) (bool, error) {
 
 	// Structure for workflow config.
 	// We only retrieve what we need for logging.
 	// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
-	type YamlWorflowConfig struct {
+	type GitHubActionWorkflowConfig struct {
 		Name string `yaml:name`
 		Jobs map[string]struct {
 			Name  string `yaml:name`
@@ -58,11 +67,10 @@ func onFileContent(path string, content []byte,
 		}
 	}
 
-	var workflow YamlWorflowConfig
+	var workflow GitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		panic(fmt.Errorf("!! frozen-deps - Cannot unmarshall file %v\n%v\n%v", path, content, string(content)))
-		return false
+		return false, fmt.Errorf("!! frozen-deps - Cannot unmarshal file %v\n%v\n%v: %w", path, content, string(content), err)
 	}
 
 	r := true
@@ -75,7 +83,7 @@ func onFileContent(path string, content []byte,
 				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 				match, err := regexp.Match("^.*@[a-f\\d]{40,}$", []byte(step.Uses))
 				if err != nil {
-					panic(fmt.Errorf("!! frozen-deps - Regex failed for %v", path))
+					return false, fmt.Errorf("!! frozen-deps - Regex failed for %v: %w", path, err)
 				}
 				if !match {
 					r = false
@@ -86,49 +94,48 @@ func onFileContent(path string, content []byte,
 
 	}
 
-	return r
+	return r, nil
 }
 
-// Check pinning of github actions in workflows.
-func workflowActionsPinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(frozenDepsStr, ".github/workflows/*", c, onFileContent)
-}
+// ============================================================
+// ================== Package manager lock files ==============
+// ============================================================
 
 // Check presence of lock files thru filePredicate().
-func lockFilesPresent(c *checker.CheckRequest) checker.CheckResult {
-	return CheckIfFileExists(frozenDepsStr, c, filePredicate)
+func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
+	return CheckIfFileExists(frozenDepsStr, c, validatePackageManagerFile)
 }
 
-// filePredicate will validate the if frozen dependecies file name exists.
-// TODO: need to differentiate between libraries and programs.
-func filePredicate(name string, logf func(s string, f ...interface{})) bool {
+// validatePackageManagerFile will validate the if frozen dependecies file name exists.
+// TODO(laurent): need to differentiate between libraries and programs.
+func validatePackageManagerFile(name string, logf func(s string, f ...interface{})) (bool, error) {
 	switch strings.ToLower(name) {
 	case "go.mod", "go.sum":
 		logf("go modules found: %s", name)
-		return true
+		return true, nil
 	case "vendor/", "third_party/", "third-party/":
 		logf("vendor dir found: %s", name)
-		return true
+		return true, nil
 	case "package-lock.json", "npm-shrinkwrap.json":
 		logf("nodejs packages found: %s", name)
-		return true
-	// TODO: I don't think requirement allows pinning
+		return true, nil
+	// TODO(laurent): add check for hashbased pinning in requirements.txt - https://davidwalsh.name/hashin
 	case "requirements.txt", "pipfile.lock":
 		logf("python requirements found: %s", name)
-		return true
+		return true, nil
 	case "gemfile.lock":
 		logf("ruby gems found: %s", name)
-		return true
+		return true, nil
 	case "cargo.lock":
 		logf("rust crates found: %s", name)
-		return true
+		return true, nil
 	case "yarn.lock":
 		logf("yarn packages found: %s", name)
-		return true
+		return true, nil
 	case "composer.lock":
 		logf("composer packages found: %s", name)
-		return true
+		return true, nil
 	default:
-		return false
+		return false, nil
 	}
 }

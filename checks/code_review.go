@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
@@ -47,7 +48,7 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		State: "closed",
 	})
 	if err != nil {
-		return checker.MakeInconclusiveResult(codeReviewStr)
+		return checker.MakeInconclusiveResult(codeReviewStr, err)
 	}
 
 	totalMerged := 0
@@ -105,7 +106,7 @@ func IsPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
 	// Check the branch protection rules, we may not be able to get these though.
 	bp, _, err := c.Client.Repositories.GetBranchProtection(c.Ctx, c.Owner, c.Repo, r.GetDefaultBranch())
 	if err != nil {
-		return checker.MakeInconclusiveResult(codeReviewStr)
+		return checker.MakeInconclusiveResult(codeReviewStr, err)
 	}
 	if bp.GetRequiredPullRequestReviews() != nil &&
 		bp.GetRequiredPullRequestReviews().RequiredApprovingReviewCount >= 1 {
@@ -117,7 +118,7 @@ func IsPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
 			Confidence: confidence,
 		}
 	}
-	return checker.MakeInconclusiveResult(codeReviewStr)
+	return checker.MakeInconclusiveResult(codeReviewStr, nil)
 }
 
 func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
@@ -126,7 +127,7 @@ func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		State: "closed",
 	})
 	if err != nil {
-		return checker.MakeInconclusiveResult(codeReviewStr)
+		return checker.MakeInconclusiveResult(codeReviewStr, err)
 	}
 
 	totalMerged := 0
@@ -145,7 +146,7 @@ func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalReviewed == 0 {
-		return checker.MakeInconclusiveResult(codeReviewStr)
+		return checker.MakeInconclusiveResult(codeReviewStr, errors.New("no reviews found"))
 	}
 	c.Logf("prow code reviews found")
 	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, totalMerged, .75)
@@ -185,7 +186,7 @@ func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalReviewed == 0 {
-		return checker.MakeInconclusiveResult(codeReviewStr)
+		return checker.MakeInconclusiveResult(codeReviewStr, errors.New("no reviews found"))
 	}
 	c.Logf("code reviews found")
 	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, total, .75)
