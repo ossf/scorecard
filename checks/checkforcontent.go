@@ -77,8 +77,6 @@ func CheckFilesContent(checkName string, shellPathFnPattern string, c *checker.C
 
 		name := names[1]
 		// Filter out files based on path.
-		// c.Logf(name)
-
 		if match, _ := path.Match(shellPathFnPattern, name); !match {
 			continue
 		}
