@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
@@ -74,7 +75,7 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 
 	if totalReleases == 0 {
 		c.Logf("no releases found")
-		return checker.MakeInconclusiveResult(signedReleasesStr)
+		return checker.MakeInconclusiveResult(signedReleasesStr, errors.New("no releases found"))
 	}
 
 	c.Logf("found signed artifacts for %d out of %d releases", totalSigned, totalReleases)
