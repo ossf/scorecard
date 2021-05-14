@@ -79,7 +79,7 @@ func onFileContent(path string, content []byte,
 				}
 				if !match {
 					r = false
-					logf("!! frozen-deps - %v has non-pinned dependency %v (job \"%v\")", path, step.Uses, jobName)
+					logf("!! frozen-deps - %v has non-pinned dependency '%v' (job \"%v\")", path, step.Uses, jobName)
 				}
 			}
 		}
