@@ -28,7 +28,7 @@ func init() {
 }
 
 func SAST(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheck(
+	return checker.MultiCheckOr(
 		CodeQLInCheckDefinitions,
 		SASTToolInCheckRuns,
 	)(c)

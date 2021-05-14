@@ -33,7 +33,7 @@ func init() {
 // - Checking if most of the recent merged PRs were "Approved".
 // - Looking for other well-known review labels.
 func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheck(
+	return checker.MultiCheckOr(
 		IsPrReviewRequired,
 		GithubCodeReview,
 		ProwCodeReview,
