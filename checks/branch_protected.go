@@ -89,46 +89,60 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 		c.Logf("!! branch protection - Linear history should be enabled")
 	}
 
+	if requiresStatusChecks(protection, c) {
+		totalSuccess++
+	}
+
+	if requiresThoroughReviews(protection, c) {
+		totalSuccess++
+	}
+
+	return checker.MakeProportionalResult(branchProtectionStr, totalSuccess, totalChecks, 1.0)
+}
+
+// Returns true if several PR status checks requirements are enabled. Otherwise returns false and logs why it failed.
+func requiresStatusChecks(protection *github.Protection, c *checker.CheckRequest) bool {
 	// This is disabled by default (bad).
 	if protection.GetRequiredStatusChecks() != nil &&
 		protection.RequiredStatusChecks.Strict &&
 		len(protection.RequiredStatusChecks.Contexts) > 0 {
-		totalSuccess++
-	} else {
-		switch {
-		case protection.RequiredStatusChecks == nil ||
-			!protection.RequiredStatusChecks.Strict:
-			c.Logf("!! branch protection - Status checks for merging should be enabled")
-		case len(protection.RequiredStatusChecks.Contexts) == 0:
-			c.Logf("!! branch protection - Status checks for merging should have specific status to check for")
-		default:
-			panic("!! branch protection - Unhandled status checks error")
-		}
+		return true
 	}
+	switch {
+	case protection.RequiredStatusChecks == nil ||
+		!protection.RequiredStatusChecks.Strict:
+		c.Logf("!! branch protection - Status checks for merging should be enabled")
+	case len(protection.RequiredStatusChecks.Contexts) == 0:
+		c.Logf("!! branch protection - Status checks for merging should have specific status to check for")
+	default:
+		panic("!! branch protection - Unhandled status checks error")
+	}
+	return false
+}
 
+// Returns true if several PR review requirements are enabled. Otherwise returns false and logs why it failed.
+func requiresThoroughReviews(protection *github.Protection, c *checker.CheckRequest) bool {
 	// This is disabled by default (bad).
 	if protection.GetRequiredPullRequestReviews() != nil &&
 		protection.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews &&
 		protection.RequiredPullRequestReviews.DismissStaleReviews &&
 		protection.RequiredPullRequestReviews.RequireCodeOwnerReviews {
-		totalSuccess++
-	} else {
-		switch {
-		case protection.RequiredPullRequestReviews == nil:
-			c.Logf("!! branch protection - Pullrequest reviews should be enabled")
-			fallthrough
-		case protection.RequiredPullRequestReviews.RequiredApprovingReviewCount < minReviews:
-			c.Logf("!! branch protection - %v pullrequest reviews should be enabled", minReviews)
-			fallthrough
-		case !protection.RequiredPullRequestReviews.DismissStaleReviews:
-			c.Logf("!! branch protection - Stale review dismissal should be enabled")
-			fallthrough
-		case !protection.RequiredPullRequestReviews.RequireCodeOwnerReviews:
-			c.Logf("!! branch protection - Owner review should be enabled")
-		default:
-			panic("!! branch protection - Unhandled pull request error")
-		}
+		return true
 	}
-
-	return checker.MakeProportionalResult(branchProtectionStr, totalSuccess, totalChecks, 1.0)
+	switch {
+	case protection.RequiredPullRequestReviews == nil:
+		c.Logf("!! branch protection - Pullrequest reviews should be enabled")
+		fallthrough
+	case protection.RequiredPullRequestReviews.RequiredApprovingReviewCount < minReviews:
+		c.Logf("!! branch protection - %v pullrequest reviews should be enabled", minReviews)
+		fallthrough
+	case !protection.RequiredPullRequestReviews.DismissStaleReviews:
+		c.Logf("!! branch protection - Stale review dismissal should be enabled")
+		fallthrough
+	case !protection.RequiredPullRequestReviews.RequireCodeOwnerReviews:
+		c.Logf("!! branch protection - Owner review should be enabled")
+	default:
+		panic("!! branch protection - Unhandled pull request error")
+	}
+	return false
 }
