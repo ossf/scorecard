@@ -39,7 +39,6 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 
 	companies := map[string]struct{}{}
 	for _, contrib := range contribs {
-		//nolint:nestif
 		if contrib.GetContributions() < minContributionsPerUser {
 			continue
 		}
