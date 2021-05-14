@@ -3,12 +3,9 @@ module github.com/ossf/scorecard
 go 1.16
 
 require (
-<<<<<<< HEAD
 	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/golangci/golangci-lint v1.40.1
 	cloud.google.com/go v0.81.0 // indirect
-=======
->>>>>>> 34e23a3 (deps changes)
 	cloud.google.com/go/storage v1.15.0 // indirect
 	github.com/aws/aws-sdk-go v1.36.30 // indirect
 	github.com/bradleyfalzon/ghinstallation v1.1.1
@@ -27,30 +24,23 @@ require (
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/spf13/cobra v1.1.3
-<<<<<<< HEAD
 	go.uber.org/zap v1.16.0
 	gocloud.dev v0.22.0
-<<<<<<< HEAD
 	golang.org/x/oauth2 v0.0.0-20201203001011-0b49973bad19
 	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
 	google.golang.org/protobuf v1.26.0
-=======
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
-<<<<<<< Updated upstream
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/oauth2 v0.0.0-20201203001011-0b49973bad19
-	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6 // indirect
-	golang.org/x/tools v0.1.1-0.20210302220138-2ac05c832e1a // indirect
-=======
-	golang.org/x/oauth2 v0.0.0-20201203001011-0b49973bad19
+	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
+	golang.org/x/oauth2 v0.0.0-20210427180440-81ed05c6b58c
 	golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744 // indirect
 	golang.org/x/tools v0.1.1 // indirect
->>>>>>> Stashed changes
->>>>>>> 2b731f7 (Check dependency pinning in github workflows)
+	google.golang.org/api v0.46.0 // indirect
+	google.golang.org/genproto v0.0.0-20210513213006-bf773b8c8384 // indirect
+	google.golang.org/grpc v1.37.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-=======
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.16.0
 	gocloud.dev v0.22.0
@@ -62,5 +52,4 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	honnef.co/go/tools v0.1.4 // indirect
->>>>>>> 34e23a3 (deps changes)
 )
