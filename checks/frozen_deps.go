@@ -57,11 +57,7 @@ func validateGitHubActionWorkflow(path string, content []byte,
 	// Structure for workflow config.
 	// We only retrieve what we need for logging.
 	// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
-<<<<<<< HEAD
 	type GitHubActionWorkflowConfig struct {
-=======
-	type YamlWorflowConfig struct {
->>>>>>> 5c57b8c (add link to github workflow format)
 		Name string `yaml:name`
 		Jobs map[string]struct {
 			Name  string `yaml:name`
@@ -91,13 +87,9 @@ func validateGitHubActionWorkflow(path string, content []byte,
 		for _, step := range job.Steps {
 			if len(step.Uses) > 0 {
 				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
-<<<<<<< HEAD
 				// We allow an unlimited number of spaces after the hash, possibly follows by a comment.
 				// Example: action-name@hash # some comment
 				match, err := regexp.Match("^.*@[a-f\\d]{40,}\\s*#.*$", []byte(step.Uses))
-=======
-				match, err := regexp.Match("^.*@[a-f\\d]{40,}", []byte(step.Uses))
->>>>>>> c6ba95a (Fix typos and add comments)
 				if err != nil {
 					return false, fmt.Errorf("!! frozen-deps - regex failed for %v: %w", path, err)
 				}
