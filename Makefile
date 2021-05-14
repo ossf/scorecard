@@ -24,7 +24,7 @@ help:  ## Display this help
 
 all:  ## Runs build, test and verify
 .PHONY: all
-all: build test check-projects build-cron build-scripts verify  projects-update
+all: build test check-projects build-cron build-scripts verify  projects-update generate-docs
 
 .PHONY: build
 build: ## Runs go build and generates executable
@@ -136,4 +136,9 @@ check-projects: ## Validates ./cron/projects.txt
 projects-update: ## builds the scripts/update binary
 	cd ./scripts/update && go mod tidy && go mod verify	
 	cd ./scripts/update && CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"'  -o projects-update .
+	./scripts/tree-status
+
+.PHONY: generate-docs
+generate-docs: ## generate docs 
+	cd ./checks/main && go run main.go
 	./scripts/tree-status
