@@ -45,6 +45,7 @@ func onFileContent(path string, content []byte,
 
 	// Structure for workflow config.
 	// We only retrieve what we need for logging.
+	// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 	type YamlWorflowConfig struct {
 		Name string `yaml:name`
 		Jobs map[string]struct {
