@@ -57,7 +57,11 @@ func validateGitHubActionWorkflow(path string, content []byte,
 	// Structure for workflow config.
 	// We only retrieve what we need for logging.
 	// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+<<<<<<< HEAD
 	type GitHubActionWorkflowConfig struct {
+=======
+	type YamlWorflowConfig struct {
+>>>>>>> 5c57b8c (add link to github workflow format)
 		Name string `yaml:name`
 		Jobs map[string]struct {
 			Name  string `yaml:name`
