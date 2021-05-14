@@ -87,7 +87,7 @@ func CheckFilesContent(checkName string, shellPathFnPattern string, c *checker.C
 			return checker.MakeRetryResult(checkName, err)
 		}
 		// We should have reached the end of files AND
-		// the number of bytes shoould be the same as number
+		// the number of bytes should be the same as number
 		// indicated in header, unless the file format supports
 		// sparse regions. Only USTAR format does not support
 		// spare regions -- see https://golang.org/pkg/archive/tar/
@@ -97,6 +97,7 @@ func CheckFilesContent(checkName string, shellPathFnPattern string, c *checker.C
 			return checker.MakeRetryResult(checkName, fmt.Errorf("could not read entire file"))
 		}
 
+		// We truncate the file to remove tailing 0 (sparse format).
 		if !onFileContent(name, content[:n], c.Logf) {
 			res = false
 		}

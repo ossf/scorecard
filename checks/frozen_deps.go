@@ -72,6 +72,7 @@ func onFileContent(path string, content []byte,
 		}
 		for _, step := range job.Steps {
 			if len(step.Uses) > 0 {
+				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 				match, err := regexp.Match("^.*@[a-f\\d]{40,}", []byte(step.Uses))
 				if err != nil {
 					panic(fmt.Errorf("!! frozen-deps - Regex failed for %v", path))
