@@ -20,10 +20,16 @@ require (
 	go.uber.org/zap v1.16.0
 	gocloud.dev v0.22.0
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
+<<<<<<< Updated upstream
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/oauth2 v0.0.0-20201203001011-0b49973bad19
 	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6 // indirect
 	golang.org/x/tools v0.1.1-0.20210302220138-2ac05c832e1a // indirect
+=======
+	golang.org/x/oauth2 v0.0.0-20201203001011-0b49973bad19
+	golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744 // indirect
+	golang.org/x/tools v0.1.1 // indirect
+>>>>>>> Stashed changes
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
