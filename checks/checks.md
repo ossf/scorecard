@@ -11,14 +11,14 @@ If you have ideas for things to add, or new ways to detect things,
 please contribute!
 ## Active 
 
-This check tries to determine if the project is still "actively maintained". It currently works by looking for commits within the last 90 days. 
+A project which is not active may not be patched, may not have its dependencies patched, or may not be actively tested and used. So this check tries to determine if the project is still "actively maintained". It currently works by looking for commits within the last 90 days, and succeeds if there are at least 2 commits in the last 90 days. 
 
 **Remediation steps**
 - There is *NO* remediation work needed here. This is just to indicate your project activity and maintenance commitment.
 
 ## Branch-Protection 
 
-This check tries to determine if the project has branch protection enabled. This check would work only when the token has [Admin access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197) to the repository. 
+Branch protection allows defining rules to enforce certain workflows for branches, such as requiring a review or passing certain status checks. This check would work only when the token has [Admin access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197) to the repository. This check determines if the default branch is protected. More specifically, the checks for AllowForcePushes (disabled), AllowDeletions (disabled),  EnforceAdmins (enabled), RequireLinearHistory (enabled), RequiredStatusChecks (enabled and must have non-empty context enabled), RequiredPullRequestReviews (>=1), DismissStaleReviews (enabled), RequireCodeOwnerReviews (enabled). 
 
 **Remediation steps**
 - Enable branch protection settings in your source hosting provider to avoid force pushes or deletion of your important branches.
@@ -26,7 +26,7 @@ This check tries to determine if the project has branch protection enabled. This
 
 ## CI-Tests 
 
-This check tries to determine if the project run tests before pull requests are merged. It works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses`. 
+This check tries to determine if the project runs tests before pull requests are merged. It works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its names contains any of the following: appveyor, buildkite, circleci, e2e, github-actions,  jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. 
 
 **Remediation steps**
 - Check-in scripts that run all the tests in your repository.
@@ -34,14 +34,14 @@ This check tries to determine if the project run tests before pull requests are 
 
 ## CII-Best-Practices 
 
-This check tries to determine if the project has a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en). It uses the URL for the Git repo and the CII API. 
+This check tries to determine if the project has a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en). It uses the URL for the Git repo and the CII API. The check does not consider  if the repo has a solver or gold levels for passing the test. 
 
 **Remediation steps**
 - Sign up for the [CII Best Practices program](https://bestpractices.coreinfrastructure.org/en).
 
 ## Code-Review 
 
-This check tries to determine if a project requires code review before pull requests are merged. It works by looking for a set of well-known code review system results in GitHub Pull Requests. 
+This check tries to determine if a project requires code review before pull requests are merged. First it checks if branch-Protection is enabled on the default branch and the number of reviewers is at least 1. If this fails,  it checks if the recent (~30) commits have a Github-approved review or if the merger is different from the committer (implicit review). The check succeeds if at least 75% of commits have a review as described above. If it fails, it does the same check  but looking for reviews by [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels "lgtm" or "approved"). If this fails, it does the same but looking for gerrit-specific commit messages ("Reviewed-on" and "Reviewed-by"). 
 
 **Remediation steps**
 - Follow security best practices by performing strict code reviews for every new pull request.
@@ -50,14 +50,14 @@ This check tries to determine if a project requires code review before pull requ
 
 ## Contributors 
 
-This check tries to determine if a project has a set of contributors from multiple companies. It works by looking at the authors of recent commits and checking the `Organization` field on the GitHub user profile. 
+This check tries to determine if a project has a set of contributors from multiple companies. It works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commint in the last 30 commits. The check succeeds if all contributor span  at least 2 different companies. 
 
 **Remediation steps**
-- There is *NO* remediation work needed here. This is just to provide some insights on which organization(s) have contributed to the project and making trust decision based on that.
+- There is *NO* remediation work needed here. This is just to provide some insights on which organization(s) have contributed to the project and making trust decision based on that. But you can ask your contributors to  join their respective organization.
 
 ## Frozen-Deps 
 
-This check tries to determine if a project has declared and pinned its dependencies. It works by looking for a set of well-known package management lock files. 
+This check tries to determine if a project has declared and pinned its dependencies. It works by looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript),  requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/. If any of these files exists, the check succeeds. This check does  not currently look for docker image pinning and shell script pinning. 
 
 **Remediation steps**
 - Declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
@@ -72,7 +72,7 @@ This check tries to determine if the project uses a fuzzing system. It currently
 
 ## Pull-Requests 
 
-This check tries to determine if the project requires pull requests for all changes to the default branch. It works by looking at recent commits and using the GitHub API to search for associated pull requests. 
+This check tries to determine if the project requires pull requests for all changes to the default branch. It works by looking at recent commits (first page, ~30) and uses the GitHub API to search for associated pull requests. The check discards commits by usernames containing 'bot' or 'gardener'. The check considers a commit containing the string `Reviewed-on` as being reviewed through gerrit; and does not check for a corresponding PR. 
 
 **Remediation steps**
 - Always open a pull request for any change you intend to make, big or small.
@@ -81,7 +81,7 @@ This check tries to determine if the project requires pull requests for all chan
 
 ## SAST 
 
-This check tries to determine if the project uses static code analysis systems. It currently works by looking for well-known results ([CodeQL](https://securitylab.github.com/tools/codeql), etc.) in GitHub pull requests. 
+This check tries to determine if the project uses static code analysis systems. It currently works by looking for well-known results in GitHub pull requests. More specifically, the check first looks for Github apps named [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and  sonarcloud in the recent (~30) merged PRs. If >75% of commits contain at least a successful check (by any of the apps above), the check succeeds. If the above fails, the check instead looks for the use of "github/codeql-action" in a github workflow. 
 
 **Remediation steps**
 - Run CodeQL checks in your CI/CD by following the instructions [here](https://github.com/github/codeql-action#usage).
@@ -96,7 +96,7 @@ This check tries to determine if a project has published a security policy. It w
 
 ## Signed-Releases 
 
-This check tries to determine if a project cryptographically signs release artifacts. It works by looking for well-known filenames within recently published GitHub releases. 
+This check tries to determine if a project cryptographically signs release artifacts. It works by looking for filenames: *.minisign (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
 
 **Remediation steps**
 - Publish the release.
@@ -108,7 +108,7 @@ This check tries to determine if a project cryptographically signs release artif
 
 ## Signed-Tags 
 
-This check looks for cryptographically signed tags in the git history. 
+This check looks for cryptographically signed tags in the last 5 tags. The check does not verify the signature, but relies on github's verification. 
 
 **Remediation steps**
 - Generate a new signing key.
