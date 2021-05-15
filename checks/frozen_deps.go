@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -67,10 +68,14 @@ func validateGitHubActionWorkflow(path string, content []byte,
 		}
 	}
 
+	if len(content) == 0 {
+		return false, errors.New("file has no content")
+	}
+
 	var workflow GitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		return false, fmt.Errorf("!! frozen-deps - Cannot unmarshal file %v\n%v\n%v: %w", path, content, string(content), err)
+		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v\n%v: %w", path, content, string(content), err)
 	}
 
 	r := true
@@ -81,9 +86,11 @@ func validateGitHubActionWorkflow(path string, content []byte,
 		for _, step := range job.Steps {
 			if len(step.Uses) > 0 {
 				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
-				match, err := regexp.Match("^.*@[a-f\\d]{40,}$", []byte(step.Uses))
+				// We allow an unlimited number of spaces after the hash, possibly follows by a comment.
+				// Example: action-name@hash # some comment
+				match, err := regexp.Match("^.*@[a-f\\d]{40,}\\s*#.*$", []byte(step.Uses))
 				if err != nil {
-					return false, fmt.Errorf("!! frozen-deps - Regex failed for %v: %w", path, err)
+					return false, fmt.Errorf("!! frozen-deps - regex failed for %v: %w", path, err)
 				}
 				if !match {
 					r = false
