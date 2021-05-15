@@ -39,6 +39,7 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 }
 
 // TODO(laurent): need to support Docker https://github.com/ossf/scorecard/issues/403
+// TODO(laurent): need to support GCB
 
 // ============================================================
 // ===================== Github workflows =====================
