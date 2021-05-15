@@ -8,15 +8,4 @@ to install necessary binaries.
 
 ## Compile
 
-Use the command below to compile:
-
-```
-protoc --go_out=$DST_DIR request.proto
-```
-
-NOTE: $DST_DIR should contain `github.com/ossf/scorecard/cron/data` directory
-structure.
-
-## Future work
-
-Update Makefile to compile and generate proto files, when we run `make all`.
+Run `make build-proto` to compile proto.

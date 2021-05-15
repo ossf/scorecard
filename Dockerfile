@@ -23,7 +23,7 @@ COPY . ./
 FROM base AS build
 ARG TARGETOS
 ARG TARGETARCH
-RUN CGO_ENABLED=0 make build
+RUN CGO_ENABLED=0 make build-scorecard
 
 FROM gcr.io/distroless/base:nonroot
 COPY --from=build /src/scorecard /

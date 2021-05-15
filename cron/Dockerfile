@@ -24,7 +24,7 @@ COPY . ./
 FROM base AS build
 ARG TARGETOS
 ARG TARGETARCH
-RUN CGO_ENABLED=0 make build
+RUN CGO_ENABLED=0 make build-scorecard
 
 FROM base AS cron
 ARG TARGETOS
