@@ -5,7 +5,6 @@ go 1.16
 require (
 	github.com/aws/aws-sdk-go v1.36.30 // indirect
 	github.com/bradleyfalzon/ghinstallation v1.1.1
-	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
 	github.com/jszwec/csvutil v1.5.0
 	github.com/kr/text v0.2.0 // indirect
@@ -22,8 +21,8 @@ require (
 	gocloud.dev v0.22.0
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
 	golang.org/x/oauth2 v0.0.0-20201203001011-0b49973bad19
-	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6 // indirect
-	golang.org/x/tools v0.1.1-0.20210504170620-03ebc2c9fca8 // indirect
+	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
+	golang.org/x/tools v0.1.1 // indirect
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/yaml.v2 v2.4.0
