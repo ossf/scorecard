@@ -50,22 +50,21 @@ jobs:
 
       - name: pull_request actions/checkout
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
 
       - name: pull_request actions/checkout
         if: github.event_name == 'repository_dispatch'
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
         with:
           ref: 'refs/pull/${{ github.event.client_payload.pull_request.number }}/merge'
 
       - name: setup-go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@37335c7bb261b353407cff977110895fa0b4f7d8 # v2.1.3
         with:
           go-version: '1.16'
 
       - name: Set up Cloud SDK
-        # https://github.com/google-github-actions/setup-gcloud/releases/tag/v0.2.1
-        uses: google-github-actions/setup-gcloud@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba
+        uses: google-github-actions/setup-gcloud@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba # v0.2.1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCRTOKEN }}
@@ -110,7 +109,7 @@ jobs:
 
       - name: find comment
         if: ${{ always() }}
-        uses: peter-evans/find-comment@v1.2.0
+        uses: peter-evans/find-comment@309ce798ba1c3627e3809dd68c694a29ef048fe2 # v1.2.0
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
@@ -119,7 +118,7 @@ jobs:
 
       - name: create or update comment
         if: (${{ always() }})
-        uses: peter-evans/create-or-update-comment@v1.4.5
+        uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae # v1.4.5
         with:
           issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
           comment-id: ${{ steps.fc.outputs.comment-id }}
@@ -127,7 +126,7 @@ jobs:
             Integration tests ${{ job.status }} for [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}](https://github.com/ossf/scorecard/actions/runs/${{ github.run_id }})
 
       - name: set fork job status
-        uses: actions/github-script@v4.0.2
+        uses: actions/github-script@a3e7071a34d7e1f219a8a4de9a5e0a34d1ee1293 # v4.0.2
         if: ${{ always() }}
         id: update-check-run
         env:

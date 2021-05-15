@@ -33,9 +33,18 @@ func PublishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime
 		JobTime:  timestamppb.New(datetime),
 		ShardNum: &shardNum,
 	}
-	topicPublisher, err := pubsub.CreatePublisher(ctx, config.RequestTopicURL)
+	topic, err := config.GetRequestTopicURL()
+	if err != nil {
+		return shardNum, fmt.Errorf("error getting RequestTopicURL: %w", err)
+	}
+	topicPublisher, err := pubsub.CreatePublisher(ctx, topic)
 	if err != nil {
 		return shardNum, fmt.Errorf("error running CreatePublisher: %w", err)
+	}
+
+	shardSize, err := config.GetShardSize()
+	if err != nil {
+		return shardNum, fmt.Errorf("error getting ShardSize: %w", err)
 	}
 
 	// Create and send batch requests of repoURLs of size `ShardSize`:
@@ -48,7 +57,7 @@ func PublishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime
 			return shardNum, fmt.Errorf("error reading repoURL: %w", err)
 		}
 		request.Repos = append(request.GetRepos(), repoURL.URL())
-		if len(request.GetRepos()) < config.ShardSize {
+		if len(request.GetRepos()) < shardSize {
 			continue
 		}
 		if err := topicPublisher.Publish(&request); err != nil {
@@ -73,7 +82,11 @@ func PublishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime
 func main() {
 	ctx := context.Background()
 	t := time.Now()
-	reposFile, err := os.OpenFile(config.InputReposFile, os.O_RDONLY, 0o644)
+	inputReposFile, err := config.GetInputReposFile()
+	if err != nil {
+		panic(err)
+	}
+	reposFile, err := os.OpenFile(inputReposFile, os.O_RDONLY, 0o644)
 	if err != nil {
 		panic(err)
 	}
@@ -85,7 +98,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = data.WriteToBlobStore(ctx, config.ResultDataBucketURL,
+	bucket, err := config.GetResultDataBucketURL()
+	if err != nil {
+		panic(err)
+	}
+	err = data.WriteToBlobStore(ctx, bucket,
 		data.GetShardNumFilename(t),
 		[]byte(strconv.Itoa(int(shardNum))))
 	if err != nil {
