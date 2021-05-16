@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-GOBIN ?= $(GOPATH)/bin
+GOPATH := $(go env GOPATH)
 GINKGO := $(GOBIN)/ginkgo
 GOLANGGCI_LINT := $(GOBIN)/golangci-lint
 PROTOC_GEN_GO := $(GOBIN)/protoc-gen-go
@@ -31,16 +31,9 @@ help:  ## Display this help
 ################################ make install #################################
 .PHONY: install
 install: ## Installs all dependencies needed to compile Scorecard
-install: | $(GINKGO) $(GOLANGGCI_LINT) $(PROTOC_GEN_GO) $(PROTOC)
-
-$(GINKGO):
-	go get -u github.com/onsi/ginkgo/ginkgo@v1.16.2
-
-$(GOLANGGCI_LINT):
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.40.0
-
-$(PROTOC_GEN_GO):
-	go install google.golang.org/protobuf/cmd/protoc-gen-go
+install: | $(PROTOC) 
+	@echo Installing tools from tools.go
+	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %	
 
 $(PROTOC):
 	ifeq (,$(PROTOC))
@@ -75,6 +68,8 @@ validate-projects: build-scripts
 tree-status: ## Verify tree is clean and all changes are committed
 	# Verify the tree is clean and all changes are commited
 	./scripts/tree-status
+
+
 ###############################################################################
 
 ############################### make build ################################
@@ -133,14 +128,16 @@ unit-test: ## Runs unit test without e2e
 e2e: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
 e2e: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
-	ginkgo --skip="E2E TEST:executable" -p -v -cover  ./...
+	$(GINKGO) --skip="E2E TEST:executable" -p -v -cover  ./...
+
+$(GINKGO): install
 
 ci-e2e: ## Runs CI e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
 ci-e2e: build-scorecard check-env e2e-cron | $(GINKGO)
 	# Run CI e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	@echo Ignoring these test for ci-e2e $(IGNORED_CI_TEST)
-	ginkgo -p  -v -cover --skip=$(IGNORED_CI_TEST)  ./e2e/...
+	$(GINKGO) -p  -v -cover --skip=$(IGNORED_CI_TEST)  ./e2e/...
 
 test-disk-cache: ## Runs disk cache tests
 test-disk-cache: build-scorecard | $(GINKGO)
@@ -156,13 +153,13 @@ test-disk-cache: build-scorecard | $(GINKGO)
 				   ./scorecard \
 				   --repo=https://github.com/ossf/scorecard \
 				   --show-details --metadata=openssf  --format json > ./$(OUTPUT)/results.json
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
+	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" $(GINKGO)  -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
 	# Rerun the same test with the disk cache filled to make sure the cache is working.
 	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" \
 				   ./scorecard \
 				   --repo=https://github.com/ossf/scorecard --show-details \
 				   --metadata=openssf  --format json > ./$(OUTPUT)/results.json
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
+	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" $(GINKGO)  -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
 
 e2e-cron: ## Runs a e2e test cron job and validates its functionality
 	# Validate cron
