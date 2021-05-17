@@ -56,7 +56,7 @@ func MakeRetryResult(name string, err error) CheckResult {
 func MakeProportionalResult(name string, numerator int, denominator int,
 	threshold float32) CheckResult {
 	if denominator == 0 {
-		return MakeInconclusiveResult(name, errors.New("internal error: deniminator is 0"))
+		return MakeInconclusiveResult(name, errors.New("internal error: denominator is 0"))
 	}
 	if numerator == 0 {
 		return CheckResult{
