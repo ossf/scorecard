@@ -1,4 +1,4 @@
-# Copyright 2020 Security Scorecard Authors
+# Copyright 2021 Security Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-FROM  golang:1.16.4 as base
-WORKDIR /src
-ENV CGO_ENABLED=0
-COPY go.* ./
-RUN go mod download
-COPY . ./
-
-FROM base AS build
-ARG TARGETOS
-ARG TARGETARCH
-RUN CGO_ENABLED=0 make build-scorecard
-
-FROM gcr.io/distroless/base:nonroot
-COPY --from=build /src/scorecard /
-ENTRYPOINT [ "/scorecard" ]
+build:
+  images:
+  - gcr.io/openssf/cron:latest
+  options:
+    diskSizeGb: '200'
+  steps:
+  - args:
+    - build
+    - -t
+    - gcr.io/openssf/cron:latest
+    - -f
+    - ./cron/Dockerfile
+    - .
+    name: gcr.io/cloud-builders/docker
+description: builds image for scorecard cron
+github:
+  name: scorecard
+  owner: ossf
+  push:
+    branch: ^main$
+name: scorecard-cron
+tags:
+- cron
+- scorecard

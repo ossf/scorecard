@@ -28,10 +28,13 @@ import (
 
 	goflag "flag"
 
+	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/ossf/scorecard/repos"
+	"github.com/ossf/scorecard/roundtripper"
+	"github.com/shurcooL/githubv4"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -123,7 +126,13 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		}
 		ctx := context.Background()
 
-		repoResult := pkg.RunScorecards(ctx, sugar, repo, enabledChecks)
+		rt := roundtripper.NewTransport(ctx, sugar)
+		httpClient := &http.Client{
+			Transport: rt,
+		}
+		githubClient := github.NewClient(httpClient)
+		graphClient := githubv4.NewClient(httpClient)
+		repoResult := pkg.RunScorecards(ctx, repo, enabledChecks, httpClient, githubClient, graphClient)
 		repoResult.Metadata = append(repoResult.Metadata, metaData...)
 
 		// Sort them by name
