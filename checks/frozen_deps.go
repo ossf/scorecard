@@ -191,6 +191,9 @@ func validateGitHubActionWorkflow(path string, content []byte,
 				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 				// Example: action-name@hash
 				match := hashRegex.Match([]byte(step.Uses))
+				if err != nil {
+					return false, err
+				}
 				if !match {
 					r = false
 					logf("!! frozen-deps - %v has non-pinned dependency '%v' (job \"%v\")", path, step.Uses, jobName)

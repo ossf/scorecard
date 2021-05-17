@@ -77,6 +77,10 @@ func CheckFilesContent(checkName, shellPathFnPattern string, caseSensitive bool,
 	tr := tar.NewReader(gz)
 	res := true
 
+	if !caseSensitive {
+		shellPathFnPattern = strings.ToLower(shellPathFnPattern)
+	}
+
 	for {
 		hdr, err := tr.Next()
 		if err != nil && err != io.EOF {
