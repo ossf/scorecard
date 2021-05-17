@@ -281,7 +281,11 @@ func TestDockerfilePinning(t *testing.T) {
 				Filename: "./testdata/Dockerfile-invalid",
 				Logf:     l.Logf,
 			},
+<<<<<<< HEAD
 			want: returnValue{false, ErrFrozenDepsInvalidDockerfile},
+=======
+			want: returnValue{false, errors.New("file has no FROM keyword")},
+>>>>>>> 61e29be (check pinning in docker files)
 		},
 		{
 			name: "Pinned dockerfile",
@@ -292,6 +296,7 @@ func TestDockerfilePinning(t *testing.T) {
 			want: returnValue{true, nil},
 		},
 		{
+<<<<<<< HEAD
 			name: "Pinned dockerfile as",
 			args: args{
 				Filename: "./testdata/Dockerfile-pinned-as",
@@ -308,6 +313,8 @@ func TestDockerfilePinning(t *testing.T) {
 			want: returnValue{false, nil},
 		},
 		{
+=======
+>>>>>>> 61e29be (check pinning in docker files)
 			name: "Non-pinned dockerfile",
 			args: args{
 				Filename: "./testdata/Dockerfile-not-pinned",
@@ -331,12 +338,21 @@ func TestDockerfilePinning(t *testing.T) {
 
 			r, err := validateDockerfile(tt.args.Filename, content, tt.args.Logf)
 
+<<<<<<< HEAD
 			if !errors.Is(err, tt.want.Error) ||
+=======
+			if (err != nil && tt.want.Error == nil) ||
+				(err == nil && tt.want.Error != nil) ||
+				(err != nil && tt.want.Error != nil && err.Error() != tt.want.Error.Error()) ||
+>>>>>>> 61e29be (check pinning in docker files)
 				r != tt.want.Result {
 				t.Errorf("TestGithubWorkflowPinning:\"%v\": %v (%v,%v) want (%v, %v)", tt.name, tt.args.Filename, r, err, tt.want.Result, tt.want.Error)
 			}
 		})
 	}
 }
+<<<<<<< HEAD
 =======
 >>>>>>> 7320ac5 (Revert "check pinning in docker files")
+=======
+>>>>>>> 61e29be (check pinning in docker files)
