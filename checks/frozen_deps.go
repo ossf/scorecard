@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"regexp"
@@ -138,46 +139,12 @@ func validateDockerfile(path string, content []byte,
 			continue
 		}
 
-		// New line found
 		nl += 1
-		fmt.Printf("line: %v\n", line)
-		// FROM name@sha256:hash AS newname.
-		// In this case, we record newname. It's pinned
-		// so it can be re-used as 'FROM new name' later.
-		re := hashAsRegex.FindStringSubmatch(line)
-		if len(re) == 2 {
-			// Record the newname.
-			al = append(al, re[1])
-			continue
+		match, err := hashRegex.Match([]byte(line))
+		if err != nil {
+			return false, err
 		}
-
-		// FROM oldname AS newname
-		// where oldname refers to a pinned image
-		re = asRegex.FindStringSubmatch(line)
-		if len(re) == 3 {
-			oldname := re[1]
-			newname := re[2]
-			if !isPresent(al, oldname) {
-				r = false
-				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
-				continue
-			}
-			// Record the newname if not alresdy present in our list.
-			if !isPresent(al, newname) {
-				al = append(al, newname)
-			}
-			continue
-		}
-
-		// FROM name
-		// where name refers to a pinned image
-		re = regex.FindStringSubmatch(line)
-		if len(re) == 2 && isPresent(al, re[1]) {
-			continue
-		}
-
-		// FROM name@sha256:hash
-		if !hashRegex.Match([]byte(line)) {
+		if !match {
 			r = false
 			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
 		}
@@ -241,6 +208,9 @@ func validateGitHubActionWorkflow(path string, content []byte,
 				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 				// Example: action-name@hash
 				match := hashRegex.Match([]byte(step.Uses))
+				if err != nil {
+					return false, err
+				}
 				if !match {
 					r = false
 					logf("!! frozen-deps - %v has non-pinned dependency '%v' (job \"%v\")", path, step.Uses, jobName)
