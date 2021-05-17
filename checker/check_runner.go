@@ -62,7 +62,8 @@ func Bool2int(b bool) int {
 	return 0
 }
 
-func MultiCheck(fns ...CheckFn) CheckFn {
+// Returns the best check result out of several ones performed.
+func MultiCheckOr(fns ...CheckFn) CheckFn {
 	return func(c *CheckRequest) CheckResult {
 		var maxResult CheckResult
 
@@ -79,5 +80,28 @@ func MultiCheck(fns ...CheckFn) CheckFn {
 			}
 		}
 		return maxResult
+	}
+}
+
+// All checks must succeed. This returns a conservative result
+// where the worst result is returned.
+func MultiCheckAnd(fns ...CheckFn) CheckFn {
+	return func(c *CheckRequest) CheckResult {
+		minResult := CheckResult{
+			Pass:       true,
+			Confidence: MaxResultConfidence,
+		}
+
+		for _, fn := range fns {
+			result := fn(c)
+			if len(minResult.Name) == 0 {
+				minResult.Name = result.Name
+			}
+			if Bool2int(result.Pass) < Bool2int(minResult.Pass) ||
+				result.Confidence < MaxResultConfidence {
+				minResult = result
+			}
+		}
+		return minResult
 	}
 }

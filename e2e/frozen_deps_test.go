@@ -25,7 +25,7 @@ import (
 
 var _ = Describe("E2E TEST:FrozenDeps", func() {
 	Context("E2E TEST:Validating deps are frozen", func() {
-		It("Should return deps are frozen", func() {
+		It("Should return deps are not frozen", func() {
 			l := log{}
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
@@ -33,6 +33,21 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 				HTTPClient:  client,
 				Owner:       "tensorflow",
 				Repo:        "tensorflow",
+				GraphClient: graphClient,
+				Logf:        l.Logf,
+			}
+			result := checks.FrozenDeps(&checkRequest)
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeFalse())
+		})
+		It("Should return deps are not frozen", func() {
+			l := log{}
+			checkRequest := checker.CheckRequest{
+				Ctx:         context.Background(),
+				Client:      ghClient,
+				HTTPClient:  client,
+				Owner:       "ossf",
+				Repo:        "scorecard",
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}

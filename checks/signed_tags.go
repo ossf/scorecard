@@ -15,6 +15,8 @@
 package checks
 
 import (
+	"errors"
+
 	"github.com/ossf/scorecard/checker"
 	"github.com/shurcooL/githubv4"
 )
@@ -72,7 +74,7 @@ func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 
 	if totalTags == 0 {
 		c.Logf("no tags found")
-		return checker.MakeInconclusiveResult(signedTagsStr)
+		return checker.MakeInconclusiveResult(signedTagsStr, errors.New("no signed tags found"))
 	}
 
 	c.Logf("found %d out of %d verified tags", totalSigned, totalTags)

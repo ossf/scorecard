@@ -14,6 +14,8 @@
 
 package checker
 
+import "errors"
+
 const MaxResultConfidence = 10
 
 type CheckResult struct {
@@ -25,11 +27,12 @@ type CheckResult struct {
 	ShouldRetry bool `json:"-"`
 }
 
-func MakeInconclusiveResult(name string) CheckResult {
+func MakeInconclusiveResult(name string, err error) CheckResult {
 	return CheckResult{
 		Name:       name,
 		Pass:       false,
 		Confidence: 0,
+		Error:      err,
 	}
 }
 
@@ -53,7 +56,7 @@ func MakeRetryResult(name string, err error) CheckResult {
 func MakeProportionalResult(name string, numerator int, denominator int,
 	threshold float32) CheckResult {
 	if denominator == 0 {
-		return MakeInconclusiveResult(name)
+		return MakeInconclusiveResult(name, errors.New("internal error: denominator is 0"))
 	}
 	if numerator == 0 {
 		return CheckResult{

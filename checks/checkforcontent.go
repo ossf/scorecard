@@ -17,17 +17,19 @@ package checks
 import (
 	"archive/tar"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/ossf/scorecard/checker"
 )
 
-// CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
-// for the occurrence.
-func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(name string,
-	Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
+// CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
+// shellPathFnPattern is used for https://golang.org/pkg/path/#Match
+func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckRequest,
+	onFileContent func(path string, content []byte, Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
@@ -52,13 +54,21 @@ func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(na
 		return checker.MakeRetryResult(checkName, err)
 	}
 	tr := tar.NewReader(gz)
+	res := true
 
 	for {
 		hdr, err := tr.Next()
+		if err != nil && err != io.EOF {
+			return checker.MakeRetryResult(checkName, err)
+		}
+
 		if err == io.EOF {
 			break
-		} else if err != nil {
-			return checker.MakeRetryResult(checkName, err)
+		}
+
+		// Only consider regular files.
+		if hdr.Typeflag != tar.TypeReg || hdr.Size == 0 {
+			continue
 		}
 
 		// Strip the repo name
@@ -69,7 +79,29 @@ func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(na
 		}
 
 		name := names[1]
-		rr, err := onFile(name, c.Logf)
+		// Filter out files based on path.
+		if match, _ := path.Match(shellPathFnPattern, name); !match {
+			continue
+		}
+
+		content := make([]byte, hdr.Size)
+		n, err := tr.Read(content)
+		if err != nil && err != io.EOF {
+			return checker.MakeRetryResult(checkName, err)
+		}
+		// We should have reached the end of files AND
+		// the number of bytes should be the same as number
+		// indicated in header, unless the file format supports
+		// sparse regions. Only USTAR format does not support
+		// spare regions -- see https://golang.org/pkg/archive/tar/
+		if hdr.Format != tar.FormatUSTAR &&
+			hdr.Format != tar.FormatUnknown &&
+			int64(n) != hdr.Size {
+			return checker.MakeRetryResult(checkName, fmt.Errorf("could not read entire file"))
+		}
+
+		// We truncate the file to remove tailing 0 (sparse format).
+		rr, err := onFileContent(name, content[:n], c.Logf)
 		if err != nil {
 			return checker.CheckResult{
 				Name:       checkName,
@@ -78,15 +110,24 @@ func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(na
 				Error:      err,
 			}
 		}
-
-		if rr {
-			return checker.MakePassResult(checkName)
+		// We don't return rightway to give the onFileContent()
+		// handler to log.
+		if !rr {
+			res = false
 		}
 	}
-	const confidence = 5
+
+	if !res {
+		return checker.CheckResult{
+			Name:       checkName,
+			Pass:       false,
+			Confidence: 10,
+		}
+	}
+
 	return checker.CheckResult{
 		Name:       checkName,
-		Pass:       false,
-		Confidence: confidence,
+		Pass:       true,
+		Confidence: 10,
 	}
 }
