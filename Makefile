@@ -153,15 +153,15 @@ test-disk-cache: build-scorecard | $(GINKGO)
 	mkdir cache
 	@echo Focusing on these tests $(FOCUS_DISK_TEST)
 	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" \
-				   ./scorecard \
-				   --repo=https://github.com/ossf/scorecard \
-				   --show-details --metadata=openssf  --format json > ./$(OUTPUT)/results.json
+				./scorecard \
+				--repo=https://github.com/ossf/scorecard \
+				--show-details --metadata=openssf  --format json > ./$(OUTPUT)/results.json
 	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
 	# Rerun the same test with the disk cache filled to make sure the cache is working.
 	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" \
-				   ./scorecard \
-				   --repo=https://github.com/ossf/scorecard --show-details \
-				   --metadata=openssf  --format json > ./$(OUTPUT)/results.json
+		       		./scorecard \
+				--repo=https://github.com/ossf/scorecard --show-details \
+				--metadata=openssf  --format json > ./$(OUTPUT)/results.json
 	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
 
 e2e-cron: ## Runs a e2e test cron job and validates its functionality

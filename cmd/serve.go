@@ -22,9 +22,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/google/go-github/v32/github"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/ossf/scorecard/repos"
+	"github.com/ossf/scorecard/roundtripper"
+	"github.com/shurcooL/githubv4"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -65,7 +68,13 @@ var serveCmd = &cobra.Command{
 			}
 			sugar.Info(repoParam)
 			ctx := r.Context()
-			repoResult := pkg.RunScorecards(ctx, sugar, repo, checks.AllChecks)
+			rt := roundtripper.NewTransport(ctx, sugar)
+			httpClient := &http.Client{
+				Transport: rt,
+			}
+			githubClient := github.NewClient(httpClient)
+			graphClient := githubv4.NewClient(httpClient)
+			repoResult := pkg.RunScorecards(ctx, repo, checks.AllChecks, httpClient, githubClient, graphClient)
 
 			if r.Header.Get("Content-Type") == "application/json" {
 				if err := repoResult.AsJSON(showDetails, rw); err != nil {
