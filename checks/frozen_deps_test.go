@@ -54,7 +54,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				Filename: "./testdata/workflow-pinned.yaml",
 				Logf:     l.Logf,
 			},
-			want: returnValue{false, nil},
+			want: returnValue{true, nil},
 		},
 		{
 			name: "Non-pinned workflow",

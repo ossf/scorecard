@@ -37,7 +37,7 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 				Logf:        l.Logf,
 			}
 			result := checks.FrozenDeps(&checkRequest)
-			Expect(result.Error).ShouldNot(BeNil())
+			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 		})
 		It("Should return deps are not frozen", func() {

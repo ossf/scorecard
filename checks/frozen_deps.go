@@ -79,6 +79,7 @@ func validateGitHubActionWorkflow(path string, content []byte,
 		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v\n%v: %w", path, content, string(content), err)
 	}
 
+	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
 	r := true
 	for jobName, job := range workflow.Jobs {
 		if len(job.Name) > 0 {
@@ -87,12 +88,8 @@ func validateGitHubActionWorkflow(path string, content []byte,
 		for _, step := range job.Steps {
 			if len(step.Uses) > 0 {
 				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
-				// We allow an unlimited number of spaces after the hash, possibly follows by a comment.
-				// Example: action-name@hash # some comment
-				match, err := regexp.Match("^.*@[a-f\\d]{40,}\\s*#.*$", []byte(step.Uses))
-				if err != nil {
-					return false, fmt.Errorf("!! frozen-deps - regex failed for %v: %w", path, err)
-				}
+				// Example: action-name@hash
+				match := hashRegex.Match([]byte(step.Uses))
 				if !match {
 					r = false
 					logf("!! frozen-deps - %v has non-pinned dependency '%v' (job \"%v\")", path, step.Uses, jobName)
