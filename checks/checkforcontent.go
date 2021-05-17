@@ -28,7 +28,12 @@ import (
 
 // CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
 // shellPathFnPattern is used for https://golang.org/pkg/path/#Match
-func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckRequest,
+// Warning: the pattern is used to match (1) the entire path AND (2) the filename alone. This means:
+// 	- To scope the search to a directory, use "./dirname/*". Example, for the root directory,
+// 		use "./*".
+//	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
+// The check is case-insensitive.
+func CheckFilesContent(checkName, shellPathFnPattern string, caseSensitive bool, c *checker.CheckRequest,
 	onFileContent func(path string, content []byte, Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
@@ -56,6 +61,10 @@ func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckReq
 	tr := tar.NewReader(gz)
 	res := true
 
+	if !caseSensitive {
+		shellPathFnPattern = strings.ToLower(shellPathFnPattern)
+	}
+
 	for {
 		hdr, err := tr.Next()
 		if err != nil && err != io.EOF {
@@ -78,10 +87,18 @@ func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckReq
 			continue
 		}
 
-		name := names[1]
-		// Filter out files based on path.
-		if match, _ := path.Match(shellPathFnPattern, name); !match {
-			continue
+		fullpath := names[1]
+		filename := path.Base(fullpath)
+
+		if !caseSensitive {
+			fullpath = strings.ToLower(fullpath)
+			filename = strings.ToLower(path.Base(fullpath))
+		}
+		// Filter out files based on path/names.
+		if match, _ := path.Match(shellPathFnPattern, fullpath); !match {
+			if match, _ := path.Match(shellPathFnPattern, filename); !match {
+				continue
+			}
 		}
 
 		content := make([]byte, hdr.Size)
@@ -101,7 +118,7 @@ func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckReq
 		}
 
 		// We truncate the file to remove tailing 0 (sparse format).
-		rr, err := onFileContent(name, content[:n], c.Logf)
+		rr, err := onFileContent(fullpath, content[:n], c.Logf)
 		if err != nil {
 			return checker.CheckResult{
 				Name:       checkName,
