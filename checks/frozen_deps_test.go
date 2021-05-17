@@ -91,3 +91,71 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		})
 	}
 }
+
+func TestDockerfilePinning(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		Filename string
+		Logf     func(s string, f ...interface{})
+	}
+
+	type returnValue struct {
+		Result bool
+		Error  error
+	}
+
+	l := log{}
+	tests := []struct {
+		name string
+		args args
+		want returnValue
+	}{
+		{
+			name: "Invalid dockerfile",
+			args: args{
+				Filename: "./testdata/Dockerfile-invalid",
+				Logf:     l.Logf,
+			},
+			want: returnValue{false, errors.New("file has no FROM keyword")},
+		},
+		{
+			name: "Pinned dockerfile",
+			args: args{
+				Filename: "./testdata/Dockerfile-pinned",
+				Logf:     l.Logf,
+			},
+			want: returnValue{true, nil},
+		},
+		{
+			name: "Non-pinned dockerfile",
+			args: args{
+				Filename: "./testdata/Dockerfile-not-pinned",
+				Logf:     l.Logf,
+			},
+			want: returnValue{false, nil},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		l.messages = []string{}
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+
+			content, err = ioutil.ReadFile(tt.args.Filename)
+			if err != nil {
+				panic(fmt.Errorf("cannot read file: %w", err))
+			}
+
+			r, err := validateDockerfile(tt.args.Filename, content, tt.args.Logf)
+
+			if (err != nil && tt.want.Error == nil) ||
+				(err == nil && tt.want.Error != nil) ||
+				(err != nil && tt.want.Error != nil && err.Error() != tt.want.Error.Error()) ||
+				r != tt.want.Result {
+				t.Errorf("TestGithubWorkflowPinning:\"%v\": %v (%v,%v) want (%v, %v)", tt.name, tt.args.Filename, r, err, tt.want.Result, tt.want.Error)
+			}
+		})
+	}
+}
