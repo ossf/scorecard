@@ -19,14 +19,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"time"
 
+	"github.com/google/go-github/v32/github"
 	"github.com/jszwec/csvutil"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/ossf/scorecard/repos"
+	"github.com/ossf/scorecard/roundtripper"
+	"github.com/shurcooL/githubv4"
 	"go.uber.org/zap"
 )
 
@@ -60,6 +64,23 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	ctx := context.Background()
+	cfg := zap.NewProductionConfig()
+	cfg.Level.SetLevel(zap.InfoLevel)
+	logger, err := cfg.Build()
+	if err != nil {
+		panic(err)
+	}
+	sugar := logger.Sugar()
+	// Use our custom roundtripper
+	rt := roundtripper.NewTransport(ctx, sugar)
+	httpClient := &http.Client{
+		Transport: rt,
+	}
+	githubClient := github.NewClient(httpClient)
+	graphClient := githubv4.NewClient(httpClient)
+
 	for _, r := range inputRepos {
 		fmt.Println(r.Repo)
 
@@ -71,21 +92,14 @@ func main() {
 			panic(err)
 		}
 
-		ctx := context.Background()
-		cfg := zap.NewProductionConfig()
-		cfg.Level.SetLevel(zap.InfoLevel)
-		logger, err := cfg.Build()
-		if err != nil {
-			panic(err)
-		}
-		sugar := logger.Sugar()
 		//nolint
 		// FIXME :- deleting branch-protection
 		// The branch protection check needs an admin access to the repository.
 		// All of the checks from cron would fail and uses another call to the API.
 		// This will reduce usage of the API.
 		delete(checks.AllChecks, "Branch-Protection")
-		repoResult := pkg.RunScorecards(ctx, sugar, repoURL, checks.AllChecks)
+
+		repoResult := pkg.RunScorecards(ctx, repoURL, checks.AllChecks, httpClient, githubClient, graphClient)
 		if err := repoResult.AsJSON( /*showDetails=*/ true, result); err != nil {
 			panic(err)
 		}

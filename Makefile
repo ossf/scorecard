@@ -1,8 +1,8 @@
 SHELL := /bin/bash
 GOPATH := $(go env GOPATH)
-GINKGO := $(GOBIN)/ginkgo
-GOLANGGCI_LINT := $(GOBIN)/golangci-lint
-PROTOC_GEN_GO := $(GOBIN)/protoc-gen-go
+GINKGO := ginkgo
+GOLANGGCI_LINT := golangci-lint
+PROTOC_GEN_GO := protoc-gen-go
 PROTOC := $(shell which protoc)
 IMAGE_NAME = scorecard
 OUTPUT = output
@@ -55,8 +55,10 @@ update-dependencies: ## Update go dependencies for all modules
 	# Update ./scripts/update go modules
 	cd ./scripts/update && go mod tidy && go mod verify
 
+$(GOLANGGCI_LINT): install
+
 check-linter: ## Install and run golang linter
-check-linter: | $(GOLANGGCI_LINT)
+check-linter: $(GOLANGGCI_LINT)
 	# Run golangci-lint linter
 	golangci-lint run -n
 
@@ -80,7 +82,7 @@ build: $(build-targets)
 
 build-proto: ## Compiles and generates all required protobufs
 build-proto: cron/data/request.pb.go
-cron/data/request.pb.go: cron/data/request.proto | $(PROTOC_GEN_GO) $(PROTOC)
+cron/data/request.pb.go: cron/data/request.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/request.proto
 
 generate-docs: ## Generates docs
@@ -132,6 +134,7 @@ e2e: build-scorecard check-env | $(GINKGO)
 
 $(GINKGO): install
 
+
 ci-e2e: ## Runs CI e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
 ci-e2e: build-scorecard check-env e2e-cron | $(GINKGO)
 	# Run CI e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
@@ -150,16 +153,17 @@ test-disk-cache: build-scorecard | $(GINKGO)
 	mkdir cache
 	@echo Focusing on these tests $(FOCUS_DISK_TEST)
 	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" \
-				   ./scorecard \
-				   --repo=https://github.com/ossf/scorecard \
-				   --show-details --metadata=openssf  --format json > ./$(OUTPUT)/results.json
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" $(GINKGO)  -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
+				./scorecard \
+				--repo=https://github.com/ossf/scorecard \
+				--show-details --metadata=openssf  --format json > ./$(OUTPUT)/results.json
+	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
 	# Rerun the same test with the disk cache filled to make sure the cache is working.
 	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" \
-				   ./scorecard \
-				   --repo=https://github.com/ossf/scorecard --show-details \
-				   --metadata=openssf  --format json > ./$(OUTPUT)/results.json
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" $(GINKGO)  -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
+		       		./scorecard \
+				--repo=https://github.com/ossf/scorecard --show-details \
+				--metadata=openssf  --format json > ./$(OUTPUT)/results.json
+	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
+
 
 e2e-cron: ## Runs a e2e test cron job and validates its functionality
 	# Validate cron
