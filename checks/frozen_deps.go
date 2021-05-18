@@ -130,6 +130,7 @@ func validateDockerfile(path string, content []byte,
 			// That should not happen.
 			return false, ErrFrozenDepsInvalidDockerfile
 		}
+
 	}
 
 	// The file should have at least one FROM statement.
