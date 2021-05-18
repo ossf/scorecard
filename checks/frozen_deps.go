@@ -49,6 +49,15 @@ func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(frozenDepsStr, "*Dockerfile*", false, c, validateDockerfile)
 }
 
+func isPresent(slice []string, val string) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
+}
+
 func validateDockerfile(path string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
 	// Users may use various names, e.g.,
@@ -58,12 +67,16 @@ func validateDockerfile(path string, content []byte,
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
+	asRegex := regexp.MustCompile(`^FROM\s+(.*)\s+AS\s+(.*)`)
+	regex := regexp.MustCompile(`^FROM\s+(.*)`)
+	hashAsRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}\s+AS\s+(.*)`)
 	hashRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}`)
 
 	// Read the file line by line.
 	scanner.Split(bufio.ScanLines)
 	r := true
 	nl := 0
+	var al []string
 	for scanner.Scan() {
 		line := scanner.Text()
 		// Only look at lines starting with FROM.
@@ -71,12 +84,51 @@ func validateDockerfile(path string, content []byte,
 			continue
 		}
 
+		// New line found
 		nl += 1
-		match := hashRegex.Match([]byte(line))
-		if !match {
+
+		// FROM name@sha256:hash AS newname.
+		// In this case, we record newname. It's pinned
+		// so it can be re-used as 'FROM new name' later.
+		re := hashAsRegex.FindStringSubmatch(line)
+		if len(re) == 2 {
+			// Record the newname.
+			al = append(al, re[1])
+			continue
+		}
+
+		// FROM oldname AS newname
+		// where oldname refers to a pinned image
+		re = asRegex.FindStringSubmatch(line)
+		if len(re) == 3 {
+			oldname := re[1]
+			newname := re[2]
+			if !isPresent(al, oldname) {
+				r = false
+				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
+				continue
+			}
+			// Record the newname if not alresdy present in our list.
+			if !isPresent(al, newname) {
+				al = append(al, newname)
+				fmt.Printf("array: %v\n", al)
+			}
+			continue
+		}
+
+		// FROM name
+		// where name refers to a pinned image
+		re = regex.FindStringSubmatch(line)
+		if len(re) == 2 && isPresent(al, re[1]) {
+			continue
+		}
+
+		// FROM name@sha256:hash
+		if !hashRegex.Match([]byte(line)) {
 			r = false
 			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
 		}
+
 	}
 
 	// The file should have at least one FROM statement.

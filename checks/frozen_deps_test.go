@@ -93,7 +93,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 }
 
 func TestDockerfilePinning(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 	type args struct {
 		Filename string
 		Logf     func(s string, f ...interface{})
@@ -125,6 +125,22 @@ func TestDockerfilePinning(t *testing.T) {
 				Logf:     l.Logf,
 			},
 			want: returnValue{true, nil},
+		},
+		{
+			name: "Pinned dockerfile as",
+			args: args{
+				Filename: "./testdata/Dockerfile-pinned-as",
+				Logf:     l.Logf,
+			},
+			want: returnValue{true, nil},
+		},
+		{
+			name: "Non-pinned dockerfile as",
+			args: args{
+				Filename: "./testdata/Dockerfile-not-pinned-as",
+				Logf:     l.Logf,
+			},
+			want: returnValue{false, nil},
 		},
 		{
 			name: "Non-pinned dockerfile",
