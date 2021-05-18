@@ -77,11 +77,18 @@ func validateDockerfile(path string, content []byte,
 	regex := regexp.MustCompile(`.*@sha256:[a-f\d]{64}`)
 =======
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
+<<<<<<< HEAD
 	asRegex := regexp.MustCompile(`^FROM\s+(.*)\s+AS\s+(.*)`)
 	regex := regexp.MustCompile(`^FROM\s+(.*)`)
 	hashAsRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}\s+AS\s+(.*)`)
 	hashRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}`)
 >>>>>>> e767aa7 (check docker files hash pinning)
+=======
+	asRegex := regexp.MustCompile(`^(?i)FROM\s+(.*)\s+AS\s+(.*)`)
+	regex := regexp.MustCompile(`^(?i)FROM\s+(.*)`)
+	hashAsRegex := regexp.MustCompile(`^(?i)FROM\s+.*@sha256:[a-f\d]{64}\s+AS\s+(.*)`)
+	hashRegex := regexp.MustCompile(`^(?i)FROM\s+.*@sha256:[a-f\d]{64}`)
+>>>>>>> 19851e8 (make keyword matches case-insensitive)
 
 	r := true
 <<<<<<< HEAD
@@ -129,7 +136,7 @@ func validateDockerfile(path string, content []byte,
 	for scanner.Scan() {
 		line := scanner.Text()
 		// Only look at lines starting with FROM.
-		if !strings.HasPrefix(line, "FROM ") {
+		if !strings.HasPrefix(strings.ToLower(line), "from ") {
 			continue
 		}
 
