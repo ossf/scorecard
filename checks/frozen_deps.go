@@ -67,10 +67,10 @@ func validateDockerfile(path string, content []byte,
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
-	asRegex := regexp.MustCompile(`^FROM\s+(.*)\s+AS\s+(.*)`)
-	regex := regexp.MustCompile(`^FROM\s+(.*)`)
-	hashAsRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}\s+AS\s+(.*)`)
-	hashRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}`)
+	asRegex := regexp.MustCompile(`^(?i)FROM\s+(.*)\s+AS\s+(.*)`)
+	regex := regexp.MustCompile(`^(?i)FROM\s+(.*)`)
+	hashAsRegex := regexp.MustCompile(`^(?i)FROM\s+.*@sha256:[a-f\d]{64}\s+AS\s+(.*)`)
+	hashRegex := regexp.MustCompile(`^(?i)FROM\s+.*@sha256:[a-f\d]{64}`)
 
 	// Read the file line by line.
 	scanner.Split(bufio.ScanLines)
@@ -80,7 +80,7 @@ func validateDockerfile(path string, content []byte,
 	for scanner.Scan() {
 		line := scanner.Text()
 		// Only look at lines starting with FROM.
-		if !strings.HasPrefix(line, "FROM ") {
+		if !strings.HasPrefix(strings.ToLower(line), "from ") {
 			continue
 		}
 
