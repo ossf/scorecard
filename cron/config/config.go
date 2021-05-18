@@ -26,12 +26,13 @@ import (
 )
 
 const (
-	ShardNumFilename    string = ".shard_num"
-	resultDataBucketURL string = "SCORECARD_DATA_BUCKET_URL"
-	requestTopicURL     string = "SCORECARD_REQUEST_TOPIC_URL"
-	inputReposFile      string = "SCORECARD_REPOS_FILE"
-	shardSize           string = "SCORECARD_SHARD_SIZE"
-	configYAML          string = "config.yaml"
+	ShardNumFilename       string = ".shard_num"
+	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
+	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
+	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
+	inputReposFile         string = "SCORECARD_REPOS_FILE"
+	shardSize              string = "SCORECARD_SHARD_SIZE"
+	configYAML             string = "config.yaml"
 )
 
 var (
@@ -40,10 +41,11 @@ var (
 )
 
 type config struct {
-	ResultDataBucketURL string `yaml:"result-data-bucket-url"`
-	RequestTopicURL     string `yaml:"request-topic-url"`
-	InputReposFile      string `yaml:"input-repos-file"`
-	ShardSize           int    `yaml:"shard-size"`
+	ResultDataBucketURL    string `yaml:"result-data-bucket-url"`
+	RequestTopicURL        string `yaml:"request-topic-url"`
+	RequestSubscriptionURL string `yaml:"request-subscription-url"`
+	InputReposFile         string `yaml:"input-repos-file"`
+	ShardSize              int    `yaml:"shard-size"`
 }
 
 func getParsedConfigFromFile(filename string) (config, error) {
@@ -113,6 +115,10 @@ func GetResultDataBucketURL() (string, error) {
 
 func GetRequestTopicURL() (string, error) {
 	return getStringConfigValue(requestTopicURL, configYAML, "RequestTopicURL", "request-topic-url")
+}
+
+func GetRequestSubscriptionURL() (string, error) {
+	return getStringConfigValue(requestSubscriptionURL, configYAML, "RequestSubscriptionURL", "request-subscription-url")
 }
 
 func GetInputReposFile() (string, error) {

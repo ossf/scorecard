@@ -4,8 +4,8 @@ gitblobcache
 validate
 scorecardcron
 scripts/update/projects-update
-
-
+cron/controller/controller
+cron/worker/worker
 
 # Binaries for programs and plugins.
 *.exe
