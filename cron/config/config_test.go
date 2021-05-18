@@ -21,11 +21,12 @@ import (
 )
 
 const (
-	testEnvVar    string = "TEST_ENV_VAR"
-	prodBucket           = "gs://ossf-scorecard-data"
-	prodTopic            = "gcppubsub://projects/openssf/topics/scorecard-batch-requests"
-	prodInputFile        = "projects.csv"
-	prodShardSize int    = 250
+	testEnvVar       string = "TEST_ENV_VAR"
+	prodBucket              = "gs://ossf-scorecard-data"
+	prodTopic               = "gcppubsub://projects/openssf/topics/scorecard-batch-requests"
+	prodSubscription        = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
+	prodInputFile           = "projects.csv"
+	prodShardSize    int    = 250
 )
 
 func TestYAMLParsing(t *testing.T) {
@@ -39,10 +40,11 @@ func TestYAMLParsing(t *testing.T) {
 			name:     "validate",
 			filename: "config.yaml",
 			expectedConfig: config{
-				ResultDataBucketURL: "gs://ossf-scorecard-data",
-				RequestTopicURL:     "gcppubsub://projects/openssf/topics/scorecard-batch-requests",
-				InputReposFile:      "projects.csv",
-				ShardSize:           250,
+				ResultDataBucketURL:    "gs://ossf-scorecard-data",
+				RequestTopicURL:        "gcppubsub://projects/openssf/topics/scorecard-batch-requests",
+				RequestSubscriptionURL: "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker",
+				InputReposFile:         "projects.csv",
+				ShardSize:              250,
 			},
 		},
 
@@ -214,6 +216,20 @@ func TestGetRequestTopicURL(t *testing.T) {
 		}
 		if topic != prodTopic {
 			t.Errorf("test failed: expected - %s, got = %s", prodTopic, topic)
+		}
+	})
+}
+
+//nolint:paralleltest // Since os.Setenv is used.
+func TestGetRequestSubscriptionURL(t *testing.T) {
+	t.Run("GetRequestSubscriptionURL", func(t *testing.T) {
+		os.Unsetenv(requestSubscriptionURL)
+		subscription, err := GetRequestSubscriptionURL()
+		if err != nil {
+			t.Errorf("failed to get production subscription URL from config: %v", err)
+		}
+		if subscription != prodSubscription {
+			t.Errorf("test failed: expected - %s, got = %s", prodSubscription, subscription)
 		}
 	})
 }
