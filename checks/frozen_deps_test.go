@@ -171,6 +171,7 @@ func TestDockerfilePinning(t *testing.T) {
 		})
 	}
 }
+<<<<<<< HEAD
 
 func TestDockerfilePinning(t *testing.T) {
 	t.Parallel()
@@ -337,3 +338,5 @@ func TestDockerfilePinning(t *testing.T) {
 		})
 	}
 }
+=======
+>>>>>>> 7320ac5 (Revert "check pinning in docker files")
