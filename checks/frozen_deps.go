@@ -76,8 +76,8 @@ func validateDockerfile(path string, content []byte,
 	// Read the file line by line.
 	scanner.Split(bufio.ScanLines)
 	r := true
-	nl := 0
-	var al []string
+	fromLineNb := 0
+	var pinnedAsNames []string
 	for scanner.Scan() {
 		line := scanner.Text()
 		// Only look at lines starting with FROM.
@@ -86,7 +86,7 @@ func validateDockerfile(path string, content []byte,
 		}
 
 		// New line found
-		nl += 1
+		fromLineNb += 1
 
 		// FROM name@sha256:hash AS newname.
 		// In this case, we record newname. It's pinned
@@ -94,7 +94,7 @@ func validateDockerfile(path string, content []byte,
 		re := hashAsRegex.FindStringSubmatch(line)
 		if len(re) == 2 {
 			// Record the newname.
-			al = append(al, re[1])
+			pinnedAsNames = append(pinnedAsNames, re[1])
 			continue
 		}
 
@@ -104,14 +104,14 @@ func validateDockerfile(path string, content []byte,
 		if len(re) == 3 {
 			oldname := re[1]
 			newname := re[2]
-			if !isPresent(al, oldname) {
+			if !isPresent(pinnedAsNames, oldname) {
 				r = false
 				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
 				continue
 			}
 			// Record the newname if not alresdy present in our list.
-			if !isPresent(al, newname) {
-				al = append(al, newname)
+			if !isPresent(pinnedAsNames, newname) {
+				pinnedAsNames = append(pinnedAsNames, newname)
 			}
 			continue
 		}
@@ -119,7 +119,7 @@ func validateDockerfile(path string, content []byte,
 		// FROM name
 		// where name refers to a pinned image
 		re = regex.FindStringSubmatch(line)
-		if len(re) == 2 && isPresent(al, re[1]) {
+		if len(re) == 2 && isPresent(pinnedAsNames, re[1]) {
 			continue
 		}
 
@@ -182,7 +182,7 @@ func validateDockerfile(path string, content []byte,
 	}
 
 	// The file should have at least one FROM statement.
-	if nl == 0 {
+	if fromLineNb == 0 {
 		return false, errors.New("file has no FROM keyword")
 	}
 

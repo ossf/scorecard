@@ -32,7 +32,6 @@ import (
 // 	- To scope the search to a directory, use "./dirname/*". Example, for the root directory,
 // 		use "./*".
 //	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
-// The check is case-insensitive.
 func CheckFilesContent(checkName, shellPathFnPattern string, caseSensitive bool, c *checker.CheckRequest,
 	onFileContent func(path string, content []byte, Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
