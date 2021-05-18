@@ -173,7 +173,7 @@ func TestDockerfilePinning(t *testing.T) {
 }
 
 func TestDockerfilePinning(t *testing.T) {
-	//t.Parallel()
+	t.Parallel()
 	type args struct {
 		Filename string
 		Logf     func(s string, f ...interface{})
