@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-FROM  golang:1.16.4 as base
+FROM  golang:1.16.4@sha256:6f0b0a314b158ff6caf8f12d7f6f3a966500ec6afb533e986eca7375e2f7560f AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
@@ -25,6 +25,6 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-scorecard
 
-FROM gcr.io/distroless/base:nonroot
+FROM gcr.io/distroless/base:nonroot@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
 COPY --from=build /src/scorecard /
 ENTRYPOINT [ "/scorecard" ]

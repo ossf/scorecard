@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-FROM  golang:1.16.3 as base
+FROM  golang:1.16.4@sha256:6f0b0a314b158ff6caf8f12d7f6f3a966500ec6afb533e986eca7375e2f7560f AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
@@ -31,7 +31,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-cron
 
-FROM gcr.io/google.com/cloudsdktool/cloud-sdk:slim 
+FROM gcr.io/google.com/cloudsdktool/cloud-sdk:slim@sha256:acb34ca33bc83255110d16a749b0da618a96fcc481348ecfe614b3edcabdeaa6
 COPY ./cron/projects.txt /cron/projects.txt
 COPY --from=build /src/scorecard /
 COPY --from=cron /src/cron/scorecardcron ./cron/cron
