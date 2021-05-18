@@ -14,7 +14,7 @@
 
 # syntax = docker/dockerfile:1-experimental
 
-FROM  golang:1.16.4@sha256:96129f3766cf8b69c32bd0b4be8fbf8f19ef143555b76a7f7b0046ed142e296a AS base
+FROM  golang:1.16.4@sha256:6f0b0a314b158ff6caf8f12d7f6f3a966500ec6afb533e986eca7375e2f7560f AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
@@ -26,6 +26,6 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN --mount=type=cache,target=/root/.cache/go-build  CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o /out/gitblobcache .
 
-FROM gcr.io/distroless/base:nonroot@sha256:fba21a4d26b3b4f24dd86e756f17107537dfc0f19a7882a8cd7914da1ccd8f92
+FROM gcr.io/distroless/base:nonroot@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
 COPY --from=build /out/gitblobcache /
 ENTRYPOINT [ "/gitblobcache" ]
