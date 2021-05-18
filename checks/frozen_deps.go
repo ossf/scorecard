@@ -86,7 +86,7 @@ func validateDockerfile(path string, content []byte,
 		}
 
 		// New line found
-		fromLineNb += 1
+		fromLineNb++
 
 		// FROM name@sha256:hash AS newname.
 		// In this case, we record newname. It's pinned
