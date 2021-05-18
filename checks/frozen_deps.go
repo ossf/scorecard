@@ -49,6 +49,7 @@ func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(frozenDepsStr, "*Dockerfile*", false, c, validateDockerfile)
 }
 
+<<<<<<< HEAD
 func isPresent(slice []string, val string) bool {
 	for _, item := range slice {
 		if item == val {
@@ -58,6 +59,8 @@ func isPresent(slice []string, val string) bool {
 	return false
 }
 
+=======
+>>>>>>> ec4e0aa (check dependencies pinning in docker files)
 func validateDockerfile(path string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
 	// Users may use various names, e.g.,
@@ -67,15 +70,20 @@ func validateDockerfile(path string, content []byte,
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
+<<<<<<< HEAD
 	asRegex := regexp.MustCompile(`^(?i)FROM\s+(.*)\s+AS\s+(.*)`)
 	regex := regexp.MustCompile(`^(?i)FROM\s+(.*)`)
 	hashAsRegex := regexp.MustCompile(`^(?i)FROM\s+.*@sha256:[a-f\d]{64}\s+AS\s+(.*)`)
 	hashRegex := regexp.MustCompile(`^(?i)FROM\s+.*@sha256:[a-f\d]{64}`)
+=======
+	hashRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}`)
+>>>>>>> ec4e0aa (check dependencies pinning in docker files)
 
 	// Read the file line by line.
 	scanner.Split(bufio.ScanLines)
 	r := true
 	nl := 0
+<<<<<<< HEAD
 	var al []string
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -128,6 +136,21 @@ func validateDockerfile(path string, content []byte,
 			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
 		}
 
+=======
+	for scanner.Scan() {
+		line := scanner.Text()
+		// Only look at lines starting with FROM.
+		if !strings.HasPrefix(line, "FROM ") {
+			continue
+		}
+
+		nl += 1
+		match := hashRegex.Match([]byte(line))
+		if !match {
+			r = false
+			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
+		}
+>>>>>>> ec4e0aa (check dependencies pinning in docker files)
 	}
 
 	// The file should have at least one FROM statement.
