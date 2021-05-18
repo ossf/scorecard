@@ -42,10 +42,10 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 	return checker.MultiCheckAnd(
 		isPackageManagerLockFilePresent,
 		isGitHubActionsWorkflowPinned,
+		isDockerfilePinned,
 	)(c)
 }
 
-// TODO(laurent): need to support Docker https://github.com/ossf/scorecard/issues/403
 // TODO(laurent): need to support GCB
 
 // ============================================================
@@ -148,7 +148,7 @@ func validateDockerfile(path string, content []byte,
 
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(frozenDepsStr, ".github/workflows/*", c, validateGitHubActionWorkflow)
+	return CheckFilesContent(frozenDepsStr, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
 }
 
 // Check file content
@@ -207,13 +207,14 @@ func validateGitHubActionWorkflow(path string, content []byte,
 // ================== Package manager lock files ==============
 // ============================================================
 
-// Check presence of lock files thru filePredicate().
+// Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
 	return CheckIfFileExists(frozenDepsStr, c, validatePackageManagerFile)
 }
 
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
 // TODO(laurent): need to differentiate between libraries and programs.
+// TODO(laurent): handle multi-language repos
 func validatePackageManagerFile(name string, logf func(s string, f ...interface{})) (bool, error) {
 	switch strings.ToLower(name) {
 	case "go.mod", "go.sum":
