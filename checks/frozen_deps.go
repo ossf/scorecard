@@ -15,7 +15,6 @@
 package checks
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"regexp"
@@ -36,59 +35,11 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 	return checker.MultiCheckAnd(
 		isPackageManagerLockFilePresent,
 		isGitHubActionsWorkflowPinned,
-		isDockerfilePinned,
 	)(c)
 }
 
+// TODO(laurent): need to support Docker https://github.com/ossf/scorecard/issues/403
 // TODO(laurent): need to support GCB
-
-// ============================================================
-// ======================== Dockerfiles =======================
-// ============================================================
-func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(frozenDepsStr, "*Dockerfile*", false, c, validateDockerfile)
-}
-
-func validateDockerfile(path string, content []byte,
-	logf func(s string, f ...interface{})) (bool, error) {
-	// Users may use various names, e.g.,
-	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
-	// Templates may trigger false positives, e.g. FROM { NAME }.
-
-	// We have what looks like a docker file.
-	// Let's interpret the content as utf8-encoded strings.
-	scanner := bufio.NewScanner(strings.NewReader(string(content)))
-	hashRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}`)
-
-	// Read the file line by line.
-	scanner.Split(bufio.ScanLines)
-	r := true
-	nl := 0
-	for scanner.Scan() {
-		line := scanner.Text()
-		// Only look at lines starting with FROM.
-		if !strings.HasPrefix(line, "FROM ") {
-			continue
-		}
-
-		nl += 1
-		match, err := hashRegex.Match([]byte(line))
-		if err != nil {
-			return false, err
-		}
-		if !match {
-			r = false
-			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
-		}
-	}
-
-	// The file should have at least one FROM statement.
-	if nl == 0 {
-		return false, errors.New("file has no FROM keyword")
-	}
-
-	return r, nil
-}
 
 // ============================================================
 // ===================== Github workflows =====================
@@ -96,7 +47,7 @@ func validateDockerfile(path string, content []byte,
 
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(frozenDepsStr, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
+	return CheckFilesContent(frozenDepsStr, ".github/workflows/*", c, validateGitHubActionWorkflow)
 }
 
 // Check file content
@@ -139,9 +90,6 @@ func validateGitHubActionWorkflow(path string, content []byte,
 				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 				// Example: action-name@hash
 				match := hashRegex.Match([]byte(step.Uses))
-				if err != nil {
-					return false, err
-				}
 				if !match {
 					r = false
 					logf("!! frozen-deps - %v has non-pinned dependency '%v' (job \"%v\")", path, step.Uses, jobName)
@@ -158,14 +106,13 @@ func validateGitHubActionWorkflow(path string, content []byte,
 // ================== Package manager lock files ==============
 // ============================================================
 
-// Check presence of lock files thru validatePackageManagerFile().
+// Check presence of lock files thru filePredicate().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
 	return CheckIfFileExists(frozenDepsStr, c, validatePackageManagerFile)
 }
 
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
 // TODO(laurent): need to differentiate between libraries and programs.
-// TODO(laurent): handle multi-language repos
 func validatePackageManagerFile(name string, logf func(s string, f ...interface{})) (bool, error) {
 	switch strings.ToLower(name) {
 	case "go.mod", "go.sum":
