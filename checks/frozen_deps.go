@@ -72,26 +72,10 @@ func validateDockerfile(path string, content []byte,
 
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
-<<<<<<< HEAD
 	contentReader := strings.NewReader(string(content))
 	regex := regexp.MustCompile(`.*@sha256:[a-f\d]{64}`)
-=======
-	scanner := bufio.NewScanner(strings.NewReader(string(content)))
-<<<<<<< HEAD
-	asRegex := regexp.MustCompile(`^FROM\s+(.*)\s+AS\s+(.*)`)
-	regex := regexp.MustCompile(`^FROM\s+(.*)`)
-	hashAsRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}\s+AS\s+(.*)`)
-	hashRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}`)
->>>>>>> e767aa7 (check docker files hash pinning)
-=======
-	asRegex := regexp.MustCompile(`^(?i)FROM\s+(.*)\s+AS\s+(.*)`)
-	regex := regexp.MustCompile(`^(?i)FROM\s+(.*)`)
-	hashAsRegex := regexp.MustCompile(`^(?i)FROM\s+.*@sha256:[a-f\d]{64}\s+AS\s+(.*)`)
-	hashRegex := regexp.MustCompile(`^(?i)FROM\s+.*@sha256:[a-f\d]{64}`)
->>>>>>> 19851e8 (make keyword matches case-insensitive)
 
 	r := true
-<<<<<<< HEAD
 	fromFound := false
 	var pinnedAsNames []string
 
@@ -130,57 +114,6 @@ func validateDockerfile(path string, content []byte,
 			}
 
 			// Not pinned.
-=======
-	nl := 0
-	var al []string
-	for scanner.Scan() {
-		line := scanner.Text()
-		// Only look at lines starting with FROM.
-		if !strings.HasPrefix(strings.ToLower(line), "from ") {
-			continue
-		}
-
-		// New line found
-		nl += 1
-
-		// FROM name@sha256:hash AS newname.
-		// In this case, we record newname. It's pinned
-		// so it can be re-used as 'FROM new name' later.
-		re := hashAsRegex.FindStringSubmatch(line)
-		if len(re) == 2 {
-			// Record the newname.
-			al = append(al, re[1])
-			continue
-		}
-
-		// FROM oldname AS newname
-		// where oldname refers to a pinned image
-		re = asRegex.FindStringSubmatch(line)
-		if len(re) == 3 {
-			oldname := re[1]
-			newname := re[2]
-			if !isPresent(al, oldname) {
-				r = false
-				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
-				continue
-			}
-			// Record the newname if not alresdy present in our list.
-			if !isPresent(al, newname) {
-				al = append(al, newname)
-			}
-			continue
-		}
-
-		// FROM name
-		// where name refers to a pinned image
-		re = regex.FindStringSubmatch(line)
-		if len(re) == 2 && isPresent(al, re[1]) {
-			continue
-		}
-
-		// FROM name@sha256:hash
-		if !hashRegex.Match([]byte(line)) {
->>>>>>> e767aa7 (check docker files hash pinning)
 			r = false
 			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
 			continue
