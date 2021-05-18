@@ -77,10 +77,6 @@ func CheckFilesContent(checkName, shellPathFnPattern string, caseSensitive bool,
 	tr := tar.NewReader(gz)
 	res := true
 
-	if !caseSensitive {
-		shellPathFnPattern = strings.ToLower(shellPathFnPattern)
-	}
-
 	for {
 		hdr, err := tr.Next()
 		if err != nil && err != io.EOF {
@@ -127,7 +123,7 @@ func CheckFilesContent(checkName, shellPathFnPattern string, caseSensitive bool,
 		}
 
 		// We truncate the file to remove tailing 0 (sparse format).
-		rr, err := onFileContent(fullpath, content[:n], c.Logf)
+		rr, err := onFileContent(name, content[:n], c.Logf)
 		if err != nil {
 			return checker.CheckResult{
 				Name:       checkName,
