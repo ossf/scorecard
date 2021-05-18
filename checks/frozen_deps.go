@@ -163,7 +163,6 @@ func validateDockerfile(path string, content []byte,
 			// Record the newname if not alresdy present in our list.
 			if !isPresent(al, newname) {
 				al = append(al, newname)
-				fmt.Printf("array: %v\n", al)
 			}
 			continue
 		}
