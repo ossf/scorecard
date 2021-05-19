@@ -89,8 +89,8 @@ func validateDockerfile(path string, content []byte,
 			valueList = append(valueList, n.Value)
 		}
 
-		// FROM name AS newname.
 		switch {
+		// FROM name AS newname.
 		case len(valueList) == 3 && strings.EqualFold(valueList[1], "as"):
 			name := valueList[0]
 			asName := valueList[2]
