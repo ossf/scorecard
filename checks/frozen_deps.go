@@ -15,17 +15,23 @@
 package checks
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 
+	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/ossf/scorecard/checker"
 	"gopkg.in/yaml.v2"
 )
 
 const frozenDepsStr = "Frozen-Deps"
+
+// ErrFrozenDepsInvalidDockerfile : Invalid docker file.
+var ErrFrozenDepsInvalidDockerfile = errors.New("invalid docker file")
+
+// ErrFrozenDepsEmptyFile : Invalid docker file.
+var ErrFrozenDepsEmptyFile = errors.New("file has no content")
 
 func init() {
 	registerCheck(frozenDepsStr, FrozenDeps)
@@ -66,67 +72,63 @@ func validateDockerfile(path string, content []byte,
 
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
-	scanner := bufio.NewScanner(strings.NewReader(string(content)))
-	asRegex := regexp.MustCompile(`^(?i)FROM\s+(.*)\s+AS\s+(.*)`)
-	regex := regexp.MustCompile(`^(?i)FROM\s+(.*)`)
-	hashAsRegex := regexp.MustCompile(`^(?i)FROM\s+.*@sha256:[a-f\d]{64}\s+AS\s+(.*)`)
-	hashRegex := regexp.MustCompile(`^(?i)FROM\s+.*@sha256:[a-f\d]{64}`)
-	hashRegex := regexp.MustCompile(`^FROM\s+.*@sha256:[a-f\d]{64}`)
+	contentReader := strings.NewReader(string(content))
+	regex := regexp.MustCompile(`.*@sha256:[a-f\d]{64}`)
 
-	// Read the file line by line.
-	scanner.Split(bufio.ScanLines)
 	r := true
-	fromLineNb := 0
+	fromFound := false
 	var pinnedAsNames []string
-	for scanner.Scan() {
-		line := scanner.Text()
-		// Only look at lines starting with FROM.
-		if !strings.HasPrefix(strings.ToLower(line), "from ") {
+
+	res, err := parser.Parse(contentReader)
+	if err != nil {
+		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
+	}
+
+	for _, child := range res.AST.Children {
+		cmdType := child.Value
+		if cmdType != "from" {
 			continue
 		}
 
-		// New line found
-		fromLineNb++
+		// New 'FROM' line found.
+		fromFound = true
 
-		// FROM name@sha256:hash AS newname.
-		// In this case, we record newname. It's pinned
-		// so it can be re-used as 'FROM new name' later.
-		re := hashAsRegex.FindStringSubmatch(line)
-		if len(re) == 2 {
-			// Record the newname.
-			pinnedAsNames = append(pinnedAsNames, re[1])
-			continue
+		var valueList []string
+		for n := child.Next; n != nil; n = n.Next {
+			valueList = append(valueList, n.Value)
 		}
 
-		// FROM oldname AS newname
-		// where oldname refers to a pinned image
-		re = asRegex.FindStringSubmatch(line)
-		if len(re) == 3 {
-			oldname := re[1]
-			newname := re[2]
-			if !isPresent(pinnedAsNames, oldname) {
-				r = false
-				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
+		// FROM name AS newname.
+		if len(valueList) == 3 && strings.ToLower(valueList[1]) == "as" {
+			name := valueList[0]
+			asName := valueList[2]
+			// Check if the name is pinned.
+			// (1): name = <>@sha245:hash
+			// (2): name = XXX where XXX was pinned
+			if regex.Match([]byte(name)) || isPresent(pinnedAsNames, name) {
+				// Record the asName.
+				if !isPresent(pinnedAsNames, asName) {
+					pinnedAsNames = append(pinnedAsNames, asName)
+				}
 				continue
 			}
-			// Record the newname if not alresdy present in our list.
-			if !isPresent(pinnedAsNames, newname) {
-				pinnedAsNames = append(pinnedAsNames, newname)
-			}
-			continue
-		}
 
-		// FROM name
-		// where name refers to a pinned image
-		re = regex.FindStringSubmatch(line)
-		if len(re) == 2 && isPresent(pinnedAsNames, re[1]) {
-			continue
-		}
-
-		// FROM name@sha256:hash
-		if !hashRegex.Match([]byte(line)) {
+			// Not pinned.
 			r = false
-			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, line)
+			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
+			continue
+
+		} else if len(valueList) == 1 {
+			// FROM name
+			name := valueList[0]
+			if !regex.Match([]byte(name)) {
+				r = false
+				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
+				continue
+			}
+		} else {
+			// That should not happen.
+			return false, ErrFrozenDepsInvalidDockerfile
 		}
 
 	for scanner.Scan() {
@@ -182,8 +184,9 @@ func validateDockerfile(path string, content []byte,
 	}
 
 	// The file should have at least one FROM statement.
-	if fromLineNb == 0 {
-		return false, errors.New("file has no FROM keyword")
+	if !fromFound {
+		logf("end")
+		return false, ErrFrozenDepsInvalidDockerfile
 	}
 
 	return r, nil
@@ -218,7 +221,7 @@ func validateGitHubActionWorkflow(path string, content []byte,
 	}
 
 	if len(content) == 0 {
-		return false, errors.New("file has no content")
+		return false, ErrFrozenDepsEmptyFile
 	}
 
 	var workflow GitHubActionWorkflowConfig

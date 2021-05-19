@@ -26,6 +26,23 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
+// IsMatchingPath uses 'pattern' to shell-match the 'path' and its filename
+// 'caseSensitive' indicates the match should be case-sensitive. Default: no.
+func IsMatchingPath(pattern, fullpath string, caseSensitive bool) bool {
+	if !caseSensitive {
+		pattern = strings.ToLower(pattern)
+		fullpath = strings.ToLower(fullpath)
+	}
+
+	filename := path.Base(fullpath)
+	if match, _ := path.Match(pattern, fullpath); !match {
+		if match, _ := path.Match(pattern, filename); !match {
+			return false
+		}
+	}
+	return true
+}
+
 // CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
 // shellPathFnPattern is used for https://golang.org/pkg/path/#Match
 // Warning: the pattern is used to match (1) the entire path AND (2) the filename alone. This means:
@@ -60,10 +77,6 @@ func CheckFilesContent(checkName, shellPathFnPattern string, caseSensitive bool,
 	tr := tar.NewReader(gz)
 	res := true
 
-	if !caseSensitive {
-		shellPathFnPattern = strings.ToLower(shellPathFnPattern)
-	}
-
 	for {
 		hdr, err := tr.Next()
 		if err != nil && err != io.EOF {
@@ -87,17 +100,10 @@ func CheckFilesContent(checkName, shellPathFnPattern string, caseSensitive bool,
 		}
 
 		fullpath := names[1]
-		filename := path.Base(fullpath)
 
-		if !caseSensitive {
-			fullpath = strings.ToLower(fullpath)
-			filename = strings.ToLower(path.Base(fullpath))
-		}
 		// Filter out files based on path/names.
-		if match, _ := path.Match(shellPathFnPattern, fullpath); !match {
-			if match, _ := path.Match(shellPathFnPattern, filename); !match {
-				continue
-			}
+		if !IsMatchingPath(shellPathFnPattern, fullpath, caseSensitive) {
+			continue
 		}
 
 		content := make([]byte, hdr.Size)

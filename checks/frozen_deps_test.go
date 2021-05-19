@@ -46,7 +46,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				Filename: "",
 				Logf:     l.Logf,
 			},
-			want: returnValue{false, errors.New("file has no content")},
+			want: returnValue{false, ErrFrozenDepsEmptyFile},
 		},
 		{
 			name: "Pinned workflow",
@@ -82,9 +82,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			}
 			r, err := validateGitHubActionWorkflow(tt.args.Filename, content, tt.args.Logf)
 
-			if (err != nil && tt.want.Error == nil) ||
-				(err == nil && tt.want.Error != nil) ||
-				(err != nil && tt.want.Error != nil && err.Error() != tt.want.Error.Error()) ||
+			if !errors.Is(err, tt.want.Error) ||
 				r != tt.want.Result {
 				t.Errorf("TestGithubWorkflowPinning:\"%v\": %v (%v,%v) want (%v, %v)", tt.name, tt.args.Filename, r, err, tt.want.Result, tt.want.Error)
 			}
@@ -116,7 +114,7 @@ func TestDockerfilePinning(t *testing.T) {
 				Filename: "./testdata/Dockerfile-invalid",
 				Logf:     l.Logf,
 			},
-			want: returnValue{false, errors.New("file has no FROM keyword")},
+			want: returnValue{false, ErrFrozenDepsInvalidDockerfile},
 		},
 		{
 			name: "Pinned dockerfile",
@@ -166,9 +164,7 @@ func TestDockerfilePinning(t *testing.T) {
 
 			r, err := validateDockerfile(tt.args.Filename, content, tt.args.Logf)
 
-			if (err != nil && tt.want.Error == nil) ||
-				(err == nil && tt.want.Error != nil) ||
-				(err != nil && tt.want.Error != nil && err.Error() != tt.want.Error.Error()) ||
+			if !errors.Is(err, tt.want.Error) ||
 				r != tt.want.Result {
 				t.Errorf("TestGithubWorkflowPinning:\"%v\": %v (%v,%v) want (%v, %v)", tt.name, tt.args.Filename, r, err, tt.want.Result, tt.want.Error)
 			}
