@@ -54,12 +54,9 @@ func IsMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 }
 
 func HeaderSizeMatchesFileSize(hdr *tar.Header, size int) bool {
-	if hdr.Format != tar.FormatUSTAR &&
-		hdr.Format != tar.FormatUnknown &&
-		int64(size) != hdr.Size {
-		return false
-	}
-	return true
+	return hdr.Format == tar.FormatUSTAR ||
+		hdr.Format == tar.FormatUnknown ||
+		int64(size) == hdr.Size
 }
 
 func NonEmptyRegularFile(hdr *tar.Header) bool {
