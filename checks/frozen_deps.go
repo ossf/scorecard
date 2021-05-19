@@ -97,7 +97,7 @@ func validateDockerfile(path string, content []byte,
 			// (1): name = <>@sha245:hash
 			// (2): name = XXX where XXX was pinned
 			_, pinned := pinnedAsNames[name]
-			if regex.Match([]byte(name)) || pinned {
+			if pinned || regex.Match([]byte(name)) {
 				// Record the asName.
 				if _, ok := pinnedAsNames[asName]; !ok {
 					pinnedAsNames[asName] = true
