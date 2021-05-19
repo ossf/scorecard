@@ -60,7 +60,7 @@ $(GOLANGGCI_LINT): install
 check-linter: ## Install and run golang linter
 check-linter: $(GOLANGGCI_LINT)
 	# Run golangci-lint linter
-	golangci-lint run -n
+	golangci-lint run
 
 validate-projects: ## Validates ./cron/projects.txt
 validate-projects: build-scripts
