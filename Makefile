@@ -121,6 +121,8 @@ dockerbuild: ## Runs docker build
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
 	DOCKER_BUILDKIT=1 docker build . --file cron/Dockerfile --tag $(IMAGE_NAME)cron
+	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
+	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
 ###############################################################################
 
 ################################# make test ###################################
