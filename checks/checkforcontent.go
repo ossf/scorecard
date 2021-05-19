@@ -39,16 +39,18 @@ func IsMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 
 	filename := path.Base(fullpath)
 	match, err := path.Match(pattern, fullpath)
-	switch {
-	case err != nil:
+	if err != nil {
 		return false, fmt.Errorf("match error: %w", err)
-	case !match:
-		if match, err = path.Match(pattern, filename); err != nil || !match {
+	}
+
+	// No match on the fullpath, let's try on the filename only.
+	if !match {
+		if match, err = path.Match(pattern, filename); err != nil {
 			return false, fmt.Errorf("match error: %w", err)
 		}
 	}
 
-	return true, nil
+	return match, nil
 }
 
 func HeaderSizeMatchesFileSize(hdr *tar.Header, size int) bool {
