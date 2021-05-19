@@ -17,6 +17,7 @@ package checks
 import (
 	"archive/tar"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,10 +27,54 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
+var ErrReadFile = errors.New("could not read entire file")
+
+// IsMatchingPath uses 'pattern' to shell-match the 'path' and its filename
+// 'caseSensitive' indicates the match should be case-sensitive. Default: no.
+func IsMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) {
+	if !caseSensitive {
+		pattern = strings.ToLower(pattern)
+		fullpath = strings.ToLower(fullpath)
+	}
+
+	filename := path.Base(fullpath)
+	match, err := path.Match(pattern, fullpath)
+	if err != nil {
+		return false, fmt.Errorf("match error: %w", err)
+	}
+
+	// No match on the fullpath, let's try on the filename only.
+	if !match {
+		if match, err = path.Match(pattern, filename); err != nil {
+			return false, fmt.Errorf("match error: %w", err)
+		}
+	}
+
+	return match, nil
+}
+
+func HeaderSizeMatchesFileSize(hdr *tar.Header, size int) bool {
+	return hdr.Format == tar.FormatUSTAR ||
+		hdr.Format == tar.FormatUnknown ||
+		int64(size) == hdr.Size
+}
+
+func NonEmptyRegularFile(hdr *tar.Header) bool {
+	return hdr.Typeflag == tar.TypeReg && hdr.Size > 0
+}
+
 // CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
 // shellPathFnPattern is used for https://golang.org/pkg/path/#Match
-func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckRequest,
-	onFileContent func(path string, content []byte, Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
+// Warning: the pattern is used to match (1) the entire path AND (2) the filename alone. This means:
+// 	- To scope the search to a directory, use "./dirname/*". Example, for the root directory,
+// 		use "./*".
+//	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
+func CheckFilesContent(checkName, shellPathFnPattern string,
+	caseSensitive bool,
+	c *checker.CheckRequest,
+	onFileContent func(path string, content []byte,
+		Logf func(s string, f ...interface{})) (bool, error),
+) checker.CheckResult {
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
@@ -67,7 +112,7 @@ func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckReq
 		}
 
 		// Only consider regular files.
-		if hdr.Typeflag != tar.TypeReg || hdr.Size == 0 {
+		if !NonEmptyRegularFile(hdr) {
 			continue
 		}
 
@@ -78,9 +123,14 @@ func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckReq
 			continue
 		}
 
-		name := names[1]
-		// Filter out files based on path.
-		if match, _ := path.Match(shellPathFnPattern, name); !match {
+		fullpath := names[1]
+
+		// Filter out files based on path/names.
+		b, err := IsMatchingPath(shellPathFnPattern, fullpath, caseSensitive)
+		switch {
+		case err != nil:
+			return checker.MakeFailResult(checkName, err)
+		case !b:
 			continue
 		}
 
@@ -94,21 +144,14 @@ func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckReq
 		// indicated in header, unless the file format supports
 		// sparse regions. Only USTAR format does not support
 		// spare regions -- see https://golang.org/pkg/archive/tar/
-		if hdr.Format != tar.FormatUSTAR &&
-			hdr.Format != tar.FormatUnknown &&
-			int64(n) != hdr.Size {
-			return checker.MakeRetryResult(checkName, fmt.Errorf("could not read entire file"))
+		if b := HeaderSizeMatchesFileSize(hdr, n); !b {
+			return checker.MakeRetryResult(checkName, ErrReadFile)
 		}
 
 		// We truncate the file to remove tailing 0 (sparse format).
-		rr, err := onFileContent(name, content[:n], c.Logf)
+		rr, err := onFileContent(fullpath, content[:n], c.Logf)
 		if err != nil {
-			return checker.CheckResult{
-				Name:       checkName,
-				Pass:       false,
-				Confidence: 10,
-				Error:      err,
-			}
+			return checker.MakeFailResult(checkName, err)
 		}
 		// We don't return rightway to give the onFileContent()
 		// handler to log.
@@ -117,17 +160,9 @@ func CheckFilesContent(checkName, shellPathFnPattern string, c *checker.CheckReq
 		}
 	}
 
-	if !res {
-		return checker.CheckResult{
-			Name:       checkName,
-			Pass:       false,
-			Confidence: 10,
-		}
+	if res {
+		return checker.MakePassResult(checkName)
 	}
 
-	return checker.CheckResult{
-		Name:       checkName,
-		Pass:       true,
-		Confidence: 10,
-	}
+	return checker.MakeFailResult(checkName, err)
 }

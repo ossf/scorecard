@@ -20,11 +20,18 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/ossf/scorecard/checker"
 	"gopkg.in/yaml.v2"
 )
 
 const frozenDepsStr = "Frozen-Deps"
+
+// ErrInvalidDockerfile : Invalid docker file.
+var ErrInvalidDockerfile = errors.New("invalid docker file")
+
+// ErrEmptyFile : Invalid docker file.
+var ErrEmptyFile = errors.New("file has no content")
 
 func init() {
 	registerCheck(frozenDepsStr, FrozenDeps)
@@ -35,25 +42,105 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 	return checker.MultiCheckAnd(
 		isPackageManagerLockFilePresent,
 		isGitHubActionsWorkflowPinned,
+		isDockerfilePinned,
 	)(c)
 }
 
-// TODO(laurent): need to support Docker https://github.com/ossf/scorecard/issues/403
 // TODO(laurent): need to support GCB
 
 // ============================================================
-// ===================== Github workflows =====================
+// ======================== Dockerfiles =======================
+// ============================================================.
+func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
+	return CheckFilesContent(frozenDepsStr, "*Dockerfile*", false, c, validateDockerfile)
+}
+
+func validateDockerfile(path string, content []byte,
+	logf func(s string, f ...interface{})) (bool, error) {
+	// Users may use various names, e.g.,
+	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
+	// Templates may trigger false positives, e.g. FROM { NAME }.
+
+	// We have what looks like a docker file.
+	// Let's interpret the content as utf8-encoded strings.
+	contentReader := strings.NewReader(string(content))
+	regex := regexp.MustCompile(`.*@sha256:[a-f\d]{64}`)
+
+	ret := true
+	fromFound := false
+	pinnedAsNames := make(map[string]bool)
+
+	res, err := parser.Parse(contentReader)
+	if err != nil {
+		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
+	}
+
+	for _, child := range res.AST.Children {
+		cmdType := child.Value
+		if cmdType != "from" {
+			continue
+		}
+
+		// New 'FROM' line found.
+		fromFound = true
+
+		var valueList []string
+		for n := child.Next; n != nil; n = n.Next {
+			valueList = append(valueList, n.Value)
+		}
+
+		switch {
+		// FROM name AS newname.
+		case len(valueList) == 3 && strings.EqualFold(valueList[1], "as"):
+			name := valueList[0]
+			asName := valueList[2]
+			// Check if the name is pinned.
+			// (1): name = <>@sha245:hash
+			// (2): name = XXX where XXX was pinned
+			_, pinned := pinnedAsNames[name]
+			if pinned || regex.Match([]byte(name)) {
+				// Record the asName.
+				pinnedAsNames[asName] = true
+				continue
+			}
+
+			// Not pinned.
+			ret = false
+			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
+
+		// FROM name.
+		case len(valueList) == 1:
+			name := valueList[0]
+			if !regex.Match([]byte(name)) {
+				ret = false
+				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
+			}
+
+		default:
+			// That should not happen.
+			return false, ErrInvalidDockerfile
+		}
+	}
+
+	// The file should have at least one FROM statement.
+	if !fromFound {
+		return false, ErrInvalidDockerfile
+	}
+
+	return ret, nil
+}
+
 // ============================================================
+// ===================== Github workflows =====================
+// ============================================================.
 
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(frozenDepsStr, ".github/workflows/*", c, validateGitHubActionWorkflow)
+	return CheckFilesContent(frozenDepsStr, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
 }
 
-// Check file content
-func validateGitHubActionWorkflow(path string, content []byte,
-	logf func(s string, f ...interface{})) (bool, error) {
-
+// Check file content.
+func validateGitHubActionWorkflow(path string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
 	// Structure for workflow config.
 	// We only retrieve what we need for logging.
 	// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
@@ -70,7 +157,7 @@ func validateGitHubActionWorkflow(path string, content []byte,
 	}
 
 	if len(content) == 0 {
-		return false, errors.New("file has no content")
+		return false, ErrEmptyFile
 	}
 
 	var workflow GitHubActionWorkflowConfig
@@ -80,7 +167,7 @@ func validateGitHubActionWorkflow(path string, content []byte,
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
-	r := true
+	ret := true
 	for jobName, job := range workflow.Jobs {
 		if len(job.Name) > 0 {
 			jobName = job.Name
@@ -91,28 +178,28 @@ func validateGitHubActionWorkflow(path string, content []byte,
 				// Example: action-name@hash
 				match := hashRegex.Match([]byte(step.Uses))
 				if !match {
-					r = false
+					ret = false
 					logf("!! frozen-deps - %v has non-pinned dependency '%v' (job \"%v\")", path, step.Uses, jobName)
 				}
 			}
 		}
-
 	}
 
-	return r, nil
+	return ret, nil
 }
 
 // ============================================================
 // ================== Package manager lock files ==============
-// ============================================================
+// ============================================================.
 
-// Check presence of lock files thru filePredicate().
+// Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
 	return CheckIfFileExists(frozenDepsStr, c, validatePackageManagerFile)
 }
 
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
 // TODO(laurent): need to differentiate between libraries and programs.
+// TODO(laurent): handle multi-language repos.
 func validatePackageManagerFile(name string, logf func(s string, f ...interface{})) (bool, error) {
 	switch strings.ToLower(name) {
 	case "go.mod", "go.sum":

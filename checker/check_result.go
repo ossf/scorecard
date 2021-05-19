@@ -44,6 +44,15 @@ func MakePassResult(name string) CheckResult {
 	}
 }
 
+func MakeFailResult(name string, err error) CheckResult {
+	return CheckResult{
+		Name:       name,
+		Pass:       false,
+		Confidence: MaxResultConfidence,
+		Error:      err,
+	}
+}
+
 func MakeRetryResult(name string, err error) CheckResult {
 	return CheckResult{
 		Name:        name,
