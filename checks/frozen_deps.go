@@ -90,6 +90,7 @@ func validateDockerfile(path string, content []byte,
 		}
 
 		switch {
+
 		// FROM name AS newname.
 		case len(valueList) == 3 && strings.EqualFold(valueList[1], "as"):
 			name := valueList[0]
@@ -110,8 +111,8 @@ func validateDockerfile(path string, content []byte,
 			ret = false
 			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
 
+		// FROM name.
 		case len(valueList) == 1:
-			// FROM name
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
 				ret = false
