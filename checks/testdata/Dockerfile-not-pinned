@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # Note: taken from https://github.com/pushiqiang/utils/blob/master/docker/Dockerfile_template
-FROM python:3.7
+# Add tab
+    FROM python:3.7
 
 # 如果在中国，apt使用163源, ifconfig.co/json, http://ip-api.com 
 RUN curl -s ifconfig.co/json | grep "China" > /dev/null && \
