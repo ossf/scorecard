@@ -21,62 +21,30 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync/atomic"
-	"time"
 
 	"github.com/bradleyfalzon/ghinstallation"
-	cache "github.com/naveensrinivasan/httpcache"
-	"github.com/naveensrinivasan/httpcache/diskcache"
-	"github.com/peterbourgon/diskv"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"golang.org/x/oauth2"
 )
 
 const (
-	GithubAuthToken         = "GITHUB_AUTH_TOKEN" // #nosec G101
-	GithubAppKeyPath        = "GITHUB_APP_KEY_PATH"
-	GithubAppID             = "GITHUB_APP_ID"
-	GithubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
-	UseDiskCache            = "USE_DISK_CACHE"
-	DiskCachePath           = "DISK_CACHE_PATH"
-	UseBlobCache            = "USE_BLOB_CACHE"
-	BucketURL               = "BLOB_URL"
+	GithubAuthToken                = "GITHUB_AUTH_TOKEN" // #nosec G101
+	GithubAppKeyPath               = "GITHUB_APP_KEY_PATH"
+	GithubAppID                    = "GITHUB_APP_ID"
+	GithubAppInstallationID        = "GITHUB_APP_INSTALLATION_ID"
+	UseDiskCache                   = "USE_DISK_CACHE"
+	DiskCachePath                  = "DISK_CACHE_PATH"
+	UseBlobCache                   = "USE_BLOB_CACHE"
+	BucketURL                      = "BLOB_URL"
+	cacheSize               uint64 = 10000 * 1024 * 1024 // 10gb
 )
-
-var counter int64
-
-// RateLimitRoundTripper is a rate-limit aware http.Transport for Github.
-type RateLimitRoundTripper struct {
-	Logger         *zap.SugaredLogger
-	InnerTransport http.RoundTripper
-}
-
-type RoundRobinTokenSource struct {
-	log          *zap.SugaredLogger
-	AccessTokens []string
-}
-
-func (r *RoundRobinTokenSource) Token() (*oauth2.Token, error) {
-	c := atomic.AddInt64(&counter, 1)
-	// not locking it because it is never modified
-	l := len(r.AccessTokens)
-	index := c % int64(l)
-	return &oauth2.Token{
-		AccessToken: r.AccessTokens[index],
-	}, nil
-}
 
 // NewTransport returns a configured http.Transport for use with GitHub.
 func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
-	// Start with oauth
 	transport := http.DefaultTransport
+
+	// Start with oauth
 	if token := os.Getenv(GithubAuthToken); token != "" {
-		ts := &RoundRobinTokenSource{
-			AccessTokens: strings.Split(token, ","),
-			log:          logger,
-		}
-		transport = oauth2.NewClient(ctx, ts).Transport
+		transport = MakeOAuthTransport(ctx, strings.Split(token, ","))
 	} else if keyPath := os.Getenv(GithubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
 		appID, err := strconv.Atoi(os.Getenv(GithubAppID))
 		if err != nil {
@@ -93,36 +61,29 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 	}
 
 	// Wrap that with the rate limiter
-	rateLimit := &RateLimitRoundTripper{
-		Logger:         logger,
-		InnerTransport: transport,
-	}
+	rateLimit := MakeRateLimitedTransport(transport, logger)
 
+	// Wrap that with a HTTP cache
+	return cachedTransportFactory(rateLimit)
+}
+
+func cachedTransportFactory(innerTransport http.RoundTripper) http.RoundTripper {
 	// uses blob cache like GCS,S3.
 	if cachePath, useBlob := shouldUseBlobCache(); useBlob {
 		b, e := New(context.Background(), cachePath)
 		if e != nil {
 			log.Panic(e)
 		}
-
-		c := cache.NewTransport(b)
-		c.Transport = rateLimit
-		return c
+		return MakeBlobCacheTransport(innerTransport, b)
 	}
 
 	// uses the disk cache
 	if cachePath, useDisk := shouldUseDiskCache(); useDisk {
-		const cacheSize uint64 = 10000 * 1024 * 1024 // 10gb
-		c := cache.NewTransport(diskcache.NewWithDiskv(
-			diskv.New(diskv.Options{BasePath: cachePath, CacheSizeMax: cacheSize})))
-		c.Transport = rateLimit
-		return c
+		return MakeDiskCacheTransport(innerTransport, cachePath, cacheSize)
 	}
 
 	// uses memory cache
-	c := cache.NewTransport(cache.NewMemoryCache())
-	c.Transport = rateLimit
-	return c
+	return MakeInMemoryCacheTransport(innerTransport)
 }
 
 // shouldUseDiskCache checks the env variables USE_DISK_CACHE and DISK_CACHE_PATH to determine if
@@ -147,35 +108,4 @@ func shouldUseBlobCache() (string, bool) {
 		}
 	}
 	return "", false
-}
-
-// Roundtrip handles caching and ratelimiting of responses from GitHub.
-func (gh *RateLimitRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
-	resp, err := gh.InnerTransport.RoundTrip(r)
-	if err != nil {
-		return nil, errors.Wrap(err, "error in round trip")
-	}
-
-	rateLimit := resp.Header.Get("X-RateLimit-Remaining")
-	remaining, err := strconv.Atoi(rateLimit)
-	if err != nil {
-		return resp, nil
-	}
-
-	if remaining <= 0 {
-		reset, err := strconv.Atoi(resp.Header.Get("X-RateLimit-Reset"))
-		if err != nil {
-			return resp, nil
-		}
-
-		duration := time.Until(time.Unix(int64(reset), 0))
-		gh.Logger.Warnf("Rate limit exceeded. Waiting %s to retry...", duration)
-
-		// Retry
-		time.Sleep(duration)
-		gh.Logger.Warnf("Rate limit exceeded. Retrying...")
-		return gh.RoundTrip(r)
-	}
-
-	return resp, nil
 }
