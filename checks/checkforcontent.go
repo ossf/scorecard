@@ -28,19 +28,23 @@ import (
 
 // IsMatchingPath uses 'pattern' to shell-match the 'path' and its filename
 // 'caseSensitive' indicates the match should be case-sensitive. Default: no.
-func IsMatchingPath(pattern, fullpath string, caseSensitive bool) bool {
+func IsMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) {
 	if !caseSensitive {
 		pattern = strings.ToLower(pattern)
 		fullpath = strings.ToLower(fullpath)
 	}
 
 	filename := path.Base(fullpath)
-	if match, _ := path.Match(pattern, fullpath); !match {
-		if match, _ := path.Match(pattern, filename); !match {
-			return false
+	if match, err := path.Match(pattern, fullpath); err != nil {
+		return false, err
+
+		if !match {
+			if match, err = path.Match(pattern, filename); err != nil || !match {
+				return false, err
+			}
 		}
 	}
-	return true
+	return true, nil
 }
 
 // CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
@@ -49,8 +53,13 @@ func IsMatchingPath(pattern, fullpath string, caseSensitive bool) bool {
 // 	- To scope the search to a directory, use "./dirname/*". Example, for the root directory,
 // 		use "./*".
 //	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
-func CheckFilesContent(checkName, shellPathFnPattern string, caseSensitive bool, c *checker.CheckRequest,
-	onFileContent func(path string, content []byte, Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
+func CheckFilesContent(checkName,
+	shellPathFnPattern string,
+	caseSensitive bool,
+	c *checker.CheckRequest,
+	onFileContent func(path string, content []byte,
+		Logf func(s string, f ...interface{})) (bool, error),
+) checker.CheckResult {
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
@@ -102,7 +111,16 @@ func CheckFilesContent(checkName, shellPathFnPattern string, caseSensitive bool,
 		fullpath := names[1]
 
 		// Filter out files based on path/names.
-		if !IsMatchingPath(shellPathFnPattern, fullpath, caseSensitive) {
+		b, err := IsMatchingPath(shellPathFnPattern, fullpath, caseSensitive)
+		switch {
+		case err != nil:
+			return checker.CheckResult{
+				Name:       checkName,
+				Pass:       false,
+				Confidence: 0,
+				Error:      err,
+			}
+		case !b:
 			continue
 		}
 

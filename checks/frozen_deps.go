@@ -68,7 +68,7 @@ func validateDockerfile(path string, content []byte,
 
 	ret := true
 	fromFound := false
-	var pinnedAsNames = make(map[string]bool)
+	pinnedAsNames := make(map[string]bool)
 
 	res, err := parser.Parse(contentReader)
 	if err != nil {
@@ -90,7 +90,6 @@ func validateDockerfile(path string, content []byte,
 		}
 
 		switch {
-
 		// FROM name AS newname.
 		case len(valueList) == 3 && strings.EqualFold(valueList[1], "as"):
 			name := valueList[0]
@@ -101,9 +100,7 @@ func validateDockerfile(path string, content []byte,
 			_, pinned := pinnedAsNames[name]
 			if pinned || regex.Match([]byte(name)) {
 				// Record the asName.
-				if _, ok := pinnedAsNames[asName]; !ok {
-					pinnedAsNames[asName] = true
-				}
+				pinnedAsNames[asName] = true
 				continue
 			}
 
@@ -123,7 +120,6 @@ func validateDockerfile(path string, content []byte,
 			// That should not happen.
 			return false, ErrInvalidDockerfile
 		}
-
 	}
 
 	// The file should have at least one FROM statement.
@@ -143,10 +139,8 @@ func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult 
 	return CheckFilesContent(frozenDepsStr, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
 }
 
-// Check file content
-func validateGitHubActionWorkflow(path string, content []byte,
-	logf func(s string, f ...interface{})) (bool, error) {
-
+// Check file content.
+func validateGitHubActionWorkflow(path string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
 	// Structure for workflow config.
 	// We only retrieve what we need for logging.
 	// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
@@ -189,7 +183,6 @@ func validateGitHubActionWorkflow(path string, content []byte,
 				}
 			}
 		}
-
 	}
 
 	return ret, nil
@@ -206,7 +199,7 @@ func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResul
 
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
 // TODO(laurent): need to differentiate between libraries and programs.
-// TODO(laurent): handle multi-language repos
+// TODO(laurent): handle multi-language repos.
 func validatePackageManagerFile(name string, logf func(s string, f ...interface{})) (bool, error) {
 	switch strings.ToLower(name) {
 	case "go.mod", "go.sum":
