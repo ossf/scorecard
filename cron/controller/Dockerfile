@@ -26,7 +26,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-pubsub
 
-FROM gcr.io/google.com/cloudsdktool/cloud-sdk:slim@sha256:acb34ca33bc83255110d16a749b0da618a96fcc481348ecfe614b3edcabdeaa6
+FROM gcr.io/distroless/base:nonroot@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
 COPY ./cron/config/projects.csv /cron/config/projects.csv
 COPY --from=pubsub /src/cron/controller/controller ./cron/controller/controller
 ENTRYPOINT ["/cron/controller/controller"]
