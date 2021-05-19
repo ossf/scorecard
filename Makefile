@@ -75,7 +75,7 @@ tree-status: ## Verify tree is clean and all changes are committed
 ###############################################################################
 
 ############################### make build ################################
-build-targets = build-proto generate-docs build-scorecard build-cron build-scripts build-update dockerbuild
+build-targets = build-proto generate-docs build-scorecard build-cron build-pubsub build-scripts build-update dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the reepo.
 build: $(build-targets)
@@ -99,6 +99,11 @@ build-cron: ## Runs go build on the cron job
 	# Run go build on the cronjob
 	cd cron && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o scorecardcron
 
+build-pubsub: ## Runs go build on the PubSub cron job
+	# Run go build and the PubSub cron job
+	cd cron/controller && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o controller
+	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o worker
+
 build-scripts: ## Runs go build on the scripts
 build-scripts: scripts/validate
 scripts/validate: scripts/*.go
@@ -116,6 +121,8 @@ dockerbuild: ## Runs docker build
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
 	DOCKER_BUILDKIT=1 docker build . --file cron/Dockerfile --tag $(IMAGE_NAME)cron
+	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
+	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
 ###############################################################################
 
 ################################# make test ###################################

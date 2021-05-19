@@ -21,18 +21,12 @@ COPY go.* ./
 RUN go mod download
 COPY . ./
 
-FROM base AS build
+FROM base AS pubsub
 ARG TARGETOS
 ARG TARGETARCH
-RUN CGO_ENABLED=0 make build-scorecard
-
-FROM base AS cron
-ARG TARGETOS
-ARG TARGETARCH
-RUN CGO_ENABLED=0 make build-cron
+RUN CGO_ENABLED=0 make build-pubsub
 
 FROM gcr.io/google.com/cloudsdktool/cloud-sdk:slim@sha256:acb34ca33bc83255110d16a749b0da618a96fcc481348ecfe614b3edcabdeaa6
-COPY ./cron/projects.txt /cron/projects.txt
-COPY --from=build /src/scorecard /
-COPY --from=cron /src/cron/scorecardcron ./cron/cron
-ENTRYPOINT [ "/cron/cron", "/cron/projects.txt"] 
+COPY ./cron/config/projects.csv /cron/config/projects.csv
+COPY --from=pubsub /src/cron/controller/controller ./cron/controller/controller
+ENTRYPOINT ["/cron/controller/controller"]
