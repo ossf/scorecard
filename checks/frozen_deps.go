@@ -90,7 +90,7 @@ func validateDockerfile(path string, content []byte,
 		}
 
 		// FROM name AS newname.
-		if len(valueList) == 3 && strings.ToLower(valueList[1]) == "as" {
+		if len(valueList) == 3 && strings.EqualFold(valueList[1], "as") {
 			name := valueList[0]
 			asName := valueList[2]
 			// Check if the name is pinned.
