@@ -108,7 +108,6 @@ func validateDockerfile(path string, content []byte,
 			// Not pinned.
 			ret = false
 			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
-			continue
 
 		} else if len(valueList) == 1 {
 			// FROM name
@@ -116,7 +115,6 @@ func validateDockerfile(path string, content []byte,
 			if !regex.Match([]byte(name)) {
 				ret = false
 				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
-				continue
 			}
 		} else {
 			// That should not happen.
