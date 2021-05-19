@@ -46,7 +46,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				Filename: "",
 				Logf:     l.Logf,
 			},
-			want: returnValue{false, ErrFrozenDepsEmptyFile},
+			want: returnValue{false, ErrEmptyFile},
 		},
 		{
 			name: "Pinned workflow",
@@ -114,7 +114,7 @@ func TestDockerfilePinning(t *testing.T) {
 				Filename: "./testdata/Dockerfile-invalid",
 				Logf:     l.Logf,
 			},
-			want: returnValue{false, ErrFrozenDepsInvalidDockerfile},
+			want: returnValue{false, ErrInvalidDockerfile},
 		},
 		{
 			name: "Pinned dockerfile",

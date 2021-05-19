@@ -27,11 +27,11 @@ import (
 
 const frozenDepsStr = "Frozen-Deps"
 
-// ErrFrozenDepsInvalidDockerfile : Invalid docker file.
-var ErrFrozenDepsInvalidDockerfile = errors.New("invalid docker file")
+// ErrInvalidDockerfile : Invalid docker file.
+var ErrInvalidDockerfile = errors.New("invalid docker file")
 
-// ErrFrozenDepsEmptyFile : Invalid docker file.
-var ErrFrozenDepsEmptyFile = errors.New("file has no content")
+// ErrEmptyFile : Invalid docker file.
+var ErrEmptyFile = errors.New("file has no content")
 
 func init() {
 	registerCheck(frozenDepsStr, FrozenDeps)
@@ -55,15 +55,6 @@ func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(frozenDepsStr, "*Dockerfile*", false, c, validateDockerfile)
 }
 
-func isPresent(slice []string, val string) bool {
-	for _, item := range slice {
-		if item == val {
-			return true
-		}
-	}
-	return false
-}
-
 func validateDockerfile(path string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
 	// Users may use various names, e.g.,
@@ -75,9 +66,9 @@ func validateDockerfile(path string, content []byte,
 	contentReader := strings.NewReader(string(content))
 	regex := regexp.MustCompile(`.*@sha256:[a-f\d]{64}`)
 
-	r := true
+	ret := true
 	fromFound := false
-	var pinnedAsNames []string
+	var pinnedAsNames = make(map[string]bool)
 
 	res, err := parser.Parse(contentReader)
 	if err != nil {
@@ -105,16 +96,17 @@ func validateDockerfile(path string, content []byte,
 			// Check if the name is pinned.
 			// (1): name = <>@sha245:hash
 			// (2): name = XXX where XXX was pinned
-			if regex.Match([]byte(name)) || isPresent(pinnedAsNames, name) {
+			_, pinned := pinnedAsNames[name]
+			if regex.Match([]byte(name)) || pinned {
 				// Record the asName.
-				if !isPresent(pinnedAsNames, asName) {
-					pinnedAsNames = append(pinnedAsNames, asName)
+				if _, ok := pinnedAsNames[asName]; !ok {
+					pinnedAsNames[asName] = true
 				}
 				continue
 			}
 
 			// Not pinned.
-			r = false
+			ret = false
 			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
 			continue
 
@@ -122,24 +114,23 @@ func validateDockerfile(path string, content []byte,
 			// FROM name
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
-				r = false
+				ret = false
 				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
 				continue
 			}
 		} else {
 			// That should not happen.
-			return false, ErrFrozenDepsInvalidDockerfile
+			return false, ErrInvalidDockerfile
 		}
 
 	}
 
 	// The file should have at least one FROM statement.
 	if !fromFound {
-		logf("end")
-		return false, ErrFrozenDepsInvalidDockerfile
+		return false, ErrInvalidDockerfile
 	}
 
-	return r, nil
+	return ret, nil
 }
 
 // ============================================================
@@ -171,7 +162,7 @@ func validateGitHubActionWorkflow(path string, content []byte,
 	}
 
 	if len(content) == 0 {
-		return false, ErrFrozenDepsEmptyFile
+		return false, ErrEmptyFile
 	}
 
 	var workflow GitHubActionWorkflowConfig
@@ -181,7 +172,7 @@ func validateGitHubActionWorkflow(path string, content []byte,
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
-	r := true
+	ret := true
 	for jobName, job := range workflow.Jobs {
 		if len(job.Name) > 0 {
 			jobName = job.Name
@@ -192,7 +183,7 @@ func validateGitHubActionWorkflow(path string, content []byte,
 				// Example: action-name@hash
 				match := hashRegex.Match([]byte(step.Uses))
 				if !match {
-					r = false
+					ret = false
 					logf("!! frozen-deps - %v has non-pinned dependency '%v' (job \"%v\")", path, step.Uses, jobName)
 				}
 			}
@@ -200,7 +191,7 @@ func validateGitHubActionWorkflow(path string, content []byte,
 
 	}
 
-	return r, nil
+	return ret, nil
 }
 
 // ============================================================
