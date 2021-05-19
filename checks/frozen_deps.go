@@ -50,7 +50,7 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 
 // ============================================================
 // ======================== Dockerfiles =======================
-// ============================================================
+// ============================================================.
 func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(frozenDepsStr, "*Dockerfile*", false, c, validateDockerfile)
 }
@@ -132,7 +132,7 @@ func validateDockerfile(path string, content []byte,
 
 // ============================================================
 // ===================== Github workflows =====================
-// ============================================================
+// ============================================================.
 
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
@@ -190,7 +190,7 @@ func validateGitHubActionWorkflow(path string, content []byte, logf func(s strin
 
 // ============================================================
 // ================== Package manager lock files ==============
-// ============================================================
+// ============================================================.
 
 // Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
