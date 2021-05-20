@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
@@ -82,15 +81,7 @@ func PublishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime
 func main() {
 	ctx := context.Background()
 	t := time.Now()
-	inputReposFile, err := config.GetInputReposFile()
-	if err != nil {
-		panic(err)
-	}
-	reposFile, err := os.OpenFile(inputReposFile, os.O_RDONLY, 0o644)
-	if err != nil {
-		panic(err)
-	}
-	reader, err := data.MakeIterator(reposFile)
+	reader, err := data.MakeIterator()
 	if err != nil {
 		panic(err)
 	}
