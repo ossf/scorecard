@@ -19,7 +19,7 @@ linters:
     # - gochecknoinits
     - gocognit
     - goconst
-    # - gocritic
+    - gocritic
     - gocyclo
     - godot
     - godox
