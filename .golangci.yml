@@ -12,31 +12,31 @@ linters:
     - deadcode
     - depguard
     - dogsled
-    - dupl
+    # - dupl
     - errcheck
     - exhaustive
     - exportloopref
-    - gochecknoinits
+    # - gochecknoinits
     - gocognit
     - goconst
-    - gocritic
+    # - gocritic
     - gocyclo
     - godot
     - godox
-    - goerr113
+    # - goerr113
     - gofmt
     - gofumpt
     - goheader
     - goimports
-    - golint
-    - gomnd
+    # - golint
+    # - gomnd
     - gomodguard
     - goprintffuncname
     - gosec
     - gosimple
-    - govet
+    # - govet
     - ineffassign
-    - lll
+    # - lll
     - misspell
     - nakedret
     - nestif
@@ -49,7 +49,7 @@ linters:
     - sqlclosecheck
     - staticcheck
     - structcheck
-    - stylecheck
+    # - stylecheck
     - thelper
     - tparallel
     - typecheck
