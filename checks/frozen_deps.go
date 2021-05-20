@@ -145,15 +145,15 @@ func validateGitHubActionWorkflow(path string, content []byte, logf func(s strin
 	// We only retrieve what we need for logging.
 	// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 	type GitHubActionWorkflowConfig struct {
-		Name string `yaml:name`
 		Jobs map[string]struct {
-			Name  string `yaml:name`
+			Name  string `yaml:"name"`
 			Steps []struct {
-				Name string `yaml:name`
-				Id   string `yaml:id`
-				Uses string `yaml:uses`
+				Name string `yaml:"name"`
+				Id   string `yaml:"id"`
+				Uses string `yaml:"uses"`
 			}
 		}
+		Name string `yaml:"name"`
 	}
 
 	if len(content) == 0 {
