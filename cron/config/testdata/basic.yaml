@@ -14,5 +14,4 @@
 
 result-data-bucket-url: gs://ossf-scorecard-data
 request-topic-url: gcppubsub://projects/openssf/topics/scorecard-batch-requests
-input-repos-file: projects.csv
 shard-size: 250

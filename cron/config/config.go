@@ -27,10 +27,12 @@ import (
 
 const (
 	ShardNumFilename       string = ".shard_num"
+	projectID              string = "SCORECARD_PROJECT_ID"
 	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
 	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
 	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
-	inputReposFile         string = "SCORECARD_REPOS_FILE"
+	bigqueryDataset        string = "SCORECARD_BIGQUERY_DATASET"
+	bigqueryTable          string = "SCORECARD_BIQQUERY_TABLE"
 	shardSize              string = "SCORECARD_SHARD_SIZE"
 )
 
@@ -42,10 +44,12 @@ var (
 )
 
 type config struct {
+	ProjectID              string `yaml:"project-id"`
 	ResultDataBucketURL    string `yaml:"result-data-bucket-url"`
 	RequestTopicURL        string `yaml:"request-topic-url"`
 	RequestSubscriptionURL string `yaml:"request-subscription-url"`
-	InputReposFile         string `yaml:"input-repos-file"`
+	BigQueryDataset        string `yaml:"bigquery-dataset"`
+	BigQueryTable          string `yaml:"bigquery-table"`
 	ShardSize              int    `yaml:"shard-size"`
 }
 
@@ -99,6 +103,10 @@ func getIntConfigValue(envVar string, byteValue []byte, fieldName, configName st
 	}
 }
 
+func GetProjectID() (string, error) {
+	return getStringConfigValue(projectID, configYAML, "ProjectID", "project-id")
+}
+
 func GetResultDataBucketURL() (string, error) {
 	return getStringConfigValue(resultDataBucketURL, configYAML, "ResultDataBucketURL", "result-data-bucket-url")
 }
@@ -111,8 +119,12 @@ func GetRequestSubscriptionURL() (string, error) {
 	return getStringConfigValue(requestSubscriptionURL, configYAML, "RequestSubscriptionURL", "request-subscription-url")
 }
 
-func GetInputReposFile() (string, error) {
-	return getStringConfigValue(inputReposFile, configYAML, "InputReposFile", "input-repos-file")
+func GetBigQueryDataset() (string, error) {
+	return getStringConfigValue(bigqueryDataset, configYAML, "BigQueryDataset", "bigquery-dataset")
+}
+
+func GetBigQueryTable() (string, error) {
+	return getStringConfigValue(bigqueryTable, configYAML, "BigQueryTable", "bigquery-table")
 }
 
 func GetShardSize() (int, error) {

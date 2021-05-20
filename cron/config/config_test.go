@@ -22,12 +22,14 @@ import (
 )
 
 const (
-	testEnvVar       string = "TEST_ENV_VAR"
-	prodBucket              = "gs://ossf-scorecard-data"
-	prodTopic               = "gcppubsub://projects/openssf/topics/scorecard-batch-requests"
-	prodSubscription        = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
-	prodInputFile           = "projects.csv"
-	prodShardSize    int    = 250
+	testEnvVar          string = "TEST_ENV_VAR"
+	prodProjectID              = "openssf"
+	prodBucket                 = "gs://ossf-scorecard-data"
+	prodTopic                  = "gcppubsub://projects/openssf/topics/scorecard-batch-requests"
+	prodSubscription           = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
+	prodBigQueryDataset        = "scorecardcron"
+	prodBigQueryTable          = "scorecard"
+	prodShardSize       int    = 250
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -49,10 +51,12 @@ func TestYAMLParsing(t *testing.T) {
 			name:     "validate",
 			filename: "config.yaml",
 			expectedConfig: config{
-				ResultDataBucketURL:    "gs://ossf-scorecard-data",
-				RequestTopicURL:        "gcppubsub://projects/openssf/topics/scorecard-batch-requests",
-				RequestSubscriptionURL: "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker",
-				InputReposFile:         "projects.csv",
+				ProjectID:              prodProjectID,
+				ResultDataBucketURL:    prodBucket,
+				RequestTopicURL:        prodTopic,
+				RequestSubscriptionURL: prodSubscription,
+				BigQueryDataset:        prodBigQueryDataset,
+				BigQueryTable:          prodBigQueryTable,
 				ShardSize:              250,
 			},
 		},
@@ -63,7 +67,6 @@ func TestYAMLParsing(t *testing.T) {
 			expectedConfig: config{
 				ResultDataBucketURL: "gs://ossf-scorecard-data",
 				RequestTopicURL:     "gcppubsub://projects/openssf/topics/scorecard-batch-requests",
-				InputReposFile:      "projects.csv",
 				ShardSize:           250,
 			},
 		},
@@ -214,6 +217,20 @@ func TestGetIntConfigValue(t *testing.T) {
 }
 
 //nolint:paralleltest // Since os.Setenv is used.
+func TestGetProjectID(t *testing.T) {
+	t.Run("GetProjectID", func(t *testing.T) {
+		os.Unsetenv(projectID)
+		project, err := GetProjectID()
+		if err != nil {
+			t.Errorf("failed to get production ProjectID from config: %v", err)
+		}
+		if project != prodProjectID {
+			t.Errorf("test failed: expected - %s, got = %s", prodProjectID, project)
+		}
+	})
+}
+
+//nolint:paralleltest // Since os.Setenv is used.
 func TestGetResultDataBucketURL(t *testing.T) {
 	t.Run("GetResultDataBucketURL", func(t *testing.T) {
 		os.Unsetenv(resultDataBucketURL)
@@ -256,15 +273,29 @@ func TestGetRequestSubscriptionURL(t *testing.T) {
 }
 
 //nolint:paralleltest // Since os.Setenv is used.
-func TestGetInputReposFile(t *testing.T) {
-	t.Run("GetInputReposFile", func(t *testing.T) {
-		os.Unsetenv(inputReposFile)
-		inputFile, err := GetInputReposFile()
+func TestGetBigQueryDataset(t *testing.T) {
+	t.Run("GetBigQueryDataset", func(t *testing.T) {
+		os.Unsetenv(bigqueryDataset)
+		dataset, err := GetBigQueryDataset()
 		if err != nil {
-			t.Errorf("failed to get production input file from config: %v", err)
+			t.Errorf("failed to get production BQ datset from config: %v", err)
 		}
-		if inputFile != prodInputFile {
-			t.Errorf("test failed: expected - %s, got = %s", prodInputFile, inputFile)
+		if dataset != prodBigQueryDataset {
+			t.Errorf("test failed: expected - %s, got = %s", prodBigQueryDataset, dataset)
+		}
+	})
+}
+
+//nolint:paralleltest // Since os.Setenv is used.
+func TestGetBigQueryTable(t *testing.T) {
+	t.Run("GetBigQueryTable", func(t *testing.T) {
+		os.Unsetenv(bigqueryTable)
+		table, err := GetBigQueryTable()
+		if err != nil {
+			t.Errorf("failed to get production BQ table from config: %v", err)
+		}
+		if table != prodBigQueryTable {
+			t.Errorf("test failed: expected - %s, got = %s", prodBigQueryTable, table)
 		}
 	})
 }
