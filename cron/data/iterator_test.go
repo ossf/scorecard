@@ -151,7 +151,7 @@ func TestCsvIterator(t *testing.T) {
 			}
 			defer testFile.Close()
 
-			testReader, err := MakeIterator(testFile)
+			testReader, err := MakeIteratorFrom(testFile)
 			if err != nil {
 				t.Errorf("failed to create reader: %v", err)
 			}

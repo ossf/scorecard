@@ -15,9 +15,9 @@
 package config
 
 import (
+	_ "embed" // Used to embed config.yaml
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
@@ -32,12 +32,13 @@ const (
 	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
 	inputReposFile         string = "SCORECARD_REPOS_FILE"
 	shardSize              string = "SCORECARD_SHARD_SIZE"
-	configYAML             string = "config.yaml"
 )
 
 var (
 	ErrorEmptyConfigValue = errors.New("config value set to empty")
 	ErrorValueConversion  = errors.New("unexpected type, cannot convert value")
+	//go:embed config.yaml
+	configYAML []byte
 )
 
 type config struct {
@@ -48,39 +49,28 @@ type config struct {
 	ShardSize              int    `yaml:"shard-size"`
 }
 
-func getParsedConfigFromFile(filename string) (config, error) {
-	yamlFile, err := os.Open(filename)
-	if err != nil {
-		return config{}, fmt.Errorf("error during os.Open: %w", err)
-	}
-	defer yamlFile.Close()
-
-	byteValue, err := ioutil.ReadAll(yamlFile)
-	if err != nil {
-		return config{}, fmt.Errorf("error during ioutil.ReadAll: %w", err)
-	}
-
+func getParsedConfigFromFile(byteValue []byte) (config, error) {
 	var ret config
-	err = yaml.Unmarshal(byteValue, &ret)
+	err := yaml.Unmarshal(byteValue, &ret)
 	if err != nil {
 		return config{}, fmt.Errorf("error during yaml.Unmarshal: %w", err)
 	}
 	return ret, nil
 }
 
-func getConfigValue(envVar, filename, fieldName string) (reflect.Value, error) {
+func getConfigValue(envVar string, byteValue []byte, fieldName string) (reflect.Value, error) {
 	if val, present := os.LookupEnv(envVar); present {
 		return reflect.ValueOf(val), nil
 	}
-	parsedConfig, err := getParsedConfigFromFile(filename)
+	parsedConfig, err := getParsedConfigFromFile(byteValue)
 	if err != nil {
 		return reflect.ValueOf(parsedConfig), fmt.Errorf("error parsing config file: %w", err)
 	}
 	return reflect.ValueOf(parsedConfig).FieldByName(fieldName), nil
 }
 
-func getStringConfigValue(envVar, filename, fieldName, configName string) (string, error) {
-	value, err := getConfigValue(envVar, filename, fieldName)
+func getStringConfigValue(envVar string, byteValue []byte, fieldName, configName string) (string, error) {
+	value, err := getConfigValue(envVar, byteValue, fieldName)
 	if err != nil {
 		return "", fmt.Errorf("error getting config value %s: %w", configName, err)
 	}
@@ -93,8 +83,8 @@ func getStringConfigValue(envVar, filename, fieldName, configName string) (strin
 	return value.String(), fmt.Errorf("%w: %s", ErrorEmptyConfigValue, configName)
 }
 
-func getIntConfigValue(envVar, filename, fieldName, configName string) (int, error) {
-	value, err := getConfigValue(envVar, filename, fieldName)
+func getIntConfigValue(envVar string, byteValue []byte, fieldName, configName string) (int, error) {
+	value, err := getConfigValue(envVar, byteValue, fieldName)
 	if err != nil {
 		return 0, fmt.Errorf("error getting config value %s: %w", configName, err)
 	}
