@@ -16,6 +16,7 @@ package config
 
 import (
 	"errors"
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -28,6 +29,14 @@ const (
 	prodInputFile           = "projects.csv"
 	prodShardSize    int    = 250
 )
+
+func getByteValueFromFile(filename string) ([]byte, error) {
+	if filename == "" {
+		return nil, nil
+	}
+	//nolint
+	return ioutil.ReadFile(filename)
+}
 
 func TestYAMLParsing(t *testing.T) {
 	t.Parallel()
@@ -72,7 +81,11 @@ func TestYAMLParsing(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
-			parsedConfig, err := getParsedConfigFromFile(testcase.filename)
+			byteValue, err := getByteValueFromFile(testcase.filename)
+			if err != nil {
+				t.Errorf("test failed to parse input file: %v", err)
+			}
+			parsedConfig, err := getParsedConfigFromFile(byteValue)
 			if err != nil {
 				t.Errorf("failed to parse test file: %v", err)
 			}
@@ -124,7 +137,11 @@ func TestGetStringConfigValue(t *testing.T) {
 				os.Setenv(testEnvVar, testcase.envVal)
 			}
 
-			actual, err := getStringConfigValue(testEnvVar, testcase.filename, testcase.fieldName, "test-config" /*configName*/)
+			byteValue, err := getByteValueFromFile(testcase.filename)
+			if err != nil {
+				t.Errorf("test failed during input parsing: %v", err)
+			}
+			actual, err := getStringConfigValue(testEnvVar, byteValue, testcase.fieldName, "test-config" /*configName*/)
 			if testcase.hasError {
 				if err == nil || !errors.Is(err, testcase.expectedErr) {
 					t.Errorf("test failed: expectedErr - %v, got - %v", testcase.expectedErr, err)
@@ -175,7 +192,11 @@ func TestGetIntConfigValue(t *testing.T) {
 				os.Setenv(testEnvVar, testcase.envVal)
 			}
 
-			actual, err := getIntConfigValue(testEnvVar, testcase.filename, testcase.fieldName, "test-config" /*configName*/)
+			byteValue, err := getByteValueFromFile(testcase.filename)
+			if err != nil {
+				t.Errorf("test failed during input parsing: %v", err)
+			}
+			actual, err := getIntConfigValue(testEnvVar, byteValue, testcase.fieldName, "test-config" /*configName*/)
 			if testcase.hasError {
 				if err == nil || !errors.Is(err, testcase.expectedErr) {
 					t.Errorf("test failed: expectedErr - %v, got - %v", testcase.expectedErr, err)
