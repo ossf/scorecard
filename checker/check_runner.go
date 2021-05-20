@@ -94,7 +94,7 @@ func MultiCheckAnd(fns ...CheckFn) CheckFn {
 
 		for _, fn := range fns {
 			result := fn(c)
-			if len(minResult.Name) == 0 {
+			if minResult.Name == "" {
 				minResult.Name = result.Name
 			}
 			if Bool2int(result.Pass) < Bool2int(minResult.Pass) ||
