@@ -90,6 +90,9 @@ func validateDockerfile(path string, content []byte,
 		}
 
 		switch {
+		// scratch is no-op.
+		case len(valueList) > 0 && strings.EqualFold(valueList[0], "scratch"):
+			continue
 		// FROM name AS newname.
 		case len(valueList) == 3 && strings.EqualFold(valueList[1], "as"):
 			name := valueList[0]

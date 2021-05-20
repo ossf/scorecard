@@ -23,4 +23,6 @@ RUN CGO_ENABLED=0 make build-scorecard
 from build as build2
 RUN /hello-world
 
+FROM scratch as build3
+
 FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2 as build3
