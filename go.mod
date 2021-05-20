@@ -3,6 +3,7 @@ module github.com/ossf/scorecard
 go 1.16
 
 require (
+	cloud.google.com/go/bigquery v1.8.0
 	cloud.google.com/go/storage v1.15.0 // indirect
 	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/golangci/golangci-lint v1.40.1

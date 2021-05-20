@@ -22,11 +22,13 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/jszwec/csvutil"
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/cron/bq"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/roundtripper"
@@ -58,8 +60,9 @@ func main() {
 		panic(err)
 	}
 
+	currTime := time.Now()
 	fileName := fmt.Sprintf("%02d-%02d-%d.json",
-		time.Now().Month(), time.Now().Day(), time.Now().Year())
+		currTime.Month(), currTime.Day(), currTime.Year())
 	result, err := os.Create(fileName)
 	if err != nil {
 		panic(err)
@@ -100,6 +103,7 @@ func main() {
 		delete(checks.AllChecks, "Branch-Protection")
 
 		repoResult := pkg.RunScorecards(ctx, repoURL, checks.AllChecks, httpClient, githubClient, graphClient)
+		repoResult.Date = currTime.Format("2006-01-02")
 		if err := repoResult.AsJSON( /*showDetails=*/ true, result); err != nil {
 			panic(err)
 		}
@@ -117,6 +121,15 @@ func main() {
 	if err := exec.Command("gsutil", "cp", fmt.Sprintf("gs://%s/%s", bucket, fileName),
 		fmt.Sprintf("gs://%s/latest.json", bucket)).Run(); err != nil {
 		panic(err)
+	}
+
+	if startBQDataTransfer, lookup := os.LookupEnv("SCORECARD_START_BQ_TRNSFER"); lookup && startBQDataTransfer != "" {
+		if parsedBool, err := strconv.ParseBool(startBQDataTransfer); parsedBool && err == nil {
+			// start BQ data transfer job
+			if err := bq.StartDataTransferJob(ctx, fmt.Sprintf("gs://%s", bucket), "latest.json"); err != nil {
+				panic(err)
+			}
+		}
 	}
 
 	fmt.Println("Finished")

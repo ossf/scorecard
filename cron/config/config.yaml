@@ -12,8 +12,10 @@
 # See the License for the specific language governing permisshandlerns and
 # limitathandlerns under the License.
 
+project-id: openssf
 result-data-bucket-url: gs://ossf-scorecard-data
 request-topic-url: gcppubsub://projects/openssf/topics/scorecard-batch-requests
 request-subscription-url: gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker
-input-repos-file: projects.csv
+bigquery-dataset: scorecardcron
+bigquery-table: scorecard
 shard-size: 250
