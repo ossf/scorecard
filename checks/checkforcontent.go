@@ -67,9 +67,8 @@ func NonEmptyRegularFile(hdr *tar.Header) bool {
 func IsScorecardTestFile(repo, fullpath string) bool {
 	d := path.Dir(fullpath)
 	// testdata/ or /some/dir/testdata/some/other
-	return repo == "github.com/ossf/scorecard" &&
-		strings.HasPrefix(d, "testdata"+string(os.PathSeparator)) ||
-		strings.Contains(d, string(os.PathSeparator)+"testdata"+string(os.PathSeparator))
+	return repo == "github.com/ossf/scorecard" && (strings.HasPrefix(d, "testdata"+string(os.PathSeparator)) ||
+		strings.Contains(d, string(os.PathSeparator)+"testdata"+string(os.PathSeparator)))
 }
 
 func ExtractFullpath(fn string) (string, bool) {
@@ -83,15 +82,19 @@ func ExtractFullpath(fn string) (string, bool) {
 	return fullpath, true
 }
 
-func getTarballReader(url string) (*tar.Reader, error) {
+// Using the http.get instead of the lib httpClient because
+// the default checker.HTTPClient caches everything in the memory and it causes oom.
+func getHttpResponse(url string) (*http.Response, error) {
 	//https://securego.io/docs/rules/g107.html
 	//nolint
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("get request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	return resp, nil
+}
 
+func getTarReader(resp *http.Response) (*tar.Reader, error) {
 	gz, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("gzip reader failed: %w", err)
@@ -106,6 +109,7 @@ func getTarballReader(url string) (*tar.Reader, error) {
 // 	- To scope the search to a directory, use "./dirname/*". Example, for the root directory,
 // 		use "./*".
 //	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
+//nolint
 func CheckFilesContent(checkName, shellPathFnPattern string,
 	caseSensitive bool,
 	c *checker.CheckRequest,
@@ -120,10 +124,13 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
 	url = strings.Replace(url, "{/ref}", r.GetDefaultBranch(), 1)
 
-	// Using the http.get instead of the lib httpClient because
-	// the default checker.HTTPClient caches everything in the memory and it causes oom.
+	resp, err := getHttpResponse(url)
+	if err != nil {
+		return checker.MakeRetryResult(checkName, err)
+	}
+	defer resp.Body.Close()
 
-	tr, err := getTarballReader(url)
+	tr, err := getTarReader(resp)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
 	}
@@ -153,7 +160,7 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 		}
 
 		// Filter out Scorecard's own test files.
-		if !IsScorecardTestFile(c.Repo, fullpath) {
+		if IsScorecardTestFile(c.Repo, fullpath) {
 			continue
 		}
 
