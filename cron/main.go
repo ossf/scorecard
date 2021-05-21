@@ -25,20 +25,38 @@ import (
 	"strconv"
 	"time"
 
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/google/go-github/v32/github"
 	"github.com/jszwec/csvutil"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/cron/bq"
+	"github.com/ossf/scorecard/cron/monitoring"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/roundtripper"
+	"github.com/ossf/scorecard/stats"
 	"github.com/shurcooL/githubv4"
+	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
 )
 
 type Repository struct {
 	Repo     string `csv:"repo"`
 	Metadata string `csv:"metadata,omitempty"`
+}
+
+func startMetricsExporter() (*stackdriver.Exporter, error) {
+	exporter, err := monitoring.NewStackDriverExporter()
+	if err != nil {
+		return nil, fmt.Errorf("error during NewStackDriverExporter: %w", err)
+	}
+	if err := exporter.StartMetricsExporter(); err != nil {
+		return nil, fmt.Errorf("error in StartMetricsExporter: %w", err)
+	}
+	if err := view.Register(&stats.CheckRuntime); err != nil {
+		return nil, fmt.Errorf("error during view.Register: %w", err)
+	}
+	return exporter, nil
 }
 
 func main() {
@@ -84,6 +102,11 @@ func main() {
 	githubClient := github.NewClient(httpClient)
 	graphClient := githubv4.NewClient(httpClient)
 
+	exporter, err := startMetricsExporter()
+	if err != nil {
+		panic(err)
+	}
+	defer exporter.StopMetricsExporter()
 	for _, r := range inputRepos {
 		fmt.Println(r.Repo)
 
