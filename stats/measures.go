@@ -16,4 +16,7 @@ package stats
 
 import "go.opencensus.io/stats"
 
-var CPURuntimeInSec = stats.Int64("CPURuntimeInSec", "Measures the CPU runtime in seconds", stats.UnitSeconds)
+var (
+	CPURuntimeInSec = stats.Int64("CPURuntimeInSec", "Measures the CPU runtime in seconds", stats.UnitSeconds)
+	HTTPRequests    = stats.Int64("HTTPRequests", "Measures the count of HTTP requests", stats.UnitDimensionless)
+)

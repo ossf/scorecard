@@ -17,6 +17,7 @@ package stats
 import "go.opencensus.io/tag"
 
 var (
-	CheckName = tag.MustNewKey("checkName")
-	Repo      = tag.MustNewKey("repo")
+	CheckName  = tag.MustNewKey("checkName")
+	Repo       = tag.MustNewKey("repo")
+	RequestTag = tag.MustNewKey("requestTag")
 )

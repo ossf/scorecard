@@ -26,7 +26,10 @@ func NewStackDriverExporter() (*stackdriver.Exporter, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting ProjectID: %w", err)
 	}
-	exporter, err := stackdriver.NewExporter(stackdriver.Options{ProjectID: projectID})
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		ProjectID:    projectID,
+		MetricPrefix: "scorecard-cron",
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error during stackdriver.NewExporter: %w", err)
 	}

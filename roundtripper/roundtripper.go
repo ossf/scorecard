@@ -60,11 +60,10 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 		}
 	}
 
-	// Wrap that with the rate limiter
-	rateLimit := MakeRateLimitedTransport(transport, logger)
-
-	// Wrap that with a HTTP cache
-	return cachedTransportFactory(rateLimit)
+	// Wrap that with the rate limiter, HTTP cache and census-enabled transport.
+	return MakeCensusTransport(
+		cachedTransportFactory(
+			MakeRateLimitedTransport(transport, logger)))
 }
 
 func cachedTransportFactory(innerTransport http.RoundTripper) http.RoundTripper {
