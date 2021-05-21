@@ -53,7 +53,10 @@ func startMetricsExporter() (*stackdriver.Exporter, error) {
 	if err := exporter.StartMetricsExporter(); err != nil {
 		return nil, fmt.Errorf("error in StartMetricsExporter: %w", err)
 	}
-	if err := view.Register(&stats.CheckRuntime); err != nil {
+
+	if err := view.Register(
+		&stats.CheckRuntime,
+		&stats.OutgoingHTTPRequests); err != nil {
 		return nil, fmt.Errorf("error during view.Register: %w", err)
 	}
 	return exporter, nil
@@ -106,7 +109,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer exporter.Flush()
 	defer exporter.StopMetricsExporter()
+
 	for _, r := range inputRepos {
 		fmt.Println(r.Repo)
 
