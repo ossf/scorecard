@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path"
 	"strings"
 
@@ -64,11 +63,10 @@ func NonEmptyRegularFile(hdr *tar.Header) bool {
 	return hdr.Typeflag == tar.TypeReg && hdr.Size > 0
 }
 
-func IsScorecardTestFile(repo, fullpath string) bool {
-	d := path.Dir(fullpath)
+func IsScorecardTestFile(owner, repo, fullpath string) bool {
 	// testdata/ or /some/dir/testdata/some/other
-	return repo == "github.com/ossf/scorecard" && (strings.HasPrefix(d, "testdata"+string(os.PathSeparator)) ||
-		strings.Contains(d, string(os.PathSeparator)+"testdata"+string(os.PathSeparator)))
+	return owner == "ossf" && repo == "scorecard" && (strings.HasPrefix(fullpath, "testdata/") ||
+		strings.Contains(fullpath, "/testdata/"))
 }
 
 func ExtractFullpath(fn string) (string, bool) {
@@ -160,7 +158,7 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 		}
 
 		// Filter out Scorecard's own test files.
-		if IsScorecardTestFile(c.Repo, fullpath) {
+		if IsScorecardTestFile(c.Owner, c.Repo, fullpath) {
 			continue
 		}
 

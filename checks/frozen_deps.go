@@ -69,7 +69,6 @@ func validateDockerfile(pathfn string, content []byte,
 	ret := true
 	fromFound := false
 	pinnedAsNames := make(map[string]bool)
-
 	res, err := parser.Parse(contentReader)
 	if err != nil {
 		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
