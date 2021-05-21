@@ -55,7 +55,7 @@ func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(frozenDepsStr, "*Dockerfile*", false, c, validateDockerfile)
 }
 
-func validateDockerfile(pathfn string, content []byte,
+func validateDockerfile(path string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
 	// Users may use various names, e.g.,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
@@ -109,14 +109,14 @@ func validateDockerfile(pathfn string, content []byte,
 
 			// Not pinned.
 			ret = false
-			logf("!! frozen-deps - %v has non-pinned dependency '%v'", pathfn, name)
+			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
 
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
 				ret = false
-				logf("!! frozen-deps - %v has non-pinned dependency '%v'", pathfn, name)
+				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
 			}
 
 		default:
@@ -143,7 +143,7 @@ func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult 
 }
 
 // Check file content.
-func validateGitHubActionWorkflow(pathfn string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
+func validateGitHubActionWorkflow(path string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
 	// Structure for workflow config.
 	// We only retrieve what we need for logging.
 	// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
@@ -166,7 +166,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte, logf func(s str
 	var workflow GitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v\n%v: %w", pathfn, content, string(content), err)
+		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v\n%v: %w", path, content, string(content), err)
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
@@ -182,7 +182,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte, logf func(s str
 				match := hashRegex.Match([]byte(step.Uses))
 				if !match {
 					ret = false
-					logf("!! frozen-deps - %v has non-pinned dependency '%v' (job \"%v\")", pathfn, step.Uses, jobName)
+					logf("!! frozen-deps - %v has non-pinned dependency '%v' (job \"%v\")", path, step.Uses, jobName)
 				}
 			}
 		}
