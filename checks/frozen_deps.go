@@ -58,6 +58,10 @@ func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
 
 func isTestFile(pathfn string) bool {
 	d := path.Dir(pathfn)
+	if d == "testdata" {
+		return true
+	}
+
 	for d != "." {
 		r, err := path.Match("*/testdata", d)
 		if err != nil {
@@ -78,7 +82,7 @@ func validateDockerfile(path string, content []byte,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
 	// Templates may trigger false positives, e.g. FROM { NAME }.
 
-	// Ignore files inside testdata/ folders
+	// Ignore files inside testdata/ folders.
 	if isTestFile(path) {
 		return true, nil
 	}
