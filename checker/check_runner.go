@@ -15,13 +15,21 @@
 package checker
 
 import (
+	"context"
 	"fmt"
 	"strings"
+	"time"
+
+	"github.com/ossf/scorecard/stats"
+	opencensusstats "go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 )
 
 const checkRetries = 3
 
 type Runner struct {
+	CheckName    string
+	Repo         string
 	CheckRequest CheckRequest
 }
 
@@ -37,7 +45,14 @@ func (l *logger) Logf(s string, f ...interface{}) {
 	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
 
-func (r *Runner) Run(f CheckFn) CheckResult {
+func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
+	ctx, err := tag.New(ctx,
+		tag.Upsert(stats.Repo, r.Repo), tag.Upsert(stats.CheckName, r.CheckName))
+	if err != nil {
+		panic(err)
+	}
+
+	startTime := time.Now().Unix()
 	var res CheckResult
 	var l logger
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
@@ -52,6 +67,8 @@ func (r *Runner) Run(f CheckFn) CheckResult {
 		break
 	}
 	res.Details = l.messages
+	runTimeInSecs := time.Now().Unix() - startTime
+	opencensusstats.Record(ctx, stats.CPURuntimeInSec.M(runTimeInSecs))
 	return res
 }
 

@@ -5,6 +5,7 @@ go 1.16
 require (
 	cloud.google.com/go/bigquery v1.8.0
 	cloud.google.com/go/storage v1.15.0 // indirect
+	contrib.go.opencensus.io/exporter/stackdriver v0.13.4
 	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/golangci/golangci-lint v1.40.1
 	github.com/google/go-github/v32 v32.1.0
@@ -20,6 +21,7 @@ require (
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/spf13/cobra v1.1.3
+	go.opencensus.io v0.23.0
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.16.0
 	gocloud.dev v0.22.0

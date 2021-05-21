@@ -39,13 +39,18 @@ func runEnabledChecks(ctx context.Context,
 		GraphClient: graphClient,
 	}
 	wg := sync.WaitGroup{}
-	for _, checkFn := range checksToRun {
+	for checkName, checkFn := range checksToRun {
+		checkName := checkName
 		checkFn := checkFn
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			runner := checker.Runner{CheckRequest: request}
-			resultsCh <- runner.Run(checkFn)
+			runner := checker.Runner{
+				Repo:         repo.URL(),
+				CheckName:    checkName,
+				CheckRequest: request,
+			}
+			resultsCh <- runner.Run(ctx, checkFn)
 		}()
 	}
 	wg.Wait()
