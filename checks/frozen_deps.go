@@ -17,6 +17,7 @@ package checks
 import (
 	"errors"
 	"fmt"
+	"path"
 	"regexp"
 	"strings"
 
@@ -55,12 +56,32 @@ func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(frozenDepsStr, "*Dockerfile*", false, c, validateDockerfile)
 }
 
+func isTestFile(pathfn string) bool {
+	d := path.Dir(pathfn)
+	for d != "." {
+		r, err := path.Match("*/testdata", d)
+		if err != nil {
+			return false
+		}
+		if r {
+			return true
+		}
+
+		d = path.Dir(d)
+	}
+	return false
+}
+
 func validateDockerfile(path string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
 	// Users may use various names, e.g.,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
 	// Templates may trigger false positives, e.g. FROM { NAME }.
 
+	// Ignore files inside testdata/ folders
+	if isTestFile(path) {
+		return true, nil
+	}
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
 	contentReader := strings.NewReader(string(content))
@@ -93,6 +114,7 @@ func validateDockerfile(path string, content []byte,
 		// scratch is no-op.
 		case len(valueList) > 0 && strings.EqualFold(valueList[0], "scratch"):
 			continue
+
 		// FROM name AS newname.
 		case len(valueList) == 3 && strings.EqualFold(valueList[1], "as"):
 			name := valueList[0]
