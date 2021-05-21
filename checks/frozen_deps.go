@@ -69,7 +69,6 @@ func validateDockerfile(path string, content []byte,
 	ret := true
 	fromFound := false
 	pinnedAsNames := make(map[string]bool)
-
 	res, err := parser.Parse(contentReader)
 	if err != nil {
 		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
@@ -93,6 +92,7 @@ func validateDockerfile(path string, content []byte,
 		// scratch is no-op.
 		case len(valueList) > 0 && strings.EqualFold(valueList[0], "scratch"):
 			continue
+
 		// FROM name AS newname.
 		case len(valueList) == 3 && strings.EqualFold(valueList[1], "as"):
 			name := valueList[0]

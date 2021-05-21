@@ -63,12 +63,51 @@ func NonEmptyRegularFile(hdr *tar.Header) bool {
 	return hdr.Typeflag == tar.TypeReg && hdr.Size > 0
 }
 
+func IsScorecardTestFile(owner, repo, fullpath string) bool {
+	// testdata/ or /some/dir/testdata/some/other
+	return owner == "ossf" && repo == "scorecard" && (strings.HasPrefix(fullpath, "testdata/") ||
+		strings.Contains(fullpath, "/testdata/"))
+}
+
+func ExtractFullpath(fn string) (string, bool) {
+	const splitLength = 2
+	names := strings.SplitN(fn, "/", splitLength)
+	if len(names) < splitLength {
+		return "", false
+	}
+
+	fullpath := names[1]
+	return fullpath, true
+}
+
+// Using the http.get instead of the lib httpClient because
+// the default checker.HTTPClient caches everything in the memory and it causes oom.
+func getHttpResponse(url string) (*http.Response, error) {
+	//https://securego.io/docs/rules/g107.html
+	//nolint
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("get request failed: %w", err)
+	}
+	return resp, nil
+}
+
+func getTarReader(resp *http.Response) (*tar.Reader, error) {
+	gz, err := gzip.NewReader(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("gzip reader failed: %w", err)
+	}
+	tr := tar.NewReader(gz)
+	return tr, nil
+}
+
 // CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
 // shellPathFnPattern is used for https://golang.org/pkg/path/#Match
 // Warning: the pattern is used to match (1) the entire path AND (2) the filename alone. This means:
 // 	- To scope the search to a directory, use "./dirname/*". Example, for the root directory,
 // 		use "./*".
 //	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
+//nolint
 func CheckFilesContent(checkName, shellPathFnPattern string,
 	caseSensitive bool,
 	c *checker.CheckRequest,
@@ -83,24 +122,21 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
 	url = strings.Replace(url, "{/ref}", r.GetDefaultBranch(), 1)
 
-	// Using the http.get instead of the lib httpClient because
-	// the default checker.HTTPClient caches everything in the memory and it causes oom.
-
-	//https://securego.io/docs/rules/g107.html
-	//nolint
-	resp, err := http.Get(url)
+	resp, err := getHttpResponse(url)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
 	}
 	defer resp.Body.Close()
 
-	gz, err := gzip.NewReader(resp.Body)
+	tr, err := getTarReader(resp)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
 	}
-	tr := tar.NewReader(gz)
+
 	res := true
 
+	var fullpath string
+	var b bool
 	for {
 		hdr, err := tr.Next()
 		if err != nil && err != io.EOF {
@@ -116,16 +152,17 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 			continue
 		}
 
-		// Strip the repo name
-		const splitLength = 2
-		names := strings.SplitN(hdr.Name, "/", splitLength)
-		if len(names) < splitLength {
+		// Extract the fullpath without the repo name.
+		if fullpath, b = ExtractFullpath(hdr.Name); !b {
 			continue
 		}
 
-		fullpath := names[1]
+		// Filter out Scorecard's own test files.
+		if IsScorecardTestFile(c.Owner, c.Repo, fullpath) {
+			continue
+		}
 
-		// Filter out files based on path/names.
+		// Filter out files based on path/names using the pattern.
 		b, err := IsMatchingPath(shellPathFnPattern, fullpath, caseSensitive)
 		switch {
 		case err != nil:
@@ -148,13 +185,13 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 			return checker.MakeRetryResult(checkName, ErrReadFile)
 		}
 
-		// We truncate the file to remove tailing 0 (sparse format).
+		// We truncate the file to remove trailing 0 (sparse format).
 		rr, err := onFileContent(fullpath, content[:n], c.Logf)
 		if err != nil {
 			return checker.MakeFailResult(checkName, err)
 		}
-		// We don't return rightway to give the onFileContent()
-		// handler to log.
+		// We don't return rightway to let the onFileContent()
+		// handler log.
 		if !rr {
 			res = false
 		}
