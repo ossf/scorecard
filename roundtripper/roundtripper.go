@@ -42,9 +42,9 @@ const (
 func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
 	transport := http.DefaultTransport
 
-	// Start with oauth
 	if token := os.Getenv(GithubAuthToken); token != "" {
-		transport = MakeOAuthTransport(ctx, strings.Split(token, ","))
+		// Use GitHub PAT
+		transport = MakeGitHubTransport(transport, strings.Split(token, ","))
 	} else if keyPath := os.Getenv(GithubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
 		appID, err := strconv.Atoi(os.Getenv(GithubAppID))
 		if err != nil {
