@@ -15,35 +15,36 @@
 package roundtripper
 
 import (
-	"context"
 	"fmt"
 	"net/http"
+	"sync"
 	"sync/atomic"
-
-	"golang.org/x/oauth2"
 )
 
-func MakeOAuthTransport(ctx context.Context, accessTokens []string) http.RoundTripper {
-	tokenSource := &tokenPool{
-		tokens: makeTokenAccessor(accessTokens),
+func MakeGitHubTransport(innerTransport http.RoundTripper, accessTokens []string) http.RoundTripper {
+	return &githubTransport{
+		innerTransport: innerTransport,
+		tokens:         makeTokenAccessor(accessTokens),
 	}
-	return oauth2.NewClient(ctx, tokenSource).Transport
+}
+
+// githubTransport handles authorization using GitHub personal access tokens (PATs) during HTTP requests.
+type githubTransport struct {
+	innerTransport http.RoundTripper
+	tokens         tokenAccessor
 }
 
 type tokenAccessor interface {
-	next() (*oauth2.Token, error)
+	next() string
 }
 
-type tokenPool struct {
-	tokens tokenAccessor
-}
-
-func (pool *tokenPool) Token() (*oauth2.Token, error) {
-	token, err := pool.tokens.next()
+func (gt *githubTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", gt.tokens.next()))
+	resp, err := gt.innerTransport.RoundTrip(r)
 	if err != nil {
-		return token, fmt.Errorf("error during Next(): %w", err)
+		return nil, fmt.Errorf("error in HTTP: %w", err)
 	}
-	return token, nil
+	return resp, nil
 }
 
 func makeTokenAccessor(accessTokens []string) tokenAccessor {
@@ -55,14 +56,15 @@ func makeTokenAccessor(accessTokens []string) tokenAccessor {
 type roundRobinAccessor struct {
 	accessTokens []string
 	counter      int64
+	mu           sync.Mutex
 }
 
-func (roundRobin *roundRobinAccessor) next() (*oauth2.Token, error) {
+func (roundRobin *roundRobinAccessor) next() string {
+	roundRobin.mu.Lock()
+	defer roundRobin.mu.Unlock()
+
 	c := atomic.AddInt64(&roundRobin.counter, 1)
-	// not locking it because it is never modified
 	l := len(roundRobin.accessTokens)
 	index := c % int64(l)
-	return &oauth2.Token{
-		AccessToken: roundRobin.accessTokens[index],
-	}, nil
+	return roundRobin.accessTokens[index]
 }
