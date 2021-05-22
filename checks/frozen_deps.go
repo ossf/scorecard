@@ -33,6 +33,7 @@ var ErrInvalidDockerfile = errors.New("invalid docker file")
 // ErrEmptyFile : Invalid docker file.
 var ErrEmptyFile = errors.New("file has no content")
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(frozenDepsStr, FrozenDeps)
 }

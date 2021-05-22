@@ -25,9 +25,9 @@ import (
 )
 
 func MakeCensusTransport(innerTransport http.RoundTripper) http.RoundTripper {
-	return &censusTransport{
-		innerTransport: &ochttp.Transport{
-			Base: innerTransport,
+	return &ochttp.Transport{
+		Base: &censusTransport{
+			innerTransport: innerTransport,
 		},
 	}
 }

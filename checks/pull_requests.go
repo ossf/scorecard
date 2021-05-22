@@ -23,6 +23,7 @@ import (
 
 const pullRequestsStr = "Pull-Requests"
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(pullRequestsStr, PullRequests)
 }

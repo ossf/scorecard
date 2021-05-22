@@ -267,6 +267,7 @@ func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 	return v.SourceCodeURI, nil
 }
 
+//nolint:gochecknoinits
 func init() {
 	// Add the zap flag manually
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)

@@ -16,7 +16,7 @@ linters:
     - errcheck
     - exhaustive
     - exportloopref
-    # - gochecknoinits
+    - gochecknoinits
     - gocognit
     - goconst
     - gocritic
@@ -29,7 +29,7 @@ linters:
     - goheader
     - goimports
     # - golint
-    # - gomnd
+    - gomnd
     - gomodguard
     - goprintffuncname
     - gosec
