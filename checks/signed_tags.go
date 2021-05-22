@@ -26,6 +26,8 @@ const (
 	tagLookBack   = 5
 )
 
+var ErrorNoTags = errors.New("no signed tags found")
+
 //nolint:gochecknoinits
 func init() {
 	registerCheck(signedTagsStr, SignedTags)
@@ -75,7 +77,7 @@ func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 
 	if totalTags == 0 {
 		c.Logf("no tags found")
-		return checker.MakeInconclusiveResult(signedTagsStr, errors.New("no signed tags found"))
+		return checker.MakeInconclusiveResult(signedTagsStr, ErrorNoTags)
 	}
 
 	c.Logf("found %d out of %d verified tags", totalSigned, totalTags)
