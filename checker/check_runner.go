@@ -57,6 +57,7 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 	var l logger
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
+		checkRequest.Ctx = ctx
 		l = logger{}
 		checkRequest.Logf = l.Logf
 		res = f(&checkRequest)
