@@ -82,7 +82,7 @@ func ExtractFullpath(fn string) (string, bool) {
 
 // Using the http.get instead of the lib httpClient because
 // the default checker.HTTPClient caches everything in the memory and it causes oom.
-func getHttpResponse(url string) (*http.Response, error) {
+func getHTTPResponse(url string) (*http.Response, error) {
 	//https://securego.io/docs/rules/g107.html
 	//nolint
 	resp, err := http.Get(url)
@@ -122,7 +122,7 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
 	url = strings.Replace(url, "{/ref}", r.GetDefaultBranch(), 1)
 
-	resp, err := getHttpResponse(url)
+	resp, err := getHTTPResponse(url)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
 	}

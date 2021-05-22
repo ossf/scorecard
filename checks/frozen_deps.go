@@ -153,7 +153,7 @@ func validateGitHubActionWorkflow(path string, content []byte, logf func(s strin
 			Name  string `yaml:"name"`
 			Steps []struct {
 				Name string `yaml:"name"`
-				Id   string `yaml:"id"`
+				ID   string `yaml:"id"`
 				Uses string `yaml:"uses"`
 			}
 		}
