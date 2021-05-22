@@ -28,13 +28,14 @@ func init() {
 
 func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	// check repository for repository-specific policy
-	result := CheckIfFileExists(securityPolicyStr, c, func(name string, logf func(s string, f ...interface{})) (bool, error) {
+	onFile := func(name string, logf func(s string, f ...interface{})) (bool, error) {
 		if strings.EqualFold(name, "security.md") {
 			logf("security policy : %s", name)
 			return true, nil
 		}
 		return false, nil
-	})
+	}
+	result := CheckIfFileExists(securityPolicyStr, c, onFile)
 
 	if result.Pass {
 		return result
@@ -45,11 +46,12 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	dotGitHub := c
 	dotGitHub.Repo = ".github"
 
-	return CheckIfFileExists(securityPolicyStr, dotGitHub, func(name string, logf func(s string, f ...interface{})) (bool, error) {
+	onFile = func(name string, logf func(s string, f ...interface{})) (bool, error) {
 		if strings.EqualFold(name, "security.md") {
 			logf("security policy within .github folder : %s", name)
 			return true, nil
 		}
 		return false, nil
-	})
+	}
+	return CheckIfFileExists(securityPolicyStr, dotGitHub, onFile)
 }
