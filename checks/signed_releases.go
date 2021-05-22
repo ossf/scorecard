@@ -27,6 +27,8 @@ const (
 	releaseLookBackDays = 5
 )
 
+var ErrorNoReleases = errors.New("no releases found")
+
 //nolint:gochecknoinits
 func init() {
 	registerCheck(signedReleasesStr, SignedReleases)
@@ -76,7 +78,7 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 
 	if totalReleases == 0 {
 		c.Logf("no releases found")
-		return checker.MakeInconclusiveResult(signedReleasesStr, errors.New("no releases found"))
+		return checker.MakeInconclusiveResult(signedReleasesStr, ErrorNoReleases)
 	}
 
 	c.Logf("found signed artifacts for %d out of %d releases", totalSigned, totalReleases)

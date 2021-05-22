@@ -18,6 +18,8 @@ import "errors"
 
 const MaxResultConfidence = 10
 
+var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
+
 type CheckResult struct {
 	Error       error `json:"-"`
 	Name        string
@@ -65,7 +67,7 @@ func MakeRetryResult(name string, err error) CheckResult {
 func MakeProportionalResult(name string, numerator int, denominator int,
 	threshold float32) CheckResult {
 	if denominator == 0 {
-		return MakeInconclusiveResult(name, errors.New("internal error: denominator is 0"))
+		return MakeInconclusiveResult(name, ErrorDemoninatorZero)
 	}
 	if numerator == 0 {
 		return CheckResult{

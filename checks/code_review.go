@@ -24,6 +24,8 @@ import (
 
 const codeReviewStr = "Code-Review"
 
+var ErrorNoReviews = errors.New("no reviews found")
+
 //nolint:gochecknoinits
 func init() {
 	registerCheck(codeReviewStr, DoesCodeReview)
@@ -147,7 +149,7 @@ func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalReviewed == 0 {
-		return checker.MakeInconclusiveResult(codeReviewStr, errors.New("no reviews found"))
+		return checker.MakeInconclusiveResult(codeReviewStr, ErrorNoReviews)
 	}
 	c.Logf("prow code reviews found")
 	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, totalMerged, .75)
@@ -187,7 +189,7 @@ func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalReviewed == 0 {
-		return checker.MakeInconclusiveResult(codeReviewStr, errors.New("no reviews found"))
+		return checker.MakeInconclusiveResult(codeReviewStr, ErrorNoReviews)
 	}
 	c.Logf("code reviews found")
 	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, total, .75)
