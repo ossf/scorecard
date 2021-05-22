@@ -23,6 +23,7 @@ import (
 
 const fuzzingStr = "Fuzzing"
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(fuzzingStr, Fuzzing)
 }

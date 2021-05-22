@@ -149,10 +149,12 @@ type CheckFn func(*c.Checker) CheckResult
 Checks are registered in an init function:
 
 ```golang
-    AllChecks = append(AllChecks, NamedCheck{
-        Name: "Code-Review",
-        Fn:   DoesCodeReview,
-    })
+const codeReviewStr = "Code-Review"
+
+//nolint:gochecknoinits
+func init() {
+	registerCheck(codeReviewStr, DoesCodeReview)
+}
 ```
 
 ### Updating Docs

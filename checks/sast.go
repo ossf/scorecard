@@ -25,6 +25,7 @@ const sastStr = "SAST"
 
 var sastTools map[string]bool = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(sastStr, SAST)
 }
