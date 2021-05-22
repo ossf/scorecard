@@ -49,7 +49,7 @@ linters:
     - sqlclosecheck
     - staticcheck
     - structcheck
-    # - stylecheck
+    - stylecheck
     - thelper
     - tparallel
     - typecheck
