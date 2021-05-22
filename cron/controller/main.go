@@ -27,7 +27,7 @@ import (
 )
 
 func PublishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime time.Time) (int32, error) {
-	var shardNum int32 = 0
+	var shardNum int32
 	request := data.ScorecardBatchRequest{
 		JobTime:  timestamppb.New(datetime),
 		ShardNum: &shardNum,

@@ -27,6 +27,7 @@ const (
 	releaseLookBackDays = 5
 )
 
+// ErrorNoReleases indicates no releases were found for this repo.
 var ErrorNoReleases = errors.New("no releases found")
 
 //nolint:gochecknoinits

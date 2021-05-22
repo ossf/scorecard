@@ -28,7 +28,6 @@ linters:
     - gofumpt
     - goheader
     - goimports
-    # - golint
     - gomnd
     - gomodguard
     - goprintffuncname
@@ -45,6 +44,7 @@ linters:
     - paralleltest
     - prealloc
     - predeclared
+    - revive
     - rowserrcheck
     - sqlclosecheck
     - staticcheck

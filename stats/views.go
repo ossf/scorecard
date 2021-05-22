@@ -21,6 +21,7 @@ import (
 )
 
 var (
+	// CheckRuntime tracks CPU runtime stats.
 	CheckRuntime = view.View{
 		Name:        "CheckRuntime",
 		Description: "CPU runtime stats per repo per check",
@@ -45,6 +46,7 @@ var (
 			1<<16),
 	}
 
+	// OutgoingHTTPRequests tracks HTTPRequests made.
 	OutgoingHTTPRequests = view.View{
 		Name:        "OutgoingHTTPRequests",
 		Description: "HTTPRequests made per repo per check per URL path",

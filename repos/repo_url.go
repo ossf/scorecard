@@ -22,9 +22,12 @@ import (
 )
 
 var (
-	ErrorUnsupportedHost  = errors.New("unsupported host")
+	// ErrorUnsupportedHost indicates the repo's host is unsupported.
+	ErrorUnsupportedHost = errors.New("unsupported host")
+	// ErrorInvalidGithubURL indicates the repo's GitHub URL is not in the proper format.
 	ErrorInvalidGithubURL = errors.New("invalid GitHub repo URL")
-	ErrorInvalidURL       = errors.New("invalid repo flag")
+	// ErrorInvalidURL indicates the repo's full GitHub URL was not passed.
+	ErrorInvalidURL = errors.New("invalid repo flag")
 )
 
 type RepoURL struct {

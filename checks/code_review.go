@@ -24,6 +24,7 @@ import (
 
 const codeReviewStr = "Code-Review"
 
+// ErrorNoReviews indicates no reviews were found for this repo.
 var ErrorNoReviews = errors.New("no reviews found")
 
 //nolint:gochecknoinits
