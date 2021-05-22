@@ -26,6 +26,7 @@ var (
 		Description: "CPU runtime stats per repo per check",
 		Measure:     CPURuntimeInSec,
 		TagKeys:     []tag.Key{Repo, CheckName},
+		//nolint:gomnd
 		Aggregation: view.Distribution(
 			1<<2,
 			1<<3,

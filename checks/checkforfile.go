@@ -74,7 +74,7 @@ func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(na
 			return checker.CheckResult{
 				Name:       checkName,
 				Pass:       false,
-				Confidence: 10,
+				Confidence: checker.MaxResultConfidence,
 				Error:      err,
 			}
 		}
