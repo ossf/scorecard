@@ -25,6 +25,7 @@ import (
 
 const ciiBestPracticesStr = "CII-Best-Practices"
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(ciiBestPracticesStr, CIIBestPractices)
 }

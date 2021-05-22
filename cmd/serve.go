@@ -32,6 +32,7 @@ import (
 	"go.uber.org/zap"
 )
 
+//nolint:gochecknoinits
 func init() {
 	rootCmd.AddCommand(serveCmd)
 }

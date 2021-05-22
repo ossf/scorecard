@@ -24,6 +24,7 @@ import (
 
 const codeReviewStr = "Code-Review"
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(codeReviewStr, DoesCodeReview)
 }

@@ -22,6 +22,7 @@ import (
 
 const securityPolicyStr = "Security-Policy"
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(securityPolicyStr, SecurityPolicy)
 }

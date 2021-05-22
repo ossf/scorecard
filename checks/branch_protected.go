@@ -24,6 +24,7 @@ const (
 	minReviews          = 1
 )
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(branchProtectionStr, BranchProtection)
 }

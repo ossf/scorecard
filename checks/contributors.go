@@ -27,6 +27,7 @@ const (
 	contributorsStr         = "Contributors"
 )
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(contributorsStr, Contributors)
 }
