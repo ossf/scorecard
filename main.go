@@ -17,7 +17,5 @@ package main
 import "github.com/ossf/scorecard/cmd"
 
 func main() {
-	cmd.InitRootCmd()
-	cmd.InitServeCommand()
 	cmd.Execute()
 }
