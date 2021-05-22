@@ -16,7 +16,7 @@ linters:
     - errcheck
     - exhaustive
     - exportloopref
-    # - gochecknoinits
+    - gochecknoinits
     - gocognit
     - goconst
     - gocritic

@@ -27,6 +27,7 @@ const (
 	releaseLookBackDays = 5
 )
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(signedReleasesStr, SignedReleases)
 }

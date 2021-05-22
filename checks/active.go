@@ -26,6 +26,7 @@ const (
 	lookbackDays = 90
 )
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(activeStr, IsActive)
 }

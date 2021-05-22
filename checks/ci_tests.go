@@ -36,6 +36,7 @@ const (
 	githubCheckRuns
 )
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(ciTestsStr, CITests)
 }

@@ -267,7 +267,7 @@ func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 	return v.SourceCodeURI, nil
 }
 
-func init() {
+func InitRootCmd() {
 	// Add the zap flag manually
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
 	rootCmd.Flags().Var(&repo, "repo", "repository to check")

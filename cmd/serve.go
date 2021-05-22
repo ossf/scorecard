@@ -32,7 +32,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func init() {
+func InitServeCommand() {
 	rootCmd.AddCommand(serveCmd)
 }
 

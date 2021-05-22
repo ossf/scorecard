@@ -26,6 +26,7 @@ const (
 	tagLookBack   = 5
 )
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(signedTagsStr, SignedTags)
 }

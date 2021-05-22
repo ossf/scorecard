@@ -25,6 +25,7 @@ import (
 
 const packagingStr = "Packaging"
 
+//nolint:gochecknoinits
 func init() {
 	registerCheck(packagingStr, Packaging)
 }
