@@ -21,8 +21,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ossf/scorecard/gitcache/pkg"
 	"go.uber.org/zap"
+
+	"github.com/ossf/scorecard/gitcache/pkg"
 )
 
 type cache struct {

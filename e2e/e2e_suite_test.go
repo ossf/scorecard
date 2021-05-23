@@ -24,9 +24,10 @@ import (
 	"github.com/google/go-github/v32/github"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/ossf/scorecard/roundtripper"
 	"github.com/shurcooL/githubv4"
 	"go.uber.org/zap"
+
+	"github.com/ossf/scorecard/roundtripper"
 )
 
 var (

@@ -21,8 +21,9 @@ import (
 	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
-	"github.com/ossf/scorecard/checker"
 	"gopkg.in/yaml.v2"
+
+	"github.com/ossf/scorecard/checker"
 )
 
 const frozenDepsStr = "Frozen-Deps"

@@ -22,10 +22,13 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/ossf/scorecard/cron/data"
 	"gocloud.dev/pubsub"
-	_ "gocloud.dev/pubsub/gcppubsub" // Needed to link in GCP drivers.
+
+	// Needed to link in GCP drivers.
+	_ "gocloud.dev/pubsub/gcppubsub"
 	"google.golang.org/protobuf/encoding/protojson"
+
+	"github.com/ossf/scorecard/cron/data"
 )
 
 var errorPublish = errors.New("total errors when publishing")
