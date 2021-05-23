@@ -35,13 +35,13 @@ const (
 	GithubAppID = "GITHUB_APP_ID"
 	// GithubAppInstallationID is the installation ID for the GitHub App.
 	GithubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
-	// UseDiskCache will cache results to disk for subsequent runs if set to true.
+	// UseDiskCache will cache results into blob store for subsequent runs if set to true.
 	UseDiskCache = "USE_DISK_CACHE"
-	// DiskCachePath is the path to where the results will be cached on disk.
+	// DiskCachePath is the path to where the results will be cached on disk if UseDiskCache is true.
 	DiskCachePath = "DISK_CACHE_PATH"
 	// UseBlobCache will cache results into a blob for subsequent runs if set to true.
 	UseBlobCache = "USE_BLOB_CACHE"
-	// BucketURL is the URL where the blob cache will be stored.
+	// BucketURL is the URL for blob store cache if UseBlobCache is true.
 	BucketURL        = "BLOB_URL"
 	cacheSize uint64 = 10000 * 1024 * 1024 // 10gb
 )

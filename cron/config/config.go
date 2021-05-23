@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	// ShardNumFilename is the name of the file that stores the shard number.
+	// ShardNumFilename is the name of the file that stores the number of shards.
 	ShardNumFilename       string = ".shard_num"
 	projectID              string = "SCORECARD_PROJECT_ID"
 	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
