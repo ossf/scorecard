@@ -19,9 +19,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ossf/scorecard/cron/config"
 	"gocloud.dev/blob"
-	_ "gocloud.dev/blob/gcsblob" // Needed to link in GCP drivers.
+
+	// Needed to link in GCP drivers.
+	_ "gocloud.dev/blob/gcsblob"
+
+	"github.com/ossf/scorecard/cron/config"
 )
 
 const (

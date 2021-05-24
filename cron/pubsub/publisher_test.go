@@ -19,8 +19,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ossf/scorecard/cron/data"
 	"gocloud.dev/pubsub"
+
+	"github.com/ossf/scorecard/cron/data"
 )
 
 type mockSucceedTopic struct{}

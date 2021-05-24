@@ -20,6 +20,7 @@ import (
 	"log"
 
 	"cloud.google.com/go/bigquery"
+
 	"github.com/ossf/scorecard/cron/config"
 )
 

@@ -21,9 +21,10 @@ import (
 	"time"
 
 	"github.com/google/go-github/v32/github"
+	"github.com/shurcooL/githubv4"
+
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/repos"
-	"github.com/shurcooL/githubv4"
 )
 
 func runEnabledChecks(ctx context.Context,

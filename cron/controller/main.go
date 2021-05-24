@@ -20,10 +20,11 @@ import (
 	"strconv"
 	"time"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/ossf/scorecard/cron/config"
 	"github.com/ossf/scorecard/cron/data"
 	"github.com/ossf/scorecard/cron/pubsub"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func PublishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime time.Time) (int32, error) {

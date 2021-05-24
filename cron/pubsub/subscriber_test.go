@@ -19,10 +19,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ossf/scorecard/cron/data"
 	"gocloud.dev/pubsub"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/ossf/scorecard/cron/data"
 )
 
 type mockReceiver struct {
