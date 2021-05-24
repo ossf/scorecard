@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ossf/scorecard/stats"
 	"go.opencensus.io/plugin/ochttp"
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
+
+	"github.com/ossf/scorecard/stats"
 )
 
 func MakeCensusTransport(innerTransport http.RoundTripper) http.RoundTripper {

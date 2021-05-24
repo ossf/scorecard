@@ -24,6 +24,9 @@ import (
 	"sync"
 
 	"github.com/google/go-github/v32/github"
+	"github.com/shurcooL/githubv4"
+	"go.uber.org/zap"
+
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/cron/config"
 	"github.com/ossf/scorecard/cron/data"
@@ -31,8 +34,6 @@ import (
 	"github.com/ossf/scorecard/pkg"
 	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/roundtripper"
-	"github.com/shurcooL/githubv4"
-	"go.uber.org/zap"
 )
 
 func processRequest(ctx context.Context,
