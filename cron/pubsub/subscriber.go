@@ -28,6 +28,7 @@ import (
 	"github.com/ossf/scorecard/cron/data"
 )
 
+// ErrorInParse indicates there was an error while unmarshalling the protocol buffer message.
 var ErrorInParse = errors.New("error during protojson.Unmarshal")
 
 type Subscriber interface {

@@ -18,6 +18,7 @@ import "errors"
 
 const MaxResultConfidence = 10
 
+// ErrorDemoninatorZero indicates the denominator for a proportional result is 0.
 var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
 
 type CheckResult struct {

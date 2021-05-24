@@ -25,9 +25,11 @@ import (
 const sastStr = "SAST"
 
 var (
-	sastTools     map[string]bool = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
-	ErrorNoChecks                 = errors.New("no check runs found")
-	ErrorNoMerges                 = errors.New("no merges found")
+	sastTools = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
+	// ErrorNoChecks indicates no GitHub Check runs were found for this repo.
+	ErrorNoChecks = errors.New("no check runs found")
+	// ErrorNoMerges indicates no merges with SAST tool runs were found for this repo.
+	ErrorNoMerges = errors.New("no merges found")
 )
 
 //nolint:gochecknoinits

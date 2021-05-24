@@ -81,7 +81,7 @@ func Bool2int(b bool) int {
 	return 0
 }
 
-// Returns the best check result out of several ones performed.
+// MultiCheckOr returns the best check result out of several ones performed.
 func MultiCheckOr(fns ...CheckFn) CheckFn {
 	return func(c *CheckRequest) CheckResult {
 		var maxResult CheckResult
@@ -102,7 +102,7 @@ func MultiCheckOr(fns ...CheckFn) CheckFn {
 	}
 }
 
-// All checks must succeed. This returns a conservative result
+// MultiCheckAnd means all checks must succeed. This returns a conservative result
 // where the worst result is returned.
 func MultiCheckAnd(fns ...CheckFn) CheckFn {
 	return func(c *CheckRequest) CheckResult {

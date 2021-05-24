@@ -28,6 +28,7 @@ import (
 )
 
 const (
+	// ShardNumFilename is the name of the file that stores the number of shards.
 	ShardNumFilename       string = ".shard_num"
 	projectID              string = "SCORECARD_PROJECT_ID"
 	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
@@ -39,8 +40,10 @@ const (
 )
 
 var (
+	// ErrorEmptyConfigValue indicates the value for the configuration option was empty.
 	ErrorEmptyConfigValue = errors.New("config value set to empty")
-	ErrorValueConversion  = errors.New("unexpected type, cannot convert value")
+	// ErrorValueConversion indicates an unexpected type was found for the value of the config option.
+	ErrorValueConversion = errors.New("unexpected type, cannot convert value")
 	//go:embed config.yaml
 	configYAML []byte
 )

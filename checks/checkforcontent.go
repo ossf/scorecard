@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
+// ErrReadFile indicates the header size does not match the size of the file.
 var ErrReadFile = errors.New("could not read entire file")
 
 // IsMatchingPath uses 'pattern' to shell-match the 'path' and its filename

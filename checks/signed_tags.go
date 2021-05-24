@@ -27,7 +27,8 @@ const (
 	tagLookBack   = 5
 )
 
-var ErrorNoTags = errors.New("no signed tags found")
+// ErrorNoTags indicates no tags were found for this repo.
+var ErrorNoTags = errors.New("no tags found")
 
 //nolint:gochecknoinits
 func init() {

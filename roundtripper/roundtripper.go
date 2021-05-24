@@ -27,15 +27,23 @@ import (
 )
 
 const (
-	GithubAuthToken                = "GITHUB_AUTH_TOKEN" // #nosec G101
-	GithubAppKeyPath               = "GITHUB_APP_KEY_PATH"
-	GithubAppID                    = "GITHUB_APP_ID"
-	GithubAppInstallationID        = "GITHUB_APP_INSTALLATION_ID"
-	UseDiskCache                   = "USE_DISK_CACHE"
-	DiskCachePath                  = "DISK_CACHE_PATH"
-	UseBlobCache                   = "USE_BLOB_CACHE"
-	BucketURL                      = "BLOB_URL"
-	cacheSize               uint64 = 10000 * 1024 * 1024 // 10gb
+	// GithubAuthToken is for making requests to GiHub's API.
+	GithubAuthToken = "GITHUB_AUTH_TOKEN" // #nosec G101
+	// GithubAppKeyPath is the path to file for GitHub App key.
+	GithubAppKeyPath = "GITHUB_APP_KEY_PATH"
+	// GithubAppID is the app ID for the GitHub App.
+	GithubAppID = "GITHUB_APP_ID"
+	// GithubAppInstallationID is the installation ID for the GitHub App.
+	GithubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
+	// UseDiskCache will cache results on disk for subsequent runs if set to true.
+	UseDiskCache = "USE_DISK_CACHE"
+	// DiskCachePath is the path to where the results will be cached on disk if UseDiskCache is true.
+	DiskCachePath = "DISK_CACHE_PATH"
+	// UseBlobCache will cache results into a blob store for subsequent runs if set to true.
+	UseBlobCache = "USE_BLOB_CACHE"
+	// BucketURL is the URL for blob store cache if UseBlobCache is true.
+	BucketURL        = "BLOB_URL"
+	cacheSize uint64 = 10000 * 1024 * 1024 // 10gb
 )
 
 // NewTransport returns a configured http.Transport for use with GitHub.

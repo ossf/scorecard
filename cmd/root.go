@@ -44,12 +44,13 @@ var (
 	checksToRun []string
 	metaData    []string
 	// This one has to use goflag instead of pflag because it's defined by zap.
-	logLevel               = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
-	format                 string
-	npm                    string
-	pypi                   string
-	rubygems               string
-	showDetails            bool
+	logLevel    = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
+	format      string
+	npm         string
+	pypi        string
+	rubygems    string
+	showDetails bool
+	// ErrorInvalidFormatFlag indicates an invalid option was passed for the 'format' argument.
 	ErrorInvalidFormatFlag = errors.New("invalid format flag")
 )
 
