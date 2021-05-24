@@ -16,6 +16,7 @@ package checks
 
 import (
 	"github.com/google/go-github/v32/github"
+
 	"github.com/ossf/scorecard/checker"
 )
 

@@ -15,7 +15,9 @@
 package config
 
 import (
-	_ "embed" // Used to embed config.yaml
+
+	// Used to embed config.yaml.
+	_ "embed"
 	"errors"
 	"fmt"
 	"os"

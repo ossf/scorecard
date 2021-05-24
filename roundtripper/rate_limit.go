@@ -20,11 +20,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ossf/scorecard/stats"
 	"github.com/pkg/errors"
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 	"go.uber.org/zap"
+
+	"github.com/ossf/scorecard/stats"
 )
 
 func MakeRateLimitedTransport(innerTransport http.RoundTripper, logger *zap.SugaredLogger) http.RoundTripper {

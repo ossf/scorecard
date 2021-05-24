@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+
 	"github.com/ossf/scorecard/cron/config"
 )
 

@@ -22,6 +22,7 @@ import (
 	"io"
 
 	"github.com/jszwec/csvutil"
+
 	"github.com/ossf/scorecard/repos"
 )
 
