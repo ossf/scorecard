@@ -35,15 +35,13 @@ spec:
           valueFrom:
             secretKeyRef:
               name: github
-              key: testToken
+              key: test_token
         - name: USE_BLOB_CACHE
           value: "true"
         - name: BLOB_URL
           value: "gs://ossf-scorecards-cache"
         resources:
           requests:
-            memory: 10Gi
-            cpu: 1
+            memory: 1Gi
           limits:
-            memory: 15Gi
-            cpu: 1.5
+            memory: 1.5Gi

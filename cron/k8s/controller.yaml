@@ -17,7 +17,7 @@ kind: CronJob
 metadata:
   name: scorecard-batch-controller
 spec:
-  schedule: "0 2 * * *"
+  schedule: "0 2 * * 0"
   concurrencyPolicy: "Forbid"
   jobTemplate:
     spec:

@@ -18,4 +18,4 @@ request-topic-url: gcppubsub://projects/openssf/topics/scorecard-batch-requests
 request-subscription-url: gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker
 bigquery-dataset: scorecardcron
 bigquery-table: scorecard
-shard-size: 250
+shard-size: 10
