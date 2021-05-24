@@ -20,9 +20,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ossf/scorecard/stats"
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
+
+	"github.com/ossf/scorecard/stats"
 )
 
 const checkRetries = 3

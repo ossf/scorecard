@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//nolint:dupl
 package e2e
 
 import (
@@ -19,6 +20,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 )

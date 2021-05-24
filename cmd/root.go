@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	goflag "flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -26,17 +27,16 @@ import (
 	"strings"
 	"time"
 
-	goflag "flag"
-
 	"github.com/google/go-github/v32/github"
+	"github.com/shurcooL/githubv4"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/roundtripper"
-	"github.com/shurcooL/githubv4"
-	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 )
 
 var (

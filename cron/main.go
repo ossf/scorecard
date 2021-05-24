@@ -28,6 +28,10 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/google/go-github/v32/github"
 	"github.com/jszwec/csvutil"
+	"github.com/shurcooL/githubv4"
+	"go.opencensus.io/stats/view"
+	"go.uber.org/zap"
+
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/cron/bq"
 	"github.com/ossf/scorecard/cron/monitoring"
@@ -35,9 +39,6 @@ import (
 	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/roundtripper"
 	"github.com/ossf/scorecard/stats"
-	"github.com/shurcooL/githubv4"
-	"go.opencensus.io/stats/view"
-	"go.uber.org/zap"
 )
 
 type Repository struct {
