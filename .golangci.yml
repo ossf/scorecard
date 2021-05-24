@@ -39,6 +39,7 @@ linters:
     - govet
     - ineffassign
     - lll
+    - makezero
     - misspell
     - nakedret
     - nestif
