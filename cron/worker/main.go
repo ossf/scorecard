@@ -39,7 +39,7 @@ import (
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, bucketURL string,
 	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client) error {
-	repoURLs := make([]repos.RepoURL, len(batchRequest.GetRepos()))
+	repoURLs := make([]repos.RepoURL, 0, len(batchRequest.GetRepos()))
 	var resultCh chan repos.RepoResult
 	var buffer bytes.Buffer
 
