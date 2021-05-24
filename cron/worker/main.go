@@ -82,7 +82,7 @@ func processRequest(ctx context.Context,
 	}
 
 	filename := data.GetBlobFilename(
-		fmt.Sprintf("shard-%03d", batchRequest.GetShardNum()),
+		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
 	return errors.Unwrap(data.WriteToBlobStore(ctx, bucketURL, filename, buffer.Bytes()))
 }

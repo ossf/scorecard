@@ -29,7 +29,7 @@ const (
 	prodSubscription           = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
 	prodBigQueryDataset        = "scorecardcron"
 	prodBigQueryTable          = "scorecard"
-	prodShardSize       int    = 250
+	prodShardSize       int    = 10
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -57,7 +57,7 @@ func TestYAMLParsing(t *testing.T) {
 				RequestSubscriptionURL: prodSubscription,
 				BigQueryDataset:        prodBigQueryDataset,
 				BigQueryTable:          prodBigQueryTable,
-				ShardSize:              250,
+				ShardSize:              prodShardSize,
 			},
 		},
 
