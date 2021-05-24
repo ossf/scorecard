@@ -22,6 +22,8 @@ import (
 	"github.com/ossf/scorecard/cron/config"
 )
 
+const stackdriverTimeSeriesQuota = 100
+
 func NewStackDriverExporter() (*stackdriver.Exporter, error) {
 	projectID, err := config.GetProjectID()
 	if err != nil {
@@ -30,6 +32,9 @@ func NewStackDriverExporter() (*stackdriver.Exporter, error) {
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
 		ProjectID:    projectID,
 		MetricPrefix: "scorecard-cron",
+		// Stackdriver specific quotas based on https://cloud.google.com/monitoring/quotas
+		// `Time series included in a request`
+		BundleCountThreshold: stackdriverTimeSeriesQuota,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error during stackdriver.NewExporter: %w", err)
