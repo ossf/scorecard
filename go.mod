@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	cloud.google.com/go/bigquery v1.8.0
-	contrib.go.opencensus.io/exporter/stackdriver v0.13.5
+	contrib.go.opencensus.io/exporter/stackdriver v0.13.6
 	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/golangci/golangci-lint v1.40.1
 	github.com/google/go-github/v32 v32.1.0
