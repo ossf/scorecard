@@ -111,14 +111,14 @@ func validateDockerfile(path string, content []byte,
 
 			// Not pinned.
 			ret = false
-			logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
+			logf("!! frozen-deps/docker - %v has non-pinned dependency '%v'", path, name)
 
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
 				ret = false
-				logf("!! frozen-deps - %v has non-pinned dependency '%v'", path, name)
+				logf("!! frozen-deps/docker - %v has non-pinned dependency '%v'", path, name)
 			}
 
 		default:
@@ -184,7 +184,7 @@ func validateGitHubActionWorkflow(path string, content []byte, logf func(s strin
 				match := hashRegex.Match([]byte(step.Uses))
 				if !match {
 					ret = false
-					logf("!! frozen-deps - %v has non-pinned dependency '%v' (job \"%v\")", path, step.Uses, jobName)
+					logf("!! frozen-deps/github-actions - %v has non-pinned dependency '%v' (job '%v')", path, step.Uses, jobName)
 				}
 			}
 		}
