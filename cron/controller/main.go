@@ -96,7 +96,7 @@ func main() {
 	}
 	err = data.WriteToBlobStore(ctx, bucket,
 		data.GetShardNumFilename(t),
-		[]byte(strconv.Itoa(int(shardNum))))
+		[]byte(strconv.Itoa(int(shardNum+1))))
 	if err != nil {
 		panic(err)
 	}

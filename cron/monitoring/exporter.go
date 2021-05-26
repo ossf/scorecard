@@ -16,13 +16,18 @@ package monitoring
 
 import (
 	"fmt"
+	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"contrib.go.opencensus.io/exporter/stackdriver/monitoredresource/gcp"
 
 	"github.com/ossf/scorecard/cron/config"
 )
 
-const stackdriverTimeSeriesQuota = 100
+const (
+	stackdriverTimeSeriesQuota = 200
+	timeoutMinutes             = 10
+)
 
 func NewStackDriverExporter() (*stackdriver.Exporter, error) {
 	projectID, err := config.GetProjectID()
@@ -30,8 +35,10 @@ func NewStackDriverExporter() (*stackdriver.Exporter, error) {
 		return nil, fmt.Errorf("error getting ProjectID: %w", err)
 	}
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		ProjectID:    projectID,
-		MetricPrefix: "scorecard-cron",
+		ProjectID:         projectID,
+		MetricPrefix:      "scorecard-cron",
+		MonitoredResource: gcp.Autodetect(),
+		Timeout:           timeoutMinutes * time.Minute,
 		// Stackdriver specific quotas based on https://cloud.google.com/monitoring/quotas
 		// `Time series included in a request`
 		BundleCountThreshold: stackdriverTimeSeriesQuota,
