@@ -22,7 +22,8 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const sastStr = "SAST"
+// CheckSAST is the registered name for SAST.
+const CheckSAST = "SAST"
 
 var (
 	sastTools = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
@@ -34,7 +35,7 @@ var (
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(sastStr, SAST)
+	registerCheck(CheckSAST, SAST)
 }
 
 func SAST(c *checker.CheckRequest) checker.CheckResult {
@@ -49,7 +50,7 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 		State: "closed",
 	})
 	if err != nil {
-		return checker.MakeRetryResult(sastStr, err)
+		return checker.MakeRetryResult(CheckSAST, err)
 	}
 
 	totalMerged := 0
@@ -62,10 +63,10 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
 			&github.ListCheckRunsOptions{})
 		if err != nil {
-			return checker.MakeRetryResult(sastStr, err)
+			return checker.MakeRetryResult(CheckSAST, err)
 		}
 		if crs == nil {
-			return checker.MakeInconclusiveResult(sastStr, ErrorNoChecks)
+			return checker.MakeInconclusiveResult(CheckSAST, ErrorNoChecks)
 		}
 		for _, cr := range crs.CheckRuns {
 			if cr.GetStatus() != "completed" {
@@ -82,16 +83,16 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 	if totalTested == 0 {
-		return checker.MakeInconclusiveResult(sastStr, ErrorNoMerges)
+		return checker.MakeInconclusiveResult(CheckSAST, ErrorNoMerges)
 	}
-	return checker.MakeProportionalResult(sastStr, totalTested, totalMerged, .75)
+	return checker.MakeProportionalResult(CheckSAST, totalTested, totalMerged, .75)
 }
 
 func CodeQLInCheckDefinitions(c *checker.CheckRequest) checker.CheckResult {
 	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
 	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(sastStr, err)
+		return checker.MakeRetryResult(CheckSAST, err)
 	}
 
 	for _, result := range results.CodeResults {
@@ -99,7 +100,7 @@ func CodeQLInCheckDefinitions(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	return checker.CheckResult{
-		Name:       sastStr,
+		Name:       CheckSAST,
 		Pass:       *results.Total > 0,
 		Confidence: checker.MaxResultConfidence,
 	}

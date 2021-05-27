@@ -85,7 +85,7 @@ func TestIsBranchProtected(t *testing.T) {
 				c: checker.CheckRequest{Logf: l.Logf},
 			},
 			want: checker.CheckResult{
-				Name:        branchProtectionStr,
+				Name:        CheckBranchProtection,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  7,
@@ -132,7 +132,7 @@ func TestIsBranchProtected(t *testing.T) {
 				c: checker.CheckRequest{Logf: l.Logf},
 			},
 			want: checker.CheckResult{
-				Name:        branchProtectionStr,
+				Name:        CheckBranchProtection,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  5,
@@ -179,7 +179,7 @@ func TestIsBranchProtected(t *testing.T) {
 				c: checker.CheckRequest{Logf: l.Logf},
 			},
 			want: checker.CheckResult{
-				Name:        branchProtectionStr,
+				Name:        CheckBranchProtection,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  7,
@@ -227,7 +227,7 @@ func TestIsBranchProtected(t *testing.T) {
 				c: checker.CheckRequest{Logf: l.Logf},
 			},
 			want: checker.CheckResult{
-				Name:        branchProtectionStr,
+				Name:        CheckBranchProtection,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  5,
@@ -274,7 +274,7 @@ func TestIsBranchProtected(t *testing.T) {
 				c: checker.CheckRequest{Logf: l.Logf},
 			},
 			want: checker.CheckResult{
-				Name:        branchProtectionStr,
+				Name:        CheckBranchProtection,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  5,
@@ -321,7 +321,7 @@ func TestIsBranchProtected(t *testing.T) {
 				c: checker.CheckRequest{Logf: l.Logf},
 			},
 			want: checker.CheckResult{
-				Name:        branchProtectionStr,
+				Name:        CheckBranchProtection,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  5,
@@ -368,7 +368,7 @@ func TestIsBranchProtected(t *testing.T) {
 				c: checker.CheckRequest{Logf: l.Logf},
 			},
 			want: checker.CheckResult{
-				Name:        branchProtectionStr,
+				Name:        CheckBranchProtection,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  9,
@@ -415,7 +415,7 @@ func TestIsBranchProtected(t *testing.T) {
 				c: checker.CheckRequest{Logf: l.Logf},
 			},
 			want: checker.CheckResult{
-				Name:        branchProtectionStr,
+				Name:        CheckBranchProtection,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  9,
@@ -462,7 +462,7 @@ func TestIsBranchProtected(t *testing.T) {
 				c: checker.CheckRequest{Logf: l.Logf},
 			},
 			want: checker.CheckResult{
-				Name:        branchProtectionStr,
+				Name:        CheckBranchProtection,
 				Pass:        true,
 				Details:     nil,
 				Confidence:  10,

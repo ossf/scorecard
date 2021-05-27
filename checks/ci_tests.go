@@ -23,23 +23,21 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const (
-	ciTestsStr = "CI-Tests"
-	success    = "success"
-)
-
 // States for which CI system is in use.
 type ciSystemState int
 
 const (
-	unknown ciSystemState = iota
+	// CheckCITests is the registered name for CITests.
+	CheckCITests               = "CI-Tests"
+	success                    = "success"
+	unknown      ciSystemState = iota
 	githubStatuses
 	githubCheckRuns
 )
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(ciTestsStr, CITests)
+	registerCheck(CheckCITests, CITests)
 }
 
 func CITests(c *checker.CheckRequest) checker.CheckResult {
@@ -47,7 +45,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		State: "closed",
 	})
 	if err != nil {
-		return checker.MakeRetryResult(ciTestsStr, err)
+		return checker.MakeRetryResult(CheckCITests, err)
 	}
 
 	usedSystem := unknown
@@ -65,7 +63,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		if usedSystem != githubCheckRuns {
 			prSuccessStatus, err := prHasSuccessStatus(pr, c)
 			if err != nil {
-				return checker.MakeRetryResult(ciTestsStr, err)
+				return checker.MakeRetryResult(CheckCITests, err)
 			}
 			if prSuccessStatus {
 				totalTested++
@@ -79,7 +77,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		if usedSystem != githubStatuses {
 			prCheckSuccessful, err := prHasSuccessfulCheck(pr, c)
 			if err != nil {
-				return checker.MakeRetryResult(ciTestsStr, err)
+				return checker.MakeRetryResult(CheckCITests, err)
 			}
 			if prCheckSuccessful {
 				totalTested++
@@ -94,7 +92,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	c.Logf("found CI tests for %d of %d merged PRs", totalTested, totalMerged)
-	return checker.MakeProportionalResult(ciTestsStr, totalTested, totalMerged, .75)
+	return checker.MakeProportionalResult(CheckCITests, totalTested, totalMerged, .75)
 }
 
 // PR has a status marked 'success' and a CI-related context.

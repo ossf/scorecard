@@ -23,31 +23,32 @@ import (
 )
 
 const (
-	activeStr    = "Active"
+	// CheckActive is the registered name for IsActive.
+	CheckActive  = "Active"
 	lookbackDays = 90
 )
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(activeStr, IsActive)
+	registerCheck(CheckActive, IsActive)
 }
 
 func IsActive(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(activeStr, err)
+		return checker.MakeRetryResult(CheckActive, err)
 	}
 
 	tz, err := time.LoadLocation("UTC")
 	if err != nil {
-		return checker.MakeRetryResult(activeStr, err)
+		return checker.MakeRetryResult(CheckActive, err)
 	}
 	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookbackDays)
 	totalCommits := 0
 	for _, commit := range commits {
 		commitFull, _, err := c.Client.Git.GetCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA())
 		if err != nil {
-			return checker.MakeRetryResult(activeStr, err)
+			return checker.MakeRetryResult(CheckActive, err)
 		}
 		if commitFull.GetAuthor().GetDate().After(threshold) {
 			totalCommits++
@@ -57,7 +58,7 @@ func IsActive(c *checker.CheckRequest) checker.CheckResult {
 	const numCommits = 2
 	const confidence = 10
 	return checker.CheckResult{
-		Name:       activeStr,
+		Name:       CheckActive,
 		Pass:       totalCommits >= numCommits,
 		Confidence: confidence,
 	}
