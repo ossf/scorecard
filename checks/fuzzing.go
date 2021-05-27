@@ -22,11 +22,12 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const fuzzingStr = "Fuzzing"
+// CheckFuzzing is the registered name for Fuzzing.
+const CheckFuzzing = "Fuzzing"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(fuzzingStr, Fuzzing)
+	registerCheck(CheckFuzzing, Fuzzing)
 }
 
 func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
@@ -34,20 +35,20 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	searchString := url + " repo:google/oss-fuzz in:file filename:project.yaml"
 	results, _, err := c.Client.Search.Code(c.Ctx, searchString, &github.SearchOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(fuzzingStr, err)
+		return checker.MakeRetryResult(CheckFuzzing, err)
 	}
 
 	if *results.Total > 0 {
 		c.Logf("found project in OSS-Fuzz")
 		return checker.CheckResult{
-			Name:       fuzzingStr,
+			Name:       CheckFuzzing,
 			Pass:       true,
 			Confidence: checker.MaxResultConfidence,
 		}
 	}
 
 	return checker.CheckResult{
-		Name:       fuzzingStr,
+		Name:       CheckFuzzing,
 		Pass:       false,
 		Confidence: checker.MaxResultConfidence,
 	}

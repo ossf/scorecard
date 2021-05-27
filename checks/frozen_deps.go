@@ -26,7 +26,8 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const frozenDepsStr = "Frozen-Deps"
+// CheckFrozenDeps is the registered name for FrozenDeps.
+const CheckFrozenDeps = "Frozen-Deps"
 
 // ErrInvalidDockerfile : Invalid docker file.
 var ErrInvalidDockerfile = errors.New("invalid docker file")
@@ -36,7 +37,7 @@ var ErrEmptyFile = errors.New("file has no content")
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(frozenDepsStr, FrozenDeps)
+	registerCheck(CheckFrozenDeps, FrozenDeps)
 }
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
@@ -54,7 +55,7 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 // ======================== Dockerfiles =======================
 // ============================================================.
 func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(frozenDepsStr, "*Dockerfile*", false, c, validateDockerfile)
+	return CheckFilesContent(CheckFrozenDeps, "*Dockerfile*", false, c, validateDockerfile)
 }
 
 func validateDockerfile(path string, content []byte,
@@ -141,7 +142,7 @@ func validateDockerfile(path string, content []byte,
 
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(frozenDepsStr, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
+	return CheckFilesContent(CheckFrozenDeps, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
 }
 
 // Check file content.
@@ -199,7 +200,7 @@ func validateGitHubActionWorkflow(path string, content []byte, logf func(s strin
 
 // Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
-	return CheckIfFileExists(frozenDepsStr, c, validatePackageManagerFile)
+	return CheckIfFileExists(CheckFrozenDeps, c, validatePackageManagerFile)
 }
 
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.

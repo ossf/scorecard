@@ -23,11 +23,12 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const ciiBestPracticesStr = "CII-Best-Practices"
+// CheckCIIBestPractices is the registered name for CIIBestPractices.
+const CheckCIIBestPractices = "CII-Best-Practices"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(ciiBestPracticesStr, CIIBestPractices)
+	registerCheck(CheckCIIBestPractices, CIIBestPractices)
 }
 
 type response struct {
@@ -39,28 +40,28 @@ func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURL)
 	req, err := http.NewRequestWithContext(c.Ctx, "GET", url, nil)
 	if err != nil {
-		return checker.MakeRetryResult(ciiBestPracticesStr, err)
+		return checker.MakeRetryResult(CheckCIIBestPractices, err)
 	}
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return checker.MakeRetryResult(ciiBestPracticesStr, err)
+		return checker.MakeRetryResult(CheckCIIBestPractices, err)
 	}
 	defer resp.Body.Close()
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return checker.MakeRetryResult(ciiBestPracticesStr, err)
+		return checker.MakeRetryResult(CheckCIIBestPractices, err)
 	}
 
 	parsedResponse := []response{}
 	if err := json.Unmarshal(b, &parsedResponse); err != nil {
-		return checker.MakeRetryResult(ciiBestPracticesStr, err)
+		return checker.MakeRetryResult(CheckCIIBestPractices, err)
 	}
 
 	if len(parsedResponse) < 1 {
 		c.Logf("no badge found")
 		return checker.CheckResult{
-			Name:       ciiBestPracticesStr,
+			Name:       CheckCIIBestPractices,
 			Pass:       false,
 			Confidence: checker.MaxResultConfidence,
 		}
@@ -71,14 +72,14 @@ func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 
 	if result.BadgeLevel != "" {
 		return checker.CheckResult{
-			Name:       ciiBestPracticesStr,
+			Name:       CheckCIIBestPractices,
 			Pass:       true,
 			Confidence: checker.MaxResultConfidence,
 		}
 	}
 
 	return checker.CheckResult{
-		Name:       ciiBestPracticesStr,
+		Name:       CheckCIIBestPractices,
 		Pass:       false,
 		Confidence: checker.MaxResultConfidence,
 	}

@@ -23,14 +23,15 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const codeReviewStr = "Code-Review"
+// CheckCodeReview is the registered name for DoesCodeReview.
+const CheckCodeReview = "Code-Review"
 
 // ErrorNoReviews indicates no reviews were found for this repo.
 var ErrorNoReviews = errors.New("no reviews found")
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(codeReviewStr, DoesCodeReview)
+	registerCheck(CheckCodeReview, DoesCodeReview)
 }
 
 // DoesCodeReview attempts to determine whether a project requires review before code gets merged.
@@ -53,7 +54,7 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		State: "closed",
 	})
 	if err != nil {
-		return checker.MakeInconclusiveResult(codeReviewStr, err)
+		return checker.MakeInconclusiveResult(CheckCodeReview, err)
 	}
 
 	totalMerged := 0
@@ -98,32 +99,32 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	if totalReviewed > 0 {
 		c.Logf("github code reviews found")
 	}
-	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, totalMerged, .75)
+	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, totalMerged, .75)
 }
 
 func IsPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
 	// Look to see if review is enforced.
 	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
-		return checker.MakeRetryResult(codeReviewStr, err)
+		return checker.MakeRetryResult(CheckCodeReview, err)
 	}
 
 	// Check the branch protection rules, we may not be able to get these though.
 	bp, _, err := c.Client.Repositories.GetBranchProtection(c.Ctx, c.Owner, c.Repo, r.GetDefaultBranch())
 	if err != nil {
-		return checker.MakeInconclusiveResult(codeReviewStr, err)
+		return checker.MakeInconclusiveResult(CheckCodeReview, err)
 	}
 	if bp.GetRequiredPullRequestReviews() != nil &&
 		bp.GetRequiredPullRequestReviews().RequiredApprovingReviewCount >= 1 {
 		c.Logf("pr review policy enforced")
 		const confidence = 5
 		return checker.CheckResult{
-			Name:       codeReviewStr,
+			Name:       CheckCodeReview,
 			Pass:       true,
 			Confidence: confidence,
 		}
 	}
-	return checker.MakeInconclusiveResult(codeReviewStr, nil)
+	return checker.MakeInconclusiveResult(CheckCodeReview, nil)
 }
 
 func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
@@ -132,7 +133,7 @@ func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		State: "closed",
 	})
 	if err != nil {
-		return checker.MakeInconclusiveResult(codeReviewStr, err)
+		return checker.MakeInconclusiveResult(CheckCodeReview, err)
 	}
 
 	totalMerged := 0
@@ -151,16 +152,16 @@ func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalReviewed == 0 {
-		return checker.MakeInconclusiveResult(codeReviewStr, ErrorNoReviews)
+		return checker.MakeInconclusiveResult(CheckCodeReview, ErrorNoReviews)
 	}
 	c.Logf("prow code reviews found")
-	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, totalMerged, .75)
+	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, totalMerged, .75)
 }
 
 func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(codeReviewStr, err)
+		return checker.MakeRetryResult(CheckCodeReview, err)
 	}
 
 	total := 0
@@ -191,8 +192,8 @@ func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalReviewed == 0 {
-		return checker.MakeInconclusiveResult(codeReviewStr, ErrorNoReviews)
+		return checker.MakeInconclusiveResult(CheckCodeReview, ErrorNoReviews)
 	}
 	c.Logf("code reviews found")
-	return checker.MakeProportionalResult(codeReviewStr, totalReviewed, total, .75)
+	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, total, .75)
 }

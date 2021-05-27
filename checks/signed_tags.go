@@ -23,8 +23,9 @@ import (
 )
 
 const (
-	signedTagsStr = "Signed-Tags"
-	tagLookBack   = 5
+	// CheckSignedTags is the registered name for SignedTags.
+	CheckSignedTags = "Signed-Tags"
+	tagLookBack     = 5
 )
 
 // ErrorNoTags indicates no tags were found for this repo.
@@ -32,7 +33,7 @@ var ErrorNoTags = errors.New("no tags found")
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(signedTagsStr, SignedTags)
+	registerCheck(CheckSignedTags, SignedTags)
 }
 
 func SignedTags(c *checker.CheckRequest) checker.CheckResult {
@@ -57,7 +58,7 @@ func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if err := c.GraphClient.Query(c.Ctx, &query, variables); err != nil {
-		return checker.MakeRetryResult(signedTagsStr, err)
+		return checker.MakeRetryResult(CheckSignedTags, err)
 	}
 	totalTags := 0
 	totalSigned := 0
@@ -79,9 +80,9 @@ func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 
 	if totalTags == 0 {
 		c.Logf("no tags found")
-		return checker.MakeInconclusiveResult(signedTagsStr, ErrorNoTags)
+		return checker.MakeInconclusiveResult(CheckSignedTags, ErrorNoTags)
 	}
 
 	c.Logf("found %d out of %d verified tags", totalSigned, totalTags)
-	return checker.MakeProportionalResult(signedTagsStr, totalSigned, totalTags, 0.8)
+	return checker.MakeProportionalResult(CheckSignedTags, totalSigned, totalTags, 0.8)
 }

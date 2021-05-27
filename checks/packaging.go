@@ -24,25 +24,26 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const packagingStr = "Packaging"
+// CheckPackaging is the registered name for Packaging.
+const CheckPackaging = "Packaging"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(packagingStr, Packaging)
+	registerCheck(CheckPackaging, Packaging)
 }
 
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	_, dc, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, ".github/workflows",
 		&github.RepositoryContentGetOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(packagingStr, err)
+		return checker.MakeRetryResult(CheckPackaging, err)
 	}
 
 	for _, f := range dc {
 		fp := f.GetPath()
 		fo, _, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, fp, &github.RepositoryContentGetOptions{})
 		if err != nil {
-			return checker.MakeRetryResult(packagingStr, err)
+			return checker.MakeRetryResult(CheckPackaging, err)
 		}
 		if fo == nil {
 			// path is a directory, not a file. skip.
@@ -50,7 +51,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		}
 		fc, err := fo.GetContent()
 		if err != nil {
-			return checker.MakeRetryResult(packagingStr, err)
+			return checker.MakeRetryResult(CheckPackaging, err)
 		}
 
 		if !isPackagingWorkflow(fc, fp, c) {
@@ -62,12 +63,12 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 				Status: "success",
 			})
 		if err != nil {
-			return checker.MakeRetryResult(packagingStr, err)
+			return checker.MakeRetryResult(CheckPackaging, err)
 		}
 		if *runs.TotalCount > 0 {
 			c.Logf("found a completed run: %s", runs.WorkflowRuns[0].GetHTMLURL())
 			return checker.CheckResult{
-				Name:       packagingStr,
+				Name:       CheckPackaging,
 				Pass:       true,
 				Confidence: checker.MaxResultConfidence,
 			}
@@ -76,7 +77,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	return checker.CheckResult{
-		Name:       packagingStr,
+		Name:       CheckPackaging,
 		Pass:       false,
 		Confidence: checker.MaxResultConfidence,
 	}

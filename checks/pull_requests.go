@@ -22,17 +22,18 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const pullRequestsStr = "Pull-Requests"
+// CheckPullRequests is the registered name for PullRequests.
+const CheckPullRequests = "Pull-Requests"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(pullRequestsStr, PullRequests)
+	registerCheck(CheckPullRequests, PullRequests)
 }
 
 func PullRequests(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(pullRequestsStr, err)
+		return checker.MakeRetryResult(CheckPullRequests, err)
 	}
 
 	total := 0
@@ -64,7 +65,7 @@ func PullRequests(c *checker.CheckRequest) checker.CheckResult {
 		prs, _, err := c.Client.PullRequests.ListPullRequestsWithCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA(),
 			&github.PullRequestListOptions{})
 		if err != nil {
-			return checker.MakeRetryResult(pullRequestsStr, err)
+			return checker.MakeRetryResult(CheckPullRequests, err)
 		}
 		if len(prs) > 0 {
 			totalWithPrs++
@@ -74,5 +75,5 @@ func PullRequests(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 	c.Logf("found PRs for %d out of %d commits", totalWithPrs, total)
-	return checker.MakeProportionalResult(pullRequestsStr, totalWithPrs, total, .75)
+	return checker.MakeProportionalResult(CheckPullRequests, totalWithPrs, total, .75)
 }
