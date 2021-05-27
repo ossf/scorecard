@@ -1954,7 +1954,7 @@ github.com/osquery/osquery,
 github.com/osresearch/heads,
 github.com/osrf/gazebo,
 github.com/ossf/scorecard,
-github.com/laurentsimon/scorecard-remediation-tests
+github.com/laurentsimon/scorecard-remediation-tests,
 github.com/ostreedev/ostree,
 github.com/otwcode/otwarchive,
 github.com/outline/outline,
