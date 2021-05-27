@@ -25,18 +25,19 @@ import (
 const (
 	minContributionsPerUser = 5
 	minOrganizationCount    = 2
-	contributorsStr         = "Contributors"
+	// CheckContributors is the registered name for Contributors.
+	CheckContributors = "Contributors"
 )
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(contributorsStr, Contributors)
+	registerCheck(CheckContributors, Contributors)
 }
 
 func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	contribs, _, err := c.Client.Repositories.ListContributors(c.Ctx, c.Owner, c.Repo, &github.ListContributorsOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(contributorsStr, err)
+		return checker.MakeRetryResult(CheckContributors, err)
 	}
 
 	companies := map[string]struct{}{}
@@ -46,7 +47,7 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 		}
 		u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
 		if err != nil {
-			return checker.MakeRetryResult(contributorsStr, err)
+			return checker.MakeRetryResult(CheckContributors, err)
 		}
 		orgs, _, err := c.Client.Organizations.List(c.Ctx, contrib.GetLogin(), nil)
 		if err != nil {
@@ -74,13 +75,13 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	c.Logf("companies found: %v", strings.Join(names, ","))
 	if len(companies) >= minOrganizationCount {
 		return checker.CheckResult{
-			Name:       contributorsStr,
+			Name:       CheckContributors,
 			Pass:       true,
 			Confidence: checker.MaxResultConfidence,
 		}
 	}
 	return checker.CheckResult{
-		Name:       contributorsStr,
+		Name:       CheckContributors,
 		Pass:       false,
 		Confidence: checker.MaxResultConfidence,
 	}

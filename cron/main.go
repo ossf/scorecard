@@ -106,6 +106,14 @@ func main() {
 	githubClient := github.NewClient(httpClient)
 	graphClient := githubv4.NewClient(httpClient)
 
+	checksToRun := checks.AllChecks
+	//nolint
+	// FIXME :- deleting branch-protection
+	// The branch protection check needs an admin access to the repository.
+	// All of the checks from cron would fail and uses another call to the API.
+	// This will reduce usage of the API.
+	delete(checksToRun, checks.CheckBranchProtection)
+
 	exporter, err := startMetricsExporter()
 	if err != nil {
 		panic(err)
@@ -124,14 +132,7 @@ func main() {
 			panic(err)
 		}
 
-		//nolint
-		// FIXME :- deleting branch-protection
-		// The branch protection check needs an admin access to the repository.
-		// All of the checks from cron would fail and uses another call to the API.
-		// This will reduce usage of the API.
-		delete(checks.AllChecks, "Branch-Protection")
-
-		repoResult := pkg.RunScorecards(ctx, repoURL, checks.AllChecks, httpClient, githubClient, graphClient)
+		repoResult := pkg.RunScorecards(ctx, repoURL, checksToRun, httpClient, githubClient, graphClient)
 		repoResult.Date = currTime.Format("2006-01-02")
 		if err := repoResult.AsJSON( /*showDetails=*/ true, result); err != nil {
 			panic(err)
