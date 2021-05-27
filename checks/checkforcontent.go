@@ -32,7 +32,7 @@ var ErrReadFile = errors.New("could not read entire file")
 
 // IsMatchingPath uses 'pattern' to shell-match the 'path' and its filename
 // 'caseSensitive' indicates the match should be case-sensitive. Default: no.
-func IsMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) {
+func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) {
 	if !caseSensitive {
 		pattern = strings.ToLower(pattern)
 		fullpath = strings.ToLower(fullpath)
@@ -54,23 +54,23 @@ func IsMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 	return match, nil
 }
 
-func HeaderSizeMatchesFileSize(hdr *tar.Header, size int) bool {
+func headerSizeMatchesFileSize(hdr *tar.Header, size int) bool {
 	return hdr.Format == tar.FormatUSTAR ||
 		hdr.Format == tar.FormatUnknown ||
 		int64(size) == hdr.Size
 }
 
-func NonEmptyRegularFile(hdr *tar.Header) bool {
+func nonEmptyRegularFile(hdr *tar.Header) bool {
 	return hdr.Typeflag == tar.TypeReg && hdr.Size > 0
 }
 
-func IsScorecardTestFile(owner, repo, fullpath string) bool {
+func isScorecardTestFile(owner, repo, fullpath string) bool {
 	// testdata/ or /some/dir/testdata/some/other
 	return owner == "ossf" && repo == "scorecard" && (strings.HasPrefix(fullpath, "testdata/") ||
 		strings.Contains(fullpath, "/testdata/"))
 }
 
-func ExtractFullpath(fn string) (string, bool) {
+func extractFullpath(fn string) (string, bool) {
 	const splitLength = 2
 	names := strings.SplitN(fn, "/", splitLength)
 	if len(names) < splitLength {
@@ -127,7 +127,6 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
 	}
-	defer resp.Body.Close()
 
 	tr, err := getTarReader(resp)
 	if err != nil {
@@ -149,22 +148,22 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 		}
 
 		// Only consider regular files.
-		if !NonEmptyRegularFile(hdr) {
+		if !nonEmptyRegularFile(hdr) {
 			continue
 		}
 
 		// Extract the fullpath without the repo name.
-		if fullpath, b = ExtractFullpath(hdr.Name); !b {
+		if fullpath, b = extractFullpath(hdr.Name); !b {
 			continue
 		}
 
 		// Filter out Scorecard's own test files.
-		if IsScorecardTestFile(c.Owner, c.Repo, fullpath) {
+		if isScorecardTestFile(c.Owner, c.Repo, fullpath) {
 			continue
 		}
 
 		// Filter out files based on path/names using the pattern.
-		b, err := IsMatchingPath(shellPathFnPattern, fullpath, caseSensitive)
+		b, err := isMatchingPath(shellPathFnPattern, fullpath, caseSensitive)
 		switch {
 		case err != nil:
 			return checker.MakeFailResult(checkName, err)
@@ -182,7 +181,7 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 		// indicated in header, unless the file format supports
 		// sparse regions. Only USTAR format does not support
 		// spare regions -- see https://golang.org/pkg/archive/tar/
-		if b := HeaderSizeMatchesFileSize(hdr, n); !b {
+		if b := headerSizeMatchesFileSize(hdr, n); !b {
 			return checker.MakeRetryResult(checkName, ErrReadFile)
 		}
 
