@@ -21,33 +21,34 @@ import (
 )
 
 const (
-	branchProtectionStr = "Branch-Protection"
-	minReviews          = 1
+	// CheckBranchProtection is the registered name for BranchProtection.
+	CheckBranchProtection = "Branch-Protection"
+	minReviews            = 1
 )
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(branchProtectionStr, BranchProtection)
+	registerCheck(CheckBranchProtection, BranchProtection)
 }
 
 func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	repo, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
 	if err != nil {
-		return checker.MakeRetryResult(branchProtectionStr, err)
+		return checker.MakeRetryResult(CheckBranchProtection, err)
 	}
 
 	protection, resp, err := c.Client.Repositories.
 		GetBranchProtection(c.Ctx, c.Owner, c.Repo, *repo.DefaultBranch)
 	const fileNotFound = 404
 	if resp.StatusCode == fileNotFound {
-		return checker.MakeRetryResult(branchProtectionStr, err)
+		return checker.MakeRetryResult(CheckBranchProtection, err)
 	}
 
 	if err != nil {
 		c.Logf("!! branch protection not enabled")
 		const confidence = 10
 		return checker.CheckResult{
-			Name:       branchProtectionStr,
+			Name:       CheckBranchProtection,
 			Pass:       false,
 			Confidence: confidence,
 		}
@@ -99,7 +100,7 @@ func IsBranchProtected(protection *github.Protection, c *checker.CheckRequest) c
 		totalSuccess++
 	}
 
-	return checker.MakeProportionalResult(branchProtectionStr, totalSuccess, totalChecks, 1.0)
+	return checker.MakeProportionalResult(CheckBranchProtection, totalSuccess, totalChecks, 1.0)
 }
 
 // Returns true if several PR status checks requirements are enabled. Otherwise returns false and logs why it failed.

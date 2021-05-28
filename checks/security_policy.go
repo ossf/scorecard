@@ -20,11 +20,12 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const securityPolicyStr = "Security-Policy"
+// CheckSecurityPolicy is the registred name for SecurityPolicy.
+const CheckSecurityPolicy = "Security-Policy"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(securityPolicyStr, SecurityPolicy)
+	registerCheck(CheckSecurityPolicy, SecurityPolicy)
 }
 
 func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
@@ -36,7 +37,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		}
 		return false, nil
 	}
-	result := CheckIfFileExists(securityPolicyStr, c, onFile)
+	result := CheckIfFileExists(CheckSecurityPolicy, c, onFile)
 
 	if result.Pass {
 		return result
@@ -54,5 +55,5 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		}
 		return false, nil
 	}
-	return CheckIfFileExists(securityPolicyStr, dotGitHub, onFile)
+	return CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
 }

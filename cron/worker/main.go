@@ -26,6 +26,7 @@ import (
 	"github.com/shurcooL/githubv4"
 	"go.uber.org/zap"
 
+	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/cron/config"
 	"github.com/ossf/scorecard/cron/data"
@@ -36,16 +37,8 @@ import (
 )
 
 func processRequest(ctx context.Context,
-	batchRequest *data.ScorecardBatchRequest, bucketURL string,
+	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap, bucketURL string,
 	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client) error {
-	checksToRun := checks.AllChecks
-	// nolint
-	// FIXME :- deleting branch-protection
-	// The branch protection check needs an admin access to the repository.
-	// All of the checks from cron would fail and uses another call to the API.
-	// This will reduce usage of the API.
-	delete(checksToRun, "Branch-Protection")
-
 	repoURLs := make([]repos.RepoURL, 0, len(batchRequest.GetRepos()))
 	for _, repo := range batchRequest.GetRepos() {
 		repoURL := repos.RepoURL{}
@@ -129,6 +122,14 @@ func main() {
 
 	httpClient, githubClient, graphClient, logger := createNetClients(ctx)
 
+	checksToRun := checks.AllChecks
+	// nolint
+	// FIXME :- deleting branch-protection
+	// The branch protection check needs an admin access to the repository.
+	// All of the checks from cron would fail and uses another call to the API.
+	// This will reduce usage of the API.
+	delete(checksToRun, checks.CheckBranchProtection)
+
 	for {
 		req, err := subscriber.SynchronousPull()
 		if err != nil {
@@ -139,7 +140,7 @@ func main() {
 			log.Print("subscription returned nil message during Receive, exiting")
 			break
 		}
-		if err := processRequest(ctx, req, bucketURL, httpClient, githubClient, graphClient); err != nil {
+		if err := processRequest(ctx, req, checksToRun, bucketURL, httpClient, githubClient, graphClient); err != nil {
 			panic(err)
 		}
 		// nolint: errcheck // flushes buffer
