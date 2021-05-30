@@ -63,7 +63,7 @@ type csvIterator struct {
 
 func (reader *csvIterator) HasNext() bool {
 	reader.err = reader.decoder.Decode(&reader.next)
-	return reader.err != io.EOF
+	return !errors.Is(reader.err, io.EOF)
 }
 
 func (reader *csvIterator) Next() (repos.RepoURL, error) {

@@ -203,14 +203,14 @@ func fetchGitRepositoryFromNPM(packageName string) (string, error) {
 	}
 	resp, err := client.Get(fmt.Sprintf(npmSearchURL, packageName))
 	if err != nil {
-		return "", fmt.Errorf("failed to get npm package json: %v", err)
+		return "", fmt.Errorf("failed to get npm package json: %w", err)
 	}
 
 	defer resp.Body.Close()
 	v := &npmSearchResults{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse npm package json: %v", err)
+		return "", fmt.Errorf("failed to parse npm package json: %w", err)
 	}
 	if len(v.Objects) == 0 {
 		return "", fmt.Errorf("could not find source repo for npm package: %s", packageName)
@@ -228,14 +228,14 @@ func fetchGitRepositoryFromPYPI(packageName string) (string, error) {
 	}
 	resp, err := client.Get(fmt.Sprintf(pypiSearchURL, packageName))
 	if err != nil {
-		return "", fmt.Errorf("failed to get pypi package json: %v", err)
+		return "", fmt.Errorf("failed to get pypi package json: %w", err)
 	}
 
 	defer resp.Body.Close()
 	v := &pypiSearchResults{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse pypi package json: %v", err)
+		return "", fmt.Errorf("failed to parse pypi package json: %w", err)
 	}
 	if v.Info.ProjectUrls.Source == "" {
 		return "", fmt.Errorf("could not find source repo for pypi package: %s", packageName)
@@ -253,14 +253,14 @@ func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 	}
 	resp, err := client.Get(fmt.Sprintf(rubyGemsSearchURL, packageName))
 	if err != nil {
-		return "", fmt.Errorf("failed to get ruby gem json: %v", err)
+		return "", fmt.Errorf("failed to get ruby gem json: %w", err)
 	}
 
 	defer resp.Body.Close()
 	v := &rubyGemsSearchResults{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse ruby gem json: %v", err)
+		return "", fmt.Errorf("failed to parse ruby gem json: %w", err)
 	}
 	if v.SourceCodeURI == "" {
 		return "", fmt.Errorf("could not find source repo for ruby gem: %s", packageName)
