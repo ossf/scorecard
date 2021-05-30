@@ -17,6 +17,7 @@ package checks
 import (
 	"archive/tar"
 	"compress/gzip"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -55,7 +56,7 @@ func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(na
 
 	for {
 		hdr, err := tr.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
 			return checker.MakeRetryResult(checkName, err)
