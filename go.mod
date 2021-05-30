@@ -13,7 +13,7 @@ require (
 	github.com/moby/buildkit v0.8.3
 	github.com/naveensrinivasan/httpcache v1.2.2
 	github.com/onsi/ginkgo v1.16.2
-	github.com/onsi/gomega v1.12.0
+	github.com/onsi/gomega v1.13.0
 	github.com/peterbourgon/diskv v2.0.1+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
