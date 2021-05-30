@@ -16,6 +16,7 @@ linters:
     - dogsled
     - dupl
     - errcheck
+    - errorlint
     - exhaustive
     - exportloopref
     - gci
