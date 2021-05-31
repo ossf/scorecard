@@ -6,7 +6,7 @@ require (
 	github.com/go-git/go-git/v5 v5.3.0
 	github.com/go-vela/archiver v2.1.0+incompatible // indirect
 	github.com/mholt/archiver v3.1.1+incompatible
-	github.com/onsi/ginkgo v1.16.2
+	github.com/onsi/ginkgo v1.16.3
 	github.com/onsi/gomega v1.12.0
 	github.com/pierrec/lz4 v2.6.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1
