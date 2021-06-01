@@ -24,16 +24,19 @@ import (
 
 	"github.com/google/go-github/v32/github"
 	"github.com/shurcooL/githubv4"
+	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/cron/config"
 	"github.com/ossf/scorecard/cron/data"
+	"github.com/ossf/scorecard/cron/monitoring"
 	"github.com/ossf/scorecard/cron/pubsub"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/roundtripper"
+	"github.com/ossf/scorecard/stats"
 )
 
 func processRequest(ctx context.Context,
@@ -92,6 +95,23 @@ func createNetClients(ctx context.Context) (
 	return
 }
 
+func startMetricsExporter() (monitoring.Exporter, error) {
+	exporter, err := monitoring.GetExporter()
+	if err != nil {
+		return nil, fmt.Errorf("error during NewStackDriverExporter: %w", err)
+	}
+	if err := exporter.StartMetricsExporter(); err != nil {
+		return nil, fmt.Errorf("error in StartMetricsExporter: %w", err)
+	}
+
+	if err := view.Register(
+		&stats.CheckRuntime,
+		&stats.OutgoingHTTPRequests); err != nil {
+		return nil, fmt.Errorf("error during view.Register: %w", err)
+	}
+	return exporter, nil
+}
+
 func main() {
 	ctx := context.Background()
 
@@ -121,6 +141,13 @@ func main() {
 	}
 
 	httpClient, githubClient, graphClient, logger := createNetClients(ctx)
+
+	exporter, err := startMetricsExporter()
+	if err != nil {
+		panic(err)
+	}
+	defer exporter.Flush()
+	defer exporter.StopMetricsExporter()
 
 	checksToRun := checks.AllChecks
 	// nolint
