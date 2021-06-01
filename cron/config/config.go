@@ -37,6 +37,7 @@ const (
 	bigqueryDataset        string = "SCORECARD_BIGQUERY_DATASET"
 	bigqueryTable          string = "SCORECARD_BIQQUERY_TABLE"
 	shardSize              string = "SCORECARD_SHARD_SIZE"
+	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
 )
 
 var (
@@ -55,6 +56,7 @@ type config struct {
 	RequestSubscriptionURL string `yaml:"request-subscription-url"`
 	BigQueryDataset        string `yaml:"bigquery-dataset"`
 	BigQueryTable          string `yaml:"bigquery-table"`
+	MetricExporter         string `yaml:"metric-exporter"`
 	ShardSize              int    `yaml:"shard-size"`
 }
 
@@ -134,4 +136,8 @@ func GetBigQueryTable() (string, error) {
 
 func GetShardSize() (int, error) {
 	return getIntConfigValue(shardSize, configYAML, "ShardSize", "shard-size")
+}
+
+func GetMetricExporter() (string, error) {
+	return getStringConfigValue(metricExporter, configYAML, "MetricExporter", "metric-exporter")
 }

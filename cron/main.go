@@ -25,7 +25,6 @@ import (
 	"strconv"
 	"time"
 
-	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/google/go-github/v32/github"
 	"github.com/jszwec/csvutil"
 	"github.com/shurcooL/githubv4"
@@ -46,8 +45,8 @@ type Repository struct {
 	Metadata string `csv:"metadata,omitempty"`
 }
 
-func startMetricsExporter() (*stackdriver.Exporter, error) {
-	exporter, err := monitoring.NewStackDriverExporter()
+func startMetricsExporter() (monitoring.Exporter, error) {
+	exporter, err := monitoring.GetExporter()
 	if err != nil {
 		return nil, fmt.Errorf("error during NewStackDriverExporter: %w", err)
 	}

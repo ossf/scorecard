@@ -19,3 +19,4 @@ request-subscription-url: gcppubsub://projects/openssf/subscriptions/scorecard-b
 bigquery-dataset: scorecardcron
 bigquery-table: scorecard
 shard-size: 10
+metric-exporter: stackdriver

@@ -174,7 +174,7 @@ test-disk-cache: build-scorecard | $(GINKGO)
 
 e2e-cron: ## Runs a e2e test cron job and validates its functionality
 	# Validate cron
-	GCS_BUCKET=ossf-scorecards-dev go run ./cron/main.go ./e2e/cron-projects.txt
+	GCS_BUCKET=ossf-scorecards-dev SCORECARD_METRIC_EXPORTER=printer go run ./cron/main.go ./e2e/cron-projects.txt
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN

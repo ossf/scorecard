@@ -15,21 +15,51 @@
 package monitoring
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"contrib.go.opencensus.io/exporter/stackdriver/monitoredresource/gcp"
+	"go.opencensus.io/stats/view"
 
 	"github.com/ossf/scorecard/cron/config"
 )
 
+var errorUndefinedExporter = errors.New("unsupported exporterType")
+
+type exporterType string
+
 const (
-	stackdriverTimeSeriesQuota = 200
-	timeoutMinutes             = 10
+	stackdriverTimeSeriesQuota              = 200
+	timeoutMinutes                          = 10
+	stackDriver                exporterType = "stackdriver"
+	printer                    exporterType = "printer"
 )
 
-func NewStackDriverExporter() (*stackdriver.Exporter, error) {
+type Exporter interface {
+	ExportView(viewData *view.Data)
+	StartMetricsExporter() error
+	StopMetricsExporter()
+	Flush()
+}
+
+func GetExporter() (Exporter, error) {
+	exporter, err := config.GetMetricExporter()
+	if err != nil {
+		return nil, fmt.Errorf("error during GetMetricExporter: %w", err)
+	}
+	switch exporterType(exporter) {
+	case stackDriver:
+		return newStackDriverExporter()
+	case printer:
+		return new(printerExporter), nil
+	default:
+		return nil, fmt.Errorf("%w: %s", errorUndefinedExporter, exporter)
+	}
+}
+
+func newStackDriverExporter() (*stackdriver.Exporter, error) {
 	projectID, err := config.GetProjectID()
 	if err != nil {
 		return nil, fmt.Errorf("error getting ProjectID: %w", err)

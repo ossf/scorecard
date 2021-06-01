@@ -30,6 +30,7 @@ const (
 	prodBigQueryDataset        = "scorecardcron"
 	prodBigQueryTable          = "scorecard"
 	prodShardSize       int    = 10
+	prodMetricExporter  string = "stackdriver"
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -58,6 +59,7 @@ func TestYAMLParsing(t *testing.T) {
 				BigQueryDataset:        prodBigQueryDataset,
 				BigQueryTable:          prodBigQueryTable,
 				ShardSize:              prodShardSize,
+				MetricExporter:         prodMetricExporter,
 			},
 		},
 
@@ -304,12 +306,26 @@ func TestGetBigQueryTable(t *testing.T) {
 func TestGetShardSize(t *testing.T) {
 	t.Run("GetShardSize", func(t *testing.T) {
 		os.Unsetenv(shardSize)
-		shardSize, err := GetShardSize()
+		size, err := GetShardSize()
 		if err != nil {
 			t.Errorf("failed to get production shard size from config: %v", err)
 		}
-		if shardSize != prodShardSize {
-			t.Errorf("test failed: expected - %d, got = %d", prodShardSize, shardSize)
+		if size != prodShardSize {
+			t.Errorf("test failed: expected - %d, got = %d", prodShardSize, size)
+		}
+	})
+}
+
+//nolint:paralleltest // Since os.Setenv is used.
+func TestGetMetricExporter(t *testing.T) {
+	t.Run("GetMetricExporter", func(t *testing.T) {
+		os.Unsetenv(metricExporter)
+		exporter, err := GetMetricExporter()
+		if err != nil {
+			t.Errorf("failed to get production metric exporter from config: %v", err)
+		}
+		if exporter != prodMetricExporter {
+			t.Errorf("test failed: expected - %s, got = %s", prodMetricExporter, exporter)
 		}
 	})
 }
