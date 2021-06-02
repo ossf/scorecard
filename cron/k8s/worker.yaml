@@ -35,7 +35,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: github
-              key: test_token
+              key: token
         - name: USE_BLOB_CACHE
           value: "true"
         - name: BLOB_URL
