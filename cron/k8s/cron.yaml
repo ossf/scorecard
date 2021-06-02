@@ -32,7 +32,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: github
-                  key: token
+                  key: test_token
             - name: GCS_BUCKET
               value: ossf-scorecards
             - name: BLOB_URL
