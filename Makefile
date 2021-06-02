@@ -62,10 +62,10 @@ check-linter: $(GOLANGGCI_LINT)
 	# Run golangci-lint linter
 	golangci-lint run -c .golangci.yml
 
-validate-projects: ## Validates ./cron/projects.txt
+validate-projects: ## Validates ./cron/data/projects.csv
 validate-projects: build-scripts
-	# Validate ./cron/projects.txt
-	./scripts/validate ./cron/projects.txt
+	# Validate ./cron/data/projects.csv
+	./scripts/validate ./cron/data/projects.csv
 
 tree-status: ## Verify tree is clean and all changes are committed
 	# Verify the tree is clean and all changes are commited
@@ -75,7 +75,7 @@ tree-status: ## Verify tree is clean and all changes are committed
 ###############################################################################
 
 ############################### make build ################################
-build-targets = build-proto generate-docs build-scorecard build-cron build-pubsub build-scripts build-update dockerbuild
+build-targets = build-proto generate-docs build-scorecard build-pubsub build-scripts build-update dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the reepo.
 build: $(build-targets)
@@ -94,10 +94,6 @@ checks/checks.md: checks/checks.yaml checks/main/*.go
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable
 	CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"'
-
-build-cron: ## Runs go build on the cron job
-	# Run go build on the cronjob
-	cd cron && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o scorecardcron
 
 build-pubsub: ## Runs go build on the PubSub cron job
 	# Run go build and the PubSub cron job
@@ -120,13 +116,12 @@ dockerbuild: ## Runs docker build
 	# Build all Docker images in the Repo
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
-	DOCKER_BUILDKIT=1 docker build . --file cron/Dockerfile --tag $(IMAGE_NAME)cron
 	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
 ###############################################################################
 
 ################################# make test ###################################
-test-targets = unit-test e2e ci-e2e test-disk-cache e2e-cron
+test-targets = unit-test e2e ci-e2e test-disk-cache
 .PHONY: test $(test-targets)
 test: $(test-targets)
 
@@ -143,7 +138,7 @@ $(GINKGO): install
 
 
 ci-e2e: ## Runs CI e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
-ci-e2e: build-scorecard check-env e2e-cron | $(GINKGO)
+ci-e2e: build-scorecard check-env | $(GINKGO)
 	# Run CI e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	@echo Ignoring these test for ci-e2e $(IGNORED_CI_TEST)
@@ -170,11 +165,6 @@ test-disk-cache: build-scorecard | $(GINKGO)
 				--repo=https://github.com/ossf/scorecard --show-details \
 				--metadata=openssf  --format json > ./$(OUTPUT)/results.json
 	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
-
-
-e2e-cron: ## Runs a e2e test cron job and validates its functionality
-	# Validate cron
-	GCS_BUCKET=ossf-scorecards-dev SCORECARD_METRIC_EXPORTER=printer go run ./cron/main.go ./e2e/cron-projects.txt
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN
