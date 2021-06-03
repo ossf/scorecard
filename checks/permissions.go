@@ -52,7 +52,6 @@ func validatePermission(key string, value interface{}, path string,
 
 func validateDefaultReadPermissions(config map[interface{}]interface{}, path string,
 	logf func(s string, f ...interface{})) (bool, error) {
-
 	permissionFound := false
 	permissionRead := true
 	var r bool
@@ -69,7 +68,6 @@ func validateDefaultReadPermissions(config map[interface{}]interface{}, path str
 
 		// Check the type of our values.
 		switch val := value.(type) {
-
 		// Empty string is nil type.
 		// It defaults to 'none'
 		case nil:
