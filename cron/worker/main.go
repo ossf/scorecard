@@ -168,7 +168,8 @@ func main() {
 			break
 		}
 		if err := processRequest(ctx, req, checksToRun, bucketURL, httpClient, githubClient, graphClient); err != nil {
-			panic(err)
+			// Nack the message so that another worker can retry.
+			subscriber.Nack()
 		}
 		// nolint: errcheck // flushes buffer
 		logger.Sync()
