@@ -81,7 +81,7 @@ func TestSubscriber(t *testing.T) {
 			if err != nil {
 				t.Errorf("testcase parsing failed during protojson.Marshal: %v", err)
 			}
-			subscriber := subscriberImpl{
+			subscriber := gocloudSubscriber{
 				ctx: ctx,
 				subscription: &mockReceiver{
 					msg:           &pubsub.Message{Body: msgBody},
