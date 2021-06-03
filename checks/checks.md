@@ -57,7 +57,7 @@ This check tries to determine if a project has a set of contributors from multip
 
 ## Frozen-Deps 
 
-This check tries to determine if a project has declared and pinned its dependencies. It works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript),  requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) look for github actions under .github/workflows/ and verifies they are pinned by hash. If one of the files in (1) AND all the dependencies in (2) are pinned,  the check succeds. This check does not currently look for docker image pinning and shell script pinning. 
+This check tries to determine if a project has declared and pinned its dependencies. It works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript),  requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) look for github actions under .github/workflows/ and verifies they are pinned by hash; (3) looks  for Dockerfiles and verifies FROM dependencies are pinned by hash. If one of the files in (1) AND all the dependencies in (2),(3) are pinned, the check succeds. This check does not currently look for shell script pinning (curl | bash) in scripts, Dockerfiles, Makefiles or system()-like code. 
 
 **Remediation steps**
 - Declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
@@ -116,4 +116,18 @@ This check looks for cryptographically signed tags in the last 5 tags. The check
 - Configure your key and email in git.
 - Publish the tag and then sign it with this key.
 - For GitHub, check out the steps [here](https://docs.github.com/en/github/authenticating-to-github/signing-tags#further-reading).
+
+## Token-Permissions 
+
+This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default. The check currently checks that the 'permission' keyword is used and set to read/none for the 'contents' permission for every workflow yaml file. If other permissions are set globally for the entire file, this check fails. Otherwise it succeeds. 
+
+**Remediation steps**
+- Use: ``` permissions:
+  contents: read
+``` in all your .yaml files.
+- If you need more permissions, declare them in the job itself, e.g. ``` jobs: create_commit:
+  runs-on: ubuntu-latest 
+  permissions:
+    issues: write 
+```
 
