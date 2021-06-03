@@ -1,0 +1,10 @@
+name: none workflow
+on: [push]
+
+permissions:
+
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "none workflow"
