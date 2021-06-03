@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	cloud.google.com/go/bigquery v1.18.0
-	cloud.google.com/go/pubsub v1.10.3
+	cloud.google.com/go/pubsub v1.11.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.6
 	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/golangci/golangci-lint v1.40.1
@@ -25,11 +25,8 @@ require (
 	go.uber.org/zap v1.17.0
 	gocloud.dev v0.23.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
-	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
-	google.golang.org/genproto v0.0.0-20210513213006-bf773b8c8384
-	google.golang.org/grpc v1.37.1 // indirect
+	google.golang.org/genproto v0.0.0-20210524142926-3e3a6030be83
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/yaml.v2 v2.4.0
