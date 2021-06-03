@@ -20,12 +20,26 @@ checks:
       This check tries to determine if a project's github workflows
       follow the principle of least privilege, i.e. if the githib tokens
       are set read-only by default. The check currently checks that the 'permission'
-      keyword is used and sets
+      keyword is used and set to read/none for the 'contents' permission for every workflow
+      yaml file. If other permissions are set globally for the entire file, this check fails.
+      Otherwise it succeeds.
     remediation:
       - >-
-        TODO.
+        Use:
+        ```
+        permissions:
+          contents: read
+        ```
+        in all your .yaml files.
       - >-
-        TODO.
+        If you need more permissions, declare them in the job itself, e.g.
+        ```
+        jobs:
+        create_commit:
+          runs-on: ubuntu-latest 
+          permissions:
+            issues: write 
+        ```
   Security-Policy:
     description: >-
       This check tries to determine if a project has published a security
