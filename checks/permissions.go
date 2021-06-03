@@ -51,11 +51,36 @@ func validatePermission(key string, value interface{}, path string,
 	return true, nil
 }
 
+func validateMapPermissions(values map[interface{}]interface{}, path string,
+	logf func(s string, f ...interface{})) (bool, error) {
+	permissionRead := true
+	var r bool
+	var err error
+
+	// Iterate over the permission, verify keys and values are strings.
+	for k, v := range values {
+		switch key := k.(type) {
+		// String type.
+		case string:
+			if r, err = validatePermission(key, v, path, logf); err != nil {
+				return false, err
+			}
+
+			if !r {
+				permissionRead = false
+			}
+		// Invalid type.
+		default:
+			return false, ErrInvalidGitHubWorkflowFile
+		}
+	}
+	return permissionRead, nil
+}
+
 func validateReadPermissions(config map[interface{}]interface{}, path string,
 	logf func(s string, f ...interface{})) (bool, error) {
 	permissionFound := false
 	permissionRead := true
-	var r bool
 	var err error
 
 	// Iterate over the values.
@@ -75,7 +100,6 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 
 		// String type.
 		case string:
-			fmt.Println(val)
 			if val != "read-all" && val != "" {
 				logf("!! token-permissions/github-token - permission set to '%v' in %v", val, path)
 				return false, nil
@@ -83,23 +107,12 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 
 		// Map type.
 		case map[interface{}]interface{}:
-
-			// Iterate over the permission, verify keys and values are strings.
-			for k, v := range val {
-				switch key := k.(type) {
-				// String type.
-				case string:
-					if r, err = validatePermission(key, v, path, logf); err != nil {
-						return false, err
-					}
-
-					if !r {
-						permissionRead = false
-					}
-				// Invalid type.
-				default:
-					return false, ErrInvalidGitHubWorkflowFile
-				}
+			var res bool
+			if res, err = validateMapPermissions(val, path, logf); err != nil {
+				return false, err
+			}
+			if !res {
+				permissionRead = false
 			}
 
 		// Invalid type.
