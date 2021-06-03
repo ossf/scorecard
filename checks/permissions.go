@@ -18,9 +18,9 @@ import (
 	"errors"
 	"fmt"
 
-	//nolint
-	"github.com/ossf/scorecard/checker"
 	"gopkg.in/yaml.v2"
+
+	"github.com/ossf/scorecard/checker"
 )
 
 const CheckPermissions = "Token-Permissions"
