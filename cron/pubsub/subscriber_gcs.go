@@ -38,7 +38,6 @@ type gcsSubscriber struct {
 	ctx             context.Context
 	done            chan bool
 	client          *pubsub.SubscriberClient
-	pullRequest     *pubsubpb.PullRequest
 	subscriptionURL string
 	recvdAckID      string
 }
@@ -49,17 +48,12 @@ func createGCSSubscriber(ctx context.Context, subscriptionURL string) (*gcsSubsc
 		return nil, fmt.Errorf("error during NewSubscriberClient: %w", err)
 	}
 
-	validSubscriptionURL := strings.TrimPrefix(subscriptionURL, gcpPubsubPrefix)
-	ret := &gcsSubscriber{
+	return &gcsSubscriber{
 		ctx:             ctx,
 		client:          client,
-		subscriptionURL: validSubscriptionURL,
-		pullRequest: &pubsubpb.PullRequest{
-			Subscription: validSubscriptionURL,
-			MaxMessages:  maxMessagesToPull,
-		},
-	}
-	return ret, nil
+		subscriptionURL: strings.TrimPrefix(subscriptionURL, gcpPubsubPrefix),
+		done:            make(chan bool),
+	}, nil
 }
 
 func (subscriber *gcsSubscriber) extendAckDeadline() {
@@ -86,23 +80,32 @@ func (subscriber *gcsSubscriber) extendAckDeadline() {
 }
 
 func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest, error) {
-	result, err := subscriber.client.Pull(subscriber.ctx, subscriber.pullRequest)
-	if err != nil {
-		return nil, fmt.Errorf("error during client.Pull: %w", err)
+	numReceivedMessages := 0
+	var msgToProcess *pubsubpb.ReceivedMessage
+	// Block indefinitely until a message is received.
+	for msgToProcess == nil {
+		result, err := subscriber.client.Pull(subscriber.ctx, &pubsubpb.PullRequest{
+			Subscription: subscriber.subscriptionURL,
+			MaxMessages:  maxMessagesToPull,
+		})
+		if err != nil {
+			fmt.Printf("error during Recieive: %v", err)
+			return nil, nil
+		}
+		numReceivedMessages = len(result.ReceivedMessages)
+		if numReceivedMessages > 0 {
+			msgToProcess = result.GetReceivedMessages()[0]
+		} else {
+			// nolint:gomnd
+			time.Sleep(30 * time.Second)
+		}
 	}
 
-	numReceivedMessages := len(result.ReceivedMessages)
-	// client.Pull returns an empty list if there are no messages available in the
-	// backlog.
-	if numReceivedMessages <= 0 {
-		return nil, nil
-	}
 	// Sanity check.
 	if numReceivedMessages > maxMessagesToPull {
 		log.Fatalf("expected to receive max %d messages, got %d", maxMessagesToPull, numReceivedMessages)
 	}
 
-	msgToProcess := result.GetReceivedMessages()[0]
 	subscriber.recvdAckID = msgToProcess.AckId
 	subscriber.done = make(chan bool)
 	// Continuously notify the server that processing is still happening on this message.
