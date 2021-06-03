@@ -1,0 +1,11 @@
+name: write-and-read workflow
+on: [push]
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "write-and-read workflow"

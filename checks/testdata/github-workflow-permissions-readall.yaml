@@ -1,0 +1,9 @@
+name: read all workflow
+on: [push]
+permissions: read-all
+
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "read all workflow"

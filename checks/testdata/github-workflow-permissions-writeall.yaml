@@ -1,0 +1,9 @@
+name: write all workflow
+on: [push]
+permissions: write-all
+
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "write all workflow"

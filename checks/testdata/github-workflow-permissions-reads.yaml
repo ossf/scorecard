@@ -1,0 +1,19 @@
+name: reads workflow
+on: [push]
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  deployments: read
+  issues: read
+  packages: read
+  pull-requests: read
+  repository-projects: read
+  security-events: read
+  statuses: read
+
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "reads workflow"

@@ -1,0 +1,19 @@
+name: writes workflow
+on: [push]
+permissions:
+  actions: none
+  checks: none
+  contents: none
+  deployments: none
+  issues: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "none workflow"

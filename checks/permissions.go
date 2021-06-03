@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ossf/scorecard/checker"
@@ -22,6 +23,9 @@ import (
 )
 
 const CheckPermissions = "Token-Permissions"
+
+// ErrInvalidGitHubWorkflowFile : Invalid GitHub workflow file.
+var ErrInvalidGitHubWorkflowFile = errors.New("invalid GitHub workflow file")
 
 //nolint:gochecknoinits
 func init() {
@@ -32,111 +36,81 @@ func leastPrivilegedTokens(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(CheckPermissions, ".github/workflows/*", true, c, validateGitHubActionTokenPermissions)
 }
 
-type GitHubActionWorkflowConfig struct {
-	Permissions *struct {
-		Contents       *string `yaml:"contents"`
-		Actions        *string `yaml:"actions"`
-		Checks         *string `yaml:"checks"`
-		Deploymments   *string `yaml:"deployments"`
-		Issues         *string `yaml:"issues"`
-		Metadata       *string `yaml:"metadata"`
-		Packages       *string `yaml:"packages"`
-		PullRequests   *string `yaml:"pull requests"`
-		Projects       *string `yaml:"repository projects"`
-		SecurityEvents *string `yaml:"security events"`
-		Statuses       *string `yaml:"statuses"`
-	} `yaml:"permissions"`
-	Name string `yaml:"name"`
+func validatePermission(key string, value interface{}, path string,
+	logf func(s string, f ...interface{})) (bool, error) {
+	switch val := value.(type) {
+	case string:
+		if val == "write" {
+			logf("!! token-permissions/github-token - %v permission set to '%v' in %v", key, val, path)
+			return false, nil
+		}
+	default:
+		return false, ErrInvalidGitHubWorkflowFile
+	}
+	return true, nil
 }
 
-func isPermissionWrite(permission *string) bool {
-	return permission != nil &&
-		*permission != "read" &&
-		*permission != "none"
-}
+func validateDefaultReadPermissions(config map[interface{}]interface{}, path string,
+	logf func(s string, f ...interface{})) (bool, error) {
 
-func permissionToString(permission *string) string {
-	if permission != nil {
-		return *permission
-	}
-	return "read"
-}
+	permissionFound := false
+	permissionRead := true
+	var r bool
+	var err error
 
-func validateDefaultReadPermissions(config GitHubActionWorkflowConfig, path string,
-	logf func(s string, f ...interface{})) bool {
-	if config.Permissions == nil {
-		logf("!! token-permissions/token - no permission defined in %v", path)
-		return false
-	}
+	// Iterate over the values.
+	for key, value := range config {
+		if key != "permissions" {
+			continue
+		}
 
-	r := true
-	if isPermissionWrite(config.Permissions.Contents) {
-		logf("!! token-permissions/token - contents permission set to '%v' in %v",
-			permissionToString(config.Permissions.Contents), path)
-		r = false
-	}
+		// We have found the permissions keyword.
+		permissionFound = true
 
-	if isPermissionWrite(config.Permissions.Actions) {
-		logf("!! token-permissions/token - actions permission set to '%v' in %v",
-			permissionToString(config.Permissions.Actions), path)
-		r = false
-	}
+		// Check the type of our values.
+		switch val := value.(type) {
 
-	if isPermissionWrite(config.Permissions.Checks) {
-		logf("!! token-permissions/token - checks permission set to '%v' in %v",
-			permissionToString(config.Permissions.Checks), path)
-		r = false
-	}
+		// String type.
+		case string:
+			if val != "read-all" {
+				logf("!! token-permissions/github-token - permission set to '%v' in %v", val, path)
+				return false, nil
+			}
 
-	if isPermissionWrite(config.Permissions.Deploymments) {
-		logf("!! token-permissions/token - deployments permission set to '%v' in %v",
-			permissionToString(config.Permissions.Deploymments), path)
-		r = false
-	}
+		// Map type.
+		case map[interface{}]interface{}:
 
-	if isPermissionWrite(config.Permissions.Issues) {
-		logf("!! token-permissions/token - issue permission set to '%v' in %v",
-			permissionToString(config.Permissions.Issues), path)
-		r = false
-	}
+			// Iterate over the permission, verify keys and values are strings.
+			for k, v := range val {
+				switch key := k.(type) {
+				// String type.
+				case string:
+					if r, err = validatePermission(key, v, path, logf); err != nil {
+						return false, err
+					}
 
-	if isPermissionWrite(config.Permissions.Metadata) {
-		logf("!! token-permissions/token - metadata permission set to '%v' in %v",
-			permissionToString(config.Permissions.Metadata), path)
-		r = false
+					if !r {
+						permissionRead = false
+					}
+				// Invalid type.
+				default:
+					return false, ErrInvalidGitHubWorkflowFile
+				}
+			}
+
+		// Invalid type.
+		default:
+			return false, ErrInvalidGitHubWorkflowFile
+		}
 	}
 
-	if isPermissionWrite(config.Permissions.Packages) {
-		logf("!! token-permissions/token - packages permission set to '%v' in %v",
-			permissionToString(config.Permissions.Packages), path)
-		r = false
+	// Did we find a permission at all?
+	if !permissionFound {
+		logf("!! token-permissions/github-token - no permission defined in %v", path)
+		return false, nil
 	}
 
-	if isPermissionWrite(config.Permissions.PullRequests) {
-		logf("!! token-permissions/token - pull requests permission set to '%v' in %v",
-			permissionToString(config.Permissions.PullRequests), path)
-		r = false
-	}
-
-	if isPermissionWrite(config.Permissions.Projects) {
-		logf("!! token-permissions/token - repository projects permission set to '%v' in %v",
-			permissionToString(config.Permissions.Projects), path)
-		r = false
-	}
-
-	if isPermissionWrite(config.Permissions.SecurityEvents) {
-		logf("!! token-permissions/token - security events permission set to '%v' in %v",
-			permissionToString(config.Permissions.SecurityEvents), path)
-		r = false
-	}
-
-	if isPermissionWrite(config.Permissions.Statuses) {
-		logf("!! token-permissions/token - statuses permission set to '%v' in %v",
-			permissionToString(config.Permissions.Statuses), path)
-		r = false
-	}
-
-	return r
+	return permissionRead, nil
 }
 
 // Check file content.
@@ -146,8 +120,10 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 		return false, ErrEmptyFile
 	}
 
-	var workflow GitHubActionWorkflowConfig
-	err := yaml.Unmarshal(content, &workflow)
+	var workflow map[interface{}]interface{}
+	var r bool
+	var err error
+	err = yaml.Unmarshal(content, &workflow)
 	if err != nil {
 		return false, fmt.Errorf("!! token-permissions - cannot unmarshal file %v\n%v\n%v: %w",
 			path, content, string(content), err)
@@ -158,12 +134,16 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#example-1-passing-the-github_token-as-an-input,
 	// https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token.
-	if !validateDefaultReadPermissions(workflow, path, logf) {
+	if r, err = validateDefaultReadPermissions(workflow, path, logf); err != nil {
 		return false, nil
 	}
+	if !r {
+		return r, nil
+	}
 
-	// TODO(laurent): 2. Read a few runs and ensures they have the same permissions.
+	// TODO(laurent): 2. Identify github actions that require write and add checks.
 
-	// TODO(laurent): 3. Identify github actions that require write and add checks.
+	// TODO(laurent): 3. Read a few runs and ensures they have the same permissions.
+
 	return true, nil
 }
