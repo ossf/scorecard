@@ -17,7 +17,10 @@
 checks:
   Token-Permissions:
     description: >-
-      TODO.
+      This check tries to determine if a project's github workflows
+      follow the principle of least privilege, i.e. if the githib tokens
+      are set read-only by default. The check currently checks that the 'permission'
+      keyword is used and sets
     remediation:
       - >-
         TODO.

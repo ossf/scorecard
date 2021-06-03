@@ -32,9 +32,7 @@ func leastPrivilegedTokens(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(CheckPermissions, ".github/workflows/*", true, c, validateGitHubActionTokenPermissions)
 }
 
-//nolint
 type GitHubActionWorkflowConfig struct {
-	Name        string `yaml:"name"`
 	Permissions *struct {
 		Contents       *string `yaml:"contents"`
 		Actions        *string `yaml:"actions"`
@@ -48,6 +46,7 @@ type GitHubActionWorkflowConfig struct {
 		SecurityEvents *string `yaml:"security events"`
 		Statuses       *string `yaml:"statuses"`
 	} `yaml:"permissions"`
+	Name string `yaml:"name"`
 }
 
 func isPermissionWrite(permission *string) bool {
