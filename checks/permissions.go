@@ -50,7 +50,7 @@ func validatePermission(key string, value interface{}, path string,
 	return true, nil
 }
 
-func validateDefaultReadPermissions(config map[interface{}]interface{}, path string,
+func validateReadPermissions(config map[interface{}]interface{}, path string,
 	logf func(s string, f ...interface{})) (bool, error) {
 	permissionFound := false
 	permissionRead := true
@@ -137,7 +137,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#example-1-passing-the-github_token-as-an-input,
 	// https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token.
-	if r, err = validateDefaultReadPermissions(workflow, path, logf); err != nil {
+	if r, err = validateReadPermissions(workflow, path, logf); err != nil {
 		return false, nil
 	}
 	if !r {
