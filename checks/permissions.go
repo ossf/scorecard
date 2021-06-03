@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 
+	//nolint
 	"github.com/ossf/scorecard/checker"
 	"gopkg.in/yaml.v2"
 )
