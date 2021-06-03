@@ -76,10 +76,10 @@ checks:
       (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock
       (PHP), vendor/, third_party/, third-party/; (2) look for github actions
       under .github/workflows/ and verifies they are pinned by hash; (3) looks 
-      for docker files and verifies FROM dependencies are pinned by hash. If one of
+      for Dockerfiles and verifies FROM dependencies are pinned by hash. If one of
       the files in (1) AND all the dependencies in (2),(3) are pinned, the check
       succeds. This check does not currently look for shell script pinning (curl | bash)
-      in scripts, dockerfiles, makefiles or system()-like code.
+      in scripts, Dockerfiles, Makefiles or system()-like code.
     remediation:
       - >-
         Declare all your dependencies with specific versions in your package
