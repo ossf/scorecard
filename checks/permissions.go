@@ -70,9 +70,14 @@ func validateDefaultReadPermissions(config map[interface{}]interface{}, path str
 		// Check the type of our values.
 		switch val := value.(type) {
 
+		// Empty string is nil type.
+		// It defaults to 'none'
+		case nil:
+
 		// String type.
 		case string:
-			if val != "read-all" {
+			fmt.Println(val)
+			if val != "read-all" && val != "" {
 				logf("!! token-permissions/github-token - permission set to '%v' in %v", val, path)
 				return false, nil
 			}

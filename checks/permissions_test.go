@@ -95,9 +95,20 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name: "Reads test",
+			name: "Nones test",
 			args: args{
 				Filename: "./testdata/github-workflow-permissions-nones.yaml",
+				Logf:     l.Logf,
+			},
+			want: returnValue{
+				Error:  nil,
+				Result: true,
+			},
+		},
+		{
+			name: "None test",
+			args: args{
+				Filename: "./testdata/github-workflow-permissions-none.yaml",
 				Logf:     l.Logf,
 			},
 			want: returnValue{
