@@ -32,6 +32,7 @@ func leastPrivilegedTokens(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(CheckPermissions, ".github/workflows/*", true, c, validateGitHubActionTokenPermissions)
 }
 
+//nolint
 type GitHubActionWorkflowConfig struct {
 	Name        string `yaml:"name"`
 	Permissions *struct {
@@ -71,37 +72,44 @@ func validateDefaultReadPermissions(config GitHubActionWorkflowConfig, path stri
 
 	r := true
 	if isPermissionWrite(config.Permissions.Contents) {
-		logf("!! token-permissions/token - contents permission set to '%v' in %v", permissionToString(config.Permissions.Contents), path)
+		logf("!! token-permissions/token - contents permission set to '%v' in %v",
+			permissionToString(config.Permissions.Contents), path)
 		r = false
 	}
 
 	if isPermissionWrite(config.Permissions.Actions) {
-		logf("!! token-permissions/token - actions permission set to '%v' in %v", permissionToString(config.Permissions.Actions), path)
+		logf("!! token-permissions/token - actions permission set to '%v' in %v",
+			permissionToString(config.Permissions.Actions), path)
 		r = false
 	}
 
 	if isPermissionWrite(config.Permissions.Checks) {
-		logf("!! token-permissions/token - checks permission set to '%v' in %v", permissionToString(config.Permissions.Checks), path)
+		logf("!! token-permissions/token - checks permission set to '%v' in %v",
+			permissionToString(config.Permissions.Checks), path)
 		r = false
 	}
 
 	if isPermissionWrite(config.Permissions.Deploymments) {
-		logf("!! token-permissions/token - deployments permission set to '%v' in %v", permissionToString(config.Permissions.Deploymments), path)
+		logf("!! token-permissions/token - deployments permission set to '%v' in %v",
+			permissionToString(config.Permissions.Deploymments), path)
 		r = false
 	}
 
 	if isPermissionWrite(config.Permissions.Issues) {
-		logf("!! token-permissions/token - issue permission set to '%v' in %v", permissionToString(config.Permissions.Issues), path)
+		logf("!! token-permissions/token - issue permission set to '%v' in %v",
+			permissionToString(config.Permissions.Issues), path)
 		r = false
 	}
 
 	if isPermissionWrite(config.Permissions.Metadata) {
-		logf("!! token-permissions/token - metadata permission set to '%v' in %v", permissionToString(config.Permissions.Metadata), path)
+		logf("!! token-permissions/token - metadata permission set to '%v' in %v",
+			permissionToString(config.Permissions.Metadata), path)
 		r = false
 	}
 
 	if isPermissionWrite(config.Permissions.Packages) {
-		logf("!! token-permissions/token - packages permission set to '%v' in %v", permissionToString(config.Permissions.Packages), path)
+		logf("!! token-permissions/token - packages permission set to '%v' in %v",
+			permissionToString(config.Permissions.Packages), path)
 		r = false
 	}
 
@@ -147,6 +155,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	}
 
 	// 1. Check that each file uses 'content: read' only or 'none'.
+	//nolint
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#example-1-passing-the-github_token-as-an-input,
 	// https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token.
