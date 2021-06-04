@@ -18,7 +18,7 @@ A project which is not active may not be patched, may not have its dependencies 
 
 ## Automatic-Dependency-Update 
 
-This check tries to determine if a project has dependencies automatically updated. The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/).This check only looks if  it is enabled and does not ensure that it is run and PullRequests are merged. 
+This check tries to determine if a project has dependencies automatically updated. The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if  it is enabled and does not ensure that it is run and pull requests are merged. 
 
 **Remediation steps**
 - Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.
