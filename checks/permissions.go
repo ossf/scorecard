@@ -17,6 +17,7 @@ package checks
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -44,7 +45,7 @@ func validatePermission(key string, value interface{}, path string,
 		return false, ErrInvalidGitHubWorkflowFile
 	}
 
-	if val == "write" {
+	if strings.EqualFold(val, "write") {
 		logf("!! token-permissions/github-token - %v permission set to '%v' in %v", key, val, path)
 		return false, nil
 	}
@@ -99,7 +100,7 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 
 		// String type.
 		case string:
-			if val != "read-all" && val != "" {
+			if !strings.EqualFold(val, "read-all") && val != "" {
 				logf("!! token-permissions/github-token - permission set to '%v' in %v", val, path)
 				return false, nil
 			}
