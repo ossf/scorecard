@@ -27,7 +27,10 @@
   * [Running specific checks](#running-specific-checks)
   * [Formatting Results](#formatting-results)
 * [Requirements](#requirements)
+* [Troubleshooting](#troubleshooting)
+* [Supportability](#supportability)
 * [Contributing](#contributing)
+* [Community Meetings](#community-meetings)
 
 <!-- vim-markdown-toc -->
 ## Motivation
@@ -324,7 +327,19 @@ These may be specified with the `--format` flag.
 - Any criteria in the scorecard must be actionable. It should be possible, with help, for any project to "check all the boxes".
 - Any solution to compile a scorecard should be usable by the greater open source community to monitor upstream security.
 
+## Troubleshooting
 
+- ### Bugs and Feature Requests:
+  If you have what looks like a bug, or you would like to make a feature request, please use the [Github issue tracking system.](https://github.com/ossf/scorecard/issues)
+Before you file an issue, please search existing issues to see if your issue is already covered.
+
+
+- ### Slack
+  For realtime discussion,  you can join the [#security_scorecards](https://slack.openssf.org/#security_scorecards) slack channel. Slack requires registration, but the openssf team is open invitation to anyone to register here. Feel free to come and ask any questions.
+
+## Supportability
+
+Currently, scorecard officially supports OSX and Linux platforms. So, if you are using a Windows OS you may find issues. Contributions towards supporting Windows are welcome.
 
 ## Contributing
 
@@ -333,3 +348,11 @@ If you want to get involved or have ideas you'd like to chat about, we discuss t
 See the [Community Calendar](https://calendar.google.com/calendar?cid=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ) for the schedule and meeting invitations.
 
 See the [Contributing](CONTRIBUTING.md) documentation for guidance on how to contribute.
+
+## Community Meetings
+
+The meetings happen biweekly https://calendar.google.com/calendar/embed?src=s63voefhp5i9pfltb5q67ngpes%40group.calendar.google.com&ctz=America%2FLos_Angeles
+
+You are more than welcome to attend. 
+
+
