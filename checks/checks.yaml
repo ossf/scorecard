@@ -15,6 +15,31 @@
 # This is the source of truth for all check descriptions and remediation steps.
 # Run `cd checks/main && go run /main` to generate `checks.json` and `checks.md`.
 checks:
+  Token-Permissions:
+    description: >-
+      This check tries to determine if a project's GitHub workflows
+      follow the principle of least privilege, i.e. if the GitHub tokens
+      are set read-only by default. The check currently checks that the 'permission'
+      keyword is used and set to read/none for the 'contents' permission for every workflow
+      yaml file. If other permissions are set globally for the entire file, this check fails.
+      Otherwise it succeeds.
+    remediation:
+      - >-
+        Use:
+        ```
+        permissions:
+          contents: read
+        ```
+        in all your .yaml files.
+      - >-
+        If you need more permissions, declare them in the job itself, e.g.
+        ```
+        jobs:
+        create_commit:
+          runs-on: ubuntu-latest 
+          permissions:
+            issues: write 
+        ```
   Security-Policy:
     description: >-
       This check tries to determine if a project has published a security
@@ -50,10 +75,11 @@ checks:
       (Javascript),  requirements.txt, pipfile.lock (Python), gemfile.lock
       (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock
       (PHP), vendor/, third_party/, third-party/; (2) look for github actions
-      under .github/workflows/ and verifies they are pinned by hash. If one of
-      the files in (1) AND all the dependencies in (2) are pinned,  the check
-      succeds. This check does not currently look for docker image pinning and
-      shell script pinning.
+      under .github/workflows/ and verifies they are pinned by hash; (3) looks 
+      for Dockerfiles and verifies FROM dependencies are pinned by hash. If one of
+      the files in (1) AND all the dependencies in (2),(3) are pinned, the check
+      succeds. This check does not currently look for shell script pinning (curl | bash)
+      in scripts, Dockerfiles, Makefiles or system()-like code.
     remediation:
       - >-
         Declare all your dependencies with specific versions in your package
