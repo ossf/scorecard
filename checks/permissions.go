@@ -17,6 +17,7 @@ package checks
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -39,15 +40,16 @@ func leastPrivilegedTokens(c *checker.CheckRequest) checker.CheckResult {
 
 func validatePermission(key string, value interface{}, path string,
 	logf func(s string, f ...interface{})) (bool, error) {
-	switch val := value.(type) {
-	case string:
-		if val == "write" {
-			logf("!! token-permissions/github-token - %v permission set to '%v' in %v", key, val, path)
-			return false, nil
-		}
-	default:
+	val, ok := value.(string)
+	if !ok {
 		return false, ErrInvalidGitHubWorkflowFile
 	}
+
+	if strings.EqualFold(val, "write") {
+		logf("!! token-permissions/github-token - %v permission set to '%v' in %v", key, val, path)
+		return false, nil
+	}
+
 	return true, nil
 }
 
@@ -59,19 +61,17 @@ func validateMapPermissions(values map[interface{}]interface{}, path string,
 
 	// Iterate over the permission, verify keys and values are strings.
 	for k, v := range values {
-		switch key := k.(type) {
-		// String type.
-		case string:
-			if r, err = validatePermission(key, v, path, logf); err != nil {
-				return false, err
-			}
-
-			if !r {
-				permissionRead = false
-			}
-		// Invalid type.
-		default:
+		key, ok := k.(string)
+		if !ok {
 			return false, ErrInvalidGitHubWorkflowFile
+		}
+
+		if r, err = validatePermission(key, v, path, logf); err != nil {
+			return false, err
+		}
+
+		if !r {
+			permissionRead = false
 		}
 	}
 	return permissionRead, nil
@@ -100,7 +100,7 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 
 		// String type.
 		case string:
-			if val != "read-all" && val != "" {
+			if !strings.EqualFold(val, "read-all") && val != "" {
 				logf("!! token-permissions/github-token - permission set to '%v' in %v", val, path)
 				return false, nil
 			}
