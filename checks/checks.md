@@ -69,6 +69,8 @@ This check tries to determine if a project has declared and pinned its dependenc
 **Remediation steps**
 - Declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
 - If the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
+- For Dockerfiles and github workflows, pin dependencies by hash. See example [gitcache-docker.yaml](https://github.com/ossf/scorecard/blob/main/.github/workflows/gitcache-docker.yaml#L36) and [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) examples.
+- To help update your dependencies after pinning them, use tools such as  Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/) or [renovate bot](https://github.com/renovatebot/renovate).
 
 ## Fuzzing 
 

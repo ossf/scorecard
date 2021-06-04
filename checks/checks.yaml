@@ -101,6 +101,14 @@ checks:
         npm), make sure to check these in the source code as well. These files
         maintain signatures for the entire dependency tree and saves from future
         exploitation in case the package is compromised.
+      - >-
+        For Dockerfiles and github workflows, pin dependencies by hash. See example
+        [gitcache-docker.yaml](https://github.com/ossf/scorecard/blob/main/.github/workflows/gitcache-docker.yaml#L36)
+        and [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) examples.
+      - >-
+        To help update your dependencies after pinning them, use tools such as 
+        Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
+        or [renovate bot](https://github.com/renovatebot/renovate).
   Signed-Tags:
     description: >-
       This check looks for cryptographically signed tags in the last 5 tags. The
