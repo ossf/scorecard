@@ -58,7 +58,7 @@ gs://ossf-scorecards/11-11-2020.json
 The latest results are also always available at  https://storage.googleapis.com/ossf-scorecards/latest.json
 
 The list of projects that are checked each night is available in the
-[`cron/projects.txt`](https://github.com/ossf/scorecard/blob/main/cron/projects.txt)
+[`cron/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/data/projects.csv)
 file in this repository. If you would like us to track more, please feel free to
 send a Pull Request with others.
 
