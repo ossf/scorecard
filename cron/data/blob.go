@@ -33,6 +33,20 @@ const (
 	filePrefixFormat = "2006.01.02/150405/"
 )
 
+func BlobExists(ctx context.Context, bucketURL, key string) (bool, error) {
+	bucket, err := blob.OpenBucket(ctx, bucketURL)
+	if err != nil {
+		return false, fmt.Errorf("error from blob.OpenBucket: %w", err)
+	}
+	defer bucket.Close()
+
+	ret, err := bucket.Exists(ctx, key)
+	if err != nil {
+		return ret, fmt.Errorf("error during bucket.Exists: %w", err)
+	}
+	return ret, nil
+}
+
 func WriteToBlobStore(ctx context.Context, bucketURL, filename string, data []byte) error {
 	bucket, err := blob.OpenBucket(ctx, bucketURL)
 	if err != nil {
