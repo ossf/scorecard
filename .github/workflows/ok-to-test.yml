@@ -18,7 +18,8 @@ name: Ok To Test
 on:
   issue_comment:
     types: [created]
-
+permissions:
+  pull-requests: write
 jobs:
   ok-to-test:
     runs-on: ubuntu-latest
