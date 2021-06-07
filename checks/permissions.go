@@ -81,7 +81,7 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 	logf func(s string, f ...interface{})) (bool, error) {
 	var permissions interface{}
 
-	// Check if permissions are set explicitely.
+	// Check if permissions are set explicitly.
 	permissions, ok := config["permissions"]
 	if !ok {
 		logf("!! token-permissions/github-token - no permission defined in %v", path)
