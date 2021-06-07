@@ -42,6 +42,8 @@ spec:
           value: "gs://ossf-scorecards-cache"
         resources:
           requests:
-            memory: 1Gi
+            cpu: 5
+            memory: 5Gi
           limits:
-            memory: 1.5Gi
+            cpu: 12
+            memory: 12Gi
