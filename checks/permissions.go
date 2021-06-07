@@ -79,55 +79,42 @@ func validateMapPermissions(values map[interface{}]interface{}, path string,
 
 func validateReadPermissions(config map[interface{}]interface{}, path string,
 	logf func(s string, f ...interface{})) (bool, error) {
-	permissionFound := false
-	permissionRead := true
-	var err error
+	var permissions interface{}
 
-	// Iterate over the values.
-	for key, value := range config {
-		if key != "permissions" {
-			continue
-		}
-
-		// We have found the permissions keyword.
-		permissionFound = true
-
-		// Check the type of our values.
-		switch val := value.(type) {
-		// Empty string is nil type.
-		// It defaults to 'none'
-		case nil:
-
-		// String type.
-		case string:
-			if !strings.EqualFold(val, "read-all") && val != "" {
-				logf("!! token-permissions/github-token - permission set to '%v' in %v", val, path)
-				return false, nil
-			}
-
-		// Map type.
-		case map[interface{}]interface{}:
-			var res bool
-			if res, err = validateMapPermissions(val, path, logf); err != nil {
-				return false, err
-			}
-			if !res {
-				permissionRead = false
-			}
-
-		// Invalid type.
-		default:
-			return false, ErrInvalidGitHubWorkflowFile
-		}
-	}
-
-	// Did we find a permission at all?
-	if !permissionFound {
+	// Check if permissions are set explicitly.
+	permissions, ok := config["permissions"]
+	if !ok {
 		logf("!! token-permissions/github-token - no permission defined in %v", path)
 		return false, nil
 	}
 
-	return permissionRead, nil
+	// Check the type of our values.
+	switch val := permissions.(type) {
+	// Empty string is nil type.
+	// It defaults to 'none'
+	case nil:
+
+	// String type.
+	case string:
+		if !strings.EqualFold(val, "read-all") && val != "" {
+			logf("!! token-permissions/github-token - permission set to '%v' in %v", val, path)
+			return false, nil
+		}
+
+	// Map type.
+	case map[interface{}]interface{}:
+		if res, err := validateMapPermissions(val, path, logf); err != nil {
+			return false, err
+		} else if !res {
+			return false, nil
+		}
+
+	// Invalid type.
+	default:
+		return false, ErrInvalidGitHubWorkflowFile
+	}
+
+	return true, nil
 }
 
 // Check file content.
