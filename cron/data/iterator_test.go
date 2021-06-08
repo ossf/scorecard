@@ -59,9 +59,10 @@ func TestCsvIterator(t *testing.T) {
 				{
 					hasError: false,
 					repo: repos.RepoURL{
-						Host:  "github.com",
-						Owner: "owner3",
-						Repo:  "repo3",
+						Host:     "github.com",
+						Owner:    "owner3",
+						Repo:     "repo3",
+						Metadata: "meta",
 					},
 				},
 			},
@@ -107,9 +108,10 @@ func TestCsvIterator(t *testing.T) {
 				{
 					hasError: false,
 					repo: repos.RepoURL{
-						Host:  "github.com",
-						Owner: "owner3",
-						Repo:  "repo3",
+						Host:     "github.com",
+						Owner:    "owner3",
+						Repo:     "repo3",
+						Metadata: "meta",
 					},
 				},
 			},

@@ -31,9 +31,9 @@ help:  ## Display this help
 ################################ make install #################################
 .PHONY: install
 install: ## Installs all dependencies needed to compile Scorecard
-install: | $(PROTOC) 
+install: | $(PROTOC)
 	@echo Installing tools from tools.go
-	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %	
+	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
 
 $(PROTOC):
 	ifeq (,$(PROTOC))
@@ -50,22 +50,17 @@ all: $(all-targets)
 update-dependencies: ## Update go dependencies for all modules
 	# Update root go modules
 	go mod tidy && go mod verify
-	# Update ./scripts/ go modules
-	cd scripts && go mod tidy && go mod verify
-	# Update ./scripts/update go modules
-	cd ./scripts/update && go mod tidy && go mod verify
 
 $(GOLANGGCI_LINT): install
-
 check-linter: ## Install and run golang linter
 check-linter: $(GOLANGGCI_LINT)
 	# Run golangci-lint linter
 	golangci-lint run -c .golangci.yml
 
 validate-projects: ## Validates ./cron/data/projects.csv
-validate-projects: build-scripts
+validate-projects: build-validate-script
 	# Validate ./cron/data/projects.csv
-	./scripts/validate ./cron/data/projects.csv
+	./cron/data/validate/validate
 
 tree-status: ## Verify tree is clean and all changes are committed
 	# Verify the tree is clean and all changes are commited
@@ -75,7 +70,7 @@ tree-status: ## Verify tree is clean and all changes are committed
 ###############################################################################
 
 ############################### make build ################################
-build-targets = build-proto generate-docs build-scorecard build-pubsub build-scripts build-update dockerbuild
+build-targets = build-proto generate-docs build-scorecard build-pubsub build-validate-script build-update-script dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the reepo.
 build: $(build-targets)
@@ -100,17 +95,17 @@ build-pubsub: ## Runs go build on the PubSub cron job
 	cd cron/controller && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o controller
 	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o worker
 
-build-scripts: ## Runs go build on the scripts
-build-scripts: scripts/validate
-scripts/validate: scripts/*.go
-	# Run go build on the scripts
-	cd scripts && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o validate
+build-validate-script: ## Runs go build on the validate script
+build-validate-script: cron/data/validate/validate
+cron/data/validate/validate: cron/data/validate/*.go cron/data/*.go
+	# Run go build on the validate script
+	cd cron/data/validate && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o validate
 
-build-update: ## Runs go build on scripts/update
-build-update: scripts/update/projects-update
-scripts/update/projects-update: scripts/update/*.go
-	# Run go build on projects-update
-	cd scripts/update && CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"'  -o projects-update
+build-update-script: ## Runs go build on the update script
+build-update-script: cron/data/update/projects-update
+cron/data/update/projects-update:  cron/data/update/*.go cron/data/*.go
+	# Run go build on the update script
+	cd cron/data/update && CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"'  -o projects-update
 
 dockerbuild: ## Runs docker build
 	# Build all Docker images in the Repo

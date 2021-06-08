@@ -31,7 +31,7 @@ var (
 )
 
 type RepoURL struct {
-	Host, Owner, Repo string
+	Host, Owner, Repo, Metadata string
 }
 
 // Type method is needed so that this struct can be used as cmd flag.
