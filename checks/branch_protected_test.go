@@ -476,7 +476,7 @@ func TestIsBranchProtected(t *testing.T) {
 		l.messages = []string{}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := IsBranchProtected(tt.args.protection, &tt.args.c)
+			got := IsBranchProtected(tt.args.protection, "test", &tt.args.c)
 			got.Details = l.messages
 			if got.Confidence != tt.want.Confidence || got.Pass != tt.want.Pass {
 				t.Errorf("IsBranchProtected() = %s, %v, want %v", tt.name, got, tt.want)
