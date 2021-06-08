@@ -1,9 +1,8 @@
 # binary.
 scorecard
 gitblobcache
-validate
-scorecardcron
-scripts/update/projects-update
+cron/data/validate/validate
+cron/data/update/projects-update
 cron/controller/controller
 cron/worker/worker
 
