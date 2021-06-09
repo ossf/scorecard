@@ -7,8 +7,10 @@ require (
 	cloud.google.com/go/pubsub v1.11.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.6
 	github.com/bradleyfalzon/ghinstallation v1.1.1
+	github.com/go-git/go-git/v5 v5.4.2
 	github.com/golangci/golangci-lint v1.40.1
 	github.com/google/go-github/v32 v32.1.0
+	github.com/google/go-github/v33 v33.0.0
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/jszwec/csvutil v1.5.0
 	github.com/moby/buildkit v0.8.3
@@ -26,8 +28,8 @@ require (
 	gocloud.dev v0.23.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
+	golang.org/x/tools v0.1.2-0.20210512205948-8287d5da45e4
 	google.golang.org/genproto v0.0.0-20210524142926-3e3a6030be83
 	google.golang.org/protobuf v1.26.0
-	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

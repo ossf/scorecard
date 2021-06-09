@@ -70,7 +70,9 @@ func (reader *csvIterator) Next() (repos.RepoURL, error) {
 	if reader.err != nil {
 		return repos.RepoURL{}, reader.err
 	}
-	ret := repos.RepoURL{}
+	ret := repos.RepoURL{
+		Metadata: reader.next.Metadata,
+	}
 	var err error
 	err = ret.Set(reader.next.Repo)
 	if err == nil {

@@ -42,6 +42,20 @@ import (
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap, bucketURL string,
 	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client) error {
+	filename := data.GetBlobFilename(
+		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
+		batchRequest.GetJobTime().AsTime())
+	// Sanity check - make sure we are not re-processing an already processed request.
+	exists, err := data.BlobExists(ctx, bucketURL, filename)
+	if err != nil {
+		return fmt.Errorf("error during BlobExists: %w", err)
+	}
+	if exists {
+		log.Printf("Already processed shard %s. Nothing to do.", filename)
+		// We have already processed this request, nothing to do.
+		return nil
+	}
+
 	repoURLs := make([]repos.RepoURL, 0, len(batchRequest.GetRepos()))
 	for _, repo := range batchRequest.GetRepos() {
 		repoURL := repos.RepoURL{}
@@ -66,9 +80,6 @@ func processRequest(ctx context.Context,
 		}
 	}
 
-	filename := data.GetBlobFilename(
-		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
-		batchRequest.GetJobTime().AsTime())
 	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore: %w", err)
 	}
@@ -146,7 +157,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer exporter.Flush()
 	defer exporter.StopMetricsExporter()
 
 	checksToRun := checks.AllChecks
@@ -173,6 +183,7 @@ func main() {
 		}
 		// nolint: errcheck // flushes buffer
 		logger.Sync()
+		exporter.Flush()
 		subscriber.Ack()
 	}
 	err = subscriber.Close()
