@@ -47,8 +47,7 @@ func (l *logger) Logf(s string, f ...interface{}) {
 }
 
 func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
-	ctx, err := tag.New(ctx,
-		tag.Upsert(stats.Repo, r.Repo), tag.Upsert(stats.CheckName, r.CheckName))
+	ctx, err := tag.New(ctx, tag.Upsert(stats.CheckName, r.CheckName))
 	if err != nil {
 		panic(err)
 	}
