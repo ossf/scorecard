@@ -31,6 +31,7 @@ var errorUndefinedExporter = errors.New("unsupported exporterType")
 type exporterType string
 
 const (
+	stackdriverMetricPrefix                 = "scorecard-cron"
 	stackdriverTimeSeriesQuota              = 200
 	stackdriverTimeoutMinutes               = 10
 	stackDriver                exporterType = "stackdriver"
@@ -66,7 +67,7 @@ func newStackDriverExporter() (*stackdriver.Exporter, error) {
 	}
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
 		ProjectID:         projectID,
-		MetricPrefix:      "scorecard-cron",
+		MetricPrefix:      stackdriverMetricPrefix,
 		MonitoredResource: gcp.Autodetect(),
 		Timeout:           stackdriverTimeoutMinutes * time.Minute,
 		// Stackdriver specific quotas based on https://cloud.google.com/monitoring/quotas
