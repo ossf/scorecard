@@ -19,8 +19,6 @@ import "go.opencensus.io/tag"
 var (
 	// CheckName is the tag key for the check name.
 	CheckName = tag.MustNewKey("checkName")
-	// Repo is the tag key for the repo name.
-	Repo = tag.MustNewKey("repo")
 	// RequestTag is the tag key for the request type.
 	RequestTag = tag.MustNewKey("requestTag")
 )

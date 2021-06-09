@@ -15,7 +15,6 @@
 package stats
 
 import (
-	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 )
@@ -24,11 +23,12 @@ var (
 	// CheckRuntime tracks CPU runtime stats.
 	CheckRuntime = view.View{
 		Name:        "CheckRuntime",
-		Description: "CPU runtime stats per repo per check",
+		Description: "CPU runtime stats per check",
 		Measure:     CPURuntimeInSec,
-		TagKeys:     []tag.Key{Repo, CheckName},
+		TagKeys:     []tag.Key{CheckName},
 		//nolint:gomnd
 		Aggregation: view.Distribution(
+			0,
 			1<<2,
 			1<<3,
 			1<<4,
@@ -42,16 +42,15 @@ var (
 			1<<12,
 			1<<13,
 			1<<14,
-			1<<15,
-			1<<16),
+			1<<15),
 	}
 
 	// OutgoingHTTPRequests tracks HTTPRequests made.
 	OutgoingHTTPRequests = view.View{
 		Name:        "OutgoingHTTPRequests",
-		Description: "HTTPRequests made per repo per check per URL path",
+		Description: "HTTPRequests made per check",
 		Measure:     HTTPRequests,
-		TagKeys:     []tag.Key{Repo, CheckName, ochttp.KeyClientPath, RequestTag},
+		TagKeys:     []tag.Key{CheckName, RequestTag},
 		Aggregation: view.Count(),
 	}
 )
