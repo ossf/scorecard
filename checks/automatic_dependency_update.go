@@ -20,16 +20,16 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const check = "Automatic-Dependency-Update"
+const CheckAutomaticDependencyUpdate = "Automatic-Dependency-Update"
 
 //nolint
 func init() {
-	registerCheck(check, AutomaticDependencyUpdate)
+	registerCheck(CheckAutomaticDependencyUpdate, AutomaticDependencyUpdate)
 }
 
 // AutomaticDependencyUpdate will check the repository if it contains Automatic dependency update.
 func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
-	result := CheckIfFileExists(check, c, fileExists)
+	result := CheckIfFileExists(CheckAutomaticDependencyUpdate, c, fileExists)
 	if !result.Pass {
 		result.Confidence = 3
 	}

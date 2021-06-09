@@ -12,6 +12,7 @@ require (
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/go-github/v33 v33.0.0
 	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/h2non/filetype v1.1.1
 	github.com/jszwec/csvutil v1.5.0
 	github.com/moby/buildkit v0.8.3
 	github.com/naveensrinivasan/httpcache v1.2.2
