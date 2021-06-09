@@ -157,7 +157,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer exporter.Flush()
 	defer exporter.StopMetricsExporter()
 
 	checksToRun := checks.AllChecks
@@ -184,6 +183,7 @@ func main() {
 		}
 		// nolint: errcheck // flushes buffer
 		logger.Sync()
+		exporter.Flush()
 		subscriber.Ack()
 	}
 	err = subscriber.Close()
