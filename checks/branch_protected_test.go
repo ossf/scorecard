@@ -61,7 +61,7 @@ func (m mockRepos) GetBranchProtection(ctx context.Context, o string, r string,
 	return getBranchProtection(ctx, o, r, b)
 }
 
-func TestReleaseAndDevBranchProtected(t *testing.T) {
+func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mocks return different results per test case
 	t.Parallel()
 	l := log{}
 	rel1 := "release/v.1"
@@ -288,7 +288,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		}, nil, nil
 	}
 
-	for _, tt := range tests {
+	for _, tt := range tests { //nolint:paralleltest // mocks return different results per test case
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		l.messages = []string{}
 
@@ -317,7 +317,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			got := checkReleaseAndDevBranchProtection(context.Background(), mockRepos{},
 				l.Logf, "testowner", "testrepo")
 			got.Details = l.messages
