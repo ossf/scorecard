@@ -117,6 +117,7 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 
 	if err := view.Register(
 		&stats.CheckRuntime,
+		&stats.RepoRuntime,
 		&stats.OutgoingHTTPRequests); err != nil {
 		return nil, fmt.Errorf("error during view.Register: %w", err)
 	}
