@@ -117,6 +117,7 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 
 	if err := view.Register(
 		&stats.CheckRuntime,
+		&stats.RepoRuntime,
 		&stats.OutgoingHTTPRequests); err != nil {
 		return nil, fmt.Errorf("error during view.Register: %w", err)
 	}
@@ -157,7 +158,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer exporter.Flush()
 	defer exporter.StopMetricsExporter()
 
 	checksToRun := checks.AllChecks
@@ -184,6 +184,7 @@ func main() {
 		}
 		// nolint: errcheck // flushes buffer
 		logger.Sync()
+		exporter.Flush()
 		subscriber.Ack()
 	}
 	err = subscriber.Close()

@@ -46,14 +46,18 @@ func (l *logger) Logf(s string, f ...interface{}) {
 	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
 
+func logStats(ctx context.Context, startTime time.Time) {
+	runTimeInSecs := time.Now().Unix() - startTime.Unix()
+	opencensusstats.Record(ctx, stats.CheckRuntimeInSec.M(runTimeInSecs))
+}
+
 func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
-	ctx, err := tag.New(ctx,
-		tag.Upsert(stats.Repo, r.Repo), tag.Upsert(stats.CheckName, r.CheckName))
+	ctx, err := tag.New(ctx, tag.Upsert(stats.CheckName, r.CheckName))
 	if err != nil {
 		panic(err)
 	}
+	defer logStats(ctx, time.Now())
 
-	startTime := time.Now().Unix()
 	var res CheckResult
 	var l logger
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
@@ -69,8 +73,6 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		break
 	}
 	res.Details = l.messages
-	runTimeInSecs := time.Now().Unix() - startTime
-	opencensusstats.Record(ctx, stats.CPURuntimeInSec.M(runTimeInSecs))
 	return res
 }
 

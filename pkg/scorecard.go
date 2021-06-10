@@ -16,16 +16,25 @@ package pkg
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/shurcooL/githubv4"
+	opencensusstats "go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/repos"
+	"github.com/ossf/scorecard/stats"
 )
+
+func logStats(ctx context.Context, startTime time.Time) {
+	runTimeInSecs := time.Now().Unix() - startTime.Unix()
+	opencensusstats.Record(ctx, stats.RepoRuntimeInSec.M(runTimeInSecs))
+}
 
 func runEnabledChecks(ctx context.Context,
 	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap,
@@ -64,6 +73,12 @@ func RunScorecards(ctx context.Context,
 	httpClient *http.Client,
 	githubClient *github.Client,
 	graphClient *githubv4.Client) repos.RepoResult {
+	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repo.URL()))
+	if err != nil {
+		log.Panicf("error during tag.New: %v. Not logging stats", err)
+	}
+	defer logStats(ctx, time.Now())
+
 	ret := repos.RepoResult{
 		Repo: repo.URL(),
 		Date: time.Now().Format("2006-01-02"),
