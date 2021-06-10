@@ -1,6 +1,7 @@
 # binary.
 scorecard
 gitblobcache
+cron/data/add/add
 cron/data/validate/validate
 cron/data/update/projects-update
 cron/controller/controller
