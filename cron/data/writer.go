@@ -30,40 +30,47 @@ type repoEntry struct {
 	Metadata string `csv:"metadata"`
 }
 
+func repoEntryFromRepoURL(repoURLs []repos.RepoURL) []repoEntry {
+	repoentries := make([]repoEntry, 0)
+	for _, repoURL := range repoURLs {
+		repoentry := repoEntry{
+			Repo:     repoURL.URL(),
+			Metadata: repoURL.Metadata,
+		}
+		repoentries = append(repoentries, repoentry)
+	}
+	return repoentries
+}
+
+func SortAndAppendTo(out io.Writer, oldRepos, newRepos []repos.RepoURL) error {
+	repoentries := repoEntryFromRepoURL(oldRepos)
+	repoentries = append(repoentries, repoEntryFromRepoURL(newRepos)...)
+
+	sort.SliceStable(repoentries, func(i, j int) bool {
+		return repoentries[i].Repo < repoentries[j].Repo
+	})
+	csvWriter := csv.NewWriter(out)
+	enc := csvutil.NewEncoder(csvWriter)
+	if err := enc.Encode(repoentries); err != nil {
+		return fmt.Errorf("error during Encode: %w", err)
+	}
+	csvWriter.Flush()
+	return nil
+}
+
 func SortAndAppend(out io.Writer, newRepos []repos.RepoURL) error {
 	iter, err := MakeIterator()
 	if err != nil {
 		return fmt.Errorf("error during MakeIterator: %w", err)
 	}
 
-	oldRepos := make([]repoEntry, 0)
+	oldRepos := make([]repos.RepoURL, 0)
 	for iter.HasNext() {
 		repo, err := iter.Next()
 		if err != nil {
 			return fmt.Errorf("error during iter.Next: %w", err)
 		}
-		repoentry := repoEntry{
-			Repo:     repo.URL(),
-			Metadata: repo.Metadata,
-		}
-		oldRepos = append(oldRepos, repoentry)
+		oldRepos = append(oldRepos, repo)
 	}
-	for _, newRepo := range newRepos {
-		repoentry := repoEntry{
-			Repo:     newRepo.URL(),
-			Metadata: newRepo.Metadata,
-		}
-		oldRepos = append(oldRepos, repoentry)
-	}
-	sort.SliceStable(oldRepos, func(i, j int) bool {
-		return oldRepos[i].Repo < oldRepos[j].Repo
-	})
-
-	csvWriter := csv.NewWriter(out)
-	enc := csvutil.NewEncoder(csvWriter)
-	if err := enc.Encode(oldRepos); err != nil {
-		return fmt.Errorf("error during Encode: %w", err)
-	}
-	csvWriter.Flush()
-	return nil
+	return SortAndAppendTo(out, oldRepos, newRepos)
 }

@@ -43,7 +43,7 @@ $(PROTOC):
 
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = update-dependencies build check-linter unit-test validate-projects tree-status
+all-targets = update-dependencies build check-linter unit-test add-projects validate-projects tree-status
 .PHONY: all $(all-targets)
 all: $(all-targets)
 
@@ -57,8 +57,13 @@ check-linter: $(GOLANGGCI_LINT)
 	# Run golangci-lint linter
 	golangci-lint run -c .golangci.yml
 
+add-projects: ## Adds new projects to ./cron/data/projects.csv
+add-projects: ./cron/data/projects.csv | build-add-script
+	# Add new projects to ./cron/data/projects.csv
+	./cron/data/add/add ./cron/data/projects.csv
+
 validate-projects: ## Validates ./cron/data/projects.csv
-validate-projects: build-validate-script
+validate-projects: ./cron/data/projects.csv | build-validate-script
 	# Validate ./cron/data/projects.csv
 	./cron/data/validate/validate
 
@@ -69,8 +74,9 @@ tree-status: ## Verify tree is clean and all changes are committed
 
 ###############################################################################
 
-############################### make build ################################
-build-targets = build-proto generate-docs build-scorecard build-pubsub build-validate-script build-update-script dockerbuild
+################################## make build #################################
+build-targets = build-proto generate-docs build-scorecard build-pubsub \
+	build-add-script build-validate-script build-update-script dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the reepo.
 build: $(build-targets)
@@ -94,6 +100,12 @@ build-pubsub: ## Runs go build on the PubSub cron job
 	# Run go build and the PubSub cron job
 	cd cron/controller && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o controller
 	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o worker
+
+build-add-script: ## Runs go build on the add script
+build-add-script: cron/data/add/add
+cron/data/add/add: cron/data/add/*.go cron/data/*.go
+	# Run go build on the add script
+	cd cron/data/add && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o add
 
 build-validate-script: ## Runs go build on the validate script
 build-validate-script: cron/data/validate/validate
