@@ -26,12 +26,25 @@ const MaxResultConfidence = 10
 var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
 
 type CheckResult struct {
-	Error       error `json:"-"`
-	Name        string
-	Details     []string
-	Confidence  int
-	Pass        bool
-	ShouldRetry bool `json:"-"`
+	Error        error `json:"-"`
+	Name         string
+	Details      []string
+	FailureCodes []string `json:"-"`
+	Confidence   int
+	Pass         bool
+	ShouldRetry  bool `json:"-"`
+}
+
+// AddFailureCode will append the failure code if the result is sufficiently conclusive.
+func (c *CheckResult) AddFailureCode(failureCode string) {
+	if c.DoShowRemediation() {
+		c.FailureCodes = append(c.FailureCodes, failureCode)
+	}
+}
+
+func (c *CheckResult) DoShowRemediation() bool {
+	minimumConfidenceNeeded := 5
+	return !c.Pass && c.Confidence >= minimumConfidenceNeeded
 }
 
 func MakeInconclusiveResult(name string, err error) CheckResult {
@@ -98,7 +111,7 @@ func MakeProportionalResult(name string, numerator int, denominator int,
 }
 
 // Given a min result, check if another result is worse.
-func isMinResult(result, min CheckResult) bool {
+func isMinResult(result, min *CheckResult) bool {
 	if Bool2int(result.Pass) < Bool2int(min.Pass) {
 		return true
 	}
@@ -118,11 +131,11 @@ func MakeAndResult(checks ...CheckResult) CheckResult {
 		Confidence: MaxResultConfidence,
 	}
 
-	for _, result := range checks {
+	for i, result := range checks {
 		if minResult.Name == "" {
 			minResult.Name = result.Name
 		}
-		if isMinResult(result, minResult) {
+		if isMinResult(&checks[i], &minResult) {
 			minResult = result
 		}
 	}
