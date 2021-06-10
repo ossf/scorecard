@@ -126,3 +126,23 @@ func MultiCheckAnd(fns ...CheckFn) CheckFn {
 		return minResult
 	}
 }
+
+// MultiCheckResultAnd means all check results must succeed. This returns a conservative result
+// where the worst result is returned.
+func MultiCheckResultAnd(res ...CheckResult) CheckResult {
+	minResult := CheckResult{
+		Pass:       true,
+		Confidence: MaxResultConfidence,
+	}
+
+	for _, result := range res {
+		if minResult.Name == "" {
+			minResult.Name = result.Name
+		}
+		if Bool2int(result.Pass) < Bool2int(minResult.Pass) ||
+			result.Confidence < MaxResultConfidence {
+			minResult = result
+		}
+	}
+	return minResult
+}

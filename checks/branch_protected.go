@@ -15,8 +15,9 @@
 package checks
 
 import (
+	"context"
+
 	"github.com/google/go-github/v32/github"
-	"github.com/pkg/errors"
 
 	"github.com/ossf/scorecard/checker"
 )
@@ -32,48 +33,80 @@ func init() {
 	registerCheck(CheckBranchProtection, BranchProtection)
 }
 
+type repositories interface {
+	Get(context.Context, string, string) (*github.Repository,
+		*github.Response, error)
+	ListReleases(ctx context.Context, owner string, repo string, opts *github.ListOptions) (
+		[]*github.RepositoryRelease, *github.Response, error)
+	GetBranchProtection(context.Context, string, string, string) (
+		*github.Protection, *github.Response, error)
+}
+
+type logger func(s string, f ...interface{})
+
 func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	// Checks branch protection on both release and development branch
-	repo, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
-	if err != nil {
-		return checker.MakeRetryResult(CheckBranchProtection, err)
-	}
+	return checkReleaseAndDevBranchProtection(c.Ctx, c.Client.Repositories, c.Logf, c.Owner, c.Repo)
+}
 
+func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, l logger, ownerStr,
+	repoStr string) checker.CheckResult {
 	// Get release branches
-	releases, _, err := c.Client.Repositories.ListReleases(c.Ctx, c.Owner, c.Repo, &github.ListOptions{})
+	releases, _, err := r.ListReleases(ctx, ownerStr, repoStr, &github.ListOptions{})
 	if err != nil {
 		return checker.MakeRetryResult(CheckBranchProtection, err)
 	}
 
-	var checks []checker.CheckFn
+	var checks []checker.CheckResult
 	for _, release := range releases {
 		if release.TargetCommitish != nil {
-			res, err := getReleaseBranchProtection(c, *release.TargetCommitish)
-			if err != nil {
-				return checker.MakeRetryResult(CheckBranchProtection, err)
-			}
+			res := getProtectionAndCheck(ctx, r, l, ownerStr, repoStr, *release.TargetCommitish)
 			checks = append(checks, res)
 		}
 	}
 
 	// Default development branch check
-	res, err := getReleaseBranchProtection(c, *repo.DefaultBranch)
+	repo, _, err := r.Get(ctx, ownerStr, repoStr)
 	if err != nil {
 		return checker.MakeRetryResult(CheckBranchProtection, err)
 	}
+	res := getProtectionAndCheck(ctx, r, l, ownerStr, repoStr, *repo.DefaultBranch)
 	checks = append(checks, res)
 
-	return checker.MultiCheckAnd(checks...)(c)
+	return checker.MultiCheckResultAnd(checks...)
 }
 
-func IsBranchProtected(protection *github.Protection, branch string, c *checker.CheckRequest) checker.CheckResult {
+func getProtectionAndCheck(ctx context.Context, r repositories, l logger, ownerStr, repoStr,
+	branch string) checker.CheckResult {
+	protection, resp, err := r.GetBranchProtection(ctx, ownerStr, repoStr, branch)
+
+	const fileNotFound = 404
+	if resp.StatusCode == fileNotFound {
+		return checker.MakeRetryResult(CheckBranchProtection, err)
+	}
+
+	if err != nil {
+		l("!! branch protection not enabled for branch %s", branch)
+		const confidence = 10
+
+		return checker.CheckResult{
+			Name:       CheckBranchProtection,
+			Pass:       false,
+			Confidence: confidence,
+		}
+	}
+
+	return IsBranchProtected(protection, branch, l)
+}
+
+func IsBranchProtected(protection *github.Protection, branch string, l logger) checker.CheckResult {
 	totalChecks := 6
 	totalSuccess := 0
 
 	// This is disabled by default (good).
 	if protection.GetAllowForcePushes() != nil &&
 		protection.AllowForcePushes.Enabled {
-		c.Logf("!! branch protection - AllowForcePushes should be disabled on %s", branch)
+		l("!! branch protection - AllowForcePushes should be disabled on %s", branch)
 	} else {
 		totalSuccess++
 	}
@@ -81,7 +114,7 @@ func IsBranchProtected(protection *github.Protection, branch string, c *checker.
 	// This is disabled by default (good).
 	if protection.GetAllowDeletions() != nil &&
 		protection.AllowDeletions.Enabled {
-		c.Logf("!! branch protection - AllowDeletions should be disabled on %s", branch)
+		l("!! branch protection - AllowDeletions should be disabled on %s", branch)
 	} else {
 		totalSuccess++
 	}
@@ -91,7 +124,7 @@ func IsBranchProtected(protection *github.Protection, branch string, c *checker.
 		protection.EnforceAdmins.Enabled {
 		totalSuccess++
 	} else {
-		c.Logf("!! branch protection - EnforceAdmins should be enabled on %s", branch)
+		l("!! branch protection - EnforceAdmins should be enabled on %s", branch)
 	}
 
 	// This is disabled by default (bad).
@@ -99,14 +132,14 @@ func IsBranchProtected(protection *github.Protection, branch string, c *checker.
 		protection.RequireLinearHistory.Enabled {
 		totalSuccess++
 	} else {
-		c.Logf("!! branch protection - Linear history should be enabled on %s", branch)
+		l("!! branch protection - Linear history should be enabled on %s", branch)
 	}
 
-	if requiresStatusChecks(protection, branch, c) {
+	if requiresStatusChecks(protection, branch, l) {
 		totalSuccess++
 	}
 
-	if requiresThoroughReviews(protection, branch, c) {
+	if requiresThoroughReviews(protection, branch, l) {
 		totalSuccess++
 	}
 
@@ -114,7 +147,7 @@ func IsBranchProtected(protection *github.Protection, branch string, c *checker.
 }
 
 // Returns true if several PR status checks requirements are enabled. Otherwise returns false and logs why it failed.
-func requiresStatusChecks(protection *github.Protection, branch string, c *checker.CheckRequest) bool {
+func requiresStatusChecks(protection *github.Protection, branch string, l logger) bool {
 	// This is disabled by default (bad).
 	if protection.GetRequiredStatusChecks() != nil &&
 		protection.RequiredStatusChecks.Strict &&
@@ -124,9 +157,9 @@ func requiresStatusChecks(protection *github.Protection, branch string, c *check
 	switch {
 	case protection.RequiredStatusChecks == nil ||
 		!protection.RequiredStatusChecks.Strict:
-		c.Logf("!! branch protection - Status checks for merging should be enabled on %s", branch)
+		l("!! branch protection - Status checks for merging should be enabled on %s", branch)
 	case len(protection.RequiredStatusChecks.Contexts) == 0:
-		c.Logf("!! branch protection - Status checks for merging should have specific status to check for on %s", branch)
+		l("!! branch protection - Status checks for merging should have specific status to check for on %s", branch)
 	default:
 		panic("!! branch protection - Unhandled status checks error")
 	}
@@ -134,7 +167,7 @@ func requiresStatusChecks(protection *github.Protection, branch string, c *check
 }
 
 // Returns true if several PR review requirements are enabled. Otherwise returns false and logs why it failed.
-func requiresThoroughReviews(protection *github.Protection, branch string, c *checker.CheckRequest) bool {
+func requiresThoroughReviews(protection *github.Protection, branch string, l logger) bool {
 	// This is disabled by default (bad).
 	if protection.GetRequiredPullRequestReviews() != nil &&
 		protection.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews &&
@@ -144,41 +177,18 @@ func requiresThoroughReviews(protection *github.Protection, branch string, c *ch
 	}
 	switch {
 	case protection.RequiredPullRequestReviews == nil:
-		c.Logf("!! branch protection - Pullrequest reviews should be enabled on %s", branch)
+		l("!! branch protection - Pullrequest reviews should be enabled on %s", branch)
 		fallthrough
 	case protection.RequiredPullRequestReviews.RequiredApprovingReviewCount < minReviews:
-		c.Logf("!! branch protection - %v pullrequest reviews should be enabled on %s", minReviews, branch)
+		l("!! branch protection - %v pullrequest reviews should be enabled on %s", minReviews, branch)
 		fallthrough
 	case !protection.RequiredPullRequestReviews.DismissStaleReviews:
-		c.Logf("!! branch protection - Stale review dismissal should be enabled on %s", branch)
+		l("!! branch protection - Stale review dismissal should be enabled on %s", branch)
 		fallthrough
 	case !protection.RequiredPullRequestReviews.RequireCodeOwnerReviews:
-		c.Logf("!! branch protection - Owner review should be enabled on %s", branch)
+		l("!! branch protection - Owner review should be enabled on %s", branch)
 	default:
 		panic("!! branch protection - Unhandled pull request error")
 	}
 	return false
-}
-
-func getReleaseBranchProtection(c *checker.CheckRequest, branch string) (checker.CheckFn, error) {
-	protection, resp, err := c.Client.Repositories.GetBranchProtection(c.Ctx, c.Owner, c.Repo, branch)
-
-	const fileNotFound = 404
-	if resp.StatusCode == fileNotFound {
-		return nil, errors.Wrap(err, "not found")
-	}
-
-	if err != nil {
-		c.Logf("!! branch protection not enabled for branch %s", branch)
-		const confidence = 10
-		return func(*checker.CheckRequest) checker.CheckResult {
-			return checker.CheckResult{
-				Name:       CheckBranchProtection,
-				Pass:       false,
-				Confidence: confidence,
-			}
-		}, nil
-	}
-
-	return func(*checker.CheckRequest) checker.CheckResult { return IsBranchProtected(protection, branch, c) }, nil
 }
