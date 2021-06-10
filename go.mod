@@ -32,5 +32,4 @@ require (
 	google.golang.org/genproto v0.0.0-20210524142926-3e3a6030be83
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0
-	mvdan.cc/gofumpt v0.1.1 // indirect
 )

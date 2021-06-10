@@ -71,8 +71,6 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 				break
 			}
 		}
-		// Check the registry for a cosign release
-
 		if !signed {
 			c.Logf("!! release %s has no signed artifacts", r.GetTagName())
 		}
