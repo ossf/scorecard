@@ -58,9 +58,13 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, l l
 	}
 
 	var checks []checker.CheckResult
+	checkedBranches := map[string]bool{}
 	for _, release := range releases {
-		if release.TargetCommitish != nil {
-			res := getProtectionAndCheck(ctx, r, l, ownerStr, repoStr, *release.TargetCommitish)
+		// may be nil if release tag already exists
+		commitish := release.TargetCommitish
+		if commitish != nil && !checkedBranches[*commitish] {
+			res := getProtectionAndCheck(ctx, r, l, ownerStr, repoStr, *commitish)
+			checkedBranches[*commitish] = true
 			checks = append(checks, res)
 		}
 	}
@@ -70,8 +74,10 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, l l
 	if err != nil {
 		return checker.MakeRetryResult(CheckBranchProtection, err)
 	}
-	res := getProtectionAndCheck(ctx, r, l, ownerStr, repoStr, *repo.DefaultBranch)
-	checks = append(checks, res)
+	if !checkedBranches[*repo.DefaultBranch] {
+		res := getProtectionAndCheck(ctx, r, l, ownerStr, repoStr, *repo.DefaultBranch)
+		checks = append(checks, res)
+	}
 
 	return checker.MultiCheckResultAnd(checks...)
 }
@@ -87,7 +93,7 @@ func getProtectionAndCheck(ctx context.Context, r repositories, l logger, ownerS
 
 	if err != nil {
 		l("!! branch protection not enabled for branch %s", branch)
-		const confidence = 10
+		const confidence = checker.MaxResultConfidence
 
 		return checker.CheckResult{
 			Name:       CheckBranchProtection,
