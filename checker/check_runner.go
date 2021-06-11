@@ -118,8 +118,11 @@ func MultiCheckAnd(fns ...CheckFn) CheckFn {
 			if minResult.Name == "" {
 				minResult.Name = result.Name
 			}
-			if Bool2int(result.Pass) < Bool2int(minResult.Pass) ||
-				result.Confidence < MaxResultConfidence {
+			if Bool2int(result.Pass) < Bool2int(minResult.Pass) {
+				minResult = result
+			} else if result.Pass && result.Confidence < minResult.Confidence {
+				minResult = result
+			} else if result.Confidence > minResult.Confidence {
 				minResult = result
 			}
 		}

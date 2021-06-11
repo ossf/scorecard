@@ -92,3 +92,27 @@ func MakeProportionalResult(name string, numerator int, denominator int,
 		Confidence: MaxResultConfidence - int(actual*MaxResultConfidence),
 	}
 }
+
+// MultiCheckAnd means all checks must succeed. This returns a conservative result
+// where the worst result is returned.
+func MakeAndResult(checks ...CheckResult) CheckResult {
+	minResult := CheckResult{
+		Pass:       true,
+		Confidence: MaxResultConfidence,
+	}
+
+	for _, result := range checks {
+		if minResult.Name == "" {
+			minResult.Name = result.Name
+		}
+		switch result {
+		case Bool2int(result.Pass) < Bool2int(minResult.Pass):
+			minResult = result
+		case result.Pass && result.Confidence < minResult.Confidence:
+			minResult = result
+		case result.Confidence > minResult.Confidence:
+			minResult = result
+		}
+	}
+	return minResult
+}
