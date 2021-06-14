@@ -108,21 +108,11 @@ func MultiCheckOr(fns ...CheckFn) CheckFn {
 // where the worst result is returned.
 func MultiCheckAnd(fns ...CheckFn) CheckFn {
 	return func(c *CheckRequest) CheckResult {
-		minResult := CheckResult{
-			Pass:       true,
-			Confidence: MaxResultConfidence,
-		}
-
+		var checks []CheckResult
 		for _, fn := range fns {
-			result := fn(c)
-			if minResult.Name == "" {
-				minResult.Name = result.Name
-			}
-			if Bool2int(result.Pass) < Bool2int(minResult.Pass) ||
-				result.Confidence < MaxResultConfidence {
-				minResult = result
-			}
+			res := fn(c)
+			checks = append(checks, res)
 		}
-		return minResult
+		return MakeAndResult(checks...)
 	}
 }
