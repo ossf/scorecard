@@ -15,6 +15,7 @@
 package data
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -49,6 +50,64 @@ func TestGetBlobFilename(t *testing.T) {
 			gotFilename := GetBlobFilename(testcase.inputFilename, datetime)
 			if gotFilename != testcase.expectedFilename {
 				t.Errorf("test failed - expected: %s, got: %s", testcase.expectedFilename, gotFilename)
+			}
+		})
+	}
+}
+
+func TestParseBlobFilename(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name         string
+		input        string
+		err          error
+		expectedTime time.Time
+		expectedName string
+	}{
+		{
+			name:         "Basic",
+			input:        "2021.06.09/165503/shard-00010",
+			expectedTime: time.Date(2021, 6, 9, 16, 55, 3, 0, time.UTC),
+			expectedName: "shard-00010",
+		},
+		{
+			name:         "NoSuffix",
+			input:        "2021.06.09/165503/",
+			expectedTime: time.Date(2021, 6, 9, 16, 55, 3, 0, time.UTC),
+			expectedName: "",
+		},
+		{
+			name:  "ParseError",
+			input: "2021.06.09/shard-00010",
+			err:   errParseBlobName,
+		},
+		{
+			name:         "SubDirectory",
+			input:        "2021.06.09/165503/shards/shard-00010",
+			expectedTime: time.Date(2021, 6, 9, 16, 55, 3, 0, time.UTC),
+			expectedName: "shards/shard-00010",
+		},
+		{
+			name:  "NoTrailingSlash",
+			input: "2021.06.09/165503",
+			err:   errShortBlobName,
+		},
+	}
+	for _, testcase := range testcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+			datetime, filename, err := ParseBlobFilename(testcase.input)
+			if !errors.Is(err, testcase.err) {
+				t.Errorf("Expected: %v, got: %v", testcase.err, err)
+			}
+			if testcase.err == nil {
+				if datetime != testcase.expectedTime {
+					t.Errorf("Expected: %q, got: %q", testcase.expectedTime, datetime)
+				}
+				if filename != testcase.expectedName {
+					t.Errorf("Expected: %s, got: %s", testcase.expectedName, filename)
+				}
 			}
 		})
 	}

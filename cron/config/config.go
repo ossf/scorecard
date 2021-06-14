@@ -29,7 +29,9 @@ import (
 
 const (
 	// ShardNumFilename is the name of the file that stores the number of shards.
-	ShardNumFilename       string = ".shard_num"
+	ShardNumFilename string = ".shard_num"
+	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.
+	TransferStatusFilename string = ".transfer_complete"
 	projectID              string = "SCORECARD_PROJECT_ID"
 	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
 	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
