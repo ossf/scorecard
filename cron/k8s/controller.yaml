@@ -17,7 +17,8 @@ kind: CronJob
 metadata:
   name: scorecard-batch-controller
 spec:
-  schedule: "0 2 * * 0"
+  # At 02:00UTC on Monday.
+  schedule: "0 2 * * 1"
   concurrencyPolicy: "Forbid"
   jobTemplate:
     spec:
