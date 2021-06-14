@@ -92,3 +92,35 @@ func MakeProportionalResult(name string, numerator int, denominator int,
 		Confidence: MaxResultConfidence - int(actual*MaxResultConfidence),
 	}
 }
+
+// Given a min result, check if another result is worse.
+func isMinResult(result, min CheckResult) bool {
+	if Bool2int(result.Pass) < Bool2int(min.Pass) {
+		return true
+	}
+	if result.Pass && result.Confidence < min.Confidence {
+		return true
+	} else if !result.Pass && result.Confidence > min.Confidence {
+		return true
+	}
+	return false
+}
+
+// MakeAndResult means all checks must succeed. This returns a conservative result
+// where the worst result is returned.
+func MakeAndResult(checks ...CheckResult) CheckResult {
+	minResult := CheckResult{
+		Pass:       true,
+		Confidence: MaxResultConfidence,
+	}
+
+	for _, result := range checks {
+		if minResult.Name == "" {
+			minResult.Name = result.Name
+		}
+		if isMinResult(result, minResult) {
+			minResult = result
+		}
+	}
+	return minResult
+}
