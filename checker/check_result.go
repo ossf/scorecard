@@ -93,7 +93,20 @@ func MakeProportionalResult(name string, numerator int, denominator int,
 	}
 }
 
-// MultiCheckAnd means all checks must succeed. This returns a conservative result
+// Given a min result, check if another result is worse.
+func isMinResult(result, min CheckResult) bool {
+	if Bool2int(result.Pass) < Bool2int(min.Pass) {
+		return true
+	}
+	if result.Pass && result.Confidence < min.Confidence {
+		return true
+	} else if !result.Pass && result.Confidence > min.Confidence {
+		return true
+	}
+	return false
+}
+
+// MakeAndResult means all checks must succeed. This returns a conservative result
 // where the worst result is returned.
 func MakeAndResult(checks ...CheckResult) CheckResult {
 	minResult := CheckResult{
@@ -105,12 +118,7 @@ func MakeAndResult(checks ...CheckResult) CheckResult {
 		if minResult.Name == "" {
 			minResult.Name = result.Name
 		}
-		switch result {
-		case Bool2int(result.Pass) < Bool2int(minResult.Pass):
-			minResult = result
-		case result.Pass && result.Confidence < minResult.Confidence:
-			minResult = result
-		case result.Confidence > minResult.Confidence:
+		if isMinResult(result, minResult) {
 			minResult = result
 		}
 	}

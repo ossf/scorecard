@@ -183,7 +183,7 @@ func archiveFolder(folderToArchive, archivePath string) ([]byte, error) {
 
 // fetchGitRepo fetches the git repo. Returns git repository, bool if it is already up to date and error.
 func fetchGitRepo(storagePath *StoragePath, data []byte, repo RepoURL, tempDir string) (*git.Repository, bool, error) {
-	const fileMode os.FileMode = 0600
+	const fileMode os.FileMode = 0o600
 	gitZipFile := path.Join(tempDir, "gitfolder.tar.gz")
 	if err := ioutil.WriteFile(gitZipFile, data, fileMode); err != nil {
 		return nil, false, errors.Wrapf(err, "unable write targz file %s", storagePath.BlobArchiveFile)

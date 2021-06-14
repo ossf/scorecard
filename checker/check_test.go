@@ -19,9 +19,9 @@ import (
 	"testing"
 )
 
-const CheckTest = "Check-Test"
+const checkTest = "Check-Test"
 
-var ErrorTest = errors.New("test error")
+var errorTest = errors.New("test error")
 
 func TestMakeCheckAnd(t *testing.T) {
 	t.Parallel()
@@ -33,25 +33,25 @@ func TestMakeCheckAnd(t *testing.T) {
 		{
 			name: "Multiple passing",
 			checks: []CheckResult{
-				CheckResult{
-					Name:        CheckTest,
-					Pass:        true,
-					Details:     nil,
-					Confidence:  10,
-					ShouldRetry: false,
-					Error:       ErrorTest,
-				},
-				CheckResult{
-					Name:        CheckTest,
+				{
+					Name:        checkTest,
 					Pass:        true,
 					Details:     nil,
 					Confidence:  5,
 					ShouldRetry: false,
-					Error:       ErrorTest,
+					Error:       errorTest,
+				},
+				{
+					Name:        checkTest,
+					Pass:        true,
+					Details:     nil,
+					Confidence:  10,
+					ShouldRetry: false,
+					Error:       errorTest,
 				},
 			},
 			want: CheckResult{
-				Name:        CheckTest,
+				Name:        checkTest,
 				Pass:        true,
 				Details:     nil,
 				Confidence:  5,
@@ -62,67 +62,67 @@ func TestMakeCheckAnd(t *testing.T) {
 		{
 			name: "Multiple failing",
 			checks: []CheckResult{
-				CheckResult{
-					Name:        CheckTest,
+				{
+					Name:        checkTest,
 					Pass:        false,
 					Details:     nil,
 					Confidence:  10,
 					ShouldRetry: false,
-					Error:       ErrorTest,
+					Error:       errorTest,
 				},
-				CheckResult{
-					Name:        CheckTest,
+				{
+					Name:        checkTest,
 					Pass:        false,
 					Details:     nil,
 					Confidence:  5,
 					ShouldRetry: false,
-					Error:       ErrorTest,
+					Error:       errorTest,
 				},
 			},
 			want: CheckResult{
-				Name:        CheckTest,
+				Name:        checkTest,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  10,
 				ShouldRetry: false,
-				Error:       ErrorTest,
+				Error:       errorTest,
 			},
 		},
 		{
 			name: "Passing and failing",
 			checks: []CheckResult{
-				CheckResult{
-					Name:        CheckTest,
+				{
+					Name:        checkTest,
 					Pass:        true,
 					Details:     nil,
 					Confidence:  10,
 					ShouldRetry: false,
 					Error:       nil,
 				},
-				CheckResult{
-					Name:        CheckTest,
+				{
+					Name:        checkTest,
 					Pass:        false,
 					Details:     nil,
 					Confidence:  5,
 					ShouldRetry: false,
-					Error:       ErrorTest,
+					Error:       errorTest,
 				},
-				CheckResult{
-					Name:        CheckTest,
+				{
+					Name:        checkTest,
 					Pass:        false,
 					Details:     nil,
 					Confidence:  10,
 					ShouldRetry: false,
-					Error:       ErrorTest,
+					Error:       errorTest,
 				},
 			},
 			want: CheckResult{
-				Name:        CheckTest,
+				Name:        checkTest,
 				Pass:        false,
 				Details:     nil,
 				Confidence:  10,
 				ShouldRetry: false,
-				Error:       ErrorTest,
+				Error:       errorTest,
 			},
 		},
 	}
@@ -132,9 +132,20 @@ func TestMakeCheckAnd(t *testing.T) {
 			t.Parallel()
 			result := MakeAndResult(tt.checks...)
 			if result.Pass != tt.want.Pass || result.Confidence != tt.want.Confidence {
-				t.Errorf("MultiCheckAnd failed (%s): got %v, expected %v", tt.name, result, tt.want)
+				t.Errorf("MakeAndResult failed (%s): got %v, expected %v", tt.name, result, tt.want)
 			}
 
+			// Also test CheckFn variant
+			var fns []CheckFn
+			for _, c := range tt.checks {
+				check := c
+				fns = append(fns, func(*CheckRequest) CheckResult { return check })
+			}
+			c := CheckRequest{}
+			resultfn := MultiCheckAnd(fns...)(&c)
+			if resultfn.Pass != tt.want.Pass || resultfn.Confidence != tt.want.Confidence {
+				t.Errorf("MultiCheckAnd failed (%s): got %v, expected %v", tt.name, resultfn, tt.want)
+			}
 		})
 	}
 }
