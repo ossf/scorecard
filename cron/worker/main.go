@@ -21,6 +21,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/pprof"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/shurcooL/githubv4"
@@ -56,6 +57,11 @@ func processRequest(ctx context.Context,
 		return nil
 	}
 
+	var cpuProf bytes.Buffer
+	if err := pprof.StartCPUProfile(&cpuProf); err != nil {
+		return fmt.Errorf("error during pprof.StartCPUProfile: %w", err)
+	}
+
 	repoURLs := make([]repos.RepoURL, 0, len(batchRequest.GetRepos()))
 	for _, repo := range batchRequest.GetRepos() {
 		repoURL := repos.RepoURL{}
@@ -79,11 +85,18 @@ func processRequest(ctx context.Context,
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
 	}
-
 	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore: %w", err)
 	}
 	log.Printf("Write to shard file successful: %s", filename)
+
+	pprof.StopCPUProfile()
+	cpuProfFilename := data.GetBlobFilename(
+		fmt.Sprintf("pprof.shard-%05d.cpu", batchRequest.GetShardNum()),
+		batchRequest.GetJobTime().AsTime())
+	if err := data.WriteToBlobStore(ctx, bucketURL, cpuProfFilename, cpuProf.Bytes()); err != nil {
+		return fmt.Errorf("error during WriteToBlobStore: %w", err)
+	}
 	return nil
 }
 
