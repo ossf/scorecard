@@ -21,11 +21,12 @@
 package data
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -134,11 +135,14 @@ func file_cron_data_request_proto_rawDescGZIP() []byte {
 	return file_cron_data_request_proto_rawDescData
 }
 
-var file_cron_data_request_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_cron_data_request_proto_goTypes = []interface{}{
-	(*ScorecardBatchRequest)(nil), // 0: ossf.scorecard.cron.data.ScorecardBatchRequest
-	(*timestamppb.Timestamp)(nil), // 1: google.protobuf.Timestamp
-}
+var (
+	file_cron_data_request_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+	file_cron_data_request_proto_goTypes  = []interface{}{
+		(*ScorecardBatchRequest)(nil), // 0: ossf.scorecard.cron.data.ScorecardBatchRequest
+		(*timestamppb.Timestamp)(nil), // 1: google.protobuf.Timestamp
+	}
+)
+
 var file_cron_data_request_proto_depIdxs = []int32{
 	1, // 0: ossf.scorecard.cron.data.ScorecardBatchRequest.job_time:type_name -> google.protobuf.Timestamp
 	1, // [1:1] is the sub-list for method output_type
