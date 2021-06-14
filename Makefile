@@ -75,7 +75,7 @@ tree-status: ## Verify tree is clean and all changes are committed
 ###############################################################################
 
 ################################## make build #################################
-build-targets = build-proto generate-docs build-scorecard build-pubsub \
+build-targets = build-proto generate-docs build-scorecard build-pubsub build-bq-transfer \
 	build-add-script build-validate-script build-update-script dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the reepo.
@@ -101,6 +101,11 @@ build-pubsub: ## Runs go build on the PubSub cron job
 	cd cron/controller && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o controller
 	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o worker
 
+build-bq-transfer: ## Runs go build on the BQ transfer cron job
+build-bq-transfer: ./cron/bq/*.go
+	# Run go build on the Copier cron job
+	cd cron/bq && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o data-transfer
+
 build-add-script: ## Runs go build on the add script
 build-add-script: cron/data/add/add
 cron/data/add/add: cron/data/add/*.go cron/data/*.go
@@ -125,6 +130,7 @@ dockerbuild: ## Runs docker build
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
 	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
+	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
 ###############################################################################
 
 ################################# make test ###################################

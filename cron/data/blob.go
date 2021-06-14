@@ -16,7 +16,9 @@ package data
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"time"
 
 	"gocloud.dev/blob"
@@ -32,6 +34,47 @@ const (
 	// This format guarantees that lexicographically sorted files are chronologically sorted.
 	filePrefixFormat = "2006.01.02/150405/"
 )
+
+var (
+	errShortBlobName = errors.New("input key length is shorter than expected")
+	errParseBlobName = errors.New("error parsing input blob name")
+)
+
+func GetBlobKeys(ctx context.Context, bucketURL string) ([]string, error) {
+	bucket, err := blob.OpenBucket(ctx, bucketURL)
+	if err != nil {
+		return nil, fmt.Errorf("error from blob.OpenBucket: %w", err)
+	}
+	defer bucket.Close()
+
+	keys := make([]string, 0)
+	iter := bucket.List(nil)
+	for {
+		next, err := iter.Next(ctx)
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("error during iter.Next: %w", err)
+		}
+		keys = append(keys, next.Key)
+	}
+	return keys, nil
+}
+
+func GetBlobContent(ctx context.Context, bucketURL, key string) ([]byte, error) {
+	bucket, err := blob.OpenBucket(ctx, bucketURL)
+	if err != nil {
+		return nil, fmt.Errorf("error from blob.OpenBucket: %w", err)
+	}
+	defer bucket.Close()
+
+	keyData, err := bucket.ReadAll(ctx, key)
+	if err != nil {
+		return keyData, fmt.Errorf("error during bucket.ReadAll: %w", err)
+	}
+	return keyData, nil
+}
 
 func BlobExists(ctx context.Context, bucketURL, key string) (bool, error) {
 	bucket, err := blob.OpenBucket(ctx, bucketURL)
@@ -73,4 +116,21 @@ func GetBlobFilename(filename string, datetime time.Time) string {
 
 func GetShardNumFilename(datetime time.Time) string {
 	return GetBlobFilename(config.ShardNumFilename, datetime)
+}
+
+func GetTransferStatusFilename(datetime time.Time) string {
+	return GetBlobFilename(config.TransferStatusFilename, datetime)
+}
+
+func ParseBlobFilename(key string) (time.Time, string, error) {
+	if len(key) < len(filePrefixFormat) {
+		return time.Now(), "", fmt.Errorf("%w: %s", errShortBlobName, key)
+	}
+	prefix := key[:len(filePrefixFormat)]
+	objectName := key[len(filePrefixFormat):]
+	t, err := time.Parse(filePrefixFormat, prefix)
+	if err != nil {
+		return t, "", fmt.Errorf("%w: %v", errParseBlobName, err)
+	}
+	return t, objectName, nil
 }
