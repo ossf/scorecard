@@ -47,3 +47,8 @@ spec:
           limits:
             cpu: 12
             memory: 12Gi
+  strategy:
+    type: "RollingUpdate"
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
