@@ -49,10 +49,10 @@ type repositories interface {
 
 type logger func(s string, f ...interface{})
 
-// ErrCommitishNil: TargetCommitish nil for release
+// ErrCommitishNil TargetCommitish nil for release.
 var ErrCommitishNil = errors.New("target_commitish is nil for release")
 
-// ErrBranchNotFound: branch from TargetCommitish not found
+// ErrBranchNotFound branch from TargetCommitish not found.
 var ErrBranchNotFound = errors.New("branch not found")
 
 func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
@@ -90,7 +90,7 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, l l
 		}
 
 		// Try to resolve the branch name.
-		name, err := resolveBranchName(ctx, r, ownerStr, repoStr, branches, *release.TargetCommitish)
+		name, err := resolveBranchName(branches, *release.TargetCommitish)
 		if err != nil {
 			// If the commitish branch is still not found, fail.
 			checks = append(checks, checker.MakeFailResult(CheckBranchProtection, ErrBranchNotFound))
@@ -128,11 +128,10 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, l l
 		}
 	}
 
-	return checker.MultiCheckResultAnd(checks...)
+	return checker.MakeAndResult(checks...)
 }
 
-func resolveBranchName(ctx context.Context, r repositories, ownerStr, repoStr string,
-	branches []*github.Branch, name string) (*string, error) {
+func resolveBranchName(branches []*github.Branch, name string) (*string, error) {
 	fmt.Printf("finding branch %s\n", name)
 	// First check list of branches.
 	for _, b := range branches {
@@ -145,10 +144,10 @@ func resolveBranchName(ctx context.Context, r repositories, ownerStr, repoStr st
 	// See https://github.com/google/go-github/issues/1895
 	// For now, handle the common master -> main redirect.
 	if name == "master" {
-		return resolveBranchName(ctx, r, ownerStr, repoStr, branches, "main")
+		return resolveBranchName(branches, "main")
 	}
 
-	return nil, errors.New("branch not found")
+	return nil, ErrBranchNotFound
 }
 
 func isBranchProtected(branches []*github.Branch, name string) (bool, error) {

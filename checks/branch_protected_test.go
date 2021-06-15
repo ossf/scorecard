@@ -16,7 +16,6 @@ package checks
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -36,10 +35,10 @@ func (l *log) Logf(s string, f ...interface{}) {
 }
 
 type mockRepos struct {
-	defaultBranch *string
 	branches      []*string
-	releases      []*string
 	protections   map[string]*github.Protection
+	defaultBranch *string
+	releases      []*string
 }
 
 func (m mockRepos) Get(ctx context.Context, o, r string) (
@@ -51,9 +50,9 @@ func (m mockRepos) Get(ctx context.Context, o, r string) (
 
 func (m mockRepos) ListReleases(ctx context.Context, owner string,
 	repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
-	var res []*github.RepositoryRelease
-	for _, rel := range m.releases {
-		res = append(res, &github.RepositoryRelease{TargetCommitish: rel})
+	res := make([]*github.RepositoryRelease, len(m.releases))
+	for i, rel := range m.releases {
+		res[i] = &github.RepositoryRelease{TargetCommitish: rel}
 	}
 	return res, nil, nil
 }
@@ -69,15 +68,15 @@ func (m mockRepos) GetBranchProtection(ctx context.Context, o string, r string,
 	return nil, &github.Response{
 			Response: &http.Response{StatusCode: http.StatusNotFound},
 		},
-		errors.New("404") //nolint: goerr113
+		ErrBranchNotFound
 }
 
 func (m mockRepos) ListBranches(ctx context.Context, owner string, repo string,
 	opts *github.BranchListOptions) ([]*github.Branch, *github.Response, error) {
-	var res []*github.Branch
-	for _, rel := range m.branches {
+	res := make([]*github.Branch, len(m.branches))
+	for i, rel := range m.branches {
 		_, protected := m.protections[*rel]
-		res = append(res, &github.Branch{Name: rel, Protected: &protected})
+		res[i] = &github.Branch{Name: rel, Protected: &protected}
 	}
 	return res, nil, nil
 }
@@ -415,10 +414,12 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 		l.messages = []string{}
 
 		t.Run(tt.name, func(t *testing.T) {
-			m := mockRepos{defaultBranch: tt.defaultBranch,
-				branches:    tt.branches,
-				releases:    tt.releases,
-				protections: tt.protections}
+			m := mockRepos{
+				defaultBranch: tt.defaultBranch,
+				branches:      tt.branches,
+				releases:      tt.releases,
+				protections:   tt.protections,
+			}
 			got := checkReleaseAndDevBranchProtection(context.Background(), m,
 				l.Logf, "testowner", "testrepo")
 			got.Details = l.messages
