@@ -16,6 +16,9 @@ package checks
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"regexp"
 
 	"github.com/google/go-github/v32/github"
 
@@ -36,6 +39,8 @@ func init() {
 type repositories interface {
 	Get(context.Context, string, string) (*github.Repository,
 		*github.Response, error)
+	ListBranches(ctx context.Context, owner string, repo string,
+		opts *github.BranchListOptions) ([]*github.Branch, *github.Response, error)
 	ListReleases(ctx context.Context, owner string, repo string, opts *github.ListOptions) (
 		[]*github.RepositoryRelease, *github.Response, error)
 	GetBranchProtection(context.Context, string, string, string) (
@@ -44,6 +49,12 @@ type repositories interface {
 
 type logger func(s string, f ...interface{})
 
+// ErrCommitishNil: TargetCommitish nil for release
+var ErrCommitishNil = errors.New("target_commitish is nil for release")
+
+// ErrBranchNotFound: branch from TargetCommitish not found
+var ErrBranchNotFound = errors.New("branch not found")
+
 func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	// Checks branch protection on both release and development branch
 	return checkReleaseAndDevBranchProtection(c.Ctx, c.Client.Repositories, c.Logf, c.Owner, c.Repo)
@@ -51,6 +62,12 @@ func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 
 func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, l logger, ownerStr,
 	repoStr string) checker.CheckResult {
+	// Get all branches. This will include information on whether they are protected.
+	branches, _, err := r.ListBranches(ctx, ownerStr, repoStr, &github.BranchListOptions{})
+	if err != nil {
+		return checker.MakeRetryResult(CheckBranchProtection, err)
+	}
+
 	// Get release branches
 	releases, _, err := r.ListReleases(ctx, ownerStr, repoStr, &github.ListOptions{})
 	if err != nil {
@@ -58,48 +75,100 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, l l
 	}
 
 	var checks []checker.CheckResult
-	checkedBranches := map[string]bool{}
+	commit := regexp.MustCompile("^[a-f0-9]{40}$")
+	checkBranches := make(map[string]bool)
 	for _, release := range releases {
-		// may be nil if release tag already exists
-		commitish := release.TargetCommitish
-		if commitish != nil && !checkedBranches[*commitish] {
-			res := getProtectionAndCheck(ctx, r, l, ownerStr, repoStr, *commitish)
-			checkedBranches[*commitish] = true
-			checks = append(checks, res)
+		if release.TargetCommitish == nil {
+			// Log with a named error if target_commitish is nil.
+			checks = append(checks, checker.MakeFailResult(CheckBranchProtection, ErrCommitishNil))
+			continue
 		}
+
+		// TODO: if this is a sha, get the associated branch. for now, ignore.
+		if commit.Match([]byte(*release.TargetCommitish)) {
+			continue
+		}
+
+		// Try to resolve the branch name.
+		name, err := resolveBranchName(ctx, r, ownerStr, repoStr, branches, *release.TargetCommitish)
+		if err != nil {
+			// If the commitish branch is still not found, fail.
+			checks = append(checks, checker.MakeFailResult(CheckBranchProtection, ErrBranchNotFound))
+			continue
+		}
+
+		// Branch is valid, add to list of branches to check.
+		checkBranches[*name] = true
 	}
 
-	// Default development branch check
+	// Add default branch
 	repo, _, err := r.Get(ctx, ownerStr, repoStr)
 	if err != nil {
 		return checker.MakeRetryResult(CheckBranchProtection, err)
 	}
-	if !checkedBranches[*repo.DefaultBranch] {
-		res := getProtectionAndCheck(ctx, r, l, ownerStr, repoStr, *repo.DefaultBranch)
-		checks = append(checks, res)
+	checkBranches[*repo.DefaultBranch] = true
+
+	// Check protections on the branches.
+	for b := range checkBranches {
+		protected, err := isBranchProtected(branches, b)
+		if err != nil {
+			checks = append(checks, checker.MakeFailResult(CheckBranchProtection, ErrBranchNotFound))
+		}
+		if !protected {
+			l("!! branch protection not enabled for branch %s", b)
+			checks = append(checks, checker.CheckResult{
+				Name:       CheckBranchProtection,
+				Pass:       false,
+				Confidence: checker.MaxResultConfidence,
+			})
+		} else {
+			// The branch is protected. Check the protection.
+			res := getProtectionAndCheck(ctx, r, l, ownerStr, repoStr, b)
+			checks = append(checks, res)
+		}
 	}
 
 	return checker.MultiCheckResultAnd(checks...)
 }
 
+func resolveBranchName(ctx context.Context, r repositories, ownerStr, repoStr string,
+	branches []*github.Branch, name string) (*string, error) {
+	fmt.Printf("finding branch %s\n", name)
+	// First check list of branches.
+	for _, b := range branches {
+		if b.GetName() == name {
+			fmt.Printf("found branch in branches %s\n", b.GetName())
+			return b.Name, nil
+		}
+	}
+	// Ideally, we should check using repositories.GetBranch if there was a branch redirect.
+	// See https://github.com/google/go-github/issues/1895
+	// For now, handle the common master -> main redirect.
+	if name == "master" {
+		return resolveBranchName(ctx, r, ownerStr, repoStr, branches, "main")
+	}
+
+	return nil, errors.New("branch not found")
+}
+
+func isBranchProtected(branches []*github.Branch, name string) (bool, error) {
+	// Returns bool indicating if protected.
+	for _, b := range branches {
+		if b.GetName() == name {
+			return b.GetProtected(), nil
+		}
+	}
+	return false, ErrBranchNotFound
+}
+
 func getProtectionAndCheck(ctx context.Context, r repositories, l logger, ownerStr, repoStr,
 	branch string) checker.CheckResult {
+	// We only call this if the branch is protected. An error indicates not found.
 	protection, resp, err := r.GetBranchProtection(ctx, ownerStr, repoStr, branch)
 
 	const fileNotFound = 404
 	if resp.StatusCode == fileNotFound {
 		return checker.MakeRetryResult(CheckBranchProtection, err)
-	}
-
-	if err != nil {
-		l("!! branch protection not enabled for branch %s", branch)
-		const confidence = checker.MaxResultConfidence
-
-		return checker.CheckResult{
-			Name:       CheckBranchProtection,
-			Pass:       false,
-			Confidence: confidence,
-		}
 	}
 
 	return IsBranchProtected(protection, branch, l)

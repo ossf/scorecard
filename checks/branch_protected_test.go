@@ -35,45 +35,73 @@ func (l *log) Logf(s string, f ...interface{}) {
 	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
 
-type mockRepos struct{}
-
-var get func(context.Context, string, string) (*github.Repository,
-	*github.Response, error)
-
-var listReleases func(ctx context.Context, owner string,
-	repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
-
-var getBranchProtection func(context.Context, string, string, string) (
-	*github.Protection, *github.Response, error)
+type mockRepos struct {
+	defaultBranch *string
+	branches      []*string
+	releases      []*string
+	protections   map[string]*github.Protection
+}
 
 func (m mockRepos) Get(ctx context.Context, o, r string) (
 	*github.Repository, *github.Response, error) {
-	return get(ctx, o, r)
+	return &github.Repository{
+		DefaultBranch: m.defaultBranch,
+	}, nil, nil
 }
 
 func (m mockRepos) ListReleases(ctx context.Context, owner string,
 	repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
-	return listReleases(ctx, owner, repo, opts)
+	var res []*github.RepositoryRelease
+	for _, rel := range m.releases {
+		res = append(res, &github.RepositoryRelease{TargetCommitish: rel})
+	}
+	return res, nil, nil
 }
 
 func (m mockRepos) GetBranchProtection(ctx context.Context, o string, r string,
 	b string) (*github.Protection, *github.Response, error) {
-	return getBranchProtection(ctx, o, r, b)
+	p, ok := m.protections[b]
+	if ok {
+		return p, &github.Response{
+			Response: &http.Response{StatusCode: http.StatusAccepted},
+		}, nil
+	}
+	return nil, &github.Response{
+			Response: &http.Response{StatusCode: http.StatusNotFound},
+		},
+		errors.New("404") //nolint: goerr113
+}
+
+func (m mockRepos) ListBranches(ctx context.Context, owner string, repo string,
+	opts *github.BranchListOptions) ([]*github.Branch, *github.Response, error) {
+	var res []*github.Branch
+	for _, rel := range m.branches {
+		_, protected := m.protections[*rel]
+		res = append(res, &github.Branch{Name: rel, Protected: &protected})
+	}
+	return res, nil, nil
 }
 
 func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mocks return different results per test case
 	t.Parallel()
 	l := log{}
+
 	rel1 := "release/v.1"
+	sha := "8fb3cb86082b17144a80402f5367ae65f06083bd"
+	main := "main"
 	tests := []struct {
-		name        string
-		releases    []*string
-		protections map[string]*github.Protection
-		want        checker.CheckResult
+		name          string
+		branches      []*string
+		defaultBranch *string
+		releases      []*string
+		protections   map[string]*github.Protection
+		want          checker.CheckResult
 	}{
 		{
-			name:     "Only development branch",
-			releases: nil,
+			name:          "Only development branch",
+			defaultBranch: &main,
+			branches:      []*string{&rel1, &main},
+			releases:      nil,
 			protections: map[string]*github.Protection{
 				"main": {
 					RequiredStatusChecks: &github.RequiredStatusChecks{
@@ -119,8 +147,10 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 			},
 		},
 		{
-			name:     "Take worst of release and development",
-			releases: []*string{&rel1},
+			name:          "Take worst of release and development",
+			defaultBranch: &main,
+			branches:      []*string{&rel1, &main},
+			releases:      []*string{&rel1},
 			protections: map[string]*github.Protection{
 				"main": {
 					RequiredStatusChecks: &github.RequiredStatusChecks{
@@ -199,8 +229,10 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 			},
 		},
 		{
-			name:     "Both release and development are OK",
-			releases: []*string{&rel1},
+			name:          "Both release and development are OK",
+			defaultBranch: &main,
+			branches:      []*string{&rel1, &main},
+			releases:      []*string{&rel1},
 			protections: map[string]*github.Protection{
 				"main": {
 					RequiredStatusChecks: &github.RequiredStatusChecks{
@@ -278,46 +310,116 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 				Error:       nil,
 			},
 		},
-	}
-
-	get = func(context.Context, string, string) (*github.Repository,
-		*github.Response, error) {
-		b := "main"
-		return &github.Repository{
-			DefaultBranch: &b,
-		}, nil, nil
+		{
+			name:          "Ignore a non-branch targetcommitish",
+			defaultBranch: &main,
+			branches:      []*string{&rel1, &main},
+			releases:      []*string{&sha},
+			protections: map[string]*github.Protection{
+				"main": {
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   false,
+						Contexts: nil,
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          false,
+						RequireCodeOwnerReviews:      false,
+						RequiredApprovingReviewCount: 0,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
+						Enabled: false,
+					},
+					Restrictions: &github.BranchRestrictions{
+						Users: nil,
+						Teams: nil,
+						Apps:  nil,
+					},
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: false,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: false,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: false,
+					},
+				},
+			},
+			want: checker.CheckResult{
+				Name:        CheckBranchProtection,
+				Pass:        false,
+				Details:     nil,
+				Confidence:  7,
+				ShouldRetry: false,
+				Error:       nil,
+			},
+		},
+		{
+			name:          "TargetCommittish nil",
+			defaultBranch: &main,
+			branches:      []*string{&main},
+			releases:      []*string{nil},
+			protections: map[string]*github.Protection{
+				"main": {
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   false,
+						Contexts: nil,
+					},
+					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+						DismissalRestrictions: &github.DismissalRestrictions{
+							Users: nil,
+							Teams: nil,
+						},
+						DismissStaleReviews:          false,
+						RequireCodeOwnerReviews:      false,
+						RequiredApprovingReviewCount: 0,
+					},
+					EnforceAdmins: &github.AdminEnforcement{
+						URL:     nil,
+						Enabled: false,
+					},
+					Restrictions: &github.BranchRestrictions{
+						Users: nil,
+						Teams: nil,
+						Apps:  nil,
+					},
+					RequireLinearHistory: &github.RequireLinearHistory{
+						Enabled: false,
+					},
+					AllowForcePushes: &github.AllowForcePushes{
+						Enabled: false,
+					},
+					AllowDeletions: &github.AllowDeletions{
+						Enabled: false,
+					},
+				},
+			},
+			want: checker.CheckResult{
+				Name:        CheckBranchProtection,
+				Pass:        false,
+				Details:     nil,
+				Confidence:  10,
+				ShouldRetry: false,
+				Error:       ErrCommitishNil,
+			},
+		},
 	}
 
 	for _, tt := range tests { //nolint:paralleltest // mocks return different results per test case
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		l.messages = []string{}
 
-		listReleases = func(ctx context.Context, owner string,
-			repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
-			// Use a couple of releases with some targetcommitish
-			var res []*github.RepositoryRelease
-			for _, rel := range tt.releases {
-				res = append(res, &github.RepositoryRelease{TargetCommitish: rel})
-			}
-			return res, nil, nil
-		}
-
-		getBranchProtection = func(ctx context.Context, o string, r string,
-			b string) (*github.Protection, *github.Response, error) {
-			p, ok := tt.protections[b]
-			if ok {
-				return p, &github.Response{
-					Response: &http.Response{StatusCode: http.StatusAccepted},
-				}, nil
-			}
-			return nil, &github.Response{
-					Response: &http.Response{StatusCode: http.StatusNotFound},
-				},
-				errors.New("404") //nolint: goerr113
-		}
-
 		t.Run(tt.name, func(t *testing.T) {
-			got := checkReleaseAndDevBranchProtection(context.Background(), mockRepos{},
+			m := mockRepos{defaultBranch: tt.defaultBranch,
+				branches:    tt.branches,
+				releases:    tt.releases,
+				protections: tt.protections}
+			got := checkReleaseAndDevBranchProtection(context.Background(), m,
 				l.Logf, "testowner", "testrepo")
 			got.Details = l.messages
 			if got.Confidence != tt.want.Confidence || got.Pass != tt.want.Pass {
