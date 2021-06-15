@@ -231,7 +231,7 @@ checks:
       branches, such as requiring a review or passing certain status checks.
       This check would work only when the token has [Admin
       access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197)
-      to the repository. This check determines if the default branch is
+      to the repository. This check determines if the default and release branches are
       protected. More specifically, the checks for AllowForcePushes (disabled),
       AllowDeletions (disabled),  EnforceAdmins (enabled), RequireLinearHistory
       (enabled), RequiredStatusChecks (enabled and must have non-empty context
