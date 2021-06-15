@@ -17,7 +17,6 @@ package checks
 import (
 	"context"
 	"errors"
-	"fmt"
 	"regexp"
 
 	"github.com/google/go-github/v32/github"
@@ -132,11 +131,9 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, l l
 }
 
 func resolveBranchName(branches []*github.Branch, name string) (*string, error) {
-	fmt.Printf("finding branch %s\n", name)
 	// First check list of branches.
 	for _, b := range branches {
 		if b.GetName() == name {
-			fmt.Printf("found branch in branches %s\n", b.GetName())
 			return b.Name, nil
 		}
 	}
