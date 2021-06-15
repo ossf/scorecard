@@ -39,14 +39,14 @@ func NewStoragePath(repo RepoURL, tempDir string) (StoragePath, error) {
 	bucketPath := fmt.Sprintf("gitcache/%s/%s/%s", repo.Host, repo.Owner, repo.Repo)
 	gitDir := path.Join(tempDir, repo.NonURLString())
 
-	err := os.Mkdir(gitDir, 0755)
+	err := os.Mkdir(gitDir, 0o755)
 	if err != nil {
 		return StoragePath{}, errors.Wrapf(err, "unable to temp directory %s", gitDir)
 	}
 	gitTarPath := path.Join(gitDir, "gitfolder.tar.gz")
 
 	blobArchiveDir := gitDir + "tar"
-	err = os.Mkdir(blobArchiveDir, 0755)
+	err = os.Mkdir(blobArchiveDir, 0o755)
 	if err != nil {
 		return StoragePath{}, errors.Wrapf(err, "unable to create temp directory for blob archive %s", blobArchiveDir)
 	}
