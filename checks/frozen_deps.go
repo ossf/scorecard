@@ -17,6 +17,7 @@ package checks
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"regexp"
 	"strings"
 
@@ -35,6 +36,12 @@ var ErrInvalidDockerfile = errors.New("invalid docker file")
 // ErrEmptyFile : Invalid docker file.
 var ErrEmptyFile = errors.New("file has no content")
 
+// ErrParsingDockerfile
+var ErrParsingDockerfile = errors.New("file cannot be parsed")
+
+// ErrParsingShellCommand
+var ErrParsingShellCommand = errors.New("shell command cannot be parsed")
+
 //nolint:gochecknoinits
 func init() {
 	registerCheck(CheckFrozenDeps, FrozenDeps)
@@ -42,11 +49,25 @@ func init() {
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
 func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheckAnd(
-		isPackageManagerLockFilePresent,
-		isGitHubActionsWorkflowPinned,
-		isDockerfilePinned,
-	)(c)
+	// return checker.MultiCheckAnd(
+	// 	isPackageManagerLockFilePresent,
+	// 	isGitHubActionsWorkflowPinned,
+	// 	isDockerfilePinned,
+	// )(c)
+	var content []byte
+	content, err := ioutil.ReadFile("checks/testdata/Dockerfile-curl")
+	if err != nil {
+		c.Logf("ioutil.ReadFile: %v", err)
+		return checker.MakeFailResult(CheckFrozenDeps, err)
+	}
+
+	_, err = validateDockerfileDownloads("some/path", content, c.Logf)
+	if err != nil {
+		c.Logf("validateDockerfileDownloads: %v", err)
+		return checker.MakeFailResult(CheckFrozenDeps, err)
+	}
+	return checker.MakePassResult(CheckFrozenDeps)
+	// return CheckFilesContent(CheckFrozenDeps, "*", true, c, validateDockerfileDownloads)
 }
 
 // TODO(laurent): need to support GCB

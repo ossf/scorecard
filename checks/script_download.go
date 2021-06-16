@@ -86,12 +86,15 @@ func getGsutilOututFile(cmd []string) (string, bool, error) {
 				continue
 			}
 			pathfn := cmd[i+1]
-			if filepath.Dir(pathfn) == pathfn {
+			fmt.Printf("%v vs %v\n", filepath.Dir(pathfn), pathfn)
+			if filepath.Clean(filepath.Dir(pathfn)) == filepath.Clean(pathfn) {
+				fmt.Printf("is a dir\n")
 				// Directory.
 				u, err := url.Parse(cmd[i])
 				if err != nil {
 					return "", false, fmt.Errorf("url.Parse: %w", err)
 				}
+				fmt.Printf("u.Path:%v\n", u.Path)
 				return filepath.Join(filepath.Dir(pathfn), path.Base(u.Path)), true, nil
 			}
 
@@ -112,7 +115,7 @@ func getAwsOututFile(cmd []string) (string, bool, error) {
 		// Just take the last 2 arguments.
 		ifile := cmd[len(cmd)-2]
 		ofile := cmd[len(cmd)-1]
-		if filepath.Dir(ofile) == ofile {
+		if filepath.Clean(filepath.Dir(ofile)) == filepath.Clean(ofile) {
 			u, err := url.Parse(ifile)
 			if err != nil {
 				return "", false, fmt.Errorf("url.Parse: %w", err)
@@ -127,25 +130,31 @@ func getAwsOututFile(cmd []string) (string, bool, error) {
 }
 
 func getOutputFile(cmd []string) (string, bool, error) {
+	fmt.Printf("getOutputFile:%v\n", cmd)
 	if len(cmd) == 0 {
 		return "", false, nil
 	}
 
 	// Wget.
+	fmt.Printf("wget\n")
 	fn, b, err := getWgetOututFile(cmd)
 	if err != nil || b {
 		return fn, b, err
 	}
 
 	// Gsutil.
+	fmt.Printf("gsutil\n")
 	fn, b, err = getGsutilOututFile(cmd)
 	if err != nil || b {
+		fmt.Printf("return %v\n", fn)
 		return fn, b, err
 	}
 
 	// Aws.
+	fmt.Printf("aws\n")
 	fn, b, err = getAwsOututFile(cmd)
 	if err != nil || b {
+		fmt.Printf("fnn:%s\n", fn)
 		return fn, b, err
 	}
 
@@ -271,45 +280,45 @@ func getRedirectFile(red []*syntax.Redirect) (string, bool) {
 	return "", false
 }
 
-func isFetchFileExecute(bc *syntax.BinaryCmd, cmd, pathfn string,
-	logf func(s string, f ...interface{})) bool {
+// func isFetchFileExecute(bc *syntax.BinaryCmd, cmd, pathfn string,
+// 	logf func(s string, f ...interface{})) bool {
 
-	// Check for && operator.
-	if !strings.EqualFold(bc.Op.String(), "&&") {
-		return false
-	}
+// 	// Check for && operator.
+// 	if !strings.EqualFold(bc.Op.String(), "&&") {
+// 		return false
+// 	}
 
-	leftStmt, ok := extractCommand(bc.X.Cmd)
-	if !ok {
-		// logf("not leftStmt: %v", leftStmt)
-		return false
-	}
-	rightStmt, ok := extractCommand(bc.Y.Cmd)
-	if !ok {
-		// logf("not rightStmt: %v", rightStmt)
-		return false
-	}
+// 	leftStmt, ok := extractCommand(bc.X.Cmd)
+// 	if !ok {
+// 		// logf("not leftStmt: %v", leftStmt)
+// 		return false
+// 	}
+// 	rightStmt, ok := extractCommand(bc.Y.Cmd)
+// 	if !ok {
+// 		// logf("not rightStmt: %v", rightStmt)
+// 		return false
+// 	}
 
-	if !isDownloadUtility(leftStmt) {
-		// logf("not isDownloadUtility: %v", leftStmt)
-		return false
-	}
+// 	if !isDownloadUtility(leftStmt) {
+// 		// logf("not isDownloadUtility: %v", leftStmt)
+// 		return false
+// 	}
 
-	fn, ok := getRedirectFile(bc.X.Redirs)
-	if !ok {
-		return false
-	}
+// 	fn, ok := getRedirectFile(bc.X.Redirs)
+// 	if !ok {
+// 		return false
+// 	}
 
-	if !isInterpreterWithFile(rightStmt, fn) {
-		// logf("not isShell: %v", rightStmt)
-		return false
-	}
+// 	if !isInterpreterWithFile(rightStmt, fn) {
+// 		// logf("not isShell: %v", rightStmt)
+// 		return false
+// 	}
 
-	logf("!! frozen-deps/fetch-execute - %v is fetching and executing non-pinned program '%v'",
-		pathfn, cmd)
-	// logf("we found a candidate: %v | %v", leftStmt, rightStmt)
-	return true
-}
+// 	logf("!! frozen-deps/fetch-execute - %v is fetching and executing non-pinned program '%v'",
+// 		pathfn, cmd)
+// 	// logf("we found a candidate: %v | %v", leftStmt, rightStmt)
+// 	return true
+// }
 
 func isInterpreterWithFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
 	logf func(s string, f ...interface{})) bool {
@@ -564,17 +573,17 @@ func isSuFetchStdinExecute(node syntax.Node, cmd, pathfn string,
 		return false, fmt.Errorf("syntax.NewParser: %w", err)
 	}
 
-	cmdValidated := true
+	isFetch := false
 	syntax.Walk(f, func(node syntax.Node) bool {
 		if isFetchStdinExecute(node, cmd, pathfn, logf) {
-			cmdValidated = false
+			isFetch = true
 		}
 
 		// Continue walking the node graph.
 		return true
 	})
 
-	return cmdValidated, nil
+	return isFetch, nil
 }
 
 func validateCommandIsNotSuFetchToStdinExecute(cmd, pathfn string,
@@ -594,7 +603,7 @@ func validateCommandIsNotSuFetchToStdinExecute(cmd, pathfn string,
 		b, err := isSuFetchStdinExecute(node, cmd, pathfn, logf)
 		if err != nil {
 			return false
-		} else if !b {
+		} else if b {
 			cmdValidated = false
 		}
 
@@ -726,6 +735,17 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 
 		// TODO(laurent): add check for cat file | bash
 		// TODO(laurent): detect downloads of zip/tar files containing scripts.
+		// TODO(laurent): detect download elf file then execute
+		// TODO(laurent): detect commmand being an env variable
+
+		// Check if a previously-downloaded file is executed via
+		// `bash <some-already-downloaded-file>`.
+		r, err = validateCommandIsNotFileExecute(valueList[0], pathfn, files, logf)
+		if err != nil {
+			return false, err
+		} else if !r {
+			ret = false
+		}
 
 		// Record the name of downloaded file, if any.
 		fn, b, err := recordFetchFileFromString(valueList[0])
@@ -737,15 +757,7 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 				files[f] = true
 			}
 		}
-
-		// Check if a previously-downloaded file is executed via
-		// `bash <some-already-downloaded-file>`.
-		r, err = validateCommandIsNotFileExecute(valueList[0], pathfn, files, logf)
-		if err != nil {
-			return false, err
-		} else if !r {
-			ret = false
-		}
 	}
+	logf("ret:%v", ret)
 	return ret, nil
 }

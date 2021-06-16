@@ -1,0 +1,72 @@
+
+# Copyright 2021 Security Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
+
+# 如果在中国，apt使用163源, ifconfig.co/json, http://ip-api.com 
+
+RUN wget program 
+RUN curl | echo
+
+# aws
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script . 
+
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /tmp/file1 && bash /tmp/fileXXX
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /tmp/file2 ; bash /tmp/file1234
+
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script . && bash scriptxxx
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /path/to/ && bash /path/to/scriptxxx
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script2 /path/to/
+RUN bash /path/to/script2xxx
+
+# curl
+RUN curl http://file 2>&1 > /tmp/file1 && sh /tmp/filex
+RUN curl http://file2 2>&1 > /tmp/file2 ; sh /tmp/filex
+RUN curl http://file2 2>&1 > /tmp/file2 ; sh /tmp/filex
+RUN curl http://file2 2>&1 > /tmp/file4 ; \
+    bash /tmp/file5
+
+RUN echo hello && curl -s http://etc/file | echo 
+RUN echo hello && curl -s http://file-with-sudo2 | sudo echo
+
+# gsutil
+RUN gsutil gs://file /tmp/file
+RUN bash /tmp/filezx
+
+RUN gsutil gs://file /tmp/file1 && bash /tmp/fileqw
+RUN gsutil gs://file /tmp/file2 ; bash /tmp/file122
+
+RUN gsutil gs://bucket/file . && bash ./file2222
+RUN gsutil gs://bucet/file /path/to/ && bash /path/to/fileqqq
+RUN gsutil gs://bucet/file2 /path/to/ && bash /path/to/file2234
+RUN bash /path/to/fileshsj
+
+RUN bash somescript.sh
+
+RUN sudo su -c "bash blabl.sh" root
+
+RUN echo hello && sudo curl -s file-with-sudo | echo | bla
+
+RUN echo hello && wget -0 - ifconfig.co/json | echo
+
+RUN wget http://file -O /tmp/file
+RUN bash /tmp/filegshek
+
+RUN wget http://file -O /tmp/file1 && bash /tmp/file1xxxx
+RUN wget http://file -O /tmp/file2 ; bash /tmp/file2xxxxx
+RUN wget http://domain.com/file . && bash ./fileccc
+
+FROM scratch
+FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
