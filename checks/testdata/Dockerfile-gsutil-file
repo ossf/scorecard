@@ -2,7 +2,7 @@
 # Copyright 2021 Security Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
+# you may not use this exe except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #      http://www.apache.org/licenses/LICENSE-2.0
@@ -15,16 +15,34 @@
 
 FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
 
+RUN gsutil gs://exe /tmp/exe
+RUN bash /tmp/exe
+
+RUN gsutil gs://exe /tmp/exe1 && bash /tmp/exe1
+RUN gsutil gs://exe /tmp/exe2 ; bash /tmp/exe2
+
+RUN gsutil gs://bucet/exe6 /path/to/
+
+RUN gsutil gs://bucket/exe . && bash ./exe
+RUN gsutil gs://bucet/exe3 /path/to/ && bash /path/to/exe3
+RUN gsutil gs://bucet/exe4 /path/to/ && bash /path/to/exe4
+
+RUN bash /path/to/exe6
+
 RUN gsutil gs://file /tmp/file
 RUN bash /tmp/file
 
 RUN gsutil gs://file /tmp/file1 && bash /tmp/file1
 RUN gsutil gs://file /tmp/file2 ; bash /tmp/file2
 
+RUN gsutil gs://bucet/file6 /path/to/
+
 RUN gsutil gs://bucket/file . && bash ./file
-RUN gsutil gs://bucet/file /path/to/ && bash /path/to/file
-RUN gsutil gs://bucet/file2 /path/to/ && bash /path/to/file2
-RUN bash /path/to/file2
+RUN gsutil gs://bucet/file3 /path/to/ && bash /path/to/file3
+RUN gsutil gs://bucet/file4 /path/to/ && bash /path/to/file4
+
+RUN bash /path/to/file6
+
 
 FROM scratch
 FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2

@@ -15,8 +15,19 @@
 
 FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
 
-RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script . 
-RUN bash script
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe9 . 
+RUN bash exe9
+
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe /tmp/file1 && bash /tmp/file1
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe /tmp/file2 ; bash /tmp/file2
+
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe . && bash exe
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe /path/to/ && bash /path/to/exe
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe2 /path/to/
+RUN bash /path/to/exe2
+
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script9 . 
+RUN bash script9
 
 RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /tmp/file1 && bash /tmp/file1
 RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /tmp/file2 ; bash /tmp/file2
