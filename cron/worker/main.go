@@ -20,8 +20,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	// nolint:gosec
+	_ "net/http/pprof"
 	"os"
-	"runtime/pprof"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/shurcooL/githubv4"
@@ -57,11 +59,6 @@ func processRequest(ctx context.Context,
 		return nil
 	}
 
-	var cpuProf bytes.Buffer
-	if err := pprof.StartCPUProfile(&cpuProf); err != nil {
-		return fmt.Errorf("error during pprof.StartCPUProfile: %w", err)
-	}
-
 	repoURLs := make([]repos.RepoURL, 0, len(batchRequest.GetRepos()))
 	for _, repo := range batchRequest.GetRepos() {
 		repoURL := repos.RepoURL{}
@@ -90,13 +87,6 @@ func processRequest(ctx context.Context,
 	}
 	log.Printf("Write to shard file successful: %s", filename)
 
-	pprof.StopCPUProfile()
-	cpuProfFilename := data.GetBlobFilename(
-		fmt.Sprintf("pprof.shard-%05d.cpu", batchRequest.GetShardNum()),
-		batchRequest.GetJobTime().AsTime())
-	if err := data.WriteToBlobStore(ctx, bucketURL, cpuProfFilename, cpuProf.Bytes()); err != nil {
-		return fmt.Errorf("error during WriteToBlobStore: %w", err)
-	}
 	return nil
 }
 
@@ -173,6 +163,11 @@ func main() {
 	}
 	defer exporter.StopMetricsExporter()
 
+	// Exposed for monitoring runtime profiles
+	go func() {
+		log.Fatal(http.ListenAndServe(":8080", nil))
+	}()
+
 	checksToRun := checks.AllChecks
 	// nolint
 	// FIXME :- deleting branch-protection
@@ -180,7 +175,6 @@ func main() {
 	// All of the checks from cron would fail and uses another call to the API.
 	// This will reduce usage of the API.
 	delete(checksToRun, checks.CheckBranchProtection)
-
 	for {
 		req, err := subscriber.SynchronousPull()
 		if err != nil {
