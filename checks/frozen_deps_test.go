@@ -200,12 +200,14 @@ func TestDockerfilePinning(t *testing.T) {
 
 func TestDockerfileScriptDownload(t *testing.T) {
 	t.Parallel()
+	//nolint
 	type args struct {
 		// Note: this seems to be defined in e2e/e2e_suite_test.go
 		Log      log
 		Filename string
 	}
 
+	//nolint
 	type returnValue struct {
 		Error          error
 		Result         bool

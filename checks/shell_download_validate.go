@@ -144,7 +144,6 @@ func getOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	// Gsutil.
 	fn, b, err = getGsutilOututFile(cmd)
 	if err != nil || b {
-		// fmt.Printf("return %v\n", fn)
 		return fn, b, err
 	}
 
@@ -361,9 +360,10 @@ func validateCommandIsNotFetchToFileExecute(cmd, pathfn string, logf func(s stri
 		if err != nil {
 			return false
 		}
-
+		var fn string
+		var b bool
 		// Record the file that is downloaded, if any.
-		fn, b, err := recordFetchFileFromNode(node)
+		fn, b, err = recordFetchFileFromNode(node)
 		if err != nil {
 			return false
 		} else if b {
