@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package clients
 
-import (
-	"context"
-	"net/http"
-
-	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
-
-	"github.com/ossf/scorecard/clients"
-)
-
-type CheckRequest struct {
-	Ctx         context.Context
-	Client      *github.Client
-	GraphClient *githubv4.Client
-	HTTPClient  *http.Client
-	RepoClient  clients.RepoClient
-	Logf        func(s string, f ...interface{})
-	Owner, Repo string
+type RepoClient interface {
+	InitRepo(owner, repo string) error
+	GetRepoArchive() []byte
 }
