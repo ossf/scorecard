@@ -32,6 +32,8 @@ import (
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/clients"
+	"github.com/ossf/scorecard/clients/githubrepo"
 	"github.com/ossf/scorecard/cron/config"
 	"github.com/ossf/scorecard/cron/data"
 	"github.com/ossf/scorecard/cron/monitoring"
@@ -44,6 +46,7 @@ import (
 
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap, bucketURL string,
+	repoClient clients.RepoClient,
 	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
@@ -75,7 +78,7 @@ func processRequest(ctx context.Context,
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoURL := range repoURLs {
 		log.Printf("Running Scorecard for repo: %s", repoURL.URL())
-		result := pkg.RunScorecards(ctx, repoURL, checksToRun, httpClient, githubClient, graphClient)
+		result := pkg.RunScorecards(ctx, repoURL, checksToRun, repoClient, httpClient, githubClient, graphClient)
 		result.Date = batchRequest.GetJobTime().AsTime().Format("2006-01-02")
 		err := result.AsJSON(true /*showDetails*/, &buffer)
 		if err != nil {
@@ -91,7 +94,9 @@ func processRequest(ctx context.Context,
 }
 
 func createNetClients(ctx context.Context) (
-	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client, logger *zap.Logger) {
+	repoClient clients.RepoClient,
+	httpClient *http.Client,
+	githubClient *github.Client, graphClient *githubv4.Client, logger *zap.Logger) {
 	cfg := zap.NewProductionConfig()
 	cfg.Level.SetLevel(zap.InfoLevel)
 	logger, err := cfg.Build()
@@ -106,6 +111,7 @@ func createNetClients(ctx context.Context) (
 	}
 	githubClient = github.NewClient(httpClient)
 	graphClient = githubv4.NewClient(httpClient)
+	repoClient = githubrepo.CreateGithubRepoClient(ctx, githubClient)
 	return
 }
 
@@ -155,7 +161,7 @@ func main() {
 		panic(fmt.Errorf("env_vars %s must be set", roundtripper.BucketURL))
 	}
 
-	httpClient, githubClient, graphClient, logger := createNetClients(ctx)
+	repoClient, httpClient, githubClient, graphClient, logger := createNetClients(ctx)
 
 	exporter, err := startMetricsExporter()
 	if err != nil {
@@ -185,7 +191,8 @@ func main() {
 			log.Print("subscription returned nil message during Receive, exiting")
 			break
 		}
-		if err := processRequest(ctx, req, checksToRun, bucketURL, httpClient, githubClient, graphClient); err != nil {
+		if err := processRequest(ctx, req, checksToRun, bucketURL,
+			repoClient, httpClient, githubClient, graphClient); err != nil {
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()
 		}

@@ -16,11 +16,11 @@ package checks
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"path"
 	"strings"
 
@@ -81,20 +81,8 @@ func extractFullpath(fn string) (string, bool) {
 	return fullpath, true
 }
 
-// Using the http.get instead of the lib httpClient because
-// the default checker.HTTPClient caches everything in the memory and it causes oom.
-func getHTTPResponse(url string) (*http.Response, error) {
-	//https://securego.io/docs/rules/g107.html
-	//nolint
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("get request failed: %w", err)
-	}
-	return resp, nil
-}
-
-func getTarReader(resp *http.Response) (*tar.Reader, error) {
-	gz, err := gzip.NewReader(resp.Body)
+func getTarReader(in io.Reader) (*tar.Reader, error) {
+	gz, err := gzip.NewReader(in)
 	if err != nil {
 		return nil, fmt.Errorf("gzip reader failed: %w", err)
 	}
@@ -115,20 +103,7 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 	onFileContent func(path string, content []byte,
 		Logf func(s string, f ...interface{})) (bool, error),
 ) checker.CheckResult {
-	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
-	if err != nil {
-		return checker.MakeRetryResult(checkName, err)
-	}
-	url := r.GetArchiveURL()
-	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
-	url = strings.Replace(url, "{/ref}", r.GetDefaultBranch(), 1)
-
-	resp, err := getHTTPResponse(url)
-	if err != nil {
-		return checker.MakeRetryResult(checkName, err)
-	}
-
-	tr, err := getTarReader(resp)
+	tr, err := getTarReader(bytes.NewReader(c.RepoClient.GetRepoArchive()))
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
 	}
