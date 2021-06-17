@@ -39,5 +39,6 @@ func MakeInMemoryCacheTransport(innerTransport http.RoundTripper) http.RoundTrip
 func makeCachedTransport(innerTransport http.RoundTripper, backingCache cache.Cache) http.RoundTripper {
 	c := cache.NewTransport(backingCache)
 	c.Transport = innerTransport
+	c.MarkCachedResponses = true
 	return c
 }

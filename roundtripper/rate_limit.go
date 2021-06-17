@@ -15,17 +15,12 @@
 package roundtripper
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
-	opencensusstats "go.opencensus.io/stats"
-	"go.opencensus.io/tag"
 	"go.uber.org/zap"
-
-	"github.com/ossf/scorecard/stats"
 )
 
 func MakeRateLimitedTransport(innerTransport http.RoundTripper, logger *zap.SugaredLogger) http.RoundTripper {
@@ -43,14 +38,6 @@ type rateLimitTransport struct {
 
 // Roundtrip handles caching and ratelimiting of responses from GitHub.
 func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error) {
-	// Reaching here implies we couldn't reply using cache.
-	ctx, err := tag.New(r.Context(), tag.Upsert(stats.RequestTag, "actual"))
-	if err != nil {
-		return nil, fmt.Errorf("error during tag.New: %w", err)
-	}
-	defer opencensusstats.Record(ctx, stats.HTTPRequests.M(1))
-
-	r = r.WithContext(ctx)
 	resp, err := gh.innerTransport.RoundTrip(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "error in round trip")
