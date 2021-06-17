@@ -29,6 +29,12 @@ var ErrParsingDockerfile = errors.New("file cannot be parsed")
 
 var ErrParsingShellCommand = errors.New("shell command cannot be parsed")
 
+var interpreters = []string{
+	"sh", "bash", "dash", "ksh", "python",
+	"perl", "ruby", "php", "node", "nodejs", "java",
+	"exec",
+}
+
 func isBinaryName(expected, name string) bool {
 	return strings.EqualFold(path.Base(name), expected)
 }
@@ -61,7 +67,7 @@ func isDownloadUtility(cmd []string) bool {
 func getWgetOututFile(cmd []string) (pathfn string, ok bool, err error) {
 	if isBinaryName("wget", cmd[0]) {
 		for i := 1; i < len(cmd)-1; i++ {
-			// Find -O output, or use the basename from url
+			// Find -O output, or use the basename from url.
 			if strings.EqualFold(cmd[i], "-O") {
 				return cmd[i+1], true, nil
 			}
@@ -161,12 +167,7 @@ func isInterpreter(cmd []string) bool {
 		return false
 	}
 
-	shells := []string{
-		"sh", "bash", "dash", "ksh", "python",
-		"perl", "ruby", "php", "node", "nodejs", "java",
-		"exec",
-	}
-	for _, b := range shells {
+	for _, b := range interpreters {
 		if isBinaryName(b, cmd[0]) {
 			return true
 		}
@@ -179,12 +180,7 @@ func isInterpreterWithFile(cmd []string, fn string) bool {
 		return false
 	}
 
-	shells := []string{
-		"sh", "bash", "dash", "ksh", "python",
-		"perl", "ruby", "php", "node", "nodejs", "java",
-		"exec",
-	}
-	for _, b := range shells {
+	for _, b := range interpreters {
 		if isBinaryName(b, cmd[0]) {
 			for _, arg := range cmd[1:] {
 				if strings.EqualFold(filepath.Clean(arg), filepath.Clean(fn)) {
