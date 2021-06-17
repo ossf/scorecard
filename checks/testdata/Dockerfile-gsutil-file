@@ -16,18 +16,18 @@
 FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
 
 RUN gsutil gs://exe /tmp/exe
-RUN bash /tmp/exe
+RUN /tmp/exe
 
-RUN gsutil gs://exe /tmp/exe1 && bash /tmp/exe1
-RUN gsutil gs://exe /tmp/exe2 ; bash /tmp/exe2
+RUN gsutil gs://exe /tmp/exe1 && /tmp/exe1
+RUN gsutil gs://exe /tmp/exe2 ; /tmp/exe2
 
 RUN gsutil gs://bucet/exe6 /path/to/
 
-RUN gsutil gs://bucket/exe . && bash ./exe
-RUN gsutil gs://bucet/exe3 /path/to/ && bash /path/to/exe3
-RUN gsutil gs://bucet/exe4 /path/to/ && bash /path/to/exe4
+RUN gsutil gs://bucket/exe . && ./exe
+RUN gsutil gs://bucet/exe3 /path/to/ && /path/to/exe3
+RUN gsutil gs://bucet/exe4 /path/to/ && /path/to/exe4
 
-RUN bash /path/to/exe6
+RUN /path/to/exe6
 
 RUN gsutil gs://file /tmp/file
 RUN bash /tmp/file

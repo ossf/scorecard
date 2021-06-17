@@ -16,12 +16,12 @@
 FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
 
 RUN wget http://exe-with-sudo -O /tmp/exe
-RUN bash /tmp/exe
+RUN /tmp/exe
 
-RUN wget http://exe-with-sudo -O /tmp/exe1 && bash /tmp/exe1
-RUN wget http://exe-with-sudo -O /tmp/exe2 ; bash /tmp/exe2
+RUN wget http://exe-with-sudo -O /tmp/exe1 && /tmp/exe1
+RUN wget http://exe-with-sudo -O /tmp/exe2 ; /tmp/exe2
 
-RUN wget http://domain.com/exe && bash ./exe
+RUN wget http://domain.com/exe && ./exe
 
 RUN wget http://file-with-sudo -O /tmp/file
 RUN bash /tmp/file

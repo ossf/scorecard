@@ -15,11 +15,11 @@
 
 FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
 
-RUN curl exe 2>&1 > /tmp/exe1 && sh /tmp/exe1
-RUN curl exe2 2>&1 > /tmp/exe2 ; sh /tmp/exe2
-RUN curl exe2 2>&1 > /tmp/exe4 ; sh /tmp/exe4
+RUN curl exe 2>&1 > /tmp/exe1 && /tmp/exe1
+RUN curl exe2 2>&1 > /tmp/exe2 ; /tmp/exe2
+RUN curl exe2 2>&1 > /tmp/exe4 ; /tmp/exe4
 RUN curl exe2 2>&1 > /tmp/exe3 ; \
-    bash /tmp/exe3
+    /tmp/exe3
 
 RUN curl file 2>&1 > /tmp/file1 && sh /tmp/file1
 RUN curl file2 2>&1 > /tmp/file2 ; sh /tmp/file2
