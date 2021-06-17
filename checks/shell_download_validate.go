@@ -25,10 +25,13 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 )
 
+// ErrParsingDockerfile indicates a problem parsing the dockerfile.
 var ErrParsingDockerfile = errors.New("file cannot be parsed")
 
+// ErrParsingShellCommand indicates a problem parsing a shell command.
 var ErrParsingShellCommand = errors.New("shell command cannot be parsed")
 
+// List of interpreters.
 var interpreters = []string{
 	"sh", "bash", "dash", "ksh", "python",
 	"perl", "ruby", "php", "node", "nodejs", "java",

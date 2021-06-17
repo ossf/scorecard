@@ -207,13 +207,13 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		Filename string
 	}
 
-	//nolint
 	type returnValue struct {
 		Error          error
 		Result         bool
 		NumberOfErrors int
 	}
 
+	//nolint
 	tests := []struct {
 		args args
 		want returnValue
