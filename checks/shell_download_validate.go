@@ -472,7 +472,8 @@ func extractSuCommand(args []*syntax.Word) (string, bool) {
 	return "", false
 }
 
-func validateCommandIsNotNotSuFetchToStdinExecute(cmd, pathfn string, logf func(s string, f ...interface{})) (bool, error) {
+func validateCommandIsNotNotSuFetchToStdinExecute(cmd, pathfn string,
+	logf func(s string, f ...interface{})) (bool, error) {
 	in := strings.NewReader(cmd)
 	f, err := syntax.NewParser().Parse(in, "")
 	if err != nil {
