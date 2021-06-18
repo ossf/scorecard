@@ -16,6 +16,8 @@ package pkg
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -82,7 +84,17 @@ func RunScorecards(ctx context.Context,
 	}
 	defer logStats(ctx, time.Now())
 
-	if err := repoClient.InitRepo(repo.Owner, repo.Repo); err != nil {
+	var e clients.ErrRepoUnavailable
+	if err := repoClient.InitRepo(repo.Owner, repo.Repo); errors.Is(err, &e) {
+		// Unable to access repo URL. Continue.
+		log.Printf("%s: %v", repo.URL(), err)
+		return repos.RepoResult{
+			Repo:     repo.URL(),
+			Date:     time.Now().Format("2006-01-02"),
+			Checks:   make([]checker.CheckResult, 0),
+			Metadata: []string{fmt.Sprintf("%v", err)},
+		}
+	} else if err != nil {
 		log.Panicf("error during InitRepo: %v", err)
 	}
 	ret := repos.RepoResult{

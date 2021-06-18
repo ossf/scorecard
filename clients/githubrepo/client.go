@@ -42,7 +42,8 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	client.repoName = repoName
 	repo, _, err := client.repoClient.Repositories.Get(client.ctx, client.owner, client.repoName)
 	if err != nil {
-		return fmt.Errorf("error during Repositories.Get: %w", err)
+		// nolint: wrapcheck
+		return clients.NewRepoUnavailableError(err)
 	}
 	client.repo = repo
 

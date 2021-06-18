@@ -14,7 +14,28 @@
 
 package clients
 
-import "io"
+import (
+	"fmt"
+	"io"
+)
+
+type ErrRepoUnavailable struct {
+	innerError error
+}
+
+func (e *ErrRepoUnavailable) Error() string {
+	return fmt.Sprintf("repo cannot be accessed: %v", e.innerError)
+}
+
+func (e *ErrRepoUnavailable) Unwrap() error {
+	return e.innerError
+}
+
+func NewRepoUnavailableError(err error) error {
+	return &ErrRepoUnavailable{
+		innerError: err,
+	}
+}
 
 type RepoClient interface {
 	InitRepo(owner, repo string) error
