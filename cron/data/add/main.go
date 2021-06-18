@@ -53,7 +53,7 @@ func main() {
 	if err := data.SortAndAppendTo(&buf, repoURLs, nil); err != nil {
 		panic(err)
 	}
-	projects, err := os.OpenFile(os.Args[1], os.O_WRONLY, 0o644)
+	projects, err := os.OpenFile(os.Args[1], os.O_WRONLY|os.O_CREATE, 0o644)
 	if err != nil {
 		panic(err)
 	}

@@ -60,7 +60,8 @@ check-linter: $(GOLANGGCI_LINT)
 add-projects: ## Adds new projects to ./cron/data/projects.csv
 add-projects: ./cron/data/projects.csv | build-add-script
 	# Add new projects to ./cron/data/projects.csv
-	./cron/data/add/add ./cron/data/projects.csv
+	./cron/data/add/add ./cron/data/projects.new.csv
+	mv ./cron/data/projects.new.csv ./cron/data/projects.csv
 
 validate-projects: ## Validates ./cron/data/projects.csv
 validate-projects: ./cron/data/projects.csv | build-validate-script
@@ -108,13 +109,13 @@ build-bq-transfer: ./cron/bq/*.go
 
 build-add-script: ## Runs go build on the add script
 build-add-script: cron/data/add/add
-cron/data/add/add: cron/data/add/*.go cron/data/*.go
+cron/data/add/add: cron/data/add/*.go cron/data/*.go cron/data/projects.csv
 	# Run go build on the add script
 	cd cron/data/add && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o add
 
 build-validate-script: ## Runs go build on the validate script
 build-validate-script: cron/data/validate/validate
-cron/data/validate/validate: cron/data/validate/*.go cron/data/*.go
+cron/data/validate/validate: cron/data/validate/*.go cron/data/*.go cron/data/projects.csv
 	# Run go build on the validate script
 	cd cron/data/validate && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o validate
 
