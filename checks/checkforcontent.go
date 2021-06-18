@@ -16,7 +16,6 @@ package checks
 
 import (
 	"archive/tar"
-	"bytes"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -103,7 +102,12 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 	onFileContent func(path string, content []byte,
 		Logf func(s string, f ...interface{})) (bool, error),
 ) checker.CheckResult {
-	tr, err := getTarReader(bytes.NewReader(c.RepoClient.GetRepoArchive()))
+	archiveReader, err := c.RepoClient.GetRepoArchiveReader()
+	if err != nil {
+		return checker.MakeRetryResult(checkName, err)
+	}
+	defer archiveReader.Close()
+	tr, err := getTarReader(archiveReader)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
 	}
