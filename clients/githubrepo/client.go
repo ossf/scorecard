@@ -17,8 +17,9 @@ package githubrepo
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
@@ -26,13 +27,14 @@ import (
 	"github.com/ossf/scorecard/clients"
 )
 
+const repoFilename = "./githubrepo.tar.gz"
+
 type Client struct {
-	repo        *github.Repository
-	repoClient  *github.Client
-	ctx         context.Context
-	owner       string
-	repoName    string
-	archiveData []byte
+	repo       *github.Repository
+	repoClient *github.Client
+	ctx        context.Context
+	owner      string
+	repoName   string
 }
 
 func (client *Client) InitRepo(owner, repoName string) error {
@@ -47,27 +49,35 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	url := client.repo.GetArchiveURL()
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
 	url = strings.Replace(url, "{/ref}", client.repo.GetDefaultBranch(), 1)
-
 	req, err := http.NewRequestWithContext(client.ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("error during http.NewRequestWithContext: %w", err)
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("%w", err)
+		return fmt.Errorf("error during HTTP call: %w", err)
 	}
 	defer resp.Body.Close()
 
-	respData, err := ioutil.ReadAll(resp.Body)
+	repoFile, err := os.OpenFile(repoFilename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
 	if err != nil {
-		return fmt.Errorf("%w", err)
+		return fmt.Errorf("error opening file %s for write: %w", repoFilename, err)
 	}
-	client.archiveData = respData
+	if _, err := io.Copy(repoFile, resp.Body); err != nil {
+		return fmt.Errorf("error during io.Copy: %w", err)
+	}
+	if err := repoFile.Close(); err != nil {
+		return fmt.Errorf("error during file Close: %w", err)
+	}
 	return nil
 }
 
-func (client *Client) GetRepoArchive() []byte {
-	return client.archiveData
+func (client *Client) GetRepoArchiveReader() (io.ReadCloser, error) {
+	archiveReader, err := os.OpenFile(repoFilename, os.O_RDONLY, 0o644)
+	if err != nil {
+		return archiveReader, fmt.Errorf("error opening file %s for read: %w", repoFilename, err)
+	}
+	return archiveReader, nil
 }
 
 func CreateGithubRepoClient(ctx context.Context, client *github.Client) clients.RepoClient {

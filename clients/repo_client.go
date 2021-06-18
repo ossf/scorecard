@@ -14,7 +14,9 @@
 
 package clients
 
+import "io"
+
 type RepoClient interface {
 	InitRepo(owner, repo string) error
-	GetRepoArchive() []byte
+	GetRepoArchiveReader() (io.ReadCloser, error)
 }

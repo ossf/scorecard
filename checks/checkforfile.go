@@ -16,7 +16,6 @@ package checks
 
 import (
 	"archive/tar"
-	"bytes"
 	"compress/gzip"
 	"errors"
 	"io"
@@ -29,7 +28,12 @@ import (
 // for the occurrence.
 func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(name string,
 	Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
-	gz, err := gzip.NewReader(bytes.NewReader(c.RepoClient.GetRepoArchive()))
+	archiveReader, err := c.RepoClient.GetRepoArchiveReader()
+	if err != nil {
+		return checker.MakeRetryResult(checkName, err)
+	}
+	defer archiveReader.Close()
+	gz, err := gzip.NewReader(archiveReader)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
 	}
