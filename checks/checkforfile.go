@@ -19,7 +19,6 @@ import (
 	"compress/gzip"
 	"errors"
 	"io"
-	"net/http"
 	"strings"
 
 	"github.com/ossf/scorecard/checker"
@@ -29,26 +28,12 @@ import (
 // for the occurrence.
 func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(name string,
 	Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
-	r, _, err := c.Client.Repositories.Get(c.Ctx, c.Owner, c.Repo)
+	archiveReader, err := c.RepoClient.GetRepoArchiveReader()
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
 	}
-	url := r.GetArchiveURL()
-	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
-	url = strings.Replace(url, "{/ref}", r.GetDefaultBranch(), 1)
-
-	// Using the http.get instead of the lib httpClient because
-	// the default checker.HTTPClient caches everything in the memory and it causes oom.
-
-	//https://securego.io/docs/rules/g107.html
-	//nolint
-	resp, err := http.Get(url)
-	if err != nil {
-		return checker.MakeRetryResult(checkName, err)
-	}
-	defer resp.Body.Close()
-
-	gz, err := gzip.NewReader(resp.Body)
+	defer archiveReader.Close()
+	gz, err := gzip.NewReader(archiveReader)
 	if err != nil {
 		return checker.MakeRetryResult(checkName, err)
 	}

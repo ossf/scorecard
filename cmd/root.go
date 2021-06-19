@@ -34,6 +34,7 @@ import (
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/clients/githubrepo"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/roundtripper"
@@ -133,7 +134,8 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		}
 		githubClient := github.NewClient(httpClient)
 		graphClient := githubv4.NewClient(httpClient)
-		repoResult := pkg.RunScorecards(ctx, repo, enabledChecks, httpClient, githubClient, graphClient)
+		repoClient := githubrepo.CreateGithubRepoClient(ctx, githubClient)
+		repoResult := pkg.RunScorecards(ctx, repo, enabledChecks, repoClient, httpClient, githubClient, graphClient)
 		repoResult.Metadata = append(repoResult.Metadata, metaData...)
 
 		// Sort them by name
