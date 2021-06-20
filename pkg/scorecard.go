@@ -84,8 +84,8 @@ func RunScorecards(ctx context.Context,
 	}
 	defer logStats(ctx, time.Now())
 
-	var e clients.ErrRepoUnavailable
-	if err := repoClient.InitRepo(repo.Owner, repo.Repo); errors.Is(err, &e) {
+	var e *clients.ErrRepoUnavailable
+	if err := repoClient.InitRepo(repo.Owner, repo.Repo); errors.As(err, &e) {
 		// Unable to access repo URL. Continue.
 		log.Printf("%s: %v", repo.URL(), err)
 		return repos.RepoResult{
