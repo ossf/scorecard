@@ -81,7 +81,9 @@ jobs:
       - name: Run E2E 
         env:  
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-        run: make ci-e2e
+        run: |
+              go env -w GOFLAGS=-mod=mod
+              make ci-e2e
 
       - name: Test disk cache
         env:  
