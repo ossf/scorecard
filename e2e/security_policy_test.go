@@ -22,16 +22,24 @@ import (
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/clients/githubrepo"
 )
 
 var _ = Describe("E2E TEST:SecurityPolicy", func() {
 	Context("E2E TEST:Validating security policy", func() {
 		It("Should return valid security policy", func() {
 			l := log{}
+			ctx := context.Background()
+			// Init the github client.
+			repoClient := githubrepo.CreateGithubRepoClient(ctx, ghClient)
+			if err := repoClient.InitRepo("tensorflow", "tensorflow"); err != nil {
+				panic(err)
+			}
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
-				HTTPClient:  client,
+				HTTPClient:  httpClient,
+				RepoClient:  repoClient,
 				Owner:       "tensorflow",
 				Repo:        "tensorflow",
 				GraphClient: graphClient,

@@ -32,7 +32,8 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
-				HTTPClient:  client,
+				HTTPClient:  httpClient,
+				RepoClient:  nil,
 				Owner:       "ossf",
 				Repo:        "scorecard",
 				GraphClient: graphClient,
@@ -47,7 +48,8 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
-				HTTPClient:  client,
+				HTTPClient:  httpClient,
+				RepoClient:  nil,
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,

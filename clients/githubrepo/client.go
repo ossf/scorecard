@@ -27,7 +27,7 @@ import (
 	"github.com/ossf/scorecard/clients"
 )
 
-const repoFilename = "./githubrepo.tar.gz"
+const repoFilename = "/tmp/%v.%v.githubrepo.tar.gz"
 
 type Client struct {
 	repo       *github.Repository
@@ -40,6 +40,7 @@ type Client struct {
 func (client *Client) InitRepo(owner, repoName string) error {
 	client.owner = owner
 	client.repoName = repoName
+
 	repo, _, err := client.repoClient.Repositories.Get(client.ctx, client.owner, client.repoName)
 	if err != nil {
 		// nolint: wrapcheck
@@ -52,31 +53,41 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	url = strings.Replace(url, "{/ref}", client.repo.GetDefaultBranch(), 1)
 	req, err := http.NewRequestWithContext(client.ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return fmt.Errorf("error during http.NewRequestWithContext: %w", err)
+		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("error during HTTP call: %w", err)
+		return fmt.Errorf("http.DefaultClient.Do: %w", err)
 	}
 	defer resp.Body.Close()
 
-	repoFile, err := os.OpenFile(repoFilename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
-	if err != nil {
-		return fmt.Errorf("error opening file %s for write: %w", repoFilename, err)
+	tarfile := fmt.Sprintf(repoFilename, owner, repoName)
+	repoFile, err := os.OpenFile(tarfile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC|os.O_EXCL, 0o644)
+	if err != nil && !os.IsExist(err) {
+		return fmt.Errorf("os.OpenFile: %w", err)
 	}
+	defer repoFile.Close()
+
 	if _, err := io.Copy(repoFile, resp.Body); err != nil {
-		return fmt.Errorf("error during io.Copy: %w", err)
+		return fmt.Errorf("io.Copy: %w", err)
 	}
-	if err := repoFile.Close(); err != nil {
-		return fmt.Errorf("error during file Close: %w", err)
+	return nil
+}
+
+func (client *Client) ReleaseRepo() error {
+	tarfile := fmt.Sprintf(repoFilename, client.owner, client.repoName)
+	err := os.Remove(tarfile)
+	if !os.IsNotExist(err) {
+		return fmt.Errorf("os.Remove: %w", err)
 	}
 	return nil
 }
 
 func (client *Client) GetRepoArchiveReader() (io.ReadCloser, error) {
-	archiveReader, err := os.OpenFile(repoFilename, os.O_RDONLY, 0o644)
+	tarfile := fmt.Sprintf(repoFilename, client.owner, client.repoName)
+	archiveReader, err := os.OpenFile(tarfile, os.O_RDONLY, 0o644)
 	if err != nil {
-		return archiveReader, fmt.Errorf("error opening file %s for read: %w", repoFilename, err)
+		return archiveReader, fmt.Errorf("os.OpenFile: %w", err)
 	}
 	return archiveReader, nil
 }

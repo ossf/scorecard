@@ -78,6 +78,7 @@ var serveCmd = &cobra.Command{
 			githubClient := github.NewClient(httpClient)
 			graphClient := githubv4.NewClient(httpClient)
 			repoClient := githubrepo.CreateGithubRepoClient(ctx, githubClient)
+			defer repoClient.ReleaseRepo()
 			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient, httpClient, githubClient, graphClient)
 			if err != nil {
 				sugar.Error(err)

@@ -22,15 +22,23 @@ import (
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/clients/githubrepo"
 )
 
 var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
 	Context("E2E TEST:Validating dependencies are automatically updated", func() {
 		It("Should return deps are automatically updated for dependabot", func() {
 			l := log{}
+			ctx := context.Background()
+			// Init the github client.
+			repoClient := githubrepo.CreateGithubRepoClient(ctx, ghClient)
+			if err := repoClient.InitRepo("apache", "airflow"); err != nil {
+				panic(err)
+			}
 			checker := checker.CheckRequest{
-				Ctx:         context.Background(),
+				Ctx:         ctx,
 				Client:      ghClient,
+				RepoClient:  repoClient,
 				Owner:       "ossf",
 				Repo:        "scorecard",
 				GraphClient: graphClient,
@@ -42,9 +50,15 @@ var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
 		})
 		It("Should return deps are automatically updated for renovatebot", func() {
 			l := log{}
+			ctx := context.Background()
+			repoClient := githubrepo.CreateGithubRepoClient(ctx, ghClient)
+			if err := repoClient.InitRepo("netlify", "netlify-cms"); err != nil {
+				panic(err)
+			}
 			checker := checker.CheckRequest{
-				Ctx:         context.Background(),
+				Ctx:         ctx,
 				Client:      ghClient,
+				RepoClient:  repoClient,
 				Owner:       "netlify",
 				Repo:        "netlify-cms",
 				GraphClient: graphClient,

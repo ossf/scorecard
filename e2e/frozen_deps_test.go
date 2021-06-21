@@ -23,16 +23,24 @@ import (
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/clients/githubrepo"
 )
 
 var _ = Describe("E2E TEST:FrozenDeps", func() {
 	Context("E2E TEST:Validating deps are frozen", func() {
 		It("Should return deps are not frozen", func() {
 			l := log{}
+			ctx := context.Background()
+			// Init the github client.
+			repoClient := githubrepo.CreateGithubRepoClient(ctx, ghClient)
+			if err := repoClient.InitRepo("tensorflow", "tensorflow"); err != nil {
+				panic(err)
+			}
 			checkRequest := checker.CheckRequest{
-				Ctx:         context.Background(),
+				Ctx:         ctx,
 				Client:      ghClient,
-				HTTPClient:  client,
+				HTTPClient:  httpClient,
+				RepoClient:  repoClient,
 				Owner:       "tensorflow",
 				Repo:        "tensorflow",
 				GraphClient: graphClient,
@@ -42,12 +50,19 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 		})
-		It("Should return deps are not frozen", func() {
+		It("Should return deps are frozen", func() {
 			l := log{}
+			ctx := context.Background()
+			// Init the github client.
+			repoClient := githubrepo.CreateGithubRepoClient(ctx, ghClient)
+			if err := repoClient.InitRepo("ossf", "scorecard"); err != nil {
+				panic(err)
+			}
 			checkRequest := checker.CheckRequest{
-				Ctx:         context.Background(),
+				Ctx:         ctx,
 				Client:      ghClient,
-				HTTPClient:  client,
+				HTTPClient:  httpClient,
+				RepoClient:  repoClient,
 				Owner:       "ossf",
 				Repo:        "scorecard",
 				GraphClient: graphClient,
