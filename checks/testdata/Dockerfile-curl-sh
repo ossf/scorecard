@@ -18,6 +18,7 @@ FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f878766
 RUN echo hello && curl -s /etc/file | sh
 RUN echo hello && curl -s file-with-sudo2 | sudo bash
 RUN echo hello && sudo curl -s file-with-sudo | bash | bla
+RUN ["echo", "hello", "&&", "curl", "-s", "/etc/file", "|", "sh"]
 
 FROM scratch
 FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2

@@ -37,5 +37,8 @@ RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /path/to/
 RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script2 /path/to/
 RUN bash /path/to/script2
 
+RUN ["aws", "s3api", "get-object", "--bucket", "DOC-EXAMPLE-BUCKET1", "--key", "dir/exe10", "."]
+RUN ["exe10"]
+
 FROM scratch
 FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2

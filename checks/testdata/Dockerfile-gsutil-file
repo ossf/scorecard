@@ -43,6 +43,8 @@ RUN gsutil gs://bucet/file4 /path/to/ && bash /path/to/file4
 
 RUN bash /path/to/file6
 
+RUN ["gsutil", "gs://exe11", "/tmp/exe11"]
+RUN ["/tmp/exe11"]
 
 FROM scratch
 FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2

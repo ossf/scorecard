@@ -17,6 +17,7 @@ FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f878766
 
 RUN bash <(wget -qO- http://website.com/my-script.sh)
 RUN bash <(curl -s https://codecov.io/bash)
+RUN ["bash", "<(curl -s https://codecov.io/bash)"]
 
 RUN sudo su -c "bash <(wget -qO- http://website.com/my-script.sh)" root
 RUN sudo su -c "bash <(curl -s https://codecov.io/bash)" root

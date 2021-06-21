@@ -48,6 +48,7 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 		isDockerfilePinned,
 		isDockerfileFreeOfInsecureDownloads,
 	)(c)
+	return CheckFilesContent(CheckFrozenDeps, "*", true, c, validateDockerfileDownloads)
 }
 
 // TODO(laurent): need to support GCB pinning.
@@ -80,13 +81,14 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 			valueList = append(valueList, n.Value)
 		}
 
-		if len(valueList) != 1 {
+		if len(valueList) == 0 {
 			return false, ErrParsingDockerfile
 		}
 
+		cmd := strings.Join(valueList, " ")
 		// Validate it's not downloading and piping into a shell, like
 		// `curl | bash` (supports `sudo`).
-		r, err := validateCommandIsNotFetchPipeExecute(valueList[0], pathfn, logf)
+		r, err := validateCommandIsNotFetchPipeExecute(cmd, pathfn, logf)
 		if err != nil {
 			return false, err
 		} else if !r {
@@ -99,7 +101,7 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 		//			   `curl > /tmp/file; bash /tmp/file`
 		//			   `curl > /tmp/file; /tmp/file`
 		// (supports `sudo`).
-		r, err = validateCommandIsNotFetchToFileExecute(valueList[0], pathfn, logf)
+		r, err = validateCommandIsNotFetchToFileExecute(cmd, pathfn, logf)
 		if err != nil {
 			return false, err
 		} else if !r {
@@ -108,7 +110,7 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 
 		// Validate it's not shelling out by redirecting input to stdin, like
 		// `bash <(wget -qO- http://website.com/my-script.sh)`. (supports `sudo`).
-		r, err = validateCommandIsNotFetchToStdinExecute(valueList[0], pathfn, logf)
+		r, err = validateCommandIsNotFetchToStdinExecute(cmd, pathfn, logf)
 		if err != nil {
 			return false, err
 		} else if !r {
@@ -122,7 +124,7 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 		// Check if a previously-downloaded file is executed via
 		// `bash <some-already-downloaded-file>` or directly `<some-already-downloaded-file>`
 		// (supports `sudo`).
-		r, err = validateCommandIsNotFileExecute(valueList[0], pathfn, files, logf)
+		r, err = validateCommandIsNotFileExecute(cmd, pathfn, files, logf)
 		if err != nil {
 			return false, err
 		} else if !r {
@@ -130,7 +132,7 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 		}
 
 		// Record the name of downloaded file, if any.
-		fn, b, err := recordFetchFileFromString(valueList[0])
+		fn, b, err := recordFetchFileFromString(cmd)
 		if err != nil {
 			return false, err
 		} else if b {

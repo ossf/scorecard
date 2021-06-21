@@ -228,7 +228,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 3,
+				NumberOfErrors: 4,
 			},
 		},
 		{
@@ -240,7 +240,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 1,
+				NumberOfErrors: 2,
 			},
 		},
 		{
@@ -264,7 +264,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 8,
+				NumberOfErrors: 9,
 			},
 		},
 		{
@@ -276,7 +276,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 4,
+				NumberOfErrors: 5,
 			},
 		},
 		{
@@ -288,7 +288,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 8,
+				NumberOfErrors: 9,
 			},
 		},
 		{
@@ -300,7 +300,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 14,
+				NumberOfErrors: 15,
 			},
 		},
 		{
@@ -312,7 +312,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 14,
+				NumberOfErrors: 15,
 			},
 		},
 	}

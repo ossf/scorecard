@@ -30,6 +30,7 @@ RUN wget http://file-with-sudo -O /tmp/file1 && bash /tmp/file1
 RUN wget http://file-with-sudo -O /tmp/file2 ; bash /tmp/file2
 
 RUN wget http://domain.com/file && bash ./file
+RUN ["/bin/wget", "http://domain.com/file111", "&&", "bash", "./file111"]
 
 FROM scratch
 FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
