@@ -135,7 +135,10 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		githubClient := github.NewClient(httpClient)
 		graphClient := githubv4.NewClient(httpClient)
 		repoClient := githubrepo.CreateGithubRepoClient(ctx, githubClient)
-		repoResult := pkg.RunScorecards(ctx, repo, enabledChecks, repoClient, httpClient, githubClient, graphClient)
+		repoResult, err := pkg.RunScorecards(ctx, repo, enabledChecks, repoClient, httpClient, githubClient, graphClient)
+		if err != nil {
+			log.Fatal(err)
+		}
 		repoResult.Metadata = append(repoResult.Metadata, metaData...)
 
 		// Sort them by name
