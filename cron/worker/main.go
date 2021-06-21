@@ -17,6 +17,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -43,6 +44,8 @@ import (
 	"github.com/ossf/scorecard/roundtripper"
 	"github.com/ossf/scorecard/stats"
 )
+
+var errIgnore *clients.ErrRepoUnavailable
 
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap, bucketURL string,
@@ -78,10 +81,16 @@ func processRequest(ctx context.Context,
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoURL := range repoURLs {
 		log.Printf("Running Scorecard for repo: %s", repoURL.URL())
-		result := pkg.RunScorecards(ctx, repoURL, checksToRun, repoClient, httpClient, githubClient, graphClient)
-		result.Date = batchRequest.GetJobTime().AsTime().Format("2006-01-02")
-		err := result.AsJSON(true /*showDetails*/, &buffer)
+		result, err := pkg.RunScorecards(ctx, repoURL, checksToRun, repoClient, httpClient, githubClient, graphClient)
+		if errors.As(err, &errIgnore) {
+			// Not accessible repo - continue.
+			continue
+		}
 		if err != nil {
+			return fmt.Errorf("error during RunScorecards: %w", err)
+		}
+		result.Date = batchRequest.GetJobTime().AsTime().Format("2006-01-02")
+		if err := result.AsJSON(true /*showDetails*/, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
 	}
