@@ -51,6 +51,13 @@ checks:
       - >-
         Signup for automatic dependency updates with dependabot or renovatebot and place the config
         file in the locations that are recommended by these tools.
+  Binary-Artifacts:
+    description: >-
+      This check tries to determine if a project has binary artifacts in the source repository.
+      These binaries could be compromised artifacts.Building from the source is recommended.
+    remediation:
+      - >-
+        Remove the binary artifacts from the repository. 
   Contributors:
     description: >-
       This check tries to determine if a project has a set of contributors from

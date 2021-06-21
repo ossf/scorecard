@@ -23,6 +23,13 @@ This check tries to determine if a project has dependencies automatically update
 **Remediation steps**
 - Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.
 
+## Binary-Artifacts 
+
+This check tries to determine if a project has binary artifacts in the source repository. These binaries could be compromised artifacts.Building from the source is recommended. 
+
+**Remediation steps**
+- Remove the binary artifacts from the repository. 
+
 ## Branch-Protection 
 
 Branch protection allows defining rules to enforce certain workflows for branches, such as requiring a review or passing certain status checks. This check would work only when the token has [Admin access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197) to the repository. This check determines if the default and release branches are protected. More specifically, the checks for AllowForcePushes (disabled), AllowDeletions (disabled),  EnforceAdmins (enabled), RequireLinearHistory (enabled), RequiredStatusChecks (enabled and must have non-empty context enabled), RequiredPullRequestReviews (>=1), DismissStaleReviews (enabled), RequireCodeOwnerReviews (enabled). 
