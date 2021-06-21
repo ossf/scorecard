@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/naveensrinivasan/httpcache"
 	"go.opencensus.io/plugin/ochttp"
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -44,12 +45,18 @@ func (ct *censusTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error during tag.New: %w", err)
 	}
-	defer opencensusstats.Record(ctx, stats.HTTPRequests.M(1))
 
 	r = r.WithContext(ctx)
 	resp, err := ct.innerTransport.RoundTrip(r)
 	if err != nil {
 		return nil, fmt.Errorf("error in RoundTrip: %w", err)
 	}
+	if resp.Header.Get(httpcache.XFromCache) != "" {
+		ctx, err = tag.New(ctx, tag.Upsert(stats.RequestTag, httpcache.XFromCache))
+		if err != nil {
+			return nil, fmt.Errorf("error during tag.New: %w", err)
+		}
+	}
+	opencensusstats.Record(ctx, stats.HTTPRequests.M(1))
 	return resp, nil
 }

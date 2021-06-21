@@ -16,24 +16,35 @@ package pkg
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/shurcooL/githubv4"
+	opencensusstats "go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 
 	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/clients"
 	"github.com/ossf/scorecard/repos"
+	"github.com/ossf/scorecard/stats"
 )
 
+func logStats(ctx context.Context, startTime time.Time) {
+	runTimeInSecs := time.Now().Unix() - startTime.Unix()
+	opencensusstats.Record(ctx, stats.RepoRuntimeInSec.M(runTimeInSecs))
+}
+
 func runEnabledChecks(ctx context.Context,
-	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap,
+	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap, repoClient clients.RepoClient,
 	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client,
 	resultsCh chan checker.CheckResult) {
 	request := checker.CheckRequest{
 		Ctx:         ctx,
 		Client:      githubClient,
+		RepoClient:  repoClient,
 		HTTPClient:  httpClient,
 		Owner:       repo.Owner,
 		Repo:        repo.Repo,
@@ -61,19 +72,29 @@ func runEnabledChecks(ctx context.Context,
 func RunScorecards(ctx context.Context,
 	repo repos.RepoURL,
 	checksToRun checker.CheckNameToFnMap,
+	repoClient clients.RepoClient,
 	httpClient *http.Client,
 	githubClient *github.Client,
-	graphClient *githubv4.Client) repos.RepoResult {
+	graphClient *githubv4.Client) (repos.RepoResult, error) {
+	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repo.URL()))
+	if err != nil {
+		return repos.RepoResult{}, fmt.Errorf("error during tag.New: %w", err)
+	}
+	defer logStats(ctx, time.Now())
+
+	if err := repoClient.InitRepo(repo.Owner, repo.Repo); err != nil {
+		return repos.RepoResult{}, fmt.Errorf("error during InitRepo for %s: %w", repo.URL(), err)
+	}
 	ret := repos.RepoResult{
 		Repo: repo.URL(),
 		Date: time.Now().Format("2006-01-02"),
 	}
 	resultsCh := make(chan checker.CheckResult)
-	go runEnabledChecks(ctx, repo, checksToRun,
+	go runEnabledChecks(ctx, repo, checksToRun, repoClient,
 		httpClient, githubClient, graphClient,
 		resultsCh)
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}
-	return ret
+	return ret, nil
 }

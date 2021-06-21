@@ -15,18 +15,18 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: scorecard-batch-controller
+  name: scorecard-bq-transfer
 spec:
-  # At 02:00UTC on Monday.
-  schedule: "0 2 * * 1"
+  # At 02:00UTC on Monday and Thursday.
+  schedule: "0 2 * * 1,4"
   concurrencyPolicy: "Forbid"
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: controller
-            image: gcr.io/openssf/scorecard-batch-controller:latest
+          - name: bq-transfer
+            image: gcr.io/openssf/scorecard-bq-transfer:latest
             imagePullPolicy: Always
             resources:
               limits:

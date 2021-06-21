@@ -17,8 +17,12 @@ package stats
 import "go.opencensus.io/stats"
 
 var (
-	// CPURuntimeInSec measures the CPU runtime in seconds.
-	CPURuntimeInSec = stats.Int64("CPURuntimeInSec", "Measures the CPU runtime in seconds", stats.UnitSeconds)
+	// CheckRuntimeInSec measures the CPU runtime in seconds per check.
+	CheckRuntimeInSec = stats.Int64("CheckRuntimeInSec", "Measures the CPU runtime in seconds for a check",
+		stats.UnitSeconds)
+	// RepoRuntimeInSec measures the CPU runtime in seconds per repo.
+	RepoRuntimeInSec = stats.Int64("RepoRuntimeInSec", "Measures the CPU runtime in seconds for a repo",
+		stats.UnitSeconds)
 	// HTTPRequests measures the count of HTTP requests.
 	HTTPRequests = stats.Int64("HTTPRequests", "Measures the count of HTTP requests", stats.UnitDimensionless)
 )

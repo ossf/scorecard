@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package clients
 
 import (
-	"context"
-	"net/http"
-
-	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
-
-	"github.com/ossf/scorecard/clients"
+	"fmt"
+	"io"
 )
 
-type CheckRequest struct {
-	Ctx         context.Context
-	Client      *github.Client
-	GraphClient *githubv4.Client
-	HTTPClient  *http.Client
-	RepoClient  clients.RepoClient
-	Logf        func(s string, f ...interface{})
-	Owner, Repo string
+type ErrRepoUnavailable struct {
+	innerError error
+}
+
+func (e *ErrRepoUnavailable) Error() string {
+	return fmt.Sprintf("repo cannot be accessed: %v", e.innerError)
+}
+
+func (e *ErrRepoUnavailable) Unwrap() error {
+	return e.innerError
+}
+
+func NewRepoUnavailableError(err error) error {
+	return &ErrRepoUnavailable{
+		innerError: err,
+	}
+}
+
+type RepoClient interface {
+	InitRepo(owner, repo string) error
+	GetRepoArchiveReader() (io.ReadCloser, error)
 }

@@ -46,13 +46,18 @@ func (l *logger) Logf(s string, f ...interface{}) {
 	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
 
+func logStats(ctx context.Context, startTime time.Time) {
+	runTimeInSecs := time.Now().Unix() - startTime.Unix()
+	opencensusstats.Record(ctx, stats.CheckRuntimeInSec.M(runTimeInSecs))
+}
+
 func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 	ctx, err := tag.New(ctx, tag.Upsert(stats.CheckName, r.CheckName))
 	if err != nil {
 		panic(err)
 	}
+	defer logStats(ctx, time.Now())
 
-	startTime := time.Now().Unix()
 	var res CheckResult
 	var l logger
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
@@ -68,8 +73,6 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		break
 	}
 	res.Details = l.messages
-	runTimeInSecs := time.Now().Unix() - startTime
-	opencensusstats.Record(ctx, stats.CPURuntimeInSec.M(runTimeInSecs))
 	return res
 }
 
@@ -105,21 +108,11 @@ func MultiCheckOr(fns ...CheckFn) CheckFn {
 // where the worst result is returned.
 func MultiCheckAnd(fns ...CheckFn) CheckFn {
 	return func(c *CheckRequest) CheckResult {
-		minResult := CheckResult{
-			Pass:       true,
-			Confidence: MaxResultConfidence,
-		}
-
+		var checks []CheckResult
 		for _, fn := range fns {
-			result := fn(c)
-			if minResult.Name == "" {
-				minResult.Name = result.Name
-			}
-			if Bool2int(result.Pass) < Bool2int(minResult.Pass) ||
-				result.Confidence < MaxResultConfidence {
-				minResult = result
-			}
+			res := fn(c)
+			checks = append(checks, res)
 		}
-		return minResult
+		return MakeAndResult(checks...)
 	}
 }

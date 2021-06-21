@@ -17,9 +17,13 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+
+	// nolint:gosec
+	_ "net/http/pprof"
 	"os"
 
 	"github.com/google/go-github/v32/github"
@@ -29,6 +33,8 @@ import (
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/clients"
+	"github.com/ossf/scorecard/clients/githubrepo"
 	"github.com/ossf/scorecard/cron/config"
 	"github.com/ossf/scorecard/cron/data"
 	"github.com/ossf/scorecard/cron/monitoring"
@@ -39,8 +45,11 @@ import (
 	"github.com/ossf/scorecard/stats"
 )
 
+var errIgnore *clients.ErrRepoUnavailable
+
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap, bucketURL string,
+	repoClient clients.RepoClient,
 	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
@@ -72,23 +81,31 @@ func processRequest(ctx context.Context,
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoURL := range repoURLs {
 		log.Printf("Running Scorecard for repo: %s", repoURL.URL())
-		result := pkg.RunScorecards(ctx, repoURL, checksToRun, httpClient, githubClient, graphClient)
-		result.Date = batchRequest.GetJobTime().AsTime().Format("2006-01-02")
-		err := result.AsJSON(true /*showDetails*/, &buffer)
+		result, err := pkg.RunScorecards(ctx, repoURL, checksToRun, repoClient, httpClient, githubClient, graphClient)
+		if errors.As(err, &errIgnore) {
+			// Not accessible repo - continue.
+			continue
+		}
 		if err != nil {
+			return fmt.Errorf("error during RunScorecards: %w", err)
+		}
+		result.Date = batchRequest.GetJobTime().AsTime().Format("2006-01-02")
+		if err := result.AsJSON(true /*showDetails*/, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
 	}
-
 	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore: %w", err)
 	}
 	log.Printf("Write to shard file successful: %s", filename)
+
 	return nil
 }
 
 func createNetClients(ctx context.Context) (
-	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client, logger *zap.Logger) {
+	repoClient clients.RepoClient,
+	httpClient *http.Client,
+	githubClient *github.Client, graphClient *githubv4.Client, logger *zap.Logger) {
 	cfg := zap.NewProductionConfig()
 	cfg.Level.SetLevel(zap.InfoLevel)
 	logger, err := cfg.Build()
@@ -103,6 +120,7 @@ func createNetClients(ctx context.Context) (
 	}
 	githubClient = github.NewClient(httpClient)
 	graphClient = githubv4.NewClient(httpClient)
+	repoClient = githubrepo.CreateGithubRepoClient(ctx, githubClient)
 	return
 }
 
@@ -117,6 +135,7 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 
 	if err := view.Register(
 		&stats.CheckRuntime,
+		&stats.RepoRuntime,
 		&stats.OutgoingHTTPRequests); err != nil {
 		return nil, fmt.Errorf("error during view.Register: %w", err)
 	}
@@ -151,13 +170,18 @@ func main() {
 		panic(fmt.Errorf("env_vars %s must be set", roundtripper.BucketURL))
 	}
 
-	httpClient, githubClient, graphClient, logger := createNetClients(ctx)
+	repoClient, httpClient, githubClient, graphClient, logger := createNetClients(ctx)
 
 	exporter, err := startMetricsExporter()
 	if err != nil {
 		panic(err)
 	}
 	defer exporter.StopMetricsExporter()
+
+	// Exposed for monitoring runtime profiles
+	go func() {
+		log.Fatal(http.ListenAndServe(":8080", nil))
+	}()
 
 	checksToRun := checks.AllChecks
 	// nolint
@@ -166,7 +190,6 @@ func main() {
 	// All of the checks from cron would fail and uses another call to the API.
 	// This will reduce usage of the API.
 	delete(checksToRun, checks.CheckBranchProtection)
-
 	for {
 		req, err := subscriber.SynchronousPull()
 		if err != nil {
@@ -177,7 +200,8 @@ func main() {
 			log.Print("subscription returned nil message during Receive, exiting")
 			break
 		}
-		if err := processRequest(ctx, req, checksToRun, bucketURL, httpClient, githubClient, graphClient); err != nil {
+		if err := processRequest(ctx, req, checksToRun, bucketURL,
+			repoClient, httpClient, githubClient, graphClient); err != nil {
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()
 		}

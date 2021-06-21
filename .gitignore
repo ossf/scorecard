@@ -1,10 +1,12 @@
 # binary.
 scorecard
 gitblobcache
+cron/data/add/add
 cron/data/validate/validate
 cron/data/update/projects-update
 cron/controller/controller
 cron/worker/worker
+cron/bq/data-transfer
 
 # Binaries for programs and plugins.
 *.exe
@@ -33,3 +35,4 @@ bin
 cache
 output
 gitfolder.*
+githubrepo.tar.gz

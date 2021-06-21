@@ -28,6 +28,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/clients/githubrepo"
 	"github.com/ossf/scorecard/pkg"
 	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/roundtripper"
@@ -76,7 +77,12 @@ var serveCmd = &cobra.Command{
 			}
 			githubClient := github.NewClient(httpClient)
 			graphClient := githubv4.NewClient(httpClient)
-			repoResult := pkg.RunScorecards(ctx, repo, checks.AllChecks, httpClient, githubClient, graphClient)
+			repoClient := githubrepo.CreateGithubRepoClient(ctx, githubClient)
+			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient, httpClient, githubClient, graphClient)
+			if err != nil {
+				sugar.Error(err)
+				rw.WriteHeader(http.StatusInternalServerError)
+			}
 
 			if r.Header.Get("Content-Type") == "application/json" {
 				if err := repoResult.AsJSON(showDetails, rw); err != nil {

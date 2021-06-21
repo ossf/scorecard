@@ -43,7 +43,7 @@ $(PROTOC):
 
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = update-dependencies build check-linter unit-test validate-projects tree-status
+all-targets = update-dependencies build check-linter unit-test add-projects validate-projects tree-status
 .PHONY: all $(all-targets)
 all: $(all-targets)
 
@@ -57,8 +57,14 @@ check-linter: $(GOLANGGCI_LINT)
 	# Run golangci-lint linter
 	golangci-lint run -c .golangci.yml
 
+add-projects: ## Adds new projects to ./cron/data/projects.csv
+add-projects: ./cron/data/projects.csv | build-add-script
+	# Add new projects to ./cron/data/projects.csv
+	./cron/data/add/add ./cron/data/projects.new.csv
+	mv ./cron/data/projects.new.csv ./cron/data/projects.csv
+
 validate-projects: ## Validates ./cron/data/projects.csv
-validate-projects: build-validate-script
+validate-projects: ./cron/data/projects.csv | build-validate-script
 	# Validate ./cron/data/projects.csv
 	./cron/data/validate/validate
 
@@ -69,8 +75,9 @@ tree-status: ## Verify tree is clean and all changes are committed
 
 ###############################################################################
 
-############################### make build ################################
-build-targets = build-proto generate-docs build-scorecard build-pubsub build-validate-script build-update-script dockerbuild
+################################## make build #################################
+build-targets = build-proto generate-docs build-scorecard build-pubsub build-bq-transfer \
+	build-add-script build-validate-script build-update-script dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the reepo.
 build: $(build-targets)
@@ -95,9 +102,20 @@ build-pubsub: ## Runs go build on the PubSub cron job
 	cd cron/controller && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o controller
 	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o worker
 
+build-bq-transfer: ## Runs go build on the BQ transfer cron job
+build-bq-transfer: ./cron/bq/*.go
+	# Run go build on the Copier cron job
+	cd cron/bq && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o data-transfer
+
+build-add-script: ## Runs go build on the add script
+build-add-script: cron/data/add/add
+cron/data/add/add: cron/data/add/*.go cron/data/*.go cron/data/projects.csv
+	# Run go build on the add script
+	cd cron/data/add && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o add
+
 build-validate-script: ## Runs go build on the validate script
 build-validate-script: cron/data/validate/validate
-cron/data/validate/validate: cron/data/validate/*.go cron/data/*.go
+cron/data/validate/validate: cron/data/validate/*.go cron/data/*.go cron/data/projects.csv
 	# Run go build on the validate script
 	cd cron/data/validate && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o validate
 
@@ -113,6 +131,7 @@ dockerbuild: ## Runs docker build
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
 	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
+	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
 ###############################################################################
 
 ################################# make test ###################################
