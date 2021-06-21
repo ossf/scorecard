@@ -78,7 +78,11 @@ var serveCmd = &cobra.Command{
 			githubClient := github.NewClient(httpClient)
 			graphClient := githubv4.NewClient(httpClient)
 			repoClient := githubrepo.CreateGithubRepoClient(ctx, githubClient)
-			repoResult := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient, httpClient, githubClient, graphClient)
+			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient, httpClient, githubClient, graphClient)
+			if err != nil {
+				sugar.Error(err)
+				rw.WriteHeader(http.StatusInternalServerError)
+			}
 
 			if r.Header.Get("Content-Type") == "application/json" {
 				if err := repoResult.AsJSON(showDetails, rw); err != nil {

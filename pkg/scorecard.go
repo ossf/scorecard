@@ -16,9 +16,7 @@ package pkg
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -77,25 +75,15 @@ func RunScorecards(ctx context.Context,
 	repoClient clients.RepoClient,
 	httpClient *http.Client,
 	githubClient *github.Client,
-	graphClient *githubv4.Client) repos.RepoResult {
+	graphClient *githubv4.Client) (repos.RepoResult, error) {
 	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repo.URL()))
 	if err != nil {
-		log.Panicf("error during tag.New: %v. Not logging stats", err)
+		return repos.RepoResult{}, fmt.Errorf("error during tag.New: %w", err)
 	}
 	defer logStats(ctx, time.Now())
 
-	var e clients.ErrRepoUnavailable
-	if err := repoClient.InitRepo(repo.Owner, repo.Repo); errors.Is(err, &e) {
-		// Unable to access repo URL. Continue.
-		log.Printf("%s: %v", repo.URL(), err)
-		return repos.RepoResult{
-			Repo:     repo.URL(),
-			Date:     time.Now().Format("2006-01-02"),
-			Checks:   make([]checker.CheckResult, 0),
-			Metadata: []string{fmt.Sprintf("%v", err)},
-		}
-	} else if err != nil {
-		log.Panicf("error during InitRepo: %v", err)
+	if err := repoClient.InitRepo(repo.Owner, repo.Repo); err != nil {
+		return repos.RepoResult{}, fmt.Errorf("error during InitRepo for %s: %w", repo.URL(), err)
 	}
 	ret := repos.RepoResult{
 		Repo: repo.URL(),
@@ -108,5 +96,5 @@ func RunScorecards(ctx context.Context,
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}
-	return ret
+	return ret, nil
 }
