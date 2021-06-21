@@ -12,17 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package stats
+package errors
 
-import "go.opencensus.io/tag"
+import (
+	"errors"
+)
+
+const (
+	// RetryError occurs when checks fail after exhausting all retry attempts.
+	RetryError = "RetryError"
+	// ZeroConfidenceError shows an inconclusive result.
+	ZeroConfidenceError = "ZeroConfidenceError"
+	// UnknownError for all error types not handled.
+	UnknownError = "UnknownError"
+)
 
 var (
-	// CheckName is the tag key for the check name.
-	CheckName = tag.MustNewKey("checkName")
-	// ErrorName is the tag key for errors.
-	ErrorName = tag.MustNewKey("errorName")
-	// Repo is the tag key for the repo name.
-	Repo = tag.MustNewKey("repo")
-	// RequestTag is the tag key for the request type.
-	RequestTag = tag.MustNewKey("requestTag")
+	errRetry          *ErrRetry
+	errZeroConfidence *ErrZeroConfidence
 )
+
+func GetErrorName(err error) string {
+	switch {
+	case errors.As(err, &errRetry):
+		return RetryError
+	case errors.As(err, &errZeroConfidence):
+		return ZeroConfidenceError
+	default:
+		return UnknownError
+	}
+}

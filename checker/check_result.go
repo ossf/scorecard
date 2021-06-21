@@ -14,7 +14,11 @@
 
 package checker
 
-import "errors"
+import (
+	"errors"
+
+	scorecarderrors "github.com/ossf/scorecard/errors"
+)
 
 const MaxResultConfidence = 10
 
@@ -35,7 +39,7 @@ func MakeInconclusiveResult(name string, err error) CheckResult {
 		Name:       name,
 		Pass:       false,
 		Confidence: 0,
-		Error:      err,
+		Error:      scorecarderrors.MakeZeroConfidenceError(err),
 	}
 }
 
@@ -61,7 +65,7 @@ func MakeRetryResult(name string, err error) CheckResult {
 		Name:        name,
 		Pass:        false,
 		ShouldRetry: true,
-		Error:       err,
+		Error:       scorecarderrors.MakeRetryError(err),
 	}
 }
 
