@@ -20,6 +20,8 @@ var (
 	// CheckRuntimeInSec measures the CPU runtime in seconds per check.
 	CheckRuntimeInSec = stats.Int64("CheckRuntimeInSec", "Measures the CPU runtime in seconds for a check",
 		stats.UnitSeconds)
+	// CheckErrors measures the count of errors per check.
+	CheckErrors = stats.Int64("CheckErrors", "Measures the count of errors", stats.UnitDimensionless)
 	// RepoRuntimeInSec measures the CPU runtime in seconds per repo.
 	RepoRuntimeInSec = stats.Int64("RepoRuntimeInSec", "Measures the CPU runtime in seconds for a repo",
 		stats.UnitSeconds)

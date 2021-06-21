@@ -45,6 +45,15 @@ var (
 			1<<15),
 	}
 
+	// CheckErrorCount tracks error count stats for checks.
+	CheckErrorCount = view.View{
+		Name:        "CheckErrorCount",
+		Description: "Error count by type per check",
+		Measure:     CheckErrors,
+		TagKeys:     []tag.Key{CheckName, ErrorName},
+		Aggregation: view.Count(),
+	}
+
 	// RepoRuntime tracks CPU runtime stats for repos.
 	RepoRuntime = view.View{
 		Name:        "RepoRuntime",

@@ -23,6 +23,7 @@ import (
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
+	scorecarderrors "github.com/ossf/scorecard/errors"
 	"github.com/ossf/scorecard/stats"
 )
 
@@ -46,9 +47,18 @@ func (l *logger) Logf(s string, f ...interface{}) {
 	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
 
-func logStats(ctx context.Context, startTime time.Time) {
+func logStats(ctx context.Context, startTime time.Time, result CheckResult) error {
 	runTimeInSecs := time.Now().Unix() - startTime.Unix()
 	opencensusstats.Record(ctx, stats.CheckRuntimeInSec.M(runTimeInSecs))
+
+	if result.Error != nil {
+		ctx, err := tag.New(ctx, tag.Upsert(stats.ErrorName, scorecarderrors.GetErrorName(result.Error)))
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
+		opencensusstats.Record(ctx, stats.CheckErrors.M(1))
+	}
+	return nil
 }
 
 func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
@@ -56,7 +66,7 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 	if err != nil {
 		panic(err)
 	}
-	defer logStats(ctx, time.Now())
+	startTime := time.Now()
 
 	var res CheckResult
 	var l logger
@@ -73,6 +83,10 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		break
 	}
 	res.Details = l.messages
+
+	if err := logStats(ctx, startTime, res); err != nil {
+		panic(err)
+	}
 	return res
 }
 
