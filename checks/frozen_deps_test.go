@@ -197,3 +197,145 @@ func TestDockerfilePinning(t *testing.T) {
 		})
 	}
 }
+
+func TestDockerfileScriptDownload(t *testing.T) {
+	t.Parallel()
+	//nolint
+	type args struct {
+		// Note: this seems to be defined in e2e/e2e_suite_test.go
+		Log      log
+		Filename string
+	}
+
+	type returnValue struct {
+		Error          error
+		Result         bool
+		NumberOfErrors int
+	}
+
+	//nolint
+	tests := []struct {
+		args args
+		want returnValue
+		name string
+	}{
+		{
+			name: "curl | sh",
+			args: args{
+				Filename: "testdata/Dockerfile-curl-sh",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 4,
+			},
+		},
+		{
+			name: "wget | /bin/sh",
+			args: args{
+				Filename: "testdata/Dockerfile-wget-bin-sh",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 2,
+			},
+		},
+		{
+			name: "wget no exec",
+			args: args{
+				Filename: "testdata/Dockerfile-script-ok",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         true,
+				NumberOfErrors: 0,
+			},
+		},
+		{
+			name: "curl file sh",
+			args: args{
+				Filename: "testdata/Dockerfile-curl-file-sh",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 9,
+			},
+		},
+		{
+			name: "proc substitution",
+			args: args{
+				Filename: "testdata/Dockerfile-proc-subs",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 5,
+			},
+		},
+		{
+			name: "wget file",
+			args: args{
+				Filename: "testdata/Dockerfile-wget-file",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 9,
+			},
+		},
+		{
+			name: "gsutil file",
+			args: args{
+				Filename: "testdata/Dockerfile-gsutil-file",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 15,
+			},
+		},
+		{
+			name: "aws file",
+			args: args{
+				Filename: "testdata/Dockerfile-aws-file",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 15,
+			},
+		},
+	}
+	//nolint
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+			content, err = ioutil.ReadFile(tt.args.Filename)
+			if err != nil {
+				panic(fmt.Errorf("cannot read file: %w", err))
+			}
+
+			r, err := validateDockerfileDownloads(tt.args.Filename, content, tt.args.Log.Logf)
+
+			if !errors.Is(err, tt.want.Error) ||
+				r != tt.want.Result ||
+				len(tt.args.Log.messages) != tt.want.NumberOfErrors {
+				t.Errorf("TestDockerfileScriptDownload:\"%v\": %v (%v,%v,%v) want (%v, %v, %v)",
+					tt.name, tt.args.Filename, r, err, len(tt.args.Log.messages), tt.want.Result, tt.want.Error, tt.want.NumberOfErrors)
+			}
+		})
+	}
+}

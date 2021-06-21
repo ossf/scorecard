@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,14 +46,103 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 		isPackageManagerLockFilePresent,
 		isGitHubActionsWorkflowPinned,
 		isDockerfilePinned,
+		isDockerfileFreeOfInsecureDownloads,
 	)(c)
 }
 
-// TODO(laurent): need to support GCB
+// TODO(laurent): need to support GCB pinning.
 
-// ============================================================
-// ======================== Dockerfiles =======================
-// ============================================================.
+func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
+	return CheckFilesContent(CheckFrozenDeps, "*Dockerfile*", false, c, validateDockerfileDownloads)
+}
+
+func validateDockerfileDownloads(pathfn string, content []byte,
+	logf func(s string, f ...interface{})) (bool, error) {
+	contentReader := strings.NewReader(string(content))
+	res, err := parser.Parse(contentReader)
+	if err != nil {
+		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
+	}
+
+	ret := true
+	files := make(map[string]bool)
+
+	// Walk the Dockerfile's AST.
+	for _, child := range res.AST.Children {
+		cmdType := child.Value
+		// Only look for the 'RUN' command.
+		if cmdType != "run" {
+			continue
+		}
+
+		var valueList []string
+		for n := child.Next; n != nil; n = n.Next {
+			valueList = append(valueList, n.Value)
+		}
+
+		if len(valueList) == 0 {
+			return false, ErrParsingDockerfile
+		}
+
+		cmd := strings.Join(valueList, " ")
+		// Validate it's not downloading and piping into a shell, like
+		// `curl | bash` (supports `sudo`).
+		r, err := validateCommandIsNotFetchPipeExecute(cmd, pathfn, logf)
+		if err != nil {
+			return false, err
+		} else if !r {
+			ret = false
+		}
+
+		// Validate it is not a download command followed by
+		// an execute: `curl > /tmp/file && /tmp/file`
+		//			   `curl > /tmp/file && bash /tmp/file`
+		//			   `curl > /tmp/file; bash /tmp/file`
+		//			   `curl > /tmp/file; /tmp/file`
+		// (supports `sudo`).
+		r, err = validateCommandIsNotFetchToFileExecute(cmd, pathfn, logf)
+		if err != nil {
+			return false, err
+		} else if !r {
+			ret = false
+		}
+
+		// Validate it's not shelling out by redirecting input to stdin, like
+		// `bash <(wget -qO- http://website.com/my-script.sh)`. (supports `sudo`).
+		r, err = validateCommandIsNotFetchToStdinExecute(cmd, pathfn, logf)
+		if err != nil {
+			return false, err
+		} else if !r {
+			ret = false
+		}
+
+		// TODO(laurent): add check for cat file | bash
+		// TODO(laurent): detect downloads of zip/tar files containing scripts.
+		// TODO(laurent): detect command being an env variable
+
+		// Check if a previously-downloaded file is executed via
+		// `bash <some-already-downloaded-file>` or directly `<some-already-downloaded-file>`
+		// (supports `sudo`).
+		r, err = validateCommandIsNotFileExecute(cmd, pathfn, files, logf)
+		if err != nil {
+			return false, err
+		} else if !r {
+			ret = false
+		}
+
+		// Record the name of downloaded file, if any.
+		fn, b, err := recordFetchFileFromString(cmd)
+		if err != nil {
+			return false, err
+		} else if b {
+			for f := range fn {
+				files[f] = true
+			}
+		}
+	}
+	return ret, nil
+}
+
 func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(CheckFrozenDeps, "*Dockerfile*", false, c, validateDockerfile)
 }
