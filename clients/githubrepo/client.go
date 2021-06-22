@@ -35,6 +35,7 @@ type Client struct {
 	ctx        context.Context
 	owner      string
 	repoName   string
+	tarball    string
 }
 
 func (client *Client) InitRepo(owner, repoName string) error {
@@ -55,15 +56,16 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	if err != nil {
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("http.DefaultClient.Do: %w", err)
 	}
 	defer resp.Body.Close()
 
-	tarfile := fmt.Sprintf(repoFilename, owner, repoName)
-	repoFile, err := os.OpenFile(tarfile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC|os.O_EXCL, 0o644)
-	if err != nil && !os.IsExist(err) {
+	client.tarball = fmt.Sprintf(repoFilename, owner, repoName)
+	repoFile, err := os.OpenFile(client.tarball, os.O_CREATE|os.O_WRONLY|os.O_TRUNC|os.O_EXCL, 0o644)
+	if err != nil {
 		return fmt.Errorf("os.OpenFile: %w", err)
 	}
 	defer repoFile.Close()
@@ -75,8 +77,7 @@ func (client *Client) InitRepo(owner, repoName string) error {
 }
 
 func (client *Client) ReleaseRepo() error {
-	tarfile := fmt.Sprintf(repoFilename, client.owner, client.repoName)
-	err := os.Remove(tarfile)
+	err := os.Remove(client.tarball)
 	if !os.IsNotExist(err) {
 		return fmt.Errorf("os.Remove: %w", err)
 	}
@@ -84,8 +85,7 @@ func (client *Client) ReleaseRepo() error {
 }
 
 func (client *Client) GetRepoArchiveReader() (io.ReadCloser, error) {
-	tarfile := fmt.Sprintf(repoFilename, client.owner, client.repoName)
-	archiveReader, err := os.OpenFile(tarfile, os.O_RDONLY, 0o644)
+	archiveReader, err := os.OpenFile(client.tarball, os.O_RDONLY, 0o644)
 	if err != nil {
 		return archiveReader, fmt.Errorf("os.OpenFile: %w", err)
 	}
