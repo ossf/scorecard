@@ -17,6 +17,7 @@ package checks
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"regexp"
 	"strings"
 
@@ -42,12 +43,25 @@ func init() {
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
 func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheckAnd(
-		isPackageManagerLockFilePresent,
-		isGitHubActionsWorkflowPinned,
-		isDockerfilePinned,
-		isDockerfileFreeOfInsecureDownloads,
-	)(c)
+	// return checker.MultiCheckAnd(
+	// 	isPackageManagerLockFilePresent,
+	// 	isGitHubActionsWorkflowPinned,
+	// 	isDockerfilePinned,
+	// 	isDockerfileFreeOfInsecureDownloads,
+	// )(c)
+	var content []byte
+	content, err := ioutil.ReadFile("checks/Dockerfile-curl")
+	if err != nil {
+		c.Logf("ioutil.ReadFile: %v", err)
+		return checker.MakeFailResult(CheckFrozenDeps, err)
+	}
+
+	_, err = validateDockerfileDownloads("some/path", content, c.Logf)
+	if err != nil {
+		c.Logf("validateDockerfileDownloads: %v", err)
+		return checker.MakeFailResult(CheckFrozenDeps, err)
+	}
+	return checker.MakePassResult(CheckFrozenDeps)
 }
 
 // TODO(laurent): need to support GCB pinning.
@@ -84,46 +98,9 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 			return false, ErrParsingDockerfile
 		}
 
+		// Validate the command.
 		cmd := strings.Join(valueList, " ")
-		// Validate it's not downloading and piping into a shell, like
-		// `curl | bash` (supports `sudo`).
-		r, err := validateCommandIsNotFetchPipeExecute(cmd, pathfn, logf)
-		if err != nil {
-			return false, err
-		} else if !r {
-			ret = false
-		}
-
-		// Validate it is not a download command followed by
-		// an execute: `curl > /tmp/file && /tmp/file`
-		//			   `curl > /tmp/file && bash /tmp/file`
-		//			   `curl > /tmp/file; bash /tmp/file`
-		//			   `curl > /tmp/file; /tmp/file`
-		// (supports `sudo`).
-		r, err = validateCommandIsNotFetchToFileExecute(cmd, pathfn, logf)
-		if err != nil {
-			return false, err
-		} else if !r {
-			ret = false
-		}
-
-		// Validate it's not shelling out by redirecting input to stdin, like
-		// `bash <(wget -qO- http://website.com/my-script.sh)`. (supports `sudo`).
-		r, err = validateCommandIsNotFetchToStdinExecute(cmd, pathfn, logf)
-		if err != nil {
-			return false, err
-		} else if !r {
-			ret = false
-		}
-
-		// TODO(laurent): add check for cat file | bash
-		// TODO(laurent): detect downloads of zip/tar files containing scripts.
-		// TODO(laurent): detect command being an env variable
-
-		// Check if a previously-downloaded file is executed via
-		// `bash <some-already-downloaded-file>` or directly `<some-already-downloaded-file>`
-		// (supports `sudo`).
-		r, err = validateCommandIsNotFileExecute(cmd, pathfn, files, logf)
+		r, err := validateShellCommand(cmd, pathfn, files, logf)
 		if err != nil {
 			return false, err
 		} else if !r {

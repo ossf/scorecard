@@ -22,15 +22,15 @@ RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe /tmp/file1 &
 RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe /tmp/file2 ; /tmp/file2
 
 RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe . && exe
-RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe /path/to/ && /path/to/exe
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe1 /path/to/ && /path/to/exe1
 RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/exe2 /path/to/
 RUN /path/to/exe2
 
 RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script9 . 
 RUN bash script9
 
-RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /tmp/file1 && bash /tmp/file1
-RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /tmp/file2 ; bash /tmp/file2
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /tmp/file1xx && bash /tmp/file1xx
+RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /tmp/file2xx ; bash /tmp/file2xx
 
 RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script . && bash script
 RUN aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /path/to/ && bash /path/to/script
@@ -39,6 +39,10 @@ RUN bash /path/to/script2
 
 RUN ["aws", "s3api", "get-object", "--bucket", "DOC-EXAMPLE-BUCKET1", "--key", "dir/exe10", "."]
 RUN ["exe10"]
+
+RUN ["/bin/bash", "-c", "\"aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /tmp/file123 && bash /tmp/file123\""]
+RUN ["/bin/bash", "-c", "\"aws s3api get-object --bucket DOC-EXAMPLE-BUCKET1 --key dir/script /tmp/file1234\""]
+RUN ["/tmp/file1234"]
 
 FROM scratch
 FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2

@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"testing"
 )
 
@@ -240,7 +241,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 2,
+				NumberOfErrors: 3,
 			},
 		},
 		{
@@ -264,7 +265,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 9,
+				NumberOfErrors: 12,
 			},
 		},
 		{
@@ -276,7 +277,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 5,
+				NumberOfErrors: 6,
 			},
 		},
 		{
@@ -288,7 +289,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 9,
+				NumberOfErrors: 10,
 			},
 		},
 		{
@@ -300,7 +301,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 15,
+				NumberOfErrors: 17,
 			},
 		},
 		{
@@ -333,8 +334,9 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			if !errors.Is(err, tt.want.Error) ||
 				r != tt.want.Result ||
 				len(tt.args.Log.messages) != tt.want.NumberOfErrors {
-				t.Errorf("TestDockerfileScriptDownload:\"%v\": %v (%v,%v,%v) want (%v, %v, %v)",
-					tt.name, tt.args.Filename, r, err, len(tt.args.Log.messages), tt.want.Result, tt.want.Error, tt.want.NumberOfErrors)
+				t.Errorf("TestDockerfileScriptDownload:\"%v\": %v (%v,%v,%v) want (%v, %v, %v)\n%v",
+					tt.name, tt.args.Filename, r, err, len(tt.args.Log.messages), tt.want.Result, tt.want.Error, tt.want.NumberOfErrors,
+					strings.Join(tt.args.Log.messages, "\n"))
 			}
 		})
 	}

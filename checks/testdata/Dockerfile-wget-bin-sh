@@ -17,6 +17,7 @@ FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f878766
 
 RUN echo hello && wget -0 - http://ifconfig.co/json | /bin/sh
 RUN ["echo", "hello", "&&", "wget", "-0", "-", "http://ifconfig.co/json", "|", "/bin/sh"]
+RUN ["sh", "-c", "\"wget -0 - http://ifconfig.co/json | /bin/sh\""]
 
 FROM scratch
 FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2

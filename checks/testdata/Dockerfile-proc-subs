@@ -21,6 +21,7 @@ RUN ["bash", "<(curl -s https://codecov.io/bash)"]
 
 RUN sudo su -c "bash <(wget -qO- http://website.com/my-script.sh)" root
 RUN sudo su -c "bash <(curl -s https://codecov.io/bash)" root
+RUN ["su", "-c", "\"bash <(curl -s https://codecov.io/bash)\""]
 
 FROM scratch
 FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
