@@ -22,6 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/clients/githubrepo"
 )
 
 var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {

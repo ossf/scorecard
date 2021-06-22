@@ -36,9 +36,6 @@ var (
 	httpClient  *http.Client
 )
 
-// List of repos to fetch source code of.
-var repoList = []string{"ossf/scorecard", "netlify/netlify-cms", "tensorflow/tensorflow"}
-
 type log struct {
 	messages []string
 }
