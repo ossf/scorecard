@@ -31,7 +31,8 @@ var _ = Describe("E2E TEST:PullRequests", func() {
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
-				HTTPClient:  client,
+				HTTPClient:  httpClient,
+				RepoClient:  nil,
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,

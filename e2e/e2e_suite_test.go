@@ -33,7 +33,7 @@ import (
 var (
 	ghClient    *github.Client
 	graphClient *githubv4.Client
-	client      *http.Client
+	httpClient  *http.Client
 )
 
 type log struct {
@@ -73,12 +73,12 @@ var _ = BeforeSuite(func() {
 
 	rt := roundtripper.NewTransport(ctx, sugar)
 
-	client = &http.Client{
+	httpClient = &http.Client{
 		Transport: rt,
 	}
 
-	ghClient = github.NewClient(client)
-	graphClient = githubv4.NewClient(client)
+	ghClient = github.NewClient(httpClient)
+	graphClient = githubv4.NewClient(httpClient)
 })
 
 var _ = AfterSuite(func() {
