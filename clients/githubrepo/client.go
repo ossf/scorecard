@@ -43,8 +43,8 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	client.owner = owner
 	client.repoName = repoName
 
-	// Remove older files so the function can be called multiplle times.
-	// Note:tarball may be the empty string on first call.
+	// Remove older files so the function can be called multiple times.
+	// Note: tarball may be the empty string on first call.
 	err := os.Remove(client.tarball)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("os.Remove: %w", err)
