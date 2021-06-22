@@ -322,6 +322,18 @@ func TestDockerfileScriptDownload(t *testing.T) {
 				NumberOfErrors: 15,
 			},
 		},
+		{
+			name: "pkg managers",
+			args: args{
+				Filename: "testdata/Dockerfile-pkg-managers",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 10,
+			},
+		},
 	}
 	//nolint
 	for _, tt := range tests {

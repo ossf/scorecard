@@ -20,6 +20,7 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"mvdan.cc/sh/v3/syntax"
@@ -316,6 +317,101 @@ func isExecuteFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
 	return ok
 }
 
+func isGoUnpinnedDownload(cmd []string) bool {
+	if len(cmd) == 0 {
+		return false
+	}
+
+	if !isBinaryName("go", cmd[0]) {
+		return false
+	}
+
+	// `Go install` will automatically look up the
+	// go.mod and go.sum, so we don't flag it.
+	l := 2
+	if len(cmd) <= l {
+		return false
+	}
+
+	found := false
+	hashRegex := regexp.MustCompile("^[A-Fa-f0-9]{40,}$")
+	for i := 1; i < len(cmd)-1; i++ {
+		// Search for get and install commands.
+		if strings.EqualFold(cmd[i], "install") ||
+			strings.EqualFold(cmd[i], "get") {
+			found = true
+		} else if found {
+			pkg := cmd[i+1]
+			// Verify pkg = name@hash
+			parts := strings.Split(pkg, "@")
+			if len(parts) == l {
+				hash := parts[1]
+				if hashRegex.Match([]byte(hash)) {
+					return false
+				}
+			}
+		}
+	}
+
+	return found
+}
+
+func isPipUnpinnedDownload(cmd []string) bool {
+	if len(cmd) == 0 {
+		return false
+	}
+
+	if !isBinaryName("pip", cmd[0]) && !isBinaryName("pip3", cmd[0]) {
+		return false
+	}
+
+	isInstalled := false
+	for i := 1; i < len(cmd)-1; i++ {
+		// Search for get and install commands.
+		if strings.EqualFold(cmd[i], "install") {
+			isInstalled = true
+		} else if isInstalled && strings.EqualFold("-r", cmd[i]) {
+			requirements := cmd[i+1]
+			if strings.EqualFold(path.Base(requirements), "requirements.txt") {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
+	logf func(s string, f ...interface{})) bool {
+	ce, ok := node.(*syntax.CallExpr)
+	if !ok {
+		return false
+	}
+
+	c, ok := extractCommand(ce)
+	if !ok {
+		return false
+	}
+
+	// Go get/install.
+	if isGoUnpinnedDownload(c) {
+		logf("!! frozen-deps/fetch-execute - %v is fetching an non-pinned dependency '%v'",
+			pathfn, cmd)
+		return true
+	}
+
+	// Pip install.
+	if isPipUnpinnedDownload(c) {
+		logf("!! frozen-deps/fetch-execute - %v is fetching an non-pinned dependency '%v'",
+			pathfn, cmd)
+		return true
+	}
+
+	// TODO(laurent): add other package managers.
+
+	return false
+}
+
 // Detect `fetch | exec`.
 func validateCommandIsNotFetchPipeExecute(cmd, pathfn string, logf func(s string, f ...interface{})) (bool, error) {
 	in := strings.NewReader(cmd)
@@ -579,6 +675,28 @@ func extractInterpreterCommandFromString(cmd string) (c string, res bool, err er
 	return cs, ok, nil
 }
 
+func validateCommandIsNotUnpinnedPackageManagerDownload(cmd, pathfn string,
+	logf func(s string, f ...interface{})) (bool, error) {
+	in := strings.NewReader(cmd)
+	f, err := syntax.NewParser().Parse(in, "")
+	if err != nil {
+		return false, ErrParsingShellCommand
+	}
+
+	cmdValidated := true
+	syntax.Walk(f, func(node syntax.Node) bool {
+		// Check if we're calling a file we previously downloaded.
+		if isUnpinnedPakageManagerDownload(node, cmd, pathfn, logf) {
+			cmdValidated = false
+		}
+
+		// Continue walking the node graph.
+		return true
+	})
+
+	return cmdValidated, nil
+}
+
 // The functions below are the only ones that should be called by other files.
 // There needs to be a call to extractInterpreterCommandFromString() prior
 // to calling other functions.
@@ -631,9 +749,16 @@ func validateShellCommand(cmd, pathfn string, downloadedFiles map[string]bool,
 		cmd = c
 	}
 
+	r, err := validateCommandIsNotUnpinnedPackageManagerDownload(cmd, pathfn, logf)
+	if err != nil {
+		return false, err
+	} else if !r {
+		ret = false
+	}
+
 	// Validate it's not downloading and piping into a shell, like
 	// `curl | bash` (supports `sudo`).
-	r, err := validateCommandIsNotFetchPipeExecute(cmd, pathfn, logf)
+	r, err = validateCommandIsNotFetchPipeExecute(cmd, pathfn, logf)
 	if err != nil {
 		return false, err
 	} else if !r {

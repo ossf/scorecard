@@ -48,6 +48,7 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 		isDockerfilePinned,
 		isDockerfileFreeOfInsecureDownloads,
 	)(c)
+	return CheckFilesContent(CheckFrozenDeps, "*", true, c, validateDockerfileDownloads)
 }
 
 // TODO(laurent): need to support GCB pinning.
