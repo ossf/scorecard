@@ -628,7 +628,6 @@ func validateShellCommand(cmd, pathfn string, downloadedFiles map[string]bool,
 		return false, err
 	} else if ok {
 		cmd = c
-		// logf("new command:%v", cmd)
 	}
 
 	// Validate it's not downloading and piping into a shell, like
