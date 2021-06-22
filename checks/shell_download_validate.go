@@ -528,7 +528,7 @@ func validateCommandIsNotFileExecute(cmd, pathfn string, files map[string]bool,
 	return cmdValidated, nil
 }
 
-func extractInterpreterCommandFromNode(node syntax.Node, cmd string) (string, bool) {
+func extractInterpreterCommandFromNode(node syntax.Node) (string, bool) {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
 		return "", false
@@ -564,7 +564,7 @@ func extractInterpreterCommandFromString(cmd string) (c string, res bool, err er
 		if ok {
 			return false
 		}
-		s, kk := extractInterpreterCommandFromNode(node, cmd)
+		s, kk := extractInterpreterCommandFromNode(node)
 		// nolinter
 		if kk {
 			cs = s
@@ -578,7 +578,7 @@ func extractInterpreterCommandFromString(cmd string) (c string, res bool, err er
 	return cs, ok, nil
 }
 
-// The functions below are the only nones that shoudl be called by other files.
+// The functions below are the only nones that should be called by other files.
 // There needs to be a call to extractInterpreterCommandFromString() prior
 // to calling other functions.
 
