@@ -16,11 +16,9 @@ package e2e
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/google/go-github/v32/github"
@@ -38,7 +36,7 @@ var (
 	ghClient    *github.Client
 	graphClient *githubv4.Client
 	httpClient  *http.Client
-	repoClients map[string]clients.RepoClient
+	repoClient  clients.RepoClient
 )
 
 // List of repos to fetch source code of.
@@ -53,7 +51,7 @@ func (l *log) Logf(s string, f ...interface{}) {
 }
 
 func TestE2e(t *testing.T) {
-	// t.Parallel()
+	t.Parallel()
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "E2e Suite")
 }
@@ -87,34 +85,8 @@ var _ = BeforeSuite(func() {
 
 	ghClient = github.NewClient(httpClient)
 	graphClient = githubv4.NewClient(httpClient)
-
-	repoClients = make(map[string]clients.RepoClient)
-	for _, repo := range repoList {
-
-		if _, ok := repoClients[repo]; ok {
-			panic(fmt.Sprintf("repo %v appears multiple times", repo))
-		}
-
-		// Create the client.
-		repoClients[repo] = githubrepo.CreateGithubRepoClient(ctx, ghClient)
-
-		parts := strings.Split(repo, "/")
-		if len(parts) != 2 {
-			panic("parts is invalid")
-		}
-		owner := parts[0]
-		repoName := parts[1]
-		// Init the client. Ignore if the repo is already initialized.
-		err := repoClients[repo].InitRepo(owner, repoName)
-		if err != nil && !errors.As(err, &os.ErrExist) {
-			panic(err)
-		}
-
-	}
+	repoClient = githubrepo.CreateGithubRepoClient(ctx, ghClient)
 })
 
 var _ = AfterSuite(func() {
-	// Note: we don't call ReleaseRepo() because
-	// it would delete files that are needed by running
-	// checks.
 })

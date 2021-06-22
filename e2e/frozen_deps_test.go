@@ -28,11 +28,16 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 	Context("E2E TEST:Validating deps are frozen", func() {
 		It("Should return deps are not frozen", func() {
 			l := log{}
+			//nolint:errcheck
+			defer repoClient.ReleaseRepo()
+			err := repoClient.InitRepo("tensorflow", "tensorflow")
+			Expect(err).Should(BeNil())
+
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  repoClients["tensorflow/tensorflow"],
+				RepoClient:  repoClient,
 				Owner:       "tensorflow",
 				Repo:        "tensorflow",
 				GraphClient: graphClient,
@@ -44,11 +49,16 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 		})
 		It("Should return deps are frozen", func() {
 			l := log{}
+			//nolint:errcheck
+			defer repoClient.ReleaseRepo()
+			err := repoClient.InitRepo("ossf", "scorecard")
+			Expect(err).Should(BeNil())
+
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  repoClients["ossf/scorecard"],
+				RepoClient:  repoClient,
 				Owner:       "ossf",
 				Repo:        "scorecard",
 				GraphClient: graphClient,

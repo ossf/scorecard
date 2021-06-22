@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -27,7 +28,7 @@ import (
 	"github.com/ossf/scorecard/clients"
 )
 
-const repoFilename = "/tmp/%v.%v.githubrepo.tar.gz"
+const repoFilename = "%v.%v.githubrepo.tar.gz"
 
 type Client struct {
 	repo       *github.Repository
@@ -63,12 +64,14 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	}
 	defer resp.Body.Close()
 
-	client.tarball = fmt.Sprintf(repoFilename, owner, repoName)
-	repoFile, err := os.OpenFile(client.tarball, os.O_CREATE|os.O_WRONLY|os.O_TRUNC|os.O_EXCL, 0o644)
+	// Create a temp file. This automaticlly appends a random number to the name.
+	repoFile, err := ioutil.TempFile("", fmt.Sprintf(repoFilename, owner, repoName))
 	if err != nil {
-		return fmt.Errorf("os.OpenFile: %w", err)
+		return fmt.Errorf("ioutil.TempFile: %w", err)
 	}
 	defer repoFile.Close()
+
+	client.tarball = repoFile.Name()
 
 	if _, err := io.Copy(repoFile, resp.Body); err != nil {
 		return fmt.Errorf("io.Copy: %w", err)

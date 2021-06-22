@@ -28,11 +28,16 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 	Context("E2E TEST:Validating security policy", func() {
 		It("Should return valid security policy", func() {
 			l := log{}
+			//nolint:errcheck
+			defer repoClient.ReleaseRepo()
+			err := repoClient.InitRepo("tensorflow", "tensorflow")
+			Expect(err).Should(BeNil())
+
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  repoClients["tensorflow/tensorflow"],
+				RepoClient:  repoClient,
 				Owner:       "tensorflow",
 				Repo:        "tensorflow",
 				GraphClient: graphClient,
