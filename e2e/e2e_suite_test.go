@@ -53,7 +53,7 @@ func (l *log) Logf(s string, f ...interface{}) {
 }
 
 func TestE2e(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "E2e Suite")
 }
