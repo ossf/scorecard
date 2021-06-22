@@ -27,8 +27,6 @@ import (
 	"github.com/shurcooL/githubv4"
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/clients"
-	"github.com/ossf/scorecard/clients/githubrepo"
 	"github.com/ossf/scorecard/roundtripper"
 )
 
@@ -36,7 +34,6 @@ var (
 	ghClient    *github.Client
 	graphClient *githubv4.Client
 	httpClient  *http.Client
-	repoClient  clients.RepoClient
 )
 
 // List of repos to fetch source code of.
@@ -85,7 +82,6 @@ var _ = BeforeSuite(func() {
 
 	ghClient = github.NewClient(httpClient)
 	graphClient = githubv4.NewClient(httpClient)
-	repoClient = githubrepo.CreateGithubRepoClient(ctx, ghClient)
 })
 
 var _ = AfterSuite(func() {

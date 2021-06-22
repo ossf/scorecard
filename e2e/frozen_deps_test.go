@@ -28,8 +28,7 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 	Context("E2E TEST:Validating deps are frozen", func() {
 		It("Should return deps are not frozen", func() {
 			l := log{}
-			//nolint:errcheck
-			defer repoClient.ReleaseRepo()
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
 			err := repoClient.InitRepo("tensorflow", "tensorflow")
 			Expect(err).Should(BeNil())
 
@@ -49,8 +48,7 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 		})
 		It("Should return deps are frozen", func() {
 			l := log{}
-			//nolint:errcheck
-			defer repoClient.ReleaseRepo()
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
 			err := repoClient.InitRepo("ossf", "scorecard")
 			Expect(err).Should(BeNil())
 

@@ -85,8 +85,6 @@ func RunScorecards(ctx context.Context,
 	if err := repoClient.InitRepo(repo.Owner, repo.Repo); err != nil {
 		return repos.RepoResult{}, fmt.Errorf("error during InitRepo for %s: %w", repo.URL(), err)
 	}
-	//nolint:errcheck
-	defer repoClient.ReleaseRepo()
 
 	ret := repos.RepoResult{
 		Repo: repo.URL(),

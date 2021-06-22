@@ -28,7 +28,7 @@ import (
 	"github.com/ossf/scorecard/clients"
 )
 
-const repoFilename = "%v.%v.githubrepo.tar.gz"
+const repoFilename = "githubrepo*.tar.gz"
 
 type Client struct {
 	repo       *github.Repository
@@ -65,7 +65,7 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	defer resp.Body.Close()
 
 	// Create a temp file. This automaticlly appends a random number to the name.
-	repoFile, err := ioutil.TempFile("", fmt.Sprintf(repoFilename, owner, repoName))
+	repoFile, err := ioutil.TempFile("", repoFilename)
 	if err != nil {
 		return fmt.Errorf("ioutil.TempFile: %w", err)
 	}
@@ -75,14 +75,6 @@ func (client *Client) InitRepo(owner, repoName string) error {
 
 	if _, err := io.Copy(repoFile, resp.Body); err != nil {
 		return fmt.Errorf("io.Copy: %w", err)
-	}
-	return nil
-}
-
-func (client *Client) ReleaseRepo() error {
-	err := os.Remove(client.tarball)
-	if !os.IsNotExist(err) {
-		return fmt.Errorf("os.Remove: %w", err)
 	}
 	return nil
 }

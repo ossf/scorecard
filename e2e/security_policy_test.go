@@ -28,8 +28,7 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 	Context("E2E TEST:Validating security policy", func() {
 		It("Should return valid security policy", func() {
 			l := log{}
-			//nolint:errcheck
-			defer repoClient.ReleaseRepo()
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
 			err := repoClient.InitRepo("tensorflow", "tensorflow")
 			Expect(err).Should(BeNil())
 

@@ -40,5 +40,4 @@ func NewRepoUnavailableError(err error) error {
 type RepoClient interface {
 	InitRepo(owner, repo string) error
 	GetRepoArchiveReader() (io.ReadCloser, error)
-	ReleaseRepo() error
 }
