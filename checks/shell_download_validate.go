@@ -162,6 +162,7 @@ func getOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 		return fn, b, err
 	}
 
+	// TODO(laurent): add other cloud services' utilities
 	return "", false, nil
 }
 
