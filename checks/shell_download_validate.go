@@ -578,7 +578,7 @@ func extractInterpreterCommandFromString(cmd string) (c string, res bool, err er
 	return cs, ok, nil
 }
 
-// The functions below are the only nones that should be called by other files.
+// The functions below are the only ones that should be called by other files.
 // There needs to be a call to extractInterpreterCommandFromString() prior
 // to calling other functions.
 
