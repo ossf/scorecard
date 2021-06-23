@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"net/url"
@@ -43,6 +44,10 @@ var interpreters = []string{
 // cli options.
 var downloadUtils = []string{
 	"curl", "wget", "gsutil",
+}
+
+var shellNames = []string{
+	"sh", "bash", "dash", "ksh",
 }
 
 func isBinaryName(expected, name string) bool {
@@ -820,4 +825,46 @@ func validateShellCommand(cmd, pathfn string, downloadedFiles map[string]bool,
 	}
 
 	return ret, nil
+}
+
+func IsShellScriptFile(pathfn string, content []byte) bool {
+	r := strings.NewReader(string(content))
+	scanner := bufio.NewScanner(r)
+	if !scanner.Scan() {
+		return false
+	}
+
+	for _, name := range shellNames {
+		// Look at the prefix.
+		if strings.HasPrefix(pathfn, "."+name) {
+			return true
+		}
+
+		// Look at file content.
+		line := scanner.Text()
+
+		//  #!/bin/XXX, #!XXX, #!/usr/bin/env XXX, #!env XXX
+		if !strings.HasPrefix(line, "#!") {
+			continue
+		}
+
+		line = line[2:]
+		parts := strings.Split(line, " ")
+		// #!/bin/bash, #!bash
+		if len(parts) == 1 && isBinaryName(name, parts[0]) {
+			return true
+		}
+
+		// #!/bin/env bash
+		if len(parts) == 2 &&
+			isBinaryName("env", parts[0]) &&
+			isBinaryName(name, parts[1]) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func validateShellFile(pathfn string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
 }
