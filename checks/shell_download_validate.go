@@ -39,7 +39,7 @@ var interpreters = []string{
 	"exec", "su",
 }
 
-// Note: aws is handled seperately because it uses different
+// Note: aws is handled separately because it uses different
 // cli options.
 var downloadUtils = []string{
 	"curl", "wget", "gsutil",
