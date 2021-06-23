@@ -16,6 +16,7 @@ package checks
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -89,6 +90,16 @@ func getTarReader(in io.Reader) (*tar.Reader, error) {
 	return tr, nil
 }
 
+func readEntireFile(tr *tar.Reader) (content []byte, err error) {
+	var buf bytes.Buffer
+	_, err = io.Copy(&buf, tr)
+	if err != nil {
+		return nil, fmt.Errorf("io.Copy: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
 // CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
 // shellPathFnPattern is used for https://golang.org/pkg/path/#Match
 // Warning: the pattern is used to match (1) the entire path AND (2) the filename alone. This means:
@@ -150,22 +161,21 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 			continue
 		}
 
-		content := make([]byte, hdr.Size)
-		n, err := tr.Read(content)
-		if err != nil && err != io.EOF {
+		content, err := readEntireFile(tr)
+		if err != nil {
 			return checker.MakeRetryResult(checkName, err)
 		}
+
 		// We should have reached the end of files AND
 		// the number of bytes should be the same as number
 		// indicated in header, unless the file format supports
 		// sparse regions. Only USTAR format does not support
 		// spare regions -- see https://golang.org/pkg/archive/tar/
-		if b := headerSizeMatchesFileSize(hdr, n); !b {
+		if b := headerSizeMatchesFileSize(hdr, len(content)); !b {
 			return checker.MakeRetryResult(checkName, ErrReadFile)
 		}
 
-		// We truncate the file to remove trailing 0 (sparse format).
-		rr, err := onFileContent(fullpath, content[:n], c.Logf)
+		rr, err := onFileContent(fullpath, content, c.Logf)
 		if err != nil {
 			return checker.MakeFailResult(checkName, err)
 		}
