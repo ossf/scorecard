@@ -39,6 +39,12 @@ var interpreters = []string{
 	"exec", "su",
 }
 
+// Note: aws is handled seperately because it uses different
+// cli options.
+var downloadUtils = []string{
+	"curl", "wget", "gsutil",
+}
+
 func isBinaryName(expected, name string) bool {
 	return strings.EqualFold(path.Base(name), expected)
 }
@@ -51,8 +57,7 @@ func isDownloadUtility(cmd []string) bool {
 	// Note: we won't be catching those if developers have re-named
 	// the utility.
 	// Note: wget -O - <website>, but we don't check for that explicitly.
-	utils := [3]string{"curl", "wget", "gsutil"}
-	for _, b := range utils {
+	for _, b := range downloadUtils {
 		if isBinaryName(b, cmd[0]) {
 			return true
 		}
@@ -68,7 +73,7 @@ func isDownloadUtility(cmd []string) bool {
 	return false
 }
 
-func getWgetOututFile(cmd []string) (pathfn string, ok bool, err error) {
+func getWgetOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	if isBinaryName("wget", cmd[0]) {
 		for i := 1; i < len(cmd)-1; i++ {
 			// Find -O output, or use the basename from url.
@@ -93,7 +98,7 @@ func getWgetOututFile(cmd []string) (pathfn string, ok bool, err error) {
 	return "", false, nil
 }
 
-func getGsutilOututFile(cmd []string) (pathfn string, ok bool, err error) {
+func getGsutilOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	if isBinaryName("gsutil", cmd[0]) {
 		for i := 1; i < len(cmd)-1; i++ {
 			if !strings.HasPrefix(cmd[i], "gs://") {
@@ -116,7 +121,7 @@ func getGsutilOututFile(cmd []string) (pathfn string, ok bool, err error) {
 	return "", false, nil
 }
 
-func getAwsOututFile(cmd []string) (pathfn string, ok bool, err error) {
+func getAWSOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	// https://docs.aws.amazon.com/AmazonS3/latest/userguide/download-objects.html.
 	if isBinaryName("aws", cmd[0]) {
 		if len(cmd) < 3 || !strings.EqualFold("s3api", cmd[1]) || !strings.EqualFold("get-object", cmd[2]) {
@@ -146,19 +151,19 @@ func getOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	}
 
 	// Wget.
-	fn, b, err := getWgetOututFile(cmd)
+	fn, b, err := getWgetOutputFile(cmd)
 	if err != nil || b {
 		return fn, b, err
 	}
 
 	// Gsutil.
-	fn, b, err = getGsutilOututFile(cmd)
+	fn, b, err = getGsutilOutputFile(cmd)
 	if err != nil || b {
 		return fn, b, err
 	}
 
 	// Aws.
-	fn, b, err = getAwsOututFile(cmd)
+	fn, b, err = getAWSOutputFile(cmd)
 	if err != nil || b {
 		return fn, b, err
 	}
@@ -199,11 +204,12 @@ func isInterpreterWithFile(cmd []string, fn string) bool {
 	}
 
 	for _, b := range interpreters {
-		if isBinaryName(b, cmd[0]) {
-			for _, arg := range cmd[1:] {
-				if strings.EqualFold(filepath.Clean(arg), filepath.Clean(fn)) {
-					return true
-				}
+		if !isBinaryName(b, cmd[0]) {
+			continue
+		}
+		for _, arg := range cmd[1:] {
+			if strings.EqualFold(filepath.Clean(arg), filepath.Clean(fn)) {
+				return true
 			}
 		}
 	}
@@ -340,16 +346,21 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		if strings.EqualFold(cmd[i], "install") ||
 			strings.EqualFold(cmd[i], "get") {
 			found = true
-		} else if found {
-			pkg := cmd[i+1]
-			// Verify pkg = name@hash
-			parts := strings.Split(pkg, "@")
-			if len(parts) == l {
-				hash := parts[1]
-				if hashRegex.Match([]byte(hash)) {
-					return false
-				}
-			}
+		}
+
+		if !found {
+			continue
+		}
+
+		pkg := cmd[i+1]
+		// Verify pkg = name@hash
+		parts := strings.Split(pkg, "@")
+		if len(parts) != l {
+			continue
+		}
+		hash := parts[1]
+		if hashRegex.Match([]byte(hash)) {
+			return false
 		}
 	}
 
@@ -370,11 +381,16 @@ func isPipUnpinnedDownload(cmd []string) bool {
 		// Search for get and install commands.
 		if strings.EqualFold(cmd[i], "install") {
 			isInstalled = true
-		} else if isInstalled && strings.EqualFold("-r", cmd[i]) {
-			requirements := cmd[i+1]
-			if strings.EqualFold(path.Base(requirements), "requirements.txt") {
-				return false
-			}
+			continue
+		}
+
+		if !isInstalled || !strings.EqualFold("-r", cmd[i]) {
+			continue
+		}
+
+		requirements := cmd[i+1]
+		if strings.EqualFold(path.Base(requirements), "requirements.txt") {
+			return false
 		}
 	}
 

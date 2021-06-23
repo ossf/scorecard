@@ -17,6 +17,7 @@ package checks
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"regexp"
 	"strings"
 
@@ -42,13 +43,25 @@ func init() {
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
 func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheckAnd(
-		isPackageManagerLockFilePresent,
-		isGitHubActionsWorkflowPinned,
-		isDockerfilePinned,
-		isDockerfileFreeOfInsecureDownloads,
-	)(c)
-	return CheckFilesContent(CheckFrozenDeps, "*", true, c, validateDockerfileDownloads)
+	// return checker.MultiCheckAnd(
+	// 	isPackageManagerLockFilePresent,
+	// 	isGitHubActionsWorkflowPinned,
+	// 	isDockerfilePinned,
+	// 	isDockerfileFreeOfInsecureDownloads,
+	// )(c)
+	var content []byte
+	content, err := ioutil.ReadFile("checks/Dockerfile-curl")
+	if err != nil {
+		c.Logf("ioutil.ReadFile: %v", err)
+		return checker.MakeFailResult(CheckFrozenDeps, err)
+	}
+
+	_, err = validateDockerfileDownloads("some/path", content, c.Logf)
+	if err != nil {
+		c.Logf("validateDockerfileDownloads: %v", err)
+		return checker.MakeFailResult(CheckFrozenDeps, err)
+	}
+	return checker.MakePassResult(CheckFrozenDeps)
 }
 
 // TODO(laurent): need to support GCB pinning.

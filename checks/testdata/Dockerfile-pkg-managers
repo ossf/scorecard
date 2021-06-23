@@ -21,7 +21,7 @@ RUN go install github.com@some_tag
 RUN go get github.com@some_tag
 RUN go get github.com@1111111111ccccccccccaaaaaaaaaa9999999999
 RUN go get github.com@1111111111ccccccccccaaaaaaaaaa9999999999
-RUN ["go", "install", "github.com@1111111111ccccccccccaaaaaaaaaa9999999999"]
+RUN ["go", "install", "-Y", "github.com@1111111111ccccccccccaaaaaaaaaa9999999999"]
 RUN ["go", "get", "github.com@1111111111ccccccccccaaaaaaaaaa9999999999"]
 
 RUN go mod download
