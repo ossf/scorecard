@@ -35,7 +35,7 @@ var ErrParsingShellCommand = errors.New("shell command cannot be parsed")
 var interpreters = []string{
 	"sh", "bash", "dash", "ksh", "python",
 	"perl", "ruby", "php", "node", "nodejs", "java",
-	"exec",
+	"exec", "su",
 }
 
 func isBinaryName(expected, name string) bool {
@@ -162,6 +162,7 @@ func getOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 		return fn, b, err
 	}
 
+	// TODO(laurent): add other cloud services' utilities
 	return "", false, nil
 }
 
@@ -172,6 +173,19 @@ func isInterpreter(cmd []string) bool {
 
 	for _, b := range interpreters {
 		if isBinaryName(b, cmd[0]) {
+			return true
+		}
+	}
+	return false
+}
+
+func isInterpreterWithCommand(cmd []string) bool {
+	if len(cmd) == 0 {
+		return false
+	}
+
+	for _, b := range interpreters {
+		if isCommand(cmd, b) {
 			return true
 		}
 	}
@@ -359,11 +373,11 @@ func validateCommandIsNotFetchToFileExecute(cmd, pathfn string, logf func(s stri
 		if err != nil {
 			return false
 		}
-		var fn string
-		var b bool
+
 		// Record the file that is downloaded, if any.
-		fn, b, err = recordFetchFileFromNode(node)
-		if err != nil {
+		fn, b, e := recordFetchFileFromNode(node)
+		if e != nil {
+			err = e
 			return false
 		} else if b {
 			files[fn] = true
@@ -437,19 +451,19 @@ func isFetchStdinExecute(node syntax.Node, cmd, pathfn string,
 	return true
 }
 
-func isSuCommand(cmd []string) bool {
-	isSu := false
+func isCommand(cmd []string, b string) bool {
+	isBin := false
 	for _, c := range cmd {
-		if strings.EqualFold("su", c) {
-			isSu = true
-		} else if isSu && strings.HasPrefix(c, "-") && strings.Contains(c, "c") {
+		if isBinaryName(b, c) {
+			isBin = true
+		} else if isBin && strings.HasPrefix(c, "-") && strings.Contains(c, "c") {
 			return true
 		}
 	}
 	return false
 }
 
-func extractSuCommand(args []*syntax.Word) (string, bool) {
+func extractInterpreterCommandFromArgs(args []*syntax.Word) (string, bool) {
 	for _, arg := range args {
 		if len(arg.Parts) != 1 {
 			continue
@@ -472,7 +486,7 @@ func extractSuCommand(args []*syntax.Word) (string, bool) {
 	return "", false
 }
 
-func validateCommandIsNotNotSuFetchToStdinExecute(cmd, pathfn string,
+func validateCommandIsNotFetchToStdinExecute(cmd, pathfn string,
 	logf func(s string, f ...interface{})) (bool, error) {
 	in := strings.NewReader(cmd)
 	f, err := syntax.NewParser().Parse(in, "")
@@ -491,118 +505,6 @@ func validateCommandIsNotNotSuFetchToStdinExecute(cmd, pathfn string,
 	})
 
 	return cmdValidated, nil
-}
-
-func isSuFetchStdinExecute(node syntax.Node, cmd, pathfn string,
-	logf func(s string, f ...interface{})) (bool, error) {
-	ce, ok := node.(*syntax.CallExpr)
-	if !ok {
-		return false, nil
-	}
-
-	c, ok := extractCommand(ce)
-	if !ok {
-		return false, nil
-	}
-
-	if !isSuCommand(c) {
-		return false, nil
-	}
-
-	cs, ok := extractSuCommand(ce.Args)
-	if !ok {
-		return false, nil
-	}
-
-	// We have extracted the command. Now parse it.
-	in := strings.NewReader(cs)
-	f, err := syntax.NewParser().Parse(in, "")
-	if err != nil {
-		return false, fmt.Errorf("syntax.NewParser: %w", err)
-	}
-
-	isFetch := false
-	syntax.Walk(f, func(node syntax.Node) bool {
-		if isFetchStdinExecute(node, cmd, pathfn, logf) {
-			isFetch = true
-		}
-
-		// Continue walking the node graph.
-		return true
-	})
-
-	return isFetch, nil
-}
-
-func validateCommandIsNotSuFetchToStdinExecute(cmd, pathfn string,
-	logf func(s string, f ...interface{})) (bool, error) {
-	in := strings.NewReader(cmd)
-	f, err := syntax.NewParser().Parse(in, "")
-	if err != nil {
-		return false, ErrParsingShellCommand
-	}
-
-	cmdValidated := true
-	syntax.Walk(f, func(node syntax.Node) bool {
-		if err != nil {
-			return false
-		}
-		var b bool
-		b, err = isSuFetchStdinExecute(node, cmd, pathfn, logf)
-		if err != nil {
-			return false
-		} else if b {
-			cmdValidated = false
-		}
-
-		// Continue walking the node graph.
-		return true
-	})
-
-	return cmdValidated, err
-}
-
-func validateCommandIsNotFetchToStdinExecute(cmd, pathfn string,
-	logf func(s string, f ...interface{})) (bool, error) {
-	r1, err := validateCommandIsNotNotSuFetchToStdinExecute(cmd, pathfn, logf)
-	if err != nil {
-		return r1, err
-	}
-
-	r2, err := validateCommandIsNotSuFetchToStdinExecute(cmd, pathfn, logf)
-	if err != nil {
-		return r2, err
-	}
-
-	return r1 && r2, nil
-}
-
-func recordFetchFileFromString(cmd string) (fmap map[string]bool, ok bool, err error) {
-	in := strings.NewReader(cmd)
-	f, err := syntax.NewParser().Parse(in, "")
-	if err != nil {
-		return nil, false, ErrParsingShellCommand
-	}
-
-	files := make(map[string]bool)
-	syntax.Walk(f, func(node syntax.Node) bool {
-		if err != nil {
-			return false
-		}
-		var b bool
-		var fn string
-		fn, b, err = recordFetchFileFromNode(node)
-		if err != nil {
-			return false
-		} else if b {
-			files[fn] = true
-		}
-
-		// Continue walking the node graph.
-		return true
-	})
-
-	return files, true, err
 }
 
 func validateCommandIsNotFileExecute(cmd, pathfn string, files map[string]bool,
@@ -625,4 +527,155 @@ func validateCommandIsNotFileExecute(cmd, pathfn string, files map[string]bool,
 	})
 
 	return cmdValidated, nil
+}
+
+func extractInterpreterCommandFromNode(node syntax.Node) (string, bool) {
+	ce, ok := node.(*syntax.CallExpr)
+	if !ok {
+		return "", false
+	}
+
+	c, ok := extractCommand(ce)
+	if !ok {
+		return "", false
+	}
+
+	if !isInterpreterWithCommand(c) {
+		return "", false
+	}
+
+	cs, ok := extractInterpreterCommandFromArgs(ce.Args)
+	if !ok {
+		return "", false
+	}
+
+	return cs, true
+}
+
+func extractInterpreterCommandFromString(cmd string) (c string, res bool, err error) {
+	in := strings.NewReader(cmd)
+	f, err := syntax.NewParser().Parse(in, "")
+	if err != nil {
+		return "", false, ErrParsingShellCommand
+	}
+
+	cs := ""
+	ok := false
+	syntax.Walk(f, func(node syntax.Node) bool {
+		if ok {
+			return false
+		}
+		command, commandFound := extractInterpreterCommandFromNode(node)
+		// nolinter
+		if commandFound {
+			cs = command
+			ok = commandFound
+			return false
+		}
+
+		// Continue walking the node graph.
+		return true
+	})
+	return cs, ok, nil
+}
+
+// The functions below are the only ones that should be called by other files.
+// There needs to be a call to extractInterpreterCommandFromString() prior
+// to calling other functions.
+
+func recordFetchFileFromString(cmd string) (fmap map[string]bool, ok bool, err error) {
+	// Check if the command is calling an interpreter with a string command.
+	c, ok, err := extractInterpreterCommandFromString(cmd)
+	if err != nil {
+		return nil, false, err
+	} else if ok {
+		cmd = c
+	}
+
+	in := strings.NewReader(cmd)
+	f, err := syntax.NewParser().Parse(in, "")
+	if err != nil {
+		return nil, false, ErrParsingShellCommand
+	}
+
+	files := make(map[string]bool)
+	syntax.Walk(f, func(node syntax.Node) bool {
+		if err != nil {
+			return false
+		}
+		fn, b, e := recordFetchFileFromNode(node)
+		if e != nil {
+			err = e
+			return false
+		} else if b {
+			files[fn] = true
+		}
+
+		// Continue walking the node graph.
+		return true
+	})
+
+	return files, true, err
+}
+
+func validateShellCommand(cmd, pathfn string, downloadedFiles map[string]bool,
+	logf func(s string, f ...interface{})) (bool, error) {
+	ret := true
+
+	// First, check if the command launches an interpreter with
+	// a string, such as `bash -c "CMD"`, `python -c "CMD"`, `su -c "CMD"`, etc.
+	c, ok, err := extractInterpreterCommandFromString(cmd)
+	if err != nil {
+		return false, err
+	} else if ok {
+		cmd = c
+	}
+
+	// Validate it's not downloading and piping into a shell, like
+	// `curl | bash` (supports `sudo`).
+	r, err := validateCommandIsNotFetchPipeExecute(cmd, pathfn, logf)
+	if err != nil {
+		return false, err
+	} else if !r {
+		ret = false
+	}
+
+	// Validate it is not a download command followed by
+	// an execute: `curl > /tmp/file && /tmp/file`
+	//			   `curl > /tmp/file && bash /tmp/file`
+	//			   `curl > /tmp/file; bash /tmp/file`
+	//			   `curl > /tmp/file; /tmp/file`
+	// (supports `sudo`).
+	r, err = validateCommandIsNotFetchToFileExecute(cmd, pathfn, logf)
+	if err != nil {
+		return false, err
+	} else if !r {
+		ret = false
+	}
+
+	// Validate it's not shelling out by redirecting input to stdin, like
+	// `bash <(wget -qO- http://website.com/my-script.sh)`. (supports `sudo`).
+	r, err = validateCommandIsNotFetchToStdinExecute(cmd, pathfn, logf)
+	if err != nil {
+		return false, err
+	} else if !r {
+		ret = false
+	}
+
+	// TODO(laurent): add check for cat file | bash
+	// TODO(laurent): detect downloads of zip/tar files containing scripts.
+	// TODO(laurent): detect command being an env variable
+	// TODO(laurent): detect unpinned git clone and package manager downloads (go get/install).
+
+	// Check if a previously-downloaded file is executed via
+	// `bash <some-already-downloaded-file>` or directly `<some-already-downloaded-file>`
+	// (supports `sudo`).
+	r, err = validateCommandIsNotFileExecute(cmd, pathfn, downloadedFiles, logf)
+	if err != nil {
+		return false, err
+	} else if !r {
+		ret = false
+	}
+
+	return ret, nil
 }
