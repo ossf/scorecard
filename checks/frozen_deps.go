@@ -17,7 +17,6 @@ package checks
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"regexp"
 	"strings"
 
@@ -43,26 +42,13 @@ func init() {
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
 func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
-	// return checker.MultiCheckAnd(
-	// 	isPackageManagerLockFilePresent,
-	// 	isGitHubActionsWorkflowPinned,
-	// 	isDockerfilePinned,
-	// 	isDockerfileFreeOfInsecureDownloads,
-	// )(c)
-	var content []byte
-	content, err := ioutil.ReadFile("checks/test.sh")
-	if err != nil {
-		c.Logf("ioutil.ReadFile: %v", err)
-		return checker.MakeFailResult(CheckFrozenDeps, err)
-	}
-
-	r, err := validateShellScriptDownloads("some/path", content, c.Logf)
-	if err != nil || !r {
-		c.Logf("validateShellScriptDownloads: %v", err)
-		return checker.MakeFailResult(CheckFrozenDeps, err)
-	}
-	return checker.MakePassResult(CheckFrozenDeps)
-	// return CheckFilesContent(CheckFrozenDeps, "*", true, c, validateDockerfileDownloads)
+	return checker.MultiCheckAnd(
+		isPackageManagerLockFilePresent,
+		isGitHubActionsWorkflowPinned,
+		isDockerfilePinned,
+		isDockerfileFreeOfInsecureDownloads,
+		isShellScriptFreeOfInsecureDownloads,
+	)(c)
 }
 
 // TODO(laurent): need to support GCB pinning.
@@ -78,12 +64,7 @@ func validateShellScriptDownloads(pathfn string, content []byte,
 		return false, nil
 	}
 
-	r, err := validateShellFile(pathfn, content, logf)
-	if err != nil || !r {
-		return r, err
-	}
-
-	return true, nil
+	return validateShellFile(pathfn, content, logf)
 }
 
 func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
@@ -98,8 +79,7 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
 	}
 
-	ret := true
-	files := make(map[string]bool)
+	var bytes []byte
 
 	// Walk the Dockerfile's AST.
 	for _, child := range res.AST.Children {
@@ -118,26 +98,12 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 			return false, ErrParsingDockerfile
 		}
 
-		// Validate the command.
+		// Build a file content.
 		cmd := strings.Join(valueList, " ")
-		r, err := validateShellCommand(cmd, pathfn, files, logf)
-		if err != nil {
-			return false, err
-		} else if !r {
-			ret = false
-		}
-
-		// Record the name of downloaded file, if any.
-		fn, b, err := recordFetchFileFromString(cmd)
-		if err != nil {
-			return false, err
-		} else if b {
-			for f := range fn {
-				files[f] = true
-			}
-		}
+		bytes = append(bytes, cmd...)
+		bytes = append(bytes, []byte("\n")...)
 	}
-	return ret, nil
+	return validateShellFile(pathfn, bytes, logf)
 }
 
 func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
