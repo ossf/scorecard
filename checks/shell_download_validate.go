@@ -565,11 +565,11 @@ func extractInterpreterCommandFromString(cmd string) (c string, res bool, err er
 		if ok {
 			return false
 		}
-		s, kk := extractInterpreterCommandFromNode(node)
+		command, commandFound := extractInterpreterCommandFromNode(node)
 		// nolinter
-		if kk {
-			cs = s
-			ok = kk
+		if commandFound {
+			cs = command
+			ok = commandFound
 			return false
 		}
 
