@@ -24,6 +24,7 @@ import (
 
 func TestGithubWorkflowPinning(t *testing.T) {
 	t.Parallel()
+	//nolint
 	type args struct {
 		Log      log
 		Filename string
@@ -35,6 +36,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		NumberOfErrors int
 	}
 
+	//nolint
 	tests := []struct {
 		args args
 		want returnValue

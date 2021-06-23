@@ -90,7 +90,7 @@ func getTarReader(in io.Reader) (*tar.Reader, error) {
 	return tr, nil
 }
 
-func readEntireFile(tr *tar.Reader, hdr *tar.Header) (content []byte, err error) {
+func readEntireFile(tr *tar.Reader) (content []byte, err error) {
 	var buf bytes.Buffer
 	_, err = io.Copy(&buf, tr)
 	if err != nil {
@@ -161,9 +161,9 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 			continue
 		}
 
-		content, err := readEntireFile(tr, hdr)
+		content, err := readEntireFile(tr)
 		if err != nil {
-			return checker.MakeFailResult(checkName, err)
+			return checker.MakeRetryResult(checkName, err)
 		}
 
 		// We should have reached the end of files AND
@@ -175,7 +175,6 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 			return checker.MakeRetryResult(checkName, ErrReadFile)
 		}
 
-		// We truncate the file to remove trailing 0 (sparse format).
 		rr, err := onFileContent(fullpath, content, c.Logf)
 		if err != nil {
 			return checker.MakeFailResult(checkName, err)
