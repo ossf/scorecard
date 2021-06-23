@@ -829,7 +829,7 @@ func validateShellCommand(cmd, pathfn string, downloadedFiles map[string]bool,
 	return ret, nil
 }
 
-func IsShellScriptFile(pathfn string, content []byte) bool {
+func isShellScriptFile(pathfn string, content []byte) bool {
 	r := strings.NewReader(string(content))
 	scanner := bufio.NewScanner(r)
 	if !scanner.Scan() {

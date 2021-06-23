@@ -74,7 +74,7 @@ func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.Check
 func validateShellScriptDownloads(pathfn string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
 	// Validate the file type.
-	if !IsShellScriptFile(pathfn, content) {
+	if !isShellScriptFile(pathfn, content) {
 		return false, nil
 	}
 
