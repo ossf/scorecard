@@ -705,7 +705,7 @@ func validateShellFile(pathfn string, content []byte, logf func(s string, f ...i
 	return validateShellFileAndRecord(pathfn, content, files, logf)
 }
 
-func IsShellScriptFile(pathfn string, content []byte) bool {
+func isShellScriptFile(pathfn string, content []byte) bool {
 	r := strings.NewReader(string(content))
 	scanner := bufio.NewScanner(r)
 	if !scanner.Scan() {
