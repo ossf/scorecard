@@ -20,7 +20,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -658,7 +657,6 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 // The functions below are the only ones that should be called by other files.
 // There needs to be a call to extractInterpreterCommandFromString() prior
 // to calling other functions.
-
 func isShellScriptFile(pathfn string, content []byte) bool {
 	r := strings.NewReader(string(content))
 	scanner := bufio.NewScanner(r)
@@ -728,13 +726,13 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 
 		line = line[2:]
 		parts := strings.Split(line, " ")
-		// #!/bin/bash, #!bash
-		if len(parts) == 1 && isBinaryName(name, parts[0]) {
+		// #!/bin/bash, #!bash -e
+		if len(parts) >= 1 && isBinaryName(name, parts[0]) {
 			return true
 		}
 
 		// #!/bin/env bash
-		if len(parts) == 2 &&
+		if len(parts) >= 2 &&
 			isBinaryName("env", parts[0]) &&
 			isBinaryName(name, parts[1]) {
 			return true
@@ -745,59 +743,6 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 }
 
 func validateShellFile(pathfn string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
-	in := strings.NewReader(string(content))
-	f, err := syntax.NewParser().Parse(in, "")
-	if err != nil {
-		return false, ErrParsingShellCommand
-	}
-
-	syntax.DebugPrint(os.Stdout, f)
-	printer := syntax.NewPrinter()
 	files := make(map[string]bool)
-	ret := true
-	syntax.Walk(f, func(node syntax.Node) bool {
-		if err != nil {
-			return false
-		}
-
-		stmt, ok := node.(*syntax.Stmt)
-		if !ok {
-			return true
-		}
-
-		// Get the statement as a string.
-		var buf bytes.Buffer
-		e := printer.Print(&buf, stmt)
-		if e != nil {
-			err = e
-			return false
-		}
-		cmd := buf.String()
-		logf("cmd:%v", cmd)
-
-		// Validate the command.
-		r, e := validateShellCommand(cmd, pathfn, files, logf)
-		if e != nil {
-			err = e
-			return false
-		} else if !r {
-			ret = false
-		}
-
-		// Record the name of downloaded file, if any.
-		fn, b, e := recordFetchFileFromString(cmd)
-		if e != nil {
-			err = e
-			return false
-		} else if b {
-			for f := range fn {
-				files[f] = true
-			}
-		}
-
-		// Continue walking the node graph.
-		return true
-	})
-
-	return ret, err
+	return validateShellFileAndRecord(pathfn, content, files, logf)
 }
