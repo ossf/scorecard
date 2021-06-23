@@ -58,7 +58,7 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 
 	r, err := validateShellScriptDownloads("some/path", content, c.Logf)
 	if err != nil || !r {
-		c.Logf("validateDockerfileDownloads: %v", err)
+		c.Logf("validateShellScriptDownloads: %v", err)
 		return checker.MakeFailResult(CheckFrozenDeps, err)
 	}
 	return checker.MakePassResult(CheckFrozenDeps)

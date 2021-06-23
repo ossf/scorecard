@@ -16,9 +16,11 @@ package checks
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -867,4 +869,59 @@ func IsShellScriptFile(pathfn string, content []byte) bool {
 }
 
 func validateShellFile(pathfn string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
+	in := strings.NewReader(string(content))
+	f, err := syntax.NewParser().Parse(in, "")
+	if err != nil {
+		return false, ErrParsingShellCommand
+	}
+
+	syntax.DebugPrint(os.Stdout, f)
+	printer := syntax.NewPrinter()
+	files := make(map[string]bool)
+	ret := true
+	syntax.Walk(f, func(node syntax.Node) bool {
+		if err != nil {
+			return false
+		}
+
+		stmt, ok := node.(*syntax.Stmt)
+		if !ok {
+			return true
+		}
+
+		// Get the statement as a string.
+		var buf bytes.Buffer
+		e := printer.Print(&buf, stmt)
+		if e != nil {
+			err = e
+			return false
+		}
+		cmd := buf.String()
+		logf("cmd:%v", cmd)
+
+		// Validate the command.
+		r, e := validateShellCommand(cmd, pathfn, files, logf)
+		if e != nil {
+			err = e
+			return false
+		} else if !r {
+			ret = false
+		}
+
+		// Record the name of downloaded file, if any.
+		fn, b, e := recordFetchFileFromString(cmd)
+		if e != nil {
+			err = e
+			return false
+		} else if b {
+			for f := range fn {
+				files[f] = true
+			}
+		}
+
+		// Continue walking the node graph.
+		return true
+	})
+
+	return ret, err
 }
