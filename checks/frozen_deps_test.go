@@ -25,16 +25,16 @@ import (
 func TestGithubWorkflowPinning(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		Logf     func(s string, f ...interface{})
+		Log      log
 		Filename string
 	}
 
 	type returnValue struct {
-		Error  error
-		Result bool
+		Error          error
+		Result         bool
+		NumberOfErrors int
 	}
 
-	l := log{}
 	tests := []struct {
 		args args
 		want returnValue
@@ -44,40 +44,42 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			name: "Zero size content",
 			args: args{
 				Filename: "",
-				Logf:     l.Logf,
+				Log:      log{},
 			},
 			want: returnValue{
-				Error:  ErrEmptyFile,
-				Result: false,
+				Error:          ErrEmptyFile,
+				Result:         false,
+				NumberOfErrors: 0,
 			},
 		},
 		{
 			name: "Pinned workflow",
 			args: args{
 				Filename: "./testdata/workflow-pinned.yaml",
-				Logf:     l.Logf,
+				Log:      log{},
 			},
 			want: returnValue{
-				Error:  nil,
-				Result: true,
+				Error:          nil,
+				Result:         true,
+				NumberOfErrors: 0,
 			},
 		},
 		{
 			name: "Non-pinned workflow",
 			args: args{
 				Filename: "./testdata/workflow-not-pinned.yaml",
-				Logf:     l.Logf,
+				Log:      log{},
 			},
 			want: returnValue{
-				Error:  nil,
-				Result: false,
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 1,
 			},
 		},
 	}
 	//nolint
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		l.messages = []string{}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -90,12 +92,14 @@ func TestGithubWorkflowPinning(t *testing.T) {
 					panic(fmt.Errorf("cannot read file: %w", err))
 				}
 			}
-			r, err := validateGitHubActionWorkflow(tt.args.Filename, content, tt.args.Logf)
+			r, err := validateGitHubActionWorkflow(tt.args.Filename, content, tt.args.Log.Logf)
 
 			if !errors.Is(err, tt.want.Error) ||
-				r != tt.want.Result {
-				t.Errorf("TestGithubWorkflowPinning:\"%v\": %v (%v,%v) want (%v, %v)",
-					tt.name, tt.args.Filename, r, err, tt.want.Result, tt.want.Error)
+				r != tt.want.Result ||
+				len(tt.args.Log.messages) != tt.want.NumberOfErrors {
+				t.Errorf("TestDockerfileScriptDownload:\"%v\": %v (%v,%v,%v) want (%v, %v, %v)\n%v",
+					tt.name, tt.args.Filename, r, err, len(tt.args.Log.messages), tt.want.Result, tt.want.Error, tt.want.NumberOfErrors,
+					strings.Join(tt.args.Log.messages, "\n"))
 			}
 		})
 	}
