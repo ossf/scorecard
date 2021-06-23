@@ -61,7 +61,7 @@ func validateShellScriptDownloads(pathfn string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
 	// Validate the file type.
 	if !isShellScriptFile(pathfn, content) {
-		return false, nil
+		return true, nil
 	}
 
 	return validateShellFile(pathfn, content, logf)
