@@ -188,10 +188,6 @@ func validateDockerfile(path string, content []byte,
 	return ret, nil
 }
 
-// ============================================================
-// ===================== Github workflows =====================
-// ============================================================.
-
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(CheckFrozenDeps, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
