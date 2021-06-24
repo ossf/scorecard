@@ -41,7 +41,7 @@ var interpreters = []string{
 	"sh", "bash", "dash", "ksh", "mksh", "python",
 	"perl", "ruby", "php", "node", "nodejs", "java",
 	"exec", "su",
-}
+}, pythonInterpreters...)
 
 // Note: aws is handled separately because it uses different
 // cli options.
