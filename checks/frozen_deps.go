@@ -135,7 +135,7 @@ func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(CheckFrozenDeps, "*Dockerfile*", false, c, validateDockerfile)
 }
 
-func validateDockerfile(path string, content []byte,
+func validateDockerfile(pathfn string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
 	// Users may use various names, e.g.,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
@@ -189,14 +189,14 @@ func validateDockerfile(path string, content []byte,
 
 			// Not pinned.
 			ret = false
-			logf("!! frozen-deps/docker - %v has non-pinned dependency '%v'", path, name)
+			logf("!! frozen-deps/docker - %v has non-pinned dependency '%v'", pathfn, name)
 
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
 				ret = false
-				logf("!! frozen-deps/docker - %v has non-pinned dependency '%v'", path, name)
+				logf("!! frozen-deps/docker - %v has non-pinned dependency '%v'", pathfn, name)
 			}
 
 		default:
