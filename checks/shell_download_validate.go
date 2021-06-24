@@ -686,7 +686,7 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 	// Check file extension first.
 	for _, name := range shellNames {
 		// Look at the prefix.
-		if strings.HasPrefix(pathfn, "."+name) {
+		if strings.HasSuffix(pathfn, "."+name) {
 			return true
 		}
 	}

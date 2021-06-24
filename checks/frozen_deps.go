@@ -63,7 +63,6 @@ func validateShellScriptDownloads(pathfn string, content []byte,
 	if !isShellScriptFile(pathfn, content) {
 		return true, nil
 	}
-
 	return validateShellFile(pathfn, content, logf)
 }
 
