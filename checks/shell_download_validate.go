@@ -334,8 +334,8 @@ func isGoUnpinnedDownload(cmd []string) bool {
 
 	// `Go install` will automatically look up the
 	// go.mod and go.sum, so we don't flag it.
-	l := 2
-	if len(cmd) <= l {
+	// nolinter
+	if len(cmd) <= 2 {
 		return false
 	}
 
@@ -355,7 +355,8 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		pkg := cmd[i+1]
 		// Verify pkg = name@hash
 		parts := strings.Split(pkg, "@")
-		if len(parts) != l {
+		// nolinter
+		if len(parts) != 2 {
 			continue
 		}
 		hash := parts[1]
@@ -377,24 +378,24 @@ func isPipUnpinnedDownload(cmd []string) bool {
 	}
 
 	isInstalled := false
-	for i := 1; i < len(cmd)-1; i++ {
-		// Search for get and install commands.
+	for i := 1; i < len(cmd); i++ {
+		// Search for install commands.
 		if strings.EqualFold(cmd[i], "install") {
 			isInstalled = true
 			continue
 		}
 
-		if !isInstalled || !strings.EqualFold("-r", cmd[i]) {
+		if !isInstalled {
 			continue
 		}
 
-		requirements := cmd[i+1]
-		if strings.EqualFold(path.Base(requirements), "requirements.txt") {
+		// Check for `-r some-file`.
+		if strings.EqualFold("-r", cmd[i]) {
 			return false
 		}
 	}
 
-	return true
+	return isInstalled
 }
 
 func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,

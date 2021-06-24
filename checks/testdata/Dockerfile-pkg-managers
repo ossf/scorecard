@@ -32,8 +32,12 @@ RUN ["pip3", "install", "-r", "requirements.txt"]
 RUN ["/bin/pip", "install", "-r", "requirements.txt"]
 RUN ["pip3", "install"]
 RUN ["pip", "install"]
-RUN ["/bin/pip", "install"]
+RUN ["/bin/pip", "install", "-U"]
 RUN pip install
 RUN pip3 install
-RUN pip install -r requirements.txt
-RUN pip3 install -r requirements.txt
+RUN pip install -r any_file
+RUN pip3 install -r bla-requirements.txt
+
+RUN pip install somepkg
+RUN pip3 install somepkg==1.2.3
+RUN /bin/pip3 install -X -H somepkg
