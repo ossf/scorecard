@@ -435,27 +435,6 @@ func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
 	return false
 }
 
-// Detect `fetch | exec`.
-func validateCommandIsNotFetchPipeExecute(cmd, pathfn string, logf func(s string, f ...interface{})) (bool, error) {
-	in := strings.NewReader(cmd)
-	f, err := syntax.NewParser().Parse(in, "")
-	if err != nil {
-		return false, ErrParsingShellCommand
-	}
-
-	cmdValidated := true
-	syntax.Walk(f, func(node syntax.Node) bool {
-		if isFetchPipeExecute(node, cmd, pathfn, logf) {
-			cmdValidated = false
-		}
-
-		// Continue walking the node graph.
-		return true
-	})
-
-	return cmdValidated, nil
-}
-
 func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err error) {
 	ss, ok := node.(*syntax.Stmt)
 	if !ok {
