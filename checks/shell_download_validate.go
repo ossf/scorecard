@@ -479,7 +479,7 @@ func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err erro
 	return fn, true, nil
 }
 
-func isFetchStdinExecute(node syntax.Node, cmd, pathfn string,
+func isFetchProcSubsExecute(node syntax.Node, cmd, pathfn string,
 	logf func(s string, f ...interface{})) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
@@ -646,7 +646,7 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		}
 
 		// `bash <(wget -qO- http://website.com/my-script.sh)`. (supports `sudo`).
-		if isFetchStdinExecute(node, cmdStr, pathfn, logf) {
+		if isFetchProcSubsExecute(node, cmdStr, pathfn, logf) {
 			validated = false
 		}
 
