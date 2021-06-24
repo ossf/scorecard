@@ -100,7 +100,7 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 		// Build a file content.
 		cmd := strings.Join(valueList, " ")
 		bytes = append(bytes, cmd...)
-		bytes = append(bytes, []byte("\n")...)
+		bytes = append(bytes, '\n')
 	}
 	return validateShellFile(pathfn, bytes, logf)
 }
