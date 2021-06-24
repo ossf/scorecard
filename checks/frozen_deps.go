@@ -219,7 +219,6 @@ func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) chec
 
 func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
-
 	if len(content) == 0 {
 		return false, ErrEmptyFile
 	}
