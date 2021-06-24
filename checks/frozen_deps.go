@@ -47,10 +47,24 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 		isGitHubActionsWorkflowPinned,
 		isDockerfilePinned,
 		isDockerfileFreeOfInsecureDownloads,
+		isShellScriptFreeOfInsecureDownloads,
 	)(c)
 }
 
 // TODO(laurent): need to support GCB pinning.
+
+func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
+	return CheckFilesContent(CheckFrozenDeps, "*", false, c, validateShellScriptDownloads)
+}
+
+func validateShellScriptDownloads(pathfn string, content []byte,
+	logf func(s string, f ...interface{})) (bool, error) {
+	// Validate the file type.
+	if !isShellScriptFile(pathfn, content) {
+		return true, nil
+	}
+	return validateShellFile(pathfn, content, logf)
+}
 
 func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(CheckFrozenDeps, "*Dockerfile*", false, c, validateDockerfileDownloads)
@@ -64,8 +78,8 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
 	}
 
-	ret := true
-	files := make(map[string]bool)
+	// nolinter:prealloc
+	var bytes []byte
 
 	// Walk the Dockerfile's AST.
 	for _, child := range res.AST.Children {
@@ -84,26 +98,12 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 			return false, ErrParsingDockerfile
 		}
 
-		// Validate the command.
+		// Build a file content.
 		cmd := strings.Join(valueList, " ")
-		r, err := validateShellCommand(cmd, pathfn, files, logf)
-		if err != nil {
-			return false, err
-		} else if !r {
-			ret = false
-		}
-
-		// Record the name of downloaded file, if any.
-		fn, b, err := recordFetchFileFromString(cmd)
-		if err != nil {
-			return false, err
-		} else if b {
-			for f := range fn {
-				files[f] = true
-			}
-		}
+		bytes = append(bytes, cmd...)
+		bytes = append(bytes, '\n')
 	}
-	return ret, nil
+	return validateShellFile(pathfn, bytes, logf)
 }
 
 func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
