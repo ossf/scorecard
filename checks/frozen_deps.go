@@ -36,6 +36,28 @@ var ErrInvalidDockerfile = errors.New("invalid docker file")
 // ErrEmptyFile : Invalid docker file.
 var ErrEmptyFile = errors.New("file has no content")
 
+// Structure for workflow config.
+// We only retrieve the fields we need.
+// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+type gitHubActionWorkflowConfig struct {
+	Jobs map[string]struct {
+		Name  string `yaml:"name"`
+		Steps []struct {
+			Name  string `yaml:"name"`
+			ID    string `yaml:"id"`
+			Uses  string `yaml:"uses"`
+			Shell string `yaml:"shell"`
+			Run   string `yaml:"run"`
+		}
+		Defaults struct {
+			Run struct {
+				Shell string `yaml:"shell"`
+			} `yaml:"run"`
+		} `yaml:"defaults"`
+	}
+	Name string `yaml:"name"`
+}
+
 //nolint:gochecknoinits
 func init() {
 	registerCheck(CheckFrozenDeps, FrozenDeps)
@@ -196,30 +218,12 @@ func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) chec
 
 func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
-	type GitHubActionWorkflowConfig struct {
-		Jobs map[string]struct {
-			Name  string `yaml:"name"`
-			Steps []struct {
-				Name  string `yaml:"name"`
-				ID    string `yaml:"id"`
-				Uses  string `yaml:"uses"`
-				Shell string `yaml:"shell"`
-				Run   string `yaml:"run"`
-			}
-			Defaults struct {
-				Run struct {
-					Shell string `yaml:"shell"`
-				} `yaml:"run"`
-			} `yaml:"defaults"`
-		}
-		Name string `yaml:"name"`
-	}
 
 	if len(content) == 0 {
 		return false, ErrEmptyFile
 	}
 
-	var workflow GitHubActionWorkflowConfig
+	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
 		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v: %w", pathfn, string(content), err)
@@ -275,26 +279,11 @@ func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult 
 
 // Check file content.
 func validateGitHubActionWorkflow(pathfn string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
-	// Structure for workflow config.
-	// We only retrieve what we need for logging.
-	// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
-	type GitHubActionWorkflowConfig struct {
-		Jobs map[string]struct {
-			Name  string `yaml:"name"`
-			Steps []struct {
-				Name string `yaml:"name"`
-				ID   string `yaml:"id"`
-				Uses string `yaml:"uses"`
-			}
-		}
-		Name string `yaml:"name"`
-	}
-
 	if len(content) == 0 {
 		return false, ErrEmptyFile
 	}
 
-	var workflow GitHubActionWorkflowConfig
+	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
 		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v: %w", pathfn, string(content), err)
