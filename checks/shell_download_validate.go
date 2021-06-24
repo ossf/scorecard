@@ -35,6 +35,8 @@ var ErrParsingDockerfile = errors.New("file cannot be parsed")
 var ErrParsingShellCommand = errors.New("shell command cannot be parsed")
 
 // List of interpreters.
+var pythonInterpreters = []string{"python", "python3", "python2.7"}
+
 var interpreters = []string{
 	"sh", "bash", "dash", "ksh", "mksh", "python",
 	"perl", "ruby", "php", "node", "nodejs", "java",
@@ -374,24 +376,20 @@ func isGoUnpinnedDownload(cmd []string) bool {
 	return found
 }
 
-func isPipUnpinnedDownload(cmd []string) bool {
-	if len(cmd) == 0 {
-		return false
-	}
-
+func isPipInstall(cmd []string) bool {
 	if !isBinaryName("pip", cmd[0]) && !isBinaryName("pip3", cmd[0]) {
 		return false
 	}
 
-	isInstalled := false
+	isInstall := false
 	for i := 1; i < len(cmd); i++ {
 		// Search for install commands.
 		if strings.EqualFold(cmd[i], "install") {
-			isInstalled = true
+			isInstall = true
 			continue
 		}
 
-		if !isInstalled {
+		if !isInstall {
 			continue
 		}
 
@@ -401,7 +399,63 @@ func isPipUnpinnedDownload(cmd []string) bool {
 		}
 	}
 
-	return isInstalled
+	return isInstall
+}
+
+func isPythonCommand(cmd []string) bool {
+	for _, pi := range pythonInterpreters {
+		if isBinaryName(pi, cmd[0]) {
+			return true
+		}
+	}
+	return false
+}
+
+func isPythonPipInstall(cmd []string) bool {
+	if !isPythonCommand(cmd) {
+		return false
+	}
+
+	isInstall := false
+	hasPip := false
+
+	for i := 1; i < len(cmd); i++ {
+		// Search for pip module.
+		if strings.EqualFold(cmd[i], "-m") &&
+			i < len(cmd)-1 &&
+			strings.EqualFold(cmd[i+1], "pip") {
+			hasPip = true
+			continue
+		}
+
+		// Search for install commands.
+		if strings.EqualFold(cmd[i], "install") {
+			isInstall = true
+			continue
+		}
+
+		if isInstall && hasPip {
+			return true
+		}
+	}
+
+	return isInstall && hasPip
+}
+
+func isPipUnpinnedDownload(cmd []string) bool {
+	if len(cmd) == 0 {
+		return false
+	}
+
+	if isPipInstall(cmd) {
+		return true
+	}
+
+	if isPythonPipInstall(cmd) {
+		return true
+	}
+
+	return false
 }
 
 func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,

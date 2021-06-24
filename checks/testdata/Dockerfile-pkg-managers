@@ -41,3 +41,15 @@ RUN pip3 install -r bla-requirements.txt
 RUN pip install somepkg
 RUN pip3 install somepkg==1.2.3
 RUN /bin/pip3 install -X -H somepkg
+
+RUN python2.7 -m pip install -X -H somepkg \
+    'some-ther==1.2.3' \
+    'somebla<3.4.5'
+
+RUN ["python", "-m", "pip", "install", "-X", "-H", "somepkg", \
+    "'some-ther==1.2.3'", \
+    "'somebla<3.4.5'"]
+
+RUN ["python3", "-m", "pip", "install", "-X", "-H", "somepkg", \
+    "'some-ther==1.2.3'", \
+    "'somebla<3.4.5'"]
