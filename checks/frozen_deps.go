@@ -78,6 +78,7 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
 	}
 
+	// nolinter:prealloc
 	var bytes []byte
 
 	// Walk the Dockerfile's AST.
