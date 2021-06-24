@@ -682,36 +682,38 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 func isShellScriptFile(pathfn string, content []byte) bool {
 	r := strings.NewReader(string(content))
 	scanner := bufio.NewScanner(r)
-	if !scanner.Scan() {
-		return false
-	}
 
+	// Check file extension first.
 	for _, name := range shellNames {
 		// Look at the prefix.
 		if strings.HasPrefix(pathfn, "."+name) {
 			return true
 		}
+	}
 
-		// Look at file content.
-		line := scanner.Text()
+	for scanner.Scan() {
+		for _, name := range shellNames {
+			// Look at file content.
+			line := scanner.Text()
 
-		//  #!/bin/XXX, #!XXX, #!/usr/bin/env XXX, #!env XXX
-		if !strings.HasPrefix(line, "#!") {
-			continue
-		}
+			//  #!/bin/XXX, #!XXX, #!/usr/bin/env XXX, #!env XXX
+			if !strings.HasPrefix(line, "#!") {
+				continue
+			}
 
-		line = line[2:]
-		parts := strings.Split(line, " ")
-		// #!/bin/bash, #!bash -e
-		if len(parts) >= 1 && isBinaryName(name, parts[0]) {
-			return true
-		}
+			line = line[2:]
+			parts := strings.Split(line, " ")
+			// #!/bin/bash, #!bash -e
+			if len(parts) >= 1 && isBinaryName(name, parts[0]) {
+				return true
+			}
 
-		// #!/bin/env bash
-		if len(parts) >= 2 &&
-			isBinaryName("env", parts[0]) &&
-			isBinaryName(name, parts[1]) {
-			return true
+			// #!/bin/env bash
+			if len(parts) >= 2 &&
+				isBinaryName("env", parts[0]) &&
+				isBinaryName(name, parts[1]) {
+				return true
+			}
 		}
 	}
 
