@@ -41,6 +41,8 @@ pip3 install somepkg==1.2.3
 
 python -m notpip -X bla
 
+python -m pip install -r file
+
 python2.7 -m pip install -X -H somepkg \
     'some-ther==1.2.3' \
     'somebla<3.4.5'
