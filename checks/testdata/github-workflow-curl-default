@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
 
       - name: Log into registry
-        run: echo "${{bla hahha bla }}" | docker login docker.pkg.github.com -u --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u --password-stdin
 
       - name: Build image
         run: DOCKER_BUILDKIT=1 docker build . --file ./gitcache/Dockerfile --tag $IMAGE_NAME

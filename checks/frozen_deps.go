@@ -37,9 +37,10 @@ var ErrInvalidDockerfile = errors.New("invalid docker file")
 var ErrEmptyFile = errors.New("file has no content")
 
 // Structure for workflow config.
-// We only retrieve the fields we need.
+// We only declare the fields we need.
 // Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 type gitHubActionWorkflowConfig struct {
+	// nolinter
 	Jobs map[string]struct {
 		Name  string `yaml:"name"`
 		Steps []struct {
