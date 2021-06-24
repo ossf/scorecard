@@ -715,16 +715,16 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 		}
 	}
 
+	// Look at file content.
 	for scanner.Scan() {
+		line := scanner.Text()
+
+		//  #!/bin/XXX, #!XXX, #!/usr/bin/env XXX, #!env XXX
+		if !strings.HasPrefix(line, "#!") {
+			continue
+		}
+
 		for _, name := range shellNames {
-			// Look at file content.
-			line := scanner.Text()
-
-			//  #!/bin/XXX, #!XXX, #!/usr/bin/env XXX, #!env XXX
-			if !strings.HasPrefix(line, "#!") {
-				continue
-			}
-
 			line = line[2:]
 			parts := strings.Split(line, " ")
 			// #!/bin/bash, #!bash -e
