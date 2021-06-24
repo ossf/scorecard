@@ -687,10 +687,10 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		if isUnpinnedPakageManagerDownload(node, cmdStr, pathfn, logf) {
 			validated = false
 		}
-		// TODO(laurent): add check for cat file | bash
+		// TODO(laurent): add check for cat file | bash.
 		// TODO(laurent): detect downloads of zip/tar files containing scripts.
-		// TODO(laurent): detect command being an env variable
-		// TODO(laurent): detect unpinned git clone and package manager downloads (go get/install).
+		// TODO(laurent): detect command being an env variable.
+		// TODO(laurent): detect unpinned git clone.
 
 		// Record the file that is downloaded, if any.
 		fn, b, e := recordFetchFileFromNode(node)
