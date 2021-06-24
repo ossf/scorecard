@@ -677,6 +677,7 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 			continue
 		}
 
+		line = line[2:]
 		for _, name := range shellNames {
 			parts := strings.Split(line, " ")
 			// #!/bin/bash, #!bash -e
