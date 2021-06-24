@@ -20,6 +20,7 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"mvdan.cc/sh/v3/syntax"
@@ -38,6 +39,12 @@ var interpreters = []string{
 	"exec", "su",
 }
 
+// Note: aws is handled separately because it uses different
+// cli options.
+var downloadUtils = []string{
+	"curl", "wget", "gsutil",
+}
+
 func isBinaryName(expected, name string) bool {
 	return strings.EqualFold(path.Base(name), expected)
 }
@@ -50,8 +57,7 @@ func isDownloadUtility(cmd []string) bool {
 	// Note: we won't be catching those if developers have re-named
 	// the utility.
 	// Note: wget -O - <website>, but we don't check for that explicitly.
-	utils := [3]string{"curl", "wget", "gsutil"}
-	for _, b := range utils {
+	for _, b := range downloadUtils {
 		if isBinaryName(b, cmd[0]) {
 			return true
 		}
@@ -67,7 +73,7 @@ func isDownloadUtility(cmd []string) bool {
 	return false
 }
 
-func getWgetOututFile(cmd []string) (pathfn string, ok bool, err error) {
+func getWgetOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	if isBinaryName("wget", cmd[0]) {
 		for i := 1; i < len(cmd)-1; i++ {
 			// Find -O output, or use the basename from url.
@@ -92,7 +98,7 @@ func getWgetOututFile(cmd []string) (pathfn string, ok bool, err error) {
 	return "", false, nil
 }
 
-func getGsutilOututFile(cmd []string) (pathfn string, ok bool, err error) {
+func getGsutilOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	if isBinaryName("gsutil", cmd[0]) {
 		for i := 1; i < len(cmd)-1; i++ {
 			if !strings.HasPrefix(cmd[i], "gs://") {
@@ -115,7 +121,7 @@ func getGsutilOututFile(cmd []string) (pathfn string, ok bool, err error) {
 	return "", false, nil
 }
 
-func getAwsOututFile(cmd []string) (pathfn string, ok bool, err error) {
+func getAWSOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	// https://docs.aws.amazon.com/AmazonS3/latest/userguide/download-objects.html.
 	if isBinaryName("aws", cmd[0]) {
 		if len(cmd) < 3 || !strings.EqualFold("s3api", cmd[1]) || !strings.EqualFold("get-object", cmd[2]) {
@@ -145,19 +151,19 @@ func getOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	}
 
 	// Wget.
-	fn, b, err := getWgetOututFile(cmd)
+	fn, b, err := getWgetOutputFile(cmd)
 	if err != nil || b {
 		return fn, b, err
 	}
 
 	// Gsutil.
-	fn, b, err = getGsutilOututFile(cmd)
+	fn, b, err = getGsutilOutputFile(cmd)
 	if err != nil || b {
 		return fn, b, err
 	}
 
 	// Aws.
-	fn, b, err = getAwsOututFile(cmd)
+	fn, b, err = getAWSOutputFile(cmd)
 	if err != nil || b {
 		return fn, b, err
 	}
@@ -198,11 +204,12 @@ func isInterpreterWithFile(cmd []string, fn string) bool {
 	}
 
 	for _, b := range interpreters {
-		if isBinaryName(b, cmd[0]) {
-			for _, arg := range cmd[1:] {
-				if strings.EqualFold(filepath.Clean(arg), filepath.Clean(fn)) {
-					return true
-				}
+		if !isBinaryName(b, cmd[0]) {
+			continue
+		}
+		for _, arg := range cmd[1:] {
+			if strings.EqualFold(filepath.Clean(arg), filepath.Clean(fn)) {
+				return true
 			}
 		}
 	}
@@ -314,6 +321,112 @@ func isExecuteFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
 	}
 
 	return ok
+}
+
+func isGoUnpinnedDownload(cmd []string) bool {
+	if len(cmd) == 0 {
+		return false
+	}
+
+	if !isBinaryName("go", cmd[0]) {
+		return false
+	}
+
+	// `Go install` will automatically look up the
+	// go.mod and go.sum, so we don't flag it.
+	// nolinter
+	if len(cmd) <= 2 {
+		return false
+	}
+
+	found := false
+	hashRegex := regexp.MustCompile("^[A-Fa-f0-9]{40,}$")
+	for i := 1; i < len(cmd)-1; i++ {
+		// Search for get and install commands.
+		if strings.EqualFold(cmd[i], "install") ||
+			strings.EqualFold(cmd[i], "get") {
+			found = true
+		}
+
+		if !found {
+			continue
+		}
+
+		pkg := cmd[i+1]
+		// Verify pkg = name@hash
+		parts := strings.Split(pkg, "@")
+		// nolinter
+		if len(parts) != 2 {
+			continue
+		}
+		hash := parts[1]
+		if hashRegex.Match([]byte(hash)) {
+			return false
+		}
+	}
+
+	return found
+}
+
+func isPipUnpinnedDownload(cmd []string) bool {
+	if len(cmd) == 0 {
+		return false
+	}
+
+	if !isBinaryName("pip", cmd[0]) && !isBinaryName("pip3", cmd[0]) {
+		return false
+	}
+
+	isInstalled := false
+	for i := 1; i < len(cmd); i++ {
+		// Search for install commands.
+		if strings.EqualFold(cmd[i], "install") {
+			isInstalled = true
+			continue
+		}
+
+		if !isInstalled {
+			continue
+		}
+
+		// Check for `-r some-file`.
+		if strings.EqualFold("-r", cmd[i]) {
+			return false
+		}
+	}
+
+	return isInstalled
+}
+
+func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
+	logf func(s string, f ...interface{})) bool {
+	ce, ok := node.(*syntax.CallExpr)
+	if !ok {
+		return false
+	}
+
+	c, ok := extractCommand(ce)
+	if !ok {
+		return false
+	}
+
+	// Go get/install.
+	if isGoUnpinnedDownload(c) {
+		logf("!! frozen-deps/fetch-execute - %v is fetching an non-pinned dependency '%v'",
+			pathfn, cmd)
+		return true
+	}
+
+	// Pip install.
+	if isPipUnpinnedDownload(c) {
+		logf("!! frozen-deps/fetch-execute - %v is fetching an non-pinned dependency '%v'",
+			pathfn, cmd)
+		return true
+	}
+
+	// TODO(laurent): add other package managers.
+
+	return false
 }
 
 // Detect `fetch | exec`.
@@ -579,6 +692,28 @@ func extractInterpreterCommandFromString(cmd string) (c string, res bool, err er
 	return cs, ok, nil
 }
 
+func validateCommandIsNotUnpinnedPackageManagerDownload(cmd, pathfn string,
+	logf func(s string, f ...interface{})) (bool, error) {
+	in := strings.NewReader(cmd)
+	f, err := syntax.NewParser().Parse(in, "")
+	if err != nil {
+		return false, ErrParsingShellCommand
+	}
+
+	cmdValidated := true
+	syntax.Walk(f, func(node syntax.Node) bool {
+		// Check if we're calling a file we previously downloaded.
+		if isUnpinnedPakageManagerDownload(node, cmd, pathfn, logf) {
+			cmdValidated = false
+		}
+
+		// Continue walking the node graph.
+		return true
+	})
+
+	return cmdValidated, nil
+}
+
 // The functions below are the only ones that should be called by other files.
 // There needs to be a call to extractInterpreterCommandFromString() prior
 // to calling other functions.
@@ -631,9 +766,16 @@ func validateShellCommand(cmd, pathfn string, downloadedFiles map[string]bool,
 		cmd = c
 	}
 
+	r, err := validateCommandIsNotUnpinnedPackageManagerDownload(cmd, pathfn, logf)
+	if err != nil {
+		return false, err
+	} else if !r {
+		ret = false
+	}
+
 	// Validate it's not downloading and piping into a shell, like
 	// `curl | bash` (supports `sudo`).
-	r, err := validateCommandIsNotFetchPipeExecute(cmd, pathfn, logf)
+	r, err = validateCommandIsNotFetchPipeExecute(cmd, pathfn, logf)
 	if err != nil {
 		return false, err
 	} else if !r {
