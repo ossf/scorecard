@@ -17,6 +17,8 @@ package checks
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"path"
 	"regexp"
 	"strings"
 
@@ -42,13 +44,26 @@ func init() {
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
 func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheckAnd(
-		isPackageManagerLockFilePresent,
-		isGitHubActionsWorkflowPinned,
-		isDockerfilePinned,
-		isDockerfileFreeOfInsecureDownloads,
-		isShellScriptFreeOfInsecureDownloads,
-	)(c)
+	// return checker.MultiCheckAnd(
+	// 	isPackageManagerLockFilePresent,
+	// 	isGitHubActionsWorkflowPinned,
+	// 	isDockerfilePinned,
+	// 	isDockerfileFreeOfInsecureDownloads,
+	// 	isShellScriptFreeOfInsecureDownloads,
+	// )(c)
+	var content []byte
+	content, err := ioutil.ReadFile("checks/workflow-shell")
+	if err != nil {
+		c.Logf("ioutil.ReadFile: %v", err)
+		return checker.MakeFailResult(CheckFrozenDeps, err)
+	}
+
+	_, err = validateGitHubWorkflowShellScriptDownloads("some/path", content, c.Logf)
+	if err != nil {
+		c.Logf("validateGitHubWorkflowShellScriptDownloads: %v", err)
+		return checker.MakeFailResult(CheckFrozenDeps, err)
+	}
+	return checker.MakePassResult(CheckFrozenDeps)
 }
 
 // TODO(laurent): need to support GCB pinning.
@@ -188,13 +203,91 @@ func validateDockerfile(path string, content []byte,
 	return ret, nil
 }
 
+func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
+	return CheckFilesContent(CheckFrozenDeps, "*", false, c, validateGitHubWorkflowShellScriptDownloads)
+}
+
+func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
+	logf func(s string, f ...interface{})) (bool, error) {
+	type GitHubActionWorkflowConfig struct {
+		Jobs map[string]struct {
+			Name  string `yaml:"name"`
+			Steps []struct {
+				Name  string `yaml:"name"`
+				ID    string `yaml:"id"`
+				Uses  string `yaml:"uses"`
+				Shell string `yaml:"shell"`
+				Run   string `yaml:"run"`
+			}
+			Defaults struct {
+				Run struct {
+					Shell string `yaml:"shell"`
+				} `yaml:"run"`
+			} `yaml:"defaults"`
+		}
+		Name string `yaml:"name"`
+	}
+
+	if len(content) == 0 {
+		return false, ErrEmptyFile
+	}
+
+	var workflow GitHubActionWorkflowConfig
+	err := yaml.Unmarshal(content, &workflow)
+	if err != nil {
+		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v: %w", pathfn, string(content), err)
+	}
+
+	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
+	validated := true
+	// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell.
+	defaultShell := "bash"
+	scriptContent := ""
+	for _, job := range workflow.Jobs {
+		if job.Defaults.Run.Shell != "" {
+			defaultShell = job.Defaults.Run.Shell
+		}
+
+		for i, step := range job.Steps {
+			if step.Run == "" {
+				continue
+			}
+
+			shell := defaultShell
+			if step.Shell != "" {
+				shell = step.Shell
+			}
+
+			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
+			// Skip unsupported shells.
+			// Note: this may be python.
+			if !isShellScriptFile("file", []byte("#!"+path.Join("/bin/", shell))) {
+				continue
+			}
+
+			run := step.Run
+			script := githubVarRegex.ReplaceAll([]byte(run), []byte(fmt.Sprintf("GITHUB_REDACTED_VAR_%v", i)))
+			scriptContent = fmt.Sprintf("%v\n%v", scriptContent, string(script))
+		}
+	}
+
+	if scriptContent != "" {
+		validated, err = validateShellFile(pathfn, []byte(scriptContent), logf)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	return validated, nil
+}
+
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
 	return CheckFilesContent(CheckFrozenDeps, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
 }
 
 // Check file content.
-func validateGitHubActionWorkflow(path string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
+func validateGitHubActionWorkflow(pathfn string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
 	// Structure for workflow config.
 	// We only retrieve what we need for logging.
 	// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
@@ -217,7 +310,7 @@ func validateGitHubActionWorkflow(path string, content []byte, logf func(s strin
 	var workflow GitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v\n%v: %w", path, content, string(content), err)
+		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v: %w", pathfn, string(content), err)
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
@@ -233,7 +326,7 @@ func validateGitHubActionWorkflow(path string, content []byte, logf func(s strin
 				match := hashRegex.Match([]byte(step.Uses))
 				if !match {
 					ret = false
-					logf("!! frozen-deps/github-actions - %v has non-pinned dependency '%v' (job '%v')", path, step.Uses, jobName)
+					logf("!! frozen-deps/github-actions - %v has non-pinned dependency '%v' (job '%v')", pathfn, step.Uses, jobName)
 				}
 			}
 		}
@@ -241,10 +334,6 @@ func validateGitHubActionWorkflow(path string, content []byte, logf func(s strin
 
 	return ret, nil
 }
-
-// ============================================================
-// ================== Package manager lock files ==============
-// ============================================================.
 
 // Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {

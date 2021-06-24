@@ -36,7 +36,7 @@ var ErrParsingShellCommand = errors.New("shell command cannot be parsed")
 
 // List of interpreters.
 var interpreters = []string{
-	"sh", "bash", "dash", "ksh", "python",
+	"sh", "bash", "dash", "ksh", "mksh", "python",
 	"perl", "ruby", "php", "node", "nodejs", "java",
 	"exec", "su",
 }
@@ -48,7 +48,7 @@ var downloadUtils = []string{
 }
 
 var shellNames = []string{
-	"sh", "bash", "dash", "ksh",
+	"sh", "bash", "dash", "ksh", "mksh",
 }
 
 func isBinaryName(expected, name string) bool {
@@ -658,9 +658,6 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 // There needs to be a call to extractInterpreterCommandFromString() prior
 // to calling other functions.
 func isShellScriptFile(pathfn string, content []byte) bool {
-	r := strings.NewReader(string(content))
-	scanner := bufio.NewScanner(r)
-
 	// Check file extension first.
 	for _, name := range shellNames {
 		// Look at the prefix.
@@ -670,52 +667,8 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 	}
 
 	// Look at file content.
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		//  #!/bin/XXX, #!XXX, #!/usr/bin/env XXX, #!env XXX
-		if !strings.HasPrefix(line, "#!") {
-			continue
-		}
-
-		for _, name := range shellNames {
-			line = line[2:]
-			parts := strings.Split(line, " ")
-			// #!/bin/bash, #!bash -e
-			if len(parts) >= 1 && isBinaryName(name, parts[0]) {
-				return true
-			}
-
-			// #!/bin/env bash
-			if len(parts) >= 2 &&
-				isBinaryName("env", parts[0]) &&
-				isBinaryName(name, parts[1]) {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
-func validateShellFile(pathfn string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
-	files := make(map[string]bool)
-	return validateShellFileAndRecord(pathfn, content, files, logf)
-}
-
-func isShellScriptFile(pathfn string, content []byte) bool {
 	r := strings.NewReader(string(content))
 	scanner := bufio.NewScanner(r)
-
-	// Check file extension first.
-	for _, name := range shellNames {
-		// Look at the prefix.
-		if strings.HasSuffix(pathfn, "."+name) {
-			return true
-		}
-	}
-
-	// Look at file content.
 	for scanner.Scan() {
 		line := scanner.Text()
 
@@ -725,7 +678,6 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 		}
 
 		for _, name := range shellNames {
-			line = line[2:]
 			parts := strings.Split(line, " ")
 			// #!/bin/bash, #!bash -e
 			if len(parts) >= 1 && isBinaryName(name, parts[0]) {
