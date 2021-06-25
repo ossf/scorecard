@@ -411,43 +411,32 @@ func isPythonCommand(cmd []string) bool {
 	return false
 }
 
-func isUnpinnedPythonPipInstall(cmd []string) bool {
-	if !isPythonCommand(cmd) {
-		return false
+func extractPipCommand(cmd []string) ([]string, bool) {
+	if len(cmd) == 0 {
+		return nil, false
 	}
 
-	isInstall := false
-	hasPip := false
 	for i := 1; i < len(cmd); i++ {
 		// Search for pip module.
 		if strings.EqualFold(cmd[i], "-m") &&
 			i < len(cmd)-1 &&
 			strings.EqualFold(cmd[i+1], "pip") {
-			hasPip = true
-			continue
-		}
-
-		if !hasPip {
-			continue
-		}
-
-		// Search for install commands.
-		if strings.EqualFold(cmd[i], "install") {
-			isInstall = true
-			continue
-		}
-
-		if !isInstall {
-			continue
-		}
-
-		// Search for `-r file`.
-		if strings.EqualFold(cmd[i], "-r") {
-			return false
+			return cmd[i+1:], true
 		}
 	}
+	return nil, false
+}
 
-	return isInstall && hasPip
+func isUnpinnedPythonPipInstall(cmd []string) bool {
+	if !isPythonCommand(cmd) {
+		return false
+	}
+
+	pipCommand, ok := extractPipCommand(cmd)
+	if !ok {
+		return false
+	}
+	return isUnpinnedPipInstall(pipCommand)
 }
 
 func isPipUnpinnedDownload(cmd []string) bool {
