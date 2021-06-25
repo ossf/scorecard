@@ -73,6 +73,7 @@ func checkBinaryFileContent(path string, content []byte,
 		"swf":     true,
 		"torrent": true,
 		"cab":     true,
+		"whl":     true,
 	}
 	var t types.Type
 	var err error
