@@ -37,7 +37,7 @@ var ErrParsingShellCommand = errors.New("shell command cannot be parsed")
 // List of interpreters.
 var pythonInterpreters = []string{"python", "python3", "python2.7"}
 
-var interpreters = []string{
+var interpreters = append([]string{
 	"sh", "bash", "dash", "ksh", "mksh", "python",
 	"perl", "ruby", "php", "node", "nodejs", "java",
 	"exec", "su",
