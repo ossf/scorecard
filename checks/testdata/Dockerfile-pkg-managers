@@ -57,3 +57,5 @@ RUN ["python3", "-m", "pip", "install", "-X", "-H", "somepkg", \
     "'somebla<3.4.5'"]
 
 RUN python -m pip install -r file
+RUN python -m pip install 'some-pkg==1.2.3'
+RUN python -m pip install 'some-pkg>1.2.3'
