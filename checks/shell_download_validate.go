@@ -36,7 +36,7 @@ var ErrParsingShellCommand = errors.New("shell command cannot be parsed")
 
 // List of interpreters.
 var interpreters = []string{
-	"sh", "bash", "dash", "ksh", "python",
+	"sh", "bash", "dash", "ksh", "mksh", "python",
 	"perl", "ruby", "php", "node", "nodejs", "java",
 	"exec", "su",
 }
@@ -48,7 +48,7 @@ var downloadUtils = []string{
 }
 
 var shellNames = []string{
-	"sh", "bash", "dash", "ksh",
+	"sh", "bash", "dash", "ksh", "mksh",
 }
 
 func isBinaryName(expected, name string) bool {
@@ -657,11 +657,16 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 // The functions below are the only ones that should be called by other files.
 // There needs to be a call to extractInterpreterCommandFromString() prior
 // to calling other functions.
+func isSupportedShell(shellName string) bool {
+	for _, name := range shellNames {
+		if isBinaryName(name, shellName) {
+			return true
+		}
+	}
+	return false
+}
 
 func isShellScriptFile(pathfn string, content []byte) bool {
-	r := strings.NewReader(string(content))
-	scanner := bufio.NewScanner(r)
-
 	// Check file extension first.
 	for _, name := range shellNames {
 		// Look at the prefix.
@@ -671,6 +676,8 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 	}
 
 	// Look at file content.
+	r := strings.NewReader(string(content))
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := scanner.Text()
 
@@ -679,8 +686,8 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 			continue
 		}
 
+		line = line[2:]
 		for _, name := range shellNames {
-			line = line[2:]
 			parts := strings.Split(line, " ")
 			// #!/bin/bash, #!bash -e
 			if len(parts) >= 1 && isBinaryName(name, parts[0]) {

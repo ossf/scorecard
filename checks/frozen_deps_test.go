@@ -442,3 +442,86 @@ func TestShellScriptDownload(t *testing.T) {
 		})
 	}
 }
+
+func TestGitHubWorflowRunDownload(t *testing.T) {
+	t.Parallel()
+	//nolint
+	type args struct {
+		// Note: this seems to be defined in e2e/e2e_suite_test.go
+		Log      log
+		Filename string
+	}
+
+	type returnValue struct {
+		Error          error
+		Result         bool
+		NumberOfErrors int
+	}
+
+	//nolint
+	tests := []struct {
+		args args
+		want returnValue
+		name string
+	}{
+		{
+			name: "workflow curl default",
+			args: args{
+				Filename: "testdata/github-workflow-curl-default",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 1,
+			},
+		},
+		{
+			name: "workflow curl no default",
+			args: args{
+				Filename: "testdata/github-workflow-curl-no-default",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 1,
+			},
+		},
+		{
+			name: "wget across steps",
+			args: args{
+				Filename: "testdata/github-workflow-wget-across-steps",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 2,
+			},
+		},
+	}
+	//nolint
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+			content, err = ioutil.ReadFile(tt.args.Filename)
+			if err != nil {
+				panic(fmt.Errorf("cannot read file: %w", err))
+			}
+
+			r, err := validateGitHubWorkflowShellScriptDownloads(tt.args.Filename, content, tt.args.Log.Logf)
+
+			if !errors.Is(err, tt.want.Error) ||
+				r != tt.want.Result ||
+				len(tt.args.Log.messages) != tt.want.NumberOfErrors {
+				t.Errorf("TestDockerfileScriptDownload:\"%v\": %v (%v,%v,%v) want (%v, %v, %v)\n%v",
+					tt.name, tt.args.Filename, r, err, len(tt.args.Log.messages), tt.want.Result, tt.want.Error, tt.want.NumberOfErrors,
+					strings.Join(tt.args.Log.messages, "\n"))
+			}
+		})
+	}
+}
