@@ -657,6 +657,15 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 // The functions below are the only ones that should be called by other files.
 // There needs to be a call to extractInterpreterCommandFromString() prior
 // to calling other functions.
+func isSupportedShell(shellName string) bool {
+	for _, name := range shellNames {
+		if isBinaryName(name, shellName) {
+			return true
+		}
+	}
+	return false
+}
+
 func isShellScriptFile(pathfn string, content []byte) bool {
 	// Check file extension first.
 	for _, name := range shellNames {

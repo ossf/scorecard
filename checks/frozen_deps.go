@@ -17,7 +17,6 @@ package checks
 import (
 	"errors"
 	"fmt"
-	"path"
 	"regexp"
 	"strings"
 
@@ -239,7 +238,7 @@ func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
 			defaultShell = job.Defaults.Run.Shell
 		}
 
-		for i, step := range job.Steps {
+		for _, step := range job.Steps {
 			if step.Run == "" {
 				continue
 			}
@@ -250,14 +249,14 @@ func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
 			}
 
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
-			// Skip unsupported shells.
-			// Note: this may be python.
-			if !isShellScriptFile("file", []byte("#!"+path.Join("/bin/", shell))) {
+			// Skip unsupported shells. We don't support Windows shells.
+			if !isSupportedShell(shell) {
 				continue
 			}
 
 			run := step.Run
-			script := githubVarRegex.ReplaceAll([]byte(run), []byte(fmt.Sprintf("GITHUB_REDACTED_VAR_%v", i)))
+			// We replace the `${{ github.variable }}` to avoid shell parising failures.
+			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
 			scriptContent = fmt.Sprintf("%v\n%v", scriptContent, string(script))
 		}
 	}
