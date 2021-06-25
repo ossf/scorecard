@@ -45,6 +45,12 @@ python -m pip install -r file
 python -m pip install 'some-pkg==1.2.3'
 python -m pip install 'some-pkg>1.2.3'
 
+python -m pip install bla.whl 'some-pkg>1.2.3'
+python -m pip install 'some-pkg>1.2.3' bla.whl
+python -m pip install "some-pkg>1.2.3" bla.whl
+python -m pip install bla.whl
+python -m pip install bla.whl "some-pkg>1.2.3"
+
 python2.7 -m pip install -X -H somepkg \
     'some-ther==1.2.3' \
     'somebla<3.4.5'

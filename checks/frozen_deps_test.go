@@ -331,7 +331,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 18,
+				NumberOfErrors: 21,
 			},
 		},
 	}
@@ -426,7 +426,7 @@ func TestShellScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 15,
+				NumberOfErrors: 19,
 			},
 		},
 	}

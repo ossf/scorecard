@@ -237,17 +237,31 @@ func extractCommand(cmd interface{}) ([]string, bool) {
 	if !ok {
 		return nil, ok
 	}
-
 	var ret []string
 	for _, w := range c.Args {
 		if len(w.Parts) != 1 {
 			continue
 		}
-		lit, ok := w.Parts[0].(*syntax.Lit)
-		if ok && !strings.EqualFold(lit.Value, "sudo") {
-			ret = append(ret, lit.Value)
+		switch v := w.Parts[0].(type) {
+		default:
+			continue
+		case *syntax.SglQuoted:
+			ret = append(ret, "'"+v.Value+"'")
+		case *syntax.DblQuoted:
+			if len(v.Parts) != 1 {
+				continue
+			}
+			lit, ok := v.Parts[0].(*syntax.Lit)
+			if ok {
+				ret = append(ret, "\""+lit.Value+"\"")
+			}
+		case *syntax.Lit:
+			if !strings.EqualFold(v.Value, "sudo") {
+				ret = append(ret, v.Value)
+			}
 		}
 	}
+
 	return ret, true
 }
 
@@ -382,6 +396,7 @@ func isUnpinnedPipInstall(cmd []string) bool {
 	}
 
 	isInstall := false
+	hasWhl := false
 	for i := 1; i < len(cmd); i++ {
 		// Search for install commands.
 		if strings.EqualFold(cmd[i], "install") {
@@ -397,9 +412,19 @@ func isUnpinnedPipInstall(cmd []string) bool {
 		if strings.EqualFold("-r", cmd[i]) {
 			return false
 		}
+
+		// Exclude *.whl
+		if strings.HasSuffix(cmd[i], ".whl") {
+			hasWhl = true
+			continue
+		}
+
+		// Any other arguments are considered unpinned.
+		return true
 	}
 
-	return isInstall
+	// We get here only for `pip install [bla.whl ...]`.
+	return isInstall && !hasWhl
 }
 
 func isPythonCommand(cmd []string) bool {
@@ -431,7 +456,6 @@ func isUnpinnedPythonPipInstall(cmd []string) bool {
 	if !isPythonCommand(cmd) {
 		return false
 	}
-
 	pipCommand, ok := extractPipCommand(cmd)
 	if !ok {
 		return false
@@ -583,20 +607,23 @@ func extractInterpreterCommandFromArgs(args []*syntax.Word) (string, bool) {
 			continue
 		}
 		part := arg.Parts[0]
-		v, ok := part.(*syntax.DblQuoted)
-		if !ok {
-			continue
-		}
-		if len(v.Parts) != 1 {
-			continue
-		}
+		switch v := part.(type) {
+		case *syntax.DblQuoted:
+			if len(v.Parts) != 1 {
+				continue
+			}
 
-		lit, ok := v.Parts[0].(*syntax.Lit)
-		if !ok {
-			continue
+			lit, ok := v.Parts[0].(*syntax.Lit)
+			if !ok {
+				continue
+			}
+			return lit.Value, true
+
+		case *syntax.SglQuoted:
+			return v.Value, true
 		}
-		return lit.Value, true
 	}
+
 	return "", false
 }
 
