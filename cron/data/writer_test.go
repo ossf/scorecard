@@ -36,7 +36,7 @@ func TestCsvWriter(t *testing.T) {
 					Host:     "github.com",
 					Owner:    "owner1",
 					Repo:     "repo1",
-					Metadata: "meta1",
+					Metadata: []string{"meta1"},
 				},
 			},
 			newRepos: []repos.RepoURL{
@@ -44,7 +44,7 @@ func TestCsvWriter(t *testing.T) {
 					Host:     "github.com",
 					Owner:    "owner2",
 					Repo:     "repo2",
-					Metadata: "meta2",
+					Metadata: []string{"meta2"},
 				},
 			},
 			out: `repo,metadata

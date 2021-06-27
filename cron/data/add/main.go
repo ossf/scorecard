@@ -16,6 +16,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 
 	"github.com/ossf/scorecard/cron/data"
@@ -35,18 +36,9 @@ func main() {
 		panic(err)
 	}
 
-	repoURLs := make([]repos.RepoURL, 0)
-	repoMap := make(map[string]bool)
-	for iter.HasNext() {
-		repo, err := iter.Next()
-		if err != nil {
-			panic(err)
-		}
-		if _, ok := repoMap[repo.URL()]; ok {
-			continue
-		}
-		repoURLs = append(repoURLs, repo)
-		repoMap[repo.URL()] = true
+	repoURLs, err := getRepoURLs(iter)
+	if err != nil {
+		panic(err)
 	}
 
 	var buf bytes.Buffer
@@ -60,4 +52,36 @@ func main() {
 	if _, err := projects.Write(buf.Bytes()); err != nil {
 		panic(err)
 	}
+}
+
+func getRepoURLs(iter data.Iterator) ([]repos.RepoURL, error) {
+	repoURLs := make(map[string]*repos.RepoURL)
+	repoMap := make(map[string]map[string]bool)
+	for iter.HasNext() {
+		repo, err := iter.Next()
+		if err != nil {
+			return nil, fmt.Errorf("%w", err)
+		}
+		if _, ok := repoMap[repo.URL()]; !ok {
+			repoURLs[repo.URL()] = new(repos.RepoURL)
+			*repoURLs[repo.URL()] = repo
+			repoMap[repo.URL()] = make(map[string]bool)
+			for _, metadata := range repo.Metadata {
+				repoMap[repo.URL()][metadata] = true
+			}
+			continue
+		}
+		for _, metadata := range repo.Metadata {
+			if _, ok := repoMap[repo.URL()][metadata]; !ok && metadata != "" {
+				repoURLs[repo.URL()].Metadata = append(repoURLs[repo.URL()].Metadata, metadata)
+				repoMap[repo.URL()][metadata] = true
+			}
+		}
+	}
+
+	newRepoURLs := make([]repos.RepoURL, 0)
+	for _, repoURL := range repoURLs {
+		newRepoURLs = append(newRepoURLs, *repoURL)
+	}
+	return newRepoURLs, nil
 }
