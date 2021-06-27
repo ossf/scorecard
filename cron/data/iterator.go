@@ -50,15 +50,10 @@ func MakeIteratorFrom(reader io.Reader) (Iterator, error) {
 	return &csvIterator{decoder: dec}, nil
 }
 
-type inputRepo struct {
-	Repo     string `csv:"repo"`
-	Metadata string `csv:"metadata"`
-}
-
 type csvIterator struct {
 	decoder *csvutil.Decoder
 	err     error
-	next    inputRepo
+	next    repoFormat
 }
 
 func (reader *csvIterator) HasNext() bool {

@@ -19,6 +19,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/ossf/scorecard/repos"
 )
 
@@ -62,7 +64,7 @@ func TestCsvIterator(t *testing.T) {
 						Host:     "github.com",
 						Owner:    "owner3",
 						Repo:     "repo3",
-						Metadata: "meta",
+						Metadata: []string{"meta"},
 					},
 				},
 			},
@@ -111,7 +113,7 @@ func TestCsvIterator(t *testing.T) {
 						Host:     "github.com",
 						Owner:    "owner3",
 						Repo:     "repo3",
-						Metadata: "meta",
+						Metadata: []string{"meta"},
 					},
 				},
 			},
@@ -165,8 +167,8 @@ func TestCsvIterator(t *testing.T) {
 				if (err != nil) != outcome.hasError {
 					t.Errorf("expected hasError: %t, got: %v", outcome.hasError, err)
 				}
-				if !outcome.hasError && repoURL != outcome.repo {
-					t.Errorf("expected repoURL: %s, got %s", &outcome.repo, repoURL)
+				if !outcome.hasError && !cmp.Equal(outcome.repo, repoURL) {
+					t.Errorf("expected repoURL: %s, got %s", outcome.repo, repoURL)
 				}
 				if outcome.hasError && outcome.expectedErr != nil && !errors.Is(err, outcome.expectedErr) {
 					t.Errorf("expected error: %v, got %v", outcome.expectedErr, err)

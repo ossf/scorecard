@@ -205,7 +205,7 @@ func getDependencies() ([]repos.RepoURL, error) {
 	}
 
 	// Read all project repositores into a map.
-	m := make(map[string]string)
+	m := make(map[string][]string)
 	for iter.HasNext() {
 		repo, err := iter.Next()
 		if err != nil {

@@ -25,15 +25,10 @@ import (
 	"github.com/ossf/scorecard/repos"
 )
 
-type repoEntry struct {
-	Repo     string `csv:"repo"`
-	Metadata string `csv:"metadata"`
-}
-
-func repoEntryFromRepoURL(repoURLs []repos.RepoURL) []repoEntry {
-	repoentries := make([]repoEntry, 0)
+func repoFormatFromRepoURL(repoURLs []repos.RepoURL) []repoFormat {
+	repoentries := make([]repoFormat, 0)
 	for _, repoURL := range repoURLs {
-		repoentry := repoEntry{
+		repoentry := repoFormat{
 			Repo:     repoURL.URL(),
 			Metadata: repoURL.Metadata,
 		}
@@ -43,8 +38,8 @@ func repoEntryFromRepoURL(repoURLs []repos.RepoURL) []repoEntry {
 }
 
 func SortAndAppendTo(out io.Writer, oldRepos, newRepos []repos.RepoURL) error {
-	repoentries := repoEntryFromRepoURL(oldRepos)
-	repoentries = append(repoentries, repoEntryFromRepoURL(newRepos)...)
+	repoentries := repoFormatFromRepoURL(oldRepos)
+	repoentries = append(repoentries, repoFormatFromRepoURL(newRepos)...)
 
 	sort.SliceStable(repoentries, func(i, j int) bool {
 		return repoentries[i].Repo < repoentries[j].Repo
