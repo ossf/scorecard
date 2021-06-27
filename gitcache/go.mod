@@ -10,7 +10,7 @@ require (
 	github.com/onsi/gomega v1.12.0
 	github.com/pierrec/lz4 v2.6.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1
-	go.uber.org/zap v1.16.0
+	go.uber.org/zap v1.17.0
 	gocloud.dev v0.22.0
 	golang.org/x/tools v0.1.0 // indirect
 )
