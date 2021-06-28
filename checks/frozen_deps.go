@@ -213,7 +213,7 @@ func validateDockerfile(pathfn string, content []byte,
 }
 
 func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(CheckFrozenDeps, "*", false, c, validateGitHubWorkflowShellScriptDownloads)
+	return CheckFilesContent(CheckFrozenDeps, ".github/workflows/*", false, c, validateGitHubWorkflowShellScriptDownloads)
 }
 
 func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
