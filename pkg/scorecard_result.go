@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package repos
+package pkg
 
 import (
 	"encoding/csv"
@@ -25,7 +25,7 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-type RepoResult struct {
+type ScorecardResult struct {
 	Repo     string
 	Date     string
 	Checks   []checker.CheckResult
@@ -33,8 +33,8 @@ type RepoResult struct {
 }
 
 // AsJSON outputs the result in JSON format with a newline at the end.
-// If called on []RepoResult will create NDJson formatted output.
-func (r *RepoResult) AsJSON(showDetails bool, writer io.Writer) error {
+// If called on []ScorecardResult will create NDJson formatted output.
+func (r *ScorecardResult) AsJSON(showDetails bool, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	if showDetails {
 		if err := encoder.Encode(r); err != nil {
@@ -42,7 +42,7 @@ func (r *RepoResult) AsJSON(showDetails bool, writer io.Writer) error {
 		}
 		return nil
 	}
-	out := RepoResult{
+	out := ScorecardResult{
 		Repo:     r.Repo,
 		Date:     r.Date,
 		Metadata: r.Metadata,
@@ -61,7 +61,7 @@ func (r *RepoResult) AsJSON(showDetails bool, writer io.Writer) error {
 	return nil
 }
 
-func (r *RepoResult) AsCSV(showDetails bool, writer io.Writer) error {
+func (r *ScorecardResult) AsCSV(showDetails bool, writer io.Writer) error {
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo}
 	columns := []string{"Repository"}
@@ -85,7 +85,7 @@ func (r *RepoResult) AsCSV(showDetails bool, writer io.Writer) error {
 	return nil
 }
 
-func (r *RepoResult) AsString(showDetails bool, writer io.Writer) error {
+func (r *ScorecardResult) AsString(showDetails bool, writer io.Writer) error {
 	fmt.Fprintf(writer, "Repo: %s\n", r.Repo)
 	for _, checkResult := range r.Checks {
 		fmt.Fprintf(writer, "%s: %s %d\n", checkResult.Name, displayResult(checkResult.Pass), checkResult.Confidence)

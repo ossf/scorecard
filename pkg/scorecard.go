@@ -75,18 +75,18 @@ func RunScorecards(ctx context.Context,
 	repoClient clients.RepoClient,
 	httpClient *http.Client,
 	githubClient *github.Client,
-	graphClient *githubv4.Client) (repos.RepoResult, error) {
+	graphClient *githubv4.Client) (ScorecardResult, error) {
 	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repo.URL()))
 	if err != nil {
-		return repos.RepoResult{}, fmt.Errorf("error during tag.New: %w", err)
+		return ScorecardResult{}, fmt.Errorf("error during tag.New: %w", err)
 	}
 	defer logStats(ctx, time.Now())
 
 	if err := repoClient.InitRepo(repo.Owner, repo.Repo); err != nil {
-		return repos.RepoResult{}, fmt.Errorf("error during InitRepo for %s: %w", repo.URL(), err)
+		return ScorecardResult{}, fmt.Errorf("error during InitRepo for %s: %w", repo.URL(), err)
 	}
 
-	ret := repos.RepoResult{
+	ret := ScorecardResult{
 		Repo: repo.URL(),
 		Date: time.Now().Format("2006-01-02"),
 	}
