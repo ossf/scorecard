@@ -75,7 +75,6 @@ jobs:
 
       - name: Prepare test env
         run: |
-            go get github.com/onsi/ginkgo/ginkgo@v1.14.2
             go mod download
 
       - name: Run E2E 
