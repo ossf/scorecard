@@ -27,7 +27,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	go.opencensus.io v0.23.0
 	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.17.0
+	go.uber.org/zap v1.18.1
 	gocloud.dev v0.23.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
