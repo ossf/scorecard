@@ -36,6 +36,7 @@ func main() {
 		panic(err)
 	}
 
+	// nolint: gomnd
 	projects, err := os.OpenFile(os.Args[1], os.O_WRONLY, 0o644)
 	if err != nil {
 		panic(err)

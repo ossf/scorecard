@@ -24,8 +24,9 @@ import (
 
 const (
 	// CheckSignedTags is the registered name for SignedTags.
-	CheckSignedTags = "Signed-Tags"
-	tagLookBack     = 5
+	CheckSignedTags         = "Signed-Tags"
+	tagLookBack             = 5
+	signedTagsPassThreshold = .8
 )
 
 // ErrorNoTags indicates no tags were found for this repo.
@@ -84,5 +85,5 @@ func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	c.Logf("found %d out of %d verified tags", totalSigned, totalTags)
-	return checker.MakeProportionalResult(CheckSignedTags, totalSigned, totalTags, 0.8)
+	return checker.MakeProportionalResult(CheckSignedTags, totalSigned, totalTags, signedTagsPassThreshold)
 }

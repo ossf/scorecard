@@ -22,8 +22,11 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-// CheckPullRequests is the registered name for PullRequests.
-const CheckPullRequests = "Pull-Requests"
+const (
+	// CheckPullRequests is the registered name for PullRequests.
+	CheckPullRequests         = "Pull-Requests"
+	pullRequestsPassThreshold = .75
+)
 
 //nolint:gochecknoinits
 func init() {
@@ -75,5 +78,5 @@ func PullRequests(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 	c.Logf("found PRs for %d out of %d commits", totalWithPrs, total)
-	return checker.MakeProportionalResult(CheckPullRequests, totalWithPrs, total, .75)
+	return checker.MakeProportionalResult(CheckPullRequests, totalWithPrs, total, pullRequestsPassThreshold)
 }

@@ -23,8 +23,11 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-// CheckCodeReview is the registered name for DoesCodeReview.
-const CheckCodeReview = "Code-Review"
+const (
+	// CheckCodeReview is the registered name for DoesCodeReview.
+	CheckCodeReview = "Code-Review"
+	crPassThreshold = .75
+)
 
 // ErrorNoReviews indicates no reviews were found for this repo.
 var ErrorNoReviews = errors.New("no reviews found")
@@ -99,7 +102,7 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	if totalReviewed > 0 {
 		c.Logf("github code reviews found")
 	}
-	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, totalMerged, .75)
+	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, totalMerged, crPassThreshold)
 }
 
 func IsPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
@@ -155,7 +158,7 @@ func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		return checker.MakeInconclusiveResult(CheckCodeReview, ErrorNoReviews)
 	}
 	c.Logf("prow code reviews found")
-	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, totalMerged, .75)
+	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, totalMerged, crPassThreshold)
 }
 
 func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
@@ -195,5 +198,5 @@ func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 		return checker.MakeInconclusiveResult(CheckCodeReview, ErrorNoReviews)
 	}
 	c.Logf("code reviews found")
-	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, total, .75)
+	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, total, crPassThreshold)
 }
