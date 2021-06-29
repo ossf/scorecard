@@ -140,3 +140,10 @@ This check tries to determine if a project's GitHub workflows follow the princip
 **Remediation steps**
 - Set permissions as `read-all` or `contents: read` as described in GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
 
+## Unfixed-Vulnerabilities 
+
+This check determines whether if there are open, unfixed vulnerabilities in the project using the [OSV](https://osv.dev) service. 
+
+**Remediation steps**
+- Fix the vulnerabilities. The details of each vulnerability can be found on <https://osv.dev>.
+
