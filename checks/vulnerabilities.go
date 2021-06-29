@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/google/go-github/v32/github"
 
@@ -49,6 +50,14 @@ func init() {
 	registerCheck(CheckVulnerabilities, HasUnfixedVulnerabilities)
 }
 
+func (resp *osvResponse) getVulnerabilities() []string {
+	ids := make([]string, 0, len(resp.Vulns))
+	for _, vuln := range resp.Vulns {
+		ids = append(ids, vuln.ID)
+	}
+	return ids
+}
+
 func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{
 		ListOptions: github.ListOptions{
@@ -75,7 +84,7 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 		return checker.MakeRetryResult(CheckVulnerabilities, err)
 	}
 
-	// Use our own http client as the one from CheckResult adds GitHub tokens to the headers.
+	// Use our own http client as the one from CheckRequest adds GitHub tokens to the headers.
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -89,10 +98,9 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 		return checker.MakeRetryResult(CheckVulnerabilities, err)
 	}
 
-	if len(osvResp.Vulns) > 0 {
-		for _, vuln := range osvResp.Vulns {
-			c.Logf("HEAD is vulnerable to %s", vuln.ID)
-		}
+	vulnIDs := osvResp.getVulnerabilities()
+	if len(vulnIDs) > 0 {
+		c.Logf("HEAD is vulnerable to %s", strings.Join(vulnIDs, ", "))
 		return checker.MakeFailResult(CheckVulnerabilities, nil)
 	}
 
