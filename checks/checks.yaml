@@ -78,12 +78,10 @@ checks:
       directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json
       (Javascript),  requirements.txt, pipfile.lock (Python), gemfile.lock
       (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock
-      (PHP), vendor/, third_party/, third-party/; (2) look for github actions
-      under .github/workflows/ and verifies they are pinned by hash; (3) looks 
-      for Dockerfiles and verifies FROM dependencies are pinned by hash. If one of
-      the files in (1) AND all the dependencies in (2),(3) are pinned, the check
-      succeds. This check does not currently look for shell script pinning (curl | bash)
-      in scripts, Dockerfiles, Makefiles or system()-like code.
+      (PHP), vendor/, third_party/, third-party/; (2) looks for 
+      unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. If one of
+      the files in (1) AND all the dependencies in (2) are pinned, the check
+      succeds.
     remediation:
       - >-
         Declare all your dependencies with specific versions in your package
