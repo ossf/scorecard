@@ -251,3 +251,11 @@ checks:
       - >-
         For GitHub, check out the steps
         [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
+  Vulnerabilities:
+    description: >-
+      This check determines whether if there are open, unfixed vulnerabilities
+      in the project using the [OSV](https://osv.dev) service.
+    remediation:
+      - >-
+        Fix the vulnerabilities. The details of each vulnerability can be found
+        on <https://osv.dev>.
