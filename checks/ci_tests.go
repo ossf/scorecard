@@ -28,9 +28,10 @@ type ciSystemState int
 
 const (
 	// CheckCITests is the registered name for CITests.
-	CheckCITests               = "CI-Tests"
-	success                    = "success"
-	unknown      ciSystemState = iota
+	CheckCITests                         = "CI-Tests"
+	success                              = "success"
+	ciSuccessPassThreshold               = .75
+	unknown                ciSystemState = iota
 	githubStatuses
 	githubCheckRuns
 )
@@ -92,7 +93,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	c.Logf("found CI tests for %d of %d merged PRs", totalTested, totalMerged)
-	return checker.MakeProportionalResult(CheckCITests, totalTested, totalMerged, .75)
+	return checker.MakeProportionalResult(CheckCITests, totalTested, totalMerged, ciSuccessPassThreshold)
 }
 
 // PR has a status marked 'success' and a CI-related context.

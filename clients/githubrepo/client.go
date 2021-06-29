@@ -87,6 +87,7 @@ func (client *Client) InitRepo(owner, repoName string) error {
 }
 
 func (client *Client) GetRepoArchiveReader() (io.ReadCloser, error) {
+	// nolint: gomnd
 	archiveReader, err := os.OpenFile(client.tarball, os.O_RDONLY, 0o644)
 	if err != nil {
 		return archiveReader, fmt.Errorf("os.OpenFile: %w", err)

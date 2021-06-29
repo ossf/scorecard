@@ -22,8 +22,11 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-// CheckSAST is the registered name for SAST.
-const CheckSAST = "SAST"
+const (
+	// CheckSAST is the registered name for SAST.
+	CheckSAST         = "SAST"
+	sastPassThreshold = .75
+)
 
 var (
 	sastTools = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
@@ -85,7 +88,7 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 	if totalTested == 0 {
 		return checker.MakeInconclusiveResult(CheckSAST, ErrorNoMerges)
 	}
-	return checker.MakeProportionalResult(CheckSAST, totalTested, totalMerged, .75)
+	return checker.MakeProportionalResult(CheckSAST, totalTested, totalMerged, sastPassThreshold)
 }
 
 func CodeQLInCheckDefinitions(c *checker.CheckRequest) checker.CheckResult {

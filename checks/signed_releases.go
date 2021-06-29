@@ -25,8 +25,9 @@ import (
 
 const (
 	// CheckSignedReleases is the registered name for SignedReleases.
-	CheckSignedReleases = "Signed-Releases"
-	releaseLookBackDays = 5
+	CheckSignedReleases         = "Signed-Releases"
+	releaseLookBackDays         = 5
+	signedReleasesPassThreshold = .8
 )
 
 // ErrorNoReleases indicates no releases were found for this repo.
@@ -85,5 +86,5 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	c.Logf("found signed artifacts for %d out of %d releases", totalSigned, totalReleases)
-	return checker.MakeProportionalResult(CheckSignedReleases, totalSigned, totalReleases, 0.8)
+	return checker.MakeProportionalResult(CheckSignedReleases, totalSigned, totalReleases, signedReleasesPassThreshold)
 }

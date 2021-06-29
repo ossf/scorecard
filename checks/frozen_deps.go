@@ -39,7 +39,7 @@ var ErrEmptyFile = errors.New("file has no content")
 // We only declare the fields we need.
 // Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 type gitHubActionWorkflowConfig struct {
-	// nolinter
+	// nolint: govet
 	Jobs map[string]struct {
 		Name  string `yaml:"name"`
 		Steps []struct {
@@ -102,7 +102,7 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
 	}
 
-	// nolinter:prealloc
+	// nolint: prealloc
 	var bytes []byte
 
 	// Walk the Dockerfile's AST.

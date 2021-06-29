@@ -340,7 +340,7 @@ func isGoUnpinnedDownload(cmd []string) bool {
 
 	// `Go install` will automatically look up the
 	// go.mod and go.sum, so we don't flag it.
-	// nolinter
+	// nolint: gomnd
 	if len(cmd) <= 2 {
 		return false
 	}
@@ -361,7 +361,7 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		pkg := cmd[i+1]
 		// Verify pkg = name@hash
 		parts := strings.Split(pkg, "@")
-		// nolinter
+		// nolint: gomnd
 		if len(parts) != 2 {
 			continue
 		}
