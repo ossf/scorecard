@@ -25,9 +25,9 @@ import (
 	"github.com/ossf/scorecard/checks"
 )
 
-var _ = Describe("E2E TEST:Unfixed-Vulnerabilities", func() {
-	Context("E2E TEST:Validating unfixed vulnerabilities status", func() {
-		It("Should return that there are no unfixed vulnerabilities", func() {
+var _ = Describe("E2E TEST:Vulnerabilities", func() {
+	Context("E2E TEST:Validating vulnerabilities status", func() {
+		It("Should return that there are no vulnerabilities", func() {
 			l := log{}
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
@@ -44,7 +44,7 @@ var _ = Describe("E2E TEST:Unfixed-Vulnerabilities", func() {
 			Expect(result.Pass).Should(BeTrue())
 		})
 
-		It("Should return that there are unfixed vulnerabilities", func() {
+		It("Should return that there are vulnerabilities", func() {
 			l := log{}
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
