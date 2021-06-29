@@ -59,6 +59,9 @@ Active             | Did the project get any commits in the last 90 days?
 Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?
 Packaging          | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
 Vulnerabilities    | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).
+Token-Permissions  | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?
+Automatic-Dependency-Update | Does the project use tools to automatically update its dependencies?
+Binary-Artifacts   | Is the project free of checked-in binaries?
 
 To see detailed information about each check and remediation steps, check out
 the [checks documentation page](checks/checks.md).
@@ -72,51 +75,81 @@ The program can run using just one argument, the URL of the repo:
 ```shell
 $ go build
 $ ./scorecard --repo=github.com/kubernetes/kubernetes
-Starting [Active]
-Starting [Branch-Protection]
-Starting [CI-Tests]
-Starting [CII-Best-Practices]
-Starting [Code-Review]
-Starting [Contributors]
+Starting [Signed-Tags]
+Starting [Automatic-Dependency-Update]
 Starting [Frozen-Deps]
 Starting [Fuzzing]
-Starting [Packaging]
 Starting [Pull-Requests]
+Starting [Branch-Protection]
+Starting [Code-Review]
 Starting [SAST]
-Starting [Security-Policy]
+Starting [Contributors]
 Starting [Signed-Releases]
-Starting [Signed-Tags]
-Finished [Fuzzing]
-Finished [CII-Best-Practices]
-Finished [Branch-Protection]
-Finished [Packaging]
-Finished [Security-Policy]
-Finished [Frozen-Deps]
-Finished [Signed-Tags]
-Finished [Signed-Releases]
-Finished [SAST]
-Finished [CI-Tests]
-Finished [Active]
+Starting [Packaging]
+Starting [Token-Permissions]
+Starting [Security-Policy]
+Starting [Active]
+Starting [Binary-Artifacts]
+Starting [CI-Tests]
+Starting [CII-Best-Practices]
+
 Finished [Contributors]
+Finished [Signed-Releases]
+Finished [Active]
+Finished [Binary-Artifacts]
+Finished [CI-Tests]
+Finished [CII-Best-Practices]
+Finished [Packaging]
+Finished [Token-Permissions]
+Finished [Security-Policy]
+Finished [Automatic-Dependency-Update]
+Finished [Frozen-Deps]
+Finished [Fuzzing]
 Finished [Pull-Requests]
+Finished [Signed-Tags]
+Finished [Branch-Protection]
 Finished [Code-Review]
+Finished [SAST]
 
 RESULTS
 -------
+Repo: github.com/kubernetes/kubernetes
 Active: Pass 10
-Branch-Protection: Fail 10
+Automatic-Dependency-Update: Fail 3
+Binary-Artifacts: Pass 10
+Branch-Protection: Fail 0
 CI-Tests: Pass 10
 CII-Best-Practices: Pass 10
 Code-Review: Pass 10
 Contributors: Pass 10
-Frozen-Deps: Pass 10
+Frozen-Deps: Fail 10
 Fuzzing: Pass 10
 Packaging: Fail 0
 Pull-Requests: Pass 10
 SAST: Fail 10
-Security-Policy: Pass 10
+Security-Policy: Fail 5
 Signed-Releases: Fail 10
 Signed-Tags: Fail 10
+Token-Permissions: Pass 10
+```
+
+For more details why a check fails, use the `--show-details` option:
+```
+./scorecard --repo=github.com/kubernetes/kubernetes --checks Frozen-Deps --show-details
+Starting [Frozen-Deps]
+Finished [Frozen-Deps]
+
+RESULTS
+-------
+Repo: github.com/kubernetes/kubernetes
+Frozen-Deps: Fail 10
+...
+!! frozen-deps/docker - cluster/addons/fluentd-elasticsearch/es-image/Dockerfile has non-pinned dependency 'golang:1.16.5'
+...
+!! frozen-deps/fetch-execute - cluster/gce/util.sh is fetching and executing non-pinned program 'curl https://sdk.cloud.google.com | bash'
+...
+!! frozen-deps/fetch-execute - hack/jenkins/benchmark-dockerized.sh is fetching an non-pinned dependency 'GO111MODULE=on go install github.com/cespare/prettybench'
+...
 ```
 
 ### Using a Package manager
