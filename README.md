@@ -44,24 +44,25 @@ The following checks are all run against the target project by default:
 
 Name               | Description
 ------------------ | -----------
-Security-Policy    | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?
-Contributors       | Does the project have contributors from at least two different organizations?
-Frozen-Deps        | Does the project declare and freeze [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
-Signed-Releases    | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?
-Signed-Tags        | Does the project cryptographically sign release tags?
-CI-Tests           | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?
-Code-Review        | Does the project require code review before code is merged?
-CII-Best-Practices | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
-Pull-Requests      | Does the project use [Pull Requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) for all code changes?
-Fuzzing            | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
-SAST               | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)?
 Active             | Did the project get any commits in the last 90 days?
-Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?
-Packaging          | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
-Vulnerabilities    | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).
-Token-Permissions  | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?
 Automatic-Dependency-Update | Does the project use tools to automatically update its dependencies?
 Binary-Artifacts   | Is the project free of checked-in binaries?
+Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?
+CI-Tests           | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?
+CII-Best-Practices | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
+Code-Review        | Does the project require code review before code is merged?
+Contributors       | Does the project have contributors from at least two different organizations?
+Fuzzing            | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
+Frozen-Deps        | Does the project declare and freeze [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
+Packaging          | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
+Pull-Requests      | Does the project use [Pull Requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) for all code changes?
+SAST               | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)?
+Security-Policy    | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?
+Signed-Releases    | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?
+Signed-Tags        | Does the project cryptographically sign release tags?
+Token-Permissions  | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?
+Vulnerabilities    | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).
+
 
 To see detailed information about each check and remediation steps, check out
 the [checks documentation page](checks/checks.md).
