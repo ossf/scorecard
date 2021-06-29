@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/google/go-github/v32/github"
@@ -77,7 +76,6 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if len(osvResp.Vulns) > 0 {
-		fmt.Printf("%v\n", osvResp)
 		for _, vuln := range osvResp.Vulns {
 			c.Logf("HEAD is vulnerable to %s", vuln.ID)
 		}
