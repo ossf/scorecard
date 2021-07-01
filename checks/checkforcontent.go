@@ -15,12 +15,8 @@
 package checks
 
 import (
-	"archive/tar"
-	"bytes"
-	"compress/gzip"
 	"errors"
 	"fmt"
-	"io"
 	"path"
 	"strings"
 
@@ -54,50 +50,10 @@ func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 	return match, nil
 }
 
-func headerSizeMatchesFileSize(hdr *tar.Header, size int) bool {
-	return hdr.Format == tar.FormatUSTAR ||
-		hdr.Format == tar.FormatUnknown ||
-		int64(size) == hdr.Size
-}
-
-func nonEmptyRegularFile(hdr *tar.Header) bool {
-	return hdr.Typeflag == tar.TypeReg && hdr.Size > 0
-}
-
 func isScorecardTestFile(owner, repo, fullpath string) bool {
 	// testdata/ or /some/dir/testdata/some/other
 	return owner == "ossf" && repo == "scorecard" && (strings.HasPrefix(fullpath, "testdata/") ||
 		strings.Contains(fullpath, "/testdata/"))
-}
-
-func extractFullpath(fn string) (string, bool) {
-	const splitLength = 2
-	names := strings.SplitN(fn, "/", splitLength)
-	if len(names) < splitLength {
-		return "", false
-	}
-
-	fullpath := names[1]
-	return fullpath, true
-}
-
-func getTarReader(in io.Reader) (*tar.Reader, error) {
-	gz, err := gzip.NewReader(in)
-	if err != nil {
-		return nil, fmt.Errorf("gzip reader failed: %w", err)
-	}
-	tr := tar.NewReader(gz)
-	return tr, nil
-}
-
-func readEntireFile(tr *tar.Reader) (content []byte, err error) {
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, tr)
-	if err != nil {
-		return nil, fmt.Errorf("io.Copy: %w", err)
-	}
-
-	return buf.Bytes(), nil
 }
 
 // CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
@@ -113,69 +69,27 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 	onFileContent func(path string, content []byte,
 		Logf func(s string, f ...interface{})) (bool, error),
 ) checker.CheckResult {
-	archiveReader, err := c.RepoClient.GetRepoArchiveReader()
-	if err != nil {
-		return checker.MakeRetryResult(checkName, err)
-	}
-	defer archiveReader.Close()
-	tr, err := getTarReader(archiveReader)
-	if err != nil {
-		return checker.MakeRetryResult(checkName, err)
-	}
-
-	res := true
-
-	var fullpath string
-	var b bool
-	for {
-		hdr, err := tr.Next()
-		if err != nil && err != io.EOF {
-			return checker.MakeRetryResult(checkName, err)
-		}
-
-		if err == io.EOF {
-			break
-		}
-
-		// Only consider regular files.
-		if !nonEmptyRegularFile(hdr) {
-			continue
-		}
-
-		// Extract the fullpath without the repo name.
-		if fullpath, b = extractFullpath(hdr.Name); !b {
-			continue
-		}
-
+	predicate := func(filepath string) bool {
 		// Filter out Scorecard's own test files.
-		if isScorecardTestFile(c.Owner, c.Repo, fullpath) {
-			continue
+		if isScorecardTestFile(c.Owner, c.Repo, filepath) {
+			return false
 		}
-
 		// Filter out files based on path/names using the pattern.
-		b, err := isMatchingPath(shellPathFnPattern, fullpath, caseSensitive)
-		switch {
-		case err != nil:
-			return checker.MakeFailResult(checkName, err)
-		case !b:
-			continue
+		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
+		if err != nil {
+			c.Logf("error during isMatchingPath: %v", err)
+			return false
 		}
-
-		content, err := readEntireFile(tr)
+		return b
+	}
+	res := true
+	for _, file := range c.RepoClient.ListFiles(predicate) {
+		content, err := c.RepoClient.GetFileContent(file)
 		if err != nil {
 			return checker.MakeRetryResult(checkName, err)
 		}
 
-		// We should have reached the end of files AND
-		// the number of bytes should be the same as number
-		// indicated in header, unless the file format supports
-		// sparse regions. Only USTAR format does not support
-		// spare regions -- see https://golang.org/pkg/archive/tar/
-		if b := headerSizeMatchesFileSize(hdr, len(content)); !b {
-			return checker.MakeRetryResult(checkName, ErrReadFile)
-		}
-
-		rr, err := onFileContent(fullpath, content, c.Logf)
+		rr, err := onFileContent(file, content, c.Logf)
 		if err != nil {
 			return checker.MakeFailResult(checkName, err)
 		}
@@ -190,5 +104,5 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 		return checker.MakePassResult(checkName)
 	}
 
-	return checker.MakeFailResult(checkName, err)
+	return checker.MakeFailResult(checkName, nil)
 }

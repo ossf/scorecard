@@ -15,12 +15,6 @@
 package checks
 
 import (
-	"archive/tar"
-	"compress/gzip"
-	"errors"
-	"io"
-	"strings"
-
 	"github.com/ossf/scorecard/checker"
 )
 
@@ -28,34 +22,8 @@ import (
 // for the occurrence.
 func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(name string,
 	Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
-	archiveReader, err := c.RepoClient.GetRepoArchiveReader()
-	if err != nil {
-		return checker.MakeRetryResult(checkName, err)
-	}
-	defer archiveReader.Close()
-	gz, err := gzip.NewReader(archiveReader)
-	if err != nil {
-		return checker.MakeRetryResult(checkName, err)
-	}
-	tr := tar.NewReader(gz)
-
-	for {
-		hdr, err := tr.Next()
-		if errors.Is(err, io.EOF) {
-			break
-		} else if err != nil {
-			return checker.MakeRetryResult(checkName, err)
-		}
-
-		// Strip the repo name
-		const splitLength = 2
-		names := strings.SplitN(hdr.Name, "/", splitLength)
-		if len(names) < splitLength {
-			continue
-		}
-
-		name := names[1]
-		rr, err := onFile(name, c.Logf)
+	for _, filename := range c.RepoClient.ListFiles(func(string) bool { return true }) {
+		rr, err := onFile(filename, c.Logf)
 		if err != nil {
 			return checker.CheckResult{
 				Name:       checkName,
