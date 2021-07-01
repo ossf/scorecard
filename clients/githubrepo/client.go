@@ -196,6 +196,8 @@ func (client *Client) extractTarball() error {
 				strings.TrimPrefix(filenamepath, filepath.Clean(client.tempDir)+string(os.PathSeparator)))
 		case tar.TypeXGlobalHeader:
 			continue
+		case tar.TypeSymlink:
+			continue
 		default:
 			log.Printf("Unknown file type %s: '%s'", header.Name, string(header.Typeflag))
 			continue
