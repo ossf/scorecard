@@ -408,12 +408,11 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			continue
 		}
 
-		// Check for `-r some-file`.
-		if strings.EqualFold("-r", cmd[i]) {
-			return false
-		}
+		// TODO(laurent): https://github.com/ossf/scorecard/pull/611#discussion_r660203476.
+		// Support -r <> --require-hashes.
 
-		// Exclude *.whl
+		// Exclude *.whl as they're mostly used
+		// for tests. See https://github.com/ossf/scorecard/pull/611.
 		if strings.HasSuffix(cmd[i], ".whl") {
 			hasWhl = true
 			continue
