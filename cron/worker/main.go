@@ -172,6 +172,7 @@ func main() {
 	}
 
 	repoClient, httpClient, githubClient, graphClient, logger := createNetClients(ctx)
+	defer repoClient.Close()
 
 	exporter, err := startMetricsExporter()
 	if err != nil {

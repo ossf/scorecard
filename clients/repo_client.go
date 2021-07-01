@@ -16,7 +16,6 @@ package clients
 
 import (
 	"fmt"
-	"io"
 )
 
 type ErrRepoUnavailable struct {
@@ -39,5 +38,7 @@ func NewRepoUnavailableError(err error) error {
 
 type RepoClient interface {
 	InitRepo(owner, repo string) error
-	GetRepoArchiveReader() (io.ReadCloser, error)
+	ListFiles(predicate func(string) bool) []string
+	GetFileContent(filename string) ([]byte, error)
+	Close() error
 }
