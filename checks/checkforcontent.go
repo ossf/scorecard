@@ -120,7 +120,7 @@ func CheckFilesContent2(shellPathFnPattern string,
 		// Filter out files based on path/names using the pattern.
 		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
 		if err != nil {
-			c.Logf("error during isMatchingPath: %v", err)
+			c.Logf2(checker.DetailWarning, "4567", "internal error: %v", err)
 			return false
 		}
 		return b

@@ -28,9 +28,10 @@ var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
 
 // Types of details.
 const (
-	DetailFail = 0
-	DetailPass = 1
-	DetailInfo = 2
+	DetailFail    = 0
+	DetailPass    = 1
+	DetailInfo    = 2
+	DetailWarning = 3
 )
 
 // CheckDetail contains information for each detail.
@@ -43,7 +44,7 @@ type CheckDetail struct {
 
 func (cd *CheckDetail) Validate() {
 	if cd.Type < DetailFail ||
-		cd.Type > DetailInfo {
+		cd.Type > DetailWarning {
 		panic(fmt.Sprintf("invalid CheckDetail type: %v", cd.Type))
 	}
 }
