@@ -40,7 +40,16 @@ type CheckFn func(*CheckRequest) CheckResult
 type CheckNameToFnMap map[string]CheckFn
 
 type logger struct {
-	messages []string
+	messages  []string
+	messages2 []CheckDetail
+}
+
+type Logf2 func(typ int, code, desc string, args ...interface{})
+
+func (l *logger) Logf2(typ int, code, desc string, args ...interface{}) {
+	cd := CheckDetail{Type: typ, Code: code, Desc: fmt.Sprintf(desc, args...)}
+	cd.Validate()
+	l.messages2 = append(l.messages2, cd)
 }
 
 func (l *logger) Logf(s string, f ...interface{}) {
@@ -75,6 +84,7 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		checkRequest.Ctx = ctx
 		l = logger{}
 		checkRequest.Logf = l.Logf
+		checkRequest.Logf2 = l.Logf2
 		res = f(&checkRequest)
 		if res.ShouldRetry && !strings.Contains(res.Error.Error(), "invalid header field value") {
 			checkRequest.Logf("error, retrying: %s", res.Error)
@@ -83,6 +93,7 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		break
 	}
 	res.Details = l.messages
+	res.Details2 = l.messages2
 
 	if err := logStats(ctx, startTime, res); err != nil {
 		panic(err)

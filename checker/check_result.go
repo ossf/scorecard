@@ -16,6 +16,7 @@ package checker
 
 import (
 	"errors"
+	"fmt"
 
 	scorecarderrors "github.com/ossf/scorecard/errors"
 )
@@ -25,10 +26,33 @@ const MaxResultConfidence = 10
 // ErrorDemoninatorZero indicates the denominator for a proportional result is 0.
 var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
 
+// Types of details.
+const (
+	DetailFail = 0
+	DetailPass = 1
+	DetailInfo = 2
+)
+
+// CheckDetail contains information for each detail.
+//nolint:govet
+type CheckDetail struct {
+	Type int    // Any of DetailFail, DetailPass, DetailInfo.
+	Code string // A 4 digit string identifying the code, e.g. for remediation.
+	Desc string // A short string representation of the information.
+}
+
+func (cd *CheckDetail) Validate() {
+	if cd.Type < DetailFail ||
+		cd.Type > DetailInfo {
+		panic(fmt.Sprintf("invalid CheckDetail type: %v", cd.Type))
+	}
+}
+
 type CheckResult struct {
 	Error       error `json:"-"`
 	Name        string
 	Details     []string
+	Details2    []CheckDetail
 	Confidence  int
 	Pass        bool
 	ShouldRetry bool `json:"-"`
