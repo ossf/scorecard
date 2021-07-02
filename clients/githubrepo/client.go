@@ -228,6 +228,8 @@ func (client *Client) cleanup() error {
 	if err := os.RemoveAll(client.tempDir); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("os.Remove: %w", err)
 	}
+	// Remove old files so we don't iterate through them.
+	client.files = nil
 	return nil
 }
 
