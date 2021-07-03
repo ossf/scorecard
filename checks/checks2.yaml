@@ -16,10 +16,10 @@
 # Run `cd checks/main && go run /main` to generate `checks.json` and `checks.md`.
 checks:
   Binary-Artifacts:
-    code: C0001
     description: >-
       This check tries to determine if a project has binary artifacts in the source repository.
       These binaries could be compromised artifacts. Building from the source is recommended.
+    url: https://github.com/ossf/scorecard/blob/main/checks/checks.md#binary-artifacts
     remediation:
       - >-
         Remove the binary artifacts from the repository. 
@@ -27,10 +27,31 @@ checks:
       E01:
         description: >-
           A binary file is found in the repository.
+        url: https://github.com/ossf/scorecard/blob/main/checks/checks.md#binary-artifacts-E01      
         remediation: 
           - >-
             Remove the binary from the repository code. 
           - >- 
             Build from the source.
+  Automatic-Dependency-Update:
+    description: >-
+      This check tries to determine if a project has dependencies automatically updated.
+      The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or
+      [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if 
+      it is enabled and does not ensure that it is run and pull requests are merged.
+    url: https://github.com/ossf/scorecard/blob/main/checks/checks.md#automatic-dependency-update
+    remediation:
+      - >-
+        Signup for automatic dependency updates with dependabot or renovatebot and place the config
+        file in the locations that are recommended by these tools.
+    errors:
+      E01:
+        description: >-
+          No configuration file found in the repository.
+        url: https://github.com/ossf/scorecard/blob/main/checks/checks.md#automatic-dependency-update-E01
+        remediation: >-
+          Signup for automatic dependency updates with dependabot or renovatebot and place the config
+          file in the locations that are recommended by these tools.
+
     
 

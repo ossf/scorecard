@@ -110,7 +110,7 @@ func CheckFilesContent2(shellPathFnPattern string,
 	caseSensitive bool,
 	c *checker.CheckRequest,
 	onFileContent func(path string, content []byte,
-		l checker.Logf2) (bool, error),
+		cl checker.CheckLogger) (bool, error),
 ) (bool, error) {
 	predicate := func(filepath string) bool {
 		// Filter out Scorecard's own test files.
@@ -120,7 +120,7 @@ func CheckFilesContent2(shellPathFnPattern string,
 		// Filter out files based on path/names using the pattern.
 		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
 		if err != nil {
-			c.Logf2(checker.DetailWarning, "4567", "internal error: %v", err)
+			c.CLogger.Warn("internal error isMatchingPath: %v", err)
 			return false
 		}
 		return b
@@ -132,7 +132,7 @@ func CheckFilesContent2(shellPathFnPattern string,
 			return false, err
 		}
 
-		rr, err := onFileContent(file, content, c.Logf2)
+		rr, err := onFileContent(file, content, c.CLogger)
 		if err != nil {
 			return false, err
 		}

@@ -44,12 +44,32 @@ type logger struct {
 	messages2 []CheckDetail
 }
 
-type Logf2 func(typ int, code, desc string, args ...interface{})
+type CheckLogger struct {
+	l *logger
+}
 
-func (l *logger) Logf2(typ int, code, desc string, args ...interface{}) {
-	cd := CheckDetail{Type: typ, Code: code, Desc: fmt.Sprintf(desc, args...)}
+func (l *CheckLogger) Fail(code, desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailFail, Code: code, Desc: fmt.Sprintf(desc, args...)}
 	cd.Validate()
-	l.messages2 = append(l.messages2, cd)
+	l.l.messages2 = append(l.l.messages2, cd)
+}
+
+func (l *CheckLogger) Pass(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailPass, Code: "", Desc: fmt.Sprintf(desc, args...)}
+	cd.Validate()
+	l.l.messages2 = append(l.l.messages2, cd)
+}
+
+func (l *CheckLogger) Info(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailInfo, Code: "", Desc: fmt.Sprintf(desc, args...)}
+	cd.Validate()
+	l.l.messages2 = append(l.l.messages2, cd)
+}
+
+func (l *CheckLogger) Warn(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailWarn, Code: "", Desc: fmt.Sprintf(desc, args...)}
+	cd.Validate()
+	l.l.messages2 = append(l.l.messages2, cd)
 }
 
 func (l *logger) Logf(s string, f ...interface{}) {
@@ -79,12 +99,14 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 
 	var res CheckResult
 	var l logger
+	var cl CheckLogger
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx
 		l = logger{}
+		cl = CheckLogger{l: &l}
 		checkRequest.Logf = l.Logf
-		checkRequest.Logf2 = l.Logf2
+		checkRequest.CLogger = cl
 		res = f(&checkRequest)
 		if res.ShouldRetry && !strings.Contains(res.Error.Error(), "invalid header field value") {
 			checkRequest.Logf("error, retrying: %s", res.Error)

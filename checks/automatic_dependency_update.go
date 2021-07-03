@@ -20,32 +20,38 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const CheckAutomaticDependencyUpdate = "Automatic-Dependency-Update"
+const checkAutomaticDependencyUpdate = "Automatic-Dependency-Update"
 
 //nolint
 func init() {
-	registerCheck(CheckAutomaticDependencyUpdate, AutomaticDependencyUpdate)
+	registerCheck(checkAutomaticDependencyUpdate, AutomaticDependencyUpdate)
 }
 
 // AutomaticDependencyUpdate will check the repository if it contains Automatic dependency update.
 func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
-	result := CheckIfFileExists(CheckAutomaticDependencyUpdate, c, fileExists)
-	if !result.Pass {
-		result.Confidence = 3
+	r, err := CheckIfFileExists2(checkAutomaticDependencyUpdate, c, fileExists)
+	if err != nil {
+		return checker.MakeInconclusiveResult(checkAutomaticDependencyUpdate, err)
 	}
-	return result
+	if !r {
+		c.CLogger.Fail("E01", "no configuration file found in the repo")
+		return checker.MakeInconclusiveResult(checkAutomaticDependencyUpdate, nil)
+	}
+
+	// We're confident it's correct.
+	return checker.MakePassResult(checkAutomaticDependencyUpdate)
 }
 
 // fileExists will validate the if frozen dependencies file name exists.
-func fileExists(name string, logf func(s string, f ...interface{})) (bool, error) {
+func fileExists(name string, cl checker.CheckLogger) (bool, error) {
 	switch strings.ToLower(name) {
 	case ".github/dependabot.yml":
-		logf("dependabot config found: %s", name)
+		cl.Pass("dependabot config found: %s", name)
 		return true, nil
 		// https://docs.renovatebot.com/configuration-options/
 	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
 		"renovate.json5", ".renovaterc":
-		logf("renovate config found: %s", name)
+		cl.Pass("renovate config found: %s", name)
 		return true, nil
 	default:
 		return false, nil

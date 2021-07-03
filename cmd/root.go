@@ -51,6 +51,7 @@ var (
 	pypi        string
 	rubygems    string
 	showDetails bool
+	// TODO(laurent): add explain command.
 	// ErrorInvalidFormatFlag indicates an invalid option was passed for the 'format' argument.
 	ErrorInvalidFormatFlag = errors.New("invalid format flag")
 )

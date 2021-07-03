@@ -26,30 +26,27 @@ import (
 
 //nolint
 func init() {
-	registerCheck(checkBinaryArtifactsName, binaryArtifacts)
+	registerCheck(checkBinaryArtifacts, binaryArtifacts)
 }
 
-// TODO: read from file?
-const (
-	checkBinaryArtifactsNumber string = "0001"
-	checkBinaryArtifactsName   string = "Binary-Artifacts"
-)
+// TODO: read the check code from file?
+const checkBinaryArtifacts string = "Binary-Artifacts"
 
 // BinaryArtifacts  will check the repository if it contains binary artifacts.
 func binaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	r, err := CheckFilesContent2("*", false, c, checkBinaryFileContent)
 	if err != nil || !r {
 		// TODO: we're losing the RetryError, should be handled by caller.
-		return checker.MakeFailResult(checkBinaryArtifactsName, err)
+		return checker.MakeFailResult(checkBinaryArtifacts, err)
 	}
 
 	// We're confident it's correct.
-	c.Logf2(checker.DetailPass, checkBinaryArtifactsNumber, "no binary files found in the repo")
-	return checker.MakePassResult(checkBinaryArtifactsName)
+	c.CLogger.Pass("no binary files found in the repo")
+	return checker.MakePassResult(checkBinaryArtifacts)
 }
 
 func checkBinaryFileContent(path string, content []byte,
-	l checker.Logf2) (bool, error) {
+	cl checker.CheckLogger) (bool, error) {
 	binaryFileTypes := map[string]bool{
 		"crx":     true,
 		"deb":     true,
@@ -94,11 +91,11 @@ func checkBinaryFileContent(path string, content []byte,
 	}
 
 	if _, ok := binaryFileTypes[t.Extension]; ok {
-		l(checker.DetailFail, checkBinaryArtifactsNumber+"-E01", "binary-artifact found: %s", path)
+		cl.Fail("E01", "binary-artifact found: %s", path)
 		return false, nil
 	} else if _, ok := binaryFileTypes[filepath.Ext(path)]; ok {
 		// Falling back to file based extension.
-		l(checker.DetailFail, checkBinaryArtifactsNumber+"-E01", "binary-artifact found: %s", path)
+		cl.Fail("E01", "binary-artifact found: %s", path)
 		return false, nil
 	}
 

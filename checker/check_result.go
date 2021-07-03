@@ -28,10 +28,10 @@ var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
 
 // Types of details.
 const (
-	DetailFail    = 0
-	DetailPass    = 1
-	DetailInfo    = 2
-	DetailWarning = 3
+	DetailFail = 0
+	DetailPass = 1
+	DetailInfo = 2
+	DetailWarn = 3
 )
 
 // CheckDetail contains information for each detail.
@@ -44,10 +44,17 @@ type CheckDetail struct {
 
 func (cd *CheckDetail) Validate() {
 	if cd.Type < DetailFail ||
-		cd.Type > DetailWarning {
+		cd.Type > DetailWarn {
 		panic(fmt.Sprintf("invalid CheckDetail type: %v", cd.Type))
 	}
 }
+
+// Types of results.
+const (
+	ResultPass     = 0
+	ResultFail     = 1
+	ResultDontKnow = 2
+)
 
 type CheckResult struct {
 	Error       error `json:"-"`
@@ -56,6 +63,7 @@ type CheckResult struct {
 	Details2    []CheckDetail
 	Confidence  int
 	Pass        bool
+	Pass2       int
 	ShouldRetry bool `json:"-"`
 }
 
@@ -64,6 +72,7 @@ func MakeInconclusiveResult(name string, err error) CheckResult {
 		Name:       name,
 		Pass:       false,
 		Confidence: 0,
+		Pass2:      ResultDontKnow,
 		Error:      scorecarderrors.MakeZeroConfidenceError(err),
 	}
 }
@@ -72,6 +81,7 @@ func MakePassResult(name string) CheckResult {
 	return CheckResult{
 		Name:       name,
 		Pass:       true,
+		Pass2:      ResultPass,
 		Confidence: MaxResultConfidence,
 	}
 }
@@ -80,6 +90,7 @@ func MakeFailResult(name string, err error) CheckResult {
 	return CheckResult{
 		Name:       name,
 		Pass:       false,
+		Pass2:      ResultFail,
 		Confidence: MaxResultConfidence,
 		Error:      err,
 	}
@@ -89,11 +100,14 @@ func MakeRetryResult(name string, err error) CheckResult {
 	return CheckResult{
 		Name:        name,
 		Pass:        false,
+		Pass2:       ResultDontKnow,
 		ShouldRetry: true,
 		Error:       scorecarderrors.MakeRetryError(err),
 	}
 }
 
+// TODO: update this function to return a ResultDontKnow
+// if the confidence is low?
 func MakeProportionalResult(name string, numerator int, denominator int,
 	threshold float32) CheckResult {
 	if denominator == 0 {
@@ -103,6 +117,7 @@ func MakeProportionalResult(name string, numerator int, denominator int,
 		return CheckResult{
 			Name:       name,
 			Pass:       false,
+			Pass2:      ResultFail,
 			Confidence: MaxResultConfidence,
 		}
 	}
@@ -111,6 +126,7 @@ func MakeProportionalResult(name string, numerator int, denominator int,
 		return CheckResult{
 			Name:       name,
 			Pass:       true,
+			Pass2:      ResultPass,
 			Confidence: int(actual * MaxResultConfidence),
 		}
 	}
@@ -118,6 +134,7 @@ func MakeProportionalResult(name string, numerator int, denominator int,
 	return CheckResult{
 		Name:       name,
 		Pass:       false,
+		Pass2:      ResultFail,
 		Confidence: MaxResultConfidence - int(actual*MaxResultConfidence),
 	}
 }
@@ -140,6 +157,7 @@ func isMinResult(result, min CheckResult) bool {
 func MakeAndResult(checks ...CheckResult) CheckResult {
 	minResult := CheckResult{
 		Pass:       true,
+		Pass2:      ResultPass,
 		Confidence: MaxResultConfidence,
 	}
 

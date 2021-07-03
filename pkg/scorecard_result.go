@@ -144,3 +144,16 @@ func displayResult(result bool) string {
 	}
 	return "Fail"
 }
+
+func displayResult2(result int) string {
+	switch result {
+	default:
+		panic("invalid result")
+	case checker.ResultPass:
+		return "Pass"
+	case checker.ResultFail:
+		return "Fail"
+	case checker.ResultDontKnow:
+		return "N/A"
+	}
+}

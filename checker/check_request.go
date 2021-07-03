@@ -31,6 +31,6 @@ type CheckRequest struct {
 	HTTPClient  *http.Client
 	RepoClient  clients.RepoClient
 	Logf        func(s string, f ...interface{})
-	Logf2       func(typ int, code, desc string, f ...interface{})
+	CLogger     CheckLogger
 	Owner, Repo string
 }
