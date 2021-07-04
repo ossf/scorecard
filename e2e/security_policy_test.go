@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//nolint:dupl // repeating test cases that are slightly different is acceptable
 package e2e
 
 import (
@@ -40,6 +41,26 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 				RepoClient:  repoClient,
 				Owner:       "tensorflow",
 				Repo:        "tensorflow",
+				GraphClient: graphClient,
+				Logf:        l.Logf,
+			}
+			result := checks.SecurityPolicy(&checkRequest)
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+		})
+		It("Should return valid security policy for rust repositories", func() {
+			l := log{}
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
+			err := repoClient.InitRepo("randombit", "botan")
+			Expect(err).Should(BeNil())
+
+			checkRequest := checker.CheckRequest{
+				Ctx:         context.Background(),
+				Client:      ghClient,
+				HTTPClient:  httpClient,
+				RepoClient:  repoClient,
+				Owner:       "randombit",
+				Repo:        "botan",
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
