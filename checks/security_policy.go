@@ -34,6 +34,9 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		if strings.EqualFold(name, "security.md") {
 			logf("security policy : %s", name)
 			return true, nil
+		} else if isSecurityrstFound(name) {
+			logf("security policy : %s", name)
+			return true, nil
 		}
 		return false, nil
 	}
@@ -56,4 +59,13 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		return false, nil
 	}
 	return CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
+}
+
+func isSecurityrstFound(name string) bool {
+	if strings.EqualFold(name, "doc/security.rst") {
+		return true
+	} else if strings.EqualFold(name, "docs/security.rst") {
+		return true
+	}
+	return false
 }
