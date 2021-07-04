@@ -289,3 +289,12 @@ checks:
       - >-
         Fix the vulnerabilities. The details of each vulnerability can be found
         on <https://osv.dev>.
+  Packaging:
+    description: >-
+      This check tries to determine if a project has a GitHub workflow that publishes
+      to a package repository.
+    remediation:
+    - steps:
+      - >-
+        Create a GitHub workflow that publishes this repository to the package
+        repository for your language (e.g. npm, maven, Docker, pypi).
