@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -86,9 +87,19 @@ func (r *ScorecardResult) AsCSV(showDetails bool, writer io.Writer) error {
 }
 
 func (r *ScorecardResult) AsString(showDetails bool, writer io.Writer) error {
+	sortedChecks := make([]checker.CheckResult, len(r.Checks))
+	for i, checkResult := range r.Checks {
+		sortedChecks[i] = checkResult
+	}
+	sort.Slice(sortedChecks, func(i, j int) bool {
+		if sortedChecks[i].Pass == sortedChecks[j].Pass {
+			return sortedChecks[i].Name < sortedChecks[j].Name
+		}
+		return sortedChecks[i].Pass
+	})
 	fmt.Fprintf(writer, "Repo: %s\n", r.Repo)
-	for _, checkResult := range r.Checks {
-		fmt.Fprintf(writer, "%s: %s %d\n", checkResult.Name, displayResult(checkResult.Pass), checkResult.Confidence)
+	for _, checkResult := range sortedChecks {
+		fmt.Fprintf(writer, "%s %d %s\n", displayResult(checkResult.Pass), checkResult.Confidence, checkResult.Name)
 		if showDetails {
 			for _, d := range checkResult.Details {
 				fmt.Fprintf(writer, "%s\n", d)
