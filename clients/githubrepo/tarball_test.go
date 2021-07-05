@@ -42,23 +42,23 @@ func isSortedString(x, y string) bool {
 	return x < y
 }
 
-func setup(inputFile string) (Client, error) {
+func setup(inputFile string) (tarballHandler, error) {
 	tempDir, err := ioutil.TempDir("", repoDir)
 	if err != nil {
-		return Client{}, fmt.Errorf("test failed to create TempDir: %w", err)
+		return tarballHandler{}, fmt.Errorf("test failed to create TempDir: %w", err)
 	}
 	tempFile, err := ioutil.TempFile(tempDir, repoFilename)
 	if err != nil {
-		return Client{}, fmt.Errorf("test failed to create TempFile: %w", err)
+		return tarballHandler{}, fmt.Errorf("test failed to create TempFile: %w", err)
 	}
 	testFile, err := os.OpenFile(inputFile, os.O_RDONLY, 0o644)
 	if err != nil {
-		return Client{}, fmt.Errorf("unable to open testfile: %w", err)
+		return tarballHandler{}, fmt.Errorf("unable to open testfile: %w", err)
 	}
 	if _, err := io.Copy(tempFile, testFile); err != nil {
-		return Client{}, fmt.Errorf("unable to do io.Copy: %w", err)
+		return tarballHandler{}, fmt.Errorf("unable to do io.Copy: %w", err)
 	}
-	return Client{
+	return tarballHandler{
 		tempDir:     tempDir,
 		tempTarFile: tempFile.Name(),
 	}, nil
@@ -120,28 +120,28 @@ func TestExtractTarball(t *testing.T) {
 			t.Parallel()
 
 			// Setup
-			client, err := setup(testcase.inputFile)
+			handler, err := setup(testcase.inputFile)
 			if err != nil {
 				t.Fatalf("test setup failed: %v", err)
 			}
 
 			// Extract tarball.
-			if err := client.extractTarball(); err != nil {
+			if err := handler.extractTarball(); err != nil {
 				t.Fatalf("test failed: %v", err)
 			}
 
 			// Test ListFiles API.
 			for _, listfiletest := range testcase.listfileTests {
 				if !cmp.Equal(listfiletest.outcome,
-					client.ListFiles(listfiletest.predicate),
+					handler.listFiles(listfiletest.predicate),
 					cmpopts.SortSlices(isSortedString)) {
-					t.Errorf("test failed: expected - %q, got - %q", listfiletest.outcome, client.ListFiles(listfiletest.predicate))
+					t.Errorf("test failed: expected - %q, got - %q", listfiletest.outcome, handler.listFiles(listfiletest.predicate))
 				}
 			}
 
 			// Test GetFileContent API.
 			for _, getcontenttest := range testcase.getcontentTests {
-				content, err := client.GetFileContent(getcontenttest.filename)
+				content, err := handler.getFileContent(getcontenttest.filename)
 				if getcontenttest.err != nil && !errors.As(err, &getcontenttest.err) {
 					t.Errorf("test failed: expected - %v, got - %v", getcontenttest.err, err)
 				}
@@ -151,13 +151,13 @@ func TestExtractTarball(t *testing.T) {
 			}
 
 			// Test that files get deleted.
-			if err := client.cleanup(); err != nil {
+			if err := handler.cleanup(); err != nil {
 				t.Errorf("test failed: %v", err)
 			}
-			if _, err := os.Stat(client.tempDir); !os.IsNotExist(err) {
+			if _, err := os.Stat(handler.tempDir); !os.IsNotExist(err) {
 				t.Errorf("%v", err)
 			}
-			if len(client.files) != 0 {
+			if len(handler.files) != 0 {
 				t.Error("client.files not cleaned up!")
 			}
 		})
