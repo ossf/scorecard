@@ -47,7 +47,7 @@ func (l *logger) Logf(s string, f ...interface{}) {
 	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
 
-func logStats(ctx context.Context, startTime time.Time, result CheckResult) error {
+func logStats(ctx context.Context, startTime time.Time, result *CheckResult) error {
 	runTimeInSecs := time.Now().Unix() - startTime.Unix()
 	opencensusstats.Record(ctx, stats.CheckRuntimeInSec.M(runTimeInSecs))
 
@@ -84,7 +84,7 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 	}
 	res.Details = l.messages
 
-	if err := logStats(ctx, startTime, res); err != nil {
+	if err := logStats(ctx, startTime, &res); err != nil {
 		panic(err)
 	}
 	return res

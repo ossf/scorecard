@@ -17,12 +17,14 @@ package pkg
 import (
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
 	"strings"
 
 	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/checks"
 )
 
 type ScorecardResult struct {
@@ -87,11 +89,15 @@ func (r *ScorecardResult) AsCSV(showDetails bool, writer io.Writer) error {
 
 func (r *ScorecardResult) AsString(showDetails bool, writer io.Writer) error {
 	fmt.Fprintf(writer, "Repo: %s\n", r.Repo)
-	for _, checkResult := range r.Checks {
+	for i, checkResult := range r.Checks {
 		fmt.Fprintf(writer, "%s: %s %d\n", checkResult.Name, displayResult(checkResult.Pass), checkResult.Confidence)
 		if showDetails {
 			for _, d := range checkResult.Details {
 				fmt.Fprintf(writer, "%s\n", d)
+			}
+			err := displayRemediationResult(&r.Checks[i], writer)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -103,4 +109,23 @@ func displayResult(result bool) string {
 		return "Pass"
 	}
 	return "Fail"
+}
+
+func displayRemediationResult(checkResult *checker.CheckResult, writer io.Writer) error {
+	if !checkResult.DoShowRemediation() {
+		return nil
+	}
+	fmt.Fprintln(writer, "  Remediation:")
+	steps, err := checks.GetRemediationSteps(checkResult)
+	if err != nil {
+		if errors.Is(err, checks.ErrUnknownCheckName) {
+			fmt.Fprintf(writer, "  %v\n", err)
+		} else {
+			return fmt.Errorf("error getting remediation steps: %w", err)
+		}
+	}
+	for _, s := range steps {
+		fmt.Fprintf(writer, "    %s\n", s)
+	}
+	return nil
 }

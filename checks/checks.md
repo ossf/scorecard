@@ -86,6 +86,13 @@ This check tries to determine if the project uses a fuzzing system. It currently
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
 
+## Packaging 
+
+This check tries to determine if a project has a GitHub workflow that publishes to a package repository. 
+
+**Remediation steps**
+- Create a GitHub workflow that publishes this repository to the package repository for your language (e.g. npm, maven, Docker, pypi).
+
 ## Pull-Requests 
 
 This check tries to determine if the project requires pull requests for all changes to the default branch. It works by looking at recent commits (first page, ~30) and uses the GitHub API to search for associated pull requests. The check discards commits by usernames containing 'bot' or 'gardener'. The check considers a commit containing the string `Reviewed-on` as being reviewed through gerrit; and does not check for a corresponding PR. 

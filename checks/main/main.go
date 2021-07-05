@@ -19,12 +19,9 @@ import (
 	"sort"
 
 	"gopkg.in/yaml.v2"
-)
 
-type doc struct {
-	Description string   `yaml:"description"`
-	Remediation []string `yaml:"remediation"`
-}
+	"github.com/ossf/scorecard/checks"
+)
 
 func main() {
 	yamlFile, err := os.Open("../checks.yaml")
@@ -37,7 +34,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	m := make(map[string]map[string]doc)
+	m := make(map[string]map[string]checks.CheckInfo)
 	err = yaml.Unmarshal(byteValue, &m)
 	if err != nil {
 		panic(err)
@@ -82,9 +79,11 @@ please contribute!
 			panic(err)
 		}
 		for _, r := range m["checks"][k].Remediation {
-			_, err = f.WriteString("- " + r + "\n")
-			if err != nil {
-				panic(err)
+			for _, s := range r.Steps {
+				_, err = f.WriteString("- " + s + "\n")
+				if err != nil {
+					panic(err)
+				}
 			}
 		}
 		_, err = f.WriteString("\n")

@@ -131,7 +131,9 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 }
 
 func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(CheckFrozenDeps, "*Dockerfile*", false, c, validateDockerfile)
+	result := CheckFilesContent(CheckFrozenDeps, "*Dockerfile*", false, c, validateDockerfile)
+	result.AddFailureCode("FDP01")
+	return result
 }
 
 func validateDockerfile(pathfn string, content []byte,
@@ -273,7 +275,9 @@ func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
 
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(CheckFrozenDeps, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
+	result := CheckFilesContent(CheckFrozenDeps, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
+	result.AddFailureCode("FDP02")
+	return result
 }
 
 // Check file content.
@@ -312,7 +316,9 @@ func validateGitHubActionWorkflow(pathfn string, content []byte, logf func(s str
 
 // Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
-	return CheckIfFileExists(CheckFrozenDeps, c, validatePackageManagerFile)
+	result := CheckIfFileExists(CheckFrozenDeps, c, validatePackageManagerFile)
+	result.AddFailureCode("FDP03")
+	return result
 }
 
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
