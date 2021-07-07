@@ -25,6 +25,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ossf/scorecard/checker"
 	"mvdan.cc/sh/v3/syntax"
 )
 
@@ -266,7 +267,7 @@ func extractCommand(cmd interface{}) ([]string, bool) {
 }
 
 func isFetchPipeExecute(node syntax.Node, cmd, pathfn string,
-	logf func(s string, f ...interface{})) bool {
+	cl checker.CheckLogger) bool {
 	// BinaryCmd {Op=|, X=CallExpr{Args={curl, -s, url}}, Y=CallExpr{Args={bash,}}}.
 	bc, ok := node.(*syntax.BinaryCmd)
 	if !ok {
@@ -295,7 +296,7 @@ func isFetchPipeExecute(node syntax.Node, cmd, pathfn string,
 		return false
 	}
 
-	logf("!! frozen-deps/fetch-execute - %v is fetching and executing non-pinned program '%v'",
+	cl.FailWithCode("BinaryDownload", "%v is fetching and executing non-pinned program '%v'",
 		pathfn, cmd)
 	return true
 }
@@ -322,7 +323,7 @@ func getRedirectFile(red []*syntax.Redirect) (string, bool) {
 }
 
 func isExecuteFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
-	logf func(s string, f ...interface{})) bool {
+	cl checker.CheckLogger) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
 		return false
@@ -336,7 +337,7 @@ func isExecuteFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
 	ok = false
 	for fn := range files {
 		if isInterpreterWithFile(c, fn) || isExecuteFile(c, fn) {
-			logf("!! frozen-deps/fetch-execute - %v is fetching and executing non-pinned program '%v'",
+			cl.FailWithCode("BinaryDownload", "%v is fetching and executing non-pinned program '%v'",
 				pathfn, cmd)
 			ok = true
 		}
@@ -479,7 +480,7 @@ func isPipUnpinnedDownload(cmd []string) bool {
 }
 
 func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
-	logf func(s string, f ...interface{})) bool {
+	cl checker.CheckLogger) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
 		return false
@@ -492,14 +493,14 @@ func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
 
 	// Go get/install.
 	if isGoUnpinnedDownload(c) {
-		logf("!! frozen-deps/fetch-execute - %v is fetching an non-pinned dependency '%v'",
+		cl.FailWithCode("BinaryDownload", "%v is fetching an non-pinned dependency '%v'",
 			pathfn, cmd)
 		return true
 	}
 
 	// Pip install.
 	if isPipUnpinnedDownload(c) {
-		logf("!! frozen-deps/fetch-execute - %v is fetching an non-pinned dependency '%v'",
+		cl.FailWithCode("BBinaryDownload", "%v is fetching an non-pinned dependency '%v'",
 			pathfn, cmd)
 		return true
 	}
@@ -533,7 +534,7 @@ func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err erro
 }
 
 func isFetchProcSubsExecute(node syntax.Node, cmd, pathfn string,
-	logf func(s string, f ...interface{})) bool {
+	cl checker.CheckLogger) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
 		return false
@@ -583,7 +584,7 @@ func isFetchProcSubsExecute(node syntax.Node, cmd, pathfn string,
 		return false
 	}
 
-	logf("!! frozen-deps/fetch-execute - %v is fetching and executing non-pinned program '%v'",
+	cl.FailWithCode("BinaryDownload", "%v is fetching and executing non-pinned program '%v'",
 		pathfn, cmd)
 	return true
 }
@@ -661,7 +662,7 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 }
 
 func validateShellFileAndRecord(pathfn string, content []byte, files map[string]bool,
-	logf func(s string, f ...interface{})) (bool, error) {
+	cl checker.CheckLogger) (bool, error) {
 	in := strings.NewReader(string(content))
 	f, err := syntax.NewParser().Parse(in, "")
 	if err != nil {
@@ -682,7 +683,7 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		c, ok := extractInterpreterCommandFromNode(node)
 		// nolinter
 		if ok {
-			ok, e := validateShellFileAndRecord(pathfn, []byte(c), files, logf)
+			ok, e := validateShellFileAndRecord(pathfn, []byte(c), files, cl)
 			validated = ok
 			if e != nil {
 				err = e
@@ -691,23 +692,23 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		}
 
 		// `curl | bash` (supports `sudo`).
-		if isFetchPipeExecute(node, cmdStr, pathfn, logf) {
+		if isFetchPipeExecute(node, cmdStr, pathfn, cl) {
 			validated = false
 		}
 
 		// Check if we're calling a file we previously downloaded.
 		// Includes `curl > /tmp/file [&&|;] [bash] /tmp/file`
-		if isExecuteFiles(node, cmdStr, pathfn, files, logf) {
+		if isExecuteFiles(node, cmdStr, pathfn, files, cl) {
 			validated = false
 		}
 
 		// `bash <(wget -qO- http://website.com/my-script.sh)`. (supports `sudo`).
-		if isFetchProcSubsExecute(node, cmdStr, pathfn, logf) {
+		if isFetchProcSubsExecute(node, cmdStr, pathfn, cl) {
 			validated = false
 		}
 
 		// Package manager's unpinned installs.
-		if isUnpinnedPakageManagerDownload(node, cmdStr, pathfn, logf) {
+		if isUnpinnedPakageManagerDownload(node, cmdStr, pathfn, cl) {
 			validated = false
 		}
 		// TODO(laurent): add check for cat file | bash.
@@ -783,7 +784,7 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 	return false
 }
 
-func validateShellFile(pathfn string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
+func validateShellFile(pathfn string, content []byte, cl checker.CheckLogger) (bool, error) {
 	files := make(map[string]bool)
-	return validateShellFileAndRecord(pathfn, content, files, logf)
+	return validateShellFileAndRecord(pathfn, content, files, cl)
 }

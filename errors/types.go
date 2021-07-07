@@ -19,8 +19,8 @@ import (
 )
 
 type (
-	ErrRetry          struct{ wrappedError }
-	ErrZeroConfidence struct{ wrappedError }
+	ErrRetry         struct{ wrappedError }
+	ErrLowConfidence struct{ wrappedError }
 )
 
 func MakeRetryError(err error) error {
@@ -32,10 +32,10 @@ func MakeRetryError(err error) error {
 	}
 }
 
-func MakeZeroConfidenceError(err error) error {
-	return &ErrZeroConfidence{
+func MakeLowConfidenceError(err error) error {
+	return &ErrLowConfidence{
 		wrappedError{
-			msg:        "check result was unknown",
+			msg:        "low confidence check result",
 			innerError: err,
 		},
 	}

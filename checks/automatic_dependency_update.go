@@ -31,15 +31,16 @@ func init() {
 func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
 	r, err := CheckIfFileExists2(checkAutomaticDependencyUpdate, c, fileExists)
 	if err != nil {
-		return checker.MakeInconclusiveResult(checkAutomaticDependencyUpdate, err)
+		return checker.MakeInternalErrorResult(checkAutomaticDependencyUpdate, err)
 	}
 	if !r {
-		c.CLogger.Fail("E01", "no configuration file found in the repo")
-		return checker.MakeInconclusiveResult(checkAutomaticDependencyUpdate, nil)
+		return checker.MakeInconclusiveResult2(checkAutomaticDependencyUpdate, c, "no configuration file found in the repo")
 	}
 
-	// We're confident it's correct.
-	return checker.MakePassResult(checkAutomaticDependencyUpdate)
+	// High confidence result.
+	// We need not give a reason since it's explained by the calls to
+	// `cl.Pass` in fileExists.
+	return checker.MakePassResultWithHighConfidence(checkAutomaticDependencyUpdate)
 }
 
 // fileExists will validate the if frozen dependencies file name exists.

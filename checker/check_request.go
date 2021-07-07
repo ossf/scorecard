@@ -30,6 +30,8 @@ type CheckRequest struct {
 	GraphClient *githubv4.Client
 	HTTPClient  *http.Client
 	RepoClient  clients.RepoClient
+	// Note: Ultimately Log will be removed and replaced by
+	// CLogger.
 	Logf        func(s string, f ...interface{})
 	CLogger     CheckLogger
 	Owner, Repo string

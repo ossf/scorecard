@@ -16,37 +16,36 @@ package checker
 
 import (
 	"errors"
-	"fmt"
 
 	scorecarderrors "github.com/ossf/scorecard/errors"
 )
 
-const MaxResultConfidence = 10
+const (
+	MaxResultConfidence  = 10
+	HalfResultConfidence = 5
+	MinResultConfidence  = 0
+)
 
 // ErrorDemoninatorZero indicates the denominator for a proportional result is 0.
 var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
 
 // Types of details.
+type DetailType int
+
 const (
-	DetailFail = 0
-	DetailPass = 1
-	DetailInfo = 2
-	DetailWarn = 3
+	DetailFail DetailType = iota
+	DetailPass
+	DetailInfo
+	DetailWarn
+	DetailDebug
 )
 
 // CheckDetail contains information for each detail.
 //nolint:govet
 type CheckDetail struct {
-	Type int    // Any of DetailFail, DetailPass, DetailInfo.
-	Code string // A 4 digit string identifying the code, e.g. for remediation.
-	Desc string // A short string representation of the information.
-}
-
-func (cd *CheckDetail) Validate() {
-	if cd.Type < DetailFail ||
-		cd.Type > DetailWarn {
-		panic(fmt.Sprintf("invalid CheckDetail type: %v", cd.Type))
-	}
+	Type DetailType // Any of DetailFail, DetailPass, DetailInfo.
+	Code string     // A string identifying the sub-check, e.g. to lookup remediation info.
+	Desc string     // A short string representation of the information.
 }
 
 // Types of results.
@@ -57,23 +56,48 @@ const (
 )
 
 type CheckResult struct {
-	Error       error `json:"-"`
-	Name        string
-	Details     []string
-	Details2    []CheckDetail
-	Confidence  int
+	Error      error `json:"-"`
+	Name       string
+	Details    []string
+	Details2   []CheckDetail
+	Confidence int
+	// Note: Pass2 will ultimately be renamed
+	// as Pass.
 	Pass        bool
 	Pass2       int
 	ShouldRetry bool `json:"-"`
 }
 
+// Will be removed.
 func MakeInconclusiveResult(name string, err error) CheckResult {
 	return CheckResult{
 		Name:       name,
 		Pass:       false,
 		Confidence: 0,
 		Pass2:      ResultDontKnow,
-		Error:      scorecarderrors.MakeZeroConfidenceError(err),
+		Error:      scorecarderrors.MakeLowConfidenceError(err),
+	}
+}
+
+// TODO: these functions should set the details as well.
+func MakeInternalErrorResult(name string, err error) CheckResult {
+	return CheckResult{
+		Name:       name,
+		Pass:       false,
+		Confidence: 0,
+		Pass2:      ResultDontKnow,
+		Error:      scorecarderrors.MakeLowConfidenceError(err),
+	}
+}
+
+func MakeInconclusiveResult2(name string, c *CheckRequest, reason string) CheckResult {
+	c.CLogger.Warn("lowering result confidence to %d because %s", 0, reason)
+	return CheckResult{
+		Name:       name,
+		Pass:       false,
+		Confidence: 0,
+		Pass2:      ResultDontKnow,
+		Error:      nil,
 	}
 }
 
@@ -83,6 +107,50 @@ func MakePassResult(name string) CheckResult {
 		Pass:       true,
 		Pass2:      ResultPass,
 		Confidence: MaxResultConfidence,
+		Error:      nil,
+	}
+}
+
+func MakePassResultWithHighConfidence(name string) CheckResult {
+	return CheckResult{
+		Name:       name,
+		Pass:       true,
+		Pass2:      ResultPass,
+		Confidence: MaxResultConfidence,
+		Error:      nil,
+	}
+}
+
+func MakePassResultWithHighConfidenceAndReason(name string, c *CheckRequest, reason string) CheckResult {
+	c.CLogger.Pass("%s", reason)
+	return CheckResult{
+		Name:       name,
+		Pass:       true,
+		Pass2:      ResultPass,
+		Confidence: MaxResultConfidence,
+		Error:      nil,
+	}
+}
+
+func MakePassResultWithHighConfidenceAndReasonAndCode(name string, c *CheckRequest, code, reason string) CheckResult {
+	c.CLogger.PassWithCode(code, reason)
+	return CheckResult{
+		Name:       name,
+		Pass:       true,
+		Pass2:      ResultPass,
+		Confidence: MaxResultConfidence,
+		Error:      nil,
+	}
+}
+
+func MakePassResultWithLowConfidenceAndReason(name string, c *CheckRequest, conf int, reason string) CheckResult {
+	c.CLogger.Warn("%s (lowering confidence to %d)", reason, conf)
+	return CheckResult{
+		Name:       name,
+		Pass:       true,
+		Pass2:      ResultPass,
+		Confidence: conf,
+		Error:      nil,
 	}
 }
 
@@ -93,6 +161,49 @@ func MakeFailResult(name string, err error) CheckResult {
 		Pass2:      ResultFail,
 		Confidence: MaxResultConfidence,
 		Error:      err,
+	}
+}
+
+func MakeFailResultWithHighConfidence(name string) CheckResult {
+	return CheckResult{
+		Name:       name,
+		Pass:       false,
+		Pass2:      ResultFail,
+		Confidence: MaxResultConfidence,
+		Error:      nil,
+	}
+}
+
+func MakeFailResultWithHighConfidenceAndReason(name string, c *CheckRequest, reason string) CheckResult {
+	c.CLogger.Info("%s", reason)
+	return CheckResult{
+		Name:       name,
+		Pass:       false,
+		Pass2:      ResultFail,
+		Confidence: MaxResultConfidence,
+		Error:      nil,
+	}
+}
+
+func MakeFailResultWithHighConfidenceAndReasonAndCode(name string, c *CheckRequest, code, reason string) CheckResult {
+	c.CLogger.FailWithCode(code, reason)
+	return CheckResult{
+		Name:       name,
+		Pass:       false,
+		Pass2:      ResultFail,
+		Confidence: MaxResultConfidence,
+		Error:      nil,
+	}
+}
+
+func MakeFailResultLowConfidenceAndReason(name string, c *CheckRequest, conf int, reason string) CheckResult {
+	c.CLogger.Fail("%s (lowering confidence to %d)", reason, conf)
+	return CheckResult{
+		Name:       name,
+		Pass:       false,
+		Pass2:      ResultFail,
+		Confidence: conf,
+		Error:      nil,
 	}
 }
 

@@ -35,14 +35,20 @@ const checkBinaryArtifacts string = "Binary-Artifacts"
 // BinaryArtifacts  will check the repository if it contains binary artifacts.
 func binaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	r, err := CheckFilesContent2("*", false, c, checkBinaryFileContent)
-	if err != nil || !r {
-		// TODO: we're losing the RetryError, should be handled by caller.
-		return checker.MakeFailResult(checkBinaryArtifacts, err)
+	if err != nil {
+		// TODO: check for the repo retry error, which should be a common
+		// scorecard error independent of the underlying implementation.
+		return checker.MakeInternalErrorResult(checkBinaryArtifacts, err)
+	}
+	if !r {
+		// We need not provid a reason because it's already done
+		// in checkBinaryFileContent via `Pass` call.
+		return checker.MakeFailResultWithHighConfidence(checkBinaryArtifacts)
 	}
 
-	// We're confident it's correct.
-	c.CLogger.Pass("no binary files found in the repo")
-	return checker.MakePassResult(checkBinaryArtifacts)
+	// High confidence result.
+	// We provide a reason to help the user.
+	return checker.MakePassResultWithHighConfidenceAndReason(checkBinaryArtifacts, c, "no binary files found in the repo")
 }
 
 func checkBinaryFileContent(path string, content []byte,
@@ -91,11 +97,11 @@ func checkBinaryFileContent(path string, content []byte,
 	}
 
 	if _, ok := binaryFileTypes[t.Extension]; ok {
-		cl.Fail("E01", "binary-artifact found: %s", path)
+		cl.Fail("binary-artifact found: %s", path)
 		return false, nil
 	} else if _, ok := binaryFileTypes[filepath.Ext(path)]; ok {
 		// Falling back to file based extension.
-		cl.Fail("E01", "binary-artifact found: %s", path)
+		cl.Fail("binary-artifact found: %s", path)
 		return false, nil
 	}
 

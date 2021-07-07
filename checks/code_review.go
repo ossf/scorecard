@@ -16,6 +16,7 @@ package checks
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
@@ -88,17 +89,19 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
 	}
 	if err := c.GraphClient.Query(c.Ctx, &prHistory, vars); err != nil {
-		return checker.MakeInconclusiveResult(checkCodeReview, err)
+		// Note: this error should not be wrapped. We should
+		// return a scorecard error instead.
+		return checker.MakeInternalErrorResult(checkCodeReview, err)
 	}
 	return checker.MultiCheckOr(
-		IsPrReviewRequired,
-		GithubCodeReview,
-		ProwCodeReview,
-		CommitMessageHints,
+		isPrReviewRequired,
+		githubCodeReview,
+		prowCodeReview,
+		commitMessageHints,
 	)(c)
 }
 
-func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
+func githubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed.
 	totalMerged := 0
 	totalReviewed := 0
@@ -112,7 +115,7 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		foundApprovedReview := false
 		for _, r := range pr.LatestReviews.Nodes {
 			if r.State == "APPROVED" {
-				c.CLogger.Info("found review approved pr: %d", pr.Number)
+				c.CLogger.Debug("found review approved pr: %d", pr.Number)
 				totalReviewed++
 				foundApprovedReview = true
 				break
@@ -124,36 +127,27 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		// time on clicking the approve button.
 		if !foundApprovedReview {
 			if !pr.MergeCommit.AuthoredByCommitter {
-				c.CLogger.Info("found pr with committer different than author: %d", pr.Number)
+				c.CLogger.Debug("found pr with committer different than author: %d", pr.Number)
 				totalReviewed++
 			}
 		}
 	}
 
-	if totalReviewed > 0 {
-		c.CLogger.Info("github code reviews found for %v commits out of the last %v", totalReviewed, totalMerged)
-	}
-	return checker.MakeProportionalResult(checkCodeReview, totalReviewed, totalMerged, crPassThreshold)
+	return createResult(c, "GitHub", totalReviewed, totalMerged)
 }
 
-func IsPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
+func isPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
 	// Look to see if review is enforced.
 	// Check the branch protection rules, we may not be able to get these though.
 	if prHistory.Repository.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount >= 1 {
-		c.CLogger.Pass("branch protection for default branch is enabled")
 		// If the default value is 0 when we cannot retrieve the value,
 		// a non-zero value means we're confident it's enabled.
-		return checker.CheckResult{
-			Name:       checkCodeReview,
-			Pass:       true,
-			Pass2:      checker.ResultPass,
-			Confidence: checker.MaxResultConfidence,
-		}
+		return checker.MakePassResultWithHighConfidenceAndReason(checkCodeReview, c, "branch protection for default branch is enabled")
 	}
-	return checker.MakeInconclusiveResult(checkCodeReview, nil)
+	return checker.MakeInconclusiveResult2(checkCodeReview, c, "not sure if branch protection is enabled")
 }
 
-func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
+func prowCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed
 	totalMerged := 0
 	totalReviewed := 0
@@ -170,15 +164,10 @@ func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	if totalReviewed == 0 {
-		return checker.MakeInconclusiveResult(checkCodeReview, ErrorNoReviews)
-	}
-
-	c.CLogger.Info("prow code reviews found for %v commits out of the last %v", totalReviewed, totalMerged)
-	return checker.MakeProportionalResult(checkCodeReview, totalReviewed, totalMerged, crPassThreshold)
+	return createResult(c, "Prow", totalReviewed, totalMerged)
 }
 
-func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
+func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
 		return checker.MakeRetryResult(checkCodeReview, err)
@@ -196,7 +185,7 @@ func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 			}
 		}
 		if isBot {
-			c.CLogger.Info("skip commit from bot account: %s", committer)
+			c.CLogger.Debug("skip commit from bot account: %s", committer)
 			continue
 		}
 
@@ -211,11 +200,27 @@ func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	if totalReviewed == 0 {
-		c.CLogger.Info("none of the %v commit are reviewed via gerrit", total)
-		return checker.MakeInconclusiveResult(checkCodeReview, ErrorNoReviews)
+	if totalReviewed > 0 {
+		reason := fmt.Sprintf("Gerrit code reviews found for %v commits out of the last %v", totalReviewed, total)
+		if total == totalReviewed {
+			return checker.MakePassResultWithHighConfidenceAndReason(checkCodeReview, c, reason)
+		} else {
+			return checker.MakeFailResultLowConfidenceAndReason(checkCodeReview, c, checker.HalfResultConfidence, reason)
+		}
 	}
 
-	c.CLogger.Info("code reviews found for %v commits out of the last %v", totalReviewed, total)
-	return checker.MakeProportionalResult(checkCodeReview, totalReviewed, total, crPassThreshold)
+	return createResult(c, "Gerrit", totalReviewed, total)
+}
+
+func createResult(c *checker.CheckRequest, reviewName string, reviewed, total int) checker.CheckResult {
+	if reviewed > 0 {
+		reason := fmt.Sprintf("%s code reviews found for %v commits out of the last %v", reviewName, reviewed, total)
+		if total == reviewed {
+			return checker.MakePassResultWithHighConfidenceAndReason(checkCodeReview, c, reason)
+		} else {
+			return checker.MakeFailResultLowConfidenceAndReason(checkCodeReview, c, checker.HalfResultConfidence, reason)
+		}
+	}
+
+	return checker.MakeInconclusiveResult2(checkCodeReview, c, fmt.Sprintf("no %s reviews found", reviewName))
 }

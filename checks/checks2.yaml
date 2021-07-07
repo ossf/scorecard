@@ -19,39 +19,106 @@ checks:
     description: >-
       This check tries to determine if a project has binary artifacts in the source repository.
       These binaries could be compromised artifacts. Building from the source is recommended.
-    url: https://github.com/ossf/scorecard/blob/main/checks/checks.md#binary-artifacts
     remediation:
       - >-
         Remove the binary artifacts from the repository. 
-    errors:
-      E01:
-        description: >-
-          A binary file is found in the repository.
-        url: https://github.com/ossf/scorecard/blob/main/checks/checks.md#binary-artifacts-E01      
-        remediation: 
-          - >-
-            Remove the binary from the repository code. 
-          - >- 
-            Build from the source.
   Automatic-Dependency-Update:
     description: >-
       This check tries to determine if a project has dependencies automatically updated.
       The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or
       [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if 
       it is enabled and does not ensure that it is run and pull requests are merged.
-    url: https://github.com/ossf/scorecard/blob/main/checks/checks.md#automatic-dependency-update
     remediation:
       - >-
         Signup for automatic dependency updates with dependabot or renovatebot and place the config
         file in the locations that are recommended by these tools.
-    errors:
-      E01:
+  Code-Review:
+    description: >-
+      This check tries to determine if a project requires code review before
+      pull requests are merged. First it checks if branch-Protection is enabled
+      on the default branch and the number of reviewers is at least 1. If this
+      fails,  it checks if the recent (~30) commits have a Github-approved
+      review or if the merger is different from the committer (implicit review).
+      The check succeeds if at least 75% of commits have a review as described
+      above. If it fails, it does the same check  but looking for reviews by
+      [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme)
+      (labels "lgtm" or "approved"). If this fails, it does the same but looking
+      for gerrit-specific commit messages ("Reviewed-on" and "Reviewed-by").
+    remediation:
+      - >-
+        Follow security best practices by performing strict code reviews for
+        every new pull request.
+      - >-
+        Make "code reviews" mandatory in your repository configuration. E.g.
+        [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-pull-request-reviews-before-merging).
+      - >-
+        Enforce the rule for administrators / code owners as well. E.g.
+        [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators)
+    Frozen-Deps:
+    description: >-
+      This check tries to determine if a project has declared and pinned its
+      dependencies. It works by (1) looking for the following files in the root
+      directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json
+      (Javascript),  requirements.txt, pipfile.lock (Python), gemfile.lock
+      (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock
+      (PHP), vendor/, third_party/, third-party/; (2) looks for 
+      unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. If one of
+      the files in (1) AND all the dependencies in (2) are pinned, the check
+      succeds.
+    remediation:
+      - >-
+        Declare all your dependencies with specific versions in your package
+        format file (e.g. `package.json` for npm, `requirements.txt` for
+        python). For C/C++, check in the code from a trusted source and add a
+        `README` on the specific version used (and the archive SHA hashes).
+      - >-
+        If the package manager supports lock files (e.g. `package-lock.json` for
+        npm), make sure to check these in the source code as well. These files
+        maintain signatures for the entire dependency tree and saves from future
+        exploitation in case the package is compromised.
+      - >-
+        For Dockerfiles and github workflows, pin dependencies by hash. See example
+        [gitcache-docker.yaml](https://github.com/ossf/scorecard/blob/main/.github/workflows/gitcache-docker.yaml#L36)
+        and [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) examples.
+      - >-
+        To help update your dependencies after pinning them, use tools such as 
+        Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
+        or [renovate bot](https://github.com/renovatebot/renovate).
+    failures:
+      LockFile:
         description: >-
-          No configuration file found in the repository.
-        url: https://github.com/ossf/scorecard/blob/main/checks/checks.md#automatic-dependency-update-E01
-        remediation: >-
-          Signup for automatic dependency updates with dependabot or renovatebot and place the config
-          file in the locations that are recommended by these tools.
+          No lock file is found in the root direory of the repo.
+        remediation: 
+          - >-
+            Declare all your dependencies with specific versions in your package
+            format file (e.g. `package.json` for npm, `requirements.txt` for
+            python). For C/C++, check in the code from a trusted source and add a
+            `README` on the specific version used (and the archive SHA hashes).
+          - >-
+            If the package manager supports lock files (e.g. `package-lock.json` for
+            npm), make sure to check these in the source code as well. These files
+            maintain signatures for the entire dependency tree and saves from future
+            exploitation in case the package is compromised.
+      GitHubActions:
+        description: >-
+          GitHub workflows use non-pinned dependencies.
+        remediation: 
+          - >-
+            pin dependencies by hash. See example
+            [gitcache-docker.yaml](https://github.com/ossf/scorecard/blob/main/.github/workflows/gitcache-docker.yaml#L36)
+      BinaryDownload:
+        description: >-
+          GitHub workflows, Dockerfiles or shell scripts download binaries from the Internet.
+        remediation: 
+          - >-
+            Build from source. For shell scripts, commimt to the repo or use [sget](https://blog.sigstore.dev/a-safer-curl-bash-7698c8125063)
+            and pinn by hash.
+      Dockerfile:
+        description: >-
+          Dockerfile does not pin its dependencies by has in `FROM`.
+        remediation: 
+          - >-
+            Pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) examples.
 
     
 

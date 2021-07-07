@@ -158,11 +158,11 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 
 		switch format {
 		case formatDefault:
-			err = repoResult.AsString(showDetails, os.Stdout)
+			err = repoResult.AsString(showDetails, *logLevel, os.Stdout)
 		case formatCSV:
-			err = repoResult.AsCSV(showDetails, os.Stdout)
+			err = repoResult.AsCSV(showDetails, *logLevel, os.Stdout)
 		case formatJSON:
-			err = repoResult.AsJSON(showDetails, os.Stdout)
+			err = repoResult.AsJSON(showDetails, *logLevel, os.Stdout)
 		default:
 			err = fmt.Errorf("%w %s. allowed values are: [default, csv, json]", ErrorInvalidFormatFlag, format)
 		}

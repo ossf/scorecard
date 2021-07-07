@@ -27,6 +27,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/ossf/scorecard/checker"
+	"go.uber.org/zap/zapcore"
 )
 
 type ScorecardResult struct {
@@ -38,7 +39,7 @@ type ScorecardResult struct {
 
 // AsJSON outputs the result in JSON format with a newline at the end.
 // If called on []ScorecardResult will create NDJson formatted output.
-func (r *ScorecardResult) AsJSON(showDetails bool, writer io.Writer) error {
+func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	if showDetails {
 		if err := encoder.Encode(r); err != nil {
@@ -65,7 +66,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, writer io.Writer) error {
 	return nil
 }
 
-func (r *ScorecardResult) AsCSV(showDetails bool, writer io.Writer) error {
+func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo}
 	columns := []string{"Repository"}

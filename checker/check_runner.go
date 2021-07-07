@@ -40,6 +40,8 @@ type CheckFn func(*CheckRequest) CheckResult
 type CheckNameToFnMap map[string]CheckFn
 
 type logger struct {
+	// Note: messages2 will ultimately
+	// be renamed to messages.
 	messages  []string
 	messages2 []CheckDetail
 }
@@ -48,27 +50,38 @@ type CheckLogger struct {
 	l *logger
 }
 
-func (l *CheckLogger) Fail(code, desc string, args ...interface{}) {
+func (l *CheckLogger) FailWithCode(code, desc string, args ...interface{}) {
 	cd := CheckDetail{Type: DetailFail, Code: code, Desc: fmt.Sprintf(desc, args...)}
-	cd.Validate()
+	l.l.messages2 = append(l.l.messages2, cd)
+}
+
+func (l *CheckLogger) Fail(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailFail, Code: "", Desc: fmt.Sprintf(desc, args...)}
 	l.l.messages2 = append(l.l.messages2, cd)
 }
 
 func (l *CheckLogger) Pass(desc string, args ...interface{}) {
 	cd := CheckDetail{Type: DetailPass, Code: "", Desc: fmt.Sprintf(desc, args...)}
-	cd.Validate()
+	l.l.messages2 = append(l.l.messages2, cd)
+}
+
+func (l *CheckLogger) PassWithCode(code, desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailPass, Code: code, Desc: fmt.Sprintf(desc, args...)}
 	l.l.messages2 = append(l.l.messages2, cd)
 }
 
 func (l *CheckLogger) Info(desc string, args ...interface{}) {
 	cd := CheckDetail{Type: DetailInfo, Code: "", Desc: fmt.Sprintf(desc, args...)}
-	cd.Validate()
 	l.l.messages2 = append(l.l.messages2, cd)
 }
 
 func (l *CheckLogger) Warn(desc string, args ...interface{}) {
 	cd := CheckDetail{Type: DetailWarn, Code: "", Desc: fmt.Sprintf(desc, args...)}
-	cd.Validate()
+	l.l.messages2 = append(l.l.messages2, cd)
+}
+
+func (l *CheckLogger) Debug(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailDebug, Code: "", Desc: fmt.Sprintf(desc, args...)}
 	l.l.messages2 = append(l.l.messages2, cd)
 }
 
