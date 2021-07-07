@@ -144,7 +144,7 @@ func isPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
 		// a non-zero value means we're confident it's enabled.
 		return checker.MakePassResultWithHighConfidenceAndReason(checkCodeReview, c, "branch protection for default branch is enabled")
 	}
-	return checker.MakeInconclusiveResult2(checkCodeReview, c, "not sure if branch protection is enabled")
+	return checker.MakeInconclusiveResult2(checkCodeReview, c, "cannot determine if branch protection is enabled")
 }
 
 func prowCodeReview(c *checker.CheckRequest) checker.CheckResult {
