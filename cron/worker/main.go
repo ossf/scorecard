@@ -205,8 +205,10 @@ func main() {
 		}
 		if err := processRequest(ctx, req, checksToRun, bucketURL,
 			repoClient, httpClient, githubClient, graphClient); err != nil {
+			log.Printf("error processing request: %v", err)
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()
+			continue
 		}
 		// nolint: errcheck // flushes buffer
 		logger.Sync()

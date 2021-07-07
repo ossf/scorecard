@@ -17,6 +17,7 @@ package pubsub
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"gocloud.dev/pubsub"
 
@@ -53,7 +54,7 @@ func createGocloudSubscriber(ctx context.Context, subscriptionURL string) (*gocl
 func (subscriber *gocloudSubscriber) SynchronousPull() (*data.ScorecardBatchRequest, error) {
 	msg, err := subscriber.subscription.Receive(subscriber.ctx)
 	if err != nil {
-		fmt.Printf("error during Receive: %v", err)
+		log.Printf("error during Receive: %v", err)
 		return nil, nil
 	}
 	subscriber.msg = msg
