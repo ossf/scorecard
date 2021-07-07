@@ -135,14 +135,14 @@ This check looks for cryptographically signed tags in the last 5 tags. The check
 
 ## Token-Permissions 
 
-This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default. For each workflow yaml file, the check looks for the permissions keyword. If it is set globally as read-only for the entire file,  this check succeeds. Otherwise it fails. The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
+This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default. For each workflow yaml file, the check looks for the permissions keyword. If it is set globally as read-only for the entire file, this check succeeds. Otherwise it fails. The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
 
 **Remediation steps**
 - Set permissions as `read-all` or `contents: read` as described in GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
 
 ## Vulnerabilities 
 
-This check determines whether if there are open, unfixed vulnerabilities in the project using the [OSV](https://osv.dev) service. 
+This check determines if there are open, unfixed vulnerabilities in the project using the [OSV](https://osv.dev) service. 
 
 **Remediation steps**
 - Fix the vulnerabilities. The details of each vulnerability can be found on <https://osv.dev>.
