@@ -75,13 +75,28 @@ func (l *CheckLogger) Info(desc string, args ...interface{}) {
 	l.l.messages2 = append(l.l.messages2, cd)
 }
 
+func (l *CheckLogger) InfoWithCode(code, desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailInfo, Code: code, Desc: fmt.Sprintf(desc, args...)}
+	l.l.messages2 = append(l.l.messages2, cd)
+}
+
 func (l *CheckLogger) Warn(desc string, args ...interface{}) {
 	cd := CheckDetail{Type: DetailWarn, Code: "", Desc: fmt.Sprintf(desc, args...)}
 	l.l.messages2 = append(l.l.messages2, cd)
 }
 
+func (l *CheckLogger) WarnWithCode(code, desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailWarn, Code: code, Desc: fmt.Sprintf(desc, args...)}
+	l.l.messages2 = append(l.l.messages2, cd)
+}
+
 func (l *CheckLogger) Debug(desc string, args ...interface{}) {
 	cd := CheckDetail{Type: DetailDebug, Code: "", Desc: fmt.Sprintf(desc, args...)}
+	l.l.messages2 = append(l.l.messages2, cd)
+}
+
+func (l *CheckLogger) DebugWithCode(code, desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailDebug, Code: code, Desc: fmt.Sprintf(desc, args...)}
 	l.l.messages2 = append(l.l.messages2, cd)
 }
 
