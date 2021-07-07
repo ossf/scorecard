@@ -59,7 +59,7 @@ type CheckResult struct {
 	Error      error `json:"-"`
 	Name       string
 	Details    []string
-	Details2   []CheckDetail
+	Details2   []CheckDetail json:"-"
 	Confidence int
 	// Note: Pass2 will ultimately be renamed
 	// as Pass.
@@ -154,6 +154,7 @@ func MakePassResultWithLowConfidenceAndReason(name string, c *CheckRequest, conf
 	}
 }
 
+// Will be removed.
 func MakeFailResult(name string, err error) CheckResult {
 	return CheckResult{
 		Name:       name,
