@@ -59,7 +59,7 @@ type CheckResult struct {
 	Error      error `json:"-"`
 	Name       string
 	Details    []string
-	Details2   []CheckDetail json:"-"
+	Details2   []CheckDetail `json:"-"`
 	Confidence int
 	// Note: Pass2 will ultimately be renamed
 	// as Pass.
