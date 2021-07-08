@@ -381,17 +381,17 @@ func validateGitHubActionWorkflow(pathfn string, content []byte, cl checker.Chec
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
 	r, err := CheckIfFileExists2(checkFrozenDeps, c, validatePackageManagerFile)
 	if err != nil {
-		return checker.MakeInternalErrorResult(checkAutomaticDependencyUpdate, err)
+		return checker.MakeInternalErrorResult(checkFrozenDeps, err)
 	}
 	if !r {
-		return checker.MakeFailResultWithHighConfidenceAndReasonAndCode(checkAutomaticDependencyUpdate, c,
+		return checker.MakeFailResultWithHighConfidenceAndReasonAndCode(checkFrozenDeps, c,
 			"LockFile", "no lock file found in the repo")
 	}
 
 	// High confidence result.
 	// We don't pass a `reason` because it's already done
 	// thru calls to `Pass` in validatePackageManagerFile.
-	return checker.MakePassResultWithHighConfidence(checkAutomaticDependencyUpdate)
+	return checker.MakePassResultWithHighConfidence(checkFrozenDeps)
 }
 
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
