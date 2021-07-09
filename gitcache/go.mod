@@ -11,8 +11,7 @@ require (
 	github.com/pierrec/lz4 v2.6.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1
 	go.uber.org/zap v1.18.1
-	gocloud.dev v0.22.0
-	golang.org/x/tools v0.1.0 // indirect
+	gocloud.dev v0.23.0
 )
 
 // The originial repository does not handle symlinks and there is an open PR https://github.com/mholt/archiver/pull/230.
