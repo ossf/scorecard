@@ -82,6 +82,7 @@ func (subscriber *gcsSubscriber) extendAckDeadline() {
 func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest, error) {
 	numReceivedMessages := 0
 	var msgToProcess *pubsubpb.ReceivedMessage
+	subscriber.done = make(chan bool)
 	// Block indefinitely until a message is received.
 	for msgToProcess == nil {
 		result, err := subscriber.client.Pull(subscriber.ctx, &pubsubpb.PullRequest{
@@ -89,7 +90,7 @@ func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest,
 			MaxMessages:  maxMessagesToPull,
 		})
 		if err != nil {
-			fmt.Printf("error during Recieive: %v", err)
+			log.Printf("error during Recieive: %v", err)
 			return nil, nil
 		}
 		numReceivedMessages = len(result.ReceivedMessages)
@@ -107,7 +108,6 @@ func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest,
 	}
 
 	subscriber.recvdAckID = msgToProcess.AckId
-	subscriber.done = make(chan bool)
 	// Continuously notify the server that processing is still happening on this message.
 	go subscriber.extendAckDeadline()
 

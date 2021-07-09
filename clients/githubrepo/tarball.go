@@ -36,7 +36,10 @@ const (
 	repoFilename = "githubrepo*.tar.gz"
 )
 
-var errZipSlip = errors.New("ZipSlip path detected")
+var (
+	errTarballNotFound = errors.New("tarball not found")
+	errZipSlip         = errors.New("ZipSlip path detected")
+)
 
 func extractAndValidateArchivePath(path, dest string) (string, error) {
 	const splitLength = 2
@@ -71,7 +74,10 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 	}
 
 	// Setup temp dir/files and download repo tarball.
-	if err := handler.getTarball(ctx, repo); err != nil {
+	if err := handler.getTarball(ctx, repo); errors.Is(err, errTarballNotFound) {
+		log.Printf("%v", err)
+		return nil
+	} else if err != nil {
 		return fmt.Errorf("error getting githurepo tarball: %w", err)
 	}
 
@@ -84,12 +90,6 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 }
 
 func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repository) error {
-	tempDir, err := ioutil.TempDir("", repoDir)
-	if err != nil {
-		return fmt.Errorf("error creating TempDir in githubrepo: %w", err)
-	}
-	handler.tempDir = tempDir
-
 	url := repo.GetArchiveURL()
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
 	url = strings.Replace(url, "{/ref}", repo.GetDefaultBranch(), 1)
@@ -97,23 +97,30 @@ func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repo
 	if err != nil {
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
-
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("http.DefaultClient.Do: %w", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return fmt.Errorf("%w: %s", errTarballNotFound, *repo.URL)
+	}
 
 	// Create a temp file. This automaticlly appends a random number to the name.
-	repoFile, err := ioutil.TempFile(handler.tempDir, repoFilename)
+	tempDir, err := ioutil.TempDir("", repoDir)
+	if err != nil {
+		return fmt.Errorf("error creating TempDir in githubrepo: %w", err)
+	}
+	repoFile, err := ioutil.TempFile(tempDir, repoFilename)
 	if err != nil {
 		return fmt.Errorf("error during ioutil.TempFile in githubrepo: %w", err)
 	}
 	defer repoFile.Close()
-
 	if _, err := io.Copy(repoFile, resp.Body); err != nil {
 		return fmt.Errorf("error during io.Copy in githubrepo tarball: %w", err)
 	}
+
+	handler.tempDir = tempDir
 	handler.tempTarFile = repoFile.Name()
 	return nil
 }

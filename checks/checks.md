@@ -142,7 +142,7 @@ This check tries to determine if a project's GitHub workflows follow the princip
 
 ## Vulnerabilities 
 
-This check determines whether if there are open, unfixed vulnerabilities in the project using the [OSV](https://osv.dev) service. 
+This check determines if there are open, unfixed vulnerabilities in the project using the [OSV](https://osv.dev) service. 
 
 **Remediation steps**
 - Fix the vulnerabilities. The details of each vulnerability can be found on <https://osv.dev>.
