@@ -112,13 +112,16 @@ checks:
         remediation: 
           - >-
             Build from source. For shell scripts, commimt to the repo or use [sget](https://blog.sigstore.dev/a-safer-curl-bash-7698c8125063)
-            and pinn by hash.
+            and pin by hash.
       Dockerfile:
         description: >-
           Dockerfile does not pin its dependencies by has in `FROM`.
         remediation: 
           - >-
             Pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) examples.
-
-    
-
+      PackageInstall:
+        description: >-
+          Package managers should command should pin packages they install.
+        remediation: 
+          - >-
+            For golang, `go install pkg@hash`. For an example, see [TODO]()

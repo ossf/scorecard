@@ -35,6 +35,11 @@ var ErrParsingDockerfile = errors.New("file cannot be parsed")
 // ErrParsingShellCommand indicates a problem parsing a shell command.
 var ErrParsingShellCommand = errors.New("shell command cannot be parsed")
 
+const (
+	binaryDownload = "BinaryDownload"
+	packageInstall = "PackageInstall"
+)
+
 // List of interpreters.
 var pythonInterpreters = []string{"python", "python3", "python2.7"}
 
@@ -296,7 +301,7 @@ func isFetchPipeExecute(node syntax.Node, cmd, pathfn string,
 		return false
 	}
 
-	cl.FailWithCode("BinaryDownload", "%v is fetching and executing non-pinned program '%v'",
+	cl.FailWithCode(binaryDownload, "%v is fetching and executing non-pinned program '%v'",
 		pathfn, cmd)
 	return true
 }
@@ -337,7 +342,7 @@ func isExecuteFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
 	ok = false
 	for fn := range files {
 		if isInterpreterWithFile(c, fn) || isExecuteFile(c, fn) {
-			cl.FailWithCode("BinaryDownload", "%v is fetching and executing non-pinned program '%v'",
+			cl.FailWithCode(binaryDownload, "%v is fetching and executing non-pinned program '%v'",
 				pathfn, cmd)
 			ok = true
 		}
@@ -493,14 +498,14 @@ func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
 
 	// Go get/install.
 	if isGoUnpinnedDownload(c) {
-		cl.FailWithCode("BinaryDownload", "%v is fetching an non-pinned dependency '%v'",
+		cl.FailWithCode(packageInstall, "%v is fetching an non-pinned dependency '%v'",
 			pathfn, cmd)
 		return true
 	}
 
 	// Pip install.
 	if isPipUnpinnedDownload(c) {
-		cl.FailWithCode("BBinaryDownload", "%v is fetching an non-pinned dependency '%v'",
+		cl.FailWithCode(packageInstall, "%v is fetching an non-pinned dependency '%v'",
 			pathfn, cmd)
 		return true
 	}
@@ -584,7 +589,7 @@ func isFetchProcSubsExecute(node syntax.Node, cmd, pathfn string,
 		return false
 	}
 
-	cl.FailWithCode("BinaryDownload", "%v is fetching and executing non-pinned program '%v'",
+	cl.FailWithCode(binaryDownload, "%v is fetching and executing non-pinned program '%v'",
 		pathfn, cmd)
 	return true
 }
@@ -786,5 +791,7 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 
 func validateShellFile(pathfn string, content []byte, cl checker.CheckLogger) (bool, error) {
 	files := make(map[string]bool)
+	// TODO(laurent): add pass here for both BinaryDownload and packageInstall
+	// and remove from caller.
 	return validateShellFileAndRecord(pathfn, content, files, cl)
 }
