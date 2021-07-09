@@ -92,7 +92,7 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repository) error {
 	url := repo.GetArchiveURL()
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
-	url = strings.Replace(url, "{/ref}", repo.GetDefaultBranch(), 1)
+	url = strings.Replace(url, "{/ref}", "", 1)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)
@@ -102,11 +102,14 @@ func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repo
 		return fmt.Errorf("http.DefaultClient.Do: %w", err)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusNotFound {
+
+	// Handle 400/404 errors
+	switch resp.StatusCode {
+	case http.StatusNotFound, http.StatusBadRequest:
 		return fmt.Errorf("%w: %s", errTarballNotFound, *repo.URL)
 	}
 
-	// Create a temp file. This automaticlly appends a random number to the name.
+	// Create a temp file. This automatically appends a random number to the name.
 	tempDir, err := ioutil.TempDir("", repoDir)
 	if err != nil {
 		return fmt.Errorf("error creating TempDir in githubrepo: %w", err)
