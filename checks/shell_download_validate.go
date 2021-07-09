@@ -35,11 +35,13 @@ var ErrParsingDockerfile = errors.New("file cannot be parsed")
 var ErrParsingShellCommand = errors.New("shell command cannot be parsed")
 
 // List of interpreters.
-var interpreters = []string{
+var pythonInterpreters = []string{"python", "python3", "python2.7"}
+
+var interpreters = append([]string{
 	"sh", "bash", "dash", "ksh", "mksh", "python",
 	"perl", "ruby", "php", "node", "nodejs", "java",
 	"exec", "su",
-}
+}, pythonInterpreters...)
 
 // Note: aws is handled separately because it uses different
 // cli options.
@@ -235,17 +237,31 @@ func extractCommand(cmd interface{}) ([]string, bool) {
 	if !ok {
 		return nil, ok
 	}
-
 	var ret []string
 	for _, w := range c.Args {
 		if len(w.Parts) != 1 {
 			continue
 		}
-		lit, ok := w.Parts[0].(*syntax.Lit)
-		if ok && !strings.EqualFold(lit.Value, "sudo") {
-			ret = append(ret, lit.Value)
+		switch v := w.Parts[0].(type) {
+		default:
+			continue
+		case *syntax.SglQuoted:
+			ret = append(ret, "'"+v.Value+"'")
+		case *syntax.DblQuoted:
+			if len(v.Parts) != 1 {
+				continue
+			}
+			lit, ok := v.Parts[0].(*syntax.Lit)
+			if ok {
+				ret = append(ret, "\""+lit.Value+"\"")
+			}
+		case *syntax.Lit:
+			if !strings.EqualFold(v.Value, "sudo") {
+				ret = append(ret, v.Value)
+			}
 		}
 	}
+
 	return ret, true
 }
 
@@ -374,34 +390,92 @@ func isGoUnpinnedDownload(cmd []string) bool {
 	return found
 }
 
+func isUnpinnedPipInstall(cmd []string) bool {
+	if !isBinaryName("pip", cmd[0]) && !isBinaryName("pip3", cmd[0]) {
+		return false
+	}
+
+	isInstall := false
+	hasWhl := false
+	for i := 1; i < len(cmd); i++ {
+		// Search for install commands.
+		if strings.EqualFold(cmd[i], "install") {
+			isInstall = true
+			continue
+		}
+
+		if !isInstall {
+			continue
+		}
+
+		// TODO(laurent): https://github.com/ossf/scorecard/pull/611#discussion_r660203476.
+		// Support -r <> --require-hashes.
+
+		// Exclude *.whl as they're mostly used
+		// for tests. See https://github.com/ossf/scorecard/pull/611.
+		if strings.HasSuffix(cmd[i], ".whl") {
+			hasWhl = true
+			continue
+		}
+
+		// Any other arguments are considered unpinned.
+		return true
+	}
+
+	// We get here only for `pip install [bla.whl ...]`.
+	return isInstall && !hasWhl
+}
+
+func isPythonCommand(cmd []string) bool {
+	for _, pi := range pythonInterpreters {
+		if isBinaryName(pi, cmd[0]) {
+			return true
+		}
+	}
+	return false
+}
+
+func extractPipCommand(cmd []string) ([]string, bool) {
+	if len(cmd) == 0 {
+		return nil, false
+	}
+
+	for i := 1; i < len(cmd); i++ {
+		// Search for pip module.
+		if strings.EqualFold(cmd[i], "-m") &&
+			i < len(cmd)-1 &&
+			strings.EqualFold(cmd[i+1], "pip") {
+			return cmd[i+1:], true
+		}
+	}
+	return nil, false
+}
+
+func isUnpinnedPythonPipInstall(cmd []string) bool {
+	if !isPythonCommand(cmd) {
+		return false
+	}
+	pipCommand, ok := extractPipCommand(cmd)
+	if !ok {
+		return false
+	}
+	return isUnpinnedPipInstall(pipCommand)
+}
+
 func isPipUnpinnedDownload(cmd []string) bool {
 	if len(cmd) == 0 {
 		return false
 	}
 
-	if !isBinaryName("pip", cmd[0]) && !isBinaryName("pip3", cmd[0]) {
-		return false
+	if isUnpinnedPipInstall(cmd) {
+		return true
 	}
 
-	isInstalled := false
-	for i := 1; i < len(cmd); i++ {
-		// Search for install commands.
-		if strings.EqualFold(cmd[i], "install") {
-			isInstalled = true
-			continue
-		}
-
-		if !isInstalled {
-			continue
-		}
-
-		// Check for `-r some-file`.
-		if strings.EqualFold("-r", cmd[i]) {
-			return false
-		}
+	if isUnpinnedPythonPipInstall(cmd) {
+		return true
 	}
 
-	return isInstalled
+	return false
 }
 
 func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
@@ -532,20 +606,23 @@ func extractInterpreterCommandFromArgs(args []*syntax.Word) (string, bool) {
 			continue
 		}
 		part := arg.Parts[0]
-		v, ok := part.(*syntax.DblQuoted)
-		if !ok {
-			continue
-		}
-		if len(v.Parts) != 1 {
-			continue
-		}
+		switch v := part.(type) {
+		case *syntax.DblQuoted:
+			if len(v.Parts) != 1 {
+				continue
+			}
 
-		lit, ok := v.Parts[0].(*syntax.Lit)
-		if !ok {
-			continue
+			lit, ok := v.Parts[0].(*syntax.Lit)
+			if !ok {
+				continue
+			}
+			return lit.Value, true
+
+		case *syntax.SglQuoted:
+			return v.Value, true
 		}
-		return lit.Value, true
 	}
+
 	return "", false
 }
 
@@ -633,10 +710,10 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		if isUnpinnedPakageManagerDownload(node, cmdStr, pathfn, logf) {
 			validated = false
 		}
-		// TODO(laurent): add check for cat file | bash
+		// TODO(laurent): add check for cat file | bash.
 		// TODO(laurent): detect downloads of zip/tar files containing scripts.
-		// TODO(laurent): detect command being an env variable
-		// TODO(laurent): detect unpinned git clone and package manager downloads (go get/install).
+		// TODO(laurent): detect command being an env variable.
+		// TODO(laurent): detect unpinned git clone.
 
 		// Record the file that is downloaded, if any.
 		fn, b, e := recordFetchFileFromNode(node)

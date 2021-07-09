@@ -331,7 +331,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			want: returnValue{
 				Error:          nil,
 				Result:         false,
-				NumberOfErrors: 13,
+				NumberOfErrors: 27,
 			},
 		},
 	}
@@ -415,6 +415,18 @@ func TestShellScriptDownload(t *testing.T) {
 				Error:          nil,
 				Result:         false,
 				NumberOfErrors: 7,
+			},
+		},
+		{
+			name: "pkg managers",
+			args: args{
+				Filename: "testdata/script-pkg-managers",
+				Log:      log{},
+			},
+			want: returnValue{
+				Error:          nil,
+				Result:         false,
+				NumberOfErrors: 24,
 			},
 		},
 	}
