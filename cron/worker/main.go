@@ -137,7 +137,8 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 		&stats.CheckRuntime,
 		&stats.CheckErrorCount,
 		&stats.RepoRuntime,
-		&stats.OutgoingHTTPRequests); err != nil {
+		&stats.OutgoingHTTPRequests,
+		&githubrepo.GithubTokens); err != nil {
 		return nil, fmt.Errorf("error during view.Register: %w", err)
 	}
 	return exporter, nil
@@ -204,8 +205,10 @@ func main() {
 		}
 		if err := processRequest(ctx, req, checksToRun, bucketURL,
 			repoClient, httpClient, githubClient, graphClient); err != nil {
+			log.Printf("error processing request: %v", err)
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()
+			continue
 		}
 		// nolint: errcheck // flushes buffer
 		logger.Sync()

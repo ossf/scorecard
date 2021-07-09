@@ -24,6 +24,8 @@ import (
 
 	"github.com/bradleyfalzon/ghinstallation"
 	"go.uber.org/zap"
+
+	"github.com/ossf/scorecard/clients/githubrepo"
 )
 
 const (
@@ -52,7 +54,7 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 
 	if token := os.Getenv(GithubAuthToken); token != "" {
 		// Use GitHub PAT
-		transport = MakeGitHubTransport(transport, strings.Split(token, ","))
+		transport = githubrepo.MakeGitHubTransport(transport, strings.Split(token, ","))
 	} else if keyPath := os.Getenv(GithubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
 		appID, err := strconv.Atoi(os.Getenv(GithubAppID))
 		if err != nil {

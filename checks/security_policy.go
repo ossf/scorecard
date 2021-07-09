@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/clients/githubrepo"
 )
 
 // CheckSecurityPolicy is the registred name for SecurityPolicy.
@@ -34,6 +35,9 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		if strings.EqualFold(name, "security.md") {
 			logf("security policy : %s", name)
 			return true, nil
+		} else if isSecurityrstFound(name) {
+			logf("security policy : %s", name)
+			return true, nil
 		}
 		return false, nil
 	}
@@ -47,6 +51,12 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file
 	dotGitHub := c
 	dotGitHub.Repo = ".github"
+	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, c.Client)
+	if err := dotGitHubClient.InitRepo(c.Owner, c.Repo); err != nil {
+		return checker.MakeFailResult(CheckSecurityPolicy, nil)
+	}
+	defer dotGitHubClient.Close()
+	dotGitHub.RepoClient = dotGitHubClient
 
 	onFile = func(name string, logf func(s string, f ...interface{})) (bool, error) {
 		if strings.EqualFold(name, "security.md") {
@@ -56,4 +66,13 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		return false, nil
 	}
 	return CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
+}
+
+func isSecurityrstFound(name string) bool {
+	if strings.EqualFold(name, "doc/security.rst") {
+		return true
+	} else if strings.EqualFold(name, "docs/security.rst") {
+		return true
+	}
+	return false
 }
