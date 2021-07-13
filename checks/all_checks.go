@@ -14,11 +14,13 @@
 
 package checks
 
+import "strings"
+
 import "github.com/ossf/scorecard/checker"
 
 // AllChecks is the list of all security checks that will be run.
 var AllChecks = checker.CheckNameToFnMap{}
 
 func registerCheck(name string, fn checker.CheckFn) {
-	AllChecks[name] = fn
+	AllChecks[strings.ToLower(name)] = fn
 }
