@@ -120,6 +120,8 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			for _, checkToRun := range checksToRun {
 				if checkFn, ok := checks.AllChecks[checkToRun]; ok {
 					enabledChecks[checkToRun] = checkFn
+				} else {
+					log.Fatalf("Invalid check: %s", checkToRun)
 				}
 			}
 		} else {
