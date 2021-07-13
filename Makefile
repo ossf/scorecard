@@ -6,8 +6,7 @@ PROTOC_GEN_GO := protoc-gen-go
 PROTOC := $(shell which protoc)
 IMAGE_NAME = scorecard
 OUTPUT = output
-FOCUS_DISK_TEST="E2E TEST:Disk Cache|E2E TEST:executable"
-IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:Disk Cache|E2E TEST:executable"
+IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:executable"
 
 ############################### make help #####################################
 .PHONY: help
@@ -135,7 +134,7 @@ dockerbuild: ## Runs docker build
 ###############################################################################
 
 ################################# make test ###################################
-test-targets = unit-test e2e ci-e2e test-disk-cache
+test-targets = unit-test e2e ci-e2e 
 .PHONY: test $(test-targets)
 test: $(test-targets)
 
@@ -158,27 +157,6 @@ ci-e2e: build-scorecard check-env | $(GINKGO)
 	@echo Ignoring these test for ci-e2e $(IGNORED_CI_TEST)
 	$(GINKGO) -p  -v -cover --skip=$(IGNORED_CI_TEST)  ./e2e/...
 
-test-disk-cache: ## Runs disk cache tests
-test-disk-cache: build-scorecard | $(GINKGO)
-	# Runs disk cache tests
-	$(call ndef, GITHUB_AUTH_TOKEN)
-	# Start with clean cache
-	rm -rf $(OUTPUT)
-	rm -rf cache
-	mkdir $(OUTPUT)
-	mkdir cache
-	@echo Focusing on these tests $(FOCUS_DISK_TEST)
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" \
-				./scorecard \
-				--repo=https://github.com/ossf/scorecard \
-				--show-details --metadata=openssf  --format json > ./$(OUTPUT)/results.json
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
-	# Rerun the same test with the disk cache filled to make sure the cache is working.
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" \
-		       		./scorecard \
-				--repo=https://github.com/ossf/scorecard --show-details \
-				--metadata=openssf  --format json > ./$(OUTPUT)/results.json
-	USE_DISK_CACHE=1 DISK_CACHE_PATH="./cache" ginkgo -p  -v -cover --focus=$(FOCUS_DISK_TEST)  ./e2e/...
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN
