@@ -37,15 +37,6 @@ const (
 	GithubAppID = "GITHUB_APP_ID"
 	// GithubAppInstallationID is the installation ID for the GitHub App.
 	GithubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
-	// UseDiskCache will cache results on disk for subsequent runs if set to true.
-	UseDiskCache = "USE_DISK_CACHE"
-	// DiskCachePath is the path to where the results will be cached on disk if UseDiskCache is true.
-	DiskCachePath = "DISK_CACHE_PATH"
-	// UseBlobCache will cache results into a blob store for subsequent runs if set to true.
-	UseBlobCache = "USE_BLOB_CACHE"
-	// BucketURL is the URL for blob store cache if UseBlobCache is true.
-	BucketURL        = "BLOB_URL"
-	cacheSize uint64 = 10000 * 1024 * 1024 // 10gb
 )
 
 // NewTransport returns a configured http.Transport for use with GitHub.
@@ -70,51 +61,5 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 		}
 	}
 
-	// Wrap that with the rate limiter, HTTP cache and census-enabled transport.
-	return MakeCensusTransport(
-		cachedTransportFactory(
-			MakeRateLimitedTransport(transport, logger)))
-}
-
-func cachedTransportFactory(innerTransport http.RoundTripper) http.RoundTripper {
-	// uses blob cache like GCS,S3.
-	if cachePath, useBlob := shouldUseBlobCache(); useBlob {
-		b, e := New(context.Background(), cachePath)
-		if e != nil {
-			log.Panic(e)
-		}
-		return MakeBlobCacheTransport(innerTransport, b)
-	}
-
-	// uses the disk cache
-	if cachePath, useDisk := shouldUseDiskCache(); useDisk {
-		return MakeDiskCacheTransport(innerTransport, cachePath, cacheSize)
-	}
-
-	// uses memory cache
-	return MakeInMemoryCacheTransport(innerTransport)
-}
-
-// shouldUseDiskCache checks the env variables USE_DISK_CACHE and DISK_CACHE_PATH to determine if
-// disk should be used for caching.
-func shouldUseDiskCache() (string, bool) {
-	if isDiskCache := os.Getenv(UseDiskCache); isDiskCache != "" {
-		if result, err := strconv.ParseBool(isDiskCache); err == nil && result {
-			if cachePath := os.Getenv(DiskCachePath); cachePath != "" {
-				return cachePath, true
-			}
-		}
-	}
-	return "", false
-}
-
-// shouldUseBlobCache checks the env variables USE_BLOB_CACHE and BLOB_URL to determine if
-// blob should be used for caching.
-func shouldUseBlobCache() (string, bool) {
-	if result, err := strconv.ParseBool(os.Getenv(UseBlobCache)); err == nil && result {
-		if cachePath := os.Getenv(BucketURL); cachePath != "" {
-			return cachePath, true
-		}
-	}
-	return "", false
+	return MakeRateLimitedTransport(transport, logger)
 }

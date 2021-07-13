@@ -84,20 +84,6 @@ jobs:
               go env -w GOFLAGS=-mod=mod
               make ci-e2e
 
-      - name: Test disk cache
-        env:  
-          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-        run: make test-disk-cache
-
-      - name: Test Blob cache
-        env:  
-          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-          USE_BLOB_CACHE: true
-          BLOB_URL: ${{secrets.BUCKET_URL}}
-        run: |
-            ./scorecard --repo=https://github.com/ossf/scorecard --show-details --metadata=openssf  --format json > ./$OUTPUT_PATH/results.json
-            ginkgo --focus="E2E TEST:executable|E2E TEST:blob" ./e2e/...
-
       - name: Build docker image
         run: make dockerbuild
 
@@ -105,6 +91,7 @@ jobs:
         env:  
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
         run: |
+            mkdir $OUTPUT_PATH
             docker run -e GITHUB_AUTH_TOKEN=$GITHUB_AUTH_TOKEN  $IMAGE_NAME  --show-details  --repo=https://github.com/ossf/scorecard --metadata=openssf --format json > ./$OUTPUT_PATH/results.json
             ginkgo -p -v --focus="E2E TEST:executable" ./e2e/...
 
