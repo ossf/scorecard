@@ -61,6 +61,19 @@ const (
 	formatDefault = "default"
 )
 
+func gitHubTokenExists() bool {
+	if token, exists := os.LookupEnv("GITHUB_AUTH_TOKEN"); exists && token != "" {
+		return true
+	}
+	if token, exists := os.LookupEnv("GITHUB_AUTH_TOKEN"); exists && token != "" {
+		return true
+	}
+	if token, exists := os.LookupEnv("GITHUB_AUTH_TOKEN"); exists && token != "" {
+		return true
+	}
+	return false
+}
+
 var rootCmd = &cobra.Command{
 	Use: `./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details]
 or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show-details]`,
