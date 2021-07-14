@@ -117,10 +117,13 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 
 		enabledChecks := checker.CheckNameToFnMap{}
 		if len(checksToRun) != 0 {
+		loop:
 			for _, checkToRun := range checksToRun {
-				checkIndex := strings.ToLower(checkToRun)
-				if checkFn, ok := checks.AllChecks[checkIndex]; ok {
-					enabledChecks[checkIndex] = checkFn
+				for key, checkFn := range checks.AllChecks {
+					if strings.ToLower(key) == strings.ToLower(checkToRun) {
+						enabledChecks[key] = checkFn
+						continue loop
+					}
 				}
 			}
 		} else {
