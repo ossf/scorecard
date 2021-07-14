@@ -120,7 +120,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		loop:
 			for _, checkToRun := range checksToRun {
 				for key, checkFn := range checks.AllChecks {
-					if strings.ToLower(key) == strings.ToLower(checkToRun) {
+					if strings.EqualFold(key, checkToRun) {
 						enabledChecks[key] = checkFn
 						continue loop
 					}
