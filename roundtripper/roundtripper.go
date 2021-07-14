@@ -19,18 +19,16 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 
-	"github.com/bradleyfalzon/ghinstallation"
 	"go.uber.org/zap"
-
-	"github.com/ossf/scorecard/clients/githubrepo"
 )
 
+// nolinter
+// GithubAuthToken is for making requests to GiHub's API.
+var GithubAuthTokens = []string{"GITHUB_AUTH_TOKEN", "GITHUB_TOKEN", "GH_TOKEN"}
+
 const (
-	// GithubAuthToken is for making requests to GiHub's API.
-	GithubAuthToken = "GITHUB_AUTH_TOKEN" // #nosec G101
+
 	// GithubAppKeyPath is the path to file for GitHub App key.
 	GithubAppKeyPath = "GITHUB_APP_KEY_PATH"
 	// GithubAppID is the app ID for the GitHub App.
@@ -39,26 +37,24 @@ const (
 	GithubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
 )
 
+func readGitHubToken() (string, bool) {
+	for _, name := range GithubAuthTokens {
+		if token, exists := os.LookupEnv(name); exists && token != "" {
+			return token, exists
+		}
+	}
+	return "", false
+}
+
 // NewTransport returns a configured http.Transport for use with GitHub.
 func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
 	transport := http.DefaultTransport
 
-	if token := os.Getenv(GithubAuthToken); token != "" {
-		// Use GitHub PAT
-		transport = githubrepo.MakeGitHubTransport(transport, strings.Split(token, ","))
-	} else if keyPath := os.Getenv(GithubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
-		appID, err := strconv.Atoi(os.Getenv(GithubAppID))
-		if err != nil {
-			log.Panic(err)
-		}
-		installationID, err := strconv.Atoi(os.Getenv(GithubAppInstallationID))
-		if err != nil {
-			log.Panic(err)
-		}
-		transport, err = ghinstallation.NewKeyFromFile(transport, int64(appID), int64(installationID), keyPath)
-		if err != nil {
-			log.Panic(err)
-		}
+	token, exists := readGitHubToken()
+	if !exists {
+		log.Fatalf("No GitHub token env var is not set. " +
+			"Please set this to your Github PAT before running " +
+			"this command as detail in https://github.com/ossf/scorecard#authentication")
 	}
 
 	return MakeCensusTransport(MakeRateLimitedTransport(transport, logger))
