@@ -24,7 +24,6 @@ import (
 
 	// nolint:gosec
 	_ "net/http/pprof"
-	"os"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/shurcooL/githubv4"
@@ -159,17 +158,6 @@ func main() {
 	bucketURL, err := config.GetResultDataBucketURL()
 	if err != nil {
 		panic(err)
-	}
-
-	usesBlobCache, envIsSet := os.LookupEnv(roundtripper.UseBlobCache)
-	if !envIsSet || usesBlobCache == "" {
-		// nolint: goerr113
-		panic(fmt.Errorf("env_vars %s must be set", roundtripper.UseBlobCache))
-	}
-	blobCachePath, envIsSet := os.LookupEnv(roundtripper.BucketURL)
-	if !envIsSet || blobCachePath == "" {
-		// nolint: goerr113
-		panic(fmt.Errorf("env_vars %s must be set", roundtripper.BucketURL))
 	}
 
 	repoClient, httpClient, githubClient, graphClient, logger := createNetClients(ctx)

@@ -118,8 +118,8 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		enabledChecks := checker.CheckNameToFnMap{}
 		if len(checksToRun) != 0 {
 			for _, checkToRun := range checksToRun {
-				if checkFn, ok := checks.AllChecks[checkToRun]; ok {
-					enabledChecks[checkToRun] = checkFn
+				if !enableCheck(checkToRun, &enabledChecks) {
+					log.Fatalf("Invalid check: %s", checkToRun)
 				}
 			}
 		} else {
@@ -277,6 +277,19 @@ func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 		return "", fmt.Errorf("could not find source repo for ruby gem: %s", packageName)
 	}
 	return v.SourceCodeURI, nil
+}
+
+// Enables checks by name.
+func enableCheck(checkName string, enabledChecks *checker.CheckNameToFnMap) bool {
+	if enabledChecks != nil {
+		for key, checkFn := range checks.AllChecks {
+			if strings.EqualFold(key, checkName) {
+				(*enabledChecks)[key] = checkFn
+				return true
+			}
+		}
+	}
+	return false
 }
 
 //nolint:gochecknoinits
