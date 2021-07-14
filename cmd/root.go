@@ -125,6 +125,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 						continue loop
 					}
 				}
+				log.Fatalf("Invalid check: %s", checkToRun)
 			}
 		} else {
 			enabledChecks = checks.AllChecks
