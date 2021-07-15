@@ -211,7 +211,7 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 	if showDetails {
 		header = append(header, "Details")
 	}
-	header = append(header, "Documentation/Remdiation")
+	header = append(header, "Documentation/Remediation")
 	table.SetHeader(header)
 	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
 	table.SetRowSeparator("-")
