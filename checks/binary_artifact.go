@@ -88,7 +88,7 @@ func checkBinaryFileContent(path string, content []byte,
 	var t types.Type
 	var err error
 	if t, err = filetype.Get(content); err != nil {
-		return false, sce.Create(sce.ErrRunFailure, fmt.Sprint("filetype.Get:%v", err.Error()))
+		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("filetype.Get:%v", err.Error()))
 	}
 
 	if _, ok := binaryFileTypes[t.Extension]; ok {

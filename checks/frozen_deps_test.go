@@ -15,525 +15,456 @@
 package checks
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"strings"
 	"testing"
+
+	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
+	scut "github.com/ossf/scorecard/utests"
 )
+
+// TODO(laurent): share this function across unit tests
 
 func TestGithubWorkflowPinning(t *testing.T) {
 	t.Parallel()
-	//nolint
-	type args struct {
-		Log      log
-		Filename string
-	}
 
-	type returnValue struct {
-		Error          error
-		Result         bool
-		NumberOfErrors int
-	}
-
-	//nolint
-	tests := []struct {
-		args args
-		want returnValue
-		name string
-	}{
+	tests := []scut.TestInfo{
 		{
-			name: "Zero size content",
-			args: args{
+			Name: "Zero size content",
+			Args: scut.TestArgs{
 				Filename: "",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          ErrEmptyFile,
-				Result:         false,
-				NumberOfErrors: 0,
+			Expected: scut.TestReturn{
+				Errors:        []error{sce.ErrRunFailure},
+				Score:         checker.InconclusiveResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "Pinned workflow",
-			args: args{
+			Name: "Pinned workflow",
+			Args: scut.TestArgs{
 				Filename: "./testdata/workflow-pinned.yaml",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         true,
-				NumberOfErrors: 0,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "Non-pinned workflow",
-			args: args{
+			Name: "Non-pinned workflow",
+			Args: scut.TestArgs{
 				Filename: "./testdata/workflow-not-pinned.yaml",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 1,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 	}
-	//nolint
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-			if tt.args.Filename == "" {
+			if tt.Args.Filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.args.Filename)
+				content, err = ioutil.ReadFile(tt.Args.Filename)
 				if err != nil {
 					panic(fmt.Errorf("cannot read file: %w", err))
 				}
 			}
-			r, err := validateGitHubActionWorkflow(tt.args.Filename, content, tt.args.Log.Logf)
-
-			if !errors.Is(err, tt.want.Error) ||
-				r != tt.want.Result ||
-				len(tt.args.Log.messages) != tt.want.NumberOfErrors {
-				t.Errorf("TestDockerfileScriptDownload:\"%v\": %v (%v,%v,%v) want (%v, %v, %v)\n%v",
-					tt.name, tt.args.Filename, r, err, len(tt.args.Log.messages), tt.want.Result, tt.want.Error, tt.want.NumberOfErrors,
-					strings.Join(tt.args.Log.messages, "\n"))
-			}
+			dl := scut.TestDetailLogger{}
+			r := TestIsGitHubActionsWorkflowPinned(tt.Args.Filename, content, &dl)
+			tt.Args.Dl = dl
+			scut.ValidateTest(t, &tt, r)
 		})
 	}
 }
 
 func TestDockerfilePinning(t *testing.T) {
 	t.Parallel()
-	type args struct {
-		Logf     func(s string, f ...interface{})
-		Filename string
-	}
-
-	type returnValue struct {
-		Error  error
-		Result bool
-	}
-
-	l := log{}
-	tests := []struct {
-		args args
-		want returnValue
-		name string
-	}{
+	tests := []scut.TestInfo{
 		{
-			name: "Invalid dockerfile",
-			args: args{
+			Name: "Invalid dockerfile",
+			Args: scut.TestArgs{
 				Filename: "./testdata/Dockerfile-invalid",
-				Logf:     l.Logf,
 			},
-			want: returnValue{
-				Error:  ErrInvalidDockerfile,
-				Result: false,
+			Expected: scut.TestReturn{
+				Errors:        []error{sce.ErrRunFailure},
+				Score:         checker.InconclusiveResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "Pinned dockerfile",
-			args: args{
+			Name: "Pinned dockerfile",
+			Args: scut.TestArgs{
 				Filename: "./testdata/Dockerfile-pinned",
-				Logf:     l.Logf,
 			},
-			want: returnValue{
-				Error:  nil,
-				Result: true,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "Pinned dockerfile as",
-			args: args{
+			Name: "Pinned dockerfile as",
+			Args: scut.TestArgs{
 				Filename: "./testdata/Dockerfile-pinned-as",
-				Logf:     l.Logf,
 			},
-			want: returnValue{
-				Error:  nil,
-				Result: true,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "Non-pinned dockerfile as",
-			args: args{
+			Name: "Non-pinned dockerfile as",
+			Args: scut.TestArgs{
 				Filename: "./testdata/Dockerfile-not-pinned-as",
-				Logf:     l.Logf,
 			},
-			want: returnValue{
-				Error:  nil,
-				Result: false,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  3, // TODO:fix should be 2
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "Non-pinned dockerfile",
-			args: args{
+			Name: "Non-pinned dockerfile",
+			Args: scut.TestArgs{
 				Filename: "./testdata/Dockerfile-not-pinned",
-				Logf:     l.Logf,
 			},
-			want: returnValue{
-				Error:  nil,
-				Result: false,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		l.messages = []string{}
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-
-			content, err = ioutil.ReadFile(tt.args.Filename)
-			if err != nil {
-				panic(fmt.Errorf("cannot read file: %w", err))
+			if tt.Args.Filename == "" {
+				content = make([]byte, 0)
+			} else {
+				content, err = ioutil.ReadFile(tt.Args.Filename)
+				if err != nil {
+					panic(fmt.Errorf("cannot read file: %w", err))
+				}
 			}
-
-			r, err := validateDockerfile(tt.args.Filename, content, tt.args.Logf)
-
-			if !errors.Is(err, tt.want.Error) ||
-				r != tt.want.Result {
-				t.Errorf("TestGithubWorkflowPinning:\"%v\": %v (%v,%v) want (%v, %v)",
-					tt.name, tt.args.Filename, r, err, tt.want.Result, tt.want.Error)
-			}
+			dl := scut.TestDetailLogger{}
+			r := TestValidateDockerfileIsPinned(tt.Args.Filename, content, &dl)
+			tt.Args.Dl = dl
+			scut.ValidateTest(t, &tt, r)
 		})
 	}
 }
 
 func TestDockerfileScriptDownload(t *testing.T) {
 	t.Parallel()
-	//nolint
-	type args struct {
-		// Note: this seems to be defined in e2e/e2e_suite_test.go
-		Log      log
-		Filename string
-	}
-
-	type returnValue struct {
-		Error          error
-		Result         bool
-		NumberOfErrors int
-	}
-
-	//nolint
-	tests := []struct {
-		args args
-		want returnValue
-		name string
-	}{
+	tests := []scut.TestInfo{
 		{
-			name: "curl | sh",
-			args: args{
+			Name: "curl | sh",
+			Args: scut.TestArgs{
 				Filename: "testdata/Dockerfile-curl-sh",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 4,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  4,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "wget | /bin/sh",
-			args: args{
+			Name: "wget | /bin/sh",
+			Args: scut.TestArgs{
 				Filename: "testdata/Dockerfile-wget-bin-sh",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 3,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  3,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "wget no exec",
-			args: args{
+			Name: "wget no exec",
+			Args: scut.TestArgs{
 				Filename: "testdata/Dockerfile-script-ok",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         true,
-				NumberOfErrors: 0,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "curl file sh",
-			args: args{
+			Name: "curl file sh",
+			Args: scut.TestArgs{
 				Filename: "testdata/Dockerfile-curl-file-sh",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 12,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  12,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "proc substitution",
-			args: args{
+			Name: "proc substitution",
+			Args: scut.TestArgs{
 				Filename: "testdata/Dockerfile-proc-subs",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 6,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  6,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "wget file",
-			args: args{
+			Name: "wget file",
+			Args: scut.TestArgs{
 				Filename: "testdata/Dockerfile-wget-file",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 10,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  10,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "gsutil file",
-			args: args{
+			Name: "gsutil file",
+			Args: scut.TestArgs{
 				Filename: "testdata/Dockerfile-gsutil-file",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 17,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  17,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "aws file",
-			args: args{
+			Name: "aws file",
+			Args: scut.TestArgs{
 				Filename: "testdata/Dockerfile-aws-file",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 15,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  15,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "pkg managers",
-			args: args{
+			Name: "pkg managers",
+			Args: scut.TestArgs{
 				Filename: "testdata/Dockerfile-pkg-managers",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 27,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  27,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 	}
-	//nolint
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-			content, err = ioutil.ReadFile(tt.args.Filename)
-			if err != nil {
-				panic(fmt.Errorf("cannot read file: %w", err))
+			if tt.Args.Filename == "" {
+				content = make([]byte, 0)
+			} else {
+				content, err = ioutil.ReadFile(tt.Args.Filename)
+				if err != nil {
+					panic(fmt.Errorf("cannot read file: %w", err))
+				}
 			}
-
-			r, err := validateDockerfileDownloads(tt.args.Filename, content, tt.args.Log.Logf)
-
-			if !errors.Is(err, tt.want.Error) ||
-				r != tt.want.Result ||
-				len(tt.args.Log.messages) != tt.want.NumberOfErrors {
-				t.Errorf("TestDockerfileScriptDownload:\"%v\": %v (%v,%v,%v) want (%v, %v, %v)\n%v",
-					tt.name, tt.args.Filename, r, err, len(tt.args.Log.messages), tt.want.Result, tt.want.Error, tt.want.NumberOfErrors,
-					strings.Join(tt.args.Log.messages, "\n"))
-			}
+			dl := scut.TestDetailLogger{}
+			r := TestValidateDockerfileIsFreeOfInsecureDownloads(tt.Args.Filename, content, &dl)
+			tt.Args.Dl = dl
+			scut.ValidateTest(t, &tt, r)
 		})
 	}
 }
 
 func TestShellScriptDownload(t *testing.T) {
 	t.Parallel()
-	//nolint
-	type args struct {
-		// Note: this seems to be defined in e2e/e2e_suite_test.go
-		Log      log
-		Filename string
-	}
-
-	type returnValue struct {
-		Error          error
-		Result         bool
-		NumberOfErrors int
-	}
-
-	//nolint
-	tests := []struct {
-		args args
-		want returnValue
-		name string
-	}{
+	tests := []scut.TestInfo{
 		{
-			name: "sh script",
-			args: args{
+			Name: "sh script",
+			Args: scut.TestArgs{
 				Filename: "testdata/script-sh",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 7,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  7,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "bash script",
-			args: args{
+			Name: "bash script",
+			Args: scut.TestArgs{
 				Filename: "testdata/script-bash",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 7,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  7,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "sh script 2",
-			args: args{
+			Name: "sh script 2",
+			Args: scut.TestArgs{
 				Filename: "testdata/script.sh",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 7,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  7,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "pkg managers",
-			args: args{
+			Name: "pkg managers",
+			Args: scut.TestArgs{
 				Filename: "testdata/script-pkg-managers",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 24,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  24,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 	}
-	//nolint
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-			content, err = ioutil.ReadFile(tt.args.Filename)
-			if err != nil {
-				panic(fmt.Errorf("cannot read file: %w", err))
+			if tt.Args.Filename == "" {
+				content = make([]byte, 0)
+			} else {
+				content, err = ioutil.ReadFile(tt.Args.Filename)
+				if err != nil {
+					panic(fmt.Errorf("cannot read file: %w", err))
+				}
 			}
-
-			r, err := validateShellScriptDownloads(tt.args.Filename, content, tt.args.Log.Logf)
-
-			if !errors.Is(err, tt.want.Error) ||
-				r != tt.want.Result ||
-				len(tt.args.Log.messages) != tt.want.NumberOfErrors {
-				t.Errorf("TestDockerfileScriptDownload:\"%v\": %v (%v,%v,%v) want (%v, %v, %v)\n%v",
-					tt.name, tt.args.Filename, r, err, len(tt.args.Log.messages), tt.want.Result, tt.want.Error, tt.want.NumberOfErrors,
-					strings.Join(tt.args.Log.messages, "\n"))
-			}
+			dl := scut.TestDetailLogger{}
+			r := TestValidateShellScriptIsFreeOfInsecureDownloads(tt.Args.Filename, content, &dl)
+			tt.Args.Dl = dl
+			scut.ValidateTest(t, &tt, r)
 		})
 	}
 }
 
 func TestGitHubWorflowRunDownload(t *testing.T) {
 	t.Parallel()
-	//nolint
-	type args struct {
-		// Note: this seems to be defined in e2e/e2e_suite_test.go
-		Log      log
-		Filename string
-	}
-
-	type returnValue struct {
-		Error          error
-		Result         bool
-		NumberOfErrors int
-	}
-
-	//nolint
-	tests := []struct {
-		args args
-		want returnValue
-		name string
-	}{
+	tests := []scut.TestInfo{
 		{
-			name: "workflow curl default",
-			args: args{
+			Name: "workflow curl default",
+			Args: scut.TestArgs{
 				Filename: "testdata/github-workflow-curl-default",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 1,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "workflow curl no default",
-			args: args{
+			Name: "workflow curl no default",
+			Args: scut.TestArgs{
 				Filename: "testdata/github-workflow-curl-no-default",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 1,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "wget across steps",
-			args: args{
+			Name: "wget across steps",
+			Args: scut.TestArgs{
 				Filename: "testdata/github-workflow-wget-across-steps",
-				Log:      log{},
 			},
-			want: returnValue{
-				Error:          nil,
-				Result:         false,
-				NumberOfErrors: 2,
+			Expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  2,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 	}
-	//nolint
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-			content, err = ioutil.ReadFile(tt.args.Filename)
-			if err != nil {
-				panic(fmt.Errorf("cannot read file: %w", err))
+			if tt.Args.Filename == "" {
+				content = make([]byte, 0)
+			} else {
+				content, err = ioutil.ReadFile(tt.Args.Filename)
+				if err != nil {
+					panic(fmt.Errorf("cannot read file: %w", err))
+				}
 			}
-
-			r, err := validateGitHubWorkflowShellScriptDownloads(tt.args.Filename, content, tt.args.Log.Logf)
-
-			if !errors.Is(err, tt.want.Error) ||
-				r != tt.want.Result ||
-				len(tt.args.Log.messages) != tt.want.NumberOfErrors {
-				t.Errorf("TestDockerfileScriptDownload:\"%v\": %v (%v,%v,%v) want (%v, %v, %v)\n%v",
-					tt.name, tt.args.Filename, r, err, len(tt.args.Log.messages), tt.want.Result, tt.want.Error, tt.want.NumberOfErrors,
-					strings.Join(tt.args.Log.messages, "\n"))
-			}
+			dl := scut.TestDetailLogger{}
+			r := TestValidateGitHubWorkflowScriptFreeOfInsecureDownloads(tt.Args.Filename, content, &dl)
+			tt.Args.Dl = dl
+			scut.ValidateTest(t, &tt, r)
 		})
 	}
 }

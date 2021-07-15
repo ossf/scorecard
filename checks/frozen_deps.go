@@ -71,18 +71,30 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 // TODO(laurent): need to support GCB pinning.
 
 func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2("*", false, c, validateShellScriptDownloads)
+	r, err := CheckFilesContent2("*", false, c, validateShellScriptIsFreeOfInsecureDownloads)
+	return createResultForIsShellScriptFreeOfInsecureDownloads(r, err)
+}
+
+func createResultForIsShellScriptFreeOfInsecureDownloads(r bool, err error) checker.CheckResult {
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
 	}
 	if !r {
-		return checker.CreateMinScoreResult(checkFrozenDeps, "insecure (unpinned) dependency donwloads found in shell scripts")
+		return checker.CreateMinScoreResult(checkFrozenDeps,
+			"insecure (unpinned) dependency downloads found in shell scripts")
 	}
 
-	return checker.CreateMaxScoreResult(checkFrozenDeps, "no insecure (unpinned) dependency downloads found in shell scripts")
+	return checker.CreateMaxScoreResult(checkFrozenDeps,
+		"no insecure (unpinned) dependency downloads found in shell scripts")
 }
 
-func validateShellScriptDownloads(pathfn string, content []byte,
+func TestValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
+	content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateShellScriptIsFreeOfInsecureDownloads(pathfn, content, dl)
+	return createResultForIsShellScriptFreeOfInsecureDownloads(r, err)
+}
+
+func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger) (bool, error) {
 	// Validate the file type.
 	if !isShellScriptFile(pathfn, content) {
@@ -92,18 +104,31 @@ func validateShellScriptDownloads(pathfn string, content []byte,
 }
 
 func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2("*Dockerfile*", false, c, validateDockerfileDownloads)
+	r, err := CheckFilesContent2("*Dockerfile*", false, c, validateDockerfileIsFreeOfInsecureDownloads)
+	return createResultForIsDockerfileFreeOfInsecureDownloads(r, err)
+}
+
+// Create the result.
+func createResultForIsDockerfileFreeOfInsecureDownloads(r bool, err error) checker.CheckResult {
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
 	}
 	if !r {
-		return checker.CreateMinScoreResult(checkFrozenDeps, "insecure (unpinned) dependency donwloads found in Dockerfiles")
+		return checker.CreateMinScoreResult(checkFrozenDeps,
+			"insecure (unpinned) dependency downloads found in Dockerfiles")
 	}
 
-	return checker.CreateMaxScoreResult(checkFrozenDeps, "no insecure (unpinned) dependency downloads found in Dockerfiles")
+	return checker.CreateMaxScoreResult(checkFrozenDeps,
+		"no insecure (unpinned) dependency downloads found in Dockerfiles")
 }
 
-func validateDockerfileDownloads(pathfn string, content []byte,
+func TestValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
+	content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateDockerfileIsFreeOfInsecureDownloads(pathfn, content, dl)
+	return createResultForIsDockerfileFreeOfInsecureDownloads(r, err)
+}
+
+func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger) (bool, error) {
 	contentReader := strings.NewReader(string(content))
 	res, err := parser.Parse(contentReader)
@@ -140,18 +165,28 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 }
 
 func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2("*Dockerfile*", false, c, validateDockerfile)
+	r, err := CheckFilesContent2("*Dockerfile*", false, c, validateDockerfileIsPinned)
+	return createResultForIsDockerfilePinned(r, err)
+}
+
+// Create the result.
+func createResultForIsDockerfilePinned(r bool, err error) checker.CheckResult {
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
 	}
-	if !r {
-		return checker.CreateMinScoreResult(checkFrozenDeps, "unpinned dependencies found Dockerfiles")
+	if r {
+		return checker.CreateMaxScoreResult(checkFrozenDeps, "Dockerfile dependencies are pinned")
 	}
 
-	return checker.CreateMaxScoreResult(checkFrozenDeps, "Dockerfile dependencies are pinned")
+	return checker.CreateMinScoreResult(checkFrozenDeps, "unpinned dependencies found Dockerfiles")
 }
 
-func validateDockerfile(pathfn string, content []byte,
+func TestValidateDockerfileIsPinned(pathfn string, content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateDockerfileIsPinned(pathfn, content, dl)
+	return createResultForIsDockerfilePinned(r, err)
+}
+
+func validateDockerfileIsPinned(pathfn string, content []byte,
 	dl checker.DetailLogger) (bool, error) {
 	// Users may use various names, e.g.,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
@@ -230,18 +265,30 @@ func validateDockerfile(pathfn string, content []byte,
 }
 
 func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2(".github/workflows/*", false, c, validateGitHubWorkflowShellScriptDownloads)
+	r, err := CheckFilesContent2(".github/workflows/*", false, c, validateGitHubWorkflowIsFreeOfInsecureDownloads)
+	return createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, err)
+}
+
+// Create the result.
+func createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r bool, err error) checker.CheckResult {
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
 	}
 	if !r {
-		return checker.CreateMinScoreResult(checkFrozenDeps, "insecure (unpinned) dependency donwloads found in GitHub workflows")
+		return checker.CreateMinScoreResult(checkFrozenDeps,
+			"insecure (unpinned) dependency donwloads found in GitHub workflows")
 	}
 
-	return checker.CreateMaxScoreResult(checkFrozenDeps, "no insecure (unpinned) dependency downloads found in GitHub workflows")
+	return checker.CreateMaxScoreResult(checkFrozenDeps,
+		"no insecure (unpinned) dependency downloads found in GitHub workflows")
 }
 
-func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
+func TestValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string, content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn, content, dl)
+	return createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, err)
+}
+
+func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger) (bool, error) {
 	if len(content) == 0 {
 		return false, sce.Create(sce.ErrRunFailure, sce.ErrInternalEmptyFile.Error())
@@ -300,14 +347,24 @@ func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
 	r, err := CheckFilesContent2(".github/workflows/*", true, c, validateGitHubActionWorkflow)
+	return createResultForIsGitHubActionsWorkflowPinned(r, err)
+}
+
+// Create the result.
+func createResultForIsGitHubActionsWorkflowPinned(r bool, err error) checker.CheckResult {
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
 	}
-	if !r {
-		return checker.CreateMinScoreResult(checkFrozenDeps, "GitHub actions are not pinned")
+	if r {
+		return checker.CreateMaxScoreResult(checkFrozenDeps, "GitHub actions are pinned")
 	}
 
-	return checker.CreateMinScoreResult(checkFrozenDeps, "GitHub actions are pinned")
+	return checker.CreateMinScoreResult(checkFrozenDeps, "GitHub actions are not pinned")
+}
+
+func TestIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateGitHubActionWorkflow(pathfn, content, dl)
+	return createResultForIsGitHubActionsWorkflowPinned(r, err)
 }
 
 // Check file content.

@@ -55,6 +55,12 @@ type CheckDetail struct {
 	Msg  string     // A short string explaining why the details was recorded/logged..
 }
 
+type DetailLogger interface {
+	Info(desc string, args ...interface{})
+	Warn(desc string, args ...interface{})
+	Debug(desc string, args ...interface{})
+}
+
 // UPGRADEv2: messages2 will ultimately
 // be renamed to messages.
 type logger struct {
@@ -62,23 +68,19 @@ type logger struct {
 	messages2 []CheckDetail
 }
 
-type DetailLogger struct {
-	l *logger
-}
-
-func (l *DetailLogger) Info(desc string, args ...interface{}) {
+func (l *logger) Info(desc string, args ...interface{}) {
 	cd := CheckDetail{Type: DetailInfo, Msg: fmt.Sprintf(desc, args...)}
-	l.l.messages2 = append(l.l.messages2, cd)
+	l.messages2 = append(l.messages2, cd)
 }
 
-func (l *DetailLogger) Warn(desc string, args ...interface{}) {
+func (l *logger) Warn(desc string, args ...interface{}) {
 	cd := CheckDetail{Type: DetailWarn, Msg: fmt.Sprintf(desc, args...)}
-	l.l.messages2 = append(l.l.messages2, cd)
+	l.messages2 = append(l.messages2, cd)
 }
 
-func (l *DetailLogger) Debug(desc string, args ...interface{}) {
+func (l *logger) Debug(desc string, args ...interface{}) {
 	cd := CheckDetail{Type: DetailDebug, Msg: fmt.Sprintf(desc, args...)}
-	l.l.messages2 = append(l.l.messages2, cd)
+	l.messages2 = append(l.messages2, cd)
 }
 
 // UPGRADEv2: to remove.
@@ -109,15 +111,13 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 
 	var res CheckResult
 	var l logger
-	var dl DetailLogger
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx
 		l = logger{}
-		dl = DetailLogger{l: &l}
 		// UPGRADEv2: to remove.
 		checkRequest.Logf = l.Logf
-		checkRequest.Dlogger = dl
+		checkRequest.Dlogger = &l
 		res = f(&checkRequest)
 		// UPGRADEv2: to fix using proper error check.
 		if res.ShouldRetry && !strings.Contains(res.Error.Error(), "invalid header field value") {

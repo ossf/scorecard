@@ -38,6 +38,7 @@ func validateDetailTypes(messages []checker.CheckDetail, nw, ni, nd int) bool {
 			enw += 1
 		}
 	}
+
 	return enw == nw &&
 		eni == ni &&
 		end == nd
@@ -81,7 +82,7 @@ func (l *TestDetailLogger) Debug(desc string, args ...interface{}) {
 	l.messages = append(l.messages, cd)
 }
 
-func ValidateTest(t *testing.T, ti TestInfo, tr checker.CheckResult) {
+func ValidateTest(t *testing.T, ti *TestInfo, tr checker.CheckResult) {
 	for _, we := range ti.Expected.Errors {
 		if !errors.Is(tr.Error2, we) {
 			t.Errorf("TestDockerfileScriptDownload:\"%v\": invalid error returned: %v is not of type %v",
