@@ -22,13 +22,16 @@ import (
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	scut "github.com/ossf/scorecard/utests"
 )
 
+// TODO: use dedicated repo that don't change.
+// TODO: need negative results
 var _ = Describe("E2E TEST:CodeReview", func() {
 	Context("E2E TEST:Validating use of code reviews", func() {
 		It("Should return use of code reviews", func() {
-			l := log{}
-			checkRequest := checker.CheckRequest{
+			dl := scut.TestDetailLogger{}
+			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
@@ -36,11 +39,17 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,
-				Logf:        l.Logf,
+				Dlogger:     &dl,
 			}
-			result := checks.DoesCodeReview(&checkRequest)
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.DoesCodeReview(&req)
+			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

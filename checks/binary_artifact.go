@@ -27,14 +27,14 @@ import (
 
 //nolint
 func init() {
-	registerCheck(checkBinaryArtifacts, binaryArtifacts)
+	registerCheck(checkBinaryArtifacts, BinaryArtifacts)
 }
 
 // TODO: read the check code from file?
 const checkBinaryArtifacts string = "Binary-Artifacts"
 
 // BinaryArtifacts  will check the repository if it contains binary artifacts.
-func binaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
+func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	r, err := CheckFilesContent2("*", false, c, checkBinaryFileContent)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(checkBinaryArtifacts, err)

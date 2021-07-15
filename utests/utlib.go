@@ -82,18 +82,40 @@ func (l *TestDetailLogger) Debug(desc string, args ...interface{}) {
 	l.messages = append(l.messages, cd)
 }
 
-func ValidateTest(t *testing.T, ti *TestInfo, tr checker.CheckResult) {
+func ValidateTestReturn(te *TestReturn, tr *checker.CheckResult, dl *TestDetailLogger) bool {
+	for _, we := range te.Errors {
+		if !errors.Is(tr.Error2, we) {
+			return false
+		}
+	}
+	// UPGRADEv2: update name.
+	if tr.Score2 != te.Score ||
+		!validateDetailTypes(dl.messages, te.NumberOfWarn,
+			te.NumberOfInfo, te.NumberOfDebug) {
+		return false
+	}
+	return true
+}
+
+func ValidateTestInfo(t *testing.T, ti *TestInfo, tr *checker.CheckResult) bool {
 	for _, we := range ti.Expected.Errors {
 		if !errors.Is(tr.Error2, we) {
-			t.Errorf("TestDockerfileScriptDownload:\"%v\": invalid error returned: %v is not of type %v",
-				ti.Name, tr.Error, we)
+			if t != nil {
+				t.Errorf("%v: invalid error returned: %v is not of type %v",
+					ti.Name, tr.Error, we)
+			}
+			return false
 		}
 	}
 	// UPGRADEv2: update name.
 	if tr.Score2 != ti.Expected.Score ||
 		!validateDetailTypes(ti.Args.Dl.messages, ti.Expected.NumberOfWarn,
 			ti.Expected.NumberOfInfo, ti.Expected.NumberOfDebug) {
-		t.Errorf("TestDockerfileScriptDownload:\"%v\": %v. Got (score=%v) expected (%v)\n%v",
-			ti.Name, ti.Args.Filename, tr.Score2, ti.Expected.Score, ti.Args.Dl.messages)
+		if t != nil {
+			t.Errorf("%v: %v. Got (score=%v) expected (%v)\n%v",
+				ti.Name, ti.Args.Filename, tr.Score2, ti.Expected.Score, ti.Args.Dl.messages)
+		}
+		return false
 	}
+	return true
 }

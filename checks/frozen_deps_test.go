@@ -24,8 +24,6 @@ import (
 	scut "github.com/ossf/scorecard/utests"
 )
 
-// TODO(laurent): share this function across unit tests
-
 func TestGithubWorkflowPinning(t *testing.T) {
 	t.Parallel()
 
@@ -87,7 +85,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			r := TestIsGitHubActionsWorkflowPinned(tt.Args.Filename, content, &dl)
 			tt.Args.Dl = dl
-			scut.ValidateTest(t, &tt, r)
+			scut.ValidateTestInfo(t, &tt, &r)
 		})
 	}
 }
@@ -178,7 +176,7 @@ func TestDockerfilePinning(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			r := TestValidateDockerfileIsPinned(tt.Args.Filename, content, &dl)
 			tt.Args.Dl = dl
-			scut.ValidateTest(t, &tt, r)
+			scut.ValidateTestInfo(t, &tt, &r)
 		})
 	}
 }
@@ -321,7 +319,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			r := TestValidateDockerfileIsFreeOfInsecureDownloads(tt.Args.Filename, content, &dl)
 			tt.Args.Dl = dl
-			scut.ValidateTest(t, &tt, r)
+			scut.ValidateTestInfo(t, &tt, &r)
 		})
 	}
 }
@@ -399,7 +397,7 @@ func TestShellScriptDownload(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			r := TestValidateShellScriptIsFreeOfInsecureDownloads(tt.Args.Filename, content, &dl)
 			tt.Args.Dl = dl
-			scut.ValidateTest(t, &tt, r)
+			scut.ValidateTestInfo(t, &tt, &r)
 		})
 	}
 }
@@ -464,7 +462,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			r := TestValidateGitHubWorkflowScriptFreeOfInsecureDownloads(tt.Args.Filename, content, &dl)
 			tt.Args.Dl = dl
-			scut.ValidateTest(t, &tt, r)
+			scut.ValidateTestInfo(t, &tt, &r)
 		})
 	}
 }

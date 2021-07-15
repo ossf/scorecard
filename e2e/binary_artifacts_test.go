@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint: dupl // repeating test cases that are slightly different is acceptable
 package e2e
 
 import (
@@ -29,35 +28,9 @@ import (
 
 // TODO: use dedicated repo that don't change.
 // TODO: need negative results
-var _ = Describe("E2E TEST:FrozenDeps", func() {
-	Context("E2E TEST:Validating deps are frozen", func() {
-		It("Should return deps are not frozen", func() {
-			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
-			err := repoClient.InitRepo("tensorflow", "tensorflow")
-			Expect(err).Should(BeNil())
-
-			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				HTTPClient:  httpClient,
-				RepoClient:  repoClient,
-				Owner:       "tensorflow",
-				Repo:        "tensorflow",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
-			}
-			expected := scut.TestReturn{
-				Errors:        nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			}
-			result := checks.FrozenDeps(&req)
-			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
-		})
-		It("Should return deps are frozen", func() {
+var _ = Describe("E2E TEST:Binary-Artifacts", func() {
+	Context("E2E TEST:Binary artifacts are not present in source code", func() {
+		It("Should return not binary artifacts in source code", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
 			err := repoClient.InitRepo("ossf", "scorecard")
@@ -66,17 +39,47 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
-				HTTPClient:  httpClient,
 				RepoClient:  repoClient,
 				Owner:       "ossf",
 				Repo:        "scorecard",
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}
-			result := checks.FrozenDeps(&req)
-			// Note: should be using ValidateTestReturn().
-			Expect(result.Error2).Should(BeNil())
-			Expect(result.Score2 == checker.MinResultScore).Should(BeTrue())
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+
+			result := checks.BinaryArtifacts(&req)
+			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
+		})
+		It("Should return binary artifacts present in source code", func() {
+			dl := scut.TestDetailLogger{}
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
+			err := repoClient.InitRepo("a1ive", "grub2-filemanager")
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:         context.Background(),
+				Client:      ghClient,
+				RepoClient:  repoClient,
+				Owner:       "a1ive",
+				Repo:        "grub2-filemanager",
+				GraphClient: graphClient,
+				Dlogger:     &dl,
+			}
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.BinaryArtifacts(&req)
+			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })
