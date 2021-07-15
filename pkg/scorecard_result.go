@@ -25,7 +25,6 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-
 	"github.com/ossf/scorecard/checker"
 	"go.uber.org/zap/zapcore"
 )
@@ -90,7 +89,8 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer
 	return nil
 }
 
-func (r *ScorecardResult) AsString(showDetails bool, writer io.Writer) error {
+// UPGRADEv2: will be removed.
+func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	sortedChecks := make([]checker.CheckResult, len(r.Checks))
 	for i, checkResult := range r.Checks {
 		sortedChecks[i] = checkResult
@@ -118,7 +118,18 @@ func (r *ScorecardResult) AsString(showDetails bool, writer io.Writer) error {
 		x[1] = strconv.Itoa(row.Confidence)
 		x[2] = row.Name
 		if showDetails {
-			x[3] = strings.Join(row.Details, "\n")
+			if row.Version == 2 {
+				sa := make([]string, 1)
+				for _, v := range row.Details2 {
+					if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
+						continue
+					}
+					sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg))
+				}
+				x[3] = strings.Join(sa, "\n")
+			} else {
+				x[3] = strings.Join(row.Details, "\n")
+			}
 		}
 		data[i] = x
 	}
@@ -136,7 +147,95 @@ func (r *ScorecardResult) AsString(showDetails bool, writer io.Writer) error {
 	table.SetCenterSeparator("|")
 	table.AppendBulk(data)
 	table.Render()
+
 	return nil
+}
+
+// UPGRADEv2: new code
+func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
+	sortedChecks := make([]checker.CheckResult, len(r.Checks))
+	for i, checkResult := range r.Checks {
+		sortedChecks[i] = checkResult
+	}
+	sort.Slice(sortedChecks, func(i, j int) bool {
+		if sortedChecks[i].Pass == sortedChecks[j].Pass {
+			return sortedChecks[i].Name < sortedChecks[j].Name
+		}
+		return sortedChecks[i].Pass
+	})
+
+	data := make([][]string, len(sortedChecks))
+	for i, row := range sortedChecks {
+		if row.Version != 2 {
+			continue
+		}
+		const withdetails = 5
+		const withoutdetails = 4
+		var x []string
+
+		if showDetails {
+			x = make([]string, withdetails)
+		} else {
+			x = make([]string, withoutdetails)
+		}
+
+		// UPGRADEv2: rename variable.
+		if row.Score2 == checker.InconclusiveResultScore {
+			x[0] = "Inconclusive"
+		} else {
+			x[0] = fmt.Sprintf("%d", row.Score2)
+		}
+
+		doc := fmt.Sprintf("https://github.com/ossf/scorecard/blob/main/checks/checks.md#%s", strings.ToLower(row.Name))
+		x[1] = row.Reason2
+		x[2] = row.Name
+		if showDetails {
+			sa := make([]string, 1)
+			for _, v := range row.Details2 {
+				if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
+					continue
+				}
+				sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg))
+			}
+			x[3] = strings.Join(sa, "\n")
+			x[4] = doc
+		} else {
+			x[3] = doc
+		}
+
+		data[i] = x
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	header := []string{"Score", "Reason", "Name"}
+	if showDetails {
+		header = append(header, "Details")
+	}
+	header = append(header, "Documentation/Remdiation")
+	table.SetHeader(header)
+	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
+	table.SetRowSeparator("-")
+	table.SetRowLine(true)
+	table.SetCenterSeparator("|")
+	table.AppendBulk(data)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetRowLine(true)
+	table.Render()
+
+	return nil
+}
+
+func typeToString(cd checker.DetailType) string {
+	switch cd {
+	default:
+		panic("invalid detail")
+	case checker.DetailInfo:
+		return "Info"
+	case checker.DetailWarn:
+		return "Warn"
+	case checker.DetailDebug:
+		return "Debug"
+	}
 }
 
 func displayResult(result bool) string {
@@ -144,17 +243,4 @@ func displayResult(result bool) string {
 		return "Pass"
 	}
 	return "Fail"
-}
-
-func displayResult2(result int) string {
-	switch result {
-	default:
-		panic("invalid result")
-	case checker.ResultPass:
-		return "Pass"
-	case checker.ResultFail:
-		return "Fail"
-	case checker.ResultDontKnow:
-		return "N/A"
-	}
 }

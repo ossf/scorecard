@@ -12,27 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package errors
 
 import (
-	"context"
-	"net/http"
-
-	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
-
-	"github.com/ossf/scorecard/clients"
+	"errors"
 )
 
-type CheckRequest struct {
-	Ctx         context.Context
-	Client      *github.Client
-	GraphClient *githubv4.Client
-	HTTPClient  *http.Client
-	RepoClient  clients.RepoClient
-	// Note: Ultimately Log will be removed and replaced by
-	// CLogger.
-	Logf        func(s string, f ...interface{})
-	Dlogger     DetailLogger
-	Owner, Repo string
-}
+//nolint
+var (
+	ErrInternalInvalidDockerFile = errors.New("invalid Dockerfile")
+	ErrInternalInvalidYamlFile   = errors.New("invalid yaml file")
+	ErrInternalFilenameMatch     = errors.New("filename match error")
+	ErrInternalEmptyFile         = errors.New("empty file")
+	ErrInternalInvalidShellCode  = errors.New("invalid shell code")
+)

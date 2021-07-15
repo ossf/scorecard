@@ -31,28 +31,26 @@ func init() {
 func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
 	r, err := CheckIfFileExists2(checkAutomaticDependencyUpdate, c, fileExists)
 	if err != nil {
-		return checker.MakeInternalErrorResult(checkAutomaticDependencyUpdate, err)
+		return checker.CreateRuntimeErrorResult(checkAutomaticDependencyUpdate, err)
 	}
 	if !r {
-		return checker.MakeInconclusiveResult2(checkAutomaticDependencyUpdate, c, "no configuration file found in the repo")
+		return checker.CreateMinScoreResult(checkAutomaticDependencyUpdate, "no tool detected [dependabot|renovabot]")
 	}
 
-	// High confidence result.
-	// We need not give a reason since it's explained by the calls to
-	// `cl.Pass` in fileExists.
-	return checker.MakePassResultWithHighConfidence(checkAutomaticDependencyUpdate)
+	// High score result.
+	return checker.CreateMaxScoreResult(checkAutomaticDependencyUpdate, "tool detected")
 }
 
 // fileExists will validate the if frozen dependencies file name exists.
-func fileExists(name string, cl checker.CheckLogger) (bool, error) {
+func fileExists(name string, dl checker.DetailLogger) (bool, error) {
 	switch strings.ToLower(name) {
 	case ".github/dependabot.yml":
-		cl.Pass("dependabot config found: %s", name)
+		dl.Info("dependabot detected : %s", name)
 		return true, nil
 		// https://docs.renovatebot.com/configuration-options/
 	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
 		"renovate.json5", ".renovaterc":
-		cl.Pass("renovate config found: %s", name)
+		dl.Info("renovate detected: %s", name)
 		return true, nil
 	default:
 		return false, nil

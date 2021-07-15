@@ -89,11 +89,9 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
 	}
 	if err := c.GraphClient.Query(c.Ctx, &prHistory, vars); err != nil {
-		// Note: this error should not be wrapped. We should
-		// return a scorecard error instead.
-		return checker.MakeInternalErrorResult(checkCodeReview, err)
+		return checker.CreateRuntimeErrorResult(checkCodeReview, err)
 	}
-	return checker.MultiCheckOr(
+	return checker.MultiCheckOr2(
 		isPrReviewRequired,
 		githubCodeReview,
 		prowCodeReview,
@@ -115,7 +113,7 @@ func githubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		foundApprovedReview := false
 		for _, r := range pr.LatestReviews.Nodes {
 			if r.State == "APPROVED" {
-				c.CLogger.Debug("found review approved pr: %d", pr.Number)
+				c.Dlogger.Debug("found review approved pr: %d", pr.Number)
 				totalReviewed++
 				foundApprovedReview = true
 				break
@@ -127,7 +125,7 @@ func githubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		// time on clicking the approve button.
 		if !foundApprovedReview {
 			if !pr.MergeCommit.AuthoredByCommitter {
-				c.CLogger.Debug("found pr with committer different than author: %d", pr.Number)
+				c.Dlogger.Debug("found pr with committer different than author: %d", pr.Number)
 				totalReviewed++
 			}
 		}
@@ -142,9 +140,9 @@ func isPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
 	if prHistory.Repository.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount >= 1 {
 		// If the default value is 0 when we cannot retrieve the value,
 		// a non-zero value means we're confident it's enabled.
-		return checker.MakePassResultWithHighConfidenceAndReason(checkCodeReview, c, "branch protection for default branch is enabled")
+		return checker.CreateMaxScoreResult(checkCodeReview, "branch protection for default branch is enabled")
 	}
-	return checker.MakeInconclusiveResult2(checkCodeReview, c, "cannot determine if branch protection is enabled")
+	return checker.CreateInconclusiveResult(checkCodeReview, "cannot determine if branch protection is enabled")
 }
 
 func prowCodeReview(c *checker.CheckRequest) checker.CheckResult {
@@ -185,7 +183,7 @@ func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 			}
 		}
 		if isBot {
-			c.CLogger.Debug("skip commit from bot account: %s", committer)
+			c.Dlogger.Debug("skip commit from bot account: %s", committer)
 			continue
 		}
 
@@ -200,27 +198,15 @@ func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	if totalReviewed > 0 {
-		reason := fmt.Sprintf("Gerrit code reviews found for %v commits out of the last %v", totalReviewed, total)
-		if total == totalReviewed {
-			return checker.MakePassResultWithHighConfidenceAndReason(checkCodeReview, c, reason)
-		} else {
-			return checker.MakeFailResultLowConfidenceAndReason(checkCodeReview, c, checker.HalfResultConfidence, reason)
-		}
-	}
-
 	return createResult(c, "Gerrit", totalReviewed, total)
 }
 
 func createResult(c *checker.CheckRequest, reviewName string, reviewed, total int) checker.CheckResult {
-	if reviewed > 0 {
+	if total > 0 {
 		reason := fmt.Sprintf("%s code reviews found for %v commits out of the last %v", reviewName, reviewed, total)
-		if total == reviewed {
-			return checker.MakePassResultWithHighConfidenceAndReason(checkCodeReview, c, reason)
-		} else {
-			return checker.MakeFailResultLowConfidenceAndReason(checkCodeReview, c, checker.HalfResultConfidence, reason)
-		}
+		return checker.CreateProportionalScoreResult(checkCodeReview, reason, reviewed, total)
+
 	}
 
-	return checker.MakeInconclusiveResult2(checkCodeReview, c, fmt.Sprintf("no %s reviews found", reviewName))
+	return checker.CreateInconclusiveResult(checkCodeReview, fmt.Sprintf("no %s commits found", reviewName))
 }

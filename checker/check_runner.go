@@ -39,67 +39,49 @@ type CheckFn func(*CheckRequest) CheckResult
 
 type CheckNameToFnMap map[string]CheckFn
 
+// Types of details.
+type DetailType int
+
+const (
+	DetailInfo DetailType = iota
+	DetailWarn
+	DetailDebug
+)
+
+// CheckDetail contains information for each detail.
+//nolint:govet
+type CheckDetail struct {
+	Type DetailType // Any of DetailWarn, DetailInfo, DetailDebug.
+	Msg  string     // A short string explaining why the details was recorded/logged..
+}
+
+// UPGRADEv2: messages2 will ultimately
+// be renamed to messages.
 type logger struct {
-	// Note: messages2 will ultimately
-	// be renamed to messages.
 	messages  []string
 	messages2 []CheckDetail
 }
 
-type CheckLogger struct {
+type DetailLogger struct {
 	l *logger
 }
 
-func (l *CheckLogger) FailWithCode(code, desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailFail, Code: code, Desc: fmt.Sprintf(desc, args...)}
+func (l *DetailLogger) Info(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailInfo, Msg: fmt.Sprintf(desc, args...)}
 	l.l.messages2 = append(l.l.messages2, cd)
 }
 
-func (l *CheckLogger) Fail(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailFail, Code: "", Desc: fmt.Sprintf(desc, args...)}
+func (l *DetailLogger) Warn(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailWarn, Msg: fmt.Sprintf(desc, args...)}
 	l.l.messages2 = append(l.l.messages2, cd)
 }
 
-func (l *CheckLogger) Pass(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailPass, Code: "", Desc: fmt.Sprintf(desc, args...)}
+func (l *DetailLogger) Debug(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailDebug, Msg: fmt.Sprintf(desc, args...)}
 	l.l.messages2 = append(l.l.messages2, cd)
 }
 
-func (l *CheckLogger) PassWithCode(code, desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailPass, Code: code, Desc: fmt.Sprintf(desc, args...)}
-	l.l.messages2 = append(l.l.messages2, cd)
-}
-
-func (l *CheckLogger) Info(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailInfo, Code: "", Desc: fmt.Sprintf(desc, args...)}
-	l.l.messages2 = append(l.l.messages2, cd)
-}
-
-func (l *CheckLogger) InfoWithCode(code, desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailInfo, Code: code, Desc: fmt.Sprintf(desc, args...)}
-	l.l.messages2 = append(l.l.messages2, cd)
-}
-
-func (l *CheckLogger) Warn(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailWarn, Code: "", Desc: fmt.Sprintf(desc, args...)}
-	l.l.messages2 = append(l.l.messages2, cd)
-}
-
-func (l *CheckLogger) WarnWithCode(code, desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailWarn, Code: code, Desc: fmt.Sprintf(desc, args...)}
-	l.l.messages2 = append(l.l.messages2, cd)
-}
-
-func (l *CheckLogger) Debug(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailDebug, Code: "", Desc: fmt.Sprintf(desc, args...)}
-	l.l.messages2 = append(l.l.messages2, cd)
-}
-
-func (l *CheckLogger) DebugWithCode(code, desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailDebug, Code: code, Desc: fmt.Sprintf(desc, args...)}
-	l.l.messages2 = append(l.l.messages2, cd)
-}
-
+// UPGRADEv2: to remove.
 func (l *logger) Logf(s string, f ...interface{}) {
 	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
@@ -127,21 +109,24 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 
 	var res CheckResult
 	var l logger
-	var cl CheckLogger
+	var dl DetailLogger
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx
 		l = logger{}
-		cl = CheckLogger{l: &l}
+		dl = DetailLogger{l: &l}
+		// UPGRADEv2: to remove.
 		checkRequest.Logf = l.Logf
-		checkRequest.CLogger = cl
+		checkRequest.Dlogger = dl
 		res = f(&checkRequest)
+		// UPGRADEv2: to fix using proper error check.
 		if res.ShouldRetry && !strings.Contains(res.Error.Error(), "invalid header field value") {
 			checkRequest.Logf("error, retrying: %s", res.Error)
 			continue
 		}
 		break
 	}
+	// UPGRADEv2: to remove.
 	res.Details = l.messages
 	res.Details2 = l.messages2
 
@@ -158,6 +143,34 @@ func Bool2int(b bool) int {
 	return 0
 }
 
+// UPGRADEv2: will be renamed.
+func MultiCheckOr2(fns ...CheckFn) CheckFn {
+	return func(c *CheckRequest) CheckResult {
+		var maxResult CheckResult //{Version:2}
+
+		for _, fn := range fns {
+			result := fn(c)
+
+			if result.Score2 > maxResult.Score2 {
+				maxResult = result
+			}
+		}
+		return maxResult
+	}
+}
+
+func MultiCheckAnd2(fns ...CheckFn) CheckFn {
+	return func(c *CheckRequest) CheckResult {
+		var checks []CheckResult
+		for _, fn := range fns {
+			res := fn(c)
+			checks = append(checks, res)
+		}
+		return MakeAndResult2(checks...)
+	}
+}
+
+// UPGRADEv2: will be removed.
 // MultiCheckOr returns the best check result out of several ones performed.
 func MultiCheckOr(fns ...CheckFn) CheckFn {
 	return func(c *CheckRequest) CheckResult {

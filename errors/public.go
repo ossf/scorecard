@@ -12,27 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package errors
 
 import (
-	"context"
-	"net/http"
-
-	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
-
-	"github.com/ossf/scorecard/clients"
+	"errors"
+	"fmt"
 )
 
-type CheckRequest struct {
-	Ctx         context.Context
-	Client      *github.Client
-	GraphClient *githubv4.Client
-	HTTPClient  *http.Client
-	RepoClient  clients.RepoClient
-	// Note: Ultimately Log will be removed and replaced by
-	// CLogger.
-	Logf        func(s string, f ...interface{})
-	Dlogger     DetailLogger
-	Owner, Repo string
+// UPGRADEv2: delete other files in folder.
+//nolint
+var (
+	ErrRunFailure      = errors.New("cannot run check")
+	ErrRepoUnreachable = errors.New("repo unreachable")
+)
+
+// Create a public error using any of the errors
+// listed above. Example:
+func Create(e error, msg string) error {
+	// Note: Errorf automatically wraps the error when used with `%w`.
+	if len(msg) > 0 {
+		return fmt.Errorf("%w: %v", e, msg)
+	}
+	// We still need to use %w to prevent callers from using e == ErrInvalidDockerFile.
+	return fmt.Errorf("%w", e)
 }

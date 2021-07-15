@@ -22,6 +22,7 @@ import (
 	"github.com/h2non/filetype/types"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 //nolint
@@ -36,23 +37,17 @@ const checkBinaryArtifacts string = "Binary-Artifacts"
 func binaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	r, err := CheckFilesContent2("*", false, c, checkBinaryFileContent)
 	if err != nil {
-		// TODO: check for the repo retry error, which should be a common
-		// scorecard error independent of the underlying implementation.
-		return checker.MakeInternalErrorResult(checkBinaryArtifacts, err)
+		return checker.CreateRuntimeErrorResult(checkBinaryArtifacts, err)
 	}
 	if !r {
-		// We need not provid a reason because it's already done
-		// in checkBinaryFileContent via `Pass` call.
-		return checker.MakeFailResultWithHighConfidence(checkBinaryArtifacts)
+		return checker.CreateMinScoreResult(checkBinaryArtifacts, "binaries present in source code")
 	}
 
-	// High confidence result.
-	// We provide a reason to help the user.
-	return checker.MakePassResultWithHighConfidenceAndReason(checkBinaryArtifacts, c, "no binary files found in the repo")
+	return checker.CreateMaxScoreResult(checkBinaryArtifacts, "no binaries found in the repo")
 }
 
 func checkBinaryFileContent(path string, content []byte,
-	cl checker.CheckLogger) (bool, error) {
+	dl checker.DetailLogger) (bool, error) {
 	binaryFileTypes := map[string]bool{
 		"crx":     true,
 		"deb":     true,
@@ -93,15 +88,15 @@ func checkBinaryFileContent(path string, content []byte,
 	var t types.Type
 	var err error
 	if t, err = filetype.Get(content); err != nil {
-		return false, fmt.Errorf("failed in getting the content type %w", err)
+		return false, sce.Create(sce.ErrRunFailure, fmt.Sprint("filetype.Get:%v", err.Error()))
 	}
 
 	if _, ok := binaryFileTypes[t.Extension]; ok {
-		cl.Fail("binary-artifact found: %s", path)
+		dl.Warn("binary found: %s", path)
 		return false, nil
 	} else if _, ok := binaryFileTypes[filepath.Ext(path)]; ok {
 		// Falling back to file based extension.
-		cl.Fail("binary-artifact found: %s", path)
+		dl.Warn("binary found: %s", path)
 		return false, nil
 	}
 

@@ -15,16 +15,13 @@
 package checks
 
 import (
-	"errors"
 	"fmt"
 	"path"
 	"strings"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
-
-// ErrReadFile indicates the header size does not match the size of the file.
-var ErrReadFile = errors.New("could not read entire file")
 
 // IsMatchingPath uses 'pattern' to shell-match the 'path' and its filename
 // 'caseSensitive' indicates the match should be case-sensitive. Default: no.
@@ -37,13 +34,13 @@ func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 	filename := path.Base(fullpath)
 	match, err := path.Match(pattern, fullpath)
 	if err != nil {
-		return false, fmt.Errorf("match error: %w", err)
+		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalFilenameMatch, err))
 	}
 
 	// No match on the fullpath, let's try on the filename only.
 	if !match {
 		if match, err = path.Match(pattern, filename); err != nil {
-			return false, fmt.Errorf("match error: %w", err)
+			return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalFilenameMatch, err))
 		}
 	}
 
@@ -77,7 +74,6 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 		// Filter out files based on path/names using the pattern.
 		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
 		if err != nil {
-			c.Logf("error during isMatchingPath: %v", err)
 			return false
 		}
 		return b
@@ -106,11 +102,12 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 	return checker.MakeFailResult(checkName, nil)
 }
 
+// UPGRADEv2: to rename to CheckFilesContent.
 func CheckFilesContent2(shellPathFnPattern string,
 	caseSensitive bool,
 	c *checker.CheckRequest,
 	onFileContent func(path string, content []byte,
-		cl checker.CheckLogger) (bool, error),
+		dl checker.DetailLogger) (bool, error),
 ) (bool, error) {
 	predicate := func(filepath string) bool {
 		// Filter out Scorecard's own test files.
@@ -120,7 +117,6 @@ func CheckFilesContent2(shellPathFnPattern string,
 		// Filter out files based on path/names using the pattern.
 		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
 		if err != nil {
-			c.CLogger.Warn("%v", err)
 			return false
 		}
 		return b
@@ -132,7 +128,7 @@ func CheckFilesContent2(shellPathFnPattern string,
 			return false, err
 		}
 
-		rr, err := onFileContent(file, content, c.CLogger)
+		rr, err := onFileContent(file, content, c.Dlogger)
 		if err != nil {
 			return false, err
 		}

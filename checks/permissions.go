@@ -22,6 +22,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 const CheckPermissions = "Token-Permissions"
@@ -121,7 +122,7 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 func validateGitHubActionTokenPermissions(path string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
 	if len(content) == 0 {
-		return false, ErrEmptyFile
+		return false, sce.Create(sce.ErrRunFailure, sce.ErrInternalEmptyFile.Error())
 	}
 
 	var workflow map[interface{}]interface{}
