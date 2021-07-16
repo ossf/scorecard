@@ -27,7 +27,7 @@ var (
 )
 
 // Create a public error using any of the errors
-// listed above. Example:
+// listed above. For examples, see errors/errors.md.
 func Create(e error, msg string) error {
 	// Note: Errorf automatically wraps the error when used with `%w`.
 	if len(msg) > 0 {
