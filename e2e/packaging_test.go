@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint:dupl // repeating test cases that are slightly different is acceptable
 package e2e
 
 import (
@@ -36,22 +35,6 @@ var _ = Describe("E2E TEST:Packaging", func() {
 				RepoClient:  nil,
 				Owner:       "apache",
 				Repo:        "orc",
-				GraphClient: graphClient,
-				Logf:        l.Logf,
-			}
-			result := checks.Packaging(&checkRequest)
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
-		})
-		It("Should return use of packaging in CI/CD for scorecard", func() {
-			l := log{}
-			checkRequest := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				HTTPClient:  httpClient,
-				RepoClient:  nil,
-				Owner:       "ossf",
-				Repo:        "scorecard",
 				GraphClient: graphClient,
 				Logf:        l.Logf,
 			}
