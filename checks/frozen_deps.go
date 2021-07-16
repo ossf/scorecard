@@ -134,7 +134,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	res, err := parser.Parse(contentReader)
 	if err != nil {
 		//nolint
-		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%s: %s", sce.ErrInternalInvalidDockerFile.Error(), err.Error()))
+		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalInvalidDockerFile, err))
 	}
 
 	// nolint: prealloc
@@ -205,7 +205,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	res, err := parser.Parse(contentReader)
 	if err != nil {
 		//nolint
-		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%s: %s", sce.ErrInternalInvalidDockerFile.Error(), err.Error()))
+		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalInvalidDockerFile, err))
 	}
 
 	for _, child := range res.AST.Children {
@@ -281,7 +281,7 @@ func createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r bool, err er
 	}
 	if !r {
 		return checker.CreateMinScoreResult(checkFrozenDeps,
-			"insecure (unpinned) dependency donwloads found in GitHub workflows")
+			"insecure (unpinned) dependency downloads found in GitHub workflows")
 	}
 
 	return checker.CreateMaxScoreResult(checkFrozenDeps,
@@ -297,6 +297,7 @@ func TestValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger) (bool, error) {
 	if len(content) == 0 {
+		//nolint
 		return false, sce.Create(sce.ErrRunFailure, sce.ErrInternalEmptyFile.Error())
 	}
 
@@ -305,7 +306,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	if err != nil {
 		//nolint
 		return false, sce.Create(sce.ErrRunFailure,
-			fmt.Sprintf("%s:%s:%s:%s", sce.ErrInternalInvalidYamlFile.Error(), pathfn, string(content), err.Error()))
+			fmt.Sprintf("%v:%s:%s:%v", sce.ErrInternalInvalidYamlFile, pathfn, string(content), err))
 	}
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
@@ -386,7 +387,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte, dl checker.Deta
 	if err != nil {
 		//nolint
 		return false, sce.Create(sce.ErrRunFailure,
-			fmt.Sprintf("%s:%s:%s:%s", sce.ErrInternalInvalidYamlFile.Error(), pathfn, string(content), err.Error()))
+			fmt.Sprintf("%v:%s:%s:%v", sce.ErrInternalInvalidYamlFile, pathfn, string(content), err))
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)

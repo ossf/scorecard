@@ -118,6 +118,7 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 		x[1] = strconv.Itoa(row.Confidence)
 		x[2] = row.Name
 		if showDetails {
+			//nolint
 			if row.Version == 2 {
 				sa := make([]string, 1)
 				for _, v := range row.Details2 {
@@ -151,7 +152,7 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 	return nil
 }
 
-// UPGRADEv2: new code
+// UPGRADEv2: new code.
 func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	sortedChecks := make([]checker.CheckResult, len(r.Checks))
 	for i, checkResult := range r.Checks {
@@ -166,6 +167,7 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 
 	data := make([][]string, len(sortedChecks))
 	for i, row := range sortedChecks {
+		//nolint
 		if row.Version != 2 {
 			continue
 		}

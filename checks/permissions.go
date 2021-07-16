@@ -122,6 +122,7 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 func validateGitHubActionTokenPermissions(path string, content []byte,
 	logf func(s string, f ...interface{})) (bool, error) {
 	if len(content) == 0 {
+		//nolint
 		return false, sce.Create(sce.ErrRunFailure, sce.ErrInternalEmptyFile.Error())
 	}
 

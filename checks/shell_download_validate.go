@@ -102,7 +102,7 @@ func getWgetOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 			u, err := url.Parse(cmd[i])
 			if err != nil {
 				//nolint
-				return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %s", err.Error()))
+				return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %v", err))
 			}
 			return path.Base(u.Path), true, nil
 		}
@@ -122,7 +122,7 @@ func getGsutilOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 				u, err := url.Parse(cmd[i])
 				if err != nil {
 					//nolint
-					return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %s", err.Error()))
+					return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %v", err))
 				}
 				return filepath.Join(filepath.Dir(pathfn), path.Base(u.Path)), true, nil
 			}
@@ -148,7 +148,7 @@ func getAWSOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 			u, err := url.Parse(ifile)
 			if err != nil {
 				//nolint
-				return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %s", err.Error()))
+				return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %v", err))
 			}
 			return filepath.Join(filepath.Dir(ofile), path.Base(u.Path)), true, nil
 		}
@@ -649,7 +649,7 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 	// This is ugly, but the parser does not have a defined error type :/.
 	if err != nil && !strings.Contains(err.Error(), "unsupported node type") {
 		//nolint
-		return "", sce.Create(sce.ErrRunFailure, fmt.Sprintf("syntax.Printer.Print: %s", err.Error()))
+		return "", sce.Create(sce.ErrRunFailure, fmt.Sprintf("syntax.Printer.Print: %v", err))
 	}
 	return buf.String(), nil
 }
@@ -661,7 +661,7 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 	if err != nil {
 		//nolint
 		return false, sce.Create(sce.ErrRunFailure,
-			fmt.Sprintf("%s: %s", sce.ErrInternalInvalidShellCode.Error(), err.Error()))
+			fmt.Sprintf("%v: %v", sce.ErrInternalInvalidShellCode, err))
 	}
 
 	printer := syntax.NewPrinter()
