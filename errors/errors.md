@@ -13,7 +13,7 @@ import sce "github.com/ossf/scorecard/errors"
 // consistent erorr messages to the caller. 
 return sce.Create(sce.ErrRunFailure, ErrInternalInvalidYamlFile.Error())
 
-// Return a standard check run failure, with an error message from an internal error and and API call error.
+// Return a standard check run failure, with an error message from an internal error and an API call error.
 err := dependency.apiCall()
 if err != nil {
     return sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalSomething, err))
