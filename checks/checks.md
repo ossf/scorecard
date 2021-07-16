@@ -86,6 +86,12 @@ This check tries to determine if the project uses a fuzzing system. It currently
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
 
+## Packaging 
+
+This check tries to determine if the project is published as a package that other developers can install/download. The check currently only looks for GitHub packaging workflows. There is plan to add support for package manager hubs in the future. 
+
+**Remediation steps**
+
 ## Pull-Requests 
 
 This check tries to determine if the project requires pull requests for all changes to the default branch. It works by looking at recent commits (first page, ~30) and uses the GitHub API to search for associated pull requests. The check discards commits by usernames containing 'bot' or 'gardener'. The check considers a commit containing the string `Reviewed-on` as being reviewed through gerrit; and does not check for a corresponding PR. 

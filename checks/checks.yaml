@@ -101,6 +101,14 @@ checks:
         To help update your dependencies after pinning them, use tools such as 
         Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
         or [renovate bot](https://github.com/renovatebot/renovate).
+  Packaging:
+    description: >-
+      This check tries to determine if the project is published as a package
+      that other developers can install/download. The check currently only looks for
+      GitHub packaging workflows. There is plan to add support for package manager
+      hubs in the future.
+    remediaiton: >-
+      Publish your project as a downloadable package.
   Signed-Tags:
     description: >-
       This check looks for cryptographically signed tags in the last 5 tags. The
