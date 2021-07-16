@@ -71,7 +71,7 @@ checks:
       - >-
         Enforce the rule for administrators / code owners as well. E.g.
         [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators)
-    Frozen-Deps:
+  Frozen-Deps:
     risk: Medium
     description: >-
       This check tries to determine if a project has declared and pinned its
