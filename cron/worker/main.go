@@ -89,7 +89,7 @@ func processRequest(ctx context.Context,
 			return fmt.Errorf("error during RunScorecards: %w", err)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime().Format("2006-01-02")
-		if err := result.AsJSON(true /*showDetails*/, &buffer); err != nil {
+		if err := result.AsJSON(true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
 	}
