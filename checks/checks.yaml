@@ -105,11 +105,11 @@ checks:
     description: >-
       This check tries to determine if the project is published as a package
       that other developers can install/download. The check currently only looks for
-      [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
+      [GitHub packaging workflows](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
       There is a plan to add support for package manager
-      hubs in the future, suhc as [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).
+      hubs in the future, such as [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).
     remediation:
-      - Publish your project as a downloadable package.
+      - Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
   Signed-Tags:
     description: >-
       This check looks for cryptographically signed tags in the last 5 tags. The
