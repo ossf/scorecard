@@ -29,3 +29,5 @@ func init() {
 9. Update the `checks/checks.yaml` with the description of your check. 
 10. Gerenate the `checks/check.md` using `go build && cd checks/main && ./main`. Verify `checks/check.md` was updated.
 10. Update the [README.md](https://github.com/ossf/scorecard#scorecard-checks) with a short description of your check.
+
+For actual examples, look at [checks/binary_artifact.go](binary_artifact.go), [checks/code_review.go](code_review.go) and [checks/frozen_deps.go](frozen_deps.go).
