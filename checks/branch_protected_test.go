@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"github.com/google/go-github/v32/github"
-
 	"github.com/ossf/scorecard/checker"
 )
 
@@ -88,6 +87,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 	rel1 := "release/v.1"
 	sha := "8fb3cb86082b17144a80402f5367ae65f06083bd"
 	main := "main"
+	//nolint
 	tests := []struct {
 		name          string
 		branches      []*string

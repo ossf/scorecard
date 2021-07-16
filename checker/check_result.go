@@ -27,8 +27,8 @@ const (
 	MinResultConfidence  = 0
 )
 
-// UPGRADEv2: to remove.
 // ErrorDemoninatorZero indicates the denominator for a proportional result is 0.
+// UPGRADEv2: to remove.
 var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
 
 //nolint
@@ -172,6 +172,8 @@ func MakeAndResult2(checks ...CheckResult) CheckResult {
 
 	worseResult := checks[0]
 
+	// UPGRADEv2: will go away after old struct is removed.
+	//nolint
 	for _, result := range checks[1:] {
 		if result.Score2 < worseResult.Score2 {
 			worseResult = result
@@ -248,6 +250,7 @@ func MakeProportionalResult(name string, numerator int, denominator int,
 }
 
 // Given a min result, check if another result is worse.
+//nolint
 func isMinResult(result, min CheckResult) bool {
 	if Bool2int(result.Pass) < Bool2int(min.Pass) {
 		return true
@@ -267,7 +270,8 @@ func MakeAndResult(checks ...CheckResult) CheckResult {
 		Pass:       true,
 		Confidence: MaxResultConfidence,
 	}
-
+	// UPGRADEv2: will go away after old struct is removed.
+	//nolint
 	for _, result := range checks {
 		if minResult.Name == "" {
 			minResult.Name = result.Name

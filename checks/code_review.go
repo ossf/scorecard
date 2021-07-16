@@ -20,9 +20,8 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
-
 	"github.com/ossf/scorecard/checker"
+	"github.com/shurcooL/githubv4"
 )
 
 const (

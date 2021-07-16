@@ -51,6 +51,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 		Date:     r.Date,
 		Metadata: r.Metadata,
 	}
+	// UPGRADEv2: remove nolint after uggrade.
+	//nolint
 	for _, checkResult := range r.Checks {
 		tmpResult := checker.CheckResult{
 			Name:       checkResult.Name,
@@ -69,6 +71,8 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo}
 	columns := []string{"Repository"}
+	// UPGRADEv2: remove nolint after uggrade.
+	//nolint
 	for _, checkResult := range r.Checks {
 		columns = append(columns, checkResult.Name+"_Pass", checkResult.Name+"_Confidence")
 		record = append(record, strconv.FormatBool(checkResult.Pass),
@@ -92,6 +96,7 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer
 // UPGRADEv2: will be removed.
 func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	sortedChecks := make([]checker.CheckResult, len(r.Checks))
+	//nolint
 	for i, checkResult := range r.Checks {
 		sortedChecks[i] = checkResult
 	}
@@ -103,6 +108,7 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 	})
 
 	data := make([][]string, len(sortedChecks))
+	//nolint
 	for i, row := range sortedChecks {
 		const withdetails = 4
 		const withoutdetails = 3
@@ -120,7 +126,7 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 		if showDetails {
 			//nolint
 			if row.Version == 2 {
-				sa := make([]string, 1)
+				var sa []string
 				for _, v := range row.Details2 {
 					if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
 						continue
@@ -155,6 +161,8 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 // UPGRADEv2: new code.
 func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	sortedChecks := make([]checker.CheckResult, len(r.Checks))
+	//nolint
+	// UPGRADEv2: not needed after upgrade.
 	for i, checkResult := range r.Checks {
 		sortedChecks[i] = checkResult
 	}
@@ -166,6 +174,8 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 	})
 
 	data := make([][]string, len(sortedChecks))
+	//nolint
+	// UPGRADEv2: not needed after upgrade.
 	for i, row := range sortedChecks {
 		//nolint
 		if row.Version != 2 {
@@ -192,7 +202,9 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 		x[1] = row.Reason2
 		x[2] = row.Name
 		if showDetails {
-			sa := make([]string, 1)
+			// UPGRADEv2: change to make([]string, len(row.Details))
+			// followed by sa[i] = instead of append
+			var sa []string
 			for _, v := range row.Details2 {
 				if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
 					continue
@@ -240,6 +252,7 @@ func typeToString(cd checker.DetailType) string {
 	}
 }
 
+// UPGRADEv2: not needed after upgrade.
 func displayResult(result bool) string {
 	if result {
 		return "Pass"

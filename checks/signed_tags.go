@@ -17,9 +17,8 @@ package checks
 import (
 	"errors"
 
-	"github.com/shurcooL/githubv4"
-
 	"github.com/ossf/scorecard/checker"
+	"github.com/shurcooL/githubv4"
 )
 
 const (

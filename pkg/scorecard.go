@@ -22,14 +22,13 @@ import (
 	"time"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
-	opencensusstats "go.opencensus.io/stats"
-	"go.opencensus.io/tag"
-
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/clients"
 	"github.com/ossf/scorecard/repos"
 	"github.com/ossf/scorecard/stats"
+	"github.com/shurcooL/githubv4"
+	opencensusstats "go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 )
 
 func logStats(ctx context.Context, startTime time.Time) {

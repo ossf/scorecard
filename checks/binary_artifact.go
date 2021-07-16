@@ -20,7 +20,6 @@ import (
 
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
-
 	"github.com/ossf/scorecard/checker"
 	sce "github.com/ossf/scorecard/errors"
 )
