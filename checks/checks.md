@@ -88,9 +88,10 @@ This check tries to determine if the project uses a fuzzing system. It currently
 
 ## Packaging 
 
-This check tries to determine if the project is published as a package that other developers can install/download. The check currently only looks for GitHub packaging workflows. There is plan to add support for package manager hubs in the future. 
+This check tries to determine if the project is published as a package that other developers can install/download. The check currently only looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package). There is a plan to add support for package manager hubs in the future, suhc as [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/). 
 
 **Remediation steps**
+- Publish your project as a downloadable package.
 
 ## Pull-Requests 
 
