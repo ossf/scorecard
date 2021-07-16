@@ -48,6 +48,7 @@ var _ = Describe("E2E TEST:executable", func() {
 			Expect(len(data.MetaData)).ShouldNot(BeZero())
 			Expect(data.MetaData[0]).Should(BeEquivalentTo("openssf"))
 
+			// UPGRADEv2: TBD.
 			for _, c := range data.Checks {
 				switch c.CheckName {
 				case "Active":

@@ -28,7 +28,7 @@ import (
 )
 
 // TODO: use dedicated repo that don't change.
-// TODO: need negative results
+// TODO: need negative results.
 var _ = Describe("E2E TEST:FrozenDeps", func() {
 	Context("E2E TEST:Validating deps are frozen", func() {
 		It("Should return deps are not frozen", func() {
@@ -49,12 +49,17 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 			}
 			expected := scut.TestReturn{
 				Errors:        nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  0,
+				Score:         checker.InconclusiveResultScore,
+				NumberOfWarn:  219,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
 			result := checks.FrozenDeps(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeFalse())
+			// New version.
 			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
 		})
 		It("Should return deps are frozen", func() {
@@ -73,10 +78,20 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			}
 			result := checks.FrozenDeps(&req)
-			// Note: should be using ValidateTestReturn().
-			Expect(result.Error2).Should(BeNil())
-			Expect(result.Score2 == checker.MinResultScore).Should(BeTrue())
+			// UPGRADEv2: to remove.
+			// Old version.
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+			// New version.
+			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

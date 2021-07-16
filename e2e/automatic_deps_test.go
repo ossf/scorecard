@@ -27,7 +27,7 @@ import (
 )
 
 // TODO: use dedicated repo that don't change.
-// TODO: need negative results
+// TODO: need negative results.
 var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
 	Context("E2E TEST:Validating dependencies are automatically updated", func() {
 		It("Should return deps are automatically updated for dependabot", func() {
@@ -49,11 +49,16 @@ var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 
 			result := checks.AutomaticDependencyUpdate(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+			// New version.
 			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
 		})
 		It("Should return deps are automatically updated for renovatebot", func() {
@@ -75,10 +80,15 @@ var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.AutomaticDependencyUpdate(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+			// New version.
 			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
 		})
 	})

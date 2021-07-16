@@ -26,7 +26,7 @@ import (
 )
 
 // TODO: use dedicated repo that don't change.
-// TODO: need negative results
+// TODO: need negative results.
 var _ = Describe("E2E TEST:CodeReview", func() {
 	Context("E2E TEST:Validating use of code reviews", func() {
 		It("Should return use of code reviews", func() {
@@ -46,9 +46,14 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				NumberOfDebug: 30,
 			}
 			result := checks.DoesCodeReview(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+			// New version.
 			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
 		})
 	})

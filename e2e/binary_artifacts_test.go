@@ -27,7 +27,7 @@ import (
 )
 
 // TODO: use dedicated repo that don't change.
-// TODO: need negative results
+// TODO: need negative results.
 var _ = Describe("E2E TEST:Binary-Artifacts", func() {
 	Context("E2E TEST:Binary artifacts are not present in source code", func() {
 		It("Should return not binary artifacts in source code", func() {
@@ -54,6 +54,11 @@ var _ = Describe("E2E TEST:Binary-Artifacts", func() {
 			}
 
 			result := checks.BinaryArtifacts(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+			// New version.
 			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
 		})
 		It("Should return binary artifacts present in source code", func() {
@@ -73,12 +78,17 @@ var _ = Describe("E2E TEST:Binary-Artifacts", func() {
 			}
 			expected := scut.TestReturn{
 				Errors:        nil,
-				Score:         checker.MaxResultScore,
+				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
 			result := checks.BinaryArtifacts(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeFalse())
+			// New version.
 			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
 		})
 	})

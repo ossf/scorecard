@@ -38,7 +38,6 @@ func validateDetailTypes(messages []checker.CheckDetail, nw, ni, nd int) bool {
 			enw += 1
 		}
 	}
-
 	return enw == nw &&
 		eni == ni &&
 		end == nd
@@ -85,6 +84,8 @@ func (l *TestDetailLogger) Debug(desc string, args ...interface{}) {
 func ValidateTestReturn(te *TestReturn, tr *checker.CheckResult, dl *TestDetailLogger) bool {
 	for _, we := range te.Errors {
 		if !errors.Is(tr.Error2, we) {
+			fmt.Printf("invalid error returned: %v is not of type %v",
+				tr.Error, we)
 			return false
 		}
 	}

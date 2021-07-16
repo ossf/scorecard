@@ -109,7 +109,7 @@ func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 		Version: 2,
 		Error2:  nil,
 		Score2:  10 * b / t,
-		Reason2: fmt.Sprintf("%v -- code normalized to %d", reason, score),
+		Reason2: fmt.Sprintf("%v -- score normalized to %d", reason, score),
 	}
 }
 

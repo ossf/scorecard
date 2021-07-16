@@ -58,7 +58,7 @@ func init() {
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
 func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheckAnd(
+	return checker.MultiCheckAnd2(
 		isPackageManagerLockFilePresent,
 		isGitHubActionsWorkflowPinned,
 		isDockerfilePinned,
