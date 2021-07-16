@@ -14,6 +14,7 @@
 
 package pkg
 
+//nolint:gci
 import (
 	"context"
 	"fmt"
