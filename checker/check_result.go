@@ -21,6 +21,7 @@ import (
 	scorecarderrors "github.com/ossf/scorecard/errors"
 )
 
+// UPGRADEv2: to remove.
 const (
 	MaxResultConfidence  = 10
 	HalfResultConfidence = 5
