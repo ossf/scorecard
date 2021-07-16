@@ -146,7 +146,8 @@ func Bool2int(b bool) int {
 // UPGRADEv2: will be renamed.
 func MultiCheckOr2(fns ...CheckFn) CheckFn {
 	return func(c *CheckRequest) CheckResult {
-		var maxResult CheckResult //{Version:2}
+		//nolint
+		maxResult := CheckResult{Version: 2}
 
 		for _, fn := range fns {
 			result := fn(c)

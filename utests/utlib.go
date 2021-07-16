@@ -31,11 +31,11 @@ func validateDetailTypes(messages []checker.CheckDetail, nw, ni, nd int) bool {
 		default:
 			panic(fmt.Sprintf("invalid type %v", v.Type))
 		case checker.DetailInfo:
-			eni += 1
+			eni++
 		case checker.DetailDebug:
-			end += 1
+			end++
 		case checker.DetailWarn:
-			enw += 1
+			enw++
 		}
 	}
 	return enw == nw &&
@@ -48,8 +48,8 @@ type TestDetailLogger struct {
 }
 
 type TestArgs struct {
-	Dl       TestDetailLogger
 	Filename string
+	Dl       TestDetailLogger
 }
 
 type TestReturn struct {
@@ -61,9 +61,9 @@ type TestReturn struct {
 }
 
 type TestInfo struct {
+	Name     string
 	Args     TestArgs
 	Expected TestReturn
-	Name     string
 }
 
 func (l *TestDetailLogger) Info(desc string, args ...interface{}) {
@@ -98,6 +98,7 @@ func ValidateTestReturn(te *TestReturn, tr *checker.CheckResult, dl *TestDetailL
 	return true
 }
 
+//nolint
 func ValidateTestInfo(t *testing.T, ti *TestInfo, tr *checker.CheckResult) bool {
 	for _, we := range ti.Expected.Errors {
 		if !errors.Is(tr.Error2, we) {

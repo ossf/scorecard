@@ -101,7 +101,8 @@ func getWgetOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 
 			u, err := url.Parse(cmd[i])
 			if err != nil {
-				return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %v", err))
+				//nolint
+				return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %s", err.Error()))
 			}
 			return path.Base(u.Path), true, nil
 		}
@@ -120,7 +121,8 @@ func getGsutilOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 				// Directory.
 				u, err := url.Parse(cmd[i])
 				if err != nil {
-					return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %v", err))
+					//nolint
+					return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %s", err.Error()))
 				}
 				return filepath.Join(filepath.Dir(pathfn), path.Base(u.Path)), true, nil
 			}
@@ -145,7 +147,8 @@ func getAWSOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 		if filepath.Clean(filepath.Dir(ofile)) == filepath.Clean(ofile) {
 			u, err := url.Parse(ifile)
 			if err != nil {
-				return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %v", err))
+				//nolint
+				return "", false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("url.Parse: %s", err.Error()))
 			}
 			return filepath.Join(filepath.Dir(ofile), path.Base(u.Path)), true, nil
 		}
@@ -645,7 +648,8 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 	err := p.Print(&buf, node)
 	// This is ugly, but the parser does not have a defined error type :/.
 	if err != nil && !strings.Contains(err.Error(), "unsupported node type") {
-		return "", sce.Create(sce.ErrRunFailure, fmt.Sprintf("syntax.Printer.Print: %v", err))
+		//nolint
+		return "", sce.Create(sce.ErrRunFailure, fmt.Sprintf("syntax.Printer.Print: %s", err.Error()))
 	}
 	return buf.String(), nil
 }
@@ -655,7 +659,9 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 	in := strings.NewReader(string(content))
 	f, err := syntax.NewParser().Parse(in, "")
 	if err != nil {
-		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalInvalidShellCode, err))
+		//nolint
+		return false, sce.Create(sce.ErrRunFailure,
+			fmt.Sprintf("%s: %s", sce.ErrInternalInvalidShellCode.Error(), err.Error()))
 	}
 
 	printer := syntax.NewPrinter()

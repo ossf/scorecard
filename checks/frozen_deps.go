@@ -133,7 +133,8 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	contentReader := strings.NewReader(string(content))
 	res, err := parser.Parse(contentReader)
 	if err != nil {
-		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalInvalidDockerFile, err))
+		//nolint
+		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%s: %s", sce.ErrInternalInvalidDockerFile.Error(), err.Error()))
 	}
 
 	// nolint: prealloc
@@ -153,6 +154,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		}
 
 		if len(valueList) == 0 {
+			//nolint
 			return false, sce.Create(sce.ErrRunFailure, sce.ErrInternalInvalidDockerFile.Error())
 		}
 
@@ -202,7 +204,8 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	pinnedAsNames := make(map[string]bool)
 	res, err := parser.Parse(contentReader)
 	if err != nil {
-		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalInvalidDockerFile, err))
+		//nolint
+		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%s: %s", sce.ErrInternalInvalidDockerFile.Error(), err.Error()))
 	}
 
 	for _, child := range res.AST.Children {
@@ -252,12 +255,14 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 		default:
 			// That should not happen.
+			//nolint
 			return false, sce.Create(sce.ErrRunFailure, sce.ErrInternalInvalidDockerFile.Error())
 		}
 	}
 
 	// The file should have at least one FROM statement.
 	if !fromFound {
+		//nolint
 		return false, sce.Create(sce.ErrRunFailure, sce.ErrInternalInvalidDockerFile.Error())
 	}
 
@@ -283,7 +288,8 @@ func createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r bool, err er
 		"no insecure (unpinned) dependency downloads found in GitHub workflows")
 }
 
-func TestValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string, content []byte, dl checker.DetailLogger) checker.CheckResult {
+func TestValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
+	content []byte, dl checker.DetailLogger) checker.CheckResult {
 	r, err := validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn, content, dl)
 	return createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, err)
 }
@@ -297,8 +303,9 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
+		//nolint
 		return false, sce.Create(sce.ErrRunFailure,
-			fmt.Sprintf("%v:%v:%v:%v", sce.ErrInternalInvalidYamlFile.Error(), pathfn, string(content), err.Error()))
+			fmt.Sprintf("%s:%s:%s:%s", sce.ErrInternalInvalidYamlFile.Error(), pathfn, string(content), err.Error()))
 	}
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
@@ -370,14 +377,16 @@ func TestIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 // Check file content.
 func validateGitHubActionWorkflow(pathfn string, content []byte, dl checker.DetailLogger) (bool, error) {
 	if len(content) == 0 {
+		//nolint
 		return false, sce.Create(sce.ErrRunFailure, sce.ErrInternalEmptyFile.Error())
 	}
 
 	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
+		//nolint
 		return false, sce.Create(sce.ErrRunFailure,
-			fmt.Sprintf("%v:%v:%v:%v", sce.ErrInternalInvalidYamlFile.Error(), pathfn, string(content), err.Error()))
+			fmt.Sprintf("%s:%s:%s:%s", sce.ErrInternalInvalidYamlFile.Error(), pathfn, string(content), err.Error()))
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)

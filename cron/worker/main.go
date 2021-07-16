@@ -29,6 +29,7 @@ import (
 	"github.com/shurcooL/githubv4"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"

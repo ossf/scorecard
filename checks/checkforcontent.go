@@ -34,13 +34,15 @@ func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 	filename := path.Base(fullpath)
 	match, err := path.Match(pattern, fullpath)
 	if err != nil {
-		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalFilenameMatch, err))
+		//nolint
+		return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%s: %s", sce.ErrInternalFilenameMatch.Error(), err.Error()))
 	}
 
 	// No match on the fullpath, let's try on the filename only.
 	if !match {
 		if match, err = path.Match(pattern, filename); err != nil {
-			return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalFilenameMatch, err))
+			//nolint
+			return false, sce.Create(sce.ErrRunFailure, fmt.Sprintf("%s: %s", sce.ErrInternalFilenameMatch.Error(), err.Error()))
 		}
 	}
 
@@ -125,7 +127,8 @@ func CheckFilesContent2(shellPathFnPattern string,
 	for _, file := range c.RepoClient.ListFiles(predicate) {
 		content, err := c.RepoClient.GetFileContent(file)
 		if err != nil {
-			return false, err
+			//nolint
+			return false, sce.Create(sce.ErrRunFailure, err.Error())
 		}
 
 		rr, err := onFileContent(file, content, c.Dlogger)

@@ -28,7 +28,6 @@ import (
 const (
 	// checkCodeReview is the registered name for DoesCodeReview.
 	checkCodeReview       = "Code-Review"
-	crPassThreshold       = .75
 	pullRequestsToAnalyze = 30
 	reviewsToAnalyze      = 30
 	labelsToAnalyze       = 30
@@ -131,7 +130,7 @@ func githubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	return createResult(c, "GitHub", totalReviewed, totalMerged)
+	return createResult("GitHub", totalReviewed, totalMerged)
 }
 
 func isPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
@@ -162,7 +161,7 @@ func prowCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	return createResult(c, "Prow", totalReviewed, totalMerged)
+	return createResult("Prow", totalReviewed, totalMerged)
 }
 
 func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
@@ -198,15 +197,13 @@ func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	return createResult(c, "Gerrit", totalReviewed, total)
+	return createResult("Gerrit", totalReviewed, total)
 }
 
-func createResult(c *checker.CheckRequest, reviewName string, reviewed, total int) checker.CheckResult {
+func createResult(reviewName string, reviewed, total int) checker.CheckResult {
 	if total > 0 {
 		reason := fmt.Sprintf("%s code reviews found for %v commits out of the last %v", reviewName, reviewed, total)
 		return checker.CreateProportionalScoreResult(checkCodeReview, reason, reviewed, total)
-
 	}
-
 	return checker.CreateInconclusiveResult(checkCodeReview, fmt.Sprintf("no %s commits found", reviewName))
 }
