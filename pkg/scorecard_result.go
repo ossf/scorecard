@@ -167,7 +167,7 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 	data := make([][]string, len(sortedChecks))
 	for i, row := range sortedChecks {
 		if row.Version != 2 {
-			panic("wrong version")
+			continue
 		}
 		const withdetails = 5
 		const withoutdetails = 4
