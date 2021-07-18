@@ -53,8 +53,8 @@ func SortAndAppendTo(out io.Writer, oldRepos, newRepos []repos.RepoURL) error {
 	return nil
 }
 
-func SortAndAppend(out io.Writer, newRepos []repos.RepoURL) error {
-	iter, err := MakeIterator()
+func SortAndAppendFrom(in io.Reader, out io.Writer, newRepos []repos.RepoURL) error {
+	iter, err := MakeIteratorFrom(in)
 	if err != nil {
 		return fmt.Errorf("error during MakeIterator: %w", err)
 	}

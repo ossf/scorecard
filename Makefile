@@ -59,13 +59,13 @@ check-linter: $(GOLANGGCI_LINT)
 add-projects: ## Adds new projects to ./cron/data/projects.csv
 add-projects: ./cron/data/projects.csv | build-add-script
 	# Add new projects to ./cron/data/projects.csv
-	./cron/data/add/add ./cron/data/projects.new.csv
+	./cron/data/add/add ./cron/data/projects.csv ./cron/data/projects.new.csv
 	mv ./cron/data/projects.new.csv ./cron/data/projects.csv
 
 validate-projects: ## Validates ./cron/data/projects.csv
 validate-projects: ./cron/data/projects.csv | build-validate-script
 	# Validate ./cron/data/projects.csv
-	./cron/data/validate/validate
+	./cron/data/validate/validate ./cron/data/projects.csv
 
 tree-status: ## Verify tree is clean and all changes are committed
 	# Verify the tree is clean and all changes are commited
@@ -148,7 +148,6 @@ e2e: build-scorecard check-env | $(GINKGO)
 	$(GINKGO) --skip="E2E TEST:executable" -p -v -cover  ./...
 
 $(GINKGO): install
-
 
 ci-e2e: ## Runs CI e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
 ci-e2e: build-scorecard check-env | $(GINKGO)

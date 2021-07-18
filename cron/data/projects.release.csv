@@ -1,0 +1,12 @@
+repo,metadata
+# 300 redirects
+github.com/cocos2d/cocos2d-objc,
+github.com/dargullin/icheck,
+# Empty repos
+github.com/google/YouCompleteSubl,
+github.com/google-research-datasets/quest,
+# Does not exist
+github.com/does/not_exist,should_skip
+# Corrupted tarballs
+github.com/cdnjs/cdnjs,
+github.com/echen102/COVID-19-TweetIDs,

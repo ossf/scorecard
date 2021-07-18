@@ -15,7 +15,6 @@
 package data
 
 import (
-	"embed"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -26,24 +25,15 @@ import (
 	"github.com/ossf/scorecard/repos"
 )
 
-//go:embed projects.csv
-var csvFile embed.FS
-
 type Iterator interface {
 	HasNext() bool
 	Next() (repos.RepoURL, error)
 }
 
-func MakeIterator() (Iterator, error) {
-	csvReader, err := csvFile.Open("projects.csv")
-	if err != nil {
-		return nil, fmt.Errorf("error in Open: %w", err)
-	}
-	return MakeIteratorFrom(csvReader)
-}
-
 func MakeIteratorFrom(reader io.Reader) (Iterator, error) {
-	dec, err := csvutil.NewDecoder(csv.NewReader(reader))
+	csvReader := csv.NewReader(reader)
+	csvReader.Comment = '#'
+	dec, err := csvutil.NewDecoder(csvReader)
 	if err != nil {
 		return nil, fmt.Errorf("error in csvutil.NewDecoder: %w", err)
 	}
