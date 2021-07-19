@@ -16,7 +16,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/h2non/filetype v1.1.1
 	github.com/jszwec/csvutil v1.5.0
-	github.com/moby/buildkit v0.8.3
+	github.com/moby/buildkit v0.9.0
 	github.com/naveensrinivasan/httpcache v1.2.2
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.4
