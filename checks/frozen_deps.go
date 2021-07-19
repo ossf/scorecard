@@ -26,8 +26,8 @@ import (
 	sce "github.com/ossf/scorecard/errors"
 )
 
-// checkFrozenDeps is the registered name for FrozenDeps.
-const checkFrozenDeps = "Frozen-Deps"
+// CheckFrozenDeps is the registered name for FrozenDeps.
+const CheckFrozenDeps = "Frozen-Deps"
 
 // Structure for workflow config.
 // We only declare the fields we need.
@@ -54,7 +54,7 @@ type gitHubActionWorkflowConfig struct {
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(checkFrozenDeps, FrozenDeps)
+	registerCheck(CheckFrozenDeps, FrozenDeps)
 }
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
@@ -78,14 +78,14 @@ func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.Check
 
 func createResultForIsShellScriptFreeOfInsecureDownloads(r bool, err error) checker.CheckResult {
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
 	}
 	if !r {
-		return checker.CreateMinScoreResult(checkFrozenDeps,
+		return checker.CreateMinScoreResult(CheckFrozenDeps,
 			"insecure (unpinned) dependency downloads found in shell scripts")
 	}
 
-	return checker.CreateMaxScoreResult(checkFrozenDeps,
+	return checker.CreateMaxScoreResult(CheckFrozenDeps,
 		"no insecure (unpinned) dependency downloads found in shell scripts")
 }
 
@@ -112,14 +112,14 @@ func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckR
 // Create the result.
 func createResultForIsDockerfileFreeOfInsecureDownloads(r bool, err error) checker.CheckResult {
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
 	}
 	if !r {
-		return checker.CreateMinScoreResult(checkFrozenDeps,
+		return checker.CreateMinScoreResult(CheckFrozenDeps,
 			"insecure (unpinned) dependency downloads found in Dockerfiles")
 	}
 
-	return checker.CreateMaxScoreResult(checkFrozenDeps,
+	return checker.CreateMaxScoreResult(CheckFrozenDeps,
 		"no insecure (unpinned) dependency downloads found in Dockerfiles")
 }
 
@@ -175,13 +175,13 @@ func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
 // Create the result.
 func createResultForIsDockerfilePinned(r bool, err error) checker.CheckResult {
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
 	}
 	if r {
-		return checker.CreateMaxScoreResult(checkFrozenDeps, "Dockerfile dependencies are pinned")
+		return checker.CreateMaxScoreResult(CheckFrozenDeps, "Dockerfile dependencies are pinned")
 	}
 
-	return checker.CreateMinScoreResult(checkFrozenDeps, "unpinned dependencies found Dockerfiles")
+	return checker.CreateMinScoreResult(CheckFrozenDeps, "unpinned dependencies found Dockerfiles")
 }
 
 func TestValidateDockerfileIsPinned(pathfn string, content []byte, dl checker.DetailLogger) checker.CheckResult {
@@ -278,14 +278,14 @@ func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) chec
 // Create the result.
 func createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r bool, err error) checker.CheckResult {
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
 	}
 	if !r {
-		return checker.CreateMinScoreResult(checkFrozenDeps,
+		return checker.CreateMinScoreResult(CheckFrozenDeps,
 			"insecure (unpinned) dependency downloads found in GitHub workflows")
 	}
 
-	return checker.CreateMaxScoreResult(checkFrozenDeps,
+	return checker.CreateMaxScoreResult(CheckFrozenDeps,
 		"no insecure (unpinned) dependency downloads found in GitHub workflows")
 }
 
@@ -362,13 +362,13 @@ func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult 
 // Create the result.
 func createResultForIsGitHubActionsWorkflowPinned(r bool, err error) checker.CheckResult {
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
 	}
 	if r {
-		return checker.CreateMaxScoreResult(checkFrozenDeps, "GitHub actions are pinned")
+		return checker.CreateMaxScoreResult(CheckFrozenDeps, "GitHub actions are pinned")
 	}
 
-	return checker.CreateMinScoreResult(checkFrozenDeps, "GitHub actions are not pinned")
+	return checker.CreateMinScoreResult(CheckFrozenDeps, "GitHub actions are not pinned")
 }
 
 func TestIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker.DetailLogger) checker.CheckResult {
@@ -415,15 +415,15 @@ func validateGitHubActionWorkflow(pathfn string, content []byte, dl checker.Deta
 
 // Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckIfFileExists2(checkFrozenDeps, c, validatePackageManagerFile)
+	r, err := CheckIfFileExists2(CheckFrozenDeps, c, validatePackageManagerFile)
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(checkFrozenDeps, err)
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
 	}
 	if !r {
-		return checker.CreateInconclusiveResult(checkFrozenDeps, "no lock files detected for a package manager")
+		return checker.CreateInconclusiveResult(CheckFrozenDeps, "no lock files detected for a package manager")
 	}
 
-	return checker.CreateMaxScoreResult(checkFrozenDeps, "lock file detected for a package manager")
+	return checker.CreateMaxScoreResult(CheckFrozenDeps, "lock file detected for a package manager")
 }
 
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.

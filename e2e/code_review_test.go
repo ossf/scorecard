@@ -54,7 +54,7 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
-			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

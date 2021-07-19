@@ -60,7 +60,7 @@ var _ = Describe("E2E TEST:Binary-Artifacts", func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
-			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "no binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 		})
 		It("Should return binary artifacts present in source code", func() {
 			dl := scut.TestDetailLogger{}
@@ -90,7 +90,7 @@ var _ = Describe("E2E TEST:Binary-Artifacts", func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
-			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, " binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

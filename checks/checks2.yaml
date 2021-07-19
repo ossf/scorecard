@@ -21,8 +21,10 @@ checks:
       This check tries to determine if the project is "actively maintained".
 
       A project which is not active may not be patched, may not have its
-      dependencies patched, or may not be actively tested and used. So  It
-      currently works by looking for commits within the last 90 days, and
+      dependencies patched, or may not be actively tested and used. 
+      A low score is therefore considered `High` risk.
+      
+      The check currently works by looking for commits within the last 90 days, and
       outputs the highest score if there are at least 1 commit/week during this period.
     remediation:
       - >-
@@ -84,6 +86,28 @@ checks:
       - >-
         Enforce the rule for administrators / code owners as well. E.g.
         [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators)
+  Branch-Protection:
+    risk: High
+    description: >-
+      Branch protection allows defining rules to enforce certain workflows for
+      branches, such as requiring a review or passing certain status checks.
+
+      Branch protection ensures compromised contributors cannot 
+      intentionally inject malicious code. A low score is therefore considered `High` risk.
+      
+      This check determines if the default and release branches are
+      protected with GitHub's branch protection settings.
+      The check only works when the token has [Admin
+      access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197)
+      to the repository. This check determines if the default and release branches are
+      protected.
+    remediation:
+      - >-
+        Enable branch protection settings in your source hosting provider to
+        avoid force pushes or deletion of your important branches.
+      - >-
+        For GitHub, check out the steps
+        [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
   Frozen-Deps:
     risk: Medium
     description: >-

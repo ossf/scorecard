@@ -59,7 +59,7 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
-			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "deps not frozen", &expected, &result, &dl)).Should(BeTrue())
 		})
 		It("Should return deps are frozen", func() {
 			dl := scut.TestDetailLogger{}
@@ -90,7 +90,7 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
-			Expect(scut.ValidateTestReturn(&expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "deps frozen", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

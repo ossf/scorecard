@@ -47,10 +47,10 @@ type TestDetailLogger struct {
 	messages []checker.CheckDetail
 }
 
-type TestArgs struct {
-	Filename string
-	Dl       TestDetailLogger
-}
+// type TestArgs struct {
+// 	Filename string
+// 	Dl       TestDetailLogger
+// }
 
 type TestReturn struct {
 	Errors        []error
@@ -58,12 +58,6 @@ type TestReturn struct {
 	NumberOfWarn  int
 	NumberOfInfo  int
 	NumberOfDebug int
-}
-
-type TestInfo struct {
-	Name     string
-	Args     TestArgs
-	Expected TestReturn
 }
 
 func (l *TestDetailLogger) Info(desc string, args ...interface{}) {
@@ -81,11 +75,15 @@ func (l *TestDetailLogger) Debug(desc string, args ...interface{}) {
 	l.messages = append(l.messages, cd)
 }
 
-func ValidateTestReturn(te *TestReturn, tr *checker.CheckResult, dl *TestDetailLogger) bool {
+//nolint
+func ValidateTestReturn(t *testing.T, name string, te *TestReturn,
+	tr *checker.CheckResult, dl *TestDetailLogger) bool {
 	for _, we := range te.Errors {
 		if !errors.Is(tr.Error2, we) {
-			fmt.Printf("invalid error returned: %v is not of type %v",
-				tr.Error, we)
+			if t != nil {
+				t.Errorf("%v: invalid error returned: %v is not of type %v",
+					name, tr.Error, we)
+			}
 			return false
 		}
 	}
@@ -93,29 +91,9 @@ func ValidateTestReturn(te *TestReturn, tr *checker.CheckResult, dl *TestDetailL
 	if tr.Score2 != te.Score ||
 		!validateDetailTypes(dl.messages, te.NumberOfWarn,
 			te.NumberOfInfo, te.NumberOfDebug) {
-		return false
-	}
-	return true
-}
-
-//nolint
-func ValidateTestInfo(t *testing.T, ti *TestInfo, tr *checker.CheckResult) bool {
-	for _, we := range ti.Expected.Errors {
-		if !errors.Is(tr.Error2, we) {
-			if t != nil {
-				t.Errorf("%v: invalid error returned: %v is not of type %v",
-					ti.Name, tr.Error, we)
-			}
-			return false
-		}
-	}
-	// UPGRADEv2: update name.
-	if tr.Score2 != ti.Expected.Score ||
-		!validateDetailTypes(ti.Args.Dl.messages, ti.Expected.NumberOfWarn,
-			ti.Expected.NumberOfInfo, ti.Expected.NumberOfDebug) {
 		if t != nil {
-			t.Errorf("%v: %v. Got (score=%v) expected (%v)\n%v",
-				ti.Name, ti.Args.Filename, tr.Score2, ti.Expected.Score, ti.Args.Dl.messages)
+			t.Errorf("%v: Got (score=%v) expected (%v)\n%v",
+				name, tr.Score2, te.Score, dl.messages)
 		}
 		return false
 	}

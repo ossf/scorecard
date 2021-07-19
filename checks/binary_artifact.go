@@ -25,25 +25,24 @@ import (
 	sce "github.com/ossf/scorecard/errors"
 )
 
+const CheckBinaryArtifacts string = "Binary-Artifacts"
+
 //nolint
 func init() {
-	registerCheck(checkBinaryArtifacts, BinaryArtifacts)
+	registerCheck(CheckBinaryArtifacts, BinaryArtifacts)
 }
-
-// TODO: read the check code from file?
-const checkBinaryArtifacts string = "Binary-Artifacts"
 
 // BinaryArtifacts  will check the repository if it contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	r, err := CheckFilesContent2("*", false, c, checkBinaryFileContent)
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(checkBinaryArtifacts, err)
+		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, err)
 	}
 	if !r {
-		return checker.CreateMinScoreResult(checkBinaryArtifacts, "binaries present in source code")
+		return checker.CreateMinScoreResult(CheckBinaryArtifacts, "binaries present in source code")
 	}
 
-	return checker.CreateMaxScoreResult(checkBinaryArtifacts, "no binaries found in the repo")
+	return checker.CreateMaxScoreResult(CheckBinaryArtifacts, "no binaries found in the repo")
 }
 
 func checkBinaryFileContent(path string, content []byte,

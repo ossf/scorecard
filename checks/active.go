@@ -25,40 +25,41 @@ import (
 )
 
 const (
-	checkActive    = "Active"
-	lookBackMonths = 3
+	CheckActive    = "Active"
+	lookBackDays   = 90
 	commitsPerWeek = 1
+	daysInOneWeek  = 7
 )
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(checkActive, IsActive)
+	registerCheck(CheckActive, IsActive)
 }
 
 func IsActive(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(checkActive, err)
+		return checker.CreateRuntimeErrorResult(CheckActive, err)
 	}
 
 	tz, err := time.LoadLocation("UTC")
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(checkActive, sce.Create(sce.ErrRunFailure, fmt.Sprintf("time.LoadLocation: %v", err)))
+		return checker.CreateRuntimeErrorResult(CheckActive, sce.Create(sce.ErrRunFailure, fmt.Sprintf("time.LoadLocation: %v", err)))
 	}
-	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookBackMonths*30)
+	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookBackDays)
 	totalCommits := 0
 	for _, commit := range commits {
 		commitFull, _, err := c.Client.Git.GetCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA())
 		if err != nil {
-			return checker.CreateRuntimeErrorResult(checkActive, err)
+			return checker.CreateRuntimeErrorResult(CheckActive, err)
 		}
 		if commitFull.GetAuthor().GetDate().After(threshold) {
 			totalCommits++
 		}
 	}
 
-	return checker.CreateProportionalScoreResult(checkActive,
-		fmt.Sprintf("%d commit(s) found in the last %d days", totalCommits, lookBackMonths*30),
-		totalCommits, commitsPerWeek*lookBackMonths*4)
-	return checker.CreateMinScoreResult(checkActive, fmt.Sprintf("no commit found in the last %d days", lookBackMonths*30))
+	return checker.CreateProportionalScoreResult(CheckActive,
+		fmt.Sprintf("%d commit(s) found in the last %d days", totalCommits, lookBackDays),
+		totalCommits, commitsPerWeek*lookBackDays/daysInOneWeek)
+	return checker.CreateMinScoreResult(CheckActive, fmt.Sprintf("no commit found in the last %d days", lookBackDays))
 }

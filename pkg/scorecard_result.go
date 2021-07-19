@@ -194,7 +194,7 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 
 		// UPGRADEv2: rename variable.
 		if row.Score2 == checker.InconclusiveResultScore {
-			x[0] = "Inconclusive"
+			x[0] = "?"
 		} else {
 			x[0] = fmt.Sprintf("%d", row.Score2)
 		}

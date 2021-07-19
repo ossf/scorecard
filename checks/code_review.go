@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	// checkCodeReview is the registered name for DoesCodeReview.
-	checkCodeReview       = "Code-Review"
+	// CheckCodeReview is the registered name for DoesCodeReview.
+	CheckCodeReview       = "Code-Review"
 	pullRequestsToAnalyze = 30
 	reviewsToAnalyze      = 30
 	labelsToAnalyze       = 30
@@ -71,7 +71,7 @@ var (
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(checkCodeReview, DoesCodeReview)
+	registerCheck(CheckCodeReview, DoesCodeReview)
 }
 
 // DoesCodeReview attempts to determine whether a project requires review before code gets merged.
@@ -88,7 +88,7 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
 	}
 	if err := c.GraphClient.Query(c.Ctx, &prHistory, vars); err != nil {
-		return checker.CreateRuntimeErrorResult(checkCodeReview, err)
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
 	}
 	return checker.MultiCheckOr2(
 		isPrReviewRequired,
@@ -139,9 +139,9 @@ func isPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
 	if prHistory.Repository.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount >= 1 {
 		// If the default value is 0 when we cannot retrieve the value,
 		// a non-zero value means we're confident it's enabled.
-		return checker.CreateMaxScoreResult(checkCodeReview, "branch protection for default branch is enabled")
+		return checker.CreateMaxScoreResult(CheckCodeReview, "branch protection for default branch is enabled")
 	}
-	return checker.CreateInconclusiveResult(checkCodeReview, "cannot determine if branch protection is enabled")
+	return checker.CreateInconclusiveResult(CheckCodeReview, "cannot determine if branch protection is enabled")
 }
 
 func prowCodeReview(c *checker.CheckRequest) checker.CheckResult {
@@ -167,7 +167,7 @@ func prowCodeReview(c *checker.CheckRequest) checker.CheckResult {
 func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(checkCodeReview, err)
+		return checker.MakeRetryResult(CheckCodeReview, err)
 	}
 
 	total := 0
@@ -203,7 +203,7 @@ func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 func createResult(reviewName string, reviewed, total int) checker.CheckResult {
 	if total > 0 {
 		reason := fmt.Sprintf("%s code reviews found for %v commits out of the last %v", reviewName, reviewed, total)
-		return checker.CreateProportionalScoreResult(checkCodeReview, reason, reviewed, total)
+		return checker.CreateProportionalScoreResult(CheckCodeReview, reason, reviewed, total)
 	}
-	return checker.CreateInconclusiveResult(checkCodeReview, fmt.Sprintf("no %s commits found", reviewName))
+	return checker.CreateInconclusiveResult(CheckCodeReview, fmt.Sprintf("no %s commits found", reviewName))
 }

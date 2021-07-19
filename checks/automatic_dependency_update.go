@@ -20,25 +20,25 @@ import (
 	"github.com/ossf/scorecard/checker"
 )
 
-const checkAutomaticDependencyUpdate = "Automatic-Dependency-Update"
+const CheckAutomaticDependencyUpdate = "Automatic-Dependency-Update"
 
 //nolint
 func init() {
-	registerCheck(checkAutomaticDependencyUpdate, AutomaticDependencyUpdate)
+	registerCheck(CheckAutomaticDependencyUpdate, AutomaticDependencyUpdate)
 }
 
 // AutomaticDependencyUpdate will check the repository if it contains Automatic dependency update.
 func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckIfFileExists2(checkAutomaticDependencyUpdate, c, fileExists)
+	r, err := CheckIfFileExists2(CheckAutomaticDependencyUpdate, c, fileExists)
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(checkAutomaticDependencyUpdate, err)
+		return checker.CreateRuntimeErrorResult(CheckAutomaticDependencyUpdate, err)
 	}
 	if !r {
-		return checker.CreateMinScoreResult(checkAutomaticDependencyUpdate, "no tool detected [dependabot|renovabot]")
+		return checker.CreateMinScoreResult(CheckAutomaticDependencyUpdate, "no tool detected [dependabot|renovabot]")
 	}
 
 	// High score result.
-	return checker.CreateMaxScoreResult(checkAutomaticDependencyUpdate, "tool detected")
+	return checker.CreateMaxScoreResult(CheckAutomaticDependencyUpdate, "tool detected")
 }
 
 // fileExists will validate the if frozen dependencies file name exists.

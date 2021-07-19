@@ -173,7 +173,6 @@ func MakeAndResult2(checks ...CheckResult) CheckResult {
 	}
 
 	worseResult := checks[0]
-
 	// UPGRADEv2: will go away after old struct is removed.
 	//nolint
 	for _, result := range checks[1:] {
