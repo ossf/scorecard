@@ -4,11 +4,11 @@ The steps to writting a check are as follow:
 1. Create a file under `checks/` folder, say `checks/mycheck.go`
 2. Give the check a name and register the check:
 ```
-// Note: do not export the name: start its name with a lower-case letter.
-const checkMyCheckName string = "My-Check"
+// Note: export the name: start its name with an upper-case letter.
+const CheckMyCheckName string = "My-Check"
 
 func init() {
-	registerCheck(checkMyCheckName, EntryPointMyCheck)
+	registerCheck(CheckMyCheckName, EntryPointMyCheck)
 }
 ```
 3. Log information that is benfical to the user using `checker.DetailLogger`:
