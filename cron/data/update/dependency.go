@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -198,25 +199,27 @@ func parseGoModURL(dependency string, repoURLs []repos.RepoURL) []repos.RepoURL 
 	return repoURLs
 }
 
-func getDependencies() ([]repos.RepoURL, error) {
-	iter, err := data.MakeIterator()
+func getDependencies(in io.Reader) (oldRepos, newRepos []repos.RepoURL, e error) {
+	iter, err := data.MakeIteratorFrom(in)
 	if err != nil {
-		return nil, fmt.Errorf("error during data.MakeIterator: %w", err)
+		return nil, nil, fmt.Errorf("error during data.MakeIterator: %w", err)
 	}
 
 	// Read all project repositores into a map.
 	m := make(map[string][]string)
+	oldRepos = make([]repos.RepoURL, 0)
 	for iter.HasNext() {
 		repo, err := iter.Next()
 		if err != nil {
-			return nil, fmt.Errorf("error during iter.Next: %w", err)
+			return nil, nil, fmt.Errorf("error during iter.Next: %w", err)
 		}
+		oldRepos = append(oldRepos, repo)
 		// We do not handle duplicates.
 		m[repo.URL()] = repo.Metadata
 	}
 
 	// Create a list of project dependencies that are not already present.
-	newRepos := []repos.RepoURL{}
+	newRepos = []repos.RepoURL{}
 	for _, repo := range bazelRepos {
 		for _, item := range getBazelDeps(repo) {
 			if _, ok := m[item.URL()]; !ok {
@@ -235,5 +238,5 @@ func getDependencies() ([]repos.RepoURL, error) {
 			}
 		}
 	}
-	return newRepos, nil
+	return oldRepos, newRepos, nil
 }

@@ -70,6 +70,37 @@ func TestCsvIterator(t *testing.T) {
 			},
 		},
 		{
+			name:     "Comment",
+			filename: "testdata/comment.csv",
+			outcomes: []outcome{
+				{
+					hasError: false,
+					repo: repos.RepoURL{
+						Host:  "github.com",
+						Owner: "owner1",
+						Repo:  "repo1",
+					},
+				},
+				{
+					hasError: false,
+					repo: repos.RepoURL{
+						Host:  "github.com",
+						Owner: "owner2",
+						Repo:  "repo2",
+					},
+				},
+				{
+					hasError: false,
+					repo: repos.RepoURL{
+						Host:     "github.com",
+						Owner:    "owner3",
+						Repo:     "repo3",
+						Metadata: []string{"meta"},
+					},
+				},
+			},
+		},
+		{
 			name:     "FailingURLs",
 			filename: "testdata/failing_urls.csv",
 			outcomes: []outcome{

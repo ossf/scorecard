@@ -29,4 +29,4 @@ RUN CGO_ENABLED=0 make build-pubsub
 FROM gcr.io/distroless/base:nonroot@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
 COPY ./cron/data/projects.csv /cron/data/projects.csv
 COPY --from=pubsub /src/cron/controller/controller ./cron/controller/controller
-ENTRYPOINT ["./cron/controller/controller"]
+ENTRYPOINT ["./cron/controller/controller", "./cron/data/projects.csv"]
