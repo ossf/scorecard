@@ -61,5 +61,5 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 		}
 	}
 
-	return MakeRateLimitedTransport(transport, logger)
+	return MakeCensusTransport(MakeRateLimitedTransport(transport, logger))
 }
