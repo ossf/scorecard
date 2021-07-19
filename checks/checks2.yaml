@@ -15,6 +15,19 @@
 # This is the source of truth for all check descriptions and remediation steps.
 # Run `cd checks/main && go run /main` to generate `checks.json` and `checks.md`.
 checks:
+  Active:
+    risk: High
+    description: >-
+      This check tries to determine if the project is "actively maintained".
+
+      A project which is not active may not be patched, may not have its
+      dependencies patched, or may not be actively tested and used. So  It
+      currently works by looking for commits within the last 90 days, and
+      outputs the highest score if there are at least 1 commit/week during this period.
+    remediation:
+      - >-
+        There is *NO* remediation work needed here. This is just to indicate
+        your project activity and maintenance commitment.
   Binary-Artifacts:
     risk: High
     description: >-

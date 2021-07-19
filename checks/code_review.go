@@ -14,15 +14,15 @@
 
 package checks
 
-//nolint:gci
 import (
 	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/ossf/scorecard/checker"
 	"github.com/shurcooL/githubv4"
+
+	"github.com/ossf/scorecard/checker"
 )
 
 const (

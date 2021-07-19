@@ -14,12 +14,12 @@
 
 package checks
 
-//nolint:gci
 import (
 	"errors"
 
-	"github.com/ossf/scorecard/checker"
 	"github.com/shurcooL/githubv4"
+
+	"github.com/ossf/scorecard/checker"
 )
 
 const (

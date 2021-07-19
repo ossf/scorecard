@@ -14,7 +14,6 @@
 
 package checks
 
-//nolint:gci
 import (
 	"bytes"
 	"encoding/json"
@@ -23,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
+
 	"github.com/ossf/scorecard/checker"
 )
 

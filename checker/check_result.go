@@ -17,6 +17,7 @@ package checker
 import (
 	"errors"
 	"fmt"
+	"math"
 
 	scorecarderrors "github.com/ossf/scorecard/errors"
 )
@@ -92,7 +93,7 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	pass := true
 	//nolint
-	score := 10 * b / t
+	score := int(math.Min(float64(10*b/t), float64(10)))
 	//nolint
 	if score < 8 {
 		pass = false
@@ -109,7 +110,7 @@ func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 		//nolint
 		Version: 2,
 		Error2:  nil,
-		Score2:  10 * b / t,
+		Score2:  score,
 		Reason2: fmt.Sprintf("%v -- score normalized to %d", reason, score),
 	}
 }

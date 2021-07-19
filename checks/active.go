@@ -14,52 +14,51 @@
 
 package checks
 
-//nolint:gci
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/go-github/v32/github"
+
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 const (
-	// CheckActive is the registered name for IsActive.
-	CheckActive  = "Active"
-	lookbackDays = 90
+	checkActive    = "Active"
+	lookBackMonths = 3
+	commitsPerWeek = 1
 )
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckActive, IsActive)
+	registerCheck(checkActive, IsActive)
 }
 
 func IsActive(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(CheckActive, err)
+		return checker.CreateRuntimeErrorResult(checkActive, err)
 	}
 
 	tz, err := time.LoadLocation("UTC")
 	if err != nil {
-		return checker.MakeRetryResult(CheckActive, err)
+		return checker.CreateRuntimeErrorResult(checkActive, sce.Create(sce.ErrRunFailure, fmt.Sprintf("time.LoadLocation: %v", err)))
 	}
-	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookbackDays)
+	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookBackMonths*30)
 	totalCommits := 0
 	for _, commit := range commits {
 		commitFull, _, err := c.Client.Git.GetCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA())
 		if err != nil {
-			return checker.MakeRetryResult(CheckActive, err)
+			return checker.CreateRuntimeErrorResult(checkActive, err)
 		}
 		if commitFull.GetAuthor().GetDate().After(threshold) {
 			totalCommits++
 		}
 	}
-	c.Logf("commits in last %d days: %d", lookbackDays, totalCommits)
-	const numCommits = 2
-	const confidence = 10
-	return checker.CheckResult{
-		Name:       CheckActive,
-		Pass:       totalCommits >= numCommits,
-		Confidence: confidence,
-	}
+
+	return checker.CreateProportionalScoreResult(checkActive,
+		fmt.Sprintf("%d commit(s) found in the last %d days", totalCommits, lookBackMonths*30),
+		totalCommits, commitsPerWeek*lookBackMonths*4)
+	return checker.CreateMinScoreResult(checkActive, fmt.Sprintf("no commit found in the last %d days", lookBackMonths*30))
 }

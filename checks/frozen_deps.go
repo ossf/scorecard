@@ -14,16 +14,16 @@
 
 package checks
 
-//nolint:gci
 import (
 	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
+	"gopkg.in/yaml.v2"
+
 	"github.com/ossf/scorecard/checker"
 	sce "github.com/ossf/scorecard/errors"
-	"gopkg.in/yaml.v2"
 )
 
 // checkFrozenDeps is the registered name for FrozenDeps.

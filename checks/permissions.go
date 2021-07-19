@@ -14,15 +14,15 @@
 
 package checks
 
-//nolint:gci
 import (
 	"errors"
 	"fmt"
 	"strings"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/ossf/scorecard/checker"
 	sce "github.com/ossf/scorecard/errors"
-	"gopkg.in/yaml.v2"
 )
 
 const CheckPermissions = "Token-Permissions"

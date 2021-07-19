@@ -14,7 +14,6 @@
 
 package checks
 
-//nolint:gci
 import (
 	"bufio"
 	"bytes"
@@ -25,9 +24,10 @@ import (
 	"regexp"
 	"strings"
 
+	"mvdan.cc/sh/v3/syntax"
+
 	"github.com/ossf/scorecard/checker"
 	sce "github.com/ossf/scorecard/errors"
-	"mvdan.cc/sh/v3/syntax"
 )
 
 // List of interpreters.
