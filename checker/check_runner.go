@@ -130,6 +130,7 @@ func MultiCheckOr2(fns ...CheckFn) CheckFn {
 		for _, fn := range fns {
 			result := fn(c)
 
+<<<<<<< HEAD
 			if result.Score > maxResult.Score {
 				maxResult = result
 			}
@@ -137,6 +138,11 @@ func MultiCheckOr2(fns ...CheckFn) CheckFn {
 			if maxResult.Score >= MaxResultScore {
 				break
 			}
+=======
+			if result.Score2 > maxResult.Score2 {
+				maxResult = result
+			}
+>>>>>>> 5746d91 (details-1)
 		}
 		return maxResult
 	}
