@@ -16,6 +16,7 @@ package clients
 
 import (
 	"fmt"
+	"time"
 )
 
 type ErrRepoUnavailable struct {
@@ -40,5 +41,37 @@ type RepoClient interface {
 	InitRepo(owner, repo string) error
 	ListFiles(predicate func(string) bool) []string
 	GetFileContent(filename string) ([]byte, error)
+	ListMergedPRs() []PullRequest
+	GetDefaultBranch() BranchRef
 	Close() error
+}
+
+type BranchRef struct {
+	Name                 string
+	BranchProtectionRule BranchProtectionRule
+}
+
+type BranchProtectionRule struct {
+	RequiredApprovingReviewCount int
+}
+
+// nolint: govet
+type PullRequest struct {
+	MergedAt    time.Time
+	MergeCommit MergeCommit
+	Number      int
+	Labels      []Label
+	Reviews     []Review
+}
+
+type MergeCommit struct {
+	AuthoredByCommitter bool
+}
+
+type Label struct {
+	Name string
+}
+
+type Review struct {
+	State string
 }

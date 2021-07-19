@@ -119,7 +119,7 @@ func createNetClients(ctx context.Context) (
 	}
 	githubClient = github.NewClient(httpClient)
 	graphClient = githubv4.NewClient(httpClient)
-	repoClient = githubrepo.CreateGithubRepoClient(ctx, githubClient)
+	repoClient = githubrepo.CreateGithubRepoClient(ctx, githubClient, graphClient)
 	return
 }
 

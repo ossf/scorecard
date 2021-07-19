@@ -19,55 +19,18 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/checker"
 )
 
 const (
 	// CheckCodeReview is the registered name for DoesCodeReview.
-	CheckCodeReview       = "Code-Review"
-	crPassThreshold       = .75
-	pullRequestsToAnalyze = 30
-	reviewsToAnalyze      = 30
-	labelsToAnalyze       = 30
+	CheckCodeReview = "Code-Review"
+	crPassThreshold = .75
 )
 
-var (
-	// ErrorNoReviews indicates no reviews were found for this repo.
-	ErrorNoReviews = errors.New("no reviews found")
-
-	// nolint: govet
-	prHistory struct {
-		Repository struct {
-			DefaultBranchRef struct {
-				Name                 githubv4.String
-				BranchProtectionRule struct {
-					RequiredApprovingReviewCount githubv4.Int
-				}
-			}
-			PullRequests struct {
-				Nodes []struct {
-					Number      githubv4.Int
-					MergeCommit struct {
-						AuthoredByCommitter githubv4.Boolean
-					}
-					MergedAt githubv4.DateTime
-					Labels   struct {
-						Nodes []struct {
-							Name githubv4.String
-						}
-					} `graphql:"labels(last: $labelsToAnalyze)"`
-					LatestReviews struct {
-						Nodes []struct {
-							State githubv4.String
-						}
-					} `graphql:"latestReviews(last: $reviewsToAnalyze)"`
-				}
-			} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
-		} `graphql:"repository(owner: $owner, name: $name)"`
-	}
-)
+// ErrorNoReviews indicates no reviews were found for this repo.
+var ErrorNoReviews = errors.New("no reviews found")
 
 //nolint:gochecknoinits
 func init() {
@@ -80,16 +43,6 @@ func init() {
 // - Checking if most of the recent merged PRs were "Approved".
 // - Looking for other well-known review labels.
 func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
-	vars := map[string]interface{}{
-		"owner":                 githubv4.String(c.Owner),
-		"name":                  githubv4.String(c.Repo),
-		"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-		"reviewsToAnalyze":      githubv4.Int(reviewsToAnalyze),
-		"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
-	}
-	if err := c.GraphClient.Query(c.Ctx, &prHistory, vars); err != nil {
-		return checker.MakeInconclusiveResult(CheckCodeReview, err)
-	}
 	return checker.MultiCheckOr(
 		IsPrReviewRequired,
 		GithubCodeReview,
@@ -102,7 +55,7 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed.
 	totalMerged := 0
 	totalReviewed := 0
-	for _, pr := range prHistory.Repository.PullRequests.Nodes {
+	for _, pr := range c.RepoClient.ListMergedPRs() {
 		if pr.MergedAt.IsZero() {
 			continue
 		}
@@ -110,7 +63,7 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 
 		// check if the PR is approved by a reviewer
 		foundApprovedReview := false
-		for _, r := range pr.LatestReviews.Nodes {
+		for _, r := range pr.Reviews {
 			if r.State == "APPROVED" {
 				c.Logf("found review approved pr: %d", pr.Number)
 				totalReviewed++
@@ -139,7 +92,7 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 func IsPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
 	// Look to see if review is enforced.
 	// Check the branch protection rules, we may not be able to get these though.
-	if prHistory.Repository.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount >= 1 {
+	if c.RepoClient.GetDefaultBranch().BranchProtectionRule.RequiredApprovingReviewCount >= 1 {
 		c.Logf("pr review policy enforced")
 		const confidence = 5
 		return checker.CheckResult{
@@ -155,12 +108,12 @@ func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed
 	totalMerged := 0
 	totalReviewed := 0
-	for _, pr := range prHistory.Repository.PullRequests.Nodes {
+	for _, pr := range c.RepoClient.ListMergedPRs() {
 		if pr.MergedAt.IsZero() {
 			continue
 		}
 		totalMerged++
-		for _, l := range pr.Labels.Nodes {
+		for _, l := range pr.Labels {
 			if l.Name == "lgtm" || l.Name == "approved" {
 				totalReviewed++
 				break

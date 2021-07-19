@@ -29,7 +29,7 @@ var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
 	Context("E2E TEST:Validating dependencies are automatically updated", func() {
 		It("Should return deps are automatically updated for dependabot", func() {
 			l := log{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("ossf", "scorecard")
 			Expect(err).Should(BeNil())
 
@@ -48,7 +48,7 @@ var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
 		})
 		It("Should return deps are automatically updated for renovatebot", func() {
 			l := log{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("netlify", "netlify-cms")
 			Expect(err).Should(BeNil())
 
