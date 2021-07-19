@@ -16,19 +16,21 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	scut "github.com/ossf/scorecard/utests"
 )
 
 var _ = Describe("E2E TEST:Branch Protection", func() {
 	Context("E2E TEST:Validating branch protection", func() {
 		It("Should fail to return branch protection on other repositories", func() {
-			l := log{}
-			checkRequest := checker.CheckRequest{
+			dl := scut.TestDetailLogger{}
+			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
@@ -36,11 +38,23 @@ var _ = Describe("E2E TEST:Branch Protection", func() {
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,
-				Logf:        l.Logf,
+				Dlogger:     &dl,
 			}
-			result := checks.BranchProtection(&checkRequest)
-			Expect(result.Error).ShouldNot(BeNil())
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.BranchProtection(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
+			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
+			panic(fmt.Sprintf("%v", result))
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "branch protection not enabled", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

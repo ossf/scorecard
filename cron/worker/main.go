@@ -29,6 +29,7 @@ import (
 	"github.com/shurcooL/githubv4"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
@@ -89,7 +90,7 @@ func processRequest(ctx context.Context,
 			return fmt.Errorf("error during RunScorecards: %w", err)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime().Format("2006-01-02")
-		if err := result.AsJSON(true /*showDetails*/, &buffer); err != nil {
+		if err := result.AsJSON(true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
 	}

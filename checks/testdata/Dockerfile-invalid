@@ -14,24 +14,4 @@
 # limitations under the License.
 # Note: taken from https://github.com/pushiqiang/utils/blob/master/docker/Dockerfile_template
 
-# 如果在中国，apt使用163源, ifconfig.co/json, http://ip-api.com 
-RUN curl -s ifconfig.co/json | grep "China" > /dev/null && \
-    curl -s http://mirrors.163.com/.help/sources.list.jessie > /etc/apt/sources.list || true
-
-# 安装开发所需要的一些工具，同时方便在服务器上进行调试
-RUN apt-get update;\
-    apt-get install -y vim;\
-    true
-
-RUN mkdir /opt/somedir
-
-ENV PROJECT_NAME='test'
-ENV PYTHONPATH="${PYTHONPATH}:/opt/somedir"
-
-COPY src/ /opt/somedir
-WORKDIR /opt/somedir
-
-# 如果在中国，pip使用豆瓣源
-RUN curl -s ifconfig.co/json | grep "China" > /dev/null && \
-    pip install -r requirements.txt -i https://pypi.doubanio.com/simple --trusted-host pypi.doubanio.com || \
-    pip install -r requirements.txt
+#!/bin/sh
