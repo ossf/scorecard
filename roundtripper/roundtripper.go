@@ -19,13 +19,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 
+	"github.com/bradleyfalzon/ghinstallation"
 	"go.uber.org/zap"
 )
 
-// nolinter
-// GithubAuthToken is for making requests to GiHub's API.
-var GithubAuthTokens = []string{"GITHUB_AUTH_TOKEN", "GITHUB_TOKEN", "GH_TOKEN"}
+// GithubAuthTokens are for making requests to GiHub's API.
+var GithubAuthTokens = []string{"GITHUB_AUTH_TOKEN", "GITHUB_TOKEN", "GH_TOKEN", "GH_AUTH_TOKEN"}
 
 const (
 
@@ -50,11 +52,26 @@ func readGitHubToken() (string, bool) {
 func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
 	transport := http.DefaultTransport
 
-	token, exists := readGitHubToken()
-	if !exists {
-		log.Fatalf("No GitHub token env var is not set. " +
-			"Please set this to your Github PAT before running " +
-			"this command as detail in https://github.com/ossf/scorecard#authentication")
+	// nolinter
+	if token, exists := readGitHubToken(); exists {
+		// Use GitHub PAT
+		transport = githubrepo.MakeGitHubTransport(transport, strings.Split(token, ","))
+	} else if keyPath := os.Getenv(GithubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
+		appID, err := strconv.Atoi(os.Getenv(GithubAppID))
+		if err != nil {
+			log.Panic(err)
+		}
+		installationID, err := strconv.Atoi(os.Getenv(GithubAppInstallationID))
+		if err != nil {
+			log.Panic(err)
+		}
+		transport, err = ghinstallation.NewKeyFromFile(transport, int64(appID), int64(installationID), keyPath)
+		if err != nil {
+			log.Panic(err)
+		}
+	} else {
+		log.Fatalf("GitHub token env var is not set. " +
+			"Please read https://github.com/ossf/scorecard#authentication")
 	}
 
 	return MakeCensusTransport(MakeRateLimitedTransport(transport, logger))
