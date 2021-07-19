@@ -67,10 +67,6 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 	Short: "Security Scorecards",
 	Long:  "A program that shows security scorecard for an open source software.",
 	Run: func(cmd *cobra.Command, args []string) {
-		if token, exists := os.LookupEnv("GITHUB_AUTH_TOKEN"); !exists || token == "" {
-			log.Fatalf("GITHUB_AUTH_TOKEN env var is not set. Please set this to your Github PAT before running this command.")
-		}
-
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
 		logger, err := cfg.Build()

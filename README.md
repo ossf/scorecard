@@ -233,7 +233,7 @@ For example, `--checks=CI-Tests,Code-Review`.
 Before running Scorecard, you need to, either:
 
 -   [create a GitHub access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
-    and set it in environment variable `GITHUB_AUTH_TOKEN`. This helps to avoid
+    and set it in an environment variable called `GITHUB_AUTH_TOKEN`, `GITHUB_TOKEN`, `GH_AUTH_TOKEN` or `GH_TOKEN`. This helps to avoid
     the GitHub's
     [api rate limits](https://developer.github.com/v3/#rate-limiting) with
     unauthenticated requests.
@@ -241,13 +241,14 @@ Before running Scorecard, you need to, either:
 ```shell
 # For posix platforms, e.g. linux, mac:
 export GITHUB_AUTH_TOKEN=<your access token>
+# Multiple tokens can be provided separated by comma to be utilized
+# in a round robin fashion.
+export GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
 
 # For windows:
 set GITHUB_AUTH_TOKEN=<your access token>
+set GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
 ```
-
-Multiple `GITHUB_AUTH_TOKEN` can be provided separated by comma to be utilized
-in a round robin fashion.
 
 -   create a GitHub App Installations for higher rate-limit quotas. If you have
     an installed GitHub App and key file, you can use these three environment
