@@ -54,7 +54,7 @@ func readGitHubTokens() (string, bool) {
 func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
 	transport := http.DefaultTransport
 
-	// nolinter
+	// nolint
 	if token, exists := readGitHubTokens(); exists {
 		// Use GitHub PAT
 		transport = githubrepo.MakeGitHubTransport(transport, strings.Split(token, ","))
