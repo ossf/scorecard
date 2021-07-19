@@ -41,7 +41,7 @@ const (
 	GithubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
 )
 
-func readGitHubToken() (string, bool) {
+func readGitHubTokens() (string, bool) {
 	for _, name := range GithubAuthTokens {
 		if token, exists := os.LookupEnv(name); exists && token != "" {
 			return token, exists
@@ -55,7 +55,7 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 	transport := http.DefaultTransport
 
 	// nolinter
-	if token, exists := readGitHubToken(); exists {
+	if token, exists := readGitHubTokens(); exists {
 		// Use GitHub PAT
 		transport = githubrepo.MakeGitHubTransport(transport, strings.Split(token, ","))
 	} else if keyPath := os.Getenv(GithubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
