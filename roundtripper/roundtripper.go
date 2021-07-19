@@ -24,6 +24,8 @@ import (
 
 	"github.com/bradleyfalzon/ghinstallation"
 	"go.uber.org/zap"
+
+	"github.com/ossf/scorecard/clients/githubrepo"
 )
 
 // GithubAuthTokens are for making requests to GiHub's API.
