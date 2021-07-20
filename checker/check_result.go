@@ -203,60 +203,6 @@ func MakeAndResult2(checks ...CheckResult) CheckResult {
 	return worseResult
 }
 
-// CreateInconclusiveResult is used when
-// the check runs without runtime errors, but we don't
-// have enough evidence to set a score.
-func CreateInconclusiveResult(name, reason string) CheckResult {
-	return CheckResult{
-		Name: name,
-		// Old structure.
-		Confidence:  0,
-		Pass:        false,
-		ShouldRetry: false,
-		// New structure.
-		//nolint
-		Version: 2,
-		Score2:  InconclusiveResultScore,
-		Reason2: reason,
-	}
-}
-
-// CreateRuntimeErrorResult is used when the check fails to run because of a runtime error.
-func CreateRuntimeErrorResult(name string, e error) CheckResult {
-	return CheckResult{
-		Name: name,
-		// Old structure.
-		Error:       e,
-		Confidence:  0,
-		Pass:        false,
-		ShouldRetry: false,
-		// New structure.
-		//nolint
-		Version: 2,
-		Error2:  e,
-		Score:   InconclusiveResultScore,
-		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
-	}
-}
-
-// UPGRADEv2: will be renaall functions belowed will be removed.
-func MakeAndResult2(checks ...CheckResult) CheckResult {
-	if len(checks) == 0 {
-		// That should never happen.
-		panic("MakeResult called with no checks")
-	}
-
-	worseResult := checks[0]
-	// UPGRADEv2: will go away after old struct is removed.
-	//nolint
-	for _, result := range checks[1:] {
-		if result.Score < worseResult.Score {
-			worseResult = result
-		}
-	}
-	return worseResult
-}
-
 func MakeInconclusiveResult(name string, err error) CheckResult {
 	return CheckResult{
 		Name:       name,
