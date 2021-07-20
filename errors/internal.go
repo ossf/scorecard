@@ -25,6 +25,6 @@ var (
 	ErrInternalFilenameMatch     = errors.New("filename match error")
 	ErrInternalEmptyFile         = errors.New("empty file")
 	ErrInternalInvalidShellCode  = errors.New("invalid shell code")
-	ErrCommitishNil              = errors.New("commitish is nil")
-	ErrBranchNotFound            = errors.New("branch not found")
+	ErrInternalCommitishNil      = errors.New("commitish is nil")
+	ErrInternalBranchNotFound    = errors.New("branch not found")
 )
