@@ -53,7 +53,7 @@ type CheckResult struct {
 
 	// UPGRADEv2: New structure. Omitting unchanged Name field
 	// for simplicity.
-	Version  int           // 2. Default value of 0 indicates old structure
+	Version  int           `json:"-"` // Default value of 0 indicates old structure.
 	Error2   error         `json:"-"` // Runtime error indicate a filure to run the check.
 	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
 	Score2   int           `json:"-"` // {[0...1], -1 = Inconclusive}
@@ -61,7 +61,7 @@ type CheckResult struct {
 }
 
 // CreateResultWithScore is used when
-// the check runs without runtime errors and want to assign a
+// the check runs without runtime errors and we want to assign a
 // specific score.
 func CreateResultWithScore(name, reason string, score int) CheckResult {
 	pass := true
@@ -92,8 +92,7 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 // the the number of tests that succeeded.
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	pass := true
-	//nolint
-	score := int(math.Min(float64(10*b/t), float64(10)))
+	score := int(math.Min(float64(MaxResultScore*b/t), float64(MaxResultScore)))
 	//nolint
 	if score < 8 {
 		pass = false
@@ -165,7 +164,7 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	}
 }
 
-// UPGRADEv2: will be renamed.
+// UPGRADEv2: will be renaall functions belowed will be removed.
 func MakeAndResult2(checks ...CheckResult) CheckResult {
 	if len(checks) == 0 {
 		// That should never happen.
@@ -183,7 +182,6 @@ func MakeAndResult2(checks ...CheckResult) CheckResult {
 	return worseResult
 }
 
-// UPGRADEv2: will be removed.
 func MakeInconclusiveResult(name string, err error) CheckResult {
 	return CheckResult{
 		Name:       name,
@@ -220,8 +218,6 @@ func MakeRetryResult(name string, err error) CheckResult {
 	}
 }
 
-// TODO: update this function to return a ResultDontKnow
-// if the confidence is low?
 func MakeProportionalResult(name string, numerator int, denominator int,
 	threshold float32) CheckResult {
 	if denominator == 0 {
