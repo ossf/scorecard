@@ -71,8 +71,8 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	for _, release := range releases {
 		if release.TargetCommitish == nil {
 			// Log with a named error if target_commitish is nil.
-			r := checker.CreateRuntimeErrorResult(CheckBranchProtection,
-				sce.Create(sce.ErrScorecardInternal, errInternalCommitishNil.Error()))
+			e := sce.Create(sce.ErrScorecardInternal, errInternalCommitishNil.Error())
+			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 			checks = append(checks, r)
 			continue
 		}
@@ -86,8 +86,8 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 		name, err := resolveBranchName(branches, *release.TargetCommitish)
 		if err != nil {
 			// If the commitish branch is still not found, fail.
-			r := checker.CreateRuntimeErrorResult(CheckBranchProtection,
-				sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error()))
+			e := sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
+			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 			checks = append(checks, r)
 			continue
 		}
@@ -107,11 +107,13 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	for b := range checkBranches {
 		protected, err := isBranchProtected(branches, b)
 		if err != nil {
-			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error()))
+			e := sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
+			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 			checks = append(checks, r)
 		}
 		if !protected {
-			r := checker.CreateMinScoreResult(CheckBranchProtection, fmt.Sprintf("branch protection not enabled for branch '%s'", b))
+			r := checker.CreateMinScoreResult(CheckBranchProtection,
+				fmt.Sprintf("branch protection not enabled for branch '%s'", b))
 			checks = append(checks, r)
 		} else {
 			// The branch is protected. Check the protection.
@@ -137,6 +139,7 @@ func resolveBranchName(branches []*github.Branch, name string) (*string, error) 
 		return resolveBranchName(branches, "main")
 	}
 
+	//nolint
 	return nil, sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
 }
 
@@ -147,7 +150,7 @@ func isBranchProtected(branches []*github.Branch, name string) (bool, error) {
 			return b.GetProtected(), nil
 		}
 	}
-
+	//nolint
 	return false, sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
 }
 
@@ -158,7 +161,8 @@ func getProtectionAndCheck(ctx context.Context, r repositories, dl checker.Detai
 
 	const fileNotFound = 404
 	if resp.StatusCode == fileNotFound {
-		return checker.CreateRuntimeErrorResult(CheckBranchProtection, sce.Create(sce.ErrScorecardInternal, err.Error()))
+		e := sce.Create(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 	}
 
 	return IsBranchProtected(protection, branch, dl)
