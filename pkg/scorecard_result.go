@@ -201,10 +201,9 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 		x[2] = row.Name
 		if showDetails {
 			details, show := detailsToString(row.Details2, logLevel)
-			if !show {
-				continue
+			if show {
+				x[3] = details
 			}
-			x[3] = details
 			x[4] = doc
 		} else {
 			x[3] = doc

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//nolint:dupl
 package e2e
 
 import (
@@ -23,47 +24,74 @@ import (
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/clients/githubrepo"
+
+	scut "github.com/ossf/scorecard/utests"
 )
 
+// TODO: use dedicated repo that don't change.
+// TODO: need negative results.
 var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
 	Context("E2E TEST:Validating dependencies are automatically updated", func() {
 		It("Should return deps are automatically updated for dependabot", func() {
-			l := log{}
+			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
 			err := repoClient.InitRepo("ossf", "scorecard")
 			Expect(err).Should(BeNil())
 
-			checker := checker.CheckRequest{
+			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				RepoClient:  repoClient,
 				Owner:       "ossf",
 				Repo:        "scorecard",
 				GraphClient: graphClient,
-				Logf:        l.Logf,
+				Dlogger:     &dl,
 			}
-			result := checks.AutomaticDependencyUpdate(&checker)
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			}
+
+			result := checks.AutomaticDependencyUpdate(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "dependabot", &expected, &result, &dl)).Should(BeTrue())
 		})
 		It("Should return deps are automatically updated for renovatebot", func() {
-			l := log{}
+			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
 			err := repoClient.InitRepo("netlify", "netlify-cms")
 			Expect(err).Should(BeNil())
 
-			checker := checker.CheckRequest{
+			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				RepoClient:  repoClient,
 				Owner:       "netlify",
 				Repo:        "netlify-cms",
 				GraphClient: graphClient,
-				Logf:        l.Logf,
+				Dlogger:     &dl,
 			}
-			result := checks.AutomaticDependencyUpdate(&checker)
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			}
+			result := checks.AutomaticDependencyUpdate(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "renovabot", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })
