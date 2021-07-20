@@ -61,7 +61,6 @@ type DetailLogger interface {
 //nolint
 const (
 	MaxResultScore          = 10
-	HalfResultScore         = 5
 	MinResultScore          = 0
 	InconclusiveResultScore = -1
 )
