@@ -69,7 +69,9 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 	Run: func(cmd *cobra.Command, args []string) {
 		// UPGRADEv2: to remove.
 		_, v2 := os.LookupEnv("SCORECARD_V2")
-		fmt.Printf("*** USING v2 MIGRATION CODE ***\n\n")
+		if v2 {
+			fmt.Printf("*** USING v2 MIGRATION CODE ***\n\n")
+		}
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
 		logger, err := cfg.Build()
