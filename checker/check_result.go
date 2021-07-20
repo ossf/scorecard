@@ -239,7 +239,7 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	}
 }
 
-// UPGRADEv2: will be renamed.
+// UPGRADEv2: will be renaall functions belowed will be removed.
 func MakeAndResult2(checks ...CheckResult) CheckResult {
 	if len(checks) == 0 {
 		// That should never happen.
@@ -257,7 +257,6 @@ func MakeAndResult2(checks ...CheckResult) CheckResult {
 	return worseResult
 }
 
-// UPGRADEv2: will be removed.
 func MakeInconclusiveResult(name string, err error) CheckResult {
 	return CheckResult{
 		Name:       name,
@@ -294,8 +293,6 @@ func MakeRetryResult(name string, err error) CheckResult {
 	}
 }
 
-// TODO: update this function to return a ResultDontKnow
-// if the confidence is low?
 func MakeProportionalResult(name string, numerator int, denominator int,
 	threshold float32) CheckResult {
 	if denominator == 0 {
