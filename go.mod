@@ -1,4 +1,4 @@
-module github.com/ossf/scorecard
+module github.com/ossf/scorecard/v2
 
 go 1.16
 
@@ -13,7 +13,6 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/go-github/v33 v33.0.0
-	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/h2non/filetype v1.1.1
 	github.com/jszwec/csvutil v1.5.0
 	github.com/moby/buildkit v0.8.3
@@ -21,19 +20,19 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.14.0
+	github.com/ossf/scorecard v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/spf13/cobra v1.2.1
 	go.opencensus.io v0.23.0
-	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.18.1
 	gocloud.dev v0.23.0
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
 	golang.org/x/tools v0.1.5
 	google.golang.org/genproto v0.0.0-20210707164411-8c882eb9abba
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
 	mvdan.cc/sh/v3 v3.3.0
 )
+
+replace github.com/ossf/scorecard => ./
