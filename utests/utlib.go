@@ -47,11 +47,6 @@ type TestDetailLogger struct {
 	messages []checker.CheckDetail
 }
 
-// type TestArgs struct {
-// 	Filename string
-// 	Dl       TestDetailLogger
-// }
-
 type TestReturn struct {
 	Errors        []error
 	Score         int
