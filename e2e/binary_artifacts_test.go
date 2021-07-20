@@ -24,7 +24,6 @@ import (
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/clients/githubrepo"
-
 	scut "github.com/ossf/scorecard/utests"
 )
 
