@@ -14,7 +14,6 @@
 
 package pkg
 
-//nolint:gci
 import (
 	"encoding/csv"
 	"encoding/json"
@@ -26,8 +25,9 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/ossf/scorecard/checker"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/ossf/scorecard/checker"
 )
 
 type ScorecardResult struct {
@@ -127,14 +127,11 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 		if showDetails {
 			//nolint
 			if row.Version == 2 {
-				var sa []string
-				for _, v := range row.Details2 {
-					if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
-						continue
-					}
-					sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg))
+				details, show := detailsToString(row.Details2, logLevel)
+				if !show {
+					continue
 				}
-				x[3] = strings.Join(sa, "\n")
+				x[3] = details
 			} else {
 				x[3] = strings.Join(row.Details, "\n")
 			}
@@ -193,26 +190,21 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 		}
 
 		// UPGRADEv2: rename variable.
-		if row.Score2 == checker.InconclusiveResultScore {
+		if row.Score == checker.InconclusiveResultScore {
 			x[0] = "?"
 		} else {
-			x[0] = fmt.Sprintf("%d", row.Score2)
+			x[0] = fmt.Sprintf("%d", row.Score)
 		}
 
 		doc := fmt.Sprintf("https://github.com/ossf/scorecard/blob/main/checks/checks.md#%s", strings.ToLower(row.Name))
-		x[1] = row.Reason2
+		x[1] = row.Reason
 		x[2] = row.Name
 		if showDetails {
-			// UPGRADEv2: change to make([]string, len(row.Details))
-			// followed by sa[i] = instead of append
-			var sa []string
-			for _, v := range row.Details2 {
-				if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
-					continue
-				}
-				sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg))
+			details, show := detailsToString(row.Details2, logLevel)
+			if !show {
+				continue
 			}
-			x[3] = strings.Join(sa, "\n")
+			x[3] = details
 			x[4] = doc
 		} else {
 			x[3] = doc
@@ -238,6 +230,20 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 	table.Render()
 
 	return nil
+}
+
+func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (string, bool) {
+	// UPGRADEv2: change to make([]string, len(details))
+	// followed by sa[i] = instead of append.
+	//nolint
+	var sa []string
+	for _, v := range details {
+		if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
+			continue
+		}
+		sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg))
+	}
+	return strings.Join(sa, "\n"), len(sa) > 0
 }
 
 func typeToString(cd checker.DetailType) string {

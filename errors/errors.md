@@ -4,19 +4,19 @@
 import sce "github.com/ossf/scorecard/errors"
 
 // Public errors are defined in errors/public.go and are exposed to callers.
-// Internal errors are defined in errors/innternal.go. Their names start with ErrInternalXXX
+// Internal errors are defined in checks/errors.go. Their names start with errInternalXXX
 
 // Examples:
 
 // Return a standard check run failure, with an error message from an internal error.
 // We only create internal errors for errors that may happen in several places in the code: this provides
-// consistent erorr messages to the caller. 
-return sce.Create(sce.ErrRunFailure, ErrInternalInvalidYamlFile.Error())
+// consistent error messages to the caller. 
+return sce.Create(sce.ErrRunFailure, errInternalInvalidYamlFile.Error())
 
 // Return a standard check run failure, with an error message from an internal error and an API call error.
 err := dependency.apiCall()
 if err != nil {
-    return sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", sce.ErrInternalSomething, err))
+    return sce.Create(sce.ErrRunFailure, fmt.Sprintf("%v: %v", errInternalSomething, err))
 }
 
 // Return a standard check run failure, only with API call error. Use this format when there is no internal error associated

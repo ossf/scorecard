@@ -29,9 +29,34 @@ const (
 	MinResultConfidence  = 0
 )
 
+// UPGRADEv2: to remove.
+const migrationThresholdPassValue = 8
+
 // ErrorDemoninatorZero indicates the denominator for a proportional result is 0.
 // UPGRADEv2: to remove.
 var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
+
+// Types of details.
+type DetailType int
+
+const (
+	DetailInfo DetailType = iota
+	DetailWarn
+	DetailDebug
+)
+
+// CheckDetail contains information for each detail.
+//nolint:govet
+type CheckDetail struct {
+	Type DetailType // Any of DetailWarn, DetailInfo, DetailDebug.
+	Msg  string     // A short string explaining why the details was recorded/logged..
+}
+
+type DetailLogger interface {
+	Info(desc string, args ...interface{})
+	Warn(desc string, args ...interface{})
+	Debug(desc string, args ...interface{})
+}
 
 //nolint
 const (
@@ -56,8 +81,8 @@ type CheckResult struct {
 	Version  int           `json:"-"` // Default value of 0 indicates old structure.
 	Error2   error         `json:"-"` // Runtime error indicate a filure to run the check.
 	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
-	Score2   int           `json:"-"` // {[0...1], -1 = Inconclusive}
-	Reason2  string        `json:"-"` // A sentence describing the check result (score, etc)
+	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
+	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
 }
 
 // CreateResultWithScore is used when
@@ -65,8 +90,7 @@ type CheckResult struct {
 // specific score.
 func CreateResultWithScore(name, reason string, score int) CheckResult {
 	pass := true
-	//nolint
-	if score < 8 {
+	if score < migrationThresholdPassValue {
 		pass = false
 	}
 	return CheckResult{
@@ -80,8 +104,8 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 		//nolint
 		Version: 2,
 		Error2:  nil,
-		Score2:  score,
-		Reason2: reason,
+		Score:   score,
+		Reason:  reason,
 	}
 }
 
@@ -93,24 +117,22 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	pass := true
 	score := int(math.Min(float64(MaxResultScore*b/t), float64(MaxResultScore)))
-	//nolint
-	if score < 8 {
+	if score < migrationThresholdPassValue {
 		pass = false
 	}
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error: nil,
-		//nolint
-		Confidence:  10,
+		Error:       nil,
+		Confidence:  MaxResultConfidence,
 		Pass:        pass,
 		ShouldRetry: false,
 		// New structure.
 		//nolint
 		Version: 2,
 		Error2:  nil,
-		Score2:  score,
-		Reason2: fmt.Sprintf("%v -- score normalized to %d", reason, score),
+		Score:   score,
+		Reason:  fmt.Sprintf("%v -- score normalized to %d", reason, score),
 	}
 }
 
@@ -141,8 +163,8 @@ func CreateInconclusiveResult(name, reason string) CheckResult {
 		// New structure.
 		//nolint
 		Version: 2,
-		Score2:  InconclusiveResultScore,
-		Reason2: reason,
+		Score:   InconclusiveResultScore,
+		Reason:  reason,
 	}
 }
 
@@ -159,8 +181,8 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		//nolint
 		Version: 2,
 		Error2:  e,
-		Score2:  InconclusiveResultScore,
-		Reason2: e.Error(), // Note: message already accessible by caller thru `Error`.
+		Score:   InconclusiveResultScore,
+		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
 	}
 }
 
@@ -175,7 +197,7 @@ func MakeAndResult2(checks ...CheckResult) CheckResult {
 	// UPGRADEv2: will go away after old struct is removed.
 	//nolint
 	for _, result := range checks[1:] {
-		if result.Score2 < worseResult.Score2 {
+		if result.Score < worseResult.Score {
 			worseResult = result
 		}
 	}

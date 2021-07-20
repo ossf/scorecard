@@ -22,8 +22,8 @@ import (
 // UPGRADEv2: delete other files in folder.
 //nolint
 var (
-	ErrRunFailure      = errors.New("cannot run check")
-	ErrRepoUnreachable = errors.New("repo unreachable")
+	ErrScorecardInternal = errors.New("internal error")
+	ErrRepoUnreachable   = errors.New("repo unreachable")
 )
 
 // Create a public error using any of the errors

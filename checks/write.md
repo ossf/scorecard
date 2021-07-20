@@ -20,7 +20,7 @@ if an error is returned from an API you call, use the function.
 5. Create the result of the check as follow:
     * Always provide a high-level sentence explaining the result/score of the check.
     * If the check runs properly but is unable to determine a score, use `checker.CreateInconclusiveResult()` function.
-    * For propertional results, use `checker.CreateProportionalScoreResult()`.
+    * For proportional results, use `checker.CreateProportionalScoreResult()`.
     * For maximum score, use `checker.CreateMaxScoreResult()`; for min score use `checker.CreateMinScoreResult()`.
     * If you need more flexibility and need to set a specific score, use `checker.CreateResultWithScore()` with one of the constants declared, such as `checker.HalfResultScore`.
 6. Dealing with errors: see [../errors/errors.md](errors/errors/md).

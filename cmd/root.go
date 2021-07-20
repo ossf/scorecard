@@ -51,9 +51,6 @@ var (
 	pypi        string
 	rubygems    string
 	showDetails bool
-	// UPGRADEv2: will be removed.
-	v2 bool
-	// TODO(laurent): add explain command.
 	// ErrorInvalidFormatFlag indicates an invalid option was passed for the 'format' argument.
 	ErrorInvalidFormatFlag = errors.New("invalid format flag")
 )
@@ -70,6 +67,9 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 	Short: "Security Scorecards",
 	Long:  "A program that shows security scorecard for an open source software.",
 	Run: func(cmd *cobra.Command, args []string) {
+		// UPGRADEv2: to remove.
+		_, v2 := os.LookupEnv("SCORECARD_V2")
+		fmt.Printf("*** USING v2 MIGRATION CODE ***\n\n")
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
 		logger, err := cfg.Build()
@@ -160,6 +160,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 
 		switch format {
 		case formatDefault:
+			// UPGRADEv2: to remove.
 			if v2 {
 				err = repoResult.AsString2(showDetails, *logLevel, os.Stdout)
 			} else {
@@ -313,8 +314,6 @@ func init() {
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project.It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
-	// UPGRADEv2: will be removed.
-	rootCmd.Flags().BoolVar(&v2, "v2", false, "temporary flag to display v2 changes")
 	checkNames := []string{}
 	for checkName := range checks.AllChecks {
 		checkNames = append(checkNames, checkName)

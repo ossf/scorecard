@@ -39,28 +39,6 @@ type CheckFn func(*CheckRequest) CheckResult
 
 type CheckNameToFnMap map[string]CheckFn
 
-// Types of details.
-type DetailType int
-
-const (
-	DetailInfo DetailType = iota
-	DetailWarn
-	DetailDebug
-)
-
-// CheckDetail contains information for each detail.
-//nolint:govet
-type CheckDetail struct {
-	Type DetailType // Any of DetailWarn, DetailInfo, DetailDebug.
-	Msg  string     // A short string explaining why the details was recorded/logged..
-}
-
-type DetailLogger interface {
-	Info(desc string, args ...interface{})
-	Warn(desc string, args ...interface{})
-	Debug(desc string, args ...interface{})
-}
-
 // UPGRADEv2: messages2 will ultimately
 // be renamed to messages.
 type logger struct {
@@ -152,8 +130,12 @@ func MultiCheckOr2(fns ...CheckFn) CheckFn {
 		for _, fn := range fns {
 			result := fn(c)
 
-			if result.Score2 > maxResult.Score2 {
+			if result.Score > maxResult.Score {
 				maxResult = result
+			}
+
+			if maxResult.Score >= MaxResultScore {
+				break
 			}
 		}
 		return maxResult
