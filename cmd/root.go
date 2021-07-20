@@ -51,9 +51,6 @@ var (
 	pypi        string
 	rubygems    string
 	showDetails bool
-	// UPGRADEv2: will be removed.
-	v2 bool
-	// TODO(laurent): add explain command.
 	// ErrorInvalidFormatFlag indicates an invalid option was passed for the 'format' argument.
 	ErrorInvalidFormatFlag = errors.New("invalid format flag")
 )
@@ -317,8 +314,6 @@ func init() {
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project.It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
-	// UPGRADEv2: will be removed.
-	rootCmd.Flags().BoolVar(&v2, "v2", false, "temporary flag to display v2 changes")
 	checkNames := []string{}
 	for checkName := range checks.AllChecks {
 		checkNames = append(checkNames, checkName)

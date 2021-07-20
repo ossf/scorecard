@@ -14,7 +14,6 @@
 
 package pkg
 
-//nolint:gci
 import (
 	"encoding/csv"
 	"encoding/json"
