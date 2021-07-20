@@ -29,23 +29,28 @@ func init() {
 
 // AutomaticDependencyUpdate will check the repository if it contains Automatic dependency update.
 func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
-	result := CheckIfFileExists(CheckAutomaticDependencyUpdate, c, fileExists)
-	if !result.Pass {
-		result.Confidence = 3
+	r, err := CheckIfFileExists2(CheckAutomaticDependencyUpdate, c, fileExists)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckAutomaticDependencyUpdate, err)
 	}
-	return result
+	if !r {
+		return checker.CreateMinScoreResult(CheckAutomaticDependencyUpdate, "no tool detected [dependabot|renovabot]")
+	}
+
+	// High score result.
+	return checker.CreateMaxScoreResult(CheckAutomaticDependencyUpdate, "tool detected")
 }
 
 // fileExists will validate the if frozen dependencies file name exists.
-func fileExists(name string, logf func(s string, f ...interface{})) (bool, error) {
+func fileExists(name string, dl checker.DetailLogger) (bool, error) {
 	switch strings.ToLower(name) {
 	case ".github/dependabot.yml":
-		logf("dependabot config found: %s", name)
+		dl.Info("dependabot detected : %s", name)
 		return true, nil
 		// https://docs.renovatebot.com/configuration-options/
 	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
 		"renovate.json5", ".renovaterc":
-		logf("renovate config found: %s", name)
+		dl.Info("renovate detected: %s", name)
 		return true, nil
 	default:
 		return false, nil
