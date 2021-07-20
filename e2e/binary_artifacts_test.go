@@ -24,10 +24,6 @@ import (
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/clients/githubrepo"
-<<<<<<< HEAD
-=======
-
->>>>>>> 08e121c (missing errors.go)
 	scut "github.com/ossf/scorecard/utests"
 )
 
