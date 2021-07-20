@@ -15,130 +15,118 @@
 package checks
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"testing"
+
+	"github.com/ossf/scorecard/checker"
+	scut "github.com/ossf/scorecard/utests"
 )
 
+//nolint
 func TestGithubTokenPermissions(t *testing.T) {
 	t.Parallel()
-	type args struct {
-		Logf     func(s string, f ...interface{})
-		Filename string
-	}
 
-	type returnValue struct {
-		Error  error
-		Result bool
-	}
-
-	l := log{}
 	tests := []struct {
-		args args
-		want returnValue
-		name string
+		name     string
+		filename string
+		expected scut.TestReturn
 	}{
 		{
-			name: "Write all test",
-			args: args{
-				Filename: "./testdata/github-workflow-permissions-writeall.yaml",
-				Logf:     l.Logf,
-			},
-			want: returnValue{
-				Error:  nil,
-				Result: false,
-			},
-		},
-		{
-			name: "Read all test",
-			args: args{
-				Filename: "./testdata/github-workflow-permissions-readall.yaml",
-				Logf:     l.Logf,
-			},
-			want: returnValue{
-				Error:  nil,
-				Result: true,
+			name:     "Write all test",
+			filename: "./testdata/github-workflow-permissions-writeall.yaml",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "No permission test",
-			args: args{
-				Filename: "./testdata/github-workflow-permissions-absent.yaml",
-				Logf:     l.Logf,
-			},
-			want: returnValue{
-				Error:  nil,
-				Result: false,
-			},
-		},
-		{
-			name: "Writes test",
-			args: args{
-				Filename: "./testdata/github-workflow-permissions-writes.yaml",
-				Logf:     l.Logf,
-			},
-			want: returnValue{
-				Error:  nil,
-				Result: false,
+			name:     "Read all test",
+			filename: "./testdata/github-workflow-permissions-readall.yaml",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "Reads test",
-			args: args{
-				Filename: "./testdata/github-workflow-permissions-reads.yaml",
-				Logf:     l.Logf,
-			},
-			want: returnValue{
-				Error:  nil,
-				Result: true,
-			},
-		},
-		{
-			name: "Nones test",
-			args: args{
-				Filename: "./testdata/github-workflow-permissions-nones.yaml",
-				Logf:     l.Logf,
-			},
-			want: returnValue{
-				Error:  nil,
-				Result: true,
+			name:     "No permission test",
+			filename: "./testdata/github-workflow-permissions-absent.yaml",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "None test",
-			args: args{
-				Filename: "./testdata/github-workflow-permissions-none.yaml",
-				Logf:     l.Logf,
+			name:     "Writes test",
+			filename: "./testdata/github-workflow-permissions-writes.yaml",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
 			},
-			want: returnValue{
-				Error:  nil,
-				Result: true,
+		},
+		{
+			name:     "Reads test",
+			filename: "./testdata/github-workflow-permissions-reads.yaml",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  10,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "Nones test",
+			filename: "./testdata/github-workflow-permissions-nones.yaml",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  10,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "None test",
+			filename: "./testdata/github-workflow-permissions-none.yaml",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
 			},
 		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		l.messages = []string{}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-			if tt.args.Filename == "" {
+			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.args.Filename)
+				content, err = ioutil.ReadFile(tt.filename)
 				if err != nil {
 					panic(fmt.Errorf("cannot read file: %w", err))
 				}
 			}
-			r, err := validateGitHubActionTokenPermissions(tt.args.Filename, content, tt.args.Logf)
-
-			if !errors.Is(err, tt.want.Error) ||
-				r != tt.want.Result {
-				t.Errorf("TestGithubTokenPermissions:\"%v\": %v (%v,%v) want (%v, %v)",
-					tt.name, tt.args.Filename, r, err, tt.want.Result, tt.want.Error)
-			}
+			dl := scut.TestDetailLogger{}
+			r := testValidateGitHubActionTokenPermissions(tt.filename, content, &dl)
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
 		})
 	}
 }
