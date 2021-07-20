@@ -28,4 +28,6 @@ var (
 	errInternalCommitishNil      = errors.New("commitish is nil")
 	errInternalBranchNotFound    = errors.New("branch not found")
 	errInvalidGitHubWorkflowFile = errors.New("invalid GitHub workflow file")
+	errInternalNoReviews         = errors.New("no reviews found")
+	errInternalNoCommits         = errors.New("no commits found")
 )

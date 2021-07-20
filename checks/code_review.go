@@ -15,7 +15,7 @@
 package checks
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
@@ -27,47 +27,41 @@ import (
 const (
 	// CheckCodeReview is the registered name for DoesCodeReview.
 	CheckCodeReview       = "Code-Review"
-	crPassThreshold       = .75
 	pullRequestsToAnalyze = 30
 	reviewsToAnalyze      = 30
 	labelsToAnalyze       = 30
 )
 
-var (
-	// ErrorNoReviews indicates no reviews were found for this repo.
-	ErrorNoReviews = errors.New("no reviews found")
-
-	// nolint: govet
-	prHistory struct {
-		Repository struct {
-			DefaultBranchRef struct {
-				Name                 githubv4.String
-				BranchProtectionRule struct {
-					RequiredApprovingReviewCount githubv4.Int
-				}
+var prHistory struct {
+	Repository struct {
+		DefaultBranchRef struct {
+			Name                 githubv4.String
+			BranchProtectionRule struct {
+				RequiredApprovingReviewCount githubv4.Int
 			}
-			PullRequests struct {
-				Nodes []struct {
-					Number      githubv4.Int
-					MergeCommit struct {
-						AuthoredByCommitter githubv4.Boolean
-					}
-					MergedAt githubv4.DateTime
-					Labels   struct {
-						Nodes []struct {
-							Name githubv4.String
-						}
-					} `graphql:"labels(last: $labelsToAnalyze)"`
-					LatestReviews struct {
-						Nodes []struct {
-							State githubv4.String
-						}
-					} `graphql:"latestReviews(last: $reviewsToAnalyze)"`
+		}
+		PullRequests struct {
+			//nolint
+			Nodes []struct {
+				Number      githubv4.Int
+				MergeCommit struct {
+					AuthoredByCommitter githubv4.Boolean
 				}
-			} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
-		} `graphql:"repository(owner: $owner, name: $name)"`
-	}
-)
+				MergedAt githubv4.DateTime
+				Labels   struct {
+					Nodes []struct {
+						Name githubv4.String
+					}
+				} `graphql:"labels(last: $labelsToAnalyze)"`
+				LatestReviews struct {
+					Nodes []struct {
+						State githubv4.String
+					}
+				} `graphql:"latestReviews(last: $reviewsToAnalyze)"`
+			}
+		} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
+	} `graphql:"repository(owner: $owner, name: $name)"`
+}
 
 //nolint:gochecknoinits
 func init() {
@@ -88,17 +82,17 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
 	}
 	if err := c.GraphClient.Query(c.Ctx, &prHistory, vars); err != nil {
-		return checker.MakeInconclusiveResult(CheckCodeReview, err)
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
 	}
-	return checker.MultiCheckOr(
-		IsPrReviewRequired,
-		GithubCodeReview,
-		ProwCodeReview,
-		CommitMessageHints,
+	return checker.MultiCheckOr2(
+		isPrReviewRequired,
+		githubCodeReview,
+		commitMessageHints,
+		prowCodeReview,
 	)(c)
 }
 
-func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
+func githubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed.
 	totalMerged := 0
 	totalReviewed := 0
@@ -112,7 +106,7 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		foundApprovedReview := false
 		for _, r := range pr.LatestReviews.Nodes {
 			if r.State == "APPROVED" {
-				c.Logf("found review approved pr: %d", pr.Number)
+				c.Dlogger.Debug("found review approved pr: %d", pr.Number)
 				totalReviewed++
 				foundApprovedReview = true
 				break
@@ -124,34 +118,27 @@ func GithubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		// time on clicking the approve button.
 		if !foundApprovedReview {
 			if !pr.MergeCommit.AuthoredByCommitter {
-				c.Logf("found pr with committer different than author: %d", pr.Number)
+				c.Dlogger.Debug("found pr with committer different than author: %d", pr.Number)
 				totalReviewed++
 			}
 		}
 	}
 
-	if totalReviewed > 0 {
-		c.Logf("github code reviews found")
-	}
-	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, totalMerged, crPassThreshold)
+	return createResult("GitHub", totalReviewed, totalMerged)
 }
 
-func IsPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
+func isPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
 	// Look to see if review is enforced.
 	// Check the branch protection rules, we may not be able to get these though.
 	if prHistory.Repository.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount >= 1 {
-		c.Logf("pr review policy enforced")
-		const confidence = 5
-		return checker.CheckResult{
-			Name:       CheckCodeReview,
-			Pass:       true,
-			Confidence: confidence,
-		}
+		// If the default value is 0 when we cannot retrieve the value,
+		// a non-zero value means we're confident it's enabled.
+		return checker.CreateMaxScoreResult(CheckCodeReview, "branch protection for default branch is enabled")
 	}
-	return checker.MakeInconclusiveResult(CheckCodeReview, nil)
+	return checker.CreateInconclusiveResult(CheckCodeReview, "cannot determine if branch protection is enabled")
 }
 
-func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
+func prowCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	// Look at some merged PRs to see if they were reviewed
 	totalMerged := 0
 	totalReviewed := 0
@@ -168,17 +155,13 @@ func ProwCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	if totalReviewed == 0 {
-		return checker.MakeInconclusiveResult(CheckCodeReview, ErrorNoReviews)
-	}
-	c.Logf("prow code reviews found")
-	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, totalMerged, crPassThreshold)
+	return createResult("Prow", totalReviewed, totalMerged)
 }
 
-func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
+func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(CheckCodeReview, err)
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
 	}
 
 	total := 0
@@ -193,7 +176,7 @@ func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 			}
 		}
 		if isBot {
-			c.Logf("skip commit from bot account: %s", committer)
+			c.Dlogger.Debug("skip commit from bot account: %s", committer)
 			continue
 		}
 
@@ -203,14 +186,20 @@ func CommitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 		commitMessage := commit.GetCommit().GetMessage()
 		if strings.Contains(commitMessage, "\nReviewed-on: ") &&
 			strings.Contains(commitMessage, "\nReviewed-by: ") {
+			c.Dlogger.Debug("Gerrit review found for commit '%s'", commit.GetCommit().GetSHA())
 			totalReviewed++
 			continue
 		}
 	}
 
-	if totalReviewed == 0 {
-		return checker.MakeInconclusiveResult(CheckCodeReview, ErrorNoReviews)
+	return createResult("Gerrit", totalReviewed, total)
+}
+
+func createResult(reviewName string, reviewed, total int) checker.CheckResult {
+	if total > 0 {
+		reason := fmt.Sprintf("%s code reviews found for %v commits out of the last %v", reviewName, reviewed, total)
+		return checker.CreateProportionalScoreResult(CheckCodeReview, reason, reviewed, total)
 	}
-	c.Logf("code reviews found")
-	return checker.MakeProportionalResult(CheckCodeReview, totalReviewed, total, crPassThreshold)
+
+	return checker.CreateInconclusiveResult(CheckCodeReview, fmt.Sprintf("no %v commits found", reviewName))
 }

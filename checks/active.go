@@ -15,17 +15,20 @@
 package checks
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 const (
-	// CheckActive is the registered name for IsActive.
-	CheckActive  = "Active"
-	lookbackDays = 90
+	CheckActive    = "Active"
+	lookBackDays   = 90
+	commitsPerWeek = 1
+	daysInOneWeek  = 7
 )
 
 //nolint:gochecknoinits
@@ -36,30 +39,27 @@ func init() {
 func IsActive(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(CheckActive, err)
+		return checker.CreateRuntimeErrorResult(CheckActive, err)
 	}
 
 	tz, err := time.LoadLocation("UTC")
 	if err != nil {
-		return checker.MakeRetryResult(CheckActive, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("time.LoadLocation: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckActive, e)
 	}
-	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookbackDays)
+	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookBackDays)
 	totalCommits := 0
 	for _, commit := range commits {
 		commitFull, _, err := c.Client.Git.GetCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA())
 		if err != nil {
-			return checker.MakeRetryResult(CheckActive, err)
+			return checker.CreateRuntimeErrorResult(CheckActive, err)
 		}
 		if commitFull.GetAuthor().GetDate().After(threshold) {
 			totalCommits++
 		}
 	}
-	c.Logf("commits in last %d days: %d", lookbackDays, totalCommits)
-	const numCommits = 2
-	const confidence = 10
-	return checker.CheckResult{
-		Name:       CheckActive,
-		Pass:       totalCommits >= numCommits,
-		Confidence: confidence,
-	}
+
+	return checker.CreateProportionalScoreResult(CheckActive,
+		fmt.Sprintf("%d commit(s) found in the last %d days", totalCommits, lookBackDays),
+		totalCommits, commitsPerWeek*lookBackDays/daysInOneWeek)
 }
