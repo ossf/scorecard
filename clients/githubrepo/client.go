@@ -20,7 +20,7 @@ import (
 
 	"github.com/google/go-github/v32/github"
 
-	"github.com/ossf/scorecard/clients"
+	"github.com/ossf/scorecard/v2/clients"
 )
 
 type Client struct {

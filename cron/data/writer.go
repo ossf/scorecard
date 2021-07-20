@@ -22,7 +22,7 @@ import (
 
 	"github.com/jszwec/csvutil"
 
-	"github.com/ossf/scorecard/repos"
+	"github.com/ossf/scorecard/v2/repos"
 )
 
 func repoFormatFromRepoURL(repoURLs []repos.RepoURL) []repoFormat {

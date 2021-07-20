@@ -15,7 +15,7 @@
 package checks
 
 import (
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/v2/checker"
 )
 
 // CheckIfFileExists downloads the tar of the repository and calls the onFile() to check

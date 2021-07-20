@@ -17,7 +17,7 @@ package checks
 import (
 	"strings"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/v2/checker"
 )
 
 const CheckAutomaticDependencyUpdate = "Automatic-Dependency-Update"

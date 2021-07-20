@@ -21,8 +21,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/cron/data"
-	"github.com/ossf/scorecard/repos"
+	"github.com/ossf/scorecard/v2/cron/data"
+	"github.com/ossf/scorecard/v2/repos"
 )
 
 func isLessThanRepoURL(x, y repos.RepoURL) bool {

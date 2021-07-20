@@ -19,8 +19,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/ossf/scorecard/checker"
-	sce "github.com/ossf/scorecard/errors"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 // IsMatchingPath uses 'pattern' to shell-match the 'path' and its filename

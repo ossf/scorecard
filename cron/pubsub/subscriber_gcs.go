@@ -24,7 +24,7 @@ import (
 	pubsub "cloud.google.com/go/pubsub/apiv1"
 	pubsubpb "google.golang.org/genproto/googleapis/pubsub/v1"
 
-	"github.com/ossf/scorecard/cron/data"
+	"github.com/ossf/scorecard/v2/cron/data"
 )
 
 const (
