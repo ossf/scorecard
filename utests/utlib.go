@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 // Copyright 2021 Security Scorecard Authors
-=======
-// Copyright 2020 Security Scorecard Authors
->>>>>>> 049499e (dependabot and binary artifacts checks)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,14 +47,6 @@ type TestDetailLogger struct {
 	messages []checker.CheckDetail
 }
 
-<<<<<<< HEAD
-=======
-// type TestArgs struct {
-// 	Filename string
-// 	Dl       TestDetailLogger
-// }
-
->>>>>>> 049499e (dependabot and binary artifacts checks)
 type TestReturn struct {
 	Errors        []error
 	Score         int
