@@ -15,7 +15,6 @@
 package checks
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -24,16 +23,11 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 // CheckFrozenDeps is the registered name for FrozenDeps.
 const CheckFrozenDeps = "Frozen-Deps"
-
-// ErrInvalidDockerfile : Invalid docker file.
-var ErrInvalidDockerfile = errors.New("invalid docker file")
-
-// ErrEmptyFile : Invalid docker file.
-var ErrEmptyFile = errors.New("file has no content")
 
 // Structure for workflow config.
 // We only declare the fields we need.
@@ -65,7 +59,7 @@ func init() {
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
 func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheckAnd(
+	return checker.MultiCheckAnd2(
 		isPackageManagerLockFilePresent,
 		isGitHubActionsWorkflowPinned,
 		isDockerfilePinned,
@@ -78,28 +72,70 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 // TODO(laurent): need to support GCB pinning.
 
 func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(CheckFrozenDeps, "*", false, c, validateShellScriptDownloads)
+	r, err := CheckFilesContent2("*", false, c, validateShellScriptIsFreeOfInsecureDownloads)
+	return createResultForIsShellScriptFreeOfInsecureDownloads(r, err)
 }
 
-func validateShellScriptDownloads(pathfn string, content []byte,
-	logf func(s string, f ...interface{})) (bool, error) {
+func createResultForIsShellScriptFreeOfInsecureDownloads(r bool, err error) checker.CheckResult {
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
+	}
+	if !r {
+		return checker.CreateMinScoreResult(CheckFrozenDeps,
+			"insecure (unpinned) dependency downloads found in shell scripts")
+	}
+
+	return checker.CreateMaxScoreResult(CheckFrozenDeps,
+		"no insecure (unpinned) dependency downloads found in shell scripts")
+}
+
+func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
+	content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateShellScriptIsFreeOfInsecureDownloads(pathfn, content, dl)
+	return createResultForIsShellScriptFreeOfInsecureDownloads(r, err)
+}
+
+func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
+	dl checker.DetailLogger) (bool, error) {
 	// Validate the file type.
 	if !isShellScriptFile(pathfn, content) {
 		return true, nil
 	}
-	return validateShellFile(pathfn, content, logf)
+	return validateShellFile(pathfn, content, dl)
 }
 
 func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(CheckFrozenDeps, "*Dockerfile*", false, c, validateDockerfileDownloads)
+	r, err := CheckFilesContent2("*Dockerfile*", false, c, validateDockerfileIsFreeOfInsecureDownloads)
+	return createResultForIsDockerfileFreeOfInsecureDownloads(r, err)
 }
 
-func validateDockerfileDownloads(pathfn string, content []byte,
-	logf func(s string, f ...interface{})) (bool, error) {
+// Create the result.
+func createResultForIsDockerfileFreeOfInsecureDownloads(r bool, err error) checker.CheckResult {
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
+	}
+	if !r {
+		return checker.CreateMinScoreResult(CheckFrozenDeps,
+			"insecure (unpinned) dependency downloads found in Dockerfiles")
+	}
+
+	return checker.CreateMaxScoreResult(CheckFrozenDeps,
+		"no insecure (unpinned) dependency downloads found in Dockerfiles")
+}
+
+func testValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
+	content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateDockerfileIsFreeOfInsecureDownloads(pathfn, content, dl)
+	return createResultForIsDockerfileFreeOfInsecureDownloads(r, err)
+}
+
+func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
+	dl checker.DetailLogger) (bool, error) {
 	contentReader := strings.NewReader(string(content))
 	res, err := parser.Parse(contentReader)
 	if err != nil {
-		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
 	// nolint: prealloc
@@ -119,7 +155,8 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 		}
 
 		if len(valueList) == 0 {
-			return false, ErrParsingDockerfile
+			//nolint
+			return false, sce.Create(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
 		}
 
 		// Build a file content.
@@ -127,15 +164,33 @@ func validateDockerfileDownloads(pathfn string, content []byte,
 		bytes = append(bytes, cmd...)
 		bytes = append(bytes, '\n')
 	}
-	return validateShellFile(pathfn, bytes, logf)
+	return validateShellFile(pathfn, bytes, dl)
 }
 
 func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(CheckFrozenDeps, "*Dockerfile*", false, c, validateDockerfile)
+	r, err := CheckFilesContent2("*Dockerfile*", false, c, validateDockerfileIsPinned)
+	return createResultForIsDockerfilePinned(r, err)
 }
 
-func validateDockerfile(pathfn string, content []byte,
-	logf func(s string, f ...interface{})) (bool, error) {
+// Create the result.
+func createResultForIsDockerfilePinned(r bool, err error) checker.CheckResult {
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
+	}
+	if r {
+		return checker.CreateMaxScoreResult(CheckFrozenDeps, "Dockerfile dependencies are pinned")
+	}
+
+	return checker.CreateMinScoreResult(CheckFrozenDeps, "unpinned dependencies found Dockerfiles")
+}
+
+func testValidateDockerfileIsPinned(pathfn string, content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateDockerfileIsPinned(pathfn, content, dl)
+	return createResultForIsDockerfilePinned(r, err)
+}
+
+func validateDockerfileIsPinned(pathfn string, content []byte,
+	dl checker.DetailLogger) (bool, error) {
 	// Users may use various names, e.g.,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
 	// Templates may trigger false positives, e.g. FROM { NAME }.
@@ -150,7 +205,8 @@ func validateDockerfile(pathfn string, content []byte,
 	pinnedAsNames := make(map[string]bool)
 	res, err := parser.Parse(contentReader)
 	if err != nil {
-		return false, fmt.Errorf("cannot read dockerfile content: %w", err)
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
 	for _, child := range res.AST.Children {
@@ -188,44 +244,70 @@ func validateDockerfile(pathfn string, content []byte,
 
 			// Not pinned.
 			ret = false
-			logf("!! frozen-deps/docker - %v has non-pinned dependency '%v'", pathfn, name)
+			dl.Warn("unpinned dependency detected in %v: '%v'", pathfn, name)
 
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
 				ret = false
-				logf("!! frozen-deps/docker - %v has non-pinned dependency '%v'", pathfn, name)
+				dl.Warn("unpinned dependency detected in %v: '%v'", pathfn, name)
 			}
 
 		default:
 			// That should not happen.
-			return false, ErrInvalidDockerfile
+			//nolint
+			return false, sce.Create(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
 		}
 	}
 
 	// The file should have at least one FROM statement.
 	if !fromFound {
-		return false, ErrInvalidDockerfile
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
 	}
 
 	return ret, nil
 }
 
 func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(CheckFrozenDeps, ".github/workflows/*", false, c, validateGitHubWorkflowShellScriptDownloads)
+	r, err := CheckFilesContent2(".github/workflows/*", false, c, validateGitHubWorkflowIsFreeOfInsecureDownloads)
+	return createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, err)
 }
 
-func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
-	logf func(s string, f ...interface{})) (bool, error) {
+// Create the result.
+func createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r bool, err error) checker.CheckResult {
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
+	}
+	if !r {
+		return checker.CreateMinScoreResult(CheckFrozenDeps,
+			"insecure (unpinned) dependency downloads found in GitHub workflows")
+	}
+
+	return checker.CreateMaxScoreResult(CheckFrozenDeps,
+		"no insecure (unpinned) dependency downloads found in GitHub workflows")
+}
+
+func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
+	content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn, content, dl)
+	return createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, err)
+}
+
+func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
+	dl checker.DetailLogger) (bool, error) {
 	if len(content) == 0 {
-		return false, ErrEmptyFile
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, errInternalEmptyFile.Error())
 	}
 
 	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v: %w", pathfn, string(content), err)
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal,
+			fmt.Sprintf("%v:%s:%s:%v", errInternalInvalidYamlFile, pathfn, string(content), err))
 	}
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
@@ -262,7 +344,7 @@ func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
 	}
 
 	if scriptContent != "" {
-		validated, err = validateShellFile(pathfn, []byte(scriptContent), logf)
+		validated, err = validateShellFile(pathfn, []byte(scriptContent), dl)
 		if err != nil {
 			return false, err
 		}
@@ -273,19 +355,40 @@ func validateGitHubWorkflowShellScriptDownloads(pathfn string, content []byte,
 
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(CheckFrozenDeps, ".github/workflows/*", true, c, validateGitHubActionWorkflow)
+	r, err := CheckFilesContent2(".github/workflows/*", true, c, validateGitHubActionWorkflow)
+	return createResultForIsGitHubActionsWorkflowPinned(r, err)
+}
+
+// Create the result.
+func createResultForIsGitHubActionsWorkflowPinned(r bool, err error) checker.CheckResult {
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
+	}
+	if r {
+		return checker.CreateMaxScoreResult(CheckFrozenDeps, "GitHub actions are pinned")
+	}
+
+	return checker.CreateMinScoreResult(CheckFrozenDeps, "GitHub actions are not pinned")
+}
+
+func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateGitHubActionWorkflow(pathfn, content, dl)
+	return createResultForIsGitHubActionsWorkflowPinned(r, err)
 }
 
 // Check file content.
-func validateGitHubActionWorkflow(pathfn string, content []byte, logf func(s string, f ...interface{})) (bool, error) {
+func validateGitHubActionWorkflow(pathfn string, content []byte, dl checker.DetailLogger) (bool, error) {
 	if len(content) == 0 {
-		return false, ErrEmptyFile
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, errInternalEmptyFile.Error())
 	}
 
 	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		return false, fmt.Errorf("!! frozen-deps - cannot unmarshal file %v\n%v: %w", pathfn, string(content), err)
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal,
+			fmt.Sprintf("%v:%s:%s:%v", errInternalInvalidYamlFile, pathfn, string(content), err))
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
@@ -301,7 +404,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte, logf func(s str
 				match := hashRegex.Match([]byte(step.Uses))
 				if !match {
 					ret = false
-					logf("!! frozen-deps/github-actions - %v has non-pinned dependency '%v' (job '%v')", pathfn, step.Uses, jobName)
+					dl.Warn("unpinned dependency detected in %v: '%v' (job '%v')", pathfn, step.Uses, jobName)
 				}
 			}
 		}
@@ -312,38 +415,49 @@ func validateGitHubActionWorkflow(pathfn string, content []byte, logf func(s str
 
 // Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
-	return CheckIfFileExists(CheckFrozenDeps, c, validatePackageManagerFile)
+	r, err := CheckIfFileExists2(CheckFrozenDeps, c, validatePackageManagerFile)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
+	}
+	if !r {
+		return checker.CreateInconclusiveResult(CheckFrozenDeps, "no lock files detected for a package manager")
+	}
+
+	return checker.CreateMaxScoreResult(CheckFrozenDeps, "lock file detected for a package manager")
 }
 
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
 // TODO(laurent): need to differentiate between libraries and programs.
 // TODO(laurent): handle multi-language repos.
-func validatePackageManagerFile(name string, logf func(s string, f ...interface{})) (bool, error) {
+func validatePackageManagerFile(name string, dl checker.DetailLogger) (bool, error) {
 	switch strings.ToLower(name) {
-	case "go.mod", "go.sum":
-		logf("go modules found: %s", name)
+	// TODO(laurent): "go.mod" is for libraries
+	case "go.sum":
+		dl.Info("go lock file detected: %s", name)
 		return true, nil
 	case "vendor/", "third_party/", "third-party/":
-		logf("vendor dir found: %s", name)
+		dl.Info("vendoring detected in: %s", name)
 		return true, nil
 	case "package-lock.json", "npm-shrinkwrap.json":
-		logf("nodejs packages found: %s", name)
+		dl.Info("javascript lock file detected: %s", name)
 		return true, nil
 	// TODO(laurent): add check for hashbased pinning in requirements.txt - https://davidwalsh.name/hashin
-	case "requirements.txt", "pipfile.lock":
-		logf("python requirements found: %s", name)
+	// Note: because requirements.txt does not handle transitive dependencies, we consider it
+	// not a lock file, until we have remediation steps for pip-build.
+	case "pipfile.lock":
+		dl.Info("python lock file detected: %s", name)
 		return true, nil
 	case "gemfile.lock":
-		logf("ruby gems found: %s", name)
+		dl.Info("ruby lock file detected: %s", name)
 		return true, nil
 	case "cargo.lock":
-		logf("rust crates found: %s", name)
+		dl.Info("rust lock file detected: %s", name)
 		return true, nil
 	case "yarn.lock":
-		logf("yarn packages found: %s", name)
+		dl.Info("yarn lock file detected: %s", name)
 		return true, nil
 	case "composer.lock":
-		logf("composer packages found: %s", name)
+		dl.Info("composer lock file detected: %s", name)
 		return true, nil
 	default:
 		return false, nil
