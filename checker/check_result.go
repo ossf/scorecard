@@ -234,8 +234,8 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		//nolint
 		Version: 2,
 		Error2:  e,
-		Score2:  InconclusiveResultScore,
-		Reason2: e.Error(), // Note: message already accessible by caller thru `Error`.
+		Score:   InconclusiveResultScore,
+		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
 	}
 }
 
@@ -250,7 +250,7 @@ func MakeAndResult2(checks ...CheckResult) CheckResult {
 	// UPGRADEv2: will go away after old struct is removed.
 	//nolint
 	for _, result := range checks[1:] {
-		if result.Score2 < worseResult.Score2 {
+		if result.Score < worseResult.Score {
 			worseResult = result
 		}
 	}
