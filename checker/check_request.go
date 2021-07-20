@@ -30,6 +30,8 @@ type CheckRequest struct {
 	GraphClient *githubv4.Client
 	HTTPClient  *http.Client
 	RepoClient  clients.RepoClient
+	// UPGRADEv2: Logf will be removed.
 	Logf        func(s string, f ...interface{})
+	Dlogger     DetailLogger
 	Owner, Repo string
 }

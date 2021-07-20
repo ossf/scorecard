@@ -27,8 +27,8 @@ func TestMakeCheckAnd(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name   string
-		checks []CheckResult
 		want   CheckResult
+		checks []CheckResult
 	}{
 		{
 			name: "Multiple passing",
