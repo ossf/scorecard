@@ -22,6 +22,7 @@ import (
 )
 
 type doc struct {
+	Risk        string   `yaml:"-"`
 	Description string   `yaml:"description"`
 	Remediation []string `yaml:"remediation"`
 }
