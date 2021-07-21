@@ -79,10 +79,10 @@ func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalTags == 0 {
-		return checker.CreateInconclusiveResult(CheckSignedTags, "no release tags found")
+		return checker.CreateInconclusiveResult(CheckSignedTags, "no tags found")
 	}
 
 	// TODO: support package managers.
-	reason := fmt.Sprintf("%d out of %d release tags have a verified signature", totalSigned, totalTags)
+	reason := fmt.Sprintf("%d out of %d tags have a verified signature", totalSigned, totalTags)
 	return checker.CreateProportionalScoreResult(CheckSignedTags, reason, totalSigned, totalTags)
 }
