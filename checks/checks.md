@@ -22,7 +22,7 @@ The check currently works by looking for commits within the last 90 days, and ou
 
 This check tries to determine if a project has dependencies automatically updated.
 Not updating dependencies makes a project vulnerable to known flaws and prone to attacks.  A low score is therefore considered `High` risk.
-The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if  it is enabled and does not ensure that it is run and pull requests are merged. 
+The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. 
 
 **Remediation steps**
 - Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.

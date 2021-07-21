@@ -39,7 +39,7 @@ checks:
       A low score is therefore considered `High` risk.
 
       The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or
-      [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if 
+      [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if
       it is enabled and does not ensure that it is run and pull requests are merged.
       
     remediation:
