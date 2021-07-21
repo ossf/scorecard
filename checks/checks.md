@@ -38,7 +38,7 @@ Binaries are a threat to auditability and vulnerability management.  In addition
 
 ## Branch-Protection 
 
-Branch protection allows defining rules to enforce certain workflows for branches, such as requiring a review or passing certain status checks.
+[Branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) allows defining rules to enforce certain workflows for branches, such as requiring a review or passing certain status checks.
 Branch protection ensures compromised contributors cannot  intentionally inject malicious code. A low score is therefore considered `High` risk.
 This check determines if the default and release branches are protected with GitHub's branch protection settings. The check only works when the token has [Admin access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197) to the repository. This check determines if the default and release branches are protected. 
 

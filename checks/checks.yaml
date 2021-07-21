@@ -62,7 +62,8 @@ checks:
   Branch-Protection:
     risk: High
     description: >-
-      Branch protection allows defining rules to enforce certain workflows for
+      [Branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
+      allows defining rules to enforce certain workflows for
       branches, such as requiring a review or passing certain status checks.
 
       Branch protection ensures compromised contributors cannot 
