@@ -74,7 +74,9 @@ The check first tries to detect if branch-Protection is enabled on the default b
 
 ## Contributors 
 
-This check tries to determine if a project has a set of contributors from multiple companies. It works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commint in the last 30 commits. The check succeeds if all contributor span  at least 2 different companies. 
+This check tries to determine if a project has a set of contributors from multiple companies. 
+Low score has 'Low' risk.
+The check works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commint in the last 30 commits. The check succeeds if all contributor span  at least 2 different companies. 
 
 **Remediation steps**
 - There is *NO* remediation work needed here. This is just to provide some insights on which organization(s) have contributed to the project and making trust decision based on that. But you can ask your contributors to  join their respective organization.
@@ -98,6 +100,15 @@ This check tries to determine if the project uses a fuzzing system. It currently
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
 
+## Packaging 
+
+This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default.
+A compromised token with write access may be used by attackers to push malicious code into the project. A low score is therefore considered `High` risk.
+For each workflow yaml file, the check looks for the permissions keyword. If it is set globally as read-only for the entire file, this check succeeds. Otherwise it fails. The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
+
+**Remediation steps**
+- Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
+
 ## Pull-Requests 
 
 This check tries to determine if the project requires pull requests for all changes to the default branch. It works by looking at recent commits (first page, ~30) and uses the GitHub API to search for associated pull requests. The check discards commits by usernames containing 'bot' or 'gardener'. The check considers a commit containing the string `Reviewed-on` as being reviewed through gerrit; and does not check for a corresponding PR. 
@@ -109,7 +120,9 @@ This check tries to determine if the project requires pull requests for all chan
 
 ## SAST 
 
-This check tries to determine if the project uses static code analysis systems. It currently works by looking for well-known results in GitHub pull requests. More specifically, the check first looks for Github apps named [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and  sonarcloud in the recent (~30) merged PRs. If >75% of commits contain at least a successful check (by any of the apps above), the check succeeds. If the above fails, the check instead looks for the use of "github/codeql-action" in a github workflow. 
+This check tries to determine if the project uses static code analysis systems. 
+SAST tool may prevent known classes of bugs to be inadvertently  introduced in the codebase. A a low score is considered `Medium` risk.
+The checks currently looks for known Github apps such as [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and sonarcloud in the recent (~30) merged PRs. The check also looks for the use of "github/codeql-action" in a github workflow. 
 
 **Remediation steps**
 - Run CodeQL checks in your CI/CD by following the instructions [here](https://github.com/github/codeql-action#usage).
@@ -156,7 +169,8 @@ For each workflow yaml file, the check looks for the permissions keyword. If it 
 
 ## Vulnerabilities 
 
-This check determines if there are open, unfixed vulnerabilities in the project using the [OSV](https://osv.dev) service. 
+This check determines if there are open, unfixed vulnerabilities in the project using the [OSV](https://osv.dev) service.
+An existing vulnerability is can readily be used by attackers, so a low score is considered `High` risk. 
 
 **Remediation steps**
 - Fix the vulnerabilities. The details of each vulnerability can be found on <https://osv.dev>.
