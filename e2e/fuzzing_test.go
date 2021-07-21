@@ -37,7 +37,7 @@ var _ = Describe("E2E TEST:Fuzzing", func() {
 				Owner:       "tensorflow",
 				Repo:        "tensorflow",
 				GraphClient: graphClient,
-				Logf:        l.Logf,
+				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
 				Errors:        nil,
