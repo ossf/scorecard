@@ -40,6 +40,7 @@ func validatePermission(key string, value interface{}, path string,
 	dl checker.DetailLogger) (bool, error) {
 	val, ok := value.(string)
 	if !ok {
+		//nolint
 		return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
 	}
 
@@ -62,6 +63,7 @@ func validateMapPermissions(values map[interface{}]interface{}, path string,
 	for k, v := range values {
 		key, ok := k.(string)
 		if !ok {
+			//nolint
 			return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
 		}
 
@@ -111,6 +113,7 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 
 	// Invalid type.
 	default:
+		//nolint
 		return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
 	}
 
@@ -141,6 +144,7 @@ func testValidateGitHubActionTokenPermissions(pathfn string,
 func validateGitHubActionTokenPermissions(path string, content []byte,
 	dl checker.DetailLogger) (bool, error) {
 	if len(content) == 0 {
+		//nolint
 		return false, sce.Create(sce.ErrScorecardInternal, errInternalEmptyFile.Error())
 	}
 
@@ -149,6 +153,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	var err error
 	err = yaml.Unmarshal(content, &workflow)
 	if err != nil {
+		//nolint
 		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
 	}
 
