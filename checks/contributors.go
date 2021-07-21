@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
@@ -23,8 +24,8 @@ import (
 )
 
 const (
-	minContributionsPerUser = 5
-	minOrganizationCount    = 2
+	minContributionsPerUser    = 5
+	numberCompaniesForTopScore = 3
 	// CheckContributors is the registered name for Contributors.
 	CheckContributors = "Contributors"
 )
@@ -37,7 +38,7 @@ func init() {
 func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	contribs, _, err := c.Client.Repositories.ListContributors(c.Ctx, c.Owner, c.Repo, &github.ListContributorsOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(CheckContributors, err)
+		return checker.CreateRuntimeErrorResult(CheckContributors, err)
 	}
 
 	companies := map[string]struct{}{}
@@ -47,11 +48,11 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 		}
 		u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
 		if err != nil {
-			return checker.MakeRetryResult(CheckContributors, err)
+			return checker.CreateRuntimeErrorResult(CheckContributors, err)
 		}
 		orgs, _, err := c.Client.Organizations.List(c.Ctx, contrib.GetLogin(), nil)
 		if err != nil {
-			c.Logf("unable to get org members for %s", contrib.GetLogin())
+			c.Dlogger.Debug("unable to get org members for %s: %v", contrib.GetLogin(), err)
 		} else if len(orgs) > 0 {
 			companies[*orgs[0].Login] = struct{}{}
 			continue
@@ -72,17 +73,9 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	for c := range companies {
 		names = append(names, c)
 	}
-	c.Logf("companies found: %v", strings.Join(names, ","))
-	if len(companies) >= minOrganizationCount {
-		return checker.CheckResult{
-			Name:       CheckContributors,
-			Pass:       true,
-			Confidence: checker.MaxResultConfidence,
-		}
-	}
-	return checker.CheckResult{
-		Name:       CheckContributors,
-		Pass:       false,
-		Confidence: checker.MaxResultConfidence,
-	}
+
+	c.Dlogger.Info("contributors work for: %v", strings.Join(names, ","))
+
+	reason := fmt.Sprintf("%d different companies found", len(companies))
+	return checker.CreateProportionalScoreResult(CheckContributors, reason, len(companies), numberCompaniesForTopScore)
 }
