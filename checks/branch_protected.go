@@ -86,8 +86,7 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 		name, err := resolveBranchName(branches, *release.TargetCommitish)
 		if err != nil {
 			// If the commitish branch is still not found, fail.
-			e := sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
-			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
+			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 			checks = append(checks, r)
 			continue
 		}
@@ -107,8 +106,7 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	for b := range checkBranches {
 		protected, err := isBranchProtected(branches, b)
 		if err != nil {
-			e := sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
-			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
+			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 			checks = append(checks, r)
 		}
 		if !protected {

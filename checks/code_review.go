@@ -22,6 +22,7 @@ import (
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 const (
@@ -82,7 +83,8 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
 	}
 	if err := c.GraphClient.Query(c.Ctx, &prHistory, vars); err != nil {
-		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("c.GraphClient.Query: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, e)
 	}
 	return checker.MultiCheckOr2(
 		isPrReviewRequired,
@@ -161,7 +163,8 @@ func prowCodeReview(c *checker.CheckRequest) checker.CheckResult {
 func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, e)
 	}
 
 	total := 0
