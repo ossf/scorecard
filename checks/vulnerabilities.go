@@ -63,7 +63,8 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 		},
 	})
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, err)
+		e := sce.Create(sce.ErrScorecardInternal, "Client.Repositories.ListCommits")
+		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
 	if len(commits) != 1 || commits[0].SHA == nil {
@@ -80,7 +81,8 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 
 	req, err := http.NewRequestWithContext(c.Ctx, http.MethodPost, osvQueryEndpoint, bytes.NewReader(query))
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
 	// Use our own http client as the one from CheckRequest adds GitHub tokens to the headers.
