@@ -17,13 +17,14 @@ package checks
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 const (
@@ -31,9 +32,6 @@ const (
 	CheckVulnerabilities = "Vulnerabilities"
 	osvQueryEndpoint     = "https://api.osv.dev/v1/query"
 )
-
-// ErrNoCommits is the error for when there are no commits found.
-var ErrNoCommits = errors.New("no commits found")
 
 type osvQuery struct {
 	Commit string `json:"commit"`
@@ -65,44 +63,48 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 		},
 	})
 	if err != nil {
-		return checker.MakeRetryResult(CheckVulnerabilities, err)
+		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, err)
 	}
 
 	if len(commits) != 1 || commits[0].SHA == nil {
-		return checker.MakeInconclusiveResult(CheckVulnerabilities, ErrNoCommits)
+		return checker.CreateInconclusiveResult(CheckVulnerabilities, "no commits found")
 	}
 
 	query, err := json.Marshal(&osvQuery{
 		Commit: *commits[0].SHA,
 	})
 	if err != nil {
-		panic("!! failed to marshal OSV query.")
+		e := sce.Create(sce.ErrScorecardInternal, "json.Marshal")
+		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
 	req, err := http.NewRequestWithContext(c.Ctx, http.MethodPost, osvQueryEndpoint, bytes.NewReader(query))
 	if err != nil {
-		return checker.MakeRetryResult(CheckVulnerabilities, err)
+		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, err)
 	}
 
 	// Use our own http client as the one from CheckRequest adds GitHub tokens to the headers.
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return checker.MakeRetryResult(CheckVulnerabilities, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("httpClient.Do: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 	defer resp.Body.Close()
 
 	var osvResp osvResponse
 	decoder := json.NewDecoder(resp.Body)
 	if err := decoder.Decode(&osvResp); err != nil {
-		return checker.MakeRetryResult(CheckVulnerabilities, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("decoder.Decode: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
+	// TODO: take severity into account.
 	vulnIDs := osvResp.getVulnerabilities()
 	if len(vulnIDs) > 0 {
-		c.Logf("HEAD is vulnerable to %s", strings.Join(vulnIDs, ", "))
-		return checker.MakeFailResult(CheckVulnerabilities, nil)
+		c.Dlogger.Warn("HEAD is vulnerable to %s", strings.Join(vulnIDs, ", "))
+		return checker.CreateMinScoreResult(CheckVulnerabilities, "unfixed OSV detected")
 	}
 
-	return checker.MakePassResult(CheckVulnerabilities)
+	return checker.CreateMaxScoreResult(CheckVulnerabilities, "no OSV detected")
 }

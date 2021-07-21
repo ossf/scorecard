@@ -16,7 +16,6 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -53,7 +52,6 @@ var _ = Describe("E2E TEST:Packaging", func() {
 			// Old version.
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
-			fmt.Printf("%v %v\n", result, result.Details2)
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "use packaging", &expected, &result, &dl)).Should(BeTrue())
 		})

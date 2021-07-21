@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 
 	scorecarderrors "github.com/ossf/scorecard/errors"
 )
@@ -213,10 +214,12 @@ func MakeOrResult(c *CheckRequest, checks ...CheckResult) CheckResult {
 	//nolint
 	for _, result := range checks[1:] {
 		if result.Score >= bestResult.Score {
-			c.Dlogger.Info(bestResult.Reason)
+			i := strings.Index(bestResult.Reason, "-- score normalized")
+			c.Dlogger.Info(bestResult.Reason[:i])
 			bestResult = result
 		} else {
-			c.Dlogger.Info(result.Reason)
+			i := strings.Index(result.Reason, "-- score normalized")
+			c.Dlogger.Info(result.Reason[:i])
 		}
 
 		// Do not exit early so we can show all the details

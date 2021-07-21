@@ -15,26 +15,18 @@
 package checks
 
 import (
-	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/checker"
 )
 
-const (
-	// CheckSAST is the registered name for SAST.
-	CheckSAST         = "SAST"
-	sastPassThreshold = .75
-)
+// CheckSAST is the registered name for SAST.
+const CheckSAST = "SAST"
 
-var (
-	sastTools = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
-	// ErrorNoChecks indicates no GitHub Check runs were found for this repo.
-	ErrorNoChecks = errors.New("no check runs found")
-	// ErrorNoMerges indicates no merges with SAST tool runs were found for this repo.
-	ErrorNoMerges = errors.New("no merges found")
-)
+var sastTools = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
 
 //nolint:gochecknoinits
 func init() {
@@ -42,10 +34,38 @@ func init() {
 }
 
 func SAST(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheckOr(
-		CodeQLInCheckDefinitions,
-		SASTToolInCheckRuns,
-	)(c)
+	r1 := SASTToolInCheckRuns(c)
+	r2 := CodeQLInCheckDefinitions(c)
+	if r1.Error2 != nil {
+		return r1
+	}
+	if r2.Error2 != nil {
+		return r2
+	}
+	// Merge the results.
+	var result checker.CheckResult
+	if r1.Score == checker.MaxResultScore {
+		// All commits have a SAST tool check run,
+		// score is maximum.
+		result = r1
+		result.Score = 10
+		i := strings.Index(r2.Reason, "-- score normalized")
+		c.Dlogger.Info(r2.Reason[:i])
+	} else {
+		// Not all commits have a check run,
+		// We compute the final score as follows:
+		// 5 points for CodeQL enabled, 5 points for
+		// SAST run on commits.
+		result = r2
+
+		//nolint
+		result.Score = 5 + r1.Score/10*5
+		result.Reason = "not all commits are checked with a SAST tool"
+		i := strings.Index(r1.Reason, "-- score normalized")
+		c.Dlogger.Info(r1.Reason[:i])
+	}
+
+	return result
 }
 
 func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
@@ -53,7 +73,7 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 		State: "closed",
 	})
 	if err != nil {
-		return checker.MakeRetryResult(CheckSAST, err)
+		return checker.CreateRuntimeErrorResult(CheckSAST, err)
 	}
 
 	totalMerged := 0
@@ -66,10 +86,10 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
 			&github.ListCheckRunsOptions{})
 		if err != nil {
-			return checker.MakeRetryResult(CheckSAST, err)
+			return checker.CreateRuntimeErrorResult(CheckSAST, err)
 		}
 		if crs == nil {
-			return checker.MakeInconclusiveResult(CheckSAST, ErrorNoChecks)
+			return checker.CreateInconclusiveResult(CheckSAST, "no merges detected")
 		}
 		for _, cr := range crs.CheckRuns {
 			if cr.GetStatus() != "completed" {
@@ -79,32 +99,34 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 				continue
 			}
 			if sastTools[cr.GetApp().GetSlug()] {
-				c.Logf("SAST Tool found: %s", cr.GetHTMLURL())
+				c.Dlogger.Info("tool detected: %s", cr.GetHTMLURL())
 				totalTested++
 				break
 			}
 		}
 	}
-	if totalTested == 0 {
-		return checker.MakeInconclusiveResult(CheckSAST, ErrorNoMerges)
+	if totalMerged == 0 {
+		return checker.CreateInconclusiveResult(CheckSAST, "no merges detected")
 	}
-	return checker.MakeProportionalResult(CheckSAST, totalTested, totalMerged, sastPassThreshold)
+	reason := fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged)
+	return checker.CreateProportionalScoreResult(CheckSAST, reason, totalTested, totalMerged)
 }
 
 func CodeQLInCheckDefinitions(c *checker.CheckRequest) checker.CheckResult {
 	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
 	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(CheckSAST, err)
+		return checker.CreateRuntimeErrorResult(CheckSAST, err)
 	}
 
 	for _, result := range results.CodeResults {
-		c.Logf("found CodeQL definition: %s", result.GetPath())
+		c.Dlogger.Info("CodeQL definition detected: %s", result.GetPath())
 	}
 
-	return checker.CheckResult{
-		Name:       CheckSAST,
-		Pass:       *results.Total > 0,
-		Confidence: checker.MaxResultConfidence,
+	// TODO: check if it's enabled as cron or presubmit.
+	// TODO: check which branches it is enabled on. We should find main.
+	if *results.Total > 0 {
+		return checker.CreateMaxScoreResult(CheckSAST, "tool detected: CodeQL")
 	}
+	return checker.CreateMinScoreResult(CheckSAST, "CodeQL tool not detected")
 }
