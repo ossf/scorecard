@@ -21,6 +21,7 @@ import (
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 const (
@@ -38,7 +39,8 @@ func init() {
 func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	contribs, _, err := c.Client.Repositories.ListContributors(c.Ctx, c.Owner, c.Repo, &github.ListContributorsOptions{})
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckContributors, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListContributors: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckContributors, e)
 	}
 
 	companies := map[string]struct{}{}
@@ -48,7 +50,8 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 		}
 		u, _, err := c.Client.Users.Get(c.Ctx, contrib.GetLogin())
 		if err != nil {
-			return checker.CreateRuntimeErrorResult(CheckContributors, err)
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Users.Get: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckContributors, e)
 		}
 		orgs, _, err := c.Client.Organizations.List(c.Ctx, contrib.GetLogin(), nil)
 		if err != nil {
