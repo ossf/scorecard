@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 // CheckPackaging is the registered name for Packaging.
@@ -36,14 +38,16 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	_, dc, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, ".github/workflows",
 		&github.RepositoryContentGetOptions{})
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckPackaging, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.GetContents: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
 	for _, f := range dc {
 		fp := f.GetPath()
 		fo, _, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, fp, &github.RepositoryContentGetOptions{})
 		if err != nil {
-			return checker.CreateRuntimeErrorResult(CheckPackaging, err)
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.GetContents: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if fo == nil {
 			// path is a directory, not a file. skip.
@@ -51,7 +55,8 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		}
 		fc, err := fo.GetContent()
 		if err != nil {
-			return checker.CreateRuntimeErrorResult(CheckPackaging, err)
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("fo.GetContent: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 
 		if !isPackagingWorkflow(fc, fp, c) {
@@ -63,7 +68,8 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 				Status: "success",
 			})
 		if err != nil {
-			return checker.CreateRuntimeErrorResult(CheckPackaging, err)
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Actions.ListWorkflowRunsByFileName: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if *runs.TotalCount > 0 {
 			c.Dlogger.Info("workflow %v used in run: %s", fp, runs.WorkflowRuns[0].GetHTMLURL())

@@ -21,6 +21,7 @@ import (
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 // CheckSAST is the registered name for SAST.
@@ -73,7 +74,8 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 		State: "closed",
 	})
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckSAST, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.PullRequests.List: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckSAST, e)
 	}
 
 	totalMerged := 0
@@ -86,7 +88,8 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
 			&github.ListCheckRunsOptions{})
 		if err != nil {
-			return checker.CreateRuntimeErrorResult(CheckSAST, err)
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckSAST, e)
 		}
 		if crs == nil {
 			return checker.CreateInconclusiveResult(CheckSAST, "no merges detected")
@@ -116,7 +119,8 @@ func CodeQLInCheckDefinitions(c *checker.CheckRequest) checker.CheckResult {
 	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
 	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckSAST, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckSAST, e)
 	}
 
 	for _, result := range results.CodeResults {
