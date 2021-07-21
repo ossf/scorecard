@@ -185,7 +185,7 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	}
 }
 
-// UPGRADEv2: will be renaall functions belowed will be removed.
+// UPGRADEv2: functions below will be renamed.
 func MakeAndResult2(checks ...CheckResult) CheckResult {
 	if len(checks) == 0 {
 		// That should never happen.
@@ -201,6 +201,29 @@ func MakeAndResult2(checks ...CheckResult) CheckResult {
 		}
 	}
 	return worseResult
+}
+
+func MakeOrResult(c *CheckRequest, checks ...CheckResult) CheckResult {
+	if len(checks) == 0 {
+		// That should never happen.
+		panic("MakeResult called with no checks")
+	}
+
+	bestResult := checks[0]
+	//nolint
+	for _, result := range checks[1:] {
+		if result.Score >= bestResult.Score {
+			c.Dlogger.Info(bestResult.Reason)
+			bestResult = result
+		} else {
+			c.Dlogger.Info(result.Reason)
+		}
+
+		// Do not exit early so we can show all the details
+		// to the user.
+	}
+
+	return bestResult
 }
 
 func MakeInconclusiveResult(name string, err error) CheckResult {

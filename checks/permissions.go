@@ -15,19 +15,16 @@
 package checks
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 const CheckPermissions = "Token-Permissions"
-
-// ErrInvalidGitHubWorkflowFile : Invalid GitHub workflow file.
-var ErrInvalidGitHubWorkflowFile = errors.New("invalid GitHub workflow file")
 
 //nolint:gochecknoinits
 func init() {
@@ -35,26 +32,29 @@ func init() {
 }
 
 func leastPrivilegedTokens(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(CheckPermissions, ".github/workflows/*", true, c, validateGitHubActionTokenPermissions)
+	r, err := CheckFilesContent2(".github/workflows/*", false, c, validateGitHubActionTokenPermissions)
+	return createResultForLeastPrivilegeTokens(r, err)
 }
 
 func validatePermission(key string, value interface{}, path string,
-	logf func(s string, f ...interface{})) (bool, error) {
+	dl checker.DetailLogger) (bool, error) {
 	val, ok := value.(string)
 	if !ok {
-		return false, ErrInvalidGitHubWorkflowFile
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
 	}
 
 	if strings.EqualFold(val, "write") {
-		logf("!! token-permissions/github-token - %v permission set to '%v' in %v", key, val, path)
+		dl.Warn("'%v' permission set to '%v' in %v", key, val, path)
 		return false, nil
 	}
 
+	dl.Info("'%v' permission set to '%v' in %v", key, val, path)
 	return true, nil
 }
 
 func validateMapPermissions(values map[interface{}]interface{}, path string,
-	logf func(s string, f ...interface{})) (bool, error) {
+	dl checker.DetailLogger) (bool, error) {
 	permissionRead := true
 	var r bool
 	var err error
@@ -63,10 +63,11 @@ func validateMapPermissions(values map[interface{}]interface{}, path string,
 	for k, v := range values {
 		key, ok := k.(string)
 		if !ok {
-			return false, ErrInvalidGitHubWorkflowFile
+			//nolint
+			return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
 		}
 
-		if r, err = validatePermission(key, v, path, logf); err != nil {
+		if r, err = validatePermission(key, v, path, dl); err != nil {
 			return false, err
 		}
 
@@ -78,13 +79,13 @@ func validateMapPermissions(values map[interface{}]interface{}, path string,
 }
 
 func validateReadPermissions(config map[interface{}]interface{}, path string,
-	logf func(s string, f ...interface{})) (bool, error) {
+	dl checker.DetailLogger) (bool, error) {
 	var permissions interface{}
 
 	// Check if permissions are set explicitly.
 	permissions, ok := config["permissions"]
 	if !ok {
-		logf("!! token-permissions/github-token - no permission defined in %v", path)
+		dl.Warn("no permission defined in %v", path)
 		return false, nil
 	}
 
@@ -93,17 +94,18 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 	// Empty string is nil type.
 	// It defaults to 'none'
 	case nil:
-
+		dl.Info("permission set to 'none' in %v", path)
 	// String type.
 	case string:
 		if !strings.EqualFold(val, "read-all") && val != "" {
-			logf("!! token-permissions/github-token - permission set to '%v' in %v", val, path)
+			dl.Warn("permission set to '%v' in %v", val, path)
 			return false, nil
 		}
+		dl.Info("permission set to '%v' in %v", val, path)
 
 	// Map type.
 	case map[interface{}]interface{}:
-		if res, err := validateMapPermissions(val, path, logf); err != nil {
+		if res, err := validateMapPermissions(val, path, dl); err != nil {
 			return false, err
 		} else if !res {
 			return false, nil
@@ -111,17 +113,39 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 
 	// Invalid type.
 	default:
-		return false, ErrInvalidGitHubWorkflowFile
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
 	}
 
 	return true, nil
 }
 
+// Create the result.
+func createResultForLeastPrivilegeTokens(r bool, err error) checker.CheckResult {
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckPermissions, err)
+	}
+	if !r {
+		return checker.CreateMinScoreResult(CheckPermissions,
+			"non read-only tokens detected in GitHub workflows")
+	}
+
+	return checker.CreateMaxScoreResult(CheckPermissions,
+		"tokens are read-only in GitHub workflows")
+}
+
+func testValidateGitHubActionTokenPermissions(pathfn string,
+	content []byte, dl checker.DetailLogger) checker.CheckResult {
+	r, err := validateGitHubActionTokenPermissions(pathfn, content, dl)
+	return createResultForLeastPrivilegeTokens(r, err)
+}
+
 // Check file content.
 func validateGitHubActionTokenPermissions(path string, content []byte,
-	logf func(s string, f ...interface{})) (bool, error) {
+	dl checker.DetailLogger) (bool, error) {
 	if len(content) == 0 {
-		return false, ErrEmptyFile
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, errInternalEmptyFile.Error())
 	}
 
 	var workflow map[interface{}]interface{}
@@ -129,8 +153,8 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	var err error
 	err = yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		return false, fmt.Errorf("!! token-permissions - cannot unmarshal file %v\n%v\n%v: %w",
-			path, content, string(content), err)
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
 	}
 
 	// 1. Check that each file uses 'content: read' only or 'none'.
@@ -138,7 +162,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#example-1-passing-the-github_token-as-an-input,
 	// https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token.
-	if r, err = validateReadPermissions(workflow, path, logf); err != nil {
+	if r, err = validateReadPermissions(workflow, path, dl); err != nil {
 		return false, nil
 	}
 	if !r {

@@ -1,3 +1,5 @@
+// Copyright 2021 Security Scorecard Authors
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -26,4 +28,6 @@ var (
 	errInternalCommitishNil      = errors.New("commitish is nil")
 	errInternalBranchNotFound    = errors.New("branch not found")
 	errInvalidGitHubWorkflowFile = errors.New("invalid GitHub workflow file")
+	errInternalNoReviews         = errors.New("no reviews found")
+	errInternalNoCommits         = errors.New("no commits found")
 )
