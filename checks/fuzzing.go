@@ -35,21 +35,13 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	searchString := url + " repo:google/oss-fuzz in:file filename:project.yaml"
 	results, _, err := c.Client.Search.Code(c.Ctx, searchString, &github.SearchOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(CheckFuzzing, err)
+		return checker.CreateRuntimeErrorResult(CheckFuzzing, err)
 	}
 
 	if *results.Total > 0 {
-		c.Logf("found project in OSS-Fuzz")
-		return checker.CheckResult{
-			Name:       CheckFuzzing,
-			Pass:       true,
-			Confidence: checker.MaxResultConfidence,
-		}
+		return checker.CreateMaxScoreResult(CheckFuzzing,
+			"project is fuzzed by OSS-Fuzz")
 	}
 
-	return checker.CheckResult{
-		Name:       CheckFuzzing,
-		Pass:       false,
-		Confidence: checker.MaxResultConfidence,
-	}
+	return checker.CreateMinScoreResult(CheckFuzzing, "project is fuzzed by OSS-Fuzz")
 }

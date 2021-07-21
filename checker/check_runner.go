@@ -121,24 +121,14 @@ func Bool2int(b bool) int {
 	return 0
 }
 
-// UPGRADEv2: will be renamed.
 func MultiCheckOr2(fns ...CheckFn) CheckFn {
 	return func(c *CheckRequest) CheckResult {
-		//nolint
-		maxResult := CheckResult{Version: 2}
-
+		var checks []CheckResult
 		for _, fn := range fns {
-			result := fn(c)
-
-			if result.Score > maxResult.Score {
-				maxResult = result
-			}
-
-			if maxResult.Score >= MaxResultScore {
-				break
-			}
+			res := fn(c)
+			checks = append(checks, res)
 		}
-		return maxResult
+		return MakeOrResult(c, checks...)
 	}
 }
 

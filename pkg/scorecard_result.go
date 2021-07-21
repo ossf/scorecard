@@ -128,10 +128,9 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 			//nolint
 			if row.Version == 2 {
 				details, show := detailsToString(row.Details2, logLevel)
-				if !show {
-					continue
+				if show {
+					x[3] = details
 				}
-				x[3] = details
 			} else {
 				x[3] = strings.Join(row.Details, "\n")
 			}
@@ -158,23 +157,10 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 
 // UPGRADEv2: new code.
 func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
-	sortedChecks := make([]checker.CheckResult, len(r.Checks))
+	data := make([][]string, len(r.Checks))
 	//nolint
 	// UPGRADEv2: not needed after upgrade.
-	for i, checkResult := range r.Checks {
-		sortedChecks[i] = checkResult
-	}
-	sort.Slice(sortedChecks, func(i, j int) bool {
-		if sortedChecks[i].Pass == sortedChecks[j].Pass {
-			return sortedChecks[i].Name < sortedChecks[j].Name
-		}
-		return sortedChecks[i].Pass
-	})
-
-	data := make([][]string, len(sortedChecks))
-	//nolint
-	// UPGRADEv2: not needed after upgrade.
-	for i, row := range sortedChecks {
+	for i, row := range r.Checks {
 		//nolint
 		if row.Version != 2 {
 			continue
