@@ -12,7 +12,7 @@ please contribute!
 ## Active 
 
 This check tries to determine if the project is "actively maintained".
-A project which is not active may not be patched, may not have its dependencies patched, or may not be actively tested and used.  A low score is therefore considered `High` risk.
+A project which is not active may not be patched, may not have its dependencies patched, or may not be actively tested and used. A low score is therefore considered `High` risk.
 The check currently works by looking for commits within the last 90 days, and outputs the highest score if there are at least 1 commit/week during this period. 
 
 **Remediation steps**
@@ -30,7 +30,7 @@ The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [
 ## Binary-Artifacts 
 
 This check tries to determine if a project has binary artifacts in the source repository.
-Binaries are a threat to auditability and vulnerability management.  In addition, a binary could be compromised or malicious.  A low score is therefore considered `High` risk. 
+Binaries are a threat to auditability and vulnerability management. In addition, a binary could be compromised or malicious. A low score is therefore considered `High` risk. 
 
 **Remediation steps**
 - Remove the binary artifacts from the repository. 
@@ -102,12 +102,13 @@ This check tries to determine if the project uses a fuzzing system. It currently
 
 ## Packaging 
 
-This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default.
-A compromised token with write access may be used by attackers to push malicious code into the project. A low score is therefore considered `High` risk.
-For each workflow yaml file, the check looks for the permissions keyword. If it is set globally as read-only for the entire file, this check succeeds. Otherwise it fails. The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
+This check tries to determine if the project is published as a package that other developers can install/download.
+Packaging your project is important for users to receive updates and security patches automatically. A low score is considered `Medium` risk.
+The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a correpdonsing hub, e.g., [Npm](https://www.npmjs.com/). There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/). 
 
 **Remediation steps**
 - Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
+- Use a GitHub action to release your package to language-specific hubs.
 
 ## Pull-Requests 
 
@@ -121,7 +122,7 @@ This check tries to determine if the project requires pull requests for all chan
 ## SAST 
 
 This check tries to determine if the project uses static code analysis systems. 
-SAST tool may prevent known classes of bugs to be inadvertently  introduced in the codebase. A a low score is considered `Medium` risk.
+SAST tool may prevent known classes of bugs to be inadvertently introduced in the codebase. A low score is considered `Medium` risk.
 The checks currently looks for known Github apps such as [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and sonarcloud in the recent (~30) merged PRs. The check also looks for the use of "github/codeql-action" in a github workflow. 
 
 **Remediation steps**
