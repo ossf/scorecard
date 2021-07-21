@@ -20,6 +20,7 @@ import (
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 const (
@@ -55,7 +56,8 @@ func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if err := c.GraphClient.Query(c.Ctx, &query, variables); err != nil {
-		return checker.MakeRetryResult(CheckSignedTags, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("GraphClient.Query: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckSignedTags, e)
 	}
 	totalTags := 0
 	totalSigned := 0

@@ -215,10 +215,16 @@ func MakeOrResult(c *CheckRequest, checks ...CheckResult) CheckResult {
 	for _, result := range checks[1:] {
 		if result.Score >= bestResult.Score {
 			i := strings.Index(bestResult.Reason, "-- score normalized")
+			if i < 0 {
+				i = len(bestResult.Reason)
+			}
 			c.Dlogger.Info(bestResult.Reason[:i])
 			bestResult = result
 		} else {
 			i := strings.Index(result.Reason, "-- score normalized")
+			if i < 0 {
+				i = len(result.Reason)
+			}
 			c.Dlogger.Info(result.Reason[:i])
 		}
 

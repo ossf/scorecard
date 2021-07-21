@@ -15,18 +15,17 @@
 package checks
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
-const (
-	// CheckPullRequests is the registered name for PullRequests.
-	CheckPullRequests         = "Pull-Requests"
-	pullRequestsPassThreshold = .75
-)
+// CheckPullRequests is the registered name for PullRequests.
+const CheckPullRequests = "Pull-Requests"
 
 //nolint:gochecknoinits
 func init() {
@@ -36,7 +35,8 @@ func init() {
 func PullRequests(c *checker.CheckRequest) checker.CheckResult {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(CheckPullRequests, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckPullRequests, e)
 	}
 
 	total := 0
@@ -51,7 +51,7 @@ func PullRequests(c *checker.CheckRequest) checker.CheckResult {
 			}
 		}
 		if isBot {
-			c.Logf("skip commit from bot account: %s", committer)
+			c.Dlogger.Debug("skip commit from bot account: %s", committer)
 			continue
 		}
 
@@ -61,22 +61,23 @@ func PullRequests(c *checker.CheckRequest) checker.CheckResult {
 		commitMessage := commit.GetCommit().GetMessage()
 		if strings.Contains(commitMessage, "\nReviewed-on: ") {
 			totalWithPrs++
-			c.Logf("found gerrit reviewed commit: %s", commit.GetSHA())
+			c.Dlogger.Debug("Gerrit reviewed commit: %s", commit.GetSHA())
 			continue
 		}
 
 		prs, _, err := c.Client.PullRequests.ListPullRequestsWithCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA(),
 			&github.PullRequestListOptions{})
 		if err != nil {
-			return checker.MakeRetryResult(CheckPullRequests, err)
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.PullRequests.ListPullRequestsWithCommit: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckPullRequests, e)
 		}
 		if len(prs) > 0 {
 			totalWithPrs++
-			c.Logf("found commit with PR: %s", commit.GetSHA())
+			c.Dlogger.Debug("commit with PR: %s", commit.GetSHA())
 		} else {
-			c.Logf("!! found commit without PR: %s, committer: %s", commit.GetSHA(), commit.GetCommitter().GetLogin())
+			c.Dlogger.Debug("!! found commit without PR: %s, committer: %s", commit.GetSHA(), commit.GetCommitter().GetLogin())
 		}
 	}
-	c.Logf("found PRs for %d out of %d commits", totalWithPrs, total)
-	return checker.MakeProportionalResult(CheckPullRequests, totalWithPrs, total, pullRequestsPassThreshold)
+	reason := fmt.Sprintf("%d ouf of %d commits have a PR", totalWithPrs, total)
+	return checker.CreateProportionalScoreResult(CheckPullRequests, reason, totalWithPrs, total)
 }

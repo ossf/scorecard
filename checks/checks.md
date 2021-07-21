@@ -65,7 +65,7 @@ This check tries to determine if the project has a [CII Best Practices Badge](ht
 
 This check tries to determine if a project requires code review before pull requests are merged. 
 Reviewing code improves quality of code in general. In addition, it ensures compromised contributors cannot intentionally inject malicious code. A low score is therefore considered `High` risk.
-The check first tries to detect if branch-Protection is enabled on the default branch and the number of reviewers is at least 1. If this fails, it checks if the recent (~30) commits have a Github-approved review or if the merger is different from the committer (implicit review). It also performs similar check for reviews using  [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels "lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by"). 
+The check first tries to detect if Branch-Protection is enabled on the default branch and the number of reviewers is at least 1. If this fails, it checks if the recent (~30) commits have a Github-approved review or if the merger is different from the committer (implicit review). It also performs similar check for reviews using  [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels "lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by"). 
 
 **Remediation steps**
 - Follow security best practices by performing strict code reviews for every new pull request.
@@ -95,7 +95,9 @@ The checks works by (1) looking for the following files in the root directory: g
 
 ## Fuzzing 
 
-This check tries to determine if the project uses a fuzzing system. It currently works by checking if the repo name is in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list. 
+This check tries to determine if the project uses a fuzzing system.
+Fuzzing is important to reduce the number of vulnerabilities in code. A low score is considered 'Medium' risk.
+The check currently works by checking if the repo name is in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list. 
 
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
@@ -112,7 +114,9 @@ The check currently looks for [GitHub packaging workflows]( https://docs.github.
 
 ## Pull-Requests 
 
-This check tries to determine if the project requires pull requests for all changes to the default branch. It works by looking at recent commits (first page, ~30) and uses the GitHub API to search for associated pull requests. The check discards commits by usernames containing 'bot' or 'gardener'. The check considers a commit containing the string `Reviewed-on` as being reviewed through gerrit; and does not check for a corresponding PR. 
+This check tries to determine if the project requires pull requests for all changes to the default branch.
+Reviewing code improves quality of code in general. In addition, it ensures compromised contributors cannot intentionally inject malicious code. A low score is therefore considered `High` risk.
+The check works by looking at recent commits (first page, ~30) and uses the GitHub API to search for associated pull requests.  
 
 **Remediation steps**
 - Always open a pull request for any change you intend to make, big or small.
@@ -138,7 +142,9 @@ This check tries to determine if a project has published a security policy. It w
 
 ## Signed-Releases 
 
-This check tries to determine if a project cryptographically signs release artifacts. It works by looking for filenames: *.minisign (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
+This check tries to determine if a project cryptographically signs release artifacts. 
+Signed releases attest to the provenance of the artifact. A low score is considered 'High' risk.
+It works by looking for filenames: *.minisign (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
 
 **Remediation steps**
 - Publish the release.
@@ -150,7 +156,9 @@ This check tries to determine if a project cryptographically signs release artif
 
 ## Signed-Tags 
 
-This check looks for cryptographically signed tags in the last 5 tags. The check does not verify the signature, but relies on github's verification. 
+This check looks for cryptographically signed tags in the last 5 tags.
+Signed tags attest the author of a commit. A low score is considered 'Medium' risk.
+The check does not verify the signature itself and currently relies on github's verification. 
 
 **Remediation steps**
 - Generate a new signing key.

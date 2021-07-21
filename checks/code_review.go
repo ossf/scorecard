@@ -104,7 +104,7 @@ func githubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		}
 		totalMerged++
 
-		// check if the PR is approved by a reviewer
+		// Check if the PR is approved by a reviewer.
 		foundApprovedReview := false
 		for _, r := range pr.LatestReviews.Nodes {
 			if r.State == "APPROVED" {
@@ -115,7 +115,7 @@ func githubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 			}
 		}
 
-		// check if the PR is committed by someone other than author. this is kind
+		// Check if the PR is committed by someone other than author. this is kind
 		// of equivalent to a review and is done several times on small prs to save
 		// time on clicking the approve button.
 		if !foundApprovedReview {

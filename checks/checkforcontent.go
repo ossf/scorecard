@@ -128,7 +128,7 @@ func CheckFilesContent2(shellPathFnPattern string,
 		content, err := c.RepoClient.GetFileContent(file)
 		if err != nil {
 			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, err.Error())
+			return false, err
 		}
 
 		rr, err := onFileContent(file, content, c.Dlogger)

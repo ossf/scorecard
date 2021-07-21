@@ -92,7 +92,7 @@ checks:
       compromised contributors cannot intentionally inject malicious code. A low
       score is therefore considered `High` risk.
       
-      The check first tries to detect if branch-Protection is enabled
+      The check first tries to detect if Branch-Protection is enabled
       on the default branch and the number of reviewers is at least 1. If this
       fails, it checks if the recent (~30) commits have a Github-approved
       review or if the merger is different from the committer (implicit review).
@@ -162,6 +162,20 @@ checks:
         To help update your dependencies after pinning them, use tools such as 
         Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
         or [renovate bot](https://github.com/renovatebot/renovate).
+  Fuzzing:
+    risk: Medium
+    description: >-
+      This check tries to determine if the project uses a fuzzing system.
+      
+      Fuzzing is important to reduce the number of vulnerabilities in code.
+      A low score is considered 'Medium' risk.
+      
+      The check currently works by checking if the repo name is in the
+      [OSS-Fuzz](https://github.com/google/oss-fuzz) project list.
+    remediation:
+      - >-
+        Integrate the project with OSS-Fuzz by following the instructions
+        [here](https://google.github.io/oss-fuzz/).
   SAST:
     risk: Medium
     description: >-
@@ -193,6 +207,66 @@ checks:
     remediation:
       - Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
       - Use a GitHub action to release your package to language-specific hubs.
+  Signed-Releases:
+    risk: High
+    description: >-
+      This check tries to determine if a project cryptographically signs release
+      artifacts. 
+      
+      Signed releases attest to the provenance of the artifact.
+      A low score is considered 'High' risk.
+
+      It works by looking for filenames: *.minisign
+      (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last
+      5 GitHub releases. The check does not verify the signatures.
+    remediation:
+      - Publish the release.
+      - Generate a signing key.
+      - Download the release as an archive locally.
+      - Sign the release archive with this key (should output a signature file).
+      - Attach the signature file next to the release archive.
+      - >-
+        For GitHub, check out the steps
+        [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
+  Signed-Tags:
+    risk: Medium
+    description: >-
+      This check looks for cryptographically signed tags in the last 5 tags.
+      
+      Signed tags attest the author of a commit. A low score is considered 'Medium' risk.
+      
+      The check does not verify the signature itself and currently relies on github's verification.
+    remediation:
+      - Generate a new signing key.
+      - Add your key to your source hosting provider.
+      - Configure your key and email in git.
+      - Publish the tag and then sign it with this key.
+      - >-
+        For GitHub, check out the steps
+        [here](https://docs.github.com/en/github/authenticating-to-github/signing-tags#further-reading).
+  Pull-Requests:
+    risk: High
+    description: >-
+      This check tries to determine if the project requires pull requests for
+      all changes to the default branch.
+      
+      Reviewing code improves quality of code in general. In addition, it ensures
+      compromised contributors cannot intentionally inject malicious code. A low
+      score is therefore considered `High` risk.
+
+      The check works by looking at recent commits
+      (first page, ~30) and uses the GitHub API to search for associated pull
+      requests. 
+    remediation:
+      - >-
+        Always open a pull request for any change you intend to make, big or
+        small.
+      - >-
+        Make "pull requests" mandatory in your repository configuration. E.g.
+        [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-pull-request-reviews-before-merging)
+      - >-
+        Enforce the rule for administrators / code owners as well. E.g.
+        [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators)
   Token-Permissions:
     risk: High
     description: >-
@@ -237,33 +311,6 @@ checks:
         The file should contain information on what constitutes a vulnerability
         and a way to report it securely (e.g. issue tracker with private issue
         support, encrypted email with a published public key).
-  Signed-Tags:
-    description: >-
-      This check looks for cryptographically signed tags in the last 5 tags. The
-      check does not verify the signature, but relies on github's verification.
-    remediation:
-      - Generate a new signing key.
-      - Add your key to your source hosting provider.
-      - Configure your key and email in git.
-      - Publish the tag and then sign it with this key.
-      - >-
-        For GitHub, check out the steps
-        [here](https://docs.github.com/en/github/authenticating-to-github/signing-tags#further-reading).
-  Signed-Releases:
-    description: >-
-      This check tries to determine if a project cryptographically signs release
-      artifacts. It works by looking for filenames: *.minisign
-      (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last
-      5 GitHub releases. The check does not verify the signatures.
-    remediation:
-      - Publish the release.
-      - Generate a signing key.
-      - Download the release as an archive locally.
-      - Sign the release archive with this key (should output a signature file).
-      - Attach the signature file next to the release archive.
-      - >-
-        For GitHub, check out the steps
-        [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
   CI-Tests:
     description: >-
       This check tries to determine if the project runs tests before pull
@@ -291,31 +338,3 @@ checks:
       - >-
         Sign up for the [CII Best Practices
         program](https://bestpractices.coreinfrastructure.org/en).
-  Pull-Requests:
-    description: >-
-      This check tries to determine if the project requires pull requests for
-      all changes to the default branch. It works by looking at recent commits
-      (first page, ~30) and uses the GitHub API to search for associated pull
-      requests. The check discards commits by usernames containing 'bot' or
-      'gardener'. The check considers a commit containing the string
-      `Reviewed-on` as being reviewed through gerrit; and does not check for a
-      corresponding PR.
-    remediation:
-      - >-
-        Always open a pull request for any change you intend to make, big or
-        small.
-      - >-
-        Make "pull requests" mandatory in your repository configuration. E.g.
-        [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-pull-request-reviews-before-merging)
-      - >-
-        Enforce the rule for administrators / code owners as well. E.g.
-        [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators)
-  Fuzzing:
-    description: >-
-      This check tries to determine if the project uses a fuzzing system. It
-      currently works by checking if the repo name is in the
-      [OSS-Fuzz](https://github.com/google/oss-fuzz) project list.
-    remediation:
-      - >-
-        Integrate the project with OSS-Fuzz by following the instructions
-        [here](https://google.github.io/oss-fuzz/).

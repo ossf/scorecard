@@ -22,13 +22,14 @@ import (
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	scut "github.com/ossf/scorecard/utests"
 )
 
 var _ = Describe("E2E TEST:Signedreleases", func() {
 	Context("E2E TEST:Validating signed releases", func() {
 		It("Should return valid signed releases", func() {
-			l := log{}
-			checkRequest := checker.CheckRequest{
+			dl := scut.TestDetailLogger{}
+			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
@@ -36,11 +37,22 @@ var _ = Describe("E2E TEST:Signedreleases", func() {
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,
-				Logf:        l.Logf,
+				Dlogger:     &dl,
 			}
-			result := checks.SignedReleases(&checkRequest)
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 5,
+			}
+			result := checks.SignedReleases(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "verified release", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })
