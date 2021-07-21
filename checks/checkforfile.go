@@ -44,3 +44,19 @@ func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(na
 		Confidence: confidence,
 	}
 }
+
+func CheckIfFileExists2(checkName string, c *checker.CheckRequest, onFile func(name string,
+	dl checker.DetailLogger) (bool, error)) (bool, error) {
+	for _, filename := range c.RepoClient.ListFiles(func(string) bool { return true }) {
+		rr, err := onFile(filename, c.Dlogger)
+		if err != nil {
+			return false, err
+		}
+
+		if rr {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
