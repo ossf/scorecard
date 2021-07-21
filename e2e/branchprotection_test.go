@@ -22,13 +22,15 @@ import (
 
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
+	sce "github.com/ossf/scorecard/errors"
+	scut "github.com/ossf/scorecard/utests"
 )
 
 var _ = Describe("E2E TEST:Branch Protection", func() {
 	Context("E2E TEST:Validating branch protection", func() {
 		It("Should fail to return branch protection on other repositories", func() {
-			l := log{}
-			checkRequest := checker.CheckRequest{
+			dl := scut.TestDetailLogger{}
+			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
@@ -36,11 +38,22 @@ var _ = Describe("E2E TEST:Branch Protection", func() {
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,
-				Logf:        l.Logf,
+				Dlogger:     &dl,
 			}
-			result := checks.BranchProtection(&checkRequest)
+			expected := scut.TestReturn{
+				Errors:        []error{sce.ErrScorecardInternal},
+				Score:         checker.InconclusiveResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.BranchProtection(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
 			Expect(result.Error).ShouldNot(BeNil())
 			Expect(result.Pass).Should(BeFalse())
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "branch protection not accessible", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

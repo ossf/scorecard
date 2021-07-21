@@ -16,23 +16,15 @@ package checks
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
+	scut "github.com/ossf/scorecard/utests"
 )
-
-// TODO: these logging functions are repeated from lib/check_fn.go. Reuse code.
-type log struct {
-	messages []string
-}
-
-func (l *log) Logf(s string, f ...interface{}) {
-	l.messages = append(l.messages, fmt.Sprintf(s, f...))
-}
 
 type mockRepos struct {
 	branches      []*string
@@ -68,7 +60,8 @@ func (m mockRepos) GetBranchProtection(ctx context.Context, o string, r string,
 	return nil, &github.Response{
 			Response: &http.Response{StatusCode: http.StatusNotFound},
 		},
-		ErrBranchNotFound
+		//nolint
+		sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
 }
 
 func (m mockRepos) ListBranches(ctx context.Context, owner string, repo string,
@@ -81,9 +74,8 @@ func (m mockRepos) ListBranches(ctx context.Context, owner string, repo string,
 	return res, nil, nil
 }
 
-func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mocks return different results per test case
+func TestReleaseAndDevBranchProtected(t *testing.T) {
 	t.Parallel()
-	l := log{}
 
 	rel1 := "release/v.1"
 	sha := "8fb3cb86082b17144a80402f5367ae65f06083bd"
@@ -91,14 +83,21 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 	//nolint
 	tests := []struct {
 		name          string
+		expected      scut.TestReturn
 		branches      []*string
 		defaultBranch *string
 		releases      []*string
 		protections   map[string]*github.Protection
-		want          checker.CheckResult
 	}{
 		{
-			name:          "Only development branch",
+			name: "Only development branch",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         2,
+				NumberOfWarn:  6,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
 			defaultBranch: &main,
 			branches:      []*string{&rel1, &main},
 			releases:      nil,
@@ -137,17 +136,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 					},
 				},
 			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  7,
-				ShouldRetry: false,
-				Error:       nil,
-			},
 		},
 		{
-			name:          "Take worst of release and development",
+			name: "Take worst of release and development",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         2,
+				NumberOfWarn:  9,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
 			defaultBranch: &main,
 			branches:      []*string{&rel1, &main},
 			releases:      []*string{&rel1},
@@ -219,17 +217,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 					},
 				},
 			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  7,
-				ShouldRetry: false,
-				Error:       nil,
-			},
 		},
 		{
-			name:          "Both release and development are OK",
+			name: "Both release and development are OK",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         5,
+				NumberOfWarn:  6,
+				NumberOfInfo:  10,
+				NumberOfDebug: 0,
+			},
 			defaultBranch: &main,
 			branches:      []*string{&rel1, &main},
 			releases:      []*string{&rel1},
@@ -301,17 +298,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 					},
 				},
 			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        true,
-				Details:     nil,
-				Confidence:  10,
-				ShouldRetry: false,
-				Error:       nil,
-			},
 		},
 		{
-			name:          "Ignore a non-branch targetcommitish",
+			name: "Ignore a non-branch targetcommitish",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         2,
+				NumberOfWarn:  6,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
 			defaultBranch: &main,
 			branches:      []*string{&rel1, &main},
 			releases:      []*string{&sha},
@@ -350,17 +346,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 					},
 				},
 			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  7,
-				ShouldRetry: false,
-				Error:       nil,
-			},
 		},
 		{
-			name:          "TargetCommittish nil",
+			name: "TargetCommittish nil",
+			expected: scut.TestReturn{
+				Errors:        []error{sce.ErrScorecardInternal},
+				Score:         checker.InconclusiveResultScore,
+				NumberOfWarn:  6,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
 			defaultBranch: &main,
 			branches:      []*string{&main},
 			releases:      []*string{nil},
@@ -399,476 +394,430 @@ func TestReleaseAndDevBranchProtected(t *testing.T) { //nolint:tparallel // mock
 					},
 				},
 			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  10,
-				ShouldRetry: false,
-				Error:       ErrCommitishNil,
-			},
 		},
 	}
 
-	for _, tt := range tests { //nolint:paralleltest // mocks return different results per test case
+	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		l.messages = []string{}
-
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			m := mockRepos{
 				defaultBranch: tt.defaultBranch,
 				branches:      tt.branches,
 				releases:      tt.releases,
 				protections:   tt.protections,
 			}
-			got := checkReleaseAndDevBranchProtection(context.Background(), m,
-				l.Logf, "testowner", "testrepo")
-			got.Details = l.messages
-			if got.Confidence != tt.want.Confidence || got.Pass != tt.want.Pass {
-				t.Errorf("IsBranchProtected() = %s, %v, want %v", tt.name, got, tt.want)
-			}
+			dl := scut.TestDetailLogger{}
+			r := checkReleaseAndDevBranchProtection(context.Background(), m,
+				&dl, "testowner", "testrepo")
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
 		})
 	}
 }
 
 func TestIsBranchProtected(t *testing.T) {
 	t.Parallel()
-	type args struct {
-		protection *github.Protection
-	}
 
-	l := log{}
 	tests := []struct {
-		name string
-		args args
-		want checker.CheckResult
+		name       string
+		protection *github.Protection
+		expected   scut.TestReturn
 	}{
 		{
 			name: "Nothing is enabled",
-			args: args{
-				protection: &github.Protection{
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   false,
-						Contexts: nil,
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
-						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         2,
+				NumberOfWarn:  6,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{
+				RequiredStatusChecks: &github.RequiredStatusChecks{
+					Strict:   false,
+					Contexts: nil,
+				},
+				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+					DismissalRestrictions: &github.DismissalRestrictions{
 						Users: nil,
 						Teams: nil,
-						Apps:  nil,
 					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
-					},
+					DismissStaleReviews:          false,
+					RequireCodeOwnerReviews:      false,
+					RequiredApprovingReviewCount: 0,
 				},
-			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  7,
-				ShouldRetry: false,
-				Error:       nil,
+				EnforceAdmins: &github.AdminEnforcement{
+					URL:     nil,
+					Enabled: false,
+				},
+				Restrictions: &github.BranchRestrictions{
+					Users: nil,
+					Teams: nil,
+					Apps:  nil,
+				},
+				RequireLinearHistory: &github.RequireLinearHistory{
+					Enabled: false,
+				},
+				AllowForcePushes: &github.AllowForcePushes{
+					Enabled: false,
+				},
+				AllowDeletions: &github.AllowDeletions{
+					Enabled: false,
+				},
 			},
 		},
 		{
 			name: "Required status check enabled",
-			args: args{
-				protection: &github.Protection{
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   true,
-						Contexts: []string{"foo"},
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
-						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         3,
+				NumberOfWarn:  5,
+				NumberOfInfo:  3,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{
+				RequiredStatusChecks: &github.RequiredStatusChecks{
+					Strict:   true,
+					Contexts: []string{"foo"},
+				},
+				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+					DismissalRestrictions: &github.DismissalRestrictions{
 						Users: nil,
 						Teams: nil,
-						Apps:  nil,
 					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
-					},
+					DismissStaleReviews:          false,
+					RequireCodeOwnerReviews:      false,
+					RequiredApprovingReviewCount: 0,
 				},
-			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  5,
-				ShouldRetry: false,
-				Error:       nil,
+				EnforceAdmins: &github.AdminEnforcement{
+					URL:     nil,
+					Enabled: false,
+				},
+				Restrictions: &github.BranchRestrictions{
+					Users: nil,
+					Teams: nil,
+					Apps:  nil,
+				},
+				RequireLinearHistory: &github.RequireLinearHistory{
+					Enabled: false,
+				},
+				AllowForcePushes: &github.AllowForcePushes{
+					Enabled: false,
+				},
+				AllowDeletions: &github.AllowDeletions{
+					Enabled: false,
+				},
 			},
 		},
 		{
 			name: "Required status check enabled without checking for status string",
-			args: args{
-				protection: &github.Protection{
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   true,
-						Contexts: nil,
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
-						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         2,
+				NumberOfWarn:  6,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{
+				RequiredStatusChecks: &github.RequiredStatusChecks{
+					Strict:   true,
+					Contexts: nil,
+				},
+				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+					DismissalRestrictions: &github.DismissalRestrictions{
 						Users: nil,
 						Teams: nil,
-						Apps:  nil,
 					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
-					},
+					DismissStaleReviews:          false,
+					RequireCodeOwnerReviews:      false,
+					RequiredApprovingReviewCount: 0,
 				},
-			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  7,
-				ShouldRetry: false,
-				Error:       nil,
+				EnforceAdmins: &github.AdminEnforcement{
+					URL:     nil,
+					Enabled: false,
+				},
+				Restrictions: &github.BranchRestrictions{
+					Users: nil,
+					Teams: nil,
+					Apps:  nil,
+				},
+				RequireLinearHistory: &github.RequireLinearHistory{
+					Enabled: false,
+				},
+				AllowForcePushes: &github.AllowForcePushes{
+					Enabled: false,
+				},
+				AllowDeletions: &github.AllowDeletions{
+					Enabled: false,
+				},
 			},
 		},
-
 		{
 			name: "Required pull request enabled",
-			args: args{
-				protection: &github.Protection{
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   false,
-						Contexts: []string{"foo"},
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
-						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 1,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         3,
+				NumberOfWarn:  5,
+				NumberOfInfo:  3,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{
+				RequiredStatusChecks: &github.RequiredStatusChecks{
+					Strict:   false,
+					Contexts: []string{"foo"},
+				},
+				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+					DismissalRestrictions: &github.DismissalRestrictions{
 						Users: nil,
 						Teams: nil,
-						Apps:  nil,
 					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: true,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
-					},
+					DismissStaleReviews:          false,
+					RequireCodeOwnerReviews:      false,
+					RequiredApprovingReviewCount: 1,
 				},
-			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  5,
-				ShouldRetry: false,
-				Error:       nil,
+				EnforceAdmins: &github.AdminEnforcement{
+					URL:     nil,
+					Enabled: false,
+				},
+				Restrictions: &github.BranchRestrictions{
+					Users: nil,
+					Teams: nil,
+					Apps:  nil,
+				},
+				RequireLinearHistory: &github.RequireLinearHistory{
+					Enabled: true,
+				},
+				AllowForcePushes: &github.AllowForcePushes{
+					Enabled: false,
+				},
+				AllowDeletions: &github.AllowDeletions{
+					Enabled: false,
+				},
 			},
 		},
 		{
 			name: "Required admin enforcement enabled",
-			args: args{
-				protection: &github.Protection{
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   false,
-						Contexts: []string{"foo"},
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
-						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: true,
-					},
-					Restrictions: &github.BranchRestrictions{
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         3,
+				NumberOfWarn:  5,
+				NumberOfInfo:  3,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{
+				RequiredStatusChecks: &github.RequiredStatusChecks{
+					Strict:   false,
+					Contexts: []string{"foo"},
+				},
+				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+					DismissalRestrictions: &github.DismissalRestrictions{
 						Users: nil,
 						Teams: nil,
-						Apps:  nil,
 					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
-					},
+					DismissStaleReviews:          false,
+					RequireCodeOwnerReviews:      false,
+					RequiredApprovingReviewCount: 0,
 				},
-			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  5,
-				ShouldRetry: false,
-				Error:       nil,
+				EnforceAdmins: &github.AdminEnforcement{
+					URL:     nil,
+					Enabled: true,
+				},
+				Restrictions: &github.BranchRestrictions{
+					Users: nil,
+					Teams: nil,
+					Apps:  nil,
+				},
+				RequireLinearHistory: &github.RequireLinearHistory{
+					Enabled: false,
+				},
+				AllowForcePushes: &github.AllowForcePushes{
+					Enabled: false,
+				},
+				AllowDeletions: &github.AllowDeletions{
+					Enabled: false,
+				},
 			},
 		},
 		{
 			name: "Required linear history enabled",
-			args: args{
-				protection: &github.Protection{
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   false,
-						Contexts: []string{"foo"},
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
-						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         3,
+				NumberOfWarn:  5,
+				NumberOfInfo:  3,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{
+				RequiredStatusChecks: &github.RequiredStatusChecks{
+					Strict:   false,
+					Contexts: []string{"foo"},
+				},
+				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+					DismissalRestrictions: &github.DismissalRestrictions{
 						Users: nil,
 						Teams: nil,
-						Apps:  nil,
 					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: true,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
-					},
+					DismissStaleReviews:          false,
+					RequireCodeOwnerReviews:      false,
+					RequiredApprovingReviewCount: 0,
 				},
-			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  5,
-				ShouldRetry: false,
-				Error:       nil,
+				EnforceAdmins: &github.AdminEnforcement{
+					URL:     nil,
+					Enabled: false,
+				},
+				Restrictions: &github.BranchRestrictions{
+					Users: nil,
+					Teams: nil,
+					Apps:  nil,
+				},
+				RequireLinearHistory: &github.RequireLinearHistory{
+					Enabled: true,
+				},
+				AllowForcePushes: &github.AllowForcePushes{
+					Enabled: false,
+				},
+				AllowDeletions: &github.AllowDeletions{
+					Enabled: false,
+				},
 			},
 		},
 		{
 			name: "Allow force push enabled",
-			args: args{
-				protection: &github.Protection{
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   false,
-						Contexts: []string{"foo"},
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
-						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         1,
+				NumberOfWarn:  7,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{
+				RequiredStatusChecks: &github.RequiredStatusChecks{
+					Strict:   false,
+					Contexts: []string{"foo"},
+				},
+				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+					DismissalRestrictions: &github.DismissalRestrictions{
 						Users: nil,
 						Teams: nil,
-						Apps:  nil,
 					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: true,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
-					},
+					DismissStaleReviews:          false,
+					RequireCodeOwnerReviews:      false,
+					RequiredApprovingReviewCount: 0,
 				},
-			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  9,
-				ShouldRetry: false,
-				Error:       nil,
+				EnforceAdmins: &github.AdminEnforcement{
+					URL:     nil,
+					Enabled: false,
+				},
+				Restrictions: &github.BranchRestrictions{
+					Users: nil,
+					Teams: nil,
+					Apps:  nil,
+				},
+				RequireLinearHistory: &github.RequireLinearHistory{
+					Enabled: false,
+				},
+				AllowForcePushes: &github.AllowForcePushes{
+					Enabled: true,
+				},
+				AllowDeletions: &github.AllowDeletions{
+					Enabled: false,
+				},
 			},
 		},
 		{
 			name: "Allow deletions enabled",
-			args: args{
-				protection: &github.Protection{
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   false,
-						Contexts: []string{"foo"},
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
-						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         1,
+				NumberOfWarn:  7,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{
+				RequiredStatusChecks: &github.RequiredStatusChecks{
+					Strict:   false,
+					Contexts: []string{"foo"},
+				},
+				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+					DismissalRestrictions: &github.DismissalRestrictions{
 						Users: nil,
 						Teams: nil,
-						Apps:  nil,
 					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: true,
-					},
+					DismissStaleReviews:          false,
+					RequireCodeOwnerReviews:      false,
+					RequiredApprovingReviewCount: 0,
 				},
-			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        false,
-				Details:     nil,
-				Confidence:  9,
-				ShouldRetry: false,
-				Error:       nil,
+				EnforceAdmins: &github.AdminEnforcement{
+					URL:     nil,
+					Enabled: false,
+				},
+				Restrictions: &github.BranchRestrictions{
+					Users: nil,
+					Teams: nil,
+					Apps:  nil,
+				},
+				RequireLinearHistory: &github.RequireLinearHistory{
+					Enabled: false,
+				},
+				AllowForcePushes: &github.AllowForcePushes{
+					Enabled: false,
+				},
+				AllowDeletions: &github.AllowDeletions{
+					Enabled: true,
+				},
 			},
 		},
 		{
 			name: "Branches are protected",
-			args: args{
-				protection: &github.Protection{
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   true,
-						Contexts: []string{"foo"},
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
-						},
-						DismissStaleReviews:          true,
-						RequireCodeOwnerReviews:      true,
-						RequiredApprovingReviewCount: 1,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: true,
-					},
-					Restrictions: &github.BranchRestrictions{
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         5,
+				NumberOfWarn:  3,
+				NumberOfInfo:  5,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{
+				RequiredStatusChecks: &github.RequiredStatusChecks{
+					Strict:   true,
+					Contexts: []string{"foo"},
+				},
+				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
+					DismissalRestrictions: &github.DismissalRestrictions{
 						Users: nil,
 						Teams: nil,
-						Apps:  nil,
 					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: true,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
-					},
+					DismissStaleReviews:          true,
+					RequireCodeOwnerReviews:      true,
+					RequiredApprovingReviewCount: 1,
 				},
-			},
-			want: checker.CheckResult{
-				Name:        CheckBranchProtection,
-				Pass:        true,
-				Details:     nil,
-				Confidence:  10,
-				ShouldRetry: false,
-				Error:       nil,
+				EnforceAdmins: &github.AdminEnforcement{
+					URL:     nil,
+					Enabled: true,
+				},
+				Restrictions: &github.BranchRestrictions{
+					Users: nil,
+					Teams: nil,
+					Apps:  nil,
+				},
+				RequireLinearHistory: &github.RequireLinearHistory{
+					Enabled: true,
+				},
+				AllowForcePushes: &github.AllowForcePushes{
+					Enabled: false,
+				},
+				AllowDeletions: &github.AllowDeletions{
+					Enabled: false,
+				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		l.messages = []string{}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := IsBranchProtected(tt.args.protection, "test", l.Logf)
-			got.Details = l.messages
-			if got.Confidence != tt.want.Confidence || got.Pass != tt.want.Pass {
-				t.Errorf("IsBranchProtected() = %s, %v, want %v", tt.name, got, tt.want)
-			}
+			dl := scut.TestDetailLogger{}
+			r := IsBranchProtected(tt.protection, "test", &dl)
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
 		})
 	}
 }

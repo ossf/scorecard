@@ -29,9 +29,9 @@ import (
 
 // TODO: use dedicated repo that don't change.
 // TODO: need negative results.
-var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
-	Context("E2E TEST:Validating dependencies are automatically updated", func() {
-		It("Should return deps are automatically updated for dependabot", func() {
+var _ = Describe("E2E TEST:Binary-Artifacts", func() {
+	Context("E2E TEST:Binary artifacts are not present in source code", func() {
+		It("Should return not binary artifacts in source code", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
 			err := repoClient.InitRepo("ossf", "scorecard")
@@ -50,47 +50,47 @@ var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
 
-			result := checks.AutomaticDependencyUpdate(&req)
+			result := checks.BinaryArtifacts(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "dependabot", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "no binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 		})
-		It("Should return deps are automatically updated for renovatebot", func() {
+		It("Should return binary artifacts present in source code", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
-			err := repoClient.InitRepo("netlify", "netlify-cms")
+			err := repoClient.InitRepo("a1ive", "grub2-filemanager")
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				RepoClient:  repoClient,
-				Owner:       "netlify",
-				Repo:        "netlify-cms",
+				Owner:       "a1ive",
+				Repo:        "grub2-filemanager",
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
 				Errors:        nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.AutomaticDependencyUpdate(&req)
+			result := checks.BinaryArtifacts(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
+			Expect(result.Pass).Should(BeFalse())
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "renovabot", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, " binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })
