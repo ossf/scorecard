@@ -48,9 +48,9 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 			}
 			expected := scut.TestReturn{
 				Errors:        nil,
-				Score:         checker.InconclusiveResultScore,
-				NumberOfWarn:  222,
-				NumberOfInfo:  0,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  377,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.FrozenDeps(&req)
@@ -81,7 +81,7 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  6,
 				NumberOfDebug: 0,
 			}
 			result := checks.FrozenDeps(&req)

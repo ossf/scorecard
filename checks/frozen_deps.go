@@ -257,7 +257,6 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	regex := regexp.MustCompile(`.*@sha256:[a-f\d]{64}`)
 
 	ret := true
-	fromFound := false
 	pinnedAsNames := make(map[string]bool)
 	res, err := parser.Parse(contentReader)
 	if err != nil {
@@ -270,9 +269,6 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 		if cmdType != "from" {
 			continue
 		}
-
-		// New 'FROM' line found.
-		fromFound = true
 
 		var valueList []string
 		for n := child.Next; n != nil; n = n.Next {
@@ -317,11 +313,9 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 		}
 	}
 
-	// The file should have at least one FROM statement.
-	if !fromFound {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
-	}
+	//nolint
+	// The file need not have a FROM statement,
+	// https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/dockerfiles/partials/jupyter.partial.Dockerfile.
 
 	return ret, nil
 }
@@ -332,7 +326,8 @@ func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) chec
 }
 
 // Create the result.
-func createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r bool, dl checker.DetailLogger, err error) (int, error) {
+func createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r bool,
+	dl checker.DetailLogger, err error) (int, error) {
 	if err != nil {
 		return checker.InconclusiveResultScore, err
 	}

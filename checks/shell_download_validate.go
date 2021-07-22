@@ -17,6 +17,7 @@ package checks
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"net/url"
 	"path"
@@ -30,17 +31,17 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-// List of interpreters.
-var pythonInterpreters = []string{"python", "python3", "python2.7"}
-
-var shellNames = []string{
-	"sh", "bash", "dash", "ksh", "mksh",
-}
-
-var interpreters = append([]string{
-	"perl", "ruby", "php", "node", "nodejs", "java",
-	"exec", "su",
-}, append(shellNames, pythonInterpreters...)...)
+var (
+	shellNames = []string{
+		"sh", "bash", "dash", "ksh", "mksh",
+	}
+	pythonInterpreters = []string{"python", "python3", "python2.7"}
+	shellInterpreters  = append([]string{"exec", "su"}, shellNames...)
+	otherInterpreters  = []string{"perl", "ruby", "php", "node", "nodejs", "java"}
+	interpreters       = append([]string{
+		"perl", "ruby", "php", "node", "nodejs", "java",
+	}, append(shellInterpreters, append(shellNames, pythonInterpreters...)...)...)
+)
 
 // Note: aws is handled separately because it uses different
 // cli options.
@@ -199,17 +200,34 @@ func isInterpreter(cmd []string) bool {
 	return false
 }
 
-func isInterpreterWithCommand(cmd []string) bool {
+func isShellInterpreterOrCommand(cmd []string) bool {
 	if len(cmd) == 0 {
 		return false
 	}
 
-	for _, b := range interpreters {
-		if isCommand(cmd, b) {
-			return true
+	if isPythonCommand(cmd) {
+		return false
+	}
+
+	for _, b := range otherInterpreters {
+		if isBinaryName(b, cmd[0]) {
+			return false
 		}
 	}
-	return false
+	return true
+}
+
+func extractInterpreterAndCommand(cmd []string) (string, bool) {
+	if len(cmd) == 0 {
+		return "", false
+	}
+
+	for _, b := range interpreters {
+		if isCommand(cmd, b) {
+			return b, true
+		}
+	}
+	return "", false
 }
 
 func isInterpreterWithFile(cmd []string, fn string) bool {
@@ -619,27 +637,28 @@ func extractInterpreterCommandFromArgs(args []*syntax.Word) (string, bool) {
 	return "", false
 }
 
-func extractInterpreterCommandFromNode(node syntax.Node) (string, bool) {
+func extractInterpreterAndCommandFromNode(node syntax.Node) (interpreter, command string, yes bool) {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
-		return "", false
+		return "", "", false
 	}
 
 	c, ok := extractCommand(ce)
 	if !ok {
-		return "", false
+		return "", "", false
 	}
 
-	if !isInterpreterWithCommand(c) {
-		return "", false
+	i, ok := extractInterpreterAndCommand(c)
+	if !ok {
+		return "", "", false
 	}
 
 	cs, ok := extractInterpreterCommandFromArgs(ce.Args)
 	if !ok {
-		return "", false
+		return "", "", false
 	}
 
-	return cs, true
+	return i, cs, true
 }
 
 func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
@@ -659,9 +678,10 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 	in := strings.NewReader(string(content))
 	f, err := syntax.NewParser().Parse(in, "")
 	if err != nil {
+		// Note: this is caught by internal caller and only printed
+		// to avoid failing on shell scripts that our parser does not understand.
 		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal,
-			fmt.Sprintf("%v: %v", errInternalInvalidShellCode, err))
+		return false, sce.CreateInternal(errInternalInvalidShellCode, err.Error())
 	}
 
 	printer := syntax.NewPrinter()
@@ -675,17 +695,19 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		}
 
 		// interpreter -c "CMD".
-		c, ok := extractInterpreterCommandFromNode(node)
+		i, c, ok := extractInterpreterAndCommandFromNode(node)
 		// TODO: support other interpreters.
 		// Example: https://github.com/apache/airflow/blob/main/scripts/ci/kubernetes/ci_run_kubernetes_tests.sh#L75
 		// HOST_PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')``
 		// nolinter
-		if ok && isShellScriptFile("some_name", []byte(c)) {
-			ok, e := validateShellFileAndRecord(pathfn, []byte(c), files, dl)
-			validated = ok
-			if e != nil {
-				err = e
-				return true
+		if ok {
+			if isShellInterpreterOrCommand([]string{i}) {
+				ok, e := validateShellFileAndRecord(pathfn, []byte(c), files, dl)
+				validated = ok
+				if e != nil {
+					err = e
+					return true
+				}
 			}
 		}
 
@@ -784,5 +806,10 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 
 func validateShellFile(pathfn string, content []byte, dl checker.DetailLogger) (bool, error) {
 	files := make(map[string]bool)
-	return validateShellFileAndRecord(pathfn, content, files, dl)
+	r, err := validateShellFileAndRecord(pathfn, content, files, dl)
+	if err != nil && errors.Is(err, errInternalInvalidShellCode) {
+		// Discard and print this particular error for now.
+		dl.Warn(err.Error())
+	}
+	return r, nil
 }
