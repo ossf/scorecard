@@ -63,7 +63,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		result = r2
 
 		//nolint
-		result.Score = 5 + r1.Score/10*5
+		result.Score = r2.Score/10*5 + r1.Score/10*5
 		result.Reason = "not all commits are checked with a SAST tool"
 		i := strings.Index(r1.Reason, "-- score normalized")
 		if i < 0 {
@@ -108,7 +108,7 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 				continue
 			}
 			if sastTools[cr.GetApp().GetSlug()] {
-				c.Dlogger.Info("tool detected: %s", cr.GetHTMLURL())
+				c.Dlogger.Debug("tool detected: %s", cr.GetHTMLURL())
 				totalTested++
 				break
 			}
