@@ -127,9 +127,13 @@ func prHasSuccessStatus(pr *github.PullRequest, c *checker.CheckRequest) (bool, 
 func prHasSuccessfulCheck(pr *github.PullRequest, c *checker.CheckRequest) (bool, error) {
 	crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
 		&github.ListCheckRunsOptions{})
-	if err != nil || crs == nil {
+	if err != nil {
 		//nolint
 		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
+	}
+	if crs == nil {
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, "cannot list check runs by ref")
 	}
 
 	for _, cr := range crs.CheckRuns {
