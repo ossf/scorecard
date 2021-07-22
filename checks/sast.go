@@ -51,6 +51,9 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		result = r1
 		result.Score = 10
 		i := strings.Index(r2.Reason, "-- score normalized")
+		if i < 0 {
+			i = len(r2.Reason)
+		}
 		c.Dlogger.Info(r2.Reason[:i])
 	} else {
 		// Not all commits have a check run,
@@ -63,6 +66,9 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		result.Score = 5 + r1.Score/10*5
 		result.Reason = "not all commits are checked with a SAST tool"
 		i := strings.Index(r1.Reason, "-- score normalized")
+		if i < 0 {
+			i = len(r1.Reason)
+		}
 		c.Dlogger.Info(r1.Reason[:i])
 	}
 

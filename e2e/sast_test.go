@@ -41,10 +41,10 @@ var _ = Describe("E2E TEST:SAST", func() {
 			}
 			expected := scut.TestReturn{
 				Errors:        nil,
-				Score:         checker.MaxResultScore,
+				Score:         5,
 				NumberOfWarn:  0,
 				NumberOfInfo:  2,
-				NumberOfDebug: 2,
+				NumberOfDebug: 0,
 			}
 			result := checks.SAST(&req)
 			// UPGRADEv2: to remove.

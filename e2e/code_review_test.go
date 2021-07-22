@@ -45,8 +45,8 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				NumberOfInfo:  3,
+				NumberOfDebug: 30,
 			}
 			result := checks.DoesCodeReview(&req)
 			// UPGRADEv2: to remove.
