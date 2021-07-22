@@ -137,7 +137,7 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 		//nolint
 		Version: 2,
 		Error2:  nil,
-		Score:   createScore(score),
+		Score:   score,
 		Reason:  reason,
 	}
 }
