@@ -105,7 +105,7 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
 	}
 
-	score, reason = getScoreAndReason(hintScore, ghScore, hintReason, ghReason, c.Dlogger)
+	score, reason = selectBestScoreAndReason(hintScore, ghScore, hintReason, ghReason, c.Dlogger)
 
 	// Prow CI/CD.
 	prowScore, prowReason, err := prowCodeReview(c)
@@ -113,7 +113,7 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
 	}
 
-	score, reason = getScoreAndReason(prowScore, score, prowReason, reason, c.Dlogger)
+	score, reason = selectBestScoreAndReason(prowScore, score, prowReason, reason, c.Dlogger)
 	if score == checker.InconclusiveResultScore {
 		return checker.CreateInconclusiveResult(CheckCodeReview, "no reviews detected")
 	}
@@ -122,7 +122,7 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 }
 
 //nolint
-func getScoreAndReason(s1, s2 int, r1, r2 string,
+func selectBestScoreAndReason(s1, s2 int, r1, r2 string,
 	dl checker.DetailLogger) (int, string) {
 	if s1 > s2 {
 		dl.Info(r2)
