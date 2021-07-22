@@ -107,11 +107,12 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 	if score == checker.MaxResultScore {
 		checker.CreateMaxScoreResult(CheckFrozenDeps, "all dependencies are pinned")
 	}
-	return checker.CreateProportionalScoreResult(CheckFrozenDeps, "unpinned dependencies detected", score, checker.MaxResultScore)
+	return checker.CreateProportionalScoreResult(CheckFrozenDeps,
+		"unpinned dependencies detected", score, checker.MaxResultScore)
 }
 
 // TODO(laurent): need to support GCB pinning.
-
+//nolint
 func maxScore(s1, s2 int) int {
 	if s1 > s2 {
 		return s1
