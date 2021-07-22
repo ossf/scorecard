@@ -31,20 +31,22 @@ func init() {
 
 func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	// check repository for repository-specific policy
-	onFile := func(name string, logf func(s string, f ...interface{})) (bool, error) {
+	onFile := func(name string, dl checker.DetailLogger) (bool, error) {
 		if strings.EqualFold(name, "security.md") {
-			logf("security policy : %s", name)
+			c.Dlogger.Info("security policy detected: %s", name)
 			return true, nil
-		} else if isSecurityrstFound(name) {
-			logf("security policy : %s", name)
+		} else if isSecurityRstFound(name) {
+			c.Dlogger.Info("security policy detected: %s", name)
 			return true, nil
 		}
 		return false, nil
 	}
-	result := CheckIfFileExists(CheckSecurityPolicy, c, onFile)
-
-	if result.Pass {
-		return result
+	r, err := CheckIfFileExists2(CheckSecurityPolicy, c, onFile)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
+	}
+	if r {
+		return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
 	}
 
 	// checking for community default within the .github folder
@@ -53,22 +55,30 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	dotGitHub.Repo = ".github"
 	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, c.Client)
 	if err := dotGitHubClient.InitRepo(c.Owner, c.Repo); err != nil {
-		return checker.MakeFailResult(CheckSecurityPolicy, nil)
+		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
 	defer dotGitHubClient.Close()
 	dotGitHub.RepoClient = dotGitHubClient
 
-	onFile = func(name string, logf func(s string, f ...interface{})) (bool, error) {
+	onFile = func(name string, dl checker.DetailLogger) (bool, error) {
 		if strings.EqualFold(name, "security.md") {
-			logf("security policy within .github folder : %s", name)
+			dl.Info("security policy detected in .github folder: %s", name)
 			return true, nil
 		}
 		return false, nil
 	}
-	return CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
+	r, err = CheckIfFileExists2(CheckSecurityPolicy, dotGitHub, onFile)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
+	}
+
+	if r {
+		return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
+	}
+	return checker.CreateMinScoreResult(CheckSecurityPolicy, "security policy file not detected")
 }
 
-func isSecurityrstFound(name string) bool {
+func isSecurityRstFound(name string) bool {
 	if strings.EqualFold(name, "doc/security.rst") {
 		return true
 	} else if strings.EqualFold(name, "docs/security.rst") {

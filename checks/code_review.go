@@ -83,7 +83,7 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
 	}
 	if err := c.GraphClient.Query(c.Ctx, &prHistory, vars); err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("c.GraphClient.Query: %v", err))
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("GraphClient.Query: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCodeReview, e)
 	}
 	return checker.MultiCheckOr2(

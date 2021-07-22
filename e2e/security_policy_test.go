@@ -23,17 +23,18 @@ import (
 	"github.com/ossf/scorecard/checker"
 	"github.com/ossf/scorecard/checks"
 	"github.com/ossf/scorecard/clients/githubrepo"
+	scut "github.com/ossf/scorecard/utests"
 )
 
 var _ = Describe("E2E TEST:SecurityPolicy", func() {
 	Context("E2E TEST:Validating security policy", func() {
 		It("Should return valid security policy", func() {
-			l := log{}
+			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
 			err := repoClient.InitRepo("tensorflow", "tensorflow")
 			Expect(err).Should(BeNil())
 
-			checkRequest := checker.CheckRequest{
+			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
@@ -41,19 +42,30 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 				Owner:       "tensorflow",
 				Repo:        "tensorflow",
 				GraphClient: graphClient,
-				Logf:        l.Logf,
+				Dlogger:     &dl,
 			}
-			result := checks.SecurityPolicy(&checkRequest)
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			}
+			result := checks.SecurityPolicy(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 		})
 		It("Should return valid security policy for rust repositories", func() {
-			l := log{}
+			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
 			err := repoClient.InitRepo("randombit", "botan")
 			Expect(err).Should(BeNil())
 
-			checkRequest := checker.CheckRequest{
+			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
@@ -61,11 +73,22 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 				Owner:       "randombit",
 				Repo:        "botan",
 				GraphClient: graphClient,
-				Logf:        l.Logf,
+				Dlogger:     &dl,
 			}
-			result := checks.SecurityPolicy(&checkRequest)
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			}
+			result := checks.SecurityPolicy(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

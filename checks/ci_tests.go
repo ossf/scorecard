@@ -21,6 +21,7 @@ import (
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 // States for which CI system is in use.
@@ -28,10 +29,9 @@ type ciSystemState int
 
 const (
 	// CheckCITests is the registered name for CITests.
-	CheckCITests                         = "CI-Tests"
-	success                              = "success"
-	ciSuccessPassThreshold               = .75
-	unknown                ciSystemState = iota
+	CheckCITests               = "CI-Tests"
+	success                    = "success"
+	unknown      ciSystemState = iota
 	githubStatuses
 	githubCheckRuns
 )
@@ -46,7 +46,8 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		State: "closed",
 	})
 	if err != nil {
-		return checker.MakeRetryResult(CheckCITests, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.PullRequests.List: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckCITests, e)
 	}
 
 	usedSystem := unknown
@@ -64,7 +65,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		if usedSystem != githubCheckRuns {
 			prSuccessStatus, err := prHasSuccessStatus(pr, c)
 			if err != nil {
-				return checker.MakeRetryResult(CheckCITests, err)
+				return checker.CreateRuntimeErrorResult(CheckCITests, err)
 			}
 			if prSuccessStatus {
 				totalTested++
@@ -74,11 +75,11 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 			}
 		}
 
-		// Github Check Runs
+		// Github Check Runs.
 		if usedSystem != githubStatuses {
 			prCheckSuccessful, err := prHasSuccessfulCheck(pr, c)
 			if err != nil {
-				return checker.MakeRetryResult(CheckCITests, err)
+				return checker.CreateRuntimeErrorResult(CheckCITests, err)
 			}
 			if prCheckSuccessful {
 				totalTested++
@@ -88,12 +89,16 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		}
 
 		if !foundCI {
-			c.Logf("!! found merged PR without CI test: %d", pr.GetNumber())
+			c.Dlogger.Debug("merged PR without CI test: %d", pr.GetNumber())
 		}
 	}
 
-	c.Logf("found CI tests for %d of %d merged PRs", totalTested, totalMerged)
-	return checker.MakeProportionalResult(CheckCITests, totalTested, totalMerged, ciSuccessPassThreshold)
+	if totalMerged == 0 {
+		return checker.CreateInconclusiveResult(CheckCITests, "no pull request found")
+	}
+
+	reason := fmt.Sprintf("%d out of %d merged PRs checked by a CI test", totalTested, totalMerged)
+	return checker.CreateProportionalScoreResult(CheckCITests, reason, totalTested, totalMerged)
 }
 
 // PR has a status marked 'success' and a CI-related context.
@@ -101,7 +106,8 @@ func prHasSuccessStatus(pr *github.PullRequest, c *checker.CheckRequest) (bool, 
 	statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
 		&github.ListOptions{})
 	if err != nil {
-		return false, fmt.Errorf("error getting statuses for PR: %w", err)
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListStatuses: %v", err))
 	}
 
 	for _, status := range statuses {
@@ -109,7 +115,7 @@ func prHasSuccessStatus(pr *github.PullRequest, c *checker.CheckRequest) (bool, 
 			continue
 		}
 		if isTest(status.GetContext()) {
-			c.Logf("CI test found: pr: %d, context: %success, url: %success", pr.GetNumber(),
+			c.Dlogger.Debug("CI test found: pr: %d, context: %success, url: %success", pr.GetNumber(),
 				status.GetContext(), status.GetURL())
 			return true, nil
 		}
@@ -122,7 +128,8 @@ func prHasSuccessfulCheck(pr *github.PullRequest, c *checker.CheckRequest) (bool
 	crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
 		&github.ListCheckRunsOptions{})
 	if err != nil || crs == nil {
-		return false, fmt.Errorf("error getting check results for PR: %w", err)
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 	}
 
 	for _, cr := range crs.CheckRuns {
@@ -133,7 +140,7 @@ func prHasSuccessfulCheck(pr *github.PullRequest, c *checker.CheckRequest) (bool
 			continue
 		}
 		if isTest(cr.GetApp().GetSlug()) {
-			c.Logf("CI test found: pr: %d, context: %success, url: %success", pr.GetNumber(),
+			c.Dlogger.Debug("CI test found: pr: %d, context: %success, url: %success", pr.GetNumber(),
 				cr.GetApp().GetSlug(), cr.GetURL())
 			return true, nil
 		}
