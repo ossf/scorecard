@@ -59,14 +59,17 @@ func init() {
 
 // FrozenDeps will check the repository if it contains frozen dependecies.
 func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheckAnd2(
-		isPackageManagerLockFilePresent,
-		isGitHubActionsWorkflowPinned,
-		isDockerfilePinned,
-		isDockerfileFreeOfInsecureDownloads,
-		isShellScriptFreeOfInsecureDownloads,
-		isGitHubWorkflowScriptFreeOfInsecureDownloads,
-	)(c)
+	score, reason, err := isPackageManagerLockFilePresent(c)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
+	}
+	// return checker.MultiCheckAnd2(
+	// 	isGitHubActionsWorkflowPinned,
+	// 	isDockerfilePinned,
+	// 	isDockerfileFreeOfInsecureDownloads,
+	// 	isShellScriptFreeOfInsecureDownloads,
+	// 	isGitHubWorkflowScriptFreeOfInsecureDownloads,
+	// )(c)
 }
 
 // TODO(laurent): need to support GCB pinning.
@@ -360,15 +363,15 @@ func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult 
 }
 
 // Create the result.
-func createResultForIsGitHubActionsWorkflowPinned(r bool, err error) checker.CheckResult {
+func createResultForIsGitHubActionsWorkflowPinned(r bool, err error) (int, string, error) {
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
+		return checker.InconclusiveResultScore, "", err
 	}
 	if r {
-		return checker.CreateMaxScoreResult(CheckFrozenDeps, "GitHub actions are pinned")
+		return checker.MaxResultScore, "GitHub actions are pinned", nil
 	}
 
-	return checker.CreateMinScoreResult(CheckFrozenDeps, "GitHub actions are not pinned")
+	return checker.MinResultScore, "GitHub actions are not pinned", nil
 }
 
 func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker.DetailLogger) checker.CheckResult {
@@ -417,13 +420,13 @@ func validateGitHubActionWorkflow(pathfn string, content []byte, dl checker.Deta
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
 	r, err := CheckIfFileExists(CheckFrozenDeps, c, validatePackageManagerFile)
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
+		return checker.InconclusiveResultScore, "", err
 	}
 	if !r {
-		return checker.CreateInconclusiveResult(CheckFrozenDeps, "no lock files detected for a package manager")
+		return checker.InconclusiveResultScore, "no lock files detected for a package manager", nil
 	}
 
-	return checker.CreateMaxScoreResult(CheckFrozenDeps, "lock file detected for a package manager")
+	return checker.MaxResultScore, "lock file detected for a package manager", nil
 }
 
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.

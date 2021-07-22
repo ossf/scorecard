@@ -132,17 +132,6 @@ func MultiCheckOr2(fns ...CheckFn) CheckFn {
 	}
 }
 
-func MultiCheckAnd2(fns ...CheckFn) CheckFn {
-	return func(c *CheckRequest) CheckResult {
-		var checks []CheckResult
-		for _, fn := range fns {
-			res := fn(c)
-			checks = append(checks, res)
-		}
-		return MakeAndResult2(checks...)
-	}
-}
-
 // UPGRADEv2: will be removed.
 // MultiCheckOr returns the best check result out of several ones performed.
 func MultiCheckOr(fns ...CheckFn) CheckFn {
@@ -162,18 +151,5 @@ func MultiCheckOr(fns ...CheckFn) CheckFn {
 			}
 		}
 		return maxResult
-	}
-}
-
-// MultiCheckAnd means all checks must succeed. This returns a conservative result
-// where the worst result is returned.
-func MultiCheckAnd(fns ...CheckFn) CheckFn {
-	return func(c *CheckRequest) CheckResult {
-		var checks []CheckResult
-		for _, fn := range fns {
-			res := fn(c)
-			checks = append(checks, res)
-		}
-		return MakeAndResult(checks...)
 	}
 }
