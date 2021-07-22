@@ -50,7 +50,7 @@ This check determines if the default and release branches are protected with Git
 
 This check tries to determine if the project runs tests before pull requests are merged.
 Running tests helps helps developers catch mistakes early on. A low score is considered 'Low' risk.
-The check works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its names contains any of the following: appveyor, buildkite, circleci, e2e, github-actions,  jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. 
+The check works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its name contains any of the following: appveyor, buildkite, circleci, e2e, github-actions,  jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. 
 
 **Remediation steps**
 - Check-in scripts that run all the tests in your repository.
@@ -135,16 +135,6 @@ The checks currently looks for known Github apps such as [github-code-scanning](
 
 **Remediation steps**
 - Run CodeQL checks in your CI/CD by following the instructions [here](https://github.com/github/codeql-action#usage).
-
-## Security-Policy 
-
-This check tries to determine if a project has published a security policy.
-The [security policy](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository) informs the community where to report vulnerabilities. The abence of the file means vulnerabilities may not be patched promptly or be disclosed before they are patched. A low score is considered 'High' risk.
-The works by looking for a file named `SECURITY.md` (case-insensitive) in a few well-known directories. 
-
-**Remediation steps**
-- Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.
-- The file should contain information on what constitutes a vulnerability and a way to report it securely (e.g. issue tracker with private issue support, encrypted email with a published public key).
 
 ## Signed-Releases 
 
