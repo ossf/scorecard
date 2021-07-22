@@ -182,7 +182,7 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 			x[0] = fmt.Sprintf("%d", row.Score)
 		}
 
-		doc := fmt.Sprintf("https://github.com/ossf/scorecard/blob/main/checks/checks.md#%s", strings.ToLower(row.Name))
+		doc := fmt.Sprintf("github.com/ossf/scorecard/blob/main/checks/checks.md#%s", strings.ToLower(row.Name))
 		x[1] = row.Reason
 		x[2] = row.Name
 		if showDetails {

@@ -82,6 +82,43 @@ checks:
       - >-
         For GitHub, check out the steps
         [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
+  CI-Tests:
+    risk: Low
+    description: >-
+      This check tries to determine if the project runs tests before pull
+      requests are merged.
+      
+      Running tests helps helps developers catch mistakes early on.
+      A low score is considered 'Low' risk.
+
+      The check works by looking for a set of well-known CI-system
+      names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30).
+      A CI-system is considered well-known if its name contains any of the
+      following: appveyor, buildkite, circleci, e2e, github-actions,  jenkins,
+      mergeable, test, travis-ci. The check succeeds if at least 75% of
+      successful pull requests have at least one successful check associated
+      with them.
+    remediation:
+      - Check-in scripts that run all the tests in your repository.
+      - >-
+        Integrate those scripts with a CI/CD platform that runs it on every pull
+        request (e.g. [GitHub
+        Actions](https://docs.github.com/en/actions/learn-github-actions/introduction-to-github-actions),
+        [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
+  CII-Best-Practices:
+    risk: Low
+    description: >-
+      This check tries to determine if the project has a [CII Best Practices
+      Badge](https://bestpractices.coreinfrastructure.org/en).
+      
+      This badges tells us the repo maintainers are aware of best
+      development practices. A low score is considered 'Low' risk.
+
+      The check uses the URL for the Git repo and the CII API.
+    remediation:
+      - >-
+        Sign up for the [CII Best Practices
+        program](https://bestpractices.coreinfrastructure.org/en).
   Code-Review:
     risk: High
     description: >-

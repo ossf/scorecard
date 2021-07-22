@@ -48,7 +48,9 @@ This check determines if the default and release branches are protected with Git
 
 ## CI-Tests 
 
-This check tries to determine if the project runs tests before pull requests are merged. It works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its names contains any of the following: appveyor, buildkite, circleci, e2e, github-actions,  jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. 
+This check tries to determine if the project runs tests before pull requests are merged.
+Running tests helps helps developers catch mistakes early on. A low score is considered 'Low' risk.
+The check works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its names contains any of the following: appveyor, buildkite, circleci, e2e, github-actions,  jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. 
 
 **Remediation steps**
 - Check-in scripts that run all the tests in your repository.
@@ -56,7 +58,9 @@ This check tries to determine if the project runs tests before pull requests are
 
 ## CII-Best-Practices 
 
-This check tries to determine if the project has a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en). It uses the URL for the Git repo and the CII API. The check does not consider  if the repo has a solver or gold levels for passing the test. 
+This check tries to determine if the project has a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en).
+This badges tells us the repo maintainers are aware of best development practices. A low score is considered 'Low' risk.
+The check uses the URL for the Git repo and the CII API. 
 
 **Remediation steps**
 - Sign up for the [CII Best Practices program](https://bestpractices.coreinfrastructure.org/en).
@@ -134,7 +138,9 @@ The checks currently looks for known Github apps such as [github-code-scanning](
 
 ## Security-Policy 
 
-This check tries to determine if a project has published a security policy. It works by looking for a file named `SECURITY.md` (case-insensitive) in a few well-known directories. 
+This check tries to determine if a project has published a security policy.
+The [security policy](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository) informs the community where to report vulnerabilities. The abence of the file means vulnerabilities may not be patched promptly or be disclosed before they are patched. A low score is considered 'High' risk.
+The works by looking for a file named `SECURITY.md` (case-insensitive) in a few well-known directories. 
 
 **Remediation steps**
 - Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.
