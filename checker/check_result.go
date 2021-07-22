@@ -90,12 +90,6 @@ func CreateProportionalScore(b, t int) int {
 	return int(math.Min(float64(MaxResultScore*b/t), float64(MaxResultScore)))
 }
 
-func createScore(score int) int {
-	// If we later decide to change the range
-	// of scores, this will become handy.
-	return score
-}
-
 // AggregateScores adds up all scores
 // and normalizes the result.
 // Each score contributes equally.
@@ -143,7 +137,7 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 		//nolint
 		Version: 2,
 		Error2:  nil,
-		Score:   createScore(score),
+		Score:   score,
 		Reason:  reason,
 	}
 }
