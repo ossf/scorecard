@@ -38,9 +38,8 @@ var (
 	pythonInterpreters = []string{"python", "python3", "python2.7"}
 	shellInterpreters  = append([]string{"exec", "su"}, shellNames...)
 	otherInterpreters  = []string{"perl", "ruby", "php", "node", "nodejs", "java"}
-	interpreters       = append([]string{
-		"perl", "ruby", "php", "node", "nodejs", "java",
-	}, append(shellInterpreters, append(shellNames, pythonInterpreters...)...)...)
+	interpreters       = append(otherInterpreters,
+		append(shellInterpreters, append(shellNames, pythonInterpreters...)...)...)
 )
 
 // Note: aws is handled separately because it uses different
