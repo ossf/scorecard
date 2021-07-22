@@ -73,18 +73,18 @@ func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 	if result.BadgeLevel != "" {
 		// Three levels: passing, silver and gold,
 		// https://bestpractices.coreinfrastructure.org/en/criteria.
+		const silverScore = 7
+		const passingScore = 5
 		switch {
 		default:
 			e := sce.Create(sce.ErrScorecardInternal, "unsupported badge")
 			return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 		case strings.Contains(result.BadgeLevel, "silver"):
-			//nolint
-			return checker.CreateResultWithScore(CheckCIIBestPractices, "badge detected: silver", 7)
+			return checker.CreateResultWithScore(CheckCIIBestPractices, "badge detected: silver", silverScore)
 		case strings.Contains(result.BadgeLevel, "gold"):
 			return checker.CreateMaxScoreResult(CheckCIIBestPractices, "badge detected: gold")
 		case strings.Contains(result.BadgeLevel, "passing"):
-			//nolint
-			return checker.CreateResultWithScore(CheckCIIBestPractices, "badge detected: passing", 5)
+			return checker.CreateResultWithScore(CheckCIIBestPractices, "badge detected: passing", passingScore)
 		}
 	}
 
