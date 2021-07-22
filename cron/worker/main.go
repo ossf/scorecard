@@ -127,7 +127,7 @@ func createNetClients(ctx context.Context) (
 func startMetricsExporter() (monitoring.Exporter, error) {
 	exporter, err := monitoring.GetExporter()
 	if err != nil {
-		return nil, fmt.Errorf("error during NewStackDriverExporter: %w", err)
+		return nil, fmt.Errorf("error during monitoring.GetExporter: %w", err)
 	}
 	if err := exporter.StartMetricsExporter(); err != nil {
 		return nil, fmt.Errorf("error in StartMetricsExporter: %w", err)

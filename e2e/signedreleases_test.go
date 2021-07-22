@@ -43,7 +43,7 @@ var _ = Describe("E2E TEST:Signedreleases", func() {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  5,
 				NumberOfDebug: 5,
 			}
 			result := checks.SignedReleases(&req)
