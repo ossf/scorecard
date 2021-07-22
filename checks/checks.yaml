@@ -334,44 +334,5 @@ checks:
       - >-
         Fix the vulnerabilities. The details of each vulnerability can be found
         on <https://osv.dev>.
-  Security-Policy:
-    description: >-
-      This check tries to determine if a project has published a security
-      policy. It works by looking for a file named `SECURITY.md`
-      (case-insensitive) in a few well-known directories.
-    remediation:
-      - >-
-        Place a security policy file `SECURITY.md` in the root directory of your
-        repository. This makes it easily discoverable by a vulnerability
-        reporter.
-      - >-
-        The file should contain information on what constitutes a vulnerability
-        and a way to report it securely (e.g. issue tracker with private issue
-        support, encrypted email with a published public key).
-  CI-Tests:
-    description: >-
-      This check tries to determine if the project runs tests before pull
-      requests are merged. It works by looking for a set of well-known CI-system
-      names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30).
-      A CI-system is considered well-known if its names contains any of the
-      following: appveyor, buildkite, circleci, e2e, github-actions,  jenkins,
-      mergeable, test, travis-ci. The check succeeds if at least 75% of
-      successful pull requests have at least one successful check associated
-      with them.
-    remediation:
-      - Check-in scripts that run all the tests in your repository.
-      - >-
-        Integrate those scripts with a CI/CD platform that runs it on every pull
-        request (e.g. [GitHub
-        Actions](https://docs.github.com/en/actions/learn-github-actions/introduction-to-github-actions),
-        [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
-  CII-Best-Practices:
-    description: >-
-      This check tries to determine if the project has a [CII Best Practices
-      Badge](https://bestpractices.coreinfrastructure.org/en). It uses the URL
-      for the Git repo and the CII API. The check does not consider  if the repo
-      has a solver or gold levels for passing the test.
-    remediation:
-      - >-
-        Sign up for the [CII Best Practices
-        program](https://bestpractices.coreinfrastructure.org/en).
+  
+  
