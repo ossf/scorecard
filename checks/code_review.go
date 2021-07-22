@@ -86,15 +86,55 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("GraphClient.Query: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCodeReview, e)
 	}
-	return checker.MultiCheckOr2(
-		isPrReviewRequired,
-		githubCodeReview,
-		commitMessageHints,
-		prowCodeReview,
-	)(c)
+
+	// Branch protection.
+	score, reason := isPrReviewRequired(c)
+	if score == checker.MaxResultScore {
+		return checker.CreateMaxScoreResult(CheckCodeReview, reason)
+	}
+
+	// GitHub reviews.
+	ghScore, ghReason, err := githubCodeReview(c)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
+	}
+
+	// Review messages.
+	hintScore, hintReason, err := commitMessageHints(c)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
+	}
+
+	score, reason = getScoreAndReason(hintScore, ghScore, hintReason, ghReason, c.Dlogger)
+
+	// Prow CI/CD.
+	prowScore, prowReason, err := prowCodeReview(c)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
+	}
+
+	score, reason = getScoreAndReason(prowScore, score, prowReason, reason, c.Dlogger)
+	if score == checker.InconclusiveResultScore {
+		return checker.CreateInconclusiveResult(CheckCodeReview, "no reviews detected")
+	}
+
+	return checker.CreateResultWithScore(CheckCodeReview, checker.NormalizeReason(reason, score), score)
 }
 
-func githubCodeReview(c *checker.CheckRequest) checker.CheckResult {
+//nolint
+func getScoreAndReason(s1, s2 int, r1, r2 string,
+	dl checker.DetailLogger) (int, string) {
+	if s1 > s2 {
+		dl.Info(r2)
+		return s1, r1
+	}
+
+	dl.Info(r1)
+	return s2, r2
+}
+
+//nolint
+func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 	// Look at some merged PRs to see if they were reviewed.
 	totalMerged := 0
 	totalReviewed := 0
@@ -126,21 +166,23 @@ func githubCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	return createResult("GitHub", totalReviewed, totalMerged)
+	return createReturn("GitHub", totalReviewed, totalMerged)
 }
 
-func isPrReviewRequired(c *checker.CheckRequest) checker.CheckResult {
+//nolint
+func isPrReviewRequired(c *checker.CheckRequest) (int, string) {
 	// Look to see if review is enforced.
 	// Check the branch protection rules, we may not be able to get these though.
 	if prHistory.Repository.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount >= 1 {
 		// If the default value is 0 when we cannot retrieve the value,
 		// a non-zero value means we're confident it's enabled.
-		return checker.CreateMaxScoreResult(CheckCodeReview, "branch protection for default branch is enabled")
+		return checker.MaxResultScore, "branch protection for default branch is enabled"
 	}
-	return checker.CreateInconclusiveResult(CheckCodeReview, "cannot determine if branch protection is enabled")
+	return checker.InconclusiveResultScore, "cannot determine if branch protection is enabled"
 }
 
-func prowCodeReview(c *checker.CheckRequest) checker.CheckResult {
+//nolint
+func prowCodeReview(c *checker.CheckRequest) (int, string, error) {
 	// Look at some merged PRs to see if they were reviewed
 	totalMerged := 0
 	totalReviewed := 0
@@ -157,14 +199,16 @@ func prowCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	return createResult("Prow", totalReviewed, totalMerged)
+	return createReturn("Prow", totalReviewed, totalMerged)
 }
 
-func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
+//nolint
+func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
 	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
-		return checker.CreateRuntimeErrorResult(CheckCodeReview, e)
+		//nolint
+		return checker.InconclusiveResultScore, "",
+			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
 	}
 
 	total := 0
@@ -195,14 +239,15 @@ func commitMessageHints(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	return createResult("Gerrit", totalReviewed, total)
+	return createReturn("Gerrit", totalReviewed, total)
 }
 
-func createResult(reviewName string, reviewed, total int) checker.CheckResult {
+//nolint
+func createReturn(reviewName string, reviewed, total int) (int, string, error) {
 	if total > 0 {
 		reason := fmt.Sprintf("%s code reviews found for %v commits out of the last %v", reviewName, reviewed, total)
-		return checker.CreateProportionalScoreResult(CheckCodeReview, reason, reviewed, total)
+		return checker.CreateProportionalScore(reviewed, total), reason, nil
 	}
 
-	return checker.CreateInconclusiveResult(CheckCodeReview, fmt.Sprintf("no %v commits found", reviewName))
+	return checker.InconclusiveResultScore, fmt.Sprintf("no %v commits found", reviewName), nil
 }

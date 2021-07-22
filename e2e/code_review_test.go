@@ -45,7 +45,7 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  3,
+				NumberOfInfo:  2,
 				NumberOfDebug: 30,
 			}
 			result := checks.DoesCodeReview(&req)

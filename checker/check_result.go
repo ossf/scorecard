@@ -114,7 +114,7 @@ func AggregateScoresWithWeight(scores map[int]int) int {
 	return int(r)
 }
 
-func normalizeReason(reason string, score int) string {
+func NormalizeReason(reason string, score int) string {
 	return fmt.Sprintf("%v -- score normalized to %d", reason, score)
 }
 
@@ -165,7 +165,7 @@ func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 		Version: 2,
 		Error2:  nil,
 		Score:   score,
-		Reason:  normalizeReason(reason, score),
+		Reason:  NormalizeReason(reason, score),
 	}
 }
 
