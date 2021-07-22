@@ -85,6 +85,39 @@ type CheckResult struct {
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
 }
 
+// CreateProportionalScore() creates a proportional score.
+func CreateProportionalScore(b, t int) int {
+	return int(math.Min(float64(MaxResultScore*b/t), float64(MaxResultScore)))
+}
+
+// AggregateScores adds up all scores
+// and normalizes the result.
+// Each score contributes equally.
+func AggregateScores(scores ...int) int {
+	n := len(scores)
+	r := float32(0)
+	for _, s := range scores {
+		r += float32(s) / float32(MaxResultScore) * float32(n)
+	}
+	return int(r)
+}
+
+// AggregateScoresWithWeight adds up all scores
+// and normalizes the result.
+// The caller is responsible for ensuring the sum of
+// weights is 10.
+func AggregateScoresWithWeight(scores map[int]int) int {
+	r := float32(0)
+	for s, w := range scores {
+		r += float32(s) / float32(MaxResultScore) * float32(w)
+	}
+	return int(r)
+}
+
+func normalizeReason(reason string, score int) string {
+	return fmt.Sprintf("%v -- score normalized to %d", reason, score)
+}
+
 // CreateResultWithScore is used when
 // the check runs without runtime errors and we want to assign a
 // specific score.
@@ -116,7 +149,7 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 // the the number of tests that succeeded.
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	pass := true
-	score := int(math.Min(float64(MaxResultScore*b/t), float64(MaxResultScore)))
+	score := CreateProportionalScore(b, t)
 	if score < migrationThresholdPassValue {
 		pass = false
 	}
@@ -132,7 +165,7 @@ func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 		Version: 2,
 		Error2:  nil,
 		Score:   score,
-		Reason:  fmt.Sprintf("%v -- score normalized to %d", reason, score),
+		Reason:  normalizeReason(reason, score),
 	}
 }
 

@@ -41,16 +41,16 @@ var _ = Describe("E2E TEST:SAST", func() {
 			}
 			expected := scut.TestReturn{
 				Errors:        nil,
-				Score:         5,
-				NumberOfWarn:  0,
-				NumberOfInfo:  2,
+				Score:         7,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.SAST(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
+			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "sast used", &expected, &result, &dl)).Should(BeTrue())
 		})
