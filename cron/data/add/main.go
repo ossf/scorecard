@@ -55,7 +55,7 @@ func main() {
 		panic(err)
 	}
 	// nolint: gomnd
-	projects, err := os.OpenFile(os.Args[2], os.O_WRONLY|os.O_CREATE, 0o644)
+	projects, err := os.OpenFile(os.Args[2], os.O_WRONLY|os.O_CREATE, 0o755)
 	if err != nil {
 		panic(err)
 	}
