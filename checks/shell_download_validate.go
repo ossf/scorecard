@@ -33,20 +33,19 @@ import (
 // List of interpreters.
 var pythonInterpreters = []string{"python", "python3", "python2.7"}
 
+var shellNames = []string{
+	"sh", "bash", "dash", "ksh", "mksh",
+}
+
 var interpreters = append([]string{
-	"sh", "bash", "dash", "ksh", "mksh", "python",
 	"perl", "ruby", "php", "node", "nodejs", "java",
 	"exec", "su",
-}, pythonInterpreters...)
+}, append(shellNames, pythonInterpreters...)...)
 
 // Note: aws is handled separately because it uses different
 // cli options.
 var downloadUtils = []string{
 	"curl", "wget", "gsutil",
-}
-
-var shellNames = []string{
-	"sh", "bash", "dash", "ksh", "mksh",
 }
 
 func isBinaryName(expected, name string) bool {
@@ -675,10 +674,13 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 			return false
 		}
 
-		// sh -c "CMD".
+		// interpreter -c "CMD".
 		c, ok := extractInterpreterCommandFromNode(node)
+		// TODO: support other interpreters.
+		// Example: https://github.com/apache/airflow/blob/main/scripts/ci/kubernetes/ci_run_kubernetes_tests.sh#L75
+		// HOST_PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')``
 		// nolinter
-		if ok {
+		if ok && isShellScriptFile("some_name", []byte(c)) {
 			ok, e := validateShellFileAndRecord(pathfn, []byte(c), files, dl)
 			validated = ok
 			if e != nil {

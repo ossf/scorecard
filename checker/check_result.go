@@ -98,12 +98,12 @@ func CreateProportionalScore(b, t int) int {
 // and normalizes the result.
 // Each score contributes equally.
 func AggregateScores(scores ...int) int {
-	n := len(scores)
-	r := float32(0)
+	n := float64(len(scores))
+	r := 0
 	for _, s := range scores {
-		r += float32(s) / float32(MaxResultScore) * float32(n)
+		r += s
 	}
-	return int(r)
+	return int(math.Floor(float64(r) / n))
 }
 
 // AggregateScoresWithWeight adds up all scores
@@ -111,11 +111,12 @@ func AggregateScores(scores ...int) int {
 // The caller is responsible for ensuring the sum of
 // weights is 10.
 func AggregateScoresWithWeight(scores map[int]int) int {
-	r := float32(0)
+	n := float64(len(scores))
+	r := 0
 	for s, w := range scores {
-		r += float32(s) / float32(MaxResultScore) * float32(w)
+		r += s * w
 	}
-	return int(r)
+	return int(math.Floor(float64(r) / n))
 }
 
 func NormalizeReason(reason string, score int) string {
