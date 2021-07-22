@@ -699,14 +699,12 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		// Example: https://github.com/apache/airflow/blob/main/scripts/ci/kubernetes/ci_run_kubernetes_tests.sh#L75
 		// HOST_PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')``
 		// nolinter
-		if ok {
-			if isShellInterpreterOrCommand([]string{i}) {
-				ok, e := validateShellFileAndRecord(pathfn, []byte(c), files, dl)
-				validated = ok
-				if e != nil {
-					err = e
-					return true
-				}
+		if ok && isShellInterpreterOrCommand([]string{i}) {
+			ok, e := validateShellFileAndRecord(pathfn, []byte(c), files, dl)
+			validated = ok
+			if e != nil {
+				err = e
+				return true
 			}
 		}
 
