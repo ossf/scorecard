@@ -804,9 +804,13 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 func validateShellFile(pathfn string, content []byte, dl checker.DetailLogger) (bool, error) {
 	files := make(map[string]bool)
 	r, err := validateShellFileAndRecord(pathfn, content, files, dl)
-	if err != nil && errors.Is(err, errInternalInvalidShellCode) {
-		// Discard and print this particular error for now.
-		dl.Warn(err.Error())
+	if err != nil {
+		if errors.Is(err, errInternalInvalidShellCode) {
+			// Discard and print this particular error for now.
+			dl.Warn(err.Error())
+		} else {
+			return r, err
+		}
 	}
 	return r, nil
 }
