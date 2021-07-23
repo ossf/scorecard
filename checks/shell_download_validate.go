@@ -679,6 +679,7 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 	if err != nil {
 		// Note: this is caught by internal caller and only printed
 		// to avoid failing on shell scripts that our parser does not understand.
+		// Example: https://github.com/openssl/openssl/blob/master/util/shlib_wrap.sh.in
 		//nolint
 		return false, sce.CreateInternal(errInternalInvalidShellCode, err.Error())
 	}
@@ -773,28 +774,33 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 	// Look at file content.
 	r := strings.NewReader(string(content))
 	scanner := bufio.NewScanner(r)
-	for scanner.Scan() {
-		line := scanner.Text()
+	// TODO: support perl scripts with embedded shell scripts:
+	// https://github.com/openssl/openssl/blob/master/test/recipes/15-test_dsaparam.t.
 
-		//  #!/bin/XXX, #!XXX, #!/usr/bin/env XXX, #!env XXX
-		if !strings.HasPrefix(line, "#!") {
-			continue
+	// Only look at first line.
+	if !scanner.Scan() {
+		return false
+	}
+	line := scanner.Text()
+
+	//  #!/bin/XXX, #!XXX, #!/usr/bin/env XXX, #!env XXX
+	if !strings.HasPrefix(line, "#!") {
+		return false
+	}
+
+	line = line[2:]
+	for _, name := range shellNames {
+		parts := strings.Split(line, " ")
+		// #!/bin/bash, #!bash -e
+		if len(parts) >= 1 && isBinaryName(name, parts[0]) {
+			return true
 		}
 
-		line = line[2:]
-		for _, name := range shellNames {
-			parts := strings.Split(line, " ")
-			// #!/bin/bash, #!bash -e
-			if len(parts) >= 1 && isBinaryName(name, parts[0]) {
-				return true
-			}
-
-			// #!/bin/env bash
-			if len(parts) >= 2 &&
-				isBinaryName("env", parts[0]) &&
-				isBinaryName(name, parts[1]) {
-				return true
-			}
+		// #!/bin/env bash
+		if len(parts) >= 2 &&
+			isBinaryName("env", parts[0]) &&
+			isBinaryName(name, parts[1]) {
+			return true
 		}
 	}
 
@@ -807,7 +813,7 @@ func validateShellFile(pathfn string, content []byte, dl checker.DetailLogger) (
 	if err != nil {
 		if errors.Is(err, errInternalInvalidShellCode) {
 			// Discard and print this particular error for now.
-			dl.Warn(err.Error())
+			dl.Debug(err.Error())
 		} else {
 			return r, err
 		}
