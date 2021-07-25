@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
 
 // CheckPackaging is the registered name for Packaging.
@@ -36,14 +38,16 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	_, dc, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, ".github/workflows",
 		&github.RepositoryContentGetOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(CheckPackaging, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.GetContents: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
 	for _, f := range dc {
 		fp := f.GetPath()
 		fo, _, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, fp, &github.RepositoryContentGetOptions{})
 		if err != nil {
-			return checker.MakeRetryResult(CheckPackaging, err)
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.GetContents: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if fo == nil {
 			// path is a directory, not a file. skip.
@@ -51,7 +55,8 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		}
 		fc, err := fo.GetContent()
 		if err != nil {
-			return checker.MakeRetryResult(CheckPackaging, err)
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("fo.GetContent: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 
 		if !isPackagingWorkflow(fc, fp, c) {
@@ -63,24 +68,19 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 				Status: "success",
 			})
 		if err != nil {
-			return checker.MakeRetryResult(CheckPackaging, err)
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Actions.ListWorkflowRunsByFileName: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if *runs.TotalCount > 0 {
-			c.Logf("found a completed run: %s", runs.WorkflowRuns[0].GetHTMLURL())
-			return checker.CheckResult{
-				Name:       CheckPackaging,
-				Pass:       true,
-				Confidence: checker.MaxResultConfidence,
-			}
+			c.Dlogger.Info("workflow %v used in run: %s", fp, runs.WorkflowRuns[0].GetHTMLURL())
+			return checker.CreateMaxScoreResult(CheckPackaging,
+				"packaging workflow detected")
 		}
-		c.Logf("!! no run completed")
+		c.Dlogger.Info("workflow %v not used in runs", fp)
 	}
 
-	return checker.CheckResult{
-		Name:       CheckPackaging,
-		Pass:       false,
-		Confidence: checker.MaxResultConfidence,
-	}
+	return checker.CreateMinScoreResult(CheckPackaging,
+		"no packaging workflow used")
 }
 
 func isPackagingWorkflow(s, fp string, c *checker.CheckRequest) bool {
@@ -90,42 +90,42 @@ func isPackagingWorkflow(s, fp string, c *checker.CheckRequest) bool {
 		r2 := regexp.MustCompile(`(?s)npm.*publish`)
 
 		if r1.MatchString(s) && r2.MatchString(s) {
-			c.Logf("found node packaging workflow using npm: %s", fp)
+			c.Dlogger.Info("candidate node packaging workflow using npm: %s", fp)
 			return true
 		}
 	}
 
 	if strings.Contains(s, "uses: actions/setup-java@") {
-		// java packages with maven
+		// Java packages with maven.
 		r1 := regexp.MustCompile(`(?s)mvn.*deploy`)
 		if r1.MatchString(s) {
-			c.Logf("found java packaging workflow using maven: %s", fp)
+			c.Dlogger.Info("candidate java packaging workflow using maven: %s", fp)
 			return true
 		}
 
-		// java packages with gradle
+		// Java packages with gradle.
 		r2 := regexp.MustCompile(`(?s)gradle.*publish`)
 		if r2.MatchString(s) {
-			c.Logf("found java packaging workflow using gradle: %s", fp)
+			c.Dlogger.Info("candidate java packaging workflow using gradle: %s", fp)
 			return true
 		}
 	}
 
 	if strings.Contains(s, "actions/setup-python@") && strings.Contains(s, "pypa/gh-action-pypi-publish@master") {
-		c.Logf("found python packaging workflow using pypi: %s", fp)
+		c.Dlogger.Info("candidate python packaging workflow using pypi: %s", fp)
 		return true
 	}
 
 	if strings.Contains(s, "uses: docker/build-push-action@") {
-		c.Logf("found docker publishing workflow: %s", fp)
+		c.Dlogger.Info("candidate docker publishing workflow: %s", fp)
 		return true
 	}
 
 	if strings.Contains(s, "docker push") {
-		c.Logf("found docker publishing workflow: %s", fp)
+		c.Dlogger.Info("candidate docker publishing workflow: %s", fp)
 		return true
 	}
 
-	c.Logf("!! not a packaging workflow: %s", fp)
+	c.Dlogger.Debug("not a packaging workflow: %s", fp)
 	return false
 }

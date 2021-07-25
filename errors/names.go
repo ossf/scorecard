@@ -21,23 +21,23 @@ import (
 const (
 	// RetryError occurs when checks fail after exhausting all retry attempts.
 	RetryError = "RetryError"
-	// ZeroConfidenceError shows an inconclusive result.
-	ZeroConfidenceError = "ZeroConfidenceError"
+	// LowConfidenceError shows a low-confidence result.
+	LowConfidenceError = "LowConfidenceError"
 	// UnknownError for all error types not handled.
 	UnknownError = "UnknownError"
 )
 
 var (
-	errRetry          *ErrRetry
-	errZeroConfidence *ErrZeroConfidence
+	errRetry         *ErrRetry
+	errLowConfidence *ErrLowConfidence
 )
 
 func GetErrorName(err error) string {
 	switch {
 	case errors.As(err, &errRetry):
 		return RetryError
-	case errors.As(err, &errZeroConfidence):
-		return ZeroConfidenceError
+	case errors.As(err, &errLowConfidence):
+		return LowConfidenceError
 	default:
 		return UnknownError
 	}

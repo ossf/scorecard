@@ -15,41 +15,24 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 )
 
-type (
-	ErrRetry         struct{ wrappedError }
-	ErrLowConfidence struct{ wrappedError }
+// UPGRADEv2: delete other files in folder.
+//nolint
+var (
+	ErrScorecardInternal = errors.New("internal error")
+	ErrRepoUnreachable   = errors.New("repo unreachable")
 )
 
-func MakeRetryError(err error) error {
-	return &ErrRetry{
-		wrappedError{
-			msg:        "unable to run check, retry",
-			innerError: err,
-		},
+// Create a public error using any of the errors
+// listed above. For examples, see errors/errors.md.
+func Create(e error, msg string) error {
+	// Note: Errorf automatically wraps the error when used with `%w`.
+	if len(msg) > 0 {
+		return fmt.Errorf("%w: %v", e, msg)
 	}
-}
-
-func MakeLowConfidenceError(err error) error {
-	return &ErrLowConfidence{
-		wrappedError{
-			msg:        "low confidence check result",
-			innerError: err,
-		},
-	}
-}
-
-type wrappedError struct {
-	innerError error
-	msg        string
-}
-
-func (err *wrappedError) Error() string {
-	return fmt.Sprintf("%s: %v", err.msg, err.innerError)
-}
-
-func (err *wrappedError) Unwrap() error {
-	return err.innerError
+	// We still need to use %w to prevent callers from using e == ErrInvalidDockerFile.
+	return fmt.Errorf("%w", e)
 }

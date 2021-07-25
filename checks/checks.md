@@ -11,28 +11,36 @@ If you have ideas for things to add, or new ways to detect things,
 please contribute!
 ## Active 
 
-A project which is not active may not be patched, may not have its dependencies patched, or may not be actively tested and used. So this check tries to determine if the project is still "actively maintained". It currently works by looking for commits within the last 90 days, and succeeds if there are at least 2 commits in the last 90 days. 
+This check tries to determine if the project is "actively maintained".
+A project which is not active may not be patched, may not have its dependencies patched, or may not be actively tested and used. A low score is therefore considered `High` risk.
+The check currently works by looking for commits within the last 90 days, and outputs the highest score if there are at least 1 commit/week during this period. 
 
 **Remediation steps**
 - There is *NO* remediation work needed here. This is just to indicate your project activity and maintenance commitment.
 
 ## Automatic-Dependency-Update 
 
-This check tries to determine if a project has dependencies automatically updated. The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if  it is enabled and does not ensure that it is run and pull requests are merged. 
+This check tries to determine if a project has dependencies automatically updated.
+Not updating dependencies makes a project vulnerable to known flaws and prone to attacks.  A low score is therefore considered `High` risk.
+The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. 
 
 **Remediation steps**
 - Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.
 
 ## Binary-Artifacts 
 
-This check tries to determine if a project has binary artifacts in the source repository. These binaries could be compromised artifacts.Building from the source is recommended. 
+This check tries to determine if a project has binary artifacts in the source repository.
+Binaries are a threat to auditability and vulnerability management. In addition, a binary could be compromised or malicious. A low score is therefore considered `High` risk. 
 
 **Remediation steps**
 - Remove the binary artifacts from the repository. 
+- Build from source.
 
 ## Branch-Protection 
 
-Branch protection allows defining rules to enforce certain workflows for branches, such as requiring a review or passing certain status checks. This check would work only when the token has [Admin access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197) to the repository. This check determines if the default and release branches are protected. More specifically, the checks for AllowForcePushes (disabled), AllowDeletions (disabled),  EnforceAdmins (enabled), RequireLinearHistory (enabled), RequiredStatusChecks (enabled and must have non-empty context enabled), RequiredPullRequestReviews (>=1), DismissStaleReviews (enabled), RequireCodeOwnerReviews (enabled). 
+[Branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) allows defining rules to enforce certain workflows for branches, such as requiring a review or passing certain status checks.
+Branch protection ensures compromised contributors cannot  intentionally inject malicious code. A low score is therefore considered `High` risk.
+This check determines if the default and release branches are protected with GitHub's branch protection settings. The check only works when the token has [Admin access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197) to the repository. This check determines if the default and release branches are protected. 
 
 **Remediation steps**
 - Enable branch protection settings in your source hosting provider to avoid force pushes or deletion of your important branches.
@@ -40,7 +48,9 @@ Branch protection allows defining rules to enforce certain workflows for branche
 
 ## CI-Tests 
 
-This check tries to determine if the project runs tests before pull requests are merged. It works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its names contains any of the following: appveyor, buildkite, circleci, e2e, github-actions,  jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. 
+This check tries to determine if the project runs tests before pull requests are merged.
+Running tests helps helps developers catch mistakes early on. A low score is considered 'Low' risk.
+The check works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its name contains any of the following: appveyor, buildkite, circleci, e2e, github-actions,  jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. 
 
 **Remediation steps**
 - Check-in scripts that run all the tests in your repository.
@@ -48,14 +58,18 @@ This check tries to determine if the project runs tests before pull requests are
 
 ## CII-Best-Practices 
 
-This check tries to determine if the project has a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en). It uses the URL for the Git repo and the CII API. The check does not consider  if the repo has a solver or gold levels for passing the test. 
+This check tries to determine if the project has a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en).
+This badges tells us the repo maintainers are aware of best development practices. A low score is considered 'Low' risk.
+The check uses the URL for the Git repo and the CII API. 
 
 **Remediation steps**
 - Sign up for the [CII Best Practices program](https://bestpractices.coreinfrastructure.org/en).
 
 ## Code-Review 
 
-This check tries to determine if a project requires code review before pull requests are merged. First it checks if branch-Protection is enabled on the default branch and the number of reviewers is at least 1. If this fails,  it checks if the recent (~30) commits have a Github-approved review or if the merger is different from the committer (implicit review). The check succeeds if at least 75% of commits have a review as described above. If it fails, it does the same check  but looking for reviews by [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels "lgtm" or "approved"). If this fails, it does the same but looking for gerrit-specific commit messages ("Reviewed-on" and "Reviewed-by"). 
+This check tries to determine if a project requires code review before pull requests are merged. 
+Reviewing code improves quality of code in general. In addition, it ensures compromised contributors cannot intentionally inject malicious code. A low score is therefore considered `High` risk.
+The check first tries to detect if Branch-Protection is enabled on the default branch and the number of reviewers is at least 1. If this fails, it checks if the recent (~30) commits have a Github-approved review or if the merger is different from the committer (implicit review). It also performs similar check for reviews using  [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels "lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by"). 
 
 **Remediation steps**
 - Follow security best practices by performing strict code reviews for every new pull request.
@@ -64,14 +78,18 @@ This check tries to determine if a project requires code review before pull requ
 
 ## Contributors 
 
-This check tries to determine if a project has a set of contributors from multiple companies. It works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commint in the last 30 commits. The check succeeds if all contributor span  at least 2 different companies. 
+This check tries to determine if a project has a set of contributors from multiple companies. 
+Low score has 'Low' risk.
+The check works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commint in the last 30 commits. The check succeeds if all contributor span  at least 2 different companies. 
 
 **Remediation steps**
 - There is *NO* remediation work needed here. This is just to provide some insights on which organization(s) have contributed to the project and making trust decision based on that. But you can ask your contributors to  join their respective organization.
 
 ## Frozen-Deps 
 
-This check tries to determine if a project has declared and pinned its dependencies. It works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript),  requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for  unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. If one of the files in (1) AND all the dependencies in (2) are pinned, the check succeds. 
+This check tries to determine if a project has declared and pinned its dependencies. 
+Pinning dependencies is important to mitigate compromised dependencies from undermining the security of the project. Low score is therefore considered `Medium` risk.
+The checks works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript),  requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for  unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows.  
 
 **Remediation steps**
 - Declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
@@ -81,21 +99,28 @@ This check tries to determine if a project has declared and pinned its dependenc
 
 ## Fuzzing 
 
-This check tries to determine if the project uses a fuzzing system. It currently works by checking if the repo name is in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list. 
+This check tries to determine if the project uses a fuzzing system.
+Fuzzing is important to reduce the number of vulnerabilities in code. A low score is considered 'Medium' risk.
+The check currently works by checking if the repo name is in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list. 
 
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
 
 ## Packaging 
 
-This check tries to determine if the project is published as a package that other developers can install/download. The check currently only looks for [GitHub packaging workflows](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package). There is a plan to add support for package manager hubs in the future, such as [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/). 
+This check tries to determine if the project is published as a package that other developers can install/download.
+Packaging your project is important for users to receive updates and security patches automatically. A low score is considered `Medium` risk.
+The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a correpdonsing hub, e.g., [Npm](https://www.npmjs.com/). There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/). 
 
 **Remediation steps**
 - Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
+- Use a GitHub action to release your package to language-specific hubs.
 
 ## Pull-Requests 
 
-This check tries to determine if the project requires pull requests for all changes to the default branch. It works by looking at recent commits (first page, ~30) and uses the GitHub API to search for associated pull requests. The check discards commits by usernames containing 'bot' or 'gardener'. The check considers a commit containing the string `Reviewed-on` as being reviewed through gerrit; and does not check for a corresponding PR. 
+This check tries to determine if the project requires pull requests for all changes to the default branch.
+Reviewing code improves quality of code in general. In addition, it ensures compromised contributors cannot intentionally inject malicious code. A low score is therefore considered `High` risk.
+The check works by looking at recent commits (first page, ~30) and uses the GitHub API to search for associated pull requests.  
 
 **Remediation steps**
 - Always open a pull request for any change you intend to make, big or small.
@@ -104,22 +129,18 @@ This check tries to determine if the project requires pull requests for all chan
 
 ## SAST 
 
-This check tries to determine if the project uses static code analysis systems. It currently works by looking for well-known results in GitHub pull requests. More specifically, the check first looks for Github apps named [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and  sonarcloud in the recent (~30) merged PRs. If >75% of commits contain at least a successful check (by any of the apps above), the check succeeds. If the above fails, the check instead looks for the use of "github/codeql-action" in a github workflow. 
+This check tries to determine if the project uses static code analysis systems. 
+SAST tool may prevent known classes of bugs to be inadvertently introduced in the codebase. A low score is considered `Medium` risk.
+The checks currently looks for known Github apps such as [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and sonarcloud in the recent (~30) merged PRs. The check also looks for the use of "github/codeql-action" in a github workflow. 
 
 **Remediation steps**
 - Run CodeQL checks in your CI/CD by following the instructions [here](https://github.com/github/codeql-action#usage).
 
-## Security-Policy 
-
-This check tries to determine if a project has published a security policy. It works by looking for a file named `SECURITY.md` (case-insensitive) in a few well-known directories. 
-
-**Remediation steps**
-- Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.
-- The file should contain information on what constitutes a vulnerability and a way to report it securely (e.g. issue tracker with private issue support, encrypted email with a published public key).
-
 ## Signed-Releases 
 
-This check tries to determine if a project cryptographically signs release artifacts. It works by looking for filenames: *.minisign (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
+This check tries to determine if a project cryptographically signs release artifacts. 
+Signed releases attest to the provenance of the artifact. A low score is considered 'High' risk.
+It works by looking for filenames: *.minisign (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
 
 **Remediation steps**
 - Publish the release.
@@ -131,7 +152,9 @@ This check tries to determine if a project cryptographically signs release artif
 
 ## Signed-Tags 
 
-This check looks for cryptographically signed tags in the last 5 tags. The check does not verify the signature, but relies on github's verification. 
+This check looks for cryptographically signed tags in the last 5 tags.
+Signed tags attest the author of a commit. A low score is considered 'Medium' risk.
+The check does not verify the signature itself and currently relies on github's verification. 
 
 **Remediation steps**
 - Generate a new signing key.
@@ -142,14 +165,17 @@ This check looks for cryptographically signed tags in the last 5 tags. The check
 
 ## Token-Permissions 
 
-This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default. For each workflow yaml file, the check looks for the permissions keyword. If it is set globally as read-only for the entire file,  this check succeeds. Otherwise it fails. The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
+This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default. 
+A compromised token with write access may be used by attackers to push malicious code into the project. A low score is therefore considered `High` risk.
+For each workflow yaml file, the check looks for the permissions keyword. If it is set globally as read-only for the entire file,  this check succeeds. Otherwise it fails. The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
 
 **Remediation steps**
 - Set permissions as `read-all` or `contents: read` as described in GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
 
 ## Vulnerabilities 
 
-This check determines if there are open, unfixed vulnerabilities in the project using the [OSV](https://osv.dev) service. 
+This check determines if there are open, unfixed vulnerabilities in the project using the [OSV](https://osv.dev) service.
+An existing vulnerability is can readily be used by attackers, so a low score is considered `High` risk. 
 
 **Remediation steps**
 - Fix the vulnerabilities. The details of each vulnerability can be found on <https://osv.dev>.

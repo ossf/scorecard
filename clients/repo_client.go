@@ -18,6 +18,7 @@ import (
 	"fmt"
 )
 
+// UPGRADEv2: use ErrRepoUnreachable instead.
 type ErrRepoUnavailable struct {
 	innerError error
 }

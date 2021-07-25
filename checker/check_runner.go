@@ -39,15 +39,34 @@ type CheckFn func(*CheckRequest) CheckResult
 
 type CheckNameToFnMap map[string]CheckFn
 
+// UPGRADEv2: messages2 will ultimately
+// be renamed to messages.
 type logger struct {
-	messages []string
+	messages  []string
+	messages2 []CheckDetail
 }
 
+func (l *logger) Info(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailInfo, Msg: fmt.Sprintf(desc, args...)}
+	l.messages2 = append(l.messages2, cd)
+}
+
+func (l *logger) Warn(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailWarn, Msg: fmt.Sprintf(desc, args...)}
+	l.messages2 = append(l.messages2, cd)
+}
+
+func (l *logger) Debug(desc string, args ...interface{}) {
+	cd := CheckDetail{Type: DetailDebug, Msg: fmt.Sprintf(desc, args...)}
+	l.messages2 = append(l.messages2, cd)
+}
+
+// UPGRADEv2: to remove.
 func (l *logger) Logf(s string, f ...interface{}) {
 	l.messages = append(l.messages, fmt.Sprintf(s, f...))
 }
 
-func logStats(ctx context.Context, startTime time.Time, result CheckResult) error {
+func logStats(ctx context.Context, startTime time.Time, result *CheckResult) error {
 	runTimeInSecs := time.Now().Unix() - startTime.Unix()
 	opencensusstats.Record(ctx, stats.CheckRuntimeInSec.M(runTimeInSecs))
 
@@ -74,17 +93,22 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx
 		l = logger{}
+		// UPGRADEv2: to remove.
 		checkRequest.Logf = l.Logf
+		checkRequest.Dlogger = &l
 		res = f(&checkRequest)
+		// UPGRADEv2: to fix using proper error check.
 		if res.ShouldRetry && !strings.Contains(res.Error.Error(), "invalid header field value") {
 			checkRequest.Logf("error, retrying: %s", res.Error)
 			continue
 		}
 		break
 	}
+	// UPGRADEv2: to remove.
 	res.Details = l.messages
+	res.Details2 = l.messages2
 
-	if err := logStats(ctx, startTime, res); err != nil {
+	if err := logStats(ctx, startTime, &res); err != nil {
 		panic(err)
 	}
 	return res
@@ -97,6 +121,29 @@ func Bool2int(b bool) int {
 	return 0
 }
 
+func MultiCheckOr2(fns ...CheckFn) CheckFn {
+	return func(c *CheckRequest) CheckResult {
+		var checks []CheckResult
+		for _, fn := range fns {
+			res := fn(c)
+			checks = append(checks, res)
+		}
+		return MakeOrResult(c, checks...)
+	}
+}
+
+func MultiCheckAnd2(fns ...CheckFn) CheckFn {
+	return func(c *CheckRequest) CheckResult {
+		var checks []CheckResult
+		for _, fn := range fns {
+			res := fn(c)
+			checks = append(checks, res)
+		}
+		return MakeAndResult2(checks...)
+	}
+}
+
+// UPGRADEv2: will be removed.
 // MultiCheckOr returns the best check result out of several ones performed.
 func MultiCheckOr(fns ...CheckFn) CheckFn {
 	return func(c *CheckRequest) CheckResult {

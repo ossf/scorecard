@@ -22,22 +22,31 @@ import (
 	"github.com/h2non/filetype/types"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
+
+const CheckBinaryArtifacts string = "Binary-Artifacts"
 
 //nolint
 func init() {
 	registerCheck(CheckBinaryArtifacts, BinaryArtifacts)
 }
 
-const CheckBinaryArtifacts string = "Binary-Artifacts"
-
 // BinaryArtifacts  will check the repository if it contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	return CheckFilesContent(CheckBinaryArtifacts, "*", false, c, checkBinaryFileContent)
+	r, err := CheckFilesContent2("*", false, c, checkBinaryFileContent)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, err)
+	}
+	if !r {
+		return checker.CreateMinScoreResult(CheckBinaryArtifacts, "binaries present in source code")
+	}
+
+	return checker.CreateMaxScoreResult(CheckBinaryArtifacts, "no binaries found in the repo")
 }
 
 func checkBinaryFileContent(path string, content []byte,
-	logf func(s string, f ...interface{})) (bool, error) {
+	dl checker.DetailLogger) (bool, error) {
 	binaryFileTypes := map[string]bool{
 		"crx":     true,
 		"deb":     true,
@@ -78,15 +87,16 @@ func checkBinaryFileContent(path string, content []byte,
 	var t types.Type
 	var err error
 	if t, err = filetype.Get(content); err != nil {
-		return false, fmt.Errorf("failed in getting the content type %w", err)
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("filetype.Get:%v", err))
 	}
 
 	if _, ok := binaryFileTypes[t.Extension]; ok {
-		logf("!! binary-artifact %s", path)
+		dl.Warn("binary found: %s", path)
 		return false, nil
 	} else if _, ok := binaryFileTypes[filepath.Ext(path)]; ok {
-		// falling back to file based extension.
-		logf("!! binary-artifact %s", path)
+		// Falling back to file based extension.
+		dl.Warn("binary found: %s", path)
 		return false, nil
 	}
 

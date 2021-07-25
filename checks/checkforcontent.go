@@ -15,16 +15,13 @@
 package checks
 
 import (
-	"errors"
 	"fmt"
 	"path"
 	"strings"
 
 	"github.com/ossf/scorecard/checker"
+	sce "github.com/ossf/scorecard/errors"
 )
-
-// ErrReadFile indicates the header size does not match the size of the file.
-var ErrReadFile = errors.New("could not read entire file")
 
 // IsMatchingPath uses 'pattern' to shell-match the 'path' and its filename
 // 'caseSensitive' indicates the match should be case-sensitive. Default: no.
@@ -37,13 +34,15 @@ func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 	filename := path.Base(fullpath)
 	match, err := path.Match(pattern, fullpath)
 	if err != nil {
-		return false, fmt.Errorf("match error: %w", err)
+		//nolint
+		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalFilenameMatch, err))
 	}
 
 	// No match on the fullpath, let's try on the filename only.
 	if !match {
 		if match, err = path.Match(pattern, filename); err != nil {
-			return false, fmt.Errorf("match error: %w", err)
+			//nolint
+			return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalFilenameMatch, err))
 		}
 	}
 
@@ -77,7 +76,6 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 		// Filter out files based on path/names using the pattern.
 		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
 		if err != nil {
-			c.Logf("error during isMatchingPath: %v", err)
 			return false
 		}
 		return b
@@ -99,10 +97,50 @@ func CheckFilesContent(checkName, shellPathFnPattern string,
 			res = false
 		}
 	}
-
 	if res {
 		return checker.MakePassResult(checkName)
 	}
 
 	return checker.MakeFailResult(checkName, nil)
+}
+
+// UPGRADEv2: to rename to CheckFilesContent.
+func CheckFilesContent2(shellPathFnPattern string,
+	caseSensitive bool,
+	c *checker.CheckRequest,
+	onFileContent func(path string, content []byte,
+		dl checker.DetailLogger) (bool, error),
+) (bool, error) {
+	predicate := func(filepath string) bool {
+		// Filter out Scorecard's own test files.
+		if isScorecardTestFile(c.Owner, c.Repo, filepath) {
+			return false
+		}
+		// Filter out files based on path/names using the pattern.
+		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
+		if err != nil {
+			return false
+		}
+		return b
+	}
+	res := true
+	for _, file := range c.RepoClient.ListFiles(predicate) {
+		content, err := c.RepoClient.GetFileContent(file)
+		if err != nil {
+			//nolint
+			return false, err
+		}
+
+		rr, err := onFileContent(file, content, c.Dlogger)
+		if err != nil {
+			return false, err
+		}
+		// We don't return rightway to let the onFileContent()
+		// handler log.
+		if !rr {
+			res = false
+		}
+	}
+
+	return res, nil
 }
