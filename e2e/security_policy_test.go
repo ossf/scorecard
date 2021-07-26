@@ -30,7 +30,7 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 	Context("E2E TEST:Validating security policy", func() {
 		It("Should return valid security policy", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("tensorflow", "tensorflow")
 			Expect(err).Should(BeNil())
 
@@ -61,7 +61,7 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 		})
 		It("Should return valid security policy for rust repositories", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("randombit", "botan")
 			Expect(err).Should(BeNil())
 

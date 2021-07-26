@@ -21,33 +21,13 @@ import (
 // CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
 // for the occurrence.
 func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(name string,
-	Logf func(s string, f ...interface{})) (bool, error)) checker.CheckResult {
-	for _, filename := range c.RepoClient.ListFiles(func(string) bool { return true }) {
-		rr, err := onFile(filename, c.Logf)
-		if err != nil {
-			return checker.CheckResult{
-				Name:       checkName,
-				Pass:       false,
-				Confidence: checker.MaxResultConfidence,
-				Error:      err,
-			}
-		}
-
-		if rr {
-			return checker.MakePassResult(checkName)
-		}
-	}
-	const confidence = 5
-	return checker.CheckResult{
-		Name:       checkName,
-		Pass:       false,
-		Confidence: confidence,
-	}
-}
-
-func CheckIfFileExists2(checkName string, c *checker.CheckRequest, onFile func(name string,
 	dl checker.DetailLogger) (bool, error)) (bool, error) {
-	for _, filename := range c.RepoClient.ListFiles(func(string) bool { return true }) {
+	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
+	if err != nil {
+		// nolint: wrapcheck
+		return false, err
+	}
+	for _, filename := range matchedFiles {
 		rr, err := onFile(filename, c.Dlogger)
 		if err != nil {
 			return false, err

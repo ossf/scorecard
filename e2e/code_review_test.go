@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// nolint: dupl
 package e2e
 
 import (
@@ -20,8 +21,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
+  "github.com/ossf/scorecard/v2/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
@@ -31,11 +34,15 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 	Context("E2E TEST:Validating use of code reviews", func() {
 		It("Should return use of code reviews", func() {
 			dl := scut.TestDetailLogger{}
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			err := repoClient.InitRepo("apache", "airflow")
+			Expect(err).Should(BeNil())
+
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  nil,
+				RepoClient:  repoClient,
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,

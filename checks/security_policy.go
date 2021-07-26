@@ -41,7 +41,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		}
 		return false, nil
 	}
-	r, err := CheckIfFileExists2(CheckSecurityPolicy, c, onFile)
+	r, err := CheckIfFileExists(CheckSecurityPolicy, c, onFile)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
@@ -53,7 +53,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file
 	dotGitHub := c
 	dotGitHub.Repo = ".github"
-	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, c.Client)
+	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, c.Client, c.GraphClient)
 	if err := dotGitHubClient.InitRepo(c.Owner, c.Repo); err != nil {
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
@@ -67,7 +67,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		}
 		return false, nil
 	}
-	r, err = CheckIfFileExists2(CheckSecurityPolicy, dotGitHub, onFile)
+	r, err = CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}

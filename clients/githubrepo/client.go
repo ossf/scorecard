@@ -19,15 +19,17 @@ import (
 	"fmt"
 
 	"github.com/google/go-github/v32/github"
+	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v2/clients"
 )
 
 type Client struct {
-	repo       *github.Repository
-	repoClient *github.Client
-	ctx        context.Context
-	tarball    tarballHandler
+	repo        *github.Repository
+	repoClient  *github.Client
+	graphClient *graphqlHandler
+	ctx         context.Context
+	tarball     tarballHandler
 }
 
 func (client *Client) InitRepo(owner, repoName string) error {
@@ -44,10 +46,15 @@ func (client *Client) InitRepo(owner, repoName string) error {
 		return fmt.Errorf("error during tarballHandler.init: %w", err)
 	}
 
+	// Setup GraphQL
+	if err := client.graphClient.init(client.ctx, owner, repoName); err != nil {
+		return fmt.Errorf("error during graphqlHandler.init: %w", err)
+	}
+
 	return nil
 }
 
-func (client *Client) ListFiles(predicate func(string) bool) []string {
+func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	return client.tarball.listFiles(predicate)
 }
 
@@ -55,13 +62,25 @@ func (client *Client) GetFileContent(filename string) ([]byte, error) {
 	return client.tarball.getFileContent(filename)
 }
 
+func (client *Client) ListMergedPRs() ([]clients.PullRequest, error) {
+	return client.graphClient.getMergedPRs()
+}
+
+func (client *Client) GetDefaultBranch() (clients.BranchRef, error) {
+	return client.graphClient.getDefaultBranch()
+}
+
 func (client *Client) Close() error {
 	return client.tarball.cleanup()
 }
 
-func CreateGithubRepoClient(ctx context.Context, client *github.Client) clients.RepoClient {
+func CreateGithubRepoClient(ctx context.Context,
+	client *github.Client, graphClient *githubv4.Client) clients.RepoClient {
 	return &Client{
 		ctx:        ctx,
 		repoClient: client,
+		graphClient: &graphqlHandler{
+			client: graphClient,
+		},
 	}
 }

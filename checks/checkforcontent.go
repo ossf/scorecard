@@ -62,69 +62,31 @@ func isScorecardTestFile(owner, repo, fullpath string) bool {
 // 		use "./*".
 //	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
 //nolint
-func CheckFilesContent(checkName, shellPathFnPattern string,
-	caseSensitive bool,
-	c *checker.CheckRequest,
-	onFileContent func(path string, content []byte,
-		Logf func(s string, f ...interface{})) (bool, error),
-) checker.CheckResult {
-	predicate := func(filepath string) bool {
-		// Filter out Scorecard's own test files.
-		if isScorecardTestFile(c.Owner, c.Repo, filepath) {
-			return false
-		}
-		// Filter out files based on path/names using the pattern.
-		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
-		if err != nil {
-			return false
-		}
-		return b
-	}
-	res := true
-	for _, file := range c.RepoClient.ListFiles(predicate) {
-		content, err := c.RepoClient.GetFileContent(file)
-		if err != nil {
-			return checker.MakeRetryResult(checkName, err)
-		}
-
-		rr, err := onFileContent(file, content, c.Logf)
-		if err != nil {
-			return checker.MakeFailResult(checkName, err)
-		}
-		// We don't return rightway to let the onFileContent()
-		// handler log.
-		if !rr {
-			res = false
-		}
-	}
-	if res {
-		return checker.MakePassResult(checkName)
-	}
-
-	return checker.MakeFailResult(checkName, nil)
-}
-
-// UPGRADEv2: to rename to CheckFilesContent.
-func CheckFilesContent2(shellPathFnPattern string,
+func CheckFilesContent(shellPathFnPattern string,
 	caseSensitive bool,
 	c *checker.CheckRequest,
 	onFileContent func(path string, content []byte,
 		dl checker.DetailLogger) (bool, error),
 ) (bool, error) {
-	predicate := func(filepath string) bool {
+	predicate := func(filepath string) (bool, error) {
 		// Filter out Scorecard's own test files.
 		if isScorecardTestFile(c.Owner, c.Repo, filepath) {
-			return false
+			return false, nil
 		}
 		// Filter out files based on path/names using the pattern.
 		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
 		if err != nil {
-			return false
+			return false, err
 		}
-		return b
+		return b, nil
 	}
 	res := true
-	for _, file := range c.RepoClient.ListFiles(predicate) {
+	matchedFiles, err := c.RepoClient.ListFiles(predicate)
+	if err != nil {
+		// nolint: wrapcheck
+		return false, err
+	}
+	for _, file := range matchedFiles {
 		content, err := c.RepoClient.GetFileContent(file)
 		if err != nil {
 			//nolint
