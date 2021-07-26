@@ -26,10 +26,10 @@ import (
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	"github.com/ossf/scorecard/checker"
-	"github.com/ossf/scorecard/clients"
-	"github.com/ossf/scorecard/repos"
-	"github.com/ossf/scorecard/stats"
+	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v2/stats"
 )
 
 func logStats(ctx context.Context, startTime time.Time) {

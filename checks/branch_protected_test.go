@@ -21,9 +21,9 @@ import (
 
 	"github.com/google/go-github/v32/github"
 
-	"github.com/ossf/scorecard/checker"
-	sce "github.com/ossf/scorecard/errors"
-	scut "github.com/ossf/scorecard/utests"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
+	scut "github.com/ossf/scorecard/v2/utests"
 )
 
 type mockRepos struct {

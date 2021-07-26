@@ -27,7 +27,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/v2/checker"
 )
 
 type ScorecardResult struct {
