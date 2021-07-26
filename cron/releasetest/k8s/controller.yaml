@@ -33,6 +33,8 @@ spec:
               value: "gcppubsub://projects/openssf/topics/scorecard-batch-requests-releasetest"
             - name: SCORECARD_DATA_BUCKET_URL
               value: "gs://ossf-scorecard-data-releasetest"
+            - name: SCORECARD_SHARD_SIZE
+              value: "5"
             resources:
               limits:
                 memory: 1Gi

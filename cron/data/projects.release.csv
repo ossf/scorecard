@@ -1,4 +1,9 @@
 repo,metadata
+#Basic
+github.com/ossf/scorecard,
+github.com/ossf/criticality_score,
+github.com/CircleCI-Public/circleci-dockerfiles,
+github.com/ChromeDevTools/devtools-protocol,
 # 300 redirects
 github.com/cocos2d/cocos2d-objc,
 github.com/dargullin/icheck,
