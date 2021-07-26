@@ -19,50 +19,13 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/checker"
 	sce "github.com/ossf/scorecard/errors"
 )
 
-const (
-	// CheckCodeReview is the registered name for DoesCodeReview.
-	CheckCodeReview       = "Code-Review"
-	pullRequestsToAnalyze = 30
-	reviewsToAnalyze      = 30
-	labelsToAnalyze       = 30
-)
-
-var prHistory struct {
-	Repository struct {
-		DefaultBranchRef struct {
-			Name                 githubv4.String
-			BranchProtectionRule struct {
-				RequiredApprovingReviewCount githubv4.Int
-			}
-		}
-		PullRequests struct {
-			//nolint
-			Nodes []struct {
-				Number      githubv4.Int
-				MergeCommit struct {
-					AuthoredByCommitter githubv4.Boolean
-				}
-				MergedAt githubv4.DateTime
-				Labels   struct {
-					Nodes []struct {
-						Name githubv4.String
-					}
-				} `graphql:"labels(last: $labelsToAnalyze)"`
-				LatestReviews struct {
-					Nodes []struct {
-						State githubv4.String
-					}
-				} `graphql:"latestReviews(last: $reviewsToAnalyze)"`
-			}
-		} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
-	} `graphql:"repository(owner: $owner, name: $name)"`
-}
+// CheckCodeReview is the registered name for DoesCodeReview.
+const CheckCodeReview = "Code-Review"
 
 //nolint:gochecknoinits
 func init() {
@@ -75,18 +38,6 @@ func init() {
 // - Checking if most of the recent merged PRs were "Approved".
 // - Looking for other well-known review labels.
 func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
-	vars := map[string]interface{}{
-		"owner":                 githubv4.String(c.Owner),
-		"name":                  githubv4.String(c.Repo),
-		"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-		"reviewsToAnalyze":      githubv4.Int(reviewsToAnalyze),
-		"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
-	}
-	if err := c.GraphClient.Query(c.Ctx, &prHistory, vars); err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("GraphClient.Query: %v", err))
-		return checker.CreateRuntimeErrorResult(CheckCodeReview, e)
-	}
-
 	// Branch protection.
 	score, reason := isPrReviewRequired(c)
 	if score == checker.MaxResultScore {
@@ -138,7 +89,11 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 	// Look at some merged PRs to see if they were reviewed.
 	totalMerged := 0
 	totalReviewed := 0
-	for _, pr := range prHistory.Repository.PullRequests.Nodes {
+	prs, err := c.RepoClient.ListMergedPRs()
+	if err != nil {
+		return 0, "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+	}
+	for _, pr := range prs {
 		if pr.MergedAt.IsZero() {
 			continue
 		}
@@ -146,7 +101,7 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 
 		// Check if the PR is approved by a reviewer.
 		foundApprovedReview := false
-		for _, r := range pr.LatestReviews.Nodes {
+		for _, r := range pr.Reviews {
 			if r.State == "APPROVED" {
 				c.Dlogger.Debug("found review approved pr: %d", pr.Number)
 				totalReviewed++
@@ -173,7 +128,11 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 func isPrReviewRequired(c *checker.CheckRequest) (int, string) {
 	// Look to see if review is enforced.
 	// Check the branch protection rules, we may not be able to get these though.
-	if prHistory.Repository.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount >= 1 {
+	branch, err := c.RepoClient.GetDefaultBranch()
+	if err != nil {
+		sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetDefaultBranch: %v", err))
+	}
+	if branch.BranchProtectionRule.RequiredApprovingReviewCount >= 1 {
 		// If the default value is 0 when we cannot retrieve the value,
 		// a non-zero value means we're confident it's enabled.
 		return checker.MaxResultScore, "branch protection for default branch is enabled"
@@ -186,12 +145,16 @@ func prowCodeReview(c *checker.CheckRequest) (int, string, error) {
 	// Look at some merged PRs to see if they were reviewed
 	totalMerged := 0
 	totalReviewed := 0
-	for _, pr := range prHistory.Repository.PullRequests.Nodes {
+	prs, err := c.RepoClient.ListMergedPRs()
+	if err != nil {
+		sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+	}
+	for _, pr := range prs {
 		if pr.MergedAt.IsZero() {
 			continue
 		}
 		totalMerged++
-		for _, l := range pr.Labels.Nodes {
+		for _, l := range pr.Labels {
 			if l.Name == "lgtm" || l.Name == "approved" {
 				totalReviewed++
 				break
