@@ -75,9 +75,10 @@ func PullRequests(c *checker.CheckRequest) checker.CheckResult {
 			totalWithPrs++
 			c.Dlogger.Debug("commit with PR: %s", commit.GetSHA())
 		} else {
-			c.Dlogger.Debug("!! found commit without PR: %s, committer: %s", commit.GetSHA(), commit.GetCommitter().GetLogin())
+			c.Dlogger.Debug("found commit without PR: %s, committer: %s", commit.GetSHA(), commit.GetCommitter().GetLogin())
 		}
 	}
+
 	reason := fmt.Sprintf("%d ouf of %d commits have a PR", totalWithPrs, total)
 	return checker.CreateProportionalScoreResult(CheckPullRequests, reason, totalWithPrs, total)
 }
