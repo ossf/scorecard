@@ -87,6 +87,10 @@ type CheckResult struct {
 
 // CreateProportionalScore() creates a proportional score.
 func CreateProportionalScore(b, t int) int {
+	if t == 0 {
+		return 0
+	}
+
 	return int(math.Min(float64(MaxResultScore*b/t), float64(MaxResultScore)))
 }
 
