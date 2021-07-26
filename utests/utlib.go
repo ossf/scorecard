@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/v2/checker"
 )
 
 func validateDetailTypes(messages []checker.CheckDetail, nw, ni, nd int) bool {

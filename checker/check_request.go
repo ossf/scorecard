@@ -21,7 +21,7 @@ import (
 	"github.com/google/go-github/v32/github"
 	"github.com/shurcooL/githubv4"
 
-	"github.com/ossf/scorecard/clients"
+	"github.com/ossf/scorecard/v2/clients"
 )
 
 type CheckRequest struct {

@@ -23,7 +23,7 @@ import (
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	"github.com/ossf/scorecard/stats"
+	"github.com/ossf/scorecard/v2/stats"
 )
 
 func MakeCensusTransport(innerTransport http.RoundTripper) http.RoundTripper {

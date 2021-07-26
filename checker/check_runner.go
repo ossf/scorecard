@@ -23,8 +23,8 @@ import (
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	scorecarderrors "github.com/ossf/scorecard/errors"
-	"github.com/ossf/scorecard/stats"
+	scorecarderrors "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v2/stats"
 )
 
 const checkRetries = 3

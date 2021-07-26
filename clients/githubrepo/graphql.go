@@ -20,8 +20,8 @@ import (
 
 	"github.com/shurcooL/githubv4"
 
-	"github.com/ossf/scorecard/clients"
-	sce "github.com/ossf/scorecard/errors"
+	"github.com/ossf/scorecard/v2/clients"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 const (

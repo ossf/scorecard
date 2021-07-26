@@ -26,7 +26,7 @@ import (
 	// Needed to link in GCP drivers.
 	_ "gocloud.dev/blob/gcsblob"
 
-	"github.com/ossf/scorecard/cron/config"
+	"github.com/ossf/scorecard/v2/cron/config"
 )
 
 const (

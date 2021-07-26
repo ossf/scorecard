@@ -17,8 +17,8 @@ package checks
 import (
 	"strings"
 
-	"github.com/ossf/scorecard/checker"
-	"github.com/ossf/scorecard/clients/githubrepo"
+	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
 )
 
 // CheckSecurityPolicy is the registred name for SecurityPolicy.

@@ -26,7 +26,7 @@ import (
 	"github.com/shurcooL/githubv4"
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/roundtripper"
+	"github.com/ossf/scorecard/v2/roundtripper"
 )
 
 var (

@@ -20,7 +20,7 @@ import (
 	"math"
 	"strings"
 
-	scorecarderrors "github.com/ossf/scorecard/errors"
+	scorecarderrors "github.com/ossf/scorecard/v2/errors"
 )
 
 // UPGRADEv2: to remove.

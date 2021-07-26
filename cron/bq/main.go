@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ossf/scorecard/cron/config"
-	"github.com/ossf/scorecard/cron/data"
+	"github.com/ossf/scorecard/v2/cron/config"
+	"github.com/ossf/scorecard/v2/cron/data"
 )
 
 type shardSummary struct {

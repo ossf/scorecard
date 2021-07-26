@@ -27,11 +27,11 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/checks"
-	"github.com/ossf/scorecard/clients/githubrepo"
-	"github.com/ossf/scorecard/pkg"
-	"github.com/ossf/scorecard/repos"
-	"github.com/ossf/scorecard/roundtripper"
+	"github.com/ossf/scorecard/v2/checks"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	"github.com/ossf/scorecard/v2/pkg"
+	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v2/roundtripper"
 )
 
 //nolint:gochecknoinits

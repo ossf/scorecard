@@ -23,9 +23,9 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/ossf/scorecard/cron/config"
-	"github.com/ossf/scorecard/cron/data"
-	"github.com/ossf/scorecard/cron/pubsub"
+	"github.com/ossf/scorecard/v2/cron/config"
+	"github.com/ossf/scorecard/v2/cron/data"
+	"github.com/ossf/scorecard/v2/cron/pubsub"
 )
 
 func PublishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime time.Time) (int32, error) {

@@ -21,8 +21,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ossf/scorecard/checker"
-	sce "github.com/ossf/scorecard/errors"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 // CheckCIIBestPractices is the registered name for CIIBestPractices.
