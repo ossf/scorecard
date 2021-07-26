@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-FROM  golang:1.16.6@sha256:773f15a2f2368be3ef88bfc29cc602bac5bd918f1f6cd14b24502d8760e04173 AS base
+FROM  golang:1.16.6@sha256:4544ae57fc735d7e415603d194d9fb09589b8ad7acd4d66e928eabfb1ed85ff1 AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./

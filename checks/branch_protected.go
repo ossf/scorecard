@@ -155,10 +155,8 @@ func isBranchProtected(branches []*github.Branch, name string) (bool, error) {
 func getProtectionAndCheck(ctx context.Context, r repositories, dl checker.DetailLogger, ownerStr, repoStr,
 	branch string) checker.CheckResult {
 	// We only call this if the branch is protected. An error indicates not found.
-	protection, resp, err := r.GetBranchProtection(ctx, ownerStr, repoStr, branch)
-
-	const fileNotFound = 404
-	if resp.StatusCode == fileNotFound {
+	protection, _, err := r.GetBranchProtection(ctx, ownerStr, repoStr, branch)
+	if err != nil {
 		e := sce.Create(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 	}
