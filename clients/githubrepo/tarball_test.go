@@ -28,7 +28,8 @@ import (
 )
 
 type listfileTest struct {
-	predicate func(string) bool
+	predicate func(string) (bool, error)
+	err       error
 	outcome   []string
 }
 
@@ -79,17 +80,17 @@ func TestExtractTarball(t *testing.T) {
 			listfileTests: []listfileTest{
 				{
 					// Returns all files in the tarball.
-					predicate: func(string) bool { return true },
+					predicate: func(string) (bool, error) { return true, nil },
 					outcome:   []string{"file0", "dir1/file1", "dir1/dir2/file2"},
 				},
 				{
 					// Skips all files inside `dir1/dir2` directory.
-					predicate: func(fn string) bool { return !strings.HasPrefix(fn, "dir1/dir2") },
+					predicate: func(fn string) (bool, error) { return !strings.HasPrefix(fn, "dir1/dir2"), nil },
 					outcome:   []string{"file0", "dir1/file1"},
 				},
 				{
 					// Skips all files.
-					predicate: func(fn string) bool { return false },
+					predicate: func(fn string) (bool, error) { return false, nil },
 					outcome:   []string{},
 				},
 			},
@@ -132,10 +133,15 @@ func TestExtractTarball(t *testing.T) {
 
 			// Test ListFiles API.
 			for _, listfiletest := range testcase.listfileTests {
+				matchedFiles, err := handler.listFiles(listfiletest.predicate)
+				if !errors.Is(err, listfiletest.err) {
+					t.Errorf("test failed: expected - %v, got - %v", listfiletest.err, err)
+					continue
+				}
 				if !cmp.Equal(listfiletest.outcome,
-					handler.listFiles(listfiletest.predicate),
+					matchedFiles,
 					cmpopts.SortSlices(isSortedString)) {
-					t.Errorf("test failed: expected - %q, got - %q", listfiletest.outcome, handler.listFiles(listfiletest.predicate))
+					t.Errorf("test failed: expected - %q, got - %q", listfiletest.outcome, matchedFiles)
 				}
 			}
 
