@@ -32,7 +32,7 @@ func init() {
 }
 
 func leastPrivilegedTokens(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2(".github/workflows/*", false, c, validateGitHubActionTokenPermissions)
+	r, err := CheckFilesContent(".github/workflows/*", false, c, validateGitHubActionTokenPermissions)
 	return createResultForLeastPrivilegeTokens(r, err)
 }
 
