@@ -34,7 +34,7 @@ func init() {
 
 // BinaryArtifacts  will check the repository if it contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2("*", false, c, checkBinaryFileContent)
+	r, err := CheckFilesContent("*", false, c, checkBinaryFileContent)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, err)
 	}

@@ -201,14 +201,18 @@ func (handler *tarballHandler) extractTarball() error {
 	return nil
 }
 
-func (handler *tarballHandler) listFiles(predicate func(string) bool) []string {
+func (handler *tarballHandler) listFiles(predicate func(string) (bool, error)) ([]string, error) {
 	ret := make([]string, 0)
 	for _, file := range handler.files {
-		if predicate(file) {
+		matches, err := predicate(file)
+		if err != nil {
+			return nil, err
+		}
+		if matches {
 			ret = append(ret, file)
 		}
 	}
-	return ret
+	return ret, nil
 }
 
 func (handler *tarballHandler) getFileContent(filename string) ([]byte, error) {

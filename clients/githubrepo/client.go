@@ -54,7 +54,7 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	return nil
 }
 
-func (client *Client) ListFiles(predicate func(string) bool) []string {
+func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	return client.tarball.listFiles(predicate)
 }
 
