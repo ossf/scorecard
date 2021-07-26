@@ -41,7 +41,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		}
 		return false, nil
 	}
-	r, err := CheckIfFileExists2(CheckSecurityPolicy, c, onFile)
+	r, err := CheckIfFileExists(CheckSecurityPolicy, c, onFile)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
@@ -67,7 +67,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		}
 		return false, nil
 	}
-	r, err = CheckIfFileExists2(CheckSecurityPolicy, dotGitHub, onFile)
+	r, err = CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}

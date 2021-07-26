@@ -40,7 +40,7 @@ func NewRepoUnavailableError(err error) error {
 
 type RepoClient interface {
 	InitRepo(owner, repo string) error
-	ListFiles(predicate func(string) bool) []string
+	ListFiles(predicate func(string) (bool, error)) ([]string, error)
 	GetFileContent(filename string) ([]byte, error)
 	ListMergedPRs() ([]PullRequest, error)
 	GetDefaultBranch() (BranchRef, error)

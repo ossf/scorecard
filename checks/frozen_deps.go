@@ -72,7 +72,7 @@ func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
 // TODO(laurent): need to support GCB pinning.
 
 func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2("*", false, c, validateShellScriptIsFreeOfInsecureDownloads)
+	r, err := CheckFilesContent("*", false, c, validateShellScriptIsFreeOfInsecureDownloads)
 	return createResultForIsShellScriptFreeOfInsecureDownloads(r, err)
 }
 
@@ -105,7 +105,7 @@ func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 }
 
 func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2("*Dockerfile*", false, c, validateDockerfileIsFreeOfInsecureDownloads)
+	r, err := CheckFilesContent("*Dockerfile*", false, c, validateDockerfileIsFreeOfInsecureDownloads)
 	return createResultForIsDockerfileFreeOfInsecureDownloads(r, err)
 }
 
@@ -168,7 +168,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 }
 
 func isDockerfilePinned(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2("*Dockerfile*", false, c, validateDockerfileIsPinned)
+	r, err := CheckFilesContent("*Dockerfile*", false, c, validateDockerfileIsPinned)
 	return createResultForIsDockerfilePinned(r, err)
 }
 
@@ -271,7 +271,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 }
 
 func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2(".github/workflows/*", false, c, validateGitHubWorkflowIsFreeOfInsecureDownloads)
+	r, err := CheckFilesContent(".github/workflows/*", false, c, validateGitHubWorkflowIsFreeOfInsecureDownloads)
 	return createResultForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, err)
 }
 
@@ -355,7 +355,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2(".github/workflows/*", true, c, validateGitHubActionWorkflow)
+	r, err := CheckFilesContent(".github/workflows/*", true, c, validateGitHubActionWorkflow)
 	return createResultForIsGitHubActionsWorkflowPinned(r, err)
 }
 
@@ -415,7 +415,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte, dl checker.Deta
 
 // Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckIfFileExists2(CheckFrozenDeps, c, validatePackageManagerFile)
+	r, err := CheckIfFileExists(CheckFrozenDeps, c, validatePackageManagerFile)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckFrozenDeps, err)
 	}
