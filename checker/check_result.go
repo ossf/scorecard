@@ -108,14 +108,14 @@ func AggregateScores(scores ...int) int {
 
 // AggregateScoresWithWeight adds up all scores
 // and normalizes the result.
-// The caller is responsible for ensuring the sum of
-// weights is 10.
 func AggregateScoresWithWeight(scores map[int]int) int {
 	r := 0
+	ws := 0
 	for s, w := range scores {
 		r += s * w
+		ws += w
 	}
-	return int(math.Floor(float64(r) / float64(MaxResultScore)))
+	return int(math.Floor(float64(r) / float64(ws)))
 }
 
 func NormalizeReason(reason string, score int) string {

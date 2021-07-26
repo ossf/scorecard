@@ -49,9 +49,9 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 			expected := scut.TestReturn{
 				Errors:        nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  377,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
+				NumberOfWarn:  374,
+				NumberOfInfo:  0,
+				NumberOfDebug: 4,
 			}
 			result := checks.FrozenDeps(&req)
 			// UPGRADEv2: to remove.
