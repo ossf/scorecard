@@ -44,7 +44,7 @@ var _ = Describe("E2E TEST:CITests", func() {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 29,
+				NumberOfDebug: 24,
 			}
 			result := checks.CITests(&req)
 			// UPGRADEv2: to remove.
