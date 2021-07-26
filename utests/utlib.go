@@ -38,6 +38,7 @@ func validateDetailTypes(messages []checker.CheckDetail, nw, ni, nd int) bool {
 			enw++
 		}
 	}
+
 	return enw == nw &&
 		eni == ni &&
 		end == nd
@@ -71,26 +72,35 @@ func (l *TestDetailLogger) Debug(desc string, args ...interface{}) {
 }
 
 //nolint
-func ValidateTestReturn(t *testing.T, name string, te *TestReturn,
-	tr *checker.CheckResult, dl *TestDetailLogger) bool {
+func ValidateTestValues(t *testing.T, name string, te *TestReturn,
+	score int, err error, dl *TestDetailLogger) bool {
 	for _, we := range te.Errors {
-		if !errors.Is(tr.Error2, we) {
+		if !errors.Is(err, we) {
 			if t != nil {
 				t.Errorf("%v: invalid error returned: %v is not of type %v",
-					name, tr.Error, we)
+					name, err, we)
 			}
+			fmt.Printf("%v: invalid error returned: %v is not of type %v",
+				name, err, we)
 			return false
 		}
 	}
+
 	// UPGRADEv2: update name.
-	if tr.Score != te.Score ||
+	if score != te.Score ||
 		!validateDetailTypes(dl.messages, te.NumberOfWarn,
 			te.NumberOfInfo, te.NumberOfDebug) {
 		if t != nil {
 			t.Errorf("%v: Got (score=%v) expected (%v)\n%v",
-				name, tr.Score, te.Score, dl.messages)
+				name, score, te.Score, dl.messages)
 		}
 		return false
 	}
 	return true
+}
+
+//nolint
+func ValidateTestReturn(t *testing.T, name string, te *TestReturn,
+	tr *checker.CheckResult, dl *TestDetailLogger) bool {
+	return ValidateTestValues(t, name, te, tr.Score, tr.Error2, dl)
 }

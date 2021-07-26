@@ -36,3 +36,9 @@ func Create(e error, msg string) error {
 	// We still need to use %w to prevent callers from using e == ErrInvalidDockerFile.
 	return fmt.Errorf("%w", e)
 }
+
+// Create an internal error, not using
+// any of the errors listed above.
+func CreateInternal(e error, msg string) error {
+	return Create(e, msg)
+}

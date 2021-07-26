@@ -50,7 +50,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},
@@ -81,8 +81,8 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				}
 			}
 			dl := scut.TestDetailLogger{}
-			r := testIsGitHubActionsWorkflowPinned(tt.filename, content, &dl)
-			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
+			s, e := testIsGitHubActionsWorkflowPinned(tt.filename, content, &dl)
+			scut.ValidateTestValues(t, tt.name, &tt.expected, s, e, &dl)
 		})
 	}
 }
@@ -98,10 +98,10 @@ func TestDockerfilePinning(t *testing.T) {
 			name:     "Invalid dockerfile",
 			filename: "./testdata/Dockerfile-invalid",
 			expected: scut.TestReturn{
-				Errors:        []error{sce.ErrScorecardInternal},
-				Score:         checker.InconclusiveResultScore,
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},
@@ -112,7 +112,7 @@ func TestDockerfilePinning(t *testing.T) {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},
@@ -123,7 +123,7 @@ func TestDockerfilePinning(t *testing.T) {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},
@@ -165,8 +165,8 @@ func TestDockerfilePinning(t *testing.T) {
 				}
 			}
 			dl := scut.TestDetailLogger{}
-			r := testValidateDockerfileIsPinned(tt.filename, content, &dl)
-			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
+			s, e := testValidateDockerfileIsPinned(tt.filename, content, &dl)
+			scut.ValidateTestValues(t, tt.name, &tt.expected, s, e, &dl)
 		})
 	}
 }
@@ -207,7 +207,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},
@@ -277,6 +277,17 @@ func TestDockerfileScriptDownload(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name:     "download with some python",
+			filename: "testdata/Dockerfile-some-python",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -293,8 +304,8 @@ func TestDockerfileScriptDownload(t *testing.T) {
 				}
 			}
 			dl := scut.TestDetailLogger{}
-			r := testValidateDockerfileIsFreeOfInsecureDownloads(tt.filename, content, &dl)
-			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
+			s, e := testValidateDockerfileIsFreeOfInsecureDownloads(tt.filename, content, &dl)
+			scut.ValidateTestValues(t, tt.name, &tt.expected, s, e, &dl)
 		})
 	}
 }
@@ -366,8 +377,8 @@ func TestShellScriptDownload(t *testing.T) {
 				}
 			}
 			dl := scut.TestDetailLogger{}
-			r := testValidateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &dl)
-			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
+			s, e := testValidateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &dl)
+			scut.ValidateTestValues(t, tt.name, &tt.expected, s, e, &dl)
 		})
 	}
 }
@@ -428,8 +439,8 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 				}
 			}
 			dl := scut.TestDetailLogger{}
-			r := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(tt.filename, content, &dl)
-			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
+			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(tt.filename, content, &dl)
+			scut.ValidateTestValues(t, tt.name, &tt.expected, s, e, &dl)
 		})
 	}
 }
