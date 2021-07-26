@@ -86,7 +86,7 @@ type CheckResult struct {
 }
 
 // CreateProportionalScore() creates a proportional score.
-func CreateProportionalScore(success int, total int) int {
+func CreateProportionalScore(success, total int) int {
 	if total == 0 {
 		return 0
 	}
