@@ -45,6 +45,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Both results are inconclusive.
+	// Can never happen.
 	if sastScore == checker.InconclusiveResultScore &&
 		codeQlScore == checker.InconclusiveResultScore {
 		// That can never happen since SASTToolInCheckRuns can never
@@ -61,36 +62,39 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	if sastScore != checker.InconclusiveResultScore &&
 		codeQlScore != checker.InconclusiveResultScore {
 		switch {
-		// sastScore >= codeQlScore only happens if:
-		// - sastScore is maximum and codeQl is enabled OR
-		// - sastScore is minimum and codeQl is not enabled
-		case sastScore == checker.MaxResultScore && sastScore >= codeQlScore:
-			return checker.CreateProportionalScoreResult(CheckSAST,
-				"all commmits are checked with a SAST tool", sastScore, checker.MaxResultScore)
-		case sastScore != checker.MaxResultScore && sastScore >= codeQlScore:
-			return checker.CreateMinScoreResult(CheckSAST,
-				"no SAST tool detected")
+		case sastScore == checker.MaxResultScore:
+			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool is run on all commits")
+		case codeQlScore == checker.MinResultScore:
+			return checker.CreateResultWithScore(CheckSAST,
+				checker.NormalizeReason("SAST tool is not run on all commits", sastScore), sastScore)
+
 		// codeQl is enabled and sast has 0+ (but not all) PRs checks.
 		case codeQlScore == checker.MaxResultScore:
 			const sastWeight = 3
 			const codeQlWeight = 7
 			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, codeQlScore: codeQlWeight})
-			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not used on all commmits", score)
+			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not run on all commmits", score)
 		default:
 			return checker.CreateRuntimeErrorResult(CheckSAST, sce.Create(sce.ErrScorecardInternal, "contact team"))
 		}
 	}
 
-	// CodeQl inconclusive.
-	// Can never happen currently.
+	// Sast inconclusive.
 	if codeQlScore != checker.InconclusiveResultScore {
-		return checker.CreateResultWithScore(CheckSAST, "internal error running codeQl test", codeQlScore)
+		if codeQlScore == checker.MaxResultScore {
+			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool detected")
+		}
+		return checker.CreateMinScoreResult(CheckSAST, "no SAST tool detected")
 	}
 
-	// Sast inconclusive.
-	// Only happens if no merges are detected.
+	// CodeQl inconclusive.
 	if sastScore != checker.InconclusiveResultScore {
-		return checker.CreateResultWithScore(CheckSAST, "no merges detected", sastScore)
+		if sastScore == checker.MaxResultScore {
+			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool is run on all commits")
+		}
+
+		return checker.CreateResultWithScore(CheckSAST,
+			checker.NormalizeReason("SAST tool is not run on all commits", sastScore), sastScore)
 	}
 
 	// Should never happen.
@@ -122,7 +126,7 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 				sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 		}
 		if crs == nil {
-			c.Dlogger.Warn("no merges detected")
+			c.Dlogger.Warn("no pull requests merged into dev branch")
 			return checker.InconclusiveResultScore, nil
 		}
 		for _, cr := range crs.CheckRuns {
@@ -140,12 +144,12 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 		}
 	}
 	if totalMerged == 0 {
-		c.Dlogger.Warn("no merges detected")
+		c.Dlogger.Warn("no pull requests merged into dev branch")
 		return checker.InconclusiveResultScore, nil
 	}
 
 	if totalTested == totalMerged {
-		c.Dlogger.Info(fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged))
+		c.Dlogger.Info(fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalMerged))
 	} else {
 		c.Dlogger.Warn(fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged))
 	}
@@ -163,7 +167,7 @@ func CodeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	}
 
 	for _, result := range results.CodeResults {
-		c.Dlogger.Info("CodeQL definition detected: %s", result.GetPath())
+		c.Dlogger.Info("CodeQL detected: %s", result.GetPath())
 	}
 
 	// TODO: check if it's enabled as cron or presubmit.
