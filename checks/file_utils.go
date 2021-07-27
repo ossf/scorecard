@@ -131,9 +131,9 @@ func CheckFilesContent(shellPathFnPattern string,
 	return res, nil
 }
 
-// ContainsInstructions checks if the file contains instructions or not.
+// ContainsCommands checks if the file content contains commands or not.
 // `comment` is the string or character that indicates a comment.
-func ContainsInstructions(content []byte, comment string) bool {
+func ContainsCommands(content []byte, comment string) bool {
 	if len(content) == 0 {
 		return false
 	}
