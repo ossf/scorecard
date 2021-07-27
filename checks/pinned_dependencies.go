@@ -184,7 +184,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		return true, nil
 	}
 
-	if !ContainsCommands(content, "#") {
+	if !CheckFileContainsCommands(content, "#") {
 		return true, nil
 	}
 
@@ -252,7 +252,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 		return true, nil
 	}
 
-	if !ContainsCommands(content, "#") {
+	if !CheckFileContainsCommands(content, "#") {
 		return true, nil
 	}
 
@@ -346,7 +346,7 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 
 func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger) (bool, error) {
-	if !ContainsCommands(content, "#") {
+	if !CheckFileContainsCommands(content, "#") {
 		return true, nil
 	}
 
@@ -421,7 +421,7 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 
 // Check file content.
 func validateGitHubActionWorkflow(pathfn string, content []byte, dl checker.DetailLogger) (bool, error) {
-	if !ContainsCommands(content, "#") {
+	if !CheckFileContainsCommands(content, "#") {
 		return true, nil
 	}
 
