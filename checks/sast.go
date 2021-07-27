@@ -45,6 +45,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Both results are inconclusive.
+	// Can never happen.
 	if sastScore == checker.InconclusiveResultScore &&
 		codeQlScore == checker.InconclusiveResultScore {
 		// That can never happen since SASTToolInCheckRuns can never
@@ -61,15 +62,12 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	if sastScore != checker.InconclusiveResultScore &&
 		codeQlScore != checker.InconclusiveResultScore {
 		switch {
-		// sastScore >= codeQlScore only happens if:
-		// - sastScore is maximum and codeQl is enabled OR
-		// - sastScore is minimum and codeQl is not enabled
-		case sastScore == checker.MaxResultScore && sastScore >= codeQlScore:
-			return checker.CreateProportionalScoreResult(CheckSAST,
-				"all commmits are checked with a SAST tool", sastScore, checker.MaxResultScore)
-		case sastScore != checker.MaxResultScore && sastScore >= codeQlScore:
-			return checker.CreateMinScoreResult(CheckSAST,
-				"no SAST tool detected")
+		case sastScore == checker.MaxResultScore:
+			return checker.CreateMaxScoreResult(CheckSAST, "a SAST tool is run on all commits")
+		case codeQlScore == 0:
+			return checker.CreateResultWithScore(CheckSAST,
+				checker.NormalizeReason("no SAST is run on all commits", sastScore), sastScore)
+
 		// codeQl is enabled and sast has 0+ (but not all) PRs checks.
 		case codeQlScore == checker.MaxResultScore:
 			const sastWeight = 3
@@ -81,16 +79,21 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		}
 	}
 
-	// CodeQl inconclusive.
-	// Can never happen currently.
+	// Sast inconclusive.
 	if codeQlScore != checker.InconclusiveResultScore {
-		return checker.CreateResultWithScore(CheckSAST, "internal error running codeQl test", codeQlScore)
+		if codeQlScore == checker.MaxResultScore {
+			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool detected")
+		}
+		return checker.CreateMinScoreResult(CheckSAST, "no SAST tool detected")
 	}
 
-	// Sast inconclusive.
-	// Only happens if no merges are detected.
+	// CodeQl inconclusive.
 	if sastScore != checker.InconclusiveResultScore {
-		return checker.CreateResultWithScore(CheckSAST, "no merges detected", sastScore)
+		if sastScore == checker.MaxResultScore {
+			return checker.CreateMaxScoreResult(CheckSAST, "a SAST tool is run on all commits")
+		}
+
+		return checker.CreateResultWithScore(CheckSAST, "no SAST is run on all commits", sastScore)
 	}
 
 	// Should never happen.
