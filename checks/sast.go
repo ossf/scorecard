@@ -73,7 +73,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 			const sastWeight = 3
 			const codeQlWeight = 7
 			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, codeQlScore: codeQlWeight})
-			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not used on all commmits", score)
+			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not run on all commmits", score)
 		default:
 			return checker.CreateRuntimeErrorResult(CheckSAST, sce.Create(sce.ErrScorecardInternal, "contact team"))
 		}
