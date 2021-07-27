@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v2/checker"
-	sce "github.com/ossf/scorecard/v2/errors"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
@@ -33,13 +32,24 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		expected scut.TestReturn
 	}{
 		{
-			name:     "Zero size content",
-			filename: "",
+			name:     "empty file",
+			filename: "./testdata/github-workflow-empty",
 			expected: scut.TestReturn{
-				Errors:        []error{sce.ErrScorecardInternal},
-				Score:         checker.InconclusiveResultScore,
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "comments only",
+			filename: "./testdata/github-workflow-comments",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},
@@ -95,8 +105,41 @@ func TestDockerfilePinning(t *testing.T) {
 		expected scut.TestReturn
 	}{
 		{
-			name:     "Invalid dockerfile",
+			name:     "invalid dockerfile",
 			filename: "./testdata/Dockerfile-invalid",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "invalid dockerfile sh",
+			filename: "./testdata/script-sh",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "empty file",
+			filename: "./testdata/Dockerfile-empty",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "comments only",
+			filename: "./testdata/Dockerfile-comments",
 			expected: scut.TestReturn{
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
@@ -186,6 +229,39 @@ func TestDockerfileScriptDownload(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  4,
 				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "empty file",
+			filename: "./testdata/Dockerfile-empty",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "invalid file sh",
+			filename: "./testdata/script.sh",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "comments only",
+			filename: "./testdata/Dockerfile-comments",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},
@@ -325,6 +401,28 @@ func TestShellScriptDownload(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  7,
 				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "empty file",
+			filename: "./testdata/script-empty.sh",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "comments",
+			filename: "./testdata/script-comments.sh",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},

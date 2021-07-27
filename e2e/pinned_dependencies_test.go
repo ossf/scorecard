@@ -28,9 +28,9 @@ import (
 
 // TODO: use dedicated repo that don't change.
 // TODO: need negative results.
-var _ = Describe("E2E TEST:FrozenDeps", func() {
-	Context("E2E TEST:Validating deps are frozen", func() {
-		It("Should return deps are not frozen", func() {
+var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
+	Context("E2E TEST:Validating dependencies are pinned", func() {
+		It("Should return dependencies are not pinned", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("tensorflow", "tensorflow")
@@ -59,9 +59,9 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "deps not frozen", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "dependencies not pinned", &expected, &result, &dl)).Should(BeTrue())
 		})
-		It("Should return deps are frozen", func() {
+		It("Should return dependencies are pinned", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("ossf", "scorecard")
@@ -90,7 +90,7 @@ var _ = Describe("E2E TEST:FrozenDeps", func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "deps frozen", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "dependencies pinned", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })
