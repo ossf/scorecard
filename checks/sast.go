@@ -126,7 +126,7 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 				sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 		}
 		if crs == nil {
-			c.Dlogger.Warn("no merges detected")
+			c.Dlogger.Warn("no pull requests merged into dev branch")
 			return checker.InconclusiveResultScore, nil
 		}
 		for _, cr := range crs.CheckRuns {
@@ -144,12 +144,12 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 		}
 	}
 	if totalMerged == 0 {
-		c.Dlogger.Warn("no merges detected")
+		c.Dlogger.Warn("no pull requests merged into dev branch")
 		return checker.InconclusiveResultScore, nil
 	}
 
 	if totalTested == totalMerged {
-		c.Dlogger.Info(fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged))
+		c.Dlogger.Info(fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalMerged))
 	} else {
 		c.Dlogger.Warn(fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged))
 	}
