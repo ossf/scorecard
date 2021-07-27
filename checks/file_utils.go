@@ -133,7 +133,7 @@ func CheckFilesContent(shellPathFnPattern string,
 
 // CheckFileContainsCommands checks if the file content contains commands or not.
 // `comment` is the string or character that indicates a comment:
-// for exmaple for Dockerfiles, it would be `#`.
+// for example for Dockerfiles, it would be `#`.
 func CheckFileContainsCommands(content []byte, comment string) bool {
 	if len(content) == 0 {
 		return false
