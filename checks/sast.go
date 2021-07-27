@@ -64,7 +64,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		switch {
 		case sastScore == checker.MaxResultScore:
 			return checker.CreateMaxScoreResult(CheckSAST, "a SAST tool is run on all commits")
-		case codeQlScore == 0:
+		case codeQlScore == checker.MinResultScore:
 			return checker.CreateResultWithScore(CheckSAST,
 				checker.NormalizeReason("no SAST is run on all commits", sastScore), sastScore)
 
