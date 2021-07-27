@@ -93,7 +93,8 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateMaxScoreResult(CheckSAST, "a SAST tool is run on all commits")
 		}
 
-		return checker.CreateResultWithScore(CheckSAST, checker.NormalizeReason("no SAST is run on all commits", sastScore), sastScore)
+		return checker.CreateResultWithScore(CheckSAST,
+			checker.NormalizeReason("no SAST is run on all commits", sastScore), sastScore)
 	}
 
 	// Should never happen.
