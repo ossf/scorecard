@@ -23,6 +23,7 @@ import (
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
+//nolint:dupl
 func TestGithubWorkflowPinning(t *testing.T) {
 	t.Parallel()
 
