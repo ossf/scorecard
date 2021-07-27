@@ -140,10 +140,8 @@ func ContainsInstructions(content []byte, comment string) bool {
 
 	r := strings.NewReader(string(content))
 	scanner := bufio.NewScanner(r)
-	s := ""
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		s += "'" + line + "'\n"
 		if len(line) > 0 && !strings.HasPrefix(line, comment) {
 			return true
 		}
