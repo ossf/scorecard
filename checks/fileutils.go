@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"bufio"
 	"fmt"
 	"path"
 	"strings"
@@ -23,7 +24,30 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-// IsMatchingPath uses 'pattern' to shell-match the 'path' and its filename
+// CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
+// for the occurrence.
+func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(name string,
+	dl checker.DetailLogger) (bool, error)) (bool, error) {
+	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
+	if err != nil {
+		// nolint: wrapcheck
+		return false, err
+	}
+	for _, filename := range matchedFiles {
+		rr, err := onFile(filename, c.Dlogger)
+		if err != nil {
+			return false, err
+		}
+
+		if rr {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// isMatchingPath uses 'pattern' to shell-match the 'path' and its filename
 // 'caseSensitive' indicates the match should be case-sensitive. Default: no.
 func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) {
 	if !caseSensitive {
@@ -105,4 +129,24 @@ func CheckFilesContent(shellPathFnPattern string,
 	}
 
 	return res, nil
+}
+
+// ContainsInstructions checks if the file contains instructions or not.
+// `comment` is the string or character that indicates a comment.
+func ContainsInstructions(content []byte, comment string) bool {
+	if len(content) == 0 {
+		return false
+	}
+
+	r := strings.NewReader(string(content))
+	scanner := bufio.NewScanner(r)
+	s := ""
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		s += "'" + line + "'\n"
+		if len(line) > 0 && !strings.HasPrefix(line, comment) {
+			return true
+		}
+	}
+	return false
 }
