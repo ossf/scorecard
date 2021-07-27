@@ -184,7 +184,11 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		return true, nil
 	}
 
+<<<<<<< HEAD:checks/pinned_dependencies.go
 	if !CheckFileContainsCommands(content, "#") {
+=======
+	if !ContainsInstructions(content, "#") {
+>>>>>>> 37145c9 (fix):checks/frozen_deps.go
 		return true, nil
 	}
 
@@ -252,7 +256,11 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 		return true, nil
 	}
 
+<<<<<<< HEAD:checks/pinned_dependencies.go
 	if !CheckFileContainsCommands(content, "#") {
+=======
+	if !ContainsInstructions(content, "#") {
+>>>>>>> 37145c9 (fix):checks/frozen_deps.go
 		return true, nil
 	}
 
@@ -346,7 +354,11 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 
 func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger) (bool, error) {
+<<<<<<< HEAD:checks/pinned_dependencies.go
 	if !CheckFileContainsCommands(content, "#") {
+=======
+	if !ContainsInstructions(content, "#") {
+>>>>>>> 37145c9 (fix):checks/frozen_deps.go
 		return true, nil
 	}
 
@@ -421,7 +433,11 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 
 // Check file content.
 func validateGitHubActionWorkflow(pathfn string, content []byte, dl checker.DetailLogger) (bool, error) {
+<<<<<<< HEAD:checks/pinned_dependencies.go
 	if !CheckFileContainsCommands(content, "#") {
+=======
+	if !ContainsInstructions(content, "#") {
+>>>>>>> 37145c9 (fix):checks/frozen_deps.go
 		return true, nil
 	}
 
