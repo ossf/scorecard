@@ -24,25 +24,22 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-const CheckPermissions = "Token-Permissions"
+const CheckTokenPermissions = "Token-Permissions"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckPermissions, leastPrivilegedTokens)
+	registerCheck(CheckTokenPermissions, TokenPermissions)
 }
 
 // Holds stateful data to pass thru callbacks.
 // Each field correpsonds to a GitHub permission type, and
 // will hold true if declared non-write, false otherwise.
 type permissionCbData struct {
-	// Permissions.
 	permissions map[string]bool
-	// Conclusive result or not.
-	conclusive bool
 }
 
-func leastPrivilegedTokens(c *checker.CheckRequest) checker.CheckResult {
-	data := permissionCbData{conclusive: false, permissions: make(map[string]bool)}
+func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
+	data := permissionCbData{permissions: make(map[string]bool)}
 	err := CheckFilesContent2(".github/workflows/*", false,
 		c, validateGitHubActionTokenPermissions, &data)
 	return createResultForLeastPrivilegeTokens(data, err)
@@ -138,6 +135,7 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 // Calculate the score.
 func calculateScore(result permissionCbData) int {
 	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
+	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
 	if _, ok := result.permissions["all"]; ok {
 		return checker.MinResultScore
 	}
@@ -204,23 +202,23 @@ func calculateScore(result permissionCbData) int {
 // Create the result.
 func createResultForLeastPrivilegeTokens(result permissionCbData, err error) checker.CheckResult {
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckPermissions, err)
+		return checker.CreateRuntimeErrorResult(CheckTokenPermissions, err)
 	}
 
 	score := calculateScore(result)
 
 	if score != checker.MaxResultScore {
-		return checker.CreateResultWithScore(CheckPermissions,
+		return checker.CreateResultWithScore(CheckTokenPermissions,
 			"non read-only tokens detected in GitHub workflows", score)
 	}
 
-	return checker.CreateMaxScoreResult(CheckPermissions,
+	return checker.CreateMaxScoreResult(CheckTokenPermissions,
 		"tokens are read-only in GitHub workflows")
 }
 
 func testValidateGitHubActionTokenPermissions(pathfn string,
 	content []byte, dl checker.DetailLogger) checker.CheckResult {
-	data := permissionCbData{conclusive: false, permissions: make(map[string]bool)}
+	data := permissionCbData{permissions: make(map[string]bool)}
 	_, err := validateGitHubActionTokenPermissions(pathfn, content, dl, &data)
 	return createResultForLeastPrivilegeTokens(data, err)
 }
@@ -260,6 +258,5 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 
 	// TODO(laurent): 3. Read a few runs and ensures they have the same permissions.
 
-	pdata.conclusive = false
 	return true, nil
 }
