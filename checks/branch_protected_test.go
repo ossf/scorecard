@@ -467,6 +467,17 @@ func TestIsBranchProtected(t *testing.T) {
 			},
 		},
 		{
+			name: "Nothing is enabled and values in github.Protection are nil",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         2,
+				NumberOfWarn:  4,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{},
+		},
+		{
 			name: "Required status check enabled",
 			expected: scut.TestReturn{
 				Errors:        nil,

@@ -246,10 +246,11 @@ func requiresThoroughReviews(protection *github.Protection, branch string, dl ch
 		protection.RequiredPullRequestReviews.RequireCodeOwnerReviews {
 		return true
 	}
-	switch {
-	case protection.RequiredPullRequestReviews == nil:
+	if protection.RequiredPullRequestReviews == nil {
 		dl.Warn("Pullrequest reviews disabled on branch '%s'", branch)
-		fallthrough
+		return false
+	}
+	switch {
 	case protection.RequiredPullRequestReviews.RequiredApprovingReviewCount < minReviews:
 		dl.Warn("Number of required reviewers is only %d on branch '%s'",
 			protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
