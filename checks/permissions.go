@@ -222,7 +222,6 @@ func testValidateGitHubActionTokenPermissions(pathfn string,
 	content []byte, dl checker.DetailLogger) checker.CheckResult {
 	data := permissionCbData{conclusive: false, permissions: make(map[string]bool)}
 	_, err := validateGitHubActionTokenPermissions(pathfn, content, dl, &data)
-	fmt.Printf("score:%v %v\n", &data, data)
 	return createResultForLeastPrivilegeTokens(data, err)
 }
 
@@ -240,7 +239,6 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 		return true, nil
 	}
 
-	fmt.Printf("score 2:%v %v\n", pdata, *pdata)
 	var workflow map[interface{}]interface{}
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
