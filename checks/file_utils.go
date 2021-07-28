@@ -165,7 +165,7 @@ func CheckFilesContent2(shellPathFnPattern string,
 		// nolint: wrapcheck
 		return err
 	}
-	fmt.Printf("list %v\n", matchedFiles)
+
 	for _, file := range matchedFiles {
 		content, err := c.RepoClient.GetFileContent(file)
 		if err != nil {

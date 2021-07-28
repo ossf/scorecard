@@ -136,6 +136,7 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 func calculateScore(result permissionCbData) int {
 	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
 	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
+	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
 	if _, ok := result.permissions["all"]; ok {
 		return checker.MinResultScore
 	}
@@ -165,7 +166,7 @@ func calculateScore(result permissionCbData) int {
 	// deployments: https://docs.github.com/en/rest/reference/repos#deployments.
 	// May allow attacker to charge repo owner by triggering VM runs,
 	// and tiny chance an attacker can trigger a remote
-	// service with code it owns if server accepts code/location var unsanitized.
+	// service with code they own if server accepts code/location var unsanitized.
 	// Low risk: -1
 	if _, ok := result.permissions["deployments"]; ok {
 		score--
@@ -179,14 +180,14 @@ func calculateScore(result permissionCbData) int {
 	}
 
 	// packages.
-	// Allows attacker to publish code.
+	// Allows attacker to publish packages.
 	// High risk: -10
 	if _, ok := result.permissions["packages"]; ok {
 		score -= 10
 	}
 
 	// actions.
-	// May allow an attacker to steal secrets by adding a malicious workflow/action.
+	// May allow an attacker to steal GitHub secrets by adding a malicious workflow/action.
 	// High risk: -10
 	if _, ok := result.permissions["actions"]; ok {
 		score -= 10
