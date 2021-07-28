@@ -31,62 +31,78 @@ func init() {
 	registerCheck(CheckPermissions, leastPrivilegedTokens)
 }
 
+// Holds stateful data to pass thru callbacks.
+// Each field correpsonds to a GitHub permission type, and
+// will hold true if declared non-write, false otherwise.
+type permissionCbData struct {
+	// Permissions.
+	permissions map[string]bool
+	// Conclusive result or not.
+	conclusive bool
+}
+
 func leastPrivilegedTokens(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent(".github/workflows/*", false, c, validateGitHubActionTokenPermissions)
-	return createResultForLeastPrivilegeTokens(r, err)
+	data := permissionCbData{conclusive: false, permissions: make(map[string]bool)}
+	err := CheckFilesContent2(".github/workflows/*", false,
+		c, validateGitHubActionTokenPermissions, &data)
+	return createResultForLeastPrivilegeTokens(data, err)
 }
 
 func validatePermission(key string, value interface{}, path string,
-	dl checker.DetailLogger) (bool, error) {
+	dl checker.DetailLogger, pdata *permissionCbData) error {
 	val, ok := value.(string)
 	if !ok {
 		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
+		return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
 	}
 
 	if strings.EqualFold(val, "write") {
 		dl.Warn("'%v' permission set to '%v' in %v", key, val, path)
-		return false, nil
+		recordPermissionWrite(key, pdata)
+		return nil
 	}
 
 	dl.Info("'%v' permission set to '%v' in %v", key, val, path)
-	return true, nil
+	return nil
 }
 
 func validateMapPermissions(values map[interface{}]interface{}, path string,
-	dl checker.DetailLogger) (bool, error) {
-	permissionRead := true
-	var r bool
-	var err error
-
+	dl checker.DetailLogger, pdata *permissionCbData) error {
 	// Iterate over the permission, verify keys and values are strings.
 	for k, v := range values {
 		key, ok := k.(string)
 		if !ok {
 			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
+			return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
 		}
 
-		if r, err = validatePermission(key, v, path, dl); err != nil {
-			return false, err
-		}
-
-		if !r {
-			permissionRead = false
+		if err := validatePermission(key, v, path, dl, pdata); err != nil {
+			return err
 		}
 	}
-	return permissionRead, nil
+	return nil
+}
+
+func recordPermissionWrite(name string, pdata *permissionCbData) {
+	pdata.permissions[name] = true
+}
+
+func recordAllPermissionsWrite(pdata *permissionCbData) {
+	// Special case: `all` does not correspond
+	// to a GitHub permission.
+	pdata.permissions["all"] = true
 }
 
 func validateReadPermissions(config map[interface{}]interface{}, path string,
-	dl checker.DetailLogger) (bool, error) {
+	dl checker.DetailLogger, pdata *permissionCbData) error {
 	var permissions interface{}
 
 	// Check if permissions are set explicitly.
 	permissions, ok := config["permissions"]
 	if !ok {
 		dl.Warn("no permission defined in %v", path)
-		return false, nil
+		recordAllPermissionsWrite(pdata)
+		return nil
 	}
 
 	// Check the type of our values.
@@ -94,40 +110,108 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 	// Empty string is nil type.
 	// It defaults to 'none'
 	case nil:
-		dl.Info("permission set to 'none' in %v", path)
+		dl.Info("permissions set to 'none' in %v", path)
 	// String type.
 	case string:
 		if !strings.EqualFold(val, "read-all") && val != "" {
-			dl.Warn("permission set to '%v' in %v", val, path)
-			return false, nil
+			dl.Warn("permissions set to '%v' in %v", val, path)
+			recordAllPermissionsWrite(pdata)
+			return nil
 		}
 		dl.Info("permission set to '%v' in %v", val, path)
 
 	// Map type.
 	case map[interface{}]interface{}:
-		if res, err := validateMapPermissions(val, path, dl); err != nil {
-			return false, err
-		} else if !res {
-			return false, nil
+		if err := validateMapPermissions(val, path, dl, pdata); err != nil {
+			return err
 		}
 
 	// Invalid type.
 	default:
 		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
+		return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
 	}
 
-	return true, nil
+	return nil
+}
+
+// Calculate the score.
+func calculateScore(result permissionCbData) int {
+	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
+	if _, ok := result.permissions["all"]; ok {
+		return checker.MinResultScore
+	}
+
+	score := float32(checker.MaxResultScore)
+	// status: https://docs.github.com/en/rest/reference/repos#statuses.
+	// May allow an attacker to change the result of pre-submit and get a PR merged.
+	// Low risk: -0.5.
+	if _, ok := result.permissions["statuses"]; ok {
+		score -= 0.5
+	}
+
+	// checks.
+	// May allow an attacker to edit checks to remove pre-submit and introduce a bug.
+	// Low risk: -1.
+	if _, ok := result.permissions["checks"]; ok {
+		score -= 0.5
+	}
+
+	// secEvents.
+	// May allow attacker to read vuln reports before patch available.
+	// Low risk: -1
+	if _, ok := result.permissions["security-events"]; ok {
+		score--
+	}
+
+	// deployments: https://docs.github.com/en/rest/reference/repos#deployments.
+	// May allow attacker to charge repo owner by triggering VM runs,
+	// and tiny chance an attacker can trigger a remote
+	// service with code it owns if server accepts code/location var unsanitized.
+	// Low risk: -1
+	if _, ok := result.permissions["deployments"]; ok {
+		score--
+	}
+
+	// contents.
+	// Allows attacker to commit unreviewed code.
+	// High risk: -10
+	if _, ok := result.permissions["contents"]; ok {
+		score -= 10
+	}
+
+	// packages.
+	// Allows attacker to publish code.
+	// High risk: -10
+	if _, ok := result.permissions["packages"]; ok {
+		score -= 10
+	}
+
+	// actions.
+	// May allow an attacker to steal secrets by adding a malicious workflow/action.
+	// High risk: -10
+	if _, ok := result.permissions["actions"]; ok {
+		score -= 10
+	}
+
+	if score < 0 {
+		return 0
+	}
+
+	return int(score)
 }
 
 // Create the result.
-func createResultForLeastPrivilegeTokens(r bool, err error) checker.CheckResult {
+func createResultForLeastPrivilegeTokens(result permissionCbData, err error) checker.CheckResult {
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckPermissions, err)
 	}
-	if !r {
-		return checker.CreateMinScoreResult(CheckPermissions,
-			"non read-only tokens detected in GitHub workflows")
+
+	score := calculateScore(result)
+
+	if score != checker.MaxResultScore {
+		return checker.CreateResultWithScore(CheckPermissions,
+			"non read-only tokens detected in GitHub workflows", score)
 	}
 
 	return checker.CreateMaxScoreResult(CheckPermissions,
@@ -136,25 +220,33 @@ func createResultForLeastPrivilegeTokens(r bool, err error) checker.CheckResult 
 
 func testValidateGitHubActionTokenPermissions(pathfn string,
 	content []byte, dl checker.DetailLogger) checker.CheckResult {
-	r, err := validateGitHubActionTokenPermissions(pathfn, content, dl)
-	return createResultForLeastPrivilegeTokens(r, err)
+	data := permissionCbData{conclusive: false, permissions: make(map[string]bool)}
+	_, err := validateGitHubActionTokenPermissions(pathfn, content, dl, &data)
+	fmt.Printf("score:%v %v\n", &data, data)
+	return createResultForLeastPrivilegeTokens(data, err)
 }
 
 // Check file content.
 func validateGitHubActionTokenPermissions(path string, content []byte,
-	dl checker.DetailLogger) (bool, error) {
-	if len(content) == 0 {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, errInternalEmptyFile.Error())
+	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	// Verify the type of the data.
+	pdata, ok := data.(*permissionCbData)
+	if !ok {
+		// This never happens.
+		panic("invalid type")
 	}
 
+	if !CheckFileContainsCommands(content, "#") {
+		return true, nil
+	}
+
+	fmt.Printf("score 2:%v %v\n", pdata, *pdata)
 	var workflow map[interface{}]interface{}
-	var r bool
-	var err error
-	err = yaml.Unmarshal(content, &workflow)
+	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
 		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
+		return false,
+			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
 	}
 
 	// 1. Check that each file uses 'content: read' only or 'none'.
@@ -162,16 +254,14 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#example-1-passing-the-github_token-as-an-input,
 	// https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token.
-	if r, err = validateReadPermissions(workflow, path, dl); err != nil {
-		return false, nil
-	}
-	if !r {
-		return r, nil
+	if err := validateReadPermissions(workflow, path, dl, pdata); err != nil {
+		return false, err
 	}
 
 	// TODO(laurent): 2. Identify github actions that require write and add checks.
 
 	// TODO(laurent): 3. Read a few runs and ensures they have the same permissions.
 
+	pdata.conclusive = false
 	return true, nil
 }

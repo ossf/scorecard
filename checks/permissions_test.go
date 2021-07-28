@@ -33,8 +33,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 		expected scut.TestReturn
 	}{
 		{
-			name:     "Write all test",
-			filename: "./testdata/github-workflow-permissions-writeall.yaml",
+			name:     "TEST",
+			filename: "./testdata/github-workflow-permissions-XXX.yaml",
 			expected: scut.TestReturn{
 				Errors:        nil,
 				Score:         checker.MinResultScore,
@@ -43,72 +43,83 @@ func TestGithubTokenPermissions(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
-		{
-			name:     "Read all test",
-			filename: "./testdata/github-workflow-permissions-readall.yaml",
-			expected: scut.TestReturn{
-				Errors:        nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
-		},
-		{
-			name:     "No permission test",
-			filename: "./testdata/github-workflow-permissions-absent.yaml",
-			expected: scut.TestReturn{
-				Errors:        nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
-		},
-		{
-			name:     "Writes test",
-			filename: "./testdata/github-workflow-permissions-writes.yaml",
-			expected: scut.TestReturn{
-				Errors:        nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  1,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
-		},
-		{
-			name:     "Reads test",
-			filename: "./testdata/github-workflow-permissions-reads.yaml",
-			expected: scut.TestReturn{
-				Errors:        nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  10,
-				NumberOfDebug: 0,
-			},
-		},
-		{
-			name:     "Nones test",
-			filename: "./testdata/github-workflow-permissions-nones.yaml",
-			expected: scut.TestReturn{
-				Errors:        nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  10,
-				NumberOfDebug: 0,
-			},
-		},
-		{
-			name:     "None test",
-			filename: "./testdata/github-workflow-permissions-none.yaml",
-			expected: scut.TestReturn{
-				Errors:        nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
-		},
+		// {
+		// 	name:     "Write all test",
+		// 	filename: "./testdata/github-workflow-permissions-writeall.yaml",
+		// 	expected: scut.TestReturn{
+		// 		Errors:        nil,
+		// 		Score:         checker.MinResultScore,
+		// 		NumberOfWarn:  1,
+		// 		NumberOfInfo:  0,
+		// 		NumberOfDebug: 0,
+		// 	},
+		// },
+		// {
+		// 	name:     "Read all test",
+		// 	filename: "./testdata/github-workflow-permissions-readall.yaml",
+		// 	expected: scut.TestReturn{
+		// 		Errors:        nil,
+		// 		Score:         checker.MaxResultScore,
+		// 		NumberOfWarn:  0,
+		// 		NumberOfInfo:  1,
+		// 		NumberOfDebug: 0,
+		// 	},
+		// },
+		// {
+		// 	name:     "No permission test",
+		// 	filename: "./testdata/github-workflow-permissions-absent.yaml",
+		// 	expected: scut.TestReturn{
+		// 		Errors:        nil,
+		// 		Score:         checker.MinResultScore,
+		// 		NumberOfWarn:  1,
+		// 		NumberOfInfo:  0,
+		// 		NumberOfDebug: 0,
+		// 	},
+		// },
+		// {
+		// 	name:     "Writes test",
+		// 	filename: "./testdata/github-workflow-permissions-writes.yaml",
+		// 	expected: scut.TestReturn{
+		// 		Errors:        nil,
+		// 		Score:         checker.MinResultScore,
+		// 		NumberOfWarn:  1,
+		// 		NumberOfInfo:  1,
+		// 		NumberOfDebug: 0,
+		// 	},
+		// },
+		// {
+		// 	name:     "Reads test",
+		// 	filename: "./testdata/github-workflow-permissions-reads.yaml",
+		// 	expected: scut.TestReturn{
+		// 		Errors:        nil,
+		// 		Score:         checker.MaxResultScore,
+		// 		NumberOfWarn:  0,
+		// 		NumberOfInfo:  10,
+		// 		NumberOfDebug: 0,
+		// 	},
+		// },
+		// {
+		// 	name:     "Nones test",
+		// 	filename: "./testdata/github-workflow-permissions-nones.yaml",
+		// 	expected: scut.TestReturn{
+		// 		Errors:        nil,
+		// 		Score:         checker.MaxResultScore,
+		// 		NumberOfWarn:  0,
+		// 		NumberOfInfo:  10,
+		// 		NumberOfDebug: 0,
+		// 	},
+		// },
+		// {
+		// 	name:     "None test",
+		// 	filename: "./testdata/github-workflow-permissions-none.yaml",
+		// 	expected: scut.TestReturn{
+		// 		Errors:        nil,
+		// 		Score:         checker.MaxResultScore,
+		// 		NumberOfWarn:  0,
+		// 		NumberOfInfo:  1,
+		// 		NumberOfDebug: 0,
+		// 	},
+		// },
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below

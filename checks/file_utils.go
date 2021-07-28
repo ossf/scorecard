@@ -131,6 +131,60 @@ func CheckFilesContent(shellPathFnPattern string,
 	return res, nil
 }
 
+// FileCbData is any data the caller can act upon
+// to keep state.
+type FileCbData interface{}
+
+// FileContentCb is the callback.
+// The bool returned indicates whether the CheckFilesContent2
+// should continue iterating over files or not.
+type FileContentCb func(path string, content []byte,
+	dl checker.DetailLogger, data FileCbData) (bool, error)
+
+func CheckFilesContent2(shellPathFnPattern string,
+	caseSensitive bool,
+	c *checker.CheckRequest,
+	onFileContent FileContentCb,
+	data FileCbData,
+) error {
+	predicate := func(filepath string) (bool, error) {
+		// Filter out Scorecard's own test files.
+		if isScorecardTestFile(c.Owner, c.Repo, filepath) {
+			return false, nil
+		}
+		// Filter out files based on path/names using the pattern.
+		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
+		if err != nil {
+			return false, err
+		}
+		return b, nil
+	}
+
+	matchedFiles, err := c.RepoClient.ListFiles(predicate)
+	if err != nil {
+		// nolint: wrapcheck
+		return err
+	}
+	for _, file := range matchedFiles {
+		content, err := c.RepoClient.GetFileContent(file)
+		if err != nil {
+			//nolint
+			return err
+		}
+
+		ct, err := onFileContent(file, content, c.Dlogger, data)
+		if err != nil {
+			return err
+		}
+
+		if !ct {
+			break
+		}
+	}
+
+	return nil
+}
+
 // CheckFileContainsCommands checks if the file content contains commands or not.
 // `comment` is the string or character that indicates a comment:
 // for example for Dockerfiles, it would be `#`.
