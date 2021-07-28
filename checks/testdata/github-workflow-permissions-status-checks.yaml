@@ -14,7 +14,7 @@
 name: write-and-read workflow
 on: [push]
 permissions:
-  status: write
+  statuses: write
   contents: read
   checks: write
   packages: none

@@ -54,8 +54,14 @@ func validatePermission(key string, value interface{}, path string,
 	}
 
 	if strings.EqualFold(val, "write") {
-		dl.Warn("'%v' permission set to '%v' in %v", key, val, path)
-		recordPermissionWrite(key, pdata)
+		if isPermissionOfInterest(key) {
+			dl.Warn("'%v' permission set to '%v' in %v", key, val, path)
+			recordPermissionWrite(key, pdata)
+		} else {
+			// Only log for debugging, otherwise
+			// it may confuse users.
+			dl.Debug("'%v' permission set to '%v' in %v", key, val, path)
+		}
 		return nil
 	}
 
@@ -130,6 +136,16 @@ func validateReadPermissions(config map[interface{}]interface{}, path string,
 	}
 
 	return nil
+}
+
+func isPermissionOfInterest(name string) bool {
+	return strings.EqualFold(name, "statuses") ||
+		strings.EqualFold(name, "checks") ||
+		strings.EqualFold(name, "security-events") ||
+		strings.EqualFold(name, "deployments") ||
+		strings.EqualFold(name, "contents") ||
+		strings.EqualFold(name, "packages") ||
+		strings.EqualFold(name, "options")
 }
 
 // Calculate the score.
