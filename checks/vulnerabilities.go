@@ -108,5 +108,5 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateMinScoreResult(CheckVulnerabilities, "unfixed OSV detected")
 	}
 
-	return checker.CreateMaxScoreResult(CheckVulnerabilities, "no OSV detected")
+	return checker.CreateMaxScoreResult(CheckVulnerabilities, "no vulnerabilities detected")
 }
