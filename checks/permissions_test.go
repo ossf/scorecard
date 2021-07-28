@@ -115,7 +115,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			expected: scut.TestReturn{
 				Errors:        nil,
 				Score:         checker.MaxResultScore - 1,
-				NumberOfWarn:  1,
+				NumberOfWarn:  2,
 				NumberOfInfo:  2,
 				NumberOfDebug: 1,
 			},
