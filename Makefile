@@ -96,7 +96,8 @@ tree-status: ## Verify tree is clean and all changes are committed
 ###############################################################################
 
 ################################## make build #################################
-build-targets = build-proto generate-docs build-scorecard build-pubsub build-bq-transfer \
+# TODO(azeems): Re-enable build-proto
+build-targets = generate-docs build-scorecard build-pubsub build-bq-transfer \
 	build-add-script build-validate-script build-update-script dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the reepo.
