@@ -38,7 +38,6 @@ func validateDetailTypes(messages []checker.CheckDetail, nw, ni, nd int) bool {
 			enw++
 		}
 	}
-
 	return enw == nw &&
 		eni == ni &&
 		end == nd
@@ -85,7 +84,6 @@ func ValidateTestValues(t *testing.T, name string, te *TestReturn,
 			return false
 		}
 	}
-
 	// UPGRADEv2: update name.
 	if score != te.Score ||
 		!validateDetailTypes(dl.messages, te.NumberOfWarn,

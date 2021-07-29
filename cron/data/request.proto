@@ -18,7 +18,7 @@ package ossf.scorecard.cron.data;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/ossf/scorecard/v2/cron/data";
+option go_package = "github.com/ossf/scorecard/cron/data";
 
 message ScorecardBatchRequest {
   repeated string repos = 1;
