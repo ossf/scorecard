@@ -231,7 +231,7 @@ func (handler *tarballHandler) getFileContent(filename string) ([]byte, error) {
 	content, err := ioutil.ReadFile(filepath.Join(handler.tempDir, filename))
 	if err != nil {
 		//nolint:wrapcheck
-		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("ioutil.ReadFile: %v", err))
+		return content, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("ioutil.ReadFile: %v", err))
 	}
 	return content, nil
 }
