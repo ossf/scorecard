@@ -15,11 +15,15 @@
 package checks
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients"
 	"github.com/ossf/scorecard/v2/clients/githubrepo"
 )
+
+var errIgnore *clients.ErrRepoUnavailable
 
 // CheckSecurityPolicy is the registred name for SecurityPolicy.
 const CheckSecurityPolicy = "Security-Policy"
@@ -54,26 +58,28 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	dotGitHub := c
 	dotGitHub.Repo = ".github"
 	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, c.Client, c.GraphClient)
-	if err := dotGitHubClient.InitRepo(c.Owner, c.Repo); err != nil {
-		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
-	}
-	defer dotGitHubClient.Close()
-	dotGitHub.RepoClient = dotGitHubClient
+	err = dotGitHubClient.InitRepo(c.Owner, c.Repo)
 
-	onFile = func(name string, dl checker.DetailLogger) (bool, error) {
-		if strings.EqualFold(name, "security.md") {
-			dl.Info("security policy detected in .github folder: %s", name)
-			return true, nil
+	switch {
+	case err == nil:
+		defer dotGitHubClient.Close()
+		dotGitHub.RepoClient = dotGitHubClient
+		onFile = func(name string, dl checker.DetailLogger) (bool, error) {
+			if strings.EqualFold(name, "security.md") {
+				dl.Info("security policy detected in .github folder: %s", name)
+				return true, nil
+			}
+			return false, nil
 		}
-		return false, nil
-	}
-	r, err = CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
-	if err != nil {
+		r, err = CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
+		if err != nil {
+			return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
+		}
+		if r {
+			return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
+		}
+	case !errors.As(err, &errIgnore):
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
-	}
-
-	if r {
-		return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
 	}
 	return checker.CreateMinScoreResult(CheckSecurityPolicy, "security policy file not detected")
 }

@@ -43,7 +43,7 @@ var _ = Describe("E2E TEST:SAST", func() {
 				Errors:        nil,
 				Score:         7,
 				NumberOfWarn:  1,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			}
 			result := checks.SAST(&req)

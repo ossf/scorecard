@@ -4,6 +4,7 @@ github.com/ossf/scorecard,
 github.com/ossf/criticality_score,
 github.com/CircleCI-Public/circleci-dockerfiles,
 github.com/ChromeDevTools/devtools-protocol,
+github.com/kubernetes/kubernetes,
 # 300 redirects
 github.com/cocos2d/cocos2d-objc,
 github.com/dargullin/icheck,
@@ -15,3 +16,5 @@ github.com/does/not_exist,should_skip
 # Corrupted tarballs
 github.com/cdnjs/cdnjs,
 github.com/echen102/COVID-19-TweetIDs,
+# .github does not exist
+github.com/intel/intel-graphics-compiler,
