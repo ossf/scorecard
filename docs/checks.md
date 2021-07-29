@@ -116,17 +116,6 @@ The checks works by (1) looking for the following files in the root directory: g
 - For Dockerfiles and GitHub workflows, pin dependencies by hash. See example [gitcache-docker.yaml](https://github.com/ossf/scorecard/blob/main/.github/workflows/gitcache-docker.yaml#L36) and [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) examples.
 - To help update your dependencies after pinning them, use tools such as Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/) or [renovate bot](https://github.com/renovatebot/renovate).
 
-## Pull-Requests 
-
-This check tries to determine if the project requires pull requests for all changes to the default branch.
-Reviewing code improves quality of code in general. In addition, it ensures compromised contributors cannot intentionally inject malicious code. A low score is therefore considered `High` risk.
-The check works by looking at recent commits (first page, ~30) and uses the GitHub API to search for associated pull requests. 
-
-**Remediation steps**
-- Always open a pull request for any change you intend to make, big or small.
-- Make "pull requests" mandatory in your repository configuration. E.g. [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-pull-request-reviews-before-merging)
-- Enforce the rule for administrators / code owners as well. E.g. [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators)
-
 ## SAST 
 
 This check tries to determine if the project uses static code analysis systems.
