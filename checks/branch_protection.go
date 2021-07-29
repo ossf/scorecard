@@ -248,7 +248,7 @@ func requiresStatusChecks(protection *github.Protection, branch string, dl check
 }
 
 // Returns true if several PR review requirements are enabled. Otherwise returns false and logs why it failed.
-// Maximum score returned is 5.
+// Maximum score returned is 7.
 func requiresThoroughReviews(protection *github.Protection, branch string, dl checker.DetailLogger) int {
 	score := 0
 
