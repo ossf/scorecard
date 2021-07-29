@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/go-github/v32/github"
-
 	"github.com/ossf/scorecard/v2/checker"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
@@ -37,7 +35,15 @@ func init() {
 }
 
 func IsActive(c *checker.CheckRequest) checker.CheckResult {
-	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
+	archived, err := c.RepoClient.IsArchived()
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckActive, err)
+	}
+	if archived {
+		return checker.CreateMinScoreResult(CheckActive, "repo is marked as archived")
+	}
+
+	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckActive, err)
 	}
@@ -50,15 +56,10 @@ func IsActive(c *checker.CheckRequest) checker.CheckResult {
 	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookBackDays)
 	totalCommits := 0
 	for _, commit := range commits {
-		commitFull, _, err := c.Client.Git.GetCommit(c.Ctx, c.Owner, c.Repo, commit.GetSHA())
-		if err != nil {
-			return checker.CreateRuntimeErrorResult(CheckActive, err)
-		}
-		if commitFull.GetAuthor().GetDate().After(threshold) {
+		if commit.CommittedDate.After(threshold) {
 			totalCommits++
 		}
 	}
-
 	return checker.CreateProportionalScoreResult(CheckActive,
 		fmt.Sprintf("%d commit(s) found in the last %d days", totalCommits, lookBackDays),
 		totalCommits, commitsPerWeek*lookBackDays/daysInOneWeek)
