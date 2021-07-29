@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import (
 	"fmt"
 )
 
-// UPGRADEv2: delete other files in folder.
 //nolint
 var (
 	ErrScorecardInternal = errors.New("internal error")
