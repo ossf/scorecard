@@ -45,7 +45,8 @@ jobs:
         with:
           go-version: '1.16'
       - name: Check license headers
-        # We need https://github.com/google/addlicense/pull/70#issuecomment-888099920 landed
+        # We need either https://github.com/google/addlicense/pull/70#issuecomment-888099920 or
+        # https://github.com/google/addlicense/pull/84 landed
         # to exclude testdata folders in the repo.
         run: |
           echo "license check disabled. Will be reenabled soon."
