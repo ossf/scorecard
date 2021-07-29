@@ -130,11 +130,11 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(CheckBranchProtection,
-			"branch protection is fully enabled on development/release branches")
+			"branch protection is fully enabled on development and all release branches")
 	}
 
 	return checker.CreateResultWithScore(CheckBranchProtection,
-		"branch protection is not maximal on development/release branches", score)
+		"branch protection is not maximal on development and all release branches", score)
 }
 
 func resolveBranchName(branches []*github.Branch, name string) (*string, error) {
