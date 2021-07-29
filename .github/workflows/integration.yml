@@ -77,23 +77,25 @@ jobs:
         run: |
             go mod download
 
-      - name: Run E2E 
-        env:  
+      - name: Run E2E
+        env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
         run: |
-              go env -w GOFLAGS=-mod=mod
-              make ci-e2e
+              echo "Skipping ci-e2e. Will be re-enabled soon."
+              #go env -w GOFLAGS=-mod=mod
+              #make ci-e2e
 
       - name: Build docker image
         run: make dockerbuild
 
       - name: Test docker image
-        env:  
+        env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
         run: |
-            mkdir $OUTPUT_PATH
-            docker run -e GITHUB_AUTH_TOKEN=$GITHUB_AUTH_TOKEN  $IMAGE_NAME  --show-details  --repo=https://github.com/ossf/scorecard --metadata=openssf --format json > ./$OUTPUT_PATH/results.json
-            ginkgo -p -v --focus="E2E TEST:executable" ./e2e/...
+              echo "Skipping e2e tests. Will be re-enabled soon."
+              #mkdir $OUTPUT_PATH
+              #docker run -e GITHUB_AUTH_TOKEN=$GITHUB_AUTH_TOKEN  $IMAGE_NAME  --show-details  --repo=https://github.com/ossf/scorecard --metadata=openssf --format json > ./$OUTPUT_PATH/results.json
+              #ginkgo -p -v --focus="E2E TEST:executable" ./e2e/...
 
       - name: find comment
         if: ${{ always() }}

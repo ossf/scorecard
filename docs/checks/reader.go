@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2020 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,17 +11,32 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+package checks
 
-syntax = "proto3";
+import (
+	_ "embed"
+	"fmt"
 
-package ossf.scorecard.cron.data;
+	"gopkg.in/yaml.v2"
+)
 
-import "google/protobuf/timestamp.proto";
+//go:embed checks.yaml
+var checksYAML []byte
 
-option go_package = "github.com/ossf/scorecard/cron/data";
+type Check struct {
+	Risk        string   `yaml:"-"`
+	Description string   `yaml:"description"`
+	Remediation []string `yaml:"remediation"`
+}
 
-message ScorecardBatchRequest {
-  repeated string repos = 1;
-  optional int32 shard_num = 2;
-  optional google.protobuf.Timestamp job_time = 3;
+type Doc struct {
+	Checks map[string]Check
+}
+
+func Read() (Doc, error) {
+	var m Doc
+	if err := yaml.Unmarshal(checksYAML, &m); err != nil {
+		return Doc{}, fmt.Errorf("yaml.Unmarshal: %w", err)
+	}
+	return m, nil
 }

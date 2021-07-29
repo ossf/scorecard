@@ -16,12 +16,17 @@
 FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
 
 RUN bash <(wget -qO- http://website.com/my-script.sh)
-RUN bash <(curl -s https://codecov.io/bash)
-RUN ["bash", "<(curl -s https://codecov.io/bash)"]
+RUN bash <(curl -s https://codecov.io/bash1)
+RUN ["bash", "<(curl -s https://codecov.io/bash2)"]
 
-RUN sudo su -c "bash <(wget -qO- http://website.com/my-script.sh)" root
-RUN sudo su -c "bash <(curl -s https://codecov.io/bash)" root
-RUN ["su", "-c", "\"bash <(curl -s https://codecov.io/bash)\""]
+RUN sudo su -c "bash <(wget -qO- http://website.com/my-script2.sh)" root
+RUN sudo su -c "bash <(curl -s https://codecov.io/bash3)" root
+RUN ["su", "-c", "\"bash <(curl -s https://codecov.io/bash4)\""]
 
 FROM scratch
 FROM python@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
+
+ [{1 insecure (unpinned) download detected in testdata/Dockerfile-proc-subs: 'bash <(wget -qO- http://website.com/my-script.sh)'} 
+ {1 insecure (unpinned) download detected in testdata/Dockerfile-proc-subs: 'bash <(curl -s https://codecov.io/bash)'} 
+ {1 insecure (unpinned) download detected in testdata/Dockerfile-proc-subs: 'bash <(curl -s https://codecov.io/bash)'}]
+FAIL

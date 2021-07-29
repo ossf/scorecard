@@ -8,6 +8,27 @@ IMAGE_NAME = scorecard
 OUTPUT = output
 IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:executable"
 
+# generate VERSION_LDFLAGS
+GIT_VERSION ?= $(shell git describe --tags --always --dirty)
+GIT_HASH ?= $(shell git rev-parse HEAD)
+DATE_FMT = +'%Y-%m-%dT%H:%M:%SZ'
+SOURCE_DATE_EPOCH ?= $(shell git log -1 --pretty=%ct)
+ifdef SOURCE_DATE_EPOCH
+    BUILD_DATE ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u "$(DATE_FMT)")
+else
+    BUILD_DATE ?= $(shell date "$(DATE_FMT)")
+endif
+GIT_TREESTATE = clean
+DIFF = $(shell git diff --quiet >/dev/null 2>&1; if [ $$? -eq 1 ]; then echo "1"; fi)
+ifeq ($(DIFF), 1)
+    GIT_TREESTATE = dirty
+endif
+
+# version should be injected in the cmd package
+PKG=$(shell go list -m | head -n1)/cmd
+
+VERSION_LDFLAGS=-X $(PKG).gitVersion=$(GIT_VERSION) -X $(PKG).gitCommit=$(GIT_HASH) -X $(PKG).gitTreeState=$(GIT_TREESTATE) -X $(PKG).buildDate=$(BUILD_DATE)
+
 ############################### make help #####################################
 .PHONY: help
 help:  ## Display this help
@@ -75,7 +96,8 @@ tree-status: ## Verify tree is clean and all changes are committed
 ###############################################################################
 
 ################################## make build #################################
-build-targets = build-proto generate-docs build-scorecard build-pubsub build-bq-transfer \
+# TODO(azeems): Re-enable build-proto
+build-targets = generate-docs build-scorecard build-pubsub build-bq-transfer \
 	build-add-script build-validate-script build-update-script dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the reepo.
@@ -87,14 +109,16 @@ cron/data/request.pb.go: cron/data/request.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/request.proto
 
 generate-docs: ## Generates docs
-generate-docs: checks/checks.md
-checks/checks.md: checks/checks.yaml checks/main/*.go
+generate-docs: docs/checks.md
+docs/checks.md: docs/checks/checks.yaml docs/checks/*.go docs/checks/generate/*.go
+	# Validating checks.yaml
+	go run ./docs/checks/validate/main.go
 	# Generating checks.md
-	cd ./checks/main && go run main.go
+	cd ./docs/checks/generate && go run main.go
 
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable
-	CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static"'
+	CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w -extldflags "-static" $(VERSION_LDFLAGS)'
 
 build-pubsub: ## Runs go build on the PubSub cron job
 	# Run go build and the PubSub cron job

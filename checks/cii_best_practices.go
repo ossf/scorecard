@@ -75,10 +75,13 @@ func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 		// https://bestpractices.coreinfrastructure.org/en/criteria.
 		const silverScore = 7
 		const passingScore = 5
+		const inProgressScore = 2
 		switch {
 		default:
-			e := sce.Create(sce.ErrScorecardInternal, "unsupported badge")
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("unsupported badge: %v", result.BadgeLevel))
 			return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
+		case strings.Contains(result.BadgeLevel, "in_progress"):
+			return checker.CreateResultWithScore(CheckCIIBestPractices, "badge detected: in_progress", inProgressScore)
 		case strings.Contains(result.BadgeLevel, "silver"):
 			return checker.CreateResultWithScore(CheckCIIBestPractices, "badge detected: silver", silverScore)
 		case strings.Contains(result.BadgeLevel, "gold"):
