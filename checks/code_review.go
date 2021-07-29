@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/go-github/v32/github"
-
 	"github.com/ossf/scorecard/v2/checker"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
@@ -167,9 +165,9 @@ func prowCodeReview(c *checker.CheckRequest) (int, string, error) {
 
 //nolint
 func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
-	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{})
+	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		//nolint
+		// nolint: wraperror
 		return checker.InconclusiveResultScore, "",
 			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
 	}
@@ -178,7 +176,7 @@ func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
 	totalReviewed := 0
 	for _, commit := range commits {
 		isBot := false
-		committer := commit.GetCommitter().GetLogin()
+		committer := commit.Committer.Login
 		for _, substring := range []string{"bot", "gardener"} {
 			if strings.Contains(committer, substring) {
 				isBot = true
@@ -193,10 +191,10 @@ func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
 		total++
 
 		// check for gerrit use via Reviewed-on and Reviewed-by
-		commitMessage := commit.GetCommit().GetMessage()
+		commitMessage := commit.Message
 		if strings.Contains(commitMessage, "\nReviewed-on: ") &&
 			strings.Contains(commitMessage, "\nReviewed-by: ") {
-			c.Dlogger.Debug("Gerrit review found for commit '%s'", commit.GetCommit().GetSHA())
+			c.Dlogger.Debug("Gerrit review found for commit '%s'", commit.SHA)
 			totalReviewed++
 			continue
 		}

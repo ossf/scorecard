@@ -28,15 +28,33 @@ const (
 	pullRequestsToAnalyze = 30
 	reviewsToAnalyze      = 30
 	labelsToAnalyze       = 30
+	commitsToAnalyze      = 30
 )
 
 // nolint: govet
 type graphqlData struct {
 	Repository struct {
+		IsArchived       githubv4.Boolean
 		DefaultBranchRef struct {
 			Name                 githubv4.String
 			BranchProtectionRule struct {
 				RequiredApprovingReviewCount githubv4.Int
+			}
+			Target struct {
+				Commit struct {
+					History struct {
+						Nodes []struct {
+							CommittedDate githubv4.DateTime
+							Message       githubv4.String
+							Oid           githubv4.GitObjectID
+							Committer     struct {
+								User struct {
+									Login githubv4.String
+								}
+							}
+						}
+					} `graphql:"history(first: $commitsToAnalyze)"`
+				} `graphql:"... on Commit"`
 			}
 		}
 		PullRequests struct {
@@ -65,7 +83,9 @@ type graphqlHandler struct {
 	client           *githubv4.Client
 	data             *graphqlData
 	prs              []clients.PullRequest
+	commits          []clients.Commit
 	defaultBranchRef clients.BranchRef
+	archived         bool
 }
 
 func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) error {
@@ -75,14 +95,17 @@ func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) err
 		"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
 		"reviewsToAnalyze":      githubv4.Int(reviewsToAnalyze),
 		"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
+		"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
 	}
 	handler.data = new(graphqlData)
 	if err := handler.client.Query(ctx, handler.data, vars); err != nil {
 		// nolint: wrapcheck
 		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 	}
-	handler.prs = pullRequestFrom(*handler.data)
-	handler.defaultBranchRef = defaultBranchRefFrom(*handler.data)
+	handler.archived = bool(handler.data.Repository.IsArchived)
+	handler.prs = pullRequestFrom(handler.data)
+	handler.defaultBranchRef = defaultBranchRefFrom(handler.data)
+	handler.commits = commitsFrom(handler.data)
 	return nil
 }
 
@@ -94,7 +117,15 @@ func (handler *graphqlHandler) getDefaultBranch() (clients.BranchRef, error) {
 	return handler.defaultBranchRef, nil
 }
 
-func pullRequestFrom(data graphqlData) []clients.PullRequest {
+func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
+	return handler.commits, nil
+}
+
+func (handler *graphqlHandler) isArchived() (bool, error) {
+	return handler.archived, nil
+}
+
+func pullRequestFrom(data *graphqlData) []clients.PullRequest {
 	ret := make([]clients.PullRequest, len(data.Repository.PullRequests.Nodes))
 	for i, pr := range data.Repository.PullRequests.Nodes {
 		toAppend := clients.PullRequest{
@@ -119,7 +150,7 @@ func pullRequestFrom(data graphqlData) []clients.PullRequest {
 	return ret
 }
 
-func defaultBranchRefFrom(data graphqlData) clients.BranchRef {
+func defaultBranchRefFrom(data *graphqlData) clients.BranchRef {
 	return clients.BranchRef{
 		Name: string(data.Repository.DefaultBranchRef.Name),
 		BranchProtectionRule: clients.BranchProtectionRule{
@@ -127,4 +158,19 @@ func defaultBranchRefFrom(data graphqlData) clients.BranchRef {
 				data.Repository.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount),
 		},
 	}
+}
+
+func commitsFrom(data *graphqlData) []clients.Commit {
+	ret := make([]clients.Commit, 0)
+	for _, commit := range data.Repository.DefaultBranchRef.Target.Commit.History.Nodes {
+		ret = append(ret, clients.Commit{
+			CommittedDate: commit.CommittedDate.Time,
+			Message:       string(commit.Message),
+			SHA:           string(commit.Oid),
+			Committer: clients.User{
+				Login: string(commit.Committer.User.Login),
+			},
+		})
+	}
+	return ret
 }

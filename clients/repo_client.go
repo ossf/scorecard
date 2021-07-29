@@ -16,7 +16,6 @@ package clients
 
 import (
 	"fmt"
-	"time"
 )
 
 // UPGRADEv2: use ErrRepoUnreachable instead.
@@ -40,39 +39,11 @@ func NewRepoUnavailableError(err error) error {
 
 type RepoClient interface {
 	InitRepo(owner, repo string) error
+	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)
 	GetFileContent(filename string) ([]byte, error)
 	ListMergedPRs() ([]PullRequest, error)
 	GetDefaultBranch() (BranchRef, error)
+	ListCommits() ([]Commit, error)
 	Close() error
-}
-
-type BranchRef struct {
-	Name                 string
-	BranchProtectionRule BranchProtectionRule
-}
-
-type BranchProtectionRule struct {
-	RequiredApprovingReviewCount int
-}
-
-// nolint: govet
-type PullRequest struct {
-	MergedAt    time.Time
-	MergeCommit MergeCommit
-	Number      int
-	Labels      []Label
-	Reviews     []Review
-}
-
-type MergeCommit struct {
-	AuthoredByCommitter bool
-}
-
-type Label struct {
-	Name string
-}
-
-type Review struct {
-	State string
 }
