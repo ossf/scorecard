@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// nolint: dupl
 package e2e
 
 import (
@@ -20,9 +21,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/checker"
-	"github.com/ossf/scorecard/checks"
-	scut "github.com/ossf/scorecard/utests"
+	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/checks"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	scut "github.com/ossf/scorecard/v2/utests"
 )
 
 // TODO: use dedicated repo that don't change.
@@ -31,11 +33,15 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 	Context("E2E TEST:Validating use of code reviews", func() {
 		It("Should return use of code reviews", func() {
 			dl := scut.TestDetailLogger{}
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			err := repoClient.InitRepo("apache", "airflow")
+			Expect(err).Should(BeNil())
+
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  nil,
+				RepoClient:  repoClient,
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,
@@ -45,8 +51,8 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 				Errors:        nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 30,
 			}
 			result := checks.DoesCodeReview(&req)
 			// UPGRADEv2: to remove.

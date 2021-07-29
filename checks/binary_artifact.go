@@ -21,8 +21,8 @@ import (
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
 
-	"github.com/ossf/scorecard/checker"
-	sce "github.com/ossf/scorecard/errors"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 const CheckBinaryArtifacts string = "Binary-Artifacts"
@@ -34,7 +34,7 @@ func init() {
 
 // BinaryArtifacts  will check the repository if it contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2("*", false, c, checkBinaryFileContent)
+	r, err := CheckFilesContent("*", false, c, checkBinaryFileContent)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, err)
 	}

@@ -32,12 +32,12 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/checker"
-	"github.com/ossf/scorecard/checks"
-	"github.com/ossf/scorecard/clients/githubrepo"
-	"github.com/ossf/scorecard/pkg"
-	"github.com/ossf/scorecard/repos"
-	"github.com/ossf/scorecard/roundtripper"
+	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/checks"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	"github.com/ossf/scorecard/v2/pkg"
+	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v2/roundtripper"
 )
 
 var (
@@ -139,7 +139,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		}
 		githubClient := github.NewClient(httpClient)
 		graphClient := githubv4.NewClient(httpClient)
-		repoClient := githubrepo.CreateGithubRepoClient(ctx, githubClient)
+		repoClient := githubrepo.CreateGithubRepoClient(ctx, githubClient, graphClient)
 		defer repoClient.Close()
 
 		repoResult, err := pkg.RunScorecards(ctx, repo, enabledChecks, repoClient, httpClient, githubClient, graphClient)

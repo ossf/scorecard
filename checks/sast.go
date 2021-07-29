@@ -15,26 +15,18 @@
 package checks
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/google/go-github/v32/github"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-const (
-	// CheckSAST is the registered name for SAST.
-	CheckSAST         = "SAST"
-	sastPassThreshold = .75
-)
+// CheckSAST is the registered name for SAST.
+const CheckSAST = "SAST"
 
-var (
-	sastTools = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
-	// ErrorNoChecks indicates no GitHub Check runs were found for this repo.
-	ErrorNoChecks = errors.New("no check runs found")
-	// ErrorNoMerges indicates no merges with SAST tool runs were found for this repo.
-	ErrorNoMerges = errors.New("no merges found")
-)
+var sastTools = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
 
 //nolint:gochecknoinits
 func init() {
@@ -42,18 +34,82 @@ func init() {
 }
 
 func SAST(c *checker.CheckRequest) checker.CheckResult {
-	return checker.MultiCheckOr(
-		CodeQLInCheckDefinitions,
-		SASTToolInCheckRuns,
-	)(c)
+	sastScore, sastErr := SASTToolInCheckRuns(c)
+	if sastErr != nil {
+		return checker.CreateRuntimeErrorResult(CheckSAST, sastErr)
+	}
+
+	codeQlScore, codeQlErr := CodeQLInCheckDefinitions(c)
+	if codeQlErr != nil {
+		return checker.CreateRuntimeErrorResult(CheckSAST, codeQlErr)
+	}
+
+	// Both results are inconclusive.
+	// Can never happen.
+	if sastScore == checker.InconclusiveResultScore &&
+		codeQlScore == checker.InconclusiveResultScore {
+		// That can never happen since SASTToolInCheckRuns can never
+		// retun checker.InconclusiveResultScore.
+		return checker.CreateInconclusiveResult(CheckSAST, "internal error")
+	}
+
+	// Both scores are conclusive.
+	// We assume the CodeQl config uses a cron and is not enabled as pre-submit.
+	// TODO: verify the above comment in code.
+	// We encourage developers to have sast check run on every pre-submit rather
+	// than as cron jobs thru the score computation below.
+	// Warning: there is a hidden assumption that *any* sast tool is equally good.
+	if sastScore != checker.InconclusiveResultScore &&
+		codeQlScore != checker.InconclusiveResultScore {
+		switch {
+		case sastScore == checker.MaxResultScore:
+			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool is run on all commits")
+		case codeQlScore == checker.MinResultScore:
+			return checker.CreateResultWithScore(CheckSAST,
+				checker.NormalizeReason("SAST tool is not run on all commits", sastScore), sastScore)
+
+		// codeQl is enabled and sast has 0+ (but not all) PRs checks.
+		case codeQlScore == checker.MaxResultScore:
+			const sastWeight = 3
+			const codeQlWeight = 7
+			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, codeQlScore: codeQlWeight})
+			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not run on all commmits", score)
+		default:
+			return checker.CreateRuntimeErrorResult(CheckSAST, sce.Create(sce.ErrScorecardInternal, "contact team"))
+		}
+	}
+
+	// Sast inconclusive.
+	if codeQlScore != checker.InconclusiveResultScore {
+		if codeQlScore == checker.MaxResultScore {
+			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool detected")
+		}
+		return checker.CreateMinScoreResult(CheckSAST, "no SAST tool detected")
+	}
+
+	// CodeQl inconclusive.
+	if sastScore != checker.InconclusiveResultScore {
+		if sastScore == checker.MaxResultScore {
+			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool is run on all commits")
+		}
+
+		return checker.CreateResultWithScore(CheckSAST,
+			checker.NormalizeReason("SAST tool is not run on all commits", sastScore), sastScore)
+	}
+
+	// Should never happen.
+	return checker.CreateRuntimeErrorResult(CheckSAST, sce.Create(sce.ErrScorecardInternal, "contact team"))
 }
 
-func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
+//nolint
+func SASTToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
 	if err != nil {
-		return checker.MakeRetryResult(CheckSAST, err)
+		//nolint
+		return checker.InconclusiveResultScore,
+			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.PullRequests.List: %v", err))
 	}
 
 	totalMerged := 0
@@ -66,10 +122,12 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
 			&github.ListCheckRunsOptions{})
 		if err != nil {
-			return checker.MakeRetryResult(CheckSAST, err)
+			return checker.InconclusiveResultScore,
+				sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 		}
 		if crs == nil {
-			return checker.MakeInconclusiveResult(CheckSAST, ErrorNoChecks)
+			c.Dlogger.Warn("no pull requests merged into dev branch")
+			return checker.InconclusiveResultScore, nil
 		}
 		for _, cr := range crs.CheckRuns {
 			if cr.GetStatus() != "completed" {
@@ -79,32 +137,46 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) checker.CheckResult {
 				continue
 			}
 			if sastTools[cr.GetApp().GetSlug()] {
-				c.Logf("SAST Tool found: %s", cr.GetHTMLURL())
+				c.Dlogger.Debug("tool detected: %s", cr.GetHTMLURL())
 				totalTested++
 				break
 			}
 		}
 	}
-	if totalTested == 0 {
-		return checker.MakeInconclusiveResult(CheckSAST, ErrorNoMerges)
+	if totalMerged == 0 {
+		c.Dlogger.Warn("no pull requests merged into dev branch")
+		return checker.InconclusiveResultScore, nil
 	}
-	return checker.MakeProportionalResult(CheckSAST, totalTested, totalMerged, sastPassThreshold)
+
+	if totalTested == totalMerged {
+		c.Dlogger.Info(fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalMerged))
+	} else {
+		c.Dlogger.Warn(fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged))
+	}
+
+	return checker.CreateProportionalScore(totalTested, totalMerged), nil
 }
 
-func CodeQLInCheckDefinitions(c *checker.CheckRequest) checker.CheckResult {
+//nolint
+func CodeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
 	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(CheckSAST, err)
+		return checker.InconclusiveResultScore,
+			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
 	}
 
 	for _, result := range results.CodeResults {
-		c.Logf("found CodeQL definition: %s", result.GetPath())
+		c.Dlogger.Info("CodeQL detected: %s", result.GetPath())
 	}
 
-	return checker.CheckResult{
-		Name:       CheckSAST,
-		Pass:       *results.Total > 0,
-		Confidence: checker.MaxResultConfidence,
+	// TODO: check if it's enabled as cron or presubmit.
+	// TODO: check which branches it is enabled on. We should find main.
+	if *results.Total > 0 {
+		c.Dlogger.Info("tool detected: CodeQL")
+		return checker.MaxResultScore, nil
 	}
+
+	c.Dlogger.Warn("CodeQL tool not detected")
+	return checker.MinResultScore, nil
 }

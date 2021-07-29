@@ -20,15 +20,16 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/checker"
-	"github.com/ossf/scorecard/checks"
+	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/checks"
+	scut "github.com/ossf/scorecard/v2/utests"
 )
 
 var _ = Describe("E2E TEST:SAST", func() {
 	Context("E2E TEST:Validating use of SAST tools", func() {
 		It("Should return use of SAST tools", func() {
-			l := log{}
-			checkRequest := checker.CheckRequest{
+			dl := scut.TestDetailLogger{}
+			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
@@ -36,11 +37,22 @@ var _ = Describe("E2E TEST:SAST", func() {
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,
-				Logf:        l.Logf,
+				Dlogger:     &dl,
 			}
-			result := checks.SAST(&checkRequest)
+			expected := scut.TestReturn{
+				Errors:        nil,
+				Score:         7,
+				NumberOfWarn:  1,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			}
+			result := checks.SAST(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
 			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
+			Expect(result.Pass).Should(BeFalse())
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "sast used", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

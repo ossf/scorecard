@@ -19,8 +19,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 // CheckCIIBestPractices is the registered name for CIIBestPractices.
@@ -40,47 +42,54 @@ func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURL)
 	req, err := http.NewRequestWithContext(c.Ctx, "GET", url, nil)
 	if err != nil {
-		return checker.MakeRetryResult(CheckCIIBestPractices, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return checker.MakeRetryResult(CheckCIIBestPractices, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("HTTPClient.Do: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 	defer resp.Body.Close()
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return checker.MakeRetryResult(CheckCIIBestPractices, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("ioutil.ReadAll: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 
 	parsedResponse := []response{}
 	if err := json.Unmarshal(b, &parsedResponse); err != nil {
-		return checker.MakeRetryResult(CheckCIIBestPractices, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("json.Unmarshal: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 
 	if len(parsedResponse) < 1 {
-		c.Logf("no badge found")
-		return checker.CheckResult{
-			Name:       CheckCIIBestPractices,
-			Pass:       false,
-			Confidence: checker.MaxResultConfidence,
-		}
+		return checker.CreateMinScoreResult(CheckCIIBestPractices, "no badge found")
 	}
 
 	result := parsedResponse[0]
-	c.Logf("badge level: %s", result.BadgeLevel)
 
 	if result.BadgeLevel != "" {
-		return checker.CheckResult{
-			Name:       CheckCIIBestPractices,
-			Pass:       true,
-			Confidence: checker.MaxResultConfidence,
+		// Three levels: passing, silver and gold,
+		// https://bestpractices.coreinfrastructure.org/en/criteria.
+		const silverScore = 7
+		const passingScore = 5
+		const inProgressScore = 2
+		switch {
+		default:
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("unsupported badge: %v", result.BadgeLevel))
+			return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
+		case strings.Contains(result.BadgeLevel, "in_progress"):
+			return checker.CreateResultWithScore(CheckCIIBestPractices, "badge detected: in_progress", inProgressScore)
+		case strings.Contains(result.BadgeLevel, "silver"):
+			return checker.CreateResultWithScore(CheckCIIBestPractices, "badge detected: silver", silverScore)
+		case strings.Contains(result.BadgeLevel, "gold"):
+			return checker.CreateMaxScoreResult(CheckCIIBestPractices, "badge detected: gold")
+		case strings.Contains(result.BadgeLevel, "passing"):
+			return checker.CreateResultWithScore(CheckCIIBestPractices, "badge detected: passing", passingScore)
 		}
 	}
 
-	return checker.CheckResult{
-		Name:       CheckCIIBestPractices,
-		Pass:       false,
-		Confidence: checker.MaxResultConfidence,
-	}
+	return checker.CreateMinScoreResult(CheckCIIBestPractices, "no badge detected")
 }

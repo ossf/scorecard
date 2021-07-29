@@ -23,8 +23,8 @@ import (
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	scorecarderrors "github.com/ossf/scorecard/errors"
-	"github.com/ossf/scorecard/stats"
+	scorecarderrors "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v2/stats"
 )
 
 const checkRetries = 3
@@ -112,68 +112,4 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		panic(err)
 	}
 	return res
-}
-
-func Bool2int(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
-}
-
-func MultiCheckOr2(fns ...CheckFn) CheckFn {
-	return func(c *CheckRequest) CheckResult {
-		var checks []CheckResult
-		for _, fn := range fns {
-			res := fn(c)
-			checks = append(checks, res)
-		}
-		return MakeOrResult(c, checks...)
-	}
-}
-
-func MultiCheckAnd2(fns ...CheckFn) CheckFn {
-	return func(c *CheckRequest) CheckResult {
-		var checks []CheckResult
-		for _, fn := range fns {
-			res := fn(c)
-			checks = append(checks, res)
-		}
-		return MakeAndResult2(checks...)
-	}
-}
-
-// UPGRADEv2: will be removed.
-// MultiCheckOr returns the best check result out of several ones performed.
-func MultiCheckOr(fns ...CheckFn) CheckFn {
-	return func(c *CheckRequest) CheckResult {
-		var maxResult CheckResult
-
-		for _, fn := range fns {
-			result := fn(c)
-			if Bool2int(result.Pass) < Bool2int(maxResult.Pass) {
-				continue
-			}
-			if result.Pass && result.Confidence >= MaxResultConfidence {
-				return result
-			}
-			if result.Confidence >= maxResult.Confidence {
-				maxResult = result
-			}
-		}
-		return maxResult
-	}
-}
-
-// MultiCheckAnd means all checks must succeed. This returns a conservative result
-// where the worst result is returned.
-func MultiCheckAnd(fns ...CheckFn) CheckFn {
-	return func(c *CheckRequest) CheckResult {
-		var checks []CheckResult
-		for _, fn := range fns {
-			res := fn(c)
-			checks = append(checks, res)
-		}
-		return MakeAndResult(checks...)
-	}
 }

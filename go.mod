@@ -1,4 +1,4 @@
-module github.com/ossf/scorecard
+module github.com/ossf/scorecard/v2
 
 go 1.16
 
@@ -13,7 +13,6 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/go-github/v33 v33.0.0
-	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/h2non/filetype v1.1.1
 	github.com/jszwec/csvutil v1.5.0
 	github.com/moby/buildkit v0.8.3
@@ -26,11 +25,8 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/spf13/cobra v1.2.1
 	go.opencensus.io v0.23.0
-	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.18.1
 	gocloud.dev v0.23.0
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
 	golang.org/x/tools v0.1.5
 	google.golang.org/genproto v0.0.0-20210714021259-044028024a4f
 	google.golang.org/protobuf v1.27.1

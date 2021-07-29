@@ -14,41 +14,24 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"sort"
 
-	"gopkg.in/yaml.v2"
+	docs "github.com/ossf/scorecard/v2/docs/checks"
 )
 
-type doc struct {
-	Description string   `yaml:"description"`
-	Remediation []string `yaml:"remediation"`
-}
-
 func main() {
-	yamlFile, err := os.Open("../checks.yaml")
+	m, err := docs.Read()
 	if err != nil {
 		panic(err)
 	}
-	defer yamlFile.Close()
-
-	byteValue, err := ioutil.ReadAll(yamlFile)
-	if err != nil {
-		panic(err)
-	}
-	m := make(map[string]map[string]doc)
-	err = yaml.Unmarshal(byteValue, &m)
-	if err != nil {
-		panic(err)
-	}
-	keys := make([]string, 0, len(m["checks"]))
-	for k := range m["checks"] {
+	keys := make([]string, 0, len(m.Checks))
+	for k := range m.Checks {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
-	f, err := os.Create("../checks.md")
+	f, err := os.Create("../../checks.md")
 	if err != nil {
 		panic(err)
 	}
@@ -73,7 +56,7 @@ please contribute!
 		if err != nil {
 			panic(err)
 		}
-		_, err = f.WriteString(m["checks"][k].Description + " \n\n")
+		_, err = f.WriteString(m.Checks[k].Description + " \n\n")
 		if err != nil {
 			panic(err)
 		}
@@ -81,7 +64,7 @@ please contribute!
 		if err != nil {
 			panic(err)
 		}
-		for _, r := range m["checks"][k].Remediation {
+		for _, r := range m.Checks[k].Remediation {
 			_, err = f.WriteString("- " + r + "\n")
 			if err != nil {
 				panic(err)

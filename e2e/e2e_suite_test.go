@@ -16,7 +16,6 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -27,7 +26,7 @@ import (
 	"github.com/shurcooL/githubv4"
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/roundtripper"
+	"github.com/ossf/scorecard/v2/roundtripper"
 )
 
 var (
@@ -35,14 +34,6 @@ var (
 	graphClient *githubv4.Client
 	httpClient  *http.Client
 )
-
-type log struct {
-	messages []string
-}
-
-func (l *log) Logf(s string, f ...interface{}) {
-	l.messages = append(l.messages, fmt.Sprintf(s, f...))
-}
 
 func TestE2e(t *testing.T) {
 	t.Parallel()

@@ -15,15 +15,39 @@
 package checks
 
 import (
+	"bufio"
 	"fmt"
 	"path"
 	"strings"
 
-	"github.com/ossf/scorecard/checker"
-	sce "github.com/ossf/scorecard/errors"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-// IsMatchingPath uses 'pattern' to shell-match the 'path' and its filename
+// CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
+// for the occurrence.
+func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(name string,
+	dl checker.DetailLogger) (bool, error)) (bool, error) {
+	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
+	if err != nil {
+		// nolint: wrapcheck
+		return false, err
+	}
+	for _, filename := range matchedFiles {
+		rr, err := onFile(filename, c.Dlogger)
+		if err != nil {
+			return false, err
+		}
+
+		if rr {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// isMatchingPath uses 'pattern' to shell-match the 'path' and its filename
 // 'caseSensitive' indicates the match should be case-sensitive. Default: no.
 func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) {
 	if !caseSensitive {
@@ -62,73 +86,35 @@ func isScorecardTestFile(owner, repo, fullpath string) bool {
 // 		use "./*".
 //	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
 //nolint
-func CheckFilesContent(checkName, shellPathFnPattern string,
-	caseSensitive bool,
-	c *checker.CheckRequest,
-	onFileContent func(path string, content []byte,
-		Logf func(s string, f ...interface{})) (bool, error),
-) checker.CheckResult {
-	predicate := func(filepath string) bool {
-		// Filter out Scorecard's own test files.
-		if isScorecardTestFile(c.Owner, c.Repo, filepath) {
-			return false
-		}
-		// Filter out files based on path/names using the pattern.
-		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
-		if err != nil {
-			return false
-		}
-		return b
-	}
-	res := true
-	for _, file := range c.RepoClient.ListFiles(predicate) {
-		content, err := c.RepoClient.GetFileContent(file)
-		if err != nil {
-			return checker.MakeRetryResult(checkName, err)
-		}
-
-		rr, err := onFileContent(file, content, c.Logf)
-		if err != nil {
-			return checker.MakeFailResult(checkName, err)
-		}
-		// We don't return rightway to let the onFileContent()
-		// handler log.
-		if !rr {
-			res = false
-		}
-	}
-	if res {
-		return checker.MakePassResult(checkName)
-	}
-
-	return checker.MakeFailResult(checkName, nil)
-}
-
-// UPGRADEv2: to rename to CheckFilesContent.
-func CheckFilesContent2(shellPathFnPattern string,
+func CheckFilesContent(shellPathFnPattern string,
 	caseSensitive bool,
 	c *checker.CheckRequest,
 	onFileContent func(path string, content []byte,
 		dl checker.DetailLogger) (bool, error),
 ) (bool, error) {
-	predicate := func(filepath string) bool {
+	predicate := func(filepath string) (bool, error) {
 		// Filter out Scorecard's own test files.
 		if isScorecardTestFile(c.Owner, c.Repo, filepath) {
-			return false
+			return false, nil
 		}
 		// Filter out files based on path/names using the pattern.
 		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
 		if err != nil {
-			return false
+			return false, err
 		}
-		return b
+		return b, nil
 	}
 	res := true
-	for _, file := range c.RepoClient.ListFiles(predicate) {
+	matchedFiles, err := c.RepoClient.ListFiles(predicate)
+	if err != nil {
+		// nolint: wrapcheck
+		return false, err
+	}
+	for _, file := range matchedFiles {
 		content, err := c.RepoClient.GetFileContent(file)
 		if err != nil {
 			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, err.Error())
+			return false, err
 		}
 
 		rr, err := onFileContent(file, content, c.Dlogger)
@@ -143,4 +129,23 @@ func CheckFilesContent2(shellPathFnPattern string,
 	}
 
 	return res, nil
+}
+
+// CheckFileContainsCommands checks if the file content contains commands or not.
+// `comment` is the string or character that indicates a comment:
+// for example for Dockerfiles, it would be `#`.
+func CheckFileContainsCommands(content []byte, comment string) bool {
+	if len(content) == 0 {
+		return false
+	}
+
+	r := strings.NewReader(string(content))
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if len(line) > 0 && !strings.HasPrefix(line, comment) {
+			return true
+		}
+	}
+	return false
 }

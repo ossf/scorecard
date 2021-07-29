@@ -15,22 +15,19 @@
 package checks
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/shurcooL/githubv4"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 const (
 	// CheckSignedTags is the registered name for SignedTags.
-	CheckSignedTags         = "Signed-Tags"
-	tagLookBack             = 5
-	signedTagsPassThreshold = .8
+	CheckSignedTags = "Signed-Tags"
+	tagLookBack     = 5
 )
-
-// ErrorNoTags indicates no tags were found for this repo.
-var ErrorNoTags = errors.New("no tags found")
 
 //nolint:gochecknoinits
 func init() {
@@ -59,7 +56,8 @@ func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if err := c.GraphClient.Query(c.Ctx, &query, variables); err != nil {
-		return checker.MakeRetryResult(CheckSignedTags, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("GraphClient.Query: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckSignedTags, e)
 	}
 	totalTags := 0
 	totalSigned := 0
@@ -68,22 +66,23 @@ func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 		totalTags++
 		gt, _, err := c.Client.Git.GetTag(c.Ctx, c.Owner, c.Repo, sha)
 		if err != nil {
-			c.Logf("!! unable to find the annotated commit: %s", sha)
+			c.Dlogger.Debug("unable to find the annotated commit: %s", sha)
 			continue
 		}
 		if gt.GetVerification().GetVerified() {
-			c.Logf("verified tag found: %s, commit: %s", t.Name, sha)
+			c.Dlogger.Debug("signature verifies for tag: %s, commit: %s", t.Name, sha)
 			totalSigned++
 		} else {
-			c.Logf("!! unverified tag found: %s, commit: %s, reason: %s", t.Name, sha, gt.GetVerification().GetReason())
+			c.Dlogger.Debug("signature does not verify for tag: %s, commit: %s, reason: %s",
+				t.Name, sha, gt.GetVerification().GetReason())
 		}
 	}
 
 	if totalTags == 0 {
-		c.Logf("no tags found")
-		return checker.MakeInconclusiveResult(CheckSignedTags, ErrorNoTags)
+		return checker.CreateInconclusiveResult(CheckSignedTags, "no tags found")
 	}
 
-	c.Logf("found %d out of %d verified tags", totalSigned, totalTags)
-	return checker.MakeProportionalResult(CheckSignedTags, totalSigned, totalTags, signedTagsPassThreshold)
+	// TODO: support package managers.
+	reason := fmt.Sprintf("%d out of %d tags have a verified signature", totalSigned, totalTags)
+	return checker.CreateProportionalScoreResult(CheckSignedTags, reason, totalSigned, totalTags)
 }

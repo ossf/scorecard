@@ -17,7 +17,7 @@ package checks
 import (
 	"strings"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/v2/checker"
 )
 
 const CheckAutomaticDependencyUpdate = "Automatic-Dependency-Update"
@@ -29,7 +29,7 @@ func init() {
 
 // AutomaticDependencyUpdate will check the repository if it contains Automatic dependency update.
 func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckIfFileExists2(CheckAutomaticDependencyUpdate, c, fileExists)
+	r, err := CheckIfFileExists(CheckAutomaticDependencyUpdate, c, fileExists)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckAutomaticDependencyUpdate, err)
 	}

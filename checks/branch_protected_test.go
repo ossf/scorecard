@@ -21,9 +21,9 @@ import (
 
 	"github.com/google/go-github/v32/github"
 
-	"github.com/ossf/scorecard/checker"
-	sce "github.com/ossf/scorecard/errors"
-	scut "github.com/ossf/scorecard/utests"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
+	scut "github.com/ossf/scorecard/v2/utests"
 )
 
 type mockRepos struct {
@@ -465,6 +465,17 @@ func TestIsBranchProtected(t *testing.T) {
 					Enabled: false,
 				},
 			},
+		},
+		{
+			name: "Nothing is enabled and values in github.Protection are nil",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         2,
+				NumberOfWarn:  4,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+			protection: &github.Protection{},
 		},
 		{
 			name: "Required status check enabled",

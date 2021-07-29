@@ -20,8 +20,8 @@ import (
 
 	"github.com/google/go-github/v32/github"
 
-	"github.com/ossf/scorecard/checker"
-	sce "github.com/ossf/scorecard/errors"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 const (

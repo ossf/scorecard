@@ -23,7 +23,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/ossf/scorecard/cron/data"
+	"github.com/ossf/scorecard/v2/cron/data"
 )
 
 type mockReceiver struct {

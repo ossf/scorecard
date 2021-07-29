@@ -21,10 +21,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/checker"
-	"github.com/ossf/scorecard/checks"
-	"github.com/ossf/scorecard/clients/githubrepo"
-	scut "github.com/ossf/scorecard/utests"
+	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/checks"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	scut "github.com/ossf/scorecard/v2/utests"
 )
 
 // TODO: use dedicated repo that don't change.
@@ -33,7 +33,7 @@ var _ = Describe("E2E TEST:Binary-Artifacts", func() {
 	Context("E2E TEST:Binary artifacts are not present in source code", func() {
 		It("Should return not binary artifacts in source code", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("ossf", "scorecard")
 			Expect(err).Should(BeNil())
 
@@ -64,7 +64,7 @@ var _ = Describe("E2E TEST:Binary-Artifacts", func() {
 		})
 		It("Should return binary artifacts present in source code", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("a1ive", "grub2-filemanager")
 			Expect(err).Should(BeNil())
 

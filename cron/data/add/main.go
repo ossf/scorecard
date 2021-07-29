@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ossf/scorecard/cron/data"
-	"github.com/ossf/scorecard/repos"
+	"github.com/ossf/scorecard/v2/cron/data"
+	"github.com/ossf/scorecard/v2/repos"
 )
 
 // Script to add new project repositories to the projects.csv file:
@@ -55,7 +55,7 @@ func main() {
 		panic(err)
 	}
 	// nolint: gomnd
-	projects, err := os.OpenFile(os.Args[2], os.O_WRONLY|os.O_CREATE, 0o644)
+	projects, err := os.OpenFile(os.Args[2], os.O_WRONLY|os.O_CREATE, 0o755)
 	if err != nil {
 		panic(err)
 	}

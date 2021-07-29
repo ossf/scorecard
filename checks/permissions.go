@@ -20,8 +20,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/ossf/scorecard/checker"
-	sce "github.com/ossf/scorecard/errors"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 const CheckPermissions = "Token-Permissions"
@@ -32,7 +32,7 @@ func init() {
 }
 
 func leastPrivilegedTokens(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent2(".github/workflows/*", false, c, validateGitHubActionTokenPermissions)
+	r, err := CheckFilesContent(".github/workflows/*", false, c, validateGitHubActionTokenPermissions)
 	return createResultForLeastPrivilegeTokens(r, err)
 }
 

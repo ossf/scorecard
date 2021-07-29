@@ -22,7 +22,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 
-	"github.com/ossf/scorecard/cron/config"
+	"github.com/ossf/scorecard/v2/cron/config"
 )
 
 const partitionDateFormat = "20060102"

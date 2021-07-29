@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"os"
 
-	"github.com/ossf/scorecard/cron/data"
+	"github.com/ossf/scorecard/v2/cron/data"
 )
 
 // Updates projects repositories with a projects dependencies.

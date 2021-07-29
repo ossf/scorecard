@@ -85,7 +85,7 @@ docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:latest --show-det
 The program can run using just one argument, the URL of the repo:
 
 ```shell
-$ go get github.com/ossf/scorecard
+$ go get github.com/ossf/scorecard/v2
 $ scorecard --repo=github.com/kubernetes/kubernetes
 Starting [Signed-Tags]
 Starting [Automatic-Dependency-Update]

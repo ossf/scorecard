@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/ossf/scorecard/cmd"
+import "github.com/ossf/scorecard/v2/cmd"
 
 func main() {
 	cmd.Execute()

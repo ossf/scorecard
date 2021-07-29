@@ -18,8 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-
-	scorecarderrors "github.com/ossf/scorecard/errors"
 )
 
 // UPGRADEv2: to remove.
@@ -84,6 +82,43 @@ type CheckResult struct {
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
 }
 
+// CreateProportionalScore() creates a proportional score.
+func CreateProportionalScore(success, total int) int {
+	if total == 0 {
+		return 0
+	}
+
+	return int(math.Min(float64(MaxResultScore*success/total), float64(MaxResultScore)))
+}
+
+// AggregateScores adds up all scores
+// and normalizes the result.
+// Each score contributes equally.
+func AggregateScores(scores ...int) int {
+	n := float64(len(scores))
+	r := 0
+	for _, s := range scores {
+		r += s
+	}
+	return int(math.Floor(float64(r) / n))
+}
+
+// AggregateScoresWithWeight adds up all scores
+// and normalizes the result.
+func AggregateScoresWithWeight(scores map[int]int) int {
+	r := 0
+	ws := 0
+	for s, w := range scores {
+		r += s * w
+		ws += w
+	}
+	return int(math.Floor(float64(r) / float64(ws)))
+}
+
+func NormalizeReason(reason string, score int) string {
+	return fmt.Sprintf("%v -- score normalized to %d", reason, score)
+}
+
 // CreateResultWithScore is used when
 // the check runs without runtime errors and we want to assign a
 // specific score.
@@ -115,7 +150,7 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 // the the number of tests that succeeded.
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	pass := true
-	score := int(math.Min(float64(MaxResultScore*b/t), float64(MaxResultScore)))
+	score := CreateProportionalScore(b, t)
 	if score < migrationThresholdPassValue {
 		pass = false
 	}
@@ -131,7 +166,7 @@ func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 		Version: 2,
 		Error2:  nil,
 		Score:   score,
-		Reason:  fmt.Sprintf("%v -- score normalized to %d", reason, score),
+		Reason:  NormalizeReason(reason, score),
 	}
 }
 
@@ -201,125 +236,4 @@ func MakeAndResult2(checks ...CheckResult) CheckResult {
 		}
 	}
 	return worseResult
-}
-
-func MakeOrResult(c *CheckRequest, checks ...CheckResult) CheckResult {
-	if len(checks) == 0 {
-		// That should never happen.
-		panic("MakeResult called with no checks")
-	}
-
-	bestResult := checks[0]
-	//nolint
-	for _, result := range checks[1:] {
-		if result.Score >= bestResult.Score {
-			c.Dlogger.Info(bestResult.Reason)
-			bestResult = result
-		} else {
-			c.Dlogger.Info(result.Reason)
-		}
-
-		// Do not exit early so we can show all the details
-		// to the user.
-	}
-
-	return bestResult
-}
-
-func MakeInconclusiveResult(name string, err error) CheckResult {
-	return CheckResult{
-		Name:       name,
-		Pass:       false,
-		Confidence: 0,
-		Error:      scorecarderrors.MakeLowConfidenceError(err),
-	}
-}
-
-func MakePassResult(name string) CheckResult {
-	return CheckResult{
-		Name:       name,
-		Pass:       true,
-		Confidence: MaxResultConfidence,
-		Error:      nil,
-	}
-}
-
-func MakeFailResult(name string, err error) CheckResult {
-	return CheckResult{
-		Name:       name,
-		Pass:       false,
-		Confidence: MaxResultConfidence,
-		Error:      err,
-	}
-}
-
-func MakeRetryResult(name string, err error) CheckResult {
-	return CheckResult{
-		Name:        name,
-		Pass:        false,
-		ShouldRetry: true,
-		Error:       scorecarderrors.MakeRetryError(err),
-	}
-}
-
-func MakeProportionalResult(name string, numerator int, denominator int,
-	threshold float32) CheckResult {
-	if denominator == 0 {
-		return MakeInconclusiveResult(name, ErrorDemoninatorZero)
-	}
-	if numerator == 0 {
-		return CheckResult{
-			Name:       name,
-			Pass:       false,
-			Confidence: MaxResultConfidence,
-		}
-	}
-	actual := float32(numerator) / float32(denominator)
-	if actual >= threshold {
-		return CheckResult{
-			Name:       name,
-			Pass:       true,
-			Confidence: int(actual * MaxResultConfidence),
-		}
-	}
-
-	return CheckResult{
-		Name:       name,
-		Pass:       false,
-		Confidence: MaxResultConfidence - int(actual*MaxResultConfidence),
-	}
-}
-
-// Given a min result, check if another result is worse.
-//nolint
-func isMinResult(result, min CheckResult) bool {
-	if Bool2int(result.Pass) < Bool2int(min.Pass) {
-		return true
-	}
-	if result.Pass && result.Confidence < min.Confidence {
-		return true
-	} else if !result.Pass && result.Confidence > min.Confidence {
-		return true
-	}
-	return false
-}
-
-// MakeAndResult means all checks must succeed. This returns a conservative result
-// where the worst result is returned.
-func MakeAndResult(checks ...CheckResult) CheckResult {
-	minResult := CheckResult{
-		Pass:       true,
-		Confidence: MaxResultConfidence,
-	}
-	// UPGRADEv2: will go away after old struct is removed.
-	//nolint
-	for _, result := range checks {
-		if minResult.Name == "" {
-			minResult.Name = result.Name
-		}
-		if isMinResult(result, minResult) {
-			minResult = result
-		}
-	}
-	return minResult
 }

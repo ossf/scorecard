@@ -15,23 +15,20 @@
 package checks
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 const (
 	// CheckSignedReleases is the registered name for SignedReleases.
-	CheckSignedReleases         = "Signed-Releases"
-	releaseLookBackDays         = 5
-	signedReleasesPassThreshold = .8
+	CheckSignedReleases = "Signed-Releases"
+	releaseLookBack     = 5
 )
-
-// ErrorNoReleases indicates no releases were found for this repo.
-var ErrorNoReleases = errors.New("no releases found")
 
 //nolint:gochecknoinits
 func init() {
@@ -41,7 +38,8 @@ func init() {
 func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	releases, _, err := c.Client.Repositories.ListReleases(c.Ctx, c.Owner, c.Repo, &github.ListOptions{})
 	if err != nil {
-		return checker.MakeRetryResult(CheckSignedReleases, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListReleases: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckSignedReleases, e)
 	}
 
 	artifactExtensions := []string{".asc", ".minisig", ".sig"}
@@ -51,18 +49,19 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	for _, r := range releases {
 		assets, _, err := c.Client.Repositories.ListReleaseAssets(c.Ctx, c.Owner, c.Repo, r.GetID(), &github.ListOptions{})
 		if err != nil {
-			return checker.MakeRetryResult(CheckSignedReleases, err)
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListReleaseAssets: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckSignedReleases, e)
 		}
 		if len(assets) == 0 {
 			continue
 		}
-		c.Logf("release found: %s", r.GetTagName())
+		c.Dlogger.Debug("release found: %s", r.GetTagName())
 		totalReleases++
 		signed := false
 		for _, asset := range assets {
 			for _, suffix := range artifactExtensions {
 				if strings.HasSuffix(asset.GetName(), suffix) {
-					c.Logf("signed release artifact found: %s, url: %s", asset.GetName(), asset.GetURL())
+					c.Dlogger.Info("signed release artifact: %s, url: %s", asset.GetName(), asset.GetURL())
 					signed = true
 					break
 				}
@@ -73,18 +72,17 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 			}
 		}
 		if !signed {
-			c.Logf("!! release %s has no signed artifacts", r.GetTagName())
+			c.Dlogger.Warn("release artifact %s not signed", r.GetTagName())
 		}
-		if totalReleases > releaseLookBackDays {
+		if totalReleases >= releaseLookBack {
 			break
 		}
 	}
 
 	if totalReleases == 0 {
-		c.Logf("no releases found")
-		return checker.MakeInconclusiveResult(CheckSignedReleases, ErrorNoReleases)
+		return checker.CreateInconclusiveResult(CheckSignedReleases, "no release found")
 	}
 
-	c.Logf("found signed artifacts for %d out of %d releases", totalSigned, totalReleases)
-	return checker.MakeProportionalResult(CheckSignedReleases, totalSigned, totalReleases, signedReleasesPassThreshold)
+	reason := fmt.Sprintf("%d out of %d artifacts are signed", totalSigned, totalReleases)
+	return checker.CreateProportionalScoreResult(CheckSignedReleases, reason, totalSigned, totalReleases)
 }

@@ -19,7 +19,8 @@ import (
 
 	"github.com/google/go-github/v32/github"
 
-	"github.com/ossf/scorecard/checker"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 // CheckFuzzing is the registered name for Fuzzing.
@@ -35,7 +36,8 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	searchString := url + " repo:google/oss-fuzz in:file filename:project.yaml"
 	results, _, err := c.Client.Search.Code(c.Ctx, searchString, &github.SearchOptions{})
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckFuzzing, err)
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
 	}
 
 	if *results.Total > 0 {

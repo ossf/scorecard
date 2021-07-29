@@ -21,8 +21,8 @@ import (
 
 	"github.com/google/go-github/v32/github"
 
-	"github.com/ossf/scorecard/checker"
-	sce "github.com/ossf/scorecard/errors"
+	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 const (
@@ -86,8 +86,7 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 		name, err := resolveBranchName(branches, *release.TargetCommitish)
 		if err != nil {
 			// If the commitish branch is still not found, fail.
-			e := sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
-			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
+			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 			checks = append(checks, r)
 			continue
 		}
@@ -107,8 +106,7 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	for b := range checkBranches {
 		protected, err := isBranchProtected(branches, b)
 		if err != nil {
-			e := sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
-			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
+			r := checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 			checks = append(checks, r)
 		}
 		if !protected {
@@ -157,10 +155,8 @@ func isBranchProtected(branches []*github.Branch, name string) (bool, error) {
 func getProtectionAndCheck(ctx context.Context, r repositories, dl checker.DetailLogger, ownerStr, repoStr,
 	branch string) checker.CheckResult {
 	// We only call this if the branch is protected. An error indicates not found.
-	protection, resp, err := r.GetBranchProtection(ctx, ownerStr, repoStr, branch)
-
-	const fileNotFound = 404
-	if resp.StatusCode == fileNotFound {
+	protection, _, err := r.GetBranchProtection(ctx, ownerStr, repoStr, branch)
+	if err != nil {
 		e := sce.Create(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 	}
@@ -250,10 +246,11 @@ func requiresThoroughReviews(protection *github.Protection, branch string, dl ch
 		protection.RequiredPullRequestReviews.RequireCodeOwnerReviews {
 		return true
 	}
-	switch {
-	case protection.RequiredPullRequestReviews == nil:
+	if protection.RequiredPullRequestReviews == nil {
 		dl.Warn("Pullrequest reviews disabled on branch '%s'", branch)
-		fallthrough
+		return false
+	}
+	switch {
 	case protection.RequiredPullRequestReviews.RequiredApprovingReviewCount < minReviews:
 		dl.Warn("Number of required reviewers is only %d on branch '%s'",
 			protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)

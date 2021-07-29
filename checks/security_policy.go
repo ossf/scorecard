@@ -15,11 +15,15 @@
 package checks
 
 import (
+	"errors"
 	"strings"
 
-	"github.com/ossf/scorecard/checker"
-	"github.com/ossf/scorecard/clients/githubrepo"
+	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
 )
+
+var errIgnore *clients.ErrRepoUnavailable
 
 // CheckSecurityPolicy is the registred name for SecurityPolicy.
 const CheckSecurityPolicy = "Security-Policy"
@@ -31,44 +35,56 @@ func init() {
 
 func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	// check repository for repository-specific policy
-	onFile := func(name string, logf func(s string, f ...interface{})) (bool, error) {
+	onFile := func(name string, dl checker.DetailLogger) (bool, error) {
 		if strings.EqualFold(name, "security.md") {
-			logf("security policy : %s", name)
+			c.Dlogger.Info("security policy detected: %s", name)
 			return true, nil
-		} else if isSecurityrstFound(name) {
-			logf("security policy : %s", name)
+		} else if isSecurityRstFound(name) {
+			c.Dlogger.Info("security policy detected: %s", name)
 			return true, nil
 		}
 		return false, nil
 	}
-	result := CheckIfFileExists(CheckSecurityPolicy, c, onFile)
-
-	if result.Pass {
-		return result
+	r, err := CheckIfFileExists(CheckSecurityPolicy, c, onFile)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
+	}
+	if r {
+		return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
 	}
 
 	// checking for community default within the .github folder
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file
 	dotGitHub := c
 	dotGitHub.Repo = ".github"
-	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, c.Client)
-	if err := dotGitHubClient.InitRepo(c.Owner, c.Repo); err != nil {
-		return checker.MakeFailResult(CheckSecurityPolicy, nil)
-	}
-	defer dotGitHubClient.Close()
-	dotGitHub.RepoClient = dotGitHubClient
+	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, c.Client, c.GraphClient)
+	err = dotGitHubClient.InitRepo(c.Owner, c.Repo)
 
-	onFile = func(name string, logf func(s string, f ...interface{})) (bool, error) {
-		if strings.EqualFold(name, "security.md") {
-			logf("security policy within .github folder : %s", name)
-			return true, nil
+	switch {
+	case err == nil:
+		defer dotGitHubClient.Close()
+		dotGitHub.RepoClient = dotGitHubClient
+		onFile = func(name string, dl checker.DetailLogger) (bool, error) {
+			if strings.EqualFold(name, "security.md") {
+				dl.Info("security policy detected in .github folder: %s", name)
+				return true, nil
+			}
+			return false, nil
 		}
-		return false, nil
+		r, err = CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
+		if err != nil {
+			return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
+		}
+		if r {
+			return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
+		}
+	case !errors.As(err, &errIgnore):
+		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
-	return CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
+	return checker.CreateMinScoreResult(CheckSecurityPolicy, "security policy file not detected")
 }
 
-func isSecurityrstFound(name string) bool {
+func isSecurityRstFound(name string) bool {
 	if strings.EqualFold(name, "doc/security.rst") {
 		return true
 	} else if strings.EqualFold(name, "docs/security.rst") {

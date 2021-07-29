@@ -31,18 +31,18 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/checker"
-	"github.com/ossf/scorecard/checks"
-	"github.com/ossf/scorecard/clients"
-	"github.com/ossf/scorecard/clients/githubrepo"
-	"github.com/ossf/scorecard/cron/config"
-	"github.com/ossf/scorecard/cron/data"
-	"github.com/ossf/scorecard/cron/monitoring"
-	"github.com/ossf/scorecard/cron/pubsub"
-	"github.com/ossf/scorecard/pkg"
-	"github.com/ossf/scorecard/repos"
-	"github.com/ossf/scorecard/roundtripper"
-	"github.com/ossf/scorecard/stats"
+	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/checks"
+	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	"github.com/ossf/scorecard/v2/cron/config"
+	"github.com/ossf/scorecard/v2/cron/data"
+	"github.com/ossf/scorecard/v2/cron/monitoring"
+	"github.com/ossf/scorecard/v2/cron/pubsub"
+	"github.com/ossf/scorecard/v2/pkg"
+	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v2/roundtripper"
+	"github.com/ossf/scorecard/v2/stats"
 )
 
 var errIgnore *clients.ErrRepoUnavailable
@@ -120,14 +120,14 @@ func createNetClients(ctx context.Context) (
 	}
 	githubClient = github.NewClient(httpClient)
 	graphClient = githubv4.NewClient(httpClient)
-	repoClient = githubrepo.CreateGithubRepoClient(ctx, githubClient)
+	repoClient = githubrepo.CreateGithubRepoClient(ctx, githubClient, graphClient)
 	return
 }
 
 func startMetricsExporter() (monitoring.Exporter, error) {
 	exporter, err := monitoring.GetExporter()
 	if err != nil {
-		return nil, fmt.Errorf("error during NewStackDriverExporter: %w", err)
+		return nil, fmt.Errorf("error during monitoring.GetExporter: %w", err)
 	}
 	if err := exporter.StartMetricsExporter(); err != nil {
 		return nil, fmt.Errorf("error in StartMetricsExporter: %w", err)
