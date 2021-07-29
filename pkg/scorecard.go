@@ -88,6 +88,7 @@ func RunScorecards(ctx context.Context,
 
 	if err := repoClient.InitRepo(repo.Owner, repo.Repo); err != nil {
 		// No need to call sce.Create() since InitRepo will do that for us.
+		//nolint:wrapcheck
 		return ScorecardResult{}, err
 	}
 

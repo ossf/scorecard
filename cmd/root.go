@@ -203,7 +203,7 @@ func Execute() {
 }
 
 // Gets the GitHub repository URL for the npm package.
-//nolint:noctx,goerr113
+//nolint:noctx
 func fetchGitRepositoryFromNPM(packageName string) (string, error) {
 	npmSearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
 	const timeout = 10
@@ -232,7 +232,7 @@ func fetchGitRepositoryFromNPM(packageName string) (string, error) {
 }
 
 // Gets the GitHub repository URL for the pypi package.
-//nolint:noctx,goerr113
+//nolint:noctx
 func fetchGitRepositoryFromPYPI(packageName string) (string, error) {
 	pypiSearchURL := "https://pypi.org/pypi/%s/json"
 	const timeout = 10
@@ -261,6 +261,7 @@ func fetchGitRepositoryFromPYPI(packageName string) (string, error) {
 }
 
 // Gets the GitHub repository URL for the rubygems package.
+//nolint:noctx
 func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 	rubyGemsSearchURL := "https://rubygems.org/api/v1/gems/%s.json"
 	const timeout = 10

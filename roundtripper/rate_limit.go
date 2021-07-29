@@ -20,8 +20,9 @@ import (
 	"strconv"
 	"time"
 
-	sce "github.com/ossf/scorecard/v2/errors"
 	"go.uber.org/zap"
+
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 // MakeRateLimitedTransport returns a RoundTripper which rate limits GitHub requests.

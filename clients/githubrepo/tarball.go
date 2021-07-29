@@ -29,6 +29,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v32/github"
+
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
@@ -82,11 +83,7 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 	}
 
 	// Extract file names and content from tarball.
-	if err := handler.extractTarball(); err != nil {
-		return err
-	}
-
-	return nil
+	return handler.extractTarball()
 }
 
 func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repository) error {
