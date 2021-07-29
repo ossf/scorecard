@@ -48,7 +48,7 @@ jobs:
         # We need https://github.com/google/addlicense/pull/70#issuecomment-888099920 landed
         # to disable testdata folers in the repo.
         run: |
-          echo "license check disabled. Re-enable as soon as possible."
+          echo "license check disabled. Will be reenabled soon."
           # go env -w GOFLAGS=-mod=mod
           # make all
           # set -e
