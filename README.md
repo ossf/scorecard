@@ -7,22 +7,22 @@
 
 <!-- vim-markdown-toc GFM -->
 
-* [Motivation](#motivation)
-* [Goals](#goals)
-* [Scorecard Checks](#scorecard-checks)
-* [Usage](#usage)
-  * [Docker](#docker)
-  * [Using repository URL](#using-repository-url)
-  * [Using a Package manager](#using-a-package-manager)
-  * [Running specific checks](#running-specific-checks)
-  * [Authentication](#authentication)
-  * [Understanding Scorecard results](#understanding-scorecard-results)
-  * [Formatting Results](#formatting-results)
-* [Public Data](#public-data)
-* [Adding a Scorecard Check](#adding-a-scorecard-check)
-* [Troubleshooting](#troubleshooting)
-* [Supportability](#supportability)
-* [Contributing](#contributing)
+*   [Motivation](#motivation)
+*   [Goals](#goals)
+*   [Scorecard Checks](#scorecard-checks)
+*   [Usage](#usage)
+    *   [Docker](#docker)
+    *   [Using repository URL](#using-repository-url)
+    *   [Using a Package manager](#using-a-package-manager)
+    *   [Running specific checks](#running-specific-checks)
+    *   [Authentication](#authentication)
+    *   [Understanding Scorecard results](#understanding-scorecard-results)
+    *   [Formatting Results](#formatting-results)
+*   [Public Data](#public-data)
+*   [Adding a Scorecard Check](#adding-a-scorecard-check)
+*   [Troubleshooting](#troubleshooting)
+*   [Supportability](#supportability)
+*   [Contributing](#contributing)
 
 <!-- vim-markdown-toc -->
 
@@ -43,27 +43,25 @@ passed! All D's ... and an A!"
 
 The following checks are all run against the target project by default:
 
-Name               | Description
------------------- | -----------
-Active             | Did the project get any commits in the last 90 days?
+Name                        | Description
+--------------------------- | -----------
+Active                      | Did the project get any commits in the last 90 days?
 Automatic-Dependency-Update | Does the project use tools to automatically update its dependencies?
-Binary-Artifacts   | Is the project free of checked-in binaries?
-Branch-Protection  | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?
-CI-Tests           | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?
-CII-Best-Practices | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
-Code-Review        | Does the project require code review before code is merged?
-Contributors       | Does the project have contributors from at least two different organizations?
-Fuzzing            | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
-Frozen-Deps        | Does the project declare and freeze [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
-Packaging          | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
-Pull-Requests      | Does the project use [Pull Requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) for all code changes?
-SAST               | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)?
-Security-Policy    | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?
-Signed-Releases    | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?
-Signed-Tags        | Does the project cryptographically sign release tags?
-Token-Permissions  | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?
-Vulnerabilities    | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).
-
+Binary-Artifacts            | Is the project free of checked-in binaries?
+Branch-Protection           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?
+CI-Tests                    | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?
+CII-Best-Practices          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
+Code-Review                 | Does the project require code review before code is merged?
+Contributors                | Does the project have contributors from at least two different organizations?
+Fuzzing                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
+Frozen-Deps                 | Does the project declare and freeze [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
+Packaging                   | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
+SAST                        | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)?
+Security-Policy             | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?
+Signed-Releases             | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?
+Signed-Tags                 | Does the project cryptographically sign release tags?
+Token-Permissions           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?
+Vulnerabilities             | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).
 
 To see detailed information about each check and remediation steps, check out
 the [checks documentation page](checks/checks.md).
@@ -76,7 +74,7 @@ the [checks documentation page](checks/checks.md).
 
 The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
 
-``` shell
+```shell
 docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:latest --show-details --repo=https://github.com/ossf/scorecard
 ```
 
@@ -146,13 +144,14 @@ Token-Permissions: Pass 10
 ```
 
 For more details why a check fails, use the `--show-details` option:
+
 ```
 ./scorecard --repo=github.com/kubernetes/kubernetes --checks Frozen-Deps --show-details
 Starting [Frozen-Deps]
 Finished [Frozen-Deps]
 
-RESULTS
--------
+## RESULTS
+
 Repo: github.com/kubernetes/kubernetes
 Frozen-Deps: Fail 10
 ...
@@ -233,10 +232,10 @@ For example, `--checks=CI-Tests,Code-Review`.
 Before running Scorecard, you need to, either:
 
 -   [create a GitHub access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
-    and set it in an environment variable called `GITHUB_AUTH_TOKEN`, `GITHUB_TOKEN`, `GH_AUTH_TOKEN` or `GH_TOKEN`. This helps to avoid
-    the GitHub's
-    [api rate limits](https://developer.github.com/v3/#rate-limiting) with
-    unauthenticated requests.
+    and set it in an environment variable called `GITHUB_AUTH_TOKEN`,
+    `GITHUB_TOKEN`, `GH_AUTH_TOKEN` or `GH_TOKEN`. This helps to avoid the
+    GitHub's [api rate limits](https://developer.github.com/v3/#rate-limiting)
+    with unauthenticated requests.
 
 ```shell
 # For posix platforms, e.g. linux, mac:

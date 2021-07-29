@@ -66,6 +66,14 @@ func (client *Client) ListMergedPRs() ([]clients.PullRequest, error) {
 	return client.graphClient.getMergedPRs()
 }
 
+func (client *Client) ListCommits() ([]clients.Commit, error) {
+	return client.graphClient.getCommits()
+}
+
+func (client *Client) IsArchived() (bool, error) {
+	return client.graphClient.isArchived()
+}
+
 func (client *Client) GetDefaultBranch() (clients.BranchRef, error) {
 	return client.graphClient.getDefaultBranch()
 }

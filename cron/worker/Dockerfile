@@ -26,5 +26,5 @@ ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-pubsub
 
 FROM gcr.io/distroless/base:nonroot@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
-COPY --from=pubsub /src/cron/worker/worker ./cron/worker/worker
-ENTRYPOINT ["./cron/worker/worker"]
+COPY --from=pubsub /src/cron/worker/worker cron/worker/worker
+ENTRYPOINT ["cron/worker/worker"]
