@@ -16,7 +16,6 @@
 package checker
 
 import (
-	"errors"
 	"fmt"
 	"math"
 )
@@ -31,11 +30,7 @@ const (
 // UPGRADEv2: to remove.
 const migrationThresholdPassValue = 8
 
-// ErrorDemoninatorZero indicates the denominator for a proportional result is 0.
-// UPGRADEv2: to remove.
-var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
-
-// DetailType defines types of details.
+// Types of details.
 type DetailType int
 
 const (
@@ -72,12 +67,11 @@ const (
 // nolint
 type CheckResult struct {
 	// Old structure
-	Error       error `json:"-"`
-	Name        string
-	Details     []string
-	Confidence  int
-	Pass        bool
-	ShouldRetry bool `json:"-"`
+	Error      error `json:"-"`
+	Name       string
+	Details    []string
+	Confidence int
+	Pass       bool
 
 	// UPGRADEv2: New structure. Omitting unchanged Name field
 	// for simplicity.
@@ -137,10 +131,9 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:       nil,
-		Confidence:  MaxResultScore,
-		Pass:        pass,
-		ShouldRetry: false,
+		Error:      nil,
+		Confidence: MaxResultScore,
+		Pass:       pass,
 		// New structure.
 		//nolint
 		Version: 2,
@@ -164,10 +157,9 @@ func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:       nil,
-		Confidence:  MaxResultConfidence,
-		Pass:        pass,
-		ShouldRetry: false,
+		Error:      nil,
+		Confidence: MaxResultConfidence,
+		Pass:       pass,
 		// New structure.
 		//nolint
 		Version: 2,
@@ -198,9 +190,8 @@ func CreateInconclusiveResult(name, reason string) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Confidence:  0,
-		Pass:        false,
-		ShouldRetry: false,
+		Confidence: 0,
+		Pass:       false,
 		// New structure.
 		//nolint
 		Version: 2,
@@ -214,10 +205,9 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:       e,
-		Confidence:  0,
-		Pass:        false,
-		ShouldRetry: false,
+		Error:      e,
+		Confidence: 0,
+		Pass:       false,
 		// New structure.
 		//nolint
 		Version: 2,

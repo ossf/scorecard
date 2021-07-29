@@ -15,11 +15,12 @@
 package roundtripper
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/pkg/errors"
+	sce "github.com/ossf/scorecard/v2/errors"
 	"go.uber.org/zap"
 )
 
@@ -41,7 +42,8 @@ type rateLimitTransport struct {
 func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	resp, err := gh.innerTransport.RoundTrip(r)
 	if err != nil {
-		return nil, errors.Wrap(err, "error in round trip")
+		//nolint:wrapcheck
+		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
 	}
 	rateLimit := resp.Header.Get("X-RateLimit-Remaining")
 	remaining, err := strconv.Atoi(rateLimit)

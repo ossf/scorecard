@@ -18,7 +18,6 @@ package cmd
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	goflag "flag"
 	"fmt"
 	"log"
@@ -36,6 +35,7 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
 	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
 	"github.com/ossf/scorecard/v2/repos"
 	"github.com/ossf/scorecard/v2/roundtripper"
@@ -52,8 +52,6 @@ var (
 	pypi        string
 	rubygems    string
 	showDetails bool
-	// ErrorInvalidFormatFlag indicates an invalid option was passed for the 'format' argument.
-	ErrorInvalidFormatFlag = errors.New("invalid format flag")
 )
 
 const (
@@ -165,7 +163,8 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		case formatJSON:
 			err = repoResult.AsJSON(showDetails, *logLevel, os.Stdout)
 		default:
-			err = fmt.Errorf("%w %s. allowed values are: [default, csv, json]", ErrorInvalidFormatFlag, format)
+			err = sce.Create(sce.ErrScorecardInternal,
+				fmt.Sprintf("invalid format flag: %v. Expected [default, csv, json]", format))
 		}
 		if err != nil {
 			log.Fatalf("Failed to output results: %v", err)
@@ -213,17 +212,21 @@ func fetchGitRepositoryFromNPM(packageName string) (string, error) {
 	}
 	resp, err := client.Get(fmt.Sprintf(npmSearchURL, packageName))
 	if err != nil {
-		return "", fmt.Errorf("failed to get npm package json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to get npm package json: %v", err))
 	}
 
 	defer resp.Body.Close()
 	v := &npmSearchResults{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse npm package json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse npm package json: %v", err))
 	}
 	if len(v.Objects) == 0 {
-		return "", fmt.Errorf("could not find source repo for npm package: %s", packageName)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal,
+			fmt.Sprintf("could not find source repo for npm package: %s", packageName))
 	}
 	return v.Objects[0].Package.Links.Repository, nil
 }
@@ -238,23 +241,26 @@ func fetchGitRepositoryFromPYPI(packageName string) (string, error) {
 	}
 	resp, err := client.Get(fmt.Sprintf(pypiSearchURL, packageName))
 	if err != nil {
-		return "", fmt.Errorf("failed to get pypi package json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to get pypi package json: %v", err))
 	}
 
 	defer resp.Body.Close()
 	v := &pypiSearchResults{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse pypi package json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse pypi package json: %v", err))
 	}
 	if v.Info.ProjectUrls.Source == "" {
-		return "", fmt.Errorf("could not find source repo for pypi package: %s", packageName)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal,
+			fmt.Sprintf("could not find source repo for pypi package: %s", packageName))
 	}
 	return v.Info.ProjectUrls.Source, nil
 }
 
 // Gets the GitHub repository URL for the rubygems package.
-//nolint:noctx,goerr113
 func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 	rubyGemsSearchURL := "https://rubygems.org/api/v1/gems/%s.json"
 	const timeout = 10
@@ -263,17 +269,20 @@ func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 	}
 	resp, err := client.Get(fmt.Sprintf(rubyGemsSearchURL, packageName))
 	if err != nil {
-		return "", fmt.Errorf("failed to get ruby gem json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to get ruby gem json: %v", err))
 	}
 
 	defer resp.Body.Close()
 	v := &rubyGemsSearchResults{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse ruby gem json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse ruby gem json: %v", err))
 	}
 	if v.SourceCodeURI == "" {
-		return "", fmt.Errorf("could not find source repo for ruby gem: %s", packageName)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("could not find source repo for ruby gem: %v", err))
 	}
 	return v.SourceCodeURI, nil
 }
