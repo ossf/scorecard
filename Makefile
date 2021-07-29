@@ -109,10 +109,12 @@ cron/data/request.pb.go: cron/data/request.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/request.proto
 
 generate-docs: ## Generates docs
-generate-docs: checks/checks.md
-checks/checks.md: checks/checks.yaml checks/main/*.go
+generate-docs: docs/checks.md
+docs/checks.md: docs/checks/checks.yaml docs/checks/*.go docs/checks/generate/*.go
+	# Validating checks.yaml
+	go run ./docs/checks/validate/main.go
 	# Generating checks.md
-	cd ./checks/main && go run main.go
+	cd ./docs/checks/generate && go run main.go
 
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable
