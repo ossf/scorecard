@@ -192,21 +192,21 @@ func calculateScore(result permissionCbData) int {
 	// Allows attacker to commit unreviewed code.
 	// High risk: -10
 	if _, ok := result.permissions["contents"]; ok {
-		score -= 10
+		score -= checker.MaxResultScore
 	}
 
 	// packages.
 	// Allows attacker to publish packages.
 	// High risk: -10
 	if _, ok := result.permissions["packages"]; ok {
-		score -= 10
+		score -= checker.MaxResultScore
 	}
 
 	// actions.
 	// May allow an attacker to steal GitHub secrets by adding a malicious workflow/action.
 	// High risk: -10
 	if _, ok := result.permissions["actions"]; ok {
-		score -= 10
+		score -= checker.MaxResultScore
 	}
 
 	if score < 0 {
