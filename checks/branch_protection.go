@@ -127,6 +127,10 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 		return checker.CreateMinScoreResult(CheckBranchProtection, "branch protection is minimal")
 	}
 
+	if score == checker.MaxResultScore {
+		return checker.CreateMaxScoreResult(CheckBranchProtection, "branch protection is fully enabled")
+	}
+
 	return checker.CreateResultWithScore(CheckBranchProtection, "branch protection is not maximal", score)
 }
 
