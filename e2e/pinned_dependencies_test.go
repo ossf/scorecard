@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//nolint:dupl
+
 package e2e
 
 import (
@@ -29,11 +29,11 @@ import (
 // TODO: use dedicated repo that don't change.
 // TODO: need negative results.
 var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
-	Context("E2E TEST:Validating dependencies are pinned", func() {
-		It("Should return dependencies are not pinned", func() {
+	Context("E2E TEST:Validating dependencies check is working", func() {
+		It("Should return dependencies check is working", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
-			err := repoClient.InitRepo("tensorflow", "tensorflow")
+			err := repoClient.InitRepo("ossf-tests", "scorecard-check-pinned-dependencies-e2e")
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -41,17 +41,17 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 				Client:      ghClient,
 				HTTPClient:  httpClient,
 				RepoClient:  repoClient,
-				Owner:       "tensorflow",
-				Repo:        "tensorflow",
+				Owner:       "ossf-tests",
+				Repo:        "scorecard-check-pinned-dependencies-e2e",
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
 				Errors:        nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  374,
-				NumberOfInfo:  0,
-				NumberOfDebug: 4,
+				Score:         3,
+				NumberOfWarn:  149,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
 			}
 			result := checks.FrozenDeps(&req)
 			// UPGRADEv2: to remove.
@@ -59,38 +59,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "dependencies not pinned", &expected, &result, &dl)).Should(BeTrue())
-		})
-		It("Should return dependencies are pinned", func() {
-			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
-			err := repoClient.InitRepo("ossf", "scorecard")
-			Expect(err).Should(BeNil())
-
-			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				HTTPClient:  httpClient,
-				RepoClient:  repoClient,
-				Owner:       "ossf",
-				Repo:        "scorecard",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
-			}
-			expected := scut.TestReturn{
-				Errors:        nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  6,
-				NumberOfDebug: 0,
-			}
-			result := checks.FrozenDeps(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
-			// New version.
-			Expect(scut.ValidateTestReturn(nil, "dependencies pinned", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })
