@@ -118,7 +118,8 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	}
 
 	if !protected {
-		return checker.CreateMinScoreResult(CheckBranchProtection, "branch protection not enabled on development/release branches")
+		return checker.CreateMinScoreResult(CheckBranchProtection,
+			"branch protection not enabled on development/release branches")
 	}
 
 	score := checker.AggregateScores(scores...)
