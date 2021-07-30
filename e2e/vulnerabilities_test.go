@@ -63,8 +63,8 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 				Client:      ghClient,
 				HTTPClient:  httpClient,
 				RepoClient:  nil,
-				Owner:       "oliverchang",
-				Repo:        "open62541",
+				Owner:       "ossf-tests",
+				Repo:        "scorecard-check-vulnerabilities-open62541",
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}
