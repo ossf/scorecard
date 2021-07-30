@@ -121,15 +121,6 @@ func maxScore(s1, s2 int) int {
 	return s2
 }
 
-func getPointerToBool(data FileCbData) *bool {
-	pdata, ok := data.(*bool)
-	if !ok {
-		// This never happens.
-		panic("invalid type")
-	}
-	return pdata
-}
-
 func createReturnValues(r bool, infoMsg string, dl checker.DetailLogger, err error) (int, error) {
 	if err != nil {
 		return checker.InconclusiveResultScore, err
@@ -144,7 +135,7 @@ func createReturnValues(r bool, infoMsg string, dl checker.DetailLogger, err err
 
 func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r bool
-	err := CheckFilesContent2("*", false, c, validateShellScriptIsFreeOfInsecureDownloads, &r)
+	err := CheckFilesContent("*", false, c, validateShellScriptIsFreeOfInsecureDownloads, &r)
 	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -163,7 +154,7 @@ func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
 
 func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := getPointerToBool(data)
+	pdata := FileCbDataAsBoolPointer(data)
 
 	// Validate the file type.
 	if !isShellScriptFile(pathfn, content) {
@@ -181,7 +172,7 @@ func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 
 func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r bool
-	err := CheckFilesContent2("*Dockerfile*", false, c, validateDockerfileIsFreeOfInsecureDownloads, &r)
+	err := CheckFilesContent("*Dockerfile*", false, c, validateDockerfileIsFreeOfInsecureDownloads, &r)
 	return createReturnForIsDockerfileFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -201,7 +192,7 @@ func testValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
 
 func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := getPointerToBool(data)
+	pdata := FileCbDataAsBoolPointer(data)
 
 	// Return early if this is a script, e.g. script_dockerfile_something.sh
 	if isShellScriptFile(pathfn, content) {
@@ -259,7 +250,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 
 func isDockerfilePinned(c *checker.CheckRequest) (int, error) {
 	var r bool
-	err := CheckFilesContent2("*Dockerfile*", false, c, validateDockerfileIsPinned, &r)
+	err := CheckFilesContent("*Dockerfile*", false, c, validateDockerfileIsPinned, &r)
 	return createReturnForIsDockerfilePinned(r, c.Dlogger, err)
 }
 
@@ -282,7 +273,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
 	// Templates may trigger false positives, e.g. FROM { NAME }.
 
-	pdata := getPointerToBool(data)
+	pdata := FileCbDataAsBoolPointer(data)
 	// Return early if this is a script, e.g. script_dockerfile_something.sh
 	if isShellScriptFile(pathfn, content) {
 		*pdata = true
@@ -366,7 +357,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r bool
-	err := CheckFilesContent2(".github/workflows/*", false, c, validateGitHubWorkflowIsFreeOfInsecureDownloads, &r)
+	err := CheckFilesContent(".github/workflows/*", false, c, validateGitHubWorkflowIsFreeOfInsecureDownloads, &r)
 	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -387,7 +378,7 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 
 func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := getPointerToBool(data)
+	pdata := FileCbDataAsBoolPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {
 		*pdata = true
@@ -449,7 +440,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) (int, error) {
 	var r bool
-	err := CheckFilesContent2(".github/workflows/*", true, c, validateGitHubActionWorkflow, &r)
+	err := CheckFilesContent(".github/workflows/*", true, c, validateGitHubActionWorkflow, &r)
 	return createReturnForIsGitHubActionsWorkflowPinned(r, c.Dlogger, err)
 }
 
@@ -469,7 +460,7 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 // Check file content.
 func validateGitHubActionWorkflow(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := getPointerToBool(data)
+	pdata := FileCbDataAsBoolPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {
 		*pdata = true
@@ -510,7 +501,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 // Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 	var r bool
-	err := CheckIfFileExists2(CheckPinnedDependencies, c, validatePackageManagerFile, &r)
+	err := CheckIfFileExists(CheckPinnedDependencies, c, validatePackageManagerFile, &r)
 	if err != nil {
 		return checker.InconclusiveResultScore, err
 	}
@@ -549,9 +540,8 @@ func validatePackageManagerFile(name string, dl checker.DetailLogger, data FileC
 		dl.Info("yarn lock file detected: %s", name)
 	case "composer.lock":
 		dl.Info("composer lock file detected: %s", name)
-
 	}
-	pdata := getPointerToBool(data)
+	pdata := FileCbDataAsBoolPointer(data)
 	*pdata = true
 	return true, nil
 }

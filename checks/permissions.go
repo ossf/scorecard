@@ -40,7 +40,7 @@ type permissionCbData struct {
 
 func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	data := permissionCbData{writePermissions: make(map[string]bool)}
-	err := CheckFilesContent2(".github/workflows/*", false,
+	err := CheckFilesContent(".github/workflows/*", false,
 		c, validateGitHubActionTokenPermissions, &data)
 	return createResultForLeastPrivilegeTokens(data, err)
 }

@@ -36,7 +36,7 @@ func init() {
 // BinaryArtifacts  will check the repository if it contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	var binFound bool
-	err := CheckFilesContent2("*", false, c, checkBinaryFileContent, &binFound)
+	err := CheckFilesContent("*", false, c, checkBinaryFileContent, &binFound)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, err)
 	}
@@ -50,11 +50,7 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 func checkBinaryFileContent(path string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
 	// Verify the type of the data.
-	pfound, ok := data.(*bool)
-	if !ok {
-		// This never happens.
-		panic("invalid type")
-	}
+	pfound := FileCbDataAsBoolPointer(data)
 	binaryFileTypes := map[string]bool{
 		"crx":     true,
 		"deb":     true,

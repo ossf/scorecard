@@ -24,29 +24,6 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-// CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
-// for the occurrence.
-func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(name string,
-	dl checker.DetailLogger) (bool, error)) (bool, error) {
-	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
-	if err != nil {
-		// nolint: wrapcheck
-		return false, err
-	}
-	for _, filename := range matchedFiles {
-		rr, err := onFile(filename, c.Dlogger)
-		if err != nil {
-			return false, err
-		}
-
-		if rr {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
 // isMatchingPath uses 'pattern' to shell-match the 'path' and its filename
 // 'caseSensitive' indicates the match should be case-sensitive. Default: no.
 func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) {
@@ -79,58 +56,6 @@ func isScorecardTestFile(owner, repo, fullpath string) bool {
 		strings.Contains(fullpath, "/testdata/"))
 }
 
-// CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
-// shellPathFnPattern is used for https://golang.org/pkg/path/#Match
-// Warning: the pattern is used to match (1) the entire path AND (2) the filename alone. This means:
-// 	- To scope the search to a directory, use "./dirname/*". Example, for the root directory,
-// 		use "./*".
-//	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
-//nolint
-func CheckFilesContent(shellPathFnPattern string,
-	caseSensitive bool,
-	c *checker.CheckRequest,
-	onFileContent func(path string, content []byte,
-		dl checker.DetailLogger) (bool, error),
-) (bool, error) {
-	predicate := func(filepath string) (bool, error) {
-		// Filter out Scorecard's own test files.
-		if isScorecardTestFile(c.Owner, c.Repo, filepath) {
-			return false, nil
-		}
-		// Filter out files based on path/names using the pattern.
-		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
-		if err != nil {
-			return false, err
-		}
-		return b, nil
-	}
-	res := true
-	matchedFiles, err := c.RepoClient.ListFiles(predicate)
-	if err != nil {
-		// nolint: wrapcheck
-		return false, err
-	}
-	for _, file := range matchedFiles {
-		content, err := c.RepoClient.GetFileContent(file)
-		if err != nil {
-			//nolint
-			return false, err
-		}
-
-		rr, err := onFileContent(file, content, c.Dlogger)
-		if err != nil {
-			return false, err
-		}
-		// We don't return rightway to let the onFileContent()
-		// handler log.
-		if !rr {
-			res = false
-		}
-	}
-
-	return res, nil
-}
-
 // FileCbData is any data the caller can act upon
 // to keep state.
 type FileCbData interface{}
@@ -147,7 +72,7 @@ type FileContentCb func(path string, content []byte,
 // 	- To scope the search to a directory, use "./dirname/*". Example, for the root directory,
 // 		use "./*".
 //	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
-func CheckFilesContent2(shellPathFnPattern string,
+func CheckFilesContent(shellPathFnPattern string,
 	caseSensitive bool,
 	c *checker.CheckRequest,
 	onFileContent FileContentCb,
@@ -195,9 +120,9 @@ func CheckFilesContent2(shellPathFnPattern string,
 type FileCb func(path string,
 	dl checker.DetailLogger, data FileCbData) (bool, error)
 
-// CheckIfFileExists2 downloads the tar of the repository and calls the onFile() to check
+// CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
 // for the occurrence.
-func CheckIfFileExists2(checkName string, c *checker.CheckRequest, onFile FileCb, data FileCbData) error {
+func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile FileCb, data FileCbData) error {
 	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
 	if err != nil {
 		// nolint: wrapcheck
@@ -215,6 +140,15 @@ func CheckIfFileExists2(checkName string, c *checker.CheckRequest, onFile FileCb
 	}
 
 	return nil
+}
+
+func FileCbDataAsBoolPointer(data FileCbData) *bool {
+	pdata, ok := data.(*bool)
+	if !ok {
+		// This never happens.
+		panic("invalid type")
+	}
+	return pdata
 }
 
 // CheckFileContainsCommands checks if the file content contains commands or not.
