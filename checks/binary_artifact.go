@@ -17,6 +17,7 @@ package checks
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
@@ -34,11 +35,12 @@ func init() {
 
 // BinaryArtifacts  will check the repository if it contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent("*", false, c, checkBinaryFileContent)
+	var binFound bool
+	err := CheckFilesContent("*", false, c, checkBinaryFileContent, &binFound)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, err)
 	}
-	if !r {
+	if binFound {
 		return checker.CreateMinScoreResult(CheckBinaryArtifacts, "binaries present in source code")
 	}
 
@@ -46,7 +48,8 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 }
 
 func checkBinaryFileContent(path string, content []byte,
-	dl checker.DetailLogger) (bool, error) {
+	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	pfound := FileGetCbDataAsBoolPointer(data)
 	binaryFileTypes := map[string]bool{
 		"crx":     true,
 		"deb":     true,
@@ -92,12 +95,14 @@ func checkBinaryFileContent(path string, content []byte,
 	}
 
 	if _, ok := binaryFileTypes[t.Extension]; ok {
-		dl.Warn("binary found: %s", path)
-		return false, nil
-	} else if _, ok := binaryFileTypes[filepath.Ext(path)]; ok {
+		dl.Warn("binary detected: %s", path)
+		*pfound = true
+		return true, nil
+	} else if _, ok := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]; ok {
 		// Falling back to file based extension.
-		dl.Warn("binary found: %s", path)
-		return false, nil
+		dl.Warn("binary detected: %s", path)
+		*pfound = true
+		return true, nil
 	}
 
 	return true, nil
