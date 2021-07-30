@@ -61,6 +61,6 @@ func fileExists(name string, dl checker.DetailLogger, data FileCbData) (bool, er
 	}
 
 	*pdata = true
-	// We found the file, no ne dto continue iterating.
+	// We found the file, no need to continue iterating.
 	return false, nil
 }
