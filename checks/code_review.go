@@ -167,7 +167,7 @@ func prowCodeReview(c *checker.CheckRequest) (int, string, error) {
 func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		// nolint: wraperror
+		// nolint: wrapcheck
 		return checker.InconclusiveResultScore, "",
 			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
 	}
