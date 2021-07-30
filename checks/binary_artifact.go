@@ -33,18 +33,14 @@ func init() {
 	registerCheck(CheckBinaryArtifacts, BinaryArtifacts)
 }
 
-type artifactCbData struct {
-	binFound bool
-}
-
 // BinaryArtifacts  will check the repository if it contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	var data artifactCbData
-	err := CheckFilesContent2("*", false, c, checkBinaryFileContent, &data)
+	var binFound bool
+	err := CheckFilesContent2("*", false, c, checkBinaryFileContent, &binFound)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, err)
 	}
-	if data.binFound {
+	if binFound {
 		return checker.CreateMinScoreResult(CheckBinaryArtifacts, "binaries present in source code")
 	}
 
@@ -54,7 +50,7 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 func checkBinaryFileContent(path string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
 	// Verify the type of the data.
-	pdata, ok := data.(*artifactCbData)
+	pfound, ok := data.(*bool)
 	if !ok {
 		// This never happens.
 		panic("invalid type")
@@ -105,12 +101,12 @@ func checkBinaryFileContent(path string, content []byte,
 
 	if _, ok := binaryFileTypes[t.Extension]; ok {
 		dl.Warn("binary detected: %s", path)
-		pdata.binFound = true
+		*pfound = true
 		return true, nil
 	} else if _, ok := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]; ok {
 		// Falling back to file based extension.
 		dl.Warn("binary detected: %s", path)
-		pdata.binFound = true
+		*pfound = true
 		return true, nil
 	}
 
