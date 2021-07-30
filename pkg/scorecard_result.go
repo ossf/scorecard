@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -94,77 +93,10 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer
 	return nil
 }
 
-// UPGRADEv2: will be removed.
 func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
-	sortedChecks := make([]checker.CheckResult, len(r.Checks))
-	//nolint
-	for i, checkResult := range r.Checks {
-		sortedChecks[i] = checkResult
-	}
-	sort.Slice(sortedChecks, func(i, j int) bool {
-		if sortedChecks[i].Pass == sortedChecks[j].Pass {
-			return sortedChecks[i].Name < sortedChecks[j].Name
-		}
-		return sortedChecks[i].Pass
-	})
-
-	data := make([][]string, len(sortedChecks))
-	//nolint
-	for i, row := range sortedChecks {
-		const withdetails = 4
-		const withoutdetails = 3
-		var x []string
-
-		if showDetails {
-			x = make([]string, withdetails)
-		} else {
-			x = make([]string, withoutdetails)
-		}
-
-		x[0] = displayResult(row.Pass)
-		x[1] = strconv.Itoa(row.Confidence)
-		x[2] = row.Name
-		if showDetails {
-			//nolint
-			if row.Version == 2 {
-				details, show := detailsToString(row.Details2, logLevel)
-				if show {
-					x[3] = details
-				}
-			} else {
-				x[3] = strings.Join(row.Details, "\n")
-			}
-		}
-		data[i] = x
-	}
-
-	fmt.Fprintf(writer, "Repo: %s\n", r.Repo)
-	table := tablewriter.NewWriter(os.Stdout)
-	header := []string{"Status", "Confidence", "Name"}
-	if showDetails {
-		header = append(header, "Details")
-	}
-	table.SetHeader(header)
-	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
-	table.SetRowSeparator("-")
-	table.SetRowLine(true)
-	table.SetCenterSeparator("|")
-	table.AppendBulk(data)
-	table.Render()
-
-	return nil
-}
-
-// UPGRADEv2: new code.
-func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	data := make([][]string, len(r.Checks))
 	//nolint
-	// UPGRADEv2: not needed after upgrade.
 	for i, row := range r.Checks {
-		//nolint
-		if row.Version != 2 {
-			continue
-		}
 		const withdetails = 5
 		const withoutdetails = 4
 		var x []string
