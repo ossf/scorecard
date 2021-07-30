@@ -49,7 +49,7 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 
 func checkBinaryFileContent(path string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pfound := FileCbDataAsBoolPointer(data)
+	pfound := FileGetCbDataAsBoolPointer(data)
 	binaryFileTypes := map[string]bool{
 		"crx":     true,
 		"deb":     true,

@@ -142,7 +142,7 @@ func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile FileCb,
 	return nil
 }
 
-func FileCbDataAsBoolPointer(data FileCbData) *bool {
+func FileGetCbDataAsBoolPointer(data FileCbData) *bool {
 	pdata, ok := data.(*bool)
 	if !ok {
 		// This never happens.

@@ -37,7 +37,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	var r bool
 	// Check repository for repository-specific policy.
 	onFile := func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
-		pdata := FileCbDataAsBoolPointer(data)
+		pdata := FileGetCbDataAsBoolPointer(data)
 		if strings.EqualFold(name, "security.md") {
 			c.Dlogger.Info("security policy detected: %s", name)
 			*pdata = true
@@ -69,7 +69,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		defer dotGitHubClient.Close()
 		dotGitHub.RepoClient = dotGitHubClient
 		onFile = func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
-			pdata := FileCbDataAsBoolPointer(data)
+			pdata := FileGetCbDataAsBoolPointer(data)
 			if strings.EqualFold(name, "security.md") {
 				dl.Info("security policy detected in .github folder: %s", name)
 				*pdata = true

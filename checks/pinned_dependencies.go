@@ -154,7 +154,7 @@ func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
 
 func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := FileCbDataAsBoolPointer(data)
+	pdata := FileGetCbDataAsBoolPointer(data)
 
 	// Validate the file type.
 	if !isShellScriptFile(pathfn, content) {
@@ -192,7 +192,7 @@ func testValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
 
 func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := FileCbDataAsBoolPointer(data)
+	pdata := FileGetCbDataAsBoolPointer(data)
 
 	// Return early if this is a script, e.g. script_dockerfile_something.sh
 	if isShellScriptFile(pathfn, content) {
@@ -273,7 +273,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
 	// Templates may trigger false positives, e.g. FROM { NAME }.
 
-	pdata := FileCbDataAsBoolPointer(data)
+	pdata := FileGetCbDataAsBoolPointer(data)
 	// Return early if this is a script, e.g. script_dockerfile_something.sh
 	if isShellScriptFile(pathfn, content) {
 		*pdata = true
@@ -378,7 +378,7 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 
 func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := FileCbDataAsBoolPointer(data)
+	pdata := FileGetCbDataAsBoolPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {
 		*pdata = true
@@ -460,7 +460,7 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 // Check file content.
 func validateGitHubActionWorkflow(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := FileCbDataAsBoolPointer(data)
+	pdata := FileGetCbDataAsBoolPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {
 		*pdata = true
@@ -541,7 +541,7 @@ func validatePackageManagerFile(name string, dl checker.DetailLogger, data FileC
 	case "composer.lock":
 		dl.Info("composer lock file detected: %s", name)
 	}
-	pdata := FileCbDataAsBoolPointer(data)
+	pdata := FileGetCbDataAsBoolPointer(data)
 	*pdata = true
 	return true, nil
 }

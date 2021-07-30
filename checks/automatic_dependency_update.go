@@ -46,7 +46,7 @@ func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
 
 // fileExists will validate the if frozen dependencies file name exists.
 func fileExists(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := FileCbDataAsBoolPointer(data)
+	pdata := FileGetCbDataAsBoolPointer(data)
 
 	switch strings.ToLower(name) {
 	case ".github/dependabot.yml":
