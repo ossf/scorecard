@@ -175,11 +175,3 @@ func typeToString(cd checker.DetailType) string {
 		return "Debug"
 	}
 }
-
-// UPGRADEv2: not needed after upgrade.
-func displayResult(result bool) string {
-	if result {
-		return "Pass"
-	}
-	return "Fail"
-}
