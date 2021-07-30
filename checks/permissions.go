@@ -35,11 +35,11 @@ func init() {
 // Each field correpsonds to a GitHub permission type, and
 // will hold true if declared non-write, false otherwise.
 type permissionCbData struct {
-	permissions map[string]bool
+	writePermissions map[string]bool
 }
 
 func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
-	data := permissionCbData{permissions: make(map[string]bool)}
+	data := permissionCbData{writePermissions: make(map[string]bool)}
 	err := CheckFilesContent2(".github/workflows/*", false,
 		c, validateGitHubActionTokenPermissions, &data)
 	return createResultForLeastPrivilegeTokens(data, err)
@@ -87,13 +87,13 @@ func validateMapPermissions(values map[interface{}]interface{}, path string,
 }
 
 func recordPermissionWrite(name string, pdata *permissionCbData) {
-	pdata.permissions[name] = true
+	pdata.writePermissions[name] = true
 }
 
 func recordAllPermissionsWrite(pdata *permissionCbData) {
 	// Special case: `all` does not correspond
 	// to a GitHub permission.
-	pdata.permissions["all"] = true
+	pdata.writePermissions["all"] = true
 }
 
 func validateReadPermissions(config map[interface{}]interface{}, path string,
@@ -153,7 +153,7 @@ func calculateScore(result permissionCbData) int {
 	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
 	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
 	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
-	if _, ok := result.permissions["all"]; ok {
+	if _, ok := result.writePermissions["all"]; ok {
 		return checker.MinResultScore
 	}
 
@@ -161,21 +161,21 @@ func calculateScore(result permissionCbData) int {
 	// status: https://docs.github.com/en/rest/reference/repos#statuses.
 	// May allow an attacker to change the result of pre-submit and get a PR merged.
 	// Low risk: -0.5.
-	if _, ok := result.permissions["statuses"]; ok {
+	if _, ok := result.writePermissions["statuses"]; ok {
 		score -= 0.5
 	}
 
 	// checks.
 	// May allow an attacker to edit checks to remove pre-submit and introduce a bug.
-	// Low risk: -1.
-	if _, ok := result.permissions["checks"]; ok {
+	// Low risk: -0.5.
+	if _, ok := result.writePermissions["checks"]; ok {
 		score -= 0.5
 	}
 
 	// secEvents.
 	// May allow attacker to read vuln reports before patch available.
 	// Low risk: -1
-	if _, ok := result.permissions["security-events"]; ok {
+	if _, ok := result.writePermissions["security-events"]; ok {
 		score--
 	}
 
@@ -184,33 +184,33 @@ func calculateScore(result permissionCbData) int {
 	// and tiny chance an attacker can trigger a remote
 	// service with code they own if server accepts code/location var unsanitized.
 	// Low risk: -1
-	if _, ok := result.permissions["deployments"]; ok {
+	if _, ok := result.writePermissions["deployments"]; ok {
 		score--
 	}
 
 	// contents.
 	// Allows attacker to commit unreviewed code.
 	// High risk: -10
-	if _, ok := result.permissions["contents"]; ok {
+	if _, ok := result.writePermissions["contents"]; ok {
 		score -= checker.MaxResultScore
 	}
 
 	// packages.
 	// Allows attacker to publish packages.
 	// High risk: -10
-	if _, ok := result.permissions["packages"]; ok {
+	if _, ok := result.writePermissions["packages"]; ok {
 		score -= checker.MaxResultScore
 	}
 
 	// actions.
 	// May allow an attacker to steal GitHub secrets by adding a malicious workflow/action.
 	// High risk: -10
-	if _, ok := result.permissions["actions"]; ok {
+	if _, ok := result.writePermissions["actions"]; ok {
 		score -= checker.MaxResultScore
 	}
 
-	if score < 0 {
-		return 0
+	if score < checker.MinResultScore {
+		return checker.MinResultScore
 	}
 
 	return int(score)
@@ -235,7 +235,7 @@ func createResultForLeastPrivilegeTokens(result permissionCbData, err error) che
 
 func testValidateGitHubActionTokenPermissions(pathfn string,
 	content []byte, dl checker.DetailLogger) checker.CheckResult {
-	data := permissionCbData{permissions: make(map[string]bool)}
+	data := permissionCbData{writePermissions: make(map[string]bool)}
 	_, err := validateGitHubActionTokenPermissions(pathfn, content, dl, &data)
 	return createResultForLeastPrivilegeTokens(data, err)
 }

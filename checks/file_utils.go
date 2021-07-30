@@ -173,12 +173,12 @@ func CheckFilesContent2(shellPathFnPattern string,
 			return err
 		}
 
-		ct, err := onFileContent(file, content, c.Dlogger, data)
+		contIterate, err := onFileContent(file, content, c.Dlogger, data)
 		if err != nil {
 			return err
 		}
 
-		if !ct {
+		if !contIterate {
 			break
 		}
 	}
