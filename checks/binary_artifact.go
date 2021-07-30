@@ -49,7 +49,6 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 
 func checkBinaryFileContent(path string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	// Verify the type of the data.
 	pfound := FileCbDataAsBoolPointer(data)
 	binaryFileTypes := map[string]bool{
 		"crx":     true,
