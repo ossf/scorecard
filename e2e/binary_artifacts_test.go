@@ -29,7 +29,7 @@ import (
 
 // TODO: use dedicated repo that don't change.
 // TODO: need negative results.
-var _ = Describe("E2E TEST:Binary-Artifacts", func() {
+var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 	Context("E2E TEST:Binary artifacts are not present in source code", func() {
 		It("Should return not binary artifacts in source code", func() {
 			dl := scut.TestDetailLogger{}
@@ -65,22 +65,23 @@ var _ = Describe("E2E TEST:Binary-Artifacts", func() {
 		It("Should return binary artifacts present in source code", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
-			err := repoClient.InitRepo("a1ive", "grub2-filemanager")
+			err := repoClient.InitRepo("ossf-tests", "scorecard-check-binary-artifacts-e2e")
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				RepoClient:  repoClient,
-				Owner:       "a1ive",
-				Repo:        "grub2-filemanager",
+				Owner:       "ossf-tests",
+				Repo:        "scorecard-check-binary-artifacts-e2e",
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}
+			// TODO: upload real binaries to the repo as well.
 			expected := scut.TestReturn{
 				Errors:        nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  1,
+				NumberOfWarn:  35,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}

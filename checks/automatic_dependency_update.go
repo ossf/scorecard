@@ -29,30 +29,38 @@ func init() {
 
 // AutomaticDependencyUpdate will check the repository if it contains Automatic dependency update.
 func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckIfFileExists(CheckAutomaticDependencyUpdate, c, fileExists)
+	var r bool
+	err := CheckIfFileExists(CheckAutomaticDependencyUpdate, c, fileExists, &r)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckAutomaticDependencyUpdate, err)
 	}
 	if !r {
-		return checker.CreateMinScoreResult(CheckAutomaticDependencyUpdate, "no tool detected [dependabot|renovabot]")
+		c.Dlogger.Warn("dependabot not detected")
+		c.Dlogger.Warn("renovatebot not detected")
+		return checker.CreateMinScoreResult(CheckAutomaticDependencyUpdate, "no update tool detected")
 	}
 
 	// High score result.
-	return checker.CreateMaxScoreResult(CheckAutomaticDependencyUpdate, "tool detected")
+	return checker.CreateMaxScoreResult(CheckAutomaticDependencyUpdate, "update tool detected")
 }
 
 // fileExists will validate the if frozen dependencies file name exists.
-func fileExists(name string, dl checker.DetailLogger) (bool, error) {
+func fileExists(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
+	pdata := FileGetCbDataAsBoolPointer(data)
+
 	switch strings.ToLower(name) {
 	case ".github/dependabot.yml":
 		dl.Info("dependabot detected : %s", name)
-		return true, nil
 		// https://docs.renovatebot.com/configuration-options/
 	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
 		"renovate.json5", ".renovaterc":
 		dl.Info("renovate detected: %s", name)
-		return true, nil
 	default:
-		return false, nil
+		// Continue iterating.
+		return true, nil
 	}
+
+	*pdata = true
+	// We found the file, no need to continue iterating.
+	return false, nil
 }

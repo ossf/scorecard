@@ -34,18 +34,22 @@ func init() {
 }
 
 func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
-	// check repository for repository-specific policy
-	onFile := func(name string, dl checker.DetailLogger) (bool, error) {
+	var r bool
+	// Check repository for repository-specific policy.
+	onFile := func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
+		pdata := FileGetCbDataAsBoolPointer(data)
 		if strings.EqualFold(name, "security.md") {
 			c.Dlogger.Info("security policy detected: %s", name)
-			return true, nil
+			*pdata = true
+			return false, nil
 		} else if isSecurityRstFound(name) {
 			c.Dlogger.Info("security policy detected: %s", name)
-			return true, nil
+			*pdata = true
+			return false, nil
 		}
-		return false, nil
+		return true, nil
 	}
-	r, err := CheckIfFileExists(CheckSecurityPolicy, c, onFile)
+	err := CheckIfFileExists(CheckSecurityPolicy, c, onFile, &r)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
@@ -64,14 +68,16 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	case err == nil:
 		defer dotGitHubClient.Close()
 		dotGitHub.RepoClient = dotGitHubClient
-		onFile = func(name string, dl checker.DetailLogger) (bool, error) {
+		onFile = func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
+			pdata := FileGetCbDataAsBoolPointer(data)
 			if strings.EqualFold(name, "security.md") {
 				dl.Info("security policy detected in .github folder: %s", name)
-				return true, nil
+				*pdata = true
+				return false, nil
 			}
-			return false, nil
+			return true, nil
 		}
-		r, err = CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile)
+		err = CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile, &r)
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 		}
