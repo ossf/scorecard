@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v2/clients"
 )
 
+// Client is GitHub-specific implementation of RepoClient.
 type Client struct {
 	repo        *github.Repository
 	repoClient  *github.Client
@@ -32,6 +33,7 @@ type Client struct {
 	tarball     tarballHandler
 }
 
+// InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
 func (client *Client) InitRepo(owner, repoName string) error {
 	// Sanity check
 	repo, _, err := client.repoClient.Repositories.Get(client.ctx, owner, repoName)
@@ -54,34 +56,42 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	return nil
 }
 
+// ListFiles implements RepoClient.ListFiles.
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	return client.tarball.listFiles(predicate)
 }
 
+// GetFileContent implements RepoClient.GetFileContent.
 func (client *Client) GetFileContent(filename string) ([]byte, error) {
 	return client.tarball.getFileContent(filename)
 }
 
+// ListMergedPRs implements RepoClient.ListMergedPRs.
 func (client *Client) ListMergedPRs() ([]clients.PullRequest, error) {
 	return client.graphClient.getMergedPRs()
 }
 
+// ListCommits implements RepoClient.ListCommits.
 func (client *Client) ListCommits() ([]clients.Commit, error) {
 	return client.graphClient.getCommits()
 }
 
+// IsArchived implements RepoClient.IsArchived.
 func (client *Client) IsArchived() (bool, error) {
 	return client.graphClient.isArchived()
 }
 
+// GetDefaultBranch implements RepoClient.GetDefaultBranch.
 func (client *Client) GetDefaultBranch() (clients.BranchRef, error) {
 	return client.graphClient.getDefaultBranch()
 }
 
+// Close implements RepoClient.Close.
 func (client *Client) Close() error {
 	return client.tarball.cleanup()
 }
 
+// CreateGithubRepoClient returns a Client which implements RepoClient interface.
 func CreateGithubRepoClient(ctx context.Context,
 	client *github.Client, graphClient *githubv4.Client) clients.RepoClient {
 	return &Client{

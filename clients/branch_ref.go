@@ -14,11 +14,13 @@
 
 package clients
 
+// BranchRef holds data about a Git branch.
 type BranchRef struct {
 	Name                 string
 	BranchProtectionRule BranchProtectionRule
 }
 
+// BranchProtectionRule specifies rules for a Git branch.
 type BranchProtectionRule struct {
 	RequiredApprovingReviewCount int
 }

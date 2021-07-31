@@ -69,6 +69,7 @@ func runEnabledChecks(ctx context.Context,
 	close(resultsCh)
 }
 
+// RunScorecards runs enabled Scorecard checks on a RepoURL.
 func RunScorecards(ctx context.Context,
 	repo repos.RepoURL,
 	checksToRun checker.CheckNameToFnMap,

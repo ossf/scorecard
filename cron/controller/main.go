@@ -28,7 +28,7 @@ import (
 	"github.com/ossf/scorecard/v2/cron/pubsub"
 )
 
-func PublishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime time.Time) (int32, error) {
+func publishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime time.Time) (int32, error) {
 	var shardNum int32
 	request := data.ScorecardBatchRequest{
 		JobTime:  timestamppb.New(datetime),
@@ -98,7 +98,7 @@ func main() {
 		panic(err)
 	}
 
-	shardNum, err := PublishToRepoRequestTopic(ctx, reader, t)
+	shardNum, err := publishToRepoRequestTopic(ctx, reader, t)
 	if err != nil {
 		panic(err)
 	}

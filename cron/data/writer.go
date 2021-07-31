@@ -37,6 +37,7 @@ func repoFormatFromRepoURL(repoURLs []repos.RepoURL) []repoFormat {
 	return repoentries
 }
 
+// SortAndAppendTo appends `oldRepos` and `newRepos` before sorting and writing out the result to `out`.
 func SortAndAppendTo(out io.Writer, oldRepos, newRepos []repos.RepoURL) error {
 	repoentries := repoFormatFromRepoURL(oldRepos)
 	repoentries = append(repoentries, repoFormatFromRepoURL(newRepos)...)
@@ -53,6 +54,7 @@ func SortAndAppendTo(out io.Writer, oldRepos, newRepos []repos.RepoURL) error {
 	return nil
 }
 
+// SortAndAppendFrom reads from `in`, appends to newRepos and writes the sorted output to `out`.
 func SortAndAppendFrom(in io.Reader, out io.Writer, newRepos []repos.RepoURL) error {
 	iter, err := MakeIteratorFrom(in)
 	if err != nil {

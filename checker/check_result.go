@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package checker includes structs and functions used for running a check.
 package checker
 
 import (
@@ -34,12 +35,15 @@ const migrationThresholdPassValue = 8
 // UPGRADEv2: to remove.
 var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
 
-// Types of details.
+//  DetailType defines types of details.
 type DetailType int
 
 const (
+	// DetailInfo is info-level log.
 	DetailInfo DetailType = iota
+	// DetailWarn is warn log.
 	DetailWarn
+	// DetailDebug is debug log.
 	DetailDebug
 )
 
@@ -50,6 +54,7 @@ type CheckDetail struct {
 	Msg  string     // A short string explaining why the details was recorded/logged..
 }
 
+// DetailLogger logs map to CheckDetail struct.
 type DetailLogger interface {
 	Info(desc string, args ...interface{})
 	Warn(desc string, args ...interface{})
@@ -63,7 +68,8 @@ const (
 	InconclusiveResultScore = -1
 )
 
-//nolint
+// nolint
+// CheckResult captures result from a check run.
 type CheckResult struct {
 	// Old structure
 	Error       error `json:"-"`
@@ -82,7 +88,7 @@ type CheckResult struct {
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
 }
 
-// CreateProportionalScore() creates a proportional score.
+// CreateProportionalScore creates a proportional score.
 func CreateProportionalScore(success, total int) int {
 	if total == 0 {
 		return 0
@@ -115,6 +121,7 @@ func AggregateScoresWithWeight(scores map[int]int) int {
 	return int(math.Floor(float64(r) / float64(ws)))
 }
 
+// NormalizeReason - placeholder function if we want to update range of scores.
 func NormalizeReason(reason string, score int) string {
 	return fmt.Sprintf("%v -- score normalized to %d", reason, score)
 }

@@ -18,23 +18,22 @@ import (
 	"time"
 )
 
+// PullRequest struct represents a PR as returned by RepoClient.
 // nolint: govet
 type PullRequest struct {
 	MergedAt    time.Time
-	MergeCommit MergeCommit
+	MergeCommit Commit
 	Number      int
 	Labels      []Label
 	Reviews     []Review
 }
 
-type MergeCommit struct {
-	AuthoredByCommitter bool
-}
-
+// Label represents a PR label.
 type Label struct {
 	Name string
 }
 
+// Review represents a PR review.
 type Review struct {
 	State string
 }

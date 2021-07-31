@@ -24,6 +24,7 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
+// CheckTokenPermissions is the exported name for Token-Permissions check.
 const CheckTokenPermissions = "Token-Permissions"
 
 //nolint:gochecknoinits
@@ -38,6 +39,7 @@ type permissionCbData struct {
 	writePermissions map[string]bool
 }
 
+// TokenPermissions runs Token-Permissions check.
 func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	data := permissionCbData{writePermissions: make(map[string]bool)}
 	err := CheckFilesContent(".github/workflows/*", false,

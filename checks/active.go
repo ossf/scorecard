@@ -23,6 +23,7 @@ import (
 )
 
 const (
+	// CheckActive is the exported check name for Active.
 	CheckActive    = "Active"
 	lookBackDays   = 90
 	commitsPerWeek = 1
@@ -34,6 +35,7 @@ func init() {
 	registerCheck(CheckActive, IsActive)
 }
 
+// IsActive runs Active check.
 func IsActive(c *checker.CheckRequest) checker.CheckResult {
 	archived, err := c.RepoClient.IsArchived()
 	if err != nil {
