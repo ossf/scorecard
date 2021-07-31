@@ -67,11 +67,6 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 	Short: "Security Scorecards",
 	Long:  "A program that shows security scorecard for an open source software.",
 	Run: func(cmd *cobra.Command, args []string) {
-		// UPGRADEv2: to remove.
-		_, v2 := os.LookupEnv("SCORECARD_V2")
-		if v2 {
-			fmt.Printf("*** USING v2 MIGRATION CODE ***\n\n")
-		}
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
 		logger, err := cfg.Build()
@@ -160,14 +155,10 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			fmt.Println("\nRESULTS\n-------")
 		}
 
+		// UPGRADEv2: support CSV/JSON.
 		switch format {
 		case formatDefault:
-			// UPGRADEv2: to remove.
-			if v2 {
-				err = repoResult.AsString2(showDetails, *logLevel, os.Stdout)
-			} else {
-				err = repoResult.AsString(showDetails, *logLevel, os.Stdout)
-			}
+			err = repoResult.AsString(showDetails, *logLevel, os.Stdout)
 		case formatCSV:
 			err = repoResult.AsCSV(showDetails, *logLevel, os.Stdout)
 		case formatJSON:

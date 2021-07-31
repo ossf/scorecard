@@ -11,21 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+name: write-and-read workflow
+on: [push]
+permissions:
+  statuses: write
+  contents: read
+  checks: write
+  packages: none
+  issues: write
 
-
-FROM  golang:1.16.4@sha256:6f0b0a314b158ff6caf8f12d7f6f3a966500ec6afb533e986eca7375e2f7560f AS base
-WORKDIR /src
-ENV CGO_ENABLED=0
-COPY go.* ./
-RUN go mod download
-COPY . ./
-
-FROM base AS pubsub
-ARG TARGETOS
-ARG TARGETARCH
-RUN CGO_ENABLED=0 make build-pubsub
-
-FROM gcr.io/distroless/base:nonroot@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
-COPY --from=pubsub /src/cron/worker/worker cron/worker/worker
-# TODO(azeems): Stop ignoring runtime errors.
-ENTRYPOINT ["cron/worker/worker", "--ignoreRuntimeErrors=true"]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "write-and-read workflow"

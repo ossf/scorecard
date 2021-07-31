@@ -219,21 +219,3 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
 	}
 }
-
-// UPGRADEv2: functions below will be renamed.
-func MakeAndResult2(checks ...CheckResult) CheckResult {
-	if len(checks) == 0 {
-		// That should never happen.
-		panic("MakeResult called with no checks")
-	}
-
-	worseResult := checks[0]
-	// UPGRADEv2: will go away after old struct is removed.
-	//nolint
-	for _, result := range checks[1:] {
-		if result.Score < worseResult.Score {
-			worseResult = result
-		}
-	}
-	return worseResult
-}

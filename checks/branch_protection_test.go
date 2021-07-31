@@ -93,7 +93,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			name: "Only development branch",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         2,
+				Score:         1,
 				NumberOfWarn:  6,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
@@ -141,9 +141,9 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			name: "Take worst of release and development",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         2,
-				NumberOfWarn:  9,
-				NumberOfInfo:  7,
+				Score:         5,
+				NumberOfWarn:  8,
+				NumberOfInfo:  9,
 				NumberOfDebug: 0,
 			},
 			defaultBranch: &main,
@@ -222,9 +222,9 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			name: "Both release and development are OK",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         5,
-				NumberOfWarn:  6,
-				NumberOfInfo:  10,
+				Score:         9,
+				NumberOfWarn:  4,
+				NumberOfInfo:  14,
 				NumberOfDebug: 0,
 			},
 			defaultBranch: &main,
@@ -303,7 +303,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			name: "Ignore a non-branch targetcommitish",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         2,
+				Score:         1,
 				NumberOfWarn:  6,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
@@ -352,8 +352,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Errors:        []error{sce.ErrScorecardInternal},
 				Score:         checker.InconclusiveResultScore,
-				NumberOfWarn:  6,
-				NumberOfInfo:  2,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
 			defaultBranch: &main,
@@ -427,7 +427,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Nothing is enabled",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         2,
+				Score:         1,
 				NumberOfWarn:  6,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
@@ -470,7 +470,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Nothing is enabled and values in github.Protection are nil",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         2,
+				Score:         1,
 				NumberOfWarn:  4,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
@@ -481,8 +481,8 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Required status check enabled",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         3,
-				NumberOfWarn:  5,
+				Score:         2,
+				NumberOfWarn:  6,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
@@ -526,7 +526,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Errors:        nil,
 				Score:         2,
 				NumberOfWarn:  6,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
 			protection: &github.Protection{
@@ -567,7 +567,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Required pull request enabled",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         3,
+				Score:         2,
 				NumberOfWarn:  5,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
@@ -653,7 +653,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Required linear history enabled",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         3,
+				Score:         2,
 				NumberOfWarn:  5,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
@@ -696,7 +696,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Allow force push enabled",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         1,
+				Score:         0,
 				NumberOfWarn:  7,
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
@@ -739,7 +739,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Allow deletions enabled",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         1,
+				Score:         0,
 				NumberOfWarn:  7,
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
@@ -782,9 +782,9 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Branches are protected",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         5,
-				NumberOfWarn:  3,
-				NumberOfInfo:  5,
+				Score:         9,
+				NumberOfWarn:  2,
+				NumberOfInfo:  7,
 				NumberOfDebug: 0,
 			},
 			protection: &github.Protection{
@@ -827,8 +827,8 @@ func TestIsBranchProtected(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
-			r := IsBranchProtected(tt.protection, "test", &dl)
-			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
+			score := IsBranchProtected(tt.protection, "test", &dl)
+			scut.ValidateTestValues(t, tt.name, &tt.expected, score, nil, &dl)
 		})
 	}
 }
