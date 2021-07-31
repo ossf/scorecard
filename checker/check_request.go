@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v2/clients"
 )
 
+// CheckRequest struct encapsulates all data to be passed into a CheckFn.
 type CheckRequest struct {
 	Ctx         context.Context
 	Client      *github.Client

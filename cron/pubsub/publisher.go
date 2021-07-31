@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package pubsub handles interactions with PubSub framework.
 package pubsub
 
 import (
@@ -33,11 +34,13 @@ import (
 
 var errorPublish = errors.New("total errors when publishing")
 
+// Publisher interface is used to publish cron job requests to PubSub.
 type Publisher interface {
 	Publish(request *data.ScorecardBatchRequest) error
 	Close() error
 }
 
+// CreatePublisher returns an implementation of the Publisher interface.
 func CreatePublisher(ctx context.Context, topicURL string) (Publisher, error) {
 	ret := publisherImpl{}
 	topic, err := pubsub.OpenTopic(ctx, topicURL)

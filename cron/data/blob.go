@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package data contains util fns for reading and writing data handled by the cron job.
 package data
 
 import (
@@ -40,6 +41,7 @@ var (
 	errParseBlobName = errors.New("error parsing input blob name")
 )
 
+// GetBlobKeys returns all object keys for a given bucketURL.
 func GetBlobKeys(ctx context.Context, bucketURL string) ([]string, error) {
 	bucket, err := blob.OpenBucket(ctx, bucketURL)
 	if err != nil {
@@ -62,6 +64,7 @@ func GetBlobKeys(ctx context.Context, bucketURL string) ([]string, error) {
 	return keys, nil
 }
 
+// GetBlobContent returns the file content given a bucketURL and object key.
 func GetBlobContent(ctx context.Context, bucketURL, key string) ([]byte, error) {
 	bucket, err := blob.OpenBucket(ctx, bucketURL)
 	if err != nil {
@@ -76,6 +79,7 @@ func GetBlobContent(ctx context.Context, bucketURL, key string) ([]byte, error) 
 	return keyData, nil
 }
 
+// BlobExists checks whether a given `bucketURL/key` blob exists.
 func BlobExists(ctx context.Context, bucketURL, key string) (bool, error) {
 	bucket, err := blob.OpenBucket(ctx, bucketURL)
 	if err != nil {
@@ -90,6 +94,7 @@ func BlobExists(ctx context.Context, bucketURL, key string) (bool, error) {
 	return ret, nil
 }
 
+// WriteToBlobStore creates and writes data to filename in bucketURL.
 func WriteToBlobStore(ctx context.Context, bucketURL, filename string, data []byte) error {
 	bucket, err := blob.OpenBucket(ctx, bucketURL)
 	if err != nil {
@@ -110,18 +115,22 @@ func WriteToBlobStore(ctx context.Context, bucketURL, filename string, data []by
 	return nil
 }
 
+// GetBlobFilename returns a blob key for a shard. Takes Time object and filename as input.
 func GetBlobFilename(filename string, datetime time.Time) string {
 	return datetime.Format(filePrefixFormat) + filename
 }
 
+// GetShardNumFilename returns shard_num filename for a shard.
 func GetShardNumFilename(datetime time.Time) string {
 	return GetBlobFilename(config.ShardNumFilename, datetime)
 }
 
+// GetTransferStatusFilename returns transfer_status filename for a shard.
 func GetTransferStatusFilename(datetime time.Time) string {
 	return GetBlobFilename(config.TransferStatusFilename, datetime)
 }
 
+// ParseBlobFilename parses a blob key into a Time object.
 func ParseBlobFilename(key string) (time.Time, string, error) {
 	if len(key) < len(filePrefixFormat) {
 		return time.Now(), "", fmt.Errorf("%w: %s", errShortBlobName, key)

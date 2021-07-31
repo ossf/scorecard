@@ -194,6 +194,7 @@ type rubyGemsSearchResults struct {
 	SourceCodeURI string `json:"source_code_uri"`
 }
 
+// Execute runs the Scorecard commandline.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

@@ -25,6 +25,7 @@ import (
 )
 
 const (
+	// CheckBranchProtection is the exported name for Branch-Protected check.
 	CheckBranchProtection = "Branch-Protection"
 	minReviews            = 2
 )
@@ -45,6 +46,7 @@ type repositories interface {
 		*github.Protection, *github.Response, error)
 }
 
+// BranchProtection runs Branch-Protection check.
 func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	// Checks branch protection on both release and development branch.
 	return checkReleaseAndDevBranchProtection(c.Ctx, c.Client.Repositories, c.Dlogger, c.Owner, c.Repo)
@@ -178,6 +180,7 @@ func getProtectionAndCheck(ctx context.Context, r repositories, dl checker.Detai
 	return IsBranchProtected(protection, branch, dl), nil
 }
 
+// IsBranchProtected checks branch protection rules on a Git branch.
 func IsBranchProtected(protection *github.Protection, branch string, dl checker.DetailLogger) int {
 	totalScore := 15
 	score := 0

@@ -33,6 +33,7 @@ func init() {
 	registerCheck(CheckSAST, SAST)
 }
 
+// SAST runs SAST check.
 func SAST(c *checker.CheckRequest) checker.CheckResult {
 	sastScore, sastErr := SASTToolInCheckRuns(c)
 	if sastErr != nil {

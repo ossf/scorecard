@@ -27,6 +27,7 @@ import (
 // ErrorInParse indicates there was an error while unmarshalling the protocol buffer message.
 var ErrorInParse = errors.New("error during protojson.Unmarshal")
 
+// Subscriber interface is used pull messages from PubSub.
 type Subscriber interface {
 	SynchronousPull() (*data.ScorecardBatchRequest, error)
 	Ack()
@@ -34,6 +35,8 @@ type Subscriber interface {
 	Close() error
 }
 
+// CreateSubscriber returns an implementation of Subscriber interface.
+// Currently returns an instance of gcsSubscriber.
 func CreateSubscriber(ctx context.Context, subscriptionURL string) (Subscriber, error) {
 	return createGCSSubscriber(ctx, subscriptionURL)
 }

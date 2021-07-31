@@ -34,6 +34,7 @@ func init() {
 	registerCheck(CheckPackaging, Packaging)
 }
 
+// Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	_, dc, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, ".github/workflows",
 		&github.RepositoryContentGetOptions{})

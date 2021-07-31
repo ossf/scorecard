@@ -87,7 +87,7 @@ func transferDataToBq(ctx context.Context, bucketURL string, summary *bucketSumm
 		}
 
 		shardFileURI := data.GetBlobFilename("shard-*", creationTime)
-		if err := StartDataTransferJob(ctx, bucketURL, shardFileURI, creationTime); err != nil {
+		if err := startDataTransferJob(ctx, bucketURL, shardFileURI, creationTime); err != nil {
 			return fmt.Errorf("error during StartDataTransferJob: %w", err)
 		}
 

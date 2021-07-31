@@ -36,6 +36,7 @@ func init() {
 	registerCheck(CheckContributors, Contributors)
 }
 
+// Contributors run Contributors check.
 func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	contribs, _, err := c.Client.Repositories.ListContributors(c.Ctx, c.Owner, c.Repo, &github.ListContributorsOptions{})
 	if err != nil {

@@ -12,31 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package clients defines the interface for RepoClient and related structs.
 package clients
 
 import (
 	"fmt"
 )
 
+// ErrRepoUnavailable is returned when RepoClient is unable to reach the repo.
 // UPGRADEv2: use ErrRepoUnreachable instead.
 type ErrRepoUnavailable struct {
 	innerError error
 }
 
+// Error returns the error string.
 func (e *ErrRepoUnavailable) Error() string {
 	return fmt.Sprintf("repo cannot be accessed: %v", e.innerError)
 }
 
+// Unwrap returns the wrapped error.
 func (e *ErrRepoUnavailable) Unwrap() error {
 	return e.innerError
 }
 
+// NewRepoUnavailableError returns a wrapped error of type ErrRepoUnavailable.
 func NewRepoUnavailableError(err error) error {
 	return &ErrRepoUnavailable{
 		innerError: err,
 	}
 }
 
+// RepoClient interface is used by Scorecard checks to access a repo.
 type RepoClient interface {
 	InitRepo(owner, repo string) error
 	IsArchived() (bool, error)

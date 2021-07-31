@@ -117,6 +117,7 @@ func CheckFilesContent(shellPathFnPattern string,
 	return nil
 }
 
+// FileCb represents a callback fn.
 type FileCb func(path string,
 	dl checker.DetailLogger, data FileCbData) (bool, error)
 
@@ -142,6 +143,7 @@ func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile FileCb,
 	return nil
 }
 
+// FileGetCbDataAsBoolPointer returns callback data as bool.
 func FileGetCbDataAsBoolPointer(data FileCbData) *bool {
 	pdata, ok := data.(*bool)
 	if !ok {
