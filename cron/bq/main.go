@@ -81,14 +81,18 @@ func getBucketSummary(ctx context.Context, bucketURL string) (*bucketSummary, er
 	return &summary, nil
 }
 
-func transferDataToBq(ctx context.Context, bucketURL string, summary *bucketSummary) error {
+func transferDataToBq(ctx context.Context,
+	bucketURL, projectID, datasetName, tableName string,
+	summary *bucketSummary) error {
 	for creationTime, shards := range summary.shards {
 		if shards.isTransferred || shards.shardsExpected != shards.shardsCreated {
 			continue
 		}
 
 		shardFileURI := data.GetBlobFilename("shard-*", creationTime)
-		if err := startDataTransferJob(ctx, bucketURL, shardFileURI, creationTime); err != nil {
+		if err := startDataTransferJob(ctx,
+			bucketURL, shardFileURI, projectID, datasetName, tableName,
+			creationTime); err != nil {
 			return fmt.Errorf("error during StartDataTransferJob: %w", err)
 		}
 
@@ -100,9 +104,29 @@ func transferDataToBq(ctx context.Context, bucketURL string, summary *bucketSumm
 	return nil
 }
 
+func getBQConfig() (projectID, datasetName, tableName string, err error) {
+	projectID, err = config.GetProjectID()
+	if err != nil {
+		return projectID, datasetName, tableName, fmt.Errorf("error getting ProjectId: %w", err)
+	}
+	datasetName, err = config.GetBigQueryDataset()
+	if err != nil {
+		return projectID, datasetName, tableName, fmt.Errorf("error getting BigQuery dataset: %w", err)
+	}
+	tableName, err = config.GetBigQueryTable()
+	if err != nil {
+		return projectID, datasetName, tableName, fmt.Errorf("error getting BigQuery table: %w", err)
+	}
+	return
+}
+
 func main() {
 	ctx := context.Background()
 	bucketURL, err := config.GetResultDataBucketURL()
+	if err != nil {
+		panic(err)
+	}
+	projectID, datasetName, tableName, err := getBQConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -112,7 +136,9 @@ func main() {
 		panic(err)
 	}
 
-	if err := transferDataToBq(ctx, bucketURL, summary); err != nil {
+	if err := transferDataToBq(ctx,
+		bucketURL, projectID, datasetName, tableName,
+		summary); err != nil {
 		panic(err)
 	}
 }
