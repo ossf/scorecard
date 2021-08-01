@@ -62,7 +62,7 @@ func createBQLoader(ctx context.Context, projectID, datasetName, tableName strin
 	return bqClient, loader, nil
 }
 
-func StartDataTransferJob(ctx context.Context, bucketURL, fileURI string, partitionDate time.Time) error {
+func startDataTransferJob(ctx context.Context, bucketURL, fileURI string, partitionDate time.Time) error {
 	projectID, datasetName, tableName, err := getBQConfig()
 	if err != nil {
 		return fmt.Errorf("error getting BQ config: %w", err)

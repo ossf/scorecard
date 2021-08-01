@@ -25,11 +25,14 @@ import (
 	"github.com/ossf/scorecard/v2/repos"
 )
 
+// Iterator interface is used to iterate through list of input repos for the cron job.
 type Iterator interface {
 	HasNext() bool
 	Next() (repos.RepoURL, error)
 }
 
+// MakeIteratorFrom returns an implementation of Iterator interface.
+// Currently returns an instance of csvIterator.
 func MakeIteratorFrom(reader io.Reader) (Iterator, error) {
 	csvReader := csv.NewReader(reader)
 	csvReader.Comment = '#'

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package utests defines util fns for Scorecard unit testing.
 package utests
 
 import (
@@ -43,10 +44,12 @@ func validateDetailTypes(messages []checker.CheckDetail, nw, ni, nd int) bool {
 		end == nd
 }
 
+// TestDetailLogger implements `checker.DetailLogger`.
 type TestDetailLogger struct {
 	messages []checker.CheckDetail
 }
 
+// TestReturn encapsulates expected CheckResult return values.
 type TestReturn struct {
 	Errors        []error
 	Score         int
@@ -55,22 +58,26 @@ type TestReturn struct {
 	NumberOfDebug int
 }
 
+// Info implements DetailLogger.Info.
 func (l *TestDetailLogger) Info(desc string, args ...interface{}) {
 	cd := checker.CheckDetail{Type: checker.DetailInfo, Msg: fmt.Sprintf(desc, args...)}
 	l.messages = append(l.messages, cd)
 }
 
+// Warn implements DetailLogger.Warn.
 func (l *TestDetailLogger) Warn(desc string, args ...interface{}) {
 	cd := checker.CheckDetail{Type: checker.DetailWarn, Msg: fmt.Sprintf(desc, args...)}
 	l.messages = append(l.messages, cd)
 }
 
+// Debug implements DetailLogger.Debug.
 func (l *TestDetailLogger) Debug(desc string, args ...interface{}) {
 	cd := checker.CheckDetail{Type: checker.DetailDebug, Msg: fmt.Sprintf(desc, args...)}
 	l.messages = append(l.messages, cd)
 }
 
-//nolint
+// ValidateTestValues validates returned score and log values.
+// nolint: thelper
 func ValidateTestValues(t *testing.T, name string, te *TestReturn,
 	score int, err error, dl *TestDetailLogger) bool {
 	for _, we := range te.Errors {
@@ -97,7 +104,8 @@ func ValidateTestValues(t *testing.T, name string, te *TestReturn,
 	return true
 }
 
-//nolint
+// ValidateTestReturn validates expected TestReturn with actual checker.CheckResult values.
+// nolint: thelper
 func ValidateTestReturn(t *testing.T, name string, te *TestReturn,
 	tr *checker.CheckResult, dl *TestDetailLogger) bool {
 	return ValidateTestValues(t, name, te, tr.Score, tr.Error2, dl)

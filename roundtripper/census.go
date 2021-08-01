@@ -26,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v2/stats"
 )
 
+// MakeCensusTransport wraps input Roundtripper with monitoring logic.
 func MakeCensusTransport(innerTransport http.RoundTripper) http.RoundTripper {
 	return &ochttp.Transport{
 		Base: &censusTransport{

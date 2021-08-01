@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package main updates projects repositories with a projects dependencies.
 package main
 
 import (
@@ -21,7 +22,6 @@ import (
 	"github.com/ossf/scorecard/v2/cron/data"
 )
 
-// Updates projects repositories with a projects dependencies.
 // Adds "project=${PROJECT},dependency=true" to the repositories metadata.
 // Args:
 //     file path to old_projects.csv new_projects.csv

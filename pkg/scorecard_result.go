@@ -29,6 +29,7 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 )
 
+// ScorecardResult struct is returned on a successful Scorecard run.
 type ScorecardResult struct {
 	Repo     string
 	Date     string
@@ -67,6 +68,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 	return nil
 }
 
+// AsCSV outputs ScorecardResult in CSV format.
 func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo}
@@ -93,6 +95,7 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer
 	return nil
 }
 
+// AsString returns ScorecardResult in string format.
 func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	data := make([][]string, len(r.Checks))
 	//nolint

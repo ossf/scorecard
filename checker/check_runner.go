@@ -29,14 +29,17 @@ import (
 
 const checkRetries = 3
 
+// Runner runs a check with retries.
 type Runner struct {
 	CheckName    string
 	Repo         string
 	CheckRequest CheckRequest
 }
 
+// CheckFn defined for convenience.
 type CheckFn func(*CheckRequest) CheckResult
 
+// CheckNameToFnMap defined here for convenience.
 type CheckNameToFnMap map[string]CheckFn
 
 // UPGRADEv2: messages2 will ultimately
@@ -80,6 +83,7 @@ func logStats(ctx context.Context, startTime time.Time, result *CheckResult) err
 	return nil
 }
 
+// Run runs a given check.
 func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 	ctx, err := tag.New(ctx, tag.Upsert(stats.CheckName, r.CheckName))
 	if err != nil {

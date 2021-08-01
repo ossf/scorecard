@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package main validates an input file with a list of projects.
 package main
 
 import (

@@ -54,6 +54,7 @@ func (resp *osvResponse) getVulnerabilities() []string {
 	return ids
 }
 
+// HasUnfixedVulnerabilities runs Vulnerabilities check.
 func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
