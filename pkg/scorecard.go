@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package pkg defines fns for running Scorecard checks on a RepoURL.
 package pkg
 
 import (

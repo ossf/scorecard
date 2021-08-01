@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package stats defines opencensus monitoring stats exposed by Scorecard.
 package stats
 
 import (
