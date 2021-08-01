@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package checks defines all Scorecard checks.
 package checks
 
 import "github.com/ossf/scorecard/v2/checker"

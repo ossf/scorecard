@@ -35,7 +35,7 @@ const migrationThresholdPassValue = 8
 // UPGRADEv2: to remove.
 var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
 
-//  DetailType defines types of details.
+// DetailType defines types of details.
 type DetailType int
 
 const (
@@ -68,8 +68,8 @@ const (
 	InconclusiveResultScore = -1
 )
 
-// nolint
 // CheckResult captures result from a check run.
+// nolint
 type CheckResult struct {
 	// Old structure
 	Error       error `json:"-"`

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package utests defines util fns for Scorecard unit testing.
 package utests
 
 import (

@@ -35,12 +35,12 @@ func init() {
 
 // SAST runs SAST check.
 func SAST(c *checker.CheckRequest) checker.CheckResult {
-	sastScore, sastErr := SASTToolInCheckRuns(c)
+	sastScore, sastErr := sastToolInCheckRuns(c)
 	if sastErr != nil {
 		return checker.CreateRuntimeErrorResult(CheckSAST, sastErr)
 	}
 
-	codeQlScore, codeQlErr := CodeQLInCheckDefinitions(c)
+	codeQlScore, codeQlErr := codeQLInCheckDefinitions(c)
 	if codeQlErr != nil {
 		return checker.CreateRuntimeErrorResult(CheckSAST, codeQlErr)
 	}
@@ -49,7 +49,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	// Can never happen.
 	if sastScore == checker.InconclusiveResultScore &&
 		codeQlScore == checker.InconclusiveResultScore {
-		// That can never happen since SASTToolInCheckRuns can never
+		// That can never happen since sastToolInCheckRuns can never
 		// retun checker.InconclusiveResultScore.
 		return checker.CreateInconclusiveResult(CheckSAST, "internal error")
 	}
@@ -102,8 +102,8 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	return checker.CreateRuntimeErrorResult(CheckSAST, sce.Create(sce.ErrScorecardInternal, "contact team"))
 }
 
-//nolint
-func SASTToolInCheckRuns(c *checker.CheckRequest) (int, error) {
+// nolint
+func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
 		State: "closed",
 	})
@@ -158,8 +158,8 @@ func SASTToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 	return checker.CreateProportionalScore(totalTested, totalMerged), nil
 }
 
-//nolint
-func CodeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
+// nolint
+func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
 	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
 	if err != nil {

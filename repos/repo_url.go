@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package repos defines a generic repository.
 package repos
 
 import (
@@ -77,7 +78,6 @@ func (r *RepoURL) Set(s string) error {
 func (r *RepoURL) ValidGitHubURL() error {
 	switch r.Host {
 	case "github.com":
-		break
 	default:
 		return fmt.Errorf("%w: %s", ErrorUnsupportedHost, r.Host)
 	}
