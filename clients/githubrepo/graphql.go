@@ -131,7 +131,7 @@ func pullRequestFrom(data *graphqlData) []clients.PullRequest {
 		toAppend := clients.PullRequest{
 			Number:   int(pr.Number),
 			MergedAt: pr.MergedAt.Time,
-			MergeCommit: clients.MergeCommit{
+			MergeCommit: clients.Commit{
 				AuthoredByCommitter: bool(pr.MergeCommit.AuthoredByCommitter),
 			},
 		}

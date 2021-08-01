@@ -31,6 +31,7 @@ func init() {
 	registerCheck(CheckFuzzing, Fuzzing)
 }
 
+// Fuzzing runs Fuzzing check.
 func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	url := fmt.Sprintf("github.com/%s/%s", c.Owner, c.Repo)
 	searchString := url + " repo:google/oss-fuzz in:file filename:project.yaml"

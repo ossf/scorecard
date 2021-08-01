@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package repos defines a generic repository.
 package repos
 
 import (
@@ -30,6 +31,7 @@ var (
 	ErrorInvalidURL = errors.New("invalid repo flag")
 )
 
+// RepoURL represents a URL of a repo.
 type RepoURL struct {
 	Host, Owner, Repo string
 	Metadata          []string
@@ -40,14 +42,17 @@ func (r *RepoURL) Type() string {
 	return "repo"
 }
 
+// URL returns a valid url for RepoURL struct.
 func (r *RepoURL) URL() string {
 	return fmt.Sprintf("%s/%s/%s", r.Host, r.Owner, r.Repo)
 }
 
+// String returns a string representation of RepoURL struct.
 func (r *RepoURL) String() string {
 	return fmt.Sprintf("%s-%s-%s", r.Host, r.Owner, r.Repo)
 }
 
+// Set parses a URL string into RepoURL struct.
 func (r *RepoURL) Set(s string) error {
 	// Allow skipping scheme for ease-of-use, default to https.
 	if !strings.Contains(s, "://") {
@@ -69,10 +74,10 @@ func (r *RepoURL) Set(s string) error {
 	return nil
 }
 
+// ValidGitHubURL checks whether RepoURL represents a valid GitHub repo and returns errors otherwise.
 func (r *RepoURL) ValidGitHubURL() error {
 	switch r.Host {
 	case "github.com":
-		break
 	default:
 		return fmt.Errorf("%w: %s", ErrorUnsupportedHost, r.Host)
 	}

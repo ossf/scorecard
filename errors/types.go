@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package errors defines all errors returned to users by Scorecard library.
 package errors
 
 import (
@@ -19,10 +20,13 @@ import (
 )
 
 type (
-	ErrRetry         struct{ wrappedError }
+	// ErrRetry is returned when a check failed after maximum num_retries.
+	ErrRetry struct{ wrappedError }
+	// ErrLowConfidence is returned when check result is inconclusive.
 	ErrLowConfidence struct{ wrappedError }
 )
 
+// MakeRetryError returns a wrapped error of type ErrRetry.
 func MakeRetryError(err error) error {
 	return &ErrRetry{
 		wrappedError{
@@ -32,6 +36,7 @@ func MakeRetryError(err error) error {
 	}
 }
 
+// MakeLowConfidenceError returns a wrapped error of type ErrLowConfidence.
 func MakeLowConfidenceError(err error) error {
 	return &ErrLowConfidence{
 		wrappedError{

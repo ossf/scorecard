@@ -34,6 +34,7 @@ func init() {
 	registerCheck(CheckSignedTags, SignedTags)
 }
 
+// SignedTags runs Signed-Tags check.
 func SignedTags(c *checker.CheckRequest) checker.CheckResult {
 	type ref struct {
 		Name   githubv4.String

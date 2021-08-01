@@ -37,6 +37,7 @@ type response struct {
 	BadgeLevel string `json:"badge_level"`
 }
 
+// CIIBestPractices runs CII-Best-Practices check.
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 	repoURL := fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURL)

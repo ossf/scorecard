@@ -20,6 +20,7 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 )
 
+// CheckAutomaticDependencyUpdate is the exported name for Automatic-Depdendency-Update.
 const CheckAutomaticDependencyUpdate = "Automatic-Dependency-Update"
 
 //nolint

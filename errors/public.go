@@ -37,7 +37,7 @@ func Create(e error, msg string) error {
 	return fmt.Errorf("%w", e)
 }
 
-// Create an internal error, not using
+// CreateInternal creates an internal error, not using
 // any of the errors listed above.
 func CreateInternal(e error, msg string) error {
 	return Create(e, msg)

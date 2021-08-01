@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package main implements the BQ transfer job.
 package main
 
 import (
@@ -87,7 +88,7 @@ func transferDataToBq(ctx context.Context, bucketURL string, summary *bucketSumm
 		}
 
 		shardFileURI := data.GetBlobFilename("shard-*", creationTime)
-		if err := StartDataTransferJob(ctx, bucketURL, shardFileURI, creationTime); err != nil {
+		if err := startDataTransferJob(ctx, bucketURL, shardFileURI, creationTime); err != nil {
 			return fmt.Errorf("error during StartDataTransferJob: %w", err)
 		}
 

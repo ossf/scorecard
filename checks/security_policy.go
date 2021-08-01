@@ -33,6 +33,7 @@ func init() {
 	registerCheck(CheckSecurityPolicy, SecurityPolicy)
 }
 
+// SecurityPolicy runs Security-Policy check.
 func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	var r bool
 	// Check repository for repository-specific policy.

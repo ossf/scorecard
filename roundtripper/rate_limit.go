@@ -23,6 +23,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// MakeRateLimitedTransport returns a RoundTripper which rate limits GitHub requests.
 func MakeRateLimitedTransport(innerTransport http.RoundTripper, logger *zap.SugaredLogger) http.RoundTripper {
 	return &rateLimitTransport{
 		logger:         logger,

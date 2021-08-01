@@ -35,6 +35,7 @@ func init() {
 	registerCheck(CheckSignedReleases, SignedReleases)
 }
 
+// SignedReleases runs Signed-Releases check.
 func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	releases, _, err := c.Client.Repositories.ListReleases(c.Ctx, c.Owner, c.Repo, &github.ListOptions{})
 	if err != nil {

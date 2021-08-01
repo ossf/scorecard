@@ -26,6 +26,7 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
+// CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
 const CheckBinaryArtifacts string = "Binary-Artifacts"
 
 //nolint

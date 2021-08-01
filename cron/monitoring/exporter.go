@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package monitoring defines exporters to be used by opencensus package in the cron job.
 package monitoring
 
 import (
@@ -38,6 +39,7 @@ const (
 	printer                    exporterType = "printer"
 )
 
+// Exporter interface is a custom wrapper to represent an opencensus exporter.
 type Exporter interface {
 	ExportView(viewData *view.Data)
 	StartMetricsExporter() error
@@ -45,6 +47,7 @@ type Exporter interface {
 	Flush()
 }
 
+// GetExporter defines a factory for returning opencensus Exporter.
 func GetExporter() (Exporter, error) {
 	exporter, err := config.GetMetricExporter()
 	if err != nil {

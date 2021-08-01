@@ -32,6 +32,7 @@ var (
 	errLowConfidence *ErrLowConfidence
 )
 
+// GetErrorName returns the name of the error.
 func GetErrorName(err error) string {
 	switch {
 	case errors.As(err, &errRetry):
