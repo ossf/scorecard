@@ -30,7 +30,7 @@ const (
 // UPGRADEv2: to remove.
 const migrationThresholdPassValue = 8
 
-// Types of details.
+// DetailType is the type of details.
 type DetailType int
 
 const (
