@@ -33,7 +33,7 @@ jobs:
         run: |
               go env -w GOFLAGS=-mod=mod
               make all
-      - uses: codecov/codecov-action@29386c70ef20e286228c72b668a06fd0e8399192 # v1.5.0
+      - uses: codecov/codecov-action@51d810878be5422784e86451c0e7c14e5860ec47 # v1.5.0
         with:
           files: e2e/e2e.coverprofile,pkg/pkg.coverprofile,checks/checks.coverprofile
   license-check:
