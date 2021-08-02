@@ -192,7 +192,7 @@ func validateRunLevelPermissions(config map[interface{}]interface{}, path string
 func isPermissionOfInterest(name string, ignoredPermissions map[string]bool) bool {
 	permissions := []string{
 		"statuses", "checks", "security-events",
-		"deployments", "contents", "packages", "options",
+		"deployments", "contents", "packages", "actions",
 	}
 	for _, p := range permissions {
 		_, present := ignoredPermissions[p]

@@ -53,7 +53,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 
-		if !isPackagingWorkflow(fc, fp, c.Dlogger) {
+		if !isPackagingWorkflow(string(fc), fp, c.Dlogger) {
 			continue
 		}
 
