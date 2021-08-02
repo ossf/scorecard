@@ -81,7 +81,10 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalReleases == 0 {
-		return checker.CreateInconclusiveResult(CheckSignedReleases, "no GitHub releases found")
+		// GitHub-specific message.
+		c.Dlogger.Warn("no GitHub releases found")
+		// Generic summary.
+		return checker.CreateInconclusiveResult(CheckSignedReleases, "no releases found")
 	}
 
 	reason := fmt.Sprintf("%d out of %d artifacts are signed", totalSigned, totalReleases)
