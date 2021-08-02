@@ -168,7 +168,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	}
 
 	for _, result := range results.CodeResults {
-		c.Dlogger.Info("CodeQL detected: %s", result.GetPath())
+		c.Dlogger.Debug("CodeQL detected: %s", result.GetPath())
 	}
 
 	// TODO: check if it's enabled as cron or presubmit.
