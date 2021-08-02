@@ -162,7 +162,6 @@ func validateRunLevelPermissions(config map[interface{}]interface{}, path string
 	ignoredPermissions map[string]bool) error {
 	var jobs interface{}
 
-	// Check if permissions are set explicitly.
 	jobs, ok := config["jobs"]
 	if !ok {
 		return nil
