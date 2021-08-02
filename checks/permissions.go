@@ -105,22 +105,9 @@ func recordAllPermissionsWrite(pPermissions map[string]bool) {
 	pPermissions["all"] = true
 }
 
-func validatePermissions(config map[interface{}]interface{}, path string,
+func validatePermissions(permissions interface{}, path string,
 	dl checker.DetailLogger, pPermissions map[string]bool,
-	ignoredPermissions map[string]bool,
-	acceptUndefined bool) error {
-	var permissions interface{}
-
-	// Check if permissions are set explicitly.
-	permissions, ok := config["permissions"]
-	if !ok {
-		if !acceptUndefined {
-			dl.Warn("no permission defined in %v", path)
-			recordAllPermissionsWrite(pPermissions)
-		}
-		return nil
-	}
-
+	ignoredPermissions map[string]bool) error {
 	// Check the type of our values.
 	switch val := permissions.(type) {
 	// Empty string is nil type.
@@ -152,9 +139,16 @@ func validatePermissions(config map[interface{}]interface{}, path string,
 
 func validateTopLevelPermissions(config map[interface{}]interface{}, path string,
 	dl checker.DetailLogger, pdata *permissionCbData) error {
-	return validatePermissions(config, path, dl,
-		pdata.topLevelWritePermissions, map[string]bool{},
-		false)
+	// Check if permissions are set explicitly.
+	permissions, ok := config["permissions"]
+	if !ok {
+		dl.Warn("no permission defined in %v", path)
+		recordAllPermissionsWrite(pdata.topLevelWritePermissions)
+		return nil
+	}
+
+	return validatePermissions(permissions, path, dl,
+		pdata.topLevelWritePermissions, map[string]bool{})
 }
 
 func validateRunLevelPermissions(config map[interface{}]interface{}, path string,
@@ -174,13 +168,21 @@ func validateRunLevelPermissions(config map[interface{}]interface{}, path string
 	}
 
 	for _, value := range mjobs {
-		permissions, ok := value.(map[interface{}]interface{})
+		job, ok := value.(map[interface{}]interface{})
 		if !ok {
 			//nolint:wrapcheck
 			return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 		}
+		// Run-level permissions may be left undefined.
+		// For most workflows, no write permissions are needed,
+		// so only top-level permissions should be declared.
+		permissions, ok := job["permissions"]
+		if !ok {
+			dl.Debug("no permission defined in %v", path)
+			continue
+		}
 		err := validatePermissions(permissions, path, dl,
-			pdata.runLevelWritePermissions, ignoredPermissions, true)
+			pdata.runLevelWritePermissions, ignoredPermissions)
 		if err != nil {
 			return err
 		}

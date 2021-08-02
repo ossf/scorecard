@@ -146,6 +146,14 @@ func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
 		return true
 	}
 
+	// Rust packages.
+	// https://doc.rust-lang.org/cargo/reference/publishing.html.
+	r = regexp.MustCompile(`(?s)cargo.*publish`)
+	if r.MatchString(s) {
+		dl.Info("candidate rust publishing workflow using cargo: %s", fp)
+		return true
+	}
+
 	dl.Debug("not a packaging workflow: %s", fp)
 	return false
 }
