@@ -36,8 +36,8 @@ func Create(e error, msg string) error {
 	return fmt.Errorf("%w", e)
 }
 
-// GetErrorName returns the name of the error.
-func GetErrorName(err error) string {
+// GetName returns the name of the error.
+func GetName(err error) string {
 	switch {
 	case errors.Is(err, ErrScorecardInternal):
 		return "ErrScorecardInternal"
