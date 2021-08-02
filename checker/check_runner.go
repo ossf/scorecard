@@ -68,7 +68,7 @@ func logStats(ctx context.Context, startTime time.Time, result *CheckResult) err
 	opencensusstats.Record(ctx, stats.CheckRuntimeInSec.M(runTimeInSecs))
 
 	if result.Error != nil {
-		ctx, err := tag.New(ctx, tag.Upsert(stats.ErrorName, result.Error2.Error()))
+		ctx, err := tag.New(ctx, tag.Upsert(stats.ErrorName, sce.GetErrorName(result.Error2)))
 		if err != nil {
 			//nolint:wrapcheck
 			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))

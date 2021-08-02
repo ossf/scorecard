@@ -36,8 +36,14 @@ func Create(e error, msg string) error {
 	return fmt.Errorf("%w", e)
 }
 
-// CreateInternal creates an internal error, not using
-// any of the errors listed above.
-func CreateInternal(e error, msg string) error {
-	return Create(e, msg)
+// GetErrorName returns the name of the error.
+func GetErrorName(err error) string {
+	switch {
+	case errors.Is(err, ErrScorecardInternal):
+		return "ErrScorecardInternal"
+	case errors.Is(err, ErrRepoUnreachable):
+		return "ErrRepoUnreachable"
+	default:
+		return "ErrUnknown"
+	}
 }
