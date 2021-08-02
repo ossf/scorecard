@@ -342,10 +342,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 
 	// 2. Run-level permission definitions,
 	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
-	ignoredPermissions := make(map[string]bool)
-	if requiresPackagesPermissions(string(content), path, dl) {
-		ignoredPermissions["packages"] = true
-	}
+	ignoredPermissions := createIgnoredPermissions(string(content), path, dl)
 	if err := validateRunLevelPermissions(workflow, path, dl, pdata, ignoredPermissions); err != nil {
 		return false, err
 	}
@@ -355,6 +352,26 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	// TODO(laurent): 3. Read a few runs and ensures they have the same permissions.
 
 	return true, nil
+}
+
+func createIgnoredPermissions(s, fp string, dl checker.DetailLogger) map[string]bool {
+	ignoredPermissions := make(map[string]bool)
+	if requiresPackagesPermissions(s, fp, dl) {
+		ignoredPermissions["packages"] = true
+	}
+	if isCodeQlAnalysisWorkflow(s, fp, dl) {
+		ignoredPermissions["security-events"] = true
+	}
+	return ignoredPermissions
+}
+
+func isCodeQlAnalysisWorkflow(s, fp string, dl checker.DetailLogger) bool {
+	if strings.Contains(s, "github/codeql-action/analyze@") {
+		dl.Debug("codeql workflow detected: %v", fp)
+		return true
+	}
+	dl.Debug("not a codeql workflow: %v", fp)
+	return false
 }
 
 // A packaging workflow using GitHub's supported packages:
