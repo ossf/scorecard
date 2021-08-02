@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 var (
@@ -31,7 +33,7 @@ var (
 	ErrorInvalidURL = errors.New("invalid repo flag")
 )
 
-// RepoURL represents a URL of a repo.
+//nolint:revive
 type RepoURL struct {
 	Host, Owner, Repo string
 	Metadata          []string
@@ -61,13 +63,15 @@ func (r *RepoURL) Set(s string) error {
 
 	u, e := url.Parse(s)
 	if e != nil {
-		return fmt.Errorf("error parsing repo URL: %w", e)
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
 	}
 
 	const splitLen = 2
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
-		return fmt.Errorf("%w: [%s], pass the full repository URL", ErrorInvalidURL, s)
+		//nolint:wrapcheck
+		return sce.Create(ErrorInvalidURL, fmt.Sprintf("%v. Exepted full repository url", s))
 	}
 
 	r.Host, r.Owner, r.Repo = u.Host, split[0], split[1]
@@ -79,11 +83,14 @@ func (r *RepoURL) ValidGitHubURL() error {
 	switch r.Host {
 	case "github.com":
 	default:
-		return fmt.Errorf("%w: %s", ErrorUnsupportedHost, r.Host)
+		//nolint:wrapcheck
+		return sce.Create(ErrorUnsupportedHost, r.Host)
 	}
 
 	if strings.TrimSpace(r.Owner) == "" || strings.TrimSpace(r.Repo) == "" {
-		return fmt.Errorf("%w: [%s], pass the full repository URL", ErrorInvalidGithubURL, r.URL())
+		//nolint:wrapcheck
+		return sce.Create(ErrorInvalidGithubURL,
+			fmt.Sprintf("%v. Expected the full reposiroty url", r.URL()))
 	}
 	return nil
 }
