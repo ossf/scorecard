@@ -175,7 +175,7 @@ func validateRunLevelPermissions(config map[interface{}]interface{}, path string
 		}
 		// Run-level permissions may be left undefined.
 		// For most workflows, no write permissions are needed,
-		// so only top-level permissions should be declared.
+		// so only top-level read-only permissions need to be declared.
 		permissions, ok := job["permissions"]
 		if !ok {
 			dl.Debug("no permission defined in %v", path)
