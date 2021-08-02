@@ -64,7 +64,7 @@ Token-Permissions           | Does the project declare GitHub workflow tokens as
 Vulnerabilities             | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).
 
 To see detailed information about each check and remediation steps, check out
-the [checks documentation page](checks/checks.md).
+the [checks documentation page](docs/checks.md).
 
 ## Usage
 
