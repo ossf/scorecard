@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// nolint: dupl
 package e2e
 
 import (
@@ -22,20 +23,24 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
-var _ = Describe("E2E TEST:Packaging", func() {
+var _ = Describe("E2E TEST:"+checks.CheckPackaging, func() {
 	Context("E2E TEST:Validating use of packaging in CI/CD", func() {
 		It("Should return use of packaging in CI/CD", func() {
 			dl := scut.TestDetailLogger{}
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			err := repoClient.InitRepo("ossf-tests", "scorecard-check-packaging-e2e")
+			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  nil,
-				Owner:       "apache",
-				Repo:        "orc",
+				RepoClient:  repoClient,
+				Owner:       "ossf-tests",
+				Repo:        "scorecard-check-packaging-e2e",
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}
