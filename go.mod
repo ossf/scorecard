@@ -31,5 +31,5 @@ require (
 	google.golang.org/genproto v0.0.0-20210714021259-044028024a4f
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
-	mvdan.cc/sh/v3 v3.3.0
+	mvdan.cc/sh/v3 v3.3.1
 )
