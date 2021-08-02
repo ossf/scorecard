@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,25 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package errors
 
-import (
-	"context"
-	"net/http"
-
-	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
-
-	"github.com/ossf/scorecard/v2/clients"
-)
-
-// CheckRequest struct encapsulates all data to be passed into a CheckFn.
-type CheckRequest struct {
-	Ctx         context.Context
-	Client      *github.Client
-	GraphClient *githubv4.Client
-	HTTPClient  *http.Client
-	RepoClient  clients.RepoClient
-	Dlogger     DetailLogger
-	Owner, Repo string
+// CreateInternal creates internal error, not using
+// any of the errors listed in public.go.
+func CreateInternal(e error, msg string) error {
+	return Create(e, msg)
 }

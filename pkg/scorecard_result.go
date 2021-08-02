@@ -27,6 +27,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 // ScorecardResult struct is returned on a successful Scorecard run.
@@ -43,7 +44,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 	encoder := json.NewEncoder(writer)
 	if showDetails {
 		if err := encoder.Encode(r); err != nil {
-			return fmt.Errorf("error encoding repo result as detailed JSON: %w", err)
+			//nolint:wrapcheck
+			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 		}
 		return nil
 	}
@@ -63,7 +65,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 		out.Checks = append(out.Checks, tmpResult)
 	}
 	if err := encoder.Encode(out); err != nil {
-		return fmt.Errorf("error encoding repo result as JSON: %w", err)
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 	return nil
 }
@@ -86,11 +89,13 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer
 	}
 	fmt.Fprintf(writer, "%s\n", strings.Join(columns, ","))
 	if err := w.Write(record); err != nil {
-		return fmt.Errorf("error writing repo result as CSV: %w", err)
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("csv.Write: %v", err))
 	}
 	w.Flush()
 	if err := w.Error(); err != nil {
-		return fmt.Errorf("error flushing repo result as CSV: %w", err)
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("csv.Flush: %v", err))
 	}
 	return nil
 }
