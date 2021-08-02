@@ -72,7 +72,7 @@ type tarballHandler struct {
 func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository) error {
 	// Cleanup any previous state.
 	if err := handler.cleanup(); err != nil {
-		return err
+		return fmt.Errorf("error during githubrepo cleanup: %w", err)
 	}
 
 	// Setup temp dir/files and download repo tarball.
