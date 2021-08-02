@@ -56,7 +56,7 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 		if len(assets) == 0 {
 			continue
 		}
-		c.Dlogger.Debug("release found: %s", r.GetTagName())
+		c.Dlogger.Debug("GitHub release found: %s", r.GetTagName())
 		totalReleases++
 		signed := false
 		for _, asset := range assets {
@@ -81,7 +81,7 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalReleases == 0 {
-		return checker.CreateInconclusiveResult(CheckSignedReleases, "no release found")
+		return checker.CreateInconclusiveResult(CheckSignedReleases, "no GitHub releases found")
 	}
 
 	reason := fmt.Sprintf("%d out of %d artifacts are signed", totalSigned, totalReleases)
