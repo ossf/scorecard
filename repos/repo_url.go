@@ -24,9 +24,6 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-<<<<<<< HEAD
-// RepoURL represents a URL of a repo.
-=======
 var (
 	// ErrorUnsupportedHost indicates the repo's host is unsupported.
 	ErrorUnsupportedHost = errors.New("unsupported host")
@@ -36,7 +33,7 @@ var (
 	ErrorInvalidURL = errors.New("invalid repo flag")
 )
 
->>>>>>> bd7b9ea (add errors)
+//nolint:revive
 type RepoURL struct {
 	Host, Owner, Repo string
 	Metadata          []string
