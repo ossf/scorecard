@@ -42,6 +42,7 @@ type permissionCbData struct {
 
 // TokenPermissions runs Token-Permissions check.
 func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
+	// data is shared across all GitHub workflows.
 	data := permissionCbData{
 		topLevelWritePermissions: make(map[string]bool),
 		runLevelWritePermissions: make(map[string]bool),
@@ -52,7 +53,8 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 }
 
 func validatePermission(key string, value interface{}, path string,
-	dl checker.DetailLogger, pPermissions map[string]bool) error {
+	dl checker.DetailLogger, pPermissions map[string]bool,
+	ignoredPermissions map[string]bool) error {
 	val, ok := value.(string)
 	if !ok {
 		//nolint
@@ -60,7 +62,7 @@ func validatePermission(key string, value interface{}, path string,
 	}
 
 	if strings.EqualFold(val, "write") {
-		if isPermissionOfInterest(key) {
+		if isPermissionOfInterest(key, ignoredPermissions) {
 			dl.Warn("'%v' permission set to '%v' in %v", key, val, path)
 			recordPermissionWrite(key, pPermissions)
 		} else {
@@ -76,7 +78,8 @@ func validatePermission(key string, value interface{}, path string,
 }
 
 func validateMapPermissions(values map[interface{}]interface{}, path string,
-	dl checker.DetailLogger, pPermissions map[string]bool) error {
+	dl checker.DetailLogger, pPermissions map[string]bool,
+	ignoredPermissions map[string]bool) error {
 	// Iterate over the permission, verify keys and values are strings.
 	for k, v := range values {
 		key, ok := k.(string)
@@ -85,7 +88,7 @@ func validateMapPermissions(values map[interface{}]interface{}, path string,
 			return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 		}
 
-		if err := validatePermission(key, v, path, dl, pPermissions); err != nil {
+		if err := validatePermission(key, v, path, dl, pPermissions, ignoredPermissions); err != nil {
 			return err
 		}
 	}
@@ -103,14 +106,18 @@ func recordAllPermissionsWrite(pPermissions map[string]bool) {
 }
 
 func validatePermissions(config map[interface{}]interface{}, path string,
-	dl checker.DetailLogger, pPermissions map[string]bool) error {
+	dl checker.DetailLogger, pPermissions map[string]bool,
+	ignoredPermissions map[string]bool,
+	acceptUndefined bool) error {
 	var permissions interface{}
 
 	// Check if permissions are set explicitly.
 	permissions, ok := config["permissions"]
 	if !ok {
-		dl.Warn("no permission defined in %v", path)
-		recordAllPermissionsWrite(pPermissions)
+		if !acceptUndefined {
+			dl.Warn("no permission defined in %v", path)
+			recordAllPermissionsWrite(pPermissions)
+		}
 		return nil
 	}
 
@@ -131,7 +138,7 @@ func validatePermissions(config map[interface{}]interface{}, path string,
 
 	// Map type.
 	case map[interface{}]interface{}:
-		if err := validateMapPermissions(val, path, dl, pPermissions); err != nil {
+		if err := validateMapPermissions(val, path, dl, pPermissions, ignoredPermissions); err != nil {
 			return err
 		}
 
@@ -145,11 +152,14 @@ func validatePermissions(config map[interface{}]interface{}, path string,
 
 func validateTopLevelPermissions(config map[interface{}]interface{}, path string,
 	dl checker.DetailLogger, pdata *permissionCbData) error {
-	return validatePermissions(config, path, dl, pdata.topLevelWritePermissions)
+	return validatePermissions(config, path, dl,
+		pdata.topLevelWritePermissions, map[string]bool{},
+		false)
 }
 
 func validateRunLevelPermissions(config map[interface{}]interface{}, path string,
-	dl checker.DetailLogger, pdata *permissionCbData) error {
+	dl checker.DetailLogger, pdata *permissionCbData,
+	ignoredPermissions map[string]bool) error {
 	var jobs interface{}
 
 	// Check if permissions are set explicitly.
@@ -157,29 +167,46 @@ func validateRunLevelPermissions(config map[interface{}]interface{}, path string
 	if !ok {
 		return nil
 	}
-	fmt.Printf("jobs:%v\n", jobs)
-	fmt.Printf("type:%T\n", jobs)
+
 	mjobs, ok := jobs.(map[interface{}]interface{})
 	if !ok {
 		//nolint:wrapcheck
 		return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
-	fmt.Printf("jobsList:%v\n", mjobs)
-	fmt.Printf("list:\n")
-	for key, value := range mjobs {
-		fmt.Printf("%v: %v\n", key, value)
+
+	for _, value := range mjobs {
+		permissions, ok := value.(map[interface{}]interface{})
+		if !ok {
+			//nolint:wrapcheck
+			return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+		}
+		err := validatePermissions(permissions, path, dl,
+			pdata.runLevelWritePermissions, ignoredPermissions, true)
+		if err != nil {
+			return err
+		}
 	}
-	return validatePermissions(config, path, dl, pdata.runLevelWritePermissions)
+	return nil
 }
 
-func isPermissionOfInterest(name string) bool {
-	return strings.EqualFold(name, "statuses") ||
-		strings.EqualFold(name, "checks") ||
-		strings.EqualFold(name, "security-events") ||
-		strings.EqualFold(name, "deployments") ||
-		strings.EqualFold(name, "contents") ||
-		strings.EqualFold(name, "packages") ||
-		strings.EqualFold(name, "options")
+func isPermissionOfInterest(name string, ignoredPermissions map[string]bool) bool {
+	permissions := []string{
+		"statuses", "checks", "security-events",
+		"deployments", "contents", "packages", "options",
+	}
+	for _, p := range permissions {
+		_, present := ignoredPermissions[p]
+		if strings.EqualFold(name, p) && !present {
+			return true
+		}
+	}
+	return false
+}
+
+func permissionIsPresent(result permissionCbData, name string) bool {
+	_, ok1 := result.topLevelWritePermissions[name]
+	_, ok2 := result.runLevelWritePermissions[name]
+	return ok1 || ok2
 }
 
 // Calculate the score.
@@ -187,29 +214,32 @@ func calculateScore(result permissionCbData) int {
 	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
 	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
 	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
-	if _, ok := result.topLevelWritePermissions["all"]; ok {
+
+	if permissionIsPresent(result, "all") {
 		return checker.MinResultScore
 	}
 
+	// Start with a perfect score.
 	score := float32(checker.MaxResultScore)
+
 	// status: https://docs.github.com/en/rest/reference/repos#statuses.
 	// May allow an attacker to change the result of pre-submit and get a PR merged.
 	// Low risk: -0.5.
-	if _, ok := result.topLevelWritePermissions["statuses"]; ok {
+	if permissionIsPresent(result, "statuses") {
 		score -= 0.5
 	}
 
 	// checks.
 	// May allow an attacker to edit checks to remove pre-submit and introduce a bug.
 	// Low risk: -0.5.
-	if _, ok := result.topLevelWritePermissions["checks"]; ok {
+	if permissionIsPresent(result, "checks") {
 		score -= 0.5
 	}
 
 	// secEvents.
 	// May allow attacker to read vuln reports before patch available.
 	// Low risk: -1
-	if _, ok := result.topLevelWritePermissions["security-events"]; ok {
+	if permissionIsPresent(result, "security-events") {
 		score--
 	}
 
@@ -218,31 +248,34 @@ func calculateScore(result permissionCbData) int {
 	// and tiny chance an attacker can trigger a remote
 	// service with code they own if server accepts code/location var unsanitized.
 	// Low risk: -1
-	if _, ok := result.topLevelWritePermissions["deployments"]; ok {
+	if permissionIsPresent(result, "deployments") {
 		score--
 	}
 
 	// contents.
 	// Allows attacker to commit unreviewed code.
 	// High risk: -10
-	if _, ok := result.topLevelWritePermissions["contents"]; ok {
+	if permissionIsPresent(result, "contents") {
 		score -= checker.MaxResultScore
 	}
 
 	// packages: https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages.
 	// Allows attacker to publish packages.
 	// High risk: -10
-	if _, ok := result.topLevelWritePermissions["packages"]; ok {
+	if permissionIsPresent(result, "packages") {
 		score -= checker.MaxResultScore
 	}
 
 	// actions.
 	// May allow an attacker to steal GitHub secrets by adding a malicious workflow/action.
 	// High risk: -10
-	if _, ok := result.topLevelWritePermissions["actions"]; ok {
+	if permissionIsPresent(result, "actions") {
 		score -= checker.MaxResultScore
 	}
 
+	// 2. Run-level permissions.
+
+	// We're done, calculate the final score.
 	if score < checker.MinResultScore {
 		return checker.MinResultScore
 	}
@@ -310,7 +343,11 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 
 	// 2. Run-level permission definitions,
 	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
-	if err := validateRunLevelPermissions(workflow, path, dl, pdata); err != nil {
+	ignoredPermissions := make(map[string]bool)
+	if requiresPackagesPermissions(string(content), path, dl) {
+		ignoredPermissions["packages"] = true
+	}
+	if err := validateRunLevelPermissions(workflow, path, dl, pdata, ignoredPermissions); err != nil {
 		return false, err
 	}
 
@@ -319,4 +356,15 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	// TODO(laurent): 3. Read a few runs and ensures they have the same permissions.
 
 	return true, nil
+}
+
+// A packaging workflow using GitHub's supported packages:
+// https://docs.github.com/en/packages.
+func requiresPackagesPermissions(s, fp string, dl checker.DetailLogger) bool {
+	// TODO: add support for GitHub registries.
+	// Example: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry.
+	// This feature requires parsing actions properly.
+	// For now, we borrow logic from the Packaging check to verify that the
+	// workflow is a packaging workflow.
+	return isPackagingWorkflow(s, fp, dl)
 }
