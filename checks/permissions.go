@@ -364,7 +364,7 @@ func requiresPackagesPermissions(s, fp string, dl checker.DetailLogger) bool {
 	// TODO: add support for GitHub registries.
 	// Example: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry.
 	// This feature requires parsing actions properly.
-	// For now, we borrow logic from the Packaging check to verify that the
+	// For now, we just re-use the Packaging check to verify that the
 	// workflow is a packaging workflow.
 	return isPackagingWorkflow(s, fp, dl)
 }
