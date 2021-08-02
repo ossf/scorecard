@@ -68,13 +68,15 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		if *runs.TotalCount > 0 {
 			c.Dlogger.Info("workflow %v used in run: %s", fp, runs.WorkflowRuns[0].GetHTMLURL())
 			return checker.CreateMaxScoreResult(CheckPackaging,
-				"packaging workflow detected")
+				"publishing workflow detected")
 		}
 		c.Dlogger.Info("workflow %v not used in runs", fp)
 	}
 
-	return checker.CreateMinScoreResult(CheckPackaging,
-		"no packaging workflow used")
+	c.Dlogger.Warn("no publishing GitHub workflow detected")
+
+	return checker.CreateInconclusiveResult(CheckPackaging,
+		"no published package detected")
 }
 
 // A packaging workflow.
@@ -85,7 +87,7 @@ func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
 		r2 := regexp.MustCompile(`(?s)npm.*publish`)
 
 		if r1.MatchString(s) && r2.MatchString(s) {
-			dl.Info("candidate node packaging workflow using npm: %s", fp)
+			dl.Info("candidate node publishing workflow using npm: %s", fp)
 			return true
 		}
 	}
@@ -95,14 +97,14 @@ func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
 		// Java packages with maven.
 		r1 := regexp.MustCompile(`(?s)mvn.*deploy`)
 		if r1.MatchString(s) {
-			dl.Info("candidate java packaging workflow using maven: %s", fp)
+			dl.Info("candidate java publishing workflow using maven: %s", fp)
 			return true
 		}
 
 		// Java packages with gradle.
 		r2 := regexp.MustCompile(`(?s)gradle.*publish`)
 		if r2.MatchString(s) {
-			dl.Info("candidate java packaging workflow using gradle: %s", fp)
+			dl.Info("candidate java publishing workflow using gradle: %s", fp)
 			return true
 		}
 	}
@@ -135,14 +137,14 @@ func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
 
 	// Python packages.
 	if strings.Contains(s, "actions/setup-python@") && strings.Contains(s, "pypa/gh-action-pypi-publish@master") {
-		dl.Info("candidate python packaging workflow using pypi: %s", fp)
+		dl.Info("candidate python publishing workflow using pypi: %s", fp)
 		return true
 	}
 
 	// Go packages.
 	if strings.Contains(s, "actions/setup-go") &&
 		strings.Contains(s, "goreleaser/goreleaser-action@") {
-		dl.Info("candidate golang packaging workflow: %s", fp)
+		dl.Info("candidate golang publishing workflow: %s", fp)
 		return true
 	}
 
@@ -154,6 +156,6 @@ func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
 		return true
 	}
 
-	dl.Debug("not a packaging workflow: %s", fp)
+	dl.Debug("not a publishing workflow: %s", fp)
 	return false
 }
