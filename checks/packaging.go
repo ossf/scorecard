@@ -34,33 +34,26 @@ func init() {
 	registerCheck(CheckPackaging, Packaging)
 }
 
+func isGithubWorkflowFile(filename string) (bool, error) {
+	return strings.HasPrefix(strings.ToLower(filename), ".github/workflows"), nil
+}
+
 // Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
-	_, dc, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, ".github/workflows",
-		&github.RepositoryContentGetOptions{})
+	matchedFiles, err := c.RepoClient.ListFiles(isGithubWorkflowFile)
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.GetContents: %v", err))
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
-	for _, f := range dc {
-		fp := f.GetPath()
-		fo, _, _, err := c.Client.Repositories.GetContents(c.Ctx, c.Owner, c.Repo, fp, &github.RepositoryContentGetOptions{})
+	for _, fp := range matchedFiles {
+		fc, err := c.RepoClient.GetFileContent(fp)
 		if err != nil {
-			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.GetContents: %v", err))
-			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
-		}
-		if fo == nil {
-			// path is a directory, not a file. skip.
-			continue
-		}
-		fc, err := fo.GetContent()
-		if err != nil {
-			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("fo.GetContent: %v", err))
+			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetFileContent: %v", err))
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 
-		if !isPackagingWorkflow(fc, fp, c) {
+		if !isPackagingWorkflow(string(fc), fp, c) {
 			continue
 		}
 
