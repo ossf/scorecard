@@ -12,6 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: scorecard-batch-controller
+rules:
+  - apiGroups: ["apps", "extensions"]
+    resources: ["deployments"]
+    resourceNames: ["scorecard-batch-worker"]
+    verbs: ["get", "patch"]
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: scorecard-batch-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: scorecard-batch-controller
+subjects:
+  - kind: ServiceAccount
+    name: default
+---
+
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -24,6 +48,7 @@ spec:
     spec:
       template:
         spec:
+          restartPolicy: Never
           containers:
           - name: controller
             image: gcr.io/openssf/scorecard-batch-controller:latest
@@ -33,4 +58,10 @@ spec:
                 memory: 1Gi
               requests:
                 memory: 1Gi
-          restartPolicy: OnFailure
+          - name: worker-update
+            image: bitnami/kubectl@sha256:44468c0f5b348e6dcf5e11feb6fdcc969c874bba2856150fe50eb1aacb3bdfee
+            command:
+              - "kubectl"
+              - "rollout"
+              - "restart"
+              - "deployment/scorecard-batch-worker"
