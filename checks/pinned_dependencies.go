@@ -176,7 +176,8 @@ func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) 
 	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
-func createReturnForIsShellScriptFreeOfInsecureDownloads(r pinnedResult, dl checker.DetailLogger, err error) (int, error) {
+func createReturnForIsShellScriptFreeOfInsecureDownloads(r pinnedResult,
+	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
 		"no insecure (unpinned) dependency downloads found in shell scripts",
 		dl, err)
@@ -215,7 +216,8 @@ func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 }
 
 // Create the result.
-func createReturnForIsDockerfileFreeOfInsecureDownloads(r pinnedResult, dl checker.DetailLogger, err error) (int, error) {
+func createReturnForIsDockerfileFreeOfInsecureDownloads(r pinnedResult,
+	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
 		"no insecure (unpinned) dependency downloads found in Dockerfiles",
 		dl, err)
