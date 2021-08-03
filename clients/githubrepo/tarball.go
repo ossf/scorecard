@@ -77,6 +77,7 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 
 	// Setup temp dir/files and download repo tarball.
 	if err := handler.getTarball(ctx, repo); errors.Is(err, errTarballNotFound) {
+		log.Printf("unable to get tarball %v. Skipping...", err)
 		return nil
 	} else if err != nil {
 		return err
@@ -122,8 +123,9 @@ func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repo
 	}
 	defer repoFile.Close()
 	if _, err := io.Copy(repoFile, resp.Body); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("io.Copy: %v", err))
+		// nolint: wrapcheck
+		// This can happen if the incoming tarball is corrupted/server gateway times out.
+		return sce.CreateInternal(errTarballNotFound, fmt.Sprintf("io.Copy: %v", err))
 	}
 
 	handler.tempDir = tempDir
