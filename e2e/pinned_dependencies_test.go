@@ -48,12 +48,12 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Errors:        nil,
-				Score:         3,
-				NumberOfWarn:  149,
-				NumberOfInfo:  2,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  154,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.FrozenDeps(&req)
+			result := checks.PinnedDependencies(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())

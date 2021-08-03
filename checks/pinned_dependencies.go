@@ -54,11 +54,11 @@ type gitHubActionWorkflowConfig struct {
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckPinnedDependencies, FrozenDeps)
+	registerCheck(CheckPinnedDependencies, PinnedDependencies)
 }
 
-// FrozenDeps will check the repository if it contains frozen dependecies.
-func FrozenDeps(c *checker.CheckRequest) checker.CheckResult {
+// PinnedDependencies will check the repository if it contains frozen dependecies.
+func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 	// Lock file.
 	lockScore, lockErr := isPackageManagerLockFilePresent(c)
 	if lockErr != nil {
@@ -131,7 +131,7 @@ const (
 
 func addPinnedResult(r *pinnedResult, to bool) {
 	// If the result is `noPinned`, we keep it.
-	// In other casees, we always update the result.
+	// In other cases, we always update the result.
 	if *r == pinnedUndefined || *r == pinned {
 		switch to {
 		case true:
