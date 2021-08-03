@@ -132,7 +132,7 @@ const (
 func addPinnedResult(r *pinnedResult, to bool) {
 	// If the result is `notPinned`, we keep it.
 	// In other cases, we always update the result.
-	if *r == pinnedUndefined || *r == pinned {
+	if *r != notPinned {
 		switch to {
 		case true:
 			*r = pinned
