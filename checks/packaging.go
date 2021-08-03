@@ -53,7 +53,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 
-		if !isPackagingWorkflow(string(fc), fp, c) {
+		if !isPackagingWorkflow(string(fc), fp, c.Dlogger) {
 			continue
 		}
 
@@ -68,58 +68,94 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		if *runs.TotalCount > 0 {
 			c.Dlogger.Info("workflow %v used in run: %s", fp, runs.WorkflowRuns[0].GetHTMLURL())
 			return checker.CreateMaxScoreResult(CheckPackaging,
-				"packaging workflow detected")
+				"publishing workflow detected")
 		}
 		c.Dlogger.Info("workflow %v not used in runs", fp)
 	}
 
-	return checker.CreateMinScoreResult(CheckPackaging,
-		"no packaging workflow used")
+	c.Dlogger.Warn("no publishing GitHub workflow detected")
+
+	return checker.CreateInconclusiveResult(CheckPackaging,
+		"no published package detected")
 }
 
-func isPackagingWorkflow(s, fp string, c *checker.CheckRequest) bool {
-	// nodejs packages
-	if strings.Contains(s, "uses: actions/setup-node@") {
+// A packaging workflow.
+func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
+	// Nodejs packages.
+	if strings.Contains(s, "actions/setup-node@") {
 		r1 := regexp.MustCompile(`(?s)registry-url.*https://registry\.npmjs\.org`)
 		r2 := regexp.MustCompile(`(?s)npm.*publish`)
 
 		if r1.MatchString(s) && r2.MatchString(s) {
-			c.Dlogger.Info("candidate node packaging workflow using npm: %s", fp)
+			dl.Info("candidate node publishing workflow using npm: %s", fp)
 			return true
 		}
 	}
 
-	if strings.Contains(s, "uses: actions/setup-java@") {
+	// Java packages.
+	if strings.Contains(s, "actions/setup-java@") {
 		// Java packages with maven.
 		r1 := regexp.MustCompile(`(?s)mvn.*deploy`)
 		if r1.MatchString(s) {
-			c.Dlogger.Info("candidate java packaging workflow using maven: %s", fp)
+			dl.Info("candidate java publishing workflow using maven: %s", fp)
 			return true
 		}
 
 		// Java packages with gradle.
 		r2 := regexp.MustCompile(`(?s)gradle.*publish`)
 		if r2.MatchString(s) {
-			c.Dlogger.Info("candidate java packaging workflow using gradle: %s", fp)
+			dl.Info("candidate java publishing workflow using gradle: %s", fp)
 			return true
 		}
 	}
 
+	// Ruby packages.
+	r := regexp.MustCompile(`(?s)gem.*push`)
+	if r.MatchString(s) {
+		dl.Info("ruby publishing workflow using gem: %s", fp)
+		return true
+	}
+
+	// NuGet packages.
+	r = regexp.MustCompile(`(?s)nuget.*push`)
+	if r.MatchString(s) {
+		dl.Info("nuget publishing workflow: %s", fp)
+		return true
+	}
+
+	// Docker packages.
+	if strings.Contains(s, "docker/build-push-action@") {
+		dl.Info("candidate docker publishing workflow: %s", fp)
+		return true
+	}
+
+	r = regexp.MustCompile(`(?s)docker.*push`)
+	if r.MatchString(s) {
+		dl.Info("candidate docker publishing workflow: %s", fp)
+		return true
+	}
+
+	// Python packages.
 	if strings.Contains(s, "actions/setup-python@") && strings.Contains(s, "pypa/gh-action-pypi-publish@master") {
-		c.Dlogger.Info("candidate python packaging workflow using pypi: %s", fp)
+		dl.Info("candidate python publishing workflow using pypi: %s", fp)
 		return true
 	}
 
-	if strings.Contains(s, "uses: docker/build-push-action@") {
-		c.Dlogger.Info("candidate docker publishing workflow: %s", fp)
+	// Go packages.
+	if strings.Contains(s, "actions/setup-go") &&
+		strings.Contains(s, "goreleaser/goreleaser-action@") {
+		dl.Info("candidate golang publishing workflow: %s", fp)
 		return true
 	}
 
-	if strings.Contains(s, "docker push") {
-		c.Dlogger.Info("candidate docker publishing workflow: %s", fp)
+	// Rust packages.
+	// https://doc.rust-lang.org/cargo/reference/publishing.html.
+	r = regexp.MustCompile(`(?s)cargo.*publish`)
+	if r.MatchString(s) {
+		dl.Info("candidate rust publishing workflow using cargo: %s", fp)
 		return true
 	}
 
-	c.Dlogger.Debug("not a packaging workflow: %s", fp)
+	dl.Debug("not a publishing workflow: %s", fp)
 	return false
 }

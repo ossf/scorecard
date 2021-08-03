@@ -168,13 +168,13 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	}
 
 	for _, result := range results.CodeResults {
-		c.Dlogger.Info("CodeQL detected: %s", result.GetPath())
+		c.Dlogger.Debug("CodeQL detected: %s", result.GetPath())
 	}
 
 	// TODO: check if it's enabled as cron or presubmit.
 	// TODO: check which branches it is enabled on. We should find main.
 	if *results.Total > 0 {
-		c.Dlogger.Info("tool detected: CodeQL")
+		c.Dlogger.Info("SAST tool detected: CodeQL")
 		return checker.MaxResultScore, nil
 	}
 
