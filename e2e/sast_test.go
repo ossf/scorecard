@@ -43,8 +43,8 @@ var _ = Describe("E2E TEST:SAST", func() {
 				Errors:        nil,
 				Score:         7,
 				NumberOfWarn:  1,
-				NumberOfInfo:  2,
-				NumberOfDebug: 0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 1,
 			}
 			result := checks.SAST(&req)
 			// UPGRADEv2: to remove.
