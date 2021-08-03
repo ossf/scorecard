@@ -266,7 +266,7 @@ checks:
       Signed releases attest to the provenance of the artifact.
       A low score is considered 'High' risk.
 
-      It works by looking for filenames: *.minisign
+      It works by looking for filenames: *.minisig
       (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last
       5 GitHub releases. The check does not verify the signatures.
     remediation:

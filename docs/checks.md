@@ -137,7 +137,7 @@ This check tries to determine if a project has published a security policy. It w
 
 This check tries to determine if a project cryptographically signs release artifacts.
 Signed releases attest to the provenance of the artifact. A low score is considered 'High' risk.
-It works by looking for filenames: *.minisign (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
+It works by looking for filenames: *.minisig (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
 
 **Remediation steps**
 - Publish the release.
