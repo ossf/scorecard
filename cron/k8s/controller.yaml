@@ -52,6 +52,7 @@ spec:
           containers:
           - name: controller
             image: gcr.io/openssf/scorecard-batch-controller:latest
+            args: ["cron/data/projects.csv"]
             imagePullPolicy: Always
             resources:
               limits:
