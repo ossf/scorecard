@@ -361,18 +361,24 @@ func createIgnoredPermissions(s, fp string, dl checker.DetailLogger) map[string]
 	if requiresPackagesPermissions(s, fp, dl) {
 		ignoredPermissions["packages"] = true
 	}
-	if isCodeQlAnalysisWorkflow(s, fp, dl) {
+	if isSARIFUploadWorkflow(s, fp, dl) {
 		ignoredPermissions["security-events"] = true
 	}
+
 	return ignoredPermissions
 }
 
-func isCodeQlAnalysisWorkflow(s, fp string, dl checker.DetailLogger) bool {
-	if strings.Contains(s, "github/codeql-action/analyze@") {
-		dl.Debug("codeql workflow detected: %v", fp)
+func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
+	// We only support CodeQl today.
+	return isCodeQlSARIFUploadWorkflow(s, fp, dl)
+}
+
+func isCodeQlSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
+	if strings.Contains(s, "github/codeql-action/upload-sarif@") {
+		dl.Debug("codeql SARIF upload workflow detected: %v", fp)
 		return true
 	}
-	dl.Debug("not a codeql workflow: %v", fp)
+	dl.Debug("not a codeql upload SARIF workflow: %v", fp)
 	return false
 }
 
