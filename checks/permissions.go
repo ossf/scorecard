@@ -386,8 +386,8 @@ func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
 		return true
 	}
 
-	// TODO: some third party tools may upload directly thr their actions.
-	// very unlikely.
+	// TODO: some third party tools may upload directly thru their actions.
+	// Very unlikely.
 	// See https://github.com/marketplace for tools.
 
 	return false
