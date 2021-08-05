@@ -44,25 +44,25 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "run workflow codeql write test",
+			name:     "run workflow no codeql write test",
 			filename: "./testdata/github-workflow-permissions-run-no-codeql-write.yaml",
 			expected: scut.TestReturn{
 				Errors:        nil,
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 2,
+				NumberOfDebug: 3,
 			},
 		},
 		{
-			name:     "run workflow run write test",
+			name:     "run workflow write test",
 			filename: "./testdata/github-workflow-permissions-run-writes-2.yaml",
 			expected: scut.TestReturn{
 				Errors:        nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  3,
 				NumberOfInfo:  2,
-				NumberOfDebug: 2,
+				NumberOfDebug: 3,
 			},
 		},
 		{
@@ -73,7 +73,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  2,
-				NumberOfDebug: 2,
+				NumberOfDebug: 3,
 			},
 		},
 		{
@@ -84,7 +84,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 2,
+				NumberOfDebug: 3,
 			},
 		},
 		{
@@ -95,7 +95,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -106,7 +106,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -117,7 +117,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -128,7 +128,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -139,7 +139,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -150,7 +150,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  10,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -161,7 +161,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  10,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -172,7 +172,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -183,7 +183,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  2,
 				NumberOfInfo:  2,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -194,7 +194,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore - 2,
 				NumberOfWarn:  2,
 				NumberOfInfo:  3,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -205,7 +205,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -216,7 +216,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -227,7 +227,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 	}

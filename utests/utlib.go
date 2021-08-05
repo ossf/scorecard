@@ -91,7 +91,6 @@ func ValidateTestValues(t *testing.T, name string, te *TestReturn,
 			return false
 		}
 	}
-	// UPGRADEv2: update name.
 	if score != te.Score ||
 		!validateDetailTypes(dl.messages, te.NumberOfWarn,
 			te.NumberOfInfo, te.NumberOfDebug) {

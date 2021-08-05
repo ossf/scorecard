@@ -361,12 +361,52 @@ func createIgnoredPermissions(s, fp string, dl checker.DetailLogger) map[string]
 	if requiresPackagesPermissions(s, fp, dl) {
 		ignoredPermissions["packages"] = true
 	}
-	if isCodeQlAnalysisWorkflow(s, fp, dl) {
+	if isSARIFUploadWorkflow(s, fp, dl) {
 		ignoredPermissions["security-events"] = true
 	}
+
 	return ignoredPermissions
 }
 
+// Scanning tool run externally and SARIF file uploaded.
+func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
+	//nolint
+	// CodeQl analysis workflow automatically sends sarif file to GitHub.
+	// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#about-sarif-file-uploads-for-code-scanning.
+	// `The CodeQL action uploads the SARIF file automatically when it completes analysis`.
+	if isCodeQlAnalysisWorkflow(s, fp, dl) {
+		return true
+	}
+
+	//nolint
+	// Third-party scanning tools use the SARIF-upload action from code-ql.
+	// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#uploading-a-code-scanning-analysis-with-github-actions
+	// We only support CodeQl today.
+	if isSARIFUploadAction(s, fp, dl) {
+		return true
+	}
+
+	// TODO: some third party tools may upload directly thru their actions.
+	// Very unlikely.
+	// See https://github.com/marketplace for tools.
+
+	return false
+}
+
+// CodeQl run externally and SARIF file uploaded.
+func isSARIFUploadAction(s, fp string, dl checker.DetailLogger) bool {
+	if strings.Contains(s, "github/codeql-action/upload-sarif@") {
+		dl.Debug("codeql SARIF upload workflow detected: %v", fp)
+		return true
+	}
+	dl.Debug("not a codeql upload SARIF workflow: %v", fp)
+	return false
+}
+
+//nolint
+// CodeQl run within GitHub worklow automatically bubbled up to
+// security events, see
+// https://docs.github.com/en/code-security/secure-coding/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning.
 func isCodeQlAnalysisWorkflow(s, fp string, dl checker.DetailLogger) bool {
 	if strings.Contains(s, "github/codeql-action/analyze@") {
 		dl.Debug("codeql workflow detected: %v", fp)
