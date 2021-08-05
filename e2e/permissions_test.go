@@ -48,7 +48,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			}
 			result := checks.TokenPermissions(&req)
 			// UPGRADEv2: to remove.
