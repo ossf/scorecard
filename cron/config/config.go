@@ -40,7 +40,7 @@ const (
 	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
 	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
 	bigqueryDataset        string = "SCORECARD_BIGQUERY_DATASET"
-	bigqueryTable          string = "SCORECARD_BIQQUERY_TABLE"
+	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
 	shardSize              string = "SCORECARD_SHARD_SIZE"
 	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
 )
