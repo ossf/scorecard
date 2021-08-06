@@ -15,6 +15,7 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '.',
+  '--build-arg', 'COMMIT_SHA=$COMMIT_SHA',
   '-t', 'gcr.io/openssf/scorecard-batch-controller:$COMMIT_SHA',
   '-t', 'gcr.io/openssf/scorecard-batch-controller:latest',
   '-f', 'cron/controller/Dockerfile']

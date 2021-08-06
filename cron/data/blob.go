@@ -130,6 +130,11 @@ func GetTransferStatusFilename(datetime time.Time) string {
 	return GetBlobFilename(config.TransferStatusFilename, datetime)
 }
 
+// GetShardMetadataFilename returns shard_metadata filename for a shard.
+func GetShardMetadataFilename(datetime time.Time) string {
+	return GetBlobFilename(config.ShardMetadataFilename, datetime)
+}
+
 // ParseBlobFilename parses a blob key into a Time object.
 func ParseBlobFilename(key string) (time.Time, string, error) {
 	if len(key) < len(filePrefixFormat) {

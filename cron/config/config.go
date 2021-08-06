@@ -29,6 +29,8 @@ import (
 )
 
 const (
+	// ShardMetadataFilename file contains metadata for the created shard.
+	ShardMetadataFilename string = ".shard_metadata"
 	// ShardNumFilename is the name of the file that stores the number of shards.
 	ShardNumFilename string = ".shard_num"
 	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.

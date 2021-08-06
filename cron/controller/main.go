@@ -22,12 +22,15 @@ import (
 	"strconv"
 	"time"
 
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ossf/scorecard/v2/cron/config"
 	"github.com/ossf/scorecard/v2/cron/data"
 	"github.com/ossf/scorecard/v2/cron/pubsub"
 )
+
+const commitSHA = "SCORECARD_COMMIT_SHA"
 
 func publishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime time.Time) (int32, error) {
 	var shardNum int32
@@ -99,18 +102,37 @@ func main() {
 		panic(err)
 	}
 
-	shardNum, err := publishToRepoRequestTopic(ctx, reader, t)
-	if err != nil {
-		panic(err)
-	}
 	bucket, err := config.GetResultDataBucketURL()
 	if err != nil {
 		panic(err)
 	}
+
+	shardNum, err := publishToRepoRequestTopic(ctx, reader, t)
+	if err != nil {
+		panic(err)
+	}
+	// TODO(azeems): Stop populating `.shard_num` file.
 	err = data.WriteToBlobStore(ctx, bucket,
 		data.GetShardNumFilename(t),
 		[]byte(strconv.Itoa(int(shardNum+1))))
 	if err != nil {
 		panic(err)
+	}
+	// Populate `.shard_metadata` file.
+	metadata := data.ShardMetadata{
+		NumShard:  new(int32),
+		ShardLoc:  new(string),
+		CommitSha: new(string),
+	}
+	*metadata.NumShard = (shardNum + 1)
+	*metadata.ShardLoc = bucket + "/" + data.GetBlobFilename("", t)
+	*metadata.CommitSha = os.Getenv(commitSHA)
+	metadataJSON, err := protojson.Marshal(&metadata)
+	if err != nil {
+		panic(fmt.Errorf("error during protojson.Marshal: %w", err))
+	}
+	err = data.WriteToBlobStore(ctx, bucket, data.GetShardMetadataFilename(t), metadataJSON)
+	if err != nil {
+		panic(fmt.Errorf("error writing to BlobStore: %w", err))
 	}
 }

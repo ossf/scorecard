@@ -73,6 +73,9 @@ func getBucketSummary(ctx context.Context, bucketURL string) (*bucketSummary, er
 			summary.getOrCreate(creationTime).shardsCreated++
 		case filename == config.TransferStatusFilename:
 			summary.getOrCreate(creationTime).isTransferred = true
+		case filename == config.ShardMetadataFilename:
+			// TODO(azeems): Handle shard_metadata file.
+			continue
 		default:
 			// nolint: goerr113
 			return nil, fmt.Errorf("found unrecognized file: %s", key)
