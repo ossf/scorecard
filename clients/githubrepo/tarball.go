@@ -39,8 +39,9 @@ const (
 )
 
 var (
-	errTarballNotFound = errors.New("tarball not found")
-	errZipSlip         = errors.New("ZipSlip path detected")
+	errTarballNotFound  = errors.New("tarball not found")
+	errTarballCorrupted = errors.New("corrupted tarball")
+	errZipSlip          = errors.New("ZipSlip path detected")
 )
 
 func extractAndValidateArchivePath(path, dest string) (string, error) {
@@ -76,7 +77,7 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 	}
 
 	// Setup temp dir/files and download repo tarball.
-	if err := handler.getTarball(ctx, repo); errors.Is(err, errTarballNotFound) {
+	if err := handler.getTarball(ctx, repo); errors.As(err, &errTarballNotFound) {
 		log.Printf("unable to get tarball %v. Skipping...", err)
 		return nil
 	} else if err != nil {
@@ -84,7 +85,12 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 	}
 
 	// Extract file names and content from tarball.
-	return handler.extractTarball()
+	err := handler.extractTarball()
+	if errors.As(err, &errTarballCorrupted) {
+		log.Printf("unable to extract tarball %v. Skipping...", err)
+		return nil
+	}
+	return err
 }
 
 func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repository) error {
@@ -144,7 +150,7 @@ func (handler *tarballHandler) extractTarball() error {
 	gz, err := gzip.NewReader(in)
 	if err != nil {
 		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("gzip.NewReader: %v: %v", handler.tempTarFile, err))
+		return sce.CreateInternal(errTarballCorrupted, fmt.Sprintf("gzip.NewReader: %v: %v", handler.tempTarFile, err))
 	}
 	tr := tar.NewReader(gz)
 	for {
@@ -154,7 +160,7 @@ func (handler *tarballHandler) extractTarball() error {
 		}
 		if err != nil {
 			//nolint:wrapcheck
-			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("tarReader.Next: %v", err))
+			return sce.CreateInternal(errTarballCorrupted, fmt.Sprintf("tarReader.Next: %v", err))
 		}
 
 		switch header.Typeflag {
@@ -196,8 +202,8 @@ func (handler *tarballHandler) extractTarball() error {
 			// Potential for DoS vulnerability via decompression bomb.
 			// Since such an attack will only impact a single shard, ignoring this for now.
 			if _, err := io.Copy(outFile, tr); err != nil {
-				//nolint:wrapcheck
-				return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("io.Copy: %v", err))
+				// nolint: wrapcheck
+				return sce.CreateInternal(errTarballCorrupted, fmt.Sprintf("io.Copy: %v", err))
 			}
 			outFile.Close()
 			handler.files = append(handler.files,
