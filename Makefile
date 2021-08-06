@@ -104,9 +104,11 @@ build: ## Build all binaries and images in the reepo.
 build: $(build-targets)
 
 build-proto: ## Compiles and generates all required protobufs
-build-proto: cron/data/request.pb.go
+build-proto: cron/data/request.pb.go cron/data/metadata.pb.go
 cron/data/request.pb.go: cron/data/request.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/request.proto
+cron/data/metadata.pb.go: cron/data/metadata.proto |  $(PROTOC)
+	protoc --go_out=../../../ cron/data/metadata.proto
 
 generate-docs: ## Generates docs
 generate-docs: docs/checks.md
@@ -152,8 +154,9 @@ dockerbuild: ## Runs docker build
 	# Build all Docker images in the Repo
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
-	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
-	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
+	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile \
+			--build-arg=COMMIT_SHA=$(GIT_HASH) --tag $(IMAGE_NAME)-batch-controller
+	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile  --tag $(IMAGE_NAME)-batch-worker
 	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
 ###############################################################################
 
