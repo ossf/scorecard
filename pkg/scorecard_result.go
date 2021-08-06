@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -28,8 +27,10 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/checker"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
+// ScorecardResult struct is returned on a successful Scorecard run.
 type ScorecardResult struct {
 	Repo     string
 	Date     string
@@ -43,7 +44,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 	encoder := json.NewEncoder(writer)
 	if showDetails {
 		if err := encoder.Encode(r); err != nil {
-			return fmt.Errorf("error encoding repo result as detailed JSON: %w", err)
+			//nolint:wrapcheck
+			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 		}
 		return nil
 	}
@@ -63,11 +65,13 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 		out.Checks = append(out.Checks, tmpResult)
 	}
 	if err := encoder.Encode(out); err != nil {
-		return fmt.Errorf("error encoding repo result as JSON: %w", err)
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 	return nil
 }
 
+// AsCSV outputs ScorecardResult in CSV format.
 func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo}
@@ -85,86 +89,22 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer
 	}
 	fmt.Fprintf(writer, "%s\n", strings.Join(columns, ","))
 	if err := w.Write(record); err != nil {
-		return fmt.Errorf("error writing repo result as CSV: %w", err)
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("csv.Write: %v", err))
 	}
 	w.Flush()
 	if err := w.Error(); err != nil {
-		return fmt.Errorf("error flushing repo result as CSV: %w", err)
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("csv.Flush: %v", err))
 	}
 	return nil
 }
 
-// UPGRADEv2: will be removed.
+// AsString returns ScorecardResult in string format.
 func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
-	sortedChecks := make([]checker.CheckResult, len(r.Checks))
-	//nolint
-	for i, checkResult := range r.Checks {
-		sortedChecks[i] = checkResult
-	}
-	sort.Slice(sortedChecks, func(i, j int) bool {
-		if sortedChecks[i].Pass == sortedChecks[j].Pass {
-			return sortedChecks[i].Name < sortedChecks[j].Name
-		}
-		return sortedChecks[i].Pass
-	})
-
-	data := make([][]string, len(sortedChecks))
-	//nolint
-	for i, row := range sortedChecks {
-		const withdetails = 4
-		const withoutdetails = 3
-		var x []string
-
-		if showDetails {
-			x = make([]string, withdetails)
-		} else {
-			x = make([]string, withoutdetails)
-		}
-
-		x[0] = displayResult(row.Pass)
-		x[1] = strconv.Itoa(row.Confidence)
-		x[2] = row.Name
-		if showDetails {
-			//nolint
-			if row.Version == 2 {
-				details, show := detailsToString(row.Details2, logLevel)
-				if show {
-					x[3] = details
-				}
-			} else {
-				x[3] = strings.Join(row.Details, "\n")
-			}
-		}
-		data[i] = x
-	}
-
-	fmt.Fprintf(writer, "Repo: %s\n", r.Repo)
-	table := tablewriter.NewWriter(os.Stdout)
-	header := []string{"Status", "Confidence", "Name"}
-	if showDetails {
-		header = append(header, "Details")
-	}
-	table.SetHeader(header)
-	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
-	table.SetRowSeparator("-")
-	table.SetRowLine(true)
-	table.SetCenterSeparator("|")
-	table.AppendBulk(data)
-	table.Render()
-
-	return nil
-}
-
-// UPGRADEv2: new code.
-func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	data := make([][]string, len(r.Checks))
 	//nolint
-	// UPGRADEv2: not needed after upgrade.
 	for i, row := range r.Checks {
-		//nolint
-		if row.Version != 2 {
-			continue
-		}
 		const withdetails = 5
 		const withoutdetails = 4
 		var x []string
@@ -182,7 +122,7 @@ func (r *ScorecardResult) AsString2(showDetails bool, logLevel zapcore.Level, wr
 			x[0] = fmt.Sprintf("%d", row.Score)
 		}
 
-		doc := fmt.Sprintf("github.com/ossf/scorecard/blob/main/checks/checks.md#%s", strings.ToLower(row.Name))
+		doc := fmt.Sprintf("github.com/ossf/scorecard/blob/main/docs/checks.md#%s", strings.ToLower(row.Name))
 		x[1] = row.Reason
 		x[2] = row.Name
 		if showDetails {
@@ -242,12 +182,4 @@ func typeToString(cd checker.DetailType) string {
 	case checker.DetailDebug:
 		return "Debug"
 	}
-}
-
-// UPGRADEv2: not needed after upgrade.
-func displayResult(result bool) string {
-	if result {
-		return "Pass"
-	}
-	return "Fail"
 }

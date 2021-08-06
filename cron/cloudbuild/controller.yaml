@@ -12,20 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-FROM  golang:1.16.4@sha256:6f0b0a314b158ff6caf8f12d7f6f3a966500ec6afb533e986eca7375e2f7560f AS base
-WORKDIR /src
-ENV CGO_ENABLED=0
-COPY go.* ./
-RUN go mod download
-COPY . ./
-
-FROM base AS pubsub
-ARG TARGETOS
-ARG TARGETARCH
-RUN CGO_ENABLED=0 make build-pubsub
-
-FROM gcr.io/distroless/base:nonroot@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
-COPY ./cron/data/projects.release.csv cron/data/projects.release.csv
-COPY --from=pubsub /src/cron/controller/controller cron/controller/controller
-ENTRYPOINT ["cron/controller/controller", "cron/data/projects.release.csv"]
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '.',
+  '--build-arg', 'COMMIT_SHA=$COMMIT_SHA',
+  '-t', 'gcr.io/openssf/scorecard-batch-controller:$COMMIT_SHA',
+  '-t', 'gcr.io/openssf/scorecard-batch-controller:latest',
+  '-f', 'cron/controller/Dockerfile']
+images: ['gcr.io/openssf/scorecard-batch-controller']

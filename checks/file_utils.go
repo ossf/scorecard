@@ -24,29 +24,6 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-// CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
-// for the occurrence.
-func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile func(name string,
-	dl checker.DetailLogger) (bool, error)) (bool, error) {
-	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
-	if err != nil {
-		// nolint: wrapcheck
-		return false, err
-	}
-	for _, filename := range matchedFiles {
-		rr, err := onFile(filename, c.Dlogger)
-		if err != nil {
-			return false, err
-		}
-
-		if rr {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
 // isMatchingPath uses 'pattern' to shell-match the 'path' and its filename
 // 'caseSensitive' indicates the match should be case-sensitive. Default: no.
 func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) {
@@ -79,19 +56,28 @@ func isScorecardTestFile(owner, repo, fullpath string) bool {
 		strings.Contains(fullpath, "/testdata/"))
 }
 
+// FileCbData is any data the caller can act upon
+// to keep state.
+type FileCbData interface{}
+
+// FileContentCb is the callback.
+// The bool returned indicates whether the CheckFilesContent2
+// should continue iterating over files or not.
+type FileContentCb func(path string, content []byte,
+	dl checker.DetailLogger, data FileCbData) (bool, error)
+
 // CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
 // shellPathFnPattern is used for https://golang.org/pkg/path/#Match
 // Warning: the pattern is used to match (1) the entire path AND (2) the filename alone. This means:
 // 	- To scope the search to a directory, use "./dirname/*". Example, for the root directory,
 // 		use "./*".
 //	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
-//nolint
 func CheckFilesContent(shellPathFnPattern string,
 	caseSensitive bool,
 	c *checker.CheckRequest,
-	onFileContent func(path string, content []byte,
-		dl checker.DetailLogger) (bool, error),
-) (bool, error) {
+	onFileContent FileContentCb,
+	data FileCbData,
+) error {
 	predicate := func(filepath string) (bool, error) {
 		// Filter out Scorecard's own test files.
 		if isScorecardTestFile(c.Owner, c.Repo, filepath) {
@@ -104,31 +90,67 @@ func CheckFilesContent(shellPathFnPattern string,
 		}
 		return b, nil
 	}
-	res := true
+
 	matchedFiles, err := c.RepoClient.ListFiles(predicate)
 	if err != nil {
 		// nolint: wrapcheck
-		return false, err
+		return err
 	}
+
 	for _, file := range matchedFiles {
 		content, err := c.RepoClient.GetFileContent(file)
 		if err != nil {
 			//nolint
-			return false, err
+			return err
 		}
 
-		rr, err := onFileContent(file, content, c.Dlogger)
+		continueIter, err := onFileContent(file, content, c.Dlogger, data)
 		if err != nil {
-			return false, err
+			return err
 		}
-		// We don't return rightway to let the onFileContent()
-		// handler log.
-		if !rr {
-			res = false
+
+		if !continueIter {
+			break
 		}
 	}
 
-	return res, nil
+	return nil
+}
+
+// FileCb represents a callback fn.
+type FileCb func(path string,
+	dl checker.DetailLogger, data FileCbData) (bool, error)
+
+// CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
+// for the occurrence.
+func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile FileCb, data FileCbData) error {
+	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
+	if err != nil {
+		// nolint: wrapcheck
+		return err
+	}
+	for _, filename := range matchedFiles {
+		continueIter, err := onFile(filename, c.Dlogger, data)
+		if err != nil {
+			return err
+		}
+
+		if !continueIter {
+			break
+		}
+	}
+
+	return nil
+}
+
+// FileGetCbDataAsBoolPointer returns callback data as bool.
+func FileGetCbDataAsBoolPointer(data FileCbData) *bool {
+	pdata, ok := data.(*bool)
+	if !ok {
+		// This never happens.
+		panic("invalid type")
+	}
+	return pdata
 }
 
 // CheckFileContainsCommands checks if the file content contains commands or not.

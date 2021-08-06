@@ -29,6 +29,7 @@ spec:
       containers:
       - name: worker
         image: gcr.io/openssf/scorecard-batch-worker
+        args: ["--ignoreRuntimeErrors=true"]
         imagePullPolicy: Always
         env:
         - name: GITHUB_AUTH_TOKEN

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package pkg defines fns for running Scorecard checks on a RepoURL.
 package pkg
 
 import (
@@ -28,6 +29,7 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients"
+	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/repos"
 	"github.com/ossf/scorecard/v2/stats"
 )
@@ -69,6 +71,7 @@ func runEnabledChecks(ctx context.Context,
 	close(resultsCh)
 }
 
+// RunScorecards runs enabled Scorecard checks on a RepoURL.
 func RunScorecards(ctx context.Context,
 	repo repos.RepoURL,
 	checksToRun checker.CheckNameToFnMap,
@@ -78,12 +81,15 @@ func RunScorecards(ctx context.Context,
 	graphClient *githubv4.Client) (ScorecardResult, error) {
 	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repo.URL()))
 	if err != nil {
-		return ScorecardResult{}, fmt.Errorf("error during tag.New: %w", err)
+		//nolint:wrapcheck
+		return ScorecardResult{}, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 	}
 	defer logStats(ctx, time.Now())
 
 	if err := repoClient.InitRepo(repo.Owner, repo.Repo); err != nil {
-		return ScorecardResult{}, fmt.Errorf("error during InitRepo for %s: %w", repo.URL(), err)
+		// No need to call sce.Create() since InitRepo will do that for us.
+		//nolint:wrapcheck
+		return ScorecardResult{}, err
 	}
 
 	ret := ScorecardResult{

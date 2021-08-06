@@ -23,9 +23,11 @@ import (
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
+	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/stats"
 )
 
+// MakeCensusTransport wraps input Roundtripper with monitoring logic.
 func MakeCensusTransport(innerTransport http.RoundTripper) http.RoundTripper {
 	return &ochttp.Transport{
 		Base: &censusTransport{
@@ -43,18 +45,21 @@ type censusTransport struct {
 func (ct *censusTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	ctx, err := tag.New(r.Context(), tag.Upsert(stats.RequestTag, "requested"))
 	if err != nil {
-		return nil, fmt.Errorf("error during tag.New: %w", err)
+		//nolint:wrapcheck
+		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 	}
 
 	r = r.WithContext(ctx)
 	resp, err := ct.innerTransport.RoundTrip(r)
 	if err != nil {
-		return nil, fmt.Errorf("error in RoundTrip: %w", err)
+		//nolint:wrapcheck
+		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
 	}
 	if resp.Header.Get(httpcache.XFromCache) != "" {
 		ctx, err = tag.New(ctx, tag.Upsert(stats.RequestTag, httpcache.XFromCache))
 		if err != nil {
-			return nil, fmt.Errorf("error during tag.New: %w", err)
+			//nolint:wrapcheck
+			return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 		}
 	}
 	opencensusstats.Record(ctx, stats.HTTPRequests.M(1))

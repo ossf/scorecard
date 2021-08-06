@@ -34,8 +34,8 @@ var _ = Describe("E2E TEST:Signedreleases", func() {
 				Client:      ghClient,
 				HTTPClient:  httpClient,
 				RepoClient:  nil,
-				Owner:       "apache",
-				Repo:        "airflow",
+				Owner:       "ossf-tests",
+				Repo:        "scorecard-check-signed-releases-e2e",
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}

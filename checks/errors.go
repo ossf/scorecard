@@ -27,7 +27,7 @@ var (
 	errInternalInvalidShellCode  = errors.New("invalid shell code")
 	errInternalCommitishNil      = errors.New("commitish is nil")
 	errInternalBranchNotFound    = errors.New("branch not found")
-	errInvalidGitHubWorkflowFile = errors.New("invalid GitHub workflow file")
+	errInvalidGitHubWorkflow     = errors.New("invalid GitHub workflow")
 	errInternalNoReviews         = errors.New("no reviews found")
 	errInternalNoCommits         = errors.New("no commits found")
 )

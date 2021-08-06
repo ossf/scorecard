@@ -15,14 +15,17 @@
 package roundtripper
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
+
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
+// MakeRateLimitedTransport returns a RoundTripper which rate limits GitHub requests.
 func MakeRateLimitedTransport(innerTransport http.RoundTripper, logger *zap.SugaredLogger) http.RoundTripper {
 	return &rateLimitTransport{
 		logger:         logger,
@@ -40,7 +43,8 @@ type rateLimitTransport struct {
 func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	resp, err := gh.innerTransport.RoundTrip(r)
 	if err != nil {
-		return nil, errors.Wrap(err, "error in round trip")
+		//nolint:wrapcheck
+		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
 	}
 	rateLimit := resp.Header.Get("X-RateLimit-Remaining")
 	remaining, err := strconv.Atoi(rateLimit)

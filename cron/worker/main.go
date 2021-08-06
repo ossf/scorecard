@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package main implements cron worker job.
 package main
 
 import (
 	"bytes"
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -39,13 +41,17 @@ import (
 	"github.com/ossf/scorecard/v2/cron/data"
 	"github.com/ossf/scorecard/v2/cron/monitoring"
 	"github.com/ossf/scorecard/v2/cron/pubsub"
+	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
 	"github.com/ossf/scorecard/v2/repos"
 	"github.com/ossf/scorecard/v2/roundtripper"
 	"github.com/ossf/scorecard/v2/stats"
 )
 
-var errIgnore *clients.ErrRepoUnavailable
+var (
+	ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
+	errIgnore           *clients.ErrRepoUnavailable
+)
 
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap, bucketURL string,
@@ -88,6 +94,15 @@ func processRequest(ctx context.Context,
 		}
 		if err != nil {
 			return fmt.Errorf("error during RunScorecards: %w", err)
+		}
+		if !(*ignoreRuntimeErrors) {
+			for checkIndex := range result.Checks {
+				check := &result.Checks[checkIndex]
+				if errors.As(check.Error2, &sce.ErrScorecardInternal) {
+					// nolint: errorlint, goerr113
+					return fmt.Errorf("check %s has a runtime error: %v", check.Name, check.Error2)
+				}
+			}
 		}
 		result.Date = batchRequest.GetJobTime().AsTime().Format("2006-01-02")
 		if err := result.AsJSON(true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {

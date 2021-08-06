@@ -34,8 +34,8 @@ var _ = Describe("E2E TEST:Signedtags", func() {
 				Client:      ghClient,
 				HTTPClient:  httpClient,
 				RepoClient:  nil,
-				Owner:       "bitcoin",
-				Repo:        "bitcoin",
+				Owner:       "ossf-tests",
+				Repo:        "scorecard-check-signed-releases-e2e",
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}

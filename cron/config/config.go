@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package config defines the configuration values for the cron job.
 package config
 
 import (
@@ -28,6 +29,8 @@ import (
 )
 
 const (
+	// ShardMetadataFilename file contains metadata for the created shard.
+	ShardMetadataFilename string = ".shard_metadata"
 	// ShardNumFilename is the name of the file that stores the number of shards.
 	ShardNumFilename string = ".shard_num"
 	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.
@@ -112,34 +115,42 @@ func getIntConfigValue(envVar string, byteValue []byte, fieldName, configName st
 	}
 }
 
+// GetProjectID returns the cloud projectID for the cron job.
 func GetProjectID() (string, error) {
 	return getStringConfigValue(projectID, configYAML, "ProjectID", "project-id")
 }
 
+// GetResultDataBucketURL returns the bucketURL for storing cron job results.
 func GetResultDataBucketURL() (string, error) {
 	return getStringConfigValue(resultDataBucketURL, configYAML, "ResultDataBucketURL", "result-data-bucket-url")
 }
 
+// GetRequestTopicURL returns the topic name for sending cron job PubSub requests.
 func GetRequestTopicURL() (string, error) {
 	return getStringConfigValue(requestTopicURL, configYAML, "RequestTopicURL", "request-topic-url")
 }
 
+// GetRequestSubscriptionURL returns the subscription name of the PubSub topic for cron job reuests.
 func GetRequestSubscriptionURL() (string, error) {
 	return getStringConfigValue(requestSubscriptionURL, configYAML, "RequestSubscriptionURL", "request-subscription-url")
 }
 
+// GetBigQueryDataset returns the BQ dataset name to transfer cron job results.
 func GetBigQueryDataset() (string, error) {
 	return getStringConfigValue(bigqueryDataset, configYAML, "BigQueryDataset", "bigquery-dataset")
 }
 
+// GetBigQueryTable returns the table name to transfer cron job results.
 func GetBigQueryTable() (string, error) {
 	return getStringConfigValue(bigqueryTable, configYAML, "BigQueryTable", "bigquery-table")
 }
 
+// GetShardSize returns the shard_size for the cron job.
 func GetShardSize() (int, error) {
 	return getIntConfigValue(shardSize, configYAML, "ShardSize", "shard-size")
 }
 
+// GetMetricExporter returns the opencensus exporter type.
 func GetMetricExporter() (string, error) {
 	return getStringConfigValue(metricExporter, configYAML, "MetricExporter", "metric-exporter")
 }

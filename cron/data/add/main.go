@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package main adds new project repositories to the projects file.
 package main
 
 import (

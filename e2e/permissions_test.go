@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+//nolint:dupl
 package e2e
 
 import (
@@ -22,38 +22,42 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
-var _ = Describe("E2E TEST:Branch Protection", func() {
-	Context("E2E TEST:Validating branch protection", func() {
-		It("Should fail to return branch protection on other repositories", func() {
+var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
+	Context("E2E TEST:Validating token permission check", func() {
+		It("Should return token permission works", func() {
 			dl := scut.TestDetailLogger{}
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			err := repoClient.InitRepo("ossf-tests", "scorecard-check-token-permissions-e2e")
+			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  nil,
-				Owner:       "apache",
-				Repo:        "airflow",
+				RepoClient:  repoClient,
+				Owner:       "ossf-tests",
+				Repo:        "scorecard-check-token-permissions-e2e",
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
-				Errors:        []error{sce.ErrScorecardInternal},
-				Score:         checker.InconclusiveResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				Errors:        nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  2,
+				NumberOfDebug: 4,
 			}
-			result := checks.BranchProtection(&req)
+			result := checks.TokenPermissions(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).ShouldNot(BeNil())
+
+			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection not accessible", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

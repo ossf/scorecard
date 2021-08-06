@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import (
 	"fmt"
 )
 
-// UPGRADEv2: delete other files in folder.
 //nolint
 var (
 	ErrScorecardInternal = errors.New("internal error")
@@ -37,8 +36,14 @@ func Create(e error, msg string) error {
 	return fmt.Errorf("%w", e)
 }
 
-// Create an internal error, not using
-// any of the errors listed above.
-func CreateInternal(e error, msg string) error {
-	return Create(e, msg)
+// GetName returns the name of the error.
+func GetName(err error) string {
+	switch {
+	case errors.Is(err, ErrScorecardInternal):
+		return "ErrScorecardInternal"
+	case errors.Is(err, ErrRepoUnreachable):
+		return "ErrRepoUnreachable"
+	default:
+		return "ErrUnknown"
+	}
 }

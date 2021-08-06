@@ -24,149 +24,329 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-const CheckPermissions = "Token-Permissions"
+// CheckTokenPermissions is the exported name for Token-Permissions check.
+const CheckTokenPermissions = "Token-Permissions"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckPermissions, leastPrivilegedTokens)
+	registerCheck(CheckTokenPermissions, TokenPermissions)
 }
 
-func leastPrivilegedTokens(c *checker.CheckRequest) checker.CheckResult {
-	r, err := CheckFilesContent(".github/workflows/*", false, c, validateGitHubActionTokenPermissions)
-	return createResultForLeastPrivilegeTokens(r, err)
+// Holds stateful data to pass thru callbacks.
+// Each field correpsonds to a GitHub permission type, and
+// will hold true if declared non-write, false otherwise.
+type permissionCbData struct {
+	topLevelWritePermissions map[string]bool
+	runLevelWritePermissions map[string]bool
+}
+
+// TokenPermissions runs Token-Permissions check.
+func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
+	// data is shared across all GitHub workflows.
+	data := permissionCbData{
+		topLevelWritePermissions: make(map[string]bool),
+		runLevelWritePermissions: make(map[string]bool),
+	}
+	err := CheckFilesContent(".github/workflows/*", false,
+		c, validateGitHubActionTokenPermissions, &data)
+	return createResultForLeastPrivilegeTokens(data, err)
 }
 
 func validatePermission(key string, value interface{}, path string,
-	dl checker.DetailLogger) (bool, error) {
+	dl checker.DetailLogger, pPermissions map[string]bool,
+	ignoredPermissions map[string]bool) error {
 	val, ok := value.(string)
 	if !ok {
 		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
+		return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
 
 	if strings.EqualFold(val, "write") {
-		dl.Warn("'%v' permission set to '%v' in %v", key, val, path)
-		return false, nil
+		if isPermissionOfInterest(key, ignoredPermissions) {
+			dl.Warn("'%v' permission set to '%v' in %v", key, val, path)
+			recordPermissionWrite(key, pPermissions)
+		} else {
+			// Only log for debugging, otherwise
+			// it may confuse users.
+			dl.Debug("'%v' permission set to '%v' in %v", key, val, path)
+		}
+		return nil
 	}
 
 	dl.Info("'%v' permission set to '%v' in %v", key, val, path)
-	return true, nil
+	return nil
 }
 
 func validateMapPermissions(values map[interface{}]interface{}, path string,
-	dl checker.DetailLogger) (bool, error) {
-	permissionRead := true
-	var r bool
-	var err error
-
+	dl checker.DetailLogger, pPermissions map[string]bool,
+	ignoredPermissions map[string]bool) error {
 	// Iterate over the permission, verify keys and values are strings.
 	for k, v := range values {
 		key, ok := k.(string)
 		if !ok {
 			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
+			return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 		}
 
-		if r, err = validatePermission(key, v, path, dl); err != nil {
-			return false, err
-		}
-
-		if !r {
-			permissionRead = false
+		if err := validatePermission(key, v, path, dl, pPermissions, ignoredPermissions); err != nil {
+			return err
 		}
 	}
-	return permissionRead, nil
+	return nil
 }
 
-func validateReadPermissions(config map[interface{}]interface{}, path string,
-	dl checker.DetailLogger) (bool, error) {
-	var permissions interface{}
+func recordPermissionWrite(name string, pPermissions map[string]bool) {
+	pPermissions[name] = true
+}
 
-	// Check if permissions are set explicitly.
-	permissions, ok := config["permissions"]
-	if !ok {
-		dl.Warn("no permission defined in %v", path)
-		return false, nil
-	}
+func recordAllPermissionsWrite(pPermissions map[string]bool) {
+	// Special case: `all` does not correspond
+	// to a GitHub permission.
+	pPermissions["all"] = true
+}
 
+func validatePermissions(permissions interface{}, path string,
+	dl checker.DetailLogger, pPermissions map[string]bool,
+	ignoredPermissions map[string]bool) error {
 	// Check the type of our values.
 	switch val := permissions.(type) {
 	// Empty string is nil type.
 	// It defaults to 'none'
 	case nil:
-		dl.Info("permission set to 'none' in %v", path)
+		dl.Info("permissions set to 'none' in %v", path)
 	// String type.
 	case string:
 		if !strings.EqualFold(val, "read-all") && val != "" {
-			dl.Warn("permission set to '%v' in %v", val, path)
-			return false, nil
+			dl.Warn("permissions set to '%v' in %v", val, path)
+			recordAllPermissionsWrite(pPermissions)
+			return nil
 		}
 		dl.Info("permission set to '%v' in %v", val, path)
 
 	// Map type.
 	case map[interface{}]interface{}:
-		if res, err := validateMapPermissions(val, path, dl); err != nil {
-			return false, err
-		} else if !res {
-			return false, nil
+		if err := validateMapPermissions(val, path, dl, pPermissions, ignoredPermissions); err != nil {
+			return err
 		}
 
 	// Invalid type.
 	default:
 		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflowFile.Error())
+		return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+	}
+	return nil
+}
+
+func validateTopLevelPermissions(config map[interface{}]interface{}, path string,
+	dl checker.DetailLogger, pdata *permissionCbData) error {
+	// Check if permissions are set explicitly.
+	permissions, ok := config["permissions"]
+	if !ok {
+		dl.Warn("no permission defined in %v", path)
+		recordAllPermissionsWrite(pdata.topLevelWritePermissions)
+		return nil
 	}
 
-	return true, nil
+	return validatePermissions(permissions, path, dl,
+		pdata.topLevelWritePermissions, map[string]bool{})
+}
+
+func validateRunLevelPermissions(config map[interface{}]interface{}, path string,
+	dl checker.DetailLogger, pdata *permissionCbData,
+	ignoredPermissions map[string]bool) error {
+	var jobs interface{}
+
+	jobs, ok := config["jobs"]
+	if !ok {
+		return nil
+	}
+
+	mjobs, ok := jobs.(map[interface{}]interface{})
+	if !ok {
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+	}
+
+	for _, value := range mjobs {
+		job, ok := value.(map[interface{}]interface{})
+		if !ok {
+			//nolint:wrapcheck
+			return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+		}
+		// Run-level permissions may be left undefined.
+		// For most workflows, no write permissions are needed,
+		// so only top-level read-only permissions need to be declared.
+		permissions, ok := job["permissions"]
+		if !ok {
+			dl.Debug("no permission defined in %v", path)
+			continue
+		}
+		err := validatePermissions(permissions, path, dl,
+			pdata.runLevelWritePermissions, ignoredPermissions)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func isPermissionOfInterest(name string, ignoredPermissions map[string]bool) bool {
+	permissions := []string{
+		"statuses", "checks", "security-events",
+		"deployments", "contents", "packages", "actions",
+	}
+	for _, p := range permissions {
+		_, present := ignoredPermissions[p]
+		if strings.EqualFold(name, p) && !present {
+			return true
+		}
+	}
+	return false
+}
+
+func permissionIsPresent(result permissionCbData, name string) bool {
+	_, ok1 := result.topLevelWritePermissions[name]
+	_, ok2 := result.runLevelWritePermissions[name]
+	return ok1 || ok2
+}
+
+// Calculate the score.
+func calculateScore(result permissionCbData) int {
+	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
+	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
+	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
+
+	if permissionIsPresent(result, "all") {
+		return checker.MinResultScore
+	}
+
+	// Start with a perfect score.
+	score := float32(checker.MaxResultScore)
+
+	// status: https://docs.github.com/en/rest/reference/repos#statuses.
+	// May allow an attacker to change the result of pre-submit and get a PR merged.
+	// Low risk: -0.5.
+	if permissionIsPresent(result, "statuses") {
+		score -= 0.5
+	}
+
+	// checks.
+	// May allow an attacker to edit checks to remove pre-submit and introduce a bug.
+	// Low risk: -0.5.
+	if permissionIsPresent(result, "checks") {
+		score -= 0.5
+	}
+
+	// secEvents.
+	// May allow attacker to read vuln reports before patch available.
+	// Low risk: -1
+	if permissionIsPresent(result, "security-events") {
+		score--
+	}
+
+	// deployments: https://docs.github.com/en/rest/reference/repos#deployments.
+	// May allow attacker to charge repo owner by triggering VM runs,
+	// and tiny chance an attacker can trigger a remote
+	// service with code they own if server accepts code/location var unsanitized.
+	// Low risk: -1
+	if permissionIsPresent(result, "deployments") {
+		score--
+	}
+
+	// contents.
+	// Allows attacker to commit unreviewed code.
+	// High risk: -10
+	if permissionIsPresent(result, "contents") {
+		score -= checker.MaxResultScore
+	}
+
+	// packages: https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages.
+	// Allows attacker to publish packages.
+	// High risk: -10
+	if permissionIsPresent(result, "packages") {
+		score -= checker.MaxResultScore
+	}
+
+	// actions.
+	// May allow an attacker to steal GitHub secrets by adding a malicious workflow/action.
+	// High risk: -10
+	if permissionIsPresent(result, "actions") {
+		score -= checker.MaxResultScore
+	}
+
+	// 2. Run-level permissions.
+
+	// We're done, calculate the final score.
+	if score < checker.MinResultScore {
+		return checker.MinResultScore
+	}
+
+	return int(score)
 }
 
 // Create the result.
-func createResultForLeastPrivilegeTokens(r bool, err error) checker.CheckResult {
+func createResultForLeastPrivilegeTokens(result permissionCbData, err error) checker.CheckResult {
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckPermissions, err)
-	}
-	if !r {
-		return checker.CreateMinScoreResult(CheckPermissions,
-			"non read-only tokens detected in GitHub workflows")
+		return checker.CreateRuntimeErrorResult(CheckTokenPermissions, err)
 	}
 
-	return checker.CreateMaxScoreResult(CheckPermissions,
+	score := calculateScore(result)
+
+	if score != checker.MaxResultScore {
+		return checker.CreateResultWithScore(CheckTokenPermissions,
+			"non read-only tokens detected in GitHub workflows", score)
+	}
+
+	return checker.CreateMaxScoreResult(CheckTokenPermissions,
 		"tokens are read-only in GitHub workflows")
 }
 
 func testValidateGitHubActionTokenPermissions(pathfn string,
 	content []byte, dl checker.DetailLogger) checker.CheckResult {
-	r, err := validateGitHubActionTokenPermissions(pathfn, content, dl)
-	return createResultForLeastPrivilegeTokens(r, err)
+	data := permissionCbData{
+		topLevelWritePermissions: make(map[string]bool),
+		runLevelWritePermissions: make(map[string]bool),
+	}
+	_, err := validateGitHubActionTokenPermissions(pathfn, content, dl, &data)
+	return createResultForLeastPrivilegeTokens(data, err)
 }
 
 // Check file content.
 func validateGitHubActionTokenPermissions(path string, content []byte,
-	dl checker.DetailLogger) (bool, error) {
-	if len(content) == 0 {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, errInternalEmptyFile.Error())
+	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	// Verify the type of the data.
+	pdata, ok := data.(*permissionCbData)
+	if !ok {
+		// This never happens.
+		panic("invalid type")
+	}
+
+	if !CheckFileContainsCommands(content, "#") {
+		return true, nil
 	}
 
 	var workflow map[interface{}]interface{}
-	var r bool
-	var err error
-	err = yaml.Unmarshal(content, &workflow)
+	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
 		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
+		return false,
+			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
 	}
 
-	// 1. Check that each file uses 'content: read' only or 'none'.
+	// 1. Top-level permission definitions.
 	//nolint
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#example-1-passing-the-github_token-as-an-input,
 	// https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token.
-	if r, err = validateReadPermissions(workflow, path, dl); err != nil {
-		return false, nil
+	if err := validateTopLevelPermissions(workflow, path, dl, pdata); err != nil {
+		return false, err
 	}
-	if !r {
-		return r, nil
+
+	// 2. Run-level permission definitions,
+	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
+	ignoredPermissions := createIgnoredPermissions(string(content), path, dl)
+	if err := validateRunLevelPermissions(workflow, path, dl, pdata, ignoredPermissions); err != nil {
+		return false, err
 	}
 
 	// TODO(laurent): 2. Identify github actions that require write and add checks.
@@ -174,4 +354,75 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	// TODO(laurent): 3. Read a few runs and ensures they have the same permissions.
 
 	return true, nil
+}
+
+func createIgnoredPermissions(s, fp string, dl checker.DetailLogger) map[string]bool {
+	ignoredPermissions := make(map[string]bool)
+	if requiresPackagesPermissions(s, fp, dl) {
+		ignoredPermissions["packages"] = true
+	}
+	if isSARIFUploadWorkflow(s, fp, dl) {
+		ignoredPermissions["security-events"] = true
+	}
+
+	return ignoredPermissions
+}
+
+// Scanning tool run externally and SARIF file uploaded.
+func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
+	//nolint
+	// CodeQl analysis workflow automatically sends sarif file to GitHub.
+	// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#about-sarif-file-uploads-for-code-scanning.
+	// `The CodeQL action uploads the SARIF file automatically when it completes analysis`.
+	if isCodeQlAnalysisWorkflow(s, fp, dl) {
+		return true
+	}
+
+	//nolint
+	// Third-party scanning tools use the SARIF-upload action from code-ql.
+	// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#uploading-a-code-scanning-analysis-with-github-actions
+	// We only support CodeQl today.
+	if isSARIFUploadAction(s, fp, dl) {
+		return true
+	}
+
+	// TODO: some third party tools may upload directly thru their actions.
+	// Very unlikely.
+	// See https://github.com/marketplace for tools.
+
+	return false
+}
+
+// CodeQl run externally and SARIF file uploaded.
+func isSARIFUploadAction(s, fp string, dl checker.DetailLogger) bool {
+	if strings.Contains(s, "github/codeql-action/upload-sarif@") {
+		dl.Debug("codeql SARIF upload workflow detected: %v", fp)
+		return true
+	}
+	dl.Debug("not a codeql upload SARIF workflow: %v", fp)
+	return false
+}
+
+//nolint
+// CodeQl run within GitHub worklow automatically bubbled up to
+// security events, see
+// https://docs.github.com/en/code-security/secure-coding/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning.
+func isCodeQlAnalysisWorkflow(s, fp string, dl checker.DetailLogger) bool {
+	if strings.Contains(s, "github/codeql-action/analyze@") {
+		dl.Debug("codeql workflow detected: %v", fp)
+		return true
+	}
+	dl.Debug("not a codeql workflow: %v", fp)
+	return false
+}
+
+// A packaging workflow using GitHub's supported packages:
+// https://docs.github.com/en/packages.
+func requiresPackagesPermissions(s, fp string, dl checker.DetailLogger) bool {
+	// TODO: add support for GitHub registries.
+	// Example: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry.
+	// This feature requires parsing actions properly.
+	// For now, we just re-use the Packaging check to verify that the
+	// workflow is a packaging workflow.
+	return isPackagingWorkflow(s, fp, dl)
 }

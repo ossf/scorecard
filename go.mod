@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	cloud.google.com/go/bigquery v1.19.0
-	cloud.google.com/go/pubsub v1.12.2
+	cloud.google.com/go/pubsub v1.13.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.8
 	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/go-git/go-git/v5 v5.4.2
@@ -20,7 +20,6 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.14.0
-	github.com/pkg/errors v0.9.1
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/spf13/cobra v1.2.1
@@ -28,8 +27,8 @@ require (
 	go.uber.org/zap v1.18.1
 	gocloud.dev v0.23.0
 	golang.org/x/tools v0.1.5
-	google.golang.org/genproto v0.0.0-20210707164411-8c882eb9abba
+	google.golang.org/genproto v0.0.0-20210714021259-044028024a4f
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
-	mvdan.cc/sh/v3 v3.3.0
+	mvdan.cc/sh/v3 v3.3.1
 )

@@ -21,27 +21,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigquery"
-
-	"github.com/ossf/scorecard/v2/cron/config"
 )
 
 const partitionDateFormat = "20060102"
-
-func getBQConfig() (projectID, datasetName, tableName string, err error) {
-	projectID, err = config.GetProjectID()
-	if err != nil {
-		return projectID, datasetName, tableName, fmt.Errorf("error getting ProjectId: %w", err)
-	}
-	datasetName, err = config.GetBigQueryDataset()
-	if err != nil {
-		return projectID, datasetName, tableName, fmt.Errorf("error getting BigQuery dataset: %w", err)
-	}
-	tableName, err = config.GetBigQueryTable()
-	if err != nil {
-		return projectID, datasetName, tableName, fmt.Errorf("error getting BigQuery table: %w", err)
-	}
-	return
-}
 
 func createGCSRef(bucketURL, fileURI string) *bigquery.GCSReference {
 	gcsRef := bigquery.NewGCSReference(fmt.Sprintf("%s/%s", bucketURL, fileURI))
@@ -62,11 +44,9 @@ func createBQLoader(ctx context.Context, projectID, datasetName, tableName strin
 	return bqClient, loader, nil
 }
 
-func StartDataTransferJob(ctx context.Context, bucketURL, fileURI string, partitionDate time.Time) error {
-	projectID, datasetName, tableName, err := getBQConfig()
-	if err != nil {
-		return fmt.Errorf("error getting BQ config: %w", err)
-	}
+func startDataTransferJob(ctx context.Context,
+	bucketURL, fileURI, projectID, datasetName, tableName string,
+	partitionDate time.Time) error {
 	gcsRef := createGCSRef(bucketURL, fileURI)
 	bqClient, loader, err := createBQLoader(ctx, projectID, datasetName, tableName, partitionDate, gcsRef)
 	if err != nil {

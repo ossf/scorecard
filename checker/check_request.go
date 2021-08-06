@@ -24,14 +24,13 @@ import (
 	"github.com/ossf/scorecard/v2/clients"
 )
 
+// CheckRequest struct encapsulates all data to be passed into a CheckFn.
 type CheckRequest struct {
 	Ctx         context.Context
 	Client      *github.Client
 	GraphClient *githubv4.Client
 	HTTPClient  *http.Client
 	RepoClient  clients.RepoClient
-	// UPGRADEv2: Logf will be removed.
-	Logf        func(s string, f ...interface{})
 	Dlogger     DetailLogger
 	Owner, Repo string
 }

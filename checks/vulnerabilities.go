@@ -21,8 +21,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/go-github/v32/github"
-
 	"github.com/ossf/scorecard/v2/checker"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
@@ -56,23 +54,20 @@ func (resp *osvResponse) getVulnerabilities() []string {
 	return ids
 }
 
+// HasUnfixedVulnerabilities runs Vulnerabilities check.
 func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
-	commits, _, err := c.Client.Repositories.ListCommits(c.Ctx, c.Owner, c.Repo, &github.CommitsListOptions{
-		ListOptions: github.ListOptions{
-			PerPage: 1,
-		},
-	})
+	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
 		e := sce.Create(sce.ErrScorecardInternal, "Client.Repositories.ListCommits")
 		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
-	if len(commits) != 1 || commits[0].SHA == nil {
+	if len(commits) < 1 || commits[0].SHA == "" {
 		return checker.CreateInconclusiveResult(CheckVulnerabilities, "no commits found")
 	}
 
 	query, err := json.Marshal(&osvQuery{
-		Commit: *commits[0].SHA,
+		Commit: commits[0].SHA,
 	})
 	if err != nil {
 		e := sce.Create(sce.ErrScorecardInternal, "json.Marshal")

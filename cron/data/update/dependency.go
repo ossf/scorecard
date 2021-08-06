@@ -36,7 +36,7 @@ import (
 
 var (
 	// TODO = move them outside the sourcecode.
-	bazelRepos = []RepositoryDepsURL{
+	bazelRepos = []repositoryDepsURL{
 		{
 			Owner: "envoyproxy",
 			Repo:  "envoy",
@@ -54,7 +54,7 @@ var (
 		},
 	}
 	// TODO = move them outside the sourcecode.
-	gorepos = []RepositoryDepsURL{
+	gorepos = []repositoryDepsURL{
 		{
 			Owner: "ossf",
 			Repo:  "scorecard",
@@ -71,14 +71,14 @@ var (
 	}
 )
 
-type RepositoryDepsURL struct {
+type repositoryDepsURL struct {
 	Owner, Repo, File string
 	Vendor            bool
 }
 
 // Programmatically gets Envoy's dependencies and add to projects.
 // Re-using a checker type.
-func getBazelDeps(repo RepositoryDepsURL) []repos.RepoURL {
+func getBazelDeps(repo repositoryDepsURL) []repos.RepoURL {
 	client := github.NewClient(nil)
 	ctx := context.Background()
 	depRepos := []repos.RepoURL{}
@@ -112,7 +112,7 @@ func getBazelDeps(repo RepositoryDepsURL) []repos.RepoURL {
 }
 
 // GetGoDeps returns go repo dependencies.
-func getGoDeps(repo RepositoryDepsURL) []repos.RepoURL {
+func getGoDeps(repo repositoryDepsURL) []repos.RepoURL {
 	repoURLs := []repos.RepoURL{}
 	pwd, err := os.Getwd()
 	if err != nil {

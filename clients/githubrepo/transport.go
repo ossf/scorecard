@@ -24,6 +24,7 @@ import (
 	"go.opencensus.io/tag"
 )
 
+// MakeGitHubTransport wraps input RoundTripper with GitHub authorization logic.
 func MakeGitHubTransport(innerTransport http.RoundTripper, accessTokens []string) http.RoundTripper {
 	return &githubTransport{
 		innerTransport: innerTransport,

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package checker includes structs and functions used for running a check.
 package checker
 
 import (
-	"errors"
 	"fmt"
 	"math"
 )
@@ -30,16 +30,15 @@ const (
 // UPGRADEv2: to remove.
 const migrationThresholdPassValue = 8
 
-// ErrorDemoninatorZero indicates the denominator for a proportional result is 0.
-// UPGRADEv2: to remove.
-var ErrorDemoninatorZero = errors.New("internal error: denominator is 0")
-
-// Types of details.
+// DetailType is the type of details.
 type DetailType int
 
 const (
+	// DetailInfo is info-level log.
 	DetailInfo DetailType = iota
+	// DetailWarn is warn log.
 	DetailWarn
+	// DetailDebug is debug log.
 	DetailDebug
 )
 
@@ -50,6 +49,7 @@ type CheckDetail struct {
 	Msg  string     // A short string explaining why the details was recorded/logged..
 }
 
+// DetailLogger logs map to CheckDetail struct.
 type DetailLogger interface {
 	Info(desc string, args ...interface{})
 	Warn(desc string, args ...interface{})
@@ -63,15 +63,15 @@ const (
 	InconclusiveResultScore = -1
 )
 
-//nolint
+// CheckResult captures result from a check run.
+// nolint
 type CheckResult struct {
 	// Old structure
-	Error       error `json:"-"`
-	Name        string
-	Details     []string
-	Confidence  int
-	Pass        bool
-	ShouldRetry bool `json:"-"`
+	Error      error `json:"-"`
+	Name       string
+	Details    []string
+	Confidence int
+	Pass       bool
 
 	// UPGRADEv2: New structure. Omitting unchanged Name field
 	// for simplicity.
@@ -82,7 +82,7 @@ type CheckResult struct {
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
 }
 
-// CreateProportionalScore() creates a proportional score.
+// CreateProportionalScore creates a proportional score.
 func CreateProportionalScore(success, total int) int {
 	if total == 0 {
 		return 0
@@ -115,6 +115,7 @@ func AggregateScoresWithWeight(scores map[int]int) int {
 	return int(math.Floor(float64(r) / float64(ws)))
 }
 
+// NormalizeReason - placeholder function if we want to update range of scores.
 func NormalizeReason(reason string, score int) string {
 	return fmt.Sprintf("%v -- score normalized to %d", reason, score)
 }
@@ -130,10 +131,9 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:       nil,
-		Confidence:  MaxResultScore,
-		Pass:        pass,
-		ShouldRetry: false,
+		Error:      nil,
+		Confidence: MaxResultScore,
+		Pass:       pass,
 		// New structure.
 		//nolint
 		Version: 2,
@@ -157,10 +157,9 @@ func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:       nil,
-		Confidence:  MaxResultConfidence,
-		Pass:        pass,
-		ShouldRetry: false,
+		Error:      nil,
+		Confidence: MaxResultConfidence,
+		Pass:       pass,
 		// New structure.
 		//nolint
 		Version: 2,
@@ -191,9 +190,8 @@ func CreateInconclusiveResult(name, reason string) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Confidence:  0,
-		Pass:        false,
-		ShouldRetry: false,
+		Confidence: 0,
+		Pass:       false,
 		// New structure.
 		//nolint
 		Version: 2,
@@ -207,10 +205,9 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:       e,
-		Confidence:  0,
-		Pass:        false,
-		ShouldRetry: false,
+		Error:      e,
+		Confidence: 0,
+		Pass:       false,
 		// New structure.
 		//nolint
 		Version: 2,
@@ -218,22 +215,4 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Score:   InconclusiveResultScore,
 		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
 	}
-}
-
-// UPGRADEv2: functions below will be renamed.
-func MakeAndResult2(checks ...CheckResult) CheckResult {
-	if len(checks) == 0 {
-		// That should never happen.
-		panic("MakeResult called with no checks")
-	}
-
-	worseResult := checks[0]
-	// UPGRADEv2: will go away after old struct is removed.
-	//nolint
-	for _, result := range checks[1:] {
-		if result.Score < worseResult.Score {
-			worseResult = result
-		}
-	}
-	return worseResult
 }

@@ -23,18 +23,23 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
 var _ = Describe("E2E TEST:Vulnerabilities", func() {
 	Context("E2E TEST:Validating vulnerabilities status", func() {
 		It("Should return that there are no vulnerabilities", func() {
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			err := repoClient.InitRepo("ossf", "scorecard")
+			Expect(err).Should(BeNil())
+
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  nil,
+				RepoClient:  repoClient,
 				Owner:       "ossf",
 				Repo:        "scorecard",
 				GraphClient: graphClient,
@@ -57,14 +62,18 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 		})
 
 		It("Should return that there are vulnerabilities", func() {
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			err := repoClient.InitRepo("ossf-tests", "scorecard-check-vulnerabilities-open62541")
+			Expect(err).Should(BeNil())
+
 			dl := scut.TestDetailLogger{}
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  nil,
-				Owner:       "oliverchang",
-				Repo:        "open62541",
+				RepoClient:  repoClient,
+				Owner:       "ossf-tests",
+				Repo:        "scorecard-check-vulnerabilities-open62541",
 				GraphClient: graphClient,
 				Dlogger:     &dl,
 			}

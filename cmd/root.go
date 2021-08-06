@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cmd implements Scorecard commandline.
 package cmd
 
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	goflag "flag"
 	"fmt"
 	"log"
@@ -35,6 +35,7 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
 	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
 	"github.com/ossf/scorecard/v2/repos"
 	"github.com/ossf/scorecard/v2/roundtripper"
@@ -51,8 +52,6 @@ var (
 	pypi        string
 	rubygems    string
 	showDetails bool
-	// ErrorInvalidFormatFlag indicates an invalid option was passed for the 'format' argument.
-	ErrorInvalidFormatFlag = errors.New("invalid format flag")
 )
 
 const (
@@ -67,11 +66,6 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 	Short: "Security Scorecards",
 	Long:  "A program that shows security scorecard for an open source software.",
 	Run: func(cmd *cobra.Command, args []string) {
-		// UPGRADEv2: to remove.
-		_, v2 := os.LookupEnv("SCORECARD_V2")
-		if v2 {
-			fmt.Printf("*** USING v2 MIGRATION CODE ***\n\n")
-		}
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
 		logger, err := cfg.Build()
@@ -160,20 +154,17 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			fmt.Println("\nRESULTS\n-------")
 		}
 
+		// UPGRADEv2: support CSV/JSON.
 		switch format {
 		case formatDefault:
-			// UPGRADEv2: to remove.
-			if v2 {
-				err = repoResult.AsString2(showDetails, *logLevel, os.Stdout)
-			} else {
-				err = repoResult.AsString(showDetails, *logLevel, os.Stdout)
-			}
+			err = repoResult.AsString(showDetails, *logLevel, os.Stdout)
 		case formatCSV:
 			err = repoResult.AsCSV(showDetails, *logLevel, os.Stdout)
 		case formatJSON:
 			err = repoResult.AsJSON(showDetails, *logLevel, os.Stdout)
 		default:
-			err = fmt.Errorf("%w %s. allowed values are: [default, csv, json]", ErrorInvalidFormatFlag, format)
+			err = sce.Create(sce.ErrScorecardInternal,
+				fmt.Sprintf("invalid format flag: %v. Expected [default, csv, json]", format))
 		}
 		if err != nil {
 			log.Fatalf("Failed to output results: %v", err)
@@ -203,6 +194,7 @@ type rubyGemsSearchResults struct {
 	SourceCodeURI string `json:"source_code_uri"`
 }
 
+// Execute runs the Scorecard commandline.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -211,7 +203,7 @@ func Execute() {
 }
 
 // Gets the GitHub repository URL for the npm package.
-//nolint:noctx,goerr113
+//nolint:noctx
 func fetchGitRepositoryFromNPM(packageName string) (string, error) {
 	npmSearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
 	const timeout = 10
@@ -220,23 +212,27 @@ func fetchGitRepositoryFromNPM(packageName string) (string, error) {
 	}
 	resp, err := client.Get(fmt.Sprintf(npmSearchURL, packageName))
 	if err != nil {
-		return "", fmt.Errorf("failed to get npm package json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to get npm package json: %v", err))
 	}
 
 	defer resp.Body.Close()
 	v := &npmSearchResults{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse npm package json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse npm package json: %v", err))
 	}
 	if len(v.Objects) == 0 {
-		return "", fmt.Errorf("could not find source repo for npm package: %s", packageName)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal,
+			fmt.Sprintf("could not find source repo for npm package: %s", packageName))
 	}
 	return v.Objects[0].Package.Links.Repository, nil
 }
 
 // Gets the GitHub repository URL for the pypi package.
-//nolint:noctx,goerr113
+//nolint:noctx
 func fetchGitRepositoryFromPYPI(packageName string) (string, error) {
 	pypiSearchURL := "https://pypi.org/pypi/%s/json"
 	const timeout = 10
@@ -245,23 +241,27 @@ func fetchGitRepositoryFromPYPI(packageName string) (string, error) {
 	}
 	resp, err := client.Get(fmt.Sprintf(pypiSearchURL, packageName))
 	if err != nil {
-		return "", fmt.Errorf("failed to get pypi package json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to get pypi package json: %v", err))
 	}
 
 	defer resp.Body.Close()
 	v := &pypiSearchResults{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse pypi package json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse pypi package json: %v", err))
 	}
 	if v.Info.ProjectUrls.Source == "" {
-		return "", fmt.Errorf("could not find source repo for pypi package: %s", packageName)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal,
+			fmt.Sprintf("could not find source repo for pypi package: %s", packageName))
 	}
 	return v.Info.ProjectUrls.Source, nil
 }
 
 // Gets the GitHub repository URL for the rubygems package.
-//nolint:noctx,goerr113
+//nolint:noctx
 func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 	rubyGemsSearchURL := "https://rubygems.org/api/v1/gems/%s.json"
 	const timeout = 10
@@ -270,17 +270,20 @@ func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 	}
 	resp, err := client.Get(fmt.Sprintf(rubyGemsSearchURL, packageName))
 	if err != nil {
-		return "", fmt.Errorf("failed to get ruby gem json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to get ruby gem json: %v", err))
 	}
 
 	defer resp.Body.Close()
 	v := &rubyGemsSearchResults{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse ruby gem json: %w", err)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse ruby gem json: %v", err))
 	}
 	if v.SourceCodeURI == "" {
-		return "", fmt.Errorf("could not find source repo for ruby gem: %s", packageName)
+		//nolint:wrapcheck
+		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("could not find source repo for ruby gem: %v", err))
 	}
 	return v.SourceCodeURI, nil
 }

@@ -31,6 +31,7 @@ func init() {
 	registerCheck(CheckFuzzing, Fuzzing)
 }
 
+// Fuzzing runs Fuzzing check.
 func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	url := fmt.Sprintf("github.com/%s/%s", c.Owner, c.Repo)
 	searchString := url + " repo:google/oss-fuzz in:file filename:project.yaml"
@@ -42,8 +43,8 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 
 	if *results.Total > 0 {
 		return checker.CreateMaxScoreResult(CheckFuzzing,
-			"project is fuzzed by OSS-Fuzz")
+			"project is fuzzed in OSS-Fuzz")
 	}
 
-	return checker.CreateMinScoreResult(CheckFuzzing, "project is fuzzed by OSS-Fuzz")
+	return checker.CreateMinScoreResult(CheckFuzzing, "project is not fuzzed in OSS-Fuzz")
 }

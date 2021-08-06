@@ -137,7 +137,7 @@ This check tries to determine if a project has published a security policy. It w
 
 This check tries to determine if a project cryptographically signs release artifacts.
 Signed releases attest to the provenance of the artifact. A low score is considered 'High' risk.
-It works by looking for filenames: *.minisign (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
+It works by looking for filenames: *.minisig (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
 
 **Remediation steps**
 - Publish the release.
@@ -164,7 +164,7 @@ The check does not verify the signature itself and currently relies on GitHub's 
 
 This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default.
 A compromised token with write access may be used by attackers to push malicious code into the project. A low score is therefore considered `High` risk.
-For each workflow yaml file, the check looks for the permissions keyword. If it is set globally as read-only for the entire file, this check succeeds. Otherwise it fails. The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
+For each workflow yaml file, the check looks for the permission definitions. To obtain the highest score, the permissions should be set as read-only at the [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions) and the required write permissions should be declared at the [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions). The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
 
 **Remediation steps**
 - Set permissions as `read-all` or `contents: read` as described in GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).

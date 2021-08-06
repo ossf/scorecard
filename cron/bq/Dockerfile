@@ -1,5 +1,4 @@
-# syntax = docker/dockerfile:1-experimental
-# Copyright 2020 Security Scorecard Authors
+# Copyright 2021 Security Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,5 +26,5 @@ ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-bq-transfer
 
 FROM gcr.io/distroless/base:nonroot@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
-COPY --from=transfer /src/cron/bq/data-transfer ./cron/bq/data-transfer
-ENTRYPOINT ["./cron/bq/data-transfer"]
+COPY --from=transfer /src/cron/bq/data-transfer cron/bq/data-transfer
+ENTRYPOINT ["cron/bq/data-transfer"]

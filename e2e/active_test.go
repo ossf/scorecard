@@ -23,6 +23,7 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
@@ -30,11 +31,14 @@ var _ = Describe("E2E TEST:Active", func() {
 	Context("E2E TEST:Validating active status", func() {
 		It("Should return valid active status", func() {
 			dl := scut.TestDetailLogger{}
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			err := repoClient.InitRepo("apache", "airflow")
+			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  nil,
+				RepoClient:  repoClient,
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,
