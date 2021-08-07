@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	"github.com/ossf/scorecard/v2/checker"
 	sce "github.com/ossf/scorecard/v2/errors"
@@ -37,11 +37,11 @@ type gitHubActionWorkflowConfig struct {
 	Jobs map[string]struct {
 		Name  string `yaml:"name"`
 		Steps []struct {
-			Name  string `yaml:"name"`
-			ID    string `yaml:"id"`
-			Uses  string `yaml:"uses"`
-			Shell string `yaml:"shell"`
-			Run   string `yaml:"run"`
+			Name  string         `yaml:"name"`
+			ID    string         `yaml:"id"`
+			Uses  stringWithLine `yaml:"uses"`
+			Shell string         `yaml:"shell"`
+			Run   string         `yaml:"run"`
 		}
 		Defaults struct {
 			Run struct {
@@ -50,6 +50,23 @@ type gitHubActionWorkflowConfig struct {
 		} `yaml:"defaults"`
 	}
 	Name string `yaml:"name"`
+}
+
+// stringWithLine is for when you want to know the line number of a field in a YAML file.
+type stringWithLine struct {
+	Value string
+	Line  int
+}
+
+func (ws *stringWithLine) UnmarshalYAML(value *yaml.Node) error {
+	err := value.Decode(&ws.Value)
+	if err != nil {
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringWithLine Value: %v", err))
+	}
+	ws.Line = value.Line
+
+	return nil
 }
 
 //nolint:gochecknoinits
@@ -522,13 +539,14 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 			jobName = job.Name
 		}
 		for _, step := range job.Steps {
-			if len(step.Uses) > 0 {
+			if len(step.Uses.Value) > 0 {
 				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 				// Example: action-name@hash
-				match := hashRegex.Match([]byte(step.Uses))
+				match := hashRegex.Match([]byte(step.Uses.Value))
 				if !match {
 					ret = false
-					dl.Warn("unpinned dependency detected in %v: '%v' (job '%v')", pathfn, step.Uses, jobName)
+					dl.Warn("unpinned dependency detected in %v line %d: '%v' (job '%v')", pathfn, step.Uses.Line,
+						step.Uses.Value, jobName)
 				}
 			}
 		}
