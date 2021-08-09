@@ -34,6 +34,10 @@ jobs:
         with:
           go-version: 1.16
       -
+        name: Configure ldflags
+        id: ldflags
+        run: echo "::set-output name=version_flags::$(./scripts/version-ldflags)"
+      -
         name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@b0793c0060c97f4ef0efbac949d476c6499b7775 # v3.1.0
@@ -49,3 +53,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          VERSION_LDFLAGS: ${{ steps.ldflags.outputs.version_flags }}
