@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 GOPATH := $(go env GOPATH)
 GINKGO := ginkgo
+GIT_HASH := $(git rev-parse HEAD)
 GOLANGGCI_LINT := golangci-lint
 PROTOC_GEN_GO := protoc-gen-go
 PROTOC := $(shell which protoc)
@@ -8,26 +9,7 @@ IMAGE_NAME = scorecard
 OUTPUT = output
 IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:executable"
 
-# generate VERSION_LDFLAGS
-GIT_VERSION ?= $(shell git describe --tags --always --dirty)
-GIT_HASH ?= $(shell git rev-parse HEAD)
-DATE_FMT = +'%Y-%m-%dT%H:%M:%SZ'
-SOURCE_DATE_EPOCH ?= $(shell git log -1 --pretty=%ct)
-ifdef SOURCE_DATE_EPOCH
-    BUILD_DATE ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u "$(DATE_FMT)")
-else
-    BUILD_DATE ?= $(shell date "$(DATE_FMT)")
-endif
-GIT_TREESTATE = clean
-DIFF = $(shell git diff --quiet >/dev/null 2>&1; if [ $$? -eq 1 ]; then echo "1"; fi)
-ifeq ($(DIFF), 1)
-    GIT_TREESTATE = dirty
-endif
-
-# version should be injected in the cmd package
-PKG=$(shell go list -m | head -n1)/cmd
-
-VERSION_LDFLAGS=-X $(PKG).gitVersion=$(GIT_VERSION) -X $(PKG).gitCommit=$(GIT_HASH) -X $(PKG).gitTreeState=$(GIT_TREESTATE) -X $(PKG).buildDate=$(BUILD_DATE)
+VERSION_LDFLAGS=$(shell ./scripts/version-ldflags)
 
 ############################### make help #####################################
 .PHONY: help
