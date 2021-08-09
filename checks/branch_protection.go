@@ -100,6 +100,7 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	checkBranches[*repo.DefaultBranch] = true
 
 	protected := true
+	unknown := false
 	// Check protections on all the branches.
 	for b := range checkBranches {
 		p, err := isBranchProtected(branches, b)
@@ -113,7 +114,12 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 			// The branch is protected. Check the protection.
 			score, err := getProtectionAndCheck(ctx, r, dl, ownerStr, repoStr, b)
 			if err != nil {
-				return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
+				// Without an admin token, you only get information on the protection boolean.
+				// Add a score of 1 (minimal branch protection) for this protected branch.
+				unknown = true
+				scores = append(scores, 1)
+				dl.Warn("no detailed settings available for branch protection '%s'", b)
+				continue
 			}
 			scores = append(scores, score)
 		}
@@ -133,6 +139,11 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(CheckBranchProtection,
 			"branch protection is fully enabled on development and all release branches")
+	}
+
+	if unknown {
+		return checker.CreateResultWithScore(CheckBranchProtection,
+			"branch protection is enabled on development and all release branches but settings are unknown", score)
 	}
 
 	return checker.CreateResultWithScore(CheckBranchProtection,

@@ -22,7 +22,6 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
-	sce "github.com/ossf/scorecard/v2/errors"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
@@ -41,9 +40,9 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
-				Errors:        []error{sce.ErrScorecardInternal},
-				Score:         checker.InconclusiveResultScore,
-				NumberOfWarn:  0,
+				Errors:        nil,
+				Score:         1,
+				NumberOfWarn:  3,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
