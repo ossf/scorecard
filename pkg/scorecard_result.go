@@ -40,27 +40,41 @@ type ScorecardResult struct {
 
 // AsJSON outputs the result in JSON format with a newline at the end.
 // If called on []ScorecardResult will create NDJson formatted output.
+// UPGRADEv2: will be removed.
 func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
-	encoder := json.NewEncoder(writer)
-	if showDetails {
-		if err := encoder.Encode(r); err != nil {
-			//nolint:wrapcheck
-			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-		}
-		return nil
+	type oldCheckResult struct {
+		// Old structure
+		Error      error `json:"-"`
+		Details    []string
+		Confidence int
+		Pass       bool
+		Name       string
 	}
-	out := ScorecardResult{
+	type oldScorecardResult struct {
+		Repo     string
+		Date     string
+		Checks   []oldCheckResult
+		Metadata []string
+	}
+
+	encoder := json.NewEncoder(writer)
+	out := oldScorecardResult{
 		Repo:     r.Repo,
 		Date:     r.Date,
 		Metadata: r.Metadata,
 	}
-	// UPGRADEv2: remove nolint after uggrade.
+
 	//nolint
 	for _, checkResult := range r.Checks {
-		tmpResult := checker.CheckResult{
+		tmpResult := oldCheckResult{
 			Name:       checkResult.Name,
 			Pass:       checkResult.Pass,
 			Confidence: checkResult.Confidence,
+		}
+		if showDetails {
+			for _, d := range checkResult.Details2 {
+				tmpResult.Details = append(tmpResult.Details, d.Msg)
+			}
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
