@@ -9,13 +9,14 @@ builds:
       - linux
       - windows
       - darwin
-# List of combinations of GOOS + GOARCH + GOARM to ignore.
+    # List of combinations of GOOS + GOARCH + GOARM to ignore.
     # Default is empty.
     ignore:
       - goos: darwin
         goarch: 386
-      - goos: darwin
-        goarch: arm64
+    # CI should set VERSION_LDFLAGS to the output of ./scripts/version_ldflags
+    ldflags:
+      - -s -w {{.Env.VERSION_LDFLAGS}}
 archives:
   - replacements:
       linux: Linux
