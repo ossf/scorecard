@@ -67,19 +67,19 @@ const (
 // nolint
 type CheckResult struct {
 	// Old structure
-	Error      error `json:"-"`
-	Name       string
-	Details    []string
-	Confidence int
-	Pass       bool
+	Error      error    `json:"-"`
+	Details    []string `json:"-"`
+	Confidence int      `json:"-"`
+	Pass       bool     `json:"-"`
 
-	// UPGRADEv2: New structure. Omitting unchanged Name field
-	// for simplicity.
-	Version  int           `json:"-"` // Default value of 0 indicates old structure.
-	Error2   error         `json:"-"` // Runtime error indicate a filure to run the check.
-	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
-	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
-	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
+	Name string
+
+	// UPGRADEv2: New structure.
+	Version  int           `json:"-"`       // Default value of 0 indicates old structure.
+	Error2   error         `json:"-"`       // Runtime error indicate a filure to run the check.
+	Details2 []CheckDetail `json:"details"` // Details of tests and sub-checks
+	Score    int           // {[-1,0...10], -1 = Inconclusive}
+	Reason   string        // A sentence describing the check result (score, etc)
 }
 
 // CreateProportionalScore creates a proportional score.

@@ -71,6 +71,44 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 	return nil
 }
 
+// AsJSON2 is expoting results as JSON for new detail format.
+func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
+	encoder := json.NewEncoder(writer)
+
+	// With details: simply json-encode the result,
+	// as it already contains the details.
+	if showDetails {
+		if err := encoder.Encode(r); err != nil {
+			//nolint:wrapcheck
+			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+		}
+		return nil
+	}
+
+	// No details: we manually reconstruct the object
+	// and ommit the details.
+	out := ScorecardResult{
+		Repo:     r.Repo,
+		Date:     r.Date,
+		Metadata: r.Metadata,
+	}
+
+	//nolint
+	for _, checkResult := range r.Checks {
+		tmpResult := checker.CheckResult{
+			Name:   checkResult.Name,
+			Reason: checkResult.Reason,
+			Score:  checkResult.Score,
+		}
+		out.Checks = append(out.Checks, tmpResult)
+	}
+	if err := encoder.Encode(out); err != nil {
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+	}
+	return nil
+}
+
 // AsCSV outputs ScorecardResult in CSV format.
 func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	w := csv.NewWriter(writer)
