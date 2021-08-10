@@ -84,6 +84,7 @@ func processRequest(ctx context.Context,
 	}
 
 	var buffer bytes.Buffer
+	var buffer2 bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoURL := range repoURLs {
 		log.Printf("Running Scorecard for repo: %s", repoURL.URL())
@@ -111,10 +112,19 @@ func processRequest(ctx context.Context,
 		if err := result.AsJSON(true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
+
+		if err := result.AsJSON2(true /*showDetails*/, zapcore.InfoLevel, &buffer2); err != nil {
+			return fmt.Errorf("error during result.AsJSON2: %w", err)
+		}
 	}
 	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore: %w", err)
 	}
+
+	if err := data.WriteToBlobStore(ctx, bucketURL+"2", filename, buffer2.Bytes()); err != nil {
+		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
+	}
+
 	log.Printf("Write to shard file successful: %s", filename)
 
 	return nil

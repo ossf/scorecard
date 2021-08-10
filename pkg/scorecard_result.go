@@ -128,7 +128,7 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo}
 	columns := []string{"Repository"}
-	// UPGRADEv2: remove nolint after uggrade.
+	// UPGRADEv2: remove nolint after ugrade.
 	//nolint
 	for _, checkResult := range r.Checks {
 		columns = append(columns, checkResult.Name+"_Pass", checkResult.Name+"_Confidence")
