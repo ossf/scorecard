@@ -52,7 +52,7 @@ type gitHubActionWorkflowConfig struct {
 	Name string `yaml:"name"`
 }
 
-// stringWithLine is for when you want to know the line number of a field in a YAML file.
+// stringWithLine is for when you want to keep track of the line number that the string came from.
 type stringWithLine struct {
 	Value string
 	Line  int
