@@ -78,7 +78,7 @@ type CheckResult struct {
 	Version  int           `json:"-"` // Default value of 0 indicates old structure.
 	Error2   error         `json:"-"` // Runtime error indicate a filure to run the check.
 	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
-	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
+	Score    int           // {[-1,0...10], -1 = Inconclusive}
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
 }
 

@@ -61,6 +61,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 			Name:       checkResult.Name,
 			Pass:       checkResult.Pass,
 			Confidence: checkResult.Confidence,
+			Score:      checkResult.Score,
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
