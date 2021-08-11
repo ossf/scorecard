@@ -114,6 +114,10 @@ build-bq-transfer: ./cron/bq/*.go
 	# Run go build on the Copier cron job
 	cd cron/bq && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o data-transfer
 
+build-webhook: ## Runs go build on the cron webhook
+	# Run go build on the cron webhook
+	cd cron/webhook && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o webhook
+
 build-add-script: ## Runs go build on the add script
 build-add-script: cron/data/add/add
 cron/data/add/add: cron/data/add/*.go cron/data/*.go cron/data/projects.csv
@@ -140,6 +144,7 @@ dockerbuild: ## Runs docker build
 			--build-arg=COMMIT_SHA=$(GIT_HASH) --tag $(IMAGE_NAME)-batch-controller
 	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile  --tag $(IMAGE_NAME)-batch-worker
 	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
+	DOCKER_BUILDKIT=1 docker build . --file cron/webhook/Dockerfile --tag ${IMAGE_NAME}-webhook
 ###############################################################################
 
 ################################# make test ###################################
