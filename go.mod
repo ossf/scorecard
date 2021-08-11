@@ -3,7 +3,7 @@ module github.com/ossf/scorecard/v2
 go 1.16
 
 require (
-	cloud.google.com/go/bigquery v1.19.0
+	cloud.google.com/go/bigquery v1.20.1
 	cloud.google.com/go/pubsub v1.13.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.8
 	github.com/bradleyfalzon/ghinstallation v1.1.1
@@ -11,6 +11,7 @@ require (
 	github.com/golangci/golangci-lint v1.41.1
 	github.com/google/addlicense v0.0.0-20210809195240-d43bb61fdfda
 	github.com/google/go-cmp v0.5.6
+	github.com/google/go-containerregistry v0.1.2
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/go-github/v33 v33.0.0
 	github.com/h2non/filetype v1.1.1
@@ -27,7 +28,7 @@ require (
 	go.uber.org/zap v1.18.1
 	gocloud.dev v0.23.0
 	golang.org/x/tools v0.1.5
-	google.golang.org/genproto v0.0.0-20210714021259-044028024a4f
+	google.golang.org/genproto v0.0.0-20210804223703-f1db76f3300d
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
 	mvdan.cc/sh/v3 v3.3.1
