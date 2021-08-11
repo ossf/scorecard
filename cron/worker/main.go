@@ -162,6 +162,8 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 func main() {
 	ctx := context.Background()
 
+	flag.Parse()
+
 	subscriptionURL, err := config.GetRequestSubscriptionURL()
 	if err != nil {
 		panic(err)
