@@ -212,7 +212,7 @@ func main() {
 	}
 
 	if err := transferDataToBq(ctx,
-		bucketURL, projectID, datasetName, tableName,
+		bucketURL, projectID, datasetName, tableName, webhookURL,
 		summary); err != nil {
 		panic(err)
 	}
