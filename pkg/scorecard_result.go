@@ -48,7 +48,7 @@ type jsonCheckResultV2 struct {
 type jsonScorecardResultV2 struct {
 	Repo     string
 	Date     string
-	Checks   []jsonCheckResult
+	Checks   []jsonCheckResultV2
 	Metadata []string
 }
 
