@@ -60,6 +60,7 @@ type graphqlData struct {
 		PullRequests struct {
 			Nodes []struct {
 				Number      githubv4.Int
+				HeadRefOid  githubv4.String
 				MergeCommit struct {
 					AuthoredByCommitter githubv4.Boolean
 				}
@@ -130,6 +131,7 @@ func pullRequestFrom(data *graphqlData) []clients.PullRequest {
 	for i, pr := range data.Repository.PullRequests.Nodes {
 		toAppend := clients.PullRequest{
 			Number:   int(pr.Number),
+			HeadSHA:  string(pr.HeadRefOid),
 			MergedAt: pr.MergedAt.Time,
 			MergeCommit: clients.Commit{
 				AuthoredByCommitter: bool(pr.MergeCommit.AuthoredByCommitter),

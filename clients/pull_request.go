@@ -24,6 +24,7 @@ type PullRequest struct {
 	MergedAt    time.Time
 	MergeCommit Commit
 	Number      int
+	HeadSHA     string
 	Labels      []Label
 	Reviews     []Review
 }
