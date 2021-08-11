@@ -292,7 +292,8 @@ the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
 ```
 # Get the latest PARTITION_ID
 bq query --nouse_legacy_sql 'SELECT partition_id FROM
-openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS ORDER BY partition_id DESC
+openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS WHERE table_name="scorecard"
+ORDER BY partition_id DESC
 LIMIT 1'
 
 # Extract to GCS
