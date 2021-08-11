@@ -60,7 +60,7 @@ type DetailLogger interface {
 type FileType int
 
 const (
-	// FileTypeNone is a default, non-file, e.g. for REST APIs.
+	// FileTypeNone is a default, unspecified type.
 	FileTypeNone FileType = iota
 	// FileTypeSource is for source code.
 	FileTypeSource
