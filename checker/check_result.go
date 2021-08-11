@@ -80,7 +80,7 @@ type LogMessage struct {
 	Path    string   // Fullpath to the file.
 	Type    FileType // Type of file.
 	Offset  int      // Offset in the file of Path (line for source/text files).
-	Snippet string   // Snippet of code
+	Snippet string   // Snippet of code.
 }
 
 // CheckDetail3 contains information for each detail.
@@ -90,7 +90,7 @@ type CheckDetail3 struct {
 	Type DetailType // Any of DetailWarn, DetailInfo, DetailDebug.
 }
 
-// DetailLogger3 logs to CheckDetail3 struct.
+// DetailLogger3 logs a CheckDetail3 struct.
 // UPGRADEv3: rename to DetailLogger.
 type DetailLogger3 interface {
 	Info(msg *LogMessage)
