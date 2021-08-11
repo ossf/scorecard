@@ -109,6 +109,7 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 		}
+		// nolint
 		if !p {
 			protected = false
 			dl.Warn("branch protection not enabled for branch '%s'", b)
@@ -193,6 +194,7 @@ func getProtectionAndCheck(ctx context.Context, r repositories, dl checker.Detai
 	if err != nil {
 		// Check the type of error. A not found error indicates that permissions are denied.
 		if resp.StatusCode == http.StatusNotFound {
+			//nolint
 			return 1, sce.Create(errInternalBranchNotFound, errInternalBranchNotFound.Error())
 		}
 		//nolint
