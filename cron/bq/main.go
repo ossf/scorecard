@@ -153,22 +153,6 @@ func getBQConfig() (projectID, datasetName, tableName string, err error) {
 	return
 }
 
-func getBQConfig2() (projectID, datasetName, tableName string, err error) {
-	projectID, err = config.GetProjectID()
-	if err != nil {
-		return projectID, datasetName, tableName, fmt.Errorf("error getting ProjectId: %w", err)
-	}
-	datasetName, err = config.GetBigQueryDataset()
-	if err != nil {
-		return projectID, datasetName, tableName, fmt.Errorf("error getting BigQuery dataset: %w", err)
-	}
-	tableName, err = config.GetBigQueryTable2()
-	if err != nil {
-		return projectID, datasetName, tableName, fmt.Errorf("error getting BigQuery table: %w", err)
-	}
-	return
-}
-
 func main() {
 	ctx := context.Background()
 	bucketURL, err := config.GetResultDataBucketURL()
@@ -185,28 +169,6 @@ func main() {
 	}
 
 	summary, err := getBucketSummary(ctx, bucketURL)
-	if err != nil {
-		panic(err)
-	}
-
-	if err := transferDataToBq(ctx,
-		bucketURL, projectID, datasetName, tableName, webhookURL,
-		summary); err != nil {
-		panic(err)
-	}
-
-	// UPGRADEv2: to remove.
-	bucketURL, err = config.GetResultDataBucketURL2()
-	if err != nil {
-		panic(err)
-	}
-
-	projectID, datasetName, tableName, err = getBQConfig2()
-	if err != nil {
-		panic(err)
-	}
-
-	summary, err = getBucketSummary(ctx, bucketURL)
 	if err != nil {
 		panic(err)
 	}
