@@ -56,6 +56,48 @@ type DetailLogger interface {
 	Debug(desc string, args ...interface{})
 }
 
+// FileType is the type of a file.
+type FileType int
+
+const (
+	// FileTypeNone is a default, non-file, e.g. for REST APIs.
+	FileTypeNone FileType = iota
+	// FileTypeSource is for source code.
+	FileTypeSource
+	// FileTypeBinary is fir binary files.
+	FileTypeBinary
+	// FileTypeText is text.
+	FileTypeText
+	// FileTypeURL is for URLs.
+	FileTypeURL
+)
+
+// LogMessage is a structure that encapsulates detail's information.
+// This allows updating the definition easily.
+//nolint
+type LogMessage struct {
+	Text    string   // A short string explaining why the detail was recorded/logged.
+	Path    string   // Fullpath to the file.
+	Type    FileType // Type of file.
+	Offset  int      // Offset in the file of Path (line for source/text files).
+	Snippet string   // Snippet of code
+}
+
+// CheckDetail3 contains information for each detail.
+// UPGRADEv3: rename to DetailLogger.
+type CheckDetail3 struct {
+	Msg  LogMessage
+	Type DetailType // Any of DetailWarn, DetailInfo, DetailDebug.
+}
+
+// DetailLogger3 logs to CheckDetail3 struct.
+// UPGRADEv3: rename to DetailLogger.
+type DetailLogger3 interface {
+	Info(msg *LogMessage)
+	Warn(msg *LogMessage)
+	Debug(msg *LogMessage)
+}
+
 //nolint
 const (
 	MaxResultScore          = 10
@@ -80,6 +122,10 @@ type CheckResult struct {
 	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
 	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
+
+	// UPGRADEv3: add support or lines and file names for sarif format.
+	// Will be renamed tp CheckDetail or CheckDetail2.
+	Details3 []CheckDetail3 `json:"-"`
 }
 
 // CreateProportionalScore creates a proportional score.

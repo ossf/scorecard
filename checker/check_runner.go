@@ -63,6 +63,35 @@ func (l *logger) Debug(desc string, args ...interface{}) {
 	l.messages2 = append(l.messages2, cd)
 }
 
+// UPGRADEv3: rename.
+type logger3 struct {
+	messages3 []CheckDetail3
+}
+
+func (l *logger3) Info(msg *LogMessage) {
+	cd := CheckDetail3{
+		Type: DetailInfo,
+		Msg:  *msg,
+	}
+	l.messages3 = append(l.messages3, cd)
+}
+
+func (l *logger3) Warn(msg *LogMessage) {
+	cd := CheckDetail3{
+		Type: DetailWarn,
+		Msg:  *msg,
+	}
+	l.messages3 = append(l.messages3, cd)
+}
+
+func (l *logger3) Debug(msg *LogMessage) {
+	cd := CheckDetail3{
+		Type: DetailDebug,
+		Msg:  *msg,
+	}
+	l.messages3 = append(l.messages3, cd)
+}
+
 func logStats(ctx context.Context, startTime time.Time, result *CheckResult) error {
 	runTimeInSecs := time.Now().Unix() - startTime.Unix()
 	opencensusstats.Record(ctx, stats.CheckRuntimeInSec.M(runTimeInSecs))
@@ -88,10 +117,12 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 
 	var res CheckResult
 	var l logger
+	var l3 logger3
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx
 		l = logger{}
+		l3 = logger3{}
 		checkRequest.Dlogger = &l
 		res = f(&checkRequest)
 		if res.Error2 != nil && errors.Is(res.Error2, sce.ErrRepoUnreachable) {
@@ -100,6 +131,8 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		}
 		break
 	}
+
+	res.Details3 = l3.messages3
 	res.Details2 = l.messages2
 	for _, d := range l.messages2 {
 		res.Details = append(res.Details, d.Msg)
