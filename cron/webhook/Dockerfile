@@ -12,12 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project-id: openssf
-result-data-bucket-url: gs://ossf-scorecard-data
-request-topic-url: gcppubsub://projects/openssf/topics/scorecard-batch-requests
-request-subscription-url: gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker
-bigquery-dataset: scorecardcron
-bigquery-table: scorecard
-shard-size: 10
-webhook-url: 
-metric-exporter: stackdriver
+
+FROM  golang:1.16.4@sha256:6f0b0a314b158ff6caf8f12d7f6f3a966500ec6afb533e986eca7375e2f7560f AS base
+WORKDIR /src
+ENV CGO_ENABLED=0
+COPY go.* ./
+RUN go mod download
+COPY . ./
+
+FROM base AS webhook
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 make build-webhook
+
+FROM gcr.io/distroless/base:nonroot@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
+COPY --from=webhook /src/cron/webhook/webhook cron/webhook/webhook
+ENTRYPOINT ["cron/webhook/webhook"]

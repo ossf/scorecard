@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project-id: openssf
-result-data-bucket-url: gs://ossf-scorecard-data
-request-topic-url: gcppubsub://projects/openssf/topics/scorecard-batch-requests
-request-subscription-url: gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker
-bigquery-dataset: scorecardcron
-bigquery-table: scorecard
-shard-size: 10
-webhook-url: 
-metric-exporter: stackdriver
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '.',
+  '-t', 'gcr.io/openssf/scorecard-webhook-releasetest:$COMMIT_SHA',
+  '-t', 'gcr.io/openssf/scorecard-webhook-releasetest:latest',
+  '-f', 'cron/webhook/Dockerfile']
+images: ['gcr.io/openssf/scorecard-webhook-releasetest']
