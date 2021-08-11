@@ -104,23 +104,21 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 
 // nolint
 func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
-	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
-		State: "closed",
-	})
+	prs, err := c.RepoClient.ListMergedPRs()
 	if err != nil {
 		//nolint
 		return checker.InconclusiveResultScore,
-			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.PullRequests.List: %v", err))
+			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
 	}
 
 	totalMerged := 0
 	totalTested := 0
 	for _, pr := range prs {
-		if pr.MergedAt == nil {
+		if pr.MergedAt.IsZero() {
 			continue
 		}
 		totalMerged++
-		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
+		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.HeadSHA,
 			&github.ListCheckRunsOptions{})
 		if err != nil {
 			return checker.InconclusiveResultScore,
