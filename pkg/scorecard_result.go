@@ -38,43 +38,44 @@ type ScorecardResult struct {
 	Metadata []string
 }
 
+type jsonCheckResult struct {
+	Details []string
+	Score   int
+	Reason  string
+	Name    string
+}
+
+type jsonScorecardResult struct {
+	Repo     string
+	Date     string
+	Checks   []jsonCheckResult
+	Metadata []string
+}
+
 // AsJSON outputs the result in JSON format with a newline at the end.
 // If called on []ScorecardResult will create NDJson formatted output.
 // UPGRADEv2: will be removed.
 func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
-	type oldCheckResult struct {
-		// Old structure
-		Error      error `json:"-"`
-		Details    []string
-		Confidence int
-		Pass       bool
-		Name       string
-	}
-	type oldScorecardResult struct {
-		Repo     string
-		Date     string
-		Checks   []oldCheckResult
-		Metadata []string
-	}
-
 	encoder := json.NewEncoder(writer)
-	out := oldScorecardResult{
+	if showDetails {
+		if err := encoder.Encode(r); err != nil {
+			//nolint:wrapcheck
+			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+		}
+		return nil
+	}
+	out := ScorecardResult{
 		Repo:     r.Repo,
 		Date:     r.Date,
 		Metadata: r.Metadata,
 	}
-
+	// UPGRADEv2: remove nolint after uggrade.
 	//nolint
 	for _, checkResult := range r.Checks {
-		tmpResult := oldCheckResult{
+		tmpResult := checker.CheckResult{
 			Name:       checkResult.Name,
 			Pass:       checkResult.Pass,
 			Confidence: checkResult.Confidence,
-		}
-		if showDetails {
-			for _, d := range checkResult.Details2 {
-				tmpResult.Details = append(tmpResult.Details, d.Msg)
-			}
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
@@ -89,19 +90,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
-	// With details: simply json-encode the result,
-	// as it already contains the details.
-	if showDetails {
-		if err := encoder.Encode(r); err != nil {
-			//nolint:wrapcheck
-			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-		}
-		return nil
-	}
-
-	// No details: we manually reconstruct the object
-	// and ommit the details.
-	out := ScorecardResult{
+	out := jsonScorecardResult{
 		Repo:     r.Repo,
 		Date:     r.Date,
 		Metadata: r.Metadata,
@@ -109,10 +98,15 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 
 	//nolint
 	for _, checkResult := range r.Checks {
-		tmpResult := checker.CheckResult{
+		tmpResult := jsonCheckResult{
 			Name:   checkResult.Name,
 			Reason: checkResult.Reason,
 			Score:  checkResult.Score,
+		}
+		if showDetails {
+			for _, d := range checkResult.Details2 {
+				tmpResult.Details = append(tmpResult.Details, d.Msg)
+			}
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
