@@ -6,6 +6,7 @@ cron/data/validate/validate
 cron/data/update/projects-update
 cron/controller/controller
 cron/worker/worker
+cron/webhook/webhook
 cron/bq/data-transfer
 
 # Binaries for programs and plugins.
