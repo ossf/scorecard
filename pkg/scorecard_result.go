@@ -69,7 +69,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 		Date:     r.Date,
 		Metadata: r.Metadata,
 	}
-	// UPGRADEv2: remove nolint after uggrade.
+	// UPGRADEv2: remove nolint after ugrade.
 	//nolint
 	for _, checkResult := range r.Checks {
 		tmpResult := checker.CheckResult{

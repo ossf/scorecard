@@ -147,6 +147,17 @@ func GetBigQueryTable() (string, error) {
 	return getStringConfigValue(bigqueryTable, configYAML, "BigQueryTable", "bigquery-table")
 }
 
+// UPGRADEv2: to remove.
+// GetBigQueryTable2 returns the table name to transfer cron job results.
+func GetBigQueryTable2() (string, error) {
+	return getStringConfigValue(bigqueryTable, configYAML, "BigQueryTable", "bigquery-table2")
+}
+
+// GetResultDataBucketURL2 returns the bucketURL for storing cron job results.
+func GetResultDataBucketURL2() (string, error) {
+	return getStringConfigValue(resultDataBucketURL, configYAML, "ResultDataBucketURL", "result-data-bucket-url2")
+}
+
 // GetShardSize returns the shard_size for the cron job.
 func GetShardSize() (int, error) {
 	return getIntConfigValue(shardSize, configYAML, "ShardSize", "shard-size")

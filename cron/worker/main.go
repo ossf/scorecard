@@ -54,7 +54,8 @@ var (
 )
 
 func processRequest(ctx context.Context,
-	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap, bucketURL string,
+	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
+	bucketURL, bucketURL2 string,
 	repoClient clients.RepoClient,
 	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client) error {
 	filename := data.GetBlobFilename(
@@ -62,6 +63,16 @@ func processRequest(ctx context.Context,
 		batchRequest.GetJobTime().AsTime())
 	// Sanity check - make sure we are not re-processing an already processed request.
 	exists, err := data.BlobExists(ctx, bucketURL, filename)
+	if err != nil {
+		return fmt.Errorf("error during BlobExists: %w", err)
+	}
+	if exists {
+		log.Printf("Already processed shard %s. Nothing to do.", filename)
+		// We have already processed this request, nothing to do.
+		return nil
+	}
+
+	exists, err = data.BlobExists(ctx, bucketURL2, filename)
 	if err != nil {
 		return fmt.Errorf("error during BlobExists: %w", err)
 	}
@@ -121,7 +132,7 @@ func processRequest(ctx context.Context,
 		return fmt.Errorf("error during WriteToBlobStore: %w", err)
 	}
 
-	if err := data.WriteToBlobStore(ctx, bucketURL+"2", filename, buffer2.Bytes()); err != nil {
+	if err := data.WriteToBlobStore(ctx, bucketURL2, filename, buffer2.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
 
@@ -191,6 +202,11 @@ func main() {
 		panic(err)
 	}
 
+	bucketURL2, err := config.GetResultDataBucketURL2()
+	if err != nil {
+		panic(err)
+	}
+
 	repoClient, httpClient, githubClient, graphClient, logger := createNetClients(ctx)
 	defer repoClient.Close()
 
@@ -222,7 +238,7 @@ func main() {
 			log.Print("subscription returned nil message during Receive, exiting")
 			break
 		}
-		if err := processRequest(ctx, req, checksToRun, bucketURL,
+		if err := processRequest(ctx, req, checksToRun, bucketURL, bucketURL2,
 			repoClient, httpClient, githubClient, graphClient); err != nil {
 			log.Printf("error processing request: %v", err)
 			// Nack the message so that another worker can retry.
