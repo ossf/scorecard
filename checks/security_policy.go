@@ -72,8 +72,8 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		onFile = func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
 			pdata := FileGetCbDataAsBoolPointer(data)
 			if strings.EqualFold(name, "security.md") ||
-                           strings.EqualFold(name, ".github/security.md") ||
-                           strings.EqualFold(name, "docs/security.md") {
+				strings.EqualFold(name, ".github/security.md") ||
+				strings.EqualFold(name, "docs/security.md") {
 				dl.Info("security policy detected in .github folder: %s", name)
 				*pdata = true
 				return false, nil
