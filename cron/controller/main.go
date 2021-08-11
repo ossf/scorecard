@@ -19,7 +19,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"google.golang.org/protobuf/encoding/protojson"
@@ -108,13 +107,6 @@ func main() {
 	}
 
 	shardNum, err := publishToRepoRequestTopic(ctx, reader, t)
-	if err != nil {
-		panic(err)
-	}
-	// TODO(azeems): Stop populating `.shard_num` file.
-	err = data.WriteToBlobStore(ctx, bucket,
-		data.GetShardNumFilename(t),
-		[]byte(strconv.Itoa(int(shardNum+1))))
 	if err != nil {
 		panic(err)
 	}

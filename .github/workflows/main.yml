@@ -63,13 +63,9 @@ jobs:
         with:
           go-version: '1.16'
       - name: Check license headers
-        # We need either https://github.com/google/addlicense/pull/70#issuecomment-888099920 or
-        # https://github.com/google/addlicense/pull/84 landed
-        # to exclude testdata folders in the repo.
         run: |
-          echo "license check disabled. Will be reenabled soon."
-          # go env -w GOFLAGS=-mod=mod
-          # make all
-          # set -e
-          # addlicense -l apache -c 'Security Scorecard Authors' -v *
-          # git diff --exit-code
+          go env -w GOFLAGS=-mod=mod
+          make all
+          set -e
+          addlicense -ignore "**/script-empty.sh"  -l apache -c 'Security Scorecard Authors' -v *
+          git diff --exit-code
