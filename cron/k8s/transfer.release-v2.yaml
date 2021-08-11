@@ -26,7 +26,7 @@ spec:
         spec:
           restartPolicy: OnFailure
           containers:
-          - name: bq-transfer-releasetest
+          - name: bq-transfer-releasetest-v2
             image: gcr.io/openssf/scorecard-bq-transfer:latest
             imagePullPolicy: Always
             env:
