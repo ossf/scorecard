@@ -29,6 +29,7 @@ const (
 	prodSubscription           = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
 	prodBigQueryDataset        = "scorecardcron"
 	prodBigQueryTable          = "scorecard"
+	prodWebhookURL             = ""
 	prodShardSize       int    = 10
 	prodMetricExporter  string = "stackdriver"
 )
@@ -58,6 +59,7 @@ func TestYAMLParsing(t *testing.T) {
 				RequestSubscriptionURL: prodSubscription,
 				BigQueryDataset:        prodBigQueryDataset,
 				BigQueryTable:          prodBigQueryTable,
+				WebhookURL:             prodWebhookURL,
 				ShardSize:              prodShardSize,
 				MetricExporter:         prodMetricExporter,
 			},

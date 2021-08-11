@@ -16,17 +16,23 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/ossf/scorecard/v2/cron/config"
 	"github.com/ossf/scorecard/v2/cron/data"
 )
 
 type shardSummary struct {
+	shardMetadata  []byte
 	shardsExpected int
 	shardsCreated  int
 	isTransferred  bool
@@ -60,6 +66,7 @@ func getBucketSummary(ctx context.Context, bucketURL string) (*bucketSummary, er
 			return nil, fmt.Errorf("error parsing Blob key: %w", err)
 		}
 		switch {
+		// TODO(azeems): Remove this case once all instances stop producing .shard_num file.
 		case filename == config.ShardNumFilename:
 			keyData, err := data.GetBlobContent(ctx, bucketURL, key)
 			if err != nil {
@@ -74,8 +81,16 @@ func getBucketSummary(ctx context.Context, bucketURL string) (*bucketSummary, er
 		case filename == config.TransferStatusFilename:
 			summary.getOrCreate(creationTime).isTransferred = true
 		case filename == config.ShardMetadataFilename:
-			// TODO(azeems): Handle shard_metadata file.
-			continue
+			keyData, err := data.GetBlobContent(ctx, bucketURL, key)
+			if err != nil {
+				return nil, fmt.Errorf("error during GetBlobContent: %w", err)
+			}
+			var metadata data.ShardMetadata
+			if err := protojson.Unmarshal(keyData, &metadata); err != nil {
+				return nil, fmt.Errorf("error parsing data as ShardMetadata: %w", err)
+			}
+			summary.getOrCreate(creationTime).shardsExpected = int(metadata.GetNumShard())
+			summary.getOrCreate(creationTime).shardMetadata = keyData
 		default:
 			// nolint: goerr113
 			return nil, fmt.Errorf("found unrecognized file: %s", key)
@@ -85,7 +100,7 @@ func getBucketSummary(ctx context.Context, bucketURL string) (*bucketSummary, er
 }
 
 func transferDataToBq(ctx context.Context,
-	bucketURL, projectID, datasetName, tableName string,
+	bucketURL, projectID, datasetName, tableName, webhookURL string,
 	summary *bucketSummary) error {
 	for creationTime, shards := range summary.shards {
 		if shards.isTransferred || shards.shardsExpected != shards.shardsCreated {
@@ -103,6 +118,16 @@ func transferDataToBq(ctx context.Context,
 		if err := data.WriteToBlobStore(ctx, bucketURL, transferStatusFilename, nil); err != nil {
 			return fmt.Errorf("error during WriteToBlobStore: %w", err)
 		}
+		if webhookURL == "" {
+			continue
+		}
+		// nolint: noctx, gosec // variable URL is ok here.
+		resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(shards.shardMetadata))
+		if err != nil {
+			return fmt.Errorf("error during http.Post to %s: %w", webhookURL, err)
+		}
+		defer resp.Body.Close()
+		log.Println(resp.Status)
 	}
 	return nil
 }
@@ -129,6 +154,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	webhookURL, err := config.GetWebhookURL()
+	if err != nil {
+		panic(err)
+	}
 	projectID, datasetName, tableName, err := getBQConfig()
 	if err != nil {
 		panic(err)
@@ -140,7 +169,7 @@ func main() {
 	}
 
 	if err := transferDataToBq(ctx,
-		bucketURL, projectID, datasetName, tableName,
+		bucketURL, projectID, datasetName, tableName, webhookURL,
 		summary); err != nil {
 		panic(err)
 	}

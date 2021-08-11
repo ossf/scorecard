@@ -42,6 +42,7 @@ const (
 	bigqueryDataset        string = "SCORECARD_BIGQUERY_DATASET"
 	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
 	shardSize              string = "SCORECARD_SHARD_SIZE"
+	webhookURL             string = "SCORECARD_WEBHOOK_URL"
 	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
 )
 
@@ -61,6 +62,7 @@ type config struct {
 	RequestSubscriptionURL string `yaml:"request-subscription-url"`
 	BigQueryDataset        string `yaml:"bigquery-dataset"`
 	BigQueryTable          string `yaml:"bigquery-table"`
+	WebhookURL             string `yaml:"webhook-url"`
 	MetricExporter         string `yaml:"metric-exporter"`
 	ShardSize              int    `yaml:"shard-size"`
 }
@@ -148,6 +150,15 @@ func GetBigQueryTable() (string, error) {
 // GetShardSize returns the shard_size for the cron job.
 func GetShardSize() (int, error) {
 	return getIntConfigValue(shardSize, configYAML, "ShardSize", "shard-size")
+}
+
+// GetWebhookURL returns the webhook URL to ping on a successful cron job completion.
+func GetWebhookURL() (string, error) {
+	url, err := getStringConfigValue(webhookURL, configYAML, "WebhookURL", "webhook-url")
+	if err != nil && !errors.As(err, &ErrorEmptyConfigValue) {
+		return url, err
+	}
+	return url, nil
 }
 
 // GetMetricExporter returns the opencensus exporter type.
