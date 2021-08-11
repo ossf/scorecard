@@ -38,14 +38,14 @@ type ScorecardResult struct {
 	Metadata []string
 }
 
-type jsonCheckResult struct {
+type jsonCheckResultV2 struct {
 	Details []string
 	Score   int
 	Reason  string
 	Name    string
 }
 
-type jsonScorecardResult struct {
+type jsonScorecardResultV2 struct {
 	Repo     string
 	Date     string
 	Checks   []jsonCheckResult
@@ -90,7 +90,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
-	out := jsonScorecardResult{
+	out := jsonScorecardResultV2{
 		Repo:     r.Repo,
 		Date:     r.Date,
 		Metadata: r.Metadata,
@@ -98,7 +98,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 
 	//nolint
 	for _, checkResult := range r.Checks {
-		tmpResult := jsonCheckResult{
+		tmpResult := jsonCheckResultV2{
 			Name:   checkResult.Name,
 			Reason: checkResult.Reason,
 			Score:  checkResult.Score,

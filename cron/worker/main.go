@@ -62,21 +62,16 @@ func processRequest(ctx context.Context,
 		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
 	// Sanity check - make sure we are not re-processing an already processed request.
-	exists, err := data.BlobExists(ctx, bucketURL, filename)
+	exists1, err := data.BlobExists(ctx, bucketURL, filename)
 	if err != nil {
 		return fmt.Errorf("error during BlobExists: %w", err)
-	}
-	if exists {
-		log.Printf("Already processed shard %s. Nothing to do.", filename)
-		// We have already processed this request, nothing to do.
-		return nil
 	}
 
-	exists, err = data.BlobExists(ctx, bucketURL2, filename)
+	exists2, err := data.BlobExists(ctx, bucketURL2, filename)
 	if err != nil {
 		return fmt.Errorf("error during BlobExists: %w", err)
 	}
-	if exists {
+	if exists1 && exists2 {
 		log.Printf("Already processed shard %s. Nothing to do.", filename)
 		// We have already processed this request, nothing to do.
 		return nil
