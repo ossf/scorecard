@@ -16,6 +16,8 @@ package checks
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"regexp"
 
 	"github.com/google/go-github/v32/github"
@@ -114,12 +116,17 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 			// The branch is protected. Check the protection.
 			score, err := getProtectionAndCheck(ctx, r, dl, ownerStr, repoStr, b)
 			if err != nil {
-				// Without an admin token, you only get information on the protection boolean.
-				// Add a score of 1 (minimal branch protection) for this protected branch.
-				unknown = true
-				scores = append(scores, 1)
-				dl.Warn("no detailed settings available for branch protection '%s'", b)
-				continue
+				if errors.Is(err, errInternalBranchNotFound) {
+					// Without an admin token, you only get information on the protection boolean.
+					// Add a score of 1 (minimal branch protection) for this protected branch.
+					unknown = true
+					scores = append(scores, 1)
+					dl.Warn("no detailed settings available for branch protection '%s'", b)
+					continue
+				} else {
+					// Github timeout or other error
+					return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
+				}
 			}
 			scores = append(scores, score)
 		}
@@ -181,9 +188,13 @@ func isBranchProtected(branches []*github.Branch, name string) (bool, error) {
 
 func getProtectionAndCheck(ctx context.Context, r repositories, dl checker.DetailLogger, ownerStr, repoStr,
 	branch string) (int, error) {
-	// We only call this if the branch is protected. An error indicates not found.
-	protection, _, err := r.GetBranchProtection(ctx, ownerStr, repoStr, branch)
+	// We only call this if the branch is protected.
+	protection, resp, err := r.GetBranchProtection(ctx, ownerStr, repoStr, branch)
 	if err != nil {
+		// Check the type of error. A not found error indicates that permissions are denied.
+		if resp.StatusCode == http.StatusNotFound {
+			return 1, sce.Create(errInternalBranchNotFound, errInternalBranchNotFound.Error())
+		}
 		//nolint
 		return checker.InconclusiveResultScore, sce.Create(sce.ErrScorecardInternal, err.Error())
 	}
