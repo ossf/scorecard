@@ -25,7 +25,7 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/spf13/cobra v1.2.1
 	go.opencensus.io v0.23.0
-	go.uber.org/zap v1.18.1
+	go.uber.org/zap v1.19.0
 	gocloud.dev v0.23.0
 	golang.org/x/tools v0.1.5
 	google.golang.org/genproto v0.0.0-20210805201207-89edb61ffb67
