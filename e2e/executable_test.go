@@ -20,6 +20,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/ossf/scorecard/v2/checks"
 )
 
 type scorecard struct {
@@ -50,34 +52,29 @@ var _ = Describe("E2E TEST:executable", func() {
 
 			for _, c := range data.Checks {
 				switch c.CheckName {
-				case "Active":
+				case checks.CheckActive:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case "Branch-Protection":
+				case checks.CheckBranchProtection:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case "CI-Tests":
+				case checks.CheckCITests:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case "CII-Best-Practices":
+				case checks.CheckCIIBestPractices:
 					Expect(c.Pass).Should(BeFalse(), c.CheckName)
-				case "Code-Review":
+				case checks.CheckCodeReview:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case "Contributors":
+				case checks.CheckContributors:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case "Frozen-Deps":
+				case checks.CheckPinnedDependencies:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case "Fuzzing":
+				case checks.CheckFuzzing:
 					Expect(c.Pass).Should(BeFalse(), c.CheckName)
-				case "Packaging":
+				case checks.CheckPackaging:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case "Pull-Requests":
+				case checks.CheckSAST:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case "SAST":
+				case checks.CheckSecurityPolicy:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case "Security-Policy":
-					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case "Signed-Releases":
-					Expect(c.Confidence).ShouldNot(Equal(10))
-					Expect(c.Pass).Should(BeFalse(), c.CheckName)
-				case "Signed-Tags":
+				case checks.CheckSignedReleases:
 					Expect(c.Confidence).ShouldNot(Equal(10))
 					Expect(c.Pass).Should(BeFalse(), c.CheckName)
 				}

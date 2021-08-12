@@ -147,19 +147,6 @@ It works by looking for filenames: *.minisig (https://github.com/jedisct1/minisi
 - Attach the signature file next to the release archive.
 - For GitHub, check out the steps [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
 
-## Signed-Tags 
-
-This check looks for cryptographically signed tags in the last 5 tags.
-Signed tags attest the author of a commit. A low score is considered 'Medium' risk.
-The check does not verify the signature itself and currently relies on GitHub's verification. 
-
-**Remediation steps**
-- Generate a new signing key.
-- Add your key to your source hosting provider.
-- Configure your key and email in git.
-- Publish the tag and then sign it with this key.
-- For GitHub, check out the steps [here](https://docs.github.com/en/github/authenticating-to-github/signing-tags#further-reading).
-
 ## Token-Permissions 
 
 This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default.
