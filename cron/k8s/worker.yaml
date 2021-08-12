@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - name: worker
-        image: gcr.io/openssf/scorecard-batch-worker
+        image: gcr.io/openssf/scorecard-batch-worker:stable
         args: ["--ignoreRuntimeErrors=true"]
         imagePullPolicy: Always
         env:

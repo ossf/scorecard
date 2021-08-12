@@ -23,6 +23,7 @@ import (
 	"net/http"
 
 	"github.com/google/go-containerregistry/pkg/crane"
+	"github.com/google/go-containerregistry/pkg/v1/google"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/ossf/scorecard/v2/cron/data"
@@ -51,9 +52,15 @@ func scriptHandler(w http.ResponseWriter, r *http.Request) {
 				http.StatusBadRequest)
 			return
 		}
+		authn, err := google.NewEnvAuthenticator()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error in NewEnvAuthenticator: %v", err), http.StatusInternalServerError)
+			return
+		}
 		for _, image := range images {
 			if err := crane.Tag(
-				fmt.Sprintf("%s:%s", image, metadata.GetCommitSha()), stableTag); err != nil {
+				fmt.Sprintf("%s:%s", image, metadata.GetCommitSha()), stableTag,
+				crane.WithAuth(authn)); err != nil {
 				http.Error(w, fmt.Sprintf("crane.Tag: %v", err), http.StatusInternalServerError)
 				return
 			}
