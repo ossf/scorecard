@@ -12,6 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+apiVersion: v1
+kind: Service
+metadata:
+  name: scorecard-releasetest-service
+spec:
+  clusterIP: 10.4.8.246
+  selector:
+    app.kubernetes.io/name: webhook-releasetest
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,10 +44,6 @@ spec:
       - name: webhook-releasetest
         image: gcr.io/openssf/scorecard-webhook-releasetest:latest
         imagePullPolicy: Always
-        ports:
-        - protocol: TCP
-          port: 80
-          targetPort: 8080
   strategy:
     type: "RollingUpdate"
     rollingUpdate:
