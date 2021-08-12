@@ -21,6 +21,7 @@ import (
 	"github.com/google/go-github/v32/github"
 
 	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
@@ -43,19 +44,18 @@ func init() {
 
 // CITests runs CI-Tests check.
 func CITests(c *checker.CheckRequest) checker.CheckResult {
-	prs, _, err := c.Client.PullRequests.List(c.Ctx, c.Owner, c.Repo, &github.PullRequestListOptions{
-		State: "closed",
-	})
+	prs, err := c.RepoClient.ListMergedPRs()
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.PullRequests.List: %v", err))
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCITests, e)
 	}
 
 	usedSystem := unknown
 	totalMerged := 0
 	totalTested := 0
-	for _, pr := range prs {
-		if pr.MergedAt == nil {
+	for index := range prs {
+		pr := &prs[index]
+		if pr.MergedAt.IsZero() {
 			continue
 		}
 		totalMerged++
@@ -90,7 +90,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		}
 
 		if !foundCI {
-			c.Dlogger.Debug("merged PR without CI test: %d", pr.GetNumber())
+			c.Dlogger.Debug("merged PR without CI test: %d", pr.Number)
 		}
 	}
 
@@ -103,8 +103,8 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 }
 
 // PR has a status marked 'success' and a CI-related context.
-func prHasSuccessStatus(pr *github.PullRequest, c *checker.CheckRequest) (bool, error) {
-	statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
+func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool, error) {
+	statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.HeadSHA,
 		&github.ListOptions{})
 	if err != nil {
 		//nolint
@@ -116,7 +116,7 @@ func prHasSuccessStatus(pr *github.PullRequest, c *checker.CheckRequest) (bool, 
 			continue
 		}
 		if isTest(status.GetContext()) {
-			c.Dlogger.Debug("CI test found: pr: %d, context: %success, url: %success", pr.GetNumber(),
+			c.Dlogger.Debug("CI test found: pr: %d, context: %success, url: %success", pr.Number,
 				status.GetContext(), status.GetURL())
 			return true, nil
 		}
@@ -125,8 +125,8 @@ func prHasSuccessStatus(pr *github.PullRequest, c *checker.CheckRequest) (bool, 
 }
 
 // PR has a successful CI-related check.
-func prHasSuccessfulCheck(pr *github.PullRequest, c *checker.CheckRequest) (bool, error) {
-	crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.GetHead().GetSHA(),
+func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (bool, error) {
+	crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.HeadSHA,
 		&github.ListCheckRunsOptions{})
 	if err != nil {
 		//nolint
@@ -145,7 +145,7 @@ func prHasSuccessfulCheck(pr *github.PullRequest, c *checker.CheckRequest) (bool
 			continue
 		}
 		if isTest(cr.GetApp().GetSlug()) {
-			c.Dlogger.Debug("CI test found: pr: %d, context: %success, url: %success", pr.GetNumber(),
+			c.Dlogger.Debug("CI test found: pr: %d, context: %success, url: %success", pr.Number,
 				cr.GetApp().GetSlug(), cr.GetURL())
 			return true, nil
 		}

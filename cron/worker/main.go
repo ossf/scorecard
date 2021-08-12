@@ -95,14 +95,17 @@ func processRequest(ctx context.Context,
 		if err != nil {
 			return fmt.Errorf("error during RunScorecards: %w", err)
 		}
-		if !(*ignoreRuntimeErrors) {
-			for checkIndex := range result.Checks {
-				check := &result.Checks[checkIndex]
-				if errors.As(check.Error2, &sce.ErrScorecardInternal) {
-					// nolint: errorlint, goerr113
-					return fmt.Errorf("check %s has a runtime error: %v", check.Name, check.Error2)
-				}
+		for checkIndex := range result.Checks {
+			check := &result.Checks[checkIndex]
+			if !errors.As(check.Error2, &sce.ErrScorecardInternal) {
+				continue
 			}
+			errorMsg := fmt.Sprintf("check %s has a runtime error: %v", check.Name, check.Error2)
+			if !(*ignoreRuntimeErrors) {
+				// nolint: goerr113
+				return errors.New(errorMsg)
+			}
+			log.Print(errorMsg)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime().Format("2006-01-02")
 		if err := result.AsJSON(true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
@@ -161,6 +164,8 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 
 func main() {
 	ctx := context.Background()
+
+	flag.Parse()
 
 	subscriptionURL, err := config.GetRequestSubscriptionURL()
 	if err != nil {

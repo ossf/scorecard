@@ -101,6 +101,9 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		break
 	}
 	res.Details2 = l.messages2
+	for _, d := range l.messages2 {
+		res.Details = append(res.Details, d.Msg)
+	}
 
 	if err := logStats(ctx, startTime, &res); err != nil {
 		panic(err)
