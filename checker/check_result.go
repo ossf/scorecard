@@ -46,7 +46,7 @@ const (
 type FileType int
 
 const (
-	// FileTypeNone is a default, non-file, e.g. for REST APIs.
+	// FileTypeNone is a default, not defined.
 	FileTypeNone FileType = iota
 	// FileTypeSource is for source code.
 	FileTypeSource
