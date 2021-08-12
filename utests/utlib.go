@@ -77,6 +77,7 @@ func (l *TestDetailLogger) Debug(desc string, args ...interface{}) {
 }
 
 // UPGRADEv3: to rename.
+//nolint:revive
 func (l *TestDetailLogger) Info3(msg *checker.LogMessage) {
 	cd := checker.CheckDetail{
 		Type: checker.DetailInfo,
@@ -86,6 +87,7 @@ func (l *TestDetailLogger) Info3(msg *checker.LogMessage) {
 	l.messages = append(l.messages, cd)
 }
 
+//nolint:revive
 func (l *TestDetailLogger) Warn3(msg *checker.LogMessage) {
 	cd := checker.CheckDetail{
 		Type: checker.DetailWarn,
@@ -95,6 +97,7 @@ func (l *TestDetailLogger) Warn3(msg *checker.LogMessage) {
 	l.messages = append(l.messages, cd)
 }
 
+//nolint:revive
 func (l *TestDetailLogger) Debug3(msg *checker.LogMessage) {
 	cd := checker.CheckDetail{
 		Type: checker.DetailDebug,
