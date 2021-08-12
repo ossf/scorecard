@@ -16,6 +16,8 @@ package checks
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"regexp"
 
 	"github.com/google/go-github/v32/github"
@@ -100,12 +102,14 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	checkBranches[*repo.DefaultBranch] = true
 
 	protected := true
+	unknown := false
 	// Check protections on all the branches.
 	for b := range checkBranches {
 		p, err := isBranchProtected(branches, b)
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 		}
+		// nolint
 		if !p {
 			protected = false
 			dl.Warn("branch protection not enabled for branch '%s'", b)
@@ -113,7 +117,17 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 			// The branch is protected. Check the protection.
 			score, err := getProtectionAndCheck(ctx, r, dl, ownerStr, repoStr, b)
 			if err != nil {
-				return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
+				if errors.Is(err, errInternalBranchNotFound) {
+					// Without an admin token, you only get information on the protection boolean.
+					// Add a score of 1 (minimal branch protection) for this protected branch.
+					unknown = true
+					scores = append(scores, 1)
+					dl.Warn("no detailed settings available for branch protection '%s'", b)
+					continue
+				} else {
+					// Github timeout or other error
+					return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
+				}
 			}
 			scores = append(scores, score)
 		}
@@ -133,6 +147,11 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(CheckBranchProtection,
 			"branch protection is fully enabled on development and all release branches")
+	}
+
+	if unknown {
+		return checker.CreateResultWithScore(CheckBranchProtection,
+			"branch protection is enabled on development and all release branches but settings are unknown", score)
 	}
 
 	return checker.CreateResultWithScore(CheckBranchProtection,
@@ -170,9 +189,14 @@ func isBranchProtected(branches []*github.Branch, name string) (bool, error) {
 
 func getProtectionAndCheck(ctx context.Context, r repositories, dl checker.DetailLogger, ownerStr, repoStr,
 	branch string) (int, error) {
-	// We only call this if the branch is protected. An error indicates not found.
-	protection, _, err := r.GetBranchProtection(ctx, ownerStr, repoStr, branch)
+	// We only call this if the branch is protected.
+	protection, resp, err := r.GetBranchProtection(ctx, ownerStr, repoStr, branch)
 	if err != nil {
+		// Check the type of error. A not found error indicates that permissions are denied.
+		if resp.StatusCode == http.StatusNotFound {
+			//nolint
+			return 1, sce.Create(errInternalBranchNotFound, errInternalBranchNotFound.Error())
+		}
 		//nolint
 		return checker.InconclusiveResultScore, sce.Create(sce.ErrScorecardInternal, err.Error())
 	}
