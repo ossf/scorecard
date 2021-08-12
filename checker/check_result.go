@@ -48,11 +48,11 @@ type FileType int
 const (
 	// FileTypeNone is a default, not defined.
 	FileTypeNone FileType = iota
-	// FileTypeSource is for source code.
+	// FileTypeSource is for source code files.
 	FileTypeSource
-	// FileTypeBinary is fir binary files.
+	// FileTypeBinary is for binary files.
 	FileTypeBinary
-	// FileTypeText is text.
+	// FileTypeText is for text files.
 	FileTypeText
 	// FileTypeURL for URLs.
 	FileTypeURL
