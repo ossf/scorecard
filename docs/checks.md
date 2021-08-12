@@ -78,7 +78,7 @@ The check first tries to detect if Branch-Protection is enabled on the default b
 
 ## Contributors 
 
-This check tries to determine if a project has a set of contributors from multiple companies.
+This check tries to determine if the project has a set of contributors from multiple companies.
 Low score has 'Low' risk.
 The check works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commits in the last 30 commits. The check succeeds if all contributors span at least 2 different companies. 
 
@@ -106,7 +106,7 @@ The check currently looks for [GitHub packaging workflows]( https://docs.github.
 
 ## Pinned-Dependencies 
 
-This check tries to determine if a project has declared and pinned its dependencies.
+This check tries to determine if the project has declared and pinned its dependencies.
 Pinning dependencies is important to mitigate compromised dependencies from undermining the security of the project. Low score is therefore considered `Medium` risk.
 The checks works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript), requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. 
 
@@ -127,7 +127,7 @@ The checks currently looks for known Github apps such as [github-code-scanning](
 
 ## Security-Policy 
 
-This check tries to determine if a project has published a security policy. It works by looking for a file named `SECURITY.md` (case-insensitive) in a few well-known directories. 
+This check tries to determine if the project has published a security policy. It works by looking for a file named `SECURITY.md` (case-insensitive) in a few well-known directories. 
 
 **Remediation steps**
 - Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.
@@ -135,7 +135,7 @@ This check tries to determine if a project has published a security policy. It w
 
 ## Signed-Releases 
 
-This check tries to determine if a project cryptographically signs release artifacts.
+This check tries to determine if the project cryptographically signs release artifacts.
 Signed releases attest to the provenance of the artifact. A low score is considered 'High' risk.
 It works by looking for filenames: *.minisig (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
 
