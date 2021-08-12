@@ -31,7 +31,7 @@ checks:
       - >-
         There is *NO* remediation work needed here. This is just to indicate
         your project activity and maintenance commitment.
-  Automatic-Dependency-Update:
+  Dependency-Update-Tool:
     risk: High
     short: Determines if the project uses a dependency update tool.
     description: >-

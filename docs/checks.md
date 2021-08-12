@@ -18,15 +18,6 @@ The check currently works by looking for commits within the last 90 days, and ou
 **Remediation steps**
 - There is *NO* remediation work needed here. This is just to indicate your project activity and maintenance commitment.
 
-## Automatic-Dependency-Update 
-
-This check tries to determine if the project uses a dependency update tool.
-Not updating dependencies makes a project vulnerable to known flaws and prone to attacks. A low score is therefore considered `High` risk.
-The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. 
-
-**Remediation steps**
-- Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.
-
 ## Binary-Artifacts 
 
 This check tries to determine if the project has binary artifacts in the source repository.
@@ -84,6 +75,15 @@ The check works by looking at the authors of recent commits and checking the `Co
 
 **Remediation steps**
 - There is *NO* remediation work needed here. This is to provide some insights on which organization(s) have contributed to the project and making trust decisions based on that. But you can ask your contributors to join their respective organizations.
+
+## Dependency-Update-Tool 
+
+This check tries to determine if the project uses a dependency update tool.
+Not updating dependencies makes a project vulnerable to known flaws and prone to attacks. A low score is therefore considered `High` risk.
+The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. 
+
+**Remediation steps**
+- Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.
 
 ## Fuzzing 
 
