@@ -33,9 +33,9 @@ checks:
         your project activity and maintenance commitment.
   Automatic-Dependency-Update:
     risk: High
-    short: Determines if a project has dependencies automatically updated.
+    short: Determines if the project uses a dependency update tool.
     description: >-
-      This check tries to determine if the project has dependencies automatically updated.
+      This check tries to determine if the project uses a dependency update tool.
 
       Not updating dependencies makes a project vulnerable to known flaws and prone to attacks.
       A low score is therefore considered `High` risk.
@@ -50,7 +50,7 @@ checks:
         file in the locations that are recommended by these tools.
   Binary-Artifacts:
     risk: High
-    short: determine if the project has binary artifacts in the source repository.
+    short: Determines if the project has binary artifacts in the source repository.
     description: >-
       This check tries to determine if the project has binary artifacts in the source repository.
 
@@ -314,7 +314,7 @@ checks:
         GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
   Vulnerabilities:
     risk: High
-    short: Determines if there are open, known unfixed vulnerabilities for the project.
+    short: Determines if the project has open, known unfixed vulnerabilities.
     description: >-
       This check determines if the project has open, unfixed 
       vulnerabilities using the [OSV](https://osv.dev) service.
