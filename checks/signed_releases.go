@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/go-github/v32/github"
-
 	"github.com/ossf/scorecard/v2/checker"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
@@ -30,6 +28,8 @@ const (
 	releaseLookBack     = 5
 )
 
+var artifactExtensions = []string{".asc", ".minisig", ".sig"}
+
 //nolint:gochecknoinits
 func init() {
 	registerCheck(CheckSignedReleases, SignedReleases)
@@ -37,32 +37,25 @@ func init() {
 
 // SignedReleases runs Signed-Releases check.
 func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
-	releases, _, err := c.Client.Repositories.ListReleases(c.Ctx, c.Owner, c.Repo, &github.ListOptions{})
+	releases, err := c.RepoClient.ListReleases()
 	if err != nil {
 		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListReleases: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckSignedReleases, e)
 	}
 
-	artifactExtensions := []string{".asc", ".minisig", ".sig"}
-
 	totalReleases := 0
 	totalSigned := 0
 	for _, r := range releases {
-		assets, _, err := c.Client.Repositories.ListReleaseAssets(c.Ctx, c.Owner, c.Repo, r.GetID(), &github.ListOptions{})
-		if err != nil {
-			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListReleaseAssets: %v", err))
-			return checker.CreateRuntimeErrorResult(CheckSignedReleases, e)
-		}
-		if len(assets) == 0 {
+		if len(r.Assets) == 0 {
 			continue
 		}
-		c.Dlogger.Debug("GitHub release found: %s", r.GetTagName())
+		c.Dlogger.Debug("GitHub release found: %s", r.TagName)
 		totalReleases++
 		signed := false
-		for _, asset := range assets {
+		for _, asset := range r.Assets {
 			for _, suffix := range artifactExtensions {
-				if strings.HasSuffix(asset.GetName(), suffix) {
-					c.Dlogger.Info("signed release artifact: %s, url: %s", asset.GetName(), asset.GetURL())
+				if strings.HasSuffix(asset.Name, suffix) {
+					c.Dlogger.Info("signed release artifact: %s, url: %s", asset.Name, asset.URL)
 					signed = true
 					break
 				}
@@ -73,7 +66,7 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 			}
 		}
 		if !signed {
-			c.Dlogger.Warn("release artifact %s not signed", r.GetTagName())
+			c.Dlogger.Warn("release artifact %s not signed", r.TagName)
 		}
 		if totalReleases >= releaseLookBack {
 			break

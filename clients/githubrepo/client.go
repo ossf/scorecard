@@ -77,6 +77,11 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 	return client.graphClient.getCommits()
 }
 
+// ListReleases implements RepoClient.ListReleases.
+func (client *Client) ListReleases() ([]clients.Release, error) {
+	return client.graphClient.getReleases()
+}
+
 // IsArchived implements RepoClient.IsArchived.
 func (client *Client) IsArchived() (bool, error) {
 	return client.graphClient.isArchived()
