@@ -88,7 +88,7 @@ checks:
       This check tries to determine if the project runs tests before pull
       requests are merged.
 
-      Running tests helps helps developers catch mistakes early on.
+      Running tests helps developers catch mistakes early on.
       A low score is considered 'Low' risk.
 
       The check works by looking for a set of well-known CI-system
@@ -111,7 +111,7 @@ checks:
       This check tries to determine if the project has a [CII Best Practices
       Badge](https://bestpractices.coreinfrastructure.org/en).
 
-      This badges tells us the repo maintainers are aware of best
+      This badge tells us the repo maintainers are aware of best
       development practices. A low score is considered 'Low' risk.
 
       The check uses the URL for the Git repo and the CII API.
@@ -125,12 +125,12 @@ checks:
       This check tries to determine if a project requires code review before
       pull requests are merged.
 
-      Reviewing code improves quality of code in general. In addition, it ensures
+      Reviewing code improves the quality of code in general. In addition, it ensures
       compromised contributors cannot intentionally inject malicious code. A low
       score is therefore considered `High` risk.
 
       The check first tries to detect if Branch-Protection is enabled
-      on the default branch and the number of reviewers is at least 1. If this
+      on the default branch ,and the number of reviewers is at least 1. If this
       fails, it checks if the recent (~30) commits have a Github-approved
       review or if the merger is different from the committer (implicit review).
       It also performs similar check for reviews using
@@ -156,14 +156,14 @@ checks:
 
       The check works by looking at the authors of recent commits
       and checking the `Company` field on the GitHub user profile. A contributor
-      must have at least 5 commint in the last 30 commits. The check succeeds if
-      all contributor span at least 2 different companies.
+      must have at least 5 commits in the last 30 commits. The check succeeds if
+      all contributors span at least 2 different companies.
     remediation:
       - >-
-        There is *NO* remediation work needed here. This is just to provide some
+        There is *NO* remediation work needed here. This is to provide some
         insights on which organization(s) have contributed to the project and
-        making trust decision based on that. But you can ask your contributors
-        to join their respective organization.
+        making trust decisions based on that. But you can ask your contributors
+        to join their respective organizations.
   Fuzzing:
     risk: Medium
     description: >-
@@ -183,11 +183,11 @@ checks:
     description:
       This check tries to determine if the project is published as a package that other developers can install/download.
 
-      Packaging your project is important for users to receive updates and security patches automatically.
+      Packaging your project is essential for users to receive updates and security patches automatically.
       A low score is considered `Medium` risk.
 
       The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package)
-      and language-specific GitHub Actions that upload the package to a correpdonsing hub, e.g., [Npm](https://www.npmjs.com/).
+      and language-specific GitHub Actions that upload the package to a corresponding hub, e.g., [Npm](https://www.npmjs.com/).
       There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).
     remediation:
       - Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
@@ -301,8 +301,8 @@ checks:
       follow the principle of least privilege, i.e. if the GitHub tokens
       are set read-only by default.
 
-      A compromised token with write access may be used by attackers to
-      push malicious code into the project. A low score is therefore considered `High` risk.
+      Attackers may use a compromised token with write access to push malicious code into the project.
+      A low score is therefore considered `High` risk.
 
       For each workflow yaml file, the check looks
       for the permission definitions. To obtain the highest score, the permissions should be set as
@@ -316,8 +316,8 @@ checks:
   Vulnerabilities:
     risk: High
     description: >-
-      This check determines if there are open, unfixed vulnerabilities
-      in the project using the [OSV](https://osv.dev) service.
+      This check determines if the project has open, unfixed 
+      vulnerabilities using the [OSV](https://osv.dev) service.
 
       An existing vulnerability is can readily be used by attackers,
       so a low score is considered `High` risk.

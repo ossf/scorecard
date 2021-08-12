@@ -49,7 +49,7 @@ This check determines if the default and release branches are protected with Git
 ## CI-Tests 
 
 This check tries to determine if the project runs tests before pull requests are merged.
-Running tests helps helps developers catch mistakes early on. A low score is considered 'Low' risk.
+Running tests helps developers catch mistakes early on. A low score is considered 'Low' risk.
 The check works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its name contains any of the following: appveyor, buildkite, circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. 
 
 **Remediation steps**
@@ -59,7 +59,7 @@ The check works by looking for a set of well-known CI-system names in GitHub `Ch
 ## CII-Best-Practices 
 
 This check tries to determine if the project has a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en).
-This badges tells us the repo maintainers are aware of best development practices. A low score is considered 'Low' risk.
+This badge tells us the repo maintainers are aware of best development practices. A low score is considered 'Low' risk.
 The check uses the URL for the Git repo and the CII API. 
 
 **Remediation steps**
@@ -68,8 +68,8 @@ The check uses the URL for the Git repo and the CII API.
 ## Code-Review 
 
 This check tries to determine if a project requires code review before pull requests are merged.
-Reviewing code improves quality of code in general. In addition, it ensures compromised contributors cannot intentionally inject malicious code. A low score is therefore considered `High` risk.
-The check first tries to detect if Branch-Protection is enabled on the default branch and the number of reviewers is at least 1. If this fails, it checks if the recent (~30) commits have a Github-approved review or if the merger is different from the committer (implicit review). It also performs similar check for reviews using [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels "lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by"). 
+Reviewing code improves the quality of code in general. In addition, it ensures compromised contributors cannot intentionally inject malicious code. A low score is therefore considered `High` risk.
+The check first tries to detect if Branch-Protection is enabled on the default branch ,and the number of reviewers is at least 1. If this fails, it checks if the recent (~30) commits have a Github-approved review or if the merger is different from the committer (implicit review). It also performs similar check for reviews using [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels "lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by"). 
 
 **Remediation steps**
 - Follow security best practices by performing strict code reviews for every new pull request.
@@ -80,10 +80,10 @@ The check first tries to detect if Branch-Protection is enabled on the default b
 
 This check tries to determine if a project has a set of contributors from multiple companies.
 Low score has 'Low' risk.
-The check works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commint in the last 30 commits. The check succeeds if all contributor span at least 2 different companies. 
+The check works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commits in the last 30 commits. The check succeeds if all contributors span at least 2 different companies. 
 
 **Remediation steps**
-- There is *NO* remediation work needed here. This is just to provide some insights on which organization(s) have contributed to the project and making trust decision based on that. But you can ask your contributors to join their respective organization.
+- There is *NO* remediation work needed here. This is to provide some insights on which organization(s) have contributed to the project and making trust decisions based on that. But you can ask your contributors to join their respective organizations.
 
 ## Fuzzing 
 
@@ -97,8 +97,8 @@ The check currently works by checking if the repo name is in the [OSS-Fuzz](http
 ## Packaging 
 
 This check tries to determine if the project is published as a package that other developers can install/download.
-Packaging your project is important for users to receive updates and security patches automatically. A low score is considered `Medium` risk.
-The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a correpdonsing hub, e.g., [Npm](https://www.npmjs.com/). There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/). 
+Packaging your project is essential for users to receive updates and security patches automatically. A low score is considered `Medium` risk.
+The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a corresponding hub, e.g., [Npm](https://www.npmjs.com/). There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/). 
 
 **Remediation steps**
 - Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
@@ -163,7 +163,7 @@ The check does not verify the signature itself and currently relies on GitHub's 
 ## Token-Permissions 
 
 This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default.
-A compromised token with write access may be used by attackers to push malicious code into the project. A low score is therefore considered `High` risk.
+Attackers may use a compromised token with write access to push malicious code into the project. A low score is therefore considered `High` risk.
 For each workflow yaml file, the check looks for the permission definitions. To obtain the highest score, the permissions should be set as read-only at the [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions) and the required write permissions should be declared at the [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions). The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
 
 **Remediation steps**
@@ -171,7 +171,7 @@ For each workflow yaml file, the check looks for the permission definitions. To 
 
 ## Vulnerabilities 
 
-This check determines if there are open, unfixed vulnerabilities in the project using the [OSV](https://osv.dev) service.
+This check determines if the project has open, unfixed  vulnerabilities using the [OSV](https://osv.dev) service.
 An existing vulnerability is can readily be used by attackers, so a low score is considered `High` risk. 
 
 **Remediation steps**
