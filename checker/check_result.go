@@ -72,13 +72,12 @@ type LogMessage struct {
 }
 
 // CheckDetail contains information for each detail.
-//nolint:govet
 type CheckDetail struct {
 	Msg  LogMessage
 	Type DetailType // Any of DetailWarn, DetailInfo, DetailDebug.
 }
 
-// DetailLogger logs map to CheckDetail struct.
+// DetailLogger logs a CheckDetail struct.
 type DetailLogger interface {
 	Info(desc string, args ...interface{})
 	Warn(desc string, args ...interface{})
