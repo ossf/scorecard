@@ -197,7 +197,7 @@ func main() {
 		panic(err)
 	}
 
-	bucketURL2, err := config.GetResultDataBucketURL2()
+	bucketURL2, err := config.GetResultDataBucketURLV2()
 	if err != nil {
 		panic(err)
 	}
