@@ -27,7 +27,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"

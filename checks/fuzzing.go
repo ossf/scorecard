@@ -17,7 +17,7 @@ package checks
 import (
 	"fmt"
 
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v38/github"
 
 	"github.com/ossf/scorecard/v2/checker"
 	sce "github.com/ossf/scorecard/v2/errors"

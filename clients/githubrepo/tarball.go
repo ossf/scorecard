@@ -28,7 +28,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v38/github"
 
 	sce "github.com/ossf/scorecard/v2/errors"
 )

@@ -27,7 +27,7 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v38/github"
 	"golang.org/x/tools/go/vcs"
 
 	"github.com/ossf/scorecard/v2/cron/data"
