@@ -83,8 +83,9 @@ type DetailLogger interface {
 	Warn(desc string, args ...interface{})
 	Debug(desc string, args ...interface{})
 
-	// UPGRADEv3: to rename.
 	// Functions to use for moving to SARIF format.
+	// UPGRADEv3: to rename.
+	//nolint:revive
 	Info3(msg *LogMessage)
 	Warn3(msg *LogMessage)
 	Debug3(msg *LogMessage)
