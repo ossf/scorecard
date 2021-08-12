@@ -49,47 +49,46 @@ type logger struct {
 }
 
 func (l *logger) Info(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailInfo, Msg: fmt.Sprintf(desc, args...)}
+	cd := CheckDetail{Type: DetailInfo, Msg: LogMessage{Text: fmt.Sprintf(desc, args...)}}
 	l.messages2 = append(l.messages2, cd)
 }
 
 func (l *logger) Warn(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailWarn, Msg: fmt.Sprintf(desc, args...)}
+	cd := CheckDetail{Type: DetailWarn, Msg: LogMessage{Text: fmt.Sprintf(desc, args...)}}
 	l.messages2 = append(l.messages2, cd)
 }
 
 func (l *logger) Debug(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailDebug, Msg: fmt.Sprintf(desc, args...)}
+	cd := CheckDetail{Type: DetailDebug, Msg: LogMessage{Text: fmt.Sprintf(desc, args...)}}
 	l.messages2 = append(l.messages2, cd)
 }
 
-// UPGRADEv3: rename.
-type logger3 struct {
-	messages3 []CheckDetail3
-}
-
-func (l *logger3) Info(msg *LogMessage) {
-	cd := CheckDetail3{
+// UPGRADEv3: to rename.
+func (l *logger) Info3(msg *LogMessage) {
+	cd := CheckDetail{
 		Type: DetailInfo,
 		Msg:  *msg,
 	}
-	l.messages3 = append(l.messages3, cd)
+	cd.Msg.Version = 3
+	l.messages2 = append(l.messages2, cd)
 }
 
-func (l *logger3) Warn(msg *LogMessage) {
-	cd := CheckDetail3{
+func (l *logger) Warn3(msg *LogMessage) {
+	cd := CheckDetail{
 		Type: DetailWarn,
 		Msg:  *msg,
 	}
-	l.messages3 = append(l.messages3, cd)
+	cd.Msg.Version = 3
+	l.messages2 = append(l.messages2, cd)
 }
 
-func (l *logger3) Debug(msg *LogMessage) {
-	cd := CheckDetail3{
+func (l *logger) Debug3(msg *LogMessage) {
+	cd := CheckDetail{
 		Type: DetailDebug,
 		Msg:  *msg,
 	}
-	l.messages3 = append(l.messages3, cd)
+	cd.Msg.Version = 3
+	l.messages2 = append(l.messages2, cd)
 }
 
 func logStats(ctx context.Context, startTime time.Time, result *CheckResult) error {
@@ -117,12 +116,10 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 
 	var res CheckResult
 	var l logger
-	var l3 logger3
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx
 		l = logger{}
-		l3 = logger3{}
 		checkRequest.Dlogger = &l
 		res = f(&checkRequest)
 		if res.Error2 != nil && errors.Is(res.Error2, sce.ErrRepoUnreachable) {
@@ -132,10 +129,9 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		break
 	}
 
-	res.Details3 = l3.messages3
 	res.Details2 = l.messages2
 	for _, d := range l.messages2 {
-		res.Details = append(res.Details, d.Msg)
+		res.Details = append(res.Details, d.Msg.Text)
 	}
 	if err := logStats(ctx, startTime, &res); err != nil {
 		panic(err)

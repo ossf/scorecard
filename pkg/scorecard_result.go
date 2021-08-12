@@ -207,13 +207,25 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (string, bool) {
 	// UPGRADEv2: change to make([]string, len(details))
 	// followed by sa[i] = instead of append.
-	//nolint
 	var sa []string
 	for _, v := range details {
-		if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
-			continue
+		switch v.Msg.Version {
+		//nolint
+		case 3:
+			if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
+				continue
+			}
+			if v.Msg.Path != "" {
+				sa = append(sa, fmt.Sprintf("%s: %s: %s:%d", typeToString(v.Type), v.Msg.Text, v.Msg.Path, v.Msg.Offset))
+			} else {
+				sa = append(sa, fmt.Sprintf("%s: %s: %s", typeToString(v.Type), v.Msg.Text, v.Msg.Path))
+			}
+		default:
+			if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
+				continue
+			}
+			sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg.Text))
 		}
-		sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg))
 	}
 	return strings.Join(sa, "\n"), len(sa) > 0
 }
