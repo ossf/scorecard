@@ -31,6 +31,7 @@ type mockRepos struct {
 	protections   map[string]*github.Protection
 	defaultBranch *string
 	releases      []*string
+	nonadmin      bool
 }
 
 func (m mockRepos) Get(ctx context.Context, o, r string) (
@@ -51,11 +52,13 @@ func (m mockRepos) ListReleases(ctx context.Context, owner string,
 
 func (m mockRepos) GetBranchProtection(ctx context.Context, o string, r string,
 	b string) (*github.Protection, *github.Response, error) {
-	p, ok := m.protections[b]
-	if ok {
-		return p, &github.Response{
-			Response: &http.Response{StatusCode: http.StatusAccepted},
-		}, nil
+	if !m.nonadmin {
+		p, ok := m.protections[b]
+		if ok {
+			return p, &github.Response{
+				Response: &http.Response{StatusCode: http.StatusAccepted},
+			}, nil
+		}
 	}
 	return nil, &github.Response{
 			Response: &http.Response{StatusCode: http.StatusNotFound},
@@ -88,6 +91,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		defaultBranch *string
 		releases      []*string
 		protections   map[string]*github.Protection
+		nonadmin      bool
 	}{
 		{
 			name: "Only development branch",
@@ -395,6 +399,34 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Non-admin check with protected release and development",
+			expected: scut.TestReturn{
+				Errors:        nil,
+				Score:         1,
+				NumberOfWarn:  2,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+			nonadmin:      true,
+			defaultBranch: &main,
+			branches:      []*string{&rel1, &main},
+			releases:      []*string{&rel1},
+			protections: map[string]*github.Protection{
+				"main": {
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   true,
+						Contexts: []string{"foo"},
+					},
+				},
+				"release/v.1": {
+					RequiredStatusChecks: &github.RequiredStatusChecks{
+						Strict:   true,
+						Contexts: []string{"foo"},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -406,6 +438,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				branches:      tt.branches,
 				releases:      tt.releases,
 				protections:   tt.protections,
+				nonadmin:      tt.nonadmin,
 			}
 			dl := scut.TestDetailLogger{}
 			r := checkReleaseAndDevBranchProtection(context.Background(), m,
