@@ -51,5 +51,6 @@ type RepoClient interface {
 	ListMergedPRs() ([]PullRequest, error)
 	GetDefaultBranch() (BranchRef, error)
 	ListCommits() ([]Commit, error)
+	ListReleases() ([]Release, error)
 	Close() error
 }
