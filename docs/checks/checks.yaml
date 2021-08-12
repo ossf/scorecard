@@ -174,9 +174,9 @@ checks:
         to join their respective organizations.
   Fuzzing:
     risk: Medium
-    short: Determines if the project uses a fuzzing system.
+    short: Determines if the project uses fuzzing.
     description: >-
-      This check tries to determine if the project uses a fuzzing system.
+      This check tries to determine if the project uses fuzzing.
 
       Fuzzing is important to reduce the number of vulnerabilities in code.
       A low score is considered 'Medium' risk.
@@ -240,10 +240,9 @@ checks:
         or [renovate bot](https://github.com/renovatebot/renovate).
   SAST:
     risk: Medium
-    short: Determines if the project uses static code analysis systems.
+    short: Determines if the project uses static code analysis.
     description: >-
-      This check tries to determine if the project uses static code analysis
-      systems.
+      This check tries to determine if the project uses static code analysis.
 
       SAST tool may prevent known classes of bugs to be inadvertently
       introduced in the codebase. A low score is considered `Medium` risk.

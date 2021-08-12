@@ -20,7 +20,7 @@ The check currently works by looking for commits within the last 90 days, and ou
 
 ## Automatic-Dependency-Update 
 
-This check tries to determine if a project has dependencies automatically updated.
+This check tries to determine if the project uses a dependency update tool.
 Not updating dependencies makes a project vulnerable to known flaws and prone to attacks. A low score is therefore considered `High` risk.
 The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. 
 
@@ -29,7 +29,7 @@ The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [
 
 ## Binary-Artifacts 
 
-This check tries to determine if a project has binary artifacts in the source repository.
+This check tries to determine if the project has binary artifacts in the source repository.
 Binaries are a threat to auditability and vulnerability management. In addition, a binary could be compromised or malicious. A low score is therefore considered `High` risk. 
 
 **Remediation steps**
@@ -67,7 +67,7 @@ The check uses the URL for the Git repo and the CII API.
 
 ## Code-Review 
 
-This check tries to determine if a project requires code review before pull requests are merged.
+This check tries to determine if the project requires code review before pull requests are merged.
 Reviewing code improves the quality of code in general. In addition, it ensures compromised contributors cannot intentionally inject malicious code. A low score is therefore considered `High` risk.
 The check first tries to detect if Branch-Protection is enabled on the default branch ,and the number of reviewers is at least 1. If this fails, it checks if the recent (~30) commits have a Github-approved review or if the merger is different from the committer (implicit review). It also performs similar check for reviews using [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels "lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by"). 
 
@@ -87,7 +87,7 @@ The check works by looking at the authors of recent commits and checking the `Co
 
 ## Fuzzing 
 
-This check tries to determine if the project uses a fuzzing system.
+This check tries to determine if the project uses fuzzing.
 Fuzzing is important to reduce the number of vulnerabilities in code. A low score is considered 'Medium' risk.
 The check currently works by checking if the repo name is in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list. 
 
@@ -118,7 +118,7 @@ The checks works by (1) looking for the following files in the root directory: g
 
 ## SAST 
 
-This check tries to determine if the project uses static code analysis systems.
+This check tries to determine if the project uses static code analysis.
 SAST tool may prevent known classes of bugs to be inadvertently introduced in the codebase. A low score is considered `Medium` risk.
 The checks currently looks for known Github apps such as [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and sonarcloud in the recent (~30) merged PRs. The check also looks for the use of "github/codeql-action" in a GitHub workflow. 
 
@@ -149,7 +149,7 @@ It works by looking for filenames: *.minisig (https://github.com/jedisct1/minisi
 
 ## Token-Permissions 
 
-This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default.
+This check tries to determine if the project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default.
 Attackers may use a compromised token with write access to push malicious code into the project. A low score is therefore considered `High` risk.
 For each workflow yaml file, the check looks for the permission definitions. To obtain the highest score, the permissions should be set as read-only at the [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions) and the required write permissions should be declared at the [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions). The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
 
