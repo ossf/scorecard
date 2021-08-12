@@ -35,7 +35,7 @@ checks:
     risk: High
     short: Determines if a project has dependencies automatically updated.
     description: >-
-      This check tries to determine if a project has dependencies automatically updated.
+      This check tries to determine if the project has dependencies automatically updated.
 
       Not updating dependencies makes a project vulnerable to known flaws and prone to attacks.
       A low score is therefore considered `High` risk.
@@ -50,9 +50,9 @@ checks:
         file in the locations that are recommended by these tools.
   Binary-Artifacts:
     risk: High
-    short: Determine if a project has binary artifacts in the source repository.
+    short: determine if the project has binary artifacts in the source repository.
     description: >-
-      This check tries to determine if a project has binary artifacts in the source repository.
+      This check tries to determine if the project has binary artifacts in the source repository.
 
       Binaries are a threat to auditability and vulnerability management.
       In addition, a binary could be compromised or malicious.
@@ -129,7 +129,7 @@ checks:
     risk: High
     short: Determines if the project requires code review before pull requests are merged.
     description: >-
-      This check tries to determine if a project requires code review before
+      This check tries to determine if the project requires code review before
       pull requests are merged.
 
       Reviewing code improves the quality of code in general. In addition, it ensures
