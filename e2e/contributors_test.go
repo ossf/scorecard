@@ -61,11 +61,14 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 		})
 		It("Should return valid project contributors", func() {
 			dl := scut.TestDetailLogger{}
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			err := repoClient.InitRepo("apache", "airflow")
+			Expect(err).Should(BeNil())
 			checkRequest := checker.CheckRequest{
 				Ctx:         context.Background(),
 				Client:      ghClient,
 				HTTPClient:  httpClient,
-				RepoClient:  nil,
+				RepoClient:  repoClient,
 				Owner:       "apache",
 				Repo:        "airflow",
 				GraphClient: graphClient,
