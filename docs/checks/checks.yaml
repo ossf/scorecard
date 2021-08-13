@@ -17,9 +17,6 @@
 checks:
   Active:
     risk: High
-    tags: supply-chain, security
-    precision: very-high
-    recall: medium
     short: Determines if the project is "actively maintained".
     description: >-
       This check tries to determine if the project is "actively maintained".
@@ -36,9 +33,6 @@ checks:
         your project activity and maintenance commitment.
   Dependency-Update-Tool:
     risk: High
-    tags: supply-chain, security, dependency
-    precision: very-high
-    recall: high
     short: Determines if the project uses a dependency update tool.
     description: >-
       This check tries to determine if the project uses a dependency update tool.
@@ -56,9 +50,6 @@ checks:
         file in the locations that are recommended by these tools.
   Binary-Artifacts:
     risk: High
-    tags: supply-chain, security, dependency
-    precision: very-high
-    recall: very-high
     short: Determines if the project has binary artifacts in the source repository.
     description: >-
       This check tries to determine if the project has binary artifacts in the source repository.
@@ -73,9 +64,6 @@ checks:
         Build from source.
   Branch-Protection:
     risk: High
-    tags: supply-chain, security, source code, code review
-    precision: very-high
-    recall: very-high
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: >-
       [Branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
@@ -100,9 +88,6 @@ checks:
         [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
   CI-Tests:
     risk: Low
-    tags: supply-chain, security, testing
-    precision: very-high
-    recall: medium
     short: Determines if the project runs tests before pull requests are merged.
     description: >-
       This check tries to determine if the project runs tests before pull
@@ -127,9 +112,6 @@ checks:
         [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
   CII-Best-Practices:
     risk: Low
-    tags: awareness
-    precision: very-high
-    recall: very-high
     short: Determines if the project has a CII Best Practices Badge.
     description: >-
       This check tries to determine if the project has a [CII Best Practices
@@ -145,9 +127,6 @@ checks:
         program](https://bestpractices.coreinfrastructure.org/en).
   Code-Review:
     risk: High
-    tags: supply-chain, security, source code
-    precision: very-high
-    recall: medium
     short: Determines if the project requires code review before pull requests are merged.
     description: >-
       This check tries to determine if the project requires code review before
@@ -176,9 +155,6 @@ checks:
         [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators)
   Contributors:
     risk: Low
-    tags: source code
-    precision: low
-    recall: low
     short: Determines if the project has a set of contributors from multiple companies.
     description: >-
       This check tries to determine if the project has a set of contributors from
@@ -198,9 +174,6 @@ checks:
         to join their respective organizations.
   Fuzzing:
     risk: Medium
-    tags: supply-chain, security, testing
-    precision: very-high
-    recall: low
     short: Determines if the project uses fuzzing.
     description: >-
       This check tries to determine if the project uses fuzzing.
@@ -216,9 +189,6 @@ checks:
         [here](https://google.github.io/oss-fuzz/).
   Packaging:
     risk: Medium
-    tags: supply-chain, security, release
-    precision: very-high
-    recall: low
     short: Determines if the project is published as a package that other developers can install/download.
     description:
       This check tries to determine if the project is published as a package that other developers can install/download.
@@ -234,9 +204,6 @@ checks:
       - Use a GitHub action to release your package to language-specific hubs.
   Pinned-Dependencies:
     risk: Medium
-    tags: supply-chain, security, dependency
-    precision: very-high
-    recall: medium
     short: Determines if the project has declared and pinned its dependencies.
     description: >-
       This check tries to determine if the project has declared and pinned its
@@ -273,9 +240,6 @@ checks:
         or [renovate bot](https://github.com/renovatebot/renovate).
   SAST:
     risk: Medium
-    tags: supply-chain, security, testing
-    precision: very-high
-    recall: low
     short: Determines if the project uses static code analysis.
     description: >-
       This check tries to determine if the project uses static code analysis.
@@ -293,9 +257,6 @@ checks:
         [here](https://github.com/github/codeql-action#usage).
   Security-Policy:
     short: Determines if the project has published a security policy.
-    tags: supply-chain, security, policy
-    precision: very-high
-    recall: very-high
     description: >-
       This check tries to determine if the project has published a security
       policy. It works by looking for a file named `SECURITY.md`
@@ -310,9 +271,6 @@ checks:
         support, encrypted email with a published public key).
   Signed-Releases:
     risk: High
-    tags: supply-chain, security, release
-    precision: very-high
-    recall: low
     short: Determines if the project cryptographically signs release artifacts.
     description: >-
       This check tries to determine if the project cryptographically signs release
@@ -335,9 +293,6 @@ checks:
         [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
   Token-Permissions:
     risk: High
-    tags: supply-chain, security, infrastructure
-    precision: very-high
-    recall: very-high
     short: Determines if the project's GitHub workflows follow the principle of least privilege.
     description: >-
       This check tries to determine if the project's GitHub workflows
@@ -358,9 +313,6 @@ checks:
         GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
   Vulnerabilities:
     risk: High
-    tags: supply-chain, security, vulnerabilities
-    precision: very-high
-    recall: low
     short: Determines if the project has open, known unfixed vulnerabilities.
     description: >-
       This check determines if the project has open, unfixed 
