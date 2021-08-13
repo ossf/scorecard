@@ -20,7 +20,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v38/github"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/shurcooL/githubv4"

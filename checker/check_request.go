@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v2/clients"
