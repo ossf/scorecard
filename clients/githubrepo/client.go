@@ -27,16 +27,17 @@ import (
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	repo        *github.Repository
-	repoClient  *github.Client
-	graphClient *graphqlHandler
-	ctx         context.Context
-	tarball     tarballHandler
+	repo         *github.Repository
+	repoClient   *github.Client
+	graphClient  *graphqlHandler
+	contributors *contributorsHandler
+	ctx          context.Context
+	tarball      tarballHandler
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
 func (client *Client) InitRepo(owner, repoName string) error {
-	// Sanity check
+	// Sanity check.
 	repo, _, err := client.repoClient.Repositories.Get(client.ctx, owner, repoName)
 	if err != nil {
 		// nolint: wrapcheck
@@ -49,9 +50,14 @@ func (client *Client) InitRepo(owner, repoName string) error {
 		return fmt.Errorf("error during tarballHandler.init: %w", err)
 	}
 
-	// Setup GraphQL
+	// Setup GraphQL.
 	if err := client.graphClient.init(client.ctx, owner, repoName); err != nil {
 		return fmt.Errorf("error during graphqlHandler.init: %w", err)
+	}
+
+	// Setup contributors.
+	if err := client.contributors.init(client.ctx, owner, repoName); err != nil {
+		return fmt.Errorf("error during contributorsHandler.init: %w", err)
 	}
 
 	return nil
@@ -82,6 +88,11 @@ func (client *Client) ListReleases() ([]clients.Release, error) {
 	return client.graphClient.getReleases()
 }
 
+// ListContributors implements RepoClient.ListContributors.
+func (client *Client) ListContributors() ([]clients.Contributor, error) {
+	return client.contributors.getContributors()
+}
+
 // IsArchived implements RepoClient.IsArchived.
 func (client *Client) IsArchived() (bool, error) {
 	return client.graphClient.isArchived()
@@ -105,6 +116,9 @@ func CreateGithubRepoClient(ctx context.Context,
 		repoClient: client,
 		graphClient: &graphqlHandler{
 			client: graphClient,
+		},
+		contributors: &contributorsHandler{
+			ghClient: client,
 		},
 	}
 }

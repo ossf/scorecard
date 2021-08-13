@@ -52,5 +52,6 @@ type RepoClient interface {
 	GetDefaultBranch() (BranchRef, error)
 	ListCommits() ([]Commit, error)
 	ListReleases() ([]Release, error)
+	ListContributors() ([]Contributor, error)
 	Close() error
 }
