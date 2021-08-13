@@ -38,6 +38,7 @@ type ScorecardResult struct {
 	Metadata []string
 }
 
+//nolint
 type jsonCheckResultV2 struct {
 	Details []string
 	Score   int
