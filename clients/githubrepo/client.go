@@ -27,6 +27,8 @@ import (
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
+	owner        string
+	repoName     string
 	repo         *github.Repository
 	repoClient   *github.Client
 	graphClient  *graphqlHandler
@@ -44,6 +46,8 @@ func (client *Client) InitRepo(owner, repoName string) error {
 		return clients.NewRepoUnavailableError(err)
 	}
 	client.repo = repo
+	client.owner = owner
+	client.repoName = repoName
 
 	// Init tarballHandler.
 	if err := client.tarball.init(client.ctx, client.repo); err != nil {
@@ -61,6 +65,11 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	}
 
 	return nil
+}
+
+// URL implements RepoClient.URL.
+func (client *Client) URL() string {
+	return fmt.Sprintf("github.com/%s/%s", client.owner, client.repoName)
 }
 
 // ListFiles implements RepoClient.ListFiles.
@@ -101,6 +110,24 @@ func (client *Client) IsArchived() (bool, error) {
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
 func (client *Client) GetDefaultBranch() (clients.BranchRef, error) {
 	return client.graphClient.getDefaultBranch()
+}
+
+// Search implements RepoClient.Search.
+func (client *Client) Search(request clients.SearchRequest) (clients.SearchResult, error) {
+	var query string
+	if request.Filename == "" {
+		query = fmt.Sprintf("%s repo:%s/%s", request.Query, client.owner, client.repoName)
+	} else {
+		query = fmt.Sprintf("%s repo:%s/%s in:file filename:%s",
+			request.Query, client.owner, client.repoName, request.Filename)
+	}
+	res, _, err := client.repoClient.Search.Code(client.ctx, query, &github.SearchOptions{})
+	if err != nil {
+		return clients.SearchResult{}, fmt.Errorf("Search.Code: %w", err)
+	}
+	return clients.SearchResult{
+		Hits: res.GetTotal(),
+	}, nil
 }
 
 // Close implements RepoClient.Close.

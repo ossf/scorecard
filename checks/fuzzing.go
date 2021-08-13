@@ -17,9 +17,9 @@ package checks
 import (
 	"fmt"
 
-	"github.com/google/go-github/v38/github"
-
 	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
@@ -33,15 +33,23 @@ func init() {
 
 // Fuzzing runs Fuzzing check.
 func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
-	url := fmt.Sprintf("github.com/%s/%s", c.Owner, c.Repo)
-	searchString := url + " repo:google/oss-fuzz in:file filename:project.yaml"
-	results, _, err := c.Client.Search.Code(c.Ctx, searchString, &github.SearchOptions{})
+	ossFuzzRepo := githubrepo.CreateGithubRepoClient(c.Ctx, c.Client, c.GraphClient)
+	if err := ossFuzzRepo.InitRepo("google", "oss-fuzz"); err != nil {
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("InitRepo: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+	}
+
+	req := clients.SearchRequest{
+		Query:    c.RepoClient.URL(),
+		Filename: "project.yaml",
+	}
+	result, err := ossFuzzRepo.Search(req)
 	if err != nil {
 		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
 	}
 
-	if *results.Total > 0 {
+	if result.Hits > 0 {
 		return checker.CreateMaxScoreResult(CheckFuzzing,
 			"project is fuzzed in OSS-Fuzz")
 	}
