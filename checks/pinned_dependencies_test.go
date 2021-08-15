@@ -515,9 +515,9 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 			filename: "testdata/github-workflow-wget-across-steps",
 			expected: scut.TestReturn{
 				Errors:        nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
-				NumberOfInfo:  0,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},

@@ -35,6 +35,10 @@ var (
 	shellNames = []string{
 		"sh", "bash", "dash", "ksh", "mksh",
 	}
+	// supportedShells is the list of shells that are supported by mvdan.cc/sh/v3/syntax.
+	supportedShells = []string{
+		"sh", "bash", "mksh",
+	}
 	pythonInterpreters = []string{"python", "python3", "python2.7"}
 	shellInterpreters  = append([]string{"exec", "su"}, shellNames...)
 	otherInterpreters  = []string{"perl", "ruby", "php", "node", "nodejs", "java"}
@@ -754,7 +758,7 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 // There needs to be a call to extractInterpreterCommandFromString() prior
 // to calling other functions.
 func isSupportedShell(shellName string) bool {
-	for _, name := range shellNames {
+	for _, name := range supportedShells {
 		if isBinaryName(name, shellName) {
 			return true
 		}
@@ -763,11 +767,24 @@ func isSupportedShell(shellName string) bool {
 }
 
 func isShellScriptFile(pathfn string, content []byte) bool {
-	// Check file extension first.
-	for _, name := range shellNames {
+	return isMatchingShellScriptFile(pathfn, content, shellInterpreters)
+}
+
+// isSupportedShellScriptFile returns true if this file is one of the shell scripts we can parse. If a shebang
+// is present in the file, the decision is based entirely on that, otherwise the file extension is used to decide.
+
+func isSupportedShellScriptFile(pathfn string, content []byte) bool {
+	return isMatchingShellScriptFile(pathfn, content, supportedShells)
+}
+
+func isMatchingShellScriptFile(pathfn string, content []byte, shellsToMatch []string) bool {
+	// Determine if it matches the file extension first.
+	hasShellFileExtension := false
+	for _, name := range shellsToMatch {
 		// Look at the prefix.
 		if strings.HasSuffix(pathfn, "."+name) {
-			return true
+			hasShellFileExtension = true
+			break
 		}
 	}
 
@@ -779,17 +796,18 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 
 	// Only look at first line.
 	if !scanner.Scan() {
-		return false
+		return hasShellFileExtension
 	}
 	line := scanner.Text()
 
 	//  #!/bin/XXX, #!XXX, #!/usr/bin/env XXX, #!env XXX
 	if !strings.HasPrefix(line, "#!") {
-		return false
+		// If there's no shebang, go off the file extension.
+		return hasShellFileExtension
 	}
 
 	line = line[2:]
-	for _, name := range shellNames {
+	for _, name := range shellsToMatch {
 		parts := strings.Split(line, " ")
 		// #!/bin/bash, #!bash -e
 		if len(parts) >= 1 && isBinaryName(name, parts[0]) {
@@ -804,7 +822,7 @@ func isShellScriptFile(pathfn string, content []byte) bool {
 		}
 	}
 
-	return false
+	return false // It has a shebang, but it's not one of our matching shells.
 }
 
 func validateShellFile(pathfn string, content []byte, dl checker.DetailLogger) (bool, error) {
