@@ -25,10 +25,12 @@ import (
 )
 
 const (
-	pullRequestsToAnalyze = 30
-	reviewsToAnalyze      = 30
-	labelsToAnalyze       = 30
-	commitsToAnalyze      = 30
+	pullRequestsToAnalyze  = 30
+	reviewsToAnalyze       = 30
+	labelsToAnalyze        = 30
+	commitsToAnalyze       = 30
+	releasesToAnalyze      = 30
+	releaseAssetsToAnalyze = 30
 )
 
 // nolint: govet
@@ -77,6 +79,17 @@ type graphqlData struct {
 				} `graphql:"latestReviews(last: $reviewsToAnalyze)"`
 			}
 		} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
+		Releases struct {
+			Nodes []struct {
+				TagName       githubv4.String
+				ReleaseAssets struct {
+					Nodes []struct {
+						Name githubv4.String
+						URL  githubv4.String
+					}
+				} `graphql:"releaseAssets(last: $releaseAssetsToAnalyze)"`
+			}
+		} `graphql:"releases(first: $releasesToAnalyze, orderBy:{field: CREATED_AT, direction:DESC})"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
 }
 
@@ -85,18 +98,21 @@ type graphqlHandler struct {
 	data             *graphqlData
 	prs              []clients.PullRequest
 	commits          []clients.Commit
+	releases         []clients.Release
 	defaultBranchRef clients.BranchRef
 	archived         bool
 }
 
 func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) error {
 	vars := map[string]interface{}{
-		"owner":                 githubv4.String(owner),
-		"name":                  githubv4.String(repo),
-		"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-		"reviewsToAnalyze":      githubv4.Int(reviewsToAnalyze),
-		"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
-		"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
+		"owner":                  githubv4.String(owner),
+		"name":                   githubv4.String(repo),
+		"pullRequestsToAnalyze":  githubv4.Int(pullRequestsToAnalyze),
+		"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
+		"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
+		"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
+		"releasesToAnalyze":      githubv4.Int(releasesToAnalyze),
+		"releaseAssetsToAnalyze": githubv4.Int(releaseAssetsToAnalyze),
 	}
 	handler.data = new(graphqlData)
 	if err := handler.client.Query(ctx, handler.data, vars); err != nil {
@@ -104,7 +120,8 @@ func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) err
 		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 	}
 	handler.archived = bool(handler.data.Repository.IsArchived)
-	handler.prs = pullRequestFrom(handler.data)
+	handler.prs = pullRequestsFrom(handler.data)
+	handler.releases = releasesFrom(handler.data)
 	handler.defaultBranchRef = defaultBranchRefFrom(handler.data)
 	handler.commits = commitsFrom(handler.data)
 	return nil
@@ -122,11 +139,15 @@ func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
 	return handler.commits, nil
 }
 
+func (handler *graphqlHandler) getReleases() ([]clients.Release, error) {
+	return handler.releases, nil
+}
+
 func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-func pullRequestFrom(data *graphqlData) []clients.PullRequest {
+func pullRequestsFrom(data *graphqlData) []clients.PullRequest {
 	ret := make([]clients.PullRequest, len(data.Repository.PullRequests.Nodes))
 	for i, pr := range data.Repository.PullRequests.Nodes {
 		toAppend := clients.PullRequest{
@@ -150,6 +171,24 @@ func pullRequestFrom(data *graphqlData) []clients.PullRequest {
 		ret[i] = toAppend
 	}
 	return ret
+}
+
+func releasesFrom(data *graphqlData) []clients.Release {
+	// nolint: prealloc // https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
+	var releases []clients.Release
+	for _, r := range data.Repository.Releases.Nodes {
+		release := clients.Release{
+			TagName: string(r.TagName),
+		}
+		for _, a := range r.ReleaseAssets.Nodes {
+			release.Assets = append(release.Assets, clients.ReleaseAsset{
+				Name: string(a.Name),
+				URL:  string(a.URL),
+			})
+		}
+		releases = append(releases, release)
+	}
+	return releases
 }
 
 func defaultBranchRefFrom(data *graphqlData) clients.BranchRef {

@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 GOPATH := $(go env GOPATH)
 GINKGO := ginkgo
-GIT_HASH := $(git rev-parse HEAD)
+GIT_HASH := $(shell git rev-parse HEAD)
 GOLANGGCI_LINT := golangci-lint
 PROTOC_GEN_GO := protoc-gen-go
 PROTOC := $(shell which protoc)

@@ -51,7 +51,7 @@ spec:
           restartPolicy: Never
           containers:
           - name: controller
-            image: gcr.io/openssf/scorecard-batch-controller:latest
+            image: gcr.io/openssf/scorecard-batch-controller:stable
             args: ["cron/data/projects.csv"]
             imagePullPolicy: Always
             resources:

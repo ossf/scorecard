@@ -26,7 +26,7 @@ spec:
         spec:
           containers:
           - name: bq-transfer
-            image: gcr.io/openssf/scorecard-bq-transfer:latest
+            image: gcr.io/openssf/scorecard-bq-transfer:stable
             imagePullPolicy: Always
             resources:
               limits:

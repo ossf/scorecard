@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,25 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package clients
 
-import (
-	"context"
-	"net/http"
+// Release represents a release version of a package/repo.
+type Release struct {
+	TagName string
+	Assets  []ReleaseAsset
+}
 
-	"github.com/google/go-github/v38/github"
-	"github.com/shurcooL/githubv4"
-
-	"github.com/ossf/scorecard/v2/clients"
-)
-
-// CheckRequest struct encapsulates all data to be passed into a CheckFn.
-type CheckRequest struct {
-	Ctx         context.Context
-	Client      *github.Client
-	GraphClient *githubv4.Client
-	HTTPClient  *http.Client
-	RepoClient  clients.RepoClient
-	Dlogger     DetailLogger
-	Owner, Repo string
+// ReleaseAsset is part of the Release bundle.
+type ReleaseAsset struct {
+	Name string
+	URL  string
 }

@@ -59,7 +59,6 @@ Packaging                   | Does the project build and publish official packag
 SAST                        | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)?
 Security-Policy             | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?
 Signed-Releases             | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?
-Signed-Tags                 | Does the project cryptographically sign release tags?
 Token-Permissions           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?
 Vulnerabilities             | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).
 
@@ -85,7 +84,6 @@ The program can run using just one argument, the URL of the repo:
 ```shell
 $ go get github.com/ossf/scorecard/v2
 $ scorecard --repo=github.com/kubernetes/kubernetes
-Starting [Signed-Tags]
 Starting [Automatic-Dependency-Update]
 Starting [Frozen-Deps]
 Starting [Fuzzing]
@@ -116,7 +114,6 @@ Finished [Automatic-Dependency-Update]
 Finished [Frozen-Deps]
 Finished [Fuzzing]
 Finished [Pull-Requests]
-Finished [Signed-Tags]
 Finished [Branch-Protection]
 Finished [Code-Review]
 Finished [SAST]
@@ -139,7 +136,6 @@ Pull-Requests: Pass 10
 SAST: Fail 10
 Security-Policy: Fail 5
 Signed-Releases: Fail 10
-Signed-Tags: Fail 10
 Token-Permissions: Pass 10
 ```
 
@@ -186,7 +182,6 @@ Starting [Pull-Requests]
 Starting [SAST]
 Starting [Security-Policy]
 Starting [Signed-Releases]
-Starting [Signed-Tags]
 Finished [Signed-Releases]
 Finished [Fuzzing]
 Finished [CII-Best-Practices]
@@ -197,7 +192,6 @@ Finished [SAST]
 Finished [Code-Review]
 Finished [Branch-Protection]
 Finished [Frozen-Deps]
-Finished [Signed-Tags]
 Finished [Active]
 Finished [Pull-Requests]
 Finished [Contributors]
@@ -217,7 +211,6 @@ Pull-Requests: Fail 9
 SAST: Fail 10
 Security-Policy: Pass 10
 Signed-Releases: Fail 0
-Signed-Tags: Fail 10
 ```
 
 ### Running specific checks

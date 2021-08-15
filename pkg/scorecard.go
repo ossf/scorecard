@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"

@@ -19,7 +19,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v2/clients"
@@ -27,34 +27,49 @@ import (
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	repo        *github.Repository
-	repoClient  *github.Client
-	graphClient *graphqlHandler
-	ctx         context.Context
-	tarball     tarballHandler
+	owner        string
+	repoName     string
+	repo         *github.Repository
+	repoClient   *github.Client
+	graphClient  *graphqlHandler
+	contributors *contributorsHandler
+	ctx          context.Context
+	tarball      tarballHandler
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
 func (client *Client) InitRepo(owner, repoName string) error {
-	// Sanity check
+	// Sanity check.
 	repo, _, err := client.repoClient.Repositories.Get(client.ctx, owner, repoName)
 	if err != nil {
 		// nolint: wrapcheck
 		return clients.NewRepoUnavailableError(err)
 	}
 	client.repo = repo
+	client.owner = owner
+	client.repoName = repoName
 
 	// Init tarballHandler.
 	if err := client.tarball.init(client.ctx, client.repo); err != nil {
 		return fmt.Errorf("error during tarballHandler.init: %w", err)
 	}
 
-	// Setup GraphQL
+	// Setup GraphQL.
 	if err := client.graphClient.init(client.ctx, owner, repoName); err != nil {
 		return fmt.Errorf("error during graphqlHandler.init: %w", err)
 	}
 
+	// Setup contributors.
+	if err := client.contributors.init(client.ctx, owner, repoName); err != nil {
+		return fmt.Errorf("error during contributorsHandler.init: %w", err)
+	}
+
 	return nil
+}
+
+// URL implements RepoClient.URL.
+func (client *Client) URL() string {
+	return fmt.Sprintf("github.com/%s/%s", client.owner, client.repoName)
 }
 
 // ListFiles implements RepoClient.ListFiles.
@@ -77,6 +92,16 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 	return client.graphClient.getCommits()
 }
 
+// ListReleases implements RepoClient.ListReleases.
+func (client *Client) ListReleases() ([]clients.Release, error) {
+	return client.graphClient.getReleases()
+}
+
+// ListContributors implements RepoClient.ListContributors.
+func (client *Client) ListContributors() ([]clients.Contributor, error) {
+	return client.contributors.getContributors()
+}
+
 // IsArchived implements RepoClient.IsArchived.
 func (client *Client) IsArchived() (bool, error) {
 	return client.graphClient.isArchived()
@@ -85,6 +110,24 @@ func (client *Client) IsArchived() (bool, error) {
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
 func (client *Client) GetDefaultBranch() (clients.BranchRef, error) {
 	return client.graphClient.getDefaultBranch()
+}
+
+// Search implements RepoClient.Search.
+func (client *Client) Search(request clients.SearchRequest) (clients.SearchResult, error) {
+	var query string
+	if request.Filename == "" {
+		query = fmt.Sprintf("%s repo:%s/%s", request.Query, client.owner, client.repoName)
+	} else {
+		query = fmt.Sprintf("%s repo:%s/%s in:file filename:%s",
+			request.Query, client.owner, client.repoName, request.Filename)
+	}
+	res, _, err := client.repoClient.Search.Code(client.ctx, query, &github.SearchOptions{})
+	if err != nil {
+		return clients.SearchResult{}, fmt.Errorf("Search.Code: %w", err)
+	}
+	return clients.SearchResult{
+		Hits: res.GetTotal(),
+	}, nil
 }
 
 // Close implements RepoClient.Close.
@@ -100,6 +143,9 @@ func CreateGithubRepoClient(ctx context.Context,
 		repoClient: client,
 		graphClient: &graphqlHandler{
 			client: graphClient,
+		},
+		contributors: &contributorsHandler{
+			ghClient: client,
 		},
 	}
 }
