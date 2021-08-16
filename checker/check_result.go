@@ -42,18 +42,52 @@ const (
 	DetailDebug
 )
 
-// CheckDetail contains information for each detail.
-//nolint:govet
-type CheckDetail struct {
-	Type DetailType // Any of DetailWarn, DetailInfo, DetailDebug.
-	Msg  string     // A short string explaining why the details was recorded/logged..
+// FileType is the type of a file.
+type FileType int
+
+const (
+	// FileTypeNone is a default, not defined.
+	FileTypeNone FileType = iota
+	// FileTypeSource is for source code files.
+	FileTypeSource
+	// FileTypeBinary is for binary files.
+	FileTypeBinary
+	// FileTypeText is for text files.
+	FileTypeText
+	// FileTypeURL for URLs.
+	FileTypeURL
+)
+
+// LogMessage is a structure that encapsulates detail's information.
+// This allows updating the definition easily.
+//nolint
+type LogMessage struct {
+	Text    string   // A short string explaining why the detail was recorded/logged.
+	Path    string   // Fullpath to the file.
+	Type    FileType // Type of file.
+	Offset  int      // Offset in the file of Path (line for source/text files).
+	Snippet string   // Snippet of code
+	// UPGRADEv3: to remove.
+	Version int // `3` to indicate the detail was logged using new structure.
 }
 
-// DetailLogger logs map to CheckDetail struct.
+// CheckDetail contains information for each detail.
+type CheckDetail struct {
+	Msg  LogMessage
+	Type DetailType // Any of DetailWarn, DetailInfo, DetailDebug.
+}
+
+// DetailLogger logs a CheckDetail struct.
 type DetailLogger interface {
 	Info(desc string, args ...interface{})
 	Warn(desc string, args ...interface{})
 	Debug(desc string, args ...interface{})
+
+	// Functions to use for moving to SARIF format.
+	// UPGRADEv3: to rename.
+	Info3(msg *LogMessage)
+	Warn3(msg *LogMessage)
+	Debug3(msg *LogMessage)
 }
 
 //nolint

@@ -60,19 +60,50 @@ type TestReturn struct {
 
 // Info implements DetailLogger.Info.
 func (l *TestDetailLogger) Info(desc string, args ...interface{}) {
-	cd := checker.CheckDetail{Type: checker.DetailInfo, Msg: fmt.Sprintf(desc, args...)}
+	cd := checker.CheckDetail{Type: checker.DetailInfo, Msg: checker.LogMessage{Text: fmt.Sprintf(desc, args...)}}
 	l.messages = append(l.messages, cd)
 }
 
 // Warn implements DetailLogger.Warn.
 func (l *TestDetailLogger) Warn(desc string, args ...interface{}) {
-	cd := checker.CheckDetail{Type: checker.DetailWarn, Msg: fmt.Sprintf(desc, args...)}
+	cd := checker.CheckDetail{Type: checker.DetailWarn, Msg: checker.LogMessage{Text: fmt.Sprintf(desc, args...)}}
 	l.messages = append(l.messages, cd)
 }
 
 // Debug implements DetailLogger.Debug.
 func (l *TestDetailLogger) Debug(desc string, args ...interface{}) {
-	cd := checker.CheckDetail{Type: checker.DetailDebug, Msg: fmt.Sprintf(desc, args...)}
+	cd := checker.CheckDetail{Type: checker.DetailDebug, Msg: checker.LogMessage{Text: fmt.Sprintf(desc, args...)}}
+	l.messages = append(l.messages, cd)
+}
+
+// UPGRADEv3: to rename.
+//nolint:revive
+func (l *TestDetailLogger) Info3(msg *checker.LogMessage) {
+	cd := checker.CheckDetail{
+		Type: checker.DetailInfo,
+		Msg:  *msg,
+	}
+	cd.Msg.Version = 3
+	l.messages = append(l.messages, cd)
+}
+
+//nolint:revive
+func (l *TestDetailLogger) Warn3(msg *checker.LogMessage) {
+	cd := checker.CheckDetail{
+		Type: checker.DetailWarn,
+		Msg:  *msg,
+	}
+	cd.Msg.Version = 3
+	l.messages = append(l.messages, cd)
+}
+
+//nolint:revive
+func (l *TestDetailLogger) Debug3(msg *checker.LogMessage) {
+	cd := checker.CheckDetail{
+		Type: checker.DetailDebug,
+		Msg:  *msg,
+	}
+	cd.Msg.Version = 3
 	l.messages = append(l.messages, cd)
 }
 
