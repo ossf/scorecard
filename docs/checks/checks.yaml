@@ -67,7 +67,7 @@ checks:
         Build from source.
   Branch-Protection:
     risk: High
-    tags: supply-chain, security, source-code, code-review
+    tags: supply-chain, security, source-code, code-reviews
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: >-
       [Branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
@@ -133,7 +133,7 @@ checks:
         program](https://bestpractices.coreinfrastructure.org/en).
   Code-Review:
     risk: High
-    tags: supply-chain, security, source-code
+    tags: supply-chain, security, source-code, code-reviews
     short: Determines if the project requires code review before pull requests are merged.
     description: >-
       This check tries to determine if the project requires code review before
@@ -198,7 +198,7 @@ checks:
         [here](https://google.github.io/oss-fuzz/).
   Packaging:
     risk: Medium
-    tags: supply-chain, security, release
+    tags: supply-chain, security, releases
     short: Determines if the project is published as a package that other developers can install/download.
     description:
       This check tries to determine if the project is published as a package that other developers can install/download.
@@ -284,7 +284,7 @@ checks:
         support, encrypted email with a published public key).
   Signed-Releases:
     risk: High
-    tags: supply-chain, security, release
+    tags: supply-chain, security, releases
     short: Determines if the project cryptographically signs release artifacts.
     description: >-
       This check tries to determine if the project cryptographically signs release
