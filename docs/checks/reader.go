@@ -30,6 +30,7 @@ var checksYAML []byte
 // Check defines expected check definition in checks.yaml.
 type Check struct {
 	Risk        string   `yaml:"-"`
+	Short       string   `yaml:"short"`
 	Description string   `yaml:"description"`
 	Remediation []string `yaml:"remediation"`
 }
