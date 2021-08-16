@@ -20,6 +20,7 @@ import (
 	"github.com/google/go-github/v38/github"
 
 	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
@@ -158,20 +159,23 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 
 // nolint
 func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
-	searchQuery := ("github/codeql-action path:/.github/workflows repo:" + c.Owner + "/" + c.Repo)
-	results, _, err := c.Client.Search.Code(c.Ctx, searchQuery, &github.SearchOptions{})
+	searchRequest := clients.SearchRequest{
+		Query: "github/codeql-action",
+		Path:  "/.github/workflows",
+	}
+	resp, err := c.RepoClient.Search(searchRequest)
 	if err != nil {
 		return checker.InconclusiveResultScore,
 			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
 	}
 
-	for _, result := range results.CodeResults {
-		c.Dlogger.Debug("CodeQL detected: %s", result.GetPath())
+	for _, result := range resp.Results {
+		c.Dlogger.Debug("CodeQL detected: %s", result.Path)
 	}
 
 	// TODO: check if it's enabled as cron or presubmit.
 	// TODO: check which branches it is enabled on. We should find main.
-	if *results.Total > 0 {
+	if resp.Hits > 0 {
 		c.Dlogger.Info("SAST tool detected: CodeQL")
 		return checker.MaxResultScore, nil
 	}
