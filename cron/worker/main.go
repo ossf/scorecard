@@ -54,18 +54,24 @@ var (
 )
 
 func processRequest(ctx context.Context,
-	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap, bucketURL string,
+	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
+	bucketURL, bucketURL2 string,
 	repoClient clients.RepoClient,
 	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
 	// Sanity check - make sure we are not re-processing an already processed request.
-	exists, err := data.BlobExists(ctx, bucketURL, filename)
+	exists1, err := data.BlobExists(ctx, bucketURL, filename)
 	if err != nil {
 		return fmt.Errorf("error during BlobExists: %w", err)
 	}
-	if exists {
+
+	exists2, err := data.BlobExists(ctx, bucketURL2, filename)
+	if err != nil {
+		return fmt.Errorf("error during BlobExists: %w", err)
+	}
+	if exists1 && exists2 {
 		log.Printf("Already processed shard %s. Nothing to do.", filename)
 		// We have already processed this request, nothing to do.
 		return nil
@@ -84,6 +90,7 @@ func processRequest(ctx context.Context,
 	}
 
 	var buffer bytes.Buffer
+	var buffer2 bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoURL := range repoURLs {
 		log.Printf("Running Scorecard for repo: %s", repoURL.URL())
@@ -111,10 +118,19 @@ func processRequest(ctx context.Context,
 		if err := result.AsJSON(true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
+
+		if err := result.AsJSON2(true /*showDetails*/, zapcore.InfoLevel, &buffer2); err != nil {
+			return fmt.Errorf("error during result.AsJSON2: %w", err)
+		}
 	}
 	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore: %w", err)
 	}
+
+	if err := data.WriteToBlobStore(ctx, bucketURL2, filename, buffer2.Bytes()); err != nil {
+		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
+	}
+
 	log.Printf("Write to shard file successful: %s", filename)
 
 	return nil
@@ -181,6 +197,11 @@ func main() {
 		panic(err)
 	}
 
+	bucketURL2, err := config.GetResultDataBucketURLV2()
+	if err != nil {
+		panic(err)
+	}
+
 	repoClient, httpClient, githubClient, graphClient, logger := createNetClients(ctx)
 	defer repoClient.Close()
 
@@ -212,7 +233,7 @@ func main() {
 			log.Print("subscription returned nil message during Receive, exiting")
 			break
 		}
-		if err := processRequest(ctx, req, checksToRun, bucketURL,
+		if err := processRequest(ctx, req, checksToRun, bucketURL, bucketURL2,
 			repoClient, httpClient, githubClient, graphClient); err != nil {
 			log.Printf("error processing request: %v", err)
 			// Nack the message so that another worker can retry.

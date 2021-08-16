@@ -32,6 +32,9 @@ const (
 	prodWebhookURL             = ""
 	prodShardSize       int    = 10
 	prodMetricExporter  string = "stackdriver"
+	// UPGRADEv2: to remove.
+	prodBucketV2        = "gs://ossf-scorecard-data2"
+	prodBigQueryTableV2 = "scorecard2"
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -62,6 +65,9 @@ func TestYAMLParsing(t *testing.T) {
 				WebhookURL:             prodWebhookURL,
 				ShardSize:              prodShardSize,
 				MetricExporter:         prodMetricExporter,
+				// UPGRADEv2: to remove.
+				ResultDataBucketURLV2: prodBucketV2,
+				BigQueryTableV2:       prodBigQueryTableV2,
 			},
 		},
 
