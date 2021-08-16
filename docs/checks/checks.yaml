@@ -92,7 +92,7 @@ checks:
         [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
   CI-Tests:
     risk: Low
-    tags: supply-chain, security, testing
+    tags: supply-chain, testing
     short: Determines if the project runs tests before pull requests are merged.
     description: >-
       This check tries to determine if the project runs tests before pull
