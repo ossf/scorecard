@@ -45,6 +45,7 @@ func NewRepoUnavailableError(err error) error {
 // RepoClient interface is used by Scorecard checks to access a repo.
 type RepoClient interface {
 	InitRepo(owner, repo string) error
+	URL() string
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)
 	GetFileContent(filename string) ([]byte, error)
@@ -52,5 +53,7 @@ type RepoClient interface {
 	GetDefaultBranch() (BranchRef, error)
 	ListCommits() ([]Commit, error)
 	ListReleases() ([]Release, error)
+	ListContributors() ([]Contributor, error)
+	Search(request SearchRequest) (SearchResult, error)
 	Close() error
 }

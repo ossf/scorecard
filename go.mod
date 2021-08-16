@@ -12,8 +12,7 @@ require (
 	github.com/google/addlicense v0.0.0-20210809195240-d43bb61fdfda
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-containerregistry v0.6.0
-	github.com/google/go-github/v32 v32.1.0
-	github.com/google/go-github/v33 v33.0.0
+	github.com/google/go-github/v38 v38.1.0
 	github.com/h2non/filetype v1.1.1
 	github.com/jszwec/csvutil v1.5.0
 	github.com/moby/buildkit v0.8.3
@@ -25,7 +24,7 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/spf13/cobra v1.2.1
 	go.opencensus.io v0.23.0
-	go.uber.org/zap v1.18.1
+	go.uber.org/zap v1.19.0
 	gocloud.dev v0.23.0
 	golang.org/x/tools v0.1.5
 	google.golang.org/genproto v0.0.0-20210805201207-89edb61ffb67
