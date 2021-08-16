@@ -117,7 +117,7 @@ checks:
         [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
   CII-Best-Practices:
     risk: Low
-    tags: security-awareness, secrity-training
+    tags: security-awareness, security-training
     short: Determines if the project has a CII Best Practices Badge.
     description: >-
       This check tries to determine if the project has a [CII Best Practices
