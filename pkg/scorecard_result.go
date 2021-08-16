@@ -38,8 +38,24 @@ type ScorecardResult struct {
 	Metadata []string
 }
 
+//nolint
+type jsonCheckResultV2 struct {
+	Details []string
+	Score   int
+	Reason  string
+	Name    string
+}
+
+type jsonScorecardResultV2 struct {
+	Repo     string
+	Date     string
+	Checks   []jsonCheckResultV2
+	Metadata []string
+}
+
 // AsJSON outputs the result in JSON format with a newline at the end.
 // If called on []ScorecardResult will create NDJson formatted output.
+// UPGRADEv2: will be removed.
 func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	if showDetails {
@@ -54,7 +70,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 		Date:     r.Date,
 		Metadata: r.Metadata,
 	}
-	// UPGRADEv2: remove nolint after uggrade.
+	// UPGRADEv2: remove nolint after ugrade.
 	//nolint
 	for _, checkResult := range r.Checks {
 		tmpResult := checker.CheckResult{
@@ -71,12 +87,43 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 	return nil
 }
 
+// AsJSON2 is expoting results as JSON for new detail format.
+func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
+	encoder := json.NewEncoder(writer)
+
+	out := jsonScorecardResultV2{
+		Repo:     r.Repo,
+		Date:     r.Date,
+		Metadata: r.Metadata,
+	}
+
+	//nolint
+	for _, checkResult := range r.Checks {
+		tmpResult := jsonCheckResultV2{
+			Name:   checkResult.Name,
+			Reason: checkResult.Reason,
+			Score:  checkResult.Score,
+		}
+		if showDetails {
+			for _, d := range checkResult.Details2 {
+				tmpResult.Details = append(tmpResult.Details, d.Msg)
+			}
+		}
+		out.Checks = append(out.Checks, tmpResult)
+	}
+	if err := encoder.Encode(out); err != nil {
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+	}
+	return nil
+}
+
 // AsCSV outputs ScorecardResult in CSV format.
 func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo}
 	columns := []string{"Repository"}
-	// UPGRADEv2: remove nolint after uggrade.
+	// UPGRADEv2: remove nolint after ugrade.
 	//nolint
 	for _, checkResult := range r.Checks {
 		columns = append(columns, checkResult.Name+"_Pass", checkResult.Name+"_Confidence")

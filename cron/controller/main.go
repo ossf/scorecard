@@ -106,6 +106,11 @@ func main() {
 		panic(err)
 	}
 
+	bucket2, err := config.GetResultDataBucketURLV2()
+	if err != nil {
+		panic(err)
+	}
+
 	shardNum, err := publishToRepoRequestTopic(ctx, reader, t)
 	if err != nil {
 		panic(err)
@@ -126,5 +131,16 @@ func main() {
 	err = data.WriteToBlobStore(ctx, bucket, data.GetShardMetadataFilename(t), metadataJSON)
 	if err != nil {
 		panic(fmt.Errorf("error writing to BlobStore: %w", err))
+	}
+
+	// UPGRADEv2: to remove.
+	*metadata.ShardLoc = bucket2 + "/" + data.GetBlobFilename("", t)
+	metadataJSON, err = protojson.Marshal(&metadata)
+	if err != nil {
+		panic(fmt.Errorf("error during protojson.Marshal2: %w", err))
+	}
+	err = data.WriteToBlobStore(ctx, bucket2, data.GetShardMetadataFilename(t), metadataJSON)
+	if err != nil {
+		panic(fmt.Errorf("error writing to BlobStore2: %w", err))
 	}
 }
