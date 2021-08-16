@@ -106,7 +106,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 		}
 		if showDetails {
 			for _, d := range checkResult.Details2 {
-				tmpResult.Details = append(tmpResult.Details, d.Msg.Text)
+				tmpResult.Details = append(tmpResult.Details, d.Msg)
 			}
 		}
 		out.Checks = append(out.Checks, tmpResult)
