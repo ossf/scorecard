@@ -54,6 +54,6 @@ type RepoClient interface {
 	ListCommits() ([]Commit, error)
 	ListReleases() ([]Release, error)
 	ListContributors() ([]Contributor, error)
-	Search(request SearchRequest) (SearchResult, error)
+	Search(request SearchRequest) (SearchResponse, error)
 	Close() error
 }
