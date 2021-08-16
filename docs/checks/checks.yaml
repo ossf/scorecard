@@ -17,6 +17,7 @@
 checks:
   Active:
     risk: High
+    short: Determines if the project is "actively maintained".
     description: >-
       This check tries to determine if the project is "actively maintained".
 
@@ -30,10 +31,11 @@ checks:
       - >-
         There is *NO* remediation work needed here. This is just to indicate
         your project activity and maintenance commitment.
-  Automatic-Dependency-Update:
+  Dependency-Update-Tool:
     risk: High
+    short: Determines if the project uses a dependency update tool.
     description: >-
-      This check tries to determine if a project has dependencies automatically updated.
+      This check tries to determine if the project uses a dependency update tool.
 
       Not updating dependencies makes a project vulnerable to known flaws and prone to attacks.
       A low score is therefore considered `High` risk.
@@ -48,8 +50,9 @@ checks:
         file in the locations that are recommended by these tools.
   Binary-Artifacts:
     risk: High
+    short: Determines if the project has binary artifacts in the source repository.
     description: >-
-      This check tries to determine if a project has binary artifacts in the source repository.
+      This check tries to determine if the project has binary artifacts in the source repository.
 
       Binaries are a threat to auditability and vulnerability management.
       In addition, a binary could be compromised or malicious.
@@ -61,6 +64,7 @@ checks:
         Build from source.
   Branch-Protection:
     risk: High
+    short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: >-
       [Branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
       allows defining rules to enforce certain workflows for
@@ -84,6 +88,7 @@ checks:
         [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
   CI-Tests:
     risk: Low
+    short: Determines if the project runs tests before pull requests are merged.
     description: >-
       This check tries to determine if the project runs tests before pull
       requests are merged.
@@ -107,6 +112,7 @@ checks:
         [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
   CII-Best-Practices:
     risk: Low
+    short: Determines if the project has a CII Best Practices Badge.
     description: >-
       This check tries to determine if the project has a [CII Best Practices
       Badge](https://bestpractices.coreinfrastructure.org/en).
@@ -121,8 +127,9 @@ checks:
         program](https://bestpractices.coreinfrastructure.org/en).
   Code-Review:
     risk: High
+    short: Determines if the project requires code review before pull requests are merged.
     description: >-
-      This check tries to determine if a project requires code review before
+      This check tries to determine if the project requires code review before
       pull requests are merged.
 
       Reviewing code improves the quality of code in general. In addition, it ensures
@@ -148,8 +155,9 @@ checks:
         [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators)
   Contributors:
     risk: Low
+    short: Determines if the project has a set of contributors from multiple companies.
     description: >-
-      This check tries to determine if a project has a set of contributors from
+      This check tries to determine if the project has a set of contributors from
       multiple companies.
 
       Low score has 'Low' risk.
@@ -166,8 +174,9 @@ checks:
         to join their respective organizations.
   Fuzzing:
     risk: Medium
+    short: Determines if the project uses fuzzing.
     description: >-
-      This check tries to determine if the project uses a fuzzing system.
+      This check tries to determine if the project uses fuzzing.
 
       Fuzzing is important to reduce the number of vulnerabilities in code.
       A low score is considered 'Medium' risk.
@@ -180,6 +189,7 @@ checks:
         [here](https://google.github.io/oss-fuzz/).
   Packaging:
     risk: Medium
+    short: Determines if the project is published as a package that other developers can install/download.
     description:
       This check tries to determine if the project is published as a package that other developers can install/download.
 
@@ -194,8 +204,9 @@ checks:
       - Use a GitHub action to release your package to language-specific hubs.
   Pinned-Dependencies:
     risk: Medium
+    short: Determines if the project has declared and pinned its dependencies.
     description: >-
-      This check tries to determine if a project has declared and pinned its
+      This check tries to determine if the project has declared and pinned its
       dependencies.
 
       Pinning dependencies is important to mitigate compromised dependencies
@@ -229,9 +240,9 @@ checks:
         or [renovate bot](https://github.com/renovatebot/renovate).
   SAST:
     risk: Medium
+    short: Determines if the project uses static code analysis.
     description: >-
-      This check tries to determine if the project uses static code analysis
-      systems.
+      This check tries to determine if the project uses static code analysis.
 
       SAST tool may prevent known classes of bugs to be inadvertently
       introduced in the codebase. A low score is considered `Medium` risk.
@@ -245,8 +256,9 @@ checks:
         Run CodeQL checks in your CI/CD by following the instructions
         [here](https://github.com/github/codeql-action#usage).
   Security-Policy:
+    short: Determines if the project has published a security policy.
     description: >-
-      This check tries to determine if a project has published a security
+      This check tries to determine if the project has published a security
       policy. It works by looking for a file named `SECURITY.md`
       (case-insensitive) in a few well-known directories.
     remediation:
@@ -259,8 +271,9 @@ checks:
         support, encrypted email with a published public key).
   Signed-Releases:
     risk: High
+    short: Determines if the project cryptographically signs release artifacts.
     description: >-
-      This check tries to determine if a project cryptographically signs release
+      This check tries to determine if the project cryptographically signs release
       artifacts.
 
       Signed releases attest to the provenance of the artifact.
@@ -280,8 +293,9 @@ checks:
         [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
   Token-Permissions:
     risk: High
+    short: Determines if the project's GitHub workflows follow the principle of least privilege.
     description: >-
-      This check tries to determine if a project's GitHub workflows
+      This check tries to determine if the project's GitHub workflows
       follow the principle of least privilege, i.e. if the GitHub tokens
       are set read-only by default.
 
@@ -299,6 +313,7 @@ checks:
         GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
   Vulnerabilities:
     risk: High
+    short: Determines if the project has open, known unfixed vulnerabilities.
     description: >-
       This check determines if the project has open, unfixed 
       vulnerabilities using the [OSV](https://osv.dev) service.

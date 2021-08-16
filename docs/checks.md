@@ -18,18 +18,9 @@ The check currently works by looking for commits within the last 90 days, and ou
 **Remediation steps**
 - There is *NO* remediation work needed here. This is just to indicate your project activity and maintenance commitment.
 
-## Automatic-Dependency-Update 
-
-This check tries to determine if a project has dependencies automatically updated.
-Not updating dependencies makes a project vulnerable to known flaws and prone to attacks. A low score is therefore considered `High` risk.
-The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. 
-
-**Remediation steps**
-- Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.
-
 ## Binary-Artifacts 
 
-This check tries to determine if a project has binary artifacts in the source repository.
+This check tries to determine if the project has binary artifacts in the source repository.
 Binaries are a threat to auditability and vulnerability management. In addition, a binary could be compromised or malicious. A low score is therefore considered `High` risk. 
 
 **Remediation steps**
@@ -67,7 +58,7 @@ The check uses the URL for the Git repo and the CII API.
 
 ## Code-Review 
 
-This check tries to determine if a project requires code review before pull requests are merged.
+This check tries to determine if the project requires code review before pull requests are merged.
 Reviewing code improves the quality of code in general. In addition, it ensures compromised contributors cannot intentionally inject malicious code. A low score is therefore considered `High` risk.
 The check first tries to detect if Branch-Protection is enabled on the default branch ,and the number of reviewers is at least 1. If this fails, it checks if the recent (~30) commits have a Github-approved review or if the merger is different from the committer (implicit review). It also performs similar check for reviews using [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels "lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by"). 
 
@@ -78,16 +69,25 @@ The check first tries to detect if Branch-Protection is enabled on the default b
 
 ## Contributors 
 
-This check tries to determine if a project has a set of contributors from multiple companies.
+This check tries to determine if the project has a set of contributors from multiple companies.
 Low score has 'Low' risk.
 The check works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commits in the last 30 commits. The check succeeds if all contributors span at least 2 different companies. 
 
 **Remediation steps**
 - There is *NO* remediation work needed here. This is to provide some insights on which organization(s) have contributed to the project and making trust decisions based on that. But you can ask your contributors to join their respective organizations.
 
+## Dependency-Update-Tool 
+
+This check tries to determine if the project uses a dependency update tool.
+Not updating dependencies makes a project vulnerable to known flaws and prone to attacks. A low score is therefore considered `High` risk.
+The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. 
+
+**Remediation steps**
+- Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.
+
 ## Fuzzing 
 
-This check tries to determine if the project uses a fuzzing system.
+This check tries to determine if the project uses fuzzing.
 Fuzzing is important to reduce the number of vulnerabilities in code. A low score is considered 'Medium' risk.
 The check currently works by checking if the repo name is in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list. 
 
@@ -106,7 +106,7 @@ The check currently looks for [GitHub packaging workflows]( https://docs.github.
 
 ## Pinned-Dependencies 
 
-This check tries to determine if a project has declared and pinned its dependencies.
+This check tries to determine if the project has declared and pinned its dependencies.
 Pinning dependencies is important to mitigate compromised dependencies from undermining the security of the project. Low score is therefore considered `Medium` risk.
 The checks works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript), requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. 
 
@@ -118,7 +118,7 @@ The checks works by (1) looking for the following files in the root directory: g
 
 ## SAST 
 
-This check tries to determine if the project uses static code analysis systems.
+This check tries to determine if the project uses static code analysis.
 SAST tool may prevent known classes of bugs to be inadvertently introduced in the codebase. A low score is considered `Medium` risk.
 The checks currently looks for known Github apps such as [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and sonarcloud in the recent (~30) merged PRs. The check also looks for the use of "github/codeql-action" in a GitHub workflow. 
 
@@ -127,7 +127,7 @@ The checks currently looks for known Github apps such as [github-code-scanning](
 
 ## Security-Policy 
 
-This check tries to determine if a project has published a security policy. It works by looking for a file named `SECURITY.md` (case-insensitive) in a few well-known directories. 
+This check tries to determine if the project has published a security policy. It works by looking for a file named `SECURITY.md` (case-insensitive) in a few well-known directories. 
 
 **Remediation steps**
 - Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.
@@ -135,7 +135,7 @@ This check tries to determine if a project has published a security policy. It w
 
 ## Signed-Releases 
 
-This check tries to determine if a project cryptographically signs release artifacts.
+This check tries to determine if the project cryptographically signs release artifacts.
 Signed releases attest to the provenance of the artifact. A low score is considered 'High' risk.
 It works by looking for filenames: *.minisig (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
 
@@ -149,7 +149,7 @@ It works by looking for filenames: *.minisig (https://github.com/jedisct1/minisi
 
 ## Token-Permissions 
 
-This check tries to determine if a project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default.
+This check tries to determine if the project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default.
 Attackers may use a compromised token with write access to push malicious code into the project. A low score is therefore considered `High` risk.
 For each workflow yaml file, the check looks for the permission definitions. To obtain the highest score, the permissions should be set as read-only at the [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions) and the required write permissions should be declared at the [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions). The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
 
