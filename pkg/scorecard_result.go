@@ -87,7 +87,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 	return nil
 }
 
-// AsJSON2 is expoting results as JSON for new detail format.
+// AsJSON2 exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
@@ -106,7 +106,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 		}
 		if showDetails {
 			for _, d := range checkResult.Details2 {
-				tmpResult.Details = append(tmpResult.Details, d.Msg)
+				tmpResult.Details = append(tmpResult.Details, d.Msg.Text)
 			}
 		}
 		out.Checks = append(out.Checks, tmpResult)
