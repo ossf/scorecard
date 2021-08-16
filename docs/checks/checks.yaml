@@ -18,8 +18,6 @@ checks:
   Active:
     risk: High
     tags: supply-chain, security
-    precision: very-high
-    recall: medium
     short: Determines if the project is "actively maintained".
     description: >-
       This check tries to determine if the project is "actively maintained".
@@ -36,9 +34,7 @@ checks:
         your project activity and maintenance commitment.
   Dependency-Update-Tool:
     risk: High
-    tags: supply-chain, security, dependency
-    precision: very-high
-    recall: high
+    tags: supply-chain, security, dependencies
     short: Determines if the project uses a dependency update tool.
     description: >-
       This check tries to determine if the project uses a dependency update tool.
@@ -56,9 +52,7 @@ checks:
         file in the locations that are recommended by these tools.
   Binary-Artifacts:
     risk: High
-    tags: supply-chain, security, dependency
-    precision: very-high
-    recall: very-high
+    tags: supply-chain, security, dependencies
     short: Determines if the project has binary artifacts in the source repository.
     description: >-
       This check tries to determine if the project has binary artifacts in the source repository.
@@ -73,9 +67,7 @@ checks:
         Build from source.
   Branch-Protection:
     risk: High
-    tags: supply-chain, security, source code, code review
-    precision: very-high
-    recall: very-high
+    tags: supply-chain, security, source-code, code-review
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: >-
       [Branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
@@ -101,8 +93,6 @@ checks:
   CI-Tests:
     risk: Low
     tags: supply-chain, security, testing
-    precision: very-high
-    recall: medium
     short: Determines if the project runs tests before pull requests are merged.
     description: >-
       This check tries to determine if the project runs tests before pull
@@ -127,9 +117,7 @@ checks:
         [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
   CII-Best-Practices:
     risk: Low
-    tags: awareness
-    precision: very-high
-    recall: very-high
+    tags: security-awareness, secrity-training
     short: Determines if the project has a CII Best Practices Badge.
     description: >-
       This check tries to determine if the project has a [CII Best Practices
@@ -145,9 +133,7 @@ checks:
         program](https://bestpractices.coreinfrastructure.org/en).
   Code-Review:
     risk: High
-    tags: supply-chain, security, source code
-    precision: very-high
-    recall: medium
+    tags: supply-chain, security, source-code
     short: Determines if the project requires code review before pull requests are merged.
     description: >-
       This check tries to determine if the project requires code review before
@@ -176,9 +162,7 @@ checks:
         [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators)
   Contributors:
     risk: Low
-    tags: source code
-    precision: low
-    recall: low
+    tags: source-code
     short: Determines if the project has a set of contributors from multiple companies.
     description: >-
       This check tries to determine if the project has a set of contributors from
@@ -199,8 +183,6 @@ checks:
   Fuzzing:
     risk: Medium
     tags: supply-chain, security, testing
-    precision: very-high
-    recall: low
     short: Determines if the project uses fuzzing.
     description: >-
       This check tries to determine if the project uses fuzzing.
@@ -217,8 +199,6 @@ checks:
   Packaging:
     risk: Medium
     tags: supply-chain, security, release
-    precision: very-high
-    recall: low
     short: Determines if the project is published as a package that other developers can install/download.
     description:
       This check tries to determine if the project is published as a package that other developers can install/download.
@@ -234,9 +214,7 @@ checks:
       - Use a GitHub action to release your package to language-specific hubs.
   Pinned-Dependencies:
     risk: Medium
-    tags: supply-chain, security, dependency
-    precision: very-high
-    recall: medium
+    tags: supply-chain, security, dependencies
     short: Determines if the project has declared and pinned its dependencies.
     description: >-
       This check tries to determine if the project has declared and pinned its
@@ -274,8 +252,6 @@ checks:
   SAST:
     risk: Medium
     tags: supply-chain, security, testing
-    precision: very-high
-    recall: low
     short: Determines if the project uses static code analysis.
     description: >-
       This check tries to determine if the project uses static code analysis.
@@ -294,8 +270,6 @@ checks:
   Security-Policy:
     short: Determines if the project has published a security policy.
     tags: supply-chain, security, policy
-    precision: very-high
-    recall: very-high
     description: >-
       This check tries to determine if the project has published a security
       policy. It works by looking for a file named `SECURITY.md`
@@ -311,8 +285,6 @@ checks:
   Signed-Releases:
     risk: High
     tags: supply-chain, security, release
-    precision: very-high
-    recall: low
     short: Determines if the project cryptographically signs release artifacts.
     description: >-
       This check tries to determine if the project cryptographically signs release
@@ -336,8 +308,6 @@ checks:
   Token-Permissions:
     risk: High
     tags: supply-chain, security, infrastructure
-    precision: very-high
-    recall: very-high
     short: Determines if the project's GitHub workflows follow the principle of least privilege.
     description: >-
       This check tries to determine if the project's GitHub workflows
@@ -359,8 +329,6 @@ checks:
   Vulnerabilities:
     risk: High
     tags: supply-chain, security, vulnerabilities
-    precision: very-high
-    recall: low
     short: Determines if the project has open, known unfixed vulnerabilities.
     description: >-
       This check determines if the project has open, unfixed 
