@@ -44,6 +44,9 @@ const (
 	shardSize              string = "SCORECARD_SHARD_SIZE"
 	webhookURL             string = "SCORECARD_WEBHOOK_URL"
 	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
+
+	bigqueryTableV2       string = "SCORECARD_BIGQUERY_TABLEV2"
+	resultDataBucketURLV2 string = "SCORECARD_DATA_BUCKET_URLV2"
 )
 
 var (
@@ -55,6 +58,7 @@ var (
 	configYAML []byte
 )
 
+//nolint
 type config struct {
 	ProjectID              string `yaml:"project-id"`
 	ResultDataBucketURL    string `yaml:"result-data-bucket-url"`
@@ -65,6 +69,9 @@ type config struct {
 	WebhookURL             string `yaml:"webhook-url"`
 	MetricExporter         string `yaml:"metric-exporter"`
 	ShardSize              int    `yaml:"shard-size"`
+	// UPGRADEv2: to remove.
+	ResultDataBucketURLV2 string `yaml:"result-data-bucket-url-v2"`
+	BigQueryTableV2       string `yaml:"bigquery-table-v2"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -145,6 +152,18 @@ func GetBigQueryDataset() (string, error) {
 // GetBigQueryTable returns the table name to transfer cron job results.
 func GetBigQueryTable() (string, error) {
 	return getStringConfigValue(bigqueryTable, configYAML, "BigQueryTable", "bigquery-table")
+}
+
+// GetBigQueryTableV2 returns the table name to transfer cron job results.
+// UPGRADEv2: to remove.
+func GetBigQueryTableV2() (string, error) {
+	return getStringConfigValue(bigqueryTableV2, configYAML, "BigQueryTableV2", "bigquery-table-v2")
+}
+
+// GetResultDataBucketURLV2 returns the bucketURL for storing cron job results.
+// UPGRADEv2: to remove.
+func GetResultDataBucketURLV2() (string, error) {
+	return getStringConfigValue(resultDataBucketURLV2, configYAML, "ResultDataBucketURLV2", "result-data-bucket-url-v2")
 }
 
 // GetShardSize returns the shard_size for the cron job.

@@ -33,6 +33,7 @@ type Client struct {
 	repoClient   *github.Client
 	graphClient  *graphqlHandler
 	contributors *contributorsHandler
+	search       *searchHandler
 	ctx          context.Context
 	tarball      tarballHandler
 }
@@ -63,6 +64,9 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	if err := client.contributors.init(client.ctx, owner, repoName); err != nil {
 		return fmt.Errorf("error during contributorsHandler.init: %w", err)
 	}
+
+	// Setup Search.
+	client.search.init(client.ctx, owner, repoName)
 
 	return nil
 }
@@ -113,21 +117,8 @@ func (client *Client) GetDefaultBranch() (clients.BranchRef, error) {
 }
 
 // Search implements RepoClient.Search.
-func (client *Client) Search(request clients.SearchRequest) (clients.SearchResult, error) {
-	var query string
-	if request.Filename == "" {
-		query = fmt.Sprintf("%s repo:%s/%s", request.Query, client.owner, client.repoName)
-	} else {
-		query = fmt.Sprintf("%s repo:%s/%s in:file filename:%s",
-			request.Query, client.owner, client.repoName, request.Filename)
-	}
-	res, _, err := client.repoClient.Search.Code(client.ctx, query, &github.SearchOptions{})
-	if err != nil {
-		return clients.SearchResult{}, fmt.Errorf("Search.Code: %w", err)
-	}
-	return clients.SearchResult{
-		Hits: res.GetTotal(),
-	}, nil
+func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
+	return client.search.search(request)
 }
 
 // Close implements RepoClient.Close.
@@ -145,6 +136,9 @@ func CreateGithubRepoClient(ctx context.Context,
 			client: graphClient,
 		},
 		contributors: &contributorsHandler{
+			ghClient: client,
+		},
+		search: &searchHandler{
 			ghClient: client,
 		},
 	}

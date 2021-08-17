@@ -15,13 +15,21 @@
 package clients
 
 // SearchRequest queries a repo for `Query`.
-// If `Filename` is provided, only files with matching path is queried.
+// If `Filename` is provided, only matching filenames are queried.
+// If `Path` is provided, only files with matching paths are queried.
 type SearchRequest struct {
 	Query    string
 	Filename string
+	Path     string
 }
 
-// SearchResult returns the results from a search request on a repo.
+// SearchResponse returns the results from a search request on a repo.
+type SearchResponse struct {
+	Results []SearchResult
+	Hits    int
+}
+
+// SearchResult represents a matching result from the search query.
 type SearchResult struct {
-	Hits int
+	Path string
 }
