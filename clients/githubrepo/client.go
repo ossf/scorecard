@@ -138,5 +138,6 @@ func CreateGithubRepoClient(ctx context.Context,
 		contributors: &contributorsHandler{
 			ghClient: client,
 		},
+		search: &searchHandler{},
 	}
 }
