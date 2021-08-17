@@ -135,7 +135,7 @@ func detailToRegion(details *checker.CheckDetail) region {
 	switch details.Msg.Type {
 	default:
 		panic("invalid")
-	case checker.FileypeNone:
+	case checker.FileTypeNone:
 		// Do nothing.
 	case checker.FileTypeSource:
 		reg = region{
@@ -254,7 +254,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writ
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
 	category := "supply-chain"
-	tool := "scorecard"
+	toolName := "scorecard"
 	// TODO: get date at run time.
 	datetime := "2021-02-01-13:54:12"
 	sarif := sarif210{
@@ -272,7 +272,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writ
 				},
 				// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
 				AutomationDetails: automationDetails{
-					ID: fmt.Sprintf("%v/%v/%v", category, tool, datetime),
+					ID: fmt.Sprintf("%v/%v/%v", category, toolName, datetime),
 				},
 			},
 		},
