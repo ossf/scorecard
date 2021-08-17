@@ -100,7 +100,7 @@ type tool struct {
 //nolint
 type result struct {
 	RuleID           string            `json:"ruleId"`
-	Level            string            `json:"level"` // Optional.
+	Level            string            `json:"level,omitempty"` // Optional.
 	RuleIndex        int               `json:"ruleIndex"`
 	Message          text              `json:"message"`
 	Locations        []location        `json:"locations,omitempty"`
@@ -135,6 +135,8 @@ func detailToRegion(details *checker.CheckDetail) region {
 	switch details.Msg.Type {
 	default:
 		panic("invalid")
+	case checker.FileTypeURL:
+		panic("TODO")
 	case checker.FileTypeNone:
 		// Do nothing.
 	case checker.FileTypeSource:
@@ -270,6 +272,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writ
 						Rules:          make([]rule, 1),
 					},
 				},
+				//nolint
 				// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
 				AutomationDetails: automationDetails{
 					ID: fmt.Sprintf("%v/%v/%v", category, toolName, datetime),
@@ -324,7 +327,8 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writ
 		r := result{
 			RuleID: checkID,
 			// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
-			Level:            "error",
+			// We omit the `level` here because it is set
+			// in DefaultConfig above.
 			RuleIndex:        i,
 			Message:          text{Text: check.Reason},
 			Locations:        locs,
