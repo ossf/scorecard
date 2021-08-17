@@ -35,6 +35,7 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
 	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	docs "github.com/ossf/scorecard/v2/docs/checks"
 	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
 	"github.com/ossf/scorecard/v2/repos"
@@ -169,7 +170,12 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			if !v3 {
 				log.Fatalf("sarif not supported yet")
 			}
-			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout)
+			checkDocs, e := docs.Read()
+			if e != nil {
+				log.Fatalf("cannot read yaml file: %v", err)
+			}
+			// TODO: support config files and update checker.MaxResultScore.
+			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, checker.MaxResultScore)
 		case formatCSV:
 			err = repoResult.AsCSV(showDetails, *logLevel, os.Stdout)
 		case formatJSON:

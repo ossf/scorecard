@@ -56,6 +56,7 @@ type physicalLocation struct {
 
 type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
+	Message          text             `json:"message"`
 }
 
 //nolint
@@ -78,12 +79,18 @@ type properties struct {
 	Tags      []string `json:"tags"`
 }
 
+type help struct {
+	Text     string `json:"text"`
+	Markdown string `json:"markdown,omitempty"`
+}
+
 type rule struct {
 	ID            string        `json:"id"`
 	Name          string        `json:"name"`
 	HelpURI       string        `json:"helpUri"`
 	ShortDesc     text          `json:"shortDescription"`
 	FullDesc      text          `json:"fullDescription"`
+	Help          help          `json:"help"`
 	DefaultConfig defaultConfig `json:"defaultConfiguration"`
 	Properties    properties    `json:"properties"`
 }
@@ -118,8 +125,8 @@ type automationDetails struct {
 }
 
 type run struct {
-	Tool              tool              `json:"tool"`
 	AutomationDetails automationDetails `json:"automationDetails"`
+	Tool              tool              `json:"tool"`
 	// For generated files during analysis. We leave this blank.
 	// See https://github.com/microsoft/sarif-tutorials/blob/main/docs/1-Introduction.md#simple-example.
 	Artifacts string   `json:"artifacts,omitempty"`
@@ -144,10 +151,12 @@ func detailToRegion(details *checker.CheckDetail) region {
 	case checker.FileTypeSource:
 		reg = region{
 			StartLine: &details.Msg.Offset,
+			Snippet:   &text{Text: details.Msg.Snippet},
 		}
 	case checker.FileTypeText:
 		reg = region{
 			CharOffset: &details.Msg.Offset,
+			Snippet:    &text{Text: details.Msg.Snippet},
 		}
 	case checker.FileTypeBinary:
 		reg = region{
@@ -157,38 +166,76 @@ func detailToRegion(details *checker.CheckDetail) region {
 	return reg
 }
 
-func detailsToLocations(details []checker.CheckDetail) []location {
+func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
+	logLevel zapcore.Level, minScore, score int) bool {
+	switch {
+	default:
+		return false
+	case detail.Msg.Path == "",
+		!showDetails,
+		logLevel != zapcore.DebugLevel && detail.Type == checker.DetailDebug:
+		return false
+	case score != checker.InconclusiveResultScore:
+		return true
+	case minScore > score:
+		return true
+	case minScore <= score && detail.Type == checker.DetailInfo:
+		return true
+	}
+}
+
+func shouldAddRelatedLocation(detail *checker.CheckDetail, showDetails bool,
+	logLevel zapcore.Level, minScore, score int) bool {
+	switch {
+	default:
+		return false
+	case detail.Msg.Path == "",
+		!showDetails,
+		detail.Msg.Type != checker.FileTypeURL,
+		logLevel != zapcore.DebugLevel && detail.Type == checker.DetailDebug:
+		return false
+	case score != checker.InconclusiveResultScore:
+		return true
+	case minScore > score:
+		return true
+	case minScore <= score && detail.Type == checker.DetailInfo:
+		return true
+	}
+}
+
+func detailsToLocations(details []checker.CheckDetail,
+	showDetails bool, logLevel zapcore.Level, minScore, score int) []location {
 	locs := []location{}
 
 	//nolint
 	// Populate the locations.
 	// Note https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#result-object
 	// "Only the first value of this array is used. All other values are ignored."
-	for _, d := range details {
-		if d.Type != checker.DetailWarn {
-			continue
-		}
+	if showDetails {
+		for _, d := range details {
+			if !shouldAddLocation(&d, showDetails, logLevel, minScore, score) {
+				continue
+			}
 
-		if d.Msg.Path == "" {
-			continue
-		}
-		loc := location{
-			PhysicalLocation: physicalLocation{
-				ArtifactLocation: artifactLocation{
-					URI:       d.Msg.Path,
-					URIBaseID: "%SRCROOT%",
+			loc := location{
+				PhysicalLocation: physicalLocation{
+					ArtifactLocation: artifactLocation{
+						URI:       d.Msg.Path,
+						URIBaseID: "%SRCROOT%",
+					},
 				},
-			},
-		}
+				Message: text{Text: d.Msg.Text},
+			}
 
-		// Set the region depending on the file type.
-		loc.PhysicalLocation.Region = detailToRegion(&d)
-		locs = append(locs, loc)
+			// Set the region depending on the file type.
+			loc.PhysicalLocation.Region = detailToRegion(&d)
+			locs = append(locs, loc)
+		}
 	}
 
 	// No details or no locations.
 	// For GitHub to display results, we need to provide
-	// a location anyway.
+	// a location anyway, regardless of showDetails.
 	detaultLine := 1
 	if len(locs) == 0 {
 		loc := location{
@@ -209,14 +256,14 @@ func detailsToLocations(details []checker.CheckDetail) []location {
 	return locs
 }
 
-func detailsToRelatedLocations(details []checker.CheckDetail) []relatedLocation {
+func detailsToRelatedLocations(details []checker.CheckDetail,
+	showDetails bool, logLevel zapcore.Level, minScore, score int) []relatedLocation {
 	rlocs := []relatedLocation{}
 
 	//nolint
 	// Populate the related locations.
 	for i, d := range details {
-		if d.Msg.Type != checker.FileTypeURL ||
-			d.Msg.Path == "" {
+		if !shouldAddRelatedLocation(&d, showDetails, logLevel, minScore, score) {
 			continue
 		}
 		// TODO: logical locations.
@@ -279,11 +326,17 @@ func createSARIFHeader(url, category, name, version string, t time.Time) sarif21
 func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
 	tags []string) rule {
 	return rule{
-		ID:        checkID,
-		Name:      checkName,
-		ShortDesc: text{Text: shortDesc},
-		FullDesc:  text{Text: longDesc},
+		ID:   checkID,
+		Name: checkName,
+		// TODO: check if description are html. If so,
+		// convert  `\n` to <br>.
+		ShortDesc: text{Text: textToHTML(shortDesc)},
+		FullDesc:  text{Text: textToHTML(longDesc)},
 		HelpURI:   descURL,
+		Help: help{
+			Text:     longDesc,
+			Markdown: textToMarkdown(longDesc),
+		},
 		DefaultConfig: defaultConfig{
 			Level: "error",
 		},
@@ -294,7 +347,8 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
 	}
 }
 
-func createSARIFResult(pos int, checkID, reason string, score int, locs []location, rlocs []relatedLocation) result {
+func createSARIFResult(pos int, checkID, reason string, score int,
+	locs []location, rlocs []relatedLocation) result {
 	return result{
 		RuleID: checkID,
 		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
@@ -315,7 +369,8 @@ func tagsAsList(tags string) []string {
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
-func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
+func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
+	writer io.Writer, checkDocs docs.Doc, minScore int) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
 	// We only support GitHub-supported properties:
@@ -323,14 +378,9 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writ
 	// https://github.com/microsoft/sarif-tutorials.
 	// TODO: use semantic versioning.
 	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
-		"supply-chain", "scorecard", "1.2.3", time.Now())
+		"supply-chain", "scorecard", "2.1.0", r.Date)
 	results := []result{}
 	rules := []rule{}
-
-	checkDocs, err := docs.Read()
-	if err != nil {
-		return fmt.Errorf("cannot read yaml file: %w", err)
-	}
 
 	// nolint
 	for i, check := range r.Checks {
@@ -349,11 +399,11 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writ
 		// location. Then in the next run, the result would occur on a different line, the computed fingerprint
 		// would change, and the result management system would erroneously report it as a new result."
 
-		// Create locations.
-		locs := detailsToLocations(check.Details2)
-
-		// Create related locations.
-		rlocs := detailsToRelatedLocations(check.Details2)
+		// Create locations and related locations.
+		// TODO: update checker.MaxResultScore to appropriate score when we have implemented
+		// config files.
+		locs := detailsToLocations(check.Details2, showDetails, logLevel, minScore, check.Score)
+		rlocs := detailsToRelatedLocations(check.Details2, showDetails, logLevel, minScore, check.Score)
 
 		// Create check ID.
 		//nolint:gosec

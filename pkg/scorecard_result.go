@@ -22,6 +22,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"go.uber.org/zap/zapcore"
@@ -33,7 +34,7 @@ import (
 // ScorecardResult struct is returned on a successful Scorecard run.
 type ScorecardResult struct {
 	Repo     string
-	Date     string
+	Date     time.Time
 	Checks   []checker.CheckResult
 	Metadata []string
 }
@@ -93,7 +94,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 
 	out := jsonScorecardResultV2{
 		Repo:     r.Repo,
-		Date:     r.Date,
+		Date:     r.Date.Format("2006-01-02"),
 		Metadata: r.Metadata,
 	}
 
