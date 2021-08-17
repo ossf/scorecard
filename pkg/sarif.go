@@ -21,8 +21,10 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/ossf/scorecard/v2/checker"
+	docs "github.com/ossf/scorecard/v2/docs/checks"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -241,11 +243,78 @@ func detailsToRelatedLocations(details []checker.CheckDetail) []relatedLocation 
 // TODO: update using config file.
 func scoreToLevel(score int) string {
 	// error, note, warning, none
-	if score == checker.MaxResultScore {
+	switch score {
+	default:
+		return "error"
+	case checker.MaxResultScore:
+		return "none"
+	case checker.InconclusiveResultScore:
 		return "note"
 	}
+}
 
-	return "error"
+func createSARIFHeader(url, category, name, version string, t time.Time) sarif210 {
+	return sarif210{
+		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+		Version: "2.1.0",
+		Runs: []run{
+			run{
+				Tool: tool{
+					Driver: driver{
+						Name:           strings.Title(name),
+						InformationURI: url,
+						SemVersion:     version,
+						Rules:          make([]rule, 1),
+					},
+				},
+				//nolint
+				// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
+				AutomationDetails: automationDetails{
+					// Time formatting: https://pkg.go.dev/time#pkg-constants.
+					ID: fmt.Sprintf("%s/%s/%s", category, name, t.Format(time.RFC822Z)),
+				},
+			},
+		},
+	}
+}
+
+func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
+	tags []string) rule {
+	return rule{
+		ID:   checkID,
+		Name: checkName,
+		// TODO: read from yaml file.
+		ShortDesc: text{Text: shortDesc},
+		FullDesc:  text{Text: longDesc},
+		HelpURI:   descURL,
+		DefaultConfig: defaultConfig{
+			Level: "error",
+		},
+		Properties: properties{
+			Tags:      tags,
+			Precision: "high", // TODO: generate automatically, from yaml file?
+		},
+	}
+}
+
+func createSARIFResult(pos int, checkID, reason string, score int, locs []location, rlocs []relatedLocation) result {
+	return result{
+		RuleID: checkID,
+		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
+		Level:            scoreToLevel(score),
+		RuleIndex:        pos,
+		Message:          text{Text: reason},
+		Locations:        locs,
+		RelatedLocations: rlocs,
+	}
+}
+
+func tagsAsList(tags string) []string {
+	l := strings.Split(tags, ",")
+	for i := range l {
+		l[i] = strings.TrimSpace(l[i])
+	}
+	return l
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
@@ -255,43 +324,24 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writ
 	// We only support GitHub-supported properties:
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
-	category := "supply-chain"
-	toolName := "scorecard"
 	// TODO: get date at run time.
-	datetime := "2021-02-01-13:54:12"
-	sarif := sarif210{
-		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-		Version: "2.1.0",
-		Runs: []run{
-			run{
-				Tool: tool{
-					Driver: driver{
-						Name:           "Scorecard",
-						InformationURI: "https://github.com/ossf/scorecard",
-						SemVersion:     "1.2.3",
-						Rules:          make([]rule, 1),
-					},
-				},
-				//nolint
-				// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
-				AutomationDetails: automationDetails{
-					ID: fmt.Sprintf("%v/%v/%v", category, toolName, datetime),
-				},
-			},
-		},
-	}
-
+	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
+		"supply-chain", "scorecard", "1.2.3", time.Now())
 	results := []result{}
 	rules := []rule{}
+
+	checkDocs, err := docs.Read()
+	if err != nil {
+		return fmt.Errorf("cannot read yaml file: %w", err)
+	}
+
 	// nolint
 	for i, check := range r.Checks {
 
-		locs := detailsToLocations(check.Details2)
-		rlocs := detailsToRelatedLocations(check.Details2)
-
-		//nolint:gosec
-		m := md5.Sum([]byte(check.Name))
-		checkID := hex.EncodeToString(m[:])
+		doc, exists := checkDocs.Checks[check.Name]
+		if !exists {
+			panic(fmt.Sprintf("invalid doc: %s not present", check.Name))
+		}
 
 		// Unclear what to use for PartialFingerprints.
 		// GitHub only uses `primaryLocationLineHash`, which is not properly defined
@@ -302,43 +352,30 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writ
 		// location. Then in the next run, the result would occur on a different line, the computed fingerprint
 		// would change, and the result management system would erroneously report it as a new result."
 
-		rule := rule{
-			ID:   checkID,
-			Name: check.Name,
-			// TODO: read from yaml file.
-			ShortDesc: text{Text: "short decs"},
-			FullDesc:  text{Text: "long decs"},
-			HelpURI:   fmt.Sprintf("https://github.com/ossf/scorecard/blob/main/docs/checks.md#%s", strings.ToLower(check.Name)),
-			DefaultConfig: defaultConfig{
-				Level: scoreToLevel(check.Score),
-			},
-			Properties: properties{
-				// TODO: get from yaml file.
-				Tags:      []string{"security", "scorecard"},
-				Precision: "high", // TODO: generate automatically, from yaml file?
-			},
-		}
+		// Create locations.
+		locs := detailsToLocations(check.Details2)
 
+		// Create related locations.
+		rlocs := detailsToRelatedLocations(check.Details2)
+
+		// Create check ID.
+		//nolint:gosec
+		m := md5.Sum([]byte(check.Name))
+		checkID := hex.EncodeToString(m[:])
+
+		// Create a header's rule.
+		// TODO: verify `\n` is viewable in GitHub.
+		rule := createSARIFRule(check.Name, checkID,
+			fmt.Sprintf("https://github.com/ossf/scorecard/blob/main/docs/checks.md#%s", strings.ToLower(check.Name)),
+			doc.Description, doc.Short,
+			tagsAsList(doc.Tags))
 		rules = append(rules, rule)
 
-		if len(locs) == 0 {
-		}
-
-		r := result{
-			RuleID: checkID,
-			// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
-			// We omit the `level` here because it is set
-			// in DefaultConfig above.
-			RuleIndex:        i,
-			Message:          text{Text: check.Reason},
-			Locations:        locs,
-			RelatedLocations: rlocs,
-		}
-
+		// Create a result.
+		r := createSARIFResult(i, checkID, check.Reason, check.Score, locs, rlocs)
 		results = append(results, r)
 	}
 
-	// TODO: check for results.
 	sarif.Runs[0].Tool.Driver.Rules = rules
 	sarif.Runs[0].Results = results
 

@@ -33,6 +33,7 @@ type Check struct {
 	Short       string   `yaml:"short"`
 	Description string   `yaml:"description"`
 	Remediation []string `yaml:"remediation"`
+	Tags        string   `yaml:"tags"`
 }
 
 // Doc maps to checks.yaml file.
