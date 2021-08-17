@@ -173,7 +173,8 @@ func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 		return false
 	case detail.Msg.Path == "",
 		!showDetails,
-		logLevel != zapcore.DebugLevel && detail.Type == checker.DetailDebug:
+		logLevel != zapcore.DebugLevel && detail.Type == checker.DetailDebug,
+		detail.Msg.Type == checker.FileTypeURL:
 		return false
 	case score != checker.InconclusiveResultScore:
 		return true
