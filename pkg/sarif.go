@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -213,9 +213,7 @@ func detailsToRelatedLocations(details []checker.CheckDetail) []relatedLocation 
 	rlocs := []relatedLocation{}
 
 	//nolint
-	// Populate the locations.
-	// Note https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#result-object
-	// "Only the first value of this array is used. All other values are ignored."
+	// Populate the related locations.
 	for i, d := range details {
 		if d.Msg.Type != checker.FileTypeURL ||
 			d.Msg.Path == "" {
@@ -242,7 +240,7 @@ func detailsToRelatedLocations(details []checker.CheckDetail) []relatedLocation 
 
 // TODO: update using config file.
 func scoreToLevel(score int) string {
-	// error, note, warning, none
+	// Any of error, note, warning, none.
 	switch score {
 	default:
 		return "error"
@@ -256,7 +254,7 @@ func scoreToLevel(score int) string {
 func createSARIFHeader(url, category, name, version string, t time.Time) sarif210 {
 	return sarif210{
 		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-		Version: "2.1.0",
+		Version: version,
 		Runs: []run{
 			run{
 				Tool: tool{
@@ -281,9 +279,8 @@ func createSARIFHeader(url, category, name, version string, t time.Time) sarif21
 func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
 	tags []string) rule {
 	return rule{
-		ID:   checkID,
-		Name: checkName,
-		// TODO: read from yaml file.
+		ID:        checkID,
+		Name:      checkName,
 		ShortDesc: text{Text: shortDesc},
 		FullDesc:  text{Text: longDesc},
 		HelpURI:   descURL,
@@ -292,7 +289,7 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
 		},
 		Properties: properties{
 			Tags:      tags,
-			Precision: "high", // TODO: generate automatically, from yaml file?
+			Precision: "high",
 		},
 	}
 }
@@ -324,7 +321,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writ
 	// We only support GitHub-supported properties:
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
-	// TODO: get date at run time.
+	// TODO: use semantic versioning.
 	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
 		"supply-chain", "scorecard", "1.2.3", time.Now())
 	results := []result{}
@@ -376,6 +373,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level, writ
 		results = append(results, r)
 	}
 
+	// Set the results and rules to sarif.
 	sarif.Runs[0].Tool.Driver.Rules = rules
 	sarif.Runs[0].Results = results
 
