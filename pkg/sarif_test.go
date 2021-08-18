@@ -369,33 +369,29 @@ func TestSATIFOutput(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-			if tt.expected == "" {
-				content = make([]byte, 0)
-			} else {
-				content, err = ioutil.ReadFile(tt.expected)
-				if err != nil {
-					panic(fmt.Errorf("cannot read file: %w", err))
-				}
+			content, err = ioutil.ReadFile(tt.expected)
+			if err != nil {
+				t.Fatalf("cannot read file: %w", err)
 			}
 
 			var expected bytes.Buffer
 			n, err := expected.Write(content)
 			if err != nil {
-				panic(fmt.Errorf("cannot write buffer: %w", err))
+				t.Fatalf("cannot write buffer: %w", err)
 			}
 			if n != len(content) {
-				panic(fmt.Sprintf("write %d bytes but expected %d", n, len(content)))
+				t.Fatalf("write %d bytes but expected %d", n, len(content))
 			}
 
 			var result bytes.Buffer
 			err = tt.result.AsSARIF(tt.showDetails, tt.logLevel, &result, tt.checkDocs, tt.minScore)
 			if err != nil {
-				panic(fmt.Errorf("AsSARIF: %w", err))
+				t.Fatalf("AsSARIF: %w", err)
 			}
-			fmt.Println(string(result.Bytes()))
+			// fmt.Println(string(result.Bytes()))
 			r := bytes.Compare(expected.Bytes(), result.Bytes())
 			if r != 0 {
-				panic(fmt.Sprintf("invalid result for %s: %d", tt.name, r))
+				t.Fatalf("invalid result for %s: %d", tt.name, r)
 			}
 		})
 	}

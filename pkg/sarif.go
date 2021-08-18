@@ -274,7 +274,8 @@ func detailsToRelatedLocations(details []checker.CheckDetail,
 			PhysicalLocation: physicalLocation{
 				ArtifactLocation: artifactLocation{
 					// Note: We don't set
-					// URIBaseID: "PROJECTROOT".
+					// URIBaseID: "PROJECTROOT" because
+					// the URL is an `absolute` path.
 					URI: d.Msg.Path,
 				},
 			},
