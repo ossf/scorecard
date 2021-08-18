@@ -56,12 +56,25 @@ func (r *RepoURL) String() string {
 
 // Set parses a URL string into RepoURL struct.
 func (r *RepoURL) Set(s string) error {
-	// Allow skipping scheme for ease-of-use, default to https.
-	if !strings.Contains(s, "://") {
-		s = "https://" + s
+	var t string
+
+	c := strings.Split(s, "/")
+
+	switch l := len(c); {
+	// this will takes care for repo/owner format, by default use github.com
+	case l == 2:
+		t = "github.com/" + c[0] + "/" + c[1]
+		break
+	case l >= 3:
+		t = s
 	}
 
-	u, e := url.Parse(s)
+	// Allow skipping scheme for ease-of-use, default to https.
+	if !strings.Contains(t, "://") {
+		t = "https://" + t
+	}
+
+	u, e := url.Parse(t)
 	if e != nil {
 		//nolint:wrapcheck
 		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))

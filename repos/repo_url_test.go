@@ -64,6 +64,26 @@ func TestRepoURL_ValidGitHubUrl(t *testing.T) {
 			args:    args{s: "https://gitlab.com/foo/kubeflow"},
 			wantErr: true,
 		},
+		{
+			name: "github repository",
+			fields: fields{
+				Host:  "github.com",
+				Owner: "foo",
+				Repo:  "kubeflow",
+			},
+			args:    args{s: "foo/kubeflow"},
+			wantErr: false,
+		},
+		{
+			name: "github repository",
+			fields: fields{
+				Host:  "github.com",
+				Owner: "foo",
+				Repo:  "kubeflow",
+			},
+			args:    args{s: "https://github.com/foo/kubeflow"},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
