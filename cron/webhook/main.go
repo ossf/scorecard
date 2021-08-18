@@ -32,6 +32,7 @@ import (
 const stableTag = "stable"
 
 var images = []string{
+	"gcr.io/openssf/scorecard",
 	"gcr.io/openssf/scorecard-batch-controller",
 	"gcr.io/openssf/scorecard-batch-worker",
 	"gcr.io/openssf/scorecard-bq-transfer",

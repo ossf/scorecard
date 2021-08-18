@@ -74,7 +74,7 @@ the [checks documentation page](docs/checks.md).
 The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
 
 ```shell
-docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:latest --show-details --repo=https://github.com/ossf/scorecard
+docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-details --repo=https://github.com/ossf/scorecard
 ```
 
 ### Using repository URL
