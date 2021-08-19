@@ -1,0 +1,84 @@
+{
+   "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+   "version": "2.1.0",
+   "runs": [
+      {
+         "automationDetails": {
+            "id": "supply-chain/scorecard/17 Aug 21 18:57 +0000"
+         },
+         "tool": {
+            "driver": {
+               "name": "Scorecard",
+               "informationUri": "https://github.com/ossf/scorecard",
+               "semanticVersion": "2.1.0",
+               "rules": [
+                  {
+                     "id": "cdf761a2ef9830335f96bc67d6bc0008",
+                     "name": "Check-Name",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
+                     "shortDescription": {
+                        "text": "short description"
+                     },
+                     "fullDescription": {
+                        "text": "long description\u003cbr\u003e other line"
+                     },
+                     "help": {
+                        "text": "long description\n other line",
+                        "markdown": "long description\u003cbr\u003e other line"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "tags": [
+                           "tag1",
+                           "tag2"
+                        ]
+                     }
+                  }
+               ]
+            }
+         },
+         "results": [
+            {
+               "ruleId": "cdf761a2ef9830335f96bc67d6bc0008",
+               "level": "note",
+               "ruleIndex": 0,
+               "message": {
+                  "text": "six score reason"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "artifactLocation": {
+                           "uri": ".github/scorecard.yml",
+                           "uriBaseId": "%SRCROOT%"
+                        },
+                        "region": {
+                           "startLine": 1
+                        }
+                     }
+                  }
+               ],
+               "relatedLocations": [
+                  {
+                     "id": 0,
+                     "physicalLocation": {
+                        "artifactLocation": {
+                           "uri": "https://domain.com/something"
+                        },
+                        "region": {
+                           "startLine": 0
+                        }
+                     },
+                     "message": {
+                        "text": "warn message"
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   ]
+}

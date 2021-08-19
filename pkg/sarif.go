@@ -56,7 +56,11 @@ type physicalLocation struct {
 
 type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
-	Message          text             `json:"message"`
+	//nolint
+	// This is optional https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#location-object.
+	// We may populate it later if we can indicate which config file
+	// line was violated by the failing check.
+	Message *text `json:"message,omitempty"`
 }
 
 //nolint
@@ -141,22 +145,29 @@ type sarif210 struct {
 
 func detailToRegion(details *checker.CheckDetail) region {
 	var reg region
+	var snippet *text
+	if details.Msg.Snippet != "" {
+		snippet = &text{Text: details.Msg.Snippet}
+	}
 	switch details.Msg.Type {
 	default:
 		panic("invalid")
 	case checker.FileTypeURL:
-		panic("TODO")
+		reg = region{
+			StartLine: &details.Msg.Offset,
+			Snippet:   snippet,
+		}
 	case checker.FileTypeNone:
 		// Do nothing.
 	case checker.FileTypeSource:
 		reg = region{
 			StartLine: &details.Msg.Offset,
-			Snippet:   &text{Text: details.Msg.Snippet},
+			Snippet:   snippet,
 		}
 	case checker.FileTypeText:
 		reg = region{
 			CharOffset: &details.Msg.Offset,
-			Snippet:    &text{Text: details.Msg.Snippet},
+			Snippet:    snippet,
 		}
 	case checker.FileTypeBinary:
 		reg = region{
@@ -176,11 +187,11 @@ func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 		logLevel != zapcore.DebugLevel && detail.Type == checker.DetailDebug,
 		detail.Msg.Type == checker.FileTypeURL:
 		return false
-	case score != checker.InconclusiveResultScore:
+	case score == checker.InconclusiveResultScore:
 		return true
-	case minScore > score:
-		return true
-	case minScore <= score && detail.Type == checker.DetailInfo:
+	case minScore < score && detail.Type == checker.DetailInfo:
+		return false
+	case minScore >= score:
 		return true
 	}
 }
@@ -195,11 +206,11 @@ func shouldAddRelatedLocation(detail *checker.CheckDetail, showDetails bool,
 		detail.Msg.Type != checker.FileTypeURL,
 		logLevel != zapcore.DebugLevel && detail.Type == checker.DetailDebug:
 		return false
-	case score != checker.InconclusiveResultScore:
+	case score == checker.InconclusiveResultScore:
 		return true
-	case minScore > score:
-		return true
-	case minScore <= score && detail.Type == checker.DetailInfo:
+	case minScore < score && detail.Type == checker.DetailInfo:
+		return false
+	case minScore >= score:
 		return true
 	}
 }
@@ -225,7 +236,7 @@ func detailsToLocations(details []checker.CheckDetail,
 						URIBaseID: "%SRCROOT%",
 					},
 				},
-				Message: text{Text: d.Msg.Text},
+				Message: &text{Text: d.Msg.Text},
 			}
 
 			// Set the region depending on the file type.
@@ -233,7 +244,10 @@ func detailsToLocations(details []checker.CheckDetail,
 			locs = append(locs, loc)
 		}
 	}
+	return locs
+}
 
+func addDefaultLocation(locs []location) []location {
 	// No details or no locations.
 	// For GitHub to display results, we need to provide
 	// a location anyway, regardless of showDetails.
@@ -293,9 +307,7 @@ func scoreToLevel(score int) string {
 	switch score {
 	default:
 		return "error"
-	case checker.MaxResultScore:
-		return "none"
-	case checker.InconclusiveResultScore:
+	case checker.MaxResultScore, checker.InconclusiveResultScore:
 		return "note"
 	}
 }
@@ -421,7 +433,14 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		rules = append(rules, rule)
 
 		// Create a result.
-		r := createSARIFResult(i, checkID, check.Reason, check.Score, locs, rlocs)
+		score := check.Score
+		if len(locs) == 0 {
+			locs = addDefaultLocation(locs)
+			// Setting an artifical score to maximum value
+			// makes the `level` to "note" instead of "error".
+			score = checker.MaxResultScore
+		}
+		r := createSARIFResult(i, checkID, check.Reason, score, locs, rlocs)
 		results = append(results, r)
 	}
 

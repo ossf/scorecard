@@ -288,7 +288,6 @@ func TestSATIFOutput(t *testing.T) {
 					checker.CheckResult{
 						Details2: []checker.CheckDetail{
 							checker.CheckDetail{
-								// TODO: different detail types
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
 									Text:   "warn message",
@@ -360,8 +359,88 @@ func TestSATIFOutput(t *testing.T) {
 				Metadata: []string{},
 			},
 		},
-		// TODO: add related location test
-		// TODO: add different minScore
+		{
+			name:        "check-5",
+			showDetails: true,
+			expected:    "./testdata/check5.sarif",
+			logLevel:    zapcore.WarnLevel,
+			minScore:    5,
+			checkDocs: docs.Doc{
+				Checks: map[string]checks.Check{
+					"Check-Name": checks.Check{
+						Risk:        "risk not used",
+						Short:       "short description",
+						Description: "long description\n other line",
+						Remediation: []string{"remediation not used"},
+						Tags:        "tag1, tag2 ",
+					},
+				},
+			},
+			result: ScorecardResult{
+				Repo: "repo not used",
+				Date: date,
+				Checks: []checker.CheckResult{
+					checker.CheckResult{
+						Details2: []checker.CheckDetail{
+							checker.CheckDetail{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    checker.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+								},
+							},
+						},
+						Score:  6,
+						Reason: "six score reason",
+						Name:   "Check-Name",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
+			name:        "check-6",
+			showDetails: true,
+			expected:    "./testdata/check6.sarif",
+			logLevel:    zapcore.WarnLevel,
+			minScore:    checker.MaxResultScore,
+			checkDocs: docs.Doc{
+				Checks: map[string]checks.Check{
+					"Check-Name": checks.Check{
+						Risk:        "risk not used",
+						Short:       "short description",
+						Description: "long description\n other line",
+						Remediation: []string{"remediation not used"},
+						Tags:        "tag1, tag2 ",
+					},
+				},
+			},
+			result: ScorecardResult{
+				Repo: "repo not used",
+				Date: date,
+				Checks: []checker.CheckResult{
+					checker.CheckResult{
+						Details2: []checker.CheckDetail{
+							checker.CheckDetail{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text: "warn message",
+									Path: "https://domain.com/something",
+									Type: checker.FileTypeURL,
+								},
+							},
+						},
+						Score:  6,
+						Reason: "six score reason",
+						Name:   "Check-Name",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -371,13 +450,13 @@ func TestSATIFOutput(t *testing.T) {
 			var err error
 			content, err = ioutil.ReadFile(tt.expected)
 			if err != nil {
-				t.Fatalf("cannot read file: %w", err)
+				t.Fatalf("cannot read file: %v", err)
 			}
 
 			var expected bytes.Buffer
 			n, err := expected.Write(content)
 			if err != nil {
-				t.Fatalf("cannot write buffer: %w", err)
+				t.Fatalf("cannot write buffer: %v", err)
 			}
 			if n != len(content) {
 				t.Fatalf("write %d bytes but expected %d", n, len(content))
@@ -386,9 +465,9 @@ func TestSATIFOutput(t *testing.T) {
 			var result bytes.Buffer
 			err = tt.result.AsSARIF(tt.showDetails, tt.logLevel, &result, tt.checkDocs, tt.minScore)
 			if err != nil {
-				t.Fatalf("AsSARIF: %w", err)
+				t.Fatalf("AsSARIF: %v", err)
 			}
-			// fmt.Println(string(result.Bytes()))
+			fmt.Println(string(result.Bytes()))
 			r := bytes.Compare(expected.Bytes(), result.Bytes())
 			if r != 0 {
 				t.Fatalf("invalid result for %s: %d", tt.name, r)
