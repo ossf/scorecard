@@ -64,10 +64,10 @@ func (r *RepoURL) Set(s string) error {
 	c := strings.Split(s, "/")
 
 	switch l := len(c); {
-	// this will takes care for repo/owner format, by default use github.com
+	// This will takes care for repo/owner format.
+	// By default it will use github.com
 	case l == two:
 		t = "github.com/" + c[0] + "/" + c[1]
-		break
 	case l >= three:
 		t = s
 	}
