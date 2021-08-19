@@ -342,8 +342,7 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
 	return rule{
 		ID:   checkID,
 		Name: checkName,
-		// TODO: check if description are html. If so,
-		// convert  `\n` to <br>.
+		// TODO: verify this works on GitHub.
 		ShortDesc: text{Text: textToHTML(shortDesc)},
 		FullDesc:  text{Text: textToHTML(longDesc)},
 		HelpURI:   descURL,
@@ -414,8 +413,6 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// would change, and the result management system would erroneously report it as a new result."
 
 		// Create locations and related locations.
-		// TODO: update checker.MaxResultScore to appropriate score when we have implemented
-		// config files.
 		locs := detailsToLocations(check.Details2, showDetails, logLevel, minScore, check.Score)
 		rlocs := detailsToRelatedLocations(check.Details2, showDetails, logLevel, minScore, check.Score)
 
