@@ -32,13 +32,15 @@ import (
 )
 
 var (
-	shellNames = []string{
-		"sh", "bash", "dash", "ksh", "mksh",
-	}
 	// supportedShells is the list of shells that are supported by mvdan.cc/sh/v3/syntax.
 	supportedShells = []string{
 		"sh", "bash", "mksh",
 	}
+	// otherShells are not supported by our parser.
+	otherShells = []string{
+		"dash", "ksh",
+	}
+	shellNames         = append(supportedShells, otherShells...)
 	pythonInterpreters = []string{"python", "python3", "python2.7"}
 	shellInterpreters  = append([]string{"exec", "su"}, shellNames...)
 	otherInterpreters  = []string{"perl", "ruby", "php", "node", "nodejs", "java"}

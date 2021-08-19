@@ -49,7 +49,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			expected := scut.TestReturn{
 				Errors:        nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  152,
+				NumberOfWarn:  154,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
