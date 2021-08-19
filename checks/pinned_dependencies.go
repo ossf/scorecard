@@ -195,7 +195,7 @@ func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	pdata := dataAsResultPointer(data)
 
 	// Validate the file type.
-	if !isShellScriptFile(pathfn, content) {
+	if !isSupportedShellScriptFile(pathfn, content) {
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
