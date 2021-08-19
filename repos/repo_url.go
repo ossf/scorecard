@@ -58,14 +58,17 @@ func (r *RepoURL) String() string {
 func (r *RepoURL) Set(s string) error {
 	var t string
 
+	const two = 2
+	const three = 3
+
 	c := strings.Split(s, "/")
 
 	switch l := len(c); {
 	// this will takes care for repo/owner format, by default use github.com
-	case l == 2:
+	case l == two:
 		t = "github.com/" + c[0] + "/" + c[1]
 		break
-	case l >= 3:
+	case l >= three:
 		t = s
 	}
 
