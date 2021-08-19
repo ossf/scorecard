@@ -17,7 +17,10 @@ package checks
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/ossf/scorecard/v2/checker"
 	scut "github.com/ossf/scorecard/v2/utests"
@@ -541,4 +544,131 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 			scut.ValidateTestValues(t, tt.name, &tt.expected, s, e, &dl)
 		})
 	}
+}
+
+func TestGitHubWorkflowShell(t *testing.T) {
+	t.Parallel()
+
+	repeatItem := func(item string, count int) []string {
+		ret := make([]string, 0, count)
+		for i := 0; i < count; i++ {
+			ret = append(ret, item)
+		}
+		return ret
+	}
+
+	tests := []struct {
+		name     string
+		filename string
+		// The shells used in each step, listed in order that the steps are listed in the file
+		expectedShells []string
+	}{
+		{
+			name:           "all windows, shell specified in step",
+			filename:       "testdata/github-workflow-shells-all-windows-bash.yaml",
+			expectedShells: []string{"bash"},
+		},
+		{
+			name:           "all windows, OSes listed in matrix.os",
+			filename:       "testdata/github-workflow-shells-all-windows-matrix.yaml",
+			expectedShells: []string{"pwsh"},
+		},
+		{
+			name:           "all windows",
+			filename:       "testdata/github-workflow-shells-all-windows.yaml",
+			expectedShells: []string{"pwsh"},
+		},
+		{
+			name:           "macOS defaults to bash",
+			filename:       "testdata/github-workflow-shells-default-macos.yaml",
+			expectedShells: []string{"bash"},
+		},
+		{
+			name:           "ubuntu defaults to bash",
+			filename:       "testdata/github-workflow-shells-default-ubuntu.yaml",
+			expectedShells: []string{"bash"},
+		},
+		{
+			name:           "windows defaults to pwsh",
+			filename:       "testdata/github-workflow-shells-default-windows.yaml",
+			expectedShells: []string{"pwsh"},
+		},
+		{
+			name:           "windows specified in 'if'",
+			filename:       "testdata/github-workflow-shells-runner-windows-ubuntu.yaml",
+			expectedShells: append(repeatItem("pwsh", 7), repeatItem("bash", 4)...),
+		},
+		{
+			name:           "shell specified in job and step",
+			filename:       "testdata/github-workflow-shells-specified-job-step.yaml",
+			expectedShells: []string{"bash"},
+		},
+		{
+			name:           "windows, shell specified in job",
+			filename:       "testdata/github-workflow-shells-specified-job-windows.yaml",
+			expectedShells: []string{"bash"},
+		},
+		{
+			name:           "shell specified in job",
+			filename:       "testdata/github-workflow-shells-specified-job.yaml",
+			expectedShells: []string{"pwsh"},
+		},
+		{
+			name:           "shell specified in step",
+			filename:       "testdata/github-workflow-shells-speficied-step.yaml",
+			expectedShells: []string{"pwsh"},
+		},
+		{
+			name:           "different shells in each step",
+			filename:       "testdata/github-workflow-shells-two-shells.yaml",
+			expectedShells: []string{"bash", "pwsh"},
+		},
+		{
+			name:           "windows step, bash specified",
+			filename:       "testdata/github-workflow-shells-windows-bash.yaml",
+			expectedShells: []string{"bash", "bash"},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := ioutil.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %w", err)
+			}
+			var workflow gitHubActionWorkflowConfig
+			err = yaml.Unmarshal(content, &workflow)
+			if err != nil {
+				t.Errorf("cannot unmarshal file: %w", err)
+			}
+			actualShells := make([]string, 0)
+			for _, job := range workflow.Jobs {
+				job := job
+				for _, step := range job.Steps {
+					step := step
+					shell, err := getShellForStep(&step, &job)
+					if err != nil {
+						t.Errorf("error getting shell: %w", err)
+					}
+					actualShells = append(actualShells, shell)
+				}
+			}
+			if !areSlicesEqual(tt.expectedShells, actualShells) {
+				t.Errorf("%v: Got (%v) expected (%v)", tt.name, actualShells, tt.expectedShells)
+			}
+		})
+	}
+}
+
+func areSlicesEqual(slice1, slice2 []string) bool {
+	if len(slice1) != len(slice2) {
+		return false
+	}
+	for i := 0; i < len(slice1); i++ {
+		if !strings.EqualFold(slice1[i], slice2[i]) {
+			return false
+		}
+	}
+	return true
 }
