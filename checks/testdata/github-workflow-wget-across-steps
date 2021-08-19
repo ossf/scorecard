@@ -40,7 +40,7 @@ jobs:
 
       - name: Build image
         run: wget http://something -O /tmp/exe && /tmp/exe
-        shell: ksh
+        shell: bash
 
       - name: Log into registry
         run: /tmp/exe
