@@ -315,7 +315,7 @@ func scoreToLevel(score int) string {
 func createSARIFHeader(url, category, name, version string, t time.Time) sarif210 {
 	return sarif210{
 		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-		Version: version,
+		Version: "2.1.0",
 		Runs: []run{
 			run{
 				Tool: tool{
@@ -373,25 +373,16 @@ func createSARIFResult(pos int, checkID, reason string, score int,
 	}
 }
 
-func tagsAsList(tags string) []string {
-	l := strings.Split(tags, ",")
-	for i := range l {
-		l[i] = strings.TrimSpace(l[i])
-	}
-	return l
-}
-
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
-func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
+func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zapcore.Level,
 	writer io.Writer, checkDocs docs.Doc, minScore int) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
 	// We only support GitHub-supported properties:
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
-	// TODO: use semantic versioning.
 	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
-		"supply-chain", "scorecard", "2.1.0", r.Date)
+		"supply-chain", "scorecard", version, r.Date)
 	results := []result{}
 	rules := []rule{}
 

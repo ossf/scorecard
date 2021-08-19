@@ -463,7 +463,7 @@ func TestSATIFOutput(t *testing.T) {
 			}
 
 			var result bytes.Buffer
-			err = tt.result.AsSARIF(tt.showDetails, tt.logLevel, &result, tt.checkDocs, tt.minScore)
+			err = tt.result.AsSARIF("1.2.3", tt.showDetails, tt.logLevel, &result, tt.checkDocs, tt.minScore)
 			if err != nil {
 				t.Fatalf("AsSARIF: %v", err)
 			}

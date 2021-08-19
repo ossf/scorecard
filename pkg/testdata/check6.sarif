@@ -10,7 +10,7 @@
             "driver": {
                "name": "Scorecard",
                "informationUri": "https://github.com/ossf/scorecard",
-               "semanticVersion": "2.1.0",
+               "semanticVersion": "1.2.3",
                "rules": [
                   {
                      "id": "cdf761a2ef9830335f96bc67d6bc0008",
