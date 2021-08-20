@@ -56,6 +56,8 @@ type physicalLocation struct {
 	ArtifactLocation artifactLocation `json:"artifactLocation"`
 }
 
+//TODO: remove linter and update unit tests.
+//nolint:govet
 type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
 	//nolint
@@ -229,7 +231,10 @@ func detailsToLocations(details []checker.CheckDetail,
 		return locs
 	}
 
-	for _, d := range details {
+	for i := range details {
+		// Avoid `golang Implicit memory aliasing in for loop` gosec error.
+		// https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable.
+		d := details[i]
 		if !shouldAddLocation(&d, showDetails, logLevel, minScore, score) {
 			continue
 		}
