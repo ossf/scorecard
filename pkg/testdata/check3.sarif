@@ -24,7 +24,7 @@
                      },
                      "help": {
                         "text": "long description\n other line",
-                        "markdown": "long description\u003cbr\u003e other line"
+                        "markdown": "long description   other line"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -49,7 +49,7 @@
                      },
                      "help": {
                         "text": "long description\n other line 2",
-                        "markdown": "long description\u003cbr\u003e other line 2"
+                        "markdown": "long description   other line 2"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -75,7 +75,7 @@
                      },
                      "help": {
                         "text": "long description\n other line 3",
-                        "markdown": "long description\u003cbr\u003e other line 3"
+                        "markdown": "long description   other line 3"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -104,12 +104,12 @@
                "locations": [
                   {
                      "physicalLocation": {
+                        "region": {
+                           "byteOffset": 0
+                        },
                         "artifactLocation": {
                            "uri": "bin/binary.elf",
                            "uriBaseId": "%SRCROOT%"
-                        },
-                        "region": {
-                           "byteOffset": 0
                         }
                      },
                      "message": {
@@ -128,15 +128,15 @@
                "locations": [
                   {
                      "physicalLocation": {
-                        "artifactLocation": {
-                           "uri": "src/doc.txt",
-                           "uriBaseId": "%SRCROOT%"
-                        },
                         "region": {
                            "charOffset": 3,
                            "snippet": {
                               "text": "some text"
                            }
+                        },
+                        "artifactLocation": {
+                           "uri": "src/doc.txt",
+                           "uriBaseId": "%SRCROOT%"
                         }
                      },
                      "message": {
@@ -155,15 +155,15 @@
                "locations": [
                   {
                      "physicalLocation": {
-                        "artifactLocation": {
-                           "uri": "some/path.js",
-                           "uriBaseId": "%SRCROOT%"
-                        },
                         "region": {
                            "startLine": 3,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }
+                        },
+                        "artifactLocation": {
+                           "uri": "some/path.js",
+                           "uriBaseId": "%SRCROOT%"
                         }
                      },
                      "message": {
@@ -172,15 +172,15 @@
                   },
                   {
                      "physicalLocation": {
-                        "artifactLocation": {
-                           "uri": "some/path.py",
-                           "uriBaseId": "%SRCROOT%"
-                        },
                         "region": {
                            "startLine": 3,
                            "snippet": {
                               "text": "if (bad) {BUG2();}"
                            }
+                        },
+                        "artifactLocation": {
+                           "uri": "some/path.py",
+                           "uriBaseId": "%SRCROOT%"
                         }
                      },
                      "message": {

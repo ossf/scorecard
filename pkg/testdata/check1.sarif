@@ -24,7 +24,7 @@
                      },
                      "help": {
                         "text": "long description\n other line",
-                        "markdown": "long description\u003cbr\u003e other line"
+                        "markdown": "long description   other line"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -51,15 +51,15 @@
                "locations": [
                   {
                      "physicalLocation": {
-                        "artifactLocation": {
-                           "uri": "src/file1.cpp",
-                           "uriBaseId": "%SRCROOT%"
-                        },
                         "region": {
                            "startLine": 5,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }
+                        },
+                        "artifactLocation": {
+                           "uri": "src/file1.cpp",
+                           "uriBaseId": "%SRCROOT%"
                         }
                      },
                      "message": {

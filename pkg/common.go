@@ -29,7 +29,7 @@ func textToHTML(s string) string {
 }
 
 func textToMarkdown(s string) string {
-	return textToHTML(s)
+	return strings.ReplaceAll(s, "\n", "  ")
 }
 
 func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (string, bool) {

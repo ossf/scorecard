@@ -24,7 +24,7 @@
                      },
                      "help": {
                         "text": "long description\n other line",
-                        "markdown": "long description\u003cbr\u003e other line"
+                        "markdown": "long description   other line"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -51,12 +51,12 @@
                "locations": [
                   {
                      "physicalLocation": {
+                        "region": {
+                           "startLine": 1
+                        },
                         "artifactLocation": {
                            "uri": ".github/scorecard.yml",
                            "uriBaseId": "%SRCROOT%"
-                        },
-                        "region": {
-                           "startLine": 1
                         }
                      }
                   }
@@ -65,11 +65,11 @@
                   {
                      "id": 0,
                      "physicalLocation": {
-                        "artifactLocation": {
-                           "uri": "https://domain.com/something"
-                        },
                         "region": {
                            "startLine": 0
+                        },
+                        "artifactLocation": {
+                           "uri": "https://domain.com/something"
                         }
                      },
                      "message": {
