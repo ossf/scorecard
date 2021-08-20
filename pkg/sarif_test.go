@@ -23,7 +23,6 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/docs/checks"
-	docs "github.com/ossf/scorecard/v2/docs/checks"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -50,7 +49,7 @@ func TestSATIFOutput(t *testing.T) {
 		showDetails bool
 		logLevel    zapcore.Level
 		result      ScorecardResult
-		checkDocs   docs.Doc
+		checkDocs   checks.Doc
 		minScore    int
 	}{
 		{
@@ -59,7 +58,7 @@ func TestSATIFOutput(t *testing.T) {
 			expected:    "./testdata/check1.sarif",
 			logLevel:    zapcore.DebugLevel,
 			minScore:    checker.MaxResultScore,
-			checkDocs: docs.Doc{
+			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
 					"Check-Name": checks.Check{
 						Risk:        "risk not used",
@@ -103,7 +102,7 @@ func TestSATIFOutput(t *testing.T) {
 			expected:    "./testdata/check2.sarif",
 			logLevel:    zapcore.DebugLevel,
 			minScore:    checker.MaxResultScore,
-			checkDocs: docs.Doc{
+			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
 					"Check-Name": checks.Check{
 						Risk:        "risk not used",
@@ -146,7 +145,7 @@ func TestSATIFOutput(t *testing.T) {
 			expected:    "./testdata/check3.sarif",
 			logLevel:    zapcore.InfoLevel,
 			minScore:    checker.MaxResultScore,
-			checkDocs: docs.Doc{
+			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
 					"Check-Name": checks.Check{
 						Risk:        "risk not used",
@@ -256,7 +255,7 @@ func TestSATIFOutput(t *testing.T) {
 			expected:    "./testdata/check4.sarif",
 			logLevel:    zapcore.DebugLevel,
 			minScore:    checker.MaxResultScore,
-			checkDocs: docs.Doc{
+			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
 					"Check-Name": checks.Check{
 						Risk:        "risk not used",
@@ -365,7 +364,7 @@ func TestSATIFOutput(t *testing.T) {
 			expected:    "./testdata/check5.sarif",
 			logLevel:    zapcore.WarnLevel,
 			minScore:    5,
-			checkDocs: docs.Doc{
+			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
 					"Check-Name": checks.Check{
 						Risk:        "risk not used",
@@ -407,7 +406,7 @@ func TestSATIFOutput(t *testing.T) {
 			expected:    "./testdata/check6.sarif",
 			logLevel:    zapcore.WarnLevel,
 			minScore:    checker.MaxResultScore,
-			checkDocs: docs.Doc{
+			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
 					"Check-Name": checks.Check{
 						Risk:        "risk not used",

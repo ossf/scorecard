@@ -175,8 +175,9 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 				log.Fatalf("cannot read yaml file: %v", err)
 			}
 			// TODO: support config files and update checker.MaxResultScore.
-			// TODO: update version.
-			err = repoResult.AsSARIF("1.2.3", showDetails, *logLevel, os.Stdout, checkDocs, checker.MaxResultScore)
+			// TODO: set version dynamically.
+			scorecardVersion := "1.2.3"
+			err = repoResult.AsSARIF(scorecardVersion, showDetails, *logLevel, os.Stdout, checkDocs, checker.MaxResultScore)
 		case formatCSV:
 			err = repoResult.AsCSV(showDetails, *logLevel, os.Stdout)
 		case formatJSON:
@@ -335,7 +336,8 @@ func init() {
 	rootCmd.Flags().StringVar(
 		&rubygems, "rubygems", "",
 		"rubygems package to check, given that the rubygems package has a GitHub repository")
-	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, sarif, html, json, csv]")
+	rootCmd.Flags().StringVar(&format, "format", formatDefault,
+		"output format. allowed values are [default, sarif, html, json, csv]")
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")

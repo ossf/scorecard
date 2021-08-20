@@ -15,6 +15,7 @@
 package pkg
 
 import (
+	//nolint:gosec
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -23,9 +24,10 @@ import (
 	"strings"
 	"time"
 
+	"go.uber.org/zap/zapcore"
+
 	"github.com/ossf/scorecard/v2/checker"
 	docs "github.com/ossf/scorecard/v2/docs/checks"
-	"go.uber.org/zap/zapcore"
 )
 
 type text struct {
@@ -50,8 +52,8 @@ type artifactLocation struct {
 }
 
 type physicalLocation struct {
-	ArtifactLocation artifactLocation `json:"artifactLocation"`
 	Region           region           `json:"region"`
+	ArtifactLocation artifactLocation `json:"artifactLocation"`
 }
 
 type location struct {
@@ -223,27 +225,30 @@ func detailsToLocations(details []checker.CheckDetail,
 	// Populate the locations.
 	// Note https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#result-object
 	// "Only the first value of this array is used. All other values are ignored."
-	if showDetails {
-		for _, d := range details {
-			if !shouldAddLocation(&d, showDetails, logLevel, minScore, score) {
-				continue
-			}
-
-			loc := location{
-				PhysicalLocation: physicalLocation{
-					ArtifactLocation: artifactLocation{
-						URI:       d.Msg.Path,
-						URIBaseID: "%SRCROOT%",
-					},
-				},
-				Message: &text{Text: d.Msg.Text},
-			}
-
-			// Set the region depending on the file type.
-			loc.PhysicalLocation.Region = detailToRegion(&d)
-			locs = append(locs, loc)
-		}
+	if !showDetails {
+		return locs
 	}
+
+	for _, d := range details {
+		if !shouldAddLocation(&d, showDetails, logLevel, minScore, score) {
+			continue
+		}
+
+		loc := location{
+			PhysicalLocation: physicalLocation{
+				ArtifactLocation: artifactLocation{
+					URI:       d.Msg.Path,
+					URIBaseID: "%SRCROOT%",
+				},
+			},
+			Message: &text{Text: d.Msg.Text},
+		}
+
+		// Set the region depending on the file type.
+		loc.PhysicalLocation.Region = detailToRegion(&d)
+		locs = append(locs, loc)
+	}
+
 	return locs
 }
 
@@ -251,23 +256,26 @@ func addDefaultLocation(locs []location) []location {
 	// No details or no locations.
 	// For GitHub to display results, we need to provide
 	// a location anyway, regardless of showDetails.
-	detaultLine := 1
-	if len(locs) == 0 {
-		loc := location{
-			PhysicalLocation: physicalLocation{
-				ArtifactLocation: artifactLocation{
-					URI:       ".github/scorecard.yml",
-					URIBaseID: "%SRCROOT%",
-				},
-				Region: region{
-					// TODO: set the line to the check if it's overwritten,
-					// or to the global policy.
-					StartLine: &detaultLine,
-				},
-			},
-		}
-		locs = append(locs, loc)
+	if len(locs) != 0 {
+		return locs
 	}
+
+	detaultLine := 1
+	loc := location{
+		PhysicalLocation: physicalLocation{
+			ArtifactLocation: artifactLocation{
+				URI:       ".github/scorecard.yml",
+				URIBaseID: "%SRCROOT%",
+			},
+			Region: region{
+				// TODO: set the line to the check if it's overwritten,
+				// or to the global policy.
+				StartLine: &detaultLine,
+			},
+		},
+	}
+	locs = append(locs, loc)
+
 	return locs
 }
 
@@ -323,7 +331,7 @@ func createSARIFHeader(url, category, name, version string, t time.Time) sarif21
 						Name:           strings.Title(name),
 						InformationURI: url,
 						SemVersion:     version,
-						Rules:          make([]rule, 1),
+						Rules:          nil,
 					},
 				},
 				//nolint

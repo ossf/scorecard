@@ -32,8 +32,8 @@ type Check struct {
 	Risk        string   `yaml:"-"`
 	Short       string   `yaml:"short"`
 	Description string   `yaml:"description"`
-	Remediation []string `yaml:"remediation"`
 	Tags        string   `yaml:"tags"`
+	Remediation []string `yaml:"remediation"`
 }
 
 // Doc maps to checks.yaml file.

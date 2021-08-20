@@ -18,8 +18,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v2/checker"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/ossf/scorecard/v2/checker"
 )
 
 // TODO: Verify this works in GitHub's dashboard.
@@ -45,7 +46,7 @@ func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (str
 			if v.Msg.Path != "" {
 				sa = append(sa, fmt.Sprintf("%s: %s: %s:%d", typeToString(v.Type), v.Msg.Text, v.Msg.Path, v.Msg.Offset))
 			} else {
-				sa = append(sa, fmt.Sprintf("%s: %s: %s", typeToString(v.Type), v.Msg.Text, v.Msg.Path))
+				sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg.Text))
 			}
 		default:
 			if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
