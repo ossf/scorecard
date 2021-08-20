@@ -330,7 +330,7 @@ func createSARIFHeader(url, category, name, version string, t time.Time) sarif21
 		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
 		Version: "2.1.0",
 		Runs: []run{
-			run{
+			{
 				Tool: tool{
 					Driver: driver{
 						Name:           strings.Title(name),

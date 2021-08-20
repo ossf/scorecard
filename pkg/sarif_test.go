@@ -60,7 +60,7 @@ func TestSATIFOutput(t *testing.T) {
 			minScore:    checker.MaxResultScore,
 			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
-					"Check-Name": checks.Check{
+					"Check-Name": {
 						Risk:        "risk not used",
 						Short:       "short description",
 						Description: "long description\n other line",
@@ -73,9 +73,9 @@ func TestSATIFOutput(t *testing.T) {
 				Repo: "repo not used",
 				Date: date,
 				Checks: []checker.CheckResult{
-					checker.CheckResult{
+					{
 						Details2: []checker.CheckDetail{
-							checker.CheckDetail{
+							{
 								// TODO: different detail types
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
@@ -104,7 +104,7 @@ func TestSATIFOutput(t *testing.T) {
 			minScore:    checker.MaxResultScore,
 			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
-					"Check-Name": checks.Check{
+					"Check-Name": {
 						Risk:        "risk not used",
 						Short:       "short description",
 						Description: "long description\n other line",
@@ -117,9 +117,9 @@ func TestSATIFOutput(t *testing.T) {
 				Repo: "repo not used",
 				Date: date,
 				Checks: []checker.CheckResult{
-					checker.CheckResult{
+					{
 						Details2: []checker.CheckDetail{
-							checker.CheckDetail{
+							{
 								// TODO: different detail types
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
@@ -147,21 +147,21 @@ func TestSATIFOutput(t *testing.T) {
 			minScore:    checker.MaxResultScore,
 			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
-					"Check-Name": checks.Check{
+					"Check-Name": {
 						Risk:        "risk not used",
 						Short:       "short description",
 						Description: "long description\n other line",
 						Remediation: []string{"remediation not used"},
 						Tags:        "tag1, tag2 ",
 					},
-					"Check-Name2": checks.Check{
+					"Check-Name2": {
 						Risk:        "risk not used",
 						Short:       "short description 2",
 						Description: "long description\n other line 2",
 						Remediation: []string{"remediation not used"},
 						Tags:        "tag1, tag2, tag3 ",
 					},
-					"Check-Name3": checks.Check{
+					"Check-Name3": {
 						Risk:        "risk not used",
 						Short:       "short description 3",
 						Description: "long description\n other line 3",
@@ -174,9 +174,9 @@ func TestSATIFOutput(t *testing.T) {
 				Repo: "repo not used",
 				Date: date,
 				Checks: []checker.CheckResult{
-					checker.CheckResult{
+					{
 						Details2: []checker.CheckDetail{
-							checker.CheckDetail{
+							{
 								// TODO: different detail types
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
@@ -191,9 +191,9 @@ func TestSATIFOutput(t *testing.T) {
 						Reason: "min result reason",
 						Name:   "Check-Name",
 					},
-					checker.CheckResult{
+					{
 						Details2: []checker.CheckDetail{
-							checker.CheckDetail{
+							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
 									Text:    "warn message",
@@ -208,9 +208,9 @@ func TestSATIFOutput(t *testing.T) {
 						Reason: "min result reason",
 						Name:   "Check-Name2",
 					},
-					checker.CheckResult{
+					{
 						Details2: []checker.CheckDetail{
-							checker.CheckDetail{
+							{
 								Type: checker.DetailInfo,
 								Msg: checker.LogMessage{
 									Text:    "info message",
@@ -220,7 +220,7 @@ func TestSATIFOutput(t *testing.T) {
 									Snippet: "if (bad) {BUG();}",
 								},
 							},
-							checker.CheckDetail{
+							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
 									Text:    "warn message",
@@ -230,7 +230,7 @@ func TestSATIFOutput(t *testing.T) {
 									Snippet: "if (bad) {BUG2();}",
 								},
 							},
-							checker.CheckDetail{
+							{
 								Type: checker.DetailDebug,
 								Msg: checker.LogMessage{
 									Text:    "debug message",
@@ -257,21 +257,21 @@ func TestSATIFOutput(t *testing.T) {
 			minScore:    checker.MaxResultScore,
 			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
-					"Check-Name": checks.Check{
+					"Check-Name": {
 						Risk:        "risk not used",
 						Short:       "short description",
 						Description: "long description\n other line",
 						Remediation: []string{"remediation not used"},
 						Tags:        "tag1, tag2 ",
 					},
-					"Check-Name2": checks.Check{
+					"Check-Name2": {
 						Risk:        "risk not used",
 						Short:       "short description 2",
 						Description: "long description\n other line 2",
 						Remediation: []string{"remediation not used"},
 						Tags:        "tag1, tag2, tag3 ",
 					},
-					"Check-Name3": checks.Check{
+					"Check-Name3": {
 						Risk:        "risk not used",
 						Short:       "short description 3",
 						Description: "long description\n other line 3",
@@ -284,9 +284,9 @@ func TestSATIFOutput(t *testing.T) {
 				Repo: "repo not used",
 				Date: date,
 				Checks: []checker.CheckResult{
-					checker.CheckResult{
+					{
 						Details2: []checker.CheckDetail{
-							checker.CheckDetail{
+							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
 									Text:   "warn message",
@@ -300,9 +300,9 @@ func TestSATIFOutput(t *testing.T) {
 						Reason: "min result reason",
 						Name:   "Check-Name",
 					},
-					checker.CheckResult{
+					{
 						Details2: []checker.CheckDetail{
-							checker.CheckDetail{
+							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
 									Text:    "warn message",
@@ -317,9 +317,9 @@ func TestSATIFOutput(t *testing.T) {
 						Reason: "min result reason",
 						Name:   "Check-Name2",
 					},
-					checker.CheckResult{
+					{
 						Details2: []checker.CheckDetail{
-							checker.CheckDetail{
+							{
 								Type: checker.DetailInfo,
 								Msg: checker.LogMessage{
 									Text:    "info message",
@@ -329,7 +329,7 @@ func TestSATIFOutput(t *testing.T) {
 									Snippet: "if (bad) {BUG();}",
 								},
 							},
-							checker.CheckDetail{
+							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
 									Text:    "warn message",
@@ -339,7 +339,7 @@ func TestSATIFOutput(t *testing.T) {
 									Snippet: "if (bad) {BUG2();}",
 								},
 							},
-							checker.CheckDetail{
+							{
 								Type: checker.DetailDebug,
 								Msg: checker.LogMessage{
 									Text:    "debug message",
@@ -366,7 +366,7 @@ func TestSATIFOutput(t *testing.T) {
 			minScore:    5,
 			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
-					"Check-Name": checks.Check{
+					"Check-Name": {
 						Risk:        "risk not used",
 						Short:       "short description",
 						Description: "long description\n other line",
@@ -379,9 +379,9 @@ func TestSATIFOutput(t *testing.T) {
 				Repo: "repo not used",
 				Date: date,
 				Checks: []checker.CheckResult{
-					checker.CheckResult{
+					{
 						Details2: []checker.CheckDetail{
-							checker.CheckDetail{
+							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
 									Text:    "warn message",
@@ -408,7 +408,7 @@ func TestSATIFOutput(t *testing.T) {
 			minScore:    checker.MaxResultScore,
 			checkDocs: checks.Doc{
 				Checks: map[string]checks.Check{
-					"Check-Name": checks.Check{
+					"Check-Name": {
 						Risk:        "risk not used",
 						Short:       "short description",
 						Description: "long description\n other line",
@@ -421,9 +421,9 @@ func TestSATIFOutput(t *testing.T) {
 				Repo: "repo not used",
 				Date: date,
 				Checks: []checker.CheckResult{
-					checker.CheckResult{
+					{
 						Details2: []checker.CheckDetail{
-							checker.CheckDetail{
+							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
 									Text: "warn message",
