@@ -18,3 +18,6 @@ github.com/cdnjs/cdnjs,
 github.com/echen102/COVID-19-TweetIDs,
 # .github does not exist
 github.com/intel/intel-graphics-compiler,
+# Repository redirects
+github.com/chromium/ct-policy,
+github.com/flavioislima/HeroicGamesLauncher,

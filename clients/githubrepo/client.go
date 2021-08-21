@@ -47,8 +47,8 @@ func (client *Client) InitRepo(owner, repoName string) error {
 		return clients.NewRepoUnavailableError(err)
 	}
 	client.repo = repo
-	client.owner = owner
-	client.repoName = repoName
+	client.owner = repo.Owner.GetLogin()
+	client.repoName = repo.GetName()
 
 	// Init tarballHandler.
 	if err := client.tarball.init(client.ctx, client.repo); err != nil {
@@ -56,17 +56,17 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	}
 
 	// Setup GraphQL.
-	if err := client.graphClient.init(client.ctx, owner, repoName); err != nil {
+	if err := client.graphClient.init(client.ctx, client.owner, client.repoName); err != nil {
 		return fmt.Errorf("error during graphqlHandler.init: %w", err)
 	}
 
 	// Setup contributors.
-	if err := client.contributors.init(client.ctx, owner, repoName); err != nil {
+	if err := client.contributors.init(client.ctx, client.owner, client.repoName); err != nil {
 		return fmt.Errorf("error during contributorsHandler.init: %w", err)
 	}
 
 	// Setup Search.
-	client.search.init(client.ctx, owner, repoName)
+	client.search.init(client.ctx, client.owner, client.repoName)
 
 	return nil
 }
