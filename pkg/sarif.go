@@ -15,6 +15,7 @@
 package pkg
 
 import (
+
 	//nolint:gosec
 	"crypto/md5"
 	"encoding/hex"
@@ -24,10 +25,9 @@ import (
 	"strings"
 	"time"
 
-	"go.uber.org/zap/zapcore"
-
 	"github.com/ossf/scorecard/v2/checker"
 	docs "github.com/ossf/scorecard/v2/docs/checks"
+	"go.uber.org/zap/zapcore"
 )
 
 type text struct {
