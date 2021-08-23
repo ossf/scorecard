@@ -217,12 +217,11 @@ func main() {
 	}()
 
 	checksToRun := checks.AllChecks
-	// nolint
-	// FIXME :- deleting branch-protection
-	// The branch protection check needs an admin access to the repository.
-	// All of the checks from cron would fail and uses another call to the API.
-	// This will reduce usage of the API.
-	delete(checksToRun, checks.CheckBranchProtection)
+	// TODO: Temporarily remove checks which require lot of GitHub API token.
+	delete(checksToRun, checks.CheckSAST)
+	delete(checksToRun, checks.CheckCITests)
+	// TODO: Re-add Contributors check after fixing: #859.
+	delete(checksToRun, checks.CheckContributors)
 	for {
 		req, err := subscriber.SynchronousPull()
 		if err != nil {
