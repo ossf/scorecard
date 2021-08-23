@@ -71,7 +71,6 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		// UPGRADEv3: remove.
 		var v3 bool
 		if _, v3 = os.LookupEnv("SCORECARD_V3"); v3 {
-			//nolint
 			fmt.Printf("**** Using SCORECARD_V3 code ***** \n\n")
 		}
 		cfg := zap.NewProductionConfig()
