@@ -142,7 +142,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 				c.Dlogger.Debug3(&checker.LogMessage{
 					Path: cr.GetHTMLURL(),
 					Type: checker.FileTypeURL,
-					Text: fmt.Sprintf("tool detected: %s", cr.GetHTMLURL()),
+					Text: "tool detected",
 				})
 				totalTested++
 				break
