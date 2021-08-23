@@ -22,6 +22,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"go.uber.org/zap/zapcore"
@@ -33,7 +34,7 @@ import (
 // ScorecardResult struct is returned on a successful Scorecard run.
 type ScorecardResult struct {
 	Repo     string
-	Date     string
+	Date     time.Time
 	Checks   []checker.CheckResult
 	Metadata []string
 }
@@ -93,7 +94,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 
 	out := jsonScorecardResultV2{
 		Repo:     r.Repo,
-		Date:     r.Date,
+		Date:     r.Date.Format("2006-01-02"),
 		Metadata: r.Metadata,
 	}
 
@@ -202,47 +203,4 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 	table.Render()
 
 	return nil
-}
-
-func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (string, bool) {
-	// UPGRADEv2: change to make([]string, len(details))
-	// followed by sa[i] = instead of append.
-	var sa []string
-	for _, v := range details {
-		switch v.Msg.Version {
-		//nolint
-		case 3:
-			if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
-				continue
-			}
-			switch {
-			case v.Msg.Path != "" && v.Msg.Offset != 0:
-				sa = append(sa, fmt.Sprintf("%s: %s: %s:%d", typeToString(v.Type), v.Msg.Text, v.Msg.Path, v.Msg.Offset))
-			case v.Msg.Path != "" && v.Msg.Offset == 0:
-				sa = append(sa, fmt.Sprintf("%s: %s: %s", typeToString(v.Type), v.Msg.Text, v.Msg.Path))
-			default:
-				sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg.Text))
-			}
-
-		default:
-			if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
-				continue
-			}
-			sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg.Text))
-		}
-	}
-	return strings.Join(sa, "\n"), len(sa) > 0
-}
-
-func typeToString(cd checker.DetailType) string {
-	switch cd {
-	default:
-		panic("invalid detail")
-	case checker.DetailInfo:
-		return "Info"
-	case checker.DetailWarn:
-		return "Warn"
-	case checker.DetailDebug:
-		return "Debug"
-	}
 }
