@@ -43,9 +43,12 @@ func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (str
 			if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
 				continue
 			}
-			if v.Msg.Path != "" {
+			switch {
+			case v.Msg.Path != "" && v.Msg.Offset != 0:
 				sa = append(sa, fmt.Sprintf("%s: %s: %s:%d", typeToString(v.Type), v.Msg.Text, v.Msg.Path, v.Msg.Offset))
-			} else {
+			case v.Msg.Path != "" && v.Msg.Offset == 0:
+				sa = append(sa, fmt.Sprintf("%s: %s: %s", typeToString(v.Type), v.Msg.Text, v.Msg.Path))
+			default:
 				sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg.Text))
 			}
 		default:
