@@ -21,9 +21,10 @@ import (
 	"testing"
 	"time"
 
+	"go.uber.org/zap/zapcore"
+
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/docs/checks"
-	"go.uber.org/zap/zapcore"
 )
 
 //nolint

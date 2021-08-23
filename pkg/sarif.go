@@ -25,9 +25,10 @@ import (
 	"strings"
 	"time"
 
+	"go.uber.org/zap/zapcore"
+
 	"github.com/ossf/scorecard/v2/checker"
 	docs "github.com/ossf/scorecard/v2/docs/checks"
-	"go.uber.org/zap/zapcore"
 )
 
 type text struct {
