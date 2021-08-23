@@ -66,14 +66,28 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if *runs.TotalCount > 0 {
-			c.Dlogger.Info("workflow %v used in run: %s", fp, runs.WorkflowRuns[0].GetHTMLURL())
+			c.Dlogger.Info3(&checker.LogMessage{
+				Path: fp,
+				Type: checker.FileTypeSource,
+				// Source file must have line number > 0.
+				Offset: 1,
+				Text:   fmt.Sprintf("workflow used in run %s", runs.WorkflowRuns[0].GetHTMLURL()),
+			})
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
-		c.Dlogger.Info("workflow %v not used in runs", fp)
+		c.Dlogger.Info3(&checker.LogMessage{
+			Path: fp,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "workflow not used in runs",
+		})
 	}
 
-	c.Dlogger.Warn("no publishing GitHub workflow detected")
+	c.Dlogger.Warn3(&checker.LogMessage{
+		Text: "no publishing GitHub workflow detected",
+	})
 
 	return checker.CreateInconclusiveResult(CheckPackaging,
 		"no published package detected")
@@ -87,7 +101,13 @@ func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
 		r2 := regexp.MustCompile(`(?s)npm.*publish`)
 
 		if r1.MatchString(s) && r2.MatchString(s) {
-			dl.Info("candidate node publishing workflow using npm: %s", fp)
+			dl.Info3(&checker.LogMessage{
+				Path: fp,
+				Type: checker.FileTypeSource,
+				// Source file must have line number > 0.
+				Offset: 1,
+				Text:   "candidate node publishing workflow using npm",
+			})
 			return true
 		}
 	}
@@ -97,14 +117,26 @@ func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
 		// Java packages with maven.
 		r1 := regexp.MustCompile(`(?s)mvn.*deploy`)
 		if r1.MatchString(s) {
-			dl.Info("candidate java publishing workflow using maven: %s", fp)
+			dl.Info3(&checker.LogMessage{
+				Path: fp,
+				Type: checker.FileTypeSource,
+				// Source file must have line number > 0.
+				Offset: 1,
+				Text:   "candidate java publishing workflow using maven",
+			})
 			return true
 		}
 
 		// Java packages with gradle.
 		r2 := regexp.MustCompile(`(?s)gradle.*publish`)
 		if r2.MatchString(s) {
-			dl.Info("candidate java publishing workflow using gradle: %s", fp)
+			dl.Info3(&checker.LogMessage{
+				Path: fp,
+				Type: checker.FileTypeSource,
+				// Source file must have line number > 0.
+				Offset: 1,
+				Text:   "candidate java publishing workflow using gradle",
+			})
 			return true
 		}
 	}
@@ -112,39 +144,75 @@ func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
 	// Ruby packages.
 	r := regexp.MustCompile(`(?s)gem.*push`)
 	if r.MatchString(s) {
-		dl.Info("ruby publishing workflow using gem: %s", fp)
+		dl.Info3(&checker.LogMessage{
+			Path: fp,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "candidate ruby publishing workflow using gem",
+		})
 		return true
 	}
 
 	// NuGet packages.
 	r = regexp.MustCompile(`(?s)nuget.*push`)
 	if r.MatchString(s) {
-		dl.Info("nuget publishing workflow: %s", fp)
+		dl.Info3(&checker.LogMessage{
+			Path: fp,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "candidate nuget publishing workflow",
+		})
 		return true
 	}
 
 	// Docker packages.
 	if strings.Contains(s, "docker/build-push-action@") {
-		dl.Info("candidate docker publishing workflow: %s", fp)
+		dl.Info3(&checker.LogMessage{
+			Path: fp,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "candidate docker publishing workflow",
+		})
 		return true
 	}
 
 	r = regexp.MustCompile(`(?s)docker.*push`)
 	if r.MatchString(s) {
-		dl.Info("candidate docker publishing workflow: %s", fp)
+		dl.Info3(&checker.LogMessage{
+			Path: fp,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "candidate docker publishing workflow",
+		})
 		return true
 	}
 
 	// Python packages.
 	if strings.Contains(s, "actions/setup-python@") && strings.Contains(s, "pypa/gh-action-pypi-publish@master") {
-		dl.Info("candidate python publishing workflow using pypi: %s", fp)
+		dl.Info3(&checker.LogMessage{
+			Path: fp,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "candidate python publishing workflow using pyi",
+		})
 		return true
 	}
 
 	// Go packages.
 	if strings.Contains(s, "actions/setup-go") &&
 		strings.Contains(s, "goreleaser/goreleaser-action@") {
-		dl.Info("candidate golang publishing workflow: %s", fp)
+		dl.Info3(&checker.LogMessage{
+			Path: fp,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "candidate golang publishing workflow",
+		})
 		return true
 	}
 
@@ -152,10 +220,22 @@ func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
 	// https://doc.rust-lang.org/cargo/reference/publishing.html.
 	r = regexp.MustCompile(`(?s)cargo.*publish`)
 	if r.MatchString(s) {
-		dl.Info("candidate rust publishing workflow using cargo: %s", fp)
+		dl.Info3(&checker.LogMessage{
+			Path: fp,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "candidate rust publishing workflow using cargo",
+		})
 		return true
 	}
 
-	dl.Debug("not a publishing workflow: %s", fp)
+	dl.Debug3(&checker.LogMessage{
+		Path: fp,
+		Type: checker.FileTypeSource,
+		// Source file must have line number > 0.
+		Offset: 1,
+		Text:   "not a publishing workflow",
+	})
 	return false
 }

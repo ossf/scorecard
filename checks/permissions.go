@@ -274,8 +274,6 @@ func calculateScore(result permissionCbData) int {
 		score -= checker.MaxResultScore
 	}
 
-	// 2. Run-level permissions.
-
 	// We're done, calculate the final score.
 	if score < checker.MinResultScore {
 		return checker.MinResultScore

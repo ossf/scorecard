@@ -126,7 +126,9 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 				sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 		}
 		if crs == nil {
-			c.Dlogger.Warn("no pull requests merged into dev branch")
+			c.Dlogger.Warn3(&checker.LogMessage{
+				Text: "no pull requests merged into dev branch",
+			})
 			return checker.InconclusiveResultScore, nil
 		}
 		for _, cr := range crs.CheckRuns {
@@ -137,21 +139,31 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 				continue
 			}
 			if sastTools[cr.GetApp().GetSlug()] {
-				c.Dlogger.Debug("tool detected: %s", cr.GetHTMLURL())
+				c.Dlogger.Debug3(&checker.LogMessage{
+					Path: cr.GetHTMLURL(),
+					Type: checker.FileTypeURL,
+					Text: fmt.Sprintf("tool detected: %s", cr.GetHTMLURL()),
+				})
 				totalTested++
 				break
 			}
 		}
 	}
 	if totalMerged == 0 {
-		c.Dlogger.Warn("no pull requests merged into dev branch")
+		c.Dlogger.Warn3(&checker.LogMessage{
+			Text: "no pull requests merged into dev branch",
+		})
 		return checker.InconclusiveResultScore, nil
 	}
 
 	if totalTested == totalMerged {
-		c.Dlogger.Info(fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalMerged))
+		c.Dlogger.Info3(&checker.LogMessage{
+			Text: fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalMerged),
+		})
 	} else {
-		c.Dlogger.Warn(fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged))
+		c.Dlogger.Warn3(&checker.LogMessage{
+			Text: fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged),
+		})
 	}
 
 	return checker.CreateProportionalScore(totalTested, totalMerged), nil
@@ -170,16 +182,26 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	}
 
 	for _, result := range resp.Results {
-		c.Dlogger.Debug("CodeQL detected: %s", result.Path)
+		c.Dlogger.Debug3(&checker.LogMessage{
+			Path: result.Path,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "CodeQL detected",
+		})
 	}
 
 	// TODO: check if it's enabled as cron or presubmit.
 	// TODO: check which branches it is enabled on. We should find main.
 	if resp.Hits > 0 {
-		c.Dlogger.Info("SAST tool detected: CodeQL")
+		c.Dlogger.Info3(&checker.LogMessage{
+			Text: "SAST tool detected: CodeQL",
+		})
 		return checker.MaxResultScore, nil
 	}
 
-	c.Dlogger.Warn("CodeQL tool not detected")
+	c.Dlogger.Warn3(&checker.LogMessage{
+		Text: "CodeQL tool not detected",
+	})
 	return checker.MinResultScore, nil
 }
