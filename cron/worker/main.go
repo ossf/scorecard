@@ -114,7 +114,7 @@ func processRequest(ctx context.Context,
 			}
 			log.Print(errorMsg)
 		}
-		result.Date = batchRequest.GetJobTime().AsTime().Format("2006-01-02")
+		result.Date = batchRequest.GetJobTime().AsTime()
 		if err := result.AsJSON(true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
