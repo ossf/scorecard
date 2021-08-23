@@ -72,7 +72,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		var v3 bool
 		if _, v3 = os.LookupEnv("SCORECARD_V3"); v3 {
 			//nolint
-			fmt.Println("**** Using SCORECARD_V3 code ***** \n")
+			fmt.Printf("**** Using SCORECARD_V3 code ***** \n\n")
 		}
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
