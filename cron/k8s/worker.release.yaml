@@ -50,9 +50,11 @@ spec:
           requests:
             cpu: 5
             memory: 5Gi
+            ephemeral-storage: 100Gi
           limits:
             cpu: 12
             memory: 12Gi
+            ephemeral-storage: 500Gi
   strategy:
     type: "RollingUpdate"
     rollingUpdate:
