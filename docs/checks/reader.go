@@ -32,6 +32,7 @@ type Check struct {
 	Risk        string   `yaml:"-"`
 	Short       string   `yaml:"short"`
 	Description string   `yaml:"description"`
+	Tags        string   `yaml:"tags"`
 	Remediation []string `yaml:"remediation"`
 }
 

@@ -35,6 +35,7 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
 	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	docs "github.com/ossf/scorecard/v2/docs/checks"
 	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
 	"github.com/ossf/scorecard/v2/repos"
@@ -57,6 +58,7 @@ var (
 const (
 	formatCSV     = "csv"
 	formatJSON    = "json"
+	formatSarif   = "sarif"
 	formatDefault = "default"
 )
 
@@ -66,6 +68,11 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 	Short: "Security Scorecards",
 	Long:  "A program that shows security scorecard for an open source software.",
 	Run: func(cmd *cobra.Command, args []string) {
+		// UPGRADEv3: remove.
+		var v3 bool
+		if _, v3 = os.LookupEnv("SCORECARD_V3"); v3 {
+			fmt.Printf("**** Using SCORECARD_V3 code ***** \n\n")
+		}
 		cfg := zap.NewProductionConfig()
 		cfg.Level.SetLevel(*logLevel)
 		logger, err := cfg.Build()
@@ -158,6 +165,18 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		switch format {
 		case formatDefault:
 			err = repoResult.AsString(showDetails, *logLevel, os.Stdout)
+		case formatSarif:
+			if !v3 {
+				log.Fatalf("sarif not supported yet")
+			}
+			checkDocs, e := docs.Read()
+			if e != nil {
+				log.Fatalf("cannot read yaml file: %v", err)
+			}
+			// TODO: support config files and update checker.MaxResultScore.
+			// TODO: set version dynamically.
+			scorecardVersion := "1.2.3"
+			err = repoResult.AsSARIF(scorecardVersion, showDetails, *logLevel, os.Stdout, checkDocs, checker.MaxResultScore)
 		case formatCSV:
 			err = repoResult.AsCSV(showDetails, *logLevel, os.Stdout)
 		case formatJSON:
@@ -316,7 +335,8 @@ func init() {
 	rootCmd.Flags().StringVar(
 		&rubygems, "rubygems", "",
 		"rubygems package to check, given that the rubygems package has a GitHub repository")
-	rootCmd.Flags().StringVar(&format, "format", formatDefault, "output format. allowed values are [default, csv, json]")
+	rootCmd.Flags().StringVar(&format, "format", formatDefault,
+		"output format. allowed values are [default, sarif, html, json, csv]")
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")

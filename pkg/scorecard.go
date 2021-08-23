@@ -94,7 +94,7 @@ func RunScorecards(ctx context.Context,
 
 	ret := ScorecardResult{
 		Repo: repo.URL(),
-		Date: time.Now().Format("2006-01-02"),
+		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)
 	go runEnabledChecks(ctx, repo, checksToRun, repoClient,
