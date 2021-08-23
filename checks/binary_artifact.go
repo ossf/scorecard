@@ -98,7 +98,7 @@ func checkBinaryFileContent(path string, content []byte,
 	if _, ok := binaryFileTypes[t.Extension]; ok {
 		dl.Warn3(&checker.LogMessage{
 			Path: path, Type: checker.FileTypeBinary,
-			Offset: 0, Text: "binary detected",
+			Text: "binary detected",
 		})
 		*pfound = true
 		return true, nil
@@ -106,7 +106,7 @@ func checkBinaryFileContent(path string, content []byte,
 		// Falling back to file based extension.
 		dl.Warn3(&checker.LogMessage{
 			Path: path, Type: checker.FileTypeBinary,
-			Offset: 0, Text: "binary detected",
+			Text: "binary detected",
 		})
 		*pfound = true
 		return true, nil
