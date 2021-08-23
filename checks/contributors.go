@@ -70,7 +70,9 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 		names = append(names, c)
 	}
 
-	c.Dlogger.Info("contributors work for: %v", strings.Join(names, ","))
+	c.Dlogger.Info3(&checker.LogMessage{
+		Text: fmt.Sprintf("contributors work for: %v", strings.Join(names, ",")),
+	})
 
 	reason := fmt.Sprintf("%d different companies found", len(companies))
 	return checker.CreateProportionalScoreResult(CheckContributors, reason, len(companies), numberCompaniesForTopScore)

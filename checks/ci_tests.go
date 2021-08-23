@@ -90,7 +90,9 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		}
 
 		if !foundCI {
-			c.Dlogger.Debug("merged PR without CI test: %d", pr.Number)
+			c.Dlogger.Debug3(&checker.LogMessage{
+				Text: fmt.Sprintf("merged PR without CI test: %d", pr.Number),
+			})
 		}
 	}
 
@@ -116,8 +118,12 @@ func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool,
 			continue
 		}
 		if isTest(status.GetContext()) {
-			c.Dlogger.Debug("CI test found: pr: %d, context: %success, url: %success", pr.Number,
-				status.GetContext(), status.GetURL())
+			c.Dlogger.Debug3(&checker.LogMessage{
+				Path: status.GetURL(),
+				Type: checker.FileTypeURL,
+				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,
+					status.GetContext()),
+			})
 			return true, nil
 		}
 	}
@@ -145,8 +151,12 @@ func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (boo
 			continue
 		}
 		if isTest(cr.GetApp().GetSlug()) {
-			c.Dlogger.Debug("CI test found: pr: %d, context: %success, url: %success", pr.Number,
-				cr.GetApp().GetSlug(), cr.GetURL())
+			c.Dlogger.Debug3(&checker.LogMessage{
+				Path: cr.GetURL(),
+				Type: checker.FileTypeURL,
+				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,
+					cr.GetApp().GetSlug()),
+			})
 			return true, nil
 		}
 	}

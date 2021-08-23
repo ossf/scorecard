@@ -74,11 +74,15 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 func selectBestScoreAndReason(s1, s2 int, r1, r2 string,
 	dl checker.DetailLogger) (int, string) {
 	if s1 > s2 {
-		dl.Info(r2)
+		dl.Info3(&checker.LogMessage{
+			Text: r2,
+		})
 		return s1, r1
 	}
 
-	dl.Info(r1)
+	dl.Info3(&checker.LogMessage{
+		Text: r1,
+	})
 	return s2, r2
 }
 
@@ -101,7 +105,9 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 		foundApprovedReview := false
 		for _, r := range pr.Reviews {
 			if r.State == "APPROVED" {
-				c.Dlogger.Debug("found review approved pr: %d", pr.Number)
+				c.Dlogger.Debug3(&checker.LogMessage{
+					Text: fmt.Sprintf("found review approved pr: %d", pr.Number),
+				})
 				totalReviewed++
 				foundApprovedReview = true
 				break
@@ -113,7 +119,9 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 		// time on clicking the approve button.
 		if !foundApprovedReview {
 			if !pr.MergeCommit.AuthoredByCommitter {
-				c.Dlogger.Debug("found pr with committer different than author: %d", pr.Number)
+				c.Dlogger.Info3(&checker.LogMessage{
+					Text: fmt.Sprintf("found pr with committer different than author: %d", pr.Number),
+				})
 				totalReviewed++
 			}
 		}
@@ -184,7 +192,9 @@ func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
 			}
 		}
 		if isBot {
-			c.Dlogger.Debug("skip commit from bot account: %s", committer)
+			c.Dlogger.Info3(&checker.LogMessage{
+				Text: fmt.Sprintf("skip commit from bot account: %s", committer),
+			})
 			continue
 		}
 
@@ -194,7 +204,9 @@ func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
 		commitMessage := commit.Message
 		if strings.Contains(commitMessage, "\nReviewed-on: ") &&
 			strings.Contains(commitMessage, "\nReviewed-by: ") {
-			c.Dlogger.Debug("Gerrit review found for commit '%s'", commit.SHA)
+			c.Dlogger.Info3(&checker.LogMessage{
+				Text: fmt.Sprintf("Gerrit review found for commit '%s'", commit.SHA),
+			})
 			totalReviewed++
 			continue
 		}
