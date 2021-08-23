@@ -71,7 +71,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 				Type: checker.FileTypeSource,
 				// Source file must have line number > 0.
 				Offset: 1,
-				Text:   fmt.Sprintf("workflow used in run %s", runs.WorkflowRuns[0].GetHTMLURL()),
+				Text:   fmt.Sprintf("GitHub publishing workflow used in run %s", runs.WorkflowRuns[0].GetHTMLURL()),
 			})
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
@@ -86,7 +86,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	c.Dlogger.Warn3(&checker.LogMessage{
-		Text: "no publishing GitHub workflow detected",
+		Text: "no GitHub publishing workflow detected",
 	})
 
 	return checker.CreateInconclusiveResult(CheckPackaging,
@@ -198,7 +198,7 @@ func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
 			Type: checker.FileTypeSource,
 			// Source file must have line number > 0.
 			Offset: 1,
-			Text:   "candidate python publishing workflow using pyi",
+			Text:   "candidate python publishing workflow using pypi",
 		})
 		return true
 	}
