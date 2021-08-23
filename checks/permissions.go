@@ -66,7 +66,7 @@ func validatePermission(key string, value interface{}, path string,
 			dl.Warn3(&checker.LogMessage{
 				Path: path,
 				Type: checker.FileTypeSource,
-				// TODO set line.
+				// TODO: set line.
 				Offset: 1,
 				Text:   fmt.Sprintf("'%v' permission set to '%v'", key, val),
 				// TODO: set Snippet.
@@ -78,7 +78,7 @@ func validatePermission(key string, value interface{}, path string,
 			dl.Debug3(&checker.LogMessage{
 				Path: path,
 				Type: checker.FileTypeSource,
-				// TODO set line.
+				// TODO: set line.
 				Offset: 1,
 				Text:   fmt.Sprintf("'%v' permission set to '%v'", key, val),
 				// TODO: set Snippet.
@@ -87,7 +87,7 @@ func validatePermission(key string, value interface{}, path string,
 		return nil
 	}
 
-	dl.Warn3(&checker.LogMessage{
+	dl.Info3(&checker.LogMessage{
 		Path: path,
 		Type: checker.FileTypeSource,
 		// TODO: set line correctly.
@@ -452,7 +452,7 @@ func isSARIFUploadAction(s, fp string, dl checker.DetailLogger) bool {
 		dl.Debug3(&checker.LogMessage{
 			Path: fp,
 			Type: checker.FileTypeSource,
-			// TODO set line.
+			// TODO: set line.
 			Offset: 1,
 			Text:   "codeql SARIF upload workflow detected",
 			// TODO: set Snippet.

@@ -119,7 +119,7 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 		// time on clicking the approve button.
 		if !foundApprovedReview {
 			if !pr.MergeCommit.AuthoredByCommitter {
-				c.Dlogger.Info3(&checker.LogMessage{
+				c.Dlogger.Debug3(&checker.LogMessage{
 					Text: fmt.Sprintf("found pr with committer different than author: %d", pr.Number),
 				})
 				totalReviewed++
@@ -192,7 +192,7 @@ func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
 			}
 		}
 		if isBot {
-			c.Dlogger.Info3(&checker.LogMessage{
+			c.Dlogger.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("skip commit from bot account: %s", committer),
 			})
 			continue
@@ -204,7 +204,7 @@ func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
 		commitMessage := commit.Message
 		if strings.Contains(commitMessage, "\nReviewed-on: ") &&
 			strings.Contains(commitMessage, "\nReviewed-by: ") {
-			c.Dlogger.Info3(&checker.LogMessage{
+			c.Dlogger.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("Gerrit review found for commit '%s'", commit.SHA),
 			})
 			totalReviewed++
