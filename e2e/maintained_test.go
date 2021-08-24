@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.IsActive(&req)
+			result := checks.IsMaintained(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
