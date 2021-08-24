@@ -36,8 +36,12 @@ func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, err)
 	}
 	if !r {
-		c.Dlogger.Warn("dependabot not detected")
-		c.Dlogger.Warn("renovatebot not detected")
+		c.Dlogger.Warn3(&checker.LogMessage{
+			Text: "dependabot not detected",
+		})
+		c.Dlogger.Warn3(&checker.LogMessage{
+			Text: "renovatebot not detected",
+		})
 		return checker.CreateMinScoreResult(CheckDependencyUpdateTool, "no update tool detected")
 	}
 
@@ -51,11 +55,23 @@ func fileExists(name string, dl checker.DetailLogger, data FileCbData) (bool, er
 
 	switch strings.ToLower(name) {
 	case ".github/dependabot.yml":
-		dl.Info("dependabot detected : %s", name)
+		dl.Info3(&checker.LogMessage{
+			Path: name,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "dependabot detected",
+		})
 		// https://docs.renovatebot.com/configuration-options/
 	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
 		"renovate.json5", ".renovaterc":
-		dl.Info("renovate detected: %s", name)
+		dl.Info3(&checker.LogMessage{
+			Path: name,
+			Type: checker.FileTypeSource,
+			// Source file must have line number > 0.
+			Offset: 1,
+			Text:   "renovate detected",
+		})
 	default:
 		// Continue iterating.
 		return true, nil

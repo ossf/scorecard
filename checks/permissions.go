@@ -63,17 +63,38 @@ func validatePermission(key string, value interface{}, path string,
 
 	if strings.EqualFold(val, "write") {
 		if isPermissionOfInterest(key, ignoredPermissions) {
-			dl.Warn("'%v' permission set to '%v' in %v", key, val, path)
+			dl.Warn3(&checker.LogMessage{
+				Path: path,
+				Type: checker.FileTypeSource,
+				// TODO: set line.
+				Offset: 1,
+				Text:   fmt.Sprintf("'%v' permission set to '%v'", key, val),
+				// TODO: set Snippet.
+			})
 			recordPermissionWrite(key, pPermissions)
 		} else {
 			// Only log for debugging, otherwise
 			// it may confuse users.
-			dl.Debug("'%v' permission set to '%v' in %v", key, val, path)
+			dl.Debug3(&checker.LogMessage{
+				Path: path,
+				Type: checker.FileTypeSource,
+				// TODO: set line.
+				Offset: 1,
+				Text:   fmt.Sprintf("'%v' permission set to '%v'", key, val),
+				// TODO: set Snippet.
+			})
 		}
 		return nil
 	}
 
-	dl.Info("'%v' permission set to '%v' in %v", key, val, path)
+	dl.Info3(&checker.LogMessage{
+		Path: path,
+		Type: checker.FileTypeSource,
+		// TODO: set line correctly.
+		Offset: 1,
+		Text:   fmt.Sprintf("'%v' permission set to '%v'", key, val),
+		// TODO: set Snippet.
+	})
 	return nil
 }
 
@@ -113,15 +134,37 @@ func validatePermissions(permissions interface{}, path string,
 	// Empty string is nil type.
 	// It defaults to 'none'
 	case nil:
-		dl.Info("permissions set to 'none' in %v", path)
+		dl.Info3(&checker.LogMessage{
+			Path: path,
+			Type: checker.FileTypeSource,
+			// TODO: set line correctly.
+			Offset: 1,
+			Text:   "permissions set to 'none'",
+			// TODO: set Snippet.
+		})
 	// String type.
 	case string:
 		if !strings.EqualFold(val, "read-all") && val != "" {
-			dl.Warn("permissions set to '%v' in %v", val, path)
+			dl.Warn3(&checker.LogMessage{
+				Path: path,
+				Type: checker.FileTypeSource,
+				// TODO: set line correctly.
+				Offset: 1,
+				Text:   fmt.Sprintf("permissions set to '%v'", val),
+				// TODO: set Snippet.
+			})
 			recordAllPermissionsWrite(pPermissions)
 			return nil
 		}
-		dl.Info("permission set to '%v' in %v", val, path)
+
+		dl.Info3(&checker.LogMessage{
+			Path: path,
+			Type: checker.FileTypeSource,
+			// TODO: set line correctly.
+			Offset: 1,
+			Text:   fmt.Sprintf("permissions set to '%v'", val),
+			// TODO: set Snippet.
+		})
 
 	// Map type.
 	case map[interface{}]interface{}:
@@ -142,7 +185,12 @@ func validateTopLevelPermissions(config map[interface{}]interface{}, path string
 	// Check if permissions are set explicitly.
 	permissions, ok := config["permissions"]
 	if !ok {
-		dl.Warn("no permission defined in %v", path)
+		dl.Warn3(&checker.LogMessage{
+			Path:   path,
+			Type:   checker.FileTypeSource,
+			Offset: 1,
+			Text:   "no permission defined",
+		})
 		recordAllPermissionsWrite(pdata.topLevelWritePermissions)
 		return nil
 	}
@@ -178,7 +226,12 @@ func validateRunLevelPermissions(config map[interface{}]interface{}, path string
 		// so only top-level read-only permissions need to be declared.
 		permissions, ok := job["permissions"]
 		if !ok {
-			dl.Debug("no permission defined in %v", path)
+			dl.Debug3(&checker.LogMessage{
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: 1,
+				Text:   "no permission defined",
+			})
 			continue
 		}
 		err := validatePermissions(permissions, path, dl,
@@ -273,8 +326,6 @@ func calculateScore(result permissionCbData) int {
 	if permissionIsPresent(result, "actions") {
 		score -= checker.MaxResultScore
 	}
-
-	// 2. Run-level permissions.
 
 	// We're done, calculate the final score.
 	if score < checker.MinResultScore {
@@ -396,10 +447,22 @@ func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
 // CodeQl run externally and SARIF file uploaded.
 func isSARIFUploadAction(s, fp string, dl checker.DetailLogger) bool {
 	if strings.Contains(s, "github/codeql-action/upload-sarif@") {
-		dl.Debug("codeql SARIF upload workflow detected: %v", fp)
+		dl.Debug3(&checker.LogMessage{
+			Path: fp,
+			Type: checker.FileTypeSource,
+			// TODO: set line.
+			Offset: 1,
+			Text:   "codeql SARIF upload workflow detected",
+			// TODO: set Snippet.
+		})
 		return true
 	}
-	dl.Debug("not a codeql upload SARIF workflow: %v", fp)
+	dl.Debug3(&checker.LogMessage{
+		Path:   fp,
+		Type:   checker.FileTypeSource,
+		Offset: 1,
+		Text:   "not a codeql upload SARIF workflow",
+	})
 	return false
 }
 
@@ -409,10 +472,22 @@ func isSARIFUploadAction(s, fp string, dl checker.DetailLogger) bool {
 // https://docs.github.com/en/code-security/secure-coding/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning.
 func isCodeQlAnalysisWorkflow(s, fp string, dl checker.DetailLogger) bool {
 	if strings.Contains(s, "github/codeql-action/analyze@") {
-		dl.Debug("codeql workflow detected: %v", fp)
+		dl.Debug3(&checker.LogMessage{
+			Path: fp,
+			Type: checker.FileTypeSource,
+			// TODO: set line.
+			Offset: 1,
+			Text:   "codeql workflow detected",
+			// TODO: set Snippet.
+		})
 		return true
 	}
-	dl.Debug("not a codeql workflow: %v", fp)
+	dl.Debug3(&checker.LogMessage{
+		Path:   fp,
+		Type:   checker.FileTypeSource,
+		Offset: 1,
+		Text:   "not a codeql workflow",
+	})
 	return false
 }
 

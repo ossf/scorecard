@@ -316,17 +316,18 @@ func detailsToRelatedLocations(details []checker.CheckDetail,
 }
 
 // TODO: update using config file.
-func scoreToLevel(score int) string {
+func scoreToLevel(minScore, score int) string {
 	// Any of error, note, warning, none.
-	switch score {
+	switch {
 	default:
 		return "error"
-	case checker.MaxResultScore, checker.InconclusiveResultScore:
+	case score == checker.MaxResultScore, score == checker.InconclusiveResultScore,
+		minScore <= score:
 		return "note"
 	}
 }
 
-func createSARIFHeader(url, category, name, version string, t time.Time) sarif210 {
+func createSARIFHeader(url, category, name, version, commit string, t time.Time) sarif210 {
 	return sarif210{
 		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
 		Version: "2.1.0",
@@ -344,7 +345,7 @@ func createSARIFHeader(url, category, name, version string, t time.Time) sarif21
 				// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
 				AutomationDetails: automationDetails{
 					// Time formatting: https://pkg.go.dev/time#pkg-constants.
-					ID: fmt.Sprintf("%s/%s/%s", category, name, t.Format(time.RFC822Z)),
+					ID: fmt.Sprintf("%s/%s/%s", category, name, fmt.Sprintf("%s-%s", commit, t.Format(time.RFC822Z))),
 				},
 			},
 		},
@@ -374,12 +375,12 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
 	}
 }
 
-func createSARIFResult(pos int, checkID, reason string, score int,
+func createSARIFResult(pos int, checkID, reason string, minScore, score int,
 	locs []location, rlocs []relatedLocation) result {
 	return result{
 		RuleID: checkID,
 		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
-		Level:            scoreToLevel(score),
+		Level:            scoreToLevel(minScore, score),
 		RuleIndex:        pos,
 		Message:          text{Text: reason},
 		Locations:        locs,
@@ -396,7 +397,7 @@ func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zap
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
 	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
-		"supply-chain", "scorecard", version, r.Date)
+		"supply-chain", "scorecard", version, r.CommitSHA, r.Date)
 	results := []result{}
 	rules := []rule{}
 
@@ -434,15 +435,14 @@ func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zap
 			tagsAsList(doc.Tags))
 		rules = append(rules, rule)
 
-		// Create a result.
-		score := check.Score
+		// Add default location if no locations are present.
+		// Note: GitHub needs at least one location to show the results.
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs)
-			// Setting an artifical score to maximum value
-			// makes the `level` to "note" instead of "error".
-			score = checker.MaxResultScore
 		}
-		r := createSARIFResult(i, checkID, check.Reason, score, locs, rlocs)
+
+		// Create a result.
+		r := createSARIFResult(i, checkID, check.Reason, minScore, check.Score, locs, rlocs)
 		results = append(results, r)
 	}
 

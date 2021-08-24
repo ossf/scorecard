@@ -99,7 +99,9 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	// TODO: take severity into account.
 	vulnIDs := osvResp.getVulnerabilities()
 	if len(vulnIDs) > 0 {
-		c.Dlogger.Warn("HEAD is vulnerable to %s", strings.Join(vulnIDs, ", "))
+		c.Dlogger.Warn3(&checker.LogMessage{
+			Text: fmt.Sprintf("HEAD is vulnerable to %s", strings.Join(vulnIDs, ", ")),
+		})
 		return checker.CreateMinScoreResult(CheckVulnerabilities, "existing vulnerabilities detected")
 	}
 

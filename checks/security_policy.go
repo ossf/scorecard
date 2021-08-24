@@ -40,11 +40,23 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	onFile := func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
 		pdata := FileGetCbDataAsBoolPointer(data)
 		if strings.EqualFold(name, "security.md") {
-			c.Dlogger.Info("security policy detected: %s", name)
+			c.Dlogger.Info3(&checker.LogMessage{
+				Path: name,
+				Type: checker.FileTypeSource,
+				// Source file must have line number > 0.
+				Offset: 1,
+				Text:   "security policy detected",
+			})
 			*pdata = true
 			return false, nil
 		} else if isSecurityRstFound(name) {
-			c.Dlogger.Info("security policy detected: %s", name)
+			c.Dlogger.Info3(&checker.LogMessage{
+				Path: name,
+				Type: checker.FileTypeSource,
+				// Source file must have line number > 0.
+				Offset: 1,
+				Text:   "security policy detected",
+			})
 			*pdata = true
 			return false, nil
 		}
@@ -74,7 +86,13 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 			if strings.EqualFold(name, "security.md") ||
 				strings.EqualFold(name, ".github/security.md") ||
 				strings.EqualFold(name, "docs/security.md") {
-				dl.Info("security policy detected in .github folder: %s", name)
+				dl.Info3(&checker.LogMessage{
+					Path: name,
+					Type: checker.FileTypeSource,
+					// Source file must have line number > 0.
+					Offset: 1,
+					Text:   "security policy detected in .github folder",
+				})
 				*pdata = true
 				return false, nil
 			}
