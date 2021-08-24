@@ -23,37 +23,37 @@ import (
 )
 
 const (
-	// CheckActive is the exported check name for Active.
-	CheckActive    = "Active"
-	lookBackDays   = 90
-	commitsPerWeek = 1
-	daysInOneWeek  = 7
+	// CheckMaintained is the exported check name for Maintained.
+	CheckMaintained = "Maintained"
+	lookBackDays    = 90
+	commitsPerWeek  = 1
+	daysInOneWeek   = 7
 )
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckActive, IsActive)
+	registerCheck(CheckMaintained, IsMaintained)
 }
 
-// IsActive runs Active check.
-func IsActive(c *checker.CheckRequest) checker.CheckResult {
+// IsMaintained runs Maintained check.
+func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 	archived, err := c.RepoClient.IsArchived()
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckActive, err)
+		return checker.CreateRuntimeErrorResult(CheckMaintained, err)
 	}
 	if archived {
-		return checker.CreateMinScoreResult(CheckActive, "repo is marked as archived")
+		return checker.CreateMinScoreResult(CheckMaintained, "repo is marked as archived")
 	}
 
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckActive, err)
+		return checker.CreateRuntimeErrorResult(CheckMaintained, err)
 	}
 
 	tz, err := time.LoadLocation("UTC")
 	if err != nil {
 		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("time.LoadLocation: %v", err))
-		return checker.CreateRuntimeErrorResult(CheckActive, e)
+		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
 	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookBackDays)
 	totalCommits := 0
@@ -62,7 +62,7 @@ func IsActive(c *checker.CheckRequest) checker.CheckResult {
 			totalCommits++
 		}
 	}
-	return checker.CreateProportionalScoreResult(CheckActive,
+	return checker.CreateProportionalScoreResult(CheckMaintained,
 		fmt.Sprintf("%d commit(s) found in the last %d days", totalCommits, lookBackDays),
 		totalCommits, commitsPerWeek*lookBackDays/daysInOneWeek)
 }

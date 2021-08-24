@@ -29,9 +29,9 @@ import (
 
 // TODO: use dedicated repo that don't change.
 // TODO: need negative results.
-var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
-	Context("E2E TEST:Validating dependencies are automatically updated", func() {
-		It("Should return deps are automatically updated for dependabot", func() {
+var _ = Describe("E2E TEST:"+checker.CheckDependencyUpdateTool, func() {
+	Context("E2E TEST:Validating dependencies are updated thru a tool", func() {
+		It("Should return repo uses dependabot", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("ossf", "scorecard")
@@ -62,7 +62,7 @@ var _ = Describe("E2E TEST:Automatic-Dependency-Update", func() {
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dependabot", &expected, &result, &dl)).Should(BeTrue())
 		})
-		It("Should return deps are automatically updated for renovatebot", func() {
+		It("Should return repo uses renovatebot", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("netlify", "netlify-cms")

@@ -25,11 +25,11 @@ const CheckDependencyUpdateTool = "Dependency-Update-Tool"
 
 //nolint
 func init() {
-	registerCheck(CheckDependencyUpdateTool, AutomaticDependencyUpdate)
+	registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool)
 }
 
-// AutomaticDependencyUpdate will check the repository if it contains Automatic dependency update.
-func AutomaticDependencyUpdate(c *checker.CheckRequest) checker.CheckResult {
+// DependencyUpdateTool will check the repository uses a dependency update tool.
+func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	var r bool
 	err := CheckIfFileExists(CheckDependencyUpdateTool, c, fileExists, &r)
 	if err != nil {

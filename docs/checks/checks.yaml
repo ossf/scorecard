@@ -15,7 +15,7 @@
 # This is the source of truth for all check descriptions and remediation steps.
 # Run `cd checks/main && go run /main` to generate `checks.json` and `checks.md`.
 checks:
-  Active:
+  Maintained:
     risk: High
     tags: supply-chain, security
     short: Determines if the project is "actively maintained".
