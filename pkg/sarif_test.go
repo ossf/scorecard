@@ -39,6 +39,7 @@ func TestSATIFOutput(t *testing.T) {
 		Tags        string   `yaml:"tags"`
 	}
 
+	commit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
 	date, e := time.Parse(time.RFC822Z, "17 Aug 21 18:57 +0000")
 	if e != nil {
 		panic(fmt.Errorf("time.Parse: %w", e))
@@ -71,8 +72,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo: "repo not used",
-				Date: date,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -115,8 +117,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo: "repo not used",
-				Date: date,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -172,8 +175,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo: "repo not used",
-				Date: date,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -282,8 +286,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo: "repo not used",
-				Date: date,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -377,8 +382,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo: "repo not used",
-				Date: date,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -419,8 +425,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo: "repo not used",
-				Date: date,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
