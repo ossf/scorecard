@@ -72,9 +72,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:   "repo not used",
-				Date:   date,
-				Commit: commit,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -117,9 +117,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:   "repo not used",
-				Date:   date,
-				Commit: commit,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -175,9 +175,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:   "repo not used",
-				Date:   date,
-				Commit: commit,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -286,9 +286,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:   "repo not used",
-				Date:   date,
-				Commit: commit,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -382,9 +382,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:   "repo not used",
-				Date:   date,
-				Commit: commit,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -425,9 +425,9 @@ func TestSATIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:   "repo not used",
-				Date:   date,
-				Commit: commit,
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
