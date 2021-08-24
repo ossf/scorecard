@@ -16,7 +16,6 @@ package pkg
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -33,90 +32,11 @@ import (
 
 // ScorecardResult struct is returned on a successful Scorecard run.
 type ScorecardResult struct {
-	Repo     string
-	Date     time.Time
-	Checks   []checker.CheckResult
-	Metadata []string
-}
-
-//nolint
-type jsonCheckResultV2 struct {
-	Details []string
-	Score   int
-	Reason  string
-	Name    string
-}
-
-type jsonScorecardResultV2 struct {
-	Repo     string
-	Date     string
-	Checks   []jsonCheckResultV2
-	Metadata []string
-}
-
-// AsJSON outputs the result in JSON format with a newline at the end.
-// If called on []ScorecardResult will create NDJson formatted output.
-// UPGRADEv2: will be removed.
-func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
-	encoder := json.NewEncoder(writer)
-	if showDetails {
-		if err := encoder.Encode(r); err != nil {
-			//nolint:wrapcheck
-			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-		}
-		return nil
-	}
-	out := ScorecardResult{
-		Repo:     r.Repo,
-		Date:     r.Date,
-		Metadata: r.Metadata,
-	}
-	// UPGRADEv2: remove nolint after ugrade.
-	//nolint
-	for _, checkResult := range r.Checks {
-		tmpResult := checker.CheckResult{
-			Name:       checkResult.Name,
-			Pass:       checkResult.Pass,
-			Confidence: checkResult.Confidence,
-		}
-		out.Checks = append(out.Checks, tmpResult)
-	}
-	if err := encoder.Encode(out); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-	}
-	return nil
-}
-
-// AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
-	encoder := json.NewEncoder(writer)
-
-	out := jsonScorecardResultV2{
-		Repo:     r.Repo,
-		Date:     r.Date.Format("2006-01-02"),
-		Metadata: r.Metadata,
-	}
-
-	//nolint
-	for _, checkResult := range r.Checks {
-		tmpResult := jsonCheckResultV2{
-			Name:   checkResult.Name,
-			Reason: checkResult.Reason,
-			Score:  checkResult.Score,
-		}
-		if showDetails {
-			for _, d := range checkResult.Details2 {
-				tmpResult.Details = append(tmpResult.Details, d.Msg.Text)
-			}
-		}
-		out.Checks = append(out.Checks, tmpResult)
-	}
-	if err := encoder.Encode(out); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-	}
-	return nil
+	Repo      string
+	Date      time.Time
+	CommitSHA string
+	Checks    []checker.CheckResult
+	Metadata  []string
 }
 
 // AsCSV outputs ScorecardResult in CSV format.
