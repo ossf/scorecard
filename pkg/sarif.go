@@ -397,7 +397,7 @@ func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zap
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
 	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
-		"supply-chain", "scorecard", version, r.Commit, r.Date)
+		"supply-chain", "scorecard", version, r.CommitSHA, r.Date)
 	results := []result{}
 	rules := []rule{}
 

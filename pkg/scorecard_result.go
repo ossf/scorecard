@@ -32,11 +32,11 @@ import (
 
 // ScorecardResult struct is returned on a successful Scorecard run.
 type ScorecardResult struct {
-	Repo     string
-	Date     time.Time
-	Commit   string
-	Checks   []checker.CheckResult
-	Metadata []string
+	Repo      string
+	Date      time.Time
+	CommitSHA string
+	Checks    []checker.CheckResult
+	Metadata  []string
 }
 
 // AsCSV outputs ScorecardResult in CSV format.
