@@ -435,18 +435,14 @@ func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zap
 			tagsAsList(doc.Tags))
 		rules = append(rules, rule)
 
-		// Create a result.
-		score := check.Score
-		// if len(rlocs) == 0 && len(locs) == 0 {
-		// 	// Setting an artifical score to maximum value
-		// 	// makes the `level` to "note" instead of "error".
-		// 	score = checker.MaxResultScore
-		// }
-
+		// Add default location if no locations are present.
+		// Note: GitHub needs at least one location to show the results.
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs)
 		}
-		r := createSARIFResult(i, checkID, check.Reason, minScore, score, locs, rlocs)
+
+		// Create a result.
+		r := createSARIFResult(i, checkID, check.Reason, minScore, check.Score, locs, rlocs)
 		results = append(results, r)
 	}
 
