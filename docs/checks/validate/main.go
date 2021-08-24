@@ -42,6 +42,14 @@ func main() {
 			// nolint: goerr113
 			panic(fmt.Errorf("remediation for checkName: %s is empty", check))
 		}
+		if doc.Short == "" {
+			// nolint: goerr113
+			panic(fmt.Errorf("short for checkName: %s is empty", check))
+		}
+		if doc.Tags == "" {
+			// nolint: goerr113
+			panic(fmt.Errorf("tags for checkName: %s is empty", check))
+		}
 	}
 	for check := range m.Checks {
 		if _, exists := allChecks[check]; !exists {

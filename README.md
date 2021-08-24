@@ -11,11 +11,11 @@
 *   [Goals](#goals)
 *   [Scorecard Checks](#scorecard-checks)
 *   [Usage](#usage)
+    *   [Authentication](#authentication)
     *   [Docker](#docker)
     *   [Using repository URL](#using-repository-url)
     *   [Using a Package manager](#using-a-package-manager)
     *   [Running specific checks](#running-specific-checks)
-    *   [Authentication](#authentication)
     *   [Understanding Scorecard results](#understanding-scorecard-results)
     *   [Formatting Results](#formatting-results)
 *   [Public Data](#public-data)
@@ -66,6 +66,42 @@ To see detailed information about each check and remediation steps, check out
 the [checks documentation page](docs/checks.md).
 
 ## Usage
+
+### Authentication
+
+Before running Scorecard, you need to, either:
+
+-   [create a GitHub access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
+    and set it in an environment variable called `GITHUB_AUTH_TOKEN`,
+    `GITHUB_TOKEN`, `GH_AUTH_TOKEN` or `GH_TOKEN`. This helps to avoid the
+    GitHub's [api rate limits](https://developer.github.com/v3/#rate-limiting)
+    with unauthenticated requests.
+
+```shell
+# For posix platforms, e.g. linux, mac:
+export GITHUB_AUTH_TOKEN=<your access token>
+# Multiple tokens can be provided separated by comma to be utilized
+# in a round robin fashion.
+export GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
+
+# For windows:
+set GITHUB_AUTH_TOKEN=<your access token>
+set GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
+```
+
+-   create a GitHub App Installations for higher rate-limit quotas. If you have
+    an installed GitHub App and key file, you can use these three environment
+    variables, following the commands shown above for your platform.
+
+```
+GITHUB_APP_KEY_PATH=<path to the key file on disk>
+GITHUB_APP_INSTALLATION_ID=<installation id>
+GITHUB_APP_ID=<app id>
+```
+
+These can be obtained from the GitHub
+[developer settings](https://github.com/settings/apps) page.
+
 
 ### Docker
 
@@ -219,41 +255,6 @@ To use a particular check(s), add the `--checks` argument with a list of check
 names.
 
 For example, `--checks=CI-Tests,Code-Review`.
-
-### Authentication
-
-Before running Scorecard, you need to, either:
-
--   [create a GitHub access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
-    and set it in an environment variable called `GITHUB_AUTH_TOKEN`,
-    `GITHUB_TOKEN`, `GH_AUTH_TOKEN` or `GH_TOKEN`. This helps to avoid the
-    GitHub's [api rate limits](https://developer.github.com/v3/#rate-limiting)
-    with unauthenticated requests.
-
-```shell
-# For posix platforms, e.g. linux, mac:
-export GITHUB_AUTH_TOKEN=<your access token>
-# Multiple tokens can be provided separated by comma to be utilized
-# in a round robin fashion.
-export GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
-
-# For windows:
-set GITHUB_AUTH_TOKEN=<your access token>
-set GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
-```
-
--   create a GitHub App Installations for higher rate-limit quotas. If you have
-    an installed GitHub App and key file, you can use these three environment
-    variables, following the commands shown above for your platform.
-
-```
-GITHUB_APP_KEY_PATH=<path to the key file on disk>
-GITHUB_APP_INSTALLATION_ID=<installation id>
-GITHUB_APP_ID=<app id>
-```
-
-These can be obtained from the GitHub
-[developer settings](https://github.com/settings/apps) page.
 
 ### Understanding Scorecard results
 
