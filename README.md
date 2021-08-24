@@ -45,15 +45,15 @@ The following checks are all run against the target project by default:
 
 Name                        | Description
 --------------------------- | -----------
-Maintained                  | Is the project maintained?
-Dependency-Update-Tool      | Does the project use tools to help update its dependencies?
 Binary-Artifacts            | Is the project free of checked-in binaries?
 Branch-Protection           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?
 CI-Tests                    | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?
 CII-Best-Practices          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
 Code-Review                 | Does the project require code review before code is merged?
 Contributors                | Does the project have contributors from at least two different organizations?
+Dependency-Update-Tool      | Does the project use tools to help update its dependencies?
 Fuzzing                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
+Maintained                  | Is the project maintained?
 Pinned-Dependencies         | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
 Packaging                   | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
 SAST                        | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)?
