@@ -43,7 +43,7 @@
          "results": [
             {
                "ruleId": "cdf761a2ef9830335f96bc67d6bc0008",
-               "level": "note",
+               "level": "error",
                "ruleIndex": 0,
                "message": {
                   "text": "six score reason"
