@@ -16,6 +16,7 @@ package checks
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ossf/scorecard/v2/checker"
 	sce "github.com/ossf/scorecard/v2/errors"
@@ -53,23 +54,23 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 		})
 		totalReleases++
 		signed := false
-		// for _, asset := range r.Assets {
-		// 	for _, suffix := range artifactExtensions {
-		// 		if strings.HasSuffix(asset.Name, suffix) {
-		// 			c.Dlogger.Info3(&checker.LogMessage{
-		// 				Path: asset.URL,
-		// 				Type: checker.FileTypeURL,
-		// 				Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
-		// 			})
-		// 			signed = true
-		// 			break
-		// 		}
-		// 	}
-		// 	if signed {
-		// 		totalSigned++
-		// 		break
-		// 	}
-		// }
+		for _, asset := range r.Assets {
+			for _, suffix := range artifactExtensions {
+				if strings.HasSuffix(asset.Name, suffix) {
+					c.Dlogger.Info3(&checker.LogMessage{
+						Path: asset.URL,
+						Type: checker.FileTypeURL,
+						Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
+					})
+					signed = true
+					break
+				}
+			}
+			if signed {
+				totalSigned++
+				break
+			}
+		}
 		if !signed {
 			c.Dlogger.Warn3(&checker.LogMessage{
 				Path: "my URL",
