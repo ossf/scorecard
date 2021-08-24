@@ -316,12 +316,13 @@ func detailsToRelatedLocations(details []checker.CheckDetail,
 }
 
 // TODO: update using config file.
-func scoreToLevel(score int) string {
+func scoreToLevel(minScore, score int) string {
 	// Any of error, note, warning, none.
-	switch score {
+	switch {
 	default:
 		return "error"
-	case checker.MaxResultScore, checker.InconclusiveResultScore:
+	case score == checker.MaxResultScore, score == checker.InconclusiveResultScore,
+		minScore <= score:
 		return "note"
 	}
 }
@@ -374,12 +375,12 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
 	}
 }
 
-func createSARIFResult(pos int, checkID, reason string, score int,
+func createSARIFResult(pos int, checkID, reason string, minScore, score int,
 	locs []location, rlocs []relatedLocation) result {
 	return result{
 		RuleID: checkID,
 		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
-		Level:            scoreToLevel(score),
+		Level:            scoreToLevel(minScore, score),
 		RuleIndex:        pos,
 		Message:          text{Text: reason},
 		Locations:        locs,
@@ -436,13 +437,16 @@ func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zap
 
 		// Create a result.
 		score := check.Score
+		// if len(rlocs) == 0 && len(locs) == 0 {
+		// 	// Setting an artifical score to maximum value
+		// 	// makes the `level` to "note" instead of "error".
+		// 	score = checker.MaxResultScore
+		// }
+
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs)
-			// Setting an artifical score to maximum value
-			// makes the `level` to "note" instead of "error".
-			score = checker.MaxResultScore
 		}
-		r := createSARIFResult(i, checkID, check.Reason, score, locs, rlocs)
+		r := createSARIFResult(i, checkID, check.Reason, minScore, score, locs, rlocs)
 		results = append(results, r)
 	}
 
