@@ -92,9 +92,17 @@ func RunScorecards(ctx context.Context,
 		return ScorecardResult{}, err
 	}
 
+	commits, err := repoClient.ListCommits()
+	if err != nil {
+		//nolint:wrapcheck
+		return ScorecardResult{}, err
+	}
+
+	// There is always at least one commit.
 	ret := ScorecardResult{
-		Repo: repo.URL(),
-		Date: time.Now(),
+		Repo:   repo.URL(),
+		Date:   time.Now(),
+		Commit: commits[0].SHA,
 	}
 	resultsCh := make(chan checker.CheckResult)
 	go runEnabledChecks(ctx, repo, checksToRun, repoClient,

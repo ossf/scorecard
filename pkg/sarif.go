@@ -327,7 +327,7 @@ func scoreToLevel(minScore, score int) string {
 	}
 }
 
-func createSARIFHeader(url, category, name, version string, t time.Time) sarif210 {
+func createSARIFHeader(url, category, name, version, commit string, t time.Time) sarif210 {
 	return sarif210{
 		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
 		Version: "2.1.0",
@@ -345,7 +345,7 @@ func createSARIFHeader(url, category, name, version string, t time.Time) sarif21
 				// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
 				AutomationDetails: automationDetails{
 					// Time formatting: https://pkg.go.dev/time#pkg-constants.
-					ID: fmt.Sprintf("%s/%s/%s", category, name, t.Format(time.RFC822Z)),
+					ID: fmt.Sprintf("%s/%s/%s", category, name, fmt.Sprintf("%s-%s", commit, t.Format(time.RFC822Z))),
 				},
 			},
 		},
@@ -397,7 +397,7 @@ func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zap
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
 	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
-		"supply-chain", "scorecard", version, r.Date)
+		"supply-chain", "scorecard", version, r.Commit, r.Date)
 	results := []result{}
 	rules := []rule{}
 
