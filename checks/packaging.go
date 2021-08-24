@@ -81,7 +81,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			Type: checker.FileTypeSource,
 			// Source file must have line number > 0.
 			Offset: 1,
-			Text:   "workflow not used in runs",
+			Text:   "GitHub publishing workflow not used in runs",
 		})
 	}
 
