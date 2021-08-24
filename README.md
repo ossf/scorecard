@@ -307,7 +307,7 @@ on other source control systems.
 
 ## Adding a Scorecard Check
 
-Please see guidance [here](checks/write.md)
+If you'd like to add a check, please see guidance [here](checks/write.md)
 
 ## Troubleshooting
 
