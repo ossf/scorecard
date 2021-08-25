@@ -23,6 +23,7 @@ import (
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v2/clients"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 // Client is GitHub-specific implementation of RepoClient.
@@ -44,7 +45,7 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	repo, _, err := client.repoClient.Repositories.Get(client.ctx, owner, repoName)
 	if err != nil {
 		// nolint: wrapcheck
-		return clients.NewRepoUnavailableError(err)
+		return sce.Create(sce.ErrRepoUnreachable, err.Error())
 	}
 	client.repo = repo
 	client.owner = repo.Owner.GetLogin()
