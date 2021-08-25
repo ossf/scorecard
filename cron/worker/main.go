@@ -48,10 +48,7 @@ import (
 	"github.com/ossf/scorecard/v2/stats"
 )
 
-var (
-	ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
-	errIgnore           *clients.ErrRepoUnavailable
-)
+var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
 
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
@@ -95,7 +92,7 @@ func processRequest(ctx context.Context,
 	for _, repoURL := range repoURLs {
 		log.Printf("Running Scorecard for repo: %s", repoURL.URL())
 		result, err := pkg.RunScorecards(ctx, repoURL, checksToRun, repoClient, httpClient, githubClient, graphClient)
-		if errors.Is(err, errIgnore) {
+		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
 		}

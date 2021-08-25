@@ -86,13 +86,15 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 	}
 
 	// Extract file names and content from tarball.
-	err := handler.extractTarball()
-	if errors.Is(err, errTarballCorrupted) {
+	if err := handler.extractTarball(); errors.Is(err, errTarballCorrupted) {
 		log.Printf("unable to extract tarball %v. Skipping...", err)
 		return nil
+	} else if err != nil {
+		// nolint: wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, err.Error())
 	}
-	// nolint: wrapcheck
-	return sce.Create(sce.ErrScorecardInternal, err.Error())
+
+	return nil
 }
 
 func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repository) error {
