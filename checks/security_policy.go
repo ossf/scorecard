@@ -19,11 +19,9 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/clients"
 	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
-
-var errIgnore *clients.ErrRepoUnavailable
 
 // CheckSecurityPolicy is the registred name for SecurityPolicy.
 const CheckSecurityPolicy = "Security-Policy"
@@ -105,7 +103,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		if r {
 			return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
 		}
-	case !errors.Is(err, errIgnore):
+	case !errors.Is(err, sce.ErrRepoUnreachable):
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
 	return checker.CreateMinScoreResult(CheckSecurityPolicy, "security policy file not detected")
