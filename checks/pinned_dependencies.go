@@ -513,7 +513,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 func jobAlwaysRunsOnWindows(job *gitHubActionWorkflowJob) bool {
 	var jobOses []string
 	// The 'runs-on' field either lists the OS'es directly, or it can have an expression '${{ matrix.os }}' which
-	// is where the OS'es are actually listed
+	// is where the OS'es are actually listed.
 	if len(job.RunsOn) == 1 && strings.Contains(job.RunsOn[0], "matrix.os") {
 		jobOses = job.Strategy.Matrix.Os
 	} else {
