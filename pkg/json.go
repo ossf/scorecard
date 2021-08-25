@@ -21,9 +21,23 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v2/checker"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
+
+//nolint
+type jsonCheckResult struct {
+	Name       string
+	Details    []string
+	Confidence int
+	Pass       bool
+}
+
+type jsonScorecardResult struct {
+	Repo     string
+	Date     string
+	Checks   []jsonCheckResult
+	Metadata []string
+}
 
 //nolint
 type jsonCheckResultV2 struct {
@@ -41,30 +55,32 @@ type jsonScorecardResultV2 struct {
 	Metadata []string
 }
 
-// AsJSON outputs the result in JSON format with a newline at the end.
-// If called on []ScorecardResult will create NDJson formatted output.
-// UPGRADEv2: will be removed.
+// AsJSON exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
-	if showDetails {
-		if err := encoder.Encode(r); err != nil {
-			//nolint:wrapcheck
-			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-		}
-		return nil
-	}
-	out := ScorecardResult{
+
+	out := jsonScorecardResult{
 		Repo:     r.Repo,
-		Date:     r.Date,
+		Date:     r.Date.Format("2006-01-02"),
 		Metadata: r.Metadata,
 	}
-	// UPGRADEv2: remove nolint after ugrade.
+
 	//nolint
 	for _, checkResult := range r.Checks {
-		tmpResult := checker.CheckResult{
+		tmpResult := jsonCheckResult{
 			Name:       checkResult.Name,
 			Pass:       checkResult.Pass,
 			Confidence: checkResult.Confidence,
+		}
+		if showDetails {
+			for i := range checkResult.Details2 {
+				d := checkResult.Details2[i]
+				m := detailToString(&d, logLevel)
+				if m == "" {
+					continue
+				}
+				tmpResult.Details = append(tmpResult.Details, m)
+			}
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
@@ -94,8 +110,13 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 			Score:  checkResult.Score,
 		}
 		if showDetails {
-			for _, d := range checkResult.Details2 {
-				tmpResult.Details = append(tmpResult.Details, d.Msg.Text)
+			for i := range checkResult.Details2 {
+				d := checkResult.Details2[i]
+				m := detailToString(&d, logLevel)
+				if m == "" {
+					continue
+				}
+				tmpResult.Details = append(tmpResult.Details, m)
 			}
 		}
 		out.Checks = append(out.Checks, tmpResult)
