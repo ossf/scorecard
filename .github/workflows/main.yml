@@ -16,32 +16,11 @@ name: build
 on: [push, pull_request]
 jobs:
   validate:
-    name: Validate 
+    name: Validate
     runs-on: ubuntu-latest
     steps:
-     - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-     - name: Cache protobuf library.
-       id: cache-protobuf
-       uses: actions/cache@d9747005de0f7240e5d35a68dca96b3f41b8b340
-       with:
-         path: protobuf
-         key: ${{ runner.os }}-protobuf
-     - name: Build protobuf library.
-       if: steps.cache-protobuf.outputs.cache-hit != 'true'
-       run: |
-         git clone https://github.com/protocolbuffers/protobuf.git
-         cd protobuf
-         git submodule update --init --recursive
-         ./autogen.sh
-         ./autogen.sh  # see https://github.com/protocolbuffers/protobuf/issues/149
-         ./configure
-         make
-         make check
-     - name: Install protobuf library
-       run: |
-         cd protobuf
-         sudo make install
-         sudo ldconfig
+     - name: Install Protoc
+       uses: arduino/setup-protoc@v1
      - name: Clone the code
        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
        with:
