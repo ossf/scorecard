@@ -94,18 +94,20 @@ func RunScorecards(ctx context.Context,
 
 	commits, err := repoClient.ListCommits()
 	if err != nil {
-		//nolint:wrapcheck
+		// nolint:wrapcheck
 		return ScorecardResult{}, err
 	}
-
-	if len(commits) == 0 {
-		//nolint:wrapcheck
-		return ScorecardResult{}, sce.Create(sce.ErrScorecardInternal, "no commits found")
+	var commitSHA string
+	if len(commits) > 0 {
+		commitSHA = commits[0].SHA
+	} else {
+		commitSHA = "no commits found"
 	}
+
 	ret := ScorecardResult{
 		Repo:      repo.URL(),
 		Date:      time.Now(),
-		CommitSHA: commits[0].SHA,
+		CommitSHA: commitSHA,
 	}
 	resultsCh := make(chan checker.CheckResult)
 	go runEnabledChecks(ctx, repo, checksToRun, repoClient,
