@@ -32,30 +32,37 @@ func textToMarkdown(s string) string {
 	return strings.ReplaceAll(s, "\n", "  ")
 }
 
+func detailToString(d checker.CheckDetail, logLevel zapcore.Level) string {
+	switch d.Msg.Version {
+	//nolint
+	case 3:
+		if d.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
+			return ""
+		}
+		switch {
+		case d.Msg.Path != "" && d.Msg.Offset != 0:
+			return fmt.Sprintf("%s: %s: %s:%d", typeToString(d.Type), d.Msg.Text, d.Msg.Path, d.Msg.Offset)
+		case d.Msg.Path != "" && d.Msg.Offset == 0:
+			return fmt.Sprintf("%s: %s: %s", typeToString(d.Type), d.Msg.Text, d.Msg.Path)
+		default:
+			return fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text)
+		}
+	default:
+		if d.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
+			return ""
+		}
+		return fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text)
+	}
+}
+
 func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (string, bool) {
 	// UPGRADEv2: change to make([]string, len(details))
 	// followed by sa[i] = instead of append.
 	var sa []string
 	for _, v := range details {
-		switch v.Msg.Version {
-		//nolint
-		case 3:
-			if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
-				continue
-			}
-			switch {
-			case v.Msg.Path != "" && v.Msg.Offset != 0:
-				sa = append(sa, fmt.Sprintf("%s: %s: %s:%d", typeToString(v.Type), v.Msg.Text, v.Msg.Path, v.Msg.Offset))
-			case v.Msg.Path != "" && v.Msg.Offset == 0:
-				sa = append(sa, fmt.Sprintf("%s: %s: %s", typeToString(v.Type), v.Msg.Text, v.Msg.Path))
-			default:
-				sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg.Text))
-			}
-		default:
-			if v.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
-				continue
-			}
-			sa = append(sa, fmt.Sprintf("%s: %s", typeToString(v.Type), v.Msg.Text))
+		s := detailToString(v, logLevel)
+		if s != "" {
+			sa = append(sa, s)
 		}
 	}
 	return strings.Join(sa, "\n"), len(sa) > 0
