@@ -21,7 +21,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"go.uber.org/zap/zapcore"
@@ -33,7 +32,7 @@ import (
 // ScorecardResult struct is returned on a successful Scorecard run.
 type ScorecardResult struct {
 	Repo      string
-	Date      time.Time
+	Date      string
 	CommitSHA string
 	Checks    []checker.CheckResult
 	Metadata  []string

@@ -81,7 +81,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 
 	out := jsonScorecardResultV2{
 		Repo:     r.Repo,
-		Date:     r.Date.Format("2006-01-02"),
+		Date:     r.Date,
 		Commit:   r.CommitSHA,
 		Metadata: r.Metadata,
 	}
