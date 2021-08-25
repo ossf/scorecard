@@ -28,7 +28,7 @@ import (
 )
 
 //nolint
-func TestSATIFOutput(t *testing.T) {
+func TestSARIFOutput(t *testing.T) {
 	t.Parallel()
 
 	type Check struct {
@@ -79,12 +79,10 @@ func TestSATIFOutput(t *testing.T) {
 					{
 						Details2: []checker.CheckDetail{
 							{
-								// TODO: different detail types
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
-									Text: "warn message",
-									Path: "src/file1.cpp",
-									// TODO: binary and other types.
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
 									Type:    checker.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
@@ -124,12 +122,10 @@ func TestSATIFOutput(t *testing.T) {
 					{
 						Details2: []checker.CheckDetail{
 							{
-								// TODO: different detail types
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
-									Text: "warn message",
-									Path: "bin/binary.elf",
-									// TODO: binary and other types.
+									Text:   "warn message",
+									Path:   "bin/binary.elf",
 									Type:   checker.FileTypeBinary,
 									Offset: 0,
 								},
@@ -182,7 +178,6 @@ func TestSATIFOutput(t *testing.T) {
 					{
 						Details2: []checker.CheckDetail{
 							{
-								// TODO: different detail types
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
 									Text:   "warn message",

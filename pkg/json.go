@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/mcuadros/go-jsonschema-generator"
 	"go.uber.org/zap/zapcore"
 
 	sce "github.com/ossf/scorecard/v2/errors"
@@ -94,7 +95,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 // AsJSON2 exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
-
+	encoder.SetIndent("", "   ")
+	// test()
 	out := jsonScorecardResultV2{
 		Repo:     r.Repo,
 		Date:     r.Date.Format("2006-01-02"),
@@ -125,5 +127,29 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 		//nolint:wrapcheck
 		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
+
 	return nil
+}
+
+func test() {
+	// type EmbeddedType struct {
+	// 	Zoo string
+	// }
+
+	// type Item struct {
+	// 	Value string
+	// }
+
+	// type ExampleBasic struct {
+	// 	Foo bool   `json:"foo"`
+	// 	Bar string `json:",omitempty"`
+	// 	Qux int8
+	// 	Baz []string
+	// 	EmbeddedType
+	// 	List []Item
+	// }
+
+	s := &jsonschema.Document{}
+	s.Read(&jsonScorecardResultV2{})
+	fmt.Println(s)
 }
