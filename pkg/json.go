@@ -73,8 +73,13 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 			Confidence: checkResult.Confidence,
 		}
 		if showDetails {
-			for _, d := range checkResult.Details2 {
-				tmpResult.Details = append(tmpResult.Details, detailToString(d, logLevel))
+			for i := range checkResult.Details2 {
+				d := checkResult.Details2[i]
+				m := detailToString(&d, logLevel)
+				if m == "" {
+					continue
+				}
+				tmpResult.Details = append(tmpResult.Details)
 			}
 		}
 		out.Checks = append(out.Checks, tmpResult)
@@ -105,7 +110,12 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 			Score:  checkResult.Score,
 		}
 		if showDetails {
-			for _, d := range checkResult.Details2 {
+			for i := range checkResult.Details2 {
+				d := checkResult.Details2[i]
+				m := detailToString(&d, logLevel)
+				if m == "" {
+					continue
+				}
 				tmpResult.Details = append(tmpResult.Details, detailToString(d, logLevel))
 			}
 		}

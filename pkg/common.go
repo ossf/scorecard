@@ -32,7 +32,7 @@ func textToMarkdown(s string) string {
 	return strings.ReplaceAll(s, "\n", "  ")
 }
 
-func detailToString(d checker.CheckDetail, logLevel zapcore.Level) string {
+func detailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
 	switch d.Msg.Version {
 	//nolint
 	case 3:
@@ -59,8 +59,9 @@ func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (str
 	// UPGRADEv2: change to make([]string, len(details))
 	// followed by sa[i] = instead of append.
 	var sa []string
-	for _, v := range details {
-		s := detailToString(v, logLevel)
+	for i := range details {
+		v := details[i]
+		s := detailToString(&v, logLevel)
 		if s != "" {
 			sa = append(sa, s)
 		}
