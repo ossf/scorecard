@@ -54,7 +54,7 @@ var _ = Describe("E2E TEST:executable", func() {
 				switch c.CheckName {
 				case checks.CheckMaintained:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
-				case checks.CheckDependencyUpdateToool:
+				case checks.CheckDependencyUpdateTool:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
 				case checks.CheckBranchProtection:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
