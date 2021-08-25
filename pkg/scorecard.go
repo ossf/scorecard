@@ -91,6 +91,7 @@ func RunScorecards(ctx context.Context,
 		//nolint:wrapcheck
 		return ScorecardResult{}, err
 	}
+	defer repoClient.Close()
 
 	commits, err := repoClient.ListCommits()
 	if err != nil {
