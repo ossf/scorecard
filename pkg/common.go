@@ -33,6 +33,7 @@ func textToMarkdown(s string) string {
 }
 
 func detailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
+	// UPGRADEv3: remove swtch statement.
 	switch d.Msg.Version {
 	//nolint
 	case 3:
@@ -56,8 +57,7 @@ func detailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
 }
 
 func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (string, bool) {
-	// UPGRADEv2: change to make([]string, len(details))
-	// followed by sa[i] = instead of append.
+	// UPGRADEv2: change to make([]string, len(details)).
 	var sa []string
 	for i := range details {
 		v := details[i]

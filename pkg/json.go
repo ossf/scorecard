@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/mcuadros/go-jsonschema-generator"
 	"go.uber.org/zap/zapcore"
 
 	sce "github.com/ossf/scorecard/v2/errors"
@@ -129,27 +128,4 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 	}
 
 	return nil
-}
-
-func test() {
-	// type EmbeddedType struct {
-	// 	Zoo string
-	// }
-
-	// type Item struct {
-	// 	Value string
-	// }
-
-	// type ExampleBasic struct {
-	// 	Foo bool   `json:"foo"`
-	// 	Bar string `json:",omitempty"`
-	// 	Qux int8
-	// 	Baz []string
-	// 	EmbeddedType
-	// 	List []Item
-	// }
-
-	s := &jsonschema.Document{}
-	s.Read(&jsonScorecardResultV2{})
-	fmt.Println(s)
 }

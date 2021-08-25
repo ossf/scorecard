@@ -6,7 +6,6 @@ require (
 	cloud.google.com/go/bigquery v1.21.0
 	cloud.google.com/go/pubsub v1.15.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.8
-	github.com/alecthomas/jsonschema v0.0.0-20210818095345-1014919a589c // indirect
 	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/golangci/golangci-lint v1.42.0
@@ -16,7 +15,6 @@ require (
 	github.com/google/go-github/v38 v38.1.0
 	github.com/h2non/filetype v1.1.1
 	github.com/jszwec/csvutil v1.5.0
-	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303 // indirect
 	github.com/moby/buildkit v0.8.3
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.4

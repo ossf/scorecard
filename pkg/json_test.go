@@ -1,0 +1,396 @@
+// Copyright 2021 Security Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package pkg
+
+import (
+	"bytes"
+	"fmt"
+	"io/ioutil"
+	"testing"
+	"time"
+
+	"go.uber.org/zap/zapcore"
+
+	"github.com/ossf/scorecard/v2/checker"
+)
+
+//nolint
+func TestJSONOutput(t *testing.T) {
+	t.Parallel()
+
+	commit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
+	date, e := time.Parse("2006-01-02", "2021-08-25")
+	if e != nil {
+		panic(fmt.Errorf("time.Parse: %w", e))
+	}
+
+	tests := []struct {
+		name        string
+		expected    string
+		showDetails bool
+		logLevel    zapcore.Level
+		result      ScorecardResult
+	}{
+		{
+			name:        "check-1",
+			showDetails: true,
+			expected:    "./testdata/check1.json",
+			logLevel:    zapcore.DebugLevel,
+			result: ScorecardResult{
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
+				Checks: []checker.CheckResult{
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    checker.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+						},
+						Score:  5,
+						Reason: "half score reason",
+						Name:   "Check-Name",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
+			name:        "check-2",
+			showDetails: true,
+			expected:    "./testdata/check2.json",
+			logLevel:    zapcore.DebugLevel,
+			result: ScorecardResult{
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
+				Checks: []checker.CheckResult{
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:   "warn message",
+									Path:   "bin/binary.elf",
+									Type:   checker.FileTypeBinary,
+									Offset: 0,
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+						},
+						Score:  checker.MinResultScore,
+						Reason: "min score reason",
+						Name:   "Check-Name",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
+			name:        "check-3",
+			showDetails: true,
+			expected:    "./testdata/check3.json",
+			logLevel:    zapcore.InfoLevel,
+			result: ScorecardResult{
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
+				Checks: []checker.CheckResult{
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:   "warn message",
+									Path:   "bin/binary.elf",
+									Type:   checker.FileTypeBinary,
+									Offset: 0,
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+						},
+						Score:  checker.MinResultScore,
+						Reason: "min result reason",
+						Name:   "Check-Name",
+					},
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/doc.txt",
+									Type:    checker.FileTypeText,
+									Offset:  3,
+									Snippet: "some text",
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+						},
+						Score:  checker.MinResultScore,
+						Reason: "min result reason",
+						Name:   "Check-Name2",
+					},
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailInfo,
+								Msg: checker.LogMessage{
+									Text:    "info message",
+									Path:    "some/path.js",
+									Type:    checker.FileTypeSource,
+									Offset:  3,
+									Snippet: "if (bad) {BUG();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "some/path.py",
+									Type:    checker.FileTypeSource,
+									Offset:  3,
+									Snippet: "if (bad) {BUG2();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+							{
+								Type: checker.DetailDebug,
+								Msg: checker.LogMessage{
+									Text:    "debug message",
+									Path:    "some/path.go",
+									Type:    checker.FileTypeSource,
+									Offset:  3,
+									Snippet: "if (bad) {BUG5();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+						},
+						Score:  checker.InconclusiveResultScore,
+						Reason: "inconclusive reason",
+						Name:   "Check-Name3",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
+			name:        "check-4",
+			showDetails: true,
+			expected:    "./testdata/check4.json",
+			logLevel:    zapcore.DebugLevel,
+			result: ScorecardResult{
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
+				Checks: []checker.CheckResult{
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:   "warn message",
+									Path:   "bin/binary.elf",
+									Type:   checker.FileTypeBinary,
+									Offset: 0,
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+						},
+						Score:  checker.MinResultScore,
+						Reason: "min result reason",
+						Name:   "Check-Name",
+					},
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/doc.txt",
+									Type:    checker.FileTypeText,
+									Offset:  3,
+									Snippet: "some text",
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+						},
+						Score:  checker.MinResultScore,
+						Reason: "min result reason",
+						Name:   "Check-Name2",
+					},
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailInfo,
+								Msg: checker.LogMessage{
+									Text:    "info message",
+									Path:    "some/path.js",
+									Type:    checker.FileTypeSource,
+									Offset:  3,
+									Snippet: "if (bad) {BUG();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "some/path.py",
+									Type:    checker.FileTypeSource,
+									Offset:  3,
+									Snippet: "if (bad) {BUG2();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+							{
+								Type: checker.DetailDebug,
+								Msg: checker.LogMessage{
+									Text:    "debug message",
+									Path:    "some/path.go",
+									Type:    checker.FileTypeSource,
+									Offset:  3,
+									Snippet: "if (bad) {BUG5();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+						},
+						Score:  checker.InconclusiveResultScore,
+						Reason: "inconclusive reason",
+						Name:   "Check-Name3",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
+			name:        "check-5",
+			showDetails: true,
+			expected:    "./testdata/check5.json",
+			logLevel:    zapcore.WarnLevel,
+			result: ScorecardResult{
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
+				Checks: []checker.CheckResult{
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    checker.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+						},
+						Score:  6,
+						Reason: "six score reason",
+						Name:   "Check-Name",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
+			name:        "check-6",
+			showDetails: true,
+			expected:    "./testdata/check6.json",
+			logLevel:    zapcore.WarnLevel,
+			result: ScorecardResult{
+				Repo:      "repo not used",
+				Date:      date,
+				CommitSHA: commit,
+				Checks: []checker.CheckResult{
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text: "warn message",
+									Path: "https://domain.com/something",
+									Type: checker.FileTypeURL,
+									// UPGRADEv3: to remove.
+									Version: 3,
+								},
+							},
+						},
+						Score:  6,
+						Reason: "six score reason",
+						Name:   "Check-Name",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+			content, err = ioutil.ReadFile(tt.expected)
+			if err != nil {
+				t.Fatalf("cannot read file: %v", err)
+			}
+
+			var expected bytes.Buffer
+			n, err := expected.Write(content)
+			if err != nil {
+				t.Fatalf("cannot write buffer: %v", err)
+			}
+			if n != len(content) {
+				t.Fatalf("write %d bytes but expected %d", n, len(content))
+			}
+
+			var result bytes.Buffer
+			err = tt.result.AsJSON2(tt.showDetails, tt.logLevel, &result)
+			if err != nil {
+				t.Fatalf("AsJSON2: %v", err)
+			}
+
+			r := bytes.Compare(expected.Bytes(), result.Bytes())
+			if r != 0 {
+				t.Fatalf("invalid result for %s: %d", tt.name, r)
+			}
+		})
+	}
+}
