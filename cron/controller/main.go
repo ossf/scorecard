@@ -75,6 +75,9 @@ func publishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime
 		if err := topicPublisher.Publish(&request); err != nil {
 			return shardNum, fmt.Errorf("error running topicPublisher.Publish: %w", err)
 		}
+	} else {
+		// shardNum incremented for an empty shard, decrement.
+		shardNum--
 	}
 
 	if err := topicPublisher.Close(); err != nil {
