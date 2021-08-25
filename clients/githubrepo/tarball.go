@@ -58,8 +58,7 @@ func extractAndValidateArchivePath(path, dest string) (string, error) {
 	// Check for ZipSlip: https://snyk.io/research/zip-slip-vulnerability
 	cleanpath := filepath.Join(dest, names[1])
 	if !strings.HasPrefix(cleanpath, filepath.Clean(dest)+string(os.PathSeparator)) {
-		//nolint:wrapcheck
-		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errZipSlip, names[1]))
+		return "", fmt.Errorf("%w: %s", errZipSlip, names[1])
 	}
 	return cleanpath, nil
 }
@@ -73,24 +72,27 @@ type tarballHandler struct {
 func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository) error {
 	// Cleanup any previous state.
 	if err := handler.cleanup(); err != nil {
-		return fmt.Errorf("error during githubrepo cleanup: %w", err)
+		// nolint: wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, err.Error())
 	}
 
 	// Setup temp dir/files and download repo tarball.
-	if err := handler.getTarball(ctx, repo); errors.As(err, &errTarballNotFound) {
+	if err := handler.getTarball(ctx, repo); errors.Is(err, errTarballNotFound) {
 		log.Printf("unable to get tarball %v. Skipping...", err)
 		return nil
 	} else if err != nil {
-		return err
+		// nolint: wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, err.Error())
 	}
 
 	// Extract file names and content from tarball.
 	err := handler.extractTarball()
-	if errors.As(err, &errTarballCorrupted) {
+	if errors.Is(err, errTarballCorrupted) {
 		log.Printf("unable to extract tarball %v. Skipping...", err)
 		return nil
 	}
-	return err
+	// nolint: wrapcheck
+	return sce.Create(sce.ErrScorecardInternal, err.Error())
 }
 
 func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repository) error {
@@ -99,39 +101,33 @@ func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repo
 	url = strings.Replace(url, "{/ref}", "", 1)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
+		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("http.DefaultClient.Do: %v", err))
+		return fmt.Errorf("http.DefaultClient.Do: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Handle 400/404 errors
 	switch resp.StatusCode {
 	case http.StatusNotFound, http.StatusBadRequest:
-		//nolint:wrapcheck
-		return sce.CreateInternal(errTarballNotFound, fmt.Sprintf("%v: %v: %v", errTarballNotFound, *repo.URL, err))
+		return fmt.Errorf("%w: %s", errTarballNotFound, url)
 	}
 
 	// Create a temp file. This automatically appends a random number to the name.
 	tempDir, err := ioutil.TempDir("", repoDir)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("ioutil.TempDir: %v", err))
+		return fmt.Errorf("ioutil.TempDir: %w", err)
 	}
 	repoFile, err := ioutil.TempFile(tempDir, repoFilename)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("ioutil.TempFile: %v", err))
+		return fmt.Errorf("ioutil.TempFile: %w", err)
 	}
 	defer repoFile.Close()
 	if _, err := io.Copy(repoFile, resp.Body); err != nil {
-		// nolint: wrapcheck
 		// This can happen if the incoming tarball is corrupted/server gateway times out.
-		return sce.CreateInternal(errTarballNotFound, fmt.Sprintf("io.Copy: %v", err))
+		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
 	}
 
 	handler.tempDir = tempDir
@@ -144,13 +140,11 @@ func (handler *tarballHandler) extractTarball() error {
 	// nolint: gomnd
 	in, err := os.OpenFile(handler.tempTarFile, os.O_RDONLY, 0o644)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("os.OpenFile: %v", err))
+		return fmt.Errorf("os.OpenFile: %w", err)
 	}
 	gz, err := gzip.NewReader(in)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.CreateInternal(errTarballCorrupted, fmt.Sprintf("gzip.NewReader: %v: %v", handler.tempTarFile, err))
+		return fmt.Errorf("%w: gzip.NewReader %v %v", errTarballCorrupted, handler.tempTarFile, err)
 	}
 	tr := tar.NewReader(gz)
 	for {
@@ -159,8 +153,7 @@ func (handler *tarballHandler) extractTarball() error {
 			break
 		}
 		if err != nil {
-			//nolint:wrapcheck
-			return sce.CreateInternal(errTarballCorrupted, fmt.Sprintf("tarReader.Next: %v", err))
+			return fmt.Errorf("%w tarReader.Next: %v", errTarballCorrupted, err)
 		}
 
 		switch header.Typeflag {
@@ -188,22 +181,19 @@ func (handler *tarballHandler) extractTarball() error {
 			if _, err := os.Stat(filepath.Dir(filenamepath)); os.IsNotExist(err) {
 				// nolint: gomnd
 				if err := os.Mkdir(filepath.Dir(filenamepath), 0o755); err != nil {
-					//nolint:wrapcheck
-					return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("os.Mkdir: %v", err))
+					return fmt.Errorf("os.Mkdir: %w", err)
 				}
 			}
 			outFile, err := os.Create(filenamepath)
 			if err != nil {
-				//nolint:wrapcheck
-				return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("os.Create: %v", err))
+				return fmt.Errorf("os.Create: %w", err)
 			}
 
 			// nolint: gosec
 			// Potential for DoS vulnerability via decompression bomb.
 			// Since such an attack will only impact a single shard, ignoring this for now.
 			if _, err := io.Copy(outFile, tr); err != nil {
-				// nolint: wrapcheck
-				return sce.CreateInternal(errTarballCorrupted, fmt.Sprintf("io.Copy: %v", err))
+				return fmt.Errorf("%w io.Copy: %v", errTarballCorrupted, err)
 			}
 			outFile.Close()
 			handler.files = append(handler.files,
@@ -235,16 +225,14 @@ func (handler *tarballHandler) listFiles(predicate func(string) (bool, error)) (
 func (handler *tarballHandler) getFileContent(filename string) ([]byte, error) {
 	content, err := ioutil.ReadFile(filepath.Join(handler.tempDir, filename))
 	if err != nil {
-		//nolint:wrapcheck
-		return content, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("ioutil.ReadFile: %v", err))
+		return content, fmt.Errorf("ioutil.ReadFile: %w", err)
 	}
 	return content, nil
 }
 
 func (handler *tarballHandler) cleanup() error {
 	if err := os.RemoveAll(handler.tempDir); err != nil && !os.IsNotExist(err) {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("os.Remove: %v", err))
+		return fmt.Errorf("os.Remove: %w", err)
 	}
 	// Remove old files so we don't iterate through them.
 	handler.files = nil

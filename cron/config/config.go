@@ -174,7 +174,7 @@ func GetShardSize() (int, error) {
 // GetWebhookURL returns the webhook URL to ping on a successful cron job completion.
 func GetWebhookURL() (string, error) {
 	url, err := getStringConfigValue(webhookURL, configYAML, "WebhookURL", "webhook-url")
-	if err != nil && !errors.As(err, &ErrorEmptyConfigValue) {
+	if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
 		return url, err
 	}
 	return url, nil
