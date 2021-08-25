@@ -95,7 +95,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "   ")
-	// test()
+
 	out := jsonScorecardResultV2{
 		Repo:     r.Repo,
 		Date:     r.Date.Format("2006-01-02"),
