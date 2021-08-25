@@ -27,9 +27,9 @@ import (
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
-var _ = Describe("E2E TEST:Active", func() {
-	Context("E2E TEST:Validating active status", func() {
-		It("Should return valid active status", func() {
+var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
+	Context("E2E TEST:Validating maintained status", func() {
+		It("Should return valid maintained status", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
 			err := repoClient.InitRepo("apache", "airflow")
@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST:Active", func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.IsActive(&req)
+			result := checks.IsMaintained(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())

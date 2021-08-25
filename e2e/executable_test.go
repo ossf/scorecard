@@ -52,7 +52,9 @@ var _ = Describe("E2E TEST:executable", func() {
 
 			for _, c := range data.Checks {
 				switch c.CheckName {
-				case checks.CheckActive:
+				case checks.CheckMaintained:
+					Expect(c.Pass).Should(BeTrue(), c.CheckName)
+				case checks.CheckDependencyUpdateTool:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)
 				case checks.CheckBranchProtection:
 					Expect(c.Pass).Should(BeTrue(), c.CheckName)

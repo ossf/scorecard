@@ -45,16 +45,16 @@ The following checks are all run against the target project by default:
 
 Name                        | Description
 --------------------------- | -----------
-Active                      | Did the project get any commits in the last 90 days?
-Automatic-Dependency-Update | Does the project use tools to automatically update its dependencies?
 Binary-Artifacts            | Is the project free of checked-in binaries?
 Branch-Protection           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?
 CI-Tests                    | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?
 CII-Best-Practices          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
 Code-Review                 | Does the project require code review before code is merged?
 Contributors                | Does the project have contributors from at least two different organizations?
+Dependency-Update-Tool      | Does the project use tools to help update its dependencies?
 Fuzzing                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
-Frozen-Deps                 | Does the project declare and freeze [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
+Maintained                  | Is the project maintained?
+Pinned-Dependencies         | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
 Packaging                   | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
 SAST                        | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)?
 Security-Policy             | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?
@@ -119,80 +119,120 @@ The program can run using just one argument, the URL of the repo:
 
 ```shell
 $ go get github.com/ossf/scorecard/v2
-$ scorecard --repo=github.com/kubernetes/kubernetes
-Starting [Automatic-Dependency-Update]
-Starting [Frozen-Deps]
+$ scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
+Starting [CII-Best-Practices]
 Starting [Fuzzing]
-Starting [Pull-Requests]
-Starting [Branch-Protection]
-Starting [Code-Review]
-Starting [SAST]
-Starting [Contributors]
-Starting [Signed-Releases]
+Starting [Pinned-Dependencies]
+Starting [CI-Tests]
+Starting [Maintained]
 Starting [Packaging]
+Starting [SAST]
+Starting [Dependency-Update-Tool]
 Starting [Token-Permissions]
 Starting [Security-Policy]
-Starting [Active]
+Starting [Signed-Releases]
 Starting [Binary-Artifacts]
-Starting [CI-Tests]
-Starting [CII-Best-Practices]
-
-Finished [Contributors]
-Finished [Signed-Releases]
-Finished [Active]
-Finished [Binary-Artifacts]
+Starting [Branch-Protection]
+Starting [Code-Review]
+Starting [Contributors]
+Starting [Vulnerabilities]
 Finished [CI-Tests]
-Finished [CII-Best-Practices]
+Finished [Maintained]
 Finished [Packaging]
-Finished [Token-Permissions]
-Finished [Security-Policy]
-Finished [Automatic-Dependency-Update]
-Finished [Frozen-Deps]
-Finished [Fuzzing]
-Finished [Pull-Requests]
+Finished [SAST]
+Finished [Signed-Releases]
+Finished [Binary-Artifacts]
 Finished [Branch-Protection]
 Finished [Code-Review]
-Finished [SAST]
+Finished [Contributors]
+Finished [Dependency-Update-Tool]
+Finished [Token-Permissions]
+Finished [Security-Policy]
+Finished [Vulnerabilities]
+Finished [CII-Best-Practices]
+Finished [Fuzzing]
+Finished [Pinned-Dependencies]
 
 RESULTS
 -------
-Repo: github.com/kubernetes/kubernetes
-Active: Pass 10
-Automatic-Dependency-Update: Fail 3
-Binary-Artifacts: Pass 10
-Branch-Protection: Fail 0
-CI-Tests: Pass 10
-CII-Best-Practices: Pass 10
-Code-Review: Pass 10
-Contributors: Pass 10
-Frozen-Deps: Fail 10
-Fuzzing: Pass 10
-Packaging: Fail 0
-Pull-Requests: Pass 10
-SAST: Fail 10
-Security-Policy: Fail 5
-Signed-Releases: Fail 10
-Token-Permissions: Pass 10
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+|  SCORE  |          NAME          |             REASON             |                         DOCUMENTATION/REMEDIATION                         |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 10 / 10 | Binary-Artifacts       | no binaries found in the repo  | github.com/ossf/scorecard/blob/main/docs/checks.md#binary-artifacts       |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 9 / 10  | Branch-Protection      | branch protection is not       | github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection      |
+|         |                        | maximal on development and all |                                                                           |
+|         |                        | release branches               |                                                                           |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| ?       | CI-Tests               | no pull request found          | github.com/ossf/scorecard/blob/main/docs/checks.md#ci-tests               |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 0 / 10  | CII-Best-Practices     | no badge found                 | github.com/ossf/scorecard/blob/main/docs/checks.md#cii-best-practices     |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 10 / 10 | Code-Review            | branch protection for default  | github.com/ossf/scorecard/blob/main/docs/checks.md#code-review            |
+|         |                        | branch is enabled              |                                                                           |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 0 / 10  | Contributors           | 0 different companies found -- | github.com/ossf/scorecard/blob/main/docs/checks.md#contributors           |
+|         |                        | score normalized to 0          |                                                                           |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 0 / 10  | Dependency-Update-Tool | no update tool detected        | github.com/ossf/scorecard/blob/main/docs/checks.md#dependency-update-tool |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 0 / 10  | Fuzzing                | project is not fuzzed in       | github.com/ossf/scorecard/blob/main/docs/checks.md#fuzzing                |
+|         |                        | OSS-Fuzz                       |                                                                           |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 1 / 10  | Maintained             | 2 commit(s) found in the last  | github.com/ossf/scorecard/blob/main/docs/checks.md#maintained             |
+|         |                        | 90 days -- score normalized to |                                                                           |
+|         |                        | 1                              |                                                                           |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| ?       | Packaging              | no published package detected  | github.com/ossf/scorecard/blob/main/docs/checks.md#packaging              |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 8 / 10  | Pinned-Dependencies    | unpinned dependencies detected | github.com/ossf/scorecard/blob/main/docs/checks.md#pinned-dependencies    |
+|         |                        | -- score normalized to 8       |                                                                           |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 0 / 10  | SAST                   | no SAST tool detected          | github.com/ossf/scorecard/blob/main/docs/checks.md#sast                   |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 0 / 10  | Security-Policy        | security policy file not       | github.com/ossf/scorecard/blob/main/docs/checks.md#security-policy        |
+|         |                        | detected                       |                                                                           |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| ?       | Signed-Releases        | no releases found              | github.com/ossf/scorecard/blob/main/docs/checks.md#signed-releases        |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 10 / 10 | Token-Permissions      | tokens are read-only in GitHub | github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions      |
+|         |                        | workflows                      |                                                                           |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 10 / 10 | Vulnerabilities        | no vulnerabilities detected    | github.com/ossf/scorecard/blob/main/docs/checks.md#vulnerabilities        |
+|---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
 For more details why a check fails, use the `--show-details` option:
 
 ```
-./scorecard --repo=github.com/kubernetes/kubernetes --checks Frozen-Deps --show-details
-Starting [Frozen-Deps]
-Finished [Frozen-Deps]
+./scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks Branch-Protection --show-details
+Starting [Pinned-Dependencies]
+Finished [Pinned-Dependencies]
 
-## RESULTS
-
-Repo: github.com/kubernetes/kubernetes
-Frozen-Deps: Fail 10
-...
-!! frozen-deps/docker - cluster/addons/fluentd-elasticsearch/es-image/Dockerfile has non-pinned dependency 'golang:1.16.5'
-...
-!! frozen-deps/fetch-execute - cluster/gce/util.sh is fetching and executing non-pinned program 'curl https://sdk.cloud.google.com | bash'
-...
-!! frozen-deps/fetch-execute - hack/jenkins/benchmark-dockerized.sh is fetching an non-pinned dependency 'GO111MODULE=on go install github.com/cespare/prettybench'
-...
+RESULTS
+-------
+|---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
+|  SCORE  |          NAME          |             REASON             |            DETAILS             |                         DOCUMENTATION/REMEDIATION                         |
+|---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
+| 9 / 10  | Branch-Protection      | branch protection is not       | Info: 'force pushes' disabled  | github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection      |
+|         |                        | maximal on development and all | on branch 'main' Info: 'allow  |                                                                           |
+|         |                        | release branches               | deletion' disabled on branch   |                                                                           |
+|         |                        |                                | 'main' Info: linear history    |                                                                           |
+|         |                        |                                | enabled on branch 'main' Info: |                                                                           |
+|         |                        |                                | strict status check enabled    |                                                                           |
+|         |                        |                                | on branch 'main' Warn: status  |                                                                           |
+|         |                        |                                | checks for merging have no     |                                                                           |
+|         |                        |                                | specific status to check on    |                                                                           |
+|         |                        |                                | branch 'main' Info: number     |                                                                           |
+|         |                        |                                | of required reviewers is 2     |                                                                           |
+|         |                        |                                | on branch 'main' Info: Stale   |                                                                           |
+|         |                        |                                | review dismissal enabled on    |                                                                           |
+|         |                        |                                | branch 'main' Info: Owner      |                                                                           |
+|         |                        |                                | review required on branch      |                                                                           |
+|         |                        |                                | 'main' Info: 'admininistrator' |                                                                           |
+|         |                        |                                | PRs need reviews before being  |                                                                           |
+|         |                        |                                | merged on branch 'main'        |                                                                           |
+|---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
 ### Using a Package manager
@@ -211,7 +251,7 @@ Starting [CI-Tests]
 Starting [CII-Best-Practices]
 Starting [Code-Review]
 Starting [Contributors]
-Starting [Frozen-Deps]
+Starting [Pinned-Dependencies]
 Starting [Fuzzing]
 Starting [Packaging]
 Starting [Pull-Requests]
@@ -227,7 +267,7 @@ Finished [Packaging]
 Finished [SAST]
 Finished [Code-Review]
 Finished [Branch-Protection]
-Finished [Frozen-Deps]
+Finished [Pinned-Dependencies]
 Finished [Active]
 Finished [Pull-Requests]
 Finished [Contributors]
@@ -240,7 +280,7 @@ CI-Tests: Pass 10
 CII-Best-Practices: Fail 10
 Code-Review: Pass 10
 Contributors: Pass 10
-Frozen-Deps: Fail 0
+Pinned-Dependencies: Fail 0
 Fuzzing: Fail 10
 Packaging: Fail 0
 Pull-Requests: Fail 9
@@ -307,27 +347,7 @@ on other source control systems.
 
 ## Adding a Scorecard Check
 
-If you'd like to add a check, make sure it is something that meets the following
-criteria and then create a new GitHub Issue:
-
--   The scorecard must only be composed of automate-able, objective data. For
-    example, a project having 10 contributors doesn’t necessarily mean it’s more
-    secure than a project with say 50 contributors. But, having two maintainers
-    might be preferable to only having one - the larger bus factor and ability
-    to provide code reviews is objectively better.
--   The scorecard criteria can be as specific as possible and not limited
-    general recommendations. For example, for Go, we can recommend/require
-    specific linters and analyzers to be run on the codebase.
--   The scorecard can be populated for any open source project without any work
-    or interaction from maintainers.
--   Maintainers must be provided with a mechanism to correct any automated
-    scorecard findings they feel were made in error, provide "hints" for
-    anything we can't detect automatically, and even dispute the applicability
-    of a given scorecard finding for that repository.
--   Any criteria in the scorecard must be actionable. It should be possible,
-    with help, for any project to "check all the boxes".
--   Any solution to compile a scorecard should be usable by the greater open
-    source community to monitor upstream security.
+If you'd like to add a check, please see guidance [here](checks/write.md)
 
 ## Troubleshooting
 
