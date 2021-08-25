@@ -29,8 +29,8 @@ import (
 
 // TODO: use dedicated repo that don't change.
 // TODO: need negative results.
-var _ = Describe("E2E TEST:"+checker.CheckDependencyUpdateTool, func() {
-	Context("E2E TEST:Validating dependencies are updated thru a tool", func() {
+var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
+	Context("E2E TEST:Validating dependencies are updated with a tool", func() {
 		It("Should return repo uses dependabot", func() {
 			dl := scut.TestDetailLogger{}
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
