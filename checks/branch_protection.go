@@ -17,6 +17,7 @@ package checks
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 
@@ -37,6 +38,7 @@ func init() {
 	registerCheck(CheckBranchProtection, BranchProtection)
 }
 
+// TODO: Use RepoClient interface instead of this.
 type repositories interface {
 	Get(context.Context, string, string) (*github.Repository,
 		*github.Response, error)
@@ -46,6 +48,34 @@ type repositories interface {
 		[]*github.RepositoryRelease, *github.Response, error)
 	GetBranchProtection(context.Context, string, string, string) (
 		*github.Protection, *github.Response, error)
+}
+
+type branchMap map[string]*github.Branch
+
+func (b branchMap) getBranchByName(name string) (*github.Branch, error) {
+	val, exists := b[name]
+	if exists {
+		return val, nil
+	}
+
+	// Ideally, we should check using repositories.GetBranch if there was a branch redirect.
+	// See https://github.com/google/go-github/issues/1895
+	// For now, handle the common master -> main redirect.
+	if name == "master" {
+		val, exists := b["main"]
+		if exists {
+			return val, nil
+		}
+	}
+	return nil, fmt.Errorf("could not find branch name %s: %w", name, errInternalBranchNotFound)
+}
+
+func getBranchMapFrom(branches []*github.Branch) branchMap {
+	ret := make(branchMap)
+	for _, branch := range branches {
+		ret[branch.GetName()] = branch
+	}
+	return ret
 }
 
 // BranchProtection runs Branch-Protection check.
@@ -61,6 +91,7 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 	}
+	branchesMap := getBranchMapFrom(branches)
 
 	// Get release branches.
 	releases, _, err := r.ListReleases(ctx, ownerStr, repoStr, &github.ListOptions{})
@@ -84,14 +115,14 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 		}
 
 		// Try to resolve the branch name.
-		name, err := resolveBranchName(branches, *release.TargetCommitish)
+		b, err := branchesMap.getBranchByName(release.GetTargetCommitish())
 		if err != nil {
 			// If the commitish branch is still not found, fail.
 			return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 		}
 
 		// Branch is valid, add to list of branches to check.
-		checkBranches[*name] = true
+		checkBranches[b.GetName()] = true
 	}
 
 	// Add default branch.
@@ -99,18 +130,21 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 	}
-	checkBranches[*repo.DefaultBranch] = true
+	checkBranches[repo.GetDefaultBranch()] = true
 
 	protected := true
 	unknown := false
 	// Check protections on all the branches.
 	for b := range checkBranches {
-		p, err := isBranchProtected(branches, b)
+		branch, err := branchesMap.getBranchByName(b)
 		if err != nil {
+			if errors.Is(err, errInternalBranchNotFound) {
+				continue
+			}
 			return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 		}
 		// nolint
-		if !p {
+		if !branch.GetProtected() {
 			protected = false
 			dl.Warn("branch protection not enabled for branch '%s'", b)
 		} else {
@@ -156,35 +190,6 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 
 	return checker.CreateResultWithScore(CheckBranchProtection,
 		"branch protection is not maximal on development and all release branches", score)
-}
-
-func resolveBranchName(branches []*github.Branch, name string) (*string, error) {
-	// First check list of branches.
-	for _, b := range branches {
-		if b.GetName() == name {
-			return b.Name, nil
-		}
-	}
-	// Ideally, we should check using repositories.GetBranch if there was a branch redirect.
-	// See https://github.com/google/go-github/issues/1895
-	// For now, handle the common master -> main redirect.
-	if name == "master" {
-		return resolveBranchName(branches, "main")
-	}
-
-	//nolint
-	return nil, sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
-}
-
-func isBranchProtected(branches []*github.Branch, name string) (bool, error) {
-	// Returns bool indicating if protected.
-	for _, b := range branches {
-		if b.GetName() == name {
-			return b.GetProtected(), nil
-		}
-	}
-	//nolint
-	return false, sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
 }
 
 func getProtectionAndCheck(ctx context.Context, r repositories, dl checker.DetailLogger, ownerStr, repoStr,

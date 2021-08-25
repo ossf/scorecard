@@ -148,7 +148,7 @@ func TestExtractTarball(t *testing.T) {
 			// Test GetFileContent API.
 			for _, getcontenttest := range testcase.getcontentTests {
 				content, err := handler.getFileContent(getcontenttest.filename)
-				if getcontenttest.err != nil && !errors.As(err, &getcontenttest.err) {
+				if getcontenttest.err != nil && !errors.Is(err, getcontenttest.err) {
 					t.Errorf("test failed: expected - %v, got - %v", getcontenttest.err, err)
 				}
 				if getcontenttest.err == nil && !cmp.Equal(getcontenttest.output, content) {

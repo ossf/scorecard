@@ -105,7 +105,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		if r {
 			return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
 		}
-	case !errors.As(err, &errIgnore):
+	case !errors.Is(err, errIgnore):
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
 	return checker.CreateMinScoreResult(CheckSecurityPolicy, "security policy file not detected")

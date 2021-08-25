@@ -16,6 +16,7 @@ package checks
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients"
@@ -26,6 +27,12 @@ import (
 // CheckFuzzing is the registered name for Fuzzing.
 const CheckFuzzing = "Fuzzing"
 
+var (
+	ossFuzzRepo    clients.RepoClient
+	errOssFuzzRepo error
+	once           sync.Once
+)
+
 //nolint:gochecknoinits
 func init() {
 	registerCheck(CheckFuzzing, Fuzzing)
@@ -33,9 +40,12 @@ func init() {
 
 // Fuzzing runs Fuzzing check.
 func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
-	ossFuzzRepo := githubrepo.CreateGithubRepoClient(c.Ctx, c.Client, c.GraphClient)
-	if err := ossFuzzRepo.InitRepo("google", "oss-fuzz"); err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("InitRepo: %v", err))
+	once.Do(func() {
+		ossFuzzRepo = githubrepo.CreateGithubRepoClient(c.Ctx, c.Client, c.GraphClient)
+		errOssFuzzRepo = ossFuzzRepo.InitRepo("google", "oss-fuzz")
+	})
+	if errOssFuzzRepo != nil {
+		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("InitRepo: %v", errOssFuzzRepo))
 		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
 	}
 

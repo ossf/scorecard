@@ -95,7 +95,7 @@ func processRequest(ctx context.Context,
 	for _, repoURL := range repoURLs {
 		log.Printf("Running Scorecard for repo: %s", repoURL.URL())
 		result, err := pkg.RunScorecards(ctx, repoURL, checksToRun, repoClient, httpClient, githubClient, graphClient)
-		if errors.As(err, &errIgnore) {
+		if errors.Is(err, errIgnore) {
 			// Not accessible repo - continue.
 			continue
 		}
@@ -104,7 +104,7 @@ func processRequest(ctx context.Context,
 		}
 		for checkIndex := range result.Checks {
 			check := &result.Checks[checkIndex]
-			if !errors.As(check.Error2, &sce.ErrScorecardInternal) {
+			if !errors.Is(check.Error2, sce.ErrScorecardInternal) {
 				continue
 			}
 			errorMsg := fmt.Sprintf("check %s has a runtime error: %v", check.Name, check.Error2)
@@ -203,7 +203,6 @@ func main() {
 	}
 
 	repoClient, httpClient, githubClient, graphClient, logger := createNetClients(ctx)
-	defer repoClient.Close()
 
 	exporter, err := startMetricsExporter()
 	if err != nil {
