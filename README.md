@@ -28,8 +28,11 @@
 
 ## Motivation
 
-A short motivational video clip to inspire us: https://youtu.be/rDMMYT3vkTk "You
-passed! All D's ... and an A!"
+We created Scorecards to give consumers of open-source projects an easy way to judge whether their dependencies are safe.
+
+Scorecards is an automated tool that assesses a number of important heuristics [("checks")](#scorecard-checks) associated with software security and assigns each check a score of 0-10. You can use these scores to understand specific areas to improve in order to strengthen the security posture of your project. You can also assess the risks that dependencies introduce, and make informed decisions about accepting these risks, evaluating alternative solutions, or working with the maintainers to make improvements.
+
+The inspiration for Scorecards’ logo: ["You passed! All D's ... and an A!"](https://youtu.be/rDMMYT3vkTk)
 
 ## Goals
 
