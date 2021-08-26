@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/shurcooL/githubv4"
 
@@ -96,6 +97,11 @@ type graphqlData struct {
 type graphqlHandler struct {
 	client           *githubv4.Client
 	data             *graphqlData
+	once             *sync.Once
+	ctx              context.Context
+	errSetup         error
+	owner            string
+	repo             string
 	prs              []clients.PullRequest
 	commits          []clients.Commit
 	releases         []clients.Release
@@ -103,47 +109,71 @@ type graphqlHandler struct {
 	archived         bool
 }
 
-func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) error {
-	vars := map[string]interface{}{
-		"owner":                  githubv4.String(owner),
-		"name":                   githubv4.String(repo),
-		"pullRequestsToAnalyze":  githubv4.Int(pullRequestsToAnalyze),
-		"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
-		"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
-		"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
-		"releasesToAnalyze":      githubv4.Int(releasesToAnalyze),
-		"releaseAssetsToAnalyze": githubv4.Int(releaseAssetsToAnalyze),
-	}
+func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) {
+	handler.ctx = ctx
+	handler.owner = owner
+	handler.repo = repo
 	handler.data = new(graphqlData)
-	if err := handler.client.Query(ctx, handler.data, vars); err != nil {
-		// nolint: wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
-	}
-	handler.archived = bool(handler.data.Repository.IsArchived)
-	handler.prs = pullRequestsFrom(handler.data)
-	handler.releases = releasesFrom(handler.data)
-	handler.defaultBranchRef = defaultBranchRefFrom(handler.data)
-	handler.commits = commitsFrom(handler.data)
-	return nil
+	handler.errSetup = nil
+	handler.once = new(sync.Once)
+}
+
+func (handler *graphqlHandler) setup() error {
+	handler.once.Do(func() {
+		vars := map[string]interface{}{
+			"owner":                  githubv4.String(handler.owner),
+			"name":                   githubv4.String(handler.repo),
+			"pullRequestsToAnalyze":  githubv4.Int(pullRequestsToAnalyze),
+			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
+			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
+			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
+			"releasesToAnalyze":      githubv4.Int(releasesToAnalyze),
+			"releaseAssetsToAnalyze": githubv4.Int(releaseAssetsToAnalyze),
+		}
+		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
+			handler.errSetup = sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+		}
+		handler.archived = bool(handler.data.Repository.IsArchived)
+		handler.prs = pullRequestsFrom(handler.data)
+		handler.releases = releasesFrom(handler.data)
+		handler.defaultBranchRef = defaultBranchRefFrom(handler.data)
+		handler.commits = commitsFrom(handler.data)
+	})
+	return handler.errSetup
 }
 
 func (handler *graphqlHandler) getMergedPRs() ([]clients.PullRequest, error) {
+	if err := handler.setup(); err != nil {
+		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
+	}
 	return handler.prs, nil
 }
 
 func (handler *graphqlHandler) getDefaultBranch() (clients.BranchRef, error) {
+	if err := handler.setup(); err != nil {
+		return clients.BranchRef{}, fmt.Errorf("error during graphqlHandler.setup: %w", err)
+	}
 	return handler.defaultBranchRef, nil
 }
 
 func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
+	if err := handler.setup(); err != nil {
+		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
+	}
 	return handler.commits, nil
 }
 
 func (handler *graphqlHandler) getReleases() ([]clients.Release, error) {
+	if err := handler.setup(); err != nil {
+		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
+	}
 	return handler.releases, nil
 }
 
 func (handler *graphqlHandler) isArchived() (bool, error) {
+	if err := handler.setup(); err != nil {
+		return false, fmt.Errorf("error during graphqlHandler.setup: %w", err)
+	}
 	return handler.archived, nil
 }
 
