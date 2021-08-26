@@ -18,9 +18,12 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 	"testing"
 	"time"
 
+	"github.com/xeipuuv/gojsonschema"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/checker"
@@ -361,6 +364,17 @@ func TestJSONOutput(t *testing.T) {
 			},
 		},
 	}
+
+	// Load the JSON schema.
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("os.Getwd: %s", err)
+	}
+	schemaLoader := gojsonschema.NewReferenceLoader(fmt.Sprintf("file://%s", path.Join(cwd, "json.v2.schema")))
+	schema, err := gojsonschema.NewSchema(schemaLoader)
+	if err != nil {
+		t.Fatalf("gojsonschema.NewSchema: %s", err)
+	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -387,9 +401,25 @@ func TestJSONOutput(t *testing.T) {
 				t.Fatalf("AsJSON2: %v", err)
 			}
 
+			// Compare outputs.
 			r := bytes.Compare(expected.Bytes(), result.Bytes())
 			if r != 0 {
 				t.Fatalf("invalid result for %s: %d", tt.name, r)
+			}
+
+			// Validate schema.
+			docLoader := gojsonschema.NewReferenceLoader(fmt.Sprintf("file://%s", path.Join(cwd, tt.expected)))
+			rr, err := schema.Validate(docLoader)
+			if err != nil {
+				t.Fatalf("Validate error for %s: %s", tt.name, err.Error())
+			}
+
+			if !rr.Valid() {
+				s := ""
+				for _, desc := range rr.Errors() {
+					s += fmt.Sprintf("- %s\n", desc)
+				}
+				t.Fatalf("invalid format %s: %s", tt.name, s)
 			}
 		})
 	}

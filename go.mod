@@ -22,6 +22,7 @@ require (
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/spf13/cobra v1.2.1
+	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
 	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.19.0
 	gocloud.dev v0.23.0
