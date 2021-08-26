@@ -24,6 +24,7 @@ import (
 	"github.com/google/go-github/v38/github"
 
 	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
@@ -40,8 +41,6 @@ func init() {
 
 // TODO: Use RepoClient interface instead of this.
 type repositories interface {
-	Get(context.Context, string, string) (*github.Repository,
-		*github.Response, error)
 	ListBranches(ctx context.Context, owner string, repo string,
 		opts *github.BranchListOptions) ([]*github.Branch, *github.Response, error)
 	ListReleases(ctx context.Context, owner string, repo string, opts *github.ListOptions) (
@@ -81,11 +80,12 @@ func getBranchMapFrom(branches []*github.Branch) branchMap {
 // BranchProtection runs Branch-Protection check.
 func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	// Checks branch protection on both release and development branch.
-	return checkReleaseAndDevBranchProtection(c.Ctx, c.Client.Repositories, c.Dlogger, c.Owner, c.Repo)
+	return checkReleaseAndDevBranchProtection(c.Ctx, c.RepoClient, c.Client.Repositories, c.Dlogger, c.Owner, c.Repo)
 }
 
-func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl checker.DetailLogger, ownerStr,
-	repoStr string) checker.CheckResult {
+func checkReleaseAndDevBranchProtection(ctx context.Context,
+	repoClient clients.RepoClient, r repositories, dl checker.DetailLogger,
+	ownerStr, repoStr string) checker.CheckResult {
 	// Get all branches. This will include information on whether they are protected.
 	branches, _, err := r.ListBranches(ctx, ownerStr, repoStr, &github.BranchListOptions{})
 	if err != nil {
@@ -126,11 +126,11 @@ func checkReleaseAndDevBranchProtection(ctx context.Context, r repositories, dl 
 	}
 
 	// Add default branch.
-	repo, _, err := r.Get(ctx, ownerStr, repoStr)
+	defaultBranch, err := repoClient.GetDefaultBranch()
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 	}
-	checkBranches[repo.GetDefaultBranch()] = true
+	checkBranches[defaultBranch.Name] = true
 
 	protected := true
 	unknown := false
