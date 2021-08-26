@@ -1,0 +1,16 @@
+{
+   "Repo": "repo not used",
+   "Date": "2021-08-25",
+   "Commit": "68bc59901773ab4c051dfcea0cc4201a1567ab32",
+   "Checks": [
+      {
+         "Details": [
+            "Warn: warn message: src/file1.cpp:5"
+         ],
+         "Score": 5,
+         "Reason": "half score reason",
+         "Name": "Check-Name"
+      }
+   ],
+   "Metadata": []
+}

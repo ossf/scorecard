@@ -1,0 +1,16 @@
+{
+   "Repo": "repo not used",
+   "Date": "2021-08-25",
+   "Commit": "68bc59901773ab4c051dfcea0cc4201a1567ab32",
+   "Checks": [
+      {
+         "Details": [
+            "Warn: warn message: bin/binary.elf"
+         ],
+         "Score": 0,
+         "Reason": "min score reason",
+         "Name": "Check-Name"
+      }
+   ],
+   "Metadata": []
+}

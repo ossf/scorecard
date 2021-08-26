@@ -125,5 +125,6 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 		//nolint:wrapcheck
 		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
+
 	return nil
 }
