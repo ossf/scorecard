@@ -94,7 +94,6 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 // AsJSON2 exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
-	encoder.SetIndent("", "   ")
 
 	out := jsonScorecardResultV2{
 		Repo:     r.Repo,
