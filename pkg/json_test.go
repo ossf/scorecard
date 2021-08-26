@@ -403,7 +403,8 @@ func TestJSONOutput(t *testing.T) {
 			}
 
 			// TODO: add indentation to AsJSON2() and remove
-			// the calles to Unmarshall() and Marshall() below.
+			// the calls to Unmarshall() and Marshall() below.
+
 			// Unmarshall expected output.
 			var js jsonScorecardResultV2
 			if err := json.Unmarshal(expected.Bytes(), &js); err != nil {
