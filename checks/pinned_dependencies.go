@@ -545,8 +545,10 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 				match := hashRegex.Match([]byte(step.Uses.Value))
 				if !match {
 					ret = false
-					dl.Warn("unpinned dependency detected in %v line %d: '%v' (job '%v')", pathfn, step.Uses.Line,
-						step.Uses.Value, jobName)
+					dl.Warn3(&checker.LogMessage{
+						Path: pathfn, Type: checker.FileTypeSource, Offset: step.Uses.Line, Snippet: step.Uses.Value,
+						Text: fmt.Sprintf("unpinned dependency detected (job '%v')", jobName),
+					})
 				}
 			}
 		}

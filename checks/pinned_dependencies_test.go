@@ -589,15 +589,9 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			var content []byte
-			var err error
-			if tt.filename == "" {
-				content = make([]byte, 0)
-			} else {
-				content, err = ioutil.ReadFile(tt.filename)
-				if err != nil {
-					panic(fmt.Errorf("cannot read file: %w", err))
-				}
+			content, err := ioutil.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %w", err)
 			}
 			dl := scut.TestDetailLogger{}
 			var pinned pinnedResult
@@ -606,13 +600,13 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 				t.Errorf("error during validateGitHubActionWorkflow: %w", err)
 			}
 			for _, expectedLog := range tt.expected {
-				expectedLogMessage := fmt.Sprintf("unpinned dependency detected in %v line %d: '%v'",
-					tt.filename, expectedLog.lineNumber, expectedLog.dependency)
-				isExpectedLog := func(logMessage string, logType checker.DetailType) bool {
-					return strings.Contains(logMessage, expectedLogMessage) && logType == checker.DetailWarn
+				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == tt.filename &&
+						logMessage.Snippet == expectedLog.dependency && logType == checker.DetailWarn &&
+						strings.Contains(logMessage.Text, "unpinned dependency detected")
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
-					t.Errorf("test failed: log message not present: %s", expectedLogMessage)
+					t.Errorf("test failed: log message not present: %+v", tt.expected)
 				}
 			}
 		})

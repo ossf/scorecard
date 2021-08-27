@@ -142,7 +142,8 @@ func ValidateTestReturn(t *testing.T, name string, te *TestReturn,
 }
 
 // ValidateLogMessage tests that at least one log message returns true for isExpectedMessage.
-func ValidateLogMessage(isExpectedMessage func(string, checker.DetailType) bool, dl *TestDetailLogger) bool {
+func ValidateLogMessage(isExpectedMessage func(checker.LogMessage, checker.DetailType) bool,
+	dl *TestDetailLogger) bool {
 	for _, message := range dl.messages {
 		if isExpectedMessage(message.Msg, message.Type) {
 			return true
