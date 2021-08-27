@@ -16,31 +16,26 @@ package pkg
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 	"testing"
 	"time"
 
+	"github.com/xeipuuv/gojsonschema"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/docs/checks"
 )
 
 //nolint
-func TestSARIFOutput(t *testing.T) {
+func TestJSONOutput(t *testing.T) {
 	t.Parallel()
 
-	type Check struct {
-		Risk        string   `yaml:"-"`
-		Short       string   `yaml:"short"`
-		Description string   `yaml:"description"`
-		Remediation []string `yaml:"remediation"`
-		Tags        string   `yaml:"tags"`
-	}
-
 	commit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
-	date, e := time.Parse(time.RFC822Z, "17 Aug 21 18:57 +0000")
+	date, e := time.Parse("2006-01-02", "2021-08-25")
 	if e != nil {
 		panic(fmt.Errorf("time.Parse: %w", e))
 	}
@@ -51,26 +46,12 @@ func TestSARIFOutput(t *testing.T) {
 		showDetails bool
 		logLevel    zapcore.Level
 		result      ScorecardResult
-		checkDocs   checks.Doc
-		minScore    int
 	}{
 		{
 			name:        "check-1",
 			showDetails: true,
-			expected:    "./testdata/check1.sarif",
+			expected:    "./testdata/check1.json",
 			logLevel:    zapcore.DebugLevel,
-			minScore:    checker.MaxResultScore,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-				},
-			},
 			result: ScorecardResult{
 				Repo:      "repo not used",
 				Date:      date,
@@ -86,6 +67,8 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 						},
@@ -100,20 +83,8 @@ func TestSARIFOutput(t *testing.T) {
 		{
 			name:        "check-2",
 			showDetails: true,
-			expected:    "./testdata/check2.sarif",
+			expected:    "./testdata/check2.json",
 			logLevel:    zapcore.DebugLevel,
-			minScore:    checker.MaxResultScore,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-				},
-			},
 			result: ScorecardResult{
 				Repo:      "repo not used",
 				Date:      date,
@@ -128,6 +99,8 @@ func TestSARIFOutput(t *testing.T) {
 									Path:   "bin/binary.elf",
 									Type:   checker.FileTypeBinary,
 									Offset: 0,
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 						},
@@ -142,34 +115,8 @@ func TestSARIFOutput(t *testing.T) {
 		{
 			name:        "check-3",
 			showDetails: true,
-			expected:    "./testdata/check3.sarif",
+			expected:    "./testdata/check3.json",
 			logLevel:    zapcore.InfoLevel,
-			minScore:    checker.MaxResultScore,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-					"Check-Name2": {
-						Risk:        "risk not used",
-						Short:       "short description 2",
-						Description: "long description\n other line 2",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2, tag3 ",
-					},
-					"Check-Name3": {
-						Risk:        "risk not used",
-						Short:       "short description 3",
-						Description: "long description\n other line 3",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2, tag3, tag4 ",
-					},
-				},
-			},
 			result: ScorecardResult{
 				Repo:      "repo not used",
 				Date:      date,
@@ -184,6 +131,8 @@ func TestSARIFOutput(t *testing.T) {
 									Path:   "bin/binary.elf",
 									Type:   checker.FileTypeBinary,
 									Offset: 0,
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 						},
@@ -201,6 +150,8 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 						},
@@ -218,6 +169,8 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 							{
@@ -228,6 +181,8 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG2();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 							{
@@ -238,6 +193,8 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG5();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 						},
@@ -252,34 +209,8 @@ func TestSARIFOutput(t *testing.T) {
 		{
 			name:        "check-4",
 			showDetails: true,
-			expected:    "./testdata/check4.sarif",
+			expected:    "./testdata/check4.json",
 			logLevel:    zapcore.DebugLevel,
-			minScore:    checker.MaxResultScore,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-					"Check-Name2": {
-						Risk:        "risk not used",
-						Short:       "short description 2",
-						Description: "long description\n other line 2",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2, tag3 ",
-					},
-					"Check-Name3": {
-						Risk:        "risk not used",
-						Short:       "short description 3",
-						Description: "long description\n other line 3",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2, tag3, tag4 ",
-					},
-				},
-			},
 			result: ScorecardResult{
 				Repo:      "repo not used",
 				Date:      date,
@@ -294,6 +225,8 @@ func TestSARIFOutput(t *testing.T) {
 									Path:   "bin/binary.elf",
 									Type:   checker.FileTypeBinary,
 									Offset: 0,
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 						},
@@ -311,6 +244,8 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 						},
@@ -328,6 +263,8 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 							{
@@ -338,6 +275,8 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG2();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 							{
@@ -348,6 +287,8 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG5();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 						},
@@ -362,20 +303,8 @@ func TestSARIFOutput(t *testing.T) {
 		{
 			name:        "check-5",
 			showDetails: true,
-			expected:    "./testdata/check5.sarif",
+			expected:    "./testdata/check5.json",
 			logLevel:    zapcore.WarnLevel,
-			minScore:    5,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-				},
-			},
 			result: ScorecardResult{
 				Repo:      "repo not used",
 				Date:      date,
@@ -391,6 +320,8 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 						},
@@ -405,20 +336,8 @@ func TestSARIFOutput(t *testing.T) {
 		{
 			name:        "check-6",
 			showDetails: true,
-			expected:    "./testdata/check6.sarif",
+			expected:    "./testdata/check6.json",
 			logLevel:    zapcore.WarnLevel,
-			minScore:    checker.MaxResultScore,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-				},
-			},
 			result: ScorecardResult{
 				Repo:      "repo not used",
 				Date:      date,
@@ -432,6 +351,8 @@ func TestSARIFOutput(t *testing.T) {
 									Text: "warn message",
 									Path: "https://domain.com/something",
 									Type: checker.FileTypeURL,
+									// UPGRADEv3: to remove.
+									Version: 3,
 								},
 							},
 						},
@@ -443,6 +364,17 @@ func TestSARIFOutput(t *testing.T) {
 				Metadata: []string{},
 			},
 		},
+	}
+
+	// Load the JSON schema.
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("os.Getwd: %s", err)
+	}
+	schemaLoader := gojsonschema.NewReferenceLoader(fmt.Sprintf("file://%s", path.Join(cwd, "json.v2.schema")))
+	schema, err := gojsonschema.NewSchema(schemaLoader)
+	if err != nil {
+		t.Fatalf("gojsonschema.NewSchema: %s", err)
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -465,14 +397,46 @@ func TestSARIFOutput(t *testing.T) {
 			}
 
 			var result bytes.Buffer
-			err = tt.result.AsSARIF("1.2.3", tt.showDetails, tt.logLevel, &result, tt.checkDocs, tt.minScore)
+			err = tt.result.AsJSON2(tt.showDetails, tt.logLevel, &result)
 			if err != nil {
-				t.Fatalf("AsSARIF: %v", err)
+				t.Fatalf("AsJSON2: %v", err)
 			}
 
-			r := bytes.Compare(expected.Bytes(), result.Bytes())
+			// TODO: add indentation to AsJSON2() and remove
+			// the calls to Unmarshall() and Marshall() below.
+
+			// Unmarshall expected output.
+			var js jsonScorecardResultV2
+			if err := json.Unmarshal(expected.Bytes(), &js); err != nil {
+				t.Fatalf("json.Unmarshal %s: %s", tt.name, err)
+			}
+
+			// Marshall.
+			var es bytes.Buffer
+			encoder := json.NewEncoder(&es)
+			if err := encoder.Encode(js); err != nil {
+				t.Fatalf("Encode %s: %s", tt.name, err)
+			}
+
+			// Compare outputs.
+			r := bytes.Compare(result.Bytes(), es.Bytes())
 			if r != 0 {
 				t.Fatalf("invalid result for %s: %d", tt.name, r)
+			}
+
+			// Validate schema.
+			docLoader := gojsonschema.NewReferenceLoader(fmt.Sprintf("file://%s", path.Join(cwd, tt.expected)))
+			rr, err := schema.Validate(docLoader)
+			if err != nil {
+				t.Fatalf("Validate error for %s: %s", tt.name, err.Error())
+			}
+
+			if !rr.Valid() {
+				s := ""
+				for _, desc := range rr.Errors() {
+					s += fmt.Sprintf("- %s\n", desc)
+				}
+				t.Fatalf("invalid format %s: %s", tt.name, s)
 			}
 		})
 	}

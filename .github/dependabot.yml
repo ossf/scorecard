@@ -20,23 +20,28 @@ updates:
   commit-message:
       prefix: ":seedling:"
   open-pull-requests-limit: 10
-- package-ecosystem: gomod
-  directory: "/gitcache"
+- package-ecosystem: docker
+  directory: "/cron/bq"
   schedule:
     interval: daily
   commit-message:
       prefix: ":seedling:"
   open-pull-requests-limit: 10
 - package-ecosystem: docker
-  directory: "/gitcache"
+  directory: "/cron/worker"
   schedule:
     interval: daily
   commit-message:
       prefix: ":seedling:"
-- package-ecosystem: gomod
-  directory: "/scripts"
+- package-ecosystem: docker
+  directory: "/cron/webhook"
   schedule:
     interval: daily
   commit-message:
       prefix: ":seedling:"
-  open-pull-requests-limit: 10
+- package-ecosystem: docker
+  directory: "/cron/controller"
+  schedule:
+    interval: daily
+  commit-message:
+      prefix: ":seedling:"

@@ -1,3 +1,27 @@
+# Requirements for a check
+
+If you'd like to add a check, make sure it is something that meets the following
+criteria and then create a new GitHub Issue to discuss with the team:
+
+-   The scorecard must only be composed of automate-able, objective data. For
+    example, a project having 10 contributors doesn’t necessarily mean it’s more
+    secure than a project with say 50 contributors. But, having two maintainers
+    might be preferable to only having one - the larger bus factor and ability
+    to provide code reviews is objectively better.
+-   The scorecard criteria can be as specific as possible and not limited
+    general recommendations. For example, for Go, we can recommend/require
+    specific linters and analyzers to be run on the codebase.
+-   The scorecard can be populated for any open source project without any work
+    or interaction from maintainers.
+-   Maintainers must be provided with a mechanism to correct any automated
+    scorecard findings they feel were made in error, provide "hints" for
+    anything we can't detect automatically, and even dispute the applicability
+    of a given scorecard finding for that repository.
+-   Any criteria in the scorecard must be actionable. It should be possible,
+    with help, for any project to "check all the boxes".
+-   Any solution to compile a scorecard should be usable by the greater open
+    source community to monitor upstream security.
+
 # How to write a check
 
 The steps to writting a check are as follow:
@@ -25,6 +49,8 @@ The steps to writting a check are as follow:
     *   Use `checker.DetailLogger.Debug()` to provide detail in verbose mode:
         this is showed only when the user supplies the `--verbosity Debug`
         option.
+    *   If your message relates to a file, try to provide information such as
+        the `Path`, line number `Offset` and `Snippet`.
 
 4.  If the checks fails in a way that is irrecoverable, return a result with
     `checker.CreateRuntimeErrorResult()` function: For example, if an error is

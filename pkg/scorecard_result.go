@@ -87,12 +87,12 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 		if row.Score == checker.InconclusiveResultScore {
 			x[0] = "?"
 		} else {
-			x[0] = fmt.Sprintf("%d", row.Score)
+			x[0] = fmt.Sprintf("%d / %d", row.Score, checker.MaxResultScore)
 		}
 
 		doc := fmt.Sprintf("github.com/ossf/scorecard/blob/main/docs/checks.md#%s", strings.ToLower(row.Name))
-		x[1] = row.Reason
-		x[2] = row.Name
+		x[1] = row.Name
+		x[2] = row.Reason
 		if showDetails {
 			details, show := detailsToString(row.Details2, logLevel)
 			if show {
@@ -107,7 +107,7 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	header := []string{"Score", "Reason", "Name"}
+	header := []string{"Score", "Name", "Reason"}
 	if showDetails {
 		header = append(header, "Details")
 	}
