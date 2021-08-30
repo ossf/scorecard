@@ -9,7 +9,6 @@ require (
 	cloud.google.com/go/pubsub v1.16.0
 	cloud.google.com/go/trace v0.1.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.8
-	github.com/alecthomas/jsonschema v0.0.0-20210818095345-1014919a589c // indirect
 	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/golang/mock v1.6.0
