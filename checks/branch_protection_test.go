@@ -16,7 +16,6 @@ package checks
 
 import (
 	"context"
-	"net/http"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -24,15 +23,14 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v2/clients/mockrepo"
 	sce "github.com/ossf/scorecard/v2/errors"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
 type mockRepos struct {
-	branches    []*string
-	protections map[string]*github.Protection
-	releases    []*string
-	nonadmin    bool
+	releases []*string
+	nonadmin bool
 }
 
 func (m mockRepos) ListReleases(ctx context.Context, owner string,
@@ -44,31 +42,27 @@ func (m mockRepos) ListReleases(ctx context.Context, owner string,
 	return res, nil, nil
 }
 
-func (m mockRepos) GetBranchProtection(ctx context.Context, o string, r string,
-	b string) (*github.Protection, *github.Response, error) {
-	if !m.nonadmin {
-		p, ok := m.protections[b]
-		if ok {
-			return p, &github.Response{
-				Response: &http.Response{StatusCode: http.StatusAccepted},
-			}, nil
+func getBranch(branches []*clients.BranchRef, name string) *clients.BranchRef {
+	for _, branch := range branches {
+		if branch.GetName() == name {
+			return branch
 		}
 	}
-	return nil, &github.Response{
-			Response: &http.Response{StatusCode: http.StatusNotFound},
-		},
-		//nolint
-		sce.Create(sce.ErrScorecardInternal, errInternalBranchNotFound.Error())
+	return nil
 }
 
-func (m mockRepos) ListBranches(ctx context.Context, owner string, repo string,
-	opts *github.BranchListOptions) ([]*github.Branch, *github.Response, error) {
-	res := make([]*github.Branch, len(m.branches))
-	for i, rel := range m.branches {
-		_, protected := m.protections[*rel]
-		res[i] = &github.Branch{Name: rel, Protected: &protected}
+func scrubBranch(branch *clients.BranchRef) *clients.BranchRef {
+	ret := branch
+	ret.BranchProtectionRule = nil
+	return ret
+}
+
+func scrubBranches(branches []*clients.BranchRef) []*clients.BranchRef {
+	ret := make([]*clients.BranchRef, len(branches))
+	for i, branch := range branches {
+		ret[i] = scrubBranch(branch)
 	}
-	return res, nil, nil
+	return ret
 }
 
 func TestReleaseAndDevBranchProtected(t *testing.T) {
@@ -81,10 +75,9 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 	tests := []struct {
 		name          string
 		expected      scut.TestReturn
-		branches      []*string
+		branches      []*clients.BranchRef
 		defaultBranch string
 		releases      []*string
-		protections   map[string]*github.Protection
 		nonadmin      bool
 	}{
 		{
@@ -97,43 +90,40 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			branches:      []*string{&rel1, &main},
-			releases:      nil,
-			protections: map[string]*github.Protection{
-				"main": {
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   false,
-						Contexts: nil,
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
+			branches: []*clients.BranchRef{
+				{
+					Name:      rel1,
+					Protected: false,
+				},
+				{
+					Name:      main,
+					Protected: true,
+					BranchProtectionRule: &clients.BranchProtectionRule{
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							Strict:   false,
+							Contexts: nil,
 						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
-						Users: nil,
-						Teams: nil,
-						Apps:  nil,
-					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+							DismissStaleReviews:          false,
+							RequireCodeOwnerReviews:      false,
+							RequiredApprovingReviewCount: 0,
+						},
+						EnforceAdmins: &clients.EnforceAdmins{
+							Enabled: false,
+						},
+						RequireLinearHistory: &clients.RequireLinearHistory{
+							Enabled: false,
+						},
+						AllowForcePushes: &clients.AllowForcePushes{
+							Enabled: false,
+						},
+						AllowDeletions: &clients.AllowDeletions{
+							Enabled: false,
+						},
 					},
 				},
 			},
+			releases: nil,
 		},
 		{
 			name: "Take worst of release and development",
@@ -145,76 +135,63 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			branches:      []*string{&rel1, &main},
-			releases:      []*string{&rel1},
-			protections: map[string]*github.Protection{
-				"main": {
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   true,
-						Contexts: []string{"foo"},
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
+			branches: []*clients.BranchRef{
+				{
+					Name:      main,
+					Protected: true,
+					BranchProtectionRule: &clients.BranchProtectionRule{
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							Strict:   true,
+							Contexts: []string{"foo"},
 						},
-						DismissStaleReviews:          true,
-						RequireCodeOwnerReviews:      true,
-						RequiredApprovingReviewCount: 1,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: true,
-					},
-					Restrictions: &github.BranchRestrictions{
-						Users: nil,
-						Teams: nil,
-						Apps:  nil,
-					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: true,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+							DismissStaleReviews:          true,
+							RequireCodeOwnerReviews:      true,
+							RequiredApprovingReviewCount: 1,
+						},
+						EnforceAdmins: &clients.EnforceAdmins{
+							Enabled: true,
+						},
+						RequireLinearHistory: &clients.RequireLinearHistory{
+							Enabled: true,
+						},
+						AllowForcePushes: &clients.AllowForcePushes{
+							Enabled: false,
+						},
+						AllowDeletions: &clients.AllowDeletions{
+							Enabled: false,
+						},
 					},
 				},
-				"release/v.1": {
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   false,
-						Contexts: nil,
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
+				{
+					Name:      rel1,
+					Protected: true,
+					BranchProtectionRule: &clients.BranchProtectionRule{
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							Strict:   false,
+							Contexts: nil,
 						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
-						Users: nil,
-						Teams: nil,
-						Apps:  nil,
-					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+							DismissStaleReviews:          false,
+							RequireCodeOwnerReviews:      false,
+							RequiredApprovingReviewCount: 0,
+						},
+						EnforceAdmins: &clients.EnforceAdmins{
+							Enabled: false,
+						},
+						RequireLinearHistory: &clients.RequireLinearHistory{
+							Enabled: false,
+						},
+						AllowForcePushes: &clients.AllowForcePushes{
+							Enabled: false,
+						},
+						AllowDeletions: &clients.AllowDeletions{
+							Enabled: false,
+						},
 					},
 				},
 			},
+			releases: []*string{&rel1},
 		},
 		{
 			name: "Both release and development are OK",
@@ -226,76 +203,63 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			branches:      []*string{&rel1, &main},
-			releases:      []*string{&rel1},
-			protections: map[string]*github.Protection{
-				"main": {
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   true,
-						Contexts: []string{"foo"},
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
+			branches: []*clients.BranchRef{
+				{
+					Name:      main,
+					Protected: true,
+					BranchProtectionRule: &clients.BranchProtectionRule{
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							Strict:   true,
+							Contexts: []string{"foo"},
 						},
-						DismissStaleReviews:          true,
-						RequireCodeOwnerReviews:      true,
-						RequiredApprovingReviewCount: 1,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: true,
-					},
-					Restrictions: &github.BranchRestrictions{
-						Users: nil,
-						Teams: nil,
-						Apps:  nil,
-					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: true,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+							DismissStaleReviews:          true,
+							RequireCodeOwnerReviews:      true,
+							RequiredApprovingReviewCount: 1,
+						},
+						EnforceAdmins: &clients.EnforceAdmins{
+							Enabled: true,
+						},
+						RequireLinearHistory: &clients.RequireLinearHistory{
+							Enabled: true,
+						},
+						AllowForcePushes: &clients.AllowForcePushes{
+							Enabled: false,
+						},
+						AllowDeletions: &clients.AllowDeletions{
+							Enabled: false,
+						},
 					},
 				},
-				"release/v.1": {
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   true,
-						Contexts: []string{"foo"},
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
+				{
+					Name:      rel1,
+					Protected: true,
+					BranchProtectionRule: &clients.BranchProtectionRule{
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							Strict:   true,
+							Contexts: []string{"foo"},
 						},
-						DismissStaleReviews:          true,
-						RequireCodeOwnerReviews:      true,
-						RequiredApprovingReviewCount: 1,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: true,
-					},
-					Restrictions: &github.BranchRestrictions{
-						Users: nil,
-						Teams: nil,
-						Apps:  nil,
-					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: true,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+							DismissStaleReviews:          true,
+							RequireCodeOwnerReviews:      true,
+							RequiredApprovingReviewCount: 1,
+						},
+						EnforceAdmins: &clients.EnforceAdmins{
+							Enabled: true,
+						},
+						RequireLinearHistory: &clients.RequireLinearHistory{
+							Enabled: true,
+						},
+						AllowForcePushes: &clients.AllowForcePushes{
+							Enabled: false,
+						},
+						AllowDeletions: &clients.AllowDeletions{
+							Enabled: false,
+						},
 					},
 				},
 			},
+			releases: []*string{&rel1},
 		},
 		{
 			name: "Ignore a non-branch targetcommitish",
@@ -307,41 +271,37 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			branches:      []*string{&rel1, &main},
 			releases:      []*string{&sha},
-			protections: map[string]*github.Protection{
-				"main": {
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   false,
-						Contexts: nil,
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
+			branches: []*clients.BranchRef{
+				{
+					Name:      main,
+					Protected: true,
+					BranchProtectionRule: &clients.BranchProtectionRule{
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							Strict:   false,
+							Contexts: nil,
 						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+							DismissStaleReviews:          false,
+							RequireCodeOwnerReviews:      false,
+							RequiredApprovingReviewCount: 0,
+						},
+						EnforceAdmins: &clients.EnforceAdmins{
+							Enabled: false,
+						},
+						RequireLinearHistory: &clients.RequireLinearHistory{
+							Enabled: false,
+						},
+						AllowForcePushes: &clients.AllowForcePushes{
+							Enabled: false,
+						},
+						AllowDeletions: &clients.AllowDeletions{
+							Enabled: false,
+						},
 					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
-						Users: nil,
-						Teams: nil,
-						Apps:  nil,
-					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
-					},
+				}, {
+					Name:      rel1,
+					Protected: false,
 				},
 			},
 		},
@@ -355,40 +315,33 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			branches:      []*string{&main},
 			releases:      []*string{nil},
-			protections: map[string]*github.Protection{
-				"main": {
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   false,
-						Contexts: nil,
-					},
-					RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-						DismissalRestrictions: &github.DismissalRestrictions{
-							Users: nil,
-							Teams: nil,
+			branches: []*clients.BranchRef{
+				{
+					Name:      main,
+					Protected: true,
+					BranchProtectionRule: &clients.BranchProtectionRule{
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							Strict:   false,
+							Contexts: nil,
 						},
-						DismissStaleReviews:          false,
-						RequireCodeOwnerReviews:      false,
-						RequiredApprovingReviewCount: 0,
-					},
-					EnforceAdmins: &github.AdminEnforcement{
-						URL:     nil,
-						Enabled: false,
-					},
-					Restrictions: &github.BranchRestrictions{
-						Users: nil,
-						Teams: nil,
-						Apps:  nil,
-					},
-					RequireLinearHistory: &github.RequireLinearHistory{
-						Enabled: false,
-					},
-					AllowForcePushes: &github.AllowForcePushes{
-						Enabled: false,
-					},
-					AllowDeletions: &github.AllowDeletions{
-						Enabled: false,
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+							DismissStaleReviews:          false,
+							RequireCodeOwnerReviews:      false,
+							RequiredApprovingReviewCount: 0,
+						},
+						EnforceAdmins: &clients.EnforceAdmins{
+							Enabled: false,
+						},
+						RequireLinearHistory: &clients.RequireLinearHistory{
+							Enabled: false,
+						},
+						AllowForcePushes: &clients.AllowForcePushes{
+							Enabled: false,
+						},
+						AllowDeletions: &clients.AllowDeletions{
+							Enabled: false,
+						},
 					},
 				},
 			},
@@ -404,19 +357,27 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			},
 			nonadmin:      true,
 			defaultBranch: main,
-			branches:      []*string{&rel1, &main},
-			releases:      []*string{&rel1},
-			protections: map[string]*github.Protection{
-				"main": {
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   true,
-						Contexts: []string{"foo"},
+			// branches:      []*string{&rel1, &main},
+			releases: []*string{&rel1},
+			branches: []*clients.BranchRef{
+				{
+					Name:      main,
+					Protected: true,
+					BranchProtectionRule: &clients.BranchProtectionRule{
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							Strict:   true,
+							Contexts: []string{"foo"},
+						},
 					},
 				},
-				"release/v.1": {
-					RequiredStatusChecks: &github.RequiredStatusChecks{
-						Strict:   true,
-						Contexts: []string{"foo"},
+				{
+					Name:      rel1,
+					Protected: true,
+					BranchProtectionRule: &clients.BranchProtectionRule{
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							Strict:   true,
+							Contexts: []string{"foo"},
+						},
 					},
 				},
 			},
@@ -428,17 +389,27 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			m := mockRepos{
-				branches:    tt.branches,
-				releases:    tt.releases,
-				protections: tt.protections,
-				nonadmin:    tt.nonadmin,
+				releases: tt.releases,
+				nonadmin: tt.nonadmin,
 			}
 
 			ctrl := gomock.NewController(t)
-			mockRepoClient := clients.NewMockRepoClient(ctrl)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			mockRepoClient.EXPECT().GetDefaultBranch().
-				Return(clients.BranchRef{Name: tt.defaultBranch}, nil).
-				AnyTimes()
+				DoAndReturn(func() (*clients.BranchRef, error) {
+					defaultBranch := getBranch(tt.branches, tt.defaultBranch)
+					if defaultBranch != nil && tt.nonadmin {
+						return scrubBranch(defaultBranch), nil
+					}
+					return defaultBranch, nil
+				}).AnyTimes()
+			mockRepoClient.EXPECT().ListBranches().
+				DoAndReturn(func() ([]*clients.BranchRef, error) {
+					if tt.nonadmin {
+						return scrubBranches(tt.branches), nil
+					}
+					return tt.branches, nil
+				}).AnyTimes()
 			dl := scut.TestDetailLogger{}
 			r := checkReleaseAndDevBranchProtection(context.Background(), mockRepoClient, m,
 				&dl, "testowner", "testrepo")
@@ -455,7 +426,7 @@ func TestIsBranchProtected(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		protection *github.Protection
+		protection *clients.BranchProtectionRule
 		expected   scut.TestReturn
 	}{
 		{
@@ -467,36 +438,26 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
-			protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
+			protection: &clients.BranchProtectionRule{
+				RequiredStatusChecks: &clients.StatusChecksRule{
 					Strict:   false,
 					Contexts: nil,
 				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
-						Users: nil,
-						Teams: nil,
-					},
+				RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 					DismissStaleReviews:          false,
 					RequireCodeOwnerReviews:      false,
 					RequiredApprovingReviewCount: 0,
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
+				EnforceAdmins: &clients.EnforceAdmins{
 					Enabled: false,
 				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
+				RequireLinearHistory: &clients.RequireLinearHistory{
 					Enabled: false,
 				},
-				AllowForcePushes: &github.AllowForcePushes{
+				AllowForcePushes: &clients.AllowForcePushes{
 					Enabled: false,
 				},
-				AllowDeletions: &github.AllowDeletions{
+				AllowDeletions: &clients.AllowDeletions{
 					Enabled: false,
 				},
 			},
@@ -510,7 +471,7 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
-			protection: &github.Protection{},
+			protection: &clients.BranchProtectionRule{},
 		},
 		{
 			name: "Required status check enabled",
@@ -521,36 +482,26 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
-			protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
+			protection: &clients.BranchProtectionRule{
+				RequiredStatusChecks: &clients.StatusChecksRule{
 					Strict:   true,
 					Contexts: []string{"foo"},
 				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
-						Users: nil,
-						Teams: nil,
-					},
+				RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 					DismissStaleReviews:          false,
 					RequireCodeOwnerReviews:      false,
 					RequiredApprovingReviewCount: 0,
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
+				EnforceAdmins: &clients.EnforceAdmins{
 					Enabled: false,
 				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
+				RequireLinearHistory: &clients.RequireLinearHistory{
 					Enabled: false,
 				},
-				AllowForcePushes: &github.AllowForcePushes{
+				AllowForcePushes: &clients.AllowForcePushes{
 					Enabled: false,
 				},
-				AllowDeletions: &github.AllowDeletions{
+				AllowDeletions: &clients.AllowDeletions{
 					Enabled: false,
 				},
 			},
@@ -564,36 +515,26 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
-			protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
+			protection: &clients.BranchProtectionRule{
+				RequiredStatusChecks: &clients.StatusChecksRule{
 					Strict:   true,
 					Contexts: nil,
 				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
-						Users: nil,
-						Teams: nil,
-					},
+				RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 					DismissStaleReviews:          false,
 					RequireCodeOwnerReviews:      false,
 					RequiredApprovingReviewCount: 0,
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
+				EnforceAdmins: &clients.EnforceAdmins{
 					Enabled: false,
 				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
+				RequireLinearHistory: &clients.RequireLinearHistory{
 					Enabled: false,
 				},
-				AllowForcePushes: &github.AllowForcePushes{
+				AllowForcePushes: &clients.AllowForcePushes{
 					Enabled: false,
 				},
-				AllowDeletions: &github.AllowDeletions{
+				AllowDeletions: &clients.AllowDeletions{
 					Enabled: false,
 				},
 			},
@@ -607,36 +548,26 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
-			protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
+			protection: &clients.BranchProtectionRule{
+				RequiredStatusChecks: &clients.StatusChecksRule{
 					Strict:   false,
 					Contexts: []string{"foo"},
 				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
-						Users: nil,
-						Teams: nil,
-					},
+				RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 					DismissStaleReviews:          false,
 					RequireCodeOwnerReviews:      false,
 					RequiredApprovingReviewCount: 1,
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
+				EnforceAdmins: &clients.EnforceAdmins{
 					Enabled: false,
 				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
+				RequireLinearHistory: &clients.RequireLinearHistory{
 					Enabled: true,
 				},
-				AllowForcePushes: &github.AllowForcePushes{
+				AllowForcePushes: &clients.AllowForcePushes{
 					Enabled: false,
 				},
-				AllowDeletions: &github.AllowDeletions{
+				AllowDeletions: &clients.AllowDeletions{
 					Enabled: false,
 				},
 			},
@@ -650,36 +581,26 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
-			protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
+			protection: &clients.BranchProtectionRule{
+				RequiredStatusChecks: &clients.StatusChecksRule{
 					Strict:   false,
 					Contexts: []string{"foo"},
 				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
-						Users: nil,
-						Teams: nil,
-					},
+				RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 					DismissStaleReviews:          false,
 					RequireCodeOwnerReviews:      false,
 					RequiredApprovingReviewCount: 0,
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
+				EnforceAdmins: &clients.EnforceAdmins{
 					Enabled: true,
 				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
+				RequireLinearHistory: &clients.RequireLinearHistory{
 					Enabled: false,
 				},
-				AllowForcePushes: &github.AllowForcePushes{
+				AllowForcePushes: &clients.AllowForcePushes{
 					Enabled: false,
 				},
-				AllowDeletions: &github.AllowDeletions{
+				AllowDeletions: &clients.AllowDeletions{
 					Enabled: false,
 				},
 			},
@@ -693,36 +614,26 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
-			protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
+			protection: &clients.BranchProtectionRule{
+				RequiredStatusChecks: &clients.StatusChecksRule{
 					Strict:   false,
 					Contexts: []string{"foo"},
 				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
-						Users: nil,
-						Teams: nil,
-					},
+				RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 					DismissStaleReviews:          false,
 					RequireCodeOwnerReviews:      false,
 					RequiredApprovingReviewCount: 0,
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
+				EnforceAdmins: &clients.EnforceAdmins{
 					Enabled: false,
 				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
+				RequireLinearHistory: &clients.RequireLinearHistory{
 					Enabled: true,
 				},
-				AllowForcePushes: &github.AllowForcePushes{
+				AllowForcePushes: &clients.AllowForcePushes{
 					Enabled: false,
 				},
-				AllowDeletions: &github.AllowDeletions{
+				AllowDeletions: &clients.AllowDeletions{
 					Enabled: false,
 				},
 			},
@@ -736,36 +647,26 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
-			protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
+			protection: &clients.BranchProtectionRule{
+				RequiredStatusChecks: &clients.StatusChecksRule{
 					Strict:   false,
 					Contexts: []string{"foo"},
 				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
-						Users: nil,
-						Teams: nil,
-					},
+				RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 					DismissStaleReviews:          false,
 					RequireCodeOwnerReviews:      false,
 					RequiredApprovingReviewCount: 0,
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
+				EnforceAdmins: &clients.EnforceAdmins{
 					Enabled: false,
 				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
+				RequireLinearHistory: &clients.RequireLinearHistory{
 					Enabled: false,
 				},
-				AllowForcePushes: &github.AllowForcePushes{
+				AllowForcePushes: &clients.AllowForcePushes{
 					Enabled: true,
 				},
-				AllowDeletions: &github.AllowDeletions{
+				AllowDeletions: &clients.AllowDeletions{
 					Enabled: false,
 				},
 			},
@@ -779,36 +680,26 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
-			protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
+			protection: &clients.BranchProtectionRule{
+				RequiredStatusChecks: &clients.StatusChecksRule{
 					Strict:   false,
 					Contexts: []string{"foo"},
 				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
-						Users: nil,
-						Teams: nil,
-					},
+				RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 					DismissStaleReviews:          false,
 					RequireCodeOwnerReviews:      false,
 					RequiredApprovingReviewCount: 0,
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
+				EnforceAdmins: &clients.EnforceAdmins{
 					Enabled: false,
 				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
+				RequireLinearHistory: &clients.RequireLinearHistory{
 					Enabled: false,
 				},
-				AllowForcePushes: &github.AllowForcePushes{
+				AllowForcePushes: &clients.AllowForcePushes{
 					Enabled: false,
 				},
-				AllowDeletions: &github.AllowDeletions{
+				AllowDeletions: &clients.AllowDeletions{
 					Enabled: true,
 				},
 			},
@@ -822,36 +713,26 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfInfo:  7,
 				NumberOfDebug: 0,
 			},
-			protection: &github.Protection{
-				RequiredStatusChecks: &github.RequiredStatusChecks{
+			protection: &clients.BranchProtectionRule{
+				RequiredStatusChecks: &clients.StatusChecksRule{
 					Strict:   true,
 					Contexts: []string{"foo"},
 				},
-				RequiredPullRequestReviews: &github.PullRequestReviewsEnforcement{
-					DismissalRestrictions: &github.DismissalRestrictions{
-						Users: nil,
-						Teams: nil,
-					},
+				RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 					DismissStaleReviews:          true,
 					RequireCodeOwnerReviews:      true,
 					RequiredApprovingReviewCount: 1,
 				},
-				EnforceAdmins: &github.AdminEnforcement{
-					URL:     nil,
+				EnforceAdmins: &clients.EnforceAdmins{
 					Enabled: true,
 				},
-				Restrictions: &github.BranchRestrictions{
-					Users: nil,
-					Teams: nil,
-					Apps:  nil,
-				},
-				RequireLinearHistory: &github.RequireLinearHistory{
+				RequireLinearHistory: &clients.RequireLinearHistory{
 					Enabled: true,
 				},
-				AllowForcePushes: &github.AllowForcePushes{
+				AllowForcePushes: &clients.AllowForcePushes{
 					Enabled: false,
 				},
-				AllowDeletions: &github.AllowDeletions{
+				AllowDeletions: &clients.AllowDeletions{
 					Enabled: false,
 				},
 			},
@@ -863,7 +744,7 @@ func TestIsBranchProtected(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
 			actual := &checker.CheckResult{
-				Score: IsBranchProtected(tt.protection, "test", &dl),
+				Score: isBranchProtected(tt.protection, "test", &dl),
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, actual, &dl) {
 				t.Fail()
