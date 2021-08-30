@@ -19,19 +19,22 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 const (
-	testEnvVar          string = "TEST_ENV_VAR"
-	prodProjectID              = "openssf"
-	prodBucket                 = "gs://ossf-scorecard-data"
-	prodTopic                  = "gcppubsub://projects/openssf/topics/scorecard-batch-requests"
-	prodSubscription           = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
-	prodBigQueryDataset        = "scorecardcron"
-	prodBigQueryTable          = "scorecard"
-	prodWebhookURL             = ""
-	prodShardSize       int    = 10
-	prodMetricExporter  string = "stackdriver"
+	testEnvVar              string = "TEST_ENV_VAR"
+	prodProjectID                  = "openssf"
+	prodBucket                     = "gs://ossf-scorecard-data"
+	prodTopic                      = "gcppubsub://projects/openssf/topics/scorecard-batch-requests"
+	prodSubscription               = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
+	prodBigQueryDataset            = "scorecardcron"
+	prodBigQueryTable              = "scorecard"
+	prodCompletionThreshold        = 99.0
+	prodWebhookURL                 = ""
+	prodShardSize           int    = 10
+	prodMetricExporter      string = "stackdriver"
 	// UPGRADEv2: to remove.
 	prodBucketV2        = "gs://ossf-scorecard-data2"
 	prodBigQueryTableV2 = "scorecard2"
@@ -62,6 +65,7 @@ func TestYAMLParsing(t *testing.T) {
 				RequestSubscriptionURL: prodSubscription,
 				BigQueryDataset:        prodBigQueryDataset,
 				BigQueryTable:          prodBigQueryTable,
+				CompletionThreshold:    prodCompletionThreshold,
 				WebhookURL:             prodWebhookURL,
 				ShardSize:              prodShardSize,
 				MetricExporter:         prodMetricExporter,
@@ -102,8 +106,9 @@ func TestYAMLParsing(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed to parse test file: %v", err)
 			}
-			if parsedConfig != testcase.expectedConfig {
-				t.Errorf("test failed: expected - %v, got - %v", testcase.expectedConfig, parsedConfig)
+			if !cmp.Equal(parsedConfig, testcase.expectedConfig) {
+				diff := cmp.Diff(parsedConfig, testcase.expectedConfig)
+				t.Errorf("test failed: expected - %v, got - %v. \n%s", testcase.expectedConfig, parsedConfig, diff)
 			}
 		})
 	}

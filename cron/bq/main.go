@@ -100,11 +100,16 @@ func getBucketSummary(ctx context.Context, bucketURL string) (*bucketSummary, er
 	return &summary, nil
 }
 
+func isCompleted(expected, created int, completionThreshold float64) bool {
+	completedPercentage := float64(created) / float64(expected)
+	return completedPercentage >= completionThreshold
+}
+
 func transferDataToBq(ctx context.Context,
-	bucketURL, projectID, datasetName, tableName, webhookURL string,
+	bucketURL, projectID, datasetName, tableName string, completionThreshold float64, webhookURL string,
 	summary *bucketSummary) error {
 	for creationTime, shards := range summary.shards {
-		if shards.isTransferred || shards.shardsExpected != shards.shardsCreated {
+		if shards.isTransferred || !isCompleted(shards.shardsExpected, shards.shardsCreated, completionThreshold) {
 			continue
 		}
 
@@ -167,6 +172,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	completionThreshold, err := config.GetCompletionThreshold()
+	if err != nil {
+		panic(err)
+	}
 
 	summary, err := getBucketSummary(ctx, bucketURL)
 	if err != nil {
@@ -174,7 +183,7 @@ func main() {
 	}
 
 	if err := transferDataToBq(ctx,
-		bucketURL, projectID, datasetName, tableName, webhookURL,
+		bucketURL, projectID, datasetName, tableName, completionThreshold, webhookURL,
 		summary); err != nil {
 		panic(err)
 	}
