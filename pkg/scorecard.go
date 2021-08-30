@@ -106,9 +106,11 @@ func RunScorecards(ctx context.Context,
 	}
 
 	ret := ScorecardResult{
-		Repo:      repo.URL(),
-		Date:      time.Now(),
-		CommitSHA: commitSHA,
+		Repo: RepoInfo{
+			Name:      repo.URL(),
+			CommitSHA: commitSHA,
+		},
+		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)
 	go runEnabledChecks(ctx, repo, checksToRun, repoClient,

@@ -30,11 +30,21 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
+type ScorecardInfo struct {
+	Version   string
+	CommitSHA string
+}
+
+type RepoInfo struct {
+	Name      string
+	CommitSHA string
+}
+
 // ScorecardResult struct is returned on a successful Scorecard run.
 type ScorecardResult struct {
-	Repo      string
+	Repo      RepoInfo
 	Date      time.Time
-	CommitSHA string
+	Scorecard ScorecardInfo
 	Checks    []checker.CheckResult
 	Metadata  []string
 }
@@ -42,7 +52,7 @@ type ScorecardResult struct {
 // AsCSV outputs ScorecardResult in CSV format.
 func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	w := csv.NewWriter(writer)
-	record := []string{r.Repo}
+	record := []string{r.Repo.Name}
 	columns := []string{"Repository"}
 	// UPGRADEv2: remove nolint after ugrade.
 	//nolint

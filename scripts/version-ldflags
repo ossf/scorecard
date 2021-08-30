@@ -21,5 +21,5 @@ GIT_VERSION=$(git describe --tags --always --dirty)
 GIT_HASH=$(git rev-parse HEAD)
 BUILD_DATE=$(date +'%Y-%m-%dT%H:%M:%SZ')
 GIT_TREESTATE=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)
-PKG=$(go list -m | head -n1)/cmd
+PKG=$(go list -m | head -n1)/pkg
 echo "-X $PKG.gitVersion=$GIT_VERSION -X $PKG.gitCommit=$GIT_HASH -X $PKG.gitTreeState=$GIT_TREESTATE -X $PKG.buildDate=$BUILD_DATE"
