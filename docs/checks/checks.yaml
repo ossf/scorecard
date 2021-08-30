@@ -15,7 +15,7 @@
 # This is the source of truth for all check descriptions and remediation steps.
 # Run `cd checks/main && go run /main` to generate `checks.json` and `checks.md`.
 checks:
-  Active:
+  Maintained:
     risk: High
     tags: supply-chain, security
     short: Determines if the project is "actively maintained".
@@ -26,7 +26,9 @@ checks:
       dependencies patched, or may not be actively tested and used.
       A low score is therefore considered `High` risk.
 
-      The check currently works by looking for commits within the last 90 days, and
+      The check currently works by looking whether the repo is archived or not.
+      If it is archived, it returns the minimum score. If it is not,
+      the check looks for commits within the last 90 days, and
       outputs the highest score if there are at least 1 commit/week during this period.
     remediation:
       - >-

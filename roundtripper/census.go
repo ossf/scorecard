@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/naveensrinivasan/httpcache"
 	"go.opencensus.io/plugin/ochttp"
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -26,6 +25,8 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/stats"
 )
+
+const fromCacheHeader = "X-From-Cache"
 
 // MakeCensusTransport wraps input Roundtripper with monitoring logic.
 func MakeCensusTransport(innerTransport http.RoundTripper) http.RoundTripper {
@@ -55,8 +56,8 @@ func (ct *censusTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 		//nolint:wrapcheck
 		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
 	}
-	if resp.Header.Get(httpcache.XFromCache) != "" {
-		ctx, err = tag.New(ctx, tag.Upsert(stats.RequestTag, httpcache.XFromCache))
+	if resp.Header.Get(fromCacheHeader) != "" {
+		ctx, err = tag.New(ctx, tag.Upsert(stats.RequestTag, fromCacheHeader))
 		if err != nil {
 			//nolint:wrapcheck
 			return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))

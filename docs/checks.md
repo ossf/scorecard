@@ -13,7 +13,7 @@ please contribute!
 
 This check tries to determine if the project is "actively maintained".
 A project which is not active may not be patched, may not have its dependencies patched, or may not be actively tested and used. A low score is therefore considered `High` risk.
-The check currently works by looking for commits within the last 90 days, and outputs the highest score if there are at least 1 commit/week during this period. 
+The check currently works by looking whether the repo is archived or not. If it is archived, it returns the minimum score. If it is not, the check looks for commits within the last 90 days, and outputs the highest score if there are at least 1 commit/week during this period. 
 
 **Remediation steps**
 - There is *NO* remediation work needed here. This is just to indicate your project activity and maintenance commitment.

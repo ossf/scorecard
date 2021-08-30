@@ -20,13 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
      - name: Install Protoc
-       uses: arduino/setup-protoc@v1
+       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       with:
+        version: 3.17.3
      - name: Clone the code
        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@37335c7bb261b353407cff977110895fa0b4f7d8 # v2.1.3
+       uses: actions/setup-go@331ce1d993939866bb63c32c6cbbfd48fa76fc57 # v2.1.3
        with:
          go-version: '^1.16'
      - name: Run presubmit tests
@@ -38,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
-      - uses: actions/setup-go@37335c7bb261b353407cff977110895fa0b4f7d8 # v2.1.3
+      - uses: actions/setup-go@331ce1d993939866bb63c32c6cbbfd48fa76fc57 # v2.1.3
         with:
           go-version: '1.16'
       - name: Check license headers

@@ -19,26 +19,20 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/go-github/v38/github"
 
 	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients"
 	sce "github.com/ossf/scorecard/v2/errors"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
 type mockRepos struct {
-	branches      []*string
-	protections   map[string]*github.Protection
-	defaultBranch *string
-	releases      []*string
-	nonadmin      bool
-}
-
-func (m mockRepos) Get(ctx context.Context, o, r string) (
-	*github.Repository, *github.Response, error) {
-	return &github.Repository{
-		DefaultBranch: m.defaultBranch,
-	}, nil, nil
+	branches    []*string
+	protections map[string]*github.Protection
+	releases    []*string
+	nonadmin    bool
 }
 
 func (m mockRepos) ListReleases(ctx context.Context, owner string,
@@ -88,7 +82,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		name          string
 		expected      scut.TestReturn
 		branches      []*string
-		defaultBranch *string
+		defaultBranch string
 		releases      []*string
 		protections   map[string]*github.Protection
 		nonadmin      bool
@@ -102,7 +96,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
-			defaultBranch: &main,
+			defaultBranch: main,
 			branches:      []*string{&rel1, &main},
 			releases:      nil,
 			protections: map[string]*github.Protection{
@@ -150,7 +144,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfInfo:  9,
 				NumberOfDebug: 0,
 			},
-			defaultBranch: &main,
+			defaultBranch: main,
 			branches:      []*string{&rel1, &main},
 			releases:      []*string{&rel1},
 			protections: map[string]*github.Protection{
@@ -231,7 +225,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfInfo:  14,
 				NumberOfDebug: 0,
 			},
-			defaultBranch: &main,
+			defaultBranch: main,
 			branches:      []*string{&rel1, &main},
 			releases:      []*string{&rel1},
 			protections: map[string]*github.Protection{
@@ -312,7 +306,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
-			defaultBranch: &main,
+			defaultBranch: main,
 			branches:      []*string{&rel1, &main},
 			releases:      []*string{&sha},
 			protections: map[string]*github.Protection{
@@ -360,7 +354,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
-			defaultBranch: &main,
+			defaultBranch: main,
 			branches:      []*string{&main},
 			releases:      []*string{nil},
 			protections: map[string]*github.Protection{
@@ -409,7 +403,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			nonadmin:      true,
-			defaultBranch: &main,
+			defaultBranch: main,
 			branches:      []*string{&rel1, &main},
 			releases:      []*string{&rel1},
 			protections: map[string]*github.Protection{
@@ -434,16 +428,22 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			m := mockRepos{
-				defaultBranch: tt.defaultBranch,
-				branches:      tt.branches,
-				releases:      tt.releases,
-				protections:   tt.protections,
-				nonadmin:      tt.nonadmin,
+				branches:    tt.branches,
+				releases:    tt.releases,
+				protections: tt.protections,
+				nonadmin:    tt.nonadmin,
 			}
+
+			ctrl := gomock.NewController(t)
+			mockRepoClient := clients.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().GetDefaultBranch().
+				Return(clients.BranchRef{Name: tt.defaultBranch}, nil).
+				AnyTimes()
 			dl := scut.TestDetailLogger{}
-			r := checkReleaseAndDevBranchProtection(context.Background(), m,
+			r := checkReleaseAndDevBranchProtection(context.Background(), mockRepoClient, m,
 				&dl, "testowner", "testrepo")
 			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
+			ctrl.Finish()
 		})
 	}
 }

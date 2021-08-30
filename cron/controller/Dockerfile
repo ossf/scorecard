@@ -24,7 +24,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-pubsub
 
-FROM gcr.io/distroless/base:nonroot@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
+FROM gcr.io/distroless/base:nonroot@sha256:19d927c16ddb5415d5f6f529dbbeb13c460b84b304b97af886998d3fcf18ac81
 ARG COMMIT_SHA
 ENV SCORECARD_COMMIT_SHA=${COMMIT_SHA}
 COPY ./cron/data/projects*csv cron/data/

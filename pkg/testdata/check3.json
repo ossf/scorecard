@@ -1,0 +1,33 @@
+{
+   "Repo": "repo not used",
+   "Date": "2021-08-25",
+   "Commit": "68bc59901773ab4c051dfcea0cc4201a1567ab32",
+   "Checks": [
+      {
+         "Details": [
+            "Warn: warn message: bin/binary.elf"
+         ],
+         "Score": 0,
+         "Reason": "min result reason",
+         "Name": "Check-Name"
+      },
+      {
+         "Details": [
+            "Warn: warn message: src/doc.txt:3"
+         ],
+         "Score": 0,
+         "Reason": "min result reason",
+         "Name": "Check-Name2"
+      },
+      {
+         "Details": [
+            "Info: info message: some/path.js:3",
+            "Warn: warn message: some/path.py:3"
+         ],
+         "Score": -1,
+         "Reason": "inconclusive reason",
+         "Name": "Check-Name3"
+      }
+   ],
+   "Metadata": []
+}
