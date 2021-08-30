@@ -153,12 +153,12 @@ test: $(test-targets)
 
 unit-test: ## Runs unit test without e2e
 	# Run unit tests, ignoring e2e tests
-	go test -covermode atomic  `go list ./... | grep -v e2e`
+	go test -race -covermode atomic  `go list ./... | grep -v e2e`
 
 e2e: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
 e2e: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
-	$(GINKGO) --skip="E2E TEST:executable" -p -v -cover  ./...
+	$(GINKGO) --race --skip="E2E TEST:executable" -p -v -cover  ./...
 
 $(GINKGO): install
 

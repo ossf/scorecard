@@ -41,6 +41,7 @@ const (
 	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
 	bigqueryDataset        string = "SCORECARD_BIGQUERY_DATASET"
 	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
+	completionThreshold    string = "SCORECARD_COMPLETION_THRESHOLD"
 	shardSize              string = "SCORECARD_SHARD_SIZE"
 	webhookURL             string = "SCORECARD_WEBHOOK_URL"
 	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
@@ -60,15 +61,16 @@ var (
 
 //nolint
 type config struct {
-	ProjectID              string `yaml:"project-id"`
-	ResultDataBucketURL    string `yaml:"result-data-bucket-url"`
-	RequestTopicURL        string `yaml:"request-topic-url"`
-	RequestSubscriptionURL string `yaml:"request-subscription-url"`
-	BigQueryDataset        string `yaml:"bigquery-dataset"`
-	BigQueryTable          string `yaml:"bigquery-table"`
-	WebhookURL             string `yaml:"webhook-url"`
-	MetricExporter         string `yaml:"metric-exporter"`
-	ShardSize              int    `yaml:"shard-size"`
+	ProjectID              string  `yaml:"project-id"`
+	ResultDataBucketURL    string  `yaml:"result-data-bucket-url"`
+	RequestTopicURL        string  `yaml:"request-topic-url"`
+	RequestSubscriptionURL string  `yaml:"request-subscription-url"`
+	BigQueryDataset        string  `yaml:"bigquery-dataset"`
+	BigQueryTable          string  `yaml:"bigquery-table"`
+	CompletionThreshold    float32 `yaml:"completion-threshold"`
+	WebhookURL             string  `yaml:"webhook-url"`
+	MetricExporter         string  `yaml:"metric-exporter"`
+	ShardSize              int     `yaml:"shard-size"`
 	// UPGRADEv2: to remove.
 	ResultDataBucketURLV2 string `yaml:"result-data-bucket-url-v2"`
 	BigQueryTableV2       string `yaml:"bigquery-table-v2"`
@@ -99,7 +101,7 @@ func getStringConfigValue(envVar string, byteValue []byte, fieldName, configName
 	if err != nil {
 		return "", fmt.Errorf("error getting config value %s: %w", configName, err)
 	}
-	if value.Type().Name() != "string" {
+	if value.Kind() != reflect.String {
 		return "", fmt.Errorf("%w: %s, %s", ErrorValueConversion, value.Type().Name(), configName)
 	}
 	if value.String() != "" {
@@ -113,12 +115,30 @@ func getIntConfigValue(envVar string, byteValue []byte, fieldName, configName st
 	if err != nil {
 		return 0, fmt.Errorf("error getting config value %s: %w", configName, err)
 	}
-	switch value.Type().Name() {
-	case "string":
+	// nolint: exhaustive
+	switch value.Kind() {
+	case reflect.String:
 		//nolint:wrapcheck
 		return strconv.Atoi(value.String())
-	case "int":
+	case reflect.Int:
 		return int(value.Int()), nil
+	default:
+		return 0, fmt.Errorf("%w: %s, %s", ErrorValueConversion, value.Type().Name(), configName)
+	}
+}
+
+func getFloat64ConfigValue(envVar string, byteValue []byte, fieldName, configName string) (float64, error) {
+	value, err := getConfigValue(envVar, byteValue, fieldName)
+	if err != nil {
+		return 0, fmt.Errorf("error getting config value %s: %w", configName, err)
+	}
+	// nolint: exhaustive
+	switch value.Kind() {
+	case reflect.String:
+		//nolint: wrapcheck, gomnd
+		return strconv.ParseFloat(value.String(), 64)
+	case reflect.Float32, reflect.Float64:
+		return value.Float(), nil
 	default:
 		return 0, fmt.Errorf("%w: %s, %s", ErrorValueConversion, value.Type().Name(), configName)
 	}
@@ -152,6 +172,11 @@ func GetBigQueryDataset() (string, error) {
 // GetBigQueryTable returns the table name to transfer cron job results.
 func GetBigQueryTable() (string, error) {
 	return getStringConfigValue(bigqueryTable, configYAML, "BigQueryTable", "bigquery-table")
+}
+
+// GetCompletionThreshold returns fraction of shards to be populated before transferring cron job results.
+func GetCompletionThreshold() (float64, error) {
+	return getFloat64ConfigValue(completionThreshold, configYAML, "CompletionThreshold", "completion-threshold")
 }
 
 // GetBigQueryTableV2 returns the table name to transfer cron job results.
