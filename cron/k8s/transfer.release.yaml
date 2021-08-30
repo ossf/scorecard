@@ -35,7 +35,7 @@ spec:
             - name: SCORECARD_BIGQUERY_TABLE
               value: "scorecard_releasetest"
             - name: SCORECARD_COMPLETION_THRESHOLD
-              value: 100
+              value: "100"
             - name: SCORECARD_WEBHOOK_URL
               value: "http://10.4.8.246/"
             resources:
