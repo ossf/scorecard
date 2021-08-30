@@ -34,6 +34,7 @@ type Client struct {
 	repoClient   *github.Client
 	graphClient  *graphqlHandler
 	contributors *contributorsHandler
+	branches     *branchesHandler
 	search       *searchHandler
 	ctx          context.Context
 	tarball      tarballHandler
@@ -61,6 +62,9 @@ func (client *Client) InitRepo(owner, repoName string) error {
 
 	// Setup contributors.
 	client.contributors.init(client.ctx, client.owner, client.repoName)
+
+	// Setup branches.
+	client.branches.init(client.ctx, client.owner, client.repoName)
 
 	// Setup Search.
 	client.search.init(client.ctx, client.owner, client.repoName)
@@ -109,8 +113,13 @@ func (client *Client) IsArchived() (bool, error) {
 }
 
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
-func (client *Client) GetDefaultBranch() (clients.BranchRef, error) {
-	return client.graphClient.getDefaultBranch()
+func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
+	return client.branches.getDefaultBranch()
+}
+
+// ListBranches implements RepoClient.ListBranches.
+func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
+	return client.branches.listBranches()
 }
 
 // Search implements RepoClient.Search.
@@ -134,6 +143,10 @@ func CreateGithubRepoClient(ctx context.Context,
 		},
 		contributors: &contributorsHandler{
 			ghClient: client,
+		},
+		branches: &branchesHandler{
+			ghClient:    client,
+			graphClient: graphClient,
 		},
 		search: &searchHandler{
 			ghClient: client,

@@ -39,10 +39,6 @@ type graphqlData struct {
 	Repository struct {
 		IsArchived       githubv4.Boolean
 		DefaultBranchRef struct {
-			Name                 githubv4.String
-			BranchProtectionRule struct {
-				RequiredApprovingReviewCount githubv4.Int
-			}
 			Target struct {
 				Commit struct {
 					History struct {
@@ -95,18 +91,17 @@ type graphqlData struct {
 }
 
 type graphqlHandler struct {
-	client           *githubv4.Client
-	data             *graphqlData
-	once             *sync.Once
-	ctx              context.Context
-	errSetup         error
-	owner            string
-	repo             string
-	prs              []clients.PullRequest
-	commits          []clients.Commit
-	releases         []clients.Release
-	defaultBranchRef clients.BranchRef
-	archived         bool
+	client   *githubv4.Client
+	data     *graphqlData
+	once     *sync.Once
+	ctx      context.Context
+	errSetup error
+	owner    string
+	repo     string
+	prs      []clients.PullRequest
+	commits  []clients.Commit
+	releases []clients.Release
+	archived bool
 }
 
 func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) {
@@ -136,7 +131,6 @@ func (handler *graphqlHandler) setup() error {
 		handler.archived = bool(handler.data.Repository.IsArchived)
 		handler.prs = pullRequestsFrom(handler.data)
 		handler.releases = releasesFrom(handler.data)
-		handler.defaultBranchRef = defaultBranchRefFrom(handler.data)
 		handler.commits = commitsFrom(handler.data)
 	})
 	return handler.errSetup
@@ -147,13 +141,6 @@ func (handler *graphqlHandler) getMergedPRs() ([]clients.PullRequest, error) {
 		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
 	}
 	return handler.prs, nil
-}
-
-func (handler *graphqlHandler) getDefaultBranch() (clients.BranchRef, error) {
-	if err := handler.setup(); err != nil {
-		return clients.BranchRef{}, fmt.Errorf("error during graphqlHandler.setup: %w", err)
-	}
-	return handler.defaultBranchRef, nil
 }
 
 func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
@@ -219,16 +206,6 @@ func releasesFrom(data *graphqlData) []clients.Release {
 		releases = append(releases, release)
 	}
 	return releases
-}
-
-func defaultBranchRefFrom(data *graphqlData) clients.BranchRef {
-	return clients.BranchRef{
-		Name: string(data.Repository.DefaultBranchRef.Name),
-		BranchProtectionRule: clients.BranchProtectionRule{
-			RequiredApprovingReviewCount: int(
-				data.Repository.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount),
-		},
-	}
 }
 
 func commitsFrom(data *graphqlData) []clients.Commit {
