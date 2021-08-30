@@ -17,6 +17,7 @@ package checks
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"testing"
 
 	"github.com/ossf/scorecard/v2/checker"
@@ -539,6 +540,75 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(tt.filename, content, &dl)
 			scut.ValidateTestValues(t, tt.name, &tt.expected, s, e, &dl)
+		})
+	}
+}
+
+func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected []struct {
+			dependency string
+			lineNumber int
+		}
+	}{
+		{
+			name:     "unpinned dependency in uses",
+			filename: "testdata/github-workflow-permissions-run-codeql-write.yaml",
+			expected: []struct {
+				dependency string
+				lineNumber int
+			}{
+				{
+					dependency: "github/codeql-action/analyze@v1",
+					lineNumber: 25,
+				},
+			},
+		},
+		{
+			name:     "multiple unpinned dependency in uses",
+			filename: "testdata/github-workflow-multiple-unpinned-uses.yaml",
+			expected: []struct {
+				dependency string
+				lineNumber int
+			}{
+				{
+					dependency: "github/codeql-action/analyze@v1",
+					lineNumber: 22,
+				},
+				{
+					dependency: "docker/build-push-action@1.2.3",
+					lineNumber: 26,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := ioutil.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %w", err)
+			}
+			dl := scut.TestDetailLogger{}
+			var pinned pinnedResult
+			_, err = validateGitHubActionWorkflow(tt.filename, content, &dl, &pinned)
+			if err != nil {
+				t.Errorf("error during validateGitHubActionWorkflow: %w", err)
+			}
+			for _, expectedLog := range tt.expected {
+				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == tt.filename &&
+						logMessage.Snippet == expectedLog.dependency && logType == checker.DetailWarn &&
+						strings.Contains(logMessage.Text, "unpinned dependency detected")
+				}
+				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
+					t.Errorf("test failed: log message not present: %+v", tt.expected)
+				}
+			}
 		})
 	}
 }
