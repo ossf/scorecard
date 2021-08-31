@@ -35,6 +35,7 @@ type Client struct {
 	graphClient  *graphqlHandler
 	contributors *contributorsHandler
 	branches     *branchesHandler
+	releases     *releasesHandler
 	search       *searchHandler
 	ctx          context.Context
 	tarball      tarballHandler
@@ -60,13 +61,16 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	// Setup GraphQL.
 	client.graphClient.init(client.ctx, client.owner, client.repoName)
 
-	// Setup contributors.
+	// Setup contributorsHandler.
 	client.contributors.init(client.ctx, client.owner, client.repoName)
 
-	// Setup branches.
+	// Setup branchesHandler.
 	client.branches.init(client.ctx, client.owner, client.repoName)
 
-	// Setup Search.
+	// Setup releasesHandler.
+	client.releases.init(client.ctx, client.owner, client.repoName)
+
+	// Setup searchHandler.
 	client.search.init(client.ctx, client.owner, client.repoName)
 
 	return nil
@@ -99,7 +103,7 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 
 // ListReleases implements RepoClient.ListReleases.
 func (client *Client) ListReleases() ([]clients.Release, error) {
-	return client.graphClient.getReleases()
+	return client.releases.getReleases()
 }
 
 // ListContributors implements RepoClient.ListContributors.
@@ -147,6 +151,9 @@ func CreateGithubRepoClient(ctx context.Context,
 		branches: &branchesHandler{
 			ghClient:    client,
 			graphClient: graphClient,
+		},
+		releases: &releasesHandler{
+			client: client,
 		},
 		search: &searchHandler{
 			ghClient: client,

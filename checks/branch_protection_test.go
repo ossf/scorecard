@@ -15,11 +15,9 @@
 package checks
 
 import (
-	"context"
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/go-github/v38/github"
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients"
@@ -27,20 +25,6 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
-
-type mockRepos struct {
-	releases []*string
-	nonadmin bool
-}
-
-func (m mockRepos) ListReleases(ctx context.Context, owner string,
-	repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
-	res := make([]*github.RepositoryRelease, len(m.releases))
-	for i, rel := range m.releases {
-		res[i] = &github.RepositoryRelease{TargetCommitish: rel}
-	}
-	return res, nil, nil
-}
 
 func getBranch(branches []*clients.BranchRef, name string) *clients.BranchRef {
 	for _, branch := range branches {
@@ -77,7 +61,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		expected      scut.TestReturn
 		branches      []*clients.BranchRef
 		defaultBranch string
-		releases      []*string
+		releases      []string
 		nonadmin      bool
 	}{
 		{
@@ -191,7 +175,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					},
 				},
 			},
-			releases: []*string{&rel1},
+			releases: []string{rel1},
 		},
 		{
 			name: "Both release and development are OK",
@@ -259,7 +243,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					},
 				},
 			},
-			releases: []*string{&rel1},
+			releases: []string{rel1},
 		},
 		{
 			name: "Ignore a non-branch targetcommitish",
@@ -271,7 +255,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			releases:      []*string{&sha},
+			releases:      []string{sha},
 			branches: []*clients.BranchRef{
 				{
 					Name:      main,
@@ -315,7 +299,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			releases:      []*string{nil},
+			releases:      []string{""},
 			branches: []*clients.BranchRef{
 				{
 					Name:      main,
@@ -358,7 +342,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			nonadmin:      true,
 			defaultBranch: main,
 			// branches:      []*string{&rel1, &main},
-			releases: []*string{&rel1},
+			releases: []string{rel1},
 			branches: []*clients.BranchRef{
 				{
 					Name:      main,
@@ -388,10 +372,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			m := mockRepos{
-				releases: tt.releases,
-				nonadmin: tt.nonadmin,
-			}
 
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
@@ -403,6 +383,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					}
 					return defaultBranch, nil
 				}).AnyTimes()
+			mockRepoClient.EXPECT().ListReleases().
+				DoAndReturn(func() ([]clients.Release, error) {
+					var ret []clients.Release
+					for _, rel := range tt.releases {
+						ret = append(ret, clients.Release{
+							TargetCommitish: rel,
+						})
+					}
+					return ret, nil
+				}).AnyTimes()
 			mockRepoClient.EXPECT().ListBranches().
 				DoAndReturn(func() ([]*clients.BranchRef, error) {
 					if tt.nonadmin {
@@ -411,8 +401,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					return tt.branches, nil
 				}).AnyTimes()
 			dl := scut.TestDetailLogger{}
-			r := checkReleaseAndDevBranchProtection(context.Background(), mockRepoClient, m,
-				&dl, "testowner", "testrepo")
+			r := checkReleaseAndDevBranchProtection(mockRepoClient, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
 				t.Fail()
 			}
