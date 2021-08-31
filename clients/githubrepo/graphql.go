@@ -26,12 +26,10 @@ import (
 )
 
 const (
-	pullRequestsToAnalyze  = 30
-	reviewsToAnalyze       = 30
-	labelsToAnalyze        = 30
-	commitsToAnalyze       = 30
-	releasesToAnalyze      = 30
-	releaseAssetsToAnalyze = 30
+	pullRequestsToAnalyze = 30
+	reviewsToAnalyze      = 30
+	labelsToAnalyze       = 30
+	commitsToAnalyze      = 30
 )
 
 // nolint: govet
@@ -76,17 +74,6 @@ type graphqlData struct {
 				} `graphql:"latestReviews(last: $reviewsToAnalyze)"`
 			}
 		} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
-		Releases struct {
-			Nodes []struct {
-				TagName       githubv4.String
-				ReleaseAssets struct {
-					Nodes []struct {
-						Name githubv4.String
-						URL  githubv4.String
-					}
-				} `graphql:"releaseAssets(last: $releaseAssetsToAnalyze)"`
-			}
-		} `graphql:"releases(first: $releasesToAnalyze, orderBy:{field: CREATED_AT, direction:DESC})"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
 }
 
@@ -100,7 +87,6 @@ type graphqlHandler struct {
 	repo     string
 	prs      []clients.PullRequest
 	commits  []clients.Commit
-	releases []clients.Release
 	archived bool
 }
 
@@ -116,21 +102,18 @@ func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) {
 func (handler *graphqlHandler) setup() error {
 	handler.once.Do(func() {
 		vars := map[string]interface{}{
-			"owner":                  githubv4.String(handler.owner),
-			"name":                   githubv4.String(handler.repo),
-			"pullRequestsToAnalyze":  githubv4.Int(pullRequestsToAnalyze),
-			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
-			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
-			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
-			"releasesToAnalyze":      githubv4.Int(releasesToAnalyze),
-			"releaseAssetsToAnalyze": githubv4.Int(releaseAssetsToAnalyze),
+			"owner":                 githubv4.String(handler.owner),
+			"name":                  githubv4.String(handler.repo),
+			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
+			"reviewsToAnalyze":      githubv4.Int(reviewsToAnalyze),
+			"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
+			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
 		}
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 		}
 		handler.archived = bool(handler.data.Repository.IsArchived)
 		handler.prs = pullRequestsFrom(handler.data)
-		handler.releases = releasesFrom(handler.data)
 		handler.commits = commitsFrom(handler.data)
 	})
 	return handler.errSetup
@@ -148,13 +131,6 @@ func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
 		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
 	}
 	return handler.commits, nil
-}
-
-func (handler *graphqlHandler) getReleases() ([]clients.Release, error) {
-	if err := handler.setup(); err != nil {
-		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
-	}
-	return handler.releases, nil
 }
 
 func (handler *graphqlHandler) isArchived() (bool, error) {
@@ -188,24 +164,6 @@ func pullRequestsFrom(data *graphqlData) []clients.PullRequest {
 		ret[i] = toAppend
 	}
 	return ret
-}
-
-func releasesFrom(data *graphqlData) []clients.Release {
-	// nolint: prealloc // https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
-	var releases []clients.Release
-	for _, r := range data.Repository.Releases.Nodes {
-		release := clients.Release{
-			TagName: string(r.TagName),
-		}
-		for _, a := range r.ReleaseAssets.Nodes {
-			release.Assets = append(release.Assets, clients.ReleaseAsset{
-				Name: string(a.Name),
-				URL:  string(a.URL),
-			})
-		}
-		releases = append(releases, release)
-	}
-	return releases
 }
 
 func commitsFrom(data *graphqlData) []clients.Commit {

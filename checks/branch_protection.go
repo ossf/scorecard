@@ -15,12 +15,9 @@
 package checks
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"regexp"
-
-	"github.com/google/go-github/v38/github"
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients"
@@ -36,12 +33,6 @@ const (
 //nolint:gochecknoinits
 func init() {
 	registerCheck(CheckBranchProtection, BranchProtection)
-}
-
-// TODO: Use RepoClient interface instead of this.
-type repositories interface {
-	ListReleases(ctx context.Context, owner string, repo string, opts *github.ListOptions) (
-		[]*github.RepositoryRelease, *github.Response, error)
 }
 
 type branchMap map[string]*clients.BranchRef
@@ -75,12 +66,11 @@ func getBranchMapFrom(branches []*clients.BranchRef) branchMap {
 // BranchProtection runs Branch-Protection check.
 func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	// Checks branch protection on both release and development branch.
-	return checkReleaseAndDevBranchProtection(c.Ctx, c.RepoClient, c.Client.Repositories, c.Dlogger, c.Owner, c.Repo)
+	return checkReleaseAndDevBranchProtection(c.RepoClient, c.Dlogger)
 }
 
-func checkReleaseAndDevBranchProtection(ctx context.Context,
-	repoClient clients.RepoClient, r repositories, dl checker.DetailLogger,
-	ownerStr, repoStr string) checker.CheckResult {
+func checkReleaseAndDevBranchProtection(
+	repoClient clients.RepoClient, dl checker.DetailLogger) checker.CheckResult {
 	// Get all branches. This will include information on whether they are protected.
 	branches, err := repoClient.ListBranches()
 	if err != nil {
@@ -89,7 +79,7 @@ func checkReleaseAndDevBranchProtection(ctx context.Context,
 	branchesMap := getBranchMapFrom(branches)
 
 	// Get release branches.
-	releases, _, err := r.ListReleases(ctx, ownerStr, repoStr, &github.ListOptions{})
+	releases, err := repoClient.ListReleases()
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 	}
@@ -98,19 +88,19 @@ func checkReleaseAndDevBranchProtection(ctx context.Context,
 	commit := regexp.MustCompile("^[a-f0-9]{40}$")
 	checkBranches := make(map[string]bool)
 	for _, release := range releases {
-		if release.TargetCommitish == nil {
+		if release.TargetCommitish == "" {
 			// Log with a named error if target_commitish is nil.
 			e := sce.Create(sce.ErrScorecardInternal, errInternalCommitishNil.Error())
 			return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 		}
 
 		// TODO: if this is a sha, get the associated branch. for now, ignore.
-		if commit.Match([]byte(*release.TargetCommitish)) {
+		if commit.Match([]byte(release.TargetCommitish)) {
 			continue
 		}
 
 		// Try to resolve the branch name.
-		b, err := branchesMap.getBranchByName(release.GetTargetCommitish())
+		b, err := branchesMap.getBranchByName(release.TargetCommitish)
 		if err != nil {
 			// If the commitish branch is still not found, fail.
 			return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
