@@ -60,11 +60,11 @@ type gitHubActionWorkflowJob struct {
 // We only declare the fields we need.
 // Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 type gitHubActionWorkflowStep struct {
-	Name  string `yaml:"name"`
-	ID    string `yaml:"id"`
-	Shell string `yaml:"shell"`
-	Run   string `yaml:"run"`
-	If    string `yaml:"if"`
+	Name  string         `yaml:"name"`
+	ID    string         `yaml:"id"`
+	Shell string         `yaml:"shell"`
+	Run   string         `yaml:"run"`
+	If    string         `yaml:"if"`
 	Uses  stringWithLine `yaml:"uses"`
 }
 
