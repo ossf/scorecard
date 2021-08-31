@@ -112,11 +112,11 @@ func processRequest(ctx context.Context,
 			log.Print(errorMsg)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime()
-		if err := result.AsJSON(true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
+		if err := AsJSON(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
 
-		if err := result.AsJSON2(true /*showDetails*/, zapcore.InfoLevel, &buffer2); err != nil {
+		if err := AsJSON2(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer2); err != nil {
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
 	}
