@@ -75,17 +75,17 @@ type stringOrSlice []string
 func (s *stringOrSlice) UnmarshalYAML(value *yaml.Node) error {
 	var stringSlice []string
 	err := value.Decode(&stringSlice)
-	if err != nil {
-		var single string
-		err := value.Decode(&single)
-		if err != nil {
-			//nolint:wrapcheck
-			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringOrSlice Value: %v", err))
-		}
-		*s = []string{single}
-	} else {
+	if err == nil {
 		*s = stringSlice
+		return nil
 	}
+	var single string
+	err = value.Decode(&single)
+	if err != nil {
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringOrSlice Value: %v", err))
+	}
+	*s = []string{single}
 	return nil
 }
 
@@ -574,34 +574,24 @@ func getShellForStep(step *gitHubActionWorkflowStep, job *gitHubActionWorkflowJo
 
 // isStepWindows returns true if the step will be run on Windows.
 func isStepWindows(step *gitHubActionWorkflowStep) (bool, error) {
-	// Looking for "if: runner.os == 'Windows'" (and variants)
-	matches, err := regexp.MatchString(`(?i)runner\.os\s*==\s*['"]windows['"]`, step.If)
-	if err != nil {
-		//nolint:wrapcheck
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error matching runner.os regex: %v", err))
-	}
-	if matches {
-		return true, nil
-	}
-
-	// Looking for "if: ${{ startsWith(runner.os, 'Windows') }}" (and variants)
-	matches, err = regexp.MatchString(`(?i)\$\{\{\s*startsWith\(runner\.os,\s*['"]windows['"]\)`, step.If)
-	if err != nil {
-		//nolint:wrapcheck
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error matching startsWith runner.os regex: %v", err))
-	}
-	if matches {
-		return true, nil
+	windowsRegexes := []string{
+		// Looking for "if: runner.os == 'Windows'" (and variants)
+		`(?i)runner\.os\s*==\s*['"]windows['"]`,
+		// Looking for "if: ${{ startsWith(runner.os, 'Windows') }}" (and variants)
+		`(?i)\$\{\{\s*startsWith\(runner\.os,\s*['"]windows['"]\)`,
+		// Looking for "if: matrix.os == 'windows-2019'" (and variants)
+		`(?i)matrix\.os\s*==\s*['"]windows-`,
 	}
 
-	// Looking for "if: matrix.os == 'windows-2019'" (and variants)
-	matches, err = regexp.MatchString(`(?i)matrix\.os\s*==\s*['"]windows-`, step.If)
-	if err != nil {
-		//nolint:wrapcheck
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error matching matrix.os regex: %v", err))
-	}
-	if matches {
-		return true, nil
+	for _, windowsRegex := range windowsRegexes {
+		matches, err := regexp.MatchString(windowsRegex, step.If)
+		if err != nil {
+			//nolint:wrapcheck
+			return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error matching Windows regex: %v", err))
+		}
+		if matches {
+			return true, nil
+		}
 	}
 
 	return false, nil

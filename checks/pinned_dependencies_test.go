@@ -20,6 +20,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"gopkg.in/yaml.v3"
 
 	"github.com/ossf/scorecard/v2/checker"
@@ -753,21 +754,9 @@ func TestGitHubWorkflowShell(t *testing.T) {
 					actualShells = append(actualShells, shell)
 				}
 			}
-			if !areSlicesEqual(tt.expectedShells, actualShells) {
+			if !cmp.Equal(tt.expectedShells, actualShells) {
 				t.Errorf("%v: Got (%v) expected (%v)", tt.name, actualShells, tt.expectedShells)
 			}
 		})
 	}
-}
-
-func areSlicesEqual(slice1, slice2 []string) bool {
-	if len(slice1) != len(slice2) {
-		return false
-	}
-	for i := 0; i < len(slice1); i++ {
-		if !strings.EqualFold(slice1[i], slice2[i]) {
-			return false
-		}
-	}
-	return true
 }
