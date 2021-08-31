@@ -32,6 +32,7 @@ func textToMarkdown(s string) string {
 	return strings.ReplaceAll(s, "\n", "  ")
 }
 
+// DetailToString turns a detail information into a string.
 func DetailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
 	// UPGRADEv3: remove swtch statement.
 	switch d.Msg.Version {
