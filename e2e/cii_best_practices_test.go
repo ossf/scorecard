@@ -40,7 +40,7 @@ var _ = Describe("E2E TEST:CIIBestPractices", func() {
 				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         5,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,

@@ -48,11 +48,11 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  2,
-				NumberOfDebug: 30,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
 			}
 			result := checks.DoesCodeReview(&req)
 			// UPGRADEv2: to remove.
