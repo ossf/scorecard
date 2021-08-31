@@ -32,7 +32,7 @@ func textToMarkdown(s string) string {
 	return strings.ReplaceAll(s, "\n", "  ")
 }
 
-func detailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
+func DetailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
 	// UPGRADEv3: remove swtch statement.
 	switch d.Msg.Version {
 	//nolint
@@ -61,7 +61,7 @@ func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (str
 	var sa []string
 	for i := range details {
 		v := details[i]
-		s := detailToString(&v, logLevel)
+		s := DetailToString(&v, logLevel)
 		if s != "" {
 			sa = append(sa, s)
 		}
