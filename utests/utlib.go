@@ -18,44 +18,26 @@ package utests
 import (
 	"errors"
 	"fmt"
+	"log"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v2/checker"
 )
 
-func validateDetailTypes(messages []checker.CheckDetail, nw, ni, nd int) bool {
-	enw := 0
-	eni := 0
-	end := 0
-	for _, v := range messages {
-		switch v.Type {
-		default:
-			panic(fmt.Sprintf("invalid type %v", v.Type))
-		case checker.DetailInfo:
-			eni++
-		case checker.DetailDebug:
-			end++
-		case checker.DetailWarn:
-			enw++
-		}
-	}
-	return enw == nw &&
-		eni == ni &&
-		end == nd
+// TestReturn encapsulates expected CheckResult return values.
+type TestReturn struct {
+	Error         error
+	Score         int
+	NumberOfWarn  int
+	NumberOfInfo  int
+	NumberOfDebug int
 }
 
 // TestDetailLogger implements `checker.DetailLogger`.
 type TestDetailLogger struct {
 	messages []checker.CheckDetail
-}
-
-// TestReturn encapsulates expected CheckResult return values.
-type TestReturn struct {
-	Errors        []error
-	Score         int
-	NumberOfWarn  int
-	NumberOfInfo  int
-	NumberOfDebug int
 }
 
 // Info implements DetailLogger.Info.
@@ -77,7 +59,8 @@ func (l *TestDetailLogger) Debug(desc string, args ...interface{}) {
 }
 
 // UPGRADEv3: to rename.
-//nolint:revive
+
+// Info3 implements DetailLogger.Info3.
 func (l *TestDetailLogger) Info3(msg *checker.LogMessage) {
 	cd := checker.CheckDetail{
 		Type: checker.DetailInfo,
@@ -87,7 +70,7 @@ func (l *TestDetailLogger) Info3(msg *checker.LogMessage) {
 	l.messages = append(l.messages, cd)
 }
 
-//nolint:revive
+// Warn3 implements DetailLogger.Warn3.
 func (l *TestDetailLogger) Warn3(msg *checker.LogMessage) {
 	cd := checker.CheckDetail{
 		Type: checker.DetailWarn,
@@ -97,7 +80,7 @@ func (l *TestDetailLogger) Warn3(msg *checker.LogMessage) {
 	l.messages = append(l.messages, cd)
 }
 
-//nolint:revive
+// Debug3 implements DetailLogger.Debug3.
 func (l *TestDetailLogger) Debug3(msg *checker.LogMessage) {
 	cd := checker.CheckDetail{
 		Type: checker.DetailDebug,
@@ -107,36 +90,52 @@ func (l *TestDetailLogger) Debug3(msg *checker.LogMessage) {
 	l.messages = append(l.messages, cd)
 }
 
-// ValidateTestValues validates returned score and log values.
-// nolint: thelper
-func ValidateTestValues(t *testing.T, name string, te *TestReturn,
-	score int, err error, dl *TestDetailLogger) bool {
-	for _, we := range te.Errors {
-		if !errors.Is(err, we) {
-			if t != nil {
-				t.Errorf("%v: invalid error returned: %v is not of type %v",
-					name, err, we)
-			}
-			fmt.Printf("%v: invalid error returned: %v is not of type %v",
-				name, err, we)
-			return false
+func getTestReturn(cr *checker.CheckResult, logger *TestDetailLogger) (*TestReturn, error) {
+	ret := new(TestReturn)
+	for _, v := range logger.messages {
+		switch v.Type {
+		default:
+			// nolint: goerr113
+			return nil, fmt.Errorf("invalid type %v", v.Type)
+		case checker.DetailInfo:
+			ret.NumberOfInfo++
+		case checker.DetailDebug:
+			ret.NumberOfDebug++
+		case checker.DetailWarn:
+			ret.NumberOfWarn++
 		}
 	}
-	if score != te.Score ||
-		!validateDetailTypes(dl.messages, te.NumberOfWarn,
-			te.NumberOfInfo, te.NumberOfDebug) {
-		if t != nil {
-			t.Errorf("%v: Got (score=%v) expected (%v)\n%v",
-				name, score, te.Score, dl.messages)
-		}
+	ret.Score = cr.Score
+	ret.Error = cr.Error
+	return ret, nil
+}
+
+func errCmp(e1, e2 error) bool {
+	return errors.Is(e1, e2) || errors.Is(e2, e1)
+}
+
+// ValidateTestReturn validates expected TestReturn with actual checker.CheckResult values.
+// nolint: thelper
+func ValidateTestReturn(t *testing.T, name string, expected *TestReturn,
+	actual *checker.CheckResult, logger *TestDetailLogger) bool {
+	actualTestReturn, err := getTestReturn(actual, logger)
+	if err != nil {
+		panic(err)
+	}
+	if !cmp.Equal(*actualTestReturn, *expected, cmp.Comparer(errCmp)) {
+		log.Println(cmp.Diff(*actualTestReturn, *expected))
 		return false
 	}
 	return true
 }
 
-// ValidateTestReturn validates expected TestReturn with actual checker.CheckResult values.
-// nolint: thelper
-func ValidateTestReturn(t *testing.T, name string, te *TestReturn,
-	tr *checker.CheckResult, dl *TestDetailLogger) bool {
-	return ValidateTestValues(t, name, te, tr.Score, tr.Error2, dl)
+// ValidateLogMessage tests that at least one log message returns true for isExpectedMessage.
+func ValidateLogMessage(isExpectedMessage func(checker.LogMessage, checker.DetailType) bool,
+	dl *TestDetailLogger) bool {
+	for _, message := range dl.messages {
+		if isExpectedMessage(message.Msg, message.Type) {
+			return true
+		}
+	}
+	return false
 }

@@ -9,15 +9,6 @@ currently, and operate on a set of heuristics.
 They are all subject to change, and have room for improvement!
 If you have ideas for things to add, or new ways to detect things,
 please contribute!
-## Active 
-
-This check tries to determine if the project is "actively maintained".
-A project which is not active may not be patched, may not have its dependencies patched, or may not be actively tested and used. A low score is therefore considered `High` risk.
-The check currently works by looking whether the repo is archived or not. If it is archived, it returns the minimum score. If it is not, the check looks for commits within the last 90 days, and outputs the highest score if there are at least 1 commit/week during this period. 
-
-**Remediation steps**
-- There is *NO* remediation work needed here. This is just to indicate your project activity and maintenance commitment.
-
 ## Binary-Artifacts 
 
 This check tries to determine if the project has binary artifacts in the source repository.
@@ -93,6 +84,15 @@ The check currently works by checking if the repo name is in the [OSS-Fuzz](http
 
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
+
+## Maintained 
+
+This check tries to determine if the project is "actively maintained".
+A project which is not active may not be patched, may not have its dependencies patched, or may not be actively tested and used. A low score is therefore considered `High` risk.
+The check currently works by looking whether the repo is archived or not. If it is archived, it returns the minimum score. If it is not, the check looks for commits within the last 90 days, and outputs the highest score if there are at least 1 commit/week during this period. 
+
+**Remediation steps**
+- There is *NO* remediation work needed here. This is just to indicate your project activity and maintenance commitment.
 
 ## Packaging 
 

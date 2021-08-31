@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// nolint: dupl
 package e2e
 
 import (
@@ -44,7 +45,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSAST, func() {
 				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         7,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,

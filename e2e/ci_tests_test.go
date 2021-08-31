@@ -45,11 +45,11 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 24,
+				NumberOfDebug: 30,
 			}
 			result := checks.CITests(&req)
 			// UPGRADEv2: to remove.

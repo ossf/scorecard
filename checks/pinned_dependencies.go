@@ -62,10 +62,10 @@ type gitHubActionWorkflowJob struct {
 type gitHubActionWorkflowStep struct {
 	Name  string `yaml:"name"`
 	ID    string `yaml:"id"`
-	Uses  string `yaml:"uses"`
 	Shell string `yaml:"shell"`
 	Run   string `yaml:"run"`
 	If    string `yaml:"if"`
+	Uses  stringWithLine `yaml:"uses"`
 }
 
 // stringOrSlice is for fields that can be a single string or a slice of strings. If the field is a single string,
@@ -86,6 +86,23 @@ func (s *stringOrSlice) UnmarshalYAML(value *yaml.Node) error {
 	} else {
 		*s = stringSlice
 	}
+	return nil
+}
+
+// stringWithLine is for when you want to keep track of the line number that the string came from.
+type stringWithLine struct {
+	Value string
+	Line  int
+}
+
+func (ws *stringWithLine) UnmarshalYAML(value *yaml.Node) error {
+	err := value.Decode(&ws.Value)
+	if err != nil {
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringWithLine Value: %v", err))
+	}
+	ws.Line = value.Line
+
 	return nil
 }
 
@@ -635,13 +652,16 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 			jobName = job.Name
 		}
 		for _, step := range job.Steps {
-			if len(step.Uses) > 0 {
+			if len(step.Uses.Value) > 0 {
 				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 				// Example: action-name@hash
-				match := hashRegex.Match([]byte(step.Uses))
+				match := hashRegex.Match([]byte(step.Uses.Value))
 				if !match {
 					ret = false
-					dl.Warn("unpinned dependency detected in %v: '%v' (job '%v')", pathfn, step.Uses, jobName)
+					dl.Warn3(&checker.LogMessage{
+						Path: pathfn, Type: checker.FileTypeSource, Offset: step.Uses.Line, Snippet: step.Uses.Value,
+						Text: fmt.Sprintf("unpinned dependency detected (job '%v')", jobName),
+					})
 				}
 			}
 		}

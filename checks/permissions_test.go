@@ -36,7 +36,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "run workflow codeql write test",
 			filename: "./testdata/github-workflow-permissions-run-codeql-write.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
@@ -47,7 +47,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "run workflow no codeql write test",
 			filename: "./testdata/github-workflow-permissions-run-no-codeql-write.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
@@ -58,7 +58,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "run workflow write test",
 			filename: "./testdata/github-workflow-permissions-run-writes-2.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  3,
 				NumberOfInfo:  2,
@@ -69,7 +69,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "run package workflow write test",
 			filename: "./testdata/github-workflow-permissions-run-package-workflow-write.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  2,
@@ -80,7 +80,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "run package write test",
 			filename: "./testdata/github-workflow-permissions-run-package-write.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
@@ -91,7 +91,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "run writes test",
 			filename: "./testdata/github-workflow-permissions-run-writes.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
@@ -102,7 +102,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "write all test",
 			filename: "./testdata/github-workflow-permissions-writeall.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
@@ -113,7 +113,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "read all test",
 			filename: "./testdata/github-workflow-permissions-readall.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
@@ -124,7 +124,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "no permission test",
 			filename: "./testdata/github-workflow-permissions-absent.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
@@ -135,7 +135,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "writes test",
 			filename: "./testdata/github-workflow-permissions-writes.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
@@ -146,7 +146,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "reads test",
 			filename: "./testdata/github-workflow-permissions-reads.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  10,
@@ -157,7 +157,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "nones test",
 			filename: "./testdata/github-workflow-permissions-nones.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  10,
@@ -168,7 +168,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "none test",
 			filename: "./testdata/github-workflow-permissions-none.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
@@ -179,7 +179,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "status/checks write",
 			filename: "./testdata/github-workflow-permissions-status-checks.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  2,
 				NumberOfInfo:  2,
@@ -190,7 +190,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "sec-events/deployments write",
 			filename: "./testdata/github-workflow-permissions-secevent-deployments.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MaxResultScore - 2,
 				NumberOfWarn:  2,
 				NumberOfInfo:  3,
@@ -201,7 +201,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "contents write",
 			filename: "./testdata/github-workflow-permissions-contents.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
@@ -212,7 +212,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "actions write",
 			filename: "./testdata/github-workflow-permissions-actions.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
@@ -223,7 +223,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			name:     "packages write",
 			filename: "./testdata/github-workflow-permissions-packages.yaml",
 			expected: scut.TestReturn{
-				Errors:        nil,
+				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
