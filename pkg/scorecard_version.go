@@ -32,34 +32,42 @@ var (
 	buildDate = "unknown"
 )
 
+// GetVersion returns the scorecard version.
 func GetVersion() string {
 	return gitVersion
 }
 
+// GetCommit returns the GitHub's commit hash that scorecard was built from.
 func GetCommit() string {
 	return gitCommit
 }
 
+// GetTreeState returns the git tree state.
 func GetTreeState() string {
 	return gitTreeState
 }
 
+// GetBuildDate returns the date scorecard was build.
 func GetBuildDate() string {
 	return buildDate
 }
 
+// GetGoVersion returns the Go version used to build scorecard.
 func GetGoVersion() string {
 	return runtime.Version()
 }
 
+// GetOS returns the OS the build can run on.
 func GetOS() string {
 	return runtime.GOOS
 }
 
+// GetArch returns the architecture (e.g., x86) the build can run on.
 func GetArch() string {
 	return runtime.GOARCH
 }
 
+// GetCompiler returns the compiler that was used to build scorecard.
 func GetCompiler() string {
 	return runtime.Compiler
 }
