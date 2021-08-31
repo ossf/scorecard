@@ -30,7 +30,7 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-// ScorecardInfo contains information about the scorecard code tat was run.
+// ScorecardInfo contains information about the scorecard code that was run.
 type ScorecardInfo struct {
 	Version   string
 	CommitSHA string
