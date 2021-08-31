@@ -73,9 +73,9 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 		}
 		if !signed {
 			c.Dlogger.Warn3(&checker.LogMessage{
-				Path: "my URL",
+				Path: r.URL,
 				Type: checker.FileTypeURL,
-				Text: fmt.Sprintf("release artifact %s not signed", r.URL),
+				Text: fmt.Sprintf("release artifact %s not signed", r.TagName),
 			})
 		}
 		if totalReleases >= releaseLookBack {
