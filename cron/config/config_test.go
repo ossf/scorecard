@@ -31,7 +31,7 @@ const (
 	prodSubscription               = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
 	prodBigQueryDataset            = "scorecardcron"
 	prodBigQueryTable              = "scorecard"
-	prodCompletionThreshold        = 99.0
+	prodCompletionThreshold        = 0.99
 	prodWebhookURL                 = ""
 	prodShardSize           int    = 10
 	prodMetricExporter      string = "stackdriver"
