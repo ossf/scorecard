@@ -36,6 +36,7 @@ type Client struct {
 	contributors *contributorsHandler
 	branches     *branchesHandler
 	releases     *releasesHandler
+	workflows    *workflowsHandler
 	search       *searchHandler
 	ctx          context.Context
 	tarball      tarballHandler
@@ -69,6 +70,9 @@ func (client *Client) InitRepo(owner, repoName string) error {
 
 	// Setup releasesHandler.
 	client.releases.init(client.ctx, client.owner, client.repoName)
+
+	// Setup workflowsHandler.
+	client.workflows.init(client.ctx, client.owner, client.repoName)
 
 	// Setup searchHandler.
 	client.search.init(client.ctx, client.owner, client.repoName)
@@ -126,6 +130,11 @@ func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
 	return client.branches.listBranches()
 }
 
+// ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
+func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
+	return client.workflows.listSuccessfulWorkflowRuns(filename)
+}
+
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return client.search.search(request)
@@ -153,6 +162,9 @@ func CreateGithubRepoClient(ctx context.Context,
 			graphClient: graphClient,
 		},
 		releases: &releasesHandler{
+			client: client,
+		},
+		workflows: &workflowsHandler{
 			client: client,
 		},
 		search: &searchHandler{

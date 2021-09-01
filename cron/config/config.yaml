@@ -18,7 +18,7 @@ request-topic-url: gcppubsub://projects/openssf/topics/scorecard-batch-requests
 request-subscription-url: gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker
 bigquery-dataset: scorecardcron
 bigquery-table: scorecard
-completion-threshold: 99
+completion-threshold: 0.99
 shard-size: 10
 webhook-url: 
 metric-exporter: stackdriver
