@@ -12,26 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-build:
-  images:
-  - gcr.io/openssf/scorecard:latest
-  options:
-    diskSizeGb: '200'
-  steps:
-  - args:
-    - build
-    - -t
-    - gcr.io/openssf/scorecard:latest
-    - -f
-    - Dockerfile
-    - .
-    name: gcr.io/cloud-builders/docker
-description: 'builds image for scorecard '
-github:
-  name: scorecard
-  owner: ossf
-  push:
-    branch: ^main$
-name: scorecard
-tags:
-- scorecard
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '.',
+    '-t', 'gcr.io/openssf/scorecard:latest',
+    '-t', 'gcr.io/openssf/scorecard:$COMMIT_SHA'
+    '-f', 'Dockerfile']
+images: ['gcr.io/openssf/scorecard']
