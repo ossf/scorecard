@@ -173,9 +173,7 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 				log.Fatalf("cannot read yaml file: %v", err)
 			}
 			// TODO: support config files and update checker.MaxResultScore.
-			// TODO: set version dynamically.
-			scorecardVersion := "1.2.3"
-			err = repoResult.AsSARIF(scorecardVersion, showDetails, *logLevel, os.Stdout, checkDocs, checker.MaxResultScore)
+			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, checker.MaxResultScore)
 		case formatCSV:
 			err = repoResult.AsCSV(showDetails, *logLevel, os.Stdout)
 		case formatJSON:

@@ -16,25 +16,10 @@ package cmd
 
 import (
 	"fmt"
-	"runtime"
 
 	"github.com/spf13/cobra"
-)
 
-// Base version information.
-//
-// This is the fallback data used when version information from git is not
-// provided via go ldflags in the Makefile. See version.mk.
-var (
-	// Output of "git describe". The prerequisite is that the branch should be
-	// tagged using the correct versioning strategy.
-	gitVersion = "unknown"
-	// SHA1 from git, output of $(git rev-parse HEAD).
-	gitCommit = "unknown"
-	// State of git tree, either "clean" or "dirty".
-	gitTreeState = "unknown"
-	// Build date in ISO8601 format, output of $(date -u +'%Y-%m-%dT%H:%M:%SZ').
-	buildDate = "unknown"
+	"github.com/ossf/scorecard/v2/pkg"
 )
 
 //nolint:gochecknoinits
@@ -48,12 +33,12 @@ var versionCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		// not using logger, since it prints timing info, etc
-		fmt.Printf("GitVersion:\t%s\n", gitVersion)
-		fmt.Printf("GitCommit:\t%s\n", gitCommit)
-		fmt.Printf("GitTreeState:\t%s\n", gitTreeState)
-		fmt.Printf("BuildDate:\t%s\n", buildDate)
-		fmt.Printf("GoVersion:\t%s\n", runtime.Version())
-		fmt.Printf("Compiler:\t%s\n", runtime.Compiler)
-		fmt.Printf("Platform:\t%s/%s\n", runtime.GOOS, runtime.GOARCH)
+		fmt.Printf("GitVersion:\t%s\n", pkg.GetVersion())
+		fmt.Printf("GitCommit:\t%s\n", pkg.GetCommit())
+		fmt.Printf("GitTreeState:\t%s\n", pkg.GetTreeState())
+		fmt.Printf("BuildDate:\t%s\n", pkg.GetBuildDate())
+		fmt.Printf("GoVersion:\t%s\n", pkg.GetGoVersion())
+		fmt.Printf("Compiler:\t%s\n", pkg.GetCompiler())
+		fmt.Printf("Platform:\t%s/%s\n", pkg.GetOS(), pkg.GetArch())
 	},
 }

@@ -389,7 +389,7 @@ func createSARIFResult(pos int, checkID, reason string, minScore, score int,
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
-func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zapcore.Level,
+func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	writer io.Writer, checkDocs docs.Doc, minScore int) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
@@ -397,7 +397,7 @@ func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zap
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
 	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
-		"supply-chain", "scorecard", version, r.CommitSHA, r.Date)
+		"supply-chain", "scorecard", r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date)
 	results := []result{}
 	rules := []rule{}
 

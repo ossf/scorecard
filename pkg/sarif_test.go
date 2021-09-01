@@ -39,7 +39,10 @@ func TestSARIFOutput(t *testing.T) {
 		Tags        string   `yaml:"tags"`
 	}
 
-	commit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
+	repoCommit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
+	scorecardCommit := "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
+	scorecardVersion := "1.2.3"
+	repoName := "repo not used"
 	date, e := time.Parse(time.RFC822Z, "17 Aug 21 18:57 +0000")
 	if e != nil {
 		panic(fmt.Errorf("time.Parse: %w", e))
@@ -72,9 +75,15 @@ func TestSARIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -115,9 +124,15 @@ func TestSARIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -171,9 +186,15 @@ func TestSARIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -281,9 +302,15 @@ func TestSARIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -377,9 +404,15 @@ func TestSARIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -420,9 +453,15 @@ func TestSARIFOutput(t *testing.T) {
 				},
 			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -452,27 +491,27 @@ func TestSARIFOutput(t *testing.T) {
 			var err error
 			content, err = ioutil.ReadFile(tt.expected)
 			if err != nil {
-				t.Fatalf("cannot read file: %v", err)
+				t.Fatalf("%s: cannot read file: %v", tt.name, err)
 			}
 
 			var expected bytes.Buffer
 			n, err := expected.Write(content)
 			if err != nil {
-				t.Fatalf("cannot write buffer: %v", err)
+				t.Fatalf("%s: cannot write buffer: %v", tt.name, err)
 			}
 			if n != len(content) {
-				t.Fatalf("write %d bytes but expected %d", n, len(content))
+				t.Fatalf("%s: write %d bytes but expected %d", tt.name, n, len(content))
 			}
 
 			var result bytes.Buffer
-			err = tt.result.AsSARIF("1.2.3", tt.showDetails, tt.logLevel, &result, tt.checkDocs, tt.minScore)
+			err = tt.result.AsSARIF(tt.showDetails, tt.logLevel, &result, tt.checkDocs, tt.minScore)
 			if err != nil {
-				t.Fatalf("AsSARIF: %v", err)
+				t.Fatalf("%s: AsSARIF: %v", tt.name, err)
 			}
 
 			r := bytes.Compare(expected.Bytes(), result.Bytes())
 			if r != 0 {
-				t.Fatalf("invalid result for %s: %d", tt.name, r)
+				t.Fatalf("%s: invalid result: %d", tt.name, r)
 			}
 		})
 	}

@@ -65,7 +65,7 @@ func AsJSON(r *pkg.ScorecardResult, showDetails bool, logLevel zapcore.Level, wr
 	encoder := json.NewEncoder(writer)
 
 	out := jsonScorecardCronResult{
-		Repo:     r.Repo,
+		Repo:     r.Repo.Name,
 		Date:     r.Date.Format("2006-01-02"),
 		Metadata: r.Metadata,
 	}
@@ -101,9 +101,9 @@ func AsJSON2(r *pkg.ScorecardResult, showDetails bool, logLevel zapcore.Level, w
 	encoder := json.NewEncoder(writer)
 
 	out := jsonScorecardCronResultV2{
-		Repo:     r.Repo,
+		Repo:     r.Repo.Name,
 		Date:     r.Date.Format("2006-01-02"),
-		Commit:   r.CommitSHA,
+		Commit:   r.Repo.CommitSHA,
 		Metadata: r.Metadata,
 	}
 
