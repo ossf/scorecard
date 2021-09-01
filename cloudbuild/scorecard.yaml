@@ -16,6 +16,6 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '.',
     '-t', 'gcr.io/openssf/scorecard:latest',
-    '-t', 'gcr.io/openssf/scorecard:$COMMIT_SHA'
+    '-t', 'gcr.io/openssf/scorecard:$COMMIT_SHA',
     '-f', 'Dockerfile']
 images: ['gcr.io/openssf/scorecard']
