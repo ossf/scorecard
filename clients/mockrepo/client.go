@@ -227,6 +227,21 @@ func (mr *MockRepoClientMockRecorder) ListReleases() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListReleases", reflect.TypeOf((*MockRepoClient)(nil).ListReleases))
 }
 
+// ListStatuses mocks base method.
+func (m *MockRepoClient) ListStatuses(ref string) ([]clients.Status, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListStatuses", ref)
+	ret0, _ := ret[0].([]clients.Status)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListStatuses indicates an expected call of ListStatuses.
+func (mr *MockRepoClientMockRecorder) ListStatuses(ref interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListStatuses", reflect.TypeOf((*MockRepoClient)(nil).ListStatuses), ref)
+}
+
 // ListSuccessfulWorkflowRuns mocks base method.
 func (m *MockRepoClient) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	m.ctrl.T.Helper()
