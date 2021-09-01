@@ -132,8 +132,7 @@ func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool,
 
 // PR has a successful CI-related check.
 func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (bool, error) {
-	crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.HeadSHA,
-		&github.ListCheckRunsOptions{})
+	crs, err := c.RepoClient.ListCheckRunsForRef(pr.HeadSHA)
 	if err != nil {
 		//nolint
 		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
@@ -143,19 +142,19 @@ func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (boo
 		return false, sce.Create(sce.ErrScorecardInternal, "cannot list check runs by ref")
 	}
 
-	for _, cr := range crs.CheckRuns {
-		if cr.GetStatus() != "completed" {
+	for _, cr := range crs {
+		if cr.Status != "completed" {
 			continue
 		}
-		if cr.GetConclusion() != success {
+		if cr.Conclusion != success {
 			continue
 		}
-		if isTest(cr.GetApp().GetSlug()) {
+		if isTest(cr.App.Slug) {
 			c.Dlogger.Debug3(&checker.LogMessage{
-				Path: cr.GetURL(),
+				Path: cr.URL,
 				Type: checker.FileTypeURL,
 				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,
-					cr.GetApp().GetSlug()),
+					cr.App.Slug),
 			})
 			return true, nil
 		}

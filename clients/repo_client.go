@@ -29,6 +29,7 @@ type RepoClient interface {
 	ListReleases() ([]Release, error)
 	ListContributors() ([]Contributor, error)
 	ListSuccessfulWorkflowRuns(filename string) ([]WorkflowRun, error)
+	ListCheckRunsForRef(ref string) ([]CheckRun, error)
 	Search(request SearchRequest) (SearchResponse, error)
 	Close() error
 }
