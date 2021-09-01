@@ -37,6 +37,7 @@ type Client struct {
 	branches     *branchesHandler
 	releases     *releasesHandler
 	workflows    *workflowsHandler
+	checkruns    *checkrunsHandler
 	search       *searchHandler
 	ctx          context.Context
 	tarball      tarballHandler
@@ -73,6 +74,9 @@ func (client *Client) InitRepo(owner, repoName string) error {
 
 	// Setup workflowsHandler.
 	client.workflows.init(client.ctx, client.owner, client.repoName)
+
+	// Setup checkrunsHandler.
+	client.checkruns.init(client.ctx, client.owner, client.repoName)
 
 	// Setup searchHandler.
 	client.search.init(client.ctx, client.owner, client.repoName)
@@ -135,6 +139,11 @@ func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.Wor
 	return client.workflows.listSuccessfulWorkflowRuns(filename)
 }
 
+// ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.
+func (client *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
+	return client.checkruns.listCheckRunsForRef(ref)
+}
+
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return client.search.search(request)
@@ -165,6 +174,9 @@ func CreateGithubRepoClient(ctx context.Context,
 			client: client,
 		},
 		workflows: &workflowsHandler{
+			client: client,
+		},
+		checkruns: &checkrunsHandler{
 			client: client,
 		},
 		search: &searchHandler{
