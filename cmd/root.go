@@ -27,8 +27,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v38/github"
-	"github.com/shurcooL/githubv4"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
@@ -39,7 +37,6 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
 	"github.com/ossf/scorecard/v2/repos"
-	"github.com/ossf/scorecard/v2/roundtripper"
 )
 
 var (
@@ -73,15 +70,6 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		if _, v3 = os.LookupEnv("SCORECARD_V3"); v3 {
 			fmt.Printf("**** Using SCORECARD_V3 code ***** \n\n")
 		}
-		cfg := zap.NewProductionConfig()
-		cfg.Level.SetLevel(*logLevel)
-		logger, err := cfg.Build()
-		if err != nil {
-			log.Fatalf("unable to construct logger: %v", err)
-		}
-		// nolint
-		defer logger.Sync() // flushes buffer, if any
-		sugar := logger.Sugar()
 
 		if npm != "" {
 			if git, err := fetchGitRepositoryFromNPM(npm); err != nil {
@@ -134,15 +122,17 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		}
 		ctx := context.Background()
 
-		rt := roundtripper.NewTransport(ctx, sugar)
-		httpClient := &http.Client{
-			Transport: rt,
+		logger, err := githubrepo.NewLogger(*logLevel)
+		if err != nil {
+			panic(err)
 		}
-		githubClient := github.NewClient(httpClient)
-		graphClient := githubv4.NewClient(httpClient)
-		repoClient := githubrepo.CreateGithubRepoClient(ctx, githubClient, graphClient)
+		// nolint
+		defer logger.Sync() // flushes buffer, if any
 
-		repoResult, err := pkg.RunScorecards(ctx, repo, enabledChecks, repoClient, httpClient, githubClient, graphClient)
+		repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
+		defer repoClient.Close()
+
+		repoResult, err := pkg.RunScorecards(ctx, repo, enabledChecks, repoClient)
 		if err != nil {
 			log.Fatal(err)
 		}

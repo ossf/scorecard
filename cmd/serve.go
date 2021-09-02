@@ -22,16 +22,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/google/go-github/v38/github"
-	"github.com/shurcooL/githubv4"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 
 	"github.com/ossf/scorecard/v2/checks"
 	"github.com/ossf/scorecard/v2/clients/githubrepo"
 	"github.com/ossf/scorecard/v2/pkg"
 	"github.com/ossf/scorecard/v2/repos"
-	"github.com/ossf/scorecard/v2/roundtripper"
 )
 
 //nolint:gochecknoinits
@@ -44,9 +40,7 @@ var serveCmd = &cobra.Command{
 	Short: "Serve the scorecard program over http",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := zap.NewProductionConfig()
-		cfg.Level.SetLevel(*logLevel)
-		logger, err := cfg.Build()
+		logger, err := githubrepo.NewLogger(*logLevel)
 		if err != nil {
 			log.Fatalf("unable to construct logger: %v", err)
 		}
@@ -69,16 +63,9 @@ var serveCmd = &cobra.Command{
 			if err := repo.Set(repoParam); err != nil {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
-			sugar.Info(repoParam)
 			ctx := r.Context()
-			rt := roundtripper.NewTransport(ctx, sugar)
-			httpClient := &http.Client{
-				Transport: rt,
-			}
-			githubClient := github.NewClient(httpClient)
-			graphClient := githubv4.NewClient(httpClient)
-			repoClient := githubrepo.CreateGithubRepoClient(ctx, githubClient, graphClient)
-			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient, httpClient, githubClient, graphClient)
+			repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
+			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient)
 			if err != nil {
 				sugar.Error(err)
 				rw.WriteHeader(http.StatusInternalServerError)

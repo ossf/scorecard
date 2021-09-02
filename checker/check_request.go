@@ -16,10 +16,6 @@ package checker
 
 import (
 	"context"
-	"net/http"
-
-	"github.com/google/go-github/v38/github"
-	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v2/clients"
 )
@@ -27,9 +23,6 @@ import (
 // CheckRequest struct encapsulates all data to be passed into a CheckFn.
 type CheckRequest struct {
 	Ctx         context.Context
-	Client      *github.Client
-	GraphClient *githubv4.Client
-	HTTPClient  *http.Client
 	RepoClient  clients.RepoClient
 	Dlogger     DetailLogger
 	Owner, Repo string
