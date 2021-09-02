@@ -46,7 +46,7 @@ func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
-	resp, err := c.HTTPClient.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("HTTPClient.Do: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)

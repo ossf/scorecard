@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package githubrepo
+package roundtripper
 
 import (
 	"fmt"
@@ -22,6 +22,8 @@ import (
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
+
+	githubstats "github.com/ossf/scorecard/v2/clients/githubrepo/stats"
 )
 
 // MakeGitHubTransport wraps input RoundTripper with GitHub authorization logic.
@@ -52,13 +54,13 @@ func (gt *githubTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error in HTTP: %w", err)
 	}
-	ctx, err := tag.New(r.Context(), tag.Upsert(ResourceType, resp.Header.Get("X-RateLimit-Resource")))
+	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
 	if err != nil {
 		return nil, fmt.Errorf("error updating context: %w", err)
 	}
 	remaining, err := strconv.Atoi(resp.Header.Get("X-RateLimit-Remaining"))
 	if err == nil {
-		stats.Record(ctx, RemainingTokens.M(int64(remaining)))
+		stats.Record(ctx, githubstats.RemainingTokens.M(int64(remaining)))
 	}
 	return resp, nil
 }
@@ -79,7 +81,7 @@ func (roundRobin *roundRobinAccessor) next(r *http.Request) (string, error) {
 	l := len(roundRobin.accessTokens)
 	index := c % uint64(l)
 
-	ctx, err := tag.New(r.Context(), tag.Upsert(TokenIndex, fmt.Sprint(index)))
+	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.TokenIndex, fmt.Sprint(index)))
 	if err != nil {
 		return "", fmt.Errorf("error updating context: %w", err)
 	}

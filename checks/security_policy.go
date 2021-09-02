@@ -18,6 +18,8 @@ import (
 	"errors"
 	"strings"
 
+	"go.uber.org/zap"
+
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v2/errors"
@@ -72,7 +74,11 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file
 	dotGitHub := c
 	dotGitHub.Repo = ".github"
-	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, c.Client, c.GraphClient)
+	logger, err := githubrepo.NewLogger(zap.InfoLevel)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
+	}
+	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
 	err = dotGitHubClient.InitRepo(c.Owner, c.Repo)
 
 	switch {

@@ -31,18 +31,15 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 	Context("E2E TEST:Validating use of fuzzing tools", func() {
 		It("Should return use of fuzzing tools", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err := repoClient.InitRepo("tensorflow", "tensorflow")
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				HTTPClient:  httpClient,
-				RepoClient:  repoClient,
-				Owner:       "tensorflow",
-				Repo:        "tensorflow",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Owner:      "tensorflow",
+				Repo:       "tensorflow",
+				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
