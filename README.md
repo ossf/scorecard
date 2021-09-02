@@ -121,7 +121,7 @@ docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-det
 The program can run using just one argument, the URL of the repo:
 
 ```shell
-$ go get github.com/ossf/scorecard/v2
+$ go install github.com/ossf/scorecard/v2@latest
 $ scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
 Starting [CII-Best-Practices]
 Starting [Fuzzing]
