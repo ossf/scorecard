@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"sync"
 
+	"go.uber.org/zap"
+
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients"
 	"github.com/ossf/scorecard/v2/clients/githubrepo"
@@ -30,6 +32,7 @@ const CheckFuzzing = "Fuzzing"
 var (
 	ossFuzzRepo    clients.RepoClient
 	errOssFuzzRepo error
+	logger         *zap.Logger
 	once           sync.Once
 )
 
@@ -41,7 +44,11 @@ func init() {
 // Fuzzing runs Fuzzing check.
 func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	once.Do(func() {
-		ossFuzzRepo = githubrepo.CreateGithubRepoClient(c.Ctx, c.Client, c.GraphClient)
+		logger, errOssFuzzRepo = githubrepo.NewLogger(zap.InfoLevel)
+		if errOssFuzzRepo != nil {
+			return
+		}
+		ossFuzzRepo = githubrepo.CreateGithubRepoClient(c.Ctx, logger)
 		errOssFuzzRepo = ossFuzzRepo.InitRepo("google", "oss-fuzz")
 	})
 	if errOssFuzzRepo != nil {

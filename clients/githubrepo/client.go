@@ -18,11 +18,15 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v2/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
@@ -164,8 +168,15 @@ func (client *Client) Close() error {
 }
 
 // CreateGithubRepoClient returns a Client which implements RepoClient interface.
-func CreateGithubRepoClient(ctx context.Context,
-	client *github.Client, graphClient *githubv4.Client) clients.RepoClient {
+func CreateGithubRepoClient(ctx context.Context, logger *zap.Logger) clients.RepoClient {
+	// Use our custom roundtripper
+	rt := roundtripper.NewTransport(ctx, logger.Sugar())
+	httpClient := &http.Client{
+		Transport: rt,
+	}
+	client := github.NewClient(httpClient)
+	graphClient := githubv4.NewClient(httpClient)
+
 	return &Client{
 		ctx:        ctx,
 		repoClient: client,
@@ -195,4 +206,15 @@ func CreateGithubRepoClient(ctx context.Context,
 			ghClient: client,
 		},
 	}
+}
+
+// NewLogger creates an instance of *zap.Logger.
+func NewLogger(logLevel zapcore.Level) (*zap.Logger, error) {
+	cfg := zap.NewProductionConfig()
+	cfg.Level.SetLevel(logLevel)
+	logger, err := cfg.Build()
+	if err != nil {
+		return nil, fmt.Errorf("cfg.Build: %w", err)
+	}
+	return logger, nil
 }
