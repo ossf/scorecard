@@ -95,8 +95,7 @@ func (handler *branchesHandler) setup() error {
 			handler.errSetup = sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 		}
 		handler.defaultBranchRef = getBranchRefFrom(handler.data.Repository.DefaultBranchRef)
-		handler.branches = getBranchRefsFrom(handler.data.Repository.Refs.Nodes)
-		// Maybe add defaultBranchRef to branches.
+		handler.branches = getBranchRefsFrom(handler.data.Repository.Refs.Nodes, handler.defaultBranchRef)
 	})
 	return handler.errSetup
 }
@@ -194,10 +193,18 @@ func getBranchRefFrom(data branch) *clients.BranchRef {
 	return branchRef
 }
 
-func getBranchRefsFrom(data []branch) []*clients.BranchRef {
+func getBranchRefsFrom(data []branch, defaultBranch *clients.BranchRef) []*clients.BranchRef {
 	branchRefs := make([]*clients.BranchRef, len(data))
+	var defaultFound bool
 	for i, b := range data {
 		branchRefs[i] = getBranchRefFrom(b)
+		if defaultBranch != nil && branchRefs[i].Name == defaultBranch.Name {
+			defaultFound = true
+		}
+	}
+	if !defaultFound {
+		// nolint: makezero
+		branchRefs = append(branchRefs, defaultBranch)
 	}
 	return branchRefs
 }

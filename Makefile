@@ -121,7 +121,7 @@ build-webhook: ## Runs go build on the cron webhook
 
 build-add-script: ## Runs go build on the add script
 build-add-script: cron/data/add/add
-cron/data/add/add: cron/data/add/*.go cron/data/*.go cron/data/projects.csv
+cron/data/add/add: cron/data/add/*.go cron/data/*.go repos/*.go cron/data/projects.csv
 	# Run go build on the add script
 	cd cron/data/add && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o add
 
