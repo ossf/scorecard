@@ -24,7 +24,6 @@
 # supported CodeQL languages.
 #
 name: "CodeQL"
-
 on:
   push:
     branches: [ main ]
@@ -33,6 +32,11 @@ on:
     branches: [ main ]
   schedule:
     - cron: '36 19 * * 3'
+      
+permissions:
+  contents: read
+  statuses: write
+  security-events: write
 
 jobs:
   analyze:
