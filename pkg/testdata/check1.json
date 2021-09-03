@@ -1,16 +1,22 @@
 {
-   "Repo": "repo not used",
-   "Date": "2021-08-25",
-   "Commit": "68bc59901773ab4c051dfcea0cc4201a1567ab32",
-   "Checks": [
+   "date": "2021-08-25",
+   "repo": {
+      "name": "repo not used",
+      "commit": "68bc59901773ab4c051dfcea0cc4201a1567ab32"
+   },
+   "scorecard": {
+      "version": "1.2.3",
+      "commit": "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
+   },
+   "checks": [
       {
-         "Details": [
+         "details": [
             "Warn: warn message: src/file1.cpp:5"
          ],
-         "Score": 5,
-         "Reason": "half score reason",
-         "Name": "Check-Name"
+         "score": 5,
+         "reason": "half score reason",
+         "name": "Check-Name"
       }
    ],
-   "Metadata": []
+   "metadata": []
 }

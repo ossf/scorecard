@@ -27,8 +27,6 @@ import (
 	// nolint:gosec
 	_ "net/http/pprof"
 
-	"github.com/google/go-github/v38/github"
-	"github.com/shurcooL/githubv4"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -37,6 +35,7 @@ import (
 	"github.com/ossf/scorecard/v2/checks"
 	"github.com/ossf/scorecard/v2/clients"
 	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	githubstats "github.com/ossf/scorecard/v2/clients/githubrepo/stats"
 	"github.com/ossf/scorecard/v2/cron/config"
 	"github.com/ossf/scorecard/v2/cron/data"
 	"github.com/ossf/scorecard/v2/cron/monitoring"
@@ -44,7 +43,6 @@ import (
 	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
 	"github.com/ossf/scorecard/v2/repos"
-	"github.com/ossf/scorecard/v2/roundtripper"
 	"github.com/ossf/scorecard/v2/stats"
 )
 
@@ -53,8 +51,7 @@ var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to tru
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
 	bucketURL, bucketURL2 string,
-	repoClient clients.RepoClient,
-	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client) error {
+	repoClient clients.RepoClient) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
@@ -91,7 +88,7 @@ func processRequest(ctx context.Context,
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoURL := range repoURLs {
 		log.Printf("Running Scorecard for repo: %s", repoURL.URL())
-		result, err := pkg.RunScorecards(ctx, repoURL, checksToRun, repoClient, httpClient, githubClient, graphClient)
+		result, err := pkg.RunScorecards(ctx, repoURL, checksToRun, repoClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
@@ -112,11 +109,11 @@ func processRequest(ctx context.Context,
 			log.Print(errorMsg)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime()
-		if err := result.AsJSON(true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
+		if err := AsJSON(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
 
-		if err := result.AsJSON2(true /*showDetails*/, zapcore.InfoLevel, &buffer2); err != nil {
+		if err := AsJSON2(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer2); err != nil {
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
 	}
@@ -133,28 +130,6 @@ func processRequest(ctx context.Context,
 	return nil
 }
 
-func createNetClients(ctx context.Context) (
-	repoClient clients.RepoClient,
-	httpClient *http.Client,
-	githubClient *github.Client, graphClient *githubv4.Client, logger *zap.Logger) {
-	cfg := zap.NewProductionConfig()
-	cfg.Level.SetLevel(zap.InfoLevel)
-	logger, err := cfg.Build()
-	if err != nil {
-		panic(err)
-	}
-	sugar := logger.Sugar()
-	// Use our custom roundtripper
-	rt := roundtripper.NewTransport(ctx, sugar)
-	httpClient = &http.Client{
-		Transport: rt,
-	}
-	githubClient = github.NewClient(httpClient)
-	graphClient = githubv4.NewClient(httpClient)
-	repoClient = githubrepo.CreateGithubRepoClient(ctx, githubClient, graphClient)
-	return
-}
-
 func startMetricsExporter() (monitoring.Exporter, error) {
 	exporter, err := monitoring.GetExporter()
 	if err != nil {
@@ -169,7 +144,7 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 		&stats.CheckErrorCount,
 		&stats.RepoRuntime,
 		&stats.OutgoingHTTPRequests,
-		&githubrepo.GithubTokens); err != nil {
+		&githubstats.GithubTokens); err != nil {
 		return nil, fmt.Errorf("error during view.Register: %w", err)
 	}
 	return exporter, nil
@@ -199,7 +174,11 @@ func main() {
 		panic(err)
 	}
 
-	repoClient, httpClient, githubClient, graphClient, logger := createNetClients(ctx)
+	logger, err := githubrepo.NewLogger(zap.InfoLevel)
+	if err != nil {
+		panic(err)
+	}
+	repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 
 	exporter, err := startMetricsExporter()
 	if err != nil {
@@ -229,7 +208,7 @@ func main() {
 			break
 		}
 		if err := processRequest(ctx, req, checksToRun, bucketURL, bucketURL2,
-			repoClient, httpClient, githubClient, graphClient); err != nil {
+			repoClient); err != nil {
 			log.Printf("error processing request: %v", err)
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()

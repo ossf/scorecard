@@ -1,60 +1,81 @@
 {
     "$schema": "http://json-schema.org/schema#",
-    "$id": "https://github.com/ossf/scorecard/pkg/schema.v2.json",
-    "title": "Scorecard",
-    "description": "A tool to assess the security posture of open-source projects",
     "type": "object",
     "properties": {
-        "Checks": {
+        "checks": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
-                    "Details": {
+                    "details": {
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     },
-                    "Name": {
+                    "name": {
                         "type": "string"
                     },
-                    "Reason": {
+                    "reason": {
                         "type": "string"
                     },
-                    "Score": {
+                    "score": {
                         "type": "integer"
                     }
                 },
                 "required": [
-                    "Details",
-                    "Score",
-                    "Reason",
-                    "Name"
+                    "details",
+                    "score",
+                    "reason",
+                    "name"
                 ]
             }
         },
-        "Commit": {
+        "date": {
             "type": "string"
         },
-        "Date": {
-            "type": "string"
-        },
-        "Metadata": {
+        "metadata": {
             "type": "array",
             "items": {
                 "type": "string"
             }
         },
-        "Repo": {
-            "type": "string"
+        "repo": {
+            "type": "object",
+            "properties": {
+                "commit": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "commit"
+            ]
+        },
+        "scorecard": {
+            "type": "object",
+            "properties": {
+                "commit": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "version",
+                "commit"
+            ]
         }
     },
     "required": [
-        "Repo",
-        "Date",
-        "Commit",
-        "Checks",
-        "Metadata"
+        "date",
+        "repo",
+        "scorecard",
+        "checks",
+        "metadata"
     ]
 }

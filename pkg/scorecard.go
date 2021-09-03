@@ -18,12 +18,9 @@ package pkg
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"sync"
 	"time"
 
-	"github.com/google/go-github/v38/github"
-	"github.com/shurcooL/githubv4"
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
@@ -41,16 +38,12 @@ func logStats(ctx context.Context, startTime time.Time) {
 
 func runEnabledChecks(ctx context.Context,
 	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap, repoClient clients.RepoClient,
-	httpClient *http.Client, githubClient *github.Client, graphClient *githubv4.Client,
 	resultsCh chan checker.CheckResult) {
 	request := checker.CheckRequest{
-		Ctx:         ctx,
-		Client:      githubClient,
-		RepoClient:  repoClient,
-		HTTPClient:  httpClient,
-		Owner:       repo.Owner,
-		Repo:        repo.Repo,
-		GraphClient: graphClient,
+		Ctx:        ctx,
+		RepoClient: repoClient,
+		Owner:      repo.Owner,
+		Repo:       repo.Repo,
 	}
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
@@ -75,10 +68,7 @@ func runEnabledChecks(ctx context.Context,
 func RunScorecards(ctx context.Context,
 	repo repos.RepoURL,
 	checksToRun checker.CheckNameToFnMap,
-	repoClient clients.RepoClient,
-	httpClient *http.Client,
-	githubClient *github.Client,
-	graphClient *githubv4.Client) (ScorecardResult, error) {
+	repoClient clients.RepoClient) (ScorecardResult, error) {
 	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repo.URL()))
 	if err != nil {
 		//nolint:wrapcheck
@@ -106,14 +96,14 @@ func RunScorecards(ctx context.Context,
 	}
 
 	ret := ScorecardResult{
-		Repo:      repo.URL(),
-		Date:      time.Now(),
-		CommitSHA: commitSHA,
+		Repo: RepoInfo{
+			Name:      repo.URL(),
+			CommitSHA: commitSHA,
+		},
+		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)
-	go runEnabledChecks(ctx, repo, checksToRun, repoClient,
-		httpClient, githubClient, graphClient,
-		resultsCh)
+	go runEnabledChecks(ctx, repo, checksToRun, repoClient, resultsCh)
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}

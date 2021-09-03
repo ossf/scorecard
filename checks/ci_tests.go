@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/go-github/v38/github"
-
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients"
 	sce "github.com/ossf/scorecard/v2/errors"
@@ -106,23 +104,22 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 
 // PR has a status marked 'success' and a CI-related context.
 func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool, error) {
-	statuses, _, err := c.Client.Repositories.ListStatuses(c.Ctx, c.Owner, c.Repo, pr.HeadSHA,
-		&github.ListOptions{})
+	statuses, err := c.RepoClient.ListStatuses(pr.HeadSHA)
 	if err != nil {
 		//nolint
 		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListStatuses: %v", err))
 	}
 
 	for _, status := range statuses {
-		if status.GetState() != success {
+		if status.State != success {
 			continue
 		}
-		if isTest(status.GetContext()) {
+		if isTest(status.Context) {
 			c.Dlogger.Debug3(&checker.LogMessage{
-				Path: status.GetURL(),
+				Path: status.URL,
 				Type: checker.FileTypeURL,
 				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,
-					status.GetContext()),
+					status.Context),
 			})
 			return true, nil
 		}
@@ -132,8 +129,7 @@ func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool,
 
 // PR has a successful CI-related check.
 func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (bool, error) {
-	crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.HeadSHA,
-		&github.ListCheckRunsOptions{})
+	crs, err := c.RepoClient.ListCheckRunsForRef(pr.HeadSHA)
 	if err != nil {
 		//nolint
 		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
@@ -143,19 +139,19 @@ func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (boo
 		return false, sce.Create(sce.ErrScorecardInternal, "cannot list check runs by ref")
 	}
 
-	for _, cr := range crs.CheckRuns {
-		if cr.GetStatus() != "completed" {
+	for _, cr := range crs {
+		if cr.Status != "completed" {
 			continue
 		}
-		if cr.GetConclusion() != success {
+		if cr.Conclusion != success {
 			continue
 		}
-		if isTest(cr.GetApp().GetSlug()) {
+		if isTest(cr.App.Slug) {
 			c.Dlogger.Debug3(&checker.LogMessage{
-				Path: cr.GetURL(),
+				Path: cr.URL,
 				Type: checker.FileTypeURL,
 				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,
-					cr.GetApp().GetSlug()),
+					cr.App.Slug),
 			})
 			return true, nil
 		}

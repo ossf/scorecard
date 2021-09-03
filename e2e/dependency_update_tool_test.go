@@ -33,18 +33,16 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 	Context("E2E TEST:Validating dependencies are updated with a tool", func() {
 		It("Should return repo uses dependabot", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err := repoClient.InitRepo("ossf", "scorecard")
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				RepoClient:  repoClient,
-				Owner:       "ossf",
-				Repo:        "scorecard",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Owner:      "ossf",
+				Repo:       "scorecard",
+				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -64,18 +62,16 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 		})
 		It("Should return repo uses renovatebot", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err := repoClient.InitRepo("netlify", "netlify-cms")
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				RepoClient:  repoClient,
-				Owner:       "netlify",
-				Repo:        "netlify-cms",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Owner:      "netlify",
+				Repo:       "netlify-cms",
+				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,

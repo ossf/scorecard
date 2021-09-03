@@ -17,8 +17,6 @@ package checks
 import (
 	"fmt"
 
-	"github.com/google/go-github/v38/github"
-
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients"
 	sce "github.com/ossf/scorecard/v2/errors"
@@ -119,8 +117,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			continue
 		}
 		totalMerged++
-		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.HeadSHA,
-			&github.ListCheckRunsOptions{})
+		crs, err := c.RepoClient.ListCheckRunsForRef(pr.HeadSHA)
 		if err != nil {
 			return checker.InconclusiveResultScore,
 				sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
@@ -131,16 +128,16 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			})
 			return checker.InconclusiveResultScore, nil
 		}
-		for _, cr := range crs.CheckRuns {
-			if cr.GetStatus() != "completed" {
+		for _, cr := range crs {
+			if cr.Status != "completed" {
 				continue
 			}
-			if cr.GetConclusion() != "success" {
+			if cr.Conclusion != "success" {
 				continue
 			}
-			if sastTools[cr.GetApp().GetSlug()] {
+			if sastTools[cr.App.Slug] {
 				c.Dlogger.Debug3(&checker.LogMessage{
-					Path: cr.GetHTMLURL(),
+					Path: cr.URL,
 					Type: checker.FileTypeURL,
 					Text: "tool detected",
 				})

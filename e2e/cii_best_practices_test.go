@@ -30,14 +30,11 @@ var _ = Describe("E2E TEST:CIIBestPractices", func() {
 		It("Should return use of CII Best Practices", func() {
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				HTTPClient:  httpClient,
-				RepoClient:  nil,
-				Owner:       "tensorflow",
-				Repo:        "tensorflow",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
+				Ctx:        context.Background(),
+				RepoClient: nil,
+				Owner:      "tensorflow",
+				Repo:       "tensorflow",
+				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,

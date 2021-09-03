@@ -33,18 +33,16 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 	Context("E2E TEST:Binary artifacts are not present in source code", func() {
 		It("Should return not binary artifacts in source code", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err := repoClient.InitRepo("ossf", "scorecard")
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				RepoClient:  repoClient,
-				Owner:       "ossf",
-				Repo:        "scorecard",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Owner:      "ossf",
+				Repo:       "scorecard",
+				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -64,18 +62,16 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 		})
 		It("Should return binary artifacts present in source code", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err := repoClient.InitRepo("ossf-tests", "scorecard-check-binary-artifacts-e2e")
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				RepoClient:  repoClient,
-				Owner:       "ossf-tests",
-				Repo:        "scorecard-check-binary-artifacts-e2e",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Owner:      "ossf-tests",
+				Repo:       "scorecard-check-binary-artifacts-e2e",
+				Dlogger:    &dl,
 			}
 			// TODO: upload real binaries to the repo as well.
 			expected := scut.TestReturn{
