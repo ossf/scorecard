@@ -81,7 +81,7 @@ tree-status: ## Verify tree is clean and all changes are committed
 build-targets = generate-docs build-proto build-scorecard build-pubsub build-bq-transfer \
 	build-add-script build-validate-script build-update-script dockerbuild
 .PHONY: build $(build-targets)
-build: ## Build all binaries and images in the reepo.
+build: ## Build all binaries and images in the repo.
 build: $(build-targets)
 
 build-proto: ## Compiles and generates all required protobufs
