@@ -113,7 +113,7 @@ The checks works by (1) looking for the following files in the root directory: g
 **Remediation steps**
 - Declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
 - If the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
-- For Dockerfiles and GitHub workflows, pin dependencies by hash. See example [gitcache-docker.yaml](https://github.com/ossf/scorecard/blob/main/.github/workflows/gitcache-docker.yaml#L36) and [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) examples.
+- For Dockerfiles and GitHub workflows, pin dependencies by hash. See example [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) and [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) examples.
 - To help update your dependencies after pinning them, use tools such as Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/) or [renovate bot](https://github.com/renovatebot/renovate).
 
 ## SAST 
