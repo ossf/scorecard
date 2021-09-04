@@ -50,7 +50,6 @@ func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]
 }
 
 func workflowsRunsFrom(data *github.WorkflowRuns) []clients.WorkflowRun {
-	// nolint: prealloc // https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
 	var workflowRuns []clients.WorkflowRun
 	for _, workflowRun := range data.WorkflowRuns {
 		workflowRuns = append(workflowRuns, clients.WorkflowRun{

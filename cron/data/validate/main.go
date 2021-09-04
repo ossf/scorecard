@@ -26,11 +26,10 @@ import (
 // * Check for no duplicates in repoURLs.
 // * Check repoURL is a valid GitHub URL.
 func main() {
-	// nolint: gomnd
 	if len(os.Args) != 2 {
 		panic("must provide single argument")
 	}
-	// nolint: gomnd
+
 	inFile, err := os.OpenFile(os.Args[1], os.O_RDONLY, 0o644)
 	if err != nil {
 		panic(err)

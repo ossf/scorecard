@@ -63,7 +63,6 @@ func (handler *releasesHandler) getReleases() ([]clients.Release, error) {
 }
 
 func releasesFrom(data []*github.RepositoryRelease) []clients.Release {
-	// nolint: prealloc // https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
 	var releases []clients.Release
 	for _, r := range data {
 		release := clients.Release{
