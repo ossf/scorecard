@@ -29,6 +29,12 @@ import (
 // CheckPinnedDependencies is the registered name for FrozenDeps.
 const CheckPinnedDependencies = "Pinned-Dependencies"
 
+// defaultShellNonWindows is the default shell used for GitHub workflow actions for Linux and Mac.
+const defaultShellNonWindows = "bash"
+
+// defaultShellWindows is the default shell used for GitHub workflow actions for Windows.
+const defaultShellWindows = "pwsh"
+
 // Structure for workflow config.
 // We only declare the fields we need.
 // Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
@@ -553,9 +559,6 @@ func getShellForStep(step *gitHubActionWorkflowStep, job *gitHubActionWorkflowJo
 	if job.Defaults.Run.Shell != "" {
 		return job.Defaults.Run.Shell, nil
 	}
-
-	const defaultShellNonWindows = "bash"
-	const defaultShellWindows = "pwsh"
 
 	isStepWindows, err := isStepWindows(step)
 	if err != nil {
