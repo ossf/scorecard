@@ -48,5 +48,5 @@ jobs:
           go env -w GOFLAGS=-mod=mod
           make all
           set -e
-          addlicense -ignore "**/script-empty.sh" -ignore "pkg/testdata/*"  -l apache -c 'Security Scorecard Authors' -v *
+          addlicense -ignore "**/script-empty.sh" -ignore "pkg/testdata/*" -ignore "checks/testdata/*" -l apache -c 'Security Scorecard Authors' -v *
           git diff --exit-code
