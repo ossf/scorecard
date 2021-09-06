@@ -34,8 +34,8 @@ help:  ## Display this help
 .PHONY: install
 install: ## Installs all dependencies needed to compile Scorecard
 install: | $(PROTOC)
-	@echo Installing tools from tools.go
-	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
+	@echo Installing tools from tools/tools.go
+	cd tools; cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
 
 $(PROTOC):
 	ifeq (,$(PROTOC))
@@ -51,6 +51,8 @@ all: $(all-targets)
 
 update-dependencies: ## Update go dependencies for all modules
 	# Update root go modules
+	go mod tidy && go mod verify
+	cd tools
 	go mod tidy && go mod verify
 
 $(GOLANGGCI_LINT): install
