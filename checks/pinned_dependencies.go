@@ -16,6 +16,7 @@ package checks
 
 import (
 	"fmt"
+	"path"
 	"regexp"
 	"strings"
 
@@ -189,6 +190,8 @@ const (
 	notPinned
 )
 
+// For the 'to' param, true means the file is pinning dependencies (or there are no dependencies),
+// false means there are unpinned dependencies.
 func addPinnedResult(r *pinnedResult, to bool) {
 	// If the result is `notPinned`, we keep it.
 	// In other cases, we always update the result.
@@ -476,8 +479,14 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, dl, err)
 }
 
+// validateGitHubWorkflowIsFreeOfInsecureDownloads checks if the workflow file downloads dependencies that are unpinned.
+// Returns true if the check should continue executing after this file.
 func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	if !isWorkflowFile(pathfn) {
+		return true, nil
+	}
+
 	pdata := dataAsResultPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {
@@ -620,9 +629,14 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 	return createReturnForIsGitHubActionsWorkflowPinned(r, dl, err)
 }
 
-// Check file content.
+// validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
+// should continue executing after this file.
 func validateGitHubActionWorkflow(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	if !isWorkflowFile(pathfn) {
+		return true, nil
+	}
+
 	pdata := dataAsResultPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {
@@ -662,6 +676,18 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 
 	addPinnedResult(pdata, ret)
 	return true, nil
+}
+
+// isWorkflowFile returns true if this is a GitHub workflow file.
+func isWorkflowFile(pathfn string) bool {
+	// From https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions:
+	// "Workflow files use YAML syntax, and must have either a .yml or .yaml file extension."
+	switch path.Ext(pathfn) {
+	case ".yml", ".yaml":
+		return true
+	default:
+		return false
+	}
 }
 
 // Check presence of lock files thru validatePackageManagerFile().
