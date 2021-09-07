@@ -30,27 +30,70 @@ import (
 // CheckPinnedDependencies is the registered name for FrozenDeps.
 const CheckPinnedDependencies = "Pinned-Dependencies"
 
+// defaultShellNonWindows is the default shell used for GitHub workflow actions for Linux and Mac.
+const defaultShellNonWindows = "bash"
+
+// defaultShellWindows is the default shell used for GitHub workflow actions for Windows.
+const defaultShellWindows = "pwsh"
+
 // Structure for workflow config.
 // We only declare the fields we need.
 // Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 type gitHubActionWorkflowConfig struct {
-	// nolint: govet
-	Jobs map[string]struct {
-		Name  string `yaml:"name"`
-		Steps []struct {
-			Name  string         `yaml:"name"`
-			ID    string         `yaml:"id"`
-			Uses  stringWithLine `yaml:"uses"`
-			Shell string         `yaml:"shell"`
-			Run   string         `yaml:"run"`
-		}
-		Defaults struct {
-			Run struct {
-				Shell string `yaml:"shell"`
-			} `yaml:"run"`
-		} `yaml:"defaults"`
-	}
+	Jobs map[string]gitHubActionWorkflowJob
 	Name string `yaml:"name"`
+}
+
+// A Github Action Workflow Job.
+// We only declare the fields we need.
+// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+type gitHubActionWorkflowJob struct {
+	Name     string                     `yaml:"name"`
+	Steps    []gitHubActionWorkflowStep `yaml:"steps"`
+	Defaults struct {
+		Run struct {
+			Shell string `yaml:"shell"`
+		} `yaml:"run"`
+	} `yaml:"defaults"`
+	RunsOn   stringOrSlice `yaml:"runs-on"`
+	Strategy struct {
+		Matrix struct {
+			Os []string `yaml:"os"`
+		} `yaml:"matrix"`
+	} `yaml:"strategy"`
+}
+
+// A Github Action Workflow Step.
+// We only declare the fields we need.
+// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+type gitHubActionWorkflowStep struct {
+	Name  string         `yaml:"name"`
+	ID    string         `yaml:"id"`
+	Shell string         `yaml:"shell"`
+	Run   string         `yaml:"run"`
+	If    string         `yaml:"if"`
+	Uses  stringWithLine `yaml:"uses"`
+}
+
+// stringOrSlice is for fields that can be a single string or a slice of strings. If the field is a single string,
+// this value will be a slice with a single string item.
+type stringOrSlice []string
+
+func (s *stringOrSlice) UnmarshalYAML(value *yaml.Node) error {
+	var stringSlice []string
+	err := value.Decode(&stringSlice)
+	if err == nil {
+		*s = stringSlice
+		return nil
+	}
+	var single string
+	err = value.Decode(&single)
+	if err != nil {
+		//nolint:wrapcheck
+		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringOrSlice Value: %v", err))
+	}
+	*s = []string{single}
+	return nil
 }
 
 // stringWithLine is for when you want to keep track of the line number that the string came from.
@@ -460,32 +503,27 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
 	validated := true
-	// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell.
-	defaultShell := "bash"
 	scriptContent := ""
 	for _, job := range workflow.Jobs {
-		if job.Defaults.Run.Shell != "" {
-			defaultShell = job.Defaults.Run.Shell
-		}
-
+		job := job
 		for _, step := range job.Steps {
+			step := step
 			if step.Run == "" {
 				continue
 			}
 
-			shell := defaultShell
-			if step.Shell != "" {
-				shell = step.Shell
-			}
-
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
-			// Skip unsupported shells. We don't support Windows shells.
+			shell, err := getShellForStep(&step, &job)
+			if err != nil {
+				return false, err
+			}
+			// Skip unsupported shells. We don't support Windows shells or some Unix shells.
 			if !isSupportedShell(shell) {
 				continue
 			}
 
 			run := step.Run
-			// We replace the `${{ github.variable }}` to avoid shell parising failures.
+			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
 			scriptContent = fmt.Sprintf("%v\n%v", scriptContent, string(script))
 		}
@@ -500,6 +538,74 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 
 	addPinnedResult(pdata, validated)
 	return true, nil
+}
+
+// The only OS that this job runs on is Windows.
+func jobAlwaysRunsOnWindows(job *gitHubActionWorkflowJob) bool {
+	var jobOses []string
+	// The 'runs-on' field either lists the OS'es directly, or it can have an expression '${{ matrix.os }}' which
+	// is where the OS'es are actually listed.
+	if len(job.RunsOn) == 1 && strings.Contains(job.RunsOn[0], "matrix.os") {
+		jobOses = job.Strategy.Matrix.Os
+	} else {
+		jobOses = job.RunsOn
+	}
+	for _, os := range jobOses {
+		if !strings.HasPrefix(strings.ToLower(os), "windows-") {
+			return false
+		}
+	}
+	return true
+}
+
+// getShellForStep returns the shell that is used to run the given step.
+func getShellForStep(step *gitHubActionWorkflowStep, job *gitHubActionWorkflowJob) (string, error) {
+	// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell.
+	if step.Shell != "" {
+		return step.Shell, nil
+	}
+	if job.Defaults.Run.Shell != "" {
+		return job.Defaults.Run.Shell, nil
+	}
+
+	isStepWindows, err := isStepWindows(step)
+	if err != nil {
+		return "", err
+	}
+	if isStepWindows {
+		return defaultShellWindows, nil
+	}
+
+	if jobAlwaysRunsOnWindows(job) {
+		return defaultShellWindows, nil
+	}
+
+	return defaultShellNonWindows, nil
+}
+
+// isStepWindows returns true if the step will be run on Windows.
+func isStepWindows(step *gitHubActionWorkflowStep) (bool, error) {
+	windowsRegexes := []string{
+		// Looking for "if: runner.os == 'Windows'" (and variants)
+		`(?i)runner\.os\s*==\s*['"]windows['"]`,
+		// Looking for "if: ${{ startsWith(runner.os, 'Windows') }}" (and variants)
+		`(?i)\$\{\{\s*startsWith\(runner\.os,\s*['"]windows['"]\)`,
+		// Looking for "if: matrix.os == 'windows-2019'" (and variants)
+		`(?i)matrix\.os\s*==\s*['"]windows-`,
+	}
+
+	for _, windowsRegex := range windowsRegexes {
+		matches, err := regexp.MatchString(windowsRegex, step.If)
+		if err != nil {
+			//nolint:wrapcheck
+			return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error matching Windows regex: %v", err))
+		}
+		if matches {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 // Check pinning of github actions in workflows.
