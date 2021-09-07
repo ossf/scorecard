@@ -48,7 +48,6 @@ func (handler *statusesHandler) listStatuses(ref string) ([]clients.Status, erro
 }
 
 func statusesFrom(data []*github.RepoStatus) []clients.Status {
-	// nolint: prealloc // https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
 	var statuses []clients.Status
 	for _, status := range data {
 		statuses = append(statuses, clients.Status{
