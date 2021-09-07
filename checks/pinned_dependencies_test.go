@@ -34,7 +34,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 	}{
 		{
 			name:     "empty file",
-			filename: "./testdata/github-workflow-empty",
+			filename: "./testdata/github-workflow-empty.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -45,7 +45,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "comments only",
-			filename: "./testdata/github-workflow-comments",
+			filename: "./testdata/github-workflow-comments.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -515,7 +515,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 	}{
 		{
 			name:     "workflow curl default",
-			filename: "testdata/github-workflow-curl-default",
+			filename: "testdata/github-workflow-curl-default.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -526,7 +526,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 		},
 		{
 			name:     "workflow curl no default",
-			filename: "testdata/github-workflow-curl-no-default",
+			filename: "testdata/github-workflow-curl-no-default.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -537,7 +537,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 		},
 		{
 			name:     "wget across steps",
-			filename: "testdata/github-workflow-wget-across-steps",
+			filename: "testdata/github-workflow-wget-across-steps.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
