@@ -245,7 +245,7 @@ checks:
         exploitation in case the package is compromised.
       - >-
         For Dockerfiles and GitHub workflows, pin dependencies by hash. See example
-        [gitcache-docker.yaml](https://github.com/ossf/scorecard/blob/main/.github/workflows/gitcache-docker.yaml#L36)
+        [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27)
         and [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) examples.
       - >-
         To help update your dependencies after pinning them, use tools such as

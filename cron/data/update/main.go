@@ -26,11 +26,10 @@ import (
 // Args:
 //     file path to old_projects.csv new_projects.csv
 func main() {
-	// nolint: gomnd
 	if len(os.Args) != 3 {
 		panic("must provide 2 arguments")
 	}
-	// nolint: gomnd
+
 	inFile, err := os.OpenFile(os.Args[1], os.O_RDONLY, 0o644)
 	if err != nil {
 		panic(err)
@@ -46,7 +45,6 @@ func main() {
 		panic(err)
 	}
 
-	// nolint: gomnd
 	projects, err := os.OpenFile(os.Args[2], os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		panic(err)

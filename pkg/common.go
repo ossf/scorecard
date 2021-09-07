@@ -34,9 +34,8 @@ func textToMarkdown(s string) string {
 
 // DetailToString turns a detail information into a string.
 func DetailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
-	// UPGRADEv3: remove swtch statement.
+	// UPGRADEv3: remove switch statement.
 	switch d.Msg.Version {
-	//nolint
 	case 3:
 		if d.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
 			return ""
