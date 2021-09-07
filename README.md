@@ -72,7 +72,7 @@ the [checks documentation page](docs/checks.md).
 
 ### Authentication
 
-Before running Scorecard, you need to, either:
+Before running Scorecard, you need to either:
 
 -   [create a GitHub access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
     and set it in an environment variable called `GITHUB_AUTH_TOKEN`,
@@ -93,8 +93,8 @@ set GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
 ```
 
 -   create a GitHub App Installations for higher rate-limit quotas. If you have
-    an installed GitHub App and key file, you can use these three environment
-    variables, following the commands shown above for your platform.
+    an installed GitHub App and key file, you can use the three environment
+    variables below, following the commands shown above for your platform.
 
 ```
 GITHUB_APP_KEY_PATH=<path to the key file on disk>
@@ -102,7 +102,7 @@ GITHUB_APP_INSTALLATION_ID=<installation id>
 GITHUB_APP_ID=<app id>
 ```
 
-These can be obtained from the GitHub
+These variables can be obtained from the GitHub
 [developer settings](https://github.com/settings/apps) page.
 
 
@@ -116,9 +116,9 @@ The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
 docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-details --repo=https://github.com/ossf/scorecard
 ```
 
-### Using repository URL
+### Running Scorecards Using a URL
 
-The program can run using just one argument, the URL of the repo:
+Scorecards can run using just one argument, the URL of the target repo:
 
 ```shell
 $ go install github.com/ossf/scorecard/v2@latest
@@ -205,6 +205,7 @@ RESULTS
 |---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
+### Showing Detailed Results 
 For more details why a check fails, use the `--show-details` option:
 
 ```
@@ -238,11 +239,9 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
-### Using a Package manager
+### Running Scorecards Using a Package Manager
 
-scorecard has an option to provide either `--npm` / `--pypi` / `--rubygems`
-package name and it would run the checks on the corresponding GitHub source
-code.
+For projects in the `--npm`, `--pypi`, or `--rubygems` ecosystems, you have the option to run Scorecards using a package manager. Provide the package name to run the checks on the corresponding GitHub source code.
 
 For example:
 
@@ -292,19 +291,13 @@ Security-Policy: Pass 10
 Signed-Releases: Fail 0
 ```
 
-### Running specific checks
+### Running Specific Checks
 
-To use a particular check(s), add the `--checks` argument with a list of check
+To run only specific check(s), add the `--checks` argument with a list of check
 names.
 
 For example, `--checks=CI-Tests,Code-Review`.
 
-### Understanding Scorecard results
-
-Each check returns a **Pass / Fail** decision, as well as a confidence score
-between **0 and 10**. A confidence of 0 should indicate the check was unable to
-achieve any real signal, and the result should be ignored. A confidence of 10
-indicates the check is completely sure of the result.
 
 ### Formatting Results
 
@@ -315,11 +308,8 @@ These may be specified with the `--format` flag.
 
 ## Public Data
 
-If you're only interested in seeing a list of projects with their Scorecard
-check results, we publish these results in a
-[BigQuery public dataset](https://cloud.google.com/bigquery/public-data).
-
-This data is available in the public BigQuery dataset
+We publish a list of projects checked by Scorecards and their results in the 
+[BigQuery public dataset](https://cloud.google.com/bigquery/public-data)
 `openssf:scorecardcron.scorecard`. The latest results are available in the
 BigQuery view `openssf:scorecardcron.scorecard_latest`.
 
@@ -350,7 +340,7 @@ on other source control systems.
 
 ## Adding a Scorecard Check
 
-If you'd like to add a check, please see guidance [here](checks/write.md)
+If you'd like to add a check, please see guidance [here](checks/write.md).
 
 ## Troubleshooting
 
@@ -366,13 +356,13 @@ If you'd like to add a check, please see guidance [here](checks/write.md)
 
     For realtime discussion, you can join the
     [#security_scorecards](https://slack.openssf.org/#security_scorecards) slack
-    channel. Slack requires registration, but the openssf team is open
-    invitation to anyone to register here. Feel free to come and ask any
+    channel. The Slack platform requires registration, but the openssf team channel is open
+    to anyone. Feel free to come and ask any
     questions.
 
 ## Supportability
 
-Currently, scorecard officially supports OSX and Linux platforms. So, if you are
+Currently, scorecard officially supports OSX and Linux platforms. If you are
 using a Windows OS you may find issues. Contributions towards supporting Windows
 are welcome.
 
