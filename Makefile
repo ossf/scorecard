@@ -177,3 +177,11 @@ ifndef GITHUB_AUTH_TOKEN
 	$(error GITHUB_AUTH_TOKEN is undefined)
 endif
 ###############################################################################
+
+
+###############################################################################
+
+.PHONY: ko-local
+ko-local:
+	KO_DOCKER_REPO=${KO_PREFIX}/scorecard CGO_ENABLED=0 ko publish --bare --local --tags stable --tags $(GIT_HASH) .
+
