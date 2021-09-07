@@ -48,7 +48,6 @@ func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.Chec
 }
 
 func checkRunsFrom(data *github.ListCheckRunsResults) []clients.CheckRun {
-	// nolint: prealloc // https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
 	var checkRuns []clients.CheckRun
 	for _, checkRun := range data.CheckRuns {
 		checkRuns = append(checkRuns, clients.CheckRun{

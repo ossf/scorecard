@@ -272,7 +272,6 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
-	// nolint: prealloc
 	var bytes []byte
 
 	// Walk the Dockerfile's AST.

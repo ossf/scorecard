@@ -169,7 +169,6 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 		Confidence: MaxResultScore,
 		Pass:       pass,
 		// New structure.
-		//nolint
 		Version: 2,
 		Error2:  nil,
 		Score:   score,
@@ -195,7 +194,6 @@ func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 		Confidence: MaxResultConfidence,
 		Pass:       pass,
 		// New structure.
-		//nolint
 		Version: 2,
 		Error2:  nil,
 		Score:   score,
@@ -227,7 +225,6 @@ func CreateInconclusiveResult(name, reason string) CheckResult {
 		Confidence: 0,
 		Pass:       false,
 		// New structure.
-		//nolint
 		Version: 2,
 		Score:   InconclusiveResultScore,
 		Reason:  reason,
@@ -243,7 +240,6 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Confidence: 0,
 		Pass:       false,
 		// New structure.
-		//nolint
 		Version: 2,
 		Error2:  e,
 		Score:   InconclusiveResultScore,
