@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"internal/ichecks"
+	"internal/idocs"
 
 	sce "github.com/ossf/scorecard/v2/errors"
 )
@@ -38,15 +38,15 @@ type DocInterface interface {
 
 // Doc contains checks' documentation.
 type Doc struct {
-	idoc *ichecks.InternalDoc
+	idoc *idocs.InternalDoc
 }
 
-// Read parses `checks.yaml` file and returns a `Doc` struct.
+// Read loads the checks' documentation.
 func Read() (DocInterface, error) {
-	m, e := ichecks.ReadDoc()
+	m, e := idocs.ReadDoc()
 	if e != nil {
 		d := Doc{}
-		return &d, fmt.Errorf("ichecks.ReadDoc: %w", e)
+		return &d, fmt.Errorf("idocs.ReadDoc: %w", e)
 	}
 
 	d := Doc{idoc: &m}

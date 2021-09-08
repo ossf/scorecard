@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package ichecks contains internal functions for reading input YAML file.
-package ichecks
+// Package idocs contains internal functions for reading input YAML file.
+package idocs
 
 import (
 
@@ -26,22 +26,6 @@ import (
 
 //go:embed checks.yaml
 var checksYAML []byte
-
-// InternalCheck stores a check's information.
-// type InternalCheck struct {
-// 	Risk        string   `yaml:"risk"`
-// 	Short       string   `yaml:"short"`
-// 	Description string   `yaml:"description"`
-// 	Tags        string   `yaml:"tags"`
-// 	Remediation []string `yaml:"remediation"`
-// 	Name        string   `yaml:"-"`
-// 	URL         string   `yaml:"-"`
-// }
-
-// // InternalDoc stores the documentation for all checks.
-// type InternalDoc struct {
-// 	InternalChecks map[string]*InternalCheck
-// }
 
 // InternalCheck stores a check's information.
 type InternalCheck struct {
