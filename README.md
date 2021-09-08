@@ -1,3 +1,4 @@
+# DELETE THIS
 # Security Scorecards
 
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
