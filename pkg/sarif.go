@@ -430,7 +430,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// Create a header's rule.
 		// TODO: verify `\n` is viewable in GitHub.
 		rule := createSARIFRule(check.Name, checkID,
-			fmt.Sprintf("https://github.com/ossf/scorecard/blob/main/docs/checks.md#%s", strings.ToLower(check.Name)),
+			docs.DocumentationURL(check.Name),
 			doc.Description, doc.Short,
 			tagsAsList(doc.Tags))
 		rules = append(rules, rule)

@@ -20,32 +20,12 @@ import (
 	// Used to embed `checks.yaml` file.
 	_ "embed"
 	"fmt"
-
-	"gopkg.in/yaml.v2"
+	"strings"
 )
 
-//go:embed checks.yaml
-var checksYAML []byte
+const docURL = "https://github.com/ossf/scorecard/blob/main/docs/checks.md"
 
-// Check defines expected check definition in checks.yaml.
-type Check struct {
-	Risk        string   `yaml:"-"`
-	Short       string   `yaml:"short"`
-	Description string   `yaml:"description"`
-	Tags        string   `yaml:"tags"`
-	Remediation []string `yaml:"remediation"`
-}
-
-// Doc maps to checks.yaml file.
-type Doc struct {
-	Checks map[string]Check
-}
-
-// Read parses `checks.yaml` file and returns a `Doc` struct.
-func Read() (Doc, error) {
-	var m Doc
-	if err := yaml.Unmarshal(checksYAML, &m); err != nil {
-		return Doc{}, fmt.Errorf("yaml.Unmarshal: %w", err)
-	}
-	return m, nil
+// DocumentationURL returns the URL for the documentation of check `name`.
+func DocumentationURL(name string) string {
+	return fmt.Sprintf("%s#%s", docURL, strings.ToLower(name))
 }

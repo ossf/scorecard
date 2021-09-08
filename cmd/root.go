@@ -168,7 +168,11 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			err = repoResult.AsCSV(showDetails, *logLevel, os.Stdout)
 		case formatJSON:
 			// UPGRADEv2: rename.
-			err = repoResult.AsJSON2(showDetails, *logLevel, os.Stdout)
+			checkDocs, e := docs.Read()
+			if e != nil {
+				log.Fatalf("cannot read yaml file: %v", err)
+			}
+			err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
 		default:
 			err = sce.Create(sce.ErrScorecardInternal,
 				fmt.Sprintf("invalid format flag: %v. Expected [default, csv, json]", format))

@@ -1,81 +1,97 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "type": "object",
-    "properties": {
-        "checks": {
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "details": {
             "type": "array",
             "items": {
-                "type": "object",
-                "properties": {
-                    "details": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "reason": {
-                        "type": "string"
-                    },
-                    "score": {
-                        "type": "integer"
-                    }
-                },
-                "required": [
-                    "details",
-                    "score",
-                    "reason",
-                    "name"
-                ]
+              "type": "string"
             }
-        },
-        "date": {
-            "type": "string"
-        },
-        "metadata": {
-            "type": "array",
-            "items": {
+          },
+          "documentation": {
+            "type": "object",
+            "properties": {
+              "short": {
                 "type": "string"
-            }
-        },
-        "repo": {
-            "type": "object",
-            "properties": {
-                "commit": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
+              },
+              "url": {
+                "type": "string"
+              }
             },
             "required": [
-                "name",
-                "commit"
+              "url",
+              "short"
             ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "score": {
+            "type": "integer"
+          }
         },
-        "scorecard": {
-            "type": "object",
-            "properties": {
-                "commit": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "version",
-                "commit"
-            ]
-        }
+        "required": [
+          "details",
+          "score",
+          "reason",
+          "name",
+          "documentation"
+        ]
+      }
     },
-    "required": [
-        "date",
-        "repo",
-        "scorecard",
-        "checks",
-        "metadata"
-    ]
+    "date": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "repo": {
+      "type": "object",
+      "properties": {
+        "commit": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "commit"
+      ]
+    },
+    "scorecard": {
+      "type": "object",
+      "properties": {
+        "commit": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "commit"
+      ]
+    }
+  },
+  "required": [
+    "date",
+    "repo",
+    "scorecard",
+    "checks",
+    "metadata"
+  ]
 }

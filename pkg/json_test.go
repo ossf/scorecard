@@ -28,6 +28,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/checker"
+	docs "github.com/ossf/scorecard/v2/docs/checks"
 )
 
 //nolint
@@ -37,10 +38,24 @@ func TestJSONOutput(t *testing.T) {
 	repoCommit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
 	scorecardCommit := "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
 	scorecardVersion := "1.2.3"
-	repoName := "repo not used"
+	repoName := "org/name"
 	date, e := time.Parse("2006-01-02", "2021-08-25")
 	if e != nil {
 		panic(fmt.Errorf("time.Parse: %w", e))
+	}
+
+	checkDocs := docs.Doc{
+		Checks: map[string]docs.Check{
+			"Check-Name": docs.Check{
+				Short: "short description for Check-Name",
+			},
+			"Check-Name2": docs.Check{
+				Short: "short description for Check-Name2",
+			},
+			"Check-Name3": docs.Check{
+				Short: "short description for Check-Name3",
+			},
+		},
 	}
 
 	tests := []struct {
@@ -436,7 +451,7 @@ func TestJSONOutput(t *testing.T) {
 			}
 
 			var result bytes.Buffer
-			err = tt.result.AsJSON2(tt.showDetails, tt.logLevel, &result)
+			err = tt.result.AsJSON2(tt.showDetails, tt.logLevel, checkDocs, &result)
 			if err != nil {
 				t.Fatalf("%s: AsJSON2: %v", tt.name, err)
 			}
