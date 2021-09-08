@@ -68,7 +68,6 @@ require (
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/klauspost/compress v1.13.5 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
