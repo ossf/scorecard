@@ -110,7 +110,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
+func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, checkDocs docs.DocInterface, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
 	out := jsonScorecardResultV2{
@@ -128,16 +128,16 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, chec
 
 	//nolint
 	for _, checkResult := range r.Checks {
-		doc, exists := checkDocs.Checks[checkResult.Name]
-		if !exists {
-			panic(fmt.Sprintf("invalid doc: %s not present", checkResult.Name))
+		doc, e := checkDocs.GetCheck(checkResult.Name)
+		if e != nil {
+			panic(fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
 		}
 
 		tmpResult := jsonCheckResultV2{
 			Name: checkResult.Name,
 			Doc: jsonCheckDocumentationV2{
-				URL:   docs.DocumentationURL(checkResult.Name),
-				Short: doc.Short,
+				URL:   doc.GetDocumentationURL(),
+				Short: doc.GetShort(),
 			},
 			Reason: checkResult.Reason,
 			Score:  checkResult.Score,

@@ -390,7 +390,7 @@ func createSARIFResult(pos int, checkID, reason string, minScore, score int,
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
-	writer io.Writer, checkDocs docs.Doc, minScore int) error {
+	writer io.Writer, checkDocs docs.DocInterface, minScore int) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
 	// We only support GitHub-supported properties:
@@ -403,10 +403,9 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 
 	// nolint
 	for i, check := range r.Checks {
-
-		doc, exists := checkDocs.Checks[check.Name]
-		if !exists {
-			panic(fmt.Sprintf("invalid doc: %s not present", check.Name))
+		doc, e := checkDocs.GetCheck(check.Name)
+		if e != nil {
+			panic(fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
 		}
 
 		// Unclear what to use for PartialFingerprints.
@@ -430,9 +429,9 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// Create a header's rule.
 		// TODO: verify `\n` is viewable in GitHub.
 		rule := createSARIFRule(check.Name, checkID,
-			docs.DocumentationURL(check.Name),
-			doc.Description, doc.Short,
-			tagsAsList(doc.Tags))
+			doc.GetDocumentationURL(),
+			doc.GetDescription(), doc.GetShort(),
+			doc.GetTags())
 		rules = append(rules, rule)
 
 		// Add default location if no locations are present.

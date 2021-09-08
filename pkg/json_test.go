@@ -28,8 +28,42 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/checker"
-	docs "github.com/ossf/scorecard/v2/docs/checks"
 )
+
+func jsonMockDocRead() (*mockDoc, error) {
+	d := map[string]mockCheck{
+		"Check-Name": {
+			name:        "Check-Name",
+			risk:        "not used",
+			short:       "short description for Check-Name",
+			description: "not used",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
+			tags:        []string{"not-used1", "not-used2"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name2": {
+			name:        "Check-Name2",
+			risk:        "not used",
+			short:       "short description for Check-Name2",
+			description: "not used",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
+			tags:        []string{"not-used1", "not-used2"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name3": {
+			name:        "Check-Name3",
+			risk:        "not used",
+			short:       "short description for Check-Name3",
+			description: "not used",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
+			tags:        []string{"not-used1", "not-used2"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+	}
+
+	m := mockDoc{checks: d}
+	return &m, nil
+}
 
 //nolint
 func TestJSONOutput(t *testing.T) {
@@ -44,19 +78,7 @@ func TestJSONOutput(t *testing.T) {
 		panic(fmt.Errorf("time.Parse: %w", e))
 	}
 
-	checkDocs := docs.Doc{
-		Checks: map[string]docs.Check{
-			"Check-Name": docs.Check{
-				Short: "short description for Check-Name",
-			},
-			"Check-Name2": docs.Check{
-				Short: "short description for Check-Name2",
-			},
-			"Check-Name3": docs.Check{
-				Short: "short description for Check-Name3",
-			},
-		},
-	}
+	checkDocs, _ := jsonMockDocRead()
 
 	tests := []struct {
 		name        string

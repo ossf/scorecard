@@ -16,36 +16,70 @@
 package checks
 
 import (
-
-	// Used to embed `checks.yaml` file.
-	_ "embed"
+	"errors"
 	"fmt"
+	"strings"
 
-	"gopkg.in/yaml.v2"
+	"internal/ichecks"
+
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-//go:embed checks.yaml
-var checksYAML []byte
+var errCheckNotExist = errors.New("check does not exist")
 
-// Check defines expected check definition in checks.yaml.
-type Check struct {
-	Risk        string   `yaml:"-"`
-	Short       string   `yaml:"short"`
-	Description string   `yaml:"description"`
-	Tags        string   `yaml:"tags"`
-	Remediation []string `yaml:"remediation"`
+const docURL = "https://github.com/ossf/scorecard/blob/main/docs/checks.md"
+
+// DocInterface defines the documentation interface.
+type DocInterface interface {
+	GetCheck(name string) (CheckDocInterface, error)
+	GetChecks() []CheckDocInterface
+	CheckExists(name string) bool
 }
 
-// Doc maps to checks.yaml file.
+// Doc contains checks' documentation.
 type Doc struct {
-	Checks map[string]Check
+	idoc *ichecks.InternalDoc
 }
 
 // Read parses `checks.yaml` file and returns a `Doc` struct.
-func Read() (Doc, error) {
-	var m Doc
-	if err := yaml.Unmarshal(checksYAML, &m); err != nil {
-		return Doc{}, fmt.Errorf("yaml.Unmarshal: %w", err)
+func Read() (DocInterface, error) {
+	m, e := ichecks.ReadDoc()
+	if e != nil {
+		d := Doc{}
+		return &d, fmt.Errorf("ichecks.ReadDoc: %w", e)
 	}
-	return m, nil
+
+	d := Doc{idoc: &m}
+	return &d, nil
+}
+
+// GetCheck returns the information for check `name`.
+func (d *Doc) GetCheck(name string) (CheckDocInterface, error) {
+	ic, exists := d.idoc.InternalChecks[name]
+	if !exists {
+		//nolint: wrapcheck
+		return nil, sce.CreateInternal(errCheckNotExist, "")
+	}
+	// Set the name and URL.
+	ic.Name = name
+	ic.URL = fmt.Sprintf("%s#%s", docURL, strings.ToLower(name))
+	return &Check{icheck: ic}, nil
+}
+
+// GetChecks returns the information for check `name`.
+func (d *Doc) GetChecks() []CheckDocInterface {
+	var checks []CheckDocInterface
+	for k := range d.idoc.InternalChecks {
+		//nolint: errcheck
+		check, _ := d.GetCheck(k)
+		checks = append(checks, check)
+	}
+
+	return checks
+}
+
+// CheckExists returns whether the check `name` exists or not.
+func (d Doc) CheckExists(name string) bool {
+	_, exists := d.idoc.InternalChecks[name]
+	return exists
 }
