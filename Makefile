@@ -101,7 +101,7 @@ docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/
 	# Validating checks.yaml
 	go run ./docs/checks/internal/validate/main.go
 	# Generating checks.md
-	cd ./docs/checks/internal/generate && go run main.go
+	go run ./docs/checks/internal/generate/main.go
 
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable

@@ -53,7 +53,6 @@ func main() {
 		}
 	}
 	for _, check := range m.GetChecks() {
-		fmt.Println(check)
 		if _, exists := allChecks[check.GetName()]; !exists {
 			// nolint: goerr113
 			panic(fmt.Errorf("check present in checks.yaml is not part of `checks.AllChecks`: %s", check.GetName()))
