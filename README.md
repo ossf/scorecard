@@ -299,6 +299,12 @@ names.
 
 For example, `--checks=CI-Tests,Code-Review`.
 
+### Understanding Scorecard Results
+
+Each check returns a **Pass / Fail** decision, as well as a confidence score
+between **0 and 10**. A confidence of 0 should indicate the check was unable to
+achieve any real signal, and the result should be ignored. A confidence of 10
+indicates the check is completely sure of the result.
 
 ### Formatting Results
 
