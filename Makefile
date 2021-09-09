@@ -97,11 +97,11 @@ clients/branch.pb.go: clients/branch.proto | $(PROTOC)
 
 generate-docs: ## Generates docs
 generate-docs: docs/checks.md
-docs/checks.md: docs/checks/checks.yaml docs/checks/*.go docs/checks/generate/*.go
+docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
 	# Validating checks.yaml
-	go run ./docs/checks/validate/main.go
+	go run ./docs/checks/internal/validate/main.go
 	# Generating checks.md
-	cd ./docs/checks/generate && go run main.go
+	go run ./docs/checks/internal/generate/main.go docs/checks/checks.md
 
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable
