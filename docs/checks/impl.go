@@ -32,7 +32,7 @@ const docURL = "https://github.com/ossf/scorecard/blob/%s/docs/checks.md"
 // DocImpl implements `Doc` interface and
 // contains checks' documentation.
 type DocImpl struct {
-	internaldoc internal.InternalDoc
+	internaldoc internal.Doc
 }
 
 // Read loads the checks' documentation.
@@ -81,7 +81,7 @@ func (d DocImpl) CheckExists(name string) bool {
 // CheckDocImpl implementts `CheckDoc` interface and
 // stores documentation about a check.
 type CheckDocImpl struct {
-	internalCheck internal.InternalCheck
+	internalCheck internal.Check
 }
 
 // GetName returns the name of the check.

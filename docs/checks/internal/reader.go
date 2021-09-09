@@ -28,7 +28,7 @@ import (
 var checksYAML []byte
 
 // InternalCheck stores a check's information.
-type InternalCheck struct {
+type Check struct {
 	Risk        string   `yaml:"-"`
 	Short       string   `yaml:"short"`
 	Description string   `yaml:"description"`
@@ -38,16 +38,16 @@ type InternalCheck struct {
 	URL         string   `yaml:"-"`
 }
 
-// InternalDoc stores the documentation for all checks.
-type InternalDoc struct {
-	InternalChecks map[string]InternalCheck `yaml:"checks"`
+// Doc stores the documentation for all checks.
+type Doc struct {
+	InternalChecks map[string]Check `yaml:"checks"`
 }
 
 // ReadDoc reads documentation from the `checks.yaml` file.
-func ReadDoc() (InternalDoc, error) {
-	var m InternalDoc
+func ReadDoc() (Doc, error) {
+	var m Doc
 	if err := yaml.Unmarshal(checksYAML, &m); err != nil {
-		return InternalDoc{}, fmt.Errorf("yaml.Unmarshal: %w", err)
+		return Doc{}, fmt.Errorf("yaml.Unmarshal: %w", err)
 	}
 	return m, nil
 }
