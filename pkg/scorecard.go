@@ -100,6 +100,10 @@ func RunScorecards(ctx context.Context,
 			Name:      repo.URL(),
 			CommitSHA: commitSHA,
 		},
+		Scorecard: ScorecardInfo{
+			Version:   GetVersion(),
+			CommitSHA: GetCommit(),
+		},
 		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)

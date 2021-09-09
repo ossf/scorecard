@@ -1,4 +1,4 @@
-module idocs
+module internaldocs
 
 go 1.17
 

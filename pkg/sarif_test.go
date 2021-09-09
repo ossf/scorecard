@@ -43,7 +43,7 @@ func sarifMockDocRead() (*mockDoc, error) {
 			short:       "short description 2",
 			description: "long description\n other line 2",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
-			tags:        []string{" tag1 ", " tag2 "},
+			tags:        []string{" tag1 ", " tag2 ", "tag3"},
 			remediation: []string{"not-used1", "not-used2"},
 		},
 		"Check-Name3": {
@@ -52,7 +52,7 @@ func sarifMockDocRead() (*mockDoc, error) {
 			short:       "short description 3",
 			description: "long description\n other line 3",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
-			tags:        []string{" tag1", " tag2"},
+			tags:        []string{" tag1", " tag2", "tag3", "tag 4 "},
 			remediation: []string{"not-used1", "not-used2"},
 		},
 	}
@@ -82,6 +82,8 @@ func TestSARIFOutput(t *testing.T) {
 		panic(fmt.Errorf("time.Parse: %w", e))
 	}
 
+	// Note: our implementation of the interface
+	// never throws an error for unit testing.
 	checkDocs, _ := sarifMockDocRead()
 
 	tests := []struct {

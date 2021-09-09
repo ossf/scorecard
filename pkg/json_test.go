@@ -78,6 +78,8 @@ func TestJSONOutput(t *testing.T) {
 		panic(fmt.Errorf("time.Parse: %w", e))
 	}
 
+	// Note: our implementation of the interface
+	// never throws an error for unit testing.
 	checkDocs, _ := jsonMockDocRead()
 
 	tests := []struct {

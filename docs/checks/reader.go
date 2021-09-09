@@ -20,42 +20,43 @@ import (
 	"fmt"
 	"strings"
 
-	"internal/idocs"
+	"internal/internaldocs"
 
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 var errCheckNotExist = errors.New("check does not exist")
 
-const docURL = "https://github.com/ossf/scorecard/blob/main/docs/checks.md"
+const docURL = "https://github.com/ossf/scorecard/blob/%s/docs/checks.md"
 
-// DocInterface defines the documentation interface.
-type DocInterface interface {
-	GetCheck(name string) (CheckDocInterface, error)
-	GetChecks() []CheckDocInterface
+// Doc defines the documentation interface.
+type Doc interface {
+	GetCheck(name string) (CheckDoc, error)
+	GetChecks() []CheckDoc
 	CheckExists(name string) bool
 }
 
-// Doc contains checks' documentation.
-type Doc struct {
-	idoc *idocs.InternalDoc
+// DocImpl implements `Doc` interface and
+// contains checks' documentation.
+type DocImpl struct {
+	internaldoc *internaldocs.InternalDoc
 }
 
 // Read loads the checks' documentation.
-func Read() (DocInterface, error) {
-	m, e := idocs.ReadDoc()
+func Read() (Doc, error) {
+	m, e := internaldocs.ReadDoc()
 	if e != nil {
-		d := Doc{}
-		return &d, fmt.Errorf("idocs.ReadDoc: %w", e)
+		d := DocImpl{}
+		return &d, fmt.Errorf("internaldocs.ReadDoc: %w", e)
 	}
 
-	d := Doc{idoc: &m}
+	d := DocImpl{internaldoc: &m}
 	return &d, nil
 }
 
 // GetCheck returns the information for check `name`.
-func (d *Doc) GetCheck(name string) (CheckDocInterface, error) {
-	ic, exists := d.idoc.InternalChecks[name]
+func (d *DocImpl) GetCheck(name string) (CheckDoc, error) {
+	ic, exists := d.internaldoc.InternalChecks[name]
 	if !exists {
 		//nolint: wrapcheck
 		return nil, sce.CreateInternal(errCheckNotExist, "")
@@ -63,13 +64,13 @@ func (d *Doc) GetCheck(name string) (CheckDocInterface, error) {
 	// Set the name and URL.
 	ic.Name = name
 	ic.URL = fmt.Sprintf("%s#%s", docURL, strings.ToLower(name))
-	return &Check{icheck: ic}, nil
+	return &CheckDocImpl{internalCheck: ic}, nil
 }
 
 // GetChecks returns the information for check `name`.
-func (d *Doc) GetChecks() []CheckDocInterface {
-	var checks []CheckDocInterface
-	for k := range d.idoc.InternalChecks {
+func (d *DocImpl) GetChecks() []CheckDoc {
+	var checks []CheckDoc
+	for k := range d.internaldoc.InternalChecks {
 		//nolint: errcheck
 		check, _ := d.GetCheck(k)
 		checks = append(checks, check)
@@ -79,7 +80,7 @@ func (d *Doc) GetChecks() []CheckDocInterface {
 }
 
 // CheckExists returns whether the check `name` exists or not.
-func (d Doc) CheckExists(name string) bool {
-	_, exists := d.idoc.InternalChecks[name]
+func (d DocImpl) CheckExists(name string) bool {
+	_, exists := d.internaldoc.InternalChecks[name]
 	return exists
 }

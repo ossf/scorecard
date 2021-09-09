@@ -14,7 +14,11 @@
 
 package pkg
 
-import docs "github.com/ossf/scorecard/v2/docs/checks"
+import (
+	"strings"
+
+	docs "github.com/ossf/scorecard/v2/docs/checks"
+)
 
 type mockCheck struct {
 	name, risk, short, description, url string
@@ -42,10 +46,14 @@ func (c *mockCheck) GetRemediation() []string {
 }
 
 func (c *mockCheck) GetTags() []string {
-	return c.tags
+	l := make([]string, len(c.tags))
+	for i := range c.tags {
+		l[i] = strings.TrimSpace(c.tags[i])
+	}
+	return l
 }
 
-func (c *mockCheck) GetDocumentationURL() string {
+func (c *mockCheck) GetDocumentationURL(commitish string) string {
 	return c.url
 }
 
@@ -53,12 +61,12 @@ type mockDoc struct {
 	checks map[string]mockCheck
 }
 
-func (d *mockDoc) GetCheck(name string) (docs.CheckDocInterface, error) {
+func (d *mockDoc) GetCheck(name string) (docs.CheckDoc, error) {
 	m, _ := d.checks[name]
 	return &m, nil
 }
 
-func (d *mockDoc) GetChecks() []docs.CheckDocInterface {
+func (d *mockDoc) GetChecks() []docs.CheckDoc {
 	return nil
 }
 

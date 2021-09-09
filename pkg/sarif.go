@@ -29,6 +29,7 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	docs "github.com/ossf/scorecard/v2/docs/checks"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 type text struct {
@@ -390,7 +391,7 @@ func createSARIFResult(pos int, checkID, reason string, minScore, score int,
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
-	writer io.Writer, checkDocs docs.DocInterface, minScore int) error {
+	writer io.Writer, checkDocs docs.Doc, minScore int) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
 	// We only support GitHub-supported properties:
@@ -405,7 +406,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	for i, check := range r.Checks {
 		doc, e := checkDocs.GetCheck(check.Name)
 		if e != nil {
-			panic(fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
+			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
 		}
 
 		// Unclear what to use for PartialFingerprints.
@@ -429,7 +430,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// Create a header's rule.
 		// TODO: verify `\n` is viewable in GitHub.
 		rule := createSARIFRule(check.Name, checkID,
-			doc.GetDocumentationURL(),
+			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
 			doc.GetDescription(), doc.GetShort(),
 			doc.GetTags())
 		rules = append(rules, rule)
@@ -452,7 +453,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "   ")
 	if err := encoder.Encode(sarif); err != nil {
-		panic(err.Error())
+		return sce.Create(sce.ErrScorecardInternal, err.Error())
 	}
 
 	return nil

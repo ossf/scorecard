@@ -110,7 +110,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, checkDocs docs.DocInterface, writer io.Writer) error {
+func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
 	out := jsonScorecardResultV2{
@@ -130,13 +130,13 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, chec
 	for _, checkResult := range r.Checks {
 		doc, e := checkDocs.GetCheck(checkResult.Name)
 		if e != nil {
-			panic(fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
+			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
 		}
 
 		tmpResult := jsonCheckResultV2{
 			Name: checkResult.Name,
 			Doc: jsonCheckDocumentationV2{
-				URL:   doc.GetDocumentationURL(),
+				URL:   doc.GetDocumentationURL(r.Scorecard.CommitSHA),
 				Short: doc.GetShort(),
 			},
 			Reason: checkResult.Reason,

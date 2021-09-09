@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package idocs contains internal functions for reading input YAML file.
-package idocs
+// Package internaldocs contains internal functions for reading input YAML file.
+package internaldocs
 
 import (
 

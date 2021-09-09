@@ -14,6 +14,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"sort"
 
@@ -21,6 +22,11 @@ import (
 )
 
 func main() {
+	if len(os.Args) != 2 {
+		panic(fmt.Errorf("Usage: %s filename", os.Args[0]))
+	}
+	yamlFile := os.Args[1]
+
 	m, err := docs.Read()
 	if err != nil {
 		panic(err)
@@ -32,7 +38,7 @@ func main() {
 	}
 	sort.Strings(keys)
 
-	f, err := os.Create("docs/checks/checks.md")
+	f, err := os.Create(yamlFile)
 	if err != nil {
 		panic(err)
 	}
