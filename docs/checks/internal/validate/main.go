@@ -31,8 +31,7 @@ func main() {
 	for check := range allChecks {
 		c, e := m.GetCheck(check)
 		if e != nil {
-			// nolint: goerr113
-			panic(fmt.Errorf("GetCheck: %v: %s", e, check))
+			panic(fmt.Errorf("GetCheck: %w: %s", e, check))
 		}
 
 		if c.GetDescription() == "" {

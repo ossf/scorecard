@@ -27,7 +27,8 @@ import (
 //go:embed checks.yaml
 var checksYAML []byte
 
-// InternalCheck stores a check's information.
+// nolint:govet
+// Check stores a check's information.
 type Check struct {
 	Risk        string   `yaml:"-"`
 	Short       string   `yaml:"short"`

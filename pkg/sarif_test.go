@@ -26,7 +26,7 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 )
 
-func sarifMockDocRead() (*mockDoc, error) {
+func sarifMockDocRead() *mockDoc {
 	d := map[string]mockCheck{
 		"Check-Name": {
 			name:        "Check-Name",
@@ -58,7 +58,7 @@ func sarifMockDocRead() (*mockDoc, error) {
 	}
 
 	m := mockDoc{checks: d}
-	return &m, nil
+	return &m
 }
 
 //nolint
@@ -82,9 +82,7 @@ func TestSARIFOutput(t *testing.T) {
 		panic(fmt.Errorf("time.Parse: %w", e))
 	}
 
-	// Note: our implementation of the interface
-	// never throws an error for unit testing.
-	checkDocs, _ := sarifMockDocRead()
+	checkDocs := sarifMockDocRead()
 
 	tests := []struct {
 		name        string

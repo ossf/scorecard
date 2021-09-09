@@ -30,7 +30,7 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 )
 
-func jsonMockDocRead() (*mockDoc, error) {
+func jsonMockDocRead() *mockDoc {
 	d := map[string]mockCheck{
 		"Check-Name": {
 			name:        "Check-Name",
@@ -62,7 +62,7 @@ func jsonMockDocRead() (*mockDoc, error) {
 	}
 
 	m := mockDoc{checks: d}
-	return &m, nil
+	return &m
 }
 
 //nolint
@@ -78,9 +78,7 @@ func TestJSONOutput(t *testing.T) {
 		panic(fmt.Errorf("time.Parse: %w", e))
 	}
 
-	// Note: our implementation of the interface
-	// never throws an error for unit testing.
-	checkDocs, _ := jsonMockDocRead()
+	checkDocs := jsonMockDocRead()
 
 	tests := []struct {
 		name        string

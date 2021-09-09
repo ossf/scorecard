@@ -453,6 +453,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "   ")
 	if err := encoder.Encode(sarif); err != nil {
+		// nolint: wrapcheck
 		return sce.Create(sce.ErrScorecardInternal, err.Error())
 	}
 
