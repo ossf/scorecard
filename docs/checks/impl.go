@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v2/docs/checks/internal"
-
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 

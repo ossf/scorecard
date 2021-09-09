@@ -110,7 +110,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
+func (r *ScorecardResult) AsJSON2(showDetails bool,
+	logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
 	out := jsonScorecardResultV2{
