@@ -19,6 +19,18 @@ on:
     tags:
       - "*" # triggers only if push new tag version, like `0.8.4` or else
 
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: write
+  issues: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
