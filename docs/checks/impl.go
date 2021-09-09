@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package checks contains util fns for reading input YAML file.
+// Package checks contains documentation about checks.
 package checks
 
 import (
@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"internal/internaldocs"
+	"github.com/ossf/scorecard/v2/docs/checks/internal"
 
 	sce "github.com/ossf/scorecard/v2/errors"
 )
@@ -29,28 +29,21 @@ var errCheckNotExist = errors.New("check does not exist")
 
 const docURL = "https://github.com/ossf/scorecard/blob/%s/docs/checks.md"
 
-// Doc defines the documentation interface.
-type Doc interface {
-	GetCheck(name string) (CheckDoc, error)
-	GetChecks() []CheckDoc
-	CheckExists(name string) bool
-}
-
 // DocImpl implements `Doc` interface and
 // contains checks' documentation.
 type DocImpl struct {
-	internaldoc *internaldocs.InternalDoc
+	internaldoc internal.InternalDoc
 }
 
 // Read loads the checks' documentation.
 func Read() (Doc, error) {
-	m, e := internaldocs.ReadDoc()
+	m, e := internal.ReadDoc()
 	if e != nil {
 		d := DocImpl{}
-		return &d, fmt.Errorf("internaldocs.ReadDoc: %w", e)
+		return &d, fmt.Errorf("internal.ReadDoc: %w", e)
 	}
 
-	d := DocImpl{internaldoc: &m}
+	d := DocImpl{internaldoc: m}
 	return &d, nil
 }
 
@@ -83,4 +76,53 @@ func (d *DocImpl) GetChecks() []CheckDoc {
 func (d DocImpl) CheckExists(name string) bool {
 	_, exists := d.internaldoc.InternalChecks[name]
 	return exists
+}
+
+// CheckDocImpl implementts `CheckDoc` interface and
+// stores documentation about a check.
+type CheckDocImpl struct {
+	internalCheck internal.InternalCheck
+}
+
+// GetName returns the name of the check.
+func (c *CheckDocImpl) GetName() string {
+	return c.internalCheck.Name
+}
+
+// GetRisk returns the risk of the check.
+func (c *CheckDocImpl) GetRisk() string {
+	return c.internalCheck.Risk
+}
+
+// GetShort returns the short description of the check.
+func (c *CheckDocImpl) GetShort() string {
+	return c.internalCheck.Short
+}
+
+// GetDescription returns the full description of the check.
+func (c *CheckDocImpl) GetDescription() string {
+	return c.internalCheck.Description
+}
+
+// GetRemediation returns the remediation of the check.
+func (c *CheckDocImpl) GetRemediation() []string {
+	return c.internalCheck.Remediation
+}
+
+// GetTags returns the list of tags or the check.
+func (c *CheckDocImpl) GetTags() []string {
+	l := strings.Split(c.internalCheck.Tags, ",")
+	for i := range l {
+		l[i] = strings.TrimSpace(l[i])
+	}
+	return l
+}
+
+// GetDocumentationURL returns the URL for the documentation of check `name`.
+func (c *CheckDocImpl) GetDocumentationURL(commitish string) string {
+	com := commitish
+	if com == "" || com == "" {
+		com = "main"
+	}
+	return fmt.Sprintf(c.internalCheck.URL, com)
 }
