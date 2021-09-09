@@ -121,7 +121,7 @@ func (c *CheckDocImpl) GetTags() []string {
 // GetDocumentationURL returns the URL for the documentation of check `name`.
 func (c *CheckDocImpl) GetDocumentationURL(commitish string) string {
 	com := commitish
-	if com == "" || com == "" {
+	if com == "" || com == "unknown" {
 		com = "main"
 	}
 	return fmt.Sprintf(c.internalCheck.URL, com)
