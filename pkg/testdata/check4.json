@@ -1,7 +1,7 @@
 {
    "date": "2021-08-25",
    "repo": {
-      "name": "repo not used",
+      "name": "org/name",
       "commit": "68bc59901773ab4c051dfcea0cc4201a1567ab32"
    },
    "scorecard": {
@@ -15,7 +15,11 @@
          ],
          "score": 0,
          "reason": "min result reason",
-         "name": "Check-Name"
+         "name": "Check-Name",
+         "documentation": {
+            "url": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
+            "short": "short description for Check-Name"
+         }
       },
       {
          "details": [
@@ -23,7 +27,11 @@
          ],
          "score": 0,
          "reason": "min result reason",
-         "name": "Check-Name2"
+         "name": "Check-Name2",
+         "documentation": {
+            "url": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
+            "short": "short description for Check-Name2"
+         }
       },
       {
          "details": [
@@ -33,7 +41,11 @@
          ],
          "score": -1,
          "reason": "inconclusive reason",
-         "name": "Check-Name3"
+         "name": "Check-Name3",
+         "documentation": {
+            "url": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
+            "short": "short description for Check-Name3"
+         }
       }
    ],
    "metadata": []

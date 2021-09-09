@@ -14,7 +14,9 @@
 
 package pkg
 
-import "runtime"
+import (
+	"runtime"
+)
 
 // Base version information.
 //
