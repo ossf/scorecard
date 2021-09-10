@@ -39,7 +39,7 @@ type response struct {
 
 // CIIBestPractices runs CII-Best-Practices check.
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
-	repoURL := fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
+	repoURL := fmt.Sprintf("https://%s", c.Repo.URL())
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURL)
 	req, err := http.NewRequestWithContext(c.Ctx, "GET", url, nil)
 	if err != nil {

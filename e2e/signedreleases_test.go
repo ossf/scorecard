@@ -30,14 +30,15 @@ var _ = Describe("E2E TEST:"+checks.CheckSignedReleases, func() {
 	Context("E2E TEST:Validating signed releases", func() {
 		It("Should return valid signed releases", func() {
 			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-signed-releases-e2e")
+			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err := repoClient.InitRepo("ossf-tests", "scorecard-check-signed-releases-e2e")
+			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
-				Owner:      "ossf-tests",
-				Repo:       "scorecard-check-signed-releases-e2e",
+				Repo:       repo,
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{

@@ -29,15 +29,16 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 	Context("E2E TEST:Validating security policy", func() {
 		It("Should return valid security policy", func() {
 			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
+			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err := repoClient.InitRepo("tensorflow", "tensorflow")
+			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
-				Owner:      "tensorflow",
-				Repo:       "tensorflow",
+				Repo:       repo,
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
@@ -57,15 +58,16 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 		})
 		It("Should return valid security policy for rust repositories", func() {
 			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("randombit/botan")
+			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err := repoClient.InitRepo("randombit", "botan")
+			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
-				Owner:      "randombit",
-				Repo:       "botan",
+				Repo:       repo,
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
