@@ -103,8 +103,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 		out.Checks = append(out.Checks, tmpResult)
 	}
 	if err := encoder.Encode(out); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 	return nil
 }
@@ -131,7 +130,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 	for _, checkResult := range r.Checks {
 		doc, e := checkDocs.GetCheck(checkResult.Name)
 		if e != nil {
-			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
 		}
 
 		tmpResult := jsonCheckResultV2{
@@ -156,8 +155,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 		out.Checks = append(out.Checks, tmpResult)
 	}
 	if err := encoder.Encode(out); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 
 	return nil

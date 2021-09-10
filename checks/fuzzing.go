@@ -52,7 +52,7 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 		errOssFuzzRepo = ossFuzzRepo.InitRepo("google", "oss-fuzz")
 	})
 	if errOssFuzzRepo != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("InitRepo: %v", errOssFuzzRepo))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("InitRepo: %v", errOssFuzzRepo))
 		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
 	}
 
@@ -62,7 +62,7 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	}
 	result, err := ossFuzzRepo.Search(req)
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
 	}
 

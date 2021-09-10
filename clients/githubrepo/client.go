@@ -53,8 +53,7 @@ func (client *Client) InitRepo(owner, repoName string) error {
 	// Sanity check.
 	repo, _, err := client.repoClient.Repositories.Get(client.ctx, owner, repoName)
 	if err != nil {
-		// nolint: wrapcheck
-		return sce.Create(sce.ErrRepoUnreachable, err.Error())
+		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}
 	client.repo = repo
 	client.owner = repo.Owner.GetLogin()

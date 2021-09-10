@@ -69,13 +69,11 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer
 	}
 	fmt.Fprintf(writer, "%s\n", strings.Join(columns, ","))
 	if err := w.Write(record); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("csv.Write: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("csv.Write: %v", err))
 	}
 	w.Flush()
 	if err := w.Error(); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("csv.Flush: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("csv.Flush: %v", err))
 	}
 	return nil
 }

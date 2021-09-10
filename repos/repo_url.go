@@ -79,15 +79,13 @@ func (r *RepoURL) Set(s string) error {
 
 	u, e := url.Parse(t)
 	if e != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
 	}
 
 	const splitLen = 2
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
-		//nolint:wrapcheck
-		return sce.Create(ErrorInvalidURL, fmt.Sprintf("%v. Exepted full repository url", s))
+		return sce.WithMessage(ErrorInvalidURL, fmt.Sprintf("%v. Exepted full repository url", s))
 	}
 
 	r.Host, r.Owner, r.Repo = u.Host, split[0], split[1]
@@ -99,13 +97,11 @@ func (r *RepoURL) ValidGitHubURL() error {
 	switch r.Host {
 	case "github.com":
 	default:
-		//nolint:wrapcheck
-		return sce.Create(ErrorUnsupportedHost, r.Host)
+		return sce.WithMessage(ErrorUnsupportedHost, r.Host)
 	}
 
 	if strings.TrimSpace(r.Owner) == "" || strings.TrimSpace(r.Repo) == "" {
-		//nolint:wrapcheck
-		return sce.Create(ErrorInvalidGithubURL,
+		return sce.WithMessage(ErrorInvalidGithubURL,
 			fmt.Sprintf("%v. Expected the full reposiroty url", r.URL()))
 	}
 	return nil

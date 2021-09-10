@@ -25,9 +25,9 @@ var (
 	ErrRepoUnreachable   = errors.New("repo unreachable")
 )
 
-// Create a public error using any of the errors
-// listed above. For examples, see errors/errors.md.
-func Create(e error, msg string) error {
+// WithMessage wraps any of the errors listed above.
+// For examples, see errors/errors.md.
+func WithMessage(e error, msg string) error {
 	// Note: Errorf automatically wraps the error when used with `%w`.
 	if len(msg) > 0 {
 		return fmt.Errorf("%w: %v", e, msg)

@@ -71,14 +71,13 @@ func RunScorecards(ctx context.Context,
 	repoClient clients.RepoClient) (ScorecardResult, error) {
 	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repo.URL()))
 	if err != nil {
-		//nolint:wrapcheck
-		return ScorecardResult{}, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
+		return ScorecardResult{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 	}
 	defer logStats(ctx, time.Now())
 
 	if err := repoClient.InitRepo(repo.Owner, repo.Repo); err != nil {
-		// No need to call sce.Create() since InitRepo will do that for us.
-		//nolint:wrapcheck
+		// No need to call sce.WithMessage() since InitRepo will do that for us.
+		// nolint: wrapcheck
 		return ScorecardResult{}, err
 	}
 	defer repoClient.Close()

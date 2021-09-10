@@ -115,6 +115,7 @@ func getIntConfigValue(envVar string, byteValue []byte, fieldName, configName st
 	if err != nil {
 		return 0, fmt.Errorf("error getting config value %s: %w", configName, err)
 	}
+
 	// nolint: exhaustive
 	switch value.Kind() {
 	case reflect.String:

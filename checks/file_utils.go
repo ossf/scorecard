@@ -35,15 +35,13 @@ func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 	filename := path.Base(fullpath)
 	match, err := path.Match(pattern, fullpath)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalFilenameMatch, err))
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalFilenameMatch, err))
 	}
 
 	// No match on the fullpath, let's try on the filename only.
 	if !match {
 		if match, err = path.Match(pattern, filename); err != nil {
-			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalFilenameMatch, err))
+			return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalFilenameMatch, err))
 		}
 	}
 
