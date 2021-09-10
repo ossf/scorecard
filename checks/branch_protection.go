@@ -90,7 +90,7 @@ func checkReleaseAndDevBranchProtection(
 	for _, release := range releases {
 		if release.TargetCommitish == "" {
 			// Log with a named error if target_commitish is nil.
-			e := sce.Create(sce.ErrScorecardInternal, errInternalCommitishNil.Error())
+			e := sce.WithMessage(sce.ErrScorecardInternal, errInternalCommitishNil.Error())
 			return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 		}
 

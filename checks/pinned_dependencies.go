@@ -89,8 +89,7 @@ func (s *stringOrSlice) UnmarshalYAML(value *yaml.Node) error {
 	var single string
 	err = value.Decode(&single)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringOrSlice Value: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringOrSlice Value: %v", err))
 	}
 	*s = []string{single}
 	return nil
@@ -112,8 +111,7 @@ type worklowPinningResult struct {
 func (ws *stringWithLine) UnmarshalYAML(value *yaml.Node) error {
 	err := value.Decode(&ws.Value)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringWithLine Value: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringWithLine Value: %v", err))
 	}
 	ws.Line = value.Line
 
@@ -356,8 +354,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	contentReader := strings.NewReader(string(content))
 	res, err := parser.Parse(contentReader)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
 	var bytes []byte
@@ -376,8 +373,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		}
 
 		if len(valueList) == 0 {
-			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
+			return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
 		}
 
 		// Build a file content.
@@ -441,8 +437,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	pinnedAsNames := make(map[string]bool)
 	res, err := parser.Parse(contentReader)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
 	for _, child := range res.AST.Children {
@@ -489,8 +484,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 		default:
 			// That should not happen.
-			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
+			return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
 		}
 	}
 
@@ -541,8 +535,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal,
+		return false, sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
 	}
 
@@ -642,8 +635,7 @@ func isStepWindows(step *gitHubActionWorkflowStep) (bool, error) {
 	for _, windowsRegex := range windowsRegexes {
 		matches, err := regexp.MatchString(windowsRegex, step.If)
 		if err != nil {
-			//nolint:wrapcheck
-			return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error matching Windows regex: %v", err))
+			return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error matching Windows regex: %v", err))
 		}
 		if matches {
 			return true, nil
@@ -689,8 +681,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal,
+		return false, sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
 	}
 

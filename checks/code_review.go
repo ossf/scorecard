@@ -93,7 +93,7 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 	totalReviewed := 0
 	prs, err := c.RepoClient.ListMergedPRs()
 	if err != nil {
-		return 0, "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+		return 0, "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
 	}
 	for _, pr := range prs {
 		if pr.MergedAt.IsZero() {
@@ -136,7 +136,7 @@ func isPrReviewRequired(c *checker.CheckRequest) (int, string) {
 	// Check the branch protection rules, we may not be able to get these though.
 	branch, err := c.RepoClient.GetDefaultBranch()
 	if err != nil {
-		sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetDefaultBranch: %v", err))
+		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetDefaultBranch: %v", err))
 	}
 	if branch.GetBranchProtectionRule() == nil ||
 		branch.GetBranchProtectionRule().GetRequiredPullRequestReviews() == nil ||
@@ -156,7 +156,7 @@ func prowCodeReview(c *checker.CheckRequest) (int, string, error) {
 	totalReviewed := 0
 	prs, err := c.RepoClient.ListMergedPRs()
 	if err != nil {
-		sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
 	}
 	for _, pr := range prs {
 		if pr.MergedAt.IsZero() {
@@ -178,9 +178,8 @@ func prowCodeReview(c *checker.CheckRequest) (int, string, error) {
 func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		// nolint: wrapcheck
 		return checker.InconclusiveResultScore, "",
-			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
 	}
 
 	total := 0
