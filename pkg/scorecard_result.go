@@ -53,7 +53,8 @@ type ScorecardResult struct {
 }
 
 // AsCSV outputs ScorecardResult in CSV format.
-func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
+func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
+	checkDocs docs.Doc, writer io.Writer) error {
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo.Name}
 	columns := []string{"Repository"}
@@ -80,7 +81,8 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, checkD
 }
 
 // AsString returns ScorecardResult in string format.
-func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
+func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level,
+	checkDocs docs.Doc, writer io.Writer) error {
 	data := make([][]string, len(r.Checks))
 	//nolint
 	for i, row := range r.Checks {
