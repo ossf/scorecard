@@ -43,8 +43,7 @@ type rateLimitTransport struct {
 func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	resp, err := gh.innerTransport.RoundTrip(r)
 	if err != nil {
-		//nolint:wrapcheck
-		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
 	}
 	rateLimit := resp.Header.Get("X-RateLimit-Remaining")
 	remaining, err := strconv.Atoi(rateLimit)

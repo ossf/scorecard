@@ -52,7 +52,7 @@ func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 
 	tz, err := time.LoadLocation("UTC")
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("time.LoadLocation: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("time.LoadLocation: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
 	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookBackDays)

@@ -43,8 +43,7 @@ func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]
 			Status: "success",
 		})
 	if err != nil {
-		// nolint: wrapcheck
-		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("ListWorkflowRunsByFileName: %v", err))
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListWorkflowRunsByFileName: %v", err))
 	}
 	return workflowsRunsFrom(workflowRuns), nil
 }

@@ -39,29 +39,29 @@ type response struct {
 
 // CIIBestPractices runs CII-Best-Practices check.
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
-	repoURL := fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
+	repoURL := fmt.Sprintf("https://%s", c.Repo.URL())
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURL)
 	req, err := http.NewRequestWithContext(c.Ctx, "GET", url, nil)
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("HTTPClient.Do: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("HTTPClient.Do: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 	defer resp.Body.Close()
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("ioutil.ReadAll: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ioutil.ReadAll: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 
 	parsedResponse := []response{}
 	if err := json.Unmarshal(b, &parsedResponse); err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("json.Unmarshal: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("json.Unmarshal: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 
@@ -79,7 +79,7 @@ func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 		const inProgressScore = 2
 		switch {
 		default:
-			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("unsupported badge: %v", result.BadgeLevel))
+			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported badge: %v", result.BadgeLevel))
 			return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 		case strings.Contains(result.BadgeLevel, "in_progress"):
 			return checker.CreateResultWithScore(CheckCIIBestPractices, "badge detected: in_progress", inProgressScore)

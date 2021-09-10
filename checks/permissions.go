@@ -57,8 +57,7 @@ func validatePermission(key string, value interface{}, path string,
 	ignoredPermissions map[string]bool) error {
 	val, ok := value.(string)
 	if !ok {
-		//nolint
-		return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
 
 	if strings.EqualFold(val, "write") {
@@ -105,8 +104,7 @@ func validateMapPermissions(values map[interface{}]interface{}, path string,
 	for k, v := range values {
 		key, ok := k.(string)
 		if !ok {
-			//nolint
-			return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 		}
 
 		if err := validatePermission(key, v, path, dl, pPermissions, ignoredPermissions); err != nil {
@@ -174,8 +172,7 @@ func validatePermissions(permissions interface{}, path string,
 
 	// Invalid type.
 	default:
-		//nolint
-		return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
 	return nil
 }
@@ -211,15 +208,13 @@ func validateRunLevelPermissions(config map[interface{}]interface{}, path string
 
 	mjobs, ok := jobs.(map[interface{}]interface{})
 	if !ok {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
 
 	for _, value := range mjobs {
 		job, ok := value.(map[interface{}]interface{})
 		if !ok {
-			//nolint:wrapcheck
-			return sce.Create(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 		}
 		// Run-level permissions may be left undefined.
 		// For most workflows, no write permissions are needed,
@@ -379,9 +374,8 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	var workflow map[interface{}]interface{}
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		//nolint
 		return false,
-			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
 	}
 
 	// 1. Top-level permission definitions.

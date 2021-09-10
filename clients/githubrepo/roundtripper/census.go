@@ -46,21 +46,18 @@ type censusTransport struct {
 func (ct *censusTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	ctx, err := tag.New(r.Context(), tag.Upsert(stats.RequestTag, "requested"))
 	if err != nil {
-		//nolint:wrapcheck
-		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 	}
 
 	r = r.WithContext(ctx)
 	resp, err := ct.innerTransport.RoundTrip(r)
 	if err != nil {
-		//nolint:wrapcheck
-		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
 	}
 	if resp.Header.Get(fromCacheHeader) != "" {
 		ctx, err = tag.New(ctx, tag.Upsert(stats.RequestTag, fromCacheHeader))
 		if err != nil {
-			//nolint:wrapcheck
-			return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 		}
 	}
 	opencensusstats.Record(ctx, stats.HTTPRequests.M(1))
