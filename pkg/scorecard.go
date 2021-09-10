@@ -26,6 +26,7 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/repos"
 	"github.com/ossf/scorecard/v2/stats"
@@ -37,13 +38,12 @@ func logStats(ctx context.Context, startTime time.Time) {
 }
 
 func runEnabledChecks(ctx context.Context,
-	repo repos.RepoURL, checksToRun checker.CheckNameToFnMap, repoClient clients.RepoClient,
+	repo clients.Repo, checksToRun checker.CheckNameToFnMap, repoClient clients.RepoClient,
 	resultsCh chan checker.CheckResult) {
 	request := checker.CheckRequest{
 		Ctx:        ctx,
 		RepoClient: repoClient,
-		Owner:      repo.Owner,
-		Repo:       repo.Repo,
+		Repo:       repo,
 	}
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
@@ -66,18 +66,22 @@ func runEnabledChecks(ctx context.Context,
 
 // RunScorecards runs enabled Scorecard checks on a RepoURL.
 func RunScorecards(ctx context.Context,
-	repo repos.RepoURL,
+	repoURL repos.RepoURL,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient) (ScorecardResult, error) {
-	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repo.URL()))
+	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repoURL.URL()))
 	if err != nil {
 		return ScorecardResult{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 	}
 	defer logStats(ctx, time.Now())
 
-	if err := repoClient.InitRepo(repo.Owner, repo.Repo); err != nil {
+	repo, err := githubrepo.MakeGithubRepo(repoURL.URL())
+	if err != nil {
+		return ScorecardResult{}, sce.WithMessage(err, "")
+	}
+	if err := repoClient.InitRepo(repo); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
-		// nolint: wrapcheck
+		//nolint:wrapcheck
 		return ScorecardResult{}, err
 	}
 	defer repoClient.Close()

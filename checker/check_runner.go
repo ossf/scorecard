@@ -31,9 +31,9 @@ const checkRetries = 3
 
 // Runner runs a check with retries.
 type Runner struct {
+	CheckRequest CheckRequest
 	CheckName    string
 	Repo         string
-	CheckRequest CheckRequest
 }
 
 // CheckFn defined for convenience.
