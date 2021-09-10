@@ -58,7 +58,6 @@ type physicalLocation struct {
 	ArtifactLocation artifactLocation `json:"artifactLocation"`
 }
 
-//TODO: remove linter and update unit tests.
 //nolint:govet
 type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`

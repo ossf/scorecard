@@ -101,7 +101,7 @@ func RunScorecards(ctx context.Context,
 			CommitSHA: commitSHA,
 		},
 		Scorecard: ScorecardInfo{
-			Version:   GetVersion(),
+			Version:   GetSemanticVersion(),
 			CommitSHA: GetCommit(),
 		},
 		Date: time.Now(),
