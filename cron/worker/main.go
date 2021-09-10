@@ -38,6 +38,7 @@ import (
 	githubstats "github.com/ossf/scorecard/v2/clients/githubrepo/stats"
 	"github.com/ossf/scorecard/v2/cron/config"
 	"github.com/ossf/scorecard/v2/cron/data"
+	format "github.com/ossf/scorecard/v2/cron/format"
 	"github.com/ossf/scorecard/v2/cron/monitoring"
 	"github.com/ossf/scorecard/v2/cron/pubsub"
 	docs "github.com/ossf/scorecard/v2/docs/checks"
@@ -110,11 +111,11 @@ func processRequest(ctx context.Context,
 			log.Print(errorMsg)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime()
-		if err := AsJSON(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
+		if err := format.AsJSON(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
 
-		if err := AsJSON2(&result, true /*showDetails*/, zapcore.InfoLevel, checkDocs, &buffer2); err != nil {
+		if err := format.AsJSON2(&result, true /*showDetails*/, zapcore.InfoLevel, checkDocs, &buffer2); err != nil {
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
 	}
