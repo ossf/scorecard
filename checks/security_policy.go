@@ -72,19 +72,21 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 
 	// checking for community default within the .github folder
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file
-	dotGitHub := c
-	dotGitHub.Repo = ".github"
 	logger, err := githubrepo.NewLogger(zap.InfoLevel)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
-	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
-	err = dotGitHubClient.InitRepo(c.Owner, c.Repo)
+	dotGitHub := &checker.CheckRequest{
+		Ctx:        c.Ctx,
+		Dlogger:    c.Dlogger,
+		RepoClient: githubrepo.CreateGithubRepoClient(c.Ctx, logger),
+		Repo:       c.Repo.Org(),
+	}
 
+	err = dotGitHub.RepoClient.InitRepo(dotGitHub.Repo)
 	switch {
 	case err == nil:
-		defer dotGitHubClient.Close()
-		dotGitHub.RepoClient = dotGitHubClient
+		defer dotGitHub.RepoClient.Close()
 		onFile = func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
 			pdata := FileGetCbDataAsBoolPointer(data)
 			if strings.EqualFold(name, "security.md") ||

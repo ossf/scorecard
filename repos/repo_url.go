@@ -33,7 +33,8 @@ var (
 	ErrorInvalidURL = errors.New("invalid repo flag")
 )
 
-//nolint:revive
+// nolint:revive
+// TODO: Remove RepoURL and replace all instances with clients.Repo interface.
 type RepoURL struct {
 	Host, Owner, Repo string
 	Metadata          []string

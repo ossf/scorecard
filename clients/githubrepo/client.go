@@ -17,6 +17,7 @@ package githubrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -29,6 +30,8 @@ import (
 	"github.com/ossf/scorecard/v2/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
+
+var errInputRepoType = errors.New("input repo should be of type repoURL")
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
@@ -49,9 +52,14 @@ type Client struct {
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
-func (client *Client) InitRepo(owner, repoName string) error {
+func (client *Client) InitRepo(inputRepo clients.Repo) error {
+	ghRepo, ok := inputRepo.(*repoURL)
+	if !ok {
+		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
+	}
+
 	// Sanity check.
-	repo, _, err := client.repoClient.Repositories.Get(client.ctx, owner, repoName)
+	repo, _, err := client.repoClient.Repositories.Get(client.ctx, ghRepo.owner, ghRepo.repo)
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}

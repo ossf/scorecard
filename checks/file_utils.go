@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
@@ -48,9 +49,9 @@ func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 	return match, nil
 }
 
-func isScorecardTestFile(owner, repo, fullpath string) bool {
+func isScorecardTestFile(repo clients.Repo, fullpath string) bool {
 	// testdata/ or /some/dir/testdata/some/other
-	return owner == "ossf" && repo == "scorecard" && (strings.HasPrefix(fullpath, "testdata/") ||
+	return repo.IsScorecardRepo() && (strings.HasPrefix(fullpath, "testdata/") ||
 		strings.Contains(fullpath, "/testdata/"))
 }
 
@@ -78,7 +79,7 @@ func CheckFilesContent(shellPathFnPattern string,
 ) error {
 	predicate := func(filepath string) (bool, error) {
 		// Filter out Scorecard's own test files.
-		if isScorecardTestFile(c.Owner, c.Repo, filepath) {
+		if isScorecardTestFile(c.Repo, filepath) {
 			return false, nil
 		}
 		// Filter out files based on path/names using the pattern.
