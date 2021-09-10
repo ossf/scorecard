@@ -107,7 +107,24 @@ The check currently looks for [GitHub packaging workflows]( https://docs.github.
 ## Pinned-Dependencies 
 
 This check tries to determine if the project has declared and pinned its dependencies.
-Pinning dependencies is important to mitigate compromised dependencies from undermining the security of the project. Low score is therefore considered `Medium` risk.
+A "pinned dependency" is a dependency that is explicitly set to a
+specific version instead of allowing a range of versions.
+Pinning dependencies is important to ensure that checking and deployment are
+all done with the same software, reducing deployment risks, simplifying
+debugging, and enabling reproducibility.
+In some cases pinning dependencies can help mitigate compromised dependencies
+from undermining the security of the project (in the case where
+you've evaluated the pinned dependency and are confident it's not compromised,
+and later version is released that is compromised).
+A risk of pinning dependencies is that it can inhibit software updates
+(e.g., because of a security vulnerability or because the pinned version
+is compromised);
+this can be mitigating by having applications and *not*
+libraries pin to specific versions,
+using automated tools to notify applications when their dependencies are
+outdated, and by applications that *do* pin dependencies update quickly.
+Low score is therefore considered `Medium` risk.
+
 The checks works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript), requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. 
 
 **Remediation steps**
