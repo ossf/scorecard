@@ -1,0 +1,11 @@
+version: 1
+policies:
+  Token-Permissions:
+      score: 3
+      mode: disabled
+  Branch-Protection:
+      score: 5
+      mode: enforced
+  Vulnerabilities:
+    score: 1
+    mode: logging

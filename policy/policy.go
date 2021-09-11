@@ -15,11 +15,24 @@
 package policy
 
 import (
+	"errors"
+	"fmt"
+
 	"gopkg.in/yaml.v3"
+
+	"github.com/ossf/scorecard/v2/checks"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
-const errInvalidVersion = errors.New("invalid version")
-modes = map[string]bool{"enforced": true, "disabled": true, "logging": true}
+var (
+	errInvalidVersion = errors.New("invalid version")
+	errInvalidCheck   = errors.New("invalid check name")
+	errInvalidScore   = errors.New("invalid score")
+	errInvalidMode    = errors.New("invalid mode")
+	errRepeatingCheck = errors.New("check has multiple definitions")
+)
+
+var modes = map[string]bool{"enforced": true, "disabled": true, "logging": true}
 
 // CheckPolicy defines the policy for a check.
 //nolint:govet
@@ -31,20 +44,44 @@ type CheckPolicy struct {
 // ScorecardPolicy defines a policy.
 //nolint:govet
 type ScorecardPolicy struct {
-	Version  string                 `json:"version"`
+	Version  int                    `json:"version"`
 	Policies map[string]CheckPolicy `json:"policies"`
 }
 
 func (sp *ScorecardPolicy) Read(b []byte) error {
 	err := yaml.Unmarshal(b, sp)
-	if err !=  nil {
-		return err
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
-	if version !=1 {
-		return sce.WithMessage()
+	if sp.Version != 1 {
+		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidVersion.Error())
 	}
 
-	for k, v := range policy.Policies {
-	modes
+	checksFound := make(map[string]bool)
+	for n, p := range sp.Policies {
+		// TODO: check appears in allChecks
+		_, exists := checks.AllChecks[n]
+		if !exists {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidCheck.Error(), n))
+		}
+
+		if p.Score < 0 || p.Score > 10 {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidScore.Error(), p.Score))
+		}
+
+		_, exists = modes[p.Mode]
+		if !exists {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidMode.Error(), p.Mode))
+		}
+
+		_, exists = checksFound[n]
+		if exists {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errRepeatingCheck.Error(), n))
+		}
+		checksFound[n] = true
+	}
+
+	// Fill missing checks with scoer=10 and mode=enforced.
+	return nil
 }
