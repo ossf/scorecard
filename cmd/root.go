@@ -36,6 +36,7 @@ import (
 	docs "github.com/ossf/scorecard/v2/docs/checks"
 	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
+	spol "github.com/ossf/scorecard/v2/policy"
 	"github.com/ossf/scorecard/v2/repos"
 )
 
@@ -50,6 +51,7 @@ var (
 	pypi        string
 	rubygems    string
 	showDetails bool
+	policyFile  string
 )
 
 const (
@@ -59,11 +61,17 @@ const (
 	formatDefault = "default"
 )
 
+const (
+	scorecardLong = "A program that shows security scorecard for an open source software."
+	scorecardUse  = `./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details]
+or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show-details]`
+	scorecardShort = "Security Scorecards"
+)
+
 var rootCmd = &cobra.Command{
-	Use: `./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details]
-or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show-details]`,
-	Short: "Security Scorecards",
-	Long:  "A program that shows security scorecard for an open source software.",
+	Use:   scorecardUse,
+	Short: scorecardShort,
+	Long:  scorecardLong,
 	Run: func(cmd *cobra.Command, args []string) {
 		// UPGRADEv3: remove.
 		var v3 bool
@@ -71,6 +79,24 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			fmt.Printf("**** Using SCORECARD_V3 code ***** \n\n")
 		}
 
+		var policy spol.ScorecardPolicy
+		if policyFile != "" {
+			data, err := os.ReadFile(policyFile)
+			if err != nil {
+				log.Fatal(err)
+			}
+			err = policy.Read(data)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Printf("version: %s\n", policy.Version)
+			for k, v := range policy.Policies {
+				fmt.Printf("%s:\n", k)
+				fmt.Printf("- score:%v\n- mode:%v\n\n", v.Score, v.Mode)
+
+			}
+		}
 		if npm != "" {
 			if git, err := fetchGitRepositoryFromNPM(npm); err != nil {
 				log.Fatal(err)
@@ -325,4 +351,5 @@ func init() {
 	}
 	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
+	rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
 }

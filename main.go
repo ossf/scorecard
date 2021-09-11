@@ -17,6 +17,7 @@ package main
 
 import "github.com/ossf/scorecard/v2/cmd"
 
+//nolint:typecheck
 func main() {
 	cmd.Execute()
 }
