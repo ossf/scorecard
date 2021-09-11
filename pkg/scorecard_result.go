@@ -103,7 +103,12 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level,
 			x[0] = fmt.Sprintf("%d / %d", row.Score, checker.MaxResultScore)
 		}
 
-		doc := fmt.Sprintf((row.Name))
+		cdoc, e := checkDocs.GetCheck(row.Name)
+		if e != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", row.Name, e))
+		}
+
+		doc := cdoc.GetDocumentationURL(r.Scorecard.CommitSHA)
 		x[1] = row.Name
 		x[2] = row.Reason
 		if showDetails {
