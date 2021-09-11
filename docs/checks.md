@@ -115,11 +115,11 @@ debugging, and enabling reproducibility.
 In some cases pinning dependencies can help mitigate compromised dependencies
 from undermining the security of the project (in the case where
 you've evaluated the pinned dependency and are confident it's not compromised,
-and later version is released that is compromised).
+and a later version is released that is compromised).
 A risk of pinning dependencies is that it can inhibit software updates
 (e.g., because of a security vulnerability or because the pinned version
 is compromised);
-this can be mitigating by having applications and *not*
+this can be mitigated by having applications and *not*
 libraries pin to specific versions,
 using automated tools to notify applications when their dependencies are
 outdated, and by applications that *do* pin dependencies update quickly.
