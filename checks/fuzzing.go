@@ -30,10 +30,11 @@ import (
 const CheckFuzzing = "Fuzzing"
 
 var (
-	ossFuzzRepo    clients.RepoClient
-	errOssFuzzRepo error
-	logger         *zap.Logger
-	once           sync.Once
+	ossFuzzRepo       clients.Repo
+	ossFuzzRepoClient clients.RepoClient
+	errOssFuzzRepo    error
+	logger            *zap.Logger
+	once              sync.Once
 )
 
 //nolint:gochecknoinits
@@ -48,8 +49,13 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 		if errOssFuzzRepo != nil {
 			return
 		}
-		ossFuzzRepo = githubrepo.CreateGithubRepoClient(c.Ctx, logger)
-		errOssFuzzRepo = ossFuzzRepo.InitRepo("google", "oss-fuzz")
+		ossFuzzRepo, errOssFuzzRepo = githubrepo.MakeGithubRepo("google/oss-fuzz")
+		if errOssFuzzRepo != nil {
+			return
+		}
+
+		ossFuzzRepoClient = githubrepo.CreateGithubRepoClient(c.Ctx, logger)
+		errOssFuzzRepo = ossFuzzRepoClient.InitRepo(ossFuzzRepo)
 	})
 	if errOssFuzzRepo != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("InitRepo: %v", errOssFuzzRepo))
@@ -60,7 +66,7 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 		Query:    c.RepoClient.URL(),
 		Filename: "project.yaml",
 	}
-	result, err := ossFuzzRepo.Search(req)
+	result, err := ossFuzzRepoClient.Search(req)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)

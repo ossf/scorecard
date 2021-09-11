@@ -30,14 +30,15 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 	Context("E2E TEST:Validating use of fuzzing tools", func() {
 		It("Should return use of fuzzing tools", func() {
 			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
+			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err := repoClient.InitRepo("tensorflow", "tensorflow")
+			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
-				Owner:      "tensorflow",
-				Repo:       "tensorflow",
+				Repo:       repo,
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{

@@ -23,6 +23,10 @@ import (
 var (
 	ErrScorecardInternal = errors.New("internal error")
 	ErrRepoUnreachable   = errors.New("repo unreachable")
+	// ErrorUnsupportedHost indicates the repo's host is unsupported.
+	ErrorUnsupportedHost = errors.New("unsupported host")
+	// ErrorInvalidURL indicates the repo's full URL was not passed.
+	ErrorInvalidURL = errors.New("invalid repo flag")
 )
 
 // WithMessage wraps any of the errors listed above.
