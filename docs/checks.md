@@ -106,10 +106,15 @@ The check currently looks for [GitHub packaging workflows]( https://docs.github.
 
 ## Pinned-Dependencies 
 
-This check tries to determine if the project has declared and pinned its dependencies.
+This check tries to determine if the project is an application that
+has declared and pinned its dependencies.
 A "pinned dependency" is a dependency that is explicitly set to a
 specific version instead of allowing a range of versions.
-Pinning dependencies is important to ensure that checking and deployment are
+If this project is a library (not an application), this check should
+automatically pass (but see limitations below).
+
+It's important for applications to pin dependencies
+to ensure that checking and deployment are
 all done with the same software, reducing deployment risks, simplifying
 debugging, and enabling reproducibility.
 In some cases pinning dependencies can help mitigate compromised dependencies
@@ -119,13 +124,23 @@ and a later version is released that is compromised).
 A risk of pinning dependencies is that it can inhibit software updates
 (e.g., because of a security vulnerability or because the pinned version
 is compromised);
-this can be mitigated by having applications and *not*
-libraries pin to specific versions,
+this can be mitigated by
+[having applications and *not* libraries pin to specific versions](https://jbeckwith.com/2019/12/18/package-lock/),
 using automated tools to notify applications when their dependencies are
 outdated, and by applications that *do* pin dependencies update quickly.
 Low score is therefore considered `Medium` risk.
 
 The checks works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript), requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. 
+
+Limitations:
+This check should only apply to applications, as
+libraries shouldn't normally have enforced pinned dependencies.
+Unfortunately, Scorecard currently can't detect if a project
+is a library or application.
+Even when
+[application detection is added](https://github.com/ossf/scorecard/issues/689),
+it's always possible for an automated tool like Scorecard to
+incorrectly categorize software (especially in projects that include both).
 
 You can learn more about dependencies for projects on GitHub using
 [GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph).
