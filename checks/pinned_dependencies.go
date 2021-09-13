@@ -285,7 +285,7 @@ func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) 
 func createReturnForIsShellScriptFreeOfInsecureDownloads(r pinnedResult,
 	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
-		"no insecure (unpinned) dependency downloads found in shell scripts",
+		"no insecure (not pinned by hash) dependency downloads found in shell scripts",
 		dl, err)
 }
 
@@ -325,7 +325,7 @@ func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 func createReturnForIsDockerfileFreeOfInsecureDownloads(r pinnedResult,
 	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
-		"no insecure (unpinned) dependency downloads found in Dockerfiles",
+		"no insecure (not pinned by hash) dependency downloads found in Dockerfiles",
 		dl, err)
 }
 
@@ -472,14 +472,14 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 			// Not pinned.
 			ret = false
-			dl.Warn("unpinned dependency detected in %v: '%v'", pathfn, name)
+			dl.Warn("dependency not pinned by hash %v: '%v'", pathfn, name)
 
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
 				ret = false
-				dl.Warn("unpinned dependency detected in %v: '%v'", pathfn, name)
+				dl.Warn("dependency not pinned by hash %v: '%v'", pathfn, name)
 			}
 
 		default:
@@ -506,7 +506,7 @@ func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int
 func createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r pinnedResult,
 	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
-		"no insecure (unpinned) dependency downloads found in GitHub workflows",
+		"no insecure (not pinned by hash) dependency downloads found in GitHub workflows",
 		dl, err)
 }
 
@@ -698,7 +698,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 				if !match {
 					dl.Warn3(&checker.LogMessage{
 						Path: pathfn, Type: checker.FileTypeSource, Offset: step.Uses.Line, Snippet: step.Uses.Value,
-						Text: fmt.Sprintf("unpinned dependency detected (job '%v')", jobName),
+						Text: fmt.Sprintf("dependency not pinned by hash (job '%v')", jobName),
 					})
 				}
 
