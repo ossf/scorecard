@@ -106,46 +106,16 @@ The check currently looks for [GitHub packaging workflows]( https://docs.github.
 
 ## Pinned-Dependencies 
 
-This check tries to determine if the project is an application that
-has declared and pinned its dependencies.
-A "pinned dependency" is a dependency that is explicitly set to a
-specific version instead of allowing a range of versions.
-If this project is a library (not an application), this check should
-automatically pass (but see limitations below).
-
-It's important for applications to pin dependencies
-to ensure that checking and deployment are
-all done with the same software, reducing deployment risks, simplifying
-debugging, and enabling reproducibility.
-In some cases pinning dependencies can help mitigate compromised dependencies
-from undermining the security of the project (in the case where
-you've evaluated the pinned dependency and are confident it's not compromised,
-and a later version is released that is compromised).
-A risk of pinning dependencies is that it can inhibit software updates
-(e.g., because of a security vulnerability or because the pinned version
-is compromised);
-this can be mitigated by
-[having applications and *not* libraries pin to specific versions](https://jbeckwith.com/2019/12/18/package-lock/),
-using automated tools to notify applications when their dependencies are
-outdated, and by applications that *do* pin dependencies update quickly.
-Low score is therefore considered `Medium` risk.
-
-The checks works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript), requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. 
-
-Limitations:
-This check should only apply to applications, as
-libraries shouldn't normally have enforced pinned dependencies.
-Unfortunately, Scorecard currently can't detect if a project
-is a library or application.
-Even when
-[application detection is added](https://github.com/ossf/scorecard/issues/689),
-it's always possible for an automated tool like Scorecard to
-incorrectly categorize software (especially in projects that include both).
-
-You can learn more about dependencies for projects on GitHub using
-[GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph).
+This check tries to determine if the project is an application that has declared and pinned its dependencies. A "pinned dependency" is a dependency that is explicitly set to a specific version instead of allowing a range of versions. If this project is a library (not an application), this check should automatically pass (but see limitations below).
+It's important for applications to pin dependencies to ensure that checking and deployment are all done with the same software, reducing deployment risks, simplifying debugging, and enabling reproducibility. In some cases pinning dependencies can help
+ mitigate compromised dependencies
+from undermining the security of the project (in the case where you've evaluated the pinned dependency, you are confident it's not compromised, and a later version is released that is compromised). A risk of pinning dependencies is that it can inhibit software updates (e.g., because of a security vulnerability or because the pinned version is compromised); this can be mitigated by [having applications and *not* libraries pin to specific versions](https://jbeckwith.com/2019/12/18/package-lock/), using automated tools to notify applications when their dependencies are outdated, and by applications that *do* pin dependencies update quickly. Low score is therefore considered `Medium` risk.
+The checks works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript), requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows.
+*Limitations:* This check should only apply to applications, as libraries shouldn't normally have enforced pinned dependencies. Unfortunately, Scorecard currently can't detect if a project is a library or application. Even when [application detection is added](https://github.com/ossf/scorecard/issues/689), it's always possible for an automated tool like Scorecard to incorrectly categorize software (especially in projects that include both libraries and applications).
+You can learn more about dependencies for projects on GitHub using [GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph). 
 
 **Remediation steps**
+- First, determine if your project is producing a library or application. If it is a library, then generally you don't want to pin dependencies of library users. If your project is producing an application, consider the remediations below.
 - Declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
 - If the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
 - For Dockerfiles and GitHub workflows, pin dependencies by hash. See example [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) and [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) examples.
