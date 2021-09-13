@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package clients
 
-import (
-	"context"
-
-	"github.com/ossf/scorecard/v2/clients"
-)
-
-// CheckRequest struct encapsulates all data to be passed into a CheckFn.
-type CheckRequest struct {
-	Ctx        context.Context
-	RepoClient clients.RepoClient
-	Dlogger    DetailLogger
-	Repo       clients.Repo
+// Repo interface uniquely identifies a repo.
+type Repo interface {
+	URL() string
+	String() string
+	Org() Repo
+	IsValid() error
+	Metadata() []string
+	AppendMetadata(metadata ...string)
+	// TODO: Find a better alterntive.
+	IsScorecardRepo() bool
 }

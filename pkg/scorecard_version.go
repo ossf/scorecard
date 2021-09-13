@@ -16,6 +16,7 @@ package pkg
 
 import (
 	"runtime"
+	"strings"
 )
 
 // Base version information.
@@ -34,9 +35,20 @@ var (
 	buildDate = "unknown"
 )
 
-// GetVersion returns the scorecard version.
-func GetVersion() string {
+// GetTagVersion returns the scorecard version
+// fr the release GitHub tag, i.e. v.X.Y.Z.
+func GetTagVersion() string {
 	return gitVersion
+}
+
+// GetSemanticVersion returns the semantic version,
+// i.e., X.Y.Z.
+func GetSemanticVersion() string {
+	tv := GetTagVersion()
+	if strings.HasPrefix(tv, "v") {
+		return tv[1:]
+	}
+	return tv
 }
 
 // GetCommit returns the GitHub's commit hash that scorecard was built from.

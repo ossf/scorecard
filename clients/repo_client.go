@@ -17,7 +17,7 @@ package clients
 
 // RepoClient interface is used by Scorecard checks to access a repo.
 type RepoClient interface {
-	InitRepo(owner, repo string) error
+	InitRepo(repo Repo) error
 	URL() string
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)

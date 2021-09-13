@@ -41,8 +41,7 @@ func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.Chec
 	checkRuns, _, err := handler.client.Checks.ListCheckRunsForRef(handler.ctx, handler.owner, handler.repo, ref,
 		&github.ListCheckRunsOptions{})
 	if err != nil {
-		// nolint: wrapcheck
-		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("ListCheckRunsForRef: %v", err))
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCheckRunsForRef: %v", err))
 	}
 	return checkRunsFrom(checkRuns), nil
 }

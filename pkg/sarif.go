@@ -58,7 +58,6 @@ type physicalLocation struct {
 	ArtifactLocation artifactLocation `json:"artifactLocation"`
 }
 
-//TODO: remove linter and update unit tests.
 //nolint:govet
 type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
@@ -406,7 +405,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	for i, check := range r.Checks {
 		doc, e := checkDocs.GetCheck(check.Name)
 		if e != nil {
-			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
 		}
 
 		// Unclear what to use for PartialFingerprints.
@@ -453,8 +452,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "   ")
 	if err := encoder.Encode(sarif); err != nil {
-		// nolint: wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, err.Error())
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
 	return nil

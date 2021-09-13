@@ -48,7 +48,7 @@ func (handler *releasesHandler) setup() error {
 		releases, _, err := handler.client.Repositories.ListReleases(
 			handler.ctx, handler.owner, handler.repo, &github.ListOptions{})
 		if err != nil {
-			handler.errSetup = sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 		}
 		handler.releases = releasesFrom(releases)
 	})

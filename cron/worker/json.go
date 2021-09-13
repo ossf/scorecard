@@ -90,8 +90,7 @@ func AsJSON(r *pkg.ScorecardResult, showDetails bool, logLevel zapcore.Level, wr
 		out.Checks = append(out.Checks, tmpResult)
 	}
 	if err := encoder.Encode(out); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 	return nil
 }
@@ -127,8 +126,7 @@ func AsJSON2(r *pkg.ScorecardResult, showDetails bool, logLevel zapcore.Level, w
 		out.Checks = append(out.Checks, tmpResult)
 	}
 	if err := encoder.Encode(out); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 
 	return nil
