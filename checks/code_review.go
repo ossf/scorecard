@@ -36,12 +36,6 @@ func init() {
 // - Checking if most of the recent merged PRs were "Approved".
 // - Looking for other well-known review labels.
 func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
-	// Branch protection.
-	score, reason := isPrReviewRequired(c)
-	if score == checker.MaxResultScore {
-		return checker.CreateMaxScoreResult(CheckCodeReview, reason)
-	}
-
 	// GitHub reviews.
 	ghScore, ghReason, err := githubCodeReview(c)
 	if err != nil {
@@ -54,7 +48,7 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
 	}
 
-	score, reason = selectBestScoreAndReason(hintScore, ghScore, hintReason, ghReason, c.Dlogger)
+	score, reason := selectBestScoreAndReason(hintScore, ghScore, hintReason, ghReason, c.Dlogger)
 
 	// Prow CI/CD.
 	prowScore, prowReason, err := prowCodeReview(c)
@@ -128,25 +122,6 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 	}
 
 	return createReturn("GitHub", totalReviewed, totalMerged)
-}
-
-//nolint
-func isPrReviewRequired(c *checker.CheckRequest) (int, string) {
-	// Look to see if review is enforced.
-	// Check the branch protection rules, we may not be able to get these though.
-	branch, err := c.RepoClient.GetDefaultBranch()
-	if err != nil {
-		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetDefaultBranch: %v", err))
-	}
-	if branch.GetBranchProtectionRule() == nil ||
-		branch.GetBranchProtectionRule().GetRequiredPullRequestReviews() == nil ||
-		branch.GetBranchProtectionRule().GetRequiredPullRequestReviews().GetRequiredApprovingReviewCount() < 1 {
-		return checker.InconclusiveResultScore, "cannot determine if branch protection is enabled"
-	}
-
-	// If the default value is 0 when we cannot retrieve the value,
-	// a non-zero value means we're confident it's enabled.
-	return checker.MaxResultScore, "branch protection for default branch is enabled"
 }
 
 //nolint
