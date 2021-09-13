@@ -61,8 +61,9 @@ cloud.google.com/go/pubsub v1.0.1/go.mod h1:R0Gpsv3s54REJCy4fxDixWD93lHJMoZTyQ2k
 cloud.google.com/go/pubsub v1.1.0/go.mod h1:EwwdRX2sKPjnvnqCa270oGRyludottCI76h+R3AArQw=
 cloud.google.com/go/pubsub v1.2.0/go.mod h1:jhfEVHT8odbXTkndysNHCcx0awwzvfOlguIAii9o8iA=
 cloud.google.com/go/pubsub v1.3.1/go.mod h1:i+ucay31+CNRpDW4Lu78I4xXG+O1r/MAHgjpRVR+TSU=
-cloud.google.com/go/pubsub v1.16.0 h1:N2WVmm3vmoBo8+cbBgwACB8ZKUP/YQvG2ujHx47/oXY=
 cloud.google.com/go/pubsub v1.16.0/go.mod h1:6A8EfoWZ/lUvCWStKGwAWauJZSiuV0Mkmu6WilK/TxQ=
+cloud.google.com/go/pubsub v1.17.0 h1:uGzqGUGvaSJ3APz5BmLFw1LpSTnB9o+EzE5fI3rBbJI=
+cloud.google.com/go/pubsub v1.17.0/go.mod h1:bBIeYx9ftf/hr7eoSUim6cRaOYZE/hHuigwdwLLByi8=
 cloud.google.com/go/secretmanager v0.1.0/go.mod h1:3nGKHvnzDUVit7U0S9KAKJ4aOsO1xtwRG+7ey5LK1bM=
 cloud.google.com/go/storage v1.0.0/go.mod h1:IhtSnM/ZTZV8YYJWCY8RULGVqBDmpoyjwiyrjsg+URw=
 cloud.google.com/go/storage v1.5.0/go.mod h1:tpKbwo567HUNpVclU5sGELwQWBDZ8gh0ZeosJ0Rtdos=
@@ -1851,6 +1852,7 @@ google.golang.org/genproto v0.0.0-20210728212813-7823e685a01f/go.mod h1:ob2IJxKr
 google.golang.org/genproto v0.0.0-20210805201207-89edb61ffb67/go.mod h1:ob2IJxKrgPT52GcgX759i1sleT07tiKowYBGbczaW48=
 google.golang.org/genproto v0.0.0-20210813162853-db860fec028c/go.mod h1:cFeNkxwySK631ADgubI+/XFU/xp8FD5KIVV4rj8UC5w=
 google.golang.org/genproto v0.0.0-20210821163610-241b8fcbd6c8/go.mod h1:eFjDcFEctNawg4eG61bRv87N7iHBWyVhJu7u1kqDUXY=
+google.golang.org/genproto v0.0.0-20210824181836-a4879c3d0e89/go.mod h1:eFjDcFEctNawg4eG61bRv87N7iHBWyVhJu7u1kqDUXY=
 google.golang.org/genproto v0.0.0-20210825212027-de86158e7fda/go.mod h1:eFjDcFEctNawg4eG61bRv87N7iHBWyVhJu7u1kqDUXY=
 google.golang.org/genproto v0.0.0-20210828152312-66f60bf46e71/go.mod h1:eFjDcFEctNawg4eG61bRv87N7iHBWyVhJu7u1kqDUXY=
 google.golang.org/genproto v0.0.0-20210831024726-fe130286e0e2 h1:NHN4wOCScVzKhPenJ2dt+BTs3X/XkBVI/Rh4iDt55T8=
