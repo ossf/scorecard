@@ -119,14 +119,39 @@ checks:
         [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
   CII-Best-Practices:
     risk: Low
-    tags: security-awareness, security-training
+    tags: security-awareness, security-training, security
     short: Determines if the project has a CII Best Practices Badge.
     description: >-
-      This check tries to determine if the project has a [CII Best Practices
-      Badge](https://bestpractices.coreinfrastructure.org/en).
+      This check tries to determine if the project has earned a
+      [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en).
 
-      This badge tells us the repo maintainers are aware of best
-      development practices. A low score is considered 'Low' risk.
+      This badge tells us if the project is applying a larger
+      set of security-focused best development practices
+      for open source software.
+      The CII Best Practices badge has 3 tiers (passing, silver, and gold);
+      we give full credit if the
+      [passing criteria are met](https://bestpractices.coreinfrastructure.org/en/criteria/0),
+      as achieving a passing badge is a significant achievement
+      for many projects.
+      For example, to earn the passing badge,
+      the project MUST publish the process for
+      reporting vulnerabilities on the project site,
+      it MUST provide a working build system that can automatically rebuild
+      the software from source code (where applicable),
+      it MUST have a general policy that tests
+      will be added to an automated test suite
+      when major new functionality is added,
+      it MUST meet various cryptography criteria where applicable,
+      it MUST have at least one primary developer who knows how to
+      design secure software, and
+      at least one of the project's primary developers MUST know of
+      common kinds of errors that lead to vulnerabilities in this kind
+      of software (as well as at least one method to counter or mitigate
+      each of them), and at least
+      one static code analysis tool (beyond compiler warnings and "safe"
+      language modes) MUST be applied to any proposed major production
+      release.
+      A low score is considered 'Low' risk.
 
       The check uses the URL for the Git repo and the CII API.
     remediation:

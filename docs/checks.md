@@ -40,8 +40,8 @@ The check works by looking for a set of well-known CI-system names in GitHub `Ch
 
 ## CII-Best-Practices 
 
-This check tries to determine if the project has a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en).
-This badge tells us the repo maintainers are aware of best development practices. A low score is considered 'Low' risk.
+This check tries to determine if the project has earned a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en).
+This badge tells us if the project is applying a larger set of security-focused best development practices for open source software. The CII Best Practices badge has 3 tiers (passing, silver, and gold); we give full credit if the [passing criteria are met](https://bestpractices.coreinfrastructure.org/en/criteria/0), as achieving a passing badge is a significant achievement for many projects. For example, to earn the passing badge, the project MUST publish the process for reporting vulnerabilities on the project site, it MUST provide a working build system that can automatically rebuild the software from source code (where applicable), it MUST have a general policy that tests will be added to an automated test suite when major new functionality is added, it MUST meet various cryptography criteria where applicable, it MUST have at least one primary developer who knows how to design secure software, and at least one of the project's primary developers MUST know of common kinds of errors that lead to vulnerabilities in this kind of software (as well as at least one method to counter or mitigate each of them), and at least one static code analysis tool (beyond compiler warnings and "safe" language modes) MUST be applied to any proposed major production release. A low score is considered 'Low' risk.
 The check uses the URL for the Git repo and the CII API. 
 
 **Remediation steps**
@@ -106,44 +106,9 @@ The check currently looks for [GitHub packaging workflows]( https://docs.github.
 
 ## Pinned-Dependencies 
 
-This check tries to determine if the project is an application that
-has declared and pinned its dependencies.
-A "pinned dependency" is a dependency that is explicitly set to a
-specific version instead of allowing a range of versions.
-If this project is a library (not an application), this check should
-automatically pass (but see limitations below).
-
-It's important for applications to pin dependencies
-to ensure that checking and deployment are
-all done with the same software, reducing deployment risks, simplifying
-debugging, and enabling reproducibility.
-In some cases pinning dependencies can help mitigate compromised dependencies
-from undermining the security of the project (in the case where
-you've evaluated the pinned dependency and are confident it's not compromised,
-and a later version is released that is compromised).
-A risk of pinning dependencies is that it can inhibit software updates
-(e.g., because of a security vulnerability or because the pinned version
-is compromised);
-this can be mitigated by
-[having applications and *not* libraries pin to specific versions](https://jbeckwith.com/2019/12/18/package-lock/),
-using automated tools to notify applications when their dependencies are
-outdated, and by applications that *do* pin dependencies update quickly.
-Low score is therefore considered `Medium` risk.
-
+This check tries to determine if the project has declared and pinned its dependencies.
+Pinning dependencies is important to mitigate compromised dependencies from undermining the security of the project. Low score is therefore considered `Medium` risk.
 The checks works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript), requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. 
-
-Limitations:
-This check should only apply to applications, as
-libraries shouldn't normally have enforced pinned dependencies.
-Unfortunately, Scorecard currently can't detect if a project
-is a library or application.
-Even when
-[application detection is added](https://github.com/ossf/scorecard/issues/689),
-it's always possible for an automated tool like Scorecard to
-incorrectly categorize software (especially in projects that include both).
-
-You can learn more about dependencies for projects on GitHub using
-[GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph).
 
 **Remediation steps**
 - Declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
