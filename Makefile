@@ -110,7 +110,7 @@ build-scorecard: ## Runs go build on repo
 build-pubsub: ## Runs go build on the PubSub cron job
 	# Run go build and the PubSub cron job
 	cd cron/controller && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o controller
-	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o worker
+	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static" $(VERSION_LDFLAGS)' -o worker
 
 build-bq-transfer: ## Runs go build on the BQ transfer cron job
 build-bq-transfer: ./cron/bq/*.go
