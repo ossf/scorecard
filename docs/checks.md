@@ -89,11 +89,12 @@ The check currently works by checking if the repo name is in the [OSS-Fuzz](http
 ## Maintained 
 
 This check tries to determine if the project is "actively maintained".
-A project which is not active may not be patched, may not have its dependencies patched, or may not be actively tested and used. A low score is therefore considered `High` risk.
+A project which is not active might not be patched, might not have its dependencies patched, or might not be actively tested and used. A low score is therefore considered `High` risk.
+A lack of active maintenance is not necessarily a problem. Some software, especially smaller utility functions, does not normally need to be maintained. For example, a library that determines if an integer is even would not normally need maintenance (it might only need to be modified if its underlying implementation language definition changed, e.g., by adding a new type).  A lack of active maintenance simply suggests that potential users should investigate further.
 The check currently works by looking whether the repo is archived or not. If it is archived, it returns the minimum score. If it is not, the check looks for commits within the last 90 days, and outputs the highest score if there are at least 1 commit/week during this period. 
 
 **Remediation steps**
-- There is *NO* remediation work needed here. This is just to indicate your project activity and maintenance commitment.
+- There is *NO* remediation work necessarily needed here from projects; this just indicates the project activity and maintenance commitment. External users should determine if this is the kind of software that would not normally need active maintenance.
 
 ## Packaging 
 
