@@ -19,6 +19,8 @@ import (
 	"io/ioutil"
 	"reflect"
 	"testing"
+
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 //nolint
@@ -38,13 +40,13 @@ func TestPolicyRead(t *testing.T) {
 			result: ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]CheckPolicy{
-					"Token-Permission": {
+					"Token-Permissions": {
 						Score: 3,
 						Mode:  "disabled",
 					},
 					"Branch-Protection": {
 						Score: 5,
-						Mode:  "enabled",
+						Mode:  "enforced",
 					},
 					"Vulnerabilities": {
 						Score: 1,
@@ -53,8 +55,31 @@ func TestPolicyRead(t *testing.T) {
 				},
 			},
 		},
-		// TODO: invalid score, invalid mode, multiple definitions
-		// TODO: automatically geneate the missing fields to score:10 and mode:enforced
+		{
+			name:     "invalid score - 0",
+			filename: "./testdata/policy-invalid-score-0.yaml",
+			err:      sce.ErrScorecardInternal,
+		},
+		{
+			name:     "invalid score + 10",
+			filename: "./testdata/policy-invalid-score-10.yaml",
+			err:      sce.ErrScorecardInternal,
+		},
+		{
+			name:     "invalid mode",
+			filename: "./testdata/policy-invalid-mode.yaml",
+			err:      sce.ErrScorecardInternal,
+		},
+		{
+			name:     "invalid check name",
+			filename: "./testdata/policy-invalid-check.yaml",
+			err:      sce.ErrScorecardInternal,
+		},
+		{
+			name:     "multiple check definitions",
+			filename: "./testdata/policy-multiple-defs.yaml",
+			err:      sce.ErrScorecardInternal,
+		},
 	}
 
 	for _, tt := range tests {
@@ -70,10 +95,10 @@ func TestPolicyRead(t *testing.T) {
 
 			var p ScorecardPolicy
 			err = p.Read(content)
+
 			if !errors.Is(err, tt.err) {
 				t.Fatalf("%s: expected %v, got %v", tt.name, tt.err, err)
 			}
-
 			if err != nil {
 				return
 			}

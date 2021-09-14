@@ -60,7 +60,6 @@ func (sp *ScorecardPolicy) Read(b []byte) error {
 
 	checksFound := make(map[string]bool)
 	for n, p := range sp.Policies {
-		// TODO: check appears in allChecks
 		_, exists := checks.AllChecks[n]
 		if !exists {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidCheck.Error(), n))
@@ -82,6 +81,5 @@ func (sp *ScorecardPolicy) Read(b []byte) error {
 		checksFound[n] = true
 	}
 
-	// Fill missing checks with scoer=10 and mode=enforced.
 	return nil
 }

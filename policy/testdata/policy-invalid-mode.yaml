@@ -1,0 +1,5 @@
+version: 1
+policies:
+  Token-Permissions:
+      score: 1
+      mode: unknown

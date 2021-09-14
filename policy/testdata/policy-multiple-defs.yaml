@@ -9,4 +9,7 @@ policies:
   Vulnerabilities:
     score: 1
     mode: logging
+  Token-Permissions:
+      score: 6
+      mode: logging
 

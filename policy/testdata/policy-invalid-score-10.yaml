@@ -1,0 +1,5 @@
+version: 1
+policies:
+  Token-Permissions:
+      score: 11
+      mode: disabled
