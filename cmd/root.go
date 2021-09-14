@@ -196,7 +196,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// UPGRADEv2: support CSV/JSON.
-		// TODO: move this to Scorecard structure.
+		// TODO: move the doc inside Scorecard structure.
 		checkDocs, e := docs.Read()
 		if e != nil {
 			log.Fatalf("cannot read yaml file: %v", err)
