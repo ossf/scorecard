@@ -151,27 +151,23 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		}
 
 		// UPGRADEv2: support CSV/JSON.
+		checkDocs, e := docs.Read()
+		if e != nil {
+			log.Fatalf("cannot read yaml file: %v", err)
+		}
 		switch format {
 		case formatDefault:
-			err = repoResult.AsString(showDetails, *logLevel, os.Stdout)
+			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatSarif:
 			if !v3 {
 				log.Fatalf("sarif not supported yet")
 			}
-			checkDocs, e := docs.Read()
-			if e != nil {
-				log.Fatalf("cannot read yaml file: %v", err)
-			}
 			// TODO: support config files and update checker.MaxResultScore.
 			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, checker.MaxResultScore)
 		case formatCSV:
-			err = repoResult.AsCSV(showDetails, *logLevel, os.Stdout)
+			err = repoResult.AsCSV(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatJSON:
 			// UPGRADEv2: rename.
-			checkDocs, e := docs.Read()
-			if e != nil {
-				log.Fatalf("cannot read yaml file: %v", err)
-			}
 			err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
 		default:
 			err = sce.WithMessage(sce.ErrScorecardInternal,

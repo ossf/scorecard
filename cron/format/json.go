@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main implements cron worker job.
-package main
+package format
 
 import (
 	"encoding/json"
@@ -25,46 +24,64 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
+	docs "github.com/ossf/scorecard/v2/docs/checks"
 	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
 )
 
 //nolint
-type jsonCheckCronResult struct {
+type jsonCheckResult struct {
 	Name       string
 	Details    []string
 	Confidence int
 	Pass       bool
 }
 
-type jsonScorecardCronResult struct {
+type jsonScorecardResult struct {
 	Repo     string
 	Date     string
-	Checks   []jsonCheckCronResult
+	Checks   []jsonCheckResult
 	Metadata []string
+}
+
+type jsonCheckDocumentationV2 struct {
+	URL   string `json:"url"`
+	Short string `json:"short"`
+	// Can be extended if needed.
 }
 
 //nolint
-type jsonCheckCronResultV2 struct {
-	Details []string
-	Score   int
-	Reason  string
-	Name    string
+type jsonCheckResultV2 struct {
+	Details []string                 `json:"details"`
+	Score   int                      `json:"score"`
+	Reason  string                   `json:"reason"`
+	Name    string                   `json:"name"`
+	Doc     jsonCheckDocumentationV2 `json:"documentation"`
 }
 
-type jsonScorecardCronResultV2 struct {
-	Repo     string
-	Date     string
-	Commit   string
-	Checks   []jsonCheckCronResultV2
-	Metadata []string
+type jsonRepoV2 struct {
+	Name   string `json:"name"`
+	Commit string `json:"commit"`
+}
+
+type jsonScorecardV2 struct {
+	Version string `json:"version"`
+	Commit  string `json:"commit"`
+}
+
+type jsonScorecardResultV2 struct {
+	Date      string              `json:"date"`
+	Repo      jsonRepoV2          `json:"repo"`
+	Scorecard jsonScorecardV2     `json:"scorecard"`
+	Checks    []jsonCheckResultV2 `json:"checks"`
+	Metadata  []string            `json:"metadata"`
 }
 
 // AsJSON exports results as JSON for new detail format.
 func AsJSON(r *pkg.ScorecardResult, showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
-	out := jsonScorecardCronResult{
+	out := jsonScorecardResult{
 		Repo:     r.Repo.Name,
 		Date:     r.Date.Format("2006-01-02"),
 		Metadata: r.Metadata,
@@ -72,7 +89,7 @@ func AsJSON(r *pkg.ScorecardResult, showDetails bool, logLevel zapcore.Level, wr
 
 	//nolint
 	for _, checkResult := range r.Checks {
-		tmpResult := jsonCheckCronResult{
+		tmpResult := jsonCheckResult{
 			Name:       checkResult.Name,
 			Pass:       checkResult.Pass,
 			Confidence: checkResult.Confidence,
@@ -96,20 +113,36 @@ func AsJSON(r *pkg.ScorecardResult, showDetails bool, logLevel zapcore.Level, wr
 }
 
 // AsJSON2 exports results as JSON for the cron job and in the new detail format.
-func AsJSON2(r *pkg.ScorecardResult, showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
+func AsJSON2(r *pkg.ScorecardResult, showDetails bool,
+	logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
-	out := jsonScorecardCronResultV2{
-		Repo:     r.Repo.Name,
+	out := jsonScorecardResultV2{
+		Repo: jsonRepoV2{
+			Name:   r.Repo.Name,
+			Commit: r.Repo.CommitSHA,
+		},
+		Scorecard: jsonScorecardV2{
+			Version: r.Scorecard.Version,
+			Commit:  r.Scorecard.CommitSHA,
+		},
 		Date:     r.Date.Format("2006-01-02"),
-		Commit:   r.Repo.CommitSHA,
 		Metadata: r.Metadata,
 	}
 
 	//nolint
 	for _, checkResult := range r.Checks {
-		tmpResult := jsonCheckCronResultV2{
-			Name:   checkResult.Name,
+		doc, e := checkDocs.GetCheck(checkResult.Name)
+		if e != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
+		}
+
+		tmpResult := jsonCheckResultV2{
+			Name: checkResult.Name,
+			Doc: jsonCheckDocumentationV2{
+				URL:   doc.GetDocumentationURL(r.Scorecard.CommitSHA),
+				Short: doc.GetShort(),
+			},
 			Reason: checkResult.Reason,
 			Score:  checkResult.Score,
 		}
