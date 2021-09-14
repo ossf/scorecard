@@ -68,6 +68,28 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 	scorecardShort = "Security Scorecards"
 )
 
+func readPolicy(sp *spol.ScorecardPolicy) {
+	if policyFile != "" {
+		data, err := os.ReadFile(policyFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = sp.Read(data)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+func ensureChecksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNameToFnMap) {
+	for checkName := range enabledChecks {
+		_, exists := sp.Policies[checkName]
+		if !exists {
+			log.Fatal(fmt.Sprintf("check %s has no policy declared", checkName))
+		}
+	}
+}
+
 var rootCmd = &cobra.Command{
 	Use:   scorecardUse,
 	Short: scorecardShort,
@@ -78,25 +100,17 @@ var rootCmd = &cobra.Command{
 		if _, v3 = os.LookupEnv("SCORECARD_V3"); v3 {
 			fmt.Printf("**** Using SCORECARD_V3 code ***** \n\n")
 		}
+		if !v3 {
+			log.Fatalf("sarif not supported yet")
+		}
+
+		if policyFile != "" && !v3 {
+			log.Fatal("policy not supported yet")
+		}
 
 		var policy spol.ScorecardPolicy
-		if policyFile != "" {
-			data, err := os.ReadFile(policyFile)
-			if err != nil {
-				log.Fatal(err)
-			}
-			err = policy.Read(data)
-			if err != nil {
-				log.Fatal(err)
-			}
+		readPolicy(&policy)
 
-			fmt.Printf("version: %s\n", policy.Version)
-			for k, v := range policy.Policies {
-				fmt.Printf("%s:\n", k)
-				fmt.Printf("- score:%v\n- mode:%v\n\n", v.Score, v.Mode)
-
-			}
-		}
 		if npm != "" {
 			if git, err := fetchGitRepositoryFromNPM(npm); err != nil {
 				log.Fatal(err)
@@ -146,6 +160,11 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
+
+		// If a policy was passed as argument, ensure all checks
+		// to run have a corresponding policy.
+		ensureChecksHavePolicies(&policy, enabledChecks)
+
 		ctx := context.Background()
 
 		logger, err := githubrepo.NewLogger(*logLevel)
@@ -186,8 +205,9 @@ var rootCmd = &cobra.Command{
 		case formatDefault:
 			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatSarif:
-			if !v3 {
-				log.Fatalf("sarif not supported yet")
+			checkDocs, e := docs.Read()
+			if e != nil {
+				log.Fatalf("cannot read yaml file: %v", err)
 			}
 			// TODO: support config files and update checker.MaxResultScore.
 			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, checker.MaxResultScore)
