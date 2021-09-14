@@ -196,6 +196,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// UPGRADEv2: support CSV/JSON.
+		// TODO: move this to Scorecard structure.
 		checkDocs, e := docs.Read()
 		if e != nil {
 			log.Fatalf("cannot read yaml file: %v", err)
@@ -205,10 +206,6 @@ var rootCmd = &cobra.Command{
 		case formatDefault:
 			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatSarif:
-			checkDocs, e := docs.Read()
-			if e != nil {
-				log.Fatalf("cannot read yaml file: %v", err)
-			}
 			// TODO: support config files and update checker.MaxResultScore.
 			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, checker.MaxResultScore)
 		case formatCSV:
