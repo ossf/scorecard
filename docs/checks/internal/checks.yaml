@@ -259,11 +259,17 @@ checks:
       all done with the same software, reducing deployment risks, simplifying
       debugging, and enabling reproducibility.
       In some cases pinning dependencies can help
-       mitigate compromised dependencies
+      mitigate compromised dependencies
       from undermining the security of the project (in the case where
       you've evaluated the pinned dependency, you are confident
       it's not compromised,
       and a later version is released that is compromised).
+      In particular, pinning dependencies is one way to
+      [counter dependency confusion (aka substitution) attacks](https://azure.microsoft.com/en-us/resources/3-ways-to-mitigate-risk-using-private-package-feeds/).
+      In a dependency confusion attack, an application uses multiple feeds
+      to acquire software packages (a "hybrid configuration"),
+      and attackers can fool the user into using a malicious package
+      via a feed that was not expected for that package.
       A risk of pinning dependencies is that it can inhibit software updates
       (e.g., because of a security vulnerability or because the pinned version
       is compromised);
