@@ -40,9 +40,10 @@ The check works by looking for a set of well-known CI-system names in GitHub `Ch
 
 ## CII-Best-Practices 
 
-This check tries to determine if the project has a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en).
-This badge tells us the repo maintainers are aware of best development practices. A low score is considered 'Low' risk.
-The check uses the URL for the Git repo and the CII API. 
+This check tries to determine if the project has earned a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/).
+This badge tells us if the project is applying a particular set of security-focused best development practices for open source software. The CII Best Practices badge has 3 tiers (passing, silver, and gold); we give full credit if the [passing criteria are met](https://bestpractices.coreinfrastructure.org/criteria/0), as achieving a passing badge is a significant achievement for many projects. We give a little credit if the project is at least working to achieve a badge, and increasingly more as more criteria are met.
+For example, to earn the passing badge, the project MUST publish the process for reporting vulnerabilities on the project site, it MUST provide a working build system that can automatically rebuild the software from source code (where applicable), it MUST have a general policy that tests will be added to an automated test suite when major new functionality is added, it MUST meet various cryptography criteria where applicable, it MUST have at least one primary developer who knows how to design secure software, at least one of the project's primary developers MUST know of common kinds of errors that lead to vulnerabilities in this kind of software (as well as at least one method to counter or mitigate each of them), and at least one static code analysis tool (beyond compiler warnings and "safe" language modes) MUST be applied to any proposed major production release.
+A low score is considered 'Low' risk. The check uses the URL for the Git repo and the CII API. 
 
 **Remediation steps**
 - Sign up for the [CII Best Practices program](https://bestpractices.coreinfrastructure.org/en).
