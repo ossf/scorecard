@@ -27,6 +27,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/checker"
+	docs "github.com/ossf/scorecard/v2/docs/checks"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
@@ -52,7 +53,8 @@ type ScorecardResult struct {
 }
 
 // AsCSV outputs ScorecardResult in CSV format.
-func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
+func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
+	checkDocs docs.Doc, writer io.Writer) error {
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo.Name}
 	columns := []string{"Repository"}
@@ -69,19 +71,18 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level, writer
 	}
 	fmt.Fprintf(writer, "%s\n", strings.Join(columns, ","))
 	if err := w.Write(record); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("csv.Write: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("csv.Write: %v", err))
 	}
 	w.Flush()
 	if err := w.Error(); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("csv.Flush: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("csv.Flush: %v", err))
 	}
 	return nil
 }
 
 // AsString returns ScorecardResult in string format.
-func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
+func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level,
+	checkDocs docs.Doc, writer io.Writer) error {
 	data := make([][]string, len(r.Checks))
 	//nolint
 	for i, row := range r.Checks {
@@ -102,7 +103,12 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level, wri
 			x[0] = fmt.Sprintf("%d / %d", row.Score, checker.MaxResultScore)
 		}
 
-		doc := fmt.Sprintf("github.com/ossf/scorecard/blob/main/docs/checks.md#%s", strings.ToLower(row.Name))
+		cdoc, e := checkDocs.GetCheck(row.Name)
+		if e != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", row.Name, e))
+		}
+
+		doc := cdoc.GetDocumentationURL(r.Scorecard.CommitSHA)
 		x[1] = row.Name
 		x[2] = row.Reason
 		if showDetails {

@@ -40,14 +40,14 @@ func isGithubWorkflowFile(filename string) (bool, error) {
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	matchedFiles, err := c.RepoClient.ListFiles(isGithubWorkflowFile)
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
 	for _, fp := range matchedFiles {
 		fc, err := c.RepoClient.GetFileContent(fp)
 		if err != nil {
-			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetFileContent: %v", err))
+			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetFileContent: %v", err))
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 
@@ -57,7 +57,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 
 		runs, err := c.RepoClient.ListSuccessfulWorkflowRuns(filepath.Base(fp))
 		if err != nil {
-			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Actions.ListWorkflowRunsByFileName: %v", err))
+			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Actions.ListWorkflowRunsByFileName: %v", err))
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if len(runs) > 0 {

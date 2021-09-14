@@ -31,14 +31,15 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 	Context("E2E TEST:Validating maintained status", func() {
 		It("Should return valid maintained status", func() {
 			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("apache/airflow")
+			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err := repoClient.InitRepo("apache", "airflow")
+			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
-				Owner:      "apache",
-				Repo:       "airflow",
+				Repo:       repo,
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{

@@ -21,6 +21,7 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
+	docs "github.com/ossf/scorecard/v2/docs/checks"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
@@ -39,12 +40,19 @@ type jsonScorecardResult struct {
 	Metadata []string
 }
 
+type jsonCheckDocumentationV2 struct {
+	URL   string `json:"url"`
+	Short string `json:"short"`
+	// Can be extended if needed.
+}
+
 //nolint
 type jsonCheckResultV2 struct {
-	Details []string `json:"details"`
-	Score   int      `json:"score"`
-	Reason  string   `json:"reason"`
-	Name    string   `json:"name"`
+	Details []string                 `json:"details"`
+	Score   int                      `json:"score"`
+	Reason  string                   `json:"reason"`
+	Name    string                   `json:"name"`
+	Doc     jsonCheckDocumentationV2 `json:"documentation"`
 }
 
 type jsonRepoV2 struct {
@@ -95,14 +103,14 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 		out.Checks = append(out.Checks, tmpResult)
 	}
 	if err := encoder.Encode(out); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 	return nil
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
+func (r *ScorecardResult) AsJSON2(showDetails bool,
+	logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
 	out := jsonScorecardResultV2{
@@ -120,8 +128,17 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 
 	//nolint
 	for _, checkResult := range r.Checks {
+		doc, e := checkDocs.GetCheck(checkResult.Name)
+		if e != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
+		}
+
 		tmpResult := jsonCheckResultV2{
-			Name:   checkResult.Name,
+			Name: checkResult.Name,
+			Doc: jsonCheckDocumentationV2{
+				URL:   doc.GetDocumentationURL(r.Scorecard.CommitSHA),
+				Short: doc.GetShort(),
+			},
 			Reason: checkResult.Reason,
 			Score:  checkResult.Score,
 		}
@@ -138,8 +155,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 		out.Checks = append(out.Checks, tmpResult)
 	}
 	if err := encoder.Encode(out); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 
 	return nil

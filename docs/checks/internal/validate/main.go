@@ -29,32 +29,32 @@ func main() {
 
 	allChecks := checks.AllChecks
 	for check := range allChecks {
-		doc, exists := m.Checks[check]
-		if !exists {
-			// nolint: goerr113
-			panic(fmt.Errorf("could not find checkName: %s in checks.yaml", check))
+		c, e := m.GetCheck(check)
+		if e != nil {
+			panic(fmt.Errorf("GetCheck: %w: %s", e, check))
 		}
-		if doc.Description == "" {
+
+		if c.GetDescription() == "" {
 			// nolint: goerr113
 			panic(fmt.Errorf("description for checkName: %s is empty", check))
 		}
-		if strings.TrimSpace(strings.Join(doc.Remediation, "")) == "" {
+		if strings.TrimSpace(strings.Join(c.GetRemediation(), "")) == "" {
 			// nolint: goerr113
 			panic(fmt.Errorf("remediation for checkName: %s is empty", check))
 		}
-		if doc.Short == "" {
+		if c.GetShort() == "" {
 			// nolint: goerr113
 			panic(fmt.Errorf("short for checkName: %s is empty", check))
 		}
-		if doc.Tags == "" {
+		if len(c.GetTags()) == 0 {
 			// nolint: goerr113
 			panic(fmt.Errorf("tags for checkName: %s is empty", check))
 		}
 	}
-	for check := range m.Checks {
-		if _, exists := allChecks[check]; !exists {
+	for _, check := range m.GetChecks() {
+		if _, exists := allChecks[check.GetName()]; !exists {
 			// nolint: goerr113
-			panic(fmt.Errorf("check present in checks.yaml is not part of `checks.AllChecks`: %s", check))
+			panic(fmt.Errorf("check present in checks.yaml is not part of `checks.AllChecks`: %s", check.GetName()))
 		}
 	}
 }

@@ -97,11 +97,11 @@ clients/branch.pb.go: clients/branch.proto | $(PROTOC)
 
 generate-docs: ## Generates docs
 generate-docs: docs/checks.md
-docs/checks.md: docs/checks/checks.yaml docs/checks/*.go docs/checks/generate/*.go
+docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
 	# Validating checks.yaml
-	go run ./docs/checks/validate/main.go
+	go run ./docs/checks/internal/validate/main.go
 	# Generating checks.md
-	cd ./docs/checks/generate && go run main.go
+	go run ./docs/checks/internal/generate/main.go docs/checks.md
 
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable
@@ -110,7 +110,7 @@ build-scorecard: ## Runs go build on repo
 build-pubsub: ## Runs go build on the PubSub cron job
 	# Run go build and the PubSub cron job
 	cd cron/controller && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o controller
-	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o worker
+	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static" $(VERSION_LDFLAGS)' -o worker
 
 build-bq-transfer: ## Runs go build on the BQ transfer cron job
 build-bq-transfer: ./cron/bq/*.go

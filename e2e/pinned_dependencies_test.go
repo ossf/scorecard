@@ -31,15 +31,16 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 	Context("E2E TEST:Validating dependencies check is working", func() {
 		It("Should return dependencies check is working", func() {
 			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-pinned-dependencies-e2e")
+			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err := repoClient.InitRepo("ossf-tests", "scorecard-check-pinned-dependencies-e2e")
+			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
-				Owner:      "ossf-tests",
-				Repo:       "scorecard-check-pinned-dependencies-e2e",
+				Repo:       repo,
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{

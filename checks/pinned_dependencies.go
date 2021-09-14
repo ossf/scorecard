@@ -89,8 +89,7 @@ func (s *stringOrSlice) UnmarshalYAML(value *yaml.Node) error {
 	var single string
 	err = value.Decode(&single)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringOrSlice Value: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringOrSlice Value: %v", err))
 	}
 	*s = []string{single}
 	return nil
@@ -102,11 +101,17 @@ type stringWithLine struct {
 	Line  int
 }
 
+// Structure to host information about pinned github
+// or third party dependencies.
+type worklowPinningResult struct {
+	thirdParties pinnedResult
+	gitHubOwned  pinnedResult
+}
+
 func (ws *stringWithLine) UnmarshalYAML(value *yaml.Node) error {
 	err := value.Decode(&ws.Value)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringWithLine Value: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringWithLine Value: %v", err))
 	}
 	ws.Line = value.Line
 
@@ -207,6 +212,44 @@ func addPinnedResult(r *pinnedResult, to bool) {
 	}
 }
 
+func dataAsWorkflowResultPointer(data FileCbData) *worklowPinningResult {
+	pdata, ok := data.(*worklowPinningResult)
+	if !ok {
+		// panic if it is not correct type
+		panic("type need to be of worklowPinningResult")
+	}
+	return pdata
+}
+
+func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, infoMsg string,
+	dl checker.DetailLogger, err error) (int, error) {
+	if err != nil {
+		return checker.InconclusiveResultScore, err
+	}
+
+	score := checker.MinResultScore
+
+	if r.gitHubOwned != notPinned {
+		score += 2
+		// TODO: set Snippet and line numbers.
+		dl.Info3(&checker.LogMessage{
+			Type: checker.FileTypeSource,
+			Text: fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
+		})
+	}
+
+	if r.thirdParties != notPinned {
+		score += 8
+		// TODO: set Snippet and line numbers.
+		dl.Info3(&checker.LogMessage{
+			Type: checker.FileTypeSource,
+			Text: fmt.Sprintf("%s %s", "Third-party", infoMsg),
+		})
+	}
+
+	return score, nil
+}
+
 func dataAsResultPointer(data FileCbData) *pinnedResult {
 	pdata, ok := data.(*pinnedResult)
 	if !ok {
@@ -242,7 +285,7 @@ func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) 
 func createReturnForIsShellScriptFreeOfInsecureDownloads(r pinnedResult,
 	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
-		"no insecure (unpinned) dependency downloads found in shell scripts",
+		"no insecure (not pinned by hash) dependency downloads found in shell scripts",
 		dl, err)
 }
 
@@ -282,7 +325,7 @@ func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 func createReturnForIsDockerfileFreeOfInsecureDownloads(r pinnedResult,
 	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
-		"no insecure (unpinned) dependency downloads found in Dockerfiles",
+		"no insecure (not pinned by hash) dependency downloads found in Dockerfiles",
 		dl, err)
 }
 
@@ -311,8 +354,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	contentReader := strings.NewReader(string(content))
 	res, err := parser.Parse(contentReader)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
 	var bytes []byte
@@ -331,8 +373,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		}
 
 		if len(valueList) == 0 {
-			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
+			return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
 		}
 
 		// Build a file content.
@@ -396,8 +437,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	pinnedAsNames := make(map[string]bool)
 	res, err := parser.Parse(contentReader)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
 	for _, child := range res.AST.Children {
@@ -432,20 +472,19 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 			// Not pinned.
 			ret = false
-			dl.Warn("unpinned dependency detected in %v: '%v'", pathfn, name)
+			dl.Warn("dependency not pinned by hash %v: '%v'", pathfn, name)
 
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
 				ret = false
-				dl.Warn("unpinned dependency detected in %v: '%v'", pathfn, name)
+				dl.Warn("dependency not pinned by hash %v: '%v'", pathfn, name)
 			}
 
 		default:
 			// That should not happen.
-			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
+			return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
 		}
 	}
 
@@ -467,7 +506,7 @@ func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int
 func createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r pinnedResult,
 	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
-		"no insecure (unpinned) dependency downloads found in GitHub workflows",
+		"no insecure (not pinned by hash) dependency downloads found in GitHub workflows",
 		dl, err)
 }
 
@@ -496,8 +535,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal,
+		return false, sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
 	}
 
@@ -597,8 +635,7 @@ func isStepWindows(step *gitHubActionWorkflowStep) (bool, error) {
 	for _, windowsRegex := range windowsRegexes {
 		matches, err := regexp.MatchString(windowsRegex, step.If)
 		if err != nil {
-			//nolint:wrapcheck
-			return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error matching Windows regex: %v", err))
+			return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error matching Windows regex: %v", err))
 		}
 		if matches {
 			return true, nil
@@ -610,20 +647,21 @@ func isStepWindows(step *gitHubActionWorkflowStep) (bool, error) {
 
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) (int, error) {
-	var r pinnedResult
+	var r worklowPinningResult
 	err := CheckFilesContent(".github/workflows/*", true, c, validateGitHubActionWorkflow, &r)
 	return createReturnForIsGitHubActionsWorkflowPinned(r, c.Dlogger, err)
 }
 
 // Create the result.
-func createReturnForIsGitHubActionsWorkflowPinned(r pinnedResult, dl checker.DetailLogger, err error) (int, error) {
-	return createReturnValues(r,
-		"GitHub actions are pinned",
+func createReturnForIsGitHubActionsWorkflowPinned(r worklowPinningResult, dl checker.DetailLogger,
+	err error) (int, error) {
+	return createReturnValuesForGitHubActionsWorkflowPinned(r,
+		"actions are pinned",
 		dl, err)
 }
 
 func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker.DetailLogger) (int, error) {
-	var r pinnedResult
+	var r worklowPinningResult
 	_, err := validateGitHubActionWorkflow(pathfn, content, dl, &r)
 	return createReturnForIsGitHubActionsWorkflowPinned(r, dl, err)
 }
@@ -632,27 +670,22 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 // should continue executing after this file.
 func validateGitHubActionWorkflow(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	if !isWorkflowFile(pathfn) {
-		return true, nil
-	}
-
-	pdata := dataAsResultPointer(data)
+	pdata := dataAsWorkflowResultPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {
-		addPinnedResult(pdata, true)
+		addWorkflowPinnedResult(pdata, true, true)
+		addWorkflowPinnedResult(pdata, true, true)
 		return true, nil
 	}
 
 	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal,
+		return false, sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
-	ret := true
 	for jobName, job := range workflow.Jobs {
 		if len(job.Name) > 0 {
 			jobName = job.Name
@@ -663,17 +696,18 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 				// Example: action-name@hash
 				match := hashRegex.Match([]byte(step.Uses.Value))
 				if !match {
-					ret = false
 					dl.Warn3(&checker.LogMessage{
 						Path: pathfn, Type: checker.FileTypeSource, Offset: step.Uses.Line, Snippet: step.Uses.Value,
-						Text: fmt.Sprintf("unpinned dependency detected (job '%v')", jobName),
+						Text: fmt.Sprintf("dependency not pinned by hash (job '%v')", jobName),
 					})
 				}
+
+				githubOwned := isGitHubOwnedAction(step.Uses.Value)
+				addWorkflowPinnedResult(pdata, match, githubOwned)
 			}
 		}
 	}
 
-	addPinnedResult(pdata, ret)
 	return true, nil
 }
 
@@ -686,6 +720,21 @@ func isWorkflowFile(pathfn string) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+// isGitHubOwnedAction check github specific action.
+func isGitHubOwnedAction(v string) bool {
+	a := strings.HasPrefix(v, "actions/")
+	c := strings.HasPrefix(v, "github/")
+	return a || c
+}
+
+func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
+	if isGitHub {
+		addPinnedResult(&w.gitHubOwned, to)
+	} else {
+		addPinnedResult(&w.thirdParties, to)
 	}
 }
 

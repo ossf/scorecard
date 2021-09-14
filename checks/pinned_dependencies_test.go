@@ -42,7 +42,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
 		},
@@ -53,7 +53,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
 		},
@@ -64,7 +64,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
 		},
@@ -73,9 +73,98 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			filename: "./testdata/workflow-not-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MinResultScore,
+				Score:         checker.MaxResultScore - 2,
 				NumberOfWarn:  1,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+
+			content, err = ioutil.ReadFile(tt.filename)
+			if err != nil {
+				panic(fmt.Errorf("cannot read file: %w", err))
+			}
+
+			dl := scut.TestDetailLogger{}
+			s, e := testIsGitHubActionsWorkflowPinned(tt.filename, content, &dl)
+			actual := checker.CheckResult{
+				Score:  s,
+				Error2: e,
+			}
+			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
+				t.Fail()
+			}
+		})
+	}
+}
+
+func TestNonGithubWorkflowPinning(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		filename string
+		expected scut.TestReturn
+	}{
+		{
+			name:     "Pinned non-github workflow",
+			filename: "./testdata/workflow-non-github-pinned.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "Pinned github workflow",
+			filename: "./testdata/workflow-mix-github-and-non-github-not-pinned.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  2,
 				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "Pinned github workflow",
+			filename: "./testdata/workflow-mix-github-and-non-github-pinned.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "Mix of pinned and non-pinned GitHub actions",
+			filename: "./testdata/workflow-mix-pinned-and-non-pinned-github.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore - 2,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "Mix of pinned and non-pinned non-GitHub actions",
+			filename: "./testdata/workflow-mix-pinned-and-non-pinned-non-github.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore - 8,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},
@@ -224,6 +313,57 @@ func TestDockerfilePinning(t *testing.T) {
 				Error2: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
+				t.Fail()
+			}
+		})
+	}
+}
+
+func TestDockerfilePinningWihoutHash(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected scut.TestReturn
+	}{
+		{
+			name:     "Pinned dockerfile as",
+			filename: "./testdata/Dockerfile-pinned-as-without-hash",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  4,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+
+			content, err = ioutil.ReadFile(tt.filename)
+			if err != nil {
+				panic(fmt.Errorf("cannot read file: %w", err))
+			}
+			dl := scut.TestDetailLogger{}
+			s, e := testValidateDockerfileIsPinned(tt.filename, content, &dl)
+			actual := checker.CheckResult{
+				Score:  s,
+				Error2: e,
+			}
+			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
+				t.Fail()
+			}
+
+			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+				return strings.Contains(logMessage.Text, "dependency not pinned by hash")
+			}
+
+			if !scut.ValidateLogMessage(isExpectedLog, &dl) {
 				t.Fail()
 			}
 		})
@@ -408,6 +548,58 @@ func TestDockerfileScriptDownload(t *testing.T) {
 	}
 }
 
+func TestDockerfileScriptDownloadInfo(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected scut.TestReturn
+	}{
+		{
+			name:     "curl | sh",
+			filename: "testdata/Dockerfile-no-curl-sh",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+
+			content, err = ioutil.ReadFile(tt.filename)
+			if err != nil {
+				panic(fmt.Errorf("cannot read file: %w", err))
+			}
+			dl := scut.TestDetailLogger{}
+			s, e := testValidateDockerfileIsFreeOfInsecureDownloads(tt.filename, content, &dl)
+			actual := checker.CheckResult{
+				Score:  s,
+				Error2: e,
+			}
+			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
+				t.Fail()
+			}
+
+			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+				return strings.Contains(logMessage.Text,
+					"no insecure (not pinned by hash) dependency downloads found in Dockerfiles")
+			}
+
+			if !scut.ValidateLogMessage(isExpectedLog, &dl) {
+				t.Fail()
+			}
+		})
+	}
+}
+
 func TestShellScriptDownload(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -503,6 +695,70 @@ func TestShellScriptDownload(t *testing.T) {
 				Error2: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
+				t.Fail()
+			}
+		})
+	}
+}
+
+func TestShellScriptDownloadPinned(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected scut.TestReturn
+	}{
+		{
+			name:     "sh script",
+			filename: "testdata/script-comments.sh",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "script free of download",
+			filename: "testdata/script-free-from-download.sh",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+
+			content, err = ioutil.ReadFile(tt.filename)
+			if err != nil {
+				panic(fmt.Errorf("cannot read file: %w", err))
+			}
+
+			dl := scut.TestDetailLogger{}
+			s, e := testValidateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &dl)
+			actual := checker.CheckResult{
+				Score:  s,
+				Error2: e,
+			}
+			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
+				t.Fail()
+			}
+
+			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+				return strings.Contains(logMessage.Text,
+					"no insecure (not pinned by hash) dependency downloads found in shell scripts")
+			}
+
+			if !scut.ValidateLogMessage(isExpectedLog, &dl) {
 				t.Fail()
 			}
 		})
@@ -627,7 +883,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 				t.Errorf("cannot read file: %w", err)
 			}
 			dl := scut.TestDetailLogger{}
-			var pinned pinnedResult
+			var pinned worklowPinningResult
 			_, err = validateGitHubActionWorkflow(tt.filename, content, &dl, &pinned)
 			if err != nil {
 				t.Errorf("error during validateGitHubActionWorkflow: %w", err)
@@ -636,7 +892,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
 					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == tt.filename &&
 						logMessage.Snippet == expectedLog.dependency && logType == checker.DetailWarn &&
-						strings.Contains(logMessage.Text, "unpinned dependency detected")
+						strings.Contains(logMessage.Text, "dependency not pinned by hash")
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
 					t.Errorf("test failed: log message not present: %+v", tt.expected)
