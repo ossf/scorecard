@@ -58,6 +58,9 @@ checks:
       The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or
       [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if
       it is enabled and does not ensure that it is run and pull requests are merged.
+      A project may meet this criterion yet have a failing scorecard report;
+      there are many ways to implement this criterion and it's especially
+      difficult for an automated tool (like scorecard) to detect them all.
 
     remediation:
       - >-
@@ -159,6 +162,9 @@ checks:
       mergeable, test, travis-ci. The check succeeds if at least 75% of
       successful pull requests have at least one successful check associated
       with them.
+      A project may meet this criterion yet have a failing scorecard report;
+      there are many ways to implement this criterion and it's especially
+      difficult for an automated tool (like scorecard) to detect them all.
     remediation:
       - Check-in scripts that run all the tests in your repository.
       - >-
@@ -271,6 +277,9 @@ checks:
 
       The check currently works by checking if the repo name is in the
       [OSS-Fuzz](https://github.com/google/oss-fuzz) project list.
+      A project may meet this criterion yet have a failing scorecard report;
+      there are many ways to implement this criterion and it's especially
+      difficult for an automated tool (like scorecard) to detect them all.
     remediation:
       - >-
         Integrate the project with OSS-Fuzz by following the instructions
@@ -386,6 +395,9 @@ checks:
       such as [github-code-scanning](https://securitylab.github.com/tools/codeql)
       (codeql) and sonarcloud in the recent (~30) merged PRs. The
       check also looks for the use of "github/codeql-action" in a GitHub workflow.
+      A project may meet this criterion yet have a failing scorecard report;
+      there are many ways to implement this criterion and it's especially
+      difficult for an automated tool (like scorecard) to detect them all.
     remediation:
       - >-
         Run CodeQL checks in your CI/CD by following the instructions
