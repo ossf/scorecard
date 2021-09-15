@@ -15,7 +15,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: scorecard-bq-transfer-releasetest
+  name: scorecard-bq-transfer-releasetest-v2
 spec:
   # Daily at 9am and 6pm PST.
   schedule: "0 1,16 * * *"
