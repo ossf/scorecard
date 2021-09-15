@@ -126,7 +126,7 @@ checks:
       branches, such as preventing rewriting of public history
       (e.g., a *force push*),
       requiring review before acceptance into a main branch,
-      or passing certain status checks before acceptance into a main branch..
+      or passing certain status checks before acceptance into a main branch.
 
       Branch protection can reduce the risk of unintentional or malicious
       code from entering the "main" branch.
@@ -288,7 +288,7 @@ checks:
       (labels "lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by").
     remediation:
       - >-
-        If the project has only contributor, or does not have enough
+        If the project has only one contributor, or does not have enough
         reviewers to practically require that all contributions be reviewed,
         try to recruit more maintainers to the project who will be
         willing to review others' work.
@@ -326,8 +326,7 @@ checks:
 
       The check works by looking at the authors of recent commits
       and checking the `Company` field on the GitHub user profile. A contributor
-      must have at least 5 commits in the last 30 commits. The check succeeds if
-      all contributors span at least 2 different organizations (companies).
+      must have at least 5 commits in the last 30 commits.
     remediation:
       - >-
         There is *NO* remediation work needed here. This is to provide some
