@@ -23,7 +23,7 @@ import (
 )
 
 // CheckCodeReview is the registered name for DoesCodeReview.
-const CheckCodeReview = "Code-Review"
+const CheckCodeReview = "Contribution-Review"
 
 //nolint:gochecknoinits
 func init() {

@@ -210,7 +210,7 @@ checks:
       - >-
         Sign up for the [CII Best Practices
         program](https://bestpractices.coreinfrastructure.org/en).
-  Code-Review:
+  Contribution-Review:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
     short: Determines if the project requires code review before pull requests are merged.

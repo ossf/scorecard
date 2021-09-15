@@ -51,7 +51,7 @@ A low score is considered 'Low' risk. The check uses the URL for the Git repo an
 **Remediation steps**
 - Sign up for the [CII Best Practices program](https://bestpractices.coreinfrastructure.org/en).
 
-## Code-Review 
+## Contribution-Review 
 
 This check tries to determine if the project requires code review before pull requests are merged.
 Reviewing code improves the quality of code in general. In addition, it ensures compromised contributors cannot intentionally inject malicious code. A low score is therefore considered `High` risk.
