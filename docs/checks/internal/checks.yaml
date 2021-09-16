@@ -327,6 +327,8 @@ checks:
       The check works by looking at the authors of recent commits
       and checking the `Company` field on the GitHub user profile. A contributor
       must have at least 5 commits in the last 30 commits.
+      The highest score is achieved when there are contributors from
+      at least 3 different companies in the last 30 commits.
     remediation:
       - >-
         There is *NO* remediation work needed here. This is to provide some
