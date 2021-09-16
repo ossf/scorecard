@@ -34,6 +34,10 @@ spec:
               value: "gs://ossf-scorecard-data-releasetest2"
             - name: SCORECARD_BIGQUERY_TABLE
               value: "scorecard_releasetest2"
+            - name: SCORECARD_COMPLETION_THRESHOLD
+              value: "1"
+            - name: SCORECARD_WEBHOOK_URL
+              value: "http://10.4.8.246/"
             resources:
               limits:
                 memory: 1Gi
