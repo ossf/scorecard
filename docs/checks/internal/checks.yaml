@@ -363,16 +363,37 @@ checks:
   Packaging:
     risk: Medium
     tags: supply-chain, security, releases
-    short: Determines if the project is published as a package that other developers can install/download.
+    short: Determines if the project is published as a package that others can easily download, install, easily update, and uninstall.
     description:
-      This check tries to determine if the project is published as a package that other developers can install/download.
+      This check tries to determine if the project is published as a package that others can easily download, install, easily update, and uninstall.
 
-      Packaging your project is essential for users to receive updates and security patches automatically.
+      It's important that the project provide an easy way to
+      download, install, update, and uninstall the software.
+      It's particularly important to make it easy for users to
+      receive security patches as updates.
+
+      This is often done by creating a "package" that is
+      easy to install and uninstall by a package manager.
+      Many program language ecosystems have a generally-used packaging format
+      supported by a language-level package manager
+      tool and public package repository.
+      Many operating system platforms also have at least one package format,
+      tool, and public repository (in some cases the source repository
+      generates system-independent source packages, which are then
+      used by others to generate system executable packages).
+      Container images are yet another way to package software.
+      In some situations packaging is not sensible, but it's wise to package
+      software in so many circumstances that it's worth checking for it.
+
       A low score is considered `Medium` risk.
 
       The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package)
       and language-specific GitHub Actions that upload the package to a corresponding hub, e.g., [Npm](https://www.npmjs.com/).
       There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).
+      A project may meet this criterion yet have a failing scorecard report;
+      some widely-used tools are relatively easy to detect, but it's
+      challenging for an automated tool (like scorecard) to detect
+      them all.
     remediation:
       - Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
       - Use a GitHub action to release your package to language-specific hubs.
