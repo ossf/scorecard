@@ -58,6 +58,9 @@ checks:
       The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or
       [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if
       it is enabled and does not ensure that it is run and pull requests are merged.
+      A project may meet this criterion yet have a failing scorecard report;
+      there are many ways to implement this criterion, and it's challenging
+      for an automated tool (like scorecard) to detect them all.
 
     remediation:
       - >-
@@ -152,13 +155,16 @@ checks:
       Running tests helps developers catch mistakes early on.
       A low score is considered 'Low' risk.
 
-      The check works by looking for a set of well-known CI-system
+      The check works by looking for a set of CI-system
       names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30).
       A CI-system is considered well-known if its name contains any of the
       following: appveyor, buildkite, circleci, e2e, github-actions, jenkins,
-      mergeable, test, travis-ci. The check succeeds if at least 75% of
-      successful pull requests have at least one successful check associated
-      with them.
+      mergeable, test, travis-ci.
+      A project may meet this criterion yet have a failing scorecard report;
+      there are many ways to implement this criterion, and it's challenging
+      for an automated tool (like scorecard) to detect them all.
+      If a project's system was not detected and you think it should be, please
+      [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose).
     remediation:
       - Check-in scripts that run all the tests in your repository.
       - >-
@@ -271,6 +277,9 @@ checks:
 
       The check currently works by checking if the repo name is in the
       [OSS-Fuzz](https://github.com/google/oss-fuzz) project list.
+      A project may meet this criterion yet have a failing scorecard report;
+      there are many ways to implement this criterion, and it's challenging
+      for an automated tool (like scorecard) to detect them all.
     remediation:
       - >-
         Integrate the project with OSS-Fuzz by following the instructions
@@ -386,6 +395,9 @@ checks:
       such as [github-code-scanning](https://securitylab.github.com/tools/codeql)
       (codeql) and sonarcloud in the recent (~30) merged PRs. The
       check also looks for the use of "github/codeql-action" in a GitHub workflow.
+      A project may meet this criterion yet have a failing scorecard report;
+      there are many ways to implement this criterion and it's especially
+      difficult for an automated tool (like scorecard) to detect them all.
     remediation:
       - >-
         Run CodeQL checks in your CI/CD by following the instructions
