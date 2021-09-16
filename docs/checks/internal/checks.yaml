@@ -125,11 +125,35 @@ checks:
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: >-
       [Branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
-      allows defining rules to enforce certain workflows for
-      branches, such as requiring a review or passing certain status checks.
+      can enable various rules to enforce certain workflows for
+      branches, such as preventing rewriting of public history
+      (e.g., a *force push*),
+      requiring review before acceptance into a main branch,
+      or passing certain status checks before acceptance into a main branch.
 
-      Branch protection ensures compromised contributors cannot
-      intentionally inject malicious code. A low score is therefore considered `High` risk.
+      Branch protection can reduce the risk of unintentional or malicious
+      code from entering the "main" branch.
+      Branch protection rules that prevent rewriting of public history
+      (e.g., preventing *force push* of public branches) prevent history
+      from changing without external notice.
+      Branch protection rules that require status checks ensure that
+      at least those checks are met before a change is accepted.
+      Branch protection rules that require at least one other reviewer
+      reviews greatly reduces the risk that a compromise of a contributor's
+      account will lead to injection of malicious code. Review also increases
+      the likelihood that an unintentional vulnerability in a contribution
+      will be detected and fixed before the change is accepted.
+      A low score is therefore considered `High` risk.
+
+      Note, however, that requiring reviews for every proposed change
+      is impractical for many projects, since many projects simply don't
+      have that many active participants. For more discussion, see
+      [Code Reviews](#code-reviews).
+
+      In some cases these rules will need to be suspended.
+      For example, if a past commit includes illegal content
+      (such as child pornography), it may be impractical to hide the commit
+      and in such cases the history may need to be rewritten.
 
       This check determines if the default and release branches are
       protected with GitHub's branch protection settings.
@@ -219,14 +243,47 @@ checks:
   Code-Review:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
-    short: Determines if the project requires code review before pull requests are merged.
+    short: Determines if the project requires code review before pull requests (aka merge requests) are merged.
     description: >-
       This check tries to determine if the project requires code review before
-      pull requests are merged.
+      pull requests (aka merge requests) are merged.
 
-      Reviewing code improves the quality of code in general. In addition, it ensures
-      compromised contributors cannot intentionally inject malicious code. A low
-      score is therefore considered `High` risk.
+      Reviewing code improves the quality of code in general,
+      because reviews may detect various unintentional
+      problems that can be fixed immediately before they are merged.
+      Such problems include unintentional vulnerabilities, so unintentional
+      vulnerabilities can be reduced through review.
+      Reviews also make it
+      more difficult for an attacker to insert malicious code
+      (either as a malicious contributor or as an attacker who has
+      subverted a contributor's account), because a reviewer might detect
+      the subversion.
+      This increased difficulty can even deter attackers.
+      A low score is therefore considered `High` risk.
+
+      However, requiring that all proposed changes be reviewed by someone
+      else before merging them is impractical for some projects.
+      A project with only one active participant cannot practically
+      enforce multi-person review, and even a project with multiple
+      active participants may not have enough active participation to be able
+      to require review of all proposed changes.
+      Such projects will not be able to practically enforce rules such as
+      requiring a minimum number of reviewers, and administrators in
+      practice will be exempt from reviews.
+      Projects with a small number of active participants, but more than one,
+      instead sometimes aim for a review of a percentage of proposals
+      (e.g., "at least half of all proposed changes are reviewed").
+
+      In addition, note that requiring review does not eliminate all risks.
+      The other reviewer(s) might fail to notice unintentional vulnerabilities
+      or malicious code. They might be colluding with a malicious developer.
+      The "other" reviewers might even be the same person
+      (aka a "sock puppet").
+
+      In short, requiring others' review before accepting a change
+      reduces risks to users,
+      as those additional reviewers may detect problems early,
+      but it is not a practical requirement for some projects.
 
       The check first tries to detect if Branch-Protection is enabled
       on the default branch ,and the number of reviewers is at least 1. If this
@@ -237,8 +294,18 @@ checks:
       (labels "lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by").
     remediation:
       - >-
+        If the project has only one contributor, or does not have enough
+        reviewers to practically require that all contributions be reviewed,
+        try to recruit more maintainers to the project who will be
+        willing to review others' work.
+        Ideally at least some of these people will
+        be from different organizations.
+        If the project has very limited utility, consider expanding its
+        intended utility so more people will be interested in improving
+        it, and make that larger scope clear to potential contributors.
+      - >-
         Follow security best practices by performing strict code reviews for
-        every new pull request.
+        every new pull request / merge request.
       - >-
         Make "code reviews" mandatory in your repository configuration. E.g.
         [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-pull-request-reviews-before-merging).
@@ -248,17 +315,26 @@ checks:
   Contributors:
     risk: Low
     tags: source-code
-    short: Determines if the project has a set of contributors from multiple companies.
+    short: Determines if the project has a set of contributors from multiple organizations (e.g., companies).
     description: >-
       This check tries to determine if the project has a set of contributors from
-      multiple companies.
+      multiple organizations (e.g., companies).
 
       Low score has 'Low' risk.
 
+      Some projects cannot meet this requirement.
+      Obviously projects with only one active participant
+      cannot meet it.
+      Many projects have a narrow scope and may not be able to attract
+      the interest of multiple organizations.
+      See [Code Reviews](#code-reviews) for added notes about
+      projects with a small number of participants.
+
       The check works by looking at the authors of recent commits
       and checking the `Company` field on the GitHub user profile. A contributor
-      must have at least 5 commits in the last 30 commits. The check succeeds if
-      all contributors span at least 2 different companies.
+      must have at least 5 commits in the last 30 commits.
+      The highest score is achieved when there are contributors from
+      at least 3 different companies in the last 30 commits.
     remediation:
       - >-
         There is *NO* remediation work needed here. This is to provide some
