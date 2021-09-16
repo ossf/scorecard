@@ -37,11 +37,11 @@ func UsesDependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	}
 	if !r {
 		c.Dlogger.Warn3(&checker.LogMessage{
-			Text: `dependabot config file not detected in source location .
+			Text: `dependabot config file not detected in source location.
 			We recommend setting this configuration in code so it can be easily verified by others.`,
 		})
 		c.Dlogger.Warn3(&checker.LogMessage{
-			Text: `renovatebot  config file not detected in source location .
+			Text: `renovatebot config file not detected in source location.
 			We recommend setting this configuration in code so it can be easily verified by others.`,
 		})
 		return checker.CreateMinScoreResult(CheckDependencyUpdateTool, "no update tool detected")
