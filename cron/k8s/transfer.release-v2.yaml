@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: scorecard-bq-transfer-releasetest
+  name: scorecard-bq-transfer-releasetest-v2
 spec:
   # Daily at 9am and 6pm PST.
   schedule: "0 1,16 * * *"
@@ -34,6 +34,10 @@ spec:
               value: "gs://ossf-scorecard-data-releasetest2"
             - name: SCORECARD_BIGQUERY_TABLE
               value: "scorecard_releasetest2"
+            - name: SCORECARD_COMPLETION_THRESHOLD
+              value: "1"
+            - name: SCORECARD_WEBHOOK_URL
+              value: "http://10.4.8.246/"
             resources:
               limits:
                 memory: 1Gi
