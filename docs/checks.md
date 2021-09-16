@@ -37,7 +37,7 @@ This check determines if the default and release branches are protected with Git
 
 This check tries to determine if the project runs tests before pull requests are merged.
 Running tests helps developers catch mistakes early on. A low score is considered 'Low' risk.
-The check works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its name contains any of the following: appveyor, buildkite, circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. 
+The check works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its name contains any of the following: appveyor, buildkite, circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion and it's especially difficult for an automated tool (like scorecard) to detect them all. 
 
 **Remediation steps**
 - Check-in scripts that run all the tests in your repository.
@@ -82,7 +82,7 @@ The check works by looking at the authors of recent commits and checking the `Co
 
 This check tries to determine if the project uses a dependency update tool.
 Not updating dependencies makes a project vulnerable to known flaws and prone to attacks. A low score is therefore considered `High` risk.
-The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. 
+The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion and it's especially difficult for an automated tool (like scorecard) to detect them all. 
 
 **Remediation steps**
 - Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.
@@ -91,7 +91,7 @@ The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [
 
 This check tries to determine if the project uses fuzzing.
 Fuzzing is important to reduce the number of vulnerabilities in code. A low score is considered 'Medium' risk.
-The check currently works by checking if the repo name is in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list. 
+The check currently works by checking if the repo name is in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion and it's especially difficult for an automated tool (like scorecard) to detect them all. 
 
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
@@ -135,7 +135,7 @@ You can learn more about dependencies for projects on GitHub using [GitHub depen
 
 This check tries to determine if the project uses static code analysis.
 SAST tool may prevent known classes of bugs to be inadvertently introduced in the codebase. A low score is considered `Medium` risk.
-The checks currently looks for known Github apps such as [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and sonarcloud in the recent (~30) merged PRs. The check also looks for the use of "github/codeql-action" in a GitHub workflow. 
+The checks currently looks for known Github apps such as [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and sonarcloud in the recent (~30) merged PRs. The check also looks for the use of "github/codeql-action" in a GitHub workflow. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion and it's especially difficult for an automated tool (like scorecard) to detect them all. 
 
 **Remediation steps**
 - Run CodeQL checks in your CI/CD by following the instructions [here](https://github.com/github/codeql-action#usage).
