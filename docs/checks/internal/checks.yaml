@@ -394,6 +394,9 @@ checks:
       some widely-used tools are relatively easy to detect, but it's
       challenging for an automated tool (like scorecard) to detect
       them all.
+      If scorecard fails to detect the way you publish a package and
+      you think scorecard should support your use case, please
+      [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose).
     remediation:
       - Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
       - Use a GitHub action to release your package to language-specific hubs.
