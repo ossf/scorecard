@@ -88,4 +88,13 @@ var (
 		TagKeys:     []tag.Key{CheckName, RequestTag},
 		Aggregation: view.Count(),
 	}
+
+	// ShellParseErrorCount tracks error count stats for parsing shell code.
+	ShellParseErrorCount = view.View{
+		Name:        "ShellParseErrorCount",
+		Description: "Shell parsing errors",
+		Measure:     ShellParseErrors,
+		TagKeys:     []tag.Key{},
+		Aggregation: view.Count(),
+	}
 )

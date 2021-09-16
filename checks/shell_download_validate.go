@@ -17,6 +17,7 @@ package checks
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -25,10 +26,12 @@ import (
 	"regexp"
 	"strings"
 
+	opencensusstats "go.opencensus.io/stats"
 	"mvdan.cc/sh/v3/syntax"
 
 	"github.com/ossf/scorecard/v2/checker"
 	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v2/stats"
 )
 
 var (
@@ -679,6 +682,8 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 	in := strings.NewReader(string(content))
 	f, err := syntax.NewParser().Parse(in, "")
 	if err != nil {
+		ctx := context.Background()
+		opencensusstats.Record(ctx, stats.ShellParseErrors.M(1))
 		// Note: this is caught by internal caller and only printed
 		// to avoid failing on shell scripts that our parser does not understand.
 		// Example: https://github.com/openssl/openssl/blob/master/util/shlib_wrap.sh.in
