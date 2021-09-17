@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: scorecard-bq-transfer
+  name: scorecard-bq-transfer-v2
 spec:
   # At 02:00UTC on Monday and Thursday.
   schedule: "0 2 * * 1,4"
