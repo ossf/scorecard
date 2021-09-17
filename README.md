@@ -21,7 +21,7 @@
 ## Checks 
 
 -  [Default Scorecards Checks ](#scorecard-checks)
--  [Learn More about Each Check](docs/checks.md)
+-  [Detailed Check Documentation](docs/checks.md)
    (Scoring Criteria, Risks, and Remediation)
 
 ## Contribute
@@ -327,8 +327,8 @@ Signed-Releases             | Does the project cryptographically [sign releases]
 Token-Permissions           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?
 Vulnerabilities             | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).
 
-### Learn More About Each Check
-To see detailed information about each check and remediation steps, check out
+### Detailed Checks Documentation
+To see detailed information about each check, its scoring criteria, and remediation steps, check out
 the [checks documentation page](docs/checks.md).
 
 
