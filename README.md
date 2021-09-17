@@ -30,7 +30,7 @@
 -  [Contribute to Scorecards  ](https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md#contributing-to-security-scorecards)
 -  [Add a New
    Check](https://github.com/ossf/scorecard/blob/main/checks/write.md)
--  [Get Involved](https://github.com/ossf/scorecard#motivation)
+-  [Get Involved](https://github.com/ossf/scorecard#get-involved)
 -  [Report a Security Issue
    ](https://github.com/ossf/scorecard/blob/main/SECURITY.md)
    
