@@ -108,9 +108,10 @@ The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
 docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-details --repo=https://github.com/ossf/scorecard
 ```
 
+### Basic Usage
 #### Using repository URL
 
-The program can run using just one argument, the URL of the repo:
+Scorecards can run using just one argument, the URL of the target repo:
 
 ```shell
 $ go get github.com/ossf/scorecard/v2
@@ -237,8 +238,6 @@ package name and it would run the checks on the corresponding GitHub source
 code.
 
 For example: `--npm=angular`
-
-### Basic Usage
 
 #### Running specific checks
 
