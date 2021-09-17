@@ -222,48 +222,7 @@ For example:
 
 ```shell
 ./scorecard --npm=angular
-Starting [Active]
-Starting [Branch-Protection]
-Starting [CI-Tests]
-Starting [CII-Best-Practices]
-Starting [Code-Review]
-Starting [Contributors]
-Starting [Pinned-Dependencies]
-Starting [Fuzzing]
-Starting [Packaging]
-Starting [Pull-Requests]
-Starting [SAST]
-Starting [Security-Policy]
-Starting [Signed-Releases]
-Finished [Signed-Releases]
-Finished [Fuzzing]
-Finished [CII-Best-Practices]
-Finished [Security-Policy]
-Finished [CI-Tests]
-Finished [Packaging]
-Finished [SAST]
-Finished [Code-Review]
-Finished [Branch-Protection]
-Finished [Pinned-Dependencies]
-Finished [Active]
-Finished [Pull-Requests]
-Finished [Contributors]
 
-RESULTS
--------
-Active: Fail 10
-Branch-Protection: Fail 0
-CI-Tests: Pass 10
-CII-Best-Practices: Fail 10
-Code-Review: Pass 10
-Contributors: Pass 10
-Pinned-Dependencies: Fail 0
-Fuzzing: Fail 10
-Packaging: Fail 0
-Pull-Requests: Fail 9
-SAST: Fail 10
-Security-Policy: Pass 10
-Signed-Releases: Fail 0
 ```
 
 #### Running specific checks
@@ -272,13 +231,6 @@ To use a particular check(s), add the `--checks` argument with a list of check
 names.
 
 For example, `--checks=CI-Tests,Code-Review`.
-
-#### Understanding Scorecard results
-
-Each check returns a **Pass / Fail** decision, as well as a confidence score
-between **0 and 10**. A confidence of 0 should indicate the check was unable to
-achieve any real signal, and the result should be ignored. A confidence of 10
-indicates the check is completely sure of the result.
 
 #### Formatting Results
 
@@ -340,11 +292,14 @@ bq extract --destination_format=NEWLINE_DELIMITED_JSON
 The list of projects that are checked is available in the
 [`cron/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/data/projects.csv)
 file in this repository. If you would like us to track more, please feel free to
-send a Pull Request with others.
-
-**NOTE**: Currently, these lists are derived from **projects hosted on GitHub
+send a Pull Request with others. Currently, this list is derived from **projects hosted on GitHub
 ONLY**. We do plan to expand them in near future to account for projects hosted
 on other source control systems.
+
+**NOTE**: The public dataset includes data from earlier version of Scorecards that used Pass/Fail scoring systems. Previously, each check returned a **Pass / Fail** decision, as well as a confidence score
+between **0 and 10**. A confidence of 0 indicated that the check was unable to
+achieve any real signal, and that the result should be ignored. A confidence of 10
+indicated the check was completely sure of the result. Scorecards no longer uses this Pass/Fail system for current checks.
 
 ## Checks
 ### Scorecard Checks
