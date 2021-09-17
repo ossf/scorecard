@@ -5,26 +5,39 @@
 
 <img align="right" src="artwork/openssf_security.png" width="200" height="400">
 
-<!-- vim-markdown-toc GFM -->
+## Using Scorecards
 
-*   [Motivation](#motivation)
-*   [Goals](#goals)
-*   [Scorecard Checks](#scorecard-checks)
-*   [Usage](#usage)
-    *   [Authentication](#authentication)
-    *   [Docker](#docker)
-    *   [Using repository URL](#using-repository-url)
-    *   [Using a Package manager](#using-a-package-manager)
-    *   [Running specific checks](#running-specific-checks)
-    *   [Understanding Scorecard results](#understanding-scorecard-results)
-    *   [Formatting Results](#formatting-results)
-*   [Public Data](#public-data)
-*   [Adding a Scorecard Check](#adding-a-scorecard-check)
-*   [Troubleshooting](#troubleshooting)
-*   [Supportability](#supportability)
-*   [Contributing](#contributing)
+-  [Prerequisites](https://github.com/ossf/scorecard#supportability) 
+-  [Installation and Authentication](https://github.com/ossf/scorecard#authentication)
+-  [Basic Usage](https://github.com/ossf/scorecard#running-scorecards-using-a-url)
+-  [Troubleshooting](https://github.com/ossf/scorecard#troubleshooting) 
 
-<!-- vim-markdown-toc -->
+## Overview 
+
+-  [Motivation and Goals](https://github.com/ossf/scorecard#motivation)
+-  View and Analyze [Scorecards' Public
+   Data](https://github.com/ossf/scorecard#public-data)
+
+## Checks 
+
+-  Overview of the
+   [Current Scorecards Checks ](https://github.com/ossf/scorecard#scorecard-checks)
+-  [Learn More about Each Check](https://github.com/ossf/scorecard/blob/main/docs/checks.md)
+   (Scoring Criteria, Risks, and Remediation)
+
+## Contribute
+
+-  Follow our
+   [Code of Conduct](https://github.com/ossf/scorecard/blob/main/CODE_OF_CONDUCT.md)
+-  [Contribute to Scorecards  ](https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md#contributing-to-security-scorecards)
+-  [Add a New
+   Check](https://github.com/ossf/scorecard/blob/main/checks/write.md)
+-  Connect with the Scorecards Community 
+-  Report a [Security Issue
+   ](https://github.com/ossf/scorecard/blob/main/SECURITY.md)
+   
+________
+________
 
 ## Motivation
 
