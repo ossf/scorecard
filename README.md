@@ -30,7 +30,7 @@
 -  [Contribute to Scorecards  ](CONTRIBUTING.md)
 -  [Add a New
    Check](checks/write.md)
--  [Get Involved](#get-involved)
+-  [Connect with the Scorecards Community](#connect-with-the-scorecards-community)
 -  [Report a Security Issue
    ](SECURITY.md)
    
@@ -339,7 +339,7 @@ contribute to the project.
 
 If you'd like to add a check, please see guidance [here](checks/write.md).
 
-### Get Involved
+### Connect with the Scorecards Community
 
 If you want to get involved in the Scorecards community or have ideas you'd like to chat about, we discuss
 this project in the
