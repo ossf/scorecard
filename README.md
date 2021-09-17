@@ -5,37 +5,55 @@
 
 <img align="right" src="artwork/openssf_security.png" width="200" height="400">
 
-## Using Scorecards
-
--  [Prerequisites](https://github.com/ossf/scorecard#prerequisites) 
--  [Authentication and Setup](https://github.com/ossf/scorecard#authentication)
--  [Basic Usage](https://github.com/ossf/scorecard#running-scorecards-using-a-url)
--  [Report Problems](https://github.com/ossf/scorecard#report-problems) 
-
 ## Overview 
 
--  [What Is Scorecards?](https://github.com/ossf/scorecard#what-is-scorecards)
+-  [What Is Scorecards?](#what-is-scorecards)
+
+## Using Scorecards
+
+-  [Prerequisites](#prerequisites) 
+-  [Authentication and Setup](#authentication-and-setup)
+-  [Basic Usage](#basic-usage)
+-  [Report Problems](#report-problems) 
 -  [Scorecards' Public
-   Data](https://github.com/ossf/scorecard#public-data)
+   Data](#public-data)
 
 ## Checks 
 
--  [Default Scorecards Checks ](https://github.com/ossf/scorecard#scorecard-checks)
--  [Learn More about Each Check](https://github.com/ossf/scorecard/blob/main/docs/checks.md)
+-  [Default Scorecards Checks ](#scorecard-checks)
+-  [Learn More about Each Check](docs/checks.md)
    (Scoring Criteria, Risks, and Remediation)
 
 ## Contribute
 
--  [Code of Conduct](https://github.com/ossf/scorecard/blob/main/CODE_OF_CONDUCT.md)
--  [Contribute to Scorecards  ](https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md#contributing-to-security-scorecards)
+-  [Code of Conduct](CODE_OF_CONDUCT.md)
+-  [Contribute to Scorecards  ](CONTRIBUTING.md)
 -  [Add a New
-   Check](https://github.com/ossf/scorecard/blob/main/checks/write.md)
--  [Get Involved](https://github.com/ossf/scorecard#get-involved)
+   Check](checks/write.md)
+-  [Get Involved](#get-involved)
 -  [Report a Security Issue
-   ](https://github.com/ossf/scorecard/blob/main/SECURITY.md)
+   ](SECURITY.md)
    
 ________
 ________
+## Overview 
+### What is Scorecards?
+
+We created Scorecards to give consumers of open-source projects an easy way to judge whether their dependencies are safe.
+
+Scorecards is an automated tool that assesses a number of important heuristics [("checks")](#scorecard-checks) associated with software security and assigns each check a score of 0-10. You can use these scores to understand specific areas to improve in order to strengthen the security posture of your project. You can also assess the risks that dependencies introduce, and make informed decisions about accepting these risks, evaluating alternative solutions, or working with the maintainers to make improvements.
+
+The inspiration for Scorecards’ logo: ["You passed! All D's ... and an A!"](https://youtu.be/rDMMYT3vkTk)
+
+#### Project Goals
+
+1.  Automate analysis and trust decisions on the security posture of open source
+    projects.
+
+1.  Use this data to proactively improve the security posture of the critical
+    projects the world depends on.
+
+
 ## Using Scorecards
 
 ### Prerequisites
@@ -44,7 +62,7 @@ Platforms: Currently, Scorecards supports OSX and Linux platforms. If you are us
 
 Language: You must have GoLang installed to run Scorecards (https://golang.org/doc/install)
 
-### Authentication
+### Authentication and Setup
 
 Before running Scorecard, you need to either:
 
@@ -224,6 +242,7 @@ For example:
 ./scorecard --npm=angular
 
 ```
+### Basic Usage
 
 #### Running specific checks
 
@@ -245,23 +264,6 @@ If you have what looks like a bug, please use the
 [Github issue tracking system.](https://github.com/ossf/scorecard/issues)
 Before you file an issue, please search existing issues to see if your issue
 is already covered.
-
-## Overview 
-### What is Scorecards?
-
-We created Scorecards to give consumers of open-source projects an easy way to judge whether their dependencies are safe.
-
-Scorecards is an automated tool that assesses a number of important heuristics [("checks")](#scorecard-checks) associated with software security and assigns each check a score of 0-10. You can use these scores to understand specific areas to improve in order to strengthen the security posture of your project. You can also assess the risks that dependencies introduce, and make informed decisions about accepting these risks, evaluating alternative solutions, or working with the maintainers to make improvements.
-
-The inspiration for Scorecards’ logo: ["You passed! All D's ... and an A!"](https://youtu.be/rDMMYT3vkTk)
-
-#### Project Goals
-
-1.  Automate analysis and trust decisions on the security posture of open source
-    projects.
-
-1.  Use this data to proactively improve the security posture of the critical
-    projects the world depends on.
 
 ### Public Data
 
