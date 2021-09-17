@@ -237,7 +237,7 @@ scorecard has an option to provide either `--npm` / `--pypi` / `--rubygems`
 package name and it would run the checks on the corresponding GitHub source
 code.
 
-For example: `--npm=angular`
+For example, `--npm=angular`.
 
 #### Running specific checks
 
