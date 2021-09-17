@@ -236,12 +236,8 @@ scorecard has an option to provide either `--npm` / `--pypi` / `--rubygems`
 package name and it would run the checks on the corresponding GitHub source
 code.
 
-For example:
+For example: `--npm=angular`
 
-```shell
-./scorecard --npm=angular
-
-```
 ### Basic Usage
 
 #### Running specific checks
@@ -256,7 +252,7 @@ For example, `--checks=CI-Tests,Code-Review`.
 There are three formats currently: `default`, `json`, and `csv`. Others may be
 added in the future.
 
-These may be specified with the `--format` flag.
+These may be specified with the `--format` flag. For example, `--format=json`.
 
 ### Report Problems
 
