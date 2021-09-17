@@ -7,33 +7,31 @@
 
 ## Using Scorecards
 
--  [Prerequisites](https://github.com/ossf/scorecard#supportability) 
+-  [Prerequisites](https://github.com/ossf/scorecard#prerequisites) 
 -  [Installation and Authentication](https://github.com/ossf/scorecard#authentication)
 -  [Basic Usage](https://github.com/ossf/scorecard#running-scorecards-using-a-url)
--  [Troubleshooting](https://github.com/ossf/scorecard#troubleshooting) 
+-  [Report Problems](https://github.com/ossf/scorecard#report-problems) 
 
 ## Overview 
 
 -  [Motivation and Goals](https://github.com/ossf/scorecard#motivation)
--  View and Analyze [Scorecards' Public
+-  [Scorecards' Public
    Data](https://github.com/ossf/scorecard#public-data)
 
 ## Checks 
 
--  Overview of the
-   [Current Scorecards Checks ](https://github.com/ossf/scorecard#scorecard-checks)
+-  [Default Scorecards Checks ](https://github.com/ossf/scorecard#scorecard-checks)
 -  [Learn More about Each Check](https://github.com/ossf/scorecard/blob/main/docs/checks.md)
    (Scoring Criteria, Risks, and Remediation)
 
 ## Contribute
 
--  Follow our
-   [Code of Conduct](https://github.com/ossf/scorecard/blob/main/CODE_OF_CONDUCT.md)
+-  [Code of Conduct](https://github.com/ossf/scorecard/blob/main/CODE_OF_CONDUCT.md)
 -  [Contribute to Scorecards  ](https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md#contributing-to-security-scorecards)
 -  [Add a New
    Check](https://github.com/ossf/scorecard/blob/main/checks/write.md)
--  Connect with the Scorecards Community 
--  Report a [Security Issue
+-  [Get Involved](https://github.com/ossf/scorecard#motivation)
+-  [Report a Security Issue
    ](https://github.com/ossf/scorecard/blob/main/SECURITY.md)
    
 ________
@@ -365,7 +363,7 @@ on other source control systems.
 
 If you'd like to add a check, please see guidance [here](checks/write.md)
 
-## Troubleshooting
+## Report Problems
 
 -   ### Bugs and Feature Requests:
 
@@ -375,21 +373,13 @@ If you'd like to add a check, please see guidance [here](checks/write.md)
     Before you file an issue, please search existing issues to see if your issue
     is already covered.
 
--   ### Slack
+## Prerequisites
 
-    For realtime discussion, you can join the
-    [#security_scorecards](https://slack.openssf.org/#security_scorecards) slack
-    channel. Slack requires registration, but the openssf team is open
-    invitation to anyone to register here. Feel free to come and ask any
-    questions.
+Platforms: Currently, Scorecards supports OSX and Linux platforms. If you are using a Windows OS you may experience issues. Contributions towards supporting Windows are welcome.
 
-## Supportability
+Language: You must have GoLang installed to run Scorecards (https://golang.org/doc/install)
 
-Currently, scorecard officially supports OSX and Linux platforms. So, if you are
-using a Windows OS you may find issues. Contributions towards supporting Windows
-are welcome.
-
-## Contributing
+## Get Involved
 
 If you want to get involved or have ideas you'd like to chat about, we discuss
 this project in the
@@ -400,6 +390,12 @@ See the
 [Community Calendar](https://calendar.google.com/calendar?cid=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ)
 for the schedule and meeting invitations. The meetings happen biweekly
 https://calendar.google.com/calendar/embed?src=s63voefhp5i9pfltb5q67ngpes%40group.calendar.google.com&ctz=America%2FLos_Angeles
+
+For realtime discussion, you can join the
+[#security_scorecards](https://slack.openssf.org/#security_scorecards) slack
+channel. Slack requires registration, but the openssf team is open
+invitation to anyone to register here. Feel free to come and ask any
+questions.
 
 See the [Contributing](CONTRIBUTING.md) documentation for guidance on how to
 contribute.
