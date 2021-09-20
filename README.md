@@ -15,24 +15,20 @@
 -  [Authentication and Setup](#authentication-and-setup)
 -  [Basic Usage](#basic-usage)
 -  [Report Problems](#report-problems) 
--  [Scorecards' Public
-   Data](#public-data)
+-  [Scorecards' Public Data](#public-data)
 
 ## Checks 
 
 -  [Default Scorecards Checks ](#scorecard-checks)
--  [Detailed Check Documentation](docs/checks.md)
-   (Scoring Criteria, Risks, and Remediation)
+-  [Detailed Check Documentation](docs/checks.md) (Scoring Criteria, Risks, and Remediation)
 
 ## Contribute
 
 -  [Code of Conduct](CODE_OF_CONDUCT.md)
 -  [Contribute to Scorecards  ](CONTRIBUTING.md)
--  [Add a New
-   Check](checks/write.md)
+-  [Add a New Check](checks/write.md)
 -  [Connect with the Scorecards Community](#connect-with-the-scorecards-community)
--  [Report a Security Issue
-   ](SECURITY.md)
+-  [Report a Security Issue](SECURITY.md)
    
 ________
 ________
@@ -114,7 +110,7 @@ docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-det
 Scorecards can run using just one argument, the URL of the target repo:
 
 ```shell
-$ go get github.com/ossf/scorecard/v2
+$ go install github.com/ossf/scorecard/v2@latest
 $ scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
 Starting [CII-Best-Practices]
 Starting [Fuzzing]
@@ -293,10 +289,10 @@ send a Pull Request with others. Currently, this list is derived from **projects
 ONLY**. We do plan to expand them in near future to account for projects hosted
 on other source control systems.
 
-**NOTE**: The public dataset includes data from earlier version of Scorecards that used Pass/Fail scoring systems. Previously, each check returned a **Pass / Fail** decision, as well as a confidence score
-between **0 and 10**. A confidence of 0 indicated that the check was unable to
+**NOTE**: The public dataset uses a Pass/Fail scoring system with a confidence score
+between **0 and 10**. A confidence of 0 indicates that the check was unable to
 achieve any real signal, and that the result should be ignored. A confidence of 10
-indicated the check was completely sure of the result. Scorecards no longer uses this Pass/Fail system for current checks.
+indicates the check was completely sure of the result. 
 
 ## Checks
 ### Scorecard Checks
