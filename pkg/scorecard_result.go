@@ -62,6 +62,10 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 	w := csv.NewWriter(writer)
 	record := []string{r.Repo.Name, fmt.Sprintf("%.1f", score)}
 	columns := []string{"Repository", "AggScore"}
+
+	if score == checker.InconclusiveResultScore {
+		record[1] = "?"
+	}
 	// UPGRADEv2: remove nolint after ugrade.
 	//nolint
 	for _, checkResult := range r.Checks {
