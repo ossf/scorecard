@@ -155,14 +155,9 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		if e != nil {
 			log.Fatalf("cannot read yaml file: %v", err)
 		}
+
 		switch format {
 		case formatDefault:
-			score, e := repoResult.AggregateScore(checkDocs)
-			if e != nil {
-				log.Fatalf("AggregateScore: %v", e)
-			}
-			fmt.Fprintf(os.Stdout, "Aggregate score: %d / %d\n", score, checker.MaxResultScore)
-			fmt.Printf("\nCheck scores:\n")
 			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatSarif:
 			if !v3 {

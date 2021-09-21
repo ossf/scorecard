@@ -18,7 +18,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -56,9 +55,13 @@ type ScorecardResult struct {
 // AsCSV outputs ScorecardResult in CSV format.
 func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 	checkDocs docs.Doc, writer io.Writer) error {
+	score, err := r.aggregateScore(checkDocs)
+	if err != nil {
+		return err
+	}
 	w := csv.NewWriter(writer)
-	record := []string{r.Repo.Name}
-	columns := []string{"Repository"}
+	record := []string{r.Repo.Name, fmt.Sprintf("%.1f", score)}
+	columns := []string{"Repository", "AggScore"}
 	// UPGRADEv2: remove nolint after ugrade.
 	//nolint
 	for _, checkResult := range r.Checks {
@@ -81,14 +84,13 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 	return nil
 }
 
-// AggregateScore returns an aggregate score out of checker.MaxResultScore.
-func (r *ScorecardResult) AggregateScore(checkDocs docs.Doc) (int, error) {
+func (r *ScorecardResult) aggregateScore(checkDocs docs.Doc) (float64, error) {
 	// TODO: calculate the score and make it a field
 	// of ScorecardResult
-	weights := map[string]int{"Critical": 7, "High": 5, "Medium": 3, "Low": 1}
+	weights := map[string]float64{"Critical": 10, "High": 7.5, "Medium": 5, "Low": 2.5}
 	// Note: aggregate score changes depending on which checks are run.
-	total := 0
-	score := 0
+	total := float64(0)
+	score := float64(0)
 	for i := range r.Checks {
 		check := r.Checks[i]
 		doc, e := checkDocs.GetCheck(check.Name)
@@ -105,10 +107,10 @@ func (r *ScorecardResult) AggregateScore(checkDocs docs.Doc) (int, error) {
 		}
 
 		total += rs
-		score += (rs * check.Score)
+		score += rs * float64(check.Score)
 	}
 
-	return int(math.Floor(float64(score) / float64(total))), nil
+	return score / total, nil
 }
 
 // AsString returns ScorecardResult in string format.
@@ -154,6 +156,13 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level,
 
 		data[i] = x
 	}
+
+	score, err := r.aggregateScore(checkDocs)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(os.Stdout, "Aggregate score: %.1f / %d\n\n", score, checker.MaxResultScore)
+	fmt.Fprintln(os.Stdout, "Check scores:")
 
 	table := tablewriter.NewWriter(os.Stdout)
 	header := []string{"Score", "Name", "Reason"}
