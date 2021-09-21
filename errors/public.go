@@ -23,11 +23,15 @@ import (
 var (
 	ErrScorecardInternal = errors.New("internal error")
 	ErrRepoUnreachable   = errors.New("repo unreachable")
+	// ErrorUnsupportedHost indicates the repo's host is unsupported.
+	ErrorUnsupportedHost = errors.New("unsupported host")
+	// ErrorInvalidURL indicates the repo's full URL was not passed.
+	ErrorInvalidURL = errors.New("invalid repo flag")
 )
 
-// Create a public error using any of the errors
-// listed above. For examples, see errors/errors.md.
-func Create(e error, msg string) error {
+// WithMessage wraps any of the errors listed above.
+// For examples, see errors/errors.md.
+func WithMessage(e error, msg string) error {
 	// Note: Errorf automatically wraps the error when used with `%w`.
 	if len(msg) > 0 {
 		return fmt.Errorf("%w: %v", e, msg)

@@ -34,8 +34,8 @@ help:  ## Display this help
 .PHONY: install
 install: ## Installs all dependencies needed to compile Scorecard
 install: | $(PROTOC)
-	@echo Installing tools from tools.go
-	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
+	@echo Installing tools from tools/tools.go
+	cd tools; cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
 
 $(PROTOC):
 	ifeq (,$(PROTOC))
@@ -51,6 +51,8 @@ all: $(all-targets)
 
 update-dependencies: ## Update go dependencies for all modules
 	# Update root go modules
+	go mod tidy && go mod verify
+	cd tools
 	go mod tidy && go mod verify
 
 $(GOLANGGCI_LINT): install
@@ -81,7 +83,7 @@ tree-status: ## Verify tree is clean and all changes are committed
 build-targets = generate-docs build-proto build-scorecard build-pubsub build-bq-transfer \
 	build-add-script build-validate-script build-update-script dockerbuild
 .PHONY: build $(build-targets)
-build: ## Build all binaries and images in the reepo.
+build: ## Build all binaries and images in the repo.
 build: $(build-targets)
 
 build-proto: ## Compiles and generates all required protobufs
@@ -95,11 +97,11 @@ clients/branch.pb.go: clients/branch.proto | $(PROTOC)
 
 generate-docs: ## Generates docs
 generate-docs: docs/checks.md
-docs/checks.md: docs/checks/checks.yaml docs/checks/*.go docs/checks/generate/*.go
+docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
 	# Validating checks.yaml
-	go run ./docs/checks/validate/main.go
+	go run ./docs/checks/internal/validate/main.go
 	# Generating checks.md
-	cd ./docs/checks/generate && go run main.go
+	go run ./docs/checks/internal/generate/main.go docs/checks.md
 
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable
@@ -108,7 +110,7 @@ build-scorecard: ## Runs go build on repo
 build-pubsub: ## Runs go build on the PubSub cron job
 	# Run go build and the PubSub cron job
 	cd cron/controller && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o controller
-	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "static"' -o worker
+	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static" $(VERSION_LDFLAGS)' -o worker
 
 build-bq-transfer: ## Runs go build on the BQ transfer cron job
 build-bq-transfer: ./cron/bq/*.go
@@ -121,7 +123,7 @@ build-webhook: ## Runs go build on the cron webhook
 
 build-add-script: ## Runs go build on the add script
 build-add-script: cron/data/add/add
-cron/data/add/add: cron/data/add/*.go cron/data/*.go cron/data/projects.csv
+cron/data/add/add: cron/data/add/*.go cron/data/*.go repos/*.go cron/data/projects.csv
 	# Run go build on the add script
 	cd cron/data/add && CGO_ENABLED=0 go build -a -ldflags '-w -extldflags "-static"' -o add
 

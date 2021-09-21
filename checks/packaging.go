@@ -20,8 +20,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/google/go-github/v38/github"
-
 	"github.com/ossf/scorecard/v2/checker"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
@@ -42,14 +40,14 @@ func isGithubWorkflowFile(filename string) (bool, error) {
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	matchedFiles, err := c.RepoClient.ListFiles(isGithubWorkflowFile)
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
 	for _, fp := range matchedFiles {
 		fc, err := c.RepoClient.GetFileContent(fp)
 		if err != nil {
-			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetFileContent: %v", err))
+			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetFileContent: %v", err))
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 
@@ -57,21 +55,18 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			continue
 		}
 
-		runs, _, err := c.Client.Actions.ListWorkflowRunsByFileName(c.Ctx, c.Owner, c.Repo, filepath.Base(fp),
-			&github.ListWorkflowRunsOptions{
-				Status: "success",
-			})
+		runs, err := c.RepoClient.ListSuccessfulWorkflowRuns(filepath.Base(fp))
 		if err != nil {
-			e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Actions.ListWorkflowRunsByFileName: %v", err))
+			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Actions.ListWorkflowRunsByFileName: %v", err))
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
-		if *runs.TotalCount > 0 {
+		if len(runs) > 0 {
 			c.Dlogger.Info3(&checker.LogMessage{
 				Path: fp,
 				Type: checker.FileTypeSource,
 				// Source file must have line number > 0.
 				Offset: 1,
-				Text:   fmt.Sprintf("GitHub publishing workflow used in run %s", runs.WorkflowRuns[0].GetHTMLURL()),
+				Text:   fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL),
 			})
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")

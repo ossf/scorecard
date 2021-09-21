@@ -29,6 +29,7 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	docs "github.com/ossf/scorecard/v2/docs/checks"
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 type text struct {
@@ -57,7 +58,6 @@ type physicalLocation struct {
 	ArtifactLocation artifactLocation `json:"artifactLocation"`
 }
 
-//TODO: remove linter and update unit tests.
 //nolint:govet
 type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
@@ -389,7 +389,7 @@ func createSARIFResult(pos int, checkID, reason string, minScore, score int,
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
-func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zapcore.Level,
+func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	writer io.Writer, checkDocs docs.Doc, minScore int) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
@@ -397,16 +397,15 @@ func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zap
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
 	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
-		"supply-chain", "scorecard", version, r.CommitSHA, r.Date)
+		"supply-chain", "scorecard", r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date)
 	results := []result{}
 	rules := []rule{}
 
 	// nolint
 	for i, check := range r.Checks {
-
-		doc, exists := checkDocs.Checks[check.Name]
-		if !exists {
-			panic(fmt.Sprintf("invalid doc: %s not present", check.Name))
+		doc, e := checkDocs.GetCheck(check.Name)
+		if e != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
 		}
 
 		// Unclear what to use for PartialFingerprints.
@@ -430,9 +429,9 @@ func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zap
 		// Create a header's rule.
 		// TODO: verify `\n` is viewable in GitHub.
 		rule := createSARIFRule(check.Name, checkID,
-			fmt.Sprintf("https://github.com/ossf/scorecard/blob/main/docs/checks.md#%s", strings.ToLower(check.Name)),
-			doc.Description, doc.Short,
-			tagsAsList(doc.Tags))
+			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
+			doc.GetDescription(), doc.GetShort(),
+			doc.GetTags())
 		rules = append(rules, rule)
 
 		// Add default location if no locations are present.
@@ -453,7 +452,7 @@ func (r *ScorecardResult) AsSARIF(version string, showDetails bool, logLevel zap
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "   ")
 	if err := encoder.Encode(sarif); err != nil {
-		panic(err.Error())
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
 	return nil

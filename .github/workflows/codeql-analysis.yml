@@ -24,7 +24,6 @@
 # supported CodeQL languages.
 #
 name: "CodeQL"
-
 on:
   push:
     branches: [ main ]
@@ -33,6 +32,11 @@ on:
     branches: [ main ]
   schedule:
     - cron: '36 19 * * 3'
+      
+permissions:
+  contents: read
+  statuses: write
+  security-events: write
 
 jobs:
   analyze:
@@ -42,10 +46,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'go' ]
-        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
-        # Learn more:
-        # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
+        language: [ 'go','javascript' ]
 
     steps:
     - name: Checkout repository

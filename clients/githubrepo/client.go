@@ -17,14 +17,21 @@ package githubrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v2/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
+
+var errInputRepoType = errors.New("input repo should be of type repoURL")
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
@@ -36,18 +43,25 @@ type Client struct {
 	contributors *contributorsHandler
 	branches     *branchesHandler
 	releases     *releasesHandler
+	workflows    *workflowsHandler
+	checkruns    *checkrunsHandler
+	statuses     *statusesHandler
 	search       *searchHandler
 	ctx          context.Context
 	tarball      tarballHandler
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
-func (client *Client) InitRepo(owner, repoName string) error {
+func (client *Client) InitRepo(inputRepo clients.Repo) error {
+	ghRepo, ok := inputRepo.(*repoURL)
+	if !ok {
+		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
+	}
+
 	// Sanity check.
-	repo, _, err := client.repoClient.Repositories.Get(client.ctx, owner, repoName)
+	repo, _, err := client.repoClient.Repositories.Get(client.ctx, ghRepo.owner, ghRepo.repo)
 	if err != nil {
-		// nolint: wrapcheck
-		return sce.Create(sce.ErrRepoUnreachable, err.Error())
+		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}
 	client.repo = repo
 	client.owner = repo.Owner.GetLogin()
@@ -69,6 +83,15 @@ func (client *Client) InitRepo(owner, repoName string) error {
 
 	// Setup releasesHandler.
 	client.releases.init(client.ctx, client.owner, client.repoName)
+
+	// Setup workflowsHandler.
+	client.workflows.init(client.ctx, client.owner, client.repoName)
+
+	// Setup checkrunsHandler.
+	client.checkruns.init(client.ctx, client.owner, client.repoName)
+
+	// Setup statusesHandler.
+	client.statuses.init(client.ctx, client.owner, client.repoName)
 
 	// Setup searchHandler.
 	client.search.init(client.ctx, client.owner, client.repoName)
@@ -126,6 +149,21 @@ func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
 	return client.branches.listBranches()
 }
 
+// ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
+func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
+	return client.workflows.listSuccessfulWorkflowRuns(filename)
+}
+
+// ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.
+func (client *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
+	return client.checkruns.listCheckRunsForRef(ref)
+}
+
+// ListStatuses implements RepoClient.ListStatuses.
+func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
+	return client.statuses.listStatuses(ref)
+}
+
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return client.search.search(request)
@@ -137,8 +175,15 @@ func (client *Client) Close() error {
 }
 
 // CreateGithubRepoClient returns a Client which implements RepoClient interface.
-func CreateGithubRepoClient(ctx context.Context,
-	client *github.Client, graphClient *githubv4.Client) clients.RepoClient {
+func CreateGithubRepoClient(ctx context.Context, logger *zap.Logger) clients.RepoClient {
+	// Use our custom roundtripper
+	rt := roundtripper.NewTransport(ctx, logger.Sugar())
+	httpClient := &http.Client{
+		Transport: rt,
+	}
+	client := github.NewClient(httpClient)
+	graphClient := githubv4.NewClient(httpClient)
+
 	return &Client{
 		ctx:        ctx,
 		repoClient: client,
@@ -155,8 +200,28 @@ func CreateGithubRepoClient(ctx context.Context,
 		releases: &releasesHandler{
 			client: client,
 		},
+		workflows: &workflowsHandler{
+			client: client,
+		},
+		checkruns: &checkrunsHandler{
+			client: client,
+		},
+		statuses: &statusesHandler{
+			client: client,
+		},
 		search: &searchHandler{
 			ghClient: client,
 		},
 	}
+}
+
+// NewLogger creates an instance of *zap.Logger.
+func NewLogger(logLevel zapcore.Level) (*zap.Logger, error) {
+	cfg := zap.NewProductionConfig()
+	cfg.Level.SetLevel(logLevel)
+	logger, err := cfg.Build()
+	if err != nil {
+		return nil, fmt.Errorf("cfg.Build: %w", err)
+	}
+	return logger, nil
 }

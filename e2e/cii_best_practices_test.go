@@ -22,6 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/checks"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v2/utests"
 )
 
@@ -29,15 +30,14 @@ var _ = Describe("E2E TEST:CIIBestPractices", func() {
 	Context("E2E TEST:Validating use of CII Best Practices", func() {
 		It("Should return use of CII Best Practices", func() {
 			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
+			Expect(err).Should(BeNil())
+
 			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				HTTPClient:  httpClient,
-				RepoClient:  nil,
-				Owner:       "tensorflow",
-				Repo:        "tensorflow",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
+				Ctx:        context.Background(),
+				RepoClient: nil,
+				Repo:       repo,
+				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,

@@ -16,6 +16,7 @@ package checks
 
 import (
 	"fmt"
+	"path"
 	"regexp"
 	"strings"
 
@@ -29,27 +30,69 @@ import (
 // CheckPinnedDependencies is the registered name for FrozenDeps.
 const CheckPinnedDependencies = "Pinned-Dependencies"
 
+// defaultShellNonWindows is the default shell used for GitHub workflow actions for Linux and Mac.
+const defaultShellNonWindows = "bash"
+
+// defaultShellWindows is the default shell used for GitHub workflow actions for Windows.
+const defaultShellWindows = "pwsh"
+
 // Structure for workflow config.
 // We only declare the fields we need.
 // Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 type gitHubActionWorkflowConfig struct {
-	// nolint: govet
-	Jobs map[string]struct {
-		Name  string `yaml:"name"`
-		Steps []struct {
-			Name  string         `yaml:"name"`
-			ID    string         `yaml:"id"`
-			Uses  stringWithLine `yaml:"uses"`
-			Shell string         `yaml:"shell"`
-			Run   string         `yaml:"run"`
-		}
-		Defaults struct {
-			Run struct {
-				Shell string `yaml:"shell"`
-			} `yaml:"run"`
-		} `yaml:"defaults"`
-	}
+	Jobs map[string]gitHubActionWorkflowJob
 	Name string `yaml:"name"`
+}
+
+// A Github Action Workflow Job.
+// We only declare the fields we need.
+// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+type gitHubActionWorkflowJob struct {
+	Name     string                     `yaml:"name"`
+	Steps    []gitHubActionWorkflowStep `yaml:"steps"`
+	Defaults struct {
+		Run struct {
+			Shell string `yaml:"shell"`
+		} `yaml:"run"`
+	} `yaml:"defaults"`
+	RunsOn   stringOrSlice `yaml:"runs-on"`
+	Strategy struct {
+		Matrix struct {
+			Os []string `yaml:"os"`
+		} `yaml:"matrix"`
+	} `yaml:"strategy"`
+}
+
+// A Github Action Workflow Step.
+// We only declare the fields we need.
+// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+type gitHubActionWorkflowStep struct {
+	Name  string         `yaml:"name"`
+	ID    string         `yaml:"id"`
+	Shell string         `yaml:"shell"`
+	Run   string         `yaml:"run"`
+	If    string         `yaml:"if"`
+	Uses  stringWithLine `yaml:"uses"`
+}
+
+// stringOrSlice is for fields that can be a single string or a slice of strings. If the field is a single string,
+// this value will be a slice with a single string item.
+type stringOrSlice []string
+
+func (s *stringOrSlice) UnmarshalYAML(value *yaml.Node) error {
+	var stringSlice []string
+	err := value.Decode(&stringSlice)
+	if err == nil {
+		*s = stringSlice
+		return nil
+	}
+	var single string
+	err = value.Decode(&single)
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringOrSlice Value: %v", err))
+	}
+	*s = []string{single}
+	return nil
 }
 
 // stringWithLine is for when you want to keep track of the line number that the string came from.
@@ -58,11 +101,17 @@ type stringWithLine struct {
 	Line  int
 }
 
+// Structure to host information about pinned github
+// or third party dependencies.
+type worklowPinningResult struct {
+	thirdParties pinnedResult
+	gitHubOwned  pinnedResult
+}
+
 func (ws *stringWithLine) UnmarshalYAML(value *yaml.Node) error {
 	err := value.Decode(&ws.Value)
 	if err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringWithLine Value: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringWithLine Value: %v", err))
 	}
 	ws.Line = value.Line
 
@@ -146,6 +195,8 @@ const (
 	notPinned
 )
 
+// For the 'to' param, true means the file is pinning dependencies (or there are no dependencies),
+// false means there are unpinned dependencies.
 func addPinnedResult(r *pinnedResult, to bool) {
 	// If the result is `notPinned`, we keep it.
 	// In other cases, we always update the result.
@@ -159,6 +210,44 @@ func addPinnedResult(r *pinnedResult, to bool) {
 	case false:
 		*r = notPinned
 	}
+}
+
+func dataAsWorkflowResultPointer(data FileCbData) *worklowPinningResult {
+	pdata, ok := data.(*worklowPinningResult)
+	if !ok {
+		// panic if it is not correct type
+		panic("type need to be of worklowPinningResult")
+	}
+	return pdata
+}
+
+func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, infoMsg string,
+	dl checker.DetailLogger, err error) (int, error) {
+	if err != nil {
+		return checker.InconclusiveResultScore, err
+	}
+
+	score := checker.MinResultScore
+
+	if r.gitHubOwned != notPinned {
+		score += 2
+		// TODO: set Snippet and line numbers.
+		dl.Info3(&checker.LogMessage{
+			Type: checker.FileTypeSource,
+			Text: fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
+		})
+	}
+
+	if r.thirdParties != notPinned {
+		score += 8
+		// TODO: set Snippet and line numbers.
+		dl.Info3(&checker.LogMessage{
+			Type: checker.FileTypeSource,
+			Text: fmt.Sprintf("%s %s", "Third-party", infoMsg),
+		})
+	}
+
+	return score, nil
 }
 
 func dataAsResultPointer(data FileCbData) *pinnedResult {
@@ -196,7 +285,7 @@ func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) 
 func createReturnForIsShellScriptFreeOfInsecureDownloads(r pinnedResult,
 	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
-		"no insecure (unpinned) dependency downloads found in shell scripts",
+		"no insecure (not pinned by hash) dependency downloads found in shell scripts",
 		dl, err)
 }
 
@@ -236,7 +325,7 @@ func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 func createReturnForIsDockerfileFreeOfInsecureDownloads(r pinnedResult,
 	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
-		"no insecure (unpinned) dependency downloads found in Dockerfiles",
+		"no insecure (not pinned by hash) dependency downloads found in Dockerfiles",
 		dl, err)
 }
 
@@ -265,11 +354,9 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	contentReader := strings.NewReader(string(content))
 	res, err := parser.Parse(contentReader)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
-	// nolint: prealloc
 	var bytes []byte
 
 	// Walk the Dockerfile's AST.
@@ -286,8 +373,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		}
 
 		if len(valueList) == 0 {
-			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
+			return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
 		}
 
 		// Build a file content.
@@ -351,8 +437,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	pinnedAsNames := make(map[string]bool)
 	res, err := parser.Parse(contentReader)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
 	for _, child := range res.AST.Children {
@@ -387,20 +472,19 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 			// Not pinned.
 			ret = false
-			dl.Warn("unpinned dependency detected in %v: '%v'", pathfn, name)
+			dl.Warn("dependency not pinned by hash %v: '%v'", pathfn, name)
 
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
 				ret = false
-				dl.Warn("unpinned dependency detected in %v: '%v'", pathfn, name)
+				dl.Warn("dependency not pinned by hash %v: '%v'", pathfn, name)
 			}
 
 		default:
 			// That should not happen.
-			//nolint
-			return false, sce.Create(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
+			return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
 		}
 	}
 
@@ -422,7 +506,7 @@ func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int
 func createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r pinnedResult,
 	dl checker.DetailLogger, err error) (int, error) {
 	return createReturnValues(r,
-		"no insecure (unpinned) dependency downloads found in GitHub workflows",
+		"no insecure (not pinned by hash) dependency downloads found in GitHub workflows",
 		dl, err)
 }
 
@@ -433,8 +517,14 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, dl, err)
 }
 
+// validateGitHubWorkflowIsFreeOfInsecureDownloads checks if the workflow file downloads dependencies that are unpinned.
+// Returns true if the check should continue executing after this file.
 func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	if !isWorkflowFile(pathfn) {
+		return true, nil
+	}
+
 	pdata := dataAsResultPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {
@@ -445,39 +535,33 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal,
+		return false, sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
 	}
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
 	validated := true
-	// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell.
-	defaultShell := "bash"
 	scriptContent := ""
 	for _, job := range workflow.Jobs {
-		if job.Defaults.Run.Shell != "" {
-			defaultShell = job.Defaults.Run.Shell
-		}
-
+		job := job
 		for _, step := range job.Steps {
+			step := step
 			if step.Run == "" {
 				continue
 			}
 
-			shell := defaultShell
-			if step.Shell != "" {
-				shell = step.Shell
-			}
-
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
-			// Skip unsupported shells. We don't support Windows shells.
+			shell, err := getShellForStep(&step, &job)
+			if err != nil {
+				return false, err
+			}
+			// Skip unsupported shells. We don't support Windows shells or some Unix shells.
 			if !isSupportedShell(shell) {
 				continue
 			}
 
 			run := step.Run
-			// We replace the `${{ github.variable }}` to avoid shell parising failures.
+			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
 			scriptContent = fmt.Sprintf("%v\n%v", scriptContent, string(script))
 		}
@@ -494,46 +578,114 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	return true, nil
 }
 
+// The only OS that this job runs on is Windows.
+func jobAlwaysRunsOnWindows(job *gitHubActionWorkflowJob) bool {
+	var jobOses []string
+	// The 'runs-on' field either lists the OS'es directly, or it can have an expression '${{ matrix.os }}' which
+	// is where the OS'es are actually listed.
+	if len(job.RunsOn) == 1 && strings.Contains(job.RunsOn[0], "matrix.os") {
+		jobOses = job.Strategy.Matrix.Os
+	} else {
+		jobOses = job.RunsOn
+	}
+	for _, os := range jobOses {
+		if !strings.HasPrefix(strings.ToLower(os), "windows-") {
+			return false
+		}
+	}
+	return true
+}
+
+// getShellForStep returns the shell that is used to run the given step.
+func getShellForStep(step *gitHubActionWorkflowStep, job *gitHubActionWorkflowJob) (string, error) {
+	// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell.
+	if step.Shell != "" {
+		return step.Shell, nil
+	}
+	if job.Defaults.Run.Shell != "" {
+		return job.Defaults.Run.Shell, nil
+	}
+
+	isStepWindows, err := isStepWindows(step)
+	if err != nil {
+		return "", err
+	}
+	if isStepWindows {
+		return defaultShellWindows, nil
+	}
+
+	if jobAlwaysRunsOnWindows(job) {
+		return defaultShellWindows, nil
+	}
+
+	return defaultShellNonWindows, nil
+}
+
+// isStepWindows returns true if the step will be run on Windows.
+func isStepWindows(step *gitHubActionWorkflowStep) (bool, error) {
+	windowsRegexes := []string{
+		// Looking for "if: runner.os == 'Windows'" (and variants)
+		`(?i)runner\.os\s*==\s*['"]windows['"]`,
+		// Looking for "if: ${{ startsWith(runner.os, 'Windows') }}" (and variants)
+		`(?i)\$\{\{\s*startsWith\(runner\.os,\s*['"]windows['"]\)`,
+		// Looking for "if: matrix.os == 'windows-2019'" (and variants)
+		`(?i)matrix\.os\s*==\s*['"]windows-`,
+	}
+
+	for _, windowsRegex := range windowsRegexes {
+		matches, err := regexp.MatchString(windowsRegex, step.If)
+		if err != nil {
+			return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error matching Windows regex: %v", err))
+		}
+		if matches {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) (int, error) {
-	var r pinnedResult
+	var r worklowPinningResult
 	err := CheckFilesContent(".github/workflows/*", true, c, validateGitHubActionWorkflow, &r)
 	return createReturnForIsGitHubActionsWorkflowPinned(r, c.Dlogger, err)
 }
 
 // Create the result.
-func createReturnForIsGitHubActionsWorkflowPinned(r pinnedResult, dl checker.DetailLogger, err error) (int, error) {
-	return createReturnValues(r,
-		"GitHub actions are pinned",
+func createReturnForIsGitHubActionsWorkflowPinned(r worklowPinningResult, dl checker.DetailLogger,
+	err error) (int, error) {
+	return createReturnValuesForGitHubActionsWorkflowPinned(r,
+		"actions are pinned",
 		dl, err)
 }
 
 func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker.DetailLogger) (int, error) {
-	var r pinnedResult
+	var r worklowPinningResult
 	_, err := validateGitHubActionWorkflow(pathfn, content, dl, &r)
 	return createReturnForIsGitHubActionsWorkflowPinned(r, dl, err)
 }
 
-// Check file content.
+// validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
+// should continue executing after this file.
 func validateGitHubActionWorkflow(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := dataAsResultPointer(data)
+	pdata := dataAsWorkflowResultPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {
-		addPinnedResult(pdata, true)
+		addWorkflowPinnedResult(pdata, true, true)
+		addWorkflowPinnedResult(pdata, true, true)
 		return true, nil
 	}
 
 	var workflow gitHubActionWorkflowConfig
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal,
+		return false, sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
-	ret := true
 	for jobName, job := range workflow.Jobs {
 		if len(job.Name) > 0 {
 			jobName = job.Name
@@ -544,18 +696,46 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 				// Example: action-name@hash
 				match := hashRegex.Match([]byte(step.Uses.Value))
 				if !match {
-					ret = false
 					dl.Warn3(&checker.LogMessage{
 						Path: pathfn, Type: checker.FileTypeSource, Offset: step.Uses.Line, Snippet: step.Uses.Value,
-						Text: fmt.Sprintf("unpinned dependency detected (job '%v')", jobName),
+						Text: fmt.Sprintf("dependency not pinned by hash (job '%v')", jobName),
 					})
 				}
+
+				githubOwned := isGitHubOwnedAction(step.Uses.Value)
+				addWorkflowPinnedResult(pdata, match, githubOwned)
 			}
 		}
 	}
 
-	addPinnedResult(pdata, ret)
 	return true, nil
+}
+
+// isWorkflowFile returns true if this is a GitHub workflow file.
+func isWorkflowFile(pathfn string) bool {
+	// From https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions:
+	// "Workflow files use YAML syntax, and must have either a .yml or .yaml file extension."
+	switch path.Ext(pathfn) {
+	case ".yml", ".yaml":
+		return true
+	default:
+		return false
+	}
+}
+
+// isGitHubOwnedAction check github specific action.
+func isGitHubOwnedAction(v string) bool {
+	a := strings.HasPrefix(v, "actions/")
+	c := strings.HasPrefix(v, "github/")
+	return a || c
+}
+
+func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
+	if isGitHub {
+		addPinnedResult(&w.gitHubOwned, to)
+	} else {
+		addPinnedResult(&w.thirdParties, to)
+	}
 }
 
 // Check presence of lock files thru validatePackageManagerFile().

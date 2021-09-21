@@ -39,7 +39,7 @@ func init() {
 func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	releases, err := c.RepoClient.ListReleases()
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListReleases: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListReleases: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckSignedReleases, e)
 	}
 

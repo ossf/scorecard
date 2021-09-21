@@ -17,8 +17,6 @@ package checks
 import (
 	"fmt"
 
-	"github.com/google/go-github/v38/github"
-
 	"github.com/ossf/scorecard/v2/checker"
 	"github.com/ossf/scorecard/v2/clients"
 	sce "github.com/ossf/scorecard/v2/errors"
@@ -77,7 +75,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, codeQlScore: codeQlWeight})
 			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not run on all commmits", score)
 		default:
-			return checker.CreateRuntimeErrorResult(CheckSAST, sce.Create(sce.ErrScorecardInternal, "contact team"))
+			return checker.CreateRuntimeErrorResult(CheckSAST, sce.WithMessage(sce.ErrScorecardInternal, "contact team"))
 		}
 	}
 
@@ -100,7 +98,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Should never happen.
-	return checker.CreateRuntimeErrorResult(CheckSAST, sce.Create(sce.ErrScorecardInternal, "contact team"))
+	return checker.CreateRuntimeErrorResult(CheckSAST, sce.WithMessage(sce.ErrScorecardInternal, "contact team"))
 }
 
 // nolint
@@ -109,7 +107,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 	if err != nil {
 		//nolint
 		return checker.InconclusiveResultScore,
-			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
 	}
 
 	totalMerged := 0
@@ -119,11 +117,10 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			continue
 		}
 		totalMerged++
-		crs, _, err := c.Client.Checks.ListCheckRunsForRef(c.Ctx, c.Owner, c.Repo, pr.HeadSHA,
-			&github.ListCheckRunsOptions{})
+		crs, err := c.RepoClient.ListCheckRunsForRef(pr.HeadSHA)
 		if err != nil {
 			return checker.InconclusiveResultScore,
-				sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 		}
 		if crs == nil {
 			c.Dlogger.Warn3(&checker.LogMessage{
@@ -131,16 +128,16 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			})
 			return checker.InconclusiveResultScore, nil
 		}
-		for _, cr := range crs.CheckRuns {
-			if cr.GetStatus() != "completed" {
+		for _, cr := range crs {
+			if cr.Status != "completed" {
 				continue
 			}
-			if cr.GetConclusion() != "success" {
+			if cr.Conclusion != "success" {
 				continue
 			}
-			if sastTools[cr.GetApp().GetSlug()] {
+			if sastTools[cr.App.Slug] {
 				c.Dlogger.Debug3(&checker.LogMessage{
-					Path: cr.GetHTMLURL(),
+					Path: cr.URL,
 					Type: checker.FileTypeURL,
 					Text: "tool detected",
 				})
@@ -178,7 +175,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	resp, err := c.RepoClient.Search(searchRequest)
 	if err != nil {
 		return checker.InconclusiveResultScore,
-			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
 	}
 
 	for _, result := range resp.Results {

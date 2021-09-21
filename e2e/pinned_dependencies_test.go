@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//nolint:dupl
 package e2e
 
 import (
@@ -32,19 +31,17 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 	Context("E2E TEST:Validating dependencies check is working", func() {
 		It("Should return dependencies check is working", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
-			err := repoClient.InitRepo("ossf-tests", "scorecard-check-pinned-dependencies-e2e")
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-pinned-dependencies-e2e")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				HTTPClient:  httpClient,
-				RepoClient:  repoClient,
-				Owner:       "ossf-tests",
-				Repo:        "scorecard-check-pinned-dependencies-e2e",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,

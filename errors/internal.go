@@ -17,5 +17,5 @@ package errors
 // CreateInternal creates internal error, not using
 // any of the errors listed in public.go.
 func CreateInternal(e error, msg string) error {
-	return Create(e, msg)
+	return WithMessage(e, msg)
 }

@@ -23,10 +23,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bradleyfalzon/ghinstallation"
+	"github.com/bradleyfalzon/ghinstallation/v2"
 	"go.uber.org/zap"
-
-	"github.com/ossf/scorecard/v2/clients/githubrepo"
 )
 
 // GithubAuthTokens are for making requests to GiHub's API.
@@ -58,7 +56,7 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 	// nolint
 	if token, exists := readGitHubTokens(); exists {
 		// Use GitHub PAT
-		transport = githubrepo.MakeGitHubTransport(transport, strings.Split(token, ","))
+		transport = MakeGitHubTransport(transport, strings.Split(token, ","))
 	} else if keyPath := os.Getenv(GithubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
 		appID, err := strconv.Atoi(os.Getenv(GithubAppID))
 		if err != nil {

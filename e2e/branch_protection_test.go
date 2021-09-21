@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint: dupl
 package e2e
 
 import (
@@ -31,18 +30,16 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 	Context("E2E TEST:Validating branch protection", func() {
 		It("Should fail to return branch protection on other repositories", func() {
 			dl := scut.TestDetailLogger{}
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
-			err := repoClient.InitRepo("apache", "airflow")
+			repo, err := githubrepo.MakeGithubRepo("apache/airflow")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
-				Ctx:         context.Background(),
-				Client:      ghClient,
-				HTTPClient:  httpClient,
-				RepoClient:  repoClient,
-				Owner:       "apache",
-				Repo:        "airflow",
-				GraphClient: graphClient,
-				Dlogger:     &dl,
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -62,18 +59,16 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 		Context("E2E TEST:Validating branch protection", func() {
 			It("Should fail to return branch protection on other repositories", func() {
 				dl := scut.TestDetailLogger{}
-				repoClient := githubrepo.CreateGithubRepoClient(context.Background(), ghClient, graphClient)
-				err := repoClient.InitRepo("ossf-tests", "scorecard-check-branch-protection-e2e")
+				repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
+				Expect(err).Should(BeNil())
+				repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+				err = repoClient.InitRepo(repo)
 				Expect(err).Should(BeNil())
 				req := checker.CheckRequest{
-					Ctx:         context.Background(),
-					Client:      ghClient,
-					HTTPClient:  httpClient,
-					RepoClient:  repoClient,
-					Owner:       "ossf-tests",
-					Repo:        "scorecard-check-branch-protection-e2e",
-					GraphClient: graphClient,
-					Dlogger:     &dl,
+					Ctx:        context.Background(),
+					RepoClient: repoClient,
+					Repo:       repo,
+					Dlogger:    &dl,
 				}
 				expected := scut.TestReturn{
 					Error:         nil,

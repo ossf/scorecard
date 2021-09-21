@@ -38,7 +38,7 @@ func init() {
 func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	contribs, err := c.RepoClient.ListContributors()
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListContributors: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListContributors: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckContributors, e)
 	}
 

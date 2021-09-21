@@ -107,8 +107,7 @@ func getWgetOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 
 			u, err := url.Parse(cmd[i])
 			if err != nil {
-				//nolint
-				return "", false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
+				return "", false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
 			}
 			return path.Base(u.Path), true, nil
 		}
@@ -127,8 +126,7 @@ func getGsutilOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 				// Directory.
 				u, err := url.Parse(cmd[i])
 				if err != nil {
-					//nolint
-					return "", false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
+					return "", false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
 				}
 				return filepath.Join(filepath.Dir(pathfn), path.Base(u.Path)), true, nil
 			}
@@ -153,8 +151,7 @@ func getAWSOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 		if filepath.Clean(filepath.Dir(ofile)) == filepath.Clean(ofile) {
 			u, err := url.Parse(ifile)
 			if err != nil {
-				//nolint
-				return "", false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
+				return "", false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
 			}
 			return filepath.Join(filepath.Dir(ofile), path.Base(u.Path)), true, nil
 		}
@@ -375,7 +372,7 @@ func isGoUnpinnedDownload(cmd []string) bool {
 
 	// `Go install` will automatically look up the
 	// go.mod and go.sum, so we don't flag it.
-	// nolint: gomnd
+
 	if len(cmd) <= 2 {
 		return false
 	}
@@ -396,7 +393,7 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		pkg := cmd[i+1]
 		// Verify pkg = name@hash
 		parts := strings.Split(pkg, "@")
-		// nolint: gomnd
+
 		if len(parts) != 2 {
 			continue
 		}
@@ -672,8 +669,7 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 	err := p.Print(&buf, node)
 	// This is ugly, but the parser does not have a defined error type :/.
 	if err != nil && !strings.Contains(err.Error(), "unsupported node type") {
-		//nolint
-		return "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("syntax.Printer.Print: %v", err))
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("syntax.Printer.Print: %v", err))
 	}
 	return buf.String(), nil
 }

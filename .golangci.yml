@@ -20,7 +20,6 @@ linters:
     - deadcode
     - depguard
     - dogsled
-    - dupl
     - errcheck
     - errorlint
     - exhaustive
@@ -38,7 +37,6 @@ linters:
     - gofumpt
     - goheader
     - goimports
-    - gomnd
     - gomodguard
     - goprintffuncname
     - gosec
@@ -53,7 +51,6 @@ linters:
     - noctx
     - nolintlint
     - paralleltest
-    - prealloc
     - predeclared
     - revive
     - rowserrcheck

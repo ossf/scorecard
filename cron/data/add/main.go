@@ -32,11 +32,10 @@ import (
 // Args:
 //     path to input.csv output.csv
 func main() {
-	// nolint: gomnd
 	if len(os.Args) != 3 {
 		panic("must provide 2 arguments")
 	}
-	// nolint: gomnd
+
 	inFile, err := os.OpenFile(os.Args[1], os.O_RDONLY, 0o644)
 	if err != nil {
 		panic(err)
@@ -55,7 +54,7 @@ func main() {
 	if err := data.SortAndAppendTo(&buf, repoURLs, nil); err != nil {
 		panic(err)
 	}
-	// nolint: gomnd
+
 	projects, err := os.OpenFile(os.Args[2], os.O_WRONLY|os.O_CREATE, 0o755)
 	if err != nil {
 		panic(err)

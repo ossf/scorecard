@@ -24,8 +24,42 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/docs/checks"
 )
+
+func sarifMockDocRead() *mockDoc {
+	d := map[string]mockCheck{
+		"Check-Name": {
+			name:        "Check-Name",
+			risk:        "not used",
+			short:       "short description",
+			description: "long description\n other line",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
+			tags:        []string{"tag1", "tag2"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name2": {
+			name:        "Check-Name2",
+			risk:        "not used",
+			short:       "short description 2",
+			description: "long description\n other line 2",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
+			tags:        []string{" tag1 ", " tag2 ", "tag3"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name3": {
+			name:        "Check-Name3",
+			risk:        "not used",
+			short:       "short description 3",
+			description: "long description\n other line 3",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
+			tags:        []string{" tag1", " tag2", "tag3", "tag 4 "},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+	}
+
+	m := mockDoc{checks: d}
+	return &m
+}
 
 //nolint
 func TestSARIFOutput(t *testing.T) {
@@ -39,11 +73,16 @@ func TestSARIFOutput(t *testing.T) {
 		Tags        string   `yaml:"tags"`
 	}
 
-	commit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
+	repoCommit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
+	scorecardCommit := "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
+	scorecardVersion := "1.2.3"
+	repoName := "repo not used"
 	date, e := time.Parse(time.RFC822Z, "17 Aug 21 18:57 +0000")
 	if e != nil {
 		panic(fmt.Errorf("time.Parse: %w", e))
 	}
+
+	checkDocs := sarifMockDocRead()
 
 	tests := []struct {
 		name        string
@@ -51,7 +90,6 @@ func TestSARIFOutput(t *testing.T) {
 		showDetails bool
 		logLevel    zapcore.Level
 		result      ScorecardResult
-		checkDocs   checks.Doc
 		minScore    int
 	}{
 		{
@@ -60,21 +98,16 @@ func TestSARIFOutput(t *testing.T) {
 			expected:    "./testdata/check1.sarif",
 			logLevel:    zapcore.DebugLevel,
 			minScore:    checker.MaxResultScore,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-				},
-			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -103,21 +136,16 @@ func TestSARIFOutput(t *testing.T) {
 			expected:    "./testdata/check2.sarif",
 			logLevel:    zapcore.DebugLevel,
 			minScore:    checker.MaxResultScore,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-				},
-			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -145,35 +173,16 @@ func TestSARIFOutput(t *testing.T) {
 			expected:    "./testdata/check3.sarif",
 			logLevel:    zapcore.InfoLevel,
 			minScore:    checker.MaxResultScore,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-					"Check-Name2": {
-						Risk:        "risk not used",
-						Short:       "short description 2",
-						Description: "long description\n other line 2",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2, tag3 ",
-					},
-					"Check-Name3": {
-						Risk:        "risk not used",
-						Short:       "short description 3",
-						Description: "long description\n other line 3",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2, tag3, tag4 ",
-					},
-				},
-			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -255,35 +264,16 @@ func TestSARIFOutput(t *testing.T) {
 			expected:    "./testdata/check4.sarif",
 			logLevel:    zapcore.DebugLevel,
 			minScore:    checker.MaxResultScore,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-					"Check-Name2": {
-						Risk:        "risk not used",
-						Short:       "short description 2",
-						Description: "long description\n other line 2",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2, tag3 ",
-					},
-					"Check-Name3": {
-						Risk:        "risk not used",
-						Short:       "short description 3",
-						Description: "long description\n other line 3",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2, tag3, tag4 ",
-					},
-				},
-			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -365,21 +355,16 @@ func TestSARIFOutput(t *testing.T) {
 			expected:    "./testdata/check5.sarif",
 			logLevel:    zapcore.WarnLevel,
 			minScore:    5,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-				},
-			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -408,21 +393,16 @@ func TestSARIFOutput(t *testing.T) {
 			expected:    "./testdata/check6.sarif",
 			logLevel:    zapcore.WarnLevel,
 			minScore:    checker.MaxResultScore,
-			checkDocs: checks.Doc{
-				Checks: map[string]checks.Check{
-					"Check-Name": {
-						Risk:        "risk not used",
-						Short:       "short description",
-						Description: "long description\n other line",
-						Remediation: []string{"remediation not used"},
-						Tags:        "tag1, tag2 ",
-					},
-				},
-			},
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -452,27 +432,27 @@ func TestSARIFOutput(t *testing.T) {
 			var err error
 			content, err = ioutil.ReadFile(tt.expected)
 			if err != nil {
-				t.Fatalf("cannot read file: %v", err)
+				t.Fatalf("%s: cannot read file: %v", tt.name, err)
 			}
 
 			var expected bytes.Buffer
 			n, err := expected.Write(content)
 			if err != nil {
-				t.Fatalf("cannot write buffer: %v", err)
+				t.Fatalf("%s: cannot write buffer: %v", tt.name, err)
 			}
 			if n != len(content) {
-				t.Fatalf("write %d bytes but expected %d", n, len(content))
+				t.Fatalf("%s: write %d bytes but expected %d", tt.name, n, len(content))
 			}
 
 			var result bytes.Buffer
-			err = tt.result.AsSARIF("1.2.3", tt.showDetails, tt.logLevel, &result, tt.checkDocs, tt.minScore)
+			err = tt.result.AsSARIF(tt.showDetails, tt.logLevel, &result, checkDocs, tt.minScore)
 			if err != nil {
-				t.Fatalf("AsSARIF: %v", err)
+				t.Fatalf("%s: AsSARIF: %v", tt.name, err)
 			}
 
 			r := bytes.Compare(expected.Bytes(), result.Bytes())
 			if r != 0 {
-				t.Fatalf("invalid result for %s: %d", tt.name, r)
+				t.Fatalf("%s: invalid result: %d", tt.name, r)
 			}
 		})
 	}

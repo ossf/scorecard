@@ -30,15 +30,55 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 )
 
+func jsonMockDocRead() *mockDoc {
+	d := map[string]mockCheck{
+		"Check-Name": {
+			name:        "Check-Name",
+			risk:        "not used",
+			short:       "short description for Check-Name",
+			description: "not used",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
+			tags:        []string{"not-used1", "not-used2"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name2": {
+			name:        "Check-Name2",
+			risk:        "not used",
+			short:       "short description for Check-Name2",
+			description: "not used",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
+			tags:        []string{"not-used1", "not-used2"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name3": {
+			name:        "Check-Name3",
+			risk:        "not used",
+			short:       "short description for Check-Name3",
+			description: "not used",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
+			tags:        []string{"not-used1", "not-used2"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+	}
+
+	m := mockDoc{checks: d}
+	return &m
+}
+
 //nolint
 func TestJSONOutput(t *testing.T) {
 	t.Parallel()
 
-	commit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
+	repoCommit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
+	scorecardCommit := "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
+	scorecardVersion := "1.2.3"
+	repoName := "org/name"
 	date, e := time.Parse("2006-01-02", "2021-08-25")
 	if e != nil {
 		panic(fmt.Errorf("time.Parse: %w", e))
 	}
+
+	checkDocs := jsonMockDocRead()
 
 	tests := []struct {
 		name        string
@@ -53,9 +93,15 @@ func TestJSONOutput(t *testing.T) {
 			expected:    "./testdata/check1.json",
 			logLevel:    zapcore.DebugLevel,
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -86,9 +132,15 @@ func TestJSONOutput(t *testing.T) {
 			expected:    "./testdata/check2.json",
 			logLevel:    zapcore.DebugLevel,
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -118,9 +170,15 @@ func TestJSONOutput(t *testing.T) {
 			expected:    "./testdata/check3.json",
 			logLevel:    zapcore.InfoLevel,
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -212,9 +270,15 @@ func TestJSONOutput(t *testing.T) {
 			expected:    "./testdata/check4.json",
 			logLevel:    zapcore.DebugLevel,
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -306,9 +370,15 @@ func TestJSONOutput(t *testing.T) {
 			expected:    "./testdata/check5.json",
 			logLevel:    zapcore.WarnLevel,
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -339,9 +409,15 @@ func TestJSONOutput(t *testing.T) {
 			expected:    "./testdata/check6.json",
 			logLevel:    zapcore.WarnLevel,
 			result: ScorecardResult{
-				Repo:      "repo not used",
-				Date:      date,
-				CommitSHA: commit,
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
 				Checks: []checker.CheckResult{
 					{
 						Details2: []checker.CheckDetail{
@@ -390,16 +466,16 @@ func TestJSONOutput(t *testing.T) {
 			var expected bytes.Buffer
 			n, err := expected.Write(content)
 			if err != nil {
-				t.Fatalf("cannot write buffer: %v", err)
+				t.Fatalf("%s: cannot write buffer: %v", tt.name, err)
 			}
 			if n != len(content) {
-				t.Fatalf("write %d bytes but expected %d", n, len(content))
+				t.Fatalf("%s: write %d bytes but expected %d", tt.name, n, len(content))
 			}
 
 			var result bytes.Buffer
-			err = tt.result.AsJSON2(tt.showDetails, tt.logLevel, &result)
+			err = tt.result.AsJSON2(tt.showDetails, tt.logLevel, checkDocs, &result)
 			if err != nil {
-				t.Fatalf("AsJSON2: %v", err)
+				t.Fatalf("%s: AsJSON2: %v", tt.name, err)
 			}
 
 			// TODO: add indentation to AsJSON2() and remove
@@ -408,27 +484,27 @@ func TestJSONOutput(t *testing.T) {
 			// Unmarshall expected output.
 			var js jsonScorecardResultV2
 			if err := json.Unmarshal(expected.Bytes(), &js); err != nil {
-				t.Fatalf("json.Unmarshal %s: %s", tt.name, err)
+				t.Fatalf("%s: json.Unmarshal: %s", tt.name, err)
 			}
 
 			// Marshall.
 			var es bytes.Buffer
 			encoder := json.NewEncoder(&es)
 			if err := encoder.Encode(js); err != nil {
-				t.Fatalf("Encode %s: %s", tt.name, err)
+				t.Fatalf("%s: Encode: %s", tt.name, err)
 			}
 
 			// Compare outputs.
 			r := bytes.Compare(result.Bytes(), es.Bytes())
 			if r != 0 {
-				t.Fatalf("invalid result for %s: %d", tt.name, r)
+				t.Fatalf("%s: invalid result %d", tt.name, r)
 			}
 
 			// Validate schema.
 			docLoader := gojsonschema.NewReferenceLoader(fmt.Sprintf("file://%s", path.Join(cwd, tt.expected)))
 			rr, err := schema.Validate(docLoader)
 			if err != nil {
-				t.Fatalf("Validate error for %s: %s", tt.name, err.Error())
+				t.Fatalf("%s: Validate error: %s", tt.name, err.Error())
 			}
 
 			if !rr.Valid() {
@@ -436,7 +512,7 @@ func TestJSONOutput(t *testing.T) {
 				for _, desc := range rr.Errors() {
 					s += fmt.Sprintf("- %s\n", desc)
 				}
-				t.Fatalf("invalid format %s: %s", tt.name, s)
+				t.Fatalf("%s: invalid format: %s", tt.name, s)
 			}
 		})
 	}

@@ -81,8 +81,8 @@ set GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
 ```
 
 -   create a GitHub App Installations for higher rate-limit quotas. If you have
-    an installed GitHub App and key file, you can use these three environment
-    variables, following the commands shown above for your platform.
+    an installed GitHub App and key file, you can use the three environment
+    variables below, following the commands shown above for your platform.
 
 ```
 GITHUB_APP_KEY_PATH=<path to the key file on disk>
@@ -90,7 +90,7 @@ GITHUB_APP_INSTALLATION_ID=<installation id>
 GITHUB_APP_ID=<app id>
 ```
 
-These can be obtained from the GitHub
+These variables can be obtained from the GitHub
 [developer settings](https://github.com/settings/apps) page.
 
 
@@ -194,6 +194,7 @@ RESULTS
 |---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
+### Showing Detailed Results 
 For more details why a check fails, use the `--show-details` option:
 
 ```
@@ -229,15 +230,13 @@ RESULTS
 
 #### Using a Package manager
 
-scorecard has an option to provide either `--npm` / `--pypi` / `--rubygems`
-package name and it would run the checks on the corresponding GitHub source
-code.
+For projects in the `--npm`, `--pypi`, or `--rubygems` ecosystems, you have the option to run Scorecards using a package manager. Provide the package name to run the checks on the corresponding GitHub source code.
 
 For example, `--npm=angular`.
 
 #### Running specific checks
 
-To use a particular check(s), add the `--checks` argument with a list of check
+To run only specific check(s), add the `--checks` argument with a list of check
 names.
 
 For example, `--checks=CI-Tests,Code-Review`.
