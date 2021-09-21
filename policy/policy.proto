@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main of OSSF Scoreard.
-package main
+syntax = "proto3";
 
-import "github.com/ossf/scorecard/v2/cmd"
+package ossf.scorecard.policy;
 
-func main() {
-	cmd.Execute()
+option go_package = "github.com/ossf/scorecard/policy";
+
+message CheckPolicy {
+    
+    // Mode definition.
+    enum Mode {
+        DISABLED = 0;
+        ENFORCED = 1;
+    }
+
+    Mode mode = 1;
+    sint32 score = 2;
+    // TODO: add Risk.
+}
+
+message ScorecardPolicy {
+    int32 version = 1;
+    map<string, CheckPolicy> policies = 2;
 }

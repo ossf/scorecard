@@ -63,22 +63,24 @@ const (
 
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
-	scorecardUse  = `./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details]
-or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show-details]`
+	scorecardUse  = `./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details] [--policy=file]
+or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show-details] [--policy=file]`
 	scorecardShort = "Security Scorecards"
 )
 
-func readPolicy(sp *spol.ScorecardPolicy) {
+func readPolicy() *spol.ScorecardPolicy {
 	if policyFile != "" {
 		data, err := os.ReadFile(policyFile)
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = sp.Read(data)
+		sp, err := spol.ParseFromYAML(data)
 		if err != nil {
 			log.Fatal(err)
 		}
+		return sp
 	}
+	return nil
 }
 
 func ensureChecksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNameToFnMap) {
@@ -100,7 +102,7 @@ var rootCmd = &cobra.Command{
 		if _, v3 = os.LookupEnv("SCORECARD_V3"); v3 {
 			fmt.Printf("**** Using SCORECARD_V3 code ***** \n\n")
 		}
-		if !v3 {
+		if format == formatSarif && !v3 {
 			log.Fatalf("sarif not supported yet")
 		}
 
@@ -108,8 +110,13 @@ var rootCmd = &cobra.Command{
 			log.Fatal("policy not supported yet")
 		}
 
-		var policy spol.ScorecardPolicy
-		readPolicy(&policy)
+		var policy *spol.ScorecardPolicy
+		if policyFile != "" {
+			policy = readPolicy()
+			if policy == nil {
+				log.Fatal("empty policy")
+			}
+		}
 
 		if npm != "" {
 			if git, err := fetchGitRepositoryFromNPM(npm); err != nil {
@@ -163,7 +170,9 @@ var rootCmd = &cobra.Command{
 
 		// If a policy was passed as argument, ensure all checks
 		// to run have a corresponding policy.
-		ensureChecksHavePolicies(&policy, enabledChecks)
+		if policyFile != "" {
+			ensureChecksHavePolicies(policy, enabledChecks)
+		}
 
 		ctx := context.Background()
 

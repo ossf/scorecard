@@ -8,5 +8,5 @@ policies:
       mode: enforced
   Vulnerabilities:
     score: 1
-    mode: logging
+    mode: enforced
 

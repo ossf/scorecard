@@ -32,54 +32,89 @@ var (
 	errRepeatingCheck = errors.New("check has multiple definitions")
 )
 
-var modes = map[string]bool{"enforced": true, "disabled": true, "logging": true}
+var allowedVersions = map[int]bool{1: true}
 
-// CheckPolicy defines the policy for a check.
-//nolint:govet
-type CheckPolicy struct {
+var modes = map[string]bool{"enforced": true, "disabled": true}
+
+type checkPolicy struct {
+	Mode string `yaml:"mode"`
+	// TODO: to add support for risk, we need
+	// a URL that can change a check's description
+	// based on GET parameters (i.e., to update the risk
+	// that is currently hard-codd in the doc).
+	Risk  string `yaml:"risk"`
 	Score int    `yaml:"score"`
-	Mode  string `yaml:"mode"`
 }
 
-// ScorecardPolicy defines a policy.
-//nolint:govet
-type ScorecardPolicy struct {
+type scorecardPolicy struct {
+	Policies map[string]checkPolicy `json:"policies"`
 	Version  int                    `json:"version"`
-	Policies map[string]CheckPolicy `json:"policies"`
 }
 
-func (sp *ScorecardPolicy) Read(b []byte) error {
-	err := yaml.Unmarshal(b, sp)
+func isAllowedVersion(v int) bool {
+	_, exists := allowedVersions[v]
+	return exists
+}
+
+func modeToProto(m string) CheckPolicy_Mode {
+	switch m {
+	default:
+		panic("will never happen")
+	case "enforced":
+		return CheckPolicy_ENFORCED
+	case "disabled":
+		return CheckPolicy_DISABLED
+	}
+}
+
+// ParseFromYAML parses a policy file and returns
+// a scorecardPolicy. TODO: use protos.
+func ParseFromYAML(b []byte) (*ScorecardPolicy, error) {
+	// Internal golang for unmarshalling the policy file.
+	sp := scorecardPolicy{}
+	// Protobuf-defined policy (policy.proto and policy.pb.go).
+	retPolicy := ScorecardPolicy{Policies: map[string]*CheckPolicy{}}
+
+	err := yaml.Unmarshal(b, &sp)
 	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
-	if sp.Version != 1 {
-		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidVersion.Error())
+	if !isAllowedVersion(sp.Version) {
+		return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, errInvalidVersion.Error())
 	}
+
+	// Set version.
+	retPolicy.Version = int32(sp.Version)
 
 	checksFound := make(map[string]bool)
 	for n, p := range sp.Policies {
-		_, exists := checks.AllChecks[n]
-		if !exists {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidCheck.Error(), n))
+		if _, exists := checks.AllChecks[n]; !exists {
+			return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidCheck.Error(), n))
 		}
 
 		if p.Score < 0 || p.Score > 10 {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidScore.Error(), p.Score))
+			return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidScore.Error(), p.Score))
 		}
 
-		_, exists = modes[p.Mode]
+		_, exists := modes[p.Mode]
 		if !exists {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidMode.Error(), p.Mode))
+			return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidMode.Error(), p.Mode))
 		}
 
 		_, exists = checksFound[n]
 		if exists {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errRepeatingCheck.Error(), n))
+			return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errRepeatingCheck.Error(), n))
 		}
 		checksFound[n] = true
+
+		// Add an entry to the policy.
+		retPolicy.Policies[n] = &CheckPolicy{
+			Score: int32(p.Score),
+			Mode:  modeToProto(p.Mode),
+			// TODO: set the Risk when we support it.
+		}
 	}
 
-	return nil
+	return &retPolicy, nil
 }
