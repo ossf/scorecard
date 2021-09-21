@@ -23,7 +23,7 @@ A low score is therefore considered `High` risk.
 
 ## Branch-Protection 
 
-[Branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) can enable various rules to enforce certain workflows for branches, such as preventing rewriting of public history (e.g., a *force push*), requiring review before acceptance into a main branch, or passing certain status checks before acceptance into a main branch..
+[Branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) can enable various rules to enforce certain workflows for branches, such as preventing rewriting of public history (e.g., a *force push*), requiring review before acceptance into a main branch, or passing certain status checks before acceptance into a main branch.
 Branch protection can reduce the risk of unintentional or malicious code from entering the "main" branch. Branch protection rules that prevent rewriting of public history (e.g., preventing *force push* of public branches) prevent history from changing without external notice. Branch protection rules that require status checks ensure that at least those checks are met before a change is accepted. Branch protection rules that require at least one other reviewer reviews greatly reduces the risk that a compromise of a contributor's account will lead to injection of malicious code. Review also increases the likelihood that an unintentional vulnerability in a contribution will be detected and fixed before the change is accepted. A low score is therefore considered `High` risk.
 Note, however, that requiring reviews for every proposed change is impractical for many projects, since many projects simply don't have that many active participants. For more discussion, see [Code Reviews](#code-reviews).
 In some cases these rules will need to be suspended. For example, if a past commit includes illegal content (such as child pornography), it may be impractical to hide the commit and in such cases the history may need to be rewritten.
@@ -37,7 +37,7 @@ This check determines if the default and release branches are protected with Git
 
 This check tries to determine if the project runs tests before pull requests are merged.
 Running tests helps developers catch mistakes early on. A low score is considered 'Low' risk.
-The check works by looking for a set of well-known CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its name contains any of the following: appveyor, buildkite, circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci. The check succeeds if at least 75% of successful pull requests have at least one successful check associated with them. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion and it's especially difficult for an automated tool (like scorecard) to detect them all. 
+The check works by looking for a set of CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its name contains any of the following: appveyor, buildkite, circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion, and it's challenging for an automated tool (like scorecard) to detect them all. If a project's system was not detected and you think it should be, please [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose). 
 
 **Remediation steps**
 - Check-in scripts that run all the tests in your repository.
@@ -63,7 +63,7 @@ In short, requiring others' review before accepting a change reduces risks to us
 The check first tries to detect if Branch-Protection is enabled on the default branch ,and the number of reviewers is at least 1. If this fails, it checks if the recent (~30) commits have a Github-approved review or if the merger is different from the committer (implicit review). It also performs similar check for reviews using [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels "lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by"). 
 
 **Remediation steps**
-- If the project has only contributor, or does not have enough reviewers to practically require that all contributions be reviewed, try to recruit more maintainers to the project who will be willing to review others' work. Ideally at least some of these people will be from different organizations. If the project has very limited utility, consider expanding its intended utility so more people will be interested in improving it, and make that larger scope clear to potential contributors.
+- If the project has only one contributor, or does not have enough reviewers to practically require that all contributions be reviewed, try to recruit more maintainers to the project who will be willing to review others' work. Ideally at least some of these people will be from different organizations. If the project has very limited utility, consider expanding its intended utility so more people will be interested in improving it, and make that larger scope clear to potential contributors.
 - Follow security best practices by performing strict code reviews for every new pull request / merge request.
 - Make "code reviews" mandatory in your repository configuration. E.g. [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-pull-request-reviews-before-merging).
 - Enforce the rule for administrators / code owners as well. E.g. [GitHub](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators)
@@ -73,7 +73,7 @@ The check first tries to detect if Branch-Protection is enabled on the default b
 This check tries to determine if the project has a set of contributors from multiple organizations (e.g., companies).
 Low score has 'Low' risk.
 Some projects cannot meet this requirement. Obviously projects with only one active participant cannot meet it. Many projects have a narrow scope and may not be able to attract the interest of multiple organizations. See [Code Reviews](#code-reviews) for added notes about projects with a small number of participants.
-The check works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commits in the last 30 commits. The check succeeds if all contributors span at least 2 different organizations (companies). 
+The check works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commits in the last 30 commits. The highest score is achieved when there are contributors from at least 3 different companies in the last 30 commits. 
 
 **Remediation steps**
 - There is *NO* remediation work needed here. This is to provide some insights on which organization(s) have contributed to the project and making trust decisions based on that. But you can ask your contributors to join their respective organizations.
@@ -82,7 +82,7 @@ The check works by looking at the authors of recent commits and checking the `Co
 
 This check tries to determine if the project uses a dependency update tool.
 Not updating dependencies makes a project vulnerable to known flaws and prone to attacks. A low score is therefore considered `High` risk.
-The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion and it's especially difficult for an automated tool (like scorecard) to detect them all. 
+The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/). This check only looks if it is enabled and does not ensure that it is run and pull requests are merged. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion, and it's challenging for an automated tool (like scorecard) to detect them all. 
 
 **Remediation steps**
 - Signup for automatic dependency updates with dependabot or renovatebot and place the config file in the locations that are recommended by these tools.
@@ -91,7 +91,7 @@ The checks looks for [dependabot](https://dependabot.com/docs/config-file/) or [
 
 This check tries to determine if the project uses fuzzing.
 Fuzzing is important to reduce the number of vulnerabilities in code. A low score is considered 'Medium' risk.
-The check currently works by checking if the repo name is in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion and it's especially difficult for an automated tool (like scorecard) to detect them all. 
+The check currently works by checking if the repo name is in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion, and it's challenging for an automated tool (like scorecard) to detect them all. 
 
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
@@ -108,9 +108,11 @@ The check currently works by looking whether the repo is archived or not. If it 
 
 ## Packaging 
 
-This check tries to determine if the project is published as a package that other developers can install/download.
-Packaging your project is essential for users to receive updates and security patches automatically. A low score is considered `Medium` risk.
-The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a corresponding hub, e.g., [Npm](https://www.npmjs.com/). There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/). 
+This check tries to determine if the project is published as a package that others can easily download, install, easily update, and uninstall.
+It's important that the project provide an easy way to download, install, update, and uninstall the software. It's particularly important to make it easy for users to receive security patches as updates.
+This is often done by creating a "package" that is easy to install and uninstall by a package manager. Many program language ecosystems have a generally-used packaging format supported by a language-level package manager tool and public package repository. Many operating system platforms also have at least one package format, tool, and public repository (in some cases the source repository generates system-independent source packages, which are then used by others to generate system executable packages). Container images are yet another way to package software. In some situations packaging is not sensible, but it's wise to package software in so many circumstances that it's worth checking for it.
+A low score is considered `Medium` risk.
+The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a corresponding hub, e.g., [Npm](https://www.npmjs.com/). There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/). A project may meet this criterion yet have a failing scorecard report; some widely-used tools are relatively easy to detect, but it's challenging for an automated tool (like scorecard) to detect them all. If scorecard fails to detect the way you publish a package and you think scorecard should support your use case, please [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose). 
 
 **Remediation steps**
 - Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
