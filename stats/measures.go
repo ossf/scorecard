@@ -27,10 +27,4 @@ var (
 		stats.UnitSeconds)
 	// HTTPRequests measures the count of HTTP requests.
 	HTTPRequests = stats.Int64("HTTPRequests", "Measures the count of HTTP requests", stats.UnitDimensionless)
-	// ShellParseErrors measures the count of errors when attempting to parse shell code.
-	ShellParseErrors = stats.Int64(
-		"ShellParseErrors",
-		"Measures the count of errors when attempting to parse shell code",
-		stats.UnitDimensionless,
-	)
 )

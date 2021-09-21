@@ -146,7 +146,6 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 		&stats.CheckErrorCount,
 		&stats.RepoRuntime,
 		&stats.OutgoingHTTPRequests,
-		&stats.ShellParseErrorCount,
 		&githubstats.GithubTokens); err != nil {
 		return nil, fmt.Errorf("error during view.Register: %w", err)
 	}

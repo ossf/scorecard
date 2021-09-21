@@ -27,6 +27,8 @@ var (
 	ErrorUnsupportedHost = errors.New("unsupported host")
 	// ErrorInvalidURL indicates the repo's full URL was not passed.
 	ErrorInvalidURL = errors.New("invalid repo flag")
+	// ErrorShellParsing indicates there was an error when parsing shell code.
+	ErrorShellParsing = errors.New("error parsing shell code")
 )
 
 // WithMessage wraps any of the errors listed above.
@@ -47,6 +49,8 @@ func GetName(err error) string {
 		return "ErrScorecardInternal"
 	case errors.Is(err, ErrRepoUnreachable):
 		return "ErrRepoUnreachable"
+	case errors.Is(err, ErrorShellParsing):
+		return "ErrorShellParsing"
 	default:
 		return "ErrUnknown"
 	}
