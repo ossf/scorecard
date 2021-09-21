@@ -18,6 +18,8 @@ import (
 	"errors"
 	"io/ioutil"
 	"testing"
+
+	sce "github.com/ossf/scorecard/v2/errors"
 )
 
 func TestPolicyRead(t *testing.T) {
@@ -52,31 +54,31 @@ func TestPolicyRead(t *testing.T) {
 				},
 			},
 		},
-		// {
-		// 	name:     "invalid score - 0",
-		// 	filename: "./testdata/policy-invalid-score-0.yaml",
-		// 	err:      sce.ErrScorecardInternal,
-		// },
-		// {
-		// 	name:     "invalid score + 10",
-		// 	filename: "./testdata/policy-invalid-score-10.yaml",
-		// 	err:      sce.ErrScorecardInternal,
-		// },
-		// {
-		// 	name:     "invalid mode",
-		// 	filename: "./testdata/policy-invalid-mode.yaml",
-		// 	err:      sce.ErrScorecardInternal,
-		// },
-		// {
-		// 	name:     "invalid check name",
-		// 	filename: "./testdata/policy-invalid-check.yaml",
-		// 	err:      sce.ErrScorecardInternal,
-		// },
-		// {
-		// 	name:     "multiple check definitions",
-		// 	filename: "./testdata/policy-multiple-defs.yaml",
-		// 	err:      sce.ErrScorecardInternal,
-		// },
+		{
+			name:     "invalid score - 0",
+			filename: "./testdata/policy-invalid-score-0.yaml",
+			err:      sce.ErrScorecardInternal,
+		},
+		{
+			name:     "invalid score + 10",
+			filename: "./testdata/policy-invalid-score-10.yaml",
+			err:      sce.ErrScorecardInternal,
+		},
+		{
+			name:     "invalid mode",
+			filename: "./testdata/policy-invalid-mode.yaml",
+			err:      sce.ErrScorecardInternal,
+		},
+		{
+			name:     "invalid check name",
+			filename: "./testdata/policy-invalid-check.yaml",
+			err:      sce.ErrScorecardInternal,
+		},
+		{
+			name:     "multiple check definitions",
+			filename: "./testdata/policy-multiple-defs.yaml",
+			err:      sce.ErrScorecardInternal,
+		},
 	}
 
 	for i := range tests {

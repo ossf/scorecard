@@ -8,8 +8,8 @@ policies:
       mode: enforced
   Vulnerabilities:
     score: 1
-    mode: logging
+    mode: disabled
   Token-Permissions:
       score: 6
-      mode: logging
+      mode: enforced
 
