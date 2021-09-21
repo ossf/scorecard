@@ -27,7 +27,7 @@ require (
 	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.19.1
 	gocloud.dev v0.24.0
-	golang.org/x/tools v0.1.5
+	golang.org/x/tools v0.1.6
 	google.golang.org/genproto v0.0.0-20210831024726-fe130286e0e2
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
