@@ -24,9 +24,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ossf/scorecard/v2/checker"
 	"github.com/xeipuuv/gojsonschema"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/ossf/scorecard/v2/checker"
 )
 
 func jsonMockDocRead() *mockDoc {
