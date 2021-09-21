@@ -94,4 +94,10 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
 
-replace github.com/buger/jsonparser => github.com/buger/jsonparser v1.1.1
+replace (
+	// https://deps.dev/advisory/OSV/GO-2021-0057?from=%2Fgo%2Fgithub.com%252Fbuger%252Fjsonparser%2Fv1.0.0
+	github.com/buger/jsonparser => github.com/buger/jsonparser v1.1.1
+	// https://deps.dev/advisory/OSV/GO-2020-0017?from=%2Fgo%2Fk8s.io%252Fclient-go%2Fv0.0.0-20200207030105-473926661c44
+	github.com/dgrijalva/jwt-go v0.0.0-20170104182250-a601269ab70c => github.com/golang-jwt/jwt v3.2.1+incompatible
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt v3.2.1+incompatible
+)
