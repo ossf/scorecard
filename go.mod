@@ -100,4 +100,6 @@ replace (
 	// https://deps.dev/advisory/OSV/GO-2020-0017?from=%2Fgo%2Fk8s.io%252Fclient-go%2Fv0.0.0-20200207030105-473926661c44
 	github.com/dgrijalva/jwt-go v0.0.0-20170104182250-a601269ab70c => github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt v3.2.1+incompatible
+	// https://go.googlesource.com/vulndb/+/refs/heads/master/reports/GO-2020-0020.yaml
+	github.com/gorilla/handlers => github.com/gorilla/handlers v1.3.0
 )
