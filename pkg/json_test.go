@@ -24,17 +24,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ossf/scorecard/v2/checker"
 	"github.com/xeipuuv/gojsonschema"
 	"go.uber.org/zap/zapcore"
-
-	"github.com/ossf/scorecard/v2/checker"
 )
 
 func jsonMockDocRead() *mockDoc {
 	d := map[string]mockCheck{
 		"Check-Name": {
 			name:        "Check-Name",
-			risk:        "not used",
+			risk:        "High",
 			short:       "short description for Check-Name",
 			description: "not used",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
@@ -43,7 +42,7 @@ func jsonMockDocRead() *mockDoc {
 		},
 		"Check-Name2": {
 			name:        "Check-Name2",
-			risk:        "not used",
+			risk:        "Medium",
 			short:       "short description for Check-Name2",
 			description: "not used",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
@@ -52,7 +51,7 @@ func jsonMockDocRead() *mockDoc {
 		},
 		"Check-Name3": {
 			name:        "Check-Name3",
-			risk:        "not used",
+			risk:        "Low",
 			short:       "short description for Check-Name3",
 			description: "not used",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
@@ -494,6 +493,8 @@ func TestJSONOutput(t *testing.T) {
 				t.Fatalf("%s: Encode: %s", tt.name, err)
 			}
 
+			fmt.Println(string(result.Bytes()))
+			fmt.Println(string(es.Bytes()))
 			// Compare outputs.
 			r := bytes.Compare(result.Bytes(), es.Bytes())
 			if r != 0 {

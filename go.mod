@@ -16,6 +16,7 @@ require (
 	github.com/google/go-github/v38 v38.1.0
 	github.com/h2non/filetype v1.1.1
 	github.com/jszwec/csvutil v1.5.1
+	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/moby/buildkit v0.8.3
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.4

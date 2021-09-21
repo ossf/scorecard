@@ -103,11 +103,19 @@ func (r *ScorecardResult) aggregateScore(checkDocs docs.Doc) (float64, error) {
 		rs, exists := weights[risk]
 		if !exists {
 			return checker.InconclusiveResultScore,
-				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid risk for %s: %s", check.Name, risk))
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid risk for %s: '%s'", check.Name, risk))
+		}
+
+		if check.Score < checker.MinResultScore {
+			continue
 		}
 
 		total += rs
 		score += rs * float64(check.Score)
+	}
+
+	if total == 0 {
+		return checker.InconclusiveResultScore, nil
 	}
 
 	return score / total, nil
