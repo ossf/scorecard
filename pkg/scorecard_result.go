@@ -18,6 +18,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -78,6 +79,36 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("csv.Flush: %v", err))
 	}
 	return nil
+}
+
+// AggregatedScore returns an aggregate score out of checker.MaxResultScore.
+func (r *ScorecardResult) AggregatedScore(checkDocs docs.Doc) (int, error) {
+	// TODO: calculate the score and make it a field
+	// of ScorecardResult
+	weights := map[string]int{"Critical": 7, "High": 5, "Medium": 3, "Low": 1}
+	// Note: aggregate score changes depending on which checks are run.
+	total := 0
+	score := 0
+	for i := range r.Checks {
+		check := r.Checks[i]
+		doc, e := checkDocs.GetCheck(check.Name)
+		if e != nil {
+			return checker.InconclusiveResultScore,
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", check.Name, e))
+		}
+
+		risk := doc.GetRisk()
+		rs, exists := weights[risk]
+		if !exists {
+			return checker.InconclusiveResultScore,
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid risk for %s: %s", check.Name, risk))
+		}
+
+		total += rs
+		score += (rs * check.Score)
+	}
+
+	return int(math.Floor(float64(score) / float64(total))), nil
 }
 
 // AsString returns ScorecardResult in string format.
