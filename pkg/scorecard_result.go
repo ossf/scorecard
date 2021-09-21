@@ -106,6 +106,7 @@ func (r *ScorecardResult) aggregateScore(checkDocs docs.Doc) (float64, error) {
 				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid risk for %s: '%s'", check.Name, risk))
 		}
 
+		// This indicates an inconclusive score.
 		if check.Score < checker.MinResultScore {
 			continue
 		}
@@ -114,6 +115,7 @@ func (r *ScorecardResult) aggregateScore(checkDocs docs.Doc) (float64, error) {
 		score += rs * float64(check.Score)
 	}
 
+	// Inconclusive result.
 	if total == 0 {
 		return checker.InconclusiveResultScore, nil
 	}
@@ -169,7 +171,11 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level,
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(os.Stdout, "Aggregate score: %.1f / %d\n\n", score, checker.MaxResultScore)
+	s := "Aggregate score: ?\n\n"
+	if score != checker.InconclusiveResultScore {
+		s = fmt.Sprintf("Aggregate score: %.1f / %d\n\n", score, checker.MaxResultScore)
+	}
+	fmt.Fprint(os.Stdout, s)
 	fmt.Fprintln(os.Stdout, "Check scores:")
 
 	table := tablewriter.NewWriter(os.Stdout)
