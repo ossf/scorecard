@@ -157,11 +157,11 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		}
 		switch format {
 		case formatDefault:
-			score, e := repoResult.AggregatedScore(checkDocs)
+			score, e := repoResult.AggregateScore(checkDocs)
 			if e != nil {
-				log.Fatalf("AggregatedScore: %v", e)
+				log.Fatalf("AggregateScore: %v", e)
 			}
-			fmt.Fprintf(os.Stdout, "Aggregated score: %d / %d\n", score, checker.MaxResultScore)
+			fmt.Fprintf(os.Stdout, "Aggregate score: %d / %d\n", score, checker.MaxResultScore)
 			fmt.Printf("\nCheck scores:\n")
 			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatSarif:

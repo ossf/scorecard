@@ -81,8 +81,8 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 	return nil
 }
 
-// AggregatedScore returns an aggregate score out of checker.MaxResultScore.
-func (r *ScorecardResult) AggregatedScore(checkDocs docs.Doc) (int, error) {
+// AggregateScore returns an aggregate score out of checker.MaxResultScore.
+func (r *ScorecardResult) AggregateScore(checkDocs docs.Doc) (int, error) {
 	// TODO: calculate the score and make it a field
 	// of ScorecardResult
 	weights := map[string]int{"Critical": 7, "High": 5, "Medium": 3, "Low": 1}
