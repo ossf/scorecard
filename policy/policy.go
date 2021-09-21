@@ -28,7 +28,6 @@ var (
 	errInvalidVersion = errors.New("invalid version")
 	errInvalidCheck   = errors.New("invalid check name")
 	errInvalidScore   = errors.New("invalid score")
-	errUndefinedScore = errors.New("undefined score")
 	errInvalidMode    = errors.New("invalid mode")
 	errRepeatingCheck = errors.New("check has multiple definitions")
 )
@@ -38,12 +37,7 @@ var allowedVersions = map[int]bool{1: true}
 var modes = map[string]bool{"enforced": true, "disabled": true}
 
 type checkPolicy struct {
-	Mode string `yaml:"mode"`
-	// TODO: to add support for risk, we need
-	// a URL that can change a check's description
-	// based on GET parameters (i.e., to update the risk
-	// that is currently hard-codd in the doc).
-	Risk  string `yaml:"risk"`
+	Mode  string `yaml:"mode"`
 	Score int    `yaml:"score"`
 }
 
@@ -113,7 +107,6 @@ func ParseFromYAML(b []byte) (*ScorecardPolicy, error) {
 		retPolicy.Policies[n] = &CheckPolicy{
 			Score: int32(p.Score),
 			Mode:  modeToProto(p.Mode),
-			// TODO: set the Risk when we support it.
 		}
 	}
 
