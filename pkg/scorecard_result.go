@@ -52,6 +52,13 @@ type ScorecardResult struct {
 	Metadata  []string
 }
 
+func scoreToString(s float64) string {
+	if s == checker.InconclusiveResultScore {
+		return "?"
+	}
+	return fmt.Sprintf("%.1f", s)
+}
+
 // AsCSV outputs ScorecardResult in CSV format.
 func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 	checkDocs docs.Doc, writer io.Writer) error {
@@ -60,12 +67,9 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 		return err
 	}
 	w := csv.NewWriter(writer)
-	record := []string{r.Repo.Name, fmt.Sprintf("%.1f", score)}
+	record := []string{r.Repo.Name, scoreToString(score)}
 	columns := []string{"Repository", "AggScore"}
 
-	if score == checker.InconclusiveResultScore {
-		record[1] = "?"
-	}
 	// UPGRADEv2: remove nolint after ugrade.
 	//nolint
 	for _, checkResult := range r.Checks {
@@ -175,9 +179,9 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level,
 	if err != nil {
 		return err
 	}
-	s := "Aggregate score: ?\n\n"
-	if score != checker.InconclusiveResultScore {
-		s = fmt.Sprintf("Aggregate score: %.1f / %d\n\n", score, checker.MaxResultScore)
+	s := fmt.Sprintf("Aggregate score: %s / %d\n\n", scoreToString(score), checker.MaxResultScore)
+	if score == checker.InconclusiveResultScore {
+		s = "Aggregate score: ?\n\n"
 	}
 	fmt.Fprint(os.Stdout, s)
 	fmt.Fprintln(os.Stdout, "Check scores:")
