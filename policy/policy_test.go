@@ -16,6 +16,7 @@ package policy
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -41,6 +42,28 @@ func TestPolicyRead(t *testing.T) {
 				Policies: map[string]*CheckPolicy{
 					"Token-Permissions": &CheckPolicy{
 						Score: 3,
+						Mode:  CheckPolicy_DISABLED,
+					},
+					"Branch-Protection": &CheckPolicy{
+						Score: 5,
+						Mode:  CheckPolicy_ENFORCED,
+					},
+					"Vulnerabilities": &CheckPolicy{
+						Score: 1,
+						Mode:  CheckPolicy_ENFORCED,
+					},
+				},
+			},
+		},
+		{
+			name:     "no score disabled",
+			filename: "./testdata/policy-no-score-disabled.yaml",
+			err:      nil,
+			result: ScorecardPolicy{
+				Version: 1,
+				Policies: map[string]*CheckPolicy{
+					"Token-Permissions": &CheckPolicy{
+						Score: 0,
 						Mode:  CheckPolicy_DISABLED,
 					},
 					"Branch-Protection": &CheckPolicy{
@@ -101,6 +124,8 @@ func TestPolicyRead(t *testing.T) {
 				return
 			}
 
+			fmt.Println(p.String())
+			fmt.Println(tt.result.String())
 			// Compare outputs only if the error is nil.
 			// TODO: compare objects.
 			if p.String() != tt.result.String() {

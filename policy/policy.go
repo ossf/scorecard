@@ -28,6 +28,7 @@ var (
 	errInvalidVersion = errors.New("invalid version")
 	errInvalidCheck   = errors.New("invalid check name")
 	errInvalidScore   = errors.New("invalid score")
+	errUndefinedScore = errors.New("undefined score")
 	errInvalidMode    = errors.New("invalid mode")
 	errRepeatingCheck = errors.New("check has multiple definitions")
 )
@@ -47,8 +48,8 @@ type checkPolicy struct {
 }
 
 type scorecardPolicy struct {
-	Policies map[string]checkPolicy `json:"policies"`
-	Version  int                    `json:"version"`
+	Policies map[string]checkPolicy `yaml:"policies"`
+	Version  int                    `yaml:"version"`
 }
 
 func isAllowedVersion(v int) bool {
@@ -93,13 +94,13 @@ func ParseFromYAML(b []byte) (*ScorecardPolicy, error) {
 			return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidCheck.Error(), n))
 		}
 
-		if p.Score < 0 || p.Score > 10 {
-			return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidScore.Error(), p.Score))
-		}
-
 		_, exists := modes[p.Mode]
 		if !exists {
 			return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidMode.Error(), p.Mode))
+		}
+
+		if p.Score < 0 || p.Score > 10 {
+			return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidScore.Error(), p.Score))
 		}
 
 		_, exists = checksFound[n]
