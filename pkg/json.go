@@ -122,7 +122,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 // AsJSON2 exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON2(showDetails bool,
 	logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
-	score, err := r.aggregateScore(checkDocs)
+	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
 		return err
 	}
