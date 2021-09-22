@@ -87,7 +87,7 @@ func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNam
 	for checkName := range enabledChecks {
 		_, exists := sp.Policies[checkName]
 		if !exists {
-			log.Printf(fmt.Sprintf("check %s has no policy declared", checkName))
+			log.Printf("check %s has no policy declared", checkName)
 			return false
 		}
 	}
