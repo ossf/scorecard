@@ -19,12 +19,15 @@ import (
 	"net/http"
 	"strconv"
 	"sync/atomic"
+	"time"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
 	githubstats "github.com/ossf/scorecard/v2/clients/githubrepo/stats"
 )
+
+const expiryTimeInSec = 30
 
 // MakeGitHubTransport wraps input RoundTripper with GitHub authorization logic.
 func MakeGitHubTransport(innerTransport http.RoundTripper, accessTokens []string) http.RoundTripper {
@@ -41,20 +44,27 @@ type githubTransport struct {
 }
 
 type tokenAccessor interface {
-	next(r *http.Request) (string, error)
+	next() (uint64, string)
+	release(uint64)
 }
 
 func (gt *githubTransport) RoundTrip(r *http.Request) (*http.Response, error) {
-	token, err := gt.tokens.next(r)
+	index, token := gt.tokens.next()
+	defer gt.tokens.release(index)
+
+	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.TokenIndex, fmt.Sprint(index)))
 	if err != nil {
-		return nil, fmt.Errorf("error getting Github token: %w", err)
+		return nil, fmt.Errorf("error updating context: %w", err)
 	}
+	*r = *r.WithContext(ctx)
+
 	r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 	resp, err := gt.innerTransport.RoundTrip(r)
 	if err != nil {
 		return nil, fmt.Errorf("error in HTTP: %w", err)
 	}
-	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
+
+	ctx, err = tag.New(r.Context(), tag.Upsert(githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
 	if err != nil {
 		return nil, fmt.Errorf("error updating context: %w", err)
 	}
@@ -68,24 +78,35 @@ func (gt *githubTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 func makeTokenAccessor(accessTokens []string) tokenAccessor {
 	return &roundRobinAccessor{
 		accessTokens: accessTokens,
+		accessState:  make([]int64, len(accessTokens)),
 	}
 }
 
 type roundRobinAccessor struct {
 	accessTokens []string
+	accessState  []int64
 	counter      uint64
 }
 
-func (roundRobin *roundRobinAccessor) next(r *http.Request) (string, error) {
+func (roundRobin *roundRobinAccessor) next() (uint64, string) {
 	c := atomic.AddUint64(&roundRobin.counter, 1)
 	l := len(roundRobin.accessTokens)
 	index := c % uint64(l)
 
-	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.TokenIndex, fmt.Sprint(index)))
-	if err != nil {
-		return "", fmt.Errorf("error updating context: %w", err)
+	// If selected accessToken is unavailable, wait.
+	for !atomic.CompareAndSwapInt64(&roundRobin.accessState[index], 0, time.Now().Unix()) {
+		currVal := roundRobin.accessState[index]
+		expired := time.Now().After(time.Unix(currVal, 0).Add(expiryTimeInSec * time.Second))
+		if !expired {
+			continue
+		}
+		if atomic.CompareAndSwapInt64(&roundRobin.accessState[index], currVal, time.Now().Unix()) {
+			break
+		}
 	}
-	*r = *r.WithContext(ctx)
+	return index, roundRobin.accessTokens[index]
+}
 
-	return roundRobin.accessTokens[index], nil
+func (roundRobin *roundRobinAccessor) release(index uint64) {
+	atomic.SwapInt64(&roundRobin.accessState[index], 0)
 }
