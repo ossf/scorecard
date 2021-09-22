@@ -92,6 +92,7 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 	return nil
 }
 
+// GetAggregateScore returns the aggregate score.
 func (r *ScorecardResult) GetAggregateScore(checkDocs docs.Doc) (float64, error) {
 	// TODO: calculate the score and make it a field
 	// of ScorecardResult
