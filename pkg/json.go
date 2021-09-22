@@ -68,20 +68,18 @@ type jsonScorecardV2 struct {
 type jsonFloatScore float64
 
 func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
-	if float64(s) == float64(int(s)) {
-		return []byte(fmt.Sprintf("%.0f", s)), nil
-	}
+	// Note: for integers, this will show as X.0.
 	return []byte(fmt.Sprintf("%.1f", s)), nil
 }
 
 //nolint:govet
 type jsonScorecardResultV2 struct {
-	Date      string              `json:"date"`
-	Repo      jsonRepoV2          `json:"repo"`
-	Scorecard jsonScorecardV2     `json:"scorecard"`
-	AggScore  jsonFloatScore      `json:"score"`
-	Checks    []jsonCheckResultV2 `json:"checks"`
-	Metadata  []string            `json:"metadata"`
+	Date           string              `json:"date"`
+	Repo           jsonRepoV2          `json:"repo"`
+	Scorecard      jsonScorecardV2     `json:"scorecard"`
+	AggregateScore jsonFloatScore      `json:"score"`
+	Checks         []jsonCheckResultV2 `json:"checks"`
+	Metadata       []string            `json:"metadata"`
 }
 
 // AsJSON exports results as JSON for new detail format.
@@ -137,9 +135,9 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 			Version: r.Scorecard.Version,
 			Commit:  r.Scorecard.CommitSHA,
 		},
-		Date:     r.Date.Format("2006-01-02"),
-		Metadata: r.Metadata,
-		AggScore: jsonFloatScore(score),
+		Date:           r.Date.Format("2006-01-02"),
+		Metadata:       r.Metadata,
+		AggregateScore: jsonFloatScore(score),
 	}
 
 	//nolint
