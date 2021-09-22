@@ -68,28 +68,30 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 	scorecardShort = "Security Scorecards"
 )
 
-func readPolicy() *spol.ScorecardPolicy {
+func readPolicy() (*spol.ScorecardPolicy, error) {
 	if policyFile != "" {
 		data, err := os.ReadFile(policyFile)
 		if err != nil {
-			log.Fatal(err)
+			return nil, fmt.Errorf("os.ReadFile: %w", err)
 		}
 		sp, err := spol.ParseFromYAML(data)
 		if err != nil {
-			log.Fatal(err)
+			return nil, fmt.Errorf("spol.ParseFromYAML: %w", err)
 		}
-		return sp
+		return sp, nil
 	}
-	return nil
+	return nil, nil
 }
 
-func ensureChecksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNameToFnMap) {
+func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNameToFnMap) bool {
 	for checkName := range enabledChecks {
 		_, exists := sp.Policies[checkName]
 		if !exists {
-			log.Fatal(fmt.Sprintf("check %s has no policy declared", checkName))
+			log.Printf(fmt.Sprintf("check %s has no policy declared", checkName))
+			return false
 		}
 	}
+	return true
 }
 
 var rootCmd = &cobra.Command{
@@ -103,19 +105,16 @@ var rootCmd = &cobra.Command{
 			fmt.Printf("**** Using SCORECARD_V3 code ***** \n\n")
 		}
 		if format == formatSarif && !v3 {
-			log.Fatalf("sarif not supported yet")
+			log.Fatal("sarif not supported yet")
 		}
 
 		if policyFile != "" && !v3 {
 			log.Fatal("policy not supported yet")
 		}
 
-		var policy *spol.ScorecardPolicy
-		if policyFile != "" {
-			policy = readPolicy()
-			if policy == nil {
-				log.Fatal("empty policy")
-			}
+		policy, err := readPolicy()
+		if err != nil {
+			log.Fatalf("readPolicy: %v", err)
 		}
 
 		if npm != "" {
@@ -170,8 +169,8 @@ var rootCmd = &cobra.Command{
 
 		// If a policy was passed as argument, ensure all checks
 		// to run have a corresponding policy.
-		if policyFile != "" {
-			ensureChecksHavePolicies(policy, enabledChecks)
+		if policy != nil && !checksHavePolicies(policy, enabledChecks) {
+			log.Fatal("checks don't have policies")
 		}
 
 		ctx := context.Background()
