@@ -16,7 +16,6 @@ package policy
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -124,8 +123,6 @@ func TestPolicyRead(t *testing.T) {
 				return
 			}
 
-			fmt.Println(p.String())
-			fmt.Println(tt.result.String())
 			// Compare outputs only if the error is nil.
 			// TODO: compare objects.
 			if p.String() != tt.result.String() {

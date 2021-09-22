@@ -63,7 +63,7 @@ func modeToProto(m string) CheckPolicy_Mode {
 }
 
 // ParseFromYAML parses a policy file and returns
-// a scorecardPolicy. TODO: use protos.
+// a scorecardPolicy.
 func ParseFromYAML(b []byte) (*ScorecardPolicy, error) {
 	// Internal golang for unmarshalling the policy file.
 	sp := scorecardPolicy{}
