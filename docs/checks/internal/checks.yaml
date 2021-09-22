@@ -511,6 +511,7 @@ checks:
         Run CodeQL checks in your CI/CD by following the instructions
         [here](https://github.com/github/codeql-action#usage).
   Security-Policy:
+    risk: Medium
     short: Determines if the project has published a security policy.
     tags: supply-chain, security, policy
     description: >-

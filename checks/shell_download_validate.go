@@ -682,8 +682,7 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		// Note: this is caught by internal caller and only printed
 		// to avoid failing on shell scripts that our parser does not understand.
 		// Example: https://github.com/openssl/openssl/blob/master/util/shlib_wrap.sh.in
-		//nolint
-		return false, sce.CreateInternal(errInternalInvalidShellCode, err.Error())
+		return false, sce.WithMessage(sce.ErrorShellParsing, err.Error())
 	}
 
 	printer := syntax.NewPrinter()
@@ -826,7 +825,7 @@ func isMatchingShellScriptFile(pathfn string, content []byte, shellsToMatch []st
 func validateShellFile(pathfn string, content []byte, dl checker.DetailLogger) (bool, error) {
 	files := make(map[string]bool)
 	r, err := validateShellFileAndRecord(pathfn, content, files, dl)
-	if err != nil && errors.Is(err, errInternalInvalidShellCode) {
+	if err != nil && errors.Is(err, sce.ErrorShellParsing) {
 		// Discard and print this particular error for now.
 		dl.Debug(err.Error())
 	}

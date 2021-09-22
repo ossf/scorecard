@@ -149,5 +149,4 @@ linters-settings:
       - paramTypeCombine
       - ptrToRefParam
       - typeUnparen
-      - unnamedResult
       - unnecessaryBlock
