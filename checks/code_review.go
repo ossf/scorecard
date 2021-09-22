@@ -57,6 +57,13 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	score, reason = selectBestScoreAndReason(prowScore, score, prowReason, reason, c.Dlogger)
+	if score == checker.MinResultScore {
+		c.Dlogger.Info3(&checker.LogMessage{
+			Text: reason,
+		})
+		return checker.CreateResultWithScore(CheckCodeReview, "no reviews detected", score)
+	}
+
 	if score == checker.InconclusiveResultScore {
 		return checker.CreateInconclusiveResult(CheckCodeReview, "no reviews detected")
 	}
