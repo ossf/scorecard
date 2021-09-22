@@ -128,6 +128,7 @@ func AsJSON2(r *pkg.ScorecardResult, showDetails bool,
 	logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
 	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
+		//nolint:wrapcheck
 		return err
 	}
 
