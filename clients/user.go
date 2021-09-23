@@ -14,29 +14,7 @@
 
 package clients
 
-import (
-	"time"
-)
-
-// PullRequest struct represents a PR as returned by RepoClient.
-// nolint: govet
-type PullRequest struct {
-	MergedAt    time.Time
-	MergeCommit Commit
-	Number      int
-	HeadSHA     string
-	Labels      []Label
-	Reviews     []Review
-	Author      User
-}
-
-// Label represents a PR label.
-type Label struct {
-	Name string
-}
-
-// Review represents a PR review.
-type Review struct {
-	Author User
-	State  string
+// User represents a Git user.
+type User struct {
+	Login string
 }
