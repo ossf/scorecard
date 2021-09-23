@@ -184,6 +184,7 @@ checks:
       A CI-system is considered well-known if its name contains any of the
       following: appveyor, buildkite, circleci, e2e, github-actions, jenkins,
       mergeable, test, travis-ci.
+      It does not currently support other source hosting repositories (forges).
       A project may meet this criterion yet have a failing scorecard report;
       there are many ways to implement this criterion, and it's challenging
       for an automated tool (like scorecard) to detect them all.
@@ -193,7 +194,7 @@ checks:
       - Check-in scripts that run all the tests in your repository.
       - >-
         Integrate those scripts with a CI/CD platform that runs it on every pull
-        request (e.g. [GitHub
+        request (e.g. if hosted on GitHub, [GitHub
         Actions](https://docs.github.com/en/actions/learn-github-actions/introduction-to-github-actions),
         [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
   CII-Best-Practices:
@@ -335,6 +336,7 @@ checks:
       must have at least 5 commits in the last 30 commits.
       The highest score is achieved when there are contributors from
       at least 3 different companies in the last 30 commits.
+      It does not currently support other source hosting repositories (forges).
     remediation:
       - >-
         There is *NO* remediation work needed here. This is to provide some
@@ -389,6 +391,7 @@ checks:
 
       The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package)
       and language-specific GitHub Actions that upload the package to a corresponding hub, e.g., [Npm](https://www.npmjs.com/).
+      It does not currently support other source hosting repositories (forges).
       There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).
       A project may meet this criterion yet have a failing scorecard report;
       some widely-used tools are relatively easy to detect, but it's
@@ -398,8 +401,8 @@ checks:
       you think scorecard should support your use case, please
       [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose).
     remediation:
-      - Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
-      - Use a GitHub action to release your package to language-specific hubs.
+      - Publish your project as a downloadable package, e.g., if hosted on GitHub, use [GitHub's mechanisms for publishing a package]](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
+      - If hosted on GitHub, use a GitHub action to release your package to language-specific hubs.
   Pinned-Dependencies:
     risk: Medium
     tags: supply-chain, security, dependencies
@@ -443,6 +446,8 @@ checks:
       (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock
       (PHP), vendor/, third_party/, third-party/; (2) looks for
       unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows.
+      It does not currently support other source hosting repositories (forges)
+      other than GitHub.
 
       *Limitations:*
       This check should only apply to applications, as
@@ -455,7 +460,8 @@ checks:
       incorrectly categorize software
       (especially in projects that include both libraries and applications).
 
-      You can learn more about dependencies for projects on GitHub using
+      If the project is hosted on GitHub,
+      You can learn more about dependencies for projects using
       [GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph).
     remediation:
       - >-
@@ -495,6 +501,8 @@ checks:
       such as [github-code-scanning](https://securitylab.github.com/tools/codeql)
       (codeql) and sonarcloud in the recent (~30) merged PRs. The
       check also looks for the use of "github/codeql-action" in a GitHub workflow.
+      It does not currently support other source hosting repositories (forges)
+      other than GitHub.
       A project may meet this criterion yet have a failing scorecard report;
       there are many ways to implement this criterion and it's especially
       difficult for an automated tool (like scorecard) to detect them all.
@@ -531,7 +539,10 @@ checks:
 
       It works by looking for filenames: *.minisig
       (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last
-      5 GitHub releases. The check does not verify the signatures.
+      5 releases if it's hosted on GitHub.
+      The check does not verify the signatures.
+      It does not currently support other source hosting repositories (forges)
+      other than GitHub.
     remediation:
       - Publish the release.
       - Generate a signing key.
@@ -539,25 +550,28 @@ checks:
       - Sign the release archive with this key (should output a signature file).
       - Attach the signature file next to the release archive.
       - >-
-        For GitHub, check out the steps
+        If the source is hosted on GitHub, check out the steps
         [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
   Token-Permissions:
     risk: High
     tags: supply-chain, security, infrastructure
-    short: Determines if the project's GitHub workflows follow the principle of least privilege.
+    short: Determines if the project's workflows follow the principle of least privilege.
     description: >-
-      This check tries to determine if the project's GitHub workflows
-      follow the principle of least privilege, i.e. if the GitHub tokens
+      This check tries to determine if the project's automated workflows
+      follow the principle of least privilege, i.e. if the tokens
       are set read-only by default.
 
       Attackers may use a compromised token with write access to push malicious code into the project.
       A low score is therefore considered `High` risk.
 
-      For each workflow yaml file, the check looks
+      The check looks at the GitHub workflows.
+      For each workflow yaml file,
       for the permission definitions. To obtain the highest score, the permissions should be set as
       read-only at the [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions)
       and the required write permissions should be declared at the [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions).
       The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available.
+      It does not currently support other source hosting repositories (forges)
+      other than GitHub.
     remediation:
       - >-
         Set permissions as `read-all` or `contents: read` as described in
