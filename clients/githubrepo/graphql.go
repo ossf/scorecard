@@ -76,9 +76,6 @@ type graphqlData struct {
 				} `graphql:"labels(last: $labelsToAnalyze)"`
 				Reviews struct {
 					Nodes []struct {
-						Author struct {
-							Login githubv4.String
-						}
 						State githubv4.String
 					}
 				} `graphql:"reviews(last: $reviewsToAnalyze)"`
