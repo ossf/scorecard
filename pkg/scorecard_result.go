@@ -62,7 +62,7 @@ func scoreToString(s float64) string {
 // AsCSV outputs ScorecardResult in CSV format.
 func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 	checkDocs docs.Doc, writer io.Writer) error {
-	score, err := r.aggregateScore(checkDocs)
+	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,8 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 	return nil
 }
 
-func (r *ScorecardResult) aggregateScore(checkDocs docs.Doc) (float64, error) {
+// GetAggregateScore returns the aggregate score.
+func (r *ScorecardResult) GetAggregateScore(checkDocs docs.Doc) (float64, error) {
 	// TODO: calculate the score and make it a field
 	// of ScorecardResult
 	weights := map[string]float64{"Critical": 10, "High": 7.5, "Medium": 5, "Low": 2.5}
@@ -175,7 +176,7 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level,
 		data[i] = x
 	}
 
-	score, err := r.aggregateScore(checkDocs)
+	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
 		return err
 	}

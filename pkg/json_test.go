@@ -494,8 +494,6 @@ func TestJSONOutput(t *testing.T) {
 				t.Fatalf("%s: Encode: %s", tt.name, err)
 			}
 
-			fmt.Println(string(result.Bytes()))
-			fmt.Println(string(es.Bytes()))
 			// Compare outputs.
 			r := bytes.Compare(result.Bytes(), es.Bytes())
 			if r != 0 {
