@@ -24,6 +24,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v2/checker"
+	spol "github.com/ossf/scorecard/v2/policy"
 )
 
 func sarifMockDocRead() *mockDoc {
@@ -90,89 +91,433 @@ func TestSARIFOutput(t *testing.T) {
 		showDetails bool
 		logLevel    zapcore.Level
 		result      ScorecardResult
-		minScore    int
+		policy      spol.ScorecardPolicy
 	}{
+		// {
+		// 	name:        "check-1",
+		// 	showDetails: true,
+		// 	expected:    "./testdata/check1.sarif",
+		// 	logLevel:    zapcore.DebugLevel,
+		// 	policy: spol.ScorecardPolicy{
+		// 		Version: 1,
+		// 		Policies: map[string]*spol.CheckPolicy{
+		// 			"Check-Name": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_ENFORCED,
+		// 			},
+		// 			"Check-Name2": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_DISABLED,
+		// 			},
+		// 		},
+		// 	},
+		// 	result: ScorecardResult{
+		// 		Repo: RepoInfo{
+		// 			Name:      repoName,
+		// 			CommitSHA: repoCommit,
+		// 		},
+		// 		Scorecard: ScorecardInfo{
+		// 			Version:   scorecardVersion,
+		// 			CommitSHA: scorecardCommit,
+		// 		},
+		// 		Date: date,
+		// 		Checks: []checker.CheckResult{
+		// 			{
+		// 				Details2: []checker.CheckDetail{
+		// 					{
+		// 						Type: checker.DetailWarn,
+		// 						Msg: checker.LogMessage{
+		// 							Text:    "warn message",
+		// 							Path:    "src/file1.cpp",
+		// 							Type:    checker.FileTypeSource,
+		// 							Offset:  5,
+		// 							Snippet: "if (bad) {BUG();}",
+		// 						},
+		// 					},
+		// 				},
+		// 				Score:  5,
+		// 				Reason: "half score reason",
+		// 				Name:   "Check-Name",
+		// 			},
+		// 		},
+		// 		Metadata: []string{},
+		// 	},
+		// },
+		// {
+		// 	name:        "check-2",
+		// 	showDetails: true,
+		// 	expected:    "./testdata/check2.sarif",
+		// 	logLevel:    zapcore.DebugLevel,
+		// 	policy: spol.ScorecardPolicy{
+		// 		Version: 1,
+		// 		Policies: map[string]*spol.CheckPolicy{
+		// 			"Check-Name": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_ENFORCED,
+		// 			},
+		// 			"Check-Name2": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_DISABLED,
+		// 			},
+		// 		},
+		// 	},
+		// 	result: ScorecardResult{
+		// 		Repo: RepoInfo{
+		// 			Name:      repoName,
+		// 			CommitSHA: repoCommit,
+		// 		},
+		// 		Scorecard: ScorecardInfo{
+		// 			Version:   scorecardVersion,
+		// 			CommitSHA: scorecardCommit,
+		// 		},
+		// 		Date: date,
+		// 		Checks: []checker.CheckResult{
+		// 			{
+		// 				Details2: []checker.CheckDetail{
+		// 					{
+		// 						Type: checker.DetailWarn,
+		// 						Msg: checker.LogMessage{
+		// 							Text:   "warn message",
+		// 							Path:   "bin/binary.elf",
+		// 							Type:   checker.FileTypeBinary,
+		// 							Offset: 0,
+		// 						},
+		// 					},
+		// 				},
+		// 				Score:  checker.MinResultScore,
+		// 				Reason: "min score reason",
+		// 				Name:   "Check-Name",
+		// 			},
+		// 		},
+		// 		Metadata: []string{},
+		// 	},
+		// },
+		// {
+		// 	name:        "check-3",
+		// 	showDetails: true,
+		// 	expected:    "./testdata/check3.sarif",
+		// 	logLevel:    zapcore.InfoLevel,
+		// 	policy: spol.ScorecardPolicy{
+		// 		Version: 1,
+		// 		Policies: map[string]*spol.CheckPolicy{
+		// 			"Check-Name": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_ENFORCED,
+		// 			},
+		// 			"Check-Name2": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_ENFORCED,
+		// 			},
+		// 			"Check-Name3": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_ENFORCED,
+		// 			},
+		// 		},
+		// 	},
+		// 	result: ScorecardResult{
+		// 		Repo: RepoInfo{
+		// 			Name:      repoName,
+		// 			CommitSHA: repoCommit,
+		// 		},
+		// 		Scorecard: ScorecardInfo{
+		// 			Version:   scorecardVersion,
+		// 			CommitSHA: scorecardCommit,
+		// 		},
+		// 		Date: date,
+		// 		Checks: []checker.CheckResult{
+		// 			{
+		// 				Details2: []checker.CheckDetail{
+		// 					{
+		// 						Type: checker.DetailWarn,
+		// 						Msg: checker.LogMessage{
+		// 							Text:   "warn message",
+		// 							Path:   "bin/binary.elf",
+		// 							Type:   checker.FileTypeBinary,
+		// 							Offset: 0,
+		// 						},
+		// 					},
+		// 				},
+		// 				Score:  checker.MinResultScore,
+		// 				Reason: "min result reason",
+		// 				Name:   "Check-Name",
+		// 			},
+		// 			{
+		// 				Details2: []checker.CheckDetail{
+		// 					{
+		// 						Type: checker.DetailWarn,
+		// 						Msg: checker.LogMessage{
+		// 							Text:    "warn message",
+		// 							Path:    "src/doc.txt",
+		// 							Type:    checker.FileTypeText,
+		// 							Offset:  3,
+		// 							Snippet: "some text",
+		// 						},
+		// 					},
+		// 				},
+		// 				Score:  checker.MinResultScore,
+		// 				Reason: "min result reason",
+		// 				Name:   "Check-Name2",
+		// 			},
+		// 			{
+		// 				Details2: []checker.CheckDetail{
+		// 					{
+		// 						Type: checker.DetailInfo,
+		// 						Msg: checker.LogMessage{
+		// 							Text:    "info message",
+		// 							Path:    "some/path.js",
+		// 							Type:    checker.FileTypeSource,
+		// 							Offset:  3,
+		// 							Snippet: "if (bad) {BUG();}",
+		// 						},
+		// 					},
+		// 					{
+		// 						Type: checker.DetailWarn,
+		// 						Msg: checker.LogMessage{
+		// 							Text:    "warn message",
+		// 							Path:    "some/path.py",
+		// 							Type:    checker.FileTypeSource,
+		// 							Offset:  3,
+		// 							Snippet: "if (bad) {BUG2();}",
+		// 						},
+		// 					},
+		// 					{
+		// 						Type: checker.DetailDebug,
+		// 						Msg: checker.LogMessage{
+		// 							Text:    "debug message",
+		// 							Path:    "some/path.go",
+		// 							Type:    checker.FileTypeSource,
+		// 							Offset:  3,
+		// 							Snippet: "if (bad) {BUG5();}",
+		// 						},
+		// 					},
+		// 				},
+		// 				Score:  checker.InconclusiveResultScore,
+		// 				Reason: "inconclusive reason",
+		// 				Name:   "Check-Name3",
+		// 			},
+		// 		},
+		// 		Metadata: []string{},
+		// 	},
+		// },
+		// {
+		// 	name:        "check-4",
+		// 	showDetails: true,
+		// 	expected:    "./testdata/check4.sarif",
+		// 	logLevel:    zapcore.DebugLevel,
+		// 	policy: spol.ScorecardPolicy{
+		// 		Version: 1,
+		// 		Policies: map[string]*spol.CheckPolicy{
+		// 			"Check-Name": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_ENFORCED,
+		// 			},
+		// 			"Check-Name2": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_ENFORCED,
+		// 			},
+		// 			"Check-Name3": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_ENFORCED,
+		// 			},
+		// 		},
+		// 	},
+		// 	result: ScorecardResult{
+		// 		Repo: RepoInfo{
+		// 			Name:      repoName,
+		// 			CommitSHA: repoCommit,
+		// 		},
+		// 		Scorecard: ScorecardInfo{
+		// 			Version:   scorecardVersion,
+		// 			CommitSHA: scorecardCommit,
+		// 		},
+		// 		Date: date,
+		// 		Checks: []checker.CheckResult{
+		// 			{
+		// 				Details2: []checker.CheckDetail{
+		// 					{
+		// 						Type: checker.DetailWarn,
+		// 						Msg: checker.LogMessage{
+		// 							Text:   "warn message",
+		// 							Path:   "bin/binary.elf",
+		// 							Type:   checker.FileTypeBinary,
+		// 							Offset: 0,
+		// 						},
+		// 					},
+		// 				},
+		// 				Score:  checker.MinResultScore,
+		// 				Reason: "min result reason",
+		// 				Name:   "Check-Name",
+		// 			},
+		// 			{
+		// 				Details2: []checker.CheckDetail{
+		// 					{
+		// 						Type: checker.DetailWarn,
+		// 						Msg: checker.LogMessage{
+		// 							Text:    "warn message",
+		// 							Path:    "src/doc.txt",
+		// 							Type:    checker.FileTypeText,
+		// 							Offset:  3,
+		// 							Snippet: "some text",
+		// 						},
+		// 					},
+		// 				},
+		// 				Score:  checker.MinResultScore,
+		// 				Reason: "min result reason",
+		// 				Name:   "Check-Name2",
+		// 			},
+		// 			{
+		// 				Details2: []checker.CheckDetail{
+		// 					{
+		// 						Type: checker.DetailInfo,
+		// 						Msg: checker.LogMessage{
+		// 							Text:    "info message",
+		// 							Path:    "some/path.js",
+		// 							Type:    checker.FileTypeSource,
+		// 							Offset:  3,
+		// 							Snippet: "if (bad) {BUG();}",
+		// 						},
+		// 					},
+		// 					{
+		// 						Type: checker.DetailWarn,
+		// 						Msg: checker.LogMessage{
+		// 							Text:    "warn message",
+		// 							Path:    "some/path.py",
+		// 							Type:    checker.FileTypeSource,
+		// 							Offset:  3,
+		// 							Snippet: "if (bad) {BUG2();}",
+		// 						},
+		// 					},
+		// 					{
+		// 						Type: checker.DetailDebug,
+		// 						Msg: checker.LogMessage{
+		// 							Text:    "debug message",
+		// 							Path:    "some/path.go",
+		// 							Type:    checker.FileTypeSource,
+		// 							Offset:  3,
+		// 							Snippet: "if (bad) {BUG5();}",
+		// 						},
+		// 					},
+		// 				},
+		// 				Score:  checker.InconclusiveResultScore,
+		// 				Reason: "inconclusive reason",
+		// 				Name:   "Check-Name3",
+		// 			},
+		// 		},
+		// 		Metadata: []string{},
+		// 	},
+		// },
+		// {
+		// 	name:        "check-5",
+		// 	showDetails: true,
+		// 	expected:    "./testdata/check5.sarif",
+		// 	logLevel:    zapcore.WarnLevel,
+		// 	policy: spol.ScorecardPolicy{
+		// 		Version: 1,
+		// 		Policies: map[string]*spol.CheckPolicy{
+		// 			"Check-Name": &spol.CheckPolicy{
+		// 				Score: 5,
+		// 				Mode:  spol.CheckPolicy_ENFORCED,
+		// 			},
+		// 		},
+		// 	},
+		// 	result: ScorecardResult{
+		// 		Repo: RepoInfo{
+		// 			Name:      repoName,
+		// 			CommitSHA: repoCommit,
+		// 		},
+		// 		Scorecard: ScorecardInfo{
+		// 			Version:   scorecardVersion,
+		// 			CommitSHA: scorecardCommit,
+		// 		},
+		// 		Date: date,
+		// 		Checks: []checker.CheckResult{
+		// 			{
+		// 				Details2: []checker.CheckDetail{
+		// 					{
+		// 						Type: checker.DetailWarn,
+		// 						Msg: checker.LogMessage{
+		// 							Text:    "warn message",
+		// 							Path:    "src/file1.cpp",
+		// 							Type:    checker.FileTypeSource,
+		// 							Offset:  5,
+		// 							Snippet: "if (bad) {BUG();}",
+		// 						},
+		// 					},
+		// 				},
+		// 				Score:  6,
+		// 				Reason: "six score reason",
+		// 				Name:   "Check-Name",
+		// 			},
+		// 		},
+		// 		Metadata: []string{},
+		// 	},
+		// },
+		// {
+		// 	name:        "check-6",
+		// 	showDetails: true,
+		// 	expected:    "./testdata/check6.sarif",
+		// 	logLevel:    zapcore.WarnLevel,
+		// 	policy: spol.ScorecardPolicy{
+		// 		Version: 1,
+		// 		Policies: map[string]*spol.CheckPolicy{
+		// 			"Check-Name": &spol.CheckPolicy{
+		// 				Score: checker.MaxResultScore,
+		// 				Mode:  spol.CheckPolicy_ENFORCED,
+		// 			},
+		// 		},
+		// 	},
+		// 	result: ScorecardResult{
+		// 		Repo: RepoInfo{
+		// 			Name:      repoName,
+		// 			CommitSHA: repoCommit,
+		// 		},
+		// 		Scorecard: ScorecardInfo{
+		// 			Version:   scorecardVersion,
+		// 			CommitSHA: scorecardCommit,
+		// 		},
+		// 		Date: date,
+		// 		Checks: []checker.CheckResult{
+		// 			{
+		// 				Details2: []checker.CheckDetail{
+		// 					{
+		// 						Type: checker.DetailWarn,
+		// 						Msg: checker.LogMessage{
+		// 							Text: "warn message",
+		// 							Path: "https://domain.com/something",
+		// 							Type: checker.FileTypeURL,
+		// 						},
+		// 					},
+		// 				},
+		// 				Score:  6,
+		// 				Reason: "six score reason",
+		// 				Name:   "Check-Name",
+		// 			},
+		// 		},
+		// 		Metadata: []string{},
+		// 	},
+		// },
 		{
-			name:        "check-1",
+			name:        "check-7",
 			showDetails: true,
-			expected:    "./testdata/check1.sarif",
+			expected:    "./testdata/check7.sarif",
 			logLevel:    zapcore.DebugLevel,
-			minScore:    checker.MaxResultScore,
-			result: ScorecardResult{
-				Repo: RepoInfo{
-					Name:      repoName,
-					CommitSHA: repoCommit,
-				},
-				Scorecard: ScorecardInfo{
-					Version:   scorecardVersion,
-					CommitSHA: scorecardCommit,
-				},
-				Date: date,
-				Checks: []checker.CheckResult{
-					{
-						Details2: []checker.CheckDetail{
-							{
-								Type: checker.DetailWarn,
-								Msg: checker.LogMessage{
-									Text:    "warn message",
-									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
-									Offset:  5,
-									Snippet: "if (bad) {BUG();}",
-								},
-							},
-						},
-						Score:  5,
-						Reason: "half score reason",
-						Name:   "Check-Name",
+			policy: spol.ScorecardPolicy{
+				Version: 1,
+				Policies: map[string]*spol.CheckPolicy{
+					"Check-Name": &spol.CheckPolicy{
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_ENFORCED,
+					},
+					"Check-Name2": &spol.CheckPolicy{
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_DISABLED,
+					},
+					"Check-Name3": &spol.CheckPolicy{
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_DISABLED,
 					},
 				},
-				Metadata: []string{},
 			},
-		},
-		{
-			name:        "check-2",
-			showDetails: true,
-			expected:    "./testdata/check2.sarif",
-			logLevel:    zapcore.DebugLevel,
-			minScore:    checker.MaxResultScore,
-			result: ScorecardResult{
-				Repo: RepoInfo{
-					Name:      repoName,
-					CommitSHA: repoCommit,
-				},
-				Scorecard: ScorecardInfo{
-					Version:   scorecardVersion,
-					CommitSHA: scorecardCommit,
-				},
-				Date: date,
-				Checks: []checker.CheckResult{
-					{
-						Details2: []checker.CheckDetail{
-							{
-								Type: checker.DetailWarn,
-								Msg: checker.LogMessage{
-									Text:   "warn message",
-									Path:   "bin/binary.elf",
-									Type:   checker.FileTypeBinary,
-									Offset: 0,
-								},
-							},
-						},
-						Score:  checker.MinResultScore,
-						Reason: "min score reason",
-						Name:   "Check-Name",
-					},
-				},
-				Metadata: []string{},
-			},
-		},
-		{
-			name:        "check-3",
-			showDetails: true,
-			expected:    "./testdata/check3.sarif",
-			logLevel:    zapcore.InfoLevel,
-			minScore:    checker.MaxResultScore,
 			result: ScorecardResult{
 				Repo: RepoInfo{
 					Name:      repoName,
@@ -253,171 +598,6 @@ func TestSARIFOutput(t *testing.T) {
 						Score:  checker.InconclusiveResultScore,
 						Reason: "inconclusive reason",
 						Name:   "Check-Name3",
-					},
-				},
-				Metadata: []string{},
-			},
-		},
-		{
-			name:        "check-4",
-			showDetails: true,
-			expected:    "./testdata/check4.sarif",
-			logLevel:    zapcore.DebugLevel,
-			minScore:    checker.MaxResultScore,
-			result: ScorecardResult{
-				Repo: RepoInfo{
-					Name:      repoName,
-					CommitSHA: repoCommit,
-				},
-				Scorecard: ScorecardInfo{
-					Version:   scorecardVersion,
-					CommitSHA: scorecardCommit,
-				},
-				Date: date,
-				Checks: []checker.CheckResult{
-					{
-						Details2: []checker.CheckDetail{
-							{
-								Type: checker.DetailWarn,
-								Msg: checker.LogMessage{
-									Text:   "warn message",
-									Path:   "bin/binary.elf",
-									Type:   checker.FileTypeBinary,
-									Offset: 0,
-								},
-							},
-						},
-						Score:  checker.MinResultScore,
-						Reason: "min result reason",
-						Name:   "Check-Name",
-					},
-					{
-						Details2: []checker.CheckDetail{
-							{
-								Type: checker.DetailWarn,
-								Msg: checker.LogMessage{
-									Text:    "warn message",
-									Path:    "src/doc.txt",
-									Type:    checker.FileTypeText,
-									Offset:  3,
-									Snippet: "some text",
-								},
-							},
-						},
-						Score:  checker.MinResultScore,
-						Reason: "min result reason",
-						Name:   "Check-Name2",
-					},
-					{
-						Details2: []checker.CheckDetail{
-							{
-								Type: checker.DetailInfo,
-								Msg: checker.LogMessage{
-									Text:    "info message",
-									Path:    "some/path.js",
-									Type:    checker.FileTypeSource,
-									Offset:  3,
-									Snippet: "if (bad) {BUG();}",
-								},
-							},
-							{
-								Type: checker.DetailWarn,
-								Msg: checker.LogMessage{
-									Text:    "warn message",
-									Path:    "some/path.py",
-									Type:    checker.FileTypeSource,
-									Offset:  3,
-									Snippet: "if (bad) {BUG2();}",
-								},
-							},
-							{
-								Type: checker.DetailDebug,
-								Msg: checker.LogMessage{
-									Text:    "debug message",
-									Path:    "some/path.go",
-									Type:    checker.FileTypeSource,
-									Offset:  3,
-									Snippet: "if (bad) {BUG5();}",
-								},
-							},
-						},
-						Score:  checker.InconclusiveResultScore,
-						Reason: "inconclusive reason",
-						Name:   "Check-Name3",
-					},
-				},
-				Metadata: []string{},
-			},
-		},
-		{
-			name:        "check-5",
-			showDetails: true,
-			expected:    "./testdata/check5.sarif",
-			logLevel:    zapcore.WarnLevel,
-			minScore:    5,
-			result: ScorecardResult{
-				Repo: RepoInfo{
-					Name:      repoName,
-					CommitSHA: repoCommit,
-				},
-				Scorecard: ScorecardInfo{
-					Version:   scorecardVersion,
-					CommitSHA: scorecardCommit,
-				},
-				Date: date,
-				Checks: []checker.CheckResult{
-					{
-						Details2: []checker.CheckDetail{
-							{
-								Type: checker.DetailWarn,
-								Msg: checker.LogMessage{
-									Text:    "warn message",
-									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
-									Offset:  5,
-									Snippet: "if (bad) {BUG();}",
-								},
-							},
-						},
-						Score:  6,
-						Reason: "six score reason",
-						Name:   "Check-Name",
-					},
-				},
-				Metadata: []string{},
-			},
-		},
-		{
-			name:        "check-6",
-			showDetails: true,
-			expected:    "./testdata/check6.sarif",
-			logLevel:    zapcore.WarnLevel,
-			minScore:    checker.MaxResultScore,
-			result: ScorecardResult{
-				Repo: RepoInfo{
-					Name:      repoName,
-					CommitSHA: repoCommit,
-				},
-				Scorecard: ScorecardInfo{
-					Version:   scorecardVersion,
-					CommitSHA: scorecardCommit,
-				},
-				Date: date,
-				Checks: []checker.CheckResult{
-					{
-						Details2: []checker.CheckDetail{
-							{
-								Type: checker.DetailWarn,
-								Msg: checker.LogMessage{
-									Text: "warn message",
-									Path: "https://domain.com/something",
-									Type: checker.FileTypeURL,
-								},
-							},
-						},
-						Score:  6,
-						Reason: "six score reason",
-						Name:   "Check-Name",
 					},
 				},
 				Metadata: []string{},
@@ -445,7 +625,8 @@ func TestSARIFOutput(t *testing.T) {
 			}
 
 			var result bytes.Buffer
-			err = tt.result.AsSARIF(tt.showDetails, tt.logLevel, &result, checkDocs, tt.minScore)
+			err = tt.result.AsSARIF(tt.showDetails, tt.logLevel, &result,
+				checkDocs, &tt.policy, "/path/to/policy.yml")
 			if err != nil {
 				t.Fatalf("%s: AsSARIF: %v", tt.name, err)
 			}
