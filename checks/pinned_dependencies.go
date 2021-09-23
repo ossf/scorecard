@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 	"regexp"
@@ -79,6 +80,17 @@ type gitHubActionWorkflowStep struct {
 // stringOrSlice is for fields that can be a single string or a slice of strings. If the field is a single string,
 // this value will be a slice with a single string item.
 type stringOrSlice []string
+
+// packageJSON is to host data from package.json.
+type packageJSON struct {
+	Dependencies map[string]string `json:"dependencies"`
+	Main         string            `json:"main"`
+}
+
+type npmPinningResult struct {
+	module pinnedResult
+	frozen pinnedResult
+}
 
 func (s *stringOrSlice) UnmarshalYAML(value *yaml.Node) error {
 	var stringSlice []string
@@ -162,6 +174,12 @@ func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, actionScriptError)
 	}
 
+	// Frozen dependencies check
+	frozenScore, frozenErr := isDependenciesFrozen(c)
+	if frozenErr != nil {
+		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, frozenErr)
+	}
+
 	// Scores may be inconclusive.
 	lockScore = maxScore(0, lockScore)
 	actionScore = maxScore(0, actionScore)
@@ -169,8 +187,10 @@ func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 	dockerDownloadScore = maxScore(0, dockerDownloadScore)
 	scriptScore = maxScore(0, scriptScore)
 	actionScriptScore = maxScore(0, actionScriptScore)
+	frozenScore = maxScore(0, frozenScore)
+
 	score := checker.AggregateScores(lockScore, actionScore, dockerFromScore,
-		dockerDownloadScore, scriptScore, actionScriptScore)
+		dockerDownloadScore, scriptScore, actionScriptScore, frozenScore)
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(CheckPinnedDependencies, "all dependencies are pinned")
@@ -815,4 +835,134 @@ func validatePackageManagerFile(name string, dl checker.DetailLogger, data FileC
 	pdata := dataAsResultPointer(data)
 	addPinnedResult(pdata, true)
 	return false, nil
+}
+
+func addFrozenPinnedResult(w *npmPinningResult, frozen, isModule bool) {
+	switch {
+	// module and frozen dependencies will set only module flag
+	case (isModule) && (frozen):
+		addPinnedResult(&w.module, true)
+	// module and NOT frozen dependencies will set only module flag
+	case (isModule) && (!frozen):
+		addPinnedResult(&w.module, true)
+	// NOT module and frozen dependencies will set module to false and frozen to true
+	case (!isModule) && (frozen):
+		addPinnedResult(&w.module, false)
+		addPinnedResult(&w.frozen, true)
+	// default will set both flags to false
+	default:
+		addPinnedResult(&w.module, false)
+		addPinnedResult(&w.frozen, false)
+	}
+}
+
+func testIsDependencyFrozen(content []byte) (int, error) {
+	var r npmPinningResult
+	_, err := validateIsDependencyFrozenIsPinned(content, &r)
+	return createReturnForIsDepedencyFrozen(r, err)
+}
+
+func createReturnForIsDepedencyFrozen(r npmPinningResult, err error) (int, error) {
+	return createReturnValuesForIsDependencyFrozen(r, err)
+}
+
+func createReturnValuesForIsDependencyFrozen(r npmPinningResult, err error) (int, error) {
+	if err != nil {
+		return checker.InconclusiveResultScore, err
+	}
+
+	switch {
+	case (r.module == pinned) && (r.frozen == pinned):
+		return checker.MinResultScore, nil
+	case (r.module == pinned) && (r.frozen == notPinned):
+		return checker.MaxResultConfidence, nil
+	case (r.module == notPinned) && (r.frozen == pinned):
+		return checker.MinResultScore, nil
+	case (r.module == notPinned) && (r.frozen == notPinned):
+		return checker.MaxResultConfidence, nil
+	default:
+		return checker.MinResultScore, nil
+	}
+}
+
+func isDependenciesFrozen(c *checker.CheckRequest) (int, error) {
+	var r npmPinningResult
+	err := CheckFilesContent("package.json", false, c, validateDependencyPackageManager, &r)
+
+	if (err == nil) && (r.module == pinned) {
+		err = CheckIfFileExists(CheckPinnedDependencies, c, validateShrinkWrapJSON, &r)
+	}
+
+	return createReturnForIsDepedencyFrozen(r, err)
+}
+
+func validateShrinkWrapJSON(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
+	pdata, ok := data.(*npmPinningResult)
+
+	if !ok {
+		panic("type need to be of npmPinningResult")
+	}
+
+	switch strings.ToLower(name) {
+	case "npm-shrinkwrap.json":
+		dl.Info("javascript lock file detected: %s", name)
+	default:
+		return true, nil
+	}
+
+	addPinnedResult(&pdata.frozen, true)
+	return false, nil
+}
+
+func validateDependencyPackageManager(pathfn string, content []byte,
+	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	switch pathfn {
+	case "package.json":
+		return validateIsDependencyFrozenIsPinned(content, data)
+	default:
+		return true, nil
+	}
+}
+
+func validateIsDependencyFrozenIsPinned(content []byte, data FileCbData) (bool, error) {
+	pdata, ok := data.(*npmPinningResult)
+	if !ok {
+		// panic if it is not correct type.
+		panic("type need to be of npmPinningResult")
+	}
+
+	pjson := packageJSON{}
+	err := json.Unmarshal(content, &pjson)
+	if err != nil {
+		return false, sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
+	}
+
+	// use regex to check no dependencies are pinned
+	// ^([0-9]+)\.([0-9]+)\.([0-9]+)?$
+	regex := regexp.MustCompile(`^([0-9]+)\.([0-9]+)\.([0-9]+)?$`)
+	frozen := false
+
+	for _, v := range pjson.Dependencies {
+		// check if the dependency match
+		if regex.Match([]byte(v)) {
+			frozen = true
+			break
+		}
+	}
+
+	// Rule to check:
+	// * when package.json has bin information it is considered as bin
+	// * when package.json has main information it is considered as module
+
+	// by default we assume main is not empty
+	module := true
+
+	// however if we find main is empty means it is not a module
+	if pjson.Main == "" {
+		module = false
+	}
+
+	addFrozenPinnedResult(pdata, frozen, module)
+	return true, nil
 }

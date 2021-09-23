@@ -1,0 +1,30 @@
+{
+  "name": "npm-package-json-lint",
+  "version": "5.2.3",
+  "description": "Configurable linter for package.json files.",
+  "keywords": [
+    "lint",
+    "linter",
+    "package.json",
+    "audit",
+    "auditor",
+    "npm-package-json-lint"
+  ],
+  "bin": {
+    "npmPkgJsonLint": "src/cli.js"
+  },
+  "files": [
+    "src",
+    "CONTRIBUTING.md",
+    "index.d.ts"
+  ],
+  "dependencies": {
+    "ajv": "6.12.6",
+    "ajv-errors": "^1.0.1",
+    "chalk": "^4.1.2",
+    "cosmiconfig": "^6.0.0",
+    "debug": "4.3.2",
+    "globby": "^11.0.4",
+    "ignore": "^5.1.8"
+  }
+}

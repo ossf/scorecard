@@ -1084,3 +1084,81 @@ func TestGitHubWorkflowShell(t *testing.T) {
 		})
 	}
 }
+
+func TestDependencyFrozenNodeModule(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		filename string
+		expected scut.TestReturn
+	}{
+		{
+			name:     "package.json with module pinned",
+			filename: "./testdata/frozen-package-json-module-pinned",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "package.json with module not pinned",
+			filename: "./testdata/frozen-package-json-module-not-pinned",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "package.json with bin pinned",
+			filename: "./testdata/frozen-package-json-bin-pinned",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "package.json with bin not pinned",
+			filename: "./testdata/frozen-package-json-bin-not-pinned",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+
+			content, err = ioutil.ReadFile(tt.filename)
+			if err != nil {
+				panic(fmt.Errorf("cannot read file: %w", err))
+			}
+
+			dl := scut.TestDetailLogger{}
+			s, e := testIsDependencyFrozen(content)
+			actual := checker.CheckResult{
+				Score:  s,
+				Error2: e,
+			}
+			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
+				t.Fail()
+			}
+		})
+	}
+}
