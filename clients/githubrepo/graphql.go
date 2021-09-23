@@ -81,7 +81,7 @@ type graphqlData struct {
 						}
 						State githubv4.String
 					}
-				} `graphql:"reviews(last: $reviewsToAnalyze, states: APPROVED)"`
+				} `graphql:"reviews(last: $reviewsToAnalyze)"`
 			}
 		} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
