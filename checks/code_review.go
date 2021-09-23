@@ -122,7 +122,7 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 			pr.MergeCommit.Committer.Login != pr.Author.Login {
 			c.Dlogger.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("found PR#%d with committer (%s) different from author (%s)",
-					pr.Author.Login, pr.MergeCommit.Committer.Login),
+					pr.Number, pr.Author.Login, pr.MergeCommit.Committer.Login),
 			})
 			totalReviewed++
 		}
