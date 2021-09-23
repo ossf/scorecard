@@ -174,10 +174,8 @@ func pullRequestsFrom(data *graphqlData) []clients.PullRequest {
 		}
 		for _, review := range pr.Reviews.Nodes {
 			toAppend.Reviews = append(toAppend.Reviews, clients.Review{
-				Author: clients.User{Login: string(review.Author.Login)},
-				State:  string(review.State),
+				State: string(review.State),
 			})
-			fmt.Println(string(review.Author.Login))
 		}
 		ret[i] = toAppend
 	}
