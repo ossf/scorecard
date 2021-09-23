@@ -390,7 +390,7 @@ func createSARIFCheckResult(pos int, checkID, reason string,
 	}
 }
 
-func getMinScore(policy *spol.ScorecardPolicy, name string) (minScore int, enabled bool, err error) {
+func getCheckPolicyInfo(policy *spol.ScorecardPolicy, name string) (minScore int, enabled bool, err error) {
 	policies := policy.GetPolicies()
 	if _, exists := policies[name]; !exists {
 		return 0, false,
@@ -424,7 +424,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
 		}
 
-		minScore, enabled, err := getMinScore(policy, check.Name)
+		minScore, enabled, err := getCheckPolicyInfo(policy, check.Name)
 		if err != nil {
 			return err
 		}
