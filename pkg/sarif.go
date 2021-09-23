@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 	docs "github.com/ossf/scorecard/v2/docs/checks"
 	sce "github.com/ossf/scorecard/v2/errors"
+	spol "github.com/ossf/scorecard/v2/policy"
 )
 
 type text struct {
@@ -258,7 +259,7 @@ func detailsToLocations(details []checker.CheckDetail,
 	return locs
 }
 
-func addDefaultLocation(locs []location) []location {
+func addDefaultLocation(locs []location, policyFile string) []location {
 	// No details or no locations.
 	// For GitHub to display results, we need to provide
 	// a location anyway, regardless of showDetails.
@@ -270,7 +271,7 @@ func addDefaultLocation(locs []location) []location {
 	loc := location{
 		PhysicalLocation: physicalLocation{
 			ArtifactLocation: artifactLocation{
-				URI:       ".github/scorecard.yml",
+				URI:       policyFile,
 				URIBaseID: "%SRCROOT%",
 			},
 			Region: region{
@@ -375,7 +376,8 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
 	}
 }
 
-func createSARIFResult(pos int, checkID, reason string, minScore, score int,
+func createSARIFCheckResult(pos int, checkID, reason string,
+	minScore, score int,
 	locs []location, rlocs []relatedLocation) result {
 	return result{
 		RuleID: checkID,
@@ -388,9 +390,23 @@ func createSARIFResult(pos int, checkID, reason string, minScore, score int,
 	}
 }
 
+func getMinScore(policy *spol.ScorecardPolicy, name string) (minScore int, enabled bool, err error) {
+	policies := policy.GetPolicies()
+	if _, exists := policies[name]; !exists {
+		return 0, false,
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Missing policy for check: %s", name))
+	}
+	cp := policies[name]
+	if cp.GetMode() == spol.CheckPolicy_DISABLED {
+		return 0, false, nil
+	}
+	return int(cp.GetScore()), true, nil
+}
+
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
-	writer io.Writer, checkDocs docs.Doc, minScore int) error {
+	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
+	policyFile string) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
 	// We only support GitHub-supported properties:
@@ -406,6 +422,14 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		doc, e := checkDocs.GetCheck(check.Name)
 		if e != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
+		}
+
+		minScore, enabled, err := getMinScore(policy, check.Name)
+		if err != nil {
+			return err
+		}
+		if !enabled {
+			continue
 		}
 
 		// Unclear what to use for PartialFingerprints.
@@ -437,11 +461,11 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// Add default location if no locations are present.
 		// Note: GitHub needs at least one location to show the results.
 		if len(locs) == 0 {
-			locs = addDefaultLocation(locs)
+			locs = addDefaultLocation(locs, policyFile)
 		}
 
 		// Create a result.
-		r := createSARIFResult(i, checkID, check.Reason, minScore, check.Score, locs, rlocs)
+		r := createSARIFCheckResult(i, checkID, check.Reason, minScore, check.Score, locs, rlocs)
 		results = append(results, r)
 	}
 
