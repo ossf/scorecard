@@ -119,6 +119,7 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 		// of equivalent to a review and is done several times on small prs to save
 		// time on clicking the approve button.
 		if !foundApprovedReview &&
+			pr.MergeCommit.Committer.Login != "" &&
 			pr.MergeCommit.Committer.Login != pr.Author.Login {
 			c.Dlogger.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("found PR#%d with committer (%s) different from author (%s)",
