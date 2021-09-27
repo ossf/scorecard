@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Testing: docker run -e INPUT_SARIF_FILE=results.sarif -e GITHUB_WORKSPACE=/ -e INPUT_POLICY_FILE="policies/policy.yml" -e INPUT_REPO_TOKEN=$GITHUB_AUTH_TOKEN -e GITHUB_REPOSITORY="ossf/scorecard" laurentsimon/scorecard-action:latest
+
 # Use scorecard's official Docker image as base.
 ARG DOCKER_SHA
 FROM gcr.io/openssf/scorecard@sha256:${DOCKER_SHA} as base
@@ -26,10 +28,10 @@ RUN apt-get update && \
 COPY --from=base /scorecard /scorecard
 
 # Copy a test policy for local testing.
-COPY actions/testdata/policy.yml .
+COPY actions/policies/template.yml /policy.yml
 
 # Our entry point.
 # Note: the file is executable in the repo
 # and permission carry over to the image.
-ADD actions/entrypoint.sh entrypoint.sh
+ADD actions/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

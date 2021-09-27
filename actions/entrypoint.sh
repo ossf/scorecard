@@ -1,4 +1,4 @@
-#!/bin/bash -euo pipefail
+#!/bin/bash
 # Copyright 2021 Security Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+set -euo pipefail
 
 # https://docs.github.com/en/actions/learn-github-actions/environment-variables
 # GITHUB_EVENT_PATH contains the json file for the event.
