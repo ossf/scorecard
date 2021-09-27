@@ -136,9 +136,8 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// UPGRADEv3: remove.
 		var v3 bool
-		if _, v3 = os.LookupEnv("SCORECARD_V3"); v3 {
-			fmt.Printf("**** Using SCORECARD_V3 code ***** \n\n")
-		}
+		_, v3 = os.LookupEnv("SCORECARD_V3")
+
 		if format == formatSarif && !v3 {
 			log.Fatal("sarif not supported yet")
 		}
