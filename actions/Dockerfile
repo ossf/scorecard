@@ -26,10 +26,10 @@ RUN apt-get update && \
 COPY --from=base /scorecard /scorecard
 
 # Copy a test policy for local testing.
-COPY actions/testdata/policy.yml policies/policy.yml
+COPY actions/policies/template.yml /policy.yml
 
 # Our entry point.
 # Note: the file is executable in the repo
 # and permission carry over to the image.
-ADD actions/entrypoint.sh entrypoint.sh
+ADD actions/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
