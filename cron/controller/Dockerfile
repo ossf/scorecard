@@ -25,8 +25,6 @@ ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-pubsub
 
 FROM gcr.io/distroless/base:nonroot@sha256:a74f307185001c69bc362a40dbab7b67d410a872678132b187774fa21718fa13
-ARG COMMIT_SHA
-ENV SCORECARD_COMMIT_SHA=${COMMIT_SHA}
 COPY ./cron/data/projects*csv cron/data/
 COPY --from=pubsub /src/cron/controller/controller cron/controller/controller
 ENTRYPOINT ["cron/controller/controller"]
