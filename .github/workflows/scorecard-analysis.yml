@@ -20,11 +20,11 @@ jobs:
       - name: "Run analysis"
         # This is temporary for dogfooding.
         # We will remove the use of container and
-        # pin the deendency by hash.
+        # pin the dependency by hash.
         # https://github.com/ossf/scorecard/issues/1072. 
         uses: docker://laurentsimon/scorecard-action:latest
         with:
-          policy_file: .github/scorecard/policy.yml
+          policy_file: .github/scorecard.yml
           sarif_file: results.sarif
           repo_token: ${{ secrets.GITHUB_TOKEN }}
 

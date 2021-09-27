@@ -26,7 +26,7 @@ RUN apt-get update && \
 COPY --from=base /scorecard /scorecard
 
 # Copy a test policy for local testing.
-COPY actions/testdata/policy.yml .
+COPY actions/testdata/policy.yml policies/policy.yml
 
 # Our entry point.
 # Note: the file is executable in the repo
