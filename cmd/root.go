@@ -72,11 +72,13 @@ func readPolicy() (*spol.ScorecardPolicy, error) {
 	if policyFile != "" {
 		data, err := os.ReadFile(policyFile)
 		if err != nil {
-			return nil, fmt.Errorf("os.ReadFile: %w", err)
+			return nil, sce.WithMessage(sce.ErrScorecardInternal,
+				fmt.Sprintf("os.ReadFile: %v", err))
 		}
 		sp, err := spol.ParseFromYAML(data)
 		if err != nil {
-			return nil, fmt.Errorf("spol.ParseFromYAML: %w", err)
+			return nil,
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("spol.ParseFromYAML: %v", err))
 		}
 		return sp, nil
 	}
@@ -92,6 +94,39 @@ func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNam
 		}
 	}
 	return true
+}
+
+func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.CheckNameToFnMap, error) {
+	enabledChecks := checker.CheckNameToFnMap{}
+
+	switch {
+	case len(argsChecks) != 0:
+		// Populate checks to run with the CLI arguments.
+		for _, checkName := range argsChecks {
+			if !enableCheck(checkName, &enabledChecks) {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid check: %s", checkName))
+			}
+		}
+	case sp != nil:
+		// Populate checks to run with policy file.
+		for checkName := range sp.GetPolicies() {
+			if !enableCheck(checkName, &enabledChecks) {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid check: %s", checkName))
+			}
+		}
+	default:
+		enabledChecks = checks.AllChecks
+	}
+
+	// If a policy was passed as argument, ensure all checks
+	// to run have a corresponding policy.
+	if sp != nil && !checksHavePolicies(sp, enabledChecks) {
+		return enabledChecks, sce.WithMessage(sce.ErrScorecardInternal, "checks don't have policies")
+	}
+
+	return enabledChecks, nil
 }
 
 var rootCmd = &cobra.Command{
@@ -151,26 +186,15 @@ var rootCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		enabledChecks := checker.CheckNameToFnMap{}
-		if len(checksToRun) != 0 {
-			for _, checkToRun := range checksToRun {
-				if !enableCheck(checkToRun, &enabledChecks) {
-					log.Fatalf("Invalid check: %s", checkToRun)
-				}
-			}
-		} else {
-			enabledChecks = checks.AllChecks
+		enabledChecks, err := getEnabledChecks(policy, checksToRun)
+		if err != nil {
+			log.Fatal(err)
 		}
+
 		if format == formatDefault {
 			for checkName := range enabledChecks {
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
-		}
-
-		// If a policy was passed as argument, ensure all checks
-		// to run have a corresponding policy.
-		if policy != nil && !checksHavePolicies(policy, enabledChecks) {
-			log.Fatal("checks don't have policies")
 		}
 
 		ctx := context.Background()
