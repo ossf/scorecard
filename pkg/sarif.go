@@ -218,6 +218,9 @@ func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 	}
 }
 
+//nolint:unused
+//TODO: remove nolint when https://github.com/github/codeql-action/issues/754
+// has an answer.
 func shouldAddRelatedLocation(detail *checker.CheckDetail, showDetails bool,
 	logLevel zapcore.Level, minScore, score int) bool {
 	switch {
