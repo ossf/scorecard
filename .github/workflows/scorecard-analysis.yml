@@ -24,7 +24,7 @@ jobs:
         # https://github.com/ossf/scorecard/issues/1072. 
         uses: docker://laurentsimon/scorecard-action:latest
         with:
-          policy_file: .github/scorecard.yml
+          policy_file: .github/scorecard-policy.yml
           sarif_file: results.sarif
           repo_token: ${{ secrets.GITHUB_TOKEN }}
 
