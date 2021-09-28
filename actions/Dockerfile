@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Testing: docker run -e INPUT_SARIF_FILE=results.sarif -e GITHUB_WORKSPACE=/ -e INPUT_POLICY_FILE="policies/policy.yml" -e INPUT_REPO_TOKEN=$GITHUB_AUTH_TOKEN -e GITHUB_REPOSITORY="ossf/scorecard" laurentsimon/scorecard-action:latest
+# Testing: docker run -e INPUT_SARIF_FILE=results.sarif -e GITHUB_WORKSPACE=/ -e INPUT_POLICY_FILE="/policy.yml" -e INPUT_REPO_TOKEN=$GITHUB_AUTH_TOKEN -e GITHUB_REPOSITORY="ossf/scorecard" laurentsimon/scorecard-action:latest
 
 # Use scorecard's official Docker image as base.
 ARG DOCKER_SHA
@@ -22,7 +22,7 @@ FROM gcr.io/openssf/scorecard@sha256:${DOCKER_SHA} as base
 # TODO: use distroless.
 FROM debian:9.5-slim
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates
+    apt-get install -y --no-install-recommends jq ca-certificates
 
 # Copy the scorecard binary from the official scorecard image.
 COPY --from=base /scorecard /scorecard
