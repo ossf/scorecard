@@ -149,33 +149,49 @@ type sarif210 struct {
 	Runs    []run  `json:"runs"`
 }
 
+func maxOffset(x, y int) int {
+	if x < y {
+		return y
+	}
+	return x
+}
+
 func detailToRegion(details *checker.CheckDetail) region {
 	var reg region
 	var snippet *text
 	if details.Msg.Snippet != "" {
 		snippet = &text{Text: details.Msg.Snippet}
 	}
+
+	// https://docs.oasis-open.org/sarif/sarif/v2.0/csprd02/sarif-v2.0-csprd02.html.
+	// "3.30.1 General".
+	// Line numbers > 0.
+	// byteOffset and charOffset >= 0.
 	switch details.Msg.Type {
 	default:
 		panic("invalid")
 	case checker.FileTypeURL:
+		line := maxOffset(1, details.Msg.Offset)
 		reg = region{
-			StartLine: &details.Msg.Offset,
+			StartLine: &line,
 			Snippet:   snippet,
 		}
 	case checker.FileTypeNone:
 		// Do nothing.
 	case checker.FileTypeSource:
+		line := maxOffset(1, details.Msg.Offset)
 		reg = region{
-			StartLine: &details.Msg.Offset,
+			StartLine: &line,
 			Snippet:   snippet,
 		}
 	case checker.FileTypeText:
+		// Offset of 0 is acceptable here.
 		reg = region{
 			CharOffset: &details.Msg.Offset,
 			Snippet:    snippet,
 		}
 	case checker.FileTypeBinary:
+		// Offset of 0 is acceptable here.
 		reg = region{
 			ByteOffset: &details.Msg.Offset,
 		}
@@ -202,6 +218,9 @@ func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 	}
 }
 
+//nolint:unused
+//TODO: remove nolint when https://github.com/github/codeql-action/issues/754
+// has an answer.
 func shouldAddRelatedLocation(detail *checker.CheckDetail, showDetails bool,
 	logLevel zapcore.Level, minScore, score int) bool {
 	switch {
@@ -290,15 +309,21 @@ func detailsToRelatedLocations(details []checker.CheckDetail,
 	showDetails bool, logLevel zapcore.Level, minScore, score int) []relatedLocation {
 	rlocs := []relatedLocation{}
 
-	//nolint
+	// Until this https://github.com/github/codeql-action/issues/754
+	// has an answer, let's disable related locations.
+	return rlocs
+
+	//nolint:govet
 	// Populate the related locations.
-	for i, d := range details {
+	id := 0
+	for i := range details {
+		d := details[i]
 		if !shouldAddRelatedLocation(&d, showDetails, logLevel, minScore, score) {
 			continue
 		}
 		// TODO: logical locations.
 		rloc := relatedLocation{
-			ID:      i,
+			ID:      id,
 			Message: text{Text: d.Msg.Text},
 			PhysicalLocation: physicalLocation{
 				ArtifactLocation: artifactLocation{
@@ -312,6 +337,8 @@ func detailsToRelatedLocations(details []checker.CheckDetail,
 		// Set the region depending on file type.
 		rloc.PhysicalLocation.Region = detailToRegion(&d)
 		rlocs = append(rlocs, rloc)
+
+		id++
 	}
 	return rlocs
 }

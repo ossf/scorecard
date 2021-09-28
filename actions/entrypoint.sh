@@ -31,3 +31,4 @@ export SCORECARD_SARIF_FILE="$INPUT_SARIF_FILE"
 # This allows GitHub to highlight the file.
 cd "$GITHUB_WORKSPACE"
 /scorecard --repo="$GITHUB_REPOSITORY" --format sarif --show-details --policy="$SCORECARD_POLICY_FILE" > "$SCORECARD_SARIF_FILE"
+jq '.' "$SCORECARD_SARIF_FILE"
