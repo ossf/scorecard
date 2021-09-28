@@ -20,11 +20,17 @@ set -euo pipefail
 # GITHUB_SHA contains the commit hash.
 # GITHUB_WORKSPACE contains the repo folder.
 # GITHUB_EVENT_NAME contains the event name.
+# GITHUB_ACTIONS is true in GitHub env.
 
 export GITHUB_AUTH_TOKEN="$INPUT_REPO_TOKEN"
 export SCORECARD_V3=1
 export SCORECARD_POLICY_FILE="$INPUT_POLICY_FILE"
 export SCORECARD_SARIF_FILE="$INPUT_SARIF_FILE"
+
+if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && [[ "$GITHUB_REF" =~ ^refs/heads/(main|master)$ ]]; then
+    echo "Only the default branch is supported with '$GITHUB_EVENT_NAME' event"
+    exit 1
+fi
 
 # It's important to change directories here, to ensure
 # the files in SARIF start at the source of the repo.

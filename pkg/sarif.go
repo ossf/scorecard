@@ -162,6 +162,8 @@ func detailToRegion(details *checker.CheckDetail) region {
 	if details.Msg.Snippet != "" {
 		snippet = &text{Text: details.Msg.Snippet}
 	}
+	// https://github.com/github/codeql-action/issues/754.
+	// "code-scanning currently only supports character offset/length and start/end line/columns offsets".
 
 	// https://docs.oasis-open.org/sarif/sarif/v2.0/csprd02/sarif-v2.0-csprd02.html.
 	// "3.30.1 General".
