@@ -191,8 +191,8 @@ func detailToRegion(details *checker.CheckDetail) region {
 			Snippet:    snippet,
 		}
 	case checker.FileTypeBinary:
+		// Offset of 0 is acceptable here.
 		reg = region{
-			// Offset of 0 is acceptable here.
 			ByteOffset: &details.Msg.Offset,
 		}
 	}
