@@ -22,7 +22,7 @@ jobs:
         # We will remove the use of container and
         # pin the dependency by hash.
         # https://github.com/ossf/scorecard/issues/1072. 
-        uses: docker://laurentsimon/scorecard-action:latest
+        uses: docker://laurentsimon/scorecard-action:dogfood
         with:
           policy_file: .github/scorecard-policy.yml
           sarif_file: results.sarif
