@@ -115,39 +115,39 @@ docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/
 
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable
-	CGO_ENABLED=0 go build -a -tags netgo -ldflags '$(LDFLAGS)'
+	CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'
 
 build-pubsub: ## Runs go build on the PubSub cron job
 	# Run go build and the PubSub cron job
-	cd cron/controller && CGO_ENABLED=0 go build -a -ldflags '$(LDFLAGS)' -o controller
-	cd cron/worker && CGO_ENABLED=0 go build -a -ldflags '$(LDFLAGS)' -o worker
+	cd cron/controller && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o controller
+	cd cron/worker && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o worker
 
 build-bq-transfer: ## Runs go build on the BQ transfer cron job
 build-bq-transfer: ./cron/bq/*.go
 	# Run go build on the Copier cron job
-	cd cron/bq && CGO_ENABLED=0 go build -a -ldflags '$(LDFLAGS)' -o data-transfer
+	cd cron/bq && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o data-transfer
 
 build-webhook: ## Runs go build on the cron webhook
 	# Run go build on the cron webhook
-	cd cron/webhook && CGO_ENABLED=0 go build -a -ldflags '$(LDFLAGS)' -o webhook
+	cd cron/webhook && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o webhook
 
 build-add-script: ## Runs go build on the add script
 build-add-script: cron/data/add/add
 cron/data/add/add: cron/data/add/*.go cron/data/*.go repos/*.go cron/data/projects.csv
 	# Run go build on the add script
-	cd cron/data/add && CGO_ENABLED=0 go build -a -ldflags '$(LDFLAGS)' -o add
+	cd cron/data/add && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o add
 
 build-validate-script: ## Runs go build on the validate script
 build-validate-script: cron/data/validate/validate
 cron/data/validate/validate: cron/data/validate/*.go cron/data/*.go cron/data/projects.csv
 	# Run go build on the validate script
-	cd cron/data/validate && CGO_ENABLED=0 go build -a -ldflags '$(LDFLAGS)' -o validate
+	cd cron/data/validate && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o validate
 
 build-update-script: ## Runs go build on the update script
 build-update-script: cron/data/update/projects-update
 cron/data/update/projects-update:  cron/data/update/*.go cron/data/*.go
 	# Run go build on the update script
-	cd cron/data/update && CGO_ENABLED=0 go build -a -tags netgo -ldflags '$(LDFLAGS)'  -o projects-update
+	cd cron/data/update && CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'  -o projects-update
 
 dockerbuild: ## Runs docker build
 	# Build all Docker images in the Repo

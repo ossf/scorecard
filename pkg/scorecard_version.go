@@ -31,7 +31,7 @@ var (
 	gitCommit = "unknown"
 	// State of git tree, either "clean" or "dirty".
 	gitTreeState = "unknown"
-	// Build date in ISO8601 format, output of $(date -u +'%Y-%m-%dT%H:%M:%SZ').
+	// Build date in ISO8601 format.
 	buildDate = "unknown"
 )
 
