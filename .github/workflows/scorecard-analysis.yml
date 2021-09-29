@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: "Checkout code"
         # Scorecard automatically uses the default branch for non-pull-request events.
-        if: ${{ !startsWith(github.event_name, 'pull_request') }}
+        if: ${{ startsWith(github.event_name, 'pull_request') }}
         uses: actions/checkout@v1
 
       - name: "Run analysis"
