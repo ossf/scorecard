@@ -34,8 +34,7 @@ if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && ! [[ "$GITHUB_REF" =~ ^refs/
     echo "Only the default branch is supported"
     exit 1
 fi
-echo "we're good"
-exit 0
+
 # It's important to change directories here, to ensure
 # the files in SARIF start at the source of the repo.
 # This allows GitHub to highlight the file.
