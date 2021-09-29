@@ -27,12 +27,15 @@ export SCORECARD_V3=1
 export SCORECARD_POLICY_FILE="$INPUT_POLICY_FILE"
 export SCORECARD_SARIF_FILE="$INPUT_SARIF_FILE"
 
-if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && [[ "$GITHUB_REF" =~ ^refs/heads/(main|master)$ ]]; then
+# Note: this will fail if we push to a branch on the same repo, so it will show as failing
+# on forked repos.
+if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && ! [[ "$GITHUB_REF" =~ ^refs/heads/(main|master)$ ]]; then
     echo "$GITHUB_REF not supported with '$GITHUB_EVENT_NAME' event."
     echo "Only the default branch is supported"
     exit 1
 fi
-
+echo "we're good"
+exit 0
 # It's important to change directories here, to ensure
 # the files in SARIF start at the source of the repo.
 # This allows GitHub to highlight the file.
