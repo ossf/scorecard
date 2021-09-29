@@ -175,7 +175,7 @@ func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateMaxScoreResult(CheckPinnedDependencies, "all dependencies are pinned")
 	}
 	return checker.CreateProportionalScoreResult(CheckPinnedDependencies,
-		"unpinned dependencies detected", score, checker.MaxResultScore)
+		"dependency not pinned by hash detected", score, checker.MaxResultScore)
 }
 
 // TODO(laurent): need to support GCB pinning.
