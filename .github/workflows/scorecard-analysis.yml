@@ -1,6 +1,10 @@
 name: Scorecard analysis workflow
 on: 
   push:
+    # Only the default branch is supported.
+    branches: [main, master]
+  pull_request:
+    # All branches are supported.
     branches: [main]
 
 permissions: read-all
@@ -13,8 +17,9 @@ jobs:
       security-events: write
     
     steps:
-      # TODO: if pull_request
       - name: "Checkout code"
+        # Scorecard automatically uses the default branch for non-pull-request events.
+        if: ${{ startsWith(github.event_name, 'pull_request') }}
         uses: actions/checkout@v1
 
       - name: "Run analysis"
