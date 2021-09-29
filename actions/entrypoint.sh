@@ -28,7 +28,8 @@ export SCORECARD_POLICY_FILE="$INPUT_POLICY_FILE"
 export SCORECARD_SARIF_FILE="$INPUT_SARIF_FILE"
 
 if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && [[ "$GITHUB_REF" =~ ^refs/heads/(main|master)$ ]]; then
-    echo "Only the default branch is supported with '$GITHUB_EVENT_NAME' event"
+    echo "$GITHUB_REF not supported with '$GITHUB_EVENT_NAME' event."
+    echo "Only the default branch is supported"
     exit 1
 fi
 
