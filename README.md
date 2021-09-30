@@ -146,6 +146,9 @@ Finished [Pinned-Dependencies]
 
 RESULTS
 -------
+Aggregate score: 7.9 / 10
+
+Check scores:
 |---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
 |  SCORE  |          NAME          |             REASON             |                         DOCUMENTATION/REMEDIATION                         |
 |---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
@@ -192,9 +195,41 @@ RESULTS
 | 10 / 10 | Vulnerabilities        | no vulnerabilities detected    | github.com/ossf/scorecard/blob/main/docs/checks.md#vulnerabilities        |
 |---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
+#### Scoring
+Each individual check returns a score of 0 to 10, with 10 representing the best possible score. Scorecards also produces an aggregate score, which is a weight-based average of the individual checks weighted by risk. 
+
+* “Critical” risk checks are weighted at 10
+* “High” risk checks are weighted at 7.5
+* “Medium” risk checks are weighted at 5
+* “Low” risk checks are weighted at 2.5
+
+Note: there are currently no Scorecards checks rated as “Critical” risk.
+
+Tests that are rated as “High” risk are: 
+* Maintained
+* Dependency-Update-Tool
+* Binary-Artifacts
+* Branch-Protection
+* Code-Review
+* Signed-Releases
+* Token-Permissions
+* Vulnerabilities
+
+Tests that are rated as “Medium” risk are:
+* Fuzzing
+* Packaging
+* Pinned-Dependencies
+* SAST
+* Security-Policy
+
+
+Tests that are rated as “Low” risk are:
+* CI-Tests
+* CII-Best-Practices
+* Contributors
 
 #### Showing Detailed Results 
-For more details why a check fails, use the `--show-details` option:
+For more details about why a check fails, use the `--show-details` option:
 
 ```
 ./scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks Branch-Protection --show-details
