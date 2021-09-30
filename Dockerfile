@@ -24,6 +24,6 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-scorecard
 
-FROM gcr.io/distroless/base:nonroot@sha256:3e771f1b48c01332df37547182f9f2327c00567aa8204137f1832f3c42ce88f2
+FROM gcr.io/distroless/base:nonroot@sha256:56d73a61ea1135c28f2be9afe2be88fc360e5fa1a892d600512a10eb2e028fa5
 COPY --from=build /src/scorecard /
 ENTRYPOINT [ "/scorecard" ]
