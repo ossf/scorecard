@@ -93,7 +93,7 @@ GITHUB_APP_ID=<app id>
 These variables can be obtained from the GitHub
 [developer settings](https://github.com/settings/apps) page.
 
-
+### Basic Usage
 #### Docker
 
 `scorecard` is available as a Docker container:
@@ -104,7 +104,6 @@ The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
 docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-details --repo=https://github.com/ossf/scorecard
 ```
 
-### Basic Usage
 #### Using repository URL
 
 Scorecards can run using just one argument, the URL of the target repo:
