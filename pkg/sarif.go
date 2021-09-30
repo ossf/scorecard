@@ -90,6 +90,15 @@ type problem struct {
 	Severity string `json:"severity"`
 }
 
+/*
+ "properties" : {
+               "id" : "java/unsafe-deserialization",
+               "kind" : "path-problem",
+               "name" : "...",
+               "problem.severity" : "error",
+               "security-severity" : "9.8",
+*/
+
 type sarifSeverityLevel float64
 
 func (s sarifSeverityLevel) MarshalJSON() ([]byte, error) {
