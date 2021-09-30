@@ -17,8 +17,7 @@ package pkg
 import (
 
 	//nolint:gosec
-	"crypto/md5"
-	"encoding/hex"
+
 	"encoding/json"
 	"fmt"
 	"io"
@@ -383,17 +382,18 @@ func createSARIFHeader(url, category, name, version, commit string, t time.Time)
 }
 
 func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
+	remediation []string,
 	tags []string) rule {
 	return rule{
 		ID:   checkID,
 		Name: checkName,
 		// TODO: verify this works on GitHub.
-		ShortDesc: text{Text: textToHTML(shortDesc)},
-		FullDesc:  text{Text: textToHTML(longDesc)},
+		ShortDesc: text{Text: checkName},
+		FullDesc:  text{Text: shortDesc},
 		HelpURI:   descURL,
 		Help: help{
-			Text:     longDesc,
-			Markdown: textToMarkdown(longDesc),
+			Text:     shortDesc,
+			Markdown: textToMarkdown(fmt.Sprintf("%s\n%s", longDesc, strings.Join(remediation, "\n"))),
 		},
 		DefaultConfig: defaultConfig{
 			Level: "error",
@@ -416,6 +416,19 @@ func createSARIFCheckResult(pos int, checkID, reason string,
 		Message:          text{Text: reason},
 		Locations:        locs,
 		RelatedLocations: rlocs,
+	}
+}
+
+func createSARIFCheckResult2(pos int, checkID, reason string,
+	minScore, score int,
+	loc location) result {
+	return result{
+		RuleID: checkID,
+		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
+		Level:     scoreToLevel(minScore, score),
+		RuleIndex: pos,
+		Message:   text{Text: reason},
+		Locations: []location{loc},
 	}
 }
 
@@ -470,22 +483,20 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// location. Then in the next run, the result would occur on a different line, the computed fingerprint
 		// would change, and the result management system would erroneously report it as a new result."
 
-		// Create locations and related locations.
-		locs := detailsToLocations(check.Details2, showDetails, logLevel, minScore, check.Score)
-		rlocs := detailsToRelatedLocations(check.Details2, showDetails, logLevel, minScore, check.Score)
-
-		// Create check ID.
-		//nolint:gosec
-		m := md5.Sum([]byte(check.Name))
-		checkID := hex.EncodeToString(m[:])
+		// Set the check ID.
+		checkID := check.Name
 
 		// Create a header's rule.
 		// TODO: verify `\n` is viewable in GitHub.
 		rule := createSARIFRule(check.Name, checkID,
 			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
 			doc.GetDescription(), doc.GetShort(),
-			doc.GetTags())
+			doc.GetRemediation(), doc.GetTags())
 		rules = append(rules, rule)
+
+		// Create locations and related locations.
+		locs := detailsToLocations(check.Details2, showDetails, logLevel, minScore, check.Score)
+		// rlocs := detailsToRelatedLocations(check.Details2, showDetails, logLevel, minScore, check.Score)
 
 		// Add default location if no locations are present.
 		// Note: GitHub needs at least one location to show the results.
@@ -493,9 +504,12 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			locs = addDefaultLocation(locs, policyFile)
 		}
 
-		// Create a result.
-		r := createSARIFCheckResult(i, checkID, check.Reason, minScore, check.Score, locs, rlocs)
-		results = append(results, r)
+		for _, loc := range locs {
+			// Create a result.
+			r := createSARIFCheckResult2(i, checkID, check.Reason, minScore, check.Score, loc)
+			results = append(results, r)
+		}
+
 	}
 
 	// Set the results and rules to sarif.
