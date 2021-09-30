@@ -90,27 +90,12 @@ type problem struct {
 	Severity string `json:"severity"`
 }
 
-/*
- "properties" : {
-               "id" : "java/unsafe-deserialization",
-               "kind" : "path-problem",
-               "name" : "...",
-               "problem.severity" : "error",
-               "security-severity" : "9.8",
-*/
-
-type sarifSeverityLevel float64
-
-func (s sarifSeverityLevel) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("%.1f", s)), nil
-}
-
 //nolint:govet
 type properties struct {
-	Precision string   `json:"precision"`
-	Tags      []string `json:"tags"`
-	// Problem       *problem           `json:"problem,omitempty"`
-	// SeverityLevel sarifSeverityLevel `json:"security-severity,omitempty"`
+	Precision       string   `json:"precision"`
+	Tags            []string `json:"tags"`
+	ProblemSeverity string   `json:"problem.severity"`
+	SeverityLevel   string   `json:"security-severity"`
 }
 
 type help struct {
@@ -180,20 +165,20 @@ func maxOffset(x, y int) int {
 	return x
 }
 
-func calculateSeverityLevel(risk string) sarifSeverityLevel {
+func calculateSeverityLevel(risk string) string {
 	// nolint
 	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
 	// "over 9.0 is critical, 7.0 to 8.9 is high, 4.0 to 6.9 is medium and 3.9 or less is low".
 	switch risk {
 	case "Critical":
-		return 9.0
+		return "9.0"
 	case "High":
-		return 7.0
+		return "7.0"
 	case "Medium":
-		return 4.0
+		return "4.0"
 	// Low
 	default:
-		return 1.0
+		return "1.0"
 	}
 }
 
@@ -207,28 +192,15 @@ func generateProblemSeverity(risk string) string {
 		return "error"
 	case "Medium":
 		return "warning"
-	case "Low":
+	// Low
+	default:
 		return "recommendation"
 	}
-	// This should never happens.
-	return ""
 }
 
 func generateDefaultConfig(risk string) string {
 	// "none", "note", "warning", "error",
 	return "error"
-	// switch risk {
-	// case "Critical":
-	// 	return "error"
-	// case "High":
-	// 	return "error"
-	// case "Medium":
-	// 	return "warning"
-	// case "Low":
-	// 	return "warning"
-	// }
-	// // This never happens.
-	// return ""
 }
 
 func detailToRegion(details *checker.CheckDetail) region {
@@ -278,48 +250,24 @@ func detailToRegion(details *checker.CheckDetail) region {
 }
 
 func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
-	logLevel zapcore.Level, minScore, score int) bool {
+	minScore, score int) bool {
 	switch {
 	default:
 		return false
 	case detail.Msg.Path == "",
 		!showDetails,
-		logLevel != zapcore.DebugLevel && detail.Type == checker.DetailDebug,
+		detail.Type != checker.DetailWarn,
 		detail.Msg.Type == checker.FileTypeURL:
 		return false
 	case score == checker.InconclusiveResultScore:
 		return true
-	case minScore < score && detail.Type == checker.DetailInfo:
-		return false
-	case minScore >= score:
-		return true
-	}
-}
-
-//nolint:unused
-//TODO: remove nolint when https://github.com/github/codeql-action/issues/754
-// has an answer.
-func shouldAddRelatedLocation(detail *checker.CheckDetail, showDetails bool,
-	logLevel zapcore.Level, minScore, score int) bool {
-	switch {
-	default:
-		return false
-	case detail.Msg.Path == "",
-		!showDetails,
-		detail.Msg.Type != checker.FileTypeURL,
-		logLevel != zapcore.DebugLevel && detail.Type == checker.DetailDebug:
-		return false
-	case score == checker.InconclusiveResultScore:
-		return true
-	case minScore < score && detail.Type == checker.DetailInfo:
-		return false
 	case minScore >= score:
 		return true
 	}
 }
 
 func detailsToLocations(details []checker.CheckDetail,
-	showDetails bool, logLevel zapcore.Level, minScore, score int) []location {
+	showDetails bool, minScore, score int) []location {
 	locs := []location{}
 
 	//nolint
@@ -334,7 +282,7 @@ func detailsToLocations(details []checker.CheckDetail,
 		// Avoid `golang Implicit memory aliasing in for loop` gosec error.
 		// https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable.
 		d := details[i]
-		if !shouldAddLocation(&d, showDetails, logLevel, minScore, score) {
+		if !shouldAddLocation(&d, showDetails, minScore, score) {
 			continue
 		}
 
@@ -383,56 +331,6 @@ func addDefaultLocation(locs []location, policyFile string) []location {
 	return locs
 }
 
-func detailsToRelatedLocations(details []checker.CheckDetail,
-	showDetails bool, logLevel zapcore.Level, minScore, score int) []relatedLocation {
-	rlocs := []relatedLocation{}
-
-	// Until this https://github.com/github/codeql-action/issues/754
-	// has an answer, let's disable related locations.
-	return rlocs
-
-	//nolint:govet
-	// Populate the related locations.
-	id := 0
-	for i := range details {
-		d := details[i]
-		if !shouldAddRelatedLocation(&d, showDetails, logLevel, minScore, score) {
-			continue
-		}
-		// TODO: logical locations.
-		rloc := relatedLocation{
-			ID:      id,
-			Message: text{Text: d.Msg.Text},
-			PhysicalLocation: physicalLocation{
-				ArtifactLocation: artifactLocation{
-					// Note: We don't set
-					// URIBaseID: "PROJECTROOT" because
-					// the URL is an `absolute` path.
-					URI: d.Msg.Path,
-				},
-			},
-		}
-		// Set the region depending on file type.
-		rloc.PhysicalLocation.Region = detailToRegion(&d)
-		rlocs = append(rlocs, rloc)
-
-		id++
-	}
-	return rlocs
-}
-
-// TODO: update using config file.
-func scoreToLevel(minScore, score int) string {
-	// Any of error, note, warning, none.
-	switch {
-	default:
-		return "error"
-	case score == checker.MaxResultScore, score == checker.InconclusiveResultScore,
-		minScore <= score:
-		return "note"
-	}
-}
-
 func createSARIFHeader(url, category, name, version, commit string, t time.Time) sarif210 {
 	return sarif210{
 		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
@@ -477,9 +375,8 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc, risk stri
 	remediation []string,
 	tags []string) rule {
 	return rule{
-		ID:   checkID,
-		Name: checkName,
-		// TODO: verify this works on GitHub.
+		ID:        checkID,
+		Name:      checkName,
 		ShortDesc: text{Text: checkName},
 		FullDesc:  text{Text: shortDesc},
 		HelpURI:   descURL,
@@ -491,34 +388,16 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc, risk stri
 			Level: generateDefaultConfig(risk),
 		},
 		Properties: properties{
-			Tags:      tags,
-			Precision: "high",
-			// TODO
-			// Problem: problem{
-			// 	Severity: generateProblemSeverity(risk),
-			// },
-			// SeverityLevel: calculateSeverityLevel(risk),
+			Tags:            tags,
+			Precision:       "high",
+			ProblemSeverity: generateProblemSeverity(risk),
+			SeverityLevel:   calculateSeverityLevel(risk),
 		},
 	}
 }
 
-func createSARIFCheckResult(pos int, checkID, reason string,
-	minScore, score int,
-	locs []location, rlocs []relatedLocation) result {
-	return result{
-		RuleID: checkID,
-		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
-		Level:            scoreToLevel(minScore, score),
-		RuleIndex:        pos,
-		Message:          text{Text: reason},
-		Locations:        locs,
-		RelatedLocations: rlocs,
-	}
-}
-
-func createSARIFCheckResult2(pos int, checkID, message string,
-	minScore, score int,
-	loc *location) result {
+func createSARIFCheckResult(pos int, checkID, message string,
+	score int, loc *location) result {
 	return result{
 		RuleID: checkID,
 		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
@@ -589,7 +468,6 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		checkID := check.Name
 
 		// Create a header's rule.
-		// TODO: verify `\n` is viewable in GitHub.
 		rule := createSARIFRule(check.Name, checkID,
 			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
 			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
@@ -597,20 +475,19 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		rules = append(rules, rule)
 
 		// Create locations and related locations.
-		locs := detailsToLocations(check.Details2, showDetails, logLevel, minScore, check.Score)
-		// rlocs := detailsToRelatedLocations(check.Details2, showDetails, logLevel, minScore, check.Score)
+		locs := detailsToLocations(check.Details2, showDetails, minScore, check.Score)
 
 		// Add default location if no locations are present.
 		// Note: GitHub needs at least one location to show the results.
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs, policyFile)
 			// Use the `reason` as message.
-			r := createSARIFCheckResult2(i, checkID, check.Reason, minScore, check.Score, &locs[0])
+			r := createSARIFCheckResult(i, checkID, check.Reason, check.Score, &locs[0])
 			results = append(results, r)
 		} else {
 			for _, loc := range locs {
 				// Use the location's message (check's detail's message) as message.
-				r := createSARIFCheckResult2(i, checkID, loc.Message.Text, minScore, check.Score, &loc)
+				r := createSARIFCheckResult(i, checkID, loc.Message.Text, check.Score, &loc)
 				results = append(results, r)
 			}
 		}

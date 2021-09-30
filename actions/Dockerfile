@@ -25,11 +25,10 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends jq ca-certificates
 
 # Copy the scorecard binary from the official scorecard image.
-#COPY --from=base /scorecard /scorecard
-COPY ./scorecard /scorecard
+COPY --from=base /scorecard /scorecard
+
 # Copy a test policy for local testing.
 COPY actions/policies/template.yml /policy.yml
-#COPY actions/test.sarif /results.sarif
 
 # Our entry point.
 # Note: the file is executable in the repo

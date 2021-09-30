@@ -38,8 +38,6 @@ fi
 # It's important to change directories here, to ensure
 # the files in SARIF start at the source of the repo.
 # This allows GitHub to highlight the file.
-# cd "$GITHUB_WORKSPACE"
+cd "$GITHUB_WORKSPACE"
 /scorecard --repo="$GITHUB_REPOSITORY" --format sarif --show-details --policy="$SCORECARD_POLICY_FILE" > "$SCORECARD_SARIF_FILE"
 jq '.' "$SCORECARD_SARIF_FILE"
-
-#jq '.' results.sarif
