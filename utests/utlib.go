@@ -139,3 +139,19 @@ func ValidateLogMessage(isExpectedMessage func(checker.LogMessage, checker.Detai
 	}
 	return false
 }
+
+// ValidateLogMessageOffsets tests that the log message offsets match those
+// in the passed in slice.
+func ValidateLogMessageOffsets(dl *TestDetailLogger, offsets []int) bool {
+	if len(dl.messages) != len(offsets) {
+		return false
+	}
+	for i, message := range dl.messages {
+		expectedOffset := offsets[i]
+		if expectedOffset != message.Msg.Offset {
+			log.Println(cmp.Diff(message.Msg.Offset, expectedOffset))
+			return false
+		}
+	}
+	return true
+}
