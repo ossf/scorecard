@@ -3,9 +3,9 @@ on:
   push:
     # Only the default branch is supported.
     branches: [main, master]
-  pull_request:
+  #pull_request:
     # All branches are supported.
-    branches: [main]
+    #branches: [main]
 
 permissions: read-all
 
