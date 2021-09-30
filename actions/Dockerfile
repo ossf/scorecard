@@ -29,7 +29,7 @@ RUN apt-get update && \
 COPY ./scorecard /scorecard
 # Copy a test policy for local testing.
 COPY actions/policies/template.yml /policy.yml
-COPY actions/test.sarif /results.sarif
+#COPY actions/test.sarif /results.sarif
 
 # Our entry point.
 # Note: the file is executable in the repo

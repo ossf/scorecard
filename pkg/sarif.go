@@ -83,9 +83,25 @@ type defaultConfig struct {
 	Level string `json:"level"`
 }
 
+type problem struct {
+	// nolint
+	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
+	// Any of `error`, `warning`, `recommendation`
+	Severity string `json:"severity"`
+}
+
+type sarifSeverityLevel float64
+
+func (s sarifSeverityLevel) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf("%.1f", s)), nil
+}
+
+//nolint:govet
 type properties struct {
 	Precision string   `json:"precision"`
 	Tags      []string `json:"tags"`
+	// Problem       *problem           `json:"problem,omitempty"`
+	// SeverityLevel sarifSeverityLevel `json:"security-severity,omitempty"`
 }
 
 type help struct {
@@ -155,6 +171,57 @@ func maxOffset(x, y int) int {
 	return x
 }
 
+func calculateSeverityLevel(risk string) sarifSeverityLevel {
+	// nolint
+	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
+	// "over 9.0 is critical, 7.0 to 8.9 is high, 4.0 to 6.9 is medium and 3.9 or less is low".
+	switch risk {
+	case "Critical":
+		return 9.0
+	case "High":
+		return 7.0
+	case "Medium":
+		return 4.0
+	// Low
+	default:
+		return 1.0
+	}
+}
+
+func generateProblemSeverity(risk string) string {
+	// nolint
+	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
+	switch risk {
+	case "Critical":
+		return "error"
+	case "High":
+		return "error"
+	case "Medium":
+		return "warning"
+	case "Low":
+		return "recommendation"
+	}
+	// This should never happens.
+	return ""
+}
+
+func generateDefaultConfig(risk string) string {
+	// "none", "note", "warning", "error",
+	return "error"
+	// switch risk {
+	// case "Critical":
+	// 	return "error"
+	// case "High":
+	// 	return "error"
+	// case "Medium":
+	// 	return "warning"
+	// case "Low":
+	// 	return "warning"
+	// }
+	// // This never happens.
+	// return ""
+}
+
 func detailToRegion(details *checker.CheckDetail) region {
 	var reg region
 	var snippet *text
@@ -194,6 +261,7 @@ func detailToRegion(details *checker.CheckDetail) region {
 	case checker.FileTypeBinary:
 		// Offset of 0 is acceptable here.
 		reg = region{
+			// Note: GitHub does not support this.
 			ByteOffset: &details.Msg.Offset,
 		}
 	}
@@ -381,7 +449,22 @@ func createSARIFHeader(url, category, name, version, commit string, t time.Time)
 	}
 }
 
-func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
+func generateRecommentation(remediation []string) string {
+	r := ""
+	for _, s := range remediation {
+		r += fmt.Sprintf("- %s\n\n", s)
+	}
+	return r
+}
+
+func generateMarkdownText(longDesc, risk string, remediation []string) string {
+	rSev := fmt.Sprintf("**Severity**: %s", risk)
+	rDesc := fmt.Sprintf("**Details**: \n%s", longDesc)
+	rRem := fmt.Sprintf("**Remediation**: \n%s", generateRecommentation(remediation))
+	return textToMarkdown(fmt.Sprintf("%s\n%s\n%s", rRem, rSev, rDesc))
+}
+
+func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc, risk string,
 	remediation []string,
 	tags []string) rule {
 	return rule{
@@ -393,14 +476,19 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
 		HelpURI:   descURL,
 		Help: help{
 			Text:     shortDesc,
-			Markdown: textToMarkdown(fmt.Sprintf("%s\n%s", longDesc, strings.Join(remediation, "\n"))),
+			Markdown: generateMarkdownText(longDesc, risk, remediation),
 		},
 		DefaultConfig: defaultConfig{
-			Level: "error",
+			Level: generateDefaultConfig(risk),
 		},
 		Properties: properties{
 			Tags:      tags,
 			Precision: "high",
+			// TODO
+			// Problem: problem{
+			// 	Severity: generateProblemSeverity(risk),
+			// },
+			// SeverityLevel: calculateSeverityLevel(risk),
 		},
 	}
 }
@@ -419,16 +507,16 @@ func createSARIFCheckResult(pos int, checkID, reason string,
 	}
 }
 
-func createSARIFCheckResult2(pos int, checkID, reason string,
+func createSARIFCheckResult2(pos int, checkID, message string,
 	minScore, score int,
-	loc location) result {
+	loc *location) result {
 	return result{
 		RuleID: checkID,
 		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
-		Level:     scoreToLevel(minScore, score),
+		// Level:     scoreToLevel(minScore, score),
 		RuleIndex: pos,
-		Message:   text{Text: reason},
-		Locations: []location{loc},
+		Message:   text{Text: message},
+		Locations: []location{*loc},
 	}
 }
 
@@ -474,6 +562,11 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			continue
 		}
 
+		// Skip check that do not violate the policy.
+		if check.Score >= minScore {
+			continue
+		}
+
 		// Unclear what to use for PartialFingerprints.
 		// GitHub only uses `primaryLocationLineHash`, which is not properly defined
 		// and Appendix B of https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html
@@ -490,7 +583,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// TODO: verify `\n` is viewable in GitHub.
 		rule := createSARIFRule(check.Name, checkID,
 			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
-			doc.GetDescription(), doc.GetShort(),
+			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
 			doc.GetRemediation(), doc.GetTags())
 		rules = append(rules, rule)
 
@@ -502,14 +595,16 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// Note: GitHub needs at least one location to show the results.
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs, policyFile)
-		}
-
-		for _, loc := range locs {
-			// Create a result.
-			r := createSARIFCheckResult2(i, checkID, check.Reason, minScore, check.Score, loc)
+			// Use the `reason` as message.
+			r := createSARIFCheckResult2(i, checkID, check.Reason, minScore, check.Score, &locs[0])
 			results = append(results, r)
+		} else {
+			for _, loc := range locs {
+				// Use the location's message (check's detail's message) as message.
+				r := createSARIFCheckResult2(i, checkID, loc.Message.Text, minScore, check.Score, &loc)
+				results = append(results, r)
+			}
 		}
-
 	}
 
 	// Set the results and rules to sarif.

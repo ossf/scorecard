@@ -29,7 +29,7 @@ func textToHTML(s string) string {
 }
 
 func textToMarkdown(s string) string {
-	return strings.ReplaceAll(s, "\n", "  ")
+	return strings.ReplaceAll(s, "\n", "\n\n")
 }
 
 // DetailToString turns a detail information into a string.
