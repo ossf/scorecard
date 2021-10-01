@@ -15,9 +15,6 @@
 package pkg
 
 import (
-
-	//nolint:gosec
-
 	"encoding/json"
 	"fmt"
 	"io"
@@ -389,8 +386,7 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc, risk stri
 	}
 }
 
-func createSARIFCheckResult(pos int, checkID, message string,
-	score int, loc *location) result {
+func createSARIFCheckResult(pos int, checkID, message string, loc *location) result {
 	return result{
 		RuleID: checkID,
 		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
@@ -475,12 +471,12 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs, policyFile)
 			// Use the `reason` as message.
-			r := createSARIFCheckResult(i, checkID, check.Reason, check.Score, &locs[0])
+			r := createSARIFCheckResult(i, checkID, check.Reason, &locs[0])
 			results = append(results, r)
 		} else {
 			for _, loc := range locs {
 				// Use the location's message (check's detail's message) as message.
-				r := createSARIFCheckResult(i, checkID, loc.Message.Text, check.Score, &loc)
+				r := createSARIFCheckResult(i, checkID, loc.Message.Text, &loc)
 				results = append(results, r)
 			}
 		}
