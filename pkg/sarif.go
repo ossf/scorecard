@@ -201,6 +201,14 @@ func detailToRegion(details *checker.CheckDetail) region {
 	if details.Msg.Snippet != "" {
 		snippet = &text{Text: details.Msg.Snippet}
 	}
+
+	// This should never happen unless
+	// the check is buggy. We want to catch it
+	// quickly and not fail silently.
+	if details.Msg.Offset < 0 {
+		panic("invalid offset")
+	}
+
 	// https://github.com/github/codeql-action/issues/754.
 	// "code-scanning currently only supports character offset/length and start/end line/columns offsets".
 
