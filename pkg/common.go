@@ -23,10 +23,6 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 )
 
-func textToMarkdown(s string) string {
-	return strings.ReplaceAll(s, "\n", "\n\n")
-}
-
 // DetailToString turns a detail information into a string.
 func DetailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
 	// UPGRADEv3: remove switch statement.
