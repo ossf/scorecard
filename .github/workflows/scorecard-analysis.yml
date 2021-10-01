@@ -3,9 +3,10 @@ on:
   push:
     # Only the default branch is supported.
     branches: [main, master]
-  pull_request:
+  # TODO: Re-enable after implementing the local RepoClient.
+  #pull_request:
     # All branches are supported.
-    branches: [main]
+    #branches: [main]
 
 permissions: read-all
 
