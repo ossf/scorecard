@@ -13,18 +13,18 @@
                "semanticVersion": "1.2.3",
                "rules": [
                   {
-                     "id": "cdf761a2ef9830335f96bc67d6bc0008",
+                     "id": "Check-Name",
                      "name": "Check-Name",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
                      "shortDescription": {
-                        "text": "short description"
+                        "text": "Check-Name"
                      },
                      "fullDescription": {
-                        "text": "long description\u003cbr\u003e other line"
+                        "text": "short description"
                      },
                      "help": {
-                        "text": "long description\n other line",
-                        "markdown": "long description   other line"
+                        "text": "short description",
+                        "markdown": "**Remediation**: \n\n- not-used1\n\n\n\n- not-used2\n\n\n\n\n\n**Severity**: High\n\n**Details**: \n\nlong description\n\n other line"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -34,7 +34,9 @@
                         "tags": [
                            "tag1",
                            "tag2"
-                        ]
+                        ],
+                        "problem.severity": "error",
+                        "security-severity": "7.0"
                      }
                   }
                ]
@@ -42,11 +44,10 @@
          },
          "results": [
             {
-               "ruleId": "cdf761a2ef9830335f96bc67d6bc0008",
-               "level": "error",
+               "ruleId": "Check-Name",
                "ruleIndex": 0,
                "message": {
-                  "text": "min result reason"
+                  "text": "warn message"
                },
                "locations": [
                   {
