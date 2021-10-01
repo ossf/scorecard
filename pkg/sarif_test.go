@@ -31,7 +31,7 @@ func sarifMockDocRead() *mockDoc {
 	d := map[string]mockCheck{
 		"Check-Name": {
 			name:        "Check-Name",
-			risk:        "not used",
+			risk:        "High",
 			short:       "short description",
 			description: "long description\n other line",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
@@ -40,7 +40,7 @@ func sarifMockDocRead() *mockDoc {
 		},
 		"Check-Name2": {
 			name:        "Check-Name2",
-			risk:        "not used",
+			risk:        "Medium",
 			short:       "short description 2",
 			description: "long description\n other line 2",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
@@ -49,7 +49,7 @@ func sarifMockDocRead() *mockDoc {
 		},
 		"Check-Name3": {
 			name:        "Check-Name3",
-			risk:        "not used",
+			risk:        "Low",
 			short:       "short description 3",
 			description: "long description\n other line 3",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
@@ -457,7 +457,7 @@ func TestSARIFOutput(t *testing.T) {
 			showDetails: true,
 			// https://github.com/github/codeql-action/issues/754
 			// Disabled related locations.
-			expected: "./testdata/check6-bug.sarif",
+			expected: "./testdata/check6.sarif",
 			logLevel: zapcore.WarnLevel,
 			policy: spol.ScorecardPolicy{
 				Version: 1,
