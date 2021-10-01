@@ -44,7 +44,7 @@ func init() {
 func CITests(c *checker.CheckRequest) checker.CheckResult {
 	prs, err := c.RepoClient.ListMergedPRs()
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCITests, e)
 	}
 
@@ -106,8 +106,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool, error) {
 	statuses, err := c.RepoClient.ListStatuses(pr.HeadSHA)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListStatuses: %v", err))
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListStatuses: %v", err))
 	}
 
 	for _, status := range statuses {
@@ -131,12 +130,10 @@ func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool,
 func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (bool, error) {
 	crs, err := c.RepoClient.ListCheckRunsForRef(pr.HeadSHA)
 	if err != nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 	}
 	if crs == nil {
-		//nolint
-		return false, sce.Create(sce.ErrScorecardInternal, "cannot list check runs by ref")
+		return false, sce.WithMessage(sce.ErrScorecardInternal, "cannot list check runs by ref")
 	}
 
 	for _, cr := range crs {

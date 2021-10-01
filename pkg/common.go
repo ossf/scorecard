@@ -81,11 +81,3 @@ func typeToString(cd checker.DetailType) string {
 		return "Debug"
 	}
 }
-
-func tagsAsList(tags string) []string {
-	l := strings.Split(tags, ",")
-	for i := range l {
-		l[i] = strings.TrimSpace(l[i])
-	}
-	return l
-}

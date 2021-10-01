@@ -55,7 +55,7 @@
                            "startLine": 1
                         },
                         "artifactLocation": {
-                           "uri": ".github/scorecard.yml",
+                           "uri": "/path/to/policy.yml",
                            "uriBaseId": "%SRCROOT%"
                         }
                      }

@@ -31,9 +31,9 @@ const checkRetries = 3
 
 // Runner runs a check with retries.
 type Runner struct {
+	CheckRequest CheckRequest
 	CheckName    string
 	Repo         string
-	CheckRequest CheckRequest
 }
 
 // CheckFn defined for convenience.
@@ -98,8 +98,7 @@ func logStats(ctx context.Context, startTime time.Time, result *CheckResult) err
 	if result.Error != nil {
 		ctx, err := tag.New(ctx, tag.Upsert(stats.ErrorName, sce.GetName(result.Error2)))
 		if err != nil {
-			//nolint:wrapcheck
-			return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 		}
 		opencensusstats.Record(ctx, stats.CheckErrors.M(1))
 	}

@@ -22,8 +22,8 @@ import (
 
 // CheckRequest struct encapsulates all data to be passed into a CheckFn.
 type CheckRequest struct {
-	Ctx         context.Context
-	RepoClient  clients.RepoClient
-	Dlogger     DetailLogger
-	Owner, Repo string
+	Ctx        context.Context
+	RepoClient clients.RepoClient
+	Dlogger    DetailLogger
+	Repo       clients.Repo
 }

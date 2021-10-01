@@ -36,12 +36,6 @@ func init() {
 // - Checking if most of the recent merged PRs were "Approved".
 // - Looking for other well-known review labels.
 func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
-	// Branch protection.
-	score, reason := isPrReviewRequired(c)
-	if score == checker.MaxResultScore {
-		return checker.CreateMaxScoreResult(CheckCodeReview, reason)
-	}
-
 	// GitHub reviews.
 	ghScore, ghReason, err := githubCodeReview(c)
 	if err != nil {
@@ -54,7 +48,7 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
 	}
 
-	score, reason = selectBestScoreAndReason(hintScore, ghScore, hintReason, ghReason, c.Dlogger)
+	score, reason := selectBestScoreAndReason(hintScore, ghScore, hintReason, ghReason, c.Dlogger)
 
 	// Prow CI/CD.
 	prowScore, prowReason, err := prowCodeReview(c)
@@ -63,6 +57,13 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	score, reason = selectBestScoreAndReason(prowScore, score, prowReason, reason, c.Dlogger)
+	if score == checker.MinResultScore {
+		c.Dlogger.Info3(&checker.LogMessage{
+			Text: reason,
+		})
+		return checker.CreateResultWithScore(CheckCodeReview, "no reviews detected", score)
+	}
+
 	if score == checker.InconclusiveResultScore {
 		return checker.CreateInconclusiveResult(CheckCodeReview, "no reviews detected")
 	}
@@ -93,7 +94,7 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 	totalReviewed := 0
 	prs, err := c.RepoClient.ListMergedPRs()
 	if err != nil {
-		return 0, "", sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+		return 0, "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
 	}
 	for _, pr := range prs {
 		if pr.MergedAt.IsZero() {
@@ -117,36 +118,19 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 		// Check if the PR is committed by someone other than author. this is kind
 		// of equivalent to a review and is done several times on small prs to save
 		// time on clicking the approve button.
-		if !foundApprovedReview {
-			if !pr.MergeCommit.AuthoredByCommitter {
-				c.Dlogger.Debug3(&checker.LogMessage{
-					Text: fmt.Sprintf("found pr with committer different than author: %d", pr.Number),
-				})
-				totalReviewed++
-			}
+		if !foundApprovedReview &&
+			pr.MergeCommit.Committer.Login != "" &&
+			pr.MergeCommit.Committer.Login != pr.Author.Login {
+			c.Dlogger.Debug3(&checker.LogMessage{
+				Text: fmt.Sprintf("found PR#%d with committer (%s) different from author (%s)",
+					pr.Number, pr.Author.Login, pr.MergeCommit.Committer.Login),
+			})
+			totalReviewed++
 		}
+
 	}
 
 	return createReturn("GitHub", totalReviewed, totalMerged)
-}
-
-//nolint
-func isPrReviewRequired(c *checker.CheckRequest) (int, string) {
-	// Look to see if review is enforced.
-	// Check the branch protection rules, we may not be able to get these though.
-	branch, err := c.RepoClient.GetDefaultBranch()
-	if err != nil {
-		sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetDefaultBranch: %v", err))
-	}
-	if branch.GetBranchProtectionRule() == nil ||
-		branch.GetBranchProtectionRule().GetRequiredPullRequestReviews() == nil ||
-		branch.GetBranchProtectionRule().GetRequiredPullRequestReviews().GetRequiredApprovingReviewCount() < 1 {
-		return checker.InconclusiveResultScore, "cannot determine if branch protection is enabled"
-	}
-
-	// If the default value is 0 when we cannot retrieve the value,
-	// a non-zero value means we're confident it's enabled.
-	return checker.MaxResultScore, "branch protection for default branch is enabled"
 }
 
 //nolint
@@ -156,7 +140,7 @@ func prowCodeReview(c *checker.CheckRequest) (int, string, error) {
 	totalReviewed := 0
 	prs, err := c.RepoClient.ListMergedPRs()
 	if err != nil {
-		sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
 	}
 	for _, pr := range prs {
 		if pr.MergedAt.IsZero() {
@@ -178,9 +162,8 @@ func prowCodeReview(c *checker.CheckRequest) (int, string, error) {
 func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		// nolint: wrapcheck
 		return checker.InconclusiveResultScore, "",
-			sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
 	}
 
 	total := 0

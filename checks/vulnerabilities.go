@@ -58,7 +58,7 @@ func (resp *osvResponse) getVulnerabilities() []string {
 func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, "Client.Repositories.ListCommits")
+		e := sce.WithMessage(sce.ErrScorecardInternal, "Client.Repositories.ListCommits")
 		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
@@ -70,13 +70,13 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 		Commit: commits[0].SHA,
 	})
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, "json.Marshal")
+		e := sce.WithMessage(sce.ErrScorecardInternal, "json.Marshal")
 		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
 	req, err := http.NewRequestWithContext(c.Ctx, http.MethodPost, osvQueryEndpoint, bytes.NewReader(query))
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
@@ -84,7 +84,7 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("httpClient.Do: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("httpClient.Do: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 	defer resp.Body.Close()
@@ -92,7 +92,7 @@ func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	var osvResp osvResponse
 	decoder := json.NewDecoder(resp.Body)
 	if err := decoder.Decode(&osvResp); err != nil {
-		e := sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("decoder.Decode: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("decoder.Decode: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 

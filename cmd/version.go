@@ -33,7 +33,7 @@ var versionCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		// not using logger, since it prints timing info, etc
-		fmt.Printf("GitVersion:\t%s\n", pkg.GetVersion())
+		fmt.Printf("GitVersion:\t%s\n", pkg.GetTagVersion())
 		fmt.Printf("GitCommit:\t%s\n", pkg.GetCommit())
 		fmt.Printf("GitTreeState:\t%s\n", pkg.GetTreeState())
 		fmt.Printf("BuildDate:\t%s\n", pkg.GetBuildDate())

@@ -18,14 +18,8 @@ import "time"
 
 // Commit represents a Git commit.
 type Commit struct {
-	CommittedDate       time.Time
-	Message             string
-	SHA                 string
-	Committer           User
-	AuthoredByCommitter bool
-}
-
-// User represents a Git user.
-type User struct {
-	Login string
+	CommittedDate time.Time
+	Message       string
+	SHA           string
+	Committer     User
 }

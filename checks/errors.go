@@ -24,7 +24,6 @@ var (
 	errInternalInvalidYamlFile   = errors.New("invalid yaml file")
 	errInternalFilenameMatch     = errors.New("filename match error")
 	errInternalEmptyFile         = errors.New("empty file")
-	errInternalInvalidShellCode  = errors.New("invalid shell code")
 	errInternalCommitishNil      = errors.New("commitish is nil")
 	errInternalBranchNotFound    = errors.New("branch not found")
 	errInvalidGitHubWorkflow     = errors.New("invalid GitHub workflow")

@@ -29,6 +29,8 @@ import (
 
 	"github.com/ossf/scorecard/v2/checker"
 	docs "github.com/ossf/scorecard/v2/docs/checks"
+	sce "github.com/ossf/scorecard/v2/errors"
+	spol "github.com/ossf/scorecard/v2/policy"
 )
 
 type text struct {
@@ -57,7 +59,6 @@ type physicalLocation struct {
 	ArtifactLocation artifactLocation `json:"artifactLocation"`
 }
 
-//TODO: remove linter and update unit tests.
 //nolint:govet
 type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
@@ -148,33 +149,51 @@ type sarif210 struct {
 	Runs    []run  `json:"runs"`
 }
 
+func maxOffset(x, y int) int {
+	if x < y {
+		return y
+	}
+	return x
+}
+
 func detailToRegion(details *checker.CheckDetail) region {
 	var reg region
 	var snippet *text
 	if details.Msg.Snippet != "" {
 		snippet = &text{Text: details.Msg.Snippet}
 	}
+	// https://github.com/github/codeql-action/issues/754.
+	// "code-scanning currently only supports character offset/length and start/end line/columns offsets".
+
+	// https://docs.oasis-open.org/sarif/sarif/v2.0/csprd02/sarif-v2.0-csprd02.html.
+	// "3.30.1 General".
+	// Line numbers > 0.
+	// byteOffset and charOffset >= 0.
 	switch details.Msg.Type {
 	default:
 		panic("invalid")
 	case checker.FileTypeURL:
+		line := maxOffset(1, details.Msg.Offset)
 		reg = region{
-			StartLine: &details.Msg.Offset,
+			StartLine: &line,
 			Snippet:   snippet,
 		}
 	case checker.FileTypeNone:
 		// Do nothing.
 	case checker.FileTypeSource:
+		line := maxOffset(1, details.Msg.Offset)
 		reg = region{
-			StartLine: &details.Msg.Offset,
+			StartLine: &line,
 			Snippet:   snippet,
 		}
 	case checker.FileTypeText:
+		// Offset of 0 is acceptable here.
 		reg = region{
 			CharOffset: &details.Msg.Offset,
 			Snippet:    snippet,
 		}
 	case checker.FileTypeBinary:
+		// Offset of 0 is acceptable here.
 		reg = region{
 			ByteOffset: &details.Msg.Offset,
 		}
@@ -201,6 +220,9 @@ func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 	}
 }
 
+//nolint:unused
+//TODO: remove nolint when https://github.com/github/codeql-action/issues/754
+// has an answer.
 func shouldAddRelatedLocation(detail *checker.CheckDetail, showDetails bool,
 	logLevel zapcore.Level, minScore, score int) bool {
 	switch {
@@ -258,7 +280,7 @@ func detailsToLocations(details []checker.CheckDetail,
 	return locs
 }
 
-func addDefaultLocation(locs []location) []location {
+func addDefaultLocation(locs []location, policyFile string) []location {
 	// No details or no locations.
 	// For GitHub to display results, we need to provide
 	// a location anyway, regardless of showDetails.
@@ -270,7 +292,7 @@ func addDefaultLocation(locs []location) []location {
 	loc := location{
 		PhysicalLocation: physicalLocation{
 			ArtifactLocation: artifactLocation{
-				URI:       ".github/scorecard.yml",
+				URI:       policyFile,
 				URIBaseID: "%SRCROOT%",
 			},
 			Region: region{
@@ -289,15 +311,21 @@ func detailsToRelatedLocations(details []checker.CheckDetail,
 	showDetails bool, logLevel zapcore.Level, minScore, score int) []relatedLocation {
 	rlocs := []relatedLocation{}
 
-	//nolint
+	// Until this https://github.com/github/codeql-action/issues/754
+	// has an answer, let's disable related locations.
+	return rlocs
+
+	//nolint:govet
 	// Populate the related locations.
-	for i, d := range details {
+	id := 0
+	for i := range details {
+		d := details[i]
 		if !shouldAddRelatedLocation(&d, showDetails, logLevel, minScore, score) {
 			continue
 		}
 		// TODO: logical locations.
 		rloc := relatedLocation{
-			ID:      i,
+			ID:      id,
 			Message: text{Text: d.Msg.Text},
 			PhysicalLocation: physicalLocation{
 				ArtifactLocation: artifactLocation{
@@ -311,6 +339,8 @@ func detailsToRelatedLocations(details []checker.CheckDetail,
 		// Set the region depending on file type.
 		rloc.PhysicalLocation.Region = detailToRegion(&d)
 		rlocs = append(rlocs, rloc)
+
+		id++
 	}
 	return rlocs
 }
@@ -375,7 +405,8 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc string,
 	}
 }
 
-func createSARIFResult(pos int, checkID, reason string, minScore, score int,
+func createSARIFCheckResult(pos int, checkID, reason string,
+	minScore, score int,
 	locs []location, rlocs []relatedLocation) result {
 	return result{
 		RuleID: checkID,
@@ -388,9 +419,23 @@ func createSARIFResult(pos int, checkID, reason string, minScore, score int,
 	}
 }
 
+func getCheckPolicyInfo(policy *spol.ScorecardPolicy, name string) (minScore int, enabled bool, err error) {
+	policies := policy.GetPolicies()
+	if _, exists := policies[name]; !exists {
+		return 0, false,
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Missing policy for check: %s", name))
+	}
+	cp := policies[name]
+	if cp.GetMode() == spol.CheckPolicy_DISABLED {
+		return 0, false, nil
+	}
+	return int(cp.GetScore()), true, nil
+}
+
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
-	writer io.Writer, checkDocs docs.Doc, minScore int) error {
+	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
+	policyFile string) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
 	// We only support GitHub-supported properties:
@@ -403,10 +448,17 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 
 	// nolint
 	for i, check := range r.Checks {
+		doc, e := checkDocs.GetCheck(check.Name)
+		if e != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
+		}
 
-		doc, exists := checkDocs.Checks[check.Name]
-		if !exists {
-			panic(fmt.Sprintf("invalid doc: %s not present", check.Name))
+		minScore, enabled, err := getCheckPolicyInfo(policy, check.Name)
+		if err != nil {
+			return err
+		}
+		if !enabled {
+			continue
 		}
 
 		// Unclear what to use for PartialFingerprints.
@@ -430,19 +482,19 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// Create a header's rule.
 		// TODO: verify `\n` is viewable in GitHub.
 		rule := createSARIFRule(check.Name, checkID,
-			fmt.Sprintf("https://github.com/ossf/scorecard/blob/main/docs/checks.md#%s", strings.ToLower(check.Name)),
-			doc.Description, doc.Short,
-			tagsAsList(doc.Tags))
+			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
+			doc.GetDescription(), doc.GetShort(),
+			doc.GetTags())
 		rules = append(rules, rule)
 
 		// Add default location if no locations are present.
 		// Note: GitHub needs at least one location to show the results.
 		if len(locs) == 0 {
-			locs = addDefaultLocation(locs)
+			locs = addDefaultLocation(locs, policyFile)
 		}
 
 		// Create a result.
-		r := createSARIFResult(i, checkID, check.Reason, minScore, check.Score, locs, rlocs)
+		r := createSARIFCheckResult(i, checkID, check.Reason, minScore, check.Score, locs, rlocs)
 		results = append(results, r)
 	}
 
@@ -453,7 +505,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "   ")
 	if err := encoder.Encode(sarif); err != nil {
-		panic(err.Error())
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
 	return nil

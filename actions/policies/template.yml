@@ -1,0 +1,64 @@
+# Copyright 2021 Security Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: 1
+policies:
+  Token-Permissions:
+      score: 10
+      mode: enforced
+  Branch-Protection:
+      score: 10
+      mode: enforced
+  Code-Review:
+      score: 10
+      mode: enforced
+  Pinned-Dependencies:
+      score: 10
+      mode: enforced
+  Security-Policy:
+      score: 10
+      mode: enforced
+  SAST:
+      score: 10
+      mode: enforced
+  Contributors:
+      score: 10
+      mode: enforced
+  Packaging:
+      score: 10
+      mode: enforced
+  Binary-Artifacts:
+      score: 10
+      mode: enforced
+  Signed-Releases:
+      score: 10
+      mode: enforced
+  Dependency-Update-Tool:
+      score: 10
+      mode: enforced
+  Fuzzing:
+      score: 10
+      mode: enforced
+  CII-Best-Practices:
+      score: 10
+      mode: enforced
+  Vulnerabilities:
+      score: 10
+      mode: enforced
+  CI-Tests:
+      score: 10
+      mode: enforced
+  Maintained:
+      score: 10
+      mode: enforced

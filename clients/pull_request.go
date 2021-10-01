@@ -27,6 +27,7 @@ type PullRequest struct {
 	HeadSHA     string
 	Labels      []Label
 	Reviews     []Review
+	Author      User
 }
 
 // Label represents a PR label.

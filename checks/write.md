@@ -69,7 +69,7 @@ The steps to writting a check are as follow:
         `checker.CreateResultWithScore()` with one of the constants declared,
         such as `checker.HalfResultScore`.
 
-6.  Dealing with errors: see [../errors/errors.md](errors/errors/md).
+6.  Dealing with errors: see [errors/errors.md](/errors/errors.md).
 
 7.  Create unit tests for both low, high and inconclusive score. Put them in a
     file `checks/mycheck_test.go`.
@@ -87,4 +87,4 @@ The steps to writting a check are as follow:
 
 For actual examples, look at [checks/binary_artifact.go](binary_artifact.go),
 [checks/code_review.go](code_review.go) and
-[checks/frozen_deps.go](frozen_deps.go).
+[checks/pinned_dependencies.go](pinned_dependencies.go).

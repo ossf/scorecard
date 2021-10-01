@@ -41,8 +41,7 @@ func (handler *statusesHandler) listStatuses(ref string) ([]clients.Status, erro
 	statuses, _, err := handler.client.Repositories.ListStatuses(handler.ctx, handler.owner, handler.repo, ref,
 		&github.ListOptions{})
 	if err != nil {
-		// nolint: wrapcheck
-		return nil, sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("ListStatuses: %v", err))
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListStatuses: %v", err))
 	}
 	return statusesFrom(statuses), nil
 }

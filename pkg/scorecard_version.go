@@ -14,7 +14,10 @@
 
 package pkg
 
-import "runtime"
+import (
+	"runtime"
+	"strings"
+)
 
 // Base version information.
 //
@@ -28,13 +31,24 @@ var (
 	gitCommit = "unknown"
 	// State of git tree, either "clean" or "dirty".
 	gitTreeState = "unknown"
-	// Build date in ISO8601 format, output of $(date -u +'%Y-%m-%dT%H:%M:%SZ').
+	// Build date in ISO8601 format.
 	buildDate = "unknown"
 )
 
-// GetVersion returns the scorecard version.
-func GetVersion() string {
+// GetTagVersion returns the scorecard version
+// fr the release GitHub tag, i.e. v.X.Y.Z.
+func GetTagVersion() string {
 	return gitVersion
+}
+
+// GetSemanticVersion returns the semantic version,
+// i.e., X.Y.Z.
+func GetSemanticVersion() string {
+	tv := GetTagVersion()
+	if strings.HasPrefix(tv, "v") {
+		return tv[1:]
+	}
+	return tv
 }
 
 // GetCommit returns the GitHub's commit hash that scorecard was built from.
