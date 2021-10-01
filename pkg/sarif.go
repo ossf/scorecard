@@ -177,6 +177,7 @@ func generateProblemSeverity(risk string) string {
 	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
 	switch risk {
 	case "Critical":
+		// nolint:goconst
 		return "error"
 	case "High":
 		return "error"
@@ -347,19 +348,22 @@ func createSARIFHeader(url, category, name, version, commit string, t time.Time)
 	}
 }
 
-func generateRecommendation(remediation []string) string {
+func generateRemediationMarkdown(remediation []string) string {
 	r := ""
 	for _, s := range remediation {
 		r += fmt.Sprintf("- %s\n", s)
 	}
-	return r
+	if r == "" {
+		panic("no remediation")
+	}
+	return r[:len(r)-1]
 }
 
 func generateMarkdownText(longDesc, risk string, remediation []string) string {
 	rSev := fmt.Sprintf("**Severity**: %s", risk)
 	rDesc := fmt.Sprintf("**Details**:\n%s", longDesc)
-	rRem := fmt.Sprintf("**Remediation**:\n%s", generateRecommendation(remediation))
-	return textToMarkdown(fmt.Sprintf("%s\n%s\n%s", rRem, rSev, rDesc))
+	rRem := fmt.Sprintf("**Remediation**:\n%s", generateRemediationMarkdown(remediation))
+	return textToMarkdown(fmt.Sprintf("%s\n\n%s\n\n%s", rRem, rSev, rDesc))
 }
 
 func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc, risk string,
