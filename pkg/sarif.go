@@ -364,14 +364,14 @@ func generateRemediationMarkdown(remediation []string) string {
 	if r == "" {
 		panic("no remediation")
 	}
-	return r
+	return r[:len(r)-1]
 }
 
 func generateMarkdownText(longDesc, risk string, remediation []string) string {
 	rSev := fmt.Sprintf("**Severity**: %s", risk)
-	rDesc := fmt.Sprintf("**Details**:\n%s", longDesc)
+	rDesc := fmt.Sprintf("**Details**:\n%s", textToMarkdown(longDesc))
 	rRem := fmt.Sprintf("**Remediation**:\n%s", generateRemediationMarkdown(remediation))
-	return fmt.Sprintf("%s\n%s\n%s", rRem, rSev, rDesc)
+	return fmt.Sprintf("%s\n\n%s\n\n%s", rRem, rSev, rDesc)
 }
 
 func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc, risk string,
