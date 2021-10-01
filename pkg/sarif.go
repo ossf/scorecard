@@ -83,13 +83,6 @@ type defaultConfig struct {
 	Level string `json:"level"`
 }
 
-type problem struct {
-	// nolint
-	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
-	// Any of `error`, `warning`, `recommendation`
-	Severity string `json:"severity"`
-}
-
 //nolint:govet
 type properties struct {
 	Precision       string   `json:"precision"`
@@ -474,7 +467,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			doc.GetRemediation(), doc.GetTags())
 		rules = append(rules, rule)
 
-		// Create locations and related locations.
+		// Create locations.
 		locs := detailsToLocations(check.Details2, showDetails, minScore, check.Score)
 
 		// Add default location if no locations are present.
