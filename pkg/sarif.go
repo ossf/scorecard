@@ -80,12 +80,11 @@ type defaultConfig struct {
 	Level string `json:"level"`
 }
 
-//nolint:govet
 type properties struct {
 	Precision       string   `json:"precision"`
-	Tags            []string `json:"tags"`
 	ProblemSeverity string   `json:"problem.severity"`
 	SeverityLevel   string   `json:"security-severity"`
+	Tags            []string `json:"tags"`
 }
 
 type help struct {
@@ -156,7 +155,7 @@ func maxOffset(x, y int) int {
 }
 
 func calculateSeverityLevel(risk string) string {
-	// nolint
+	// nolint:lll
 	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
 	// "over 9.0 is critical, 7.0 to 8.9 is high, 4.0 to 6.9 is medium and 3.9 or less is low".
 	switch risk {
@@ -166,14 +165,15 @@ func calculateSeverityLevel(risk string) string {
 		return "7.0"
 	case "Medium":
 		return "4.0"
-	// Low
-	default:
+	case "Low":
 		return "1.0"
+	default:
+		panic("invalid risk")
 	}
 }
 
 func generateProblemSeverity(risk string) string {
-	// nolint
+	// nolint:lll
 	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
 	switch risk {
 	case "Critical":
@@ -182,9 +182,10 @@ func generateProblemSeverity(risk string) string {
 		return "error"
 	case "Medium":
 		return "warning"
-	// Low
-	default:
+	case "Low":
 		return "recommendation"
+	default:
+		panic("invalid risk")
 	}
 }
 
@@ -346,18 +347,18 @@ func createSARIFHeader(url, category, name, version, commit string, t time.Time)
 	}
 }
 
-func generateRecommentation(remediation []string) string {
+func generateRecommendation(remediation []string) string {
 	r := ""
 	for _, s := range remediation {
-		r += fmt.Sprintf("- %s\n\n", s)
+		r += fmt.Sprintf("- %s\n", s)
 	}
 	return r
 }
 
 func generateMarkdownText(longDesc, risk string, remediation []string) string {
 	rSev := fmt.Sprintf("**Severity**: %s", risk)
-	rDesc := fmt.Sprintf("**Details**: \n%s", longDesc)
-	rRem := fmt.Sprintf("**Remediation**: \n%s", generateRecommentation(remediation))
+	rDesc := fmt.Sprintf("**Details**:\n%s", longDesc)
+	rRem := fmt.Sprintf("**Remediation**:\n%s", generateRecommendation(remediation))
 	return textToMarkdown(fmt.Sprintf("%s\n%s\n%s", rRem, rSev, rDesc))
 }
 
