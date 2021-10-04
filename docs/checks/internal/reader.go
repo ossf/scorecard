@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package checks contains util fns for reading input YAML file.
-package checks
+// Package internal contains internal functions for reading input YAML file.
+package internal
 
 import (
 
@@ -27,22 +27,25 @@ import (
 //go:embed checks.yaml
 var checksYAML []byte
 
-// Check defines expected check definition in checks.yaml.
+// Check stores a check's information.
+// nolint:govet
 type Check struct {
-	Risk        string   `yaml:"-"`
+	Risk        string   `yaml:"risk"`
 	Short       string   `yaml:"short"`
 	Description string   `yaml:"description"`
 	Tags        string   `yaml:"tags"`
 	Remediation []string `yaml:"remediation"`
+	Name        string   `yaml:"-"`
+	URL         string   `yaml:"-"`
 }
 
-// Doc maps to checks.yaml file.
+// Doc stores the documentation for all checks.
 type Doc struct {
-	Checks map[string]Check
+	InternalChecks map[string]Check `yaml:"checks"`
 }
 
-// Read parses `checks.yaml` file and returns a `Doc` struct.
-func Read() (Doc, error) {
+// ReadDoc reads documentation from the `checks.yaml` file.
+func ReadDoc() (Doc, error) {
 	var m Doc
 	if err := yaml.Unmarshal(checksYAML, &m); err != nil {
 		return Doc{}, fmt.Errorf("yaml.Unmarshal: %w", err)

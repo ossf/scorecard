@@ -30,14 +30,15 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 	Context("E2E TEST:Validating branch protection", func() {
 		It("Should fail to return branch protection on other repositories", func() {
 			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("apache/airflow")
+			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err := repoClient.InitRepo("apache", "airflow")
+			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
-				Owner:      "apache",
-				Repo:       "airflow",
+				Repo:       repo,
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
@@ -58,14 +59,15 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 		Context("E2E TEST:Validating branch protection", func() {
 			It("Should fail to return branch protection on other repositories", func() {
 				dl := scut.TestDetailLogger{}
+				repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
+				Expect(err).Should(BeNil())
 				repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-				err := repoClient.InitRepo("ossf-tests", "scorecard-check-branch-protection-e2e")
+				err = repoClient.InitRepo(repo)
 				Expect(err).Should(BeNil())
 				req := checker.CheckRequest{
 					Ctx:        context.Background(),
 					RepoClient: repoClient,
-					Owner:      "ossf-tests",
-					Repo:       "scorecard-check-branch-protection-e2e",
+					Repo:       repo,
 					Dlogger:    &dl,
 				}
 				expected := scut.TestReturn{

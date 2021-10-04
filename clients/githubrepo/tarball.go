@@ -72,8 +72,7 @@ type tarballHandler struct {
 func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository) error {
 	// Cleanup any previous state.
 	if err := handler.cleanup(); err != nil {
-		// nolint: wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, err.Error())
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
 	// Setup temp dir/files and download repo tarball.
@@ -81,8 +80,7 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 		log.Printf("unable to get tarball %v. Skipping...", err)
 		return nil
 	} else if err != nil {
-		// nolint: wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, err.Error())
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
 	// Extract file names and content from tarball.
@@ -90,8 +88,7 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 		log.Printf("unable to extract tarball %v. Skipping...", err)
 		return nil
 	} else if err != nil {
-		// nolint: wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, err.Error())
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
 	return nil

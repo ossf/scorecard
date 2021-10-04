@@ -30,6 +30,41 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 )
 
+func jsonMockDocRead() *mockDoc {
+	d := map[string]mockCheck{
+		"Check-Name": {
+			name:        "Check-Name",
+			risk:        "High",
+			short:       "short description for Check-Name",
+			description: "not used",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
+			tags:        []string{"not-used1", "not-used2"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name2": {
+			name:        "Check-Name2",
+			risk:        "Medium",
+			short:       "short description for Check-Name2",
+			description: "not used",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
+			tags:        []string{"not-used1", "not-used2"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name3": {
+			name:        "Check-Name3",
+			risk:        "Low",
+			short:       "short description for Check-Name3",
+			description: "not used",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
+			tags:        []string{"not-used1", "not-used2"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+	}
+
+	m := mockDoc{checks: d}
+	return &m
+}
+
 //nolint
 func TestJSONOutput(t *testing.T) {
 	t.Parallel()
@@ -37,11 +72,13 @@ func TestJSONOutput(t *testing.T) {
 	repoCommit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
 	scorecardCommit := "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
 	scorecardVersion := "1.2.3"
-	repoName := "repo not used"
+	repoName := "org/name"
 	date, e := time.Parse("2006-01-02", "2021-08-25")
 	if e != nil {
 		panic(fmt.Errorf("time.Parse: %w", e))
 	}
+
+	checkDocs := jsonMockDocRead()
 
 	tests := []struct {
 		name        string
@@ -436,7 +473,7 @@ func TestJSONOutput(t *testing.T) {
 			}
 
 			var result bytes.Buffer
-			err = tt.result.AsJSON2(tt.showDetails, tt.logLevel, &result)
+			err = tt.result.AsJSON2(tt.showDetails, tt.logLevel, checkDocs, &result)
 			if err != nil {
 				t.Fatalf("%s: AsJSON2: %v", tt.name, err)
 			}

@@ -14,6 +14,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"sort"
 
@@ -21,17 +22,24 @@ import (
 )
 
 func main() {
+	if len(os.Args) != 2 {
+		// nolint: goerr113
+		panic(fmt.Errorf("usage: %s filename", os.Args[0]))
+	}
+	yamlFile := os.Args[1]
+
 	m, err := docs.Read()
 	if err != nil {
 		panic(err)
 	}
-	keys := make([]string, 0, len(m.Checks))
-	for k := range m.Checks {
-		keys = append(keys, k)
+	checks := m.GetChecks()
+	keys := make([]string, 0, len(checks))
+	for _, v := range checks {
+		keys = append(keys, v.GetName())
 	}
 	sort.Strings(keys)
 
-	f, err := os.Create("../../checks.md")
+	f, err := os.Create(yamlFile)
 	if err != nil {
 		panic(err)
 	}
@@ -52,11 +60,15 @@ please contribute!
 		panic(err)
 	}
 	for _, k := range keys {
-		_, err = f.WriteString("## " + k + " \n\n")
+		_, err := f.WriteString("## " + k + " \n\n")
 		if err != nil {
 			panic(err)
 		}
-		_, err = f.WriteString(m.Checks[k].Description + " \n\n")
+		c, err := m.GetCheck(k)
+		if err != nil {
+			panic(err)
+		}
+		_, err = f.WriteString(c.GetDescription() + " \n\n")
 		if err != nil {
 			panic(err)
 		}
@@ -64,7 +76,7 @@ please contribute!
 		if err != nil {
 			panic(err)
 		}
-		for _, r := range m.Checks[k].Remediation {
+		for _, r := range c.GetRemediation() {
 			_, err = f.WriteString("- " + r + "\n")
 			if err != nil {
 				panic(err)

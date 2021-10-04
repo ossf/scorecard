@@ -505,6 +505,8 @@ github.com/mwitkow/go-proto-validators v0.0.0-20180403085117-0950a7990007/go.mod
 github.com/mwitkow/go-proto-validators v0.2.0/go.mod h1:ZfA1hW+UH/2ZHOWvQ3HnQaU0DtnpXu850MZiy+YUgcc=
 github.com/nakabonne/nestif v0.3.0 h1:+yOViDGhg8ygGrmII72nV9B/zGxY188TYpfolntsaPw=
 github.com/nakabonne/nestif v0.3.0/go.mod h1:dI314BppzXjJ4HsCnbo7XzrJHPszZsjnk5wEBSYHI2c=
+github.com/naveensrinivasan/stunning-tribble v0.4.2 h1:JD4DSLi9JoRbgxfsBZXE9lnc830TA4/sTQzq1WwR4eU=
+github.com/naveensrinivasan/stunning-tribble v0.4.2/go.mod h1:r2dbvNDqCzDSNmw9OjE6u2R5sIwLqnMBuLnpVQrhycI=
 github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354 h1:4kuARK6Y6FxaNu/BnU2OAaLF86eTVhP2hjTB6iMvItA=
 github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354/go.mod h1:KSVJerMDfblTH7p5MZaTt+8zaT2iEk3AkVb9PQdZuE8=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=

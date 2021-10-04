@@ -13,24 +13,26 @@
                "semanticVersion": "1.2.3",
                "rules": [
                   {
-                     "id": "cdf761a2ef9830335f96bc67d6bc0008",
+                     "id": "Check-Name",
                      "name": "Check-Name",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
                      "shortDescription": {
-                        "text": "short description"
+                        "text": "Check-Name"
                      },
                      "fullDescription": {
-                        "text": "long description\u003cbr\u003e other line"
+                        "text": "short description"
                      },
                      "help": {
-                        "text": "long description\n other line",
-                        "markdown": "long description   other line"
+                        "text": "short description",
+                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nlong description\n\n other line"
                      },
                      "defaultConfiguration": {
                         "level": "error"
                      },
                      "properties": {
                         "precision": "high",
+                        "problem.severity": "error",
+                        "security-severity": "7.0",
                         "tags": [
                            "tag1",
                            "tag2"
@@ -38,24 +40,26 @@
                      }
                   },
                   {
-                     "id": "6b6d83e01c8e657fb89633b003de21b1",
+                     "id": "Check-Name2",
                      "name": "Check-Name2",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
                      "shortDescription": {
-                        "text": "short description 2"
+                        "text": "Check-Name2"
                      },
                      "fullDescription": {
-                        "text": "long description\u003cbr\u003e other line 2"
+                        "text": "short description 2"
                      },
                      "help": {
-                        "text": "long description\n other line 2",
-                        "markdown": "long description   other line 2"
+                        "text": "short description 2",
+                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Medium\n\n\n\n**Details**:\n\nlong description\n\n other line 2"
                      },
                      "defaultConfiguration": {
                         "level": "error"
                      },
                      "properties": {
                         "precision": "high",
+                        "problem.severity": "warning",
+                        "security-severity": "4.0",
                         "tags": [
                            "tag1",
                            "tag2",
@@ -64,29 +68,31 @@
                      }
                   },
                   {
-                     "id": "ae72c379d6401dd15d44bbed68405fc5",
+                     "id": "Check-Name3",
                      "name": "Check-Name3",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
                      "shortDescription": {
-                        "text": "short description 3"
+                        "text": "Check-Name3"
                      },
                      "fullDescription": {
-                        "text": "long description\u003cbr\u003e other line 3"
+                        "text": "short description 3"
                      },
                      "help": {
-                        "text": "long description\n other line 3",
-                        "markdown": "long description   other line 3"
+                        "text": "short description 3",
+                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 3"
                      },
                      "defaultConfiguration": {
                         "level": "error"
                      },
                      "properties": {
                         "precision": "high",
+                        "problem.severity": "recommendation",
+                        "security-severity": "1.0",
                         "tags": [
                            "tag1",
                            "tag2",
                            "tag3",
-                           "tag4"
+                           "tag 4"
                         ]
                      }
                   }
@@ -95,11 +101,10 @@
          },
          "results": [
             {
-               "ruleId": "cdf761a2ef9830335f96bc67d6bc0008",
-               "level": "error",
+               "ruleId": "Check-Name",
                "ruleIndex": 0,
                "message": {
-                  "text": "min result reason"
+                  "text": "warn message"
                },
                "locations": [
                   {
@@ -119,11 +124,10 @@
                ]
             },
             {
-               "ruleId": "6b6d83e01c8e657fb89633b003de21b1",
-               "level": "error",
+               "ruleId": "Check-Name2",
                "ruleIndex": 1,
                "message": {
-                  "text": "min result reason"
+                  "text": "warn message"
                },
                "locations": [
                   {
@@ -146,30 +150,12 @@
                ]
             },
             {
-               "ruleId": "ae72c379d6401dd15d44bbed68405fc5",
-               "level": "note",
+               "ruleId": "Check-Name3",
                "ruleIndex": 2,
                "message": {
-                  "text": "inconclusive reason"
+                  "text": "warn message"
                },
                "locations": [
-                  {
-                     "physicalLocation": {
-                        "region": {
-                           "startLine": 3,
-                           "snippet": {
-                              "text": "if (bad) {BUG();}"
-                           }
-                        },
-                        "artifactLocation": {
-                           "uri": "some/path.js",
-                           "uriBaseId": "%SRCROOT%"
-                        }
-                     },
-                     "message": {
-                        "text": "info message"
-                     }
-                  },
                   {
                      "physicalLocation": {
                         "region": {
@@ -185,23 +171,6 @@
                      },
                      "message": {
                         "text": "warn message"
-                     }
-                  },
-                  {
-                     "physicalLocation": {
-                        "region": {
-                           "startLine": 3,
-                           "snippet": {
-                              "text": "if (bad) {BUG5();}"
-                           }
-                        },
-                        "artifactLocation": {
-                           "uri": "some/path.go",
-                           "uriBaseId": "%SRCROOT%"
-                        }
-                     },
-                     "message": {
-                        "text": "debug message"
                      }
                   }
                ]

@@ -22,6 +22,11 @@ name: Integration tests
 env:
   IMAGE_NAME: scorecard
   OUTPUT_PATH: output
+
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   integration-trusted:
     runs-on: ubuntu-latest
@@ -116,7 +121,7 @@ jobs:
             Integration tests ${{ job.status }} for [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}](https://github.com/ossf/scorecard/actions/runs/${{ github.run_id }})
 
       - name: set fork job status
-        uses: actions/github-script@f891eff65186019cbb3f7190c4590bc0a1b76fbc # v4.0.2
+        uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
         if: ${{ always() }}
         id: update-check-run
         env:

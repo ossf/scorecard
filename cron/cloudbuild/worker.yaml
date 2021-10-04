@@ -13,6 +13,9 @@
 # limitations under the License.
 
 steps:
+- id: 'Get Git history'
+  name: 'gcr.io/cloud-builders/git'
+  args: ['fetch', '--unshallow', '--tags', 'origin', '$COMMIT_SHA']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '.',
   '-t', 'gcr.io/openssf/scorecard-batch-worker:$COMMIT_SHA',

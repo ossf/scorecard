@@ -21,6 +21,7 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
+	docs "github.com/ossf/scorecard/v2/docs/checks"
 	sce "github.com/ossf/scorecard/v2/errors"
 )
 
@@ -39,12 +40,19 @@ type jsonScorecardResult struct {
 	Metadata []string
 }
 
+type jsonCheckDocumentationV2 struct {
+	URL   string `json:"url"`
+	Short string `json:"short"`
+	// Can be extended if needed.
+}
+
 //nolint
 type jsonCheckResultV2 struct {
-	Details []string `json:"details"`
-	Score   int      `json:"score"`
-	Reason  string   `json:"reason"`
-	Name    string   `json:"name"`
+	Details []string                 `json:"details"`
+	Score   int                      `json:"score"`
+	Reason  string                   `json:"reason"`
+	Name    string                   `json:"name"`
+	Doc     jsonCheckDocumentationV2 `json:"documentation"`
 }
 
 type jsonRepoV2 struct {
@@ -57,12 +65,21 @@ type jsonScorecardV2 struct {
 	Commit  string `json:"commit"`
 }
 
+type jsonFloatScore float64
+
+func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
+	// Note: for integers, this will show as X.0.
+	return []byte(fmt.Sprintf("%.1f", s)), nil
+}
+
+//nolint:govet
 type jsonScorecardResultV2 struct {
-	Date      string              `json:"date"`
-	Repo      jsonRepoV2          `json:"repo"`
-	Scorecard jsonScorecardV2     `json:"scorecard"`
-	Checks    []jsonCheckResultV2 `json:"checks"`
-	Metadata  []string            `json:"metadata"`
+	Date           string              `json:"date"`
+	Repo           jsonRepoV2          `json:"repo"`
+	Scorecard      jsonScorecardV2     `json:"scorecard"`
+	AggregateScore jsonFloatScore      `json:"score"`
+	Checks         []jsonCheckResultV2 `json:"checks"`
+	Metadata       []string            `json:"metadata"`
 }
 
 // AsJSON exports results as JSON for new detail format.
@@ -95,16 +112,20 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 		out.Checks = append(out.Checks, tmpResult)
 	}
 	if err := encoder.Encode(out); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 	return nil
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
-	encoder := json.NewEncoder(writer)
+func (r *ScorecardResult) AsJSON2(showDetails bool,
+	logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
+	score, err := r.GetAggregateScore(checkDocs)
+	if err != nil {
+		return err
+	}
 
+	encoder := json.NewEncoder(writer)
 	out := jsonScorecardResultV2{
 		Repo: jsonRepoV2{
 			Name:   r.Repo.Name,
@@ -114,14 +135,24 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 			Version: r.Scorecard.Version,
 			Commit:  r.Scorecard.CommitSHA,
 		},
-		Date:     r.Date.Format("2006-01-02"),
-		Metadata: r.Metadata,
+		Date:           r.Date.Format("2006-01-02"),
+		Metadata:       r.Metadata,
+		AggregateScore: jsonFloatScore(score),
 	}
 
 	//nolint
 	for _, checkResult := range r.Checks {
+		doc, e := checkDocs.GetCheck(checkResult.Name)
+		if e != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
+		}
+
 		tmpResult := jsonCheckResultV2{
-			Name:   checkResult.Name,
+			Name: checkResult.Name,
+			Doc: jsonCheckDocumentationV2{
+				URL:   doc.GetDocumentationURL(r.Scorecard.CommitSHA),
+				Short: doc.GetShort(),
+			},
 			Reason: checkResult.Reason,
 			Score:  checkResult.Score,
 		}
@@ -138,8 +169,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool, logLevel zapcore.Level, writ
 		out.Checks = append(out.Checks, tmpResult)
 	}
 	if err := encoder.Encode(out); err != nil {
-		//nolint:wrapcheck
-		return sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 
 	return nil

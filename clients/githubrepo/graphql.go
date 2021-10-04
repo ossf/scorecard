@@ -56,10 +56,17 @@ type graphqlData struct {
 		}
 		PullRequests struct {
 			Nodes []struct {
+				Author struct {
+					Login githubv4.String
+				}
 				Number      githubv4.Int
 				HeadRefOid  githubv4.String
 				MergeCommit struct {
-					AuthoredByCommitter githubv4.Boolean
+					Author struct {
+						User struct {
+							Login githubv4.String
+						}
+					}
 				}
 				MergedAt githubv4.DateTime
 				Labels   struct {
@@ -67,11 +74,11 @@ type graphqlData struct {
 						Name githubv4.String
 					}
 				} `graphql:"labels(last: $labelsToAnalyze)"`
-				LatestReviews struct {
+				Reviews struct {
 					Nodes []struct {
 						State githubv4.String
 					}
-				} `graphql:"latestReviews(last: $reviewsToAnalyze)"`
+				} `graphql:"reviews(last: $reviewsToAnalyze)"`
 			}
 		} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
@@ -110,7 +117,7 @@ func (handler *graphqlHandler) setup() error {
 			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
 		}
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
-			handler.errSetup = sce.Create(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 		}
 		handler.archived = bool(handler.data.Repository.IsArchived)
 		handler.prs = pullRequestsFrom(handler.data)
@@ -142,13 +149,19 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 
 func pullRequestsFrom(data *graphqlData) []clients.PullRequest {
 	ret := make([]clients.PullRequest, len(data.Repository.PullRequests.Nodes))
-	for i, pr := range data.Repository.PullRequests.Nodes {
+	for i := range data.Repository.PullRequests.Nodes {
+		pr := data.Repository.PullRequests.Nodes[i]
 		toAppend := clients.PullRequest{
 			Number:   int(pr.Number),
 			HeadSHA:  string(pr.HeadRefOid),
 			MergedAt: pr.MergedAt.Time,
+			Author: clients.User{
+				Login: string(pr.Author.Login),
+			},
 			MergeCommit: clients.Commit{
-				AuthoredByCommitter: bool(pr.MergeCommit.AuthoredByCommitter),
+				Committer: clients.User{
+					Login: string(pr.MergeCommit.Author.User.Login),
+				},
 			},
 		}
 		for _, label := range pr.Labels.Nodes {
@@ -156,7 +169,7 @@ func pullRequestsFrom(data *graphqlData) []clients.PullRequest {
 				Name: string(label.Name),
 			})
 		}
-		for _, review := range pr.LatestReviews.Nodes {
+		for _, review := range pr.Reviews.Nodes {
 			toAppend.Reviews = append(toAppend.Reviews, clients.Review{
 				State: string(review.State),
 			})

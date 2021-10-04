@@ -38,8 +38,10 @@ import (
 	githubstats "github.com/ossf/scorecard/v2/clients/githubrepo/stats"
 	"github.com/ossf/scorecard/v2/cron/config"
 	"github.com/ossf/scorecard/v2/cron/data"
+	format "github.com/ossf/scorecard/v2/cron/format"
 	"github.com/ossf/scorecard/v2/cron/monitoring"
 	"github.com/ossf/scorecard/v2/cron/pubsub"
+	docs "github.com/ossf/scorecard/v2/docs/checks"
 	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
 	"github.com/ossf/scorecard/v2/repos"
@@ -50,7 +52,7 @@ var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to tru
 
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
-	bucketURL, bucketURL2 string,
+	bucketURL, bucketURL2 string, checkDocs docs.Doc,
 	repoClient clients.RepoClient) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
@@ -109,11 +111,11 @@ func processRequest(ctx context.Context,
 			log.Print(errorMsg)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime()
-		if err := AsJSON(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
+		if err := format.AsJSON(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
 
-		if err := AsJSON2(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer2); err != nil {
+		if err := format.AsJSON2(&result, true /*showDetails*/, zapcore.InfoLevel, checkDocs, &buffer2); err != nil {
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
 	}
@@ -154,6 +156,11 @@ func main() {
 	ctx := context.Background()
 
 	flag.Parse()
+
+	checkDocs, err := docs.Read()
+	if err != nil {
+		panic(err)
+	}
 
 	subscriptionURL, err := config.GetRequestSubscriptionURL()
 	if err != nil {
@@ -207,7 +214,8 @@ func main() {
 			log.Print("subscription returned nil message during Receive, exiting")
 			break
 		}
-		if err := processRequest(ctx, req, checksToRun, bucketURL, bucketURL2,
+		if err := processRequest(ctx, req, checksToRun,
+			bucketURL, bucketURL2, checkDocs,
 			repoClient); err != nil {
 			log.Printf("error processing request: %v", err)
 			// Nack the message so that another worker can retry.
