@@ -36,6 +36,7 @@ import (
 	docs "github.com/ossf/scorecard/v2/docs/checks"
 	sce "github.com/ossf/scorecard/v2/errors"
 	"github.com/ossf/scorecard/v2/pkg"
+	spol "github.com/ossf/scorecard/v2/policy"
 	"github.com/ossf/scorecard/v2/repos"
 )
 
@@ -50,6 +51,7 @@ var (
 	pypi        string
 	rubygems    string
 	showDetails bool
+	policyFile  string
 )
 
 const (
@@ -59,16 +61,94 @@ const (
 	formatDefault = "default"
 )
 
+const (
+	scorecardLong = "A program that shows security scorecard for an open source software."
+	scorecardUse  = `./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details] [--policy=file]
+or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show-details] [--policy=file]`
+	scorecardShort = "Security Scorecards"
+)
+
+func readPolicy() (*spol.ScorecardPolicy, error) {
+	if policyFile != "" {
+		data, err := os.ReadFile(policyFile)
+		if err != nil {
+			return nil, sce.WithMessage(sce.ErrScorecardInternal,
+				fmt.Sprintf("os.ReadFile: %v", err))
+		}
+		sp, err := spol.ParseFromYAML(data)
+		if err != nil {
+			return nil,
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("spol.ParseFromYAML: %v", err))
+		}
+		return sp, nil
+	}
+	return nil, nil
+}
+
+func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNameToFnMap) bool {
+	for checkName := range enabledChecks {
+		_, exists := sp.Policies[checkName]
+		if !exists {
+			log.Printf("check %s has no policy declared", checkName)
+			return false
+		}
+	}
+	return true
+}
+
+func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.CheckNameToFnMap, error) {
+	enabledChecks := checker.CheckNameToFnMap{}
+
+	switch {
+	case len(argsChecks) != 0:
+		// Populate checks to run with the CLI arguments.
+		for _, checkName := range argsChecks {
+			if !enableCheck(checkName, &enabledChecks) {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid check: %s", checkName))
+			}
+		}
+	case sp != nil:
+		// Populate checks to run with policy file.
+		for checkName := range sp.GetPolicies() {
+			if !enableCheck(checkName, &enabledChecks) {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid check: %s", checkName))
+			}
+		}
+	default:
+		enabledChecks = checks.AllChecks
+	}
+
+	// If a policy was passed as argument, ensure all checks
+	// to run have a corresponding policy.
+	if sp != nil && !checksHavePolicies(sp, enabledChecks) {
+		return enabledChecks, sce.WithMessage(sce.ErrScorecardInternal, "checks don't have policies")
+	}
+
+	return enabledChecks, nil
+}
+
 var rootCmd = &cobra.Command{
-	Use: `./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details]
-or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show-details]`,
-	Short: "Security Scorecards",
-	Long:  "A program that shows security scorecard for an open source software.",
+	Use:   scorecardUse,
+	Short: scorecardShort,
+	Long:  scorecardLong,
 	Run: func(cmd *cobra.Command, args []string) {
 		// UPGRADEv3: remove.
 		var v3 bool
-		if _, v3 = os.LookupEnv("SCORECARD_V3"); v3 {
-			fmt.Printf("**** Using SCORECARD_V3 code ***** \n\n")
+		_, v3 = os.LookupEnv("SCORECARD_V3")
+
+		if format == formatSarif && !v3 {
+			log.Fatal("sarif not supported yet")
+		}
+
+		if policyFile != "" && !v3 {
+			log.Fatal("policy not supported yet")
+		}
+
+		policy, err := readPolicy()
+		if err != nil {
+			log.Fatalf("readPolicy: %v", err)
 		}
 
 		if npm != "" {
@@ -105,21 +185,17 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 			log.Fatal(err)
 		}
 
-		enabledChecks := checker.CheckNameToFnMap{}
-		if len(checksToRun) != 0 {
-			for _, checkToRun := range checksToRun {
-				if !enableCheck(checkToRun, &enabledChecks) {
-					log.Fatalf("Invalid check: %s", checkToRun)
-				}
-			}
-		} else {
-			enabledChecks = checks.AllChecks
+		enabledChecks, err := getEnabledChecks(policy, checksToRun)
+		if err != nil {
+			log.Fatal(err)
 		}
+
 		if format == formatDefault {
 			for checkName := range enabledChecks {
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
+
 		ctx := context.Background()
 
 		logger, err := githubrepo.NewLogger(*logLevel)
@@ -151,19 +227,19 @@ or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show
 		}
 
 		// UPGRADEv2: support CSV/JSON.
+		// TODO: move the doc inside Scorecard structure.
 		checkDocs, e := docs.Read()
 		if e != nil {
 			log.Fatalf("cannot read yaml file: %v", err)
 		}
+
 		switch format {
 		case formatDefault:
 			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatSarif:
-			if !v3 {
-				log.Fatalf("sarif not supported yet")
-			}
 			// TODO: support config files and update checker.MaxResultScore.
-			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, checker.MaxResultScore)
+			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy,
+				policyFile)
 		case formatCSV:
 			err = repoResult.AsCSV(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatJSON:
@@ -324,4 +400,5 @@ func init() {
 	}
 	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
+	rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
 }

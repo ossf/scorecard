@@ -30,7 +30,7 @@ var checksYAML []byte
 // Check stores a check's information.
 // nolint:govet
 type Check struct {
-	Risk        string   `yaml:"-"`
+	Risk        string   `yaml:"risk"`
 	Short       string   `yaml:"short"`
 	Description string   `yaml:"description"`
 	Tags        string   `yaml:"tags"`

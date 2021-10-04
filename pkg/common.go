@@ -23,13 +23,8 @@ import (
 	"github.com/ossf/scorecard/v2/checker"
 )
 
-// TODO: Verify this works in GitHub's dashboard.
-func textToHTML(s string) string {
-	return strings.ReplaceAll(s, "\n", "<br>")
-}
-
 func textToMarkdown(s string) string {
-	return strings.ReplaceAll(s, "\n", "  ")
+	return strings.ReplaceAll(s, "\n", "\n\n")
 }
 
 // DetailToString turns a detail information into a string.

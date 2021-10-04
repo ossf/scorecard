@@ -313,7 +313,13 @@ func isFetchPipeExecute(node syntax.Node, cmd, pathfn string,
 		return false
 	}
 
-	dl.Warn("insecure (unpinned) download detected in %v: '%v'", pathfn, cmd)
+	dl.Warn3(&checker.LogMessage{
+		Path:    pathfn,
+		Type:    checker.FileTypeSource,
+		Offset:  0, // TODO: add line numbers
+		Snippet: cmd,
+		Text:    "insecure (not pinned by hash) download detected",
+	})
 	return true
 }
 
@@ -353,12 +359,62 @@ func isExecuteFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
 	ok = false
 	for fn := range files {
 		if isInterpreterWithFile(c, fn) || isExecuteFile(c, fn) {
-			dl.Warn("insecure (unpinned) download detected in %v: '%v'", pathfn, cmd)
+			dl.Warn3(&checker.LogMessage{
+				Path:    pathfn,
+				Type:    checker.FileTypeSource,
+				Offset:  0, // TODO: add line numbers
+				Snippet: cmd,
+				Text:    "insecure (not pinned by hash) download detected",
+			})
 			ok = true
 		}
 	}
 
 	return ok
+}
+
+// Npm install docs are here.
+// https://docs.npmjs.com/cli/v7/commands/npm-install
+func isNpmUnpinnedDownload(cmd []string) bool {
+	if len(cmd) == 0 {
+		return false
+	}
+
+	if !isBinaryName("npm", cmd[0]) {
+		return false
+	}
+
+	// `Npm install` will automatically look up the
+	// package.json and package-lock.json, so we don't flag it.
+
+	if len(cmd) <= 2 {
+		return false
+	}
+
+	found := false
+	for i := 1; i < len(cmd)-1; i++ {
+		// Search for get and install commands.
+		if strings.EqualFold(cmd[i], "install") ||
+			strings.EqualFold(cmd[i], "i") {
+			found = true
+		}
+
+		if !found {
+			continue
+		}
+
+		nextArg := cmd[i+1]
+
+		// If this is a option to install, skip over it.
+		if nextArg[0] == '-' {
+			continue
+		}
+
+		// We've skipped all options, `nextArg` holds the package.
+		return true
+	}
+
+	return false
 }
 
 func isGoUnpinnedDownload(cmd []string) bool {
@@ -508,13 +564,37 @@ func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
 
 	// Go get/install.
 	if isGoUnpinnedDownload(c) {
-		dl.Warn("insecure (unpinned) download detected in %v: '%v'", pathfn, cmd)
+		dl.Warn3(&checker.LogMessage{
+			Path:    pathfn,
+			Type:    checker.FileTypeSource,
+			Offset:  0, // TODO: add line numbers
+			Snippet: cmd,
+			Text:    "insecure (not pinned by hash) download detected",
+		})
 		return true
 	}
 
 	// Pip install.
 	if isPipUnpinnedDownload(c) {
-		dl.Warn("insecure (unpinned) download detected in %v: '%v'", pathfn, cmd)
+		dl.Warn3(&checker.LogMessage{
+			Path:    pathfn,
+			Type:    checker.FileTypeSource,
+			Offset:  0, // TODO: add line numbers
+			Snippet: cmd,
+			Text:    "insecure (not pinned by hash) download detected",
+		})
+		return true
+	}
+
+	// Npm install.
+	if isNpmUnpinnedDownload(c) {
+		dl.Warn3(&checker.LogMessage{
+			Path:    pathfn,
+			Type:    checker.FileTypeSource,
+			Offset:  0, // TODO: add line numbers
+			Snippet: cmd,
+			Text:    "insecure (not pinned by hash) download detected",
+		})
 		return true
 	}
 
@@ -597,7 +677,13 @@ func isFetchProcSubsExecute(node syntax.Node, cmd, pathfn string,
 		return false
 	}
 
-	dl.Warn("insecure (unpinned) download detected in %v: '%v'", pathfn, cmd)
+	dl.Warn3(&checker.LogMessage{
+		Path:    pathfn,
+		Type:    checker.FileTypeSource,
+		Offset:  0, // TODO: add line numbers
+		Snippet: cmd,
+		Text:    "insecure (not pinned by hash) download detected",
+	})
 	return true
 }
 
@@ -682,8 +768,7 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		// Note: this is caught by internal caller and only printed
 		// to avoid failing on shell scripts that our parser does not understand.
 		// Example: https://github.com/openssl/openssl/blob/master/util/shlib_wrap.sh.in
-		//nolint
-		return false, sce.CreateInternal(errInternalInvalidShellCode, err.Error())
+		return false, sce.WithMessage(sce.ErrorShellParsing, err.Error())
 	}
 
 	printer := syntax.NewPrinter()
@@ -826,7 +911,7 @@ func isMatchingShellScriptFile(pathfn string, content []byte, shellsToMatch []st
 func validateShellFile(pathfn string, content []byte, dl checker.DetailLogger) (bool, error) {
 	files := make(map[string]bool)
 	r, err := validateShellFileAndRecord(pathfn, content, files, dl)
-	if err != nil && errors.Is(err, errInternalInvalidShellCode) {
+	if err != nil && errors.Is(err, sce.ErrorShellParsing) {
 		// Discard and print this particular error for now.
 		dl.Debug(err.Error())
 	}

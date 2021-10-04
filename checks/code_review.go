@@ -57,6 +57,13 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	score, reason = selectBestScoreAndReason(prowScore, score, prowReason, reason, c.Dlogger)
+	if score == checker.MinResultScore {
+		c.Dlogger.Info3(&checker.LogMessage{
+			Text: reason,
+		})
+		return checker.CreateResultWithScore(CheckCodeReview, "no reviews detected", score)
+	}
+
 	if score == checker.InconclusiveResultScore {
 		return checker.CreateInconclusiveResult(CheckCodeReview, "no reviews detected")
 	}
@@ -111,14 +118,16 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 		// Check if the PR is committed by someone other than author. this is kind
 		// of equivalent to a review and is done several times on small prs to save
 		// time on clicking the approve button.
-		if !foundApprovedReview {
-			if !pr.MergeCommit.AuthoredByCommitter {
-				c.Dlogger.Debug3(&checker.LogMessage{
-					Text: fmt.Sprintf("found pr with committer different than author: %d", pr.Number),
-				})
-				totalReviewed++
-			}
+		if !foundApprovedReview &&
+			pr.MergeCommit.Committer.Login != "" &&
+			pr.MergeCommit.Committer.Login != pr.Author.Login {
+			c.Dlogger.Debug3(&checker.LogMessage{
+				Text: fmt.Sprintf("found PR#%d with committer (%s) different from author (%s)",
+					pr.Number, pr.Author.Login, pr.MergeCommit.Committer.Login),
+			})
+			totalReviewed++
 		}
+
 	}
 
 	return createReturn("GitHub", totalReviewed, totalMerged)

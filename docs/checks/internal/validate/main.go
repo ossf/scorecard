@@ -21,6 +21,8 @@ import (
 	docs "github.com/ossf/scorecard/v2/docs/checks"
 )
 
+var allowedRisks = map[string]bool{"Critical": true, "High": true, "Medium": true, "Low": true}
+
 func main() {
 	m, err := docs.Read()
 	if err != nil {
@@ -49,6 +51,11 @@ func main() {
 		if len(c.GetTags()) == 0 {
 			// nolint: goerr113
 			panic(fmt.Errorf("tags for checkName: %s is empty", check))
+		}
+		r := c.GetRisk()
+		if _, exists := allowedRisks[r]; !exists {
+			// nolint: goerr113
+			panic(fmt.Errorf("risk for checkName: %s is invalid: '%s'", check, r))
 		}
 	}
 	for _, check := range m.GetChecks() {

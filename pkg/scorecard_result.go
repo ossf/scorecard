@@ -52,12 +52,24 @@ type ScorecardResult struct {
 	Metadata  []string
 }
 
+func scoreToString(s float64) string {
+	if s == checker.InconclusiveResultScore {
+		return "?"
+	}
+	return fmt.Sprintf("%.1f", s)
+}
+
 // AsCSV outputs ScorecardResult in CSV format.
 func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 	checkDocs docs.Doc, writer io.Writer) error {
+	score, err := r.GetAggregateScore(checkDocs)
+	if err != nil {
+		return err
+	}
 	w := csv.NewWriter(writer)
-	record := []string{r.Repo.Name}
-	columns := []string{"Repository"}
+	record := []string{r.Repo.Name, scoreToString(score)}
+	columns := []string{"Repository", "AggScore"}
+
 	// UPGRADEv2: remove nolint after ugrade.
 	//nolint
 	for _, checkResult := range r.Checks {
@@ -78,6 +90,46 @@ func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("csv.Flush: %v", err))
 	}
 	return nil
+}
+
+// GetAggregateScore returns the aggregate score.
+func (r *ScorecardResult) GetAggregateScore(checkDocs docs.Doc) (float64, error) {
+	// TODO: calculate the score and make it a field
+	// of ScorecardResult
+	weights := map[string]float64{"Critical": 10, "High": 7.5, "Medium": 5, "Low": 2.5}
+	// Note: aggregate score changes depending on which checks are run.
+	total := float64(0)
+	score := float64(0)
+	for i := range r.Checks {
+		check := r.Checks[i]
+		doc, e := checkDocs.GetCheck(check.Name)
+		if e != nil {
+			return checker.InconclusiveResultScore,
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", check.Name, e))
+		}
+
+		risk := doc.GetRisk()
+		rs, exists := weights[risk]
+		if !exists {
+			return checker.InconclusiveResultScore,
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid risk for %s: '%s'", check.Name, risk))
+		}
+
+		// This indicates an inconclusive score.
+		if check.Score < checker.MinResultScore {
+			continue
+		}
+
+		total += rs
+		score += rs * float64(check.Score)
+	}
+
+	// Inconclusive result.
+	if total == 0 {
+		return checker.InconclusiveResultScore, nil
+	}
+
+	return score / total, nil
 }
 
 // AsString returns ScorecardResult in string format.
@@ -123,6 +175,17 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level,
 
 		data[i] = x
 	}
+
+	score, err := r.GetAggregateScore(checkDocs)
+	if err != nil {
+		return err
+	}
+	s := fmt.Sprintf("Aggregate score: %s / %d\n\n", scoreToString(score), checker.MaxResultScore)
+	if score == checker.InconclusiveResultScore {
+		s = "Aggregate score: ?\n\n"
+	}
+	fmt.Fprint(os.Stdout, s)
+	fmt.Fprintln(os.Stdout, "Check scores:")
 
 	table := tablewriter.NewWriter(os.Stdout)
 	header := []string{"Score", "Name", "Reason"}

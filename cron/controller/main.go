@@ -27,9 +27,8 @@ import (
 	"github.com/ossf/scorecard/v2/cron/config"
 	"github.com/ossf/scorecard/v2/cron/data"
 	"github.com/ossf/scorecard/v2/cron/pubsub"
+	"github.com/ossf/scorecard/v2/pkg"
 )
-
-const commitSHA = "SCORECARD_COMMIT_SHA"
 
 func publishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime time.Time) (int32, error) {
 	var shardNum int32
@@ -125,7 +124,7 @@ func main() {
 	}
 	*metadata.NumShard = (shardNum + 1)
 	*metadata.ShardLoc = bucket + "/" + data.GetBlobFilename("", t)
-	*metadata.CommitSha = os.Getenv(commitSHA)
+	*metadata.CommitSha = pkg.GetCommit()
 	metadataJSON, err := protojson.Marshal(&metadata)
 	if err != nil {
 		panic(fmt.Errorf("error during protojson.Marshal: %w", err))
