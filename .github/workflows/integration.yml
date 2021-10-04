@@ -22,6 +22,11 @@ name: Integration tests
 env:
   IMAGE_NAME: scorecard
   OUTPUT_PATH: output
+
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   integration-trusted:
     runs-on: ubuntu-latest
