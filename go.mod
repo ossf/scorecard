@@ -103,6 +103,8 @@ replace (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt v3.2.1+incompatible
 	// https://go.googlesource.com/vulndb/+/refs/heads/master/reports/GO-2020-0020.yaml
 	github.com/gorilla/handlers => github.com/gorilla/handlers v1.3.0
+	// https://github.com/miekg/dns/issues/1037
+	github.com/miekg/dns => github.com/miekg/dns v1.1.25-0.20191211073109-8ebf2e419df7
 	// This replace is for https://nvd.nist.gov/vuln/detail/CVE-2021-3538
 	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.1-0.20181016170032-d91630c85102
 )
