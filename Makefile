@@ -65,11 +65,11 @@ check-osv: ## Checks osv.dev for any vulnerabilities
 check-osv: $(install)
 	# Run stunning-tribble for checking the dependencies have any OSV
 	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
-			| stunning-tribble GO-2020-0016,GO-2020-0018,GO-2020-0008
+			| stunning-tribble 
 	# Checking the tools which also has go.mod
 	cd tools 
 	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
-			| stunning-tribble GO-2020-0016,GO-2020-0018,GO-2020-0008
+			| stunning-tribble 
 
 add-projects: ## Adds new projects to ./cron/data/projects.csv
 add-projects: ./cron/data/projects.csv | build-add-script
