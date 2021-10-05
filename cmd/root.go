@@ -216,9 +216,13 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
+<<<<<<< HEAD
 		ctx := context.Background()
 		logger, err := githubrepo.NewLogger(*logLevel)
 		if err != nil {
+=======
+		if err := repo.IsValidGitHubURL(); err != nil {
+>>>>>>> 6c86056 (draft)
 			log.Fatal(err)
 		}
 		// nolint
@@ -241,6 +245,21 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
+<<<<<<< HEAD
+=======
+		ctx := context.Background()
+
+		logger, err := githubrepo.NewLogger(*logLevel)
+		if err != nil {
+			panic(err)
+		}
+		// nolint
+		defer logger.Sync() // flushes buffer, if any
+
+		repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
+		defer repoClient.Close()
+
+>>>>>>> 6c86056 (draft)
 		repoResult, err := pkg.RunScorecards(ctx, &repo, enabledChecks, repoClient)
 		if err != nil {
 			log.Fatal(err)

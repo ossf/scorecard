@@ -65,6 +65,7 @@ func runEnabledChecks(ctx context.Context,
 	close(resultsCh)
 }
 
+<<<<<<< HEAD
 func createRepo(uri *repos.RepoURI) (clients.Repo, error) {
 	var c clients.Repo
 	var e error
@@ -114,18 +115,29 @@ func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error)
 	}
 }
 
+=======
+>>>>>>> 6c86056 (draft)
 // RunScorecards runs enabled Scorecard checks on a Repo.
 func RunScorecards(ctx context.Context,
 	repoURI *repos.RepoURI,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient) (ScorecardResult, error) {
+<<<<<<< HEAD
 	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repoURI.URL()))
+=======
+	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repoURI.GetURL()))
+>>>>>>> 6c86056 (draft)
 	if err != nil {
 		return ScorecardResult{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 	}
 	defer logStats(ctx, time.Now())
 
+<<<<<<< HEAD
 	repo, err := createRepo(repoURI)
+=======
+	// TODO: get type.
+	repo, err := githubrepo.MakeGithubRepo(repoURI.GetURL())
+>>>>>>> 6c86056 (draft)
 	if err != nil {
 		return ScorecardResult{}, sce.WithMessage(err, "")
 	}
