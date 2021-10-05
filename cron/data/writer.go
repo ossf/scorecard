@@ -25,12 +25,12 @@ import (
 	"github.com/ossf/scorecard/v3/repos"
 )
 
-func repoFormatFromRepoURL(repoURLs []repos.RepoURL) []repoFormat {
+func repoFormatFromRepoURL(repoURLs []repos.RepoURI) []repoFormat {
 	repoentries := make([]repoFormat, 0)
 	for _, repoURL := range repoURLs {
 		repoentry := repoFormat{
-			Repo:     repoURL.URL(),
-			Metadata: repoURL.Metadata,
+			Repo:     repoURL.GetURL(),
+			Metadata: repoURL.GetMetadata(),
 		}
 		repoentries = append(repoentries, repoentry)
 	}
@@ -38,7 +38,7 @@ func repoFormatFromRepoURL(repoURLs []repos.RepoURL) []repoFormat {
 }
 
 // SortAndAppendTo appends `oldRepos` and `newRepos` before sorting and writing out the result to `out`.
-func SortAndAppendTo(out io.Writer, oldRepos, newRepos []repos.RepoURL) error {
+func SortAndAppendTo(out io.Writer, oldRepos, newRepos []repos.RepoURI) error {
 	repoentries := repoFormatFromRepoURL(oldRepos)
 	repoentries = append(repoentries, repoFormatFromRepoURL(newRepos)...)
 
@@ -55,13 +55,13 @@ func SortAndAppendTo(out io.Writer, oldRepos, newRepos []repos.RepoURL) error {
 }
 
 // SortAndAppendFrom reads from `in`, appends to newRepos and writes the sorted output to `out`.
-func SortAndAppendFrom(in io.Reader, out io.Writer, newRepos []repos.RepoURL) error {
+func SortAndAppendFrom(in io.Reader, out io.Writer, newRepos []repos.RepoURI) error {
 	iter, err := MakeIteratorFrom(in)
 	if err != nil {
 		return fmt.Errorf("error during MakeIterator: %w", err)
 	}
 
-	oldRepos := make([]repos.RepoURL, 0)
+	oldRepos := make([]repos.RepoURI, 0)
 	for iter.HasNext() {
 		repo, err := iter.Next()
 		if err != nil {

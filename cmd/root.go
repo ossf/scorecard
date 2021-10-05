@@ -41,7 +41,7 @@ import (
 )
 
 var (
-	repo        repos.RepoURL
+	repo        repos.RepoURI
 	checksToRun []string
 	metaData    []string
 	// This one has to use goflag instead of pflag because it's defined by zap.
@@ -189,7 +189,7 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		if err := repo.ValidGitHubURL(); err != nil {
+		if err := repo.IsValidGitHubURL(); err != nil {
 			log.Fatal(err)
 		}
 
@@ -221,7 +221,7 @@ var rootCmd = &cobra.Command{
 		repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 		defer repoClient.Close()
 
-		repoResult, err := pkg.RunScorecards(ctx, repo, enabledChecks, repoClient)
+		repoResult, err := pkg.RunScorecards(ctx, &repo, enabledChecks, repoClient)
 		if err != nil {
 			log.Fatal(err)
 		}

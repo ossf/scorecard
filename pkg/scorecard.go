@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pkg defines fns for running Scorecard checks on a RepoURL.
+// Package pkg defines fns for running Scorecard checks on a Repo.
 package pkg
 
 import (
@@ -64,18 +64,19 @@ func runEnabledChecks(ctx context.Context,
 	close(resultsCh)
 }
 
-// RunScorecards runs enabled Scorecard checks on a RepoURL.
+// RunScorecards runs enabled Scorecard checks on a Repo.
 func RunScorecards(ctx context.Context,
-	repoURL repos.RepoURL,
+	repoURI *repos.RepoURI,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient) (ScorecardResult, error) {
-	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repoURL.URL()))
+	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repoURI.GetURL()))
 	if err != nil {
 		return ScorecardResult{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 	}
 	defer logStats(ctx, time.Now())
 
-	repo, err := githubrepo.MakeGithubRepo(repoURL.URL())
+	// TODO: get type.
+	repo, err := githubrepo.MakeGithubRepo(repoURI.GetURL())
 	if err != nil {
 		return ScorecardResult{}, sce.WithMessage(err, "")
 	}

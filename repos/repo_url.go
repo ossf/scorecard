@@ -25,38 +25,107 @@ import (
 )
 
 var (
-	// ErrorUnsupportedHost indicates the repo's host is unsupported.
-	ErrorUnsupportedHost = errors.New("unsupported host")
+	// ErrorUnsupportedhost indicates the repo's host is unsupported.
+	ErrorUnsupportedhost = errors.New("unsupported host")
 	// ErrorInvalidGithubURL indicates the repo's GitHub URL is not in the proper format.
 	ErrorInvalidGithubURL = errors.New("invalid GitHub repo URL")
 	// ErrorInvalidURL indicates the repo's full GitHub URL was not passed.
 	ErrorInvalidURL = errors.New("invalid repo flag")
 )
 
-// nolint:revive
-// TODO: Remove RepoURL and replace all instances with clients.Repo interface.
-type RepoURL struct {
-	Host, Owner, Repo string
-	Metadata          []string
+// RepoURI represents the URI for a repo.
+type RepoURI struct {
+	repoType RepoType
+	url      repoURL
+	localDir repoLocalDir
+	metadata []string
+}
+
+type repoLocalDir struct {
+	path string
+}
+
+type repoURL struct {
+	host, owner, repo string
+}
+
+// RepoType is the type of a file.
+type RepoType int
+
+const (
+	// RepoTypeURL is for URLs.
+	RepoTypeURL RepoType = iota
+	// RepoTypeLocalDir is for source code in directories.
+	RepoTypeLocalDir
+)
+
+// NewFromURL creates a RepoURI from URL.
+func NewFromURL(url string) (*RepoURI, error) {
+	r := &RepoURI{
+		repoType: RepoTypeURL,
+	}
+
+	if err := r.Set(url); err != nil {
+		return nil, fmt.Errorf("%w", err)
+	}
+
+	return r, nil
+}
+
+// NewFromLocalDirectory creates a RepoURI as a local directory.
+func NewFromLocalDirectory(path string) *RepoURI {
+	return &RepoURI{
+		localDir: repoLocalDir{
+			path: path,
+		},
+		repoType: RepoTypeLocalDir,
+	}
+}
+
+func (r *RepoURI) SetMetadata(m []string) error {
+	r.metadata = m
+	return nil
+}
+
+func (r *RepoURI) SetURL(url string) error {
+	if err := r.Set(url); err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	return nil
 }
 
 // Type method is needed so that this struct can be used as cmd flag.
-func (r *RepoURL) Type() string {
+func (r *RepoURI) Type() string {
 	return "repo"
 }
 
-// URL returns a valid url for RepoURL struct.
-func (r *RepoURL) URL() string {
-	return fmt.Sprintf("%s/%s/%s", r.Host, r.Owner, r.Repo)
+// GetType gives the type of URI.
+func (r *RepoURI) GetType() RepoType {
+	return r.repoType
 }
 
-// String returns a string representation of RepoURL struct.
-func (r *RepoURL) String() string {
-	return fmt.Sprintf("%s-%s-%s", r.Host, r.Owner, r.Repo)
+// GetPath retusn the path for a local directory.
+func (r *RepoURI) GetPath() string {
+	return r.localDir.path
 }
 
-// Set parses a URL string into RepoURL struct.
-func (r *RepoURL) Set(s string) error {
+// GetURL returns a valid url for Repo struct.
+func (r *RepoURI) GetURL() string {
+	return fmt.Sprintf("%s/%s/%s", r.url.host, r.url.owner, r.url.repo)
+}
+
+// GetMetadata returns a valid url for Repo struct.
+func (r *RepoURI) GetMetadata() []string {
+	return r.metadata
+}
+
+// String returns a string representation of Repo struct.
+func (r *RepoURI) String() string {
+	return fmt.Sprintf("%s-%s-%s", r.url.host, r.url.owner, r.url.repo)
+}
+
+// Set parses a URL string into Repo struct.
+func (r *RepoURI) Set(s string) error {
 	var t string
 
 	const two = 2
@@ -65,7 +134,7 @@ func (r *RepoURL) Set(s string) error {
 	c := strings.Split(s, "/")
 
 	switch l := len(c); {
-	// This will takes care for repo/owner format.
+	// This will takes care for repo/url.owner format.
 	// By default it will use github.com
 	case l == two:
 		t = "github.com/" + c[0] + "/" + c[1]
@@ -86,24 +155,24 @@ func (r *RepoURL) Set(s string) error {
 	const splitLen = 2
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
-		return sce.WithMessage(ErrorInvalidURL, fmt.Sprintf("%v. Exepted full repository url", s))
+		return sce.WithMessage(ErrorInvalidURL, fmt.Sprintf("%v. Expected full repository url", s))
 	}
 
-	r.Host, r.Owner, r.Repo = u.Host, split[0], split[1]
+	r.url.host, r.url.owner, r.url.repo = u.Host, split[0], split[1]
 	return nil
 }
 
-// ValidGitHubURL checks whether RepoURL represents a valid GitHub repo and returns errors otherwise.
-func (r *RepoURL) ValidGitHubURL() error {
-	switch r.Host {
+// IsValidGitHubURL checks whether Repo represents a valid GitHub repo and returns errors otherwise.
+func (r *RepoURI) IsValidGitHubURL() error {
+	switch r.url.host {
 	case "github.com":
 	default:
-		return sce.WithMessage(ErrorUnsupportedHost, r.Host)
+		return sce.WithMessage(ErrorUnsupportedhost, r.url.host)
 	}
 
-	if strings.TrimSpace(r.Owner) == "" || strings.TrimSpace(r.Repo) == "" {
+	if strings.TrimSpace(r.url.owner) == "" || strings.TrimSpace(r.url.repo) == "" {
 		return sce.WithMessage(ErrorInvalidGithubURL,
-			fmt.Sprintf("%v. Expected the full reposiroty url", r.URL()))
+			fmt.Sprintf("%v. Expected the full reposiroty url", r.GetURL()))
 	}
 	return nil
 }

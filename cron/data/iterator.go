@@ -28,7 +28,7 @@ import (
 // Iterator interface is used to iterate through list of input repos for the cron job.
 type Iterator interface {
 	HasNext() bool
-	Next() (repos.RepoURL, error)
+	Next() (repos.RepoURI, error)
 }
 
 // MakeIteratorFrom returns an implementation of Iterator interface.
@@ -54,18 +54,21 @@ func (reader *csvIterator) HasNext() bool {
 	return !errors.Is(reader.err, io.EOF)
 }
 
-func (reader *csvIterator) Next() (repos.RepoURL, error) {
+func (reader *csvIterator) Next() (repos.RepoURI, error) {
+	ret := repos.RepoURI{}
 	if reader.err != nil {
-		return repos.RepoURL{}, reader.err
+		return ret, reader.err
 	}
-	ret := repos.RepoURL{
-		Metadata: reader.next.Metadata,
+
+	err := ret.SetMetadata(reader.next.Metadata)
+	if err != nil {
+		return ret, err
 	}
 	if err := ret.Set(reader.next.Repo); err != nil {
 		return ret, fmt.Errorf("error during Set: %w", err)
 	}
-	if err := ret.ValidGitHubURL(); err != nil {
-		return ret, fmt.Errorf("error during ValidGitHubURL: %w", err)
+	if err := ret.IsValidGitHubURL(); err != nil {
+		return ret, fmt.Errorf("error during IsValidGitHubURL: %w", err)
 	}
 	return ret, nil
 }
