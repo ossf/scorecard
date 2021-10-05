@@ -35,7 +35,7 @@ spec:
                 memory: 1Gi
             env:
               - name: SCORECARD_BIGQUERY_TABLE
-                value: "scorecard2"
+                value: "scorecard-v2"
               - name: SCORECARD_DATA_BUCKET_URL
                 value: "gs://ossf-scorecard-data2"
           restartPolicy: OnFailure

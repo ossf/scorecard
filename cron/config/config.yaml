@@ -24,4 +24,4 @@ webhook-url:
 metric-exporter: stackdriver
 # UPGRADEv2: to remove.
 result-data-bucket-url-v2: gs://ossf-scorecard-data2
-bigquery-table-v2: scorecard2
+bigquery-table-v2: scorecard-v2
