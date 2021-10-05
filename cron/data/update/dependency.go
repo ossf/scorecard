@@ -97,7 +97,7 @@ func getBazelDeps(repo repositoryDepsURL) []repos.RepoURL {
 	}
 
 	// Match all patterns of github.com/{}/{}.
-	re := regexp.MustCompile(`github.com/[^\/]*/[^\/"]*`)
+	re := regexp.MustCompile(`github\\.com/[^\/]*/[^\/"]*`)
 
 	// TODO: Replace with a starlark interpreter that can be used for any project.
 	for _, match := range re.FindAllString(fc, -1) {
