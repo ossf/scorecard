@@ -66,8 +66,8 @@ certain workflows for branches, such as requiring review or passing certain
 status checks before acceptance into a main branch, or preventing rewriting of
 public history.
 
-Note: Some settings queried by the Branch-Protection check require an admin token. If
-the provided token does not have admin access, the check will query branch
+Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmin`, and `StrictStatusCheck`. If
+the provided token does not have admin access, the check will query the branch
 settings accessible to non-admins and provide results based only on these settings.
 Even so, we recommend using a non-admin token, which provides a thorough enough
 result to meet most user needs. 
