@@ -17,21 +17,31 @@
 package localdir
 
 import (
+<<<<<<< HEAD
 	"errors"
 	"fmt"
 
 	clients "github.com/ossf/scorecard/v3/clients"
+=======
+	"fmt"
+
+	clients "github.com/ossf/scorecard/v2/clients"
+>>>>>>> 376995a (docker file)
 )
 
 type localRepoClient struct {
 	path string
 }
 
+<<<<<<< HEAD
 // URI implements Repo.URI().
+=======
+>>>>>>> 376995a (docker file)
 func (r *localRepoClient) URI() string {
 	return fmt.Sprintf("file://%s", r.path)
 }
 
+<<<<<<< HEAD
 // String implements Repo.String.
 func (r *localRepoClient) String() string {
 	// TODO
@@ -65,6 +75,39 @@ func (r *localRepoClient) AppendMetadata(m ...string) {
 // IsScorecardRepo implements Repo.IsScorecardRepo.
 func (r *localRepoClient) IsScorecardRepo() bool {
 	// TODO
+=======
+func (r *localRepoClient) String() string {
+	panic("invalid String()")
+	//nolint
+	return ""
+}
+
+func (r *localRepoClient) Org() clients.Repo {
+	panic("invalid Org()")
+	//nolint
+	return &localRepoClient{}
+}
+
+func (r *localRepoClient) IsValid() error {
+	panic("invalid IsValid()")
+	//nolint
+	return nil
+}
+
+func (r *localRepoClient) Metadata() []string {
+	panic("invalid Metadata()")
+	//nolint
+	return nil
+}
+
+func (r *localRepoClient) AppendMetadata(m ...string) {
+	panic("invalid AppendMetadata()")
+}
+
+func (r *localRepoClient) IsScorecardRepo() bool {
+	panic("invalid IsScorecardRepo()")
+	//nolint
+>>>>>>> 376995a (docker file)
 	return false
 }
 
