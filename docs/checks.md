@@ -184,19 +184,19 @@ malicious code (either as a malicious contributor or as an attacker who has
 subverted a contributor's account), because a reviewer might detect the
 subversion.
 
-The check first tries to detect whether Branch-Protection is enabled on the
+The check first tries to detect whether [Branch-Protection](checks.md#branch-protection) is enabled on the
 default branch with at least one required reviewer. If this fails, the check
 determines whether the most recent (~30) commits have a Github-approved review
 or if the merger is different from the committer (implicit review). It also
 performs a similar check for reviews using
 [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels
-"lgtm" or "approved") and Gerrit ("Reviewed-on" and "Reviewed-by").
+"lgtm" or "approved") and [Gerrit](https://www.gerritcodereview.com/) ("Reviewed-on" and "Reviewed-by").
 
 Note: Requiring reviews for all changes is infeasible for some projects, such as
 those with only one active participant. Even a project with multiple active
 contributors may not have enough active participation to be able to require
 review of all proposed changes. Projects with a small number of active
-participants, but more than one, instead sometimes aim for a review of a
+participants instead sometimes aim for a review of a
 percentage of proposals (e.g., "at least half of all proposed changes are
 reviewed").
 
@@ -207,7 +207,7 @@ puppet](https://en.wikipedia.org/wiki/Sock_puppet_account)" account).
  
 
 **Remediation steps**
-- If the project has only one contributor, or does not have enough reviewers to practically require that all contributions be reviewed, try to recruit more maintainers to the project who will be willing to review others' work. Ideally at least some of these people will be from different organizations. If the project has very limited utility, consider expanding its intended utility so more people will be interested in improving it, and make that larger scope clear to potential contributors.
+- If the project has only one contributor, or does not have enough reviewers to practically require that all contributions be reviewed, try to recruit more maintainers to the project who will be willing to review others' work. Ideally at least some of these people will be from different organizations (see [Contributors](checks.md#contributors)). If the project has very limited utility, consider expanding its intended utility so more people will be interested in improving it, and make that larger scope clear to potential contributors.
 - Follow security best practices by performing strict code reviews for every new pull request / merge request.
 - Make "code reviews" mandatory in your repository configuration. ([Instructions for GitHub.](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-pull-request-reviews-before-merging))
 - Enforce the rule for administrators / code owners as well. ([Instructions for GitHub.](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators))
@@ -334,7 +334,7 @@ You can create a package in several ways:
     tool, and public repository (in some cases the source repository generates
     system-independent source packages, which are then used by others to
     generate system executable packages). 
-  - Container images.
+  - Using container images.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to package software, and it is
@@ -424,7 +424,7 @@ It is currently limited to repositories hosted on GitHub, and does not support
 other source hosting repositories (i.e., Forges).
 
 SAST is testing run on source code before the application is run. Using SAST
-tools can prevent known classes of bugs to be inadvertently introduced in the
+tools can prevent known classes of bugs from being inadvertently introduced in the
 codebase.
 
 The checks currently looks for known Github apps such as
@@ -461,7 +461,7 @@ information about a bug is not publicly visible.
 
 ## Signed-Releases 
 
-Risk: `High` (possibility of installing malicious release)
+Risk: `High` (possibility of installing malicious releases)
 
 This check tries to determine if the project cryptographically signs release
 artifacts. It is currently limited to repositories hosted on GitHub, and does
@@ -497,7 +497,7 @@ This is important because attackers may use a compromised token with write
 access to push malicious code into the project.
 
 The highest score is awarded when the permissions definitions in each workflow's
-yaml file are set as read only at the
+yaml file are set as read-only at the
 [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions)
 and the required write permissions are declared at the
 [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions).
