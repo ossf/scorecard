@@ -37,7 +37,7 @@ const (
 	prodMetricExporter      string = "stackdriver"
 	// UPGRADEv2: to remove.
 	prodBucketV2        = "gs://ossf-scorecard-data2"
-	prodBigQueryTableV2 = "scorecard2"
+	prodBigQueryTableV2 = "scorecard-v2"
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
