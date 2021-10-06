@@ -24,12 +24,13 @@ import (
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/clients"
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	sce "github.com/ossf/scorecard/v3/errors"
-	"github.com/ossf/scorecard/v3/repos"
-	"github.com/ossf/scorecard/v3/stats"
+	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v2/clients/githubrepo"
+	"github.com/ossf/scorecard/v2/clients/localdir"
+	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v2/stats"
 )
 
 func logStats(ctx context.Context, startTime time.Time) {
@@ -64,6 +65,22 @@ func runEnabledChecks(ctx context.Context,
 	close(resultsCh)
 }
 
+func createRepo(uri *repos.RepoURI) (clients.Repo, error) {
+	switch uri.GetType() {
+	// URL.
+	case repos.RepoTypeURL:
+		//nolint:unwrapped
+		return githubrepo.MakeGithubRepo(uri.GetURL())
+	// LocalDir.
+	case repos.RepoTypeLocalDir:
+		//nolint:unwrapped
+		return localdir.MakeLocalDirRepo(uri.GetPath())
+	default:
+		return nil,
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.GetType()))
+	}
+}
+
 // RunScorecards runs enabled Scorecard checks on a Repo.
 func RunScorecards(ctx context.Context,
 	repoURI *repos.RepoURI,
@@ -75,8 +92,7 @@ func RunScorecards(ctx context.Context,
 	}
 	defer logStats(ctx, time.Now())
 
-	// TODO: get type.
-	repo, err := githubrepo.MakeGithubRepo(repoURI.GetURL())
+	repo, err := createRepo(repoURI)
 	if err != nil {
 		return ScorecardResult{}, sce.WithMessage(err, "")
 	}

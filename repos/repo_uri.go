@@ -124,41 +124,59 @@ func (r *RepoURI) String() string {
 	return fmt.Sprintf("%s-%s-%s", r.url.host, r.url.owner, r.url.repo)
 }
 
-// Set parses a URL string into Repo struct.
+// Set parses a URI string into Repo struct.
 func (r *RepoURI) Set(s string) error {
-	var t string
-
 	const two = 2
 	const three = 3
 
-	c := strings.Split(s, "/")
+	// TODO: can we use this for pypi://, rubygems://, etc?
+	const httpsPrefix = "https://"
+	const filePrefix = "file://"
 
-	switch l := len(c); {
-	// This will takes care for repo/url.owner format.
-	// By default it will use github.com
-	case l == two:
-		t = "github.com/" + c[0] + "/" + c[1]
-	case l >= three:
-		t = s
+	// Validate the URI and scheme.
+	if !strings.HasPrefix(s, filePrefix) &&
+		!strings.HasPrefix(s, httpsPrefix) {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid URI: %v", s))
 	}
 
-	// Allow skipping scheme for ease-of-use, default to https.
-	if !strings.Contains(t, "://") {
-		t = "https://" + t
-	}
+	// Parse the URI.
+	// c = strings.Split(s, "/")
 
-	u, e := url.Parse(t)
+	// switch l := len(c); {
+	// // This will takes care for repo/url.owner format.
+	// // By default it will use github.com
+	// case l == two:
+	// 	t = "github.com/" + c[0] + "/" + c[1]
+	// case l >= three:
+	// 	t = s
+	// }
+
+	// // Allow skipping scheme for ease-of-use, default to https.
+	// if !strings.Contains(t, "://") {
+	// 	t = "https://" + t
+	// }
+	fmt.Println(s)
+
+	u, e := url.Parse(s)
 	if e != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
 	}
 
-	const splitLen = 2
-	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
-	if len(split) != splitLen {
-		return sce.WithMessage(ErrorInvalidURL, fmt.Sprintf("%v. Expected full repository url", s))
+	switch {
+	case strings.HasPrefix(s, httpsPrefix):
+		const splitLen = 2
+		split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
+		if len(split) != splitLen {
+			return sce.WithMessage(ErrorInvalidURL, fmt.Sprintf("%v. Expected full repository url", s))
+		}
+		r.url.host, r.url.owner, r.url.repo = u.Host, split[0], split[1]
+	case strings.HasPrefix(s, filePrefix):
+		r.localDir.path = s[:len(filePrefix)]
+		r.repoType = RepoTypeLocalDir
+	default:
+		break
 	}
 
-	r.url.host, r.url.owner, r.url.repo = u.Host, split[0], split[1]
 	return nil
 }
 
