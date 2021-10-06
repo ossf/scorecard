@@ -24,8 +24,7 @@ checks:
          
       This check determines whether the project is actively maintained. If the project
       is archived, it receives the lowest score. If there is at least one commit per
-      week during the previous 90 days, the project receives the highest score. Fewer
-      commits during that time period are scored on a sliding scale.
+      week during the previous 90 days, the project receives the highest score. 
 
       A project which is not active might not be patched, have its
       dependencies patched, or be actively tested and used. However, a lack
@@ -127,10 +126,7 @@ checks:
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: |
       Risk: `High` (vulnerable to intentional malicious code injection)  
-      Requirements: Authorization token must have
-      [Admin access](https://github.community/t/enable-branch-protection-get-api-without-admin/14197)
-      to repository.
-
+      
       This check determines whether a project's default and release branches are
       protected with GitHub's
       [branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
@@ -139,8 +135,11 @@ checks:
       status checks before acceptance into a main branch, or preventing rewriting of
       public history.
 
-      Note: Without an authorization with Admin access to the repository, the check
-      will return a failing score.
+      Note: Some settings queried by the Branch-Protection check require an admin token. If
+      the provided token does not have admin access, the check will query branch
+      settings accessible to non-admins and provide results based only on these settings.
+      Even so, we recommend using a non-admin token, which provides a thorough enough
+      result to meet most user needs. 
 
       Different types of branch protection protect against different risks:
 
