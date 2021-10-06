@@ -391,7 +391,7 @@ this risk by:
   - [having applications and _not_ libraries pin to specific versions](https://jbeckwith.com/2019/12/18/package-lock/);
   - using automated tools to notify applications when their dependencies are
     outdated;
-  - using applications that _do_ pin dependencies update quickly.
+  - quickly updating applications that do pin dependencies.
 
 _Limitations:_ This check should apply only to applications, as libraries
 shouldn't normally have enforced pinned dependencies. Unfortunately, Scorecards
