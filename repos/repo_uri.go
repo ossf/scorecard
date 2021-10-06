@@ -155,7 +155,7 @@ func (r *RepoURI) Set(s string) error {
 	// if !strings.Contains(t, "://") {
 	// 	t = "https://" + t
 	// }
-	fmt.Println(s)
+	// fmt.Println(s)
 
 	u, e := url.Parse(s)
 	if e != nil {
@@ -171,7 +171,7 @@ func (r *RepoURI) Set(s string) error {
 		}
 		r.url.host, r.url.owner, r.url.repo = u.Host, split[0], split[1]
 	case strings.HasPrefix(s, filePrefix):
-		r.localDir.path = s[:len(filePrefix)]
+		r.localDir.path = s[len(filePrefix):]
 		r.repoType = RepoTypeLocalDir
 	default:
 		break

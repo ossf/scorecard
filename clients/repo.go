@@ -16,7 +16,7 @@ package clients
 
 // Repo interface uniquely identifies a repo.
 type Repo interface {
-	URL() string
+	URI() string
 	String() string
 	Org() Repo
 	IsValid() error

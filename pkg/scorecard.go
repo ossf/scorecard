@@ -54,7 +54,7 @@ func runEnabledChecks(ctx context.Context,
 		go func() {
 			defer wg.Done()
 			runner := checker.Runner{
-				Repo:         repo.URL(),
+				Repo:         repo.URI(),
 				CheckName:    checkName,
 				CheckRequest: request,
 			}
@@ -69,14 +69,41 @@ func createRepo(uri *repos.RepoURI) (clients.Repo, error) {
 	switch uri.GetType() {
 	// URL.
 	case repos.RepoTypeURL:
-		//nolint:unwrapped
+		//nolint:wrapcheck
 		return githubrepo.MakeGithubRepo(uri.GetURL())
 	// LocalDir.
 	case repos.RepoTypeLocalDir:
-		//nolint:unwrapped
+		//nolint:wrapcheck
 		return localdir.MakeLocalDirRepo(uri.GetPath())
 	default:
 		return nil,
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.GetType()))
+	}
+}
+
+func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error) {
+	switch uri.GetType() {
+	// URL.
+	case repos.RepoTypeURL:
+		//nolint:unwrapped
+		commits, err := r.ListCommits()
+		if err != nil {
+			// nolint:wrapcheck
+			return "", err
+		}
+
+		if len(commits) > 0 {
+			return commits[0].SHA, nil
+		} else {
+			return "no commits found", nil
+		}
+
+	// LocalDir.
+	case repos.RepoTypeLocalDir:
+		return "no commits for directory repo", nil
+
+	default:
+		return "",
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.GetType()))
 	}
 }
@@ -103,21 +130,14 @@ func RunScorecards(ctx context.Context,
 	}
 	defer repoClient.Close()
 
-	commits, err := repoClient.ListCommits()
+	commitSHA, err := getRepoCommitHash(repoClient, repoURI)
 	if err != nil {
-		// nolint:wrapcheck
 		return ScorecardResult{}, err
-	}
-	var commitSHA string
-	if len(commits) > 0 {
-		commitSHA = commits[0].SHA
-	} else {
-		commitSHA = "no commits found"
 	}
 
 	ret := ScorecardResult{
 		Repo: RepoInfo{
-			Name:      repo.URL(),
+			Name:      repo.URI(),
 			CommitSHA: commitSHA,
 		},
 		Scorecard: ScorecardInfo{

@@ -73,8 +73,8 @@ func (r *repoURL) parse(input string) error {
 	return nil
 }
 
-// URL implements Repo.URL.
-func (r *repoURL) URL() string {
+// URI implements Repo.URI().
+func (r *repoURL) URI() string {
 	return fmt.Sprintf("%s/%s/%s", r.host, r.owner, r.repo)
 }
 
@@ -102,7 +102,7 @@ func (r *repoURL) IsValid() error {
 
 	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.repo) == "" {
 		return sce.WithMessage(sce.ErrorInvalidURL,
-			fmt.Sprintf("%v. Expected the full reposiroty url", r.URL()))
+			fmt.Sprintf("%v. Expected the full reposiroty url", r.URI()))
 	}
 	return nil
 }
