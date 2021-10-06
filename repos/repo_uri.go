@@ -139,24 +139,6 @@ func (r *RepoURI) Set(s string) error {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid URI: %v", s))
 	}
 
-	// Parse the URI.
-	// c = strings.Split(s, "/")
-
-	// switch l := len(c); {
-	// // This will takes care for repo/url.owner format.
-	// // By default it will use github.com
-	// case l == two:
-	// 	t = "github.com/" + c[0] + "/" + c[1]
-	// case l >= three:
-	// 	t = s
-	// }
-
-	// // Allow skipping scheme for ease-of-use, default to https.
-	// if !strings.Contains(t, "://") {
-	// 	t = "https://" + t
-	// }
-	// fmt.Println(s)
-
 	u, e := url.Parse(s)
 	if e != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
