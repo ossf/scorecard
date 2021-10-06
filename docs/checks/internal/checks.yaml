@@ -309,7 +309,7 @@ checks:
     tags: source-code
     short: Determines if the project has a set of contributors from multiple organizations (e.g., companies).
     description: |
-      Risk: `Low`(TODO)
+      Risk: `Low` (lower number of trusted code reviewers)
 
       This check tries to determine if the project has recent contributors from
       multiple organizations (e.g., companies). It is currently limited to
@@ -546,7 +546,7 @@ checks:
     tags: supply-chain, security, releases
     short: Determines if the project cryptographically signs release artifacts.
     description: |
-      Risk: `High` (TODO)
+      Risk: `High` (possibility of installing malicious release)
 
       This check tries to determine if the project cryptographically signs release
       artifacts. It is currently limited to repositories hosted on GitHub, and does
