@@ -23,7 +23,7 @@ included in the source repository, leading to many dangerous behaviors.
 Problems with generated executable (binary) artifacts:
 
   - Binary artifacts cannot be reviewed, allowing possible obsolete or
-    maliciously-subverted executables. Reviews generally review source code, not
+    maliciously subverted executables. Reviews generally review source code, not
     executables, since it's difficult to audit executables to ensure that they
     correspond to the source code. Over time the included executables might not
     correspond to the source code. 
