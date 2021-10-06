@@ -296,8 +296,8 @@ check results, we publish these results in a
 [BigQuery public dataset](https://cloud.google.com/bigquery/public-data).
 
 This data is available in the public BigQuery dataset
-`openssf:scorecardcron.scorecard`. The latest results are available in the
-BigQuery view `openssf:scorecardcron.scorecard_latest`.
+`openssf:scorecardcron.scorecard-v2`. The latest results are available in the
+BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
 
 You can extract the latest results to Google Cloud storage in JSON format using
 the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
@@ -305,14 +305,17 @@ the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
 ```
 # Get the latest PARTITION_ID
 bq query --nouse_legacy_sql 'SELECT partition_id FROM
-openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS WHERE table_name="scorecard"
+openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS WHERE table_name="scorecard-v2"
 ORDER BY partition_id DESC
 LIMIT 1'
 
 # Extract to GCS
 bq extract --destination_format=NEWLINE_DELIMITED_JSON
-'openssf:scorecardcron.scorecard$<partition_id>' gs://bucket-name/filename.json
+'openssf:scorecardcron.scorecard-v2$<partition_id>' gs://bucket-name/filename.json
 
+# Alternatively
+bq extract --destination_format=NEWLINE_DELIMITED_JSON
+'openssf:scorecardcron.scorecard-v2_latest' gs://bucket-name/filename.json
 ```
 
 The list of projects that are checked is available in the
