@@ -19,8 +19,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/ossf/scorecard/v2/checker"
-	scut "github.com/ossf/scorecard/v2/utests"
+	"github.com/ossf/scorecard/v3/checker"
+	scut "github.com/ossf/scorecard/v3/utests"
 )
 
 //nolint

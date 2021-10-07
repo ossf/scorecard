@@ -1,4 +1,4 @@
-module github.com/ossf/scorecard/v2
+module github.com/ossf/scorecard/v3
 
 go 1.17
 

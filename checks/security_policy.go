@@ -20,9 +20,9 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/clients/githubrepo"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // CheckSecurityPolicy is the registred name for SecurityPolicy.

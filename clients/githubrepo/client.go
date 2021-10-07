@@ -26,9 +26,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v2/clients"
-	"github.com/ossf/scorecard/v2/clients/githubrepo/roundtripper"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v3/clients"
+	"github.com/ossf/scorecard/v3/clients/githubrepo/roundtripper"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 var errInputRepoType = errors.New("input repo should be of type repoURL")

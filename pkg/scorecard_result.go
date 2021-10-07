@@ -26,9 +26,9 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v2/checker"
-	docs "github.com/ossf/scorecard/v2/docs/checks"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v3/checker"
+	docs "github.com/ossf/scorecard/v3/docs/checks"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // ScorecardInfo contains information about the scorecard code that was run.

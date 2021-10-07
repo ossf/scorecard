@@ -17,9 +17,9 @@ package checks
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/clients"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/clients"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // CheckSAST is the registered name for SAST.

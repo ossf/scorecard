@@ -19,11 +19,11 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/clients"
-	"github.com/ossf/scorecard/v2/clients/mockrepo"
-	sce "github.com/ossf/scorecard/v2/errors"
-	scut "github.com/ossf/scorecard/v2/utests"
+	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/clients"
+	"github.com/ossf/scorecard/v3/clients/mockrepo"
+	sce "github.com/ossf/scorecard/v3/errors"
+	scut "github.com/ossf/scorecard/v3/utests"
 )
 
 func getBranch(branches []*clients.BranchRef, name string) *clients.BranchRef {

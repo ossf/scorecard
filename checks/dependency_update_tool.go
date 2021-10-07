@@ -17,7 +17,7 @@ package checks
 import (
 	"strings"
 
-	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v3/checker"
 )
 
 // CheckDependencyUpdateTool is the exported name for Automatic-Depdendency-Update.

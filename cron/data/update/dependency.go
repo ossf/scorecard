@@ -30,8 +30,8 @@ import (
 	"github.com/google/go-github/v38/github"
 	"golang.org/x/tools/go/vcs"
 
-	"github.com/ossf/scorecard/v2/cron/data"
-	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v3/cron/data"
+	"github.com/ossf/scorecard/v3/repos"
 )
 
 var (

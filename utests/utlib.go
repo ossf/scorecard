@@ -23,7 +23,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v2/checker"
+	"github.com/ossf/scorecard/v3/checker"
 )
 
 // TestReturn encapsulates expected CheckResult return values.

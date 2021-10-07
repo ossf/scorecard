@@ -20,10 +20,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/checks"
-	"github.com/ossf/scorecard/v2/clients/githubrepo"
-	scut "github.com/ossf/scorecard/v2/utests"
+	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks"
+	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	scut "github.com/ossf/scorecard/v3/utests"
 )
 
 var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {

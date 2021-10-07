@@ -21,8 +21,8 @@ import (
 
 	"github.com/shurcooL/githubv4"
 
-	"github.com/ossf/scorecard/v2/clients"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v3/clients"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 const (
