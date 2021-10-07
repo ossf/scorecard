@@ -55,7 +55,6 @@ var (
 )
 
 const (
-	formatCSV     = "csv"
 	formatJSON    = "json"
 	formatSarif   = "sarif"
 	formatDefault = "default"
@@ -226,7 +225,6 @@ var rootCmd = &cobra.Command{
 			fmt.Println("\nRESULTS\n-------")
 		}
 
-		// UPGRADEv2: support CSV/JSON.
 		// TODO: move the doc inside Scorecard structure.
 		checkDocs, e := docs.Read()
 		if e != nil {
@@ -240,14 +238,12 @@ var rootCmd = &cobra.Command{
 			// TODO: support config files and update checker.MaxResultScore.
 			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy,
 				policyFile)
-		case formatCSV:
-			err = repoResult.AsCSV(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatJSON:
 			// UPGRADEv2: rename.
 			err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
 		default:
 			err = sce.WithMessage(sce.ErrScorecardInternal,
-				fmt.Sprintf("invalid format flag: %v. Expected [default, csv, json]", format))
+				fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
 		}
 		if err != nil {
 			log.Fatalf("Failed to output results: %v", err)
@@ -390,7 +386,7 @@ func init() {
 		&rubygems, "rubygems", "",
 		"rubygems package to check, given that the rubygems package has a GitHub repository")
 	rootCmd.Flags().StringVar(&format, "format", formatDefault,
-		"output format. allowed values are [default, sarif, html, json, csv]")
+		"output format. allowed values are [default, sarif, html, json]")
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
