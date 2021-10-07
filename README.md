@@ -313,9 +313,6 @@ LIMIT 1'
 bq extract --destination_format=NEWLINE_DELIMITED_JSON
 'openssf:scorecardcron.scorecard-v2$<partition_id>' gs://bucket-name/filename.json
 
-# Alternatively
-bq extract --destination_format=NEWLINE_DELIMITED_JSON
-'openssf:scorecardcron.scorecard-v2_latest' gs://bucket-name/filename.json
 ```
 
 The list of projects that are checked is available in the
