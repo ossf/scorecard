@@ -128,6 +128,15 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.Ch
 	return enabledChecks, nil
 }
 
+func validateFormat(format string) bool {
+	switch format {
+	case "json", "sarif", "default":
+		return true
+	default:
+		return false
+	}
+}
+
 var rootCmd = &cobra.Command{
 	Use:   scorecardUse,
 	Short: scorecardShort,
@@ -182,6 +191,11 @@ var rootCmd = &cobra.Command{
 
 		if err := repo.ValidGitHubURL(); err != nil {
 			log.Fatal(err)
+		}
+
+		// Validate format.
+		if !validateFormat(format) {
+			log.Fatalf("unsupported format '%s'", format)
 		}
 
 		enabledChecks, err := getEnabledChecks(policy, checksToRun)
@@ -386,7 +400,7 @@ func init() {
 		&rubygems, "rubygems", "",
 		"rubygems package to check, given that the rubygems package has a GitHub repository")
 	rootCmd.Flags().StringVar(&format, "format", formatDefault,
-		"output format. allowed values are [default, sarif, html, json]")
+		"output format. allowed values are [default, sarif, json]")
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
