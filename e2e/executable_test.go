@@ -21,7 +21,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/v2/checks"
+	"github.com/ossf/scorecard/v3/checks"
 )
 
 type scorecard struct {

@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v3/repos"
 )
 
 func TestCsvWriter(t *testing.T) {

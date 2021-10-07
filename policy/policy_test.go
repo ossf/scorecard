@@ -19,7 +19,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	sce "github.com/ossf/scorecard/v2/errors"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 func TestPolicyRead(t *testing.T) {

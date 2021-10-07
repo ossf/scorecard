@@ -27,8 +27,8 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/pkg"
+	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/pkg"
 )
 
 func jsonMockDocRead() *mockDoc {

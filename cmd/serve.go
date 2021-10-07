@@ -24,10 +24,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ossf/scorecard/v2/checks"
-	"github.com/ossf/scorecard/v2/clients/githubrepo"
-	"github.com/ossf/scorecard/v2/pkg"
-	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v3/checks"
+	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	"github.com/ossf/scorecard/v3/pkg"
+	"github.com/ossf/scorecard/v3/repos"
 )
 
 //nolint:gochecknoinits

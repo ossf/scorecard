@@ -23,8 +23,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"gopkg.in/yaml.v3"
 
-	"github.com/ossf/scorecard/v2/checker"
-	scut "github.com/ossf/scorecard/v2/utests"
+	"github.com/ossf/scorecard/v3/checker"
+	scut "github.com/ossf/scorecard/v3/utests"
 )
 
 func TestGithubWorkflowPinning(t *testing.T) {

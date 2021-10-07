@@ -22,8 +22,8 @@ import (
 	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
 
-	"github.com/ossf/scorecard/v2/clients"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v3/clients"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 const (

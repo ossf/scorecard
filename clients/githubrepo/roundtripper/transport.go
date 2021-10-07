@@ -24,7 +24,7 @@ import (
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	githubstats "github.com/ossf/scorecard/v2/clients/githubrepo/stats"
+	githubstats "github.com/ossf/scorecard/v3/clients/githubrepo/stats"
 )
 
 const expiryTimeInSec = 30

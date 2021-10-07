@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ossf/scorecard/v2/cron/data"
-	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v3/cron/data"
+	"github.com/ossf/scorecard/v3/repos"
 )
 
 // Script to add new project repositories to the projects.csv file:

@@ -30,14 +30,14 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/checks"
-	"github.com/ossf/scorecard/v2/clients/githubrepo"
-	docs "github.com/ossf/scorecard/v2/docs/checks"
-	sce "github.com/ossf/scorecard/v2/errors"
-	"github.com/ossf/scorecard/v2/pkg"
-	spol "github.com/ossf/scorecard/v2/policy"
-	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks"
+	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	docs "github.com/ossf/scorecard/v3/docs/checks"
+	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v3/pkg"
+	spol "github.com/ossf/scorecard/v3/policy"
+	"github.com/ossf/scorecard/v3/repos"
 )
 
 var (

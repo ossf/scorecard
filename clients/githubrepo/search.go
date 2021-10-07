@@ -22,7 +22,7 @@ import (
 
 	"github.com/google/go-github/v38/github"
 
-	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v3/clients"
 )
 
 var errEmptyQuery = errors.New("search query is empty")
