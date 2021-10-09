@@ -24,6 +24,7 @@ project. This document describes the contribution guidelines for the project.
 * [Adding New Checks](#adding-new-checks)
 * [Updating Docs](#updating-docs)
 * [Choosing checks to run](#choosing-checks-to-run)
+* [Sign your git commits](#sign-your-git-commits)
 
 <!-- vim-markdown-toc -->
 
@@ -174,3 +175,49 @@ auto-generated file. Edit `docs/checks/internal/checks.yaml` instead.
 You can use the `--checks` option to select which checks to run.
 This is useful if, for example, you only want to run the check you're
 currently developing.
+
+## Sign your git commits
+
+When contributing to scorecard please sign your
+git commits. This is easy to do and will help in assuring the
+integrity of the tree.
+
+### How to sign your commits?
+
+Provide the `-S` flag (or `--gpg-sign`) to git commit when you commit
+your changes, for example
+
+    git commit -m "Commit message" -S
+
+Optionally you can provide a key id after the -S option to sign with a
+specific key.
+
+### What if I forgot?
+
+You can retroactively sign your previous commit using --amend, for example
+
+    git commit -S --amend
+
+If you need to go further back, you can use the interactive rebase
+command with 'edit'. Replace HEAD~3 with the base commit from which
+you want to start.
+
+    git rebase -i HEAD~3
+
+Replace 'pick' by 'edit' for the commit that you want to sign and the
+rebasing will stop after that commit. Then you can amend the commit as
+above. Afterwards, do
+
+    git rebase --continue
+
+As this will rewrite history, you cannot do this when your commit is
+already merged. In that case, too bad, better luck next time.
+
+If you rewrite history for another reason - for example when squashing
+commits - make sure that you re-sign as the signatures will be lost.
+
+### How to check if commits are signed?
+
+Use git log with show-signature,
+
+    git log --show-signature
