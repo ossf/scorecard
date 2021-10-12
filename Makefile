@@ -2,13 +2,20 @@ SHELL := /bin/bash
 GOPATH := $(go env GOPATH)
 GINKGO := ginkgo
 GIT_HASH := $(shell git rev-parse HEAD)
+GIT_VERSION ?= $(shell git describe --tags --always --dirty)
 GOLANGGCI_LINT := golangci-lint
 PROTOC_GEN_GO := protoc-gen-go
 PROTOC := $(shell which protoc)
 IMAGE_NAME = scorecard
 OUTPUT = output
 IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:executable"
+<<<<<<< HEAD
 LDFLAGS=$(shell ./scripts/version-ldflags)
+=======
+SOURCE_DATE_EPOCH=$(shell git log --date=iso8601-strict -1 --pretty=%ct)
+VERSION_LDFLAGS=$(shell ./scripts/version-ldflags)
+LDFLAGS=$(shell echo "-w -extldflags \"-static\" $(VERSION_LDFLAGS) -X $PKG.buildDate=$(SOURCE_DATE_EPOCH)")
+>>>>>>> 52e4fb7 (feat: add google/ko support for building/pusing container image)
 
 ############################### make help #####################################
 .PHONY: help
@@ -160,12 +167,17 @@ cron/data/update/projects-update:  cron/data/update/*.go cron/data/*.go
 dockerbuild: ## Runs docker build
 	# Build all Docker images in the Repo
 	$(call ndef, GITHUB_AUTH_TOKEN)
-	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
+	# We can't pass more than one LDFLAG via GOFLAGS, you can't have spaces in there.
+	export KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH)
+	KO_DOCKER_REPO=${KO_PREFIX}/scorecard CGO_ENABLED=0 GOFLAGS="-ldflags=-X=$(PKG).gitCommit=$(GIT_HASH)" ko publish --bare \
+        	--platform=all --tags latest --tags $(GIT_VERSION) --tags $(GIT_HASH) \
+        	github.com/ossf/scorecard/v3
 	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
 	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
 	DOCKER_BUILDKIT=1 docker build . --file cron/webhook/Dockerfile --tag ${IMAGE_NAME}-webhook
 	DOCKER_BUILDKIT=1 docker build . --file clients/githubrepo/roundtripper/tokens/server/Dockerfile --tag ${IMAGE_NAME}-github-server
+
 ###############################################################################
 
 ################################# make test ###################################
