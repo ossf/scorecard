@@ -591,7 +591,8 @@ checks:
       yaml file are set explicitly either at the
       [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions)
       or for each of the jobs at the
-      [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions), and the permissions are not set to `write-all`.
+      [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions),
+      and the permissions are not set to `write-all`.
               
       The check cannot detect if the "read-only" GitHub permission setting is
       enabled, as there is no API available.   
