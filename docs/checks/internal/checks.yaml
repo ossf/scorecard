@@ -579,19 +579,19 @@ checks:
     description: |
       Risk: `High` (vulnerable to malicious code additions)
 
-      This check determines whether the project's automated workflows tokens are set
-      to read-only by default. It is currently limited to repositories hosted on
+      This check determines whether permissions for the project's automated workflows tokens are set
+      explicitly and are not set to grant all permissions. It is currently limited to repositories hosted on
       GitHub, and does not support other source hosting repositories (i.e., Forges).
 
-      Setting token permissions to read-only follows the principle of least privilege.
+      Setting token permissions to the minimum needed follows the principle of least privilege.
       This is important because attackers may use a compromised token with write
       access to push malicious code into the project.
 
       The highest score is awarded when the permissions definitions in each workflow's
-      yaml file are set as read-only at the
+      yaml file are set explicitly either at the
       [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions)
-      and the required write permissions are declared at the
-      [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions).
+      or for each of the jobs at the
+      [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions), and the permissions are not set to `write-all`.
               
       The check cannot detect if the "read-only" GitHub permission setting is
       enabled, as there is no API available.   
