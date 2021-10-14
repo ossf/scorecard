@@ -670,6 +670,10 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 // should continue executing after this file.
 func validateGitHubActionWorkflow(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	if !isWorkflowFile(pathfn) {
+		return true, nil
+	}
+
 	pdata := dataAsWorkflowResultPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {
