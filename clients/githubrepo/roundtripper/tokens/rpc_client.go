@@ -36,7 +36,7 @@ func (accessor *rpcAccessor) Next() (uint64, string) {
 
 // Release implements TokenAccessor.Release.
 func (accessor *rpcAccessor) Release(id uint64) {
-	if err := accessor.client.Call("TokenOverRPC.Release", id, struct{}{}); err != nil {
+	if err := accessor.client.Call("TokenOverRPC.Release", id, &struct{}{}); err != nil {
 		log.Printf("error during RPC call Release: %v", err)
 	}
 }

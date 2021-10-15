@@ -41,11 +41,8 @@ spec:
           value: "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker-releasetest"
         - name: SCORECARD_METRIC_EXPORTER
           value: "printer"
-        - name: GITHUB_AUTH_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: github
-              key: token
+        - name: GITHUB_AUTH_SERVER
+          value: "10.4.4.210:80"
         resources:
           requests:
             cpu: 5
