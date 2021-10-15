@@ -1,6 +1,7 @@
 # binary.
 scorecard
 gitblobcache
+clients/githubrepo/roundtripper/tokens/server/github-auth-server
 cron/data/add/add
 cron/data/validate/validate
 cron/data/update/projects-update

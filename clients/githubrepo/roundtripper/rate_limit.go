@@ -22,7 +22,7 @@ import (
 
 	"go.uber.org/zap"
 
-	sce "github.com/ossf/scorecard/v2/errors"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // MakeRateLimitedTransport returns a RoundTripper which rate limits GitHub requests.

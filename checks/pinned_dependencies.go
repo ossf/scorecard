@@ -23,8 +23,8 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"gopkg.in/yaml.v3"
 
-	"github.com/ossf/scorecard/v2/checker"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v3/checker"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // CheckPinnedDependencies is the registered name for FrozenDeps.
@@ -670,6 +670,10 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 // should continue executing after this file.
 func validateGitHubActionWorkflow(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	if !isWorkflowFile(pathfn) {
+		return true, nil
+	}
+
 	pdata := dataAsWorkflowResultPointer(data)
 
 	if !CheckFileContainsCommands(content, "#") {

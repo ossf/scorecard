@@ -15,7 +15,7 @@
 // Package main of OSSF Scoreard.
 package main
 
-import "github.com/ossf/scorecard/v2/cmd"
+import "github.com/ossf/scorecard/v3/cmd"
 
 func main() {
 	cmd.Execute()

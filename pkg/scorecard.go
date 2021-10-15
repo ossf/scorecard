@@ -24,12 +24,12 @@ import (
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/clients"
-	"github.com/ossf/scorecard/v2/clients/githubrepo"
-	sce "github.com/ossf/scorecard/v2/errors"
-	"github.com/ossf/scorecard/v2/repos"
-	"github.com/ossf/scorecard/v2/stats"
+	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/clients"
+	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v3/repos"
+	"github.com/ossf/scorecard/v3/stats"
 )
 
 func logStats(ctx context.Context, startTime time.Time) {

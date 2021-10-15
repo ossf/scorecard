@@ -31,21 +31,21 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/checks"
-	"github.com/ossf/scorecard/v2/clients"
-	"github.com/ossf/scorecard/v2/clients/githubrepo"
-	githubstats "github.com/ossf/scorecard/v2/clients/githubrepo/stats"
-	"github.com/ossf/scorecard/v2/cron/config"
-	"github.com/ossf/scorecard/v2/cron/data"
-	format "github.com/ossf/scorecard/v2/cron/format"
-	"github.com/ossf/scorecard/v2/cron/monitoring"
-	"github.com/ossf/scorecard/v2/cron/pubsub"
-	docs "github.com/ossf/scorecard/v2/docs/checks"
-	sce "github.com/ossf/scorecard/v2/errors"
-	"github.com/ossf/scorecard/v2/pkg"
-	"github.com/ossf/scorecard/v2/repos"
-	"github.com/ossf/scorecard/v2/stats"
+	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks"
+	"github.com/ossf/scorecard/v3/clients"
+	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	githubstats "github.com/ossf/scorecard/v3/clients/githubrepo/stats"
+	"github.com/ossf/scorecard/v3/cron/config"
+	"github.com/ossf/scorecard/v3/cron/data"
+	format "github.com/ossf/scorecard/v3/cron/format"
+	"github.com/ossf/scorecard/v3/cron/monitoring"
+	"github.com/ossf/scorecard/v3/cron/pubsub"
+	docs "github.com/ossf/scorecard/v3/docs/checks"
+	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v3/pkg"
+	"github.com/ossf/scorecard/v3/repos"
+	"github.com/ossf/scorecard/v3/stats"
 )
 
 var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
@@ -144,7 +144,8 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 	if err := view.Register(
 		&stats.CheckRuntime,
 		&stats.CheckErrorCount,
-		&stats.RepoRuntime,
+		// TODO: Debug high monitoring costs for Stackdriver before re-enabling.
+		// &stats.RepoRuntime,
 		&stats.OutgoingHTTPRequests,
 		&githubstats.GithubTokens); err != nil {
 		return nil, fmt.Errorf("error during view.Register: %w", err)

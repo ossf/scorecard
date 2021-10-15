@@ -21,7 +21,7 @@ import (
 	"net/url"
 	"strings"
 
-	sce "github.com/ossf/scorecard/v2/errors"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 var (

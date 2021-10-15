@@ -20,8 +20,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/ossf/scorecard/v2/checker"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v3/checker"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // CheckTokenPermissions is the exported name for Token-Permissions check.

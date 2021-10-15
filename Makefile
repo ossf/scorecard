@@ -90,7 +90,7 @@ tree-status: ## Verify tree is clean and all changes are committed
 ###############################################################################
 
 ################################## make build #################################
-build-targets = generate-docs build-proto build-scorecard build-pubsub build-bq-transfer \
+build-targets = generate-docs build-proto build-scorecard build-pubsub build-bq-transfer build-github-server \
 	build-add-script build-validate-script build-update-script dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
@@ -127,6 +127,12 @@ build-bq-transfer: ./cron/bq/*.go
 	# Run go build on the Copier cron job
 	cd cron/bq && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o data-transfer
 
+build-github-server: ## Runs go build on the GitHub auth server
+build-github-server: ./clients/githubrepo/roundtripper/tokens/*
+	# Run go build on the GitHub auth server
+	cd clients/githubrepo/roundtripper/tokens/server && \
+		CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o github-auth-server
+
 build-webhook: ## Runs go build on the cron webhook
 	# Run go build on the cron webhook
 	cd cron/webhook && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o webhook
@@ -157,6 +163,7 @@ dockerbuild: ## Runs docker build
 	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
 	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
 	DOCKER_BUILDKIT=1 docker build . --file cron/webhook/Dockerfile --tag ${IMAGE_NAME}-webhook
+	DOCKER_BUILDKIT=1 docker build . --file clients/githubrepo/roundtripper/tokens/server/Dockerfile --tag ${IMAGE_NAME}-github-server
 ###############################################################################
 
 ################################# make test ###################################

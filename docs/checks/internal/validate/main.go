@@ -17,8 +17,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v2/checks"
-	docs "github.com/ossf/scorecard/v2/docs/checks"
+	"github.com/ossf/scorecard/v3/checks"
+	docs "github.com/ossf/scorecard/v3/docs/checks"
 )
 
 var allowedRisks = map[string]bool{"Critical": true, "High": true, "Medium": true, "Low": true}

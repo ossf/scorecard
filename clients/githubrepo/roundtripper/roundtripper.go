@@ -21,48 +21,36 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"go.uber.org/zap"
-)
 
-// GithubAuthTokens are for making requests to GiHub's API.
-var GithubAuthTokens = []string{"GITHUB_AUTH_TOKEN", "GITHUB_TOKEN", "GH_TOKEN", "GH_AUTH_TOKEN"}
+	"github.com/ossf/scorecard/v3/clients/githubrepo/roundtripper/tokens"
+)
 
 const (
-
-	// GithubAppKeyPath is the path to file for GitHub App key.
-	GithubAppKeyPath = "GITHUB_APP_KEY_PATH"
-	// GithubAppID is the app ID for the GitHub App.
-	GithubAppID = "GITHUB_APP_ID"
-	// GithubAppInstallationID is the installation ID for the GitHub App.
-	GithubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
+	// githubAppKeyPath is the path to file for GitHub App key.
+	githubAppKeyPath = "GITHUB_APP_KEY_PATH"
+	// githubAppID is the app ID for the GitHub App.
+	githubAppID = "GITHUB_APP_ID"
+	// githubAppInstallationID is the installation ID for the GitHub App.
+	githubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
 )
-
-func readGitHubTokens() (string, bool) {
-	for _, name := range GithubAuthTokens {
-		if token, exists := os.LookupEnv(name); exists && token != "" {
-			return token, exists
-		}
-	}
-	return "", false
-}
 
 // NewTransport returns a configured http.Transport for use with GitHub.
 func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
 	transport := http.DefaultTransport
 
 	// nolint
-	if token, exists := readGitHubTokens(); exists {
+	if tokenAccessor := tokens.MakeTokenAccessor(); tokenAccessor != nil {
 		// Use GitHub PAT
-		transport = MakeGitHubTransport(transport, strings.Split(token, ","))
-	} else if keyPath := os.Getenv(GithubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
-		appID, err := strconv.Atoi(os.Getenv(GithubAppID))
+		transport = makeGitHubTransport(transport, tokenAccessor)
+	} else if keyPath := os.Getenv(githubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
+		appID, err := strconv.Atoi(os.Getenv(githubAppID))
 		if err != nil {
 			log.Panic(err)
 		}
-		installationID, err := strconv.Atoi(os.Getenv(GithubAppInstallationID))
+		installationID, err := strconv.Atoi(os.Getenv(githubAppInstallationID))
 		if err != nil {
 			log.Panic(err)
 		}

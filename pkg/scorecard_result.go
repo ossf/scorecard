@@ -15,20 +15,17 @@
 package pkg
 
 import (
-	"encoding/csv"
 	"fmt"
 	"io"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v2/checker"
-	docs "github.com/ossf/scorecard/v2/docs/checks"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v3/checker"
+	docs "github.com/ossf/scorecard/v3/docs/checks"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // ScorecardInfo contains information about the scorecard code that was run.
@@ -57,39 +54,6 @@ func scoreToString(s float64) string {
 		return "?"
 	}
 	return fmt.Sprintf("%.1f", s)
-}
-
-// AsCSV outputs ScorecardResult in CSV format.
-func (r *ScorecardResult) AsCSV(showDetails bool, logLevel zapcore.Level,
-	checkDocs docs.Doc, writer io.Writer) error {
-	score, err := r.GetAggregateScore(checkDocs)
-	if err != nil {
-		return err
-	}
-	w := csv.NewWriter(writer)
-	record := []string{r.Repo.Name, scoreToString(score)}
-	columns := []string{"Repository", "AggScore"}
-
-	// UPGRADEv2: remove nolint after ugrade.
-	//nolint
-	for _, checkResult := range r.Checks {
-		columns = append(columns, checkResult.Name+"_Pass", checkResult.Name+"_Confidence")
-		record = append(record, strconv.FormatBool(checkResult.Pass),
-			strconv.Itoa(checkResult.Confidence))
-		if showDetails {
-			columns = append(columns, checkResult.Name+"_Details")
-			record = append(record, checkResult.Details...)
-		}
-	}
-	fmt.Fprintf(writer, "%s\n", strings.Join(columns, ","))
-	if err := w.Write(record); err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("csv.Write: %v", err))
-	}
-	w.Flush()
-	if err := w.Error(); err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("csv.Flush: %v", err))
-	}
-	return nil
 }
 
 // GetAggregateScore returns the aggregate score.

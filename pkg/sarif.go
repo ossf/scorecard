@@ -23,10 +23,10 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v2/checker"
-	docs "github.com/ossf/scorecard/v2/docs/checks"
-	sce "github.com/ossf/scorecard/v2/errors"
-	spol "github.com/ossf/scorecard/v2/policy"
+	"github.com/ossf/scorecard/v3/checker"
+	docs "github.com/ossf/scorecard/v3/docs/checks"
+	sce "github.com/ossf/scorecard/v3/errors"
+	spol "github.com/ossf/scorecard/v3/policy"
 )
 
 type text struct {

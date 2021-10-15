@@ -17,7 +17,7 @@ package checker
 import (
 	"context"
 
-	"github.com/ossf/scorecard/v2/clients"
+	"github.com/ossf/scorecard/v3/clients"
 )
 
 // CheckRequest struct encapsulates all data to be passed into a CheckFn.

@@ -21,8 +21,8 @@ import (
 
 	"github.com/google/go-github/v38/github"
 
-	"github.com/ossf/scorecard/v2/clients"
-	sce "github.com/ossf/scorecard/v2/errors"
+	"github.com/ossf/scorecard/v3/clients"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 type releasesHandler struct {

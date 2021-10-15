@@ -23,8 +23,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"gopkg.in/yaml.v3"
 
-	"github.com/ossf/scorecard/v2/checker"
-	scut "github.com/ossf/scorecard/v2/utests"
+	"github.com/ossf/scorecard/v3/checker"
+	scut "github.com/ossf/scorecard/v3/utests"
 )
 
 func TestGithubWorkflowPinning(t *testing.T) {
@@ -76,6 +76,17 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				Score:         checker.MaxResultScore - 2,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "Non-yaml file",
+			filename: "./testdata/script.sh",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
 		},

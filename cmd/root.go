@@ -30,14 +30,14 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/checks"
-	"github.com/ossf/scorecard/v2/clients/githubrepo"
-	docs "github.com/ossf/scorecard/v2/docs/checks"
-	sce "github.com/ossf/scorecard/v2/errors"
-	"github.com/ossf/scorecard/v2/pkg"
-	spol "github.com/ossf/scorecard/v2/policy"
-	"github.com/ossf/scorecard/v2/repos"
+	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks"
+	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	docs "github.com/ossf/scorecard/v3/docs/checks"
+	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v3/pkg"
+	spol "github.com/ossf/scorecard/v3/policy"
+	"github.com/ossf/scorecard/v3/repos"
 )
 
 var (
@@ -55,7 +55,6 @@ var (
 )
 
 const (
-	formatCSV     = "csv"
 	formatJSON    = "json"
 	formatSarif   = "sarif"
 	formatDefault = "default"
@@ -129,6 +128,15 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.Ch
 	return enabledChecks, nil
 }
 
+func validateFormat(format string) bool {
+	switch format {
+	case "json", "sarif", "default":
+		return true
+	default:
+		return false
+	}
+}
+
 var rootCmd = &cobra.Command{
 	Use:   scorecardUse,
 	Short: scorecardShort,
@@ -185,6 +193,11 @@ var rootCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		// Validate format.
+		if !validateFormat(format) {
+			log.Fatalf("unsupported format '%s'", format)
+		}
+
 		enabledChecks, err := getEnabledChecks(policy, checksToRun)
 		if err != nil {
 			log.Fatal(err)
@@ -226,7 +239,6 @@ var rootCmd = &cobra.Command{
 			fmt.Println("\nRESULTS\n-------")
 		}
 
-		// UPGRADEv2: support CSV/JSON.
 		// TODO: move the doc inside Scorecard structure.
 		checkDocs, e := docs.Read()
 		if e != nil {
@@ -240,14 +252,12 @@ var rootCmd = &cobra.Command{
 			// TODO: support config files and update checker.MaxResultScore.
 			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy,
 				policyFile)
-		case formatCSV:
-			err = repoResult.AsCSV(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatJSON:
 			// UPGRADEv2: rename.
 			err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
 		default:
 			err = sce.WithMessage(sce.ErrScorecardInternal,
-				fmt.Sprintf("invalid format flag: %v. Expected [default, csv, json]", format))
+				fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
 		}
 		if err != nil {
 			log.Fatalf("Failed to output results: %v", err)
@@ -390,7 +400,7 @@ func init() {
 		&rubygems, "rubygems", "",
 		"rubygems package to check, given that the rubygems package has a GitHub repository")
 	rootCmd.Flags().StringVar(&format, "format", formatDefault,
-		"output format. allowed values are [default, sarif, html, json, csv]")
+		"output format. allowed values are [default, sarif, json]")
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")

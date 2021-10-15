@@ -26,7 +26,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/google"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/ossf/scorecard/v2/cron/data"
+	"github.com/ossf/scorecard/v3/cron/data"
 )
 
 const stableTag = "stable"
@@ -36,6 +36,7 @@ var images = []string{
 	"gcr.io/openssf/scorecard-batch-controller",
 	"gcr.io/openssf/scorecard-batch-worker",
 	"gcr.io/openssf/scorecard-bq-transfer",
+	"gcr.io/openssf/scorecard-github-server",
 }
 
 func scriptHandler(w http.ResponseWriter, r *http.Request) {
