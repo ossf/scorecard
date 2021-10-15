@@ -65,7 +65,7 @@ To install Scorecards:
 
 1. Visit our latest [release page](https://github.com/ossf/scorecard/releases/latest) and download the correct binary for your operating system
 2. Extract the binary file 
-3. Add the binary to your `GOPATH/bin` directory (use `go env gopath` to identify your directory if necessary)
+3. Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to identify your directory if necessary)
 
 ### Authentication
 
