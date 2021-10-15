@@ -15,7 +15,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: scorecard-github-server
+  name: scorecard-github-service
 spec:
   clusterIP: 10.4.4.210
   selector:
