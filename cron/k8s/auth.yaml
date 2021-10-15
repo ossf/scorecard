@@ -17,6 +17,7 @@ kind: Service
 metadata:
   name: scorecard-github-server
 spec:
+  clusterIP: 10.4.4.210
   selector:
     app.kubernetes.io/name: github-auth-server
   ports:
@@ -28,7 +29,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: github-auth-server
+  name: scorecard-github-server
 spec:
   replicas: 1
   selector:
