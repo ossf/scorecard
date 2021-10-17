@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: scorecard-batch-worker
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: worker
@@ -32,11 +32,8 @@ spec:
         args: ["--ignoreRuntimeErrors=true"]
         imagePullPolicy: Always
         env:
-        - name: GITHUB_AUTH_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: github
-              key: token
+        - name: GITHUB_AUTH_SERVER
+          value: "10.4.4.210:80"
         resources:
           requests:
             cpu: 5
