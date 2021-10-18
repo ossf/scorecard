@@ -52,7 +52,7 @@ This page describes each Scorecard check in detail, including scoring criteria,
 remediation steps to improve the score, and an explanation of the risks
 associated with a low score. The checks are continually changing and we welcome
 community feedback. If you have ideas for additions or new detection techniques,
-please [contribute](CONTRIBUTING.md)!
+please [contribute](../CONTRIBUTING.md)!
 `)
 	if err != nil {
 		panic(err)

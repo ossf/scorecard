@@ -56,7 +56,7 @@ You must install these tools:
 
 ## Error handling
 
-See [errors/errors.md].
+See [errors](errors/errors.md).
 
 ## How to build scorecard locally
 
