@@ -61,7 +61,8 @@ func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 
 	parsedResponse := []response{}
 	if err := json.Unmarshal(b, &parsedResponse); err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("json.Unmarshal: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("json.Unmarshal on %s - %s: %v", resp.Status, parsedResponse, err))
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 
