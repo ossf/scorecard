@@ -19,7 +19,7 @@ jobs:
     
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v1
+        uses: actions/checkout@1e204e9a9253d643386038d443f96446fa156a97
 
       - name: "Run analysis"
         # This is temporary for dogfooding.
