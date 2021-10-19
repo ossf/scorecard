@@ -141,33 +141,24 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.Ch
 	return enabledChecks, nil
 }
 
-func createRepoClient(ctx context.Context, uri *repos.RepoURI) (clients.RepoClient, *zap.Logger, error) {
+func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logger) (clients.RepoClient, error) {
 	var rc clients.RepoClient
 	switch uri.GetType() {
 	// URL.
 	case repos.RepoTypeURL:
 		if err := repo.IsValidGitHubURL(); err != nil {
-			return rc, nil, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+			return rc, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
-		logger, err := githubrepo.NewLogger(*logLevel)
-		if err != nil {
-			return rc, nil, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		// Warning: nothing must fail in this function after logger is constructed.
+
 		rc = githubrepo.CreateGithubRepoClient(ctx, logger)
-		return rc, logger, nil
+		return rc, nil
 
 	// Local directory.
 	case repos.RepoTypeLocalDir:
-		logger, err := githubrepo.NewLogger(*logLevel)
-		if err != nil {
-			return rc, nil, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		// Warning: nothing must fail in this function after logger is constructed.
-		return localdir.CreateLocalDirClient(ctx, logger), logger, nil
+		return localdir.CreateLocalDirClient(ctx, logger), nil
 	}
 
-	return nil, nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.GetType()))
+	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.GetType()))
 }
 
 var rootCmd = &cobra.Command{
@@ -223,13 +214,17 @@ var rootCmd = &cobra.Command{
 		}
 
 		ctx := context.Background()
-		repoClient, logger, err := createRepoClient(ctx, &repo)
+		logger, err := githubrepo.NewLogger(*logLevel)
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		// nolint
-		defer logger.Sync() // flushes buffer, if any
+		defer logger.Sync() // Flushes buffer, if any.
+
+		repoClient, err := createRepoClient(ctx, &repo, logger)
+		if err != nil {
+			log.Fatal(err)
+		}
 		defer repoClient.Close()
 
 		enabledChecks, err := getEnabledChecks(policy, checksToRun)

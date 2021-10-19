@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-// Package localdir is local repo containing source code.
+// Package localdir implements RepoClient on local source code.
 package localdir
 
 import (
@@ -33,34 +33,47 @@ type localDirClient struct {
 	ctx    context.Context
 }
 
+// InitRepo sets up the local repo.
 func (client *localDirClient) InitRepo(repo clients.Repo) error {
+	// TODO
 	return nil
 }
 
-func (client *localDirClient) URL() string {
+// URI implements RepoClient.URI.
+func (client *localDirClient) URI() string {
+	// TODO
 	return errUnsupportedFeature.Error()
 }
 
+// IsArchived implements RepoClient.IsArchived.
 func (client *localDirClient) IsArchived() (bool, error) {
+	// TODO
 	return false, nil
 }
 
+// ListFiles implements RepoClient.ListFiles.
 func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
+	// TODO
 	return nil, nil
 }
 
+// GetFileContent implements RepoClient.GetFileContent.
 func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
+	// TODO
 	return nil, nil
 }
 
+// ListMergedPRs implements RepoClient.ListMergedPRs.
 func (client *localDirClient) ListMergedPRs() ([]clients.PullRequest, error) {
 	return nil, fmt.Errorf("ListMergedPRs: %w", errUnsupportedFeature)
 }
 
+// ListBranches implements RepoClient.ListBranches.
 func (client *localDirClient) ListBranches() ([]*clients.BranchRef, error) {
 	return nil, fmt.Errorf("ListBranches: %w", errUnsupportedFeature)
 }
 
+// GetDefaultBranch implements RepoClient.GetDefaultBranch.
 func (client *localDirClient) GetDefaultBranch() (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("GetDefaultBranch: %w", errUnsupportedFeature)
 }
@@ -69,31 +82,38 @@ func (client *localDirClient) ListCommits() ([]clients.Commit, error) {
 	return nil, fmt.Errorf("ListCommits: %w", errUnsupportedFeature)
 }
 
+// ListReleases implements RepoClient.ListReleases.
 func (client *localDirClient) ListReleases() ([]clients.Release, error) {
 	return nil, fmt.Errorf("ListReleases: %w", errUnsupportedFeature)
 }
 
+// ListContributors implements RepoClient.ListContributors.
 func (client *localDirClient) ListContributors() ([]clients.Contributor, error) {
 	return nil, fmt.Errorf("ListContributors: %w", errUnsupportedFeature)
 }
 
+// ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
 func (client *localDirClient) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	return nil, fmt.Errorf("ListSuccessfulWorkflowRuns: %w", errUnsupportedFeature)
 }
 
+// ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.
 func (client *localDirClient) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	return nil, fmt.Errorf("ListCheckRunsForRef: %w", errUnsupportedFeature)
 }
 
+// ListStatuses implements RepoClient.ListStatuses.
 func (client *localDirClient) ListStatuses(ref string) ([]clients.Status, error) {
 	return nil, fmt.Errorf("ListStatuses: %w", errUnsupportedFeature)
 }
 
+// Search implements RepoClient.Search.
 func (client *localDirClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return clients.SearchResponse{}, fmt.Errorf("Search: %w", errUnsupportedFeature)
 }
 
 func (client *localDirClient) Close() error {
+	// TODO
 	return nil
 }
 
