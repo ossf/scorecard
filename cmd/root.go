@@ -30,7 +30,6 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-<<<<<<< HEAD
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks"
 	"github.com/ossf/scorecard/v3/clients"
@@ -41,18 +40,6 @@ import (
 	"github.com/ossf/scorecard/v3/pkg"
 	spol "github.com/ossf/scorecard/v3/policy"
 	"github.com/ossf/scorecard/v3/repos"
-=======
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/checks"
-	"github.com/ossf/scorecard/v2/clients"
-	"github.com/ossf/scorecard/v2/clients/githubrepo"
-	"github.com/ossf/scorecard/v2/clients/localdir"
-	docs "github.com/ossf/scorecard/v2/docs/checks"
-	sce "github.com/ossf/scorecard/v2/errors"
-	"github.com/ossf/scorecard/v2/pkg"
-	spol "github.com/ossf/scorecard/v2/policy"
-	"github.com/ossf/scorecard/v2/repos"
->>>>>>> d3dd658 (draft)
 )
 
 var (
@@ -144,6 +131,7 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.Ch
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logger) (clients.RepoClient, error) {
 	var rc clients.RepoClient
 	switch uri.RepoType() {
@@ -172,23 +160,23 @@ func validateFormat(format string) bool {
 		return false
 =======
 func createRepoClient(ctx context.Context, uri *repos.RepoURI) (clients.RepoClient, *zap.Logger, error) {
+=======
+func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logger) (clients.RepoClient, error) {
+>>>>>>> 251f88d (comments)
 	var rc clients.RepoClient
 	switch uri.GetType() {
 	// URL.
 	case repos.RepoTypeURL:
 		if err := repo.IsValidGitHubURL(); err != nil {
-			return rc, nil, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+			return rc, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
-		logger, err := githubrepo.NewLogger(*logLevel)
-		if err != nil {
-			return rc, nil, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		// Warning: nothing must fail in this function after logger is constructed.
+
 		rc = githubrepo.CreateGithubRepoClient(ctx, logger)
-		return rc, logger, nil
+		return rc, nil
 
 	// Local directory.
 	case repos.RepoTypeLocalDir:
+<<<<<<< HEAD
 		logger, err := githubrepo.NewLogger(*logLevel)
 		if err != nil {
 			return rc, nil, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
@@ -196,9 +184,12 @@ func createRepoClient(ctx context.Context, uri *repos.RepoURI) (clients.RepoClie
 		// Warning: nothing must fail in this function after logger is constructed.
 		return localdir.CreateLocalDirClient(ctx, logger), logger, nil
 >>>>>>> 22b8b74 (draft)
+=======
+		return localdir.CreateLocalDirClient(ctx, logger), nil
+>>>>>>> 251f88d (comments)
 	}
 
-	return nil, nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.GetType()))
+	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.GetType()))
 }
 
 var rootCmd = &cobra.Command{
@@ -268,11 +259,12 @@ var rootCmd = &cobra.Command{
 >>>>>>> 6c86056 (draft)
 =======
 		ctx := context.Background()
-		repoClient, logger, err := createRepoClient(ctx, &repo)
+		logger, err := githubrepo.NewLogger(*logLevel)
 		if err != nil {
 >>>>>>> 22b8b74 (draft)
 			log.Fatal(err)
 		}
+<<<<<<< HEAD
 		// nolint
 		defer logger.Sync() // Flushes buffer, if any.
 
@@ -285,6 +277,15 @@ var rootCmd = &cobra.Command{
 		// nolint
 		defer logger.Sync() // flushes buffer, if any
 >>>>>>> 22b8b74 (draft)
+=======
+		// nolint
+		defer logger.Sync() // Flushes buffer, if any.
+
+		repoClient, err := createRepoClient(ctx, &repo, logger)
+		if err != nil {
+			log.Fatal(err)
+		}
+>>>>>>> 251f88d (comments)
 		defer repoClient.Close()
 
 		enabledChecks, err := getEnabledChecks(policy, checksToRun)
