@@ -47,6 +47,7 @@ type gitHubActionWorkflowConfig struct {
 // A Github Action Workflow Job.
 // We only declare the fields we need.
 // Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+// nolint: govet
 type gitHubActionWorkflowJob struct {
 	Name     string                     `yaml:"name"`
 	Steps    []gitHubActionWorkflowStep `yaml:"steps"`
@@ -57,9 +58,9 @@ type gitHubActionWorkflowJob struct {
 	} `yaml:"defaults"`
 	RunsOn   stringOrSlice `yaml:"runs-on"`
 	Strategy struct {
-		Matrix struct {
-			Os []string `yaml:"os"`
-		} `yaml:"matrix"`
+		// In most cases, the 'matrix' field will have a key of 'os' which is an array of strings, but there are
+		// some repos that have something like: 'matrix: ${{ fromJson(needs.matrix.outputs.latest) }}'.
+		Matrix interface{} `yaml:"matrix"`
 	} `yaml:"strategy"`
 }
 
@@ -578,22 +579,40 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	return true, nil
 }
 
-// The only OS that this job runs on is Windows.
-func jobAlwaysRunsOnWindows(job *gitHubActionWorkflowJob) bool {
-	var jobOses []string
+// Returns the OSes this job runs on.
+func getOsesForJob(job *gitHubActionWorkflowJob) ([]string, error) {
 	// The 'runs-on' field either lists the OS'es directly, or it can have an expression '${{ matrix.os }}' which
 	// is where the OS'es are actually listed.
-	if len(job.RunsOn) == 1 && strings.Contains(job.RunsOn[0], "matrix.os") {
-		jobOses = job.Strategy.Matrix.Os
-	} else {
-		jobOses = job.RunsOn
+	if len(job.RunsOn) != 1 || !strings.Contains(job.RunsOn[0], "matrix.os") {
+		return job.RunsOn, nil
 	}
-	for _, os := range jobOses {
-		if !strings.HasPrefix(strings.ToLower(os), "windows-") {
-			return false
+	jobOses := make([]string, 0)
+	if m, ok := job.Strategy.Matrix.(map[string]interface{}); ok {
+		if osVal, ok := m["os"]; ok {
+			if oses, ok := osVal.([]interface{}); ok {
+				for _, os := range oses {
+					jobOses = append(jobOses, os.(string))
+				}
+				return jobOses, nil
+			}
 		}
 	}
-	return true
+	return jobOses, sce.WithMessage(sce.ErrScorecardInternal,
+		fmt.Sprintf("unable to determine os for job: %v", job.Name))
+}
+
+// The only OS that this job runs on is Windows.
+func jobAlwaysRunsOnWindows(job *gitHubActionWorkflowJob) (bool, error) {
+	jobOses, err := getOsesForJob(job)
+	if err != nil {
+		return false, err
+	}
+	for _, os := range jobOses {
+		if !strings.HasPrefix(strings.ToLower(os), "windows") {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 // getShellForStep returns the shell that is used to run the given step.
@@ -614,7 +633,11 @@ func getShellForStep(step *gitHubActionWorkflowStep, job *gitHubActionWorkflowJo
 		return defaultShellWindows, nil
 	}
 
-	if jobAlwaysRunsOnWindows(job) {
+	alwaysRunsOnWindows, err := jobAlwaysRunsOnWindows(job)
+	if err != nil {
+		return "", err
+	}
+	if alwaysRunsOnWindows {
 		return defaultShellWindows, nil
 	}
 
