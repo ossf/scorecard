@@ -18,6 +18,7 @@ package clients
 type Repo interface {
 	URI() string
 	String() string
+	Path() string
 	Org() Repo
 	IsValid() error
 	Metadata() []string

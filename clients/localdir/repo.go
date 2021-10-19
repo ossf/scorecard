@@ -17,61 +17,77 @@
 package localdir
 
 import (
-	"errors"
 	"fmt"
+	"os"
+	"path"
 
 	clients "github.com/ossf/scorecard/v3/clients"
 )
 
-type localRepoClient struct {
+type repoLocal struct {
 	path string
 }
 
 // URI implements Repo.URI().
-func (r *localRepoClient) URI() string {
-	return fmt.Sprintf("file://%s", r.path)
+func (r *repoLocal) URI() string {
+	return fmt.Sprintf("file://%s", r.Path())
+}
+
+func (r *repoLocal) Path() string {
+	return r.path
 }
 
 // String implements Repo.String.
-func (r *localRepoClient) String() string {
-	// TODO
-	return "unsupported String()"
+func (r *repoLocal) String() string {
+	return r.URI()
 }
 
 // Org implements Repo.Org.
-func (r *localRepoClient) Org() clients.Repo {
+func (r *repoLocal) Org() clients.Repo {
 	// TODO
-	return &localRepoClient{}
+	panic("Org")
+	return &repoLocal{}
 }
 
 // IsValid implements Repo.IsValid.
-func (r *localRepoClient) IsValid() error {
-	// TODO
-	//nolint:goerr113
-	return errors.New("unsupported IsValid()")
+func (r *repoLocal) IsValid() error {
+	_, err := os.Stat(r.path)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+
+	return nil
 }
 
 // Metadata implements Repo.Metadata.
-func (r *localRepoClient) Metadata() []string {
+func (r *repoLocal) Metadata() []string {
 	// TODO
 	return []string{}
 }
 
 // AppendMetadata implements Repo.AppendMetadata.
-func (r *localRepoClient) AppendMetadata(m ...string) {
+func (r *repoLocal) AppendMetadata(m ...string) {
 	// TODO
+	panic("append meta")
 }
 
 // IsScorecardRepo implements Repo.IsScorecardRepo.
-func (r *localRepoClient) IsScorecardRepo() bool {
+func (r *repoLocal) IsScorecardRepo() bool {
 	// TODO
+	panic("is scorecard repo")
 	return false
 }
 
 // MakeLocalDirRepo returns an implementation of clients.Repo interface.
-func MakeLocalDirRepo(path string) (clients.Repo, error) {
-	// TODO: validate the path exists
-	return &localRepoClient{
-		path: path,
-	}, nil
+func MakeLocalDirRepo(pathfn string) (clients.Repo, error) {
+	p := path.Clean(pathfn)
+	repo := &repoLocal{
+		path: p,
+	}
+
+	if err := repo.IsValid(); err != nil {
+		return nil, fmt.Errorf("error in IsValid: %w", err)
+	}
+
+	return repo, nil
 }
