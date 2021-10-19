@@ -366,7 +366,7 @@ the [checks documentation page](docs/checks.md).
 
 ## Contribute
 ### Code of Conduct
-Before contributing, please follow our [Code of Conduct](main/CODE_OF_CONDUCT.md). 
+Before contributing, please follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Contribute to Scorecards
 See the [Contributing](CONTRIBUTING.md) documentation for guidance on how to
@@ -395,4 +395,4 @@ invitation to anyone to register here. Feel free to come and ask any
 questions.
 
 ### Report a Security Issue
-To report a security issue, please follow instructions [here](main/SECURITY.md).
+To report a security issue, please follow instructions [here](SECURITY.md).
