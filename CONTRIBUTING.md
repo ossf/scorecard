@@ -160,7 +160,7 @@ Details about each check need to provided in
 If you want to update its documentation, updates that `checks.yaml` file.
 
 Whenever you modify the `checks.yaml` file, run the following to
-gnerate `checks/checks.md`:
+generate `checks/checks.md`:
 
 ~~~~
 make generate-docs
