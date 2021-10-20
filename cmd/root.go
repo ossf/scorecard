@@ -130,8 +130,15 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.Ch
 	return enabledChecks, nil
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+func validateFormat(format string) bool {
+	switch format {
+	case "json", "sarif", "default":
+		return true
+	default:
+		return false
+	}
+}
+
 func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logger) (clients.RepoClient, error) {
 	var rc clients.RepoClient
 	switch uri.RepoType() {
@@ -146,50 +153,11 @@ func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logge
 
 	// Local directory.
 	case repos.RepoTypeLocalDir:
+
 		return localdir.CreateLocalDirClient(ctx, logger), nil
 	}
 
 	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.RepoType()))
-}
-
-func validateFormat(format string) bool {
-	switch format {
-	case "json", "sarif", "default":
-		return true
-	default:
-		return false
-=======
-func createRepoClient(ctx context.Context, uri *repos.RepoURI) (clients.RepoClient, *zap.Logger, error) {
-=======
-func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logger) (clients.RepoClient, error) {
->>>>>>> 251f88d (comments)
-	var rc clients.RepoClient
-	switch uri.GetType() {
-	// URL.
-	case repos.RepoTypeURL:
-		if err := repo.IsValidGitHubURL(); err != nil {
-			return rc, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-
-		rc = githubrepo.CreateGithubRepoClient(ctx, logger)
-		return rc, nil
-
-	// Local directory.
-	case repos.RepoTypeLocalDir:
-<<<<<<< HEAD
-		logger, err := githubrepo.NewLogger(*logLevel)
-		if err != nil {
-			return rc, nil, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		// Warning: nothing must fail in this function after logger is constructed.
-		return localdir.CreateLocalDirClient(ctx, logger), logger, nil
->>>>>>> 22b8b74 (draft)
-=======
-		return localdir.CreateLocalDirClient(ctx, logger), nil
->>>>>>> 251f88d (comments)
-	}
-
-	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.GetType()))
 }
 
 var rootCmd = &cobra.Command{
@@ -249,44 +217,21 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 		ctx := context.Background()
 		logger, err := githubrepo.NewLogger(*logLevel)
 		if err != nil {
-=======
-		if err := repo.IsValidGitHubURL(); err != nil {
->>>>>>> 6c86056 (draft)
-=======
-		ctx := context.Background()
-		logger, err := githubrepo.NewLogger(*logLevel)
-		if err != nil {
->>>>>>> 22b8b74 (draft)
 			log.Fatal(err)
 		}
-<<<<<<< HEAD
 		// nolint
 		defer logger.Sync() // Flushes buffer, if any.
 
-<<<<<<< HEAD
 		repoClient, err := createRepoClient(ctx, &repo, logger)
 		if err != nil {
 			log.Fatal(err)
 		}
-=======
+
 		// nolint
 		defer logger.Sync() // flushes buffer, if any
->>>>>>> 22b8b74 (draft)
-=======
-		// nolint
-		defer logger.Sync() // Flushes buffer, if any.
-
-		repoClient, err := createRepoClient(ctx, &repo, logger)
-		if err != nil {
-			log.Fatal(err)
-		}
->>>>>>> 251f88d (comments)
-		defer repoClient.Close()
 
 		enabledChecks, err := getEnabledChecks(policy, checksToRun)
 		if err != nil {
@@ -299,24 +244,6 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-		ctx := context.Background()
-
-		logger, err := githubrepo.NewLogger(*logLevel)
-		if err != nil {
-			panic(err)
-		}
-		// nolint
-		defer logger.Sync() // flushes buffer, if any
-
-		repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-		defer repoClient.Close()
-
->>>>>>> 6c86056 (draft)
-=======
->>>>>>> 22b8b74 (draft)
 		repoResult, err := pkg.RunScorecards(ctx, &repo, enabledChecks, repoClient)
 		if err != nil {
 			log.Fatal(err)

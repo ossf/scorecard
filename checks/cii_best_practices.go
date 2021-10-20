@@ -60,18 +60,8 @@ type response struct {
 
 // CIIBestPractices runs CII-Best-Practices check.
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
-<<<<<<< HEAD
-<<<<<<< HEAD
 	repoURI := fmt.Sprintf("https://%s", c.Repo.URI())
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURI)
-=======
-	repoURL := fmt.Sprintf("https://%s", c.Repo.URI())
-	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURL)
->>>>>>> 376995a (docker file)
-=======
-	repoURI := fmt.Sprintf("https://%s", c.Repo.URI())
-	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURI)
->>>>>>> 251f88d (comments)
 	req, err := http.NewRequestWithContext(c.Ctx, "GET", url, nil)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))

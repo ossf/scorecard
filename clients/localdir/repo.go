@@ -17,40 +17,21 @@
 package localdir
 
 import (
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"errors"
 	"fmt"
 
 	clients "github.com/ossf/scorecard/v3/clients"
-=======
-=======
-	"errors"
->>>>>>> 251f88d (comments)
-	"fmt"
-
-	clients "github.com/ossf/scorecard/v2/clients"
->>>>>>> 376995a (docker file)
 )
 
 type localRepoClient struct {
 	path string
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // URI implements Repo.URI().
-=======
->>>>>>> 376995a (docker file)
-=======
-// URI implements Repo.URI().
->>>>>>> 251f88d (comments)
 func (r *localRepoClient) URI() string {
 	return fmt.Sprintf("file://%s", r.path)
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // String implements Repo.String.
 func (r *localRepoClient) String() string {
 	// TODO
@@ -84,48 +65,6 @@ func (r *localRepoClient) AppendMetadata(m ...string) {
 // IsScorecardRepo implements Repo.IsScorecardRepo.
 func (r *localRepoClient) IsScorecardRepo() bool {
 	// TODO
-=======
-=======
-// String implements Repo.String.
->>>>>>> 251f88d (comments)
-func (r *localRepoClient) String() string {
-	// TODO
-	return "unsupported String()"
-}
-
-// Org implements Repo.Org.
-func (r *localRepoClient) Org() clients.Repo {
-	// TODO
-	return &localRepoClient{}
-}
-
-// IsValid implements Repo.IsValid.
-func (r *localRepoClient) IsValid() error {
-	// TODO
-	//nolint:goerr113
-	return errors.New("unsupported IsValid()")
-}
-
-// Metadata implements Repo.Metadata.
-func (r *localRepoClient) Metadata() []string {
-	// TODO
-	return []string{}
-}
-
-// AppendMetadata implements Repo.AppendMetadata.
-func (r *localRepoClient) AppendMetadata(m ...string) {
-	// TODO
-}
-
-// IsScorecardRepo implements Repo.IsScorecardRepo.
-func (r *localRepoClient) IsScorecardRepo() bool {
-<<<<<<< HEAD
-	panic("invalid IsScorecardRepo()")
-	//nolint
->>>>>>> 376995a (docker file)
-=======
-	// TODO
->>>>>>> 251f88d (comments)
 	return false
 }
 
