@@ -70,7 +70,7 @@ func getRepoURLs(iter data.Iterator) ([]repos.RepoURL, error) {
 	for iter.HasNext() {
 		repo, err := iter.Next()
 		if err != nil {
-			return nil, fmt.Errorf("%w", err)
+			return nil, fmt.Errorf("iter.Next: %w", err)
 		}
 		if _, ok := repoMap[repo.URL()]; !ok {
 			repoURLs[repo.URL()] = new(repos.RepoURL)
