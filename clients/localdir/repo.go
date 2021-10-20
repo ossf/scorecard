@@ -17,6 +17,7 @@
 package localdir
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -24,8 +25,11 @@ import (
 	clients "github.com/ossf/scorecard/v3/clients"
 )
 
+var errNotDirectory = errors.New("not a directory")
+
 type repoLocal struct {
-	path string
+	path     string
+	metadata []string
 }
 
 // URI implements Repo.URI().
@@ -44,37 +48,34 @@ func (r *repoLocal) String() string {
 
 // Org implements Repo.Org.
 func (r *repoLocal) Org() clients.Repo {
-	// TODO
-	panic("Org")
-	return &repoLocal{}
+	return nil
 }
 
 // IsValid implements Repo.IsValid.
 func (r *repoLocal) IsValid() error {
-	_, err := os.Stat(r.path)
+	f, err := os.Stat(r.path)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
 
+	if !f.IsDir() {
+		return fmt.Errorf("%w", errNotDirectory)
+	}
 	return nil
 }
 
 // Metadata implements Repo.Metadata.
 func (r *repoLocal) Metadata() []string {
-	// TODO
 	return []string{}
 }
 
 // AppendMetadata implements Repo.AppendMetadata.
 func (r *repoLocal) AppendMetadata(m ...string) {
-	// TODO
-	panic("append meta")
+	r.metadata = append(r.metadata, m...)
 }
 
 // IsScorecardRepo implements Repo.IsScorecardRepo.
 func (r *repoLocal) IsScorecardRepo() bool {
-	// TODO
-	panic("is scorecard repo")
 	return false
 }
 

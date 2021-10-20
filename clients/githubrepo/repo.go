@@ -85,7 +85,7 @@ func (r *repoURL) Path() string {
 
 // String implements Repo.String.
 func (r *repoURL) String() string {
-	return r.URI()
+	return fmt.Sprintf("%s-%s-%s", r.host, r.owner, r.repo)
 }
 
 // Org implements Repo.Org.

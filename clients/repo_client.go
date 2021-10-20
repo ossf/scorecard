@@ -19,6 +19,7 @@ package clients
 type RepoClient interface {
 	InitRepo(repo Repo) error
 	URI() string
+	IsLocal() bool
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)
 	GetFileContent(filename string) ([]byte, error)

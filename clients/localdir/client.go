@@ -44,8 +44,6 @@ type localDirClient struct {
 
 // InitRepo sets up the local repo.
 func (client *localDirClient) InitRepo(inputRepo clients.Repo) error {
-	// TODO
-	// panic("invalid InitRepo()")
 	localRepo, ok := inputRepo.(*repoLocal)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
@@ -63,9 +61,21 @@ func (client *localDirClient) URI() string {
 
 // IsArchived implements RepoClient.IsArchived.
 func (client *localDirClient) IsArchived() (bool, error) {
-	// TODO
-	// panic("invalid IsArchived()")
-	return false, nil
+	return false, fmt.Errorf("IsArchived: %w", errUnsupportedFeature)
+}
+
+// IsLocal implements RepoClient.IsLocal.
+func (client *localDirClient) IsLocal() bool {
+	return true
+}
+
+func isDir(p string) (bool, error) {
+	fileInfo, err := os.Stat(p)
+	if err != nil {
+		return false, fmt.Errorf("%w", err)
+	}
+
+	return fileInfo.IsDir(), nil
 }
 
 // ListFiles implements RepoClient.ListFiles.
@@ -78,11 +88,17 @@ func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([
 			return fmt.Errorf("failure accessing path %q: %w", pathfn, err)
 		}
 
-		cleanPath := path.Clean(pathfn)
-		if cleanPath == client.path {
-			// fmt.Println("skipping", cleanPath)
+		// Skip directories.
+		d, err := isDir(pathfn)
+		if err != nil {
+			return err
+		}
+		if d {
 			return nil
 		}
+
+		// Remove prefix of the folder.
+		cleanPath := path.Clean(pathfn)
 		prefix := fmt.Sprintf("%v%v", client.path, string(os.PathSeparator))
 		p := strings.TrimPrefix(cleanPath, prefix)
 		files = append(files, p)
@@ -99,8 +115,13 @@ func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([
 
 // GetFileContent implements RepoClient.GetFileContent.
 func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
-	content, err := os.ReadFile(filename)
-	return content, fmt.Errorf("%w", err)
+	// Note: the filenames are stripped from the original path - see ListFiles().
+	fn := path.Join(client.path, filename)
+	content, err := os.ReadFile(fn)
+	if err != nil {
+		return content, fmt.Errorf("%w", err)
+	}
+	return content, nil
 }
 
 // ListMergedPRs implements RepoClient.ListMergedPRs.
@@ -153,7 +174,6 @@ func (client *localDirClient) Search(request clients.SearchRequest) (clients.Sea
 }
 
 func (client *localDirClient) Close() error {
-	// TODO
 	return nil
 }
 
