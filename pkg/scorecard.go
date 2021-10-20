@@ -136,9 +136,16 @@ func RunScorecards(ctx context.Context,
 	}
 	defer repoClient.Close()
 
-	commitSHA, err := getRepoCommitHash(repoClient, repoURI)
+	commits, err := repoClient.ListCommits()
 	if err != nil {
+		// nolint:wrapcheck
 		return ScorecardResult{}, err
+	}
+	var commitSHA string
+	if len(commits) > 0 {
+		commitSHA = commits[0].SHA
+	} else {
+		commitSHA = "no commits found"
 	}
 
 	ret := ScorecardResult{
