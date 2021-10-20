@@ -20,7 +20,7 @@ import (
 	"errors"
 	"fmt"
 
-	clients "github.com/ossf/scorecard/v2/clients"
+	clients "github.com/ossf/scorecard/v3/clients"
 )
 
 type localRepoClient struct {

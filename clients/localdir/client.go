@@ -23,7 +23,7 @@ import (
 
 	"go.uber.org/zap"
 
-	clients "github.com/ossf/scorecard/v2/clients"
+	clients "github.com/ossf/scorecard/v3/clients"
 )
 
 var errUnsupportedFeature = errors.New("unsupported feature")

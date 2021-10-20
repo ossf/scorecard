@@ -32,7 +32,9 @@ import (
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks"
+	"github.com/ossf/scorecard/v3/clients"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	"github.com/ossf/scorecard/v3/clients/localdir"
 	docs "github.com/ossf/scorecard/v3/docs/checks"
 	sce "github.com/ossf/scorecard/v3/errors"
 	"github.com/ossf/scorecard/v3/pkg"
