@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 
 	sce "github.com/ossf/scorecard/v3/errors"
@@ -124,8 +125,8 @@ func (r *RepoURI) String() string {
 	return fmt.Sprintf("%s-%s-%s", r.url.host, r.url.owner, r.url.repo)
 }
 
-// Set parses a URI string into Repo struct.
-func (r *RepoURI) Set(s string) error {
+// set for the v4 version.
+func (r *RepoURI) setV4(s string) error {
 	const two = 2
 	const three = 3
 
@@ -160,6 +161,55 @@ func (r *RepoURI) Set(s string) error {
 	}
 
 	return nil
+}
+
+// set for pre-v4 backward compatibiliity.
+func (r *RepoURI) set(s string) error {
+	var t string
+
+	const two = 2
+	const three = 3
+
+	c := strings.Split(s, "/")
+
+	switch l := len(c); {
+	// This will takes care for repo/owner format.
+	// By default it will use github.com
+	case l == two:
+		t = "github.com/" + c[0] + "/" + c[1]
+	case l >= three:
+		t = s
+	}
+
+	// Allow skipping scheme for ease-of-use, default to https.
+	if !strings.Contains(t, "://") {
+		t = "https://" + t
+	}
+
+	u, e := url.Parse(t)
+	if e != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
+	}
+
+	const splitLen = 2
+	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
+	if len(split) != splitLen {
+		return sce.WithMessage(ErrorInvalidURL, fmt.Sprintf("%v. Exepted full repository url", s))
+	}
+
+	r.url.host, r.url.owner, r.url.repo = u.Host, split[0], split[1]
+	return nil
+}
+
+// Set parses a URI string into Repo struct.
+func (r *RepoURI) Set(s string) error {
+	var v4 bool
+	_, v4 = os.LookupEnv("SCORECARD_V4")
+	if v4 {
+		return r.setV4(s)
+	}
+
+	return r.set(s)
 }
 
 // IsValidGitHubURL checks whether Repo represents a valid GitHub repo and returns errors otherwise.
