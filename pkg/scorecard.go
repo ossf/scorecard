@@ -114,6 +114,33 @@ func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error)
 	}
 }
 
+func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error) {
+	switch uri.GetType() {
+	// URL.
+	case repos.RepoTypeURL:
+		//nolint:unwrapped
+		commits, err := r.ListCommits()
+		if err != nil {
+			// nolint:wrapcheck
+			return "", err
+		}
+
+		if len(commits) > 0 {
+			return commits[0].SHA, nil
+		} else {
+			return "no commits found", nil
+		}
+
+	// LocalDir.
+	case repos.RepoTypeLocalDir:
+		return "no commits for directory repo", nil
+
+	default:
+		return "",
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.GetType()))
+	}
+}
+
 // RunScorecards runs enabled Scorecard checks on a Repo.
 func RunScorecards(ctx context.Context,
 	repoURI *repos.RepoURI,
@@ -136,16 +163,9 @@ func RunScorecards(ctx context.Context,
 	}
 	defer repoClient.Close()
 
-	commits, err := repoClient.ListCommits()
+	commitSHA, err := getRepoCommitHash(repoClient, repoURI)
 	if err != nil {
-		// nolint:wrapcheck
 		return ScorecardResult{}, err
-	}
-	var commitSHA string
-	if len(commits) > 0 {
-		commitSHA = commits[0].SHA
-	} else {
-		commitSHA = "no commits found"
 	}
 
 	ret := ScorecardResult{
