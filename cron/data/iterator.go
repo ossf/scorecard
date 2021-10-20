@@ -61,10 +61,11 @@ func (reader *csvIterator) Next() (repos.RepoURL, error) {
 	ret := repos.RepoURL{
 		Metadata: reader.next.Metadata,
 	}
-	var err error
-	err = ret.Set(reader.next.Repo)
-	if err == nil {
-		err = ret.ValidGitHubURL()
+	if err := ret.Set(reader.next.Repo); err != nil {
+		return ret, fmt.Errorf("error during Set: %w", err)
 	}
-	return ret, errors.Unwrap(err)
+	if err := ret.ValidGitHubURL(); err != nil {
+		return ret, fmt.Errorf("error during ValidGitHubURL: %w", err)
+	}
+	return ret, nil
 }
