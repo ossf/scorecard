@@ -29,8 +29,8 @@ func repoFormatFromRepoURL(repoURLs []repos.RepoURI) []repoFormat {
 	repoentries := make([]repoFormat, 0)
 	for _, repoURL := range repoURLs {
 		repoentry := repoFormat{
-			Repo:     repoURL.GetURL(),
-			Metadata: repoURL.GetMetadata(),
+			Repo:     repoURL.URL(),
+			Metadata: repoURL.Metadata(),
 		}
 		repoentries = append(repoentries, repoentry)
 	}

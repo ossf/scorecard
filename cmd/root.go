@@ -132,7 +132,7 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.Ch
 
 func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logger) (clients.RepoClient, error) {
 	var rc clients.RepoClient
-	switch uri.GetType() {
+	switch uri.RepoType() {
 	// URL.
 	case repos.RepoTypeURL:
 		if err := repo.IsValidGitHubURL(); err != nil {
@@ -147,7 +147,7 @@ func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logge
 		return localdir.CreateLocalDirClient(ctx, logger), nil
 	}
 
-	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.GetType()))
+	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.RepoType()))
 }
 
 func validateFormat(format string) bool {

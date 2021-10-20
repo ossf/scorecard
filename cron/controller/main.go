@@ -59,7 +59,7 @@ func publishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime
 		if err != nil {
 			return shardNum, fmt.Errorf("error reading repoURL: %w", err)
 		}
-		request.Repos = append(request.GetRepos(), repoURL.GetURL())
+		request.Repos = append(request.GetRepos(), repoURL.URL())
 		if len(request.GetRepos()) < shardSize {
 			continue
 		}

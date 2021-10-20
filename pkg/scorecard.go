@@ -66,23 +66,23 @@ func runEnabledChecks(ctx context.Context,
 }
 
 func createRepo(uri *repos.RepoURI) (clients.Repo, error) {
-	switch uri.GetType() {
+	switch uri.RepoType() {
 	// URL.
 	case repos.RepoTypeURL:
 		//nolint:unwrapped
-		return githubrepo.MakeGithubRepo(uri.GetURL())
+		return githubrepo.MakeGithubRepo(uri.URL())
 	// LocalDir.
 	case repos.RepoTypeLocalDir:
 		//nolint:unwrapped
-		return localdir.MakeLocalDirRepo(uri.GetPath())
+		return localdir.MakeLocalDirRepo(uri.Path())
 	default:
 		return nil,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.GetType()))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
 	}
 }
 
 func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error) {
-	switch uri.GetType() {
+	switch uri.RepoType() {
 	// URL.
 	case repos.RepoTypeURL:
 		//nolint:unwrapped
@@ -104,7 +104,7 @@ func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error)
 
 	default:
 		return "",
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.GetType()))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
 	}
 }
 
@@ -113,7 +113,7 @@ func RunScorecards(ctx context.Context,
 	repoURI *repos.RepoURI,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient) (ScorecardResult, error) {
-	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repoURI.GetURL()))
+	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repoURI.URL()))
 	if err != nil {
 		return ScorecardResult{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 	}

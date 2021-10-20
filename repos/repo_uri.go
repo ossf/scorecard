@@ -99,23 +99,23 @@ func (r *RepoURI) Type() string {
 	return "repo"
 }
 
-// GetType gives the type of URI.
-func (r *RepoURI) GetType() RepoType {
+// RepoType gives the type of URI.
+func (r *RepoURI) RepoType() RepoType {
 	return r.repoType
 }
 
-// GetPath retusn the path for a local directory.
-func (r *RepoURI) GetPath() string {
+// Path retusn the path for a local directory.
+func (r *RepoURI) Path() string {
 	return r.localDir.path
 }
 
-// GetURL returns a valid url for Repo struct.
-func (r *RepoURI) GetURL() string {
+// URL returns a valid url for Repo struct.
+func (r *RepoURI) URL() string {
 	return fmt.Sprintf("%s/%s/%s", r.url.host, r.url.owner, r.url.repo)
 }
 
-// GetMetadata returns a valid url for Repo struct.
-func (r *RepoURI) GetMetadata() []string {
+// Metadata returns a valid url for Repo struct.
+func (r *RepoURI) Metadata() []string {
 	return r.metadata
 }
 
@@ -172,7 +172,7 @@ func (r *RepoURI) IsValidGitHubURL() error {
 
 	if strings.TrimSpace(r.url.owner) == "" || strings.TrimSpace(r.url.repo) == "" {
 		return sce.WithMessage(ErrorInvalidGithubURL,
-			fmt.Sprintf("%v. Expected the full reposiroty url", r.GetURL()))
+			fmt.Sprintf("%v. Expected the full repository url", r.URL()))
 	}
 	return nil
 }
