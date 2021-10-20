@@ -64,8 +64,8 @@ func main() {
 	}
 }
 
-func getRepoURLs(iter data.Iterator) ([]repos.RepoURL, error) {
-	repoURLs := make(map[string]*repos.RepoURL)
+func getRepoURLs(iter data.Iterator) ([]repos.RepoURI, error) {
+	repoURLs := make(map[string]*repos.RepoURI)
 	repoMap := make(map[string]map[string]bool)
 	for iter.HasNext() {
 		repo, err := iter.Next()
@@ -73,7 +73,7 @@ func getRepoURLs(iter data.Iterator) ([]repos.RepoURL, error) {
 			return nil, fmt.Errorf("iter.Next: %w", err)
 		}
 		if _, ok := repoMap[repo.URL()]; !ok {
-			repoURLs[repo.URL()] = new(repos.RepoURL)
+			repoURLs[repo.URL()] = new(repos.RepoURI)
 			*repoURLs[repo.URL()] = repo
 			repoMap[repo.URL()] = make(map[string]bool)
 			for _, metadata := range repo.Metadata {
@@ -89,7 +89,7 @@ func getRepoURLs(iter data.Iterator) ([]repos.RepoURL, error) {
 		}
 	}
 
-	newRepoURLs := make([]repos.RepoURL, 0)
+	newRepoURLs := make([]repos.RepoURI, 0)
 	for _, repoURL := range repoURLs {
 		newRepoURLs = append(newRepoURLs, *repoURL)
 	}
