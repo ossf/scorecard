@@ -18,7 +18,7 @@ import (
 	"testing"
 )
 
-func TestRepoURL_ValidGitHubUrl(t *testing.T) {
+func TestRepoURI_ValidGitHubUrl(t *testing.T) {
 	t.Parallel()
 	type fields struct {
 		Host  string
@@ -89,27 +89,29 @@ func TestRepoURL_ValidGitHubUrl(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			r := &RepoURL{
-				Host:  tt.fields.Host,
-				Owner: tt.fields.Owner,
-				Repo:  tt.fields.Repo,
+			r := &RepoURI{
+				url: repoURL{
+					host:  tt.fields.Host,
+					owner: tt.fields.Owner,
+					repo:  tt.fields.Repo,
+				},
 			}
 			t.Log("Test")
 			if err := r.Set(tt.args.s); err != nil {
-				t.Errorf("RepoURL.Set() error = %v", err)
+				t.Errorf("RepoURI.Set() error = %v", err)
 			}
-			if err := r.ValidGitHubURL(); (err != nil) != tt.wantErr {
-				t.Errorf("RepoURL.ValidGitHubUrl() error = %v, wantErr %v", err, tt.wantErr)
+			if err := r.IsValidGitHubURL(); (err != nil) != tt.wantErr {
+				t.Errorf("RepoURI.ValidGitHubUrl() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr {
-				if tt.fields.Host != r.Host {
-					t.Errorf("Repo Host expected to be %s but got %s", tt.fields.Host, r.Host)
+				if tt.fields.Host != r.url.host {
+					t.Errorf("Repo Host expected to be %s but got %s", tt.fields.Host, r.url.host)
 				}
-				if tt.fields.Owner != r.Owner {
-					t.Errorf("Repo owner expected to be %s but got %s", tt.fields.Owner, r.Owner)
+				if tt.fields.Owner != r.url.owner {
+					t.Errorf("Repo owner expected to be %s but got %s", tt.fields.Owner, r.url.owner)
 				}
-				if tt.fields.Repo != r.Repo {
-					t.Errorf("Repo expected to be %s but got %s", tt.fields.Repo, r.Repo)
+				if tt.fields.Repo != r.url.repo {
+					t.Errorf("Repo expected to be %s but got %s", tt.fields.Repo, r.url.repo)
 				}
 			}
 		})
