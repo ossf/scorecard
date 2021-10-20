@@ -62,7 +62,7 @@ type response struct {
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 	if c.RepoClient.IsLocal() {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "not supported for local repos")
-		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 
 	repoURI := fmt.Sprintf("https://%s", c.Repo.URI())
