@@ -26,12 +26,12 @@ func TestCsvWriter(t *testing.T) {
 	testcases := []struct {
 		name     string
 		out      string
-		oldRepos []repos.RepoURL
-		newRepos []repos.RepoURL
+		oldRepos []repos.RepoURI
+		newRepos []repos.RepoURI
 	}{
 		{
 			name: "Basic",
-			oldRepos: []repos.RepoURL{
+			oldRepos: []repos.RepoURI{
 				{
 					Host:     "github.com",
 					Owner:    "owner1",
@@ -39,7 +39,7 @@ func TestCsvWriter(t *testing.T) {
 					Metadata: []string{"meta1"},
 				},
 			},
-			newRepos: []repos.RepoURL{
+			newRepos: []repos.RepoURI{
 				{
 					Host:     "github.com",
 					Owner:    "owner2",

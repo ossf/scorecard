@@ -26,7 +26,7 @@ import (
 
 type outcome struct {
 	expectedErr error
-	repo        repos.RepoURL
+	repo        repos.RepoURI
 	hasError    bool
 }
 
@@ -44,7 +44,7 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:  "github.com",
 						Owner: "owner1",
 						Repo:  "repo1",
@@ -52,7 +52,7 @@ func TestCsvIterator(t *testing.T) {
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:  "github.com",
 						Owner: "owner2",
 						Repo:  "repo2",
@@ -60,7 +60,7 @@ func TestCsvIterator(t *testing.T) {
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:     "github.com",
 						Owner:    "owner3",
 						Repo:     "repo3",
@@ -75,7 +75,7 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:  "github.com",
 						Owner: "owner1",
 						Repo:  "repo1",
@@ -83,7 +83,7 @@ func TestCsvIterator(t *testing.T) {
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:  "github.com",
 						Owner: "owner2",
 						Repo:  "repo2",
@@ -91,7 +91,7 @@ func TestCsvIterator(t *testing.T) {
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:     "github.com",
 						Owner:    "owner3",
 						Repo:     "repo3",
@@ -124,7 +124,7 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:  "github.com",
 						Owner: "owner1",
 						Repo:  "repo1",
@@ -132,7 +132,7 @@ func TestCsvIterator(t *testing.T) {
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:  "github.com",
 						Owner: "owner2",
 						Repo:  "repo2",
@@ -140,7 +140,7 @@ func TestCsvIterator(t *testing.T) {
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:     "github.com",
 						Owner:    "owner3",
 						Repo:     "repo3",
@@ -155,7 +155,7 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:  "github.com",
 						Owner: "owner1",
 						Repo:  "repo1",
@@ -163,7 +163,7 @@ func TestCsvIterator(t *testing.T) {
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURL{
+					repo: repos.RepoURI{
 						Host:  "github.com",
 						Owner: "owner2",
 						Repo:  "repo2",

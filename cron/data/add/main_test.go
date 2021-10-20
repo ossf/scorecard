@@ -25,7 +25,7 @@ import (
 	"github.com/ossf/scorecard/v3/repos"
 )
 
-func isLessThanRepoURL(x, y repos.RepoURL) bool {
+func isLessThanRepoURL(x, y repos.RepoURI) bool {
 	return x.URL() < y.URL()
 }
 
@@ -33,12 +33,12 @@ func TestGetRepoURLs(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
 		name, filename string
-		outcome        []repos.RepoURL
+		outcome        []repos.RepoURI
 	}{
 		{
 			name:     "NoChange",
 			filename: "testdata/no_change.csv",
-			outcome: []repos.RepoURL{
+			outcome: []repos.RepoURI{
 				{
 					Host:     "github.com",
 					Owner:    "owner1",
@@ -55,7 +55,7 @@ func TestGetRepoURLs(t *testing.T) {
 		{
 			name:     "AddMetadata",
 			filename: "testdata/add_metadata.csv",
-			outcome: []repos.RepoURL{
+			outcome: []repos.RepoURI{
 				{
 					Host:     "github.com",
 					Owner:    "owner1",
@@ -73,7 +73,7 @@ func TestGetRepoURLs(t *testing.T) {
 		{
 			name:     "SkipLatest",
 			filename: "testdata/skip_latest.csv",
-			outcome: []repos.RepoURL{
+			outcome: []repos.RepoURI{
 				{
 					Host:     "github.com",
 					Owner:    "owner1",
@@ -90,7 +90,7 @@ func TestGetRepoURLs(t *testing.T) {
 		{
 			name:     "SkipEmpty",
 			filename: "testdata/skip_empty.csv",
-			outcome: []repos.RepoURL{
+			outcome: []repos.RepoURI{
 				{
 					Host:     "github.com",
 					Owner:    "owner1",
@@ -108,7 +108,7 @@ func TestGetRepoURLs(t *testing.T) {
 		{
 			name:     "SkipEmpty_2",
 			filename: "testdata/skip_empty_2.csv",
-			outcome: []repos.RepoURL{
+			outcome: []repos.RepoURI{
 				{
 					Host:     "github.com",
 					Owner:    "owner1",
