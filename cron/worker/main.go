@@ -89,11 +89,7 @@ func processRequest(ctx context.Context,
 	// TODO: run Scorecard for each repo in a separate thread.
 	for i := range repoURLs {
 		repoURL := repoURLs[i]
-<<<<<<< HEAD
 		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", repoURL.URL()))
-=======
-		logger.Info("Running Scorecard for repo: %s", repoURL.GetURL())
->>>>>>> 6c86056 (draft)
 		result, err := pkg.RunScorecards(ctx, &repoURL, checksToRun, repoClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
