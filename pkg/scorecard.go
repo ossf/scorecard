@@ -94,8 +94,7 @@ func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error)
 		//nolint:unwrapped
 		commits, err := r.ListCommits()
 		if err != nil {
-			// nolint:wrapcheck
-			return "", err
+			return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCommits:%v", err.Error()))
 		}
 
 		if len(commits) > 0 {
@@ -112,33 +111,12 @@ func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error)
 		return "",
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
 	}
-}
 
-func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error) {
-	switch uri.RepoType() {
-	// URL.
-	case repos.RepoTypeURL:
-		//nolint:unwrapped
-		commits, err := r.ListCommits()
-		if err != nil {
-			// nolint:wrapcheck
-			return "", err
-		}
-
-		if len(commits) > 0 {
-			return commits[0].SHA, nil
-		} else {
-			return "no commits found", nil
-		}
-
-	// LocalDir.
-	case repos.RepoTypeLocalDir:
-		return "no commits for directory repo", nil
-
-	default:
-		return "",
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
+	if e != nil {
+		return c, sce.WithMessage(sce.ErrScorecardInternal, e.Error())
 	}
+
+	return c, nil
 }
 
 // RunScorecards runs enabled Scorecard checks on a Repo.
