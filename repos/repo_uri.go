@@ -88,6 +88,11 @@ func (r *RepoURI) SetMetadata(m []string) error {
 	return nil
 }
 
+func (r *RepoURI) AppendMetadata(m ...string) error {
+	r.metadata = append(r.metadata, m...)
+	return nil
+}
+
 func (r *RepoURI) SetURL(url string) error {
 	if err := r.Set(url); err != nil {
 		return fmt.Errorf("%w", err)

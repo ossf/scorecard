@@ -76,14 +76,14 @@ func getRepoURLs(iter data.Iterator) ([]repos.RepoURI, error) {
 			repoURLs[repo.URL()] = new(repos.RepoURI)
 			*repoURLs[repo.URL()] = repo
 			repoMap[repo.URL()] = make(map[string]bool)
-			for _, metadata := range repo.Metadata {
+			for _, metadata := range repo.Metadata() {
 				repoMap[repo.URL()][metadata] = true
 			}
 			continue
 		}
-		for _, metadata := range repo.Metadata {
+		for _, metadata := range repo.Metadata() {
 			if _, ok := repoMap[repo.URL()][metadata]; !ok && metadata != "" {
-				repoURLs[repo.URL()].Metadata = append(repoURLs[repo.URL()].Metadata, metadata)
+				repoURLs[repo.URL()].AppendMetadata(metadata...)
 				repoMap[repo.URL()][metadata] = true
 			}
 		}
