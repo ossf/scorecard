@@ -115,7 +115,7 @@ func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error)
 }
 
 func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error) {
-	switch uri.GetType() {
+	switch uri.RepoType() {
 	// URL.
 	case repos.RepoTypeURL:
 		//nolint:unwrapped
@@ -137,7 +137,7 @@ func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error)
 
 	default:
 		return "",
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.GetType()))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
 	}
 }
 
