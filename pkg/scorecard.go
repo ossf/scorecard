@@ -66,19 +66,25 @@ func runEnabledChecks(ctx context.Context,
 }
 
 func createRepo(uri *repos.RepoURI) (clients.Repo, error) {
+	var c clients.repo
+	var e error
 	switch uri.RepoType() {
 	// URL.
 	case repos.RepoTypeURL:
-		//nolint:unwrapped
-		return githubrepo.MakeGithubRepo(uri.URL())
+		c, e = githubrepo.MakeGithubRepo(uri.URL())
 	// LocalDir.
 	case repos.RepoTypeLocalDir:
-		//nolint:unwrapped
-		return localdir.MakeLocalDirRepo(uri.Path())
+		c, e = localdir.MakeLocalDirRepo(uri.Path())
 	default:
 		return nil,
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
 	}
+
+	if e != nil {
+		return c, sce.WithMessage(sce.ErrScorecardInternal, e.Error())
+	}
+
+	return c, nil
 }
 
 func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error) {
