@@ -215,7 +215,7 @@ func getDependencies(in io.Reader) (oldRepos, newRepos []repos.RepoURI, e error)
 		}
 		oldRepos = append(oldRepos, repo)
 		// We do not handle duplicates.
-		m[repo.URL()] = repo.Metadata
+		m[repo.URL()] = repo.Metadata()
 	}
 
 	// Create a list of project dependencies that are not already present.
@@ -224,7 +224,7 @@ func getDependencies(in io.Reader) (oldRepos, newRepos []repos.RepoURI, e error)
 		for _, item := range getBazelDeps(repo) {
 			if _, ok := m[item.URL()]; !ok {
 				// Also add to m to avoid dupes.
-				m[item.URL()] = item.Metadata
+				m[item.URL()] = item.Metadata()
 				newRepos = append(newRepos, item)
 			}
 		}
@@ -233,7 +233,7 @@ func getDependencies(in io.Reader) (oldRepos, newRepos []repos.RepoURI, e error)
 		for _, item := range getGoDeps(repo) {
 			if _, ok := m[item.URL()]; !ok {
 				// Also add to m to avoid dupes.
-				m[item.URL()] = item.Metadata
+				m[item.URL()] = item.Metadata()
 				newRepos = append(newRepos, item)
 			}
 		}
