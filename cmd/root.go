@@ -150,6 +150,15 @@ func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logge
 	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.GetType()))
 }
 
+func validateFormat(format string) bool {
+	switch format {
+	case "json", "sarif", "default":
+		return true
+	default:
+		return false
+	}
+}
+
 var rootCmd = &cobra.Command{
 	Use:   scorecardUse,
 	Short: scorecardShort,
@@ -165,6 +174,11 @@ var rootCmd = &cobra.Command{
 
 		if policyFile != "" && !v3 {
 			log.Fatal("policy not supported yet")
+		}
+
+		// Validate format.
+		if !validateFormat(format) {
+			log.Fatalf("unsupported format '%s'", format)
 		}
 
 		policy, err := readPolicy()
