@@ -24,13 +24,13 @@ import (
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	"github.com/ossf/scorecard/v2/checker"
-	"github.com/ossf/scorecard/v2/clients"
-	"github.com/ossf/scorecard/v2/clients/githubrepo"
-	"github.com/ossf/scorecard/v2/clients/localdir"
-	sce "github.com/ossf/scorecard/v2/errors"
-	"github.com/ossf/scorecard/v2/repos"
-	"github.com/ossf/scorecard/v2/stats"
+	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/clients"
+	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	"github.com/ossf/scorecard/v3/clients/localdir"
+	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v3/repos"
+	"github.com/ossf/scorecard/v3/stats"
 )
 
 func logStats(ctx context.Context, startTime time.Time) {
@@ -69,41 +69,14 @@ func createRepo(uri *repos.RepoURI) (clients.Repo, error) {
 	switch uri.GetType() {
 	// URL.
 	case repos.RepoTypeURL:
-		//nolint:wrapcheck
+		//nolint:unwrapped
 		return githubrepo.MakeGithubRepo(uri.GetURL())
 	// LocalDir.
 	case repos.RepoTypeLocalDir:
-		//nolint:wrapcheck
+		//nolint:unwrapped
 		return localdir.MakeLocalDirRepo(uri.GetPath())
 	default:
 		return nil,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.GetType()))
-	}
-}
-
-func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error) {
-	switch uri.GetType() {
-	// URL.
-	case repos.RepoTypeURL:
-		//nolint:unwrapped
-		commits, err := r.ListCommits()
-		if err != nil {
-			// nolint:wrapcheck
-			return "", err
-		}
-
-		if len(commits) > 0 {
-			return commits[0].SHA, nil
-		} else {
-			return "no commits found", nil
-		}
-
-	// LocalDir.
-	case repos.RepoTypeLocalDir:
-		return "no commits for directory repo", nil
-
-	default:
-		return "",
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.GetType()))
 	}
 }
@@ -130,9 +103,16 @@ func RunScorecards(ctx context.Context,
 	}
 	defer repoClient.Close()
 
-	commitSHA, err := getRepoCommitHash(repoClient, repoURI)
+	commits, err := repoClient.ListCommits()
 	if err != nil {
+		// nolint:wrapcheck
 		return ScorecardResult{}, err
+	}
+	var commitSHA string
+	if len(commits) > 0 {
+		commitSHA = commits[0].SHA
+	} else {
+		commitSHA = "no commits found"
 	}
 
 	ret := ScorecardResult{
