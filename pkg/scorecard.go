@@ -66,7 +66,7 @@ func runEnabledChecks(ctx context.Context,
 }
 
 func createRepo(uri *repos.RepoURI) (clients.Repo, error) {
-	var c clients.repo
+	var c clients.Repo
 	var e error
 	switch uri.RepoType() {
 	// URL.

@@ -164,15 +164,15 @@ var rootCmd = &cobra.Command{
 	Short: scorecardShort,
 	Long:  scorecardLong,
 	Run: func(cmd *cobra.Command, args []string) {
-		// UPGRADEv3: remove.
-		var v3 bool
-		_, v3 = os.LookupEnv("SCORECARD_V3")
+		// UPGRADEv4: remove.
+		var v4 bool
+		_, v4 = os.LookupEnv("SCORECARD_V4")
 
-		if format == formatSarif && !v3 {
+		if format == formatSarif && !v4 {
 			log.Fatal("sarif not supported yet")
 		}
 
-		if policyFile != "" && !v3 {
+		if policyFile != "" && !v4 {
 			log.Fatal("policy not supported yet")
 		}
 
