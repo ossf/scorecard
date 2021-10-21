@@ -114,6 +114,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	case !errors.Is(err, sce.ErrRepoUnreachable):
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
+
 	return checker.CreateMinScoreResult(CheckSecurityPolicy, "security policy file not detected")
 }
 

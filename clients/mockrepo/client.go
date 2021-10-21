@@ -273,15 +273,15 @@ func (mr *MockRepoClientMockRecorder) Search(request interface{}) *gomock.Call {
 }
 
 // URL mocks base method.
-func (m *MockRepoClient) URL() string {
+func (m *MockRepoClient) URI() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "URL")
+	ret := m.ctrl.Call(m, "URI")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// URL indicates an expected call of URL.
-func (mr *MockRepoClientMockRecorder) URL() *gomock.Call {
+// URI indicates an expected call of URI.
+func (mr *MockRepoClientMockRecorder) URI() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "URL", reflect.TypeOf((*MockRepoClient)(nil).URL))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "URI", reflect.TypeOf((*MockRepoClient)(nil).URI))
 }

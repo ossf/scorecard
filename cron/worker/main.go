@@ -72,13 +72,13 @@ func processRequest(ctx context.Context,
 		return nil
 	}
 
-	repoURLs := make([]repos.RepoURL, 0, len(batchRequest.GetRepos()))
+	repoURLs := make([]repos.RepoURI, 0, len(batchRequest.GetRepos()))
 	for _, repo := range batchRequest.GetRepos() {
-		repoURL := repos.RepoURL{}
+		repoURL := repos.RepoURI{}
 		if err := repoURL.Set(repo); err != nil {
 			return fmt.Errorf("error setting RepoURL: %w", err)
 		}
-		if err := repoURL.ValidGitHubURL(); err != nil {
+		if err := repoURL.IsValidGitHubURL(); err != nil {
 			return fmt.Errorf("url is not a valid GitHub URL: %w", err)
 		}
 		repoURLs = append(repoURLs, repoURL)
@@ -87,9 +87,10 @@ func processRequest(ctx context.Context,
 	var buffer bytes.Buffer
 	var buffer2 bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
-	for _, repoURL := range repoURLs {
+	for i := range repoURLs {
+		repoURL := repoURLs[i]
 		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", repoURL.URL()))
-		result, err := pkg.RunScorecards(ctx, repoURL, checksToRun, repoClient)
+		result, err := pkg.RunScorecards(ctx, &repoURL, checksToRun, repoClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue

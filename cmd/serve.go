@@ -59,13 +59,13 @@ var serveCmd = &cobra.Command{
 			if len(s) != length {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
-			repo := repos.RepoURL{}
+			repo := repos.RepoURI{}
 			if err := repo.Set(repoParam); err != nil {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
 			ctx := r.Context()
 			repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient)
+			repoResult, err := pkg.RunScorecards(ctx, &repo, checks.AllChecks, repoClient)
 			if err != nil {
 				sugar.Error(err)
 				rw.WriteHeader(http.StatusInternalServerError)

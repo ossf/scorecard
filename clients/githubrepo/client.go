@@ -99,8 +99,8 @@ func (client *Client) InitRepo(inputRepo clients.Repo) error {
 	return nil
 }
 
-// URL implements RepoClient.URL.
-func (client *Client) URL() string {
+// URI implements RepoClient.URI.
+func (client *Client) URI() string {
 	return fmt.Sprintf("github.com/%s/%s", client.owner, client.repoName)
 }
 
