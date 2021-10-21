@@ -83,7 +83,9 @@ func getRepoURLs(iter data.Iterator) ([]repos.RepoURI, error) {
 		}
 		for _, metadata := range repo.Metadata() {
 			if _, ok := repoMap[repo.URL()][metadata]; !ok && metadata != "" {
-				repoURLs[repo.URL()].AppendMetadata(metadata)
+				if err := repoURLs[repo.URL()].AppendMetadata(metadata); err != nil {
+					return nil, fmt.Errorf("AppendMetadata: %w", err)
+				}
 				repoMap[repo.URL()][metadata] = true
 			}
 		}

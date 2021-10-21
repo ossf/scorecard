@@ -27,7 +27,7 @@ import (
 	"github.com/ossf/scorecard/v3/repos"
 )
 
-func isLessThanRepoURL(x, y repos.RepoURI) bool {
+func isLessThanRepoURL(x, y *repos.RepoURI) bool {
 	return x.URL() < y.URL()
 }
 
