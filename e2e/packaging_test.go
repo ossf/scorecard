@@ -43,18 +43,12 @@ var _ = Describe("E2E TEST:"+checks.CheckPackaging, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
+				Score:         checker.InconclusiveResultScore,
+				NumberOfWarn:  1,
 				NumberOfInfo:  2,
 				NumberOfDebug: 2,
 			}
 			result := checks.Packaging(&req)
-
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
-			// New version.
 			Expect(scut.ValidateTestReturn(nil, "use packaging", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})

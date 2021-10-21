@@ -30,7 +30,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 	Context("E2E TEST:Validating branch protection", func() {
 		It("Should fail to return branch protection on other repositories", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := githubrepo.MakeGithubRepo("apache/airflow")
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo)
@@ -43,48 +43,18 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         1,
-				NumberOfWarn:  3,
-				NumberOfInfo:  0,
+				Score:         9,
+				NumberOfWarn:  1,
+				NumberOfInfo:  8,
 				NumberOfDebug: 0,
 			}
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).ShouldNot(BeNil())
-			Expect(result.Pass).Should(BeFalse())
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection not accessible", &expected, &result, &dl)).Should(BeTrue())
-		})
-		Context("E2E TEST:Validating branch protection", func() {
-			It("Should fail to return branch protection on other repositories", func() {
-				dl := scut.TestDetailLogger{}
-				repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
-				Expect(err).Should(BeNil())
-				repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-				err = repoClient.InitRepo(repo)
-				Expect(err).Should(BeNil())
-				req := checker.CheckRequest{
-					Ctx:        context.Background(),
-					RepoClient: repoClient,
-					Repo:       repo,
-					Dlogger:    &dl,
-				}
-				expected := scut.TestReturn{
-					Error:         nil,
-					Score:         9,
-					NumberOfWarn:  1,
-					NumberOfInfo:  8,
-					NumberOfDebug: 0,
-				}
-				result := checks.BranchProtection(&req)
-				// UPGRADEv2: to remove.
-				// Old version.
-				Expect(result.Error).Should(BeNil())
-				Expect(result.Pass).Should(BeTrue())
-				// New version.
-				Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
-			})
+			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })
