@@ -8,6 +8,7 @@
 ## Overview 
 
 -  [What Is Scorecards?](#what-is-scorecards)
+-  [Prominent Scorecards Users](#prominent-scorecards-users)
 
 ## Using Scorecards
 
@@ -50,6 +51,13 @@ The inspiration for Scorecards’ logo: ["You passed! All D's ... and an A!"](ht
 1.  Use this data to proactively improve the security posture of the critical
     projects the world depends on.
 
+### Prominent Scorecards Users
+
+Scorecards has been run on thousands of projects to monitor and track security metrics. Prominent projects that use Scorecards include:
+
+- [sos.dev](sos.dev)
+- [deps.dev](deps.dev)
+- [metrics.openssf.org](metrics.openssf.org)
 
 ## Using Scorecards
 
@@ -385,10 +393,15 @@ meetings.
 
 See the
 [Community Calendar](https://calendar.google.com/calendar?cid=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ)
-for the schedule and meeting invitations. The meetings happen biweekly
-https://calendar.google.com/calendar/embed?src=s63voefhp5i9pfltb5q67ngpes%40group.calendar.google.com&ctz=America%2FLos_Angeles
+for the schedule and meeting invitations. The meetings [happen biweekly](https://calendar.google.com/calendar/embed?src=s63voefhp5i9pfltb5q67ngpes%40group.calendar.google.com&ctz=America%2FLos_Angeles).
 
-For realtime discussion, you can join the
+[Join](https://support.google.com/groups/answer/1067205?hl=en) our email groups:
+
+- ossf-scorecard-dev@googlegroups.com for topics related to Scorecard development, such as asking questions about integration or receiving design docs.
+- ossf-scorecard-announce@googlegroups.com for general announcements such as upcoming conference talks or new releases. 
+
+
+For real time discussion, you can join the
 [#security_scorecards](https://slack.openssf.org/#security_scorecards) slack
 channel. Slack requires registration, but the openssf team is open
 invitation to anyone to register here. Feel free to come and ask any
