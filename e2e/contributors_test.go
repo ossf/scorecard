@@ -56,33 +56,5 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "several contributors", &expected, &result, &dl)).Should(BeTrue())
 		})
-		It("Should return valid project contributors", func() {
-			dl := scut.TestDetailLogger{}
-			repo, err := githubrepo.MakeGithubRepo("apache/airflow")
-			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo)
-			Expect(err).Should(BeNil())
-			checkRequest := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
-			}
-			expected := scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			}
-			result := checks.Contributors(&checkRequest)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
-			// New version.
-			Expect(scut.ValidateTestReturn(nil, "several contributors", &expected, &result, &dl)).Should(BeTrue())
-		})
 	})
 })

@@ -32,7 +32,7 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 	Context("E2E TEST:Validating use of code reviews", func() {
 		It("Should return use of code reviews", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := githubrepo.MakeGithubRepo("apache/airflow")
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo)
@@ -46,17 +46,12 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
+				Score:         checker.MinResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			}
 			result := checks.DoesCodeReview(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
-			// New version.
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
