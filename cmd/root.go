@@ -147,7 +147,6 @@ func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logge
 		if err := repo.IsValidGitHubURL(); err != nil {
 			return rc, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
-
 		rc = githubrepo.CreateGithubRepoClient(ctx, logger)
 		return rc, nil
 

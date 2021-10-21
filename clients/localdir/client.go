@@ -81,7 +81,6 @@ func isDir(p string) (bool, error) {
 // ListFiles implements RepoClient.ListFiles.
 func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	files := []string{}
-	// fmt.Println("folder:", client.path)
 
 	err := filepath.Walk(client.path, func(pathfn string, info fs.FileInfo, err error) error {
 		if err != nil {
@@ -102,20 +101,18 @@ func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([
 		prefix := fmt.Sprintf("%v%v", client.path, string(os.PathSeparator))
 		p := strings.TrimPrefix(cleanPath, prefix)
 		files = append(files, p)
-		// fmt.Printf("visited file or dir: %q\n", p)
 		return nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error walking the path %q: %w", client.path, err)
 	}
-	// fmt.Printf("%v", len(files))
-	// panic("ba")
+
 	return files, nil
 }
 
 // GetFileContent implements RepoClient.GetFileContent.
 func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
-	// Note: the filenames are stripped from the original path - see ListFiles().
+	// Note: the filenames do not contain the original path - see ListFiles().
 	fn := path.Join(client.path, filename)
 	content, err := os.ReadFile(fn)
 	if err != nil {

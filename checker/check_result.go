@@ -231,8 +231,6 @@ func CreateInconclusiveResult(name, reason string) CheckResult {
 	}
 }
 
-var v int = 0
-
 // CreateRuntimeErrorResult is used when the check fails to run because of a runtime error.
 func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	return CheckResult{

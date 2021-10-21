@@ -57,28 +57,15 @@ func (reader *csvIterator) HasNext() bool {
 func (reader *csvIterator) Next() (repos.RepoURI, error) {
 	ret := repos.RepoURI{}
 	if reader.err != nil {
-<<<<<<< HEAD
 		return ret, fmt.Errorf("reader has error: %w", reader.err)
-=======
-		return ret, reader.err
->>>>>>> 6c86056 (draft)
 	}
 
 	err := ret.SetMetadata(reader.next.Metadata)
 	if err != nil {
-<<<<<<< HEAD
 		return ret, fmt.Errorf("error during SetMetadata: %w", err)
 	}
 	if err := ret.Set(reader.next.Repo); err != nil {
 		return ret, fmt.Errorf("error during Set: %w", err)
-=======
-		return ret, err
-	}
-
-	err = ret.SetURL(reader.next.Repo)
-	if err == nil {
-		err = ret.IsValidGitHubURL()
->>>>>>> 6c86056 (draft)
 	}
 	if err := ret.IsValidGitHubURL(); err != nil {
 		return ret, fmt.Errorf("error during IsValidGitHubURL: %w", err)
