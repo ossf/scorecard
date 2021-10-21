@@ -178,7 +178,7 @@ func (r *RepoURI) set(s string) error {
 	c := strings.Split(s, "/")
 
 	switch l := len(c); {
-	// This will takes care for repo/owner format.
+	// This will takes care of repo/owner format.
 	// By default it will use github.com
 	case l == two:
 		t = "github.com/" + c[0] + "/" + c[1]
