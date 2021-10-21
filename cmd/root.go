@@ -229,9 +229,6 @@ var rootCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		// nolint
-		defer logger.Sync() // flushes buffer, if any
-
 		enabledChecks, err := getEnabledChecks(policy, checksToRun)
 		if err != nil {
 			panic(err)
