@@ -135,12 +135,8 @@ func (r *RepoURI) String() string {
 	return fmt.Sprintf("%s-%s-%s", r.url.host, r.url.owner, r.url.repo)
 }
 
-// set for the v4 version.
+// setV4 for the v4 version.
 func (r *RepoURI) setV4(s string) error {
-	const two = 2
-	const three = 3
-
-	// TODO: can we use this for pypi://, rubygems://, etc?
 	const httpsPrefix = "https://"
 	const filePrefix = "file://"
 
@@ -173,7 +169,6 @@ func (r *RepoURI) setV4(s string) error {
 	return nil
 }
 
-// set for pre-v4 backward compatibiliity.
 func (r *RepoURI) set(s string) error {
 	var t string
 
