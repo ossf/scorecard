@@ -20,8 +20,10 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"reflect"
 	"strings"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 
 	sce "github.com/ossf/scorecard/v3/errors"
 )
@@ -33,13 +35,16 @@ var (
 	ErrorInvalidGithubURL = errors.New("invalid GitHub repo URL")
 	// ErrorInvalidURL indicates the repo's full GitHub URL was not passed.
 	ErrorInvalidURL = errors.New("invalid repo flag")
+	// errInvalidRepoType indicates the repo's type is invalid.
+	errInvalidRepoType = errors.New("invalid repo type")
 )
 
 // RepoURI represents the URI for a repo.
+//nolint:govet
 type RepoURI struct {
 	repoType RepoType
-	url      repoURL
 	localDir repoLocalDir
+	url      repoURL
 	metadata []string
 }
 
@@ -61,13 +66,23 @@ const (
 	RepoTypeLocalDir
 )
 
+func (r repoLocalDir) Equal(o repoLocalDir) bool {
+	return r.path == o.path
+}
+
+func (r repoURL) Equal(o repoURL) bool {
+	return r.host == o.host &&
+		r.owner == o.owner &&
+		r.repo == o.repo
+}
+
 // NewFromURL creates a RepoURI from URL.
 func NewFromURL(u string) (*RepoURI, error) {
 	r := &RepoURI{
 		repoType: RepoTypeURL,
 	}
 
-	if err := r.Set(u); err != nil {
+	if err := r.SetURL(u); err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
@@ -84,25 +99,35 @@ func NewFromLocalDirectory(path string) *RepoURI {
 	}
 }
 
-func (r *RepoURI) Equal(o *RepoURI) bool {
-	return reflect.DeepEqual(r, o)
-}
-
+// SetMetadata sets metadata.
 func (r *RepoURI) SetMetadata(m []string) error {
 	r.metadata = m
 	return nil
 }
 
+// AppendMetadata appends metadata.
 func (r *RepoURI) AppendMetadata(m ...string) error {
 	r.metadata = append(r.metadata, m...)
 	return nil
 }
 
-func (r *RepoURI) SetURL(url string) error {
-	if err := r.Set(url); err != nil {
+// SetURL sets the URL.
+func (r *RepoURI) SetURL(u string) error {
+	if r.repoType != RepoTypeURL {
+		return fmt.Errorf("%w", errInvalidRepoType)
+	}
+	if err := r.Set(u); err != nil {
 		return fmt.Errorf("%w", err)
 	}
 	return nil
+}
+
+// Equal checks objects for equality.
+func (r *RepoURI) Equal(o *RepoURI) bool {
+	return cmp.Equal(r.localDir, o.localDir) &&
+		cmp.Equal(r.url, o.url) &&
+		cmp.Equal(r.repoType, o.repoType) &&
+		cmp.Equal(r.metadata, o.metadata, cmpopts.SortSlices(func(x, y string) bool { return x < y }))
 }
 
 // Type method is needed so that this struct can be used as cmd flag.

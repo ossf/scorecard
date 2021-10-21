@@ -100,9 +100,9 @@ func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error)
 
 		if len(commits) > 0 {
 			return commits[0].SHA, nil
-		} else {
-			return "no commits found", nil
 		}
+
+		return "no commits found", nil
 
 	// LocalDir.
 	case repos.RepoTypeLocalDir:

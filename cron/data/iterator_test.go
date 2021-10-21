@@ -20,6 +20,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/ossf/scorecard/v3/repos"
 )
 
@@ -207,7 +209,7 @@ func TestCsvIterator(t *testing.T) {
 				}
 
 				if !outcome.hasError {
-					u := fmt.Sprintf("https://%s/%s/%s",
+					u := fmt.Sprintf("%s/%s/%s",
 						outcome.repoURI.host, outcome.repoURI.owner, outcome.repoURI.repo)
 					outcomeRepo, err := repos.NewFromURL(u)
 					if err != nil {
@@ -217,7 +219,7 @@ func TestCsvIterator(t *testing.T) {
 						t.Errorf("outcomeRepo.AppendMetadata: %v", err)
 					}
 
-					if !outcomeRepo.Equal(&repoURL) {
+					if !cmp.Equal(outcomeRepo, &repoURL) {
 						t.Errorf("expected repoURL: %+v, got %+v", *outcomeRepo, repoURL)
 					}
 				}
