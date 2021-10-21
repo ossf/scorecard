@@ -160,15 +160,6 @@ func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logge
 	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.RepoType()))
 }
 
-func validateFormat(format string) bool {
-	switch format {
-	case "json", "sarif", "default":
-		return true
-	default:
-		return false
-	}
-}
-
 var rootCmd = &cobra.Command{
 	Use:   scorecardUse,
 	Short: scorecardShort,

@@ -111,12 +111,6 @@ func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error)
 		return "",
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
 	}
-
-	if e != nil {
-		return c, sce.WithMessage(sce.ErrScorecardInternal, e.Error())
-	}
-
-	return c, nil
 }
 
 // RunScorecards runs enabled Scorecard checks on a Repo.
