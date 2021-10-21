@@ -209,7 +209,6 @@ func TestCsvIterator(t *testing.T) {
 				if !outcome.hasError {
 					u := fmt.Sprintf("https://%s/%s/%s",
 						outcome.repoURI.host, outcome.repoURI.owner, outcome.repoURI.repo)
-
 					outcomeRepo, err := repos.NewFromURL(u)
 					if err != nil {
 						t.Errorf("repos.NewFromURL: %v", err)
