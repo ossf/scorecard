@@ -16,23 +16,30 @@ package data
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v3/repos"
 )
 
+type fields struct {
+	host     string
+	owner    string
+	repo     string
+	metadata []string
+}
+
 type outcome struct {
 	expectedErr error
-	repo        repos.RepoURI
+	repoURI     fields
 	hasError    bool
 }
 
 // nolint: gocognit
 func TestCsvIterator(t *testing.T) {
 	t.Parallel()
+
 	testcases := []struct {
 		name     string
 		filename string
@@ -44,27 +51,27 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:  "github.com",
-						Owner: "owner1",
-						Repo:  "repo1",
+					repoURI: fields{
+						host:  "github.com",
+						owner: "owner1",
+						repo:  "repo1",
 					},
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:  "github.com",
-						Owner: "owner2",
-						Repo:  "repo2",
+					repoURI: fields{
+						host:  "github.com",
+						owner: "owner2",
+						repo:  "repo2",
 					},
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:     "github.com",
-						Owner:    "owner3",
-						Repo:     "repo3",
-						Metadata: []string{"meta"},
+					repoURI: fields{
+						host:     "github.com",
+						owner:    "owner3",
+						repo:     "repo3",
+						metadata: []string{"meta"},
 					},
 				},
 			},
@@ -75,27 +82,27 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:  "github.com",
-						Owner: "owner1",
-						Repo:  "repo1",
+					repoURI: fields{
+						host:  "github.com",
+						owner: "owner1",
+						repo:  "repo1",
 					},
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:  "github.com",
-						Owner: "owner2",
-						Repo:  "repo2",
+					repoURI: fields{
+						host:  "github.com",
+						owner: "owner2",
+						repo:  "repo2",
 					},
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:     "github.com",
-						Owner:    "owner3",
-						Repo:     "repo3",
-						Metadata: []string{"meta"},
+					repoURI: fields{
+						host:     "github.com",
+						owner:    "owner3",
+						repo:     "repo3",
+						metadata: []string{"meta"},
 					},
 				},
 			},
@@ -106,7 +113,7 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError:    true,
-					expectedErr: repos.ErrorUnsupportedHost,
+					expectedErr: repos.ErrorUnsupportedhost,
 				},
 				{
 					hasError:    true,
@@ -124,27 +131,27 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:  "github.com",
-						Owner: "owner1",
-						Repo:  "repo1",
+					repoURI: fields{
+						host:  "github.com",
+						owner: "owner1",
+						repo:  "repo1",
 					},
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:  "github.com",
-						Owner: "owner2",
-						Repo:  "repo2",
+					repoURI: fields{
+						host:  "github.com",
+						owner: "owner2",
+						repo:  "repo2",
 					},
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:     "github.com",
-						Owner:    "owner3",
-						Repo:     "repo3",
-						Metadata: []string{"meta"},
+					repoURI: fields{
+						host:     "github.com",
+						owner:    "owner3",
+						repo:     "repo3",
+						metadata: []string{"meta"},
 					},
 				},
 			},
@@ -155,18 +162,18 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:  "github.com",
-						Owner: "owner1",
-						Repo:  "repo1",
+					repoURI: fields{
+						host:  "github.com",
+						owner: "owner1",
+						repo:  "repo1",
 					},
 				},
 				{
 					hasError: false,
-					repo: repos.RepoURI{
-						Host:  "github.com",
-						Owner: "owner2",
-						Repo:  "repo2",
+					repoURI: fields{
+						host:  "github.com",
+						owner: "owner2",
+						repo:  "repo2",
 					},
 				},
 				{
@@ -198,8 +205,22 @@ func TestCsvIterator(t *testing.T) {
 				if (err != nil) != outcome.hasError {
 					t.Errorf("expected hasError: %t, got: %v", outcome.hasError, err)
 				}
-				if !outcome.hasError && !cmp.Equal(outcome.repo, repoURL) {
-					t.Errorf("expected repoURL: %s, got %s", outcome.repo, repoURL)
+
+				if !outcome.hasError {
+					u := fmt.Sprintf("https://%s/%s/%s",
+						outcome.repoURI.host, outcome.repoURI.owner, outcome.repoURI.repo)
+
+					outcomeRepo, err := repos.NewFromURL(u)
+					if err != nil {
+						t.Errorf("repos.NewFromURL: %v", err)
+					}
+					if err := outcomeRepo.AppendMetadata(outcome.repoURI.metadata...); err != nil {
+						t.Errorf("outcomeRepo.AppendMetadata: %v", err)
+					}
+
+					if !outcomeRepo.Equal(&repoURL) {
+						t.Errorf("expected repoURL: %+v, got %+v", *outcomeRepo, repoURL)
+					}
 				}
 				if outcome.hasError && outcome.expectedErr != nil && !errors.Is(err, outcome.expectedErr) {
 					t.Errorf("expected error: %v, got %v", outcome.expectedErr, err)

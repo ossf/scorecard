@@ -21,9 +21,9 @@ import (
 func TestRepoURI_ValidGitHubUrl(t *testing.T) {
 	t.Parallel()
 	type fields struct {
-		Host  string
-		Owner string
-		Repo  string
+		host  string
+		owner string
+		repo  string
 	}
 	type args struct {
 		s string
@@ -37,9 +37,9 @@ func TestRepoURI_ValidGitHubUrl(t *testing.T) {
 		{
 			name: "Valid http address",
 			fields: fields{
-				Host:  "github.com",
-				Owner: "foo",
-				Repo:  "kubeflow",
+				host:  "github.com",
+				owner: "foo",
+				repo:  "kubeflow",
 			},
 			args:    args{s: "https://github.com/foo/kubeflow"},
 			wantErr: false,
@@ -47,9 +47,9 @@ func TestRepoURI_ValidGitHubUrl(t *testing.T) {
 		{
 			name: "Valid http address with trailing slash",
 			fields: fields{
-				Host:  "github.com",
-				Owner: "foo",
-				Repo:  "kubeflow",
+				host:  "github.com",
+				owner: "foo",
+				repo:  "kubeflow",
 			},
 			args:    args{s: "https://github.com/foo/kubeflow/"},
 			wantErr: false,
@@ -57,9 +57,9 @@ func TestRepoURI_ValidGitHubUrl(t *testing.T) {
 		{
 			name: "Non github repository",
 			fields: fields{
-				Host:  "gitlab.com",
-				Owner: "foo",
-				Repo:  "kubeflow",
+				host:  "gitlab.com",
+				owner: "foo",
+				repo:  "kubeflow",
 			},
 			args:    args{s: "https://gitlab.com/foo/kubeflow"},
 			wantErr: true,
@@ -67,9 +67,9 @@ func TestRepoURI_ValidGitHubUrl(t *testing.T) {
 		{
 			name: "github repository",
 			fields: fields{
-				Host:  "github.com",
-				Owner: "foo",
-				Repo:  "kubeflow",
+				host:  "github.com",
+				owner: "foo",
+				repo:  "kubeflow",
 			},
 			args:    args{s: "foo/kubeflow"},
 			wantErr: false,
@@ -77,9 +77,9 @@ func TestRepoURI_ValidGitHubUrl(t *testing.T) {
 		{
 			name: "github repository",
 			fields: fields{
-				Host:  "github.com",
-				Owner: "foo",
-				Repo:  "kubeflow",
+				host:  "github.com",
+				owner: "foo",
+				repo:  "kubeflow",
 			},
 			args:    args{s: "https://github.com/foo/kubeflow"},
 			wantErr: false,
@@ -91,27 +91,27 @@ func TestRepoURI_ValidGitHubUrl(t *testing.T) {
 			t.Parallel()
 			r := &RepoURI{
 				url: repoURL{
-					host:  tt.fields.Host,
-					owner: tt.fields.Owner,
-					repo:  tt.fields.Repo,
+					host:  tt.fields.host,
+					owner: tt.fields.owner,
+					repo:  tt.fields.repo,
 				},
 			}
 			t.Log("Test")
 			if err := r.Set(tt.args.s); err != nil {
-				t.Errorf("RepoURI.Set() error = %v", err)
+				t.Errorf("repoURI.Set() error = %v", err)
 			}
 			if err := r.IsValidGitHubURL(); (err != nil) != tt.wantErr {
-				t.Errorf("RepoURI.ValidGitHubUrl() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("repoURI.ValidGitHubUrl() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr {
-				if tt.fields.Host != r.url.host {
-					t.Errorf("Repo Host expected to be %s but got %s", tt.fields.Host, r.url.host)
+				if tt.fields.host != r.url.host {
+					t.Errorf("repo host expected to be %s but got %s", tt.fields.host, r.url.host)
 				}
-				if tt.fields.Owner != r.url.owner {
-					t.Errorf("Repo owner expected to be %s but got %s", tt.fields.Owner, r.url.owner)
+				if tt.fields.owner != r.url.owner {
+					t.Errorf("repo owner expected to be %s but got %s", tt.fields.owner, r.url.owner)
 				}
-				if tt.fields.Repo != r.url.repo {
-					t.Errorf("Repo expected to be %s but got %s", tt.fields.Repo, r.url.repo)
+				if tt.fields.repo != r.url.repo {
+					t.Errorf("repo expected to be %s but got %s", tt.fields.repo, r.url.repo)
 				}
 			}
 		})

@@ -16,6 +16,7 @@ package data
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/ossf/scorecard/v3/repos"
@@ -26,25 +27,25 @@ func TestCsvWriter(t *testing.T) {
 	testcases := []struct {
 		name     string
 		out      string
-		oldRepos []repos.RepoURI
-		newRepos []repos.RepoURI
+		oldRepos []fields
+		newRepos []fields
 	}{
 		{
 			name: "Basic",
-			oldRepos: []repos.RepoURI{
+			oldRepos: []fields{
 				{
-					Host:     "github.com",
-					Owner:    "owner1",
-					Repo:     "repo1",
-					Metadata: []string{"meta1"},
+					host:     "github.com",
+					owner:    "owner1",
+					repo:     "repo1",
+					metadata: []string{"meta1"},
 				},
 			},
-			newRepos: []repos.RepoURI{
+			newRepos: []fields{
 				{
-					Host:     "github.com",
-					Owner:    "owner2",
-					Repo:     "repo2",
-					Metadata: []string{"meta2"},
+					host:     "github.com",
+					owner:    "owner2",
+					repo:     "repo2",
+					metadata: []string{"meta2"},
 				},
 			},
 			out: `repo,metadata
@@ -59,7 +60,30 @@ github.com/owner2/repo2,meta2
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := SortAndAppendTo(&buf, testcase.oldRepos, testcase.newRepos)
+			var oldRepos []repos.RepoURI
+			var newRepos []repos.RepoURI
+			for _, v := range testcase.oldRepos {
+				r, err := repos.NewFromURL(fmt.Sprintf("%s/%s/%s", v.host, v.owner, v.repo))
+				if err != nil {
+					t.Errorf("repos.NewFromURL: %v", err)
+				}
+				if err = r.AppendMetadata(v.metadata...); err != nil {
+					t.Errorf("r.AppendMetadata: %v", err)
+				}
+				oldRepos = append(oldRepos, *r)
+			}
+			for _, v := range testcase.newRepos {
+				r, err := repos.NewFromURL(fmt.Sprintf("%s/%s/%s", v.host, v.owner, v.repo))
+				if err != nil {
+					t.Errorf("repos.NewFromURL: %v", err)
+				}
+				if err = r.AppendMetadata(v.metadata...); err != nil {
+					t.Errorf("r.AppendMetadata: %v", err)
+				}
+				newRepos = append(newRepos, *r)
+			}
+
+			err := SortAndAppendTo(&buf, oldRepos, newRepos)
 			if err != nil {
 				t.Errorf("error while running testcase: %v", err)
 			}

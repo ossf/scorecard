@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"reflect"
 	"strings"
 
 	sce "github.com/ossf/scorecard/v3/errors"
@@ -61,12 +62,12 @@ const (
 )
 
 // NewFromURL creates a RepoURI from URL.
-func NewFromURL(url string) (*RepoURI, error) {
+func NewFromURL(u string) (*RepoURI, error) {
 	r := &RepoURI{
 		repoType: RepoTypeURL,
 	}
 
-	if err := r.Set(url); err != nil {
+	if err := r.Set(u); err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
@@ -81,6 +82,10 @@ func NewFromLocalDirectory(path string) *RepoURI {
 		},
 		repoType: RepoTypeLocalDir,
 	}
+}
+
+func (r *RepoURI) Equal(o *RepoURI) bool {
+	return reflect.DeepEqual(r, o)
 }
 
 func (r *RepoURI) SetMetadata(m []string) error {
