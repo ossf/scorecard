@@ -228,6 +228,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer repoClient.Close()
 
 		enabledChecks, err := getEnabledChecks(policy, checksToRun)
 		if err != nil {
