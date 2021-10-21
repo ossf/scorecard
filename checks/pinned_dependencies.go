@@ -580,34 +580,35 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 }
 
 // Returns the OSes this job runs on.
-func getOsesForJob(job *gitHubActionWorkflowJob) ([]string, error) {
+func getOSesForJob(job *gitHubActionWorkflowJob) ([]string, error) {
 	// The 'runs-on' field either lists the OS'es directly, or it can have an expression '${{ matrix.os }}' which
 	// is where the OS'es are actually listed.
-	if len(job.RunsOn) != 1 || !strings.Contains(job.RunsOn[0], "matrix.os") {
+	getFromMatrix := len(job.RunsOn) == 1 && strings.Contains(job.RunsOn[0], "matrix.os")
+	if !getFromMatrix {
 		return job.RunsOn, nil
 	}
-	jobOses := make([]string, 0)
+	jobOSes := make([]string, 0)
 	if m, ok := job.Strategy.Matrix.(map[string]interface{}); ok {
 		if osVal, ok := m["os"]; ok {
 			if oses, ok := osVal.([]interface{}); ok {
 				for _, os := range oses {
-					jobOses = append(jobOses, os.(string))
+					jobOSes = append(jobOSes, os.(string))
 				}
-				return jobOses, nil
+				return jobOSes, nil
 			}
 		}
 	}
-	return jobOses, sce.WithMessage(sce.ErrScorecardInternal,
-		fmt.Sprintf("unable to determine os for job: %v", job.Name))
+	return jobOSes, sce.WithMessage(sce.ErrScorecardInternal,
+		fmt.Sprintf("unable to determine OS for job: %v", job.Name))
 }
 
 // The only OS that this job runs on is Windows.
 func jobAlwaysRunsOnWindows(job *gitHubActionWorkflowJob) (bool, error) {
-	jobOses, err := getOsesForJob(job)
+	jobOSes, err := getOSesForJob(job)
 	if err != nil {
 		return false, err
 	}
-	for _, os := range jobOses {
+	for _, os := range jobOSes {
 		if !strings.HasPrefix(strings.ToLower(os), "windows") {
 			return false, nil
 		}
