@@ -152,7 +152,6 @@ func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logge
 
 	// Local directory.
 	case repos.RepoTypeLocalDir:
-
 		return localdir.CreateLocalDirClient(ctx, logger), nil
 	}
 
