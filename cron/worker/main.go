@@ -21,7 +21,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 
 	// nolint:gosec
@@ -53,7 +52,7 @@ var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to tru
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
 	bucketURL, bucketURL2 string, checkDocs docs.Doc,
-	repoClient clients.RepoClient) error {
+	repoClient clients.RepoClient, logger *zap.Logger) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
@@ -68,18 +67,18 @@ func processRequest(ctx context.Context,
 		return fmt.Errorf("error during BlobExists: %w", err)
 	}
 	if exists1 && exists2 {
-		log.Printf("Already processed shard %s. Nothing to do.", filename)
+		logger.Info(fmt.Sprintf("Already processed shard %s. Nothing to do.", filename))
 		// We have already processed this request, nothing to do.
 		return nil
 	}
 
-	repoURLs := make([]repos.RepoURL, 0, len(batchRequest.GetRepos()))
+	repoURLs := make([]repos.RepoURI, 0, len(batchRequest.GetRepos()))
 	for _, repo := range batchRequest.GetRepos() {
-		repoURL := repos.RepoURL{}
+		repoURL := repos.RepoURI{}
 		if err := repoURL.Set(repo); err != nil {
 			return fmt.Errorf("error setting RepoURL: %w", err)
 		}
-		if err := repoURL.ValidGitHubURL(); err != nil {
+		if err := repoURL.IsValidGitHubURL(); err != nil {
 			return fmt.Errorf("url is not a valid GitHub URL: %w", err)
 		}
 		repoURLs = append(repoURLs, repoURL)
@@ -88,9 +87,10 @@ func processRequest(ctx context.Context,
 	var buffer bytes.Buffer
 	var buffer2 bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
-	for _, repoURL := range repoURLs {
-		log.Printf("Running Scorecard for repo: %s", repoURL.URL())
-		result, err := pkg.RunScorecards(ctx, repoURL, checksToRun, repoClient)
+	for i := range repoURLs {
+		repoURL := repoURLs[i]
+		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", repoURL.URL()))
+		result, err := pkg.RunScorecards(ctx, &repoURL, checksToRun, repoClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
@@ -108,7 +108,7 @@ func processRequest(ctx context.Context,
 				// nolint: goerr113
 				return errors.New(errorMsg)
 			}
-			log.Print(errorMsg)
+			logger.Warn(errorMsg)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime()
 		if err := format.AsJSON(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
@@ -127,7 +127,7 @@ func processRequest(ctx context.Context,
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
 
-	log.Printf("Write to shard file successful: %s", filename)
+	logger.Info(fmt.Sprintf("Write to shard file successful: %s", filename))
 
 	return nil
 }
@@ -196,7 +196,7 @@ func main() {
 
 	// Exposed for monitoring runtime profiles
 	go func() {
-		log.Fatal(http.ListenAndServe(":8080", nil))
+		logger.Fatal(fmt.Sprintf("%v", http.ListenAndServe(":8080", nil)))
 	}()
 
 	checksToRun := checks.AllChecks
@@ -210,15 +210,15 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		log.Print("Received message from subscription")
+		logger.Info("Received message from subscription")
 		if req == nil {
-			log.Print("subscription returned nil message during Receive, exiting")
+			logger.Warn("subscription returned nil message during Receive, exiting")
 			break
 		}
 		if err := processRequest(ctx, req, checksToRun,
 			bucketURL, bucketURL2, checkDocs,
-			repoClient); err != nil {
-			log.Printf("error processing request: %v", err)
+			repoClient, logger); err != nil {
+			logger.Warn(fmt.Sprintf("error processing request: %v", err))
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()
 			continue

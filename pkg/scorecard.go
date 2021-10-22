@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pkg defines fns for running Scorecard checks on a RepoURL.
+// Package pkg defines fns for running Scorecard checks on a Repo.
 package pkg
 
 import (
@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/clients"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	"github.com/ossf/scorecard/v3/clients/localdir"
 	sce "github.com/ossf/scorecard/v3/errors"
 	"github.com/ossf/scorecard/v3/repos"
 	"github.com/ossf/scorecard/v3/stats"
@@ -53,7 +54,7 @@ func runEnabledChecks(ctx context.Context,
 		go func() {
 			defer wg.Done()
 			runner := checker.Runner{
-				Repo:         repo.URL(),
+				Repo:         repo.URI(),
 				CheckName:    checkName,
 				CheckRequest: request,
 			}
@@ -64,18 +65,67 @@ func runEnabledChecks(ctx context.Context,
 	close(resultsCh)
 }
 
-// RunScorecards runs enabled Scorecard checks on a RepoURL.
+func createRepo(uri *repos.RepoURI) (clients.Repo, error) {
+	var c clients.Repo
+	var e error
+	switch uri.RepoType() {
+	// URL.
+	case repos.RepoTypeURL:
+		c, e = githubrepo.MakeGithubRepo(uri.URL())
+	// LocalDir.
+	case repos.RepoTypeLocalDir:
+		c, e = localdir.MakeLocalDirRepo(uri.Path())
+	default:
+		return nil,
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
+	}
+
+	if e != nil {
+		return c, sce.WithMessage(sce.ErrScorecardInternal, e.Error())
+	}
+
+	return c, nil
+}
+
+func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error) {
+	switch uri.RepoType() {
+	// URL.
+	case repos.RepoTypeURL:
+		//nolint:unwrapped
+		commits, err := r.ListCommits()
+		if err != nil {
+			// nolint:wrapcheck
+			return "", err
+		}
+
+		if len(commits) > 0 {
+			return commits[0].SHA, nil
+		}
+
+		return "no commits found", nil
+
+	// LocalDir.
+	case repos.RepoTypeLocalDir:
+		return "no commits for directory repo", nil
+
+	default:
+		return "",
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
+	}
+}
+
+// RunScorecards runs enabled Scorecard checks on a Repo.
 func RunScorecards(ctx context.Context,
-	repoURL repos.RepoURL,
+	repoURI *repos.RepoURI,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient) (ScorecardResult, error) {
-	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repoURL.URL()))
+	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repoURI.URL()))
 	if err != nil {
 		return ScorecardResult{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 	}
 	defer logStats(ctx, time.Now())
 
-	repo, err := githubrepo.MakeGithubRepo(repoURL.URL())
+	repo, err := createRepo(repoURI)
 	if err != nil {
 		return ScorecardResult{}, sce.WithMessage(err, "")
 	}
@@ -86,21 +136,14 @@ func RunScorecards(ctx context.Context,
 	}
 	defer repoClient.Close()
 
-	commits, err := repoClient.ListCommits()
+	commitSHA, err := getRepoCommitHash(repoClient, repoURI)
 	if err != nil {
-		// nolint:wrapcheck
 		return ScorecardResult{}, err
-	}
-	var commitSHA string
-	if len(commits) > 0 {
-		commitSHA = commits[0].SHA
-	} else {
-		commitSHA = "no commits found"
 	}
 
 	ret := ScorecardResult{
 		Repo: RepoInfo{
-			Name:      repo.URL(),
+			Name:      repo.URI(),
 			CommitSHA: commitSHA,
 		},
 		Scorecard: ScorecardInfo{

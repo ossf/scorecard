@@ -15,7 +15,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -25,101 +27,108 @@ import (
 	"github.com/ossf/scorecard/v3/repos"
 )
 
-func isLessThanRepoURL(x, y repos.RepoURL) bool {
+func isLessThanRepoURL(x, y *repos.RepoURI) bool {
 	return x.URL() < y.URL()
+}
+
+type fields struct {
+	host     string
+	owner    string
+	repo     string
+	metadata []string
 }
 
 func TestGetRepoURLs(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
 		name, filename string
-		outcome        []repos.RepoURL
+		outcome        []fields
 	}{
 		{
 			name:     "NoChange",
 			filename: "testdata/no_change.csv",
-			outcome: []repos.RepoURL{
+			outcome: []fields{
 				{
-					Host:     "github.com",
-					Owner:    "owner1",
-					Repo:     "repo1",
-					Metadata: []string{"meta1", "meta2"},
+					host:     "github.com",
+					owner:    "owner1",
+					repo:     "repo1",
+					metadata: []string{"meta1", "meta2"},
 				},
 				{
-					Host:  "github.com",
-					Owner: "owner2",
-					Repo:  "repo2",
+					host:  "github.com",
+					owner: "owner2",
+					repo:  "repo2",
 				},
 			},
 		},
 		{
 			name:     "AddMetadata",
 			filename: "testdata/add_metadata.csv",
-			outcome: []repos.RepoURL{
+			outcome: []fields{
 				{
-					Host:     "github.com",
-					Owner:    "owner1",
-					Repo:     "repo1",
-					Metadata: []string{"meta1", "meta2"},
+					host:     "github.com",
+					owner:    "owner1",
+					repo:     "repo1",
+					metadata: []string{"meta1", "meta2"},
 				},
 				{
-					Host:     "github.com",
-					Owner:    "owner2",
-					Repo:     "repo2",
-					Metadata: []string{"meta1"},
+					host:     "github.com",
+					owner:    "owner2",
+					repo:     "repo2",
+					metadata: []string{"meta1"},
 				},
 			},
 		},
 		{
 			name:     "SkipLatest",
 			filename: "testdata/skip_latest.csv",
-			outcome: []repos.RepoURL{
+			outcome: []fields{
 				{
-					Host:     "github.com",
-					Owner:    "owner1",
-					Repo:     "repo1",
-					Metadata: []string{"meta1", "meta2"},
+					host:     "github.com",
+					owner:    "owner1",
+					repo:     "repo1",
+					metadata: []string{"meta1", "meta2"},
 				},
 				{
-					Host:  "github.com",
-					Owner: "owner2",
-					Repo:  "repo2",
+					host:  "github.com",
+					owner: "owner2",
+					repo:  "repo2",
 				},
 			},
 		},
 		{
 			name:     "SkipEmpty",
 			filename: "testdata/skip_empty.csv",
-			outcome: []repos.RepoURL{
+			outcome: []fields{
 				{
-					Host:     "github.com",
-					Owner:    "owner1",
-					Repo:     "repo1",
-					Metadata: []string{"meta1", "meta2"},
+					host:     "github.com",
+					owner:    "owner1",
+					repo:     "repo1",
+					metadata: []string{"meta1", "meta2"},
 				},
 				{
-					Host:     "github.com",
-					Owner:    "owner2",
-					Repo:     "repo2",
-					Metadata: []string{"meta3"},
+					host:     "github.com",
+					owner:    "owner2",
+					repo:     "repo2",
+					metadata: []string{"meta3"},
 				},
 			},
 		},
 		{
 			name:     "SkipEmpty_2",
 			filename: "testdata/skip_empty_2.csv",
-			outcome: []repos.RepoURL{
+			outcome: []fields{
 				{
-					Host:     "github.com",
-					Owner:    "owner1",
-					Repo:     "repo1",
-					Metadata: []string{"meta1", "meta2"},
+					host:     "github.com",
+					owner:    "owner1",
+					repo:     "repo1",
+					metadata: []string{"meta1", "meta2"},
 				},
 				{
-					Host:     "github.com",
-					Owner:    "owner2",
-					Repo:     "repo2",
-					Metadata: []string{"meta3"},
+					host:     "github.com",
+					owner:    "owner2",
+					repo:     "repo2",
+					metadata: []string{"meta3"},
 				},
 			},
 		},
@@ -143,8 +152,27 @@ func TestGetRepoURLs(t *testing.T) {
 				t.Errorf("testcase failed: %v", err)
 			}
 
-			if !cmp.Equal(testcase.outcome, repoURLs, cmpopts.EquateEmpty(), cmpopts.SortSlices(isLessThanRepoURL)) {
-				t.Errorf("testcase failed. expected %q, got %q", testcase.outcome, repoURLs)
+			// Create the list of RepoURL from the outcome.
+			var rs []repos.RepoURI
+			for _, r := range testcase.outcome {
+				u := fmt.Sprintf("%s/%s/%s", r.host, r.owner, r.repo)
+				outcomeRepo, err := repos.NewFromURL(u)
+				if err != nil {
+					t.Errorf("repos.NewFromURL: %v", err)
+				}
+				if err := outcomeRepo.AppendMetadata(r.metadata...); err != nil {
+					t.Errorf("outcomeRepo.AppendMetadata: %v", err)
+				}
+				rs = append(rs, *outcomeRepo)
+			}
+
+			// Export all private fields for comparison.
+			exp := cmp.Exporter(func(t reflect.Type) bool {
+				return true
+			})
+
+			if !cmp.Equal(rs, repoURLs, exp, cmpopts.EquateEmpty(), cmpopts.SortSlices(isLessThanRepoURL)) {
+				t.Errorf("testcase failed. expected %+v, got %+v", testcase.outcome, repoURLs)
 			}
 		})
 	}

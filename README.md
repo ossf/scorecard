@@ -12,7 +12,8 @@
 ## Using Scorecards
 
 -  [Prerequisites](#prerequisites) 
--  [Authentication and Setup](#authentication-and-setup)
+-  [Installation](#installation)
+-  [Authentication](#authentication)
 -  [Basic Usage](#basic-usage)
 -  [Report Problems](#report-problems) 
 -  [Scorecards' Public Data](#public-data)
@@ -58,7 +59,15 @@ Platforms: Currently, Scorecards supports OSX and Linux platforms. If you are us
 
 Language: You must have GoLang installed to run Scorecards (https://golang.org/doc/install)
 
-### Authentication and Setup
+### Installation
+
+To install Scorecards:
+
+1. Visit our latest [release page](https://github.com/ossf/scorecard/releases/latest) and download the correct binary for your operating system
+2. Extract the binary file 
+3. Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to identify your directory if necessary)
+
+### Authentication
 
 Before running Scorecard, you need to either:
 
@@ -109,7 +118,6 @@ docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-det
 Scorecards can run using just one argument, the URL of the target repo:
 
 ```shell
-$ go install github.com/ossf/scorecard/v2@latest
 $ scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
 Starting [CII-Best-Practices]
 Starting [Fuzzing]
@@ -358,7 +366,7 @@ the [checks documentation page](docs/checks.md).
 
 ## Contribute
 ### Code of Conduct
-Before contributing, please follow our [Code of Conduct](main/CODE_OF_CONDUCT.md). 
+Before contributing, please follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Contribute to Scorecards
 See the [Contributing](CONTRIBUTING.md) documentation for guidance on how to
@@ -387,4 +395,4 @@ invitation to anyone to register here. Feel free to come and ask any
 questions.
 
 ### Report a Security Issue
-To report a security issue, please follow instructions [here](main/SECURITY.md).
+To report a security issue, please follow instructions [here](SECURITY.md).

@@ -79,6 +79,17 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name:     "Non-yaml file",
+			filename: "./testdata/script.sh",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
