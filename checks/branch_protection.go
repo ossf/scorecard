@@ -206,10 +206,10 @@ func isBranchProtected(protection *clients.BranchProtectionRule, branch string, 
 
 	if protection.GetEnforceAdmins() != nil &&
 		protection.EnforceAdmins.Enabled {
-		dl.Info("'admininistrator' PRs need reviews before being merged on branch '%s'", branch)
+		dl.Info("'administrator' PRs need reviews before being merged on branch '%s'", branch)
 		score += 3
 	} else {
-		dl.Warn("'admininistrator' PRs are exempt from reviews on branch '%s'", branch)
+		dl.Warn("'administrator' PRs are exempt from reviews on branch '%s'", branch)
 	}
 
 	if score == totalScore {

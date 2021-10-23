@@ -64,32 +64,34 @@ func main() {
 	}
 }
 
-func getRepoURLs(iter data.Iterator) ([]repos.RepoURL, error) {
-	repoURLs := make(map[string]*repos.RepoURL)
+func getRepoURLs(iter data.Iterator) ([]repos.RepoURI, error) {
+	repoURLs := make(map[string]*repos.RepoURI)
 	repoMap := make(map[string]map[string]bool)
 	for iter.HasNext() {
 		repo, err := iter.Next()
 		if err != nil {
-			return nil, fmt.Errorf("%w", err)
+			return nil, fmt.Errorf("iter.Next: %w", err)
 		}
 		if _, ok := repoMap[repo.URL()]; !ok {
-			repoURLs[repo.URL()] = new(repos.RepoURL)
+			repoURLs[repo.URL()] = new(repos.RepoURI)
 			*repoURLs[repo.URL()] = repo
 			repoMap[repo.URL()] = make(map[string]bool)
-			for _, metadata := range repo.Metadata {
+			for _, metadata := range repo.Metadata() {
 				repoMap[repo.URL()][metadata] = true
 			}
 			continue
 		}
-		for _, metadata := range repo.Metadata {
+		for _, metadata := range repo.Metadata() {
 			if _, ok := repoMap[repo.URL()][metadata]; !ok && metadata != "" {
-				repoURLs[repo.URL()].Metadata = append(repoURLs[repo.URL()].Metadata, metadata)
+				if err := repoURLs[repo.URL()].AppendMetadata(metadata); err != nil {
+					return nil, fmt.Errorf("AppendMetadata: %w", err)
+				}
 				repoMap[repo.URL()][metadata] = true
 			}
 		}
 	}
 
-	newRepoURLs := make([]repos.RepoURL, 0)
+	newRepoURLs := make([]repos.RepoURI, 0)
 	for _, repoURL := range repoURLs {
 		newRepoURLs = append(newRepoURLs, *repoURL)
 	}

@@ -90,8 +90,11 @@ tree-status: ## Verify tree is clean and all changes are committed
 ###############################################################################
 
 ################################## make build #################################
-build-targets = generate-docs build-proto build-scorecard build-pubsub build-bq-transfer build-github-server \
-	build-add-script build-validate-script build-update-script dockerbuild
+## Build all cron-related targets
+build-cron: build-pubsub build-bq-transfer build-github-server build-webhook build-add-script \
+	  build-validate-script build-update-script
+
+build-targets = generate-docs build-proto build-scorecard build-cron dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)

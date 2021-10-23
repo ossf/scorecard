@@ -16,10 +16,13 @@ package checks
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ossf/scorecard/v3/checker"
 	sce "github.com/ossf/scorecard/v3/errors"
@@ -28,9 +31,27 @@ import (
 // CheckCIIBestPractices is the registered name for CIIBestPractices.
 const CheckCIIBestPractices = "CII-Best-Practices"
 
+var errTooManyRequests = errors.New("failed after exponential backoff")
+
 //nolint:gochecknoinits
 func init() {
 	registerCheck(CheckCIIBestPractices, CIIBestPractices)
+}
+
+type expBackoffTransport struct {
+	numRetries uint8
+}
+
+func (transport *expBackoffTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	for i := 0; i < int(transport.numRetries); i++ {
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil || resp.StatusCode != http.StatusTooManyRequests {
+			// nolint: wrapcheck
+			return resp, err
+		}
+		time.Sleep(time.Duration(math.Pow(2, float64(i))) * time.Second)
+	}
+	return nil, errTooManyRequests
 }
 
 type response struct {
@@ -39,16 +60,22 @@ type response struct {
 
 // CIIBestPractices runs CII-Best-Practices check.
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
-	repoURL := fmt.Sprintf("https://%s", c.Repo.URL())
-	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURL)
+	repoURI := fmt.Sprintf("https://%s", c.Repo.URI())
+	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURI)
 	req, err := http.NewRequestWithContext(c.Ctx, "GET", url, nil)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
-	resp, err := http.DefaultClient.Do(req)
+
+	httpClient := http.Client{
+		Transport: &expBackoffTransport{
+			numRetries: 3,
+		},
+	}
+	resp, err := httpClient.Do(req)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("HTTPClient.Do: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 	defer resp.Body.Close()

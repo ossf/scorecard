@@ -32,7 +32,9 @@ import (
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks"
+	"github.com/ossf/scorecard/v3/clients"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	"github.com/ossf/scorecard/v3/clients/localdir"
 	docs "github.com/ossf/scorecard/v3/docs/checks"
 	sce "github.com/ossf/scorecard/v3/errors"
 	"github.com/ossf/scorecard/v3/pkg"
@@ -41,7 +43,7 @@ import (
 )
 
 var (
-	repo        repos.RepoURL
+	repo        repos.RepoURI
 	checksToRun []string
 	metaData    []string
 	// This one has to use goflag instead of pflag because it's defined by zap.
@@ -128,6 +130,26 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.Ch
 	return enabledChecks, nil
 }
 
+func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logger) (clients.RepoClient, error) {
+	var rc clients.RepoClient
+	switch uri.RepoType() {
+	// URL.
+	case repos.RepoTypeURL:
+		if err := repo.IsValidGitHubURL(); err != nil {
+			return rc, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+
+		rc = githubrepo.CreateGithubRepoClient(ctx, logger)
+		return rc, nil
+
+	// Local directory.
+	case repos.RepoTypeLocalDir:
+		return localdir.CreateLocalDirClient(ctx, logger), nil
+	}
+
+	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.RepoType()))
+}
+
 func validateFormat(format string) bool {
 	switch format {
 	case "json", "sarif", "default":
@@ -142,16 +164,21 @@ var rootCmd = &cobra.Command{
 	Short: scorecardShort,
 	Long:  scorecardLong,
 	Run: func(cmd *cobra.Command, args []string) {
-		// UPGRADEv3: remove.
-		var v3 bool
-		_, v3 = os.LookupEnv("SCORECARD_V3")
+		// UPGRADEv4: remove.
+		var v4 bool
+		_, v4 = os.LookupEnv("SCORECARD_V4")
 
-		if format == formatSarif && !v3 {
+		if format == formatSarif && !v4 {
 			log.Fatal("sarif not supported yet")
 		}
 
-		if policyFile != "" && !v3 {
+		if policyFile != "" && !v4 {
 			log.Fatal("policy not supported yet")
+		}
+
+		// Validate format.
+		if !validateFormat(format) {
+			log.Fatalf("unsupported format '%s'", format)
 		}
 
 		policy, err := readPolicy()
@@ -189,18 +216,23 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		if err := repo.ValidGitHubURL(); err != nil {
+		ctx := context.Background()
+		logger, err := githubrepo.NewLogger(*logLevel)
+		if err != nil {
 			log.Fatal(err)
 		}
+		// nolint
+		defer logger.Sync() // Flushes buffer, if any.
 
-		// Validate format.
-		if !validateFormat(format) {
-			log.Fatalf("unsupported format '%s'", format)
+		repoClient, err := createRepoClient(ctx, &repo, logger)
+		if err != nil {
+			log.Fatal(err)
 		}
+		defer repoClient.Close()
 
 		enabledChecks, err := getEnabledChecks(policy, checksToRun)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		if format == formatDefault {
@@ -209,19 +241,7 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		ctx := context.Background()
-
-		logger, err := githubrepo.NewLogger(*logLevel)
-		if err != nil {
-			panic(err)
-		}
-		// nolint
-		defer logger.Sync() // flushes buffer, if any
-
-		repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-		defer repoClient.Close()
-
-		repoResult, err := pkg.RunScorecards(ctx, repo, enabledChecks, repoClient)
+		repoResult, err := pkg.RunScorecards(ctx, &repo, enabledChecks, repoClient)
 		if err != nil {
 			log.Fatal(err)
 		}

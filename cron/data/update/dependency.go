@@ -78,10 +78,10 @@ type repositoryDepsURL struct {
 
 // Programmatically gets Envoy's dependencies and add to projects.
 // Re-using a checker type.
-func getBazelDeps(repo repositoryDepsURL) []repos.RepoURL {
+func getBazelDeps(repo repositoryDepsURL) []repos.RepoURI {
 	client := github.NewClient(nil)
 	ctx := context.Background()
-	depRepos := []repos.RepoURL{}
+	depRepos := []repos.RepoURI{}
 	fo, _, _, err := client.Repositories.GetContents(ctx, repo.Owner, repo.Repo, repo.File, nil)
 	if err != nil {
 		// If we can't get content, gracefully fail but alert.
@@ -101,7 +101,7 @@ func getBazelDeps(repo repositoryDepsURL) []repos.RepoURL {
 
 	// TODO: Replace with a starlark interpreter that can be used for any project.
 	for _, match := range re.FindAllString(fc, -1) {
-		repo := repos.RepoURL{}
+		repo := repos.RepoURI{}
 		if err := repo.Set(strings.TrimSuffix(match, ".git")); err != nil {
 			log.Panicf("error during repo.Set: %v", err)
 			return depRepos
@@ -112,8 +112,8 @@ func getBazelDeps(repo repositoryDepsURL) []repos.RepoURL {
 }
 
 // GetGoDeps returns go repo dependencies.
-func getGoDeps(repo repositoryDepsURL) []repos.RepoURL {
-	repoURLs := []repos.RepoURL{}
+func getGoDeps(repo repositoryDepsURL) []repos.RepoURI {
+	repoURLs := []repos.RepoURI{}
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Default().Println(err)
@@ -184,8 +184,8 @@ func getVanityRepoURL(u string) string {
 	return repo.Repo
 }
 
-func parseGoModURL(dependency string, repoURLs []repos.RepoURL) []repos.RepoURL {
-	repoURL := repos.RepoURL{}
+func parseGoModURL(dependency string, repoURLs []repos.RepoURI) []repos.RepoURI {
+	repoURL := repos.RepoURI{}
 	splitURL := strings.Split(dependency, "/")
 	// nolint:gomnd
 	if len(splitURL) < 3 {
@@ -199,7 +199,7 @@ func parseGoModURL(dependency string, repoURLs []repos.RepoURL) []repos.RepoURL 
 	return repoURLs
 }
 
-func getDependencies(in io.Reader) (oldRepos, newRepos []repos.RepoURL, e error) {
+func getDependencies(in io.Reader) (oldRepos, newRepos []repos.RepoURI, e error) {
 	iter, err := data.MakeIteratorFrom(in)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error during data.MakeIterator: %w", err)
@@ -207,7 +207,7 @@ func getDependencies(in io.Reader) (oldRepos, newRepos []repos.RepoURL, e error)
 
 	// Read all project repositores into a map.
 	m := make(map[string][]string)
-	oldRepos = make([]repos.RepoURL, 0)
+	oldRepos = make([]repos.RepoURI, 0)
 	for iter.HasNext() {
 		repo, err := iter.Next()
 		if err != nil {
@@ -215,16 +215,16 @@ func getDependencies(in io.Reader) (oldRepos, newRepos []repos.RepoURL, e error)
 		}
 		oldRepos = append(oldRepos, repo)
 		// We do not handle duplicates.
-		m[repo.URL()] = repo.Metadata
+		m[repo.URL()] = repo.Metadata()
 	}
 
 	// Create a list of project dependencies that are not already present.
-	newRepos = []repos.RepoURL{}
+	newRepos = []repos.RepoURI{}
 	for _, repo := range bazelRepos {
 		for _, item := range getBazelDeps(repo) {
 			if _, ok := m[item.URL()]; !ok {
 				// Also add to m to avoid dupes.
-				m[item.URL()] = item.Metadata
+				m[item.URL()] = item.Metadata()
 				newRepos = append(newRepos, item)
 			}
 		}
@@ -233,7 +233,7 @@ func getDependencies(in io.Reader) (oldRepos, newRepos []repos.RepoURL, e error)
 		for _, item := range getGoDeps(repo) {
 			if _, ok := m[item.URL()]; !ok {
 				// Also add to m to avoid dupes.
-				m[item.URL()] = item.Metadata
+				m[item.URL()] = item.Metadata()
 				newRepos = append(newRepos, item)
 			}
 		}

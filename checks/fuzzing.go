@@ -63,7 +63,7 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	req := clients.SearchRequest{
-		Query:    c.RepoClient.URL(),
+		Query:    c.RepoClient.URI(),
 		Filename: "project.yaml",
 	}
 	result, err := ossFuzzRepoClient.Search(req)
