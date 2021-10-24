@@ -1,37 +1,71 @@
+project_name: scorecard
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=1
 before:
   hooks:
     # You may remove this if you don't use go modules.
     - go mod download
 builds:
-  - env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - windows
-      - darwin
-    # List of combinations of GOOS + GOARCH + GOARM to ignore.
-    # Default is empty.
-    ignore:
-      - goos: darwin
-        goarch: 386
-    # CI should set VERSION_LDFLAGS to the output of ./scripts/version_ldflags
-    ldflags:
-      - -s -w {{.Env.VERSION_LDFLAGS}}
-archives:
-  - replacements:
-      linux: Linux
-      386: i386
-      amd64: x86_64
+- id: linux
+  binary: scorecard-linux-{{ .Arch }}
+  no_unique_dist_dir: true
+  goos:
+    - linux
+  goarch:
+    - amd64
+    - arm64
+  ldflags:
+    - -s -w {{.Env.VERSION_LDFLAGS}} 
+- id: darwin-amd64
+  binary: scorecard-darwin-amd64
+  no_unique_dist_dir: true
+  goos:
+    - darwin
+  goarch:
+    - amd64
+  ldflags:
+    - -s -w {{.Env.VERSION_LDFLAGS}} 
+
+- id: darwin-arm64
+  binary: scorecard-darwin-arm64
+  no_unique_dist_dir: true
+  goos:
+    - darwin
+  goarch:
+    - arm64
+  ldflags:
+    - -s -w {{.Env.VERSION_LDFLAGS}} 
+
+- id: windows-amd64
+  binary: scorecard-windows-amd64
+  no_unique_dist_dir: true
+  goos:
+    - windows
+  goarch:
+    - amd64
+  ldflags:
+    - -buildmode=exe
+    - -s -w {{.Env.VERSION_LDFLAGS}} 
 
 checksum:
   # Algorithm to be used.
   # Accepted options are sha256, sha512, sha1, crc32, md5, sha224 and sha384.
   # Default is sha256.
+  name_template: "{{ .ProjectName }}_checksums.txt"
   algorithm: sha512
+
+snapshot:
+  name_template: SNAPSHOT-{{ .ShortCommit }}
 changelog:
   # Set it to true if you wish to skip the changelog generation.
   # This may result in an empty release notes on GitHub/GitLab/Gitea.
+  use: github
   skip: false
 signs:
   - artifacts: checksum
     args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
+
+release:
+  footer: |
+    ### Thanks for all contributors!
