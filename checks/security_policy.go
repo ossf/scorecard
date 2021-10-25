@@ -37,30 +37,17 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		switch {
 		case strings.EqualFold(name, "security.md"),
 			strings.EqualFold(name, ".github/security.md"),
-			strings.EqualFold(name, "docs/security.md"):
-			{
-				c.Dlogger.Info3(&checker.LogMessage{
-					Path: name,
-					Type: checker.FileTypeSource,
-					// Source file must have line number > 0.
-					Offset: 1,
-					Text:   "security policy detected",
-				})
-				*pdata = true
-				return false, nil
-			}
-		case isSecurityRstFound(name):
-			{
-				c.Dlogger.Info3(&checker.LogMessage{
-					Path: name,
-					Type: checker.FileTypeSource,
-					// Source file must have line number > 0.
-					Offset: 1,
-					Text:   "security policy detected",
-				})
-				*pdata = true
-				return false, nil
-			}
+			strings.EqualFold(name, "docs/security.md"),
+			isSecurityRstFound(name):
+			c.Dlogger.Info3(&checker.LogMessage{
+				Path: name,
+				Type: checker.FileTypeSource,
+				// Source file must have line number > 0.
+				Offset: 1,
+				Text:   "security policy detected",
+			})
+			*pdata = true
+			return false, nil
 		default:
 			return true, nil
 		}
