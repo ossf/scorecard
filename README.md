@@ -55,9 +55,9 @@ The inspiration for Scorecards’ logo: ["You passed! All D's ... and an A!"](ht
 
 Scorecards has been run on thousands of projects to monitor and track security metrics. Prominent projects that use Scorecards include:
 
-- [sos.dev](sos.dev)
-- [deps.dev](deps.dev)
-- [metrics.openssf.org](metrics.openssf.org)
+- [sos.dev](https://sos.dev)
+- [deps.dev](https://deps.dev)
+- [metrics.openssf.org](https://metrics.openssf.org)
 
 ## Using Scorecards
 
