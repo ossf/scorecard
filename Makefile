@@ -8,8 +8,7 @@ PROTOC := $(shell which protoc)
 IMAGE_NAME = scorecard
 OUTPUT = output
 IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:executable"
-VERSION_LDFLAGS=$(shell ./scripts/version-ldflags)
-LDFLAGS=$(shell echo "-w -extldflags \"-static\" $(VERSION_LDFLAGS)")
+LDFLAGS=$(shell ./scripts/version-ldflags)
 
 ############################### make help #####################################
 .PHONY: help
