@@ -1,11 +1,21 @@
 project_name: scorecard
 env:
   - GO111MODULE=on
-  - CGO_ENABLED=1
+  # https://stackoverflow.com/a/62821358/19407
+  - CGO_ENABLED=0
 before:
   hooks:
     - go mod download
 builds:
+flags:
+ # trimpath is for reproducible builds
+ # remove all file system paths from the resulting executable.
+ # Instead of absolute file system paths, the recorded file names
+ # will begin with either "go" (for the standard library),
+ # or a module path@version (when using modules),
+ # or a plain import path (when using GOPATH).
+    - -trimpath
+    - -tags=netgo
 
 - id: linux
   binary: scorecard-linux-{{ .Arch }}
@@ -18,7 +28,7 @@ builds:
     - 386
     - arm
   ldflags:
-    - -s -w {{.Env.VERSION_LDFLAGS}} 
+    - -s {{.Env.VERSION_LDFLAGS}} 
 
 - id: darwin
   binary: scorecard-darwin-{{ .Arch }}
@@ -29,7 +39,7 @@ builds:
     - amd64
     - arm64
   ldflags:
-    - -s -w {{.Env.VERSION_LDFLAGS}} 
+    - -s {{.Env.VERSION_LDFLAGS}} 
 
 - id: windows
   binary: scorecard-windows-{{ .Arch }}
@@ -43,7 +53,7 @@ builds:
     - arm
   ldflags:
     - -buildmode=exe
-    - -s -w {{.Env.VERSION_LDFLAGS}} 
+    - -s {{.Env.VERSION_LDFLAGS}} 
 
 checksum:
   # Algorithm to be used.
