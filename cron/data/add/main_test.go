@@ -141,6 +141,7 @@ func TestGetRepoURLs(t *testing.T) {
 			if err != nil {
 				t.Errorf("testcase failed to open %s: %v", testcase.filename, err)
 			}
+			defer testFile.Close()
 
 			iter, err := data.MakeIteratorFrom(testFile)
 			if err != nil {
