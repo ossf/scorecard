@@ -7,19 +7,18 @@ before:
   hooks:
     - go mod download
 builds:
-flags:
- # trimpath is for reproducible builds
- # remove all file system paths from the resulting executable.
- # Instead of absolute file system paths, the recorded file names
- # will begin with either "go" (for the standard library),
- # or a module path@version (when using modules),
- # or a plain import path (when using GOPATH).
-    - -trimpath
-    - -tags=netgo
-
 - id: linux
   binary: scorecard-linux-{{ .Arch }}
   no_unique_dist_dir: true
+  flags:
+   # trimpath is for reproducible builds
+   # remove all file system paths from the resulting executable.
+   # Instead of absolute file system paths, the recorded file names
+   # will begin with either "go" (for the standard library),
+   # or a module path@version (when using modules),
+   # or a plain import path (when using GOPATH).
+      - -trimpath
+      - -tags=netgo
   goos:
     - linux
   goarch:
@@ -33,6 +32,15 @@ flags:
 - id: darwin
   binary: scorecard-darwin-{{ .Arch }}
   no_unique_dist_dir: true
+  flags:
+   # trimpath is for reproducible builds
+   # remove all file system paths from the resulting executable.
+   # Instead of absolute file system paths, the recorded file names
+   # will begin with either "go" (for the standard library),
+   # or a module path@version (when using modules),
+   # or a plain import path (when using GOPATH).
+      - -trimpath
+      - -tags=netgo
   goos:
     - darwin
   goarch:
@@ -44,6 +52,15 @@ flags:
 - id: windows
   binary: scorecard-windows-{{ .Arch }}
   no_unique_dist_dir: true
+  flags:
+   # trimpath is for reproducible builds
+   # remove all file system paths from the resulting executable.
+   # Instead of absolute file system paths, the recorded file names
+   # will begin with either "go" (for the standard library),
+   # or a module path@version (when using modules),
+   # or a plain import path (when using GOPATH).
+      - -trimpath
+      - -tags=netgo
   goos:
     - windows
   goarch:
