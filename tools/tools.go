@@ -22,4 +22,5 @@ import (
 	_ "github.com/naveensrinivasan/stunning-tribble"
 	_ "github.com/onsi/ginkgo/ginkgo"
 	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
+	_ "github.com/google/ko"
 )

@@ -2,14 +2,15 @@ SHELL := /bin/bash
 GOPATH := $(go env GOPATH)
 GINKGO := ginkgo
 GIT_HASH := $(shell git rev-parse HEAD)
+GIT_VERSION ?= $(shell git describe --tags --always --dirty)
+SOURCE_DATE_EPOCH=$(shell git log --date=iso8601-strict -1 --pretty=%ct)
 GOLANGGCI_LINT := golangci-lint
 PROTOC_GEN_GO := protoc-gen-go
 PROTOC := $(shell which protoc)
 IMAGE_NAME = scorecard
 OUTPUT = output
 IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:executable"
-VERSION_LDFLAGS=$(shell ./scripts/version-ldflags)
-LDFLAGS=$(shell echo "-w -extldflags \"-static\" $(VERSION_LDFLAGS)")
+LDFLAGS=$(shell ./scripts/version-ldflags)
 
 ############################### make help #####################################
 .PHONY: help
@@ -162,11 +163,17 @@ dockerbuild: ## Runs docker build
 	# Build all Docker images in the Repo
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/scorecard-ko CGO_ENABLED=0 LDFLAGS="$(LDFLAGS)" \
+	ko publish -B --bare --local \
+			   --platform=all \
+			   --push=false \
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3
 	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
 	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
 	DOCKER_BUILDKIT=1 docker build . --file cron/webhook/Dockerfile --tag ${IMAGE_NAME}-webhook
 	DOCKER_BUILDKIT=1 docker build . --file clients/githubrepo/roundtripper/tokens/server/Dockerfile --tag ${IMAGE_NAME}-github-server
+
 ###############################################################################
 
 ################################# make test ###################################
