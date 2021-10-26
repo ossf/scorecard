@@ -179,3 +179,6 @@ require (
 	sigs.k8s.io/kind v0.11.1 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
+
+// https://github.com/advisories/GHSA-c2h3-6mxw-7mvq
+replace github.com/containerd/containerd => github.com/containerd/containerd v1.5.7
