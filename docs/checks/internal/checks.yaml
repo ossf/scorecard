@@ -614,3 +614,28 @@ checks:
       - >-
         Fix the vulnerabilities. The details of each vulnerability can be found
         on <https://osv.dev>.
+  Dangerous-Workflow:
+    risk: High
+    tags: supply-chain, security, infrastructure
+    short: Determines if the project's workflows avoid dangerous patterns.
+    description: |
+      Risk: `High`  (vulnerable to repository compromise)
+        
+      This check determines whether the project has dangerous code patterns.
+
+      The first check is misuse of potentially dangerous triggers. This checks if a 
+      `pull_request_target` workflow trigger was used in conjunction with an explicit 
+      pull request checkout. Workflows triggered with `pull_request_target` have write 
+      permission to the target repository and access to target repository secrets. With 
+      the PR checkout, PR authors may compromise the repository, for example, by using 
+      build scripts controlled by the author of the PR or reading token in memory.
+
+      This check does not detect whether untrusted code checkouts are used safely, for
+      example, only on pull request that have been assigned a label.
+
+      The highest score is awarded when all workflows avoid the dangerous code patterns.
+    remediation:
+      - >-
+        Avoid the dangerous workflow patterns. See this [advisory](https://github.com/justinsteven/advisories/blob/master/2021_github_actions_checkspelling_token_leak_via_advice_symlink.md)
+        for information on avoiding untrusted code checkouts.
+
