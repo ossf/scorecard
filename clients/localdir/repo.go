@@ -34,11 +34,7 @@ type repoLocal struct {
 
 // URI implements Repo.URI().
 func (r *repoLocal) URI() string {
-	return fmt.Sprintf("file://%s", r.Path())
-}
-
-func (r *repoLocal) Path() string {
-	return r.path
+	return fmt.Sprintf("file://%s", r.path)
 }
 
 // String implements Repo.String.

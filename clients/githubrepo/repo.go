@@ -78,11 +78,6 @@ func (r *repoURL) URI() string {
 	return fmt.Sprintf("%s/%s/%s", r.host, r.owner, r.repo)
 }
 
-// Path implements Repo.Path().
-func (r *repoURL) Path() string {
-	return r.URI()
-}
-
 // String implements Repo.String.
 func (r *repoURL) String() string {
 	return fmt.Sprintf("%s-%s-%s", r.host, r.owner, r.repo)

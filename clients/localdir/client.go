@@ -25,6 +25,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"go.uber.org/zap"
 
@@ -35,6 +36,8 @@ var (
 	errUnsupportedFeature = errors.New("unsupported feature")
 	errInputRepoType      = errors.New("input repo should be of type repoLocal")
 )
+
+var once sync.Once
 
 type localDirClient struct {
 	logger *zap.Logger
@@ -49,7 +52,7 @@ func (client *localDirClient) InitRepo(inputRepo clients.Repo) error {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
 	}
 
-	client.path = localRepo.Path()
+	client.path = strings.TrimPrefix(localRepo.URI(), "file://")
 
 	return nil
 }
@@ -78,10 +81,8 @@ func isDir(p string) (bool, error) {
 	return fileInfo.IsDir(), nil
 }
 
-// ListFiles implements RepoClient.ListFiles.
-func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
+func (client *localDirClient) listFiles(predicate func(string) (bool, error)) ([]string, error) {
 	files := []string{}
-
 	err := filepath.Walk(client.path, func(pathfn string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("failure accessing path %q: %w", pathfn, err)
@@ -98,9 +99,17 @@ func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([
 
 		// Remove prefix of the folder.
 		cleanPath := path.Clean(pathfn)
-		prefix := fmt.Sprintf("%v%v", client.path, string(os.PathSeparator))
+		prefix := fmt.Sprintf("%s%s", client.path, string(os.PathSeparator))
 		p := strings.TrimPrefix(cleanPath, prefix)
-		files = append(files, p)
+		matches, err := predicate(p)
+		if err != nil {
+			return err
+		}
+
+		if matches {
+			files = append(files, p)
+		}
+
 		return nil
 	})
 	if err != nil {
@@ -108,6 +117,18 @@ func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([
 	}
 
 	return files, nil
+}
+
+// ListFiles implements RepoClient.ListFiles.
+func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
+	files := []string{}
+	var err error
+
+	once.Do(func() {
+		files, err = client.listFiles(predicate)
+	})
+
+	return files, err
 }
 
 // GetFileContent implements RepoClient.GetFileContent.
