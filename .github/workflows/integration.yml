@@ -86,12 +86,15 @@ jobs:
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
         run: |
-              echo "Skipping ci-e2e. Will be re-enabled soon."
-              #go env -w GOFLAGS=-mod=mod
-              #make ci-e2e
+              go env -w GOFLAGS=-mod=mod
+              make ci-e2e
+
+      - name: install tools
+        run: make install
 
       - name: Build docker image
-        run: make dockerbuild
+        run: |
+          KO_PREFIX=gcr.io/openssf/scorecard make dockerbuild
 
       - name: Test docker image
         env:
