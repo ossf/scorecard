@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -27,7 +28,7 @@ import (
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
 )
 
-func TestClient_ListFiles(t *testing.T) {
+func TestClient_CreationAndCaching(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name        string
@@ -102,6 +103,103 @@ func TestClient_ListFiles(t *testing.T) {
 
 			if !cmp.Equal(tt.outputFiles, files2, cmpopts.SortSlices(func(x, y string) bool { return x < y })) {
 				t.Errorf("Got diff: %s", cmp.Diff(tt.outputFiles, files2))
+			}
+		})
+	}
+}
+
+type listfileTest struct {
+	predicate func(string) (bool, error)
+	err       error
+	outcome   []string
+}
+
+type getcontentTest struct {
+	err      error
+	filename string
+	output   []byte
+}
+
+func isSortedString(x, y string) bool {
+	return x < y
+}
+
+func TestClient_GetFileListAndContent(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name            string
+		inputFolder     string
+		listfileTests   []listfileTest
+		getcontentTests []getcontentTest
+	}{
+		{
+			name:        "Basic",
+			inputFolder: "testdata/repo0",
+			listfileTests: []listfileTest{
+				{
+					// Returns all files .
+					predicate: func(string) (bool, error) { return true, nil },
+					outcome:   []string{"file0", "dir1/file1", "dir1/dir2/file2"},
+				},
+				{
+					// Skips all files inside `dir1/dir2` directory.
+					predicate: func(fn string) (bool, error) { return !strings.HasPrefix(fn, "dir1/dir2"), nil },
+					outcome:   []string{"file0", "dir1/file1"},
+				},
+				{
+					// Skips all files.
+					predicate: func(fn string) (bool, error) { return false, nil },
+					outcome:   []string{},
+				},
+			},
+			getcontentTests: []getcontentTest{
+				{
+					filename: "file0",
+					output:   []byte("content0\n"),
+				},
+				{
+					filename: "dir1/file1",
+					output:   []byte("content1\n"),
+				},
+				{
+					filename: "dir1/dir2/file2",
+					output:   []byte("content2\n"),
+				},
+				{
+					filename: "does/not/exist",
+				},
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Test ListFiles API.
+			for _, listfiletest := range testcase.listfileTests {
+				matchedFiles, err := listFiles(testcase.inputFolder, listfiletest.predicate)
+				if !errors.Is(err, listfiletest.err) {
+					t.Errorf("test failed: expected - %v, got - %v", listfiletest.err, err)
+					continue
+				}
+				if !cmp.Equal(listfiletest.outcome,
+					matchedFiles,
+					cmpopts.SortSlices(isSortedString)) {
+					t.Errorf("test failed: expected - %q, got - %q", listfiletest.outcome, matchedFiles)
+				}
+			}
+
+			// Test GetFileContent API.
+			for _, getcontenttest := range testcase.getcontentTests {
+				content, err := getFileContent(testcase.inputFolder, getcontenttest.filename)
+				if getcontenttest.err != nil && !errors.Is(err, getcontenttest.err) {
+					t.Errorf("test failed: expected - %v, got - %v", getcontenttest.err, err)
+				}
+				if getcontenttest.err == nil && !cmp.Equal(getcontenttest.output, content) {
+					t.Errorf("test failed: expected - %s, got - %s", string(getcontenttest.output), string(content))
+				}
 			}
 		})
 	}

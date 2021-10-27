@@ -81,9 +81,9 @@ func isDir(p string) (bool, error) {
 	return fileInfo.IsDir(), nil
 }
 
-func (client *localDirClient) listFiles(predicate func(string) (bool, error)) ([]string, error) {
+func listFiles(clientPath string, predicate func(string) (bool, error)) ([]string, error) {
 	files := []string{}
-	err := filepath.Walk(client.path, func(pathfn string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(clientPath, func(pathfn string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("failure accessing path %q: %w", pathfn, err)
 		}
@@ -99,7 +99,7 @@ func (client *localDirClient) listFiles(predicate func(string) (bool, error)) ([
 
 		// Remove prefix of the folder.
 		cleanPath := path.Clean(pathfn)
-		prefix := fmt.Sprintf("%s%s", client.path, string(os.PathSeparator))
+		prefix := fmt.Sprintf("%s%s", clientPath, string(os.PathSeparator))
 		p := strings.TrimPrefix(cleanPath, prefix)
 		matches, err := predicate(p)
 		if err != nil {
@@ -113,7 +113,7 @@ func (client *localDirClient) listFiles(predicate func(string) (bool, error)) ([
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error walking the path %q: %w", client.path, err)
+		return nil, fmt.Errorf("error walking the path %q: %w", clientPath, err)
 	}
 
 	return files, nil
@@ -125,21 +125,25 @@ func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([
 	var err error
 
 	once.Do(func() {
-		files, err = client.listFiles(predicate)
+		files, err = listFiles(client.path, predicate)
 	})
 
 	return files, err
 }
 
-// GetFileContent implements RepoClient.GetFileContent.
-func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
+func getFileContent(clientpath, filename string) ([]byte, error) {
 	// Note: the filenames do not contain the original path - see ListFiles().
-	fn := path.Join(client.path, filename)
+	fn := path.Join(clientpath, filename)
 	content, err := os.ReadFile(fn)
 	if err != nil {
 		return content, fmt.Errorf("%w", err)
 	}
 	return content, nil
+}
+
+// GetFileContent implements RepoClient.GetFileContent.
+func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
+	return getFileContent(client.path, filename)
 }
 
 // ListMergedPRs implements RepoClient.ListMergedPRs.
