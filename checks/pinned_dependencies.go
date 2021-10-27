@@ -592,7 +592,9 @@ func getOSesForJob(job *gitHubActionWorkflowJob) ([]string, error) {
 		if osVal, ok := m["os"]; ok {
 			if oses, ok := osVal.([]interface{}); ok {
 				for _, os := range oses {
-					jobOSes = append(jobOSes, os.(string))
+					if strVal, ok := os.(string); ok {
+						jobOSes = append(jobOSes, strVal)
+					}
 				}
 				return jobOSes, nil
 			}
