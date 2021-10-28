@@ -15,14 +15,12 @@
 package checks
 
 import (
-	"errors"
 	"strings"
 
 	"go.uber.org/zap"
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // CheckSecurityPolicy is the registred name for SecurityPolicy.
@@ -35,6 +33,7 @@ func init() {
 
 // SecurityPolicy runs Security-Policy check.
 func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
+	// TODO: not supported for local clients.
 	var r bool
 	// Check repository for repository-specific policy.
 	onFile := func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
@@ -70,8 +69,8 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
 	}
 
-	// checking for community default within the .github folder
-	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file
+	// Checking for community default within the .github folder.
+	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
 	logger, err := githubrepo.NewLogger(zap.InfoLevel)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
@@ -111,7 +110,8 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		if r {
 			return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
 		}
-	case !errors.Is(err, sce.ErrRepoUnreachable):
+	// err != nil
+	default:
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
 

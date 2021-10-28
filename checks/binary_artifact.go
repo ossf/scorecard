@@ -39,7 +39,8 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	var binFound bool
 	err := CheckFilesContent("*", false, c, checkBinaryFileContent, &binFound)
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, err)
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
 	}
 	if binFound {
 		return checker.CreateMinScoreResult(CheckBinaryArtifacts, "binaries present in source code")
@@ -90,6 +91,9 @@ func checkBinaryFileContent(path string, content []byte,
 	}
 	var t types.Type
 	var err error
+	if len(content) == 0 {
+		return true, nil
+	}
 	if t, err = filetype.Get(content); err != nil {
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("filetype.Get:%v", err))
 	}

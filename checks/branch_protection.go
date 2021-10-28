@@ -74,14 +74,16 @@ func checkReleaseAndDevBranchProtection(
 	// Get all branches. This will include information on whether they are protected.
 	branches, err := repoClient.ListBranches()
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 	}
 	branchesMap := getBranchMapFrom(branches)
 
 	// Get release branches.
 	releases, err := repoClient.ListReleases()
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 	}
 
 	var scores []int
