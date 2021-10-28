@@ -53,7 +53,6 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 		if errOssFuzzRepo != nil {
 			return
 		}
-
 		ossFuzzRepoClient = githubrepo.CreateGithubRepoClient(c.Ctx, logger)
 		errOssFuzzRepo = ossFuzzRepoClient.InitRepo(ossFuzzRepo)
 	})
