@@ -27,15 +27,16 @@ import (
 	"github.com/ossf/scorecard/v3/repos"
 )
 
-func isLessThanRepoURL(x, y *repos.RepoURI) bool {
-	return x.URL() < y.URL()
-}
-
 type fields struct {
 	host     string
 	owner    string
 	repo     string
 	metadata []string
+}
+
+//nolint: gocritic
+func lessThan(x, y repos.RepoURI) bool {
+	return fmt.Sprintf("%+v", x) < fmt.Sprintf("%+v", y)
 }
 
 func TestGetRepoURLs(t *testing.T) {
@@ -135,6 +136,7 @@ func TestGetRepoURLs(t *testing.T) {
 	}
 	for _, testcase := range testcases {
 		testcase := testcase
+
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			testFile, err := os.OpenFile(testcase.filename, os.O_RDONLY, 0o644)
@@ -172,8 +174,8 @@ func TestGetRepoURLs(t *testing.T) {
 				return true
 			})
 
-			if !cmp.Equal(rs, repoURLs, exp, cmpopts.EquateEmpty(), cmpopts.SortSlices(isLessThanRepoURL)) {
-				t.Errorf("testcase failed. expected %+v, got %+v", testcase.outcome, repoURLs)
+			if !cmp.Equal(rs, repoURLs, exp, cmpopts.EquateEmpty(), cmpopts.SortSlices(lessThan)) {
+				t.Errorf("testcase failed. expected %+v, got %+v", rs, repoURLs)
 			}
 		})
 	}
