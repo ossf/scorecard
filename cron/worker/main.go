@@ -54,7 +54,7 @@ func processRequest(ctx context.Context,
 	bucketURL, bucketURL2 string, checkDocs docs.Doc,
 	repoClient clients.RepoClient, logger *zap.Logger) error {
 	filename := data.GetBlobFilename(
-		fmt.Sprintf("shard-%05d", batchRequest.GetShardNum()),
+		fmt.Sprintf("shard-%07d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
 	// Sanity check - make sure we are not re-processing an already processed request.
 	exists1, err := data.BlobExists(ctx, bucketURL, filename)
