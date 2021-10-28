@@ -82,12 +82,12 @@ func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checke
 
 func validateUntrustedCodeCheckout(config map[interface{}]interface{}, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
-	isPullRequestTrigger, err := checkPullRequestTrigger(config)
+	checkPullRequestTrigger, err := checkPullRequestTrigger(config)
 	if err != nil {
 		return err
 	}
 
-	if isPullRequestTrigger {
+	if checkPullRequestTrigger {
 		return validateUntrustedCodeCheckoutRef(config, path, dl, pdata)
 	}
 
@@ -201,7 +201,7 @@ func checkJobForUntrustedCodeCheckout(job map[string]interface{}, path string,
 			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 		}
 		if strings.Contains(muses, "actions/checkout") &&
-			strings.Contains(mref, "${{ github.event.pull_request.head.sha }}") {
+			strings.Contains(mref, "github.event.pull_request.head.sha") {
 			dl.Warn3(&checker.LogMessage{
 				Path: path,
 				Type: checker.FileTypeSource,
@@ -224,7 +224,7 @@ func calculateWorkflowScore(result patternCbData) int {
 
 	// pull_request_event indicates untrusted code checkout
 	if ok := result.workflowPattern["untrusted_checkout"]; ok {
-		score -= 9
+		score -= 10
 	}
 
 	// We're done, calculate the final score.
@@ -249,7 +249,7 @@ func createResultForDangerousWorkflowPatterns(result patternCbData, err error) c
 	}
 
 	return checker.CreateMaxScoreResult(CheckDangerousWorkflow,
-		"workflow patterns pass dangerous workflow check")
+		"no dangerous workflow patterns detected")
 }
 
 func testValidateGitHubActionDangerousWOrkflow(pathfn string,
