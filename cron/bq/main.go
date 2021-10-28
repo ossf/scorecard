@@ -22,7 +22,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -67,16 +66,6 @@ func getBucketSummary(ctx context.Context, bucketURL string) (*bucketSummary, er
 			return nil, fmt.Errorf("error parsing Blob key: %w", err)
 		}
 		switch {
-		// TODO(azeems): Remove this case once all instances stop producing .shard_num file.
-		case filename == config.ShardNumFilename:
-			keyData, err := data.GetBlobContent(ctx, bucketURL, key)
-			if err != nil {
-				return nil, fmt.Errorf("error during GetBlobContent: %w", err)
-			}
-			summary.getOrCreate(creationTime).shardsExpected, err = strconv.Atoi(string(keyData))
-			if err != nil {
-				return nil, fmt.Errorf("error during strconv.Atoi: %w", err)
-			}
 		case strings.HasPrefix(filename, "shard-"):
 			summary.getOrCreate(creationTime).shardsCreated++
 		case filename == config.TransferStatusFilename:
