@@ -46,8 +46,7 @@ func checkCFLite(c *checker.CheckRequest) (bool, error) {
 	result := false
 	e := CheckFilesContent(".clusterfuzzlite/Dockerfile", true, c,
 		func(path string, content []byte, dl checker.DetailLogger, data FileCbData) (bool, error) {
-			// We only care about the existence of this file.
-			result = true
+			result = CheckFileContainsCommands(content, "#")
 			return false, nil
 		}, nil)
 
