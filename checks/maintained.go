@@ -39,7 +39,8 @@ func init() {
 func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 	archived, err := c.RepoClient.IsArchived()
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckMaintained, err)
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
 	if archived {
 		return checker.CreateMinScoreResult(CheckMaintained, "repo is marked as archived")
@@ -47,7 +48,8 @@ func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckMaintained, err)
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
 
 	tz, err := time.LoadLocation("UTC")
