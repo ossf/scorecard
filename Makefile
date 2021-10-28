@@ -165,7 +165,7 @@ dockerbuild: ## Runs docker build
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/scorecard-ko CGO_ENABLED=0 LDFLAGS="$(LDFLAGS)" \
 	ko publish -B --bare --local \
-			   --platform=all \
+			   --platform=linux/amd64,linux/arm64,linux/386,linux/arm,darwin/amd64,darwin/arm64,windows/amd64,windows/386,windows/arm64,windows/arm \
 			   --push=false \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3
 	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
