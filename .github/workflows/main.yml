@@ -35,8 +35,9 @@ jobs:
          go-version: '^1.17'
      - name: Run presubmit tests
        run: |
-            go env -w GOFLAGS=-mod=mod
-            make all
+            echo "temporarily disabled - https://github.com/ossf/scorecard/runs/4016589697?check_suite_focus=true"
+            #go env -w GOFLAGS=-mod=mod
+            #make all
   license-check:
     name: license boilerplate check
     runs-on: ubuntu-latest
