@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/golangci/golangci-lint v1.42.1
 	github.com/google/addlicense v1.0.0
-	github.com/google/ko v0.9.3
 	github.com/naveensrinivasan/stunning-tribble v0.4.2
 	github.com/onsi/ginkgo v1.16.4
 	google.golang.org/protobuf v1.27.1

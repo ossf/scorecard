@@ -89,6 +89,9 @@ jobs:
               go env -w GOFLAGS=-mod=mod
               make ci-e2e
 
+      - name: install ko
+        uses: imjasonh/setup-ko@v0.4
+
       - name: install tools
         run: make install
 
