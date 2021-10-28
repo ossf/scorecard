@@ -99,11 +99,6 @@ func (client *Client) InitRepo(inputRepo clients.Repo) error {
 	return nil
 }
 
-// IsLocal implements RepoClient.IsLocal.
-func (client *Client) IsLocal() bool {
-	return false
-}
-
 // URI implements RepoClient.URI.
 func (client *Client) URI() string {
 	return fmt.Sprintf("github.com/%s/%s", client.owner, client.repoName)

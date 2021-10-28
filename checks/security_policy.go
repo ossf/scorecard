@@ -21,7 +21,6 @@ import (
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // CheckSecurityPolicy is the registred name for SecurityPolicy.
@@ -34,6 +33,7 @@ func init() {
 
 // SecurityPolicy runs Security-Policy check.
 func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
+	// TODO: not supported for local clients.
 	var r bool
 	// Check repository for repository-specific policy.
 	onFile := func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
@@ -67,11 +67,6 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	}
 	if r {
 		return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
-	}
-
-	if c.RepoClient.IsLocal() {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "not supported for local repos")
-		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, e)
 	}
 
 	// Checking for community default within the .github folder.

@@ -280,13 +280,6 @@ func (m *MockRepoClient) URI() string {
 	return ret0
 }
 
-func (m *MockRepoClient) IsLocal() bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsLocal")
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
 // URI indicates an expected call of URI.
 func (mr *MockRepoClientMockRecorder) URI() *gomock.Call {
 	mr.mock.ctrl.T.Helper()

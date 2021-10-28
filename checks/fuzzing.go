@@ -44,12 +44,6 @@ func init() {
 
 // Fuzzing runs Fuzzing check.
 func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
-	// Local clients do not have a repo's full name for the OSS-Fuzz lookup.
-	if c.RepoClient.IsLocal() {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "not supported for local repos")
-		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
-	}
-
 	once.Do(func() {
 		logger, errOssFuzzRepo = githubrepo.NewLogger(zap.InfoLevel)
 		if errOssFuzzRepo != nil {
@@ -59,7 +53,6 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 		if errOssFuzzRepo != nil {
 			return
 		}
-
 		ossFuzzRepoClient = githubrepo.CreateGithubRepoClient(c.Ctx, logger)
 		errOssFuzzRepo = ossFuzzRepoClient.InitRepo(ossFuzzRepo)
 	})

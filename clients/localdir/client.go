@@ -67,11 +67,6 @@ func (client *localDirClient) IsArchived() (bool, error) {
 	return false, fmt.Errorf("IsArchived: %w", errUnsupportedFeature)
 }
 
-// IsLocal implements RepoClient.IsLocal.
-func (client *localDirClient) IsLocal() bool {
-	return true
-}
-
 func isDir(p string) (bool, error) {
 	fileInfo, err := os.Stat(p)
 	if err != nil {
