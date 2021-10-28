@@ -91,7 +91,6 @@ func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error)
 	switch uri.RepoType() {
 	// URL.
 	case repos.RepoTypeURL:
-		//nolint:unwrapped
 		commits, err := r.ListCommits()
 		if err != nil {
 			// nolint:wrapcheck
