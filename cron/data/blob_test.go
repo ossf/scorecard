@@ -45,7 +45,7 @@ func TestGetBlobFilename(t *testing.T) {
 			t.Parallel()
 			datetime, err := time.Parse(inputTimeFormat, testcase.inputTime)
 			if err != nil {
-				t.Errorf("failed to parse testcase.inputTime %s: %w", testcase.inputTime, err)
+				t.Errorf("failed to parse testcase.inputTime %s: %v", testcase.inputTime, err)
 			}
 			gotFilename := GetBlobFilename(testcase.inputFilename, datetime)
 			if gotFilename != testcase.expectedFilename {
