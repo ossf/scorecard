@@ -35,7 +35,7 @@ type fields struct {
 }
 
 //nolint: gocritic
-func lessThan(x, y repos.RepoURI) bool {
+func lessThanURI(x, y repos.RepoURI) bool {
 	return fmt.Sprintf("%+v", x) < fmt.Sprintf("%+v", y)
 }
 
@@ -174,7 +174,7 @@ func TestGetRepoURLs(t *testing.T) {
 				return true
 			})
 
-			if !cmp.Equal(rs, repoURLs, exp, cmpopts.EquateEmpty(), cmpopts.SortSlices(lessThan)) {
+			if !cmp.Equal(rs, repoURLs, exp, cmpopts.EquateEmpty(), cmpopts.SortSlices(lessThanURI)) {
 				t.Errorf("testcase failed. expected %+v, got %+v", rs, repoURLs)
 			}
 		})
