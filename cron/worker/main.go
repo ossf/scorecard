@@ -144,8 +144,6 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 	if err := view.Register(
 		&stats.CheckRuntime,
 		&stats.CheckErrorCount,
-		// TODO: Debug high monitoring costs for Stackdriver before re-enabling.
-		// &stats.RepoRuntime,
 		&stats.OutgoingHTTPRequests,
 		&githubstats.GithubTokens); err != nil {
 		return nil, fmt.Errorf("error during view.Register: %w", err)
