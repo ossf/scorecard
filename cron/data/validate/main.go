@@ -45,9 +45,9 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		if _, ok := m[repo.URL()]; ok {
-			log.Panicf("Item already in the list %s", repo.URL())
+		if _, ok := m[repo.Repo]; ok {
+			log.Panicf("Item already in the list %s", repo.Repo)
 		}
-		m[repo.URL()] = true
+		m[repo.Repo] = true
 	}
 }

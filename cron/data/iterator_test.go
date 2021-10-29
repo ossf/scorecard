@@ -16,25 +16,17 @@ package data
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v3/repos"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
-
-type fields struct {
-	host     string
-	owner    string
-	repo     string
-	metadata []string
-}
 
 type outcome struct {
 	expectedErr error
-	repoURI     fields
+	repo        RepoFormat
 	hasError    bool
 }
 
@@ -53,27 +45,21 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repoURI: fields{
-						host:  "github.com",
-						owner: "owner1",
-						repo:  "repo1",
+					repo: RepoFormat{
+						Repo: "github.com/owner1/repo1",
 					},
 				},
 				{
 					hasError: false,
-					repoURI: fields{
-						host:  "github.com",
-						owner: "owner2",
-						repo:  "repo2",
+					repo: RepoFormat{
+						Repo: "github.com/owner2/repo2",
 					},
 				},
 				{
 					hasError: false,
-					repoURI: fields{
-						host:     "github.com",
-						owner:    "owner3",
-						repo:     "repo3",
-						metadata: []string{"meta"},
+					repo: RepoFormat{
+						Repo:     "github.com/owner3/repo3",
+						Metadata: []string{"meta"},
 					},
 				},
 			},
@@ -84,27 +70,21 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repoURI: fields{
-						host:  "github.com",
-						owner: "owner1",
-						repo:  "repo1",
+					repo: RepoFormat{
+						Repo: "github.com/owner1/repo1",
 					},
 				},
 				{
 					hasError: false,
-					repoURI: fields{
-						host:  "github.com",
-						owner: "owner2",
-						repo:  "repo2",
+					repo: RepoFormat{
+						Repo: "github.com/owner2/repo2",
 					},
 				},
 				{
 					hasError: false,
-					repoURI: fields{
-						host:     "github.com",
-						owner:    "owner3",
-						repo:     "repo3",
-						metadata: []string{"meta"},
+					repo: RepoFormat{
+						Repo:     "github.com/owner3/repo3",
+						Metadata: []string{"meta"},
 					},
 				},
 			},
@@ -115,15 +95,15 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError:    true,
-					expectedErr: repos.ErrorUnsupportedhost,
+					expectedErr: sce.ErrorUnsupportedHost,
 				},
 				{
 					hasError:    true,
-					expectedErr: repos.ErrorInvalidURL,
+					expectedErr: sce.ErrorInvalidURL,
 				},
 				{
 					hasError:    true,
-					expectedErr: repos.ErrorInvalidURL,
+					expectedErr: sce.ErrorInvalidURL,
 				},
 			},
 		},
@@ -133,27 +113,21 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repoURI: fields{
-						host:  "github.com",
-						owner: "owner1",
-						repo:  "repo1",
+					repo: RepoFormat{
+						Repo: "github.com/owner1/repo1",
 					},
 				},
 				{
 					hasError: false,
-					repoURI: fields{
-						host:  "github.com",
-						owner: "owner2",
-						repo:  "repo2",
+					repo: RepoFormat{
+						Repo: "github.com/owner2/repo2",
 					},
 				},
 				{
 					hasError: false,
-					repoURI: fields{
-						host:     "github.com",
-						owner:    "owner3",
-						repo:     "repo3",
-						metadata: []string{"meta"},
+					repo: RepoFormat{
+						Repo:     "github.com/owner3/repo3",
+						Metadata: []string{"meta"},
 					},
 				},
 			},
@@ -164,18 +138,14 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError: false,
-					repoURI: fields{
-						host:  "github.com",
-						owner: "owner1",
-						repo:  "repo1",
+					repo: RepoFormat{
+						Repo: "github.com/owner1/repo1",
 					},
 				},
 				{
 					hasError: false,
-					repoURI: fields{
-						host:  "github.com",
-						owner: "owner2",
-						repo:  "repo2",
+					repo: RepoFormat{
+						Repo: "github.com/owner2/repo2",
 					},
 				},
 				{
@@ -209,18 +179,8 @@ func TestCsvIterator(t *testing.T) {
 				}
 
 				if !outcome.hasError {
-					u := fmt.Sprintf("%s/%s/%s",
-						outcome.repoURI.host, outcome.repoURI.owner, outcome.repoURI.repo)
-					outcomeRepo, err := repos.NewFromURL(u)
-					if err != nil {
-						t.Errorf("repos.NewFromURL: %v", err)
-					}
-					if err := outcomeRepo.AppendMetadata(outcome.repoURI.metadata...); err != nil {
-						t.Errorf("outcomeRepo.AppendMetadata: %v", err)
-					}
-
-					if !cmp.Equal(outcomeRepo, &repoURL) {
-						t.Errorf("expected repoURL: %+v, got %+v", *outcomeRepo, repoURL)
+					if !cmp.Equal(outcome.repo, repoURL) {
+						t.Errorf("expected equal, got diff: %s", cmp.Diff(outcome.repo, repoURL))
 					}
 				}
 				if outcome.hasError && outcome.expectedErr != nil && !errors.Is(err, outcome.expectedErr) {

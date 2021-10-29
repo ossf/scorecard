@@ -23,10 +23,7 @@ import (
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/clients"
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	"github.com/ossf/scorecard/v3/clients/localdir"
 	sce "github.com/ossf/scorecard/v3/errors"
-	"github.com/ossf/scorecard/v3/repos"
 )
 
 func runEnabledChecks(ctx context.Context,
@@ -56,62 +53,23 @@ func runEnabledChecks(ctx context.Context,
 	close(resultsCh)
 }
 
-func createRepo(uri *repos.RepoURI) (clients.Repo, error) {
-	var c clients.Repo
-	var e error
-	switch uri.RepoType() {
-	// URL.
-	case repos.RepoTypeURL:
-		c, e = githubrepo.MakeGithubRepo(uri.URL())
-	// LocalDir.
-	case repos.RepoTypeLocalDir:
-		c, e = localdir.MakeLocalDirRepo(uri.Path())
-	default:
-		return nil,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
+func getRepoCommitHash(r clients.RepoClient) (string, error) {
+	commits, err := r.ListCommits()
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCommits:%v", err.Error()))
 	}
 
-	if e != nil {
-		return c, sce.WithMessage(sce.ErrScorecardInternal, e.Error())
+	if len(commits) > 0 {
+		return commits[0].SHA, nil
 	}
-
-	return c, nil
-}
-
-func getRepoCommitHash(r clients.RepoClient, uri *repos.RepoURI) (string, error) {
-	switch uri.RepoType() {
-	// URL.
-	case repos.RepoTypeURL:
-		commits, err := r.ListCommits()
-		if err != nil {
-			return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCommits:%v", err.Error()))
-		}
-
-		if len(commits) > 0 {
-			return commits[0].SHA, nil
-		}
-
-		return "no commits found", nil
-
-	// LocalDir.
-	case repos.RepoTypeLocalDir:
-		return "no commits for directory repo", nil
-
-	default:
-		return "",
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported URI type:%v", uri.RepoType()))
-	}
+	return "no commits found", nil
 }
 
 // RunScorecards runs enabled Scorecard checks on a Repo.
 func RunScorecards(ctx context.Context,
-	repoURI *repos.RepoURI,
+	repo clients.Repo,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient) (ScorecardResult, error) {
-	repo, err := createRepo(repoURI)
-	if err != nil {
-		return ScorecardResult{}, sce.WithMessage(err, "")
-	}
 	if err := repoClient.InitRepo(repo); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
@@ -119,7 +77,7 @@ func RunScorecards(ctx context.Context,
 	}
 	defer repoClient.Close()
 
-	commitSHA, err := getRepoCommitHash(repoClient, repoURI)
+	commitSHA, err := getRepoCommitHash(repoClient)
 	if err != nil {
 		return ScorecardResult{}, err
 	}

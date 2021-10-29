@@ -43,7 +43,6 @@ import (
 	docs "github.com/ossf/scorecard/v3/docs/checks"
 	sce "github.com/ossf/scorecard/v3/errors"
 	"github.com/ossf/scorecard/v3/pkg"
-	"github.com/ossf/scorecard/v3/repos"
 	"github.com/ossf/scorecard/v3/stats"
 )
 
@@ -72,25 +71,17 @@ func processRequest(ctx context.Context,
 		return nil
 	}
 
-	repoURLs := make([]repos.RepoURI, 0, len(batchRequest.GetRepos()))
-	for _, repo := range batchRequest.GetRepos() {
-		repoURL := repos.RepoURI{}
-		if err := repoURL.Set(repo); err != nil {
-			return fmt.Errorf("error setting RepoURL: %w", err)
-		}
-		if err := repoURL.IsValidGitHubURL(); err != nil {
-			return fmt.Errorf("url is not a valid GitHub URL: %w", err)
-		}
-		repoURLs = append(repoURLs, repoURL)
-	}
-
 	var buffer bytes.Buffer
 	var buffer2 bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
-	for i := range repoURLs {
-		repoURL := repoURLs[i]
-		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", repoURL.URL()))
-		result, err := pkg.RunScorecards(ctx, &repoURL, checksToRun, repoClient)
+	for _, repoURL := range batchRequest.GetRepos() {
+		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", repoURL))
+		repo, err := githubrepo.MakeGithubRepo(repoURL)
+		if err != nil {
+			logger.Warn(fmt.Sprintf("invalid GitHub URL: %v", err))
+			continue
+		}
+		result, err := pkg.RunScorecards(ctx, repo, checksToRun, repoClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue

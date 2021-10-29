@@ -21,7 +21,6 @@ import (
 	"os"
 
 	"github.com/ossf/scorecard/v3/cron/data"
-	"github.com/ossf/scorecard/v3/repos"
 )
 
 // Script to add new project repositories to the projects.csv file:
@@ -64,34 +63,32 @@ func main() {
 	}
 }
 
-func getRepoURLs(iter data.Iterator) ([]repos.RepoURI, error) {
-	repoURLs := make(map[string]*repos.RepoURI)
+func getRepoURLs(iter data.Iterator) ([]data.RepoFormat, error) {
+	repoURLs := make(map[string]*data.RepoFormat)
 	repoMap := make(map[string]map[string]bool)
 	for iter.HasNext() {
 		repo, err := iter.Next()
 		if err != nil {
 			return nil, fmt.Errorf("iter.Next: %w", err)
 		}
-		if _, ok := repoMap[repo.URL()]; !ok {
-			repoURLs[repo.URL()] = new(repos.RepoURI)
-			*repoURLs[repo.URL()] = repo
-			repoMap[repo.URL()] = make(map[string]bool)
-			for _, metadata := range repo.Metadata() {
-				repoMap[repo.URL()][metadata] = true
+		if _, ok := repoMap[repo.Repo]; !ok {
+			repoURLs[repo.Repo] = new(data.RepoFormat)
+			*repoURLs[repo.Repo] = repo
+			repoMap[repo.Repo] = make(map[string]bool)
+			for _, metadata := range repo.Metadata {
+				repoMap[repo.Repo][metadata] = true
 			}
 			continue
 		}
-		for _, metadata := range repo.Metadata() {
-			if _, ok := repoMap[repo.URL()][metadata]; !ok && metadata != "" {
-				if err := repoURLs[repo.URL()].AppendMetadata(metadata); err != nil {
-					return nil, fmt.Errorf("AppendMetadata: %w", err)
-				}
-				repoMap[repo.URL()][metadata] = true
+		for _, metadata := range repo.Metadata {
+			if _, ok := repoMap[repo.Repo][metadata]; !ok && metadata != "" {
+				repoURLs[repo.Repo].Metadata = append(repoURLs[repo.Repo].Metadata, metadata)
+				repoMap[repo.Repo][metadata] = true
 			}
 		}
 	}
 
-	newRepoURLs := make([]repos.RepoURI, 0)
+	newRepoURLs := make([]data.RepoFormat, 0)
 	for _, repoURL := range repoURLs {
 		newRepoURLs = append(newRepoURLs, *repoURL)
 	}
