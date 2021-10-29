@@ -65,7 +65,7 @@ func TestClient_CreationAndCaching(t *testing.T) {
 			ctx := context.Background()
 			logger, err := githubrepo.NewLogger(zapcore.DebugLevel)
 			if err != nil {
-				t.Errorf("githubrepo.NewLogger: %w", err)
+				t.Errorf("githubrepo.NewLogger: %v", err)
 			}
 			// nolint
 			defer logger.Sync() // Flushes buffer, if any.
@@ -82,7 +82,7 @@ func TestClient_CreationAndCaching(t *testing.T) {
 
 			client := CreateLocalDirClient(ctx, logger)
 			if err := client.InitRepo(repo); err != nil {
-				t.Errorf("InitRepo: %w", err)
+				t.Errorf("InitRepo: %v", err)
 			}
 
 			// List files.
