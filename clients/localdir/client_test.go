@@ -17,6 +17,7 @@ package localdir
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -102,6 +103,8 @@ func TestClient_CreationAndCaching(t *testing.T) {
 			}
 
 			if !cmp.Equal(tt.outputFiles, files2, cmpopts.SortSlices(func(x, y string) bool { return x < y })) {
+				fmt.Printf("files2: %+v\n", files2)
+				fmt.Printf("tt.outputFiles: %+v\n", tt.outputFiles)
 				t.Errorf("Got diff: %s", cmp.Diff(tt.outputFiles, files2))
 			}
 		})

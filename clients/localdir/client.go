@@ -40,9 +40,12 @@ var (
 var once sync.Once
 
 type localDirClient struct {
-	logger *zap.Logger
-	ctx    context.Context
-	path   string
+	logger   *zap.Logger
+	ctx      context.Context
+	path     string
+	once     sync.Once
+	errFiles error
+	files    []string
 }
 
 // InitRepo sets up the local repo.
@@ -116,14 +119,11 @@ func listFiles(clientPath string, predicate func(string) (bool, error)) ([]strin
 
 // ListFiles implements RepoClient.ListFiles.
 func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	files := []string{}
-	var err error
-
 	once.Do(func() {
-		files, err = listFiles(client.path, predicate)
+		client.files, client.errFiles = listFiles(client.path, predicate)
 	})
 
-	return files, err
+	return client.files, client.errFiles
 }
 
 func getFileContent(clientpath, filename string) ([]byte, error) {
