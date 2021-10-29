@@ -30,7 +30,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 	Context("E2E TEST:Validating use of CI tests", func() {
 		It("Should return use of CI tests", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := githubrepo.MakeGithubRepo("apache/airflow")
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo)
@@ -43,17 +43,12 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
+				Score:         checker.InconclusiveResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 30,
+				NumberOfDebug: 0,
 			}
 			result := checks.CITests(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
-			// New version.
 			Expect(scut.ValidateTestReturn(nil, "CI tests run", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})

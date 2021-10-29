@@ -130,6 +130,15 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.Ch
 	return enabledChecks, nil
 }
 
+func validateFormat(format string) bool {
+	switch format {
+	case "json", "sarif", "default":
+		return true
+	default:
+		return false
+	}
+}
+
 func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logger) (clients.RepoClient, error) {
 	var rc clients.RepoClient
 	switch uri.RepoType() {
@@ -138,7 +147,6 @@ func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logge
 		if err := repo.IsValidGitHubURL(); err != nil {
 			return rc, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
-
 		rc = githubrepo.CreateGithubRepoClient(ctx, logger)
 		return rc, nil
 
@@ -148,15 +156,6 @@ func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logge
 	}
 
 	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.RepoType()))
-}
-
-func validateFormat(format string) bool {
-	switch format {
-	case "json", "sarif", "default":
-		return true
-	default:
-		return false
-	}
 }
 
 var rootCmd = &cobra.Command{

@@ -45,17 +45,12 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  154,
-				NumberOfInfo:  0,
+				Score:         3,
+				NumberOfWarn:  150,
+				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			}
 			result := checks.PinnedDependencies(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeFalse())
-			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})

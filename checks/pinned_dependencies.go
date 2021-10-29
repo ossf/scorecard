@@ -588,11 +588,14 @@ func getOSesForJob(job *gitHubActionWorkflowJob) ([]string, error) {
 		return job.RunsOn, nil
 	}
 	jobOSes := make([]string, 0)
+	// nolint: nestif
 	if m, ok := job.Strategy.Matrix.(map[string]interface{}); ok {
 		if osVal, ok := m["os"]; ok {
 			if oses, ok := osVal.([]interface{}); ok {
 				for _, os := range oses {
-					jobOSes = append(jobOSes, os.(string))
+					if strVal, ok := os.(string); ok {
+						jobOSes = append(jobOSes, strVal)
+					}
 				}
 				return jobOSes, nil
 			}

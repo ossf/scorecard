@@ -15,7 +15,6 @@
 package checks
 
 import (
-	"fmt"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -111,7 +110,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 
 			content, err = ioutil.ReadFile(tt.filename)
 			if err != nil {
-				panic(fmt.Errorf("cannot read file: %w", err))
+				t.Errorf("cannot read file: %v", err)
 			}
 
 			dl := scut.TestDetailLogger{}
@@ -202,7 +201,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 			} else {
 				content, err = ioutil.ReadFile(tt.filename)
 				if err != nil {
-					panic(fmt.Errorf("cannot read file: %w", err))
+					t.Errorf("cannot read file: %v", err)
 				}
 			}
 			dl := scut.TestDetailLogger{}
@@ -247,7 +246,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 
 			content, err = ioutil.ReadFile(tt.filename)
 			if err != nil {
-				panic(fmt.Errorf("cannot read file: %w", err))
+				t.Errorf("cannot read file: %v", err)
 			}
 
 			dl := scut.TestDetailLogger{}
@@ -371,7 +370,7 @@ func TestDockerfilePinning(t *testing.T) {
 			} else {
 				content, err = ioutil.ReadFile(tt.filename)
 				if err != nil {
-					panic(fmt.Errorf("cannot read file: %w", err))
+					t.Errorf("cannot read file: %v", err)
 				}
 			}
 			dl := scut.TestDetailLogger{}
@@ -415,7 +414,7 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 
 			content, err = ioutil.ReadFile(tt.filename)
 			if err != nil {
-				panic(fmt.Errorf("cannot read file: %w", err))
+				t.Errorf("cannot read file: %v", err)
 			}
 			dl := scut.TestDetailLogger{}
 			s, e := testValidateDockerfileIsPinned(tt.filename, content, &dl)
@@ -600,7 +599,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			} else {
 				content, err = ioutil.ReadFile(tt.filename)
 				if err != nil {
-					panic(fmt.Errorf("cannot read file: %w", err))
+					t.Errorf("cannot read file: %v", err)
 				}
 			}
 			dl := scut.TestDetailLogger{}
@@ -644,7 +643,7 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 
 			content, err = ioutil.ReadFile(tt.filename)
 			if err != nil {
-				panic(fmt.Errorf("cannot read file: %w", err))
+				t.Errorf("cannot read file: %v", err)
 			}
 			dl := scut.TestDetailLogger{}
 			s, e := testValidateDockerfileIsFreeOfInsecureDownloads(tt.filename, content, &dl)
@@ -753,7 +752,7 @@ func TestShellScriptDownload(t *testing.T) {
 			} else {
 				content, err = ioutil.ReadFile(tt.filename)
 				if err != nil {
-					panic(fmt.Errorf("cannot read file: %w", err))
+					t.Errorf("cannot read file: %v", err)
 				}
 			}
 			dl := scut.TestDetailLogger{}
@@ -808,7 +807,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 
 			content, err = ioutil.ReadFile(tt.filename)
 			if err != nil {
-				panic(fmt.Errorf("cannot read file: %w", err))
+				t.Errorf("cannot read file: %v", err)
 			}
 
 			dl := scut.TestDetailLogger{}
@@ -885,7 +884,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 			} else {
 				content, err = ioutil.ReadFile(tt.filename)
 				if err != nil {
-					panic(fmt.Errorf("cannot read file: %w", err))
+					t.Errorf("cannot read file: %v", err)
 				}
 			}
 			dl := scut.TestDetailLogger{}
@@ -948,13 +947,13 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			t.Parallel()
 			content, err := ioutil.ReadFile(tt.filename)
 			if err != nil {
-				t.Errorf("cannot read file: %w", err)
+				t.Errorf("cannot read file: %v", err)
 			}
 			dl := scut.TestDetailLogger{}
 			var pinned worklowPinningResult
 			_, err = validateGitHubActionWorkflow(tt.filename, content, &dl, &pinned)
 			if err != nil {
-				t.Errorf("error during validateGitHubActionWorkflow: %w", err)
+				t.Errorf("error during validateGitHubActionWorkflow: %v", err)
 			}
 			for _, expectedLog := range tt.expected {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
@@ -1059,12 +1058,12 @@ func TestGitHubWorkflowShell(t *testing.T) {
 			t.Parallel()
 			content, err := ioutil.ReadFile(tt.filename)
 			if err != nil {
-				t.Errorf("cannot read file: %w", err)
+				t.Errorf("cannot read file: %v", err)
 			}
 			var workflow gitHubActionWorkflowConfig
 			err = yaml.Unmarshal(content, &workflow)
 			if err != nil {
-				t.Errorf("cannot unmarshal file: %w", err)
+				t.Errorf("cannot unmarshal file: %v", err)
 			}
 			actualShells := make([]string, 0)
 			for _, job := range workflow.Jobs {
@@ -1073,7 +1072,7 @@ func TestGitHubWorkflowShell(t *testing.T) {
 					step := step
 					shell, err := getShellForStep(&step, &job)
 					if err != nil {
-						t.Errorf("error getting shell: %w", err)
+						t.Errorf("error getting shell: %v", err)
 					}
 					actualShells = append(actualShells, shell)
 				}
