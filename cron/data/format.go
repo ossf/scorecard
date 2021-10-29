@@ -34,6 +34,15 @@ func (s *CSVStrings) UnmarshalCSV(input []byte) error {
 	return nil
 }
 
+// ToString converts CSVStrings -> []string.
+func (s CSVStrings) ToString() []string {
+	var ret []string
+	for _, i := range s {
+		ret = append(ret, i)
+	}
+	return ret
+}
+
 // RepoFormat is used to read input repos.
 type RepoFormat struct {
 	Repo     string     `csv:"repo"`

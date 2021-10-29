@@ -30,24 +30,12 @@ import (
 	"github.com/ossf/scorecard/v3/pkg"
 )
 
-func publishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime time.Time) (int32, error) {
+func publishToRepoRequestTopic(iter data.Iterator, topicPublisher pubsub.Publisher,
+	shardSize int, datetime time.Time) (int32, error) {
 	var shardNum int32
 	request := data.ScorecardBatchRequest{
 		JobTime:  timestamppb.New(datetime),
 		ShardNum: &shardNum,
-	}
-	topic, err := config.GetRequestTopicURL()
-	if err != nil {
-		return shardNum, fmt.Errorf("error getting RequestTopicURL: %w", err)
-	}
-	topicPublisher, err := pubsub.CreatePublisher(ctx, topic)
-	if err != nil {
-		return shardNum, fmt.Errorf("error running CreatePublisher: %w", err)
-	}
-
-	shardSize, err := config.GetShardSize()
-	if err != nil {
-		return shardNum, fmt.Errorf("error getting ShardSize: %w", err)
 	}
 
 	// Create and send batch requests of repoURLs of size `ShardSize`:
@@ -59,7 +47,10 @@ func publishToRepoRequestTopic(ctx context.Context, iter data.Iterator, datetime
 		if err != nil {
 			return shardNum, fmt.Errorf("error reading repoURL: %w", err)
 		}
-		request.Repos = append(request.GetRepos(), repoURL.Repo)
+		request.Repos = append(request.GetRepos(), &data.Repo{
+			Url:      &repoURL.Repo,
+			Metadata: repoURL.Metadata.ToString(),
+		})
 		if len(request.GetRepos()) < shardSize {
 			continue
 		}
@@ -102,6 +93,20 @@ func main() {
 		panic(err)
 	}
 
+	topic, err := config.GetRequestTopicURL()
+	if err != nil {
+		panic(err)
+	}
+	topicPublisher, err := pubsub.CreatePublisher(ctx, topic)
+	if err != nil {
+		panic(err)
+	}
+
+	shardSize, err := config.GetShardSize()
+	if err != nil {
+		panic(err)
+	}
+
 	bucket, err := config.GetResultDataBucketURL()
 	if err != nil {
 		panic(err)
@@ -112,7 +117,7 @@ func main() {
 		panic(err)
 	}
 
-	shardNum, err := publishToRepoRequestTopic(ctx, reader, t)
+	shardNum, err := publishToRepoRequestTopic(reader, topicPublisher, shardSize, t)
 	if err != nil {
 		panic(err)
 	}
