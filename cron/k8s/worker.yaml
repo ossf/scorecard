@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: scorecard-batch-worker
 spec:
-  replicas: 5
+  replicas: 12
   selector:
     matchLabels:
       app.kubernetes.io/name: worker
@@ -36,11 +36,9 @@ spec:
           value: "10.4.4.210:80"
         resources:
           requests:
-            cpu: 5
             memory: 5Gi
             ephemeral-storage: 100Gi
           limits:
-            cpu: 12
             memory: 12Gi
             ephemeral-storage: 500Gi
   strategy:
