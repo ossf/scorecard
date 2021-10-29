@@ -104,7 +104,7 @@ func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNam
 	return true
 }
 
-func supportedChecks(r string, checkDocs docs.Doc) ([]string, error) {
+func getSupportedChecks(r string, checkDocs docs.Doc) ([]string, error) {
 	allChecks := checks.AllChecks
 	checks := []string{}
 	for check := range allChecks {
@@ -289,7 +289,7 @@ var rootCmd = &cobra.Command{
 			log.Fatalf("cannot read yaml file: %v", err)
 		}
 
-		supportedChecks, err := supportedChecks(repoType, checkDocs)
+		supportedChecks, err := getSupportedChecks(repoType, checkDocs)
 		if err != nil {
 			log.Fatalf("cannot read supported checks: %v", err)
 		}
