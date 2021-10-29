@@ -16,13 +16,16 @@ package data
 
 import "strings"
 
-type csvStrings []string
+// CSVStrings is []string with support for CSV formatting.
+type CSVStrings []string
 
-func (s csvStrings) MarshalCSV() ([]byte, error) {
+// MarshalCSV implements []string -> []byte serialization.
+func (s CSVStrings) MarshalCSV() ([]byte, error) {
 	return []byte(strings.Join(s, ",")), nil
 }
 
-func (s *csvStrings) UnmarshalCSV(input []byte) error {
+// UnmarshalCSV implements []byte -> []string de-serializtion.
+func (s *CSVStrings) UnmarshalCSV(input []byte) error {
 	if len(input) == 0 || string(input) == "" {
 		*s = nil
 		return nil
@@ -31,7 +34,8 @@ func (s *csvStrings) UnmarshalCSV(input []byte) error {
 	return nil
 }
 
-type repoFormat struct {
+// RepoFormat is used to read input repos.
+type RepoFormat struct {
 	Repo     string     `csv:"repo"`
-	Metadata csvStrings `csv:"metadata"`
+	Metadata CSVStrings `csv:"metadata"`
 }

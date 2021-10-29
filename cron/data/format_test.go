@@ -25,7 +25,7 @@ func TestUnmarshalCsv(t *testing.T) {
 	testcases := []struct {
 		name   string
 		input  []byte
-		output csvStrings
+		output CSVStrings
 	}{
 		{
 			name:   "Basic",
@@ -53,7 +53,7 @@ func TestUnmarshalCsv(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
-			s := new(csvStrings)
+			s := new(CSVStrings)
 			if err := s.UnmarshalCSV(testcase.input); err != nil {
 				t.Errorf("testcase failed: %v", err)
 			}

@@ -27,7 +27,6 @@ import (
 	"github.com/ossf/scorecard/v3/checks"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
 	"github.com/ossf/scorecard/v3/pkg"
-	"github.com/ossf/scorecard/v3/repos"
 )
 
 //nolint:gochecknoinits
@@ -59,13 +58,13 @@ var serveCmd = &cobra.Command{
 			if len(s) != length {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
-			repo := repos.RepoURI{}
-			if err := repo.Set(repoParam); err != nil {
+			repo, err := githubrepo.MakeGithubRepo(repoParam)
+			if err != nil {
 				rw.WriteHeader(http.StatusBadRequest)
 			}
 			ctx := r.Context()
 			repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-			repoResult, err := pkg.RunScorecards(ctx, &repo, checks.AllChecks, repoClient)
+			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient)
 			if err != nil {
 				sugar.Error(err)
 				rw.WriteHeader(http.StatusInternalServerError)
