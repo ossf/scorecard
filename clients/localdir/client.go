@@ -118,7 +118,7 @@ func listFiles(clientPath string, predicate func(string) (bool, error)) ([]strin
 
 // ListFiles implements RepoClient.ListFiles.
 func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	once.Do(func() {
+	client.once.Do(func() {
 		client.files, client.errFiles = listFiles(client.path, predicate)
 	})
 
