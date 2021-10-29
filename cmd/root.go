@@ -55,6 +55,14 @@ var (
 	policyFile  string
 )
 
+type repoType int
+
+const (
+	repoTypeUnknown repoType = iota
+	repoTypeGitHub
+	repoTypeLocalDir
+)
+
 const (
 	formatJSON    = "json"
 	formatSarif   = "sarif"
@@ -96,27 +104,96 @@ func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNam
 	return true
 }
 
-func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.CheckNameToFnMap, error) {
+func repoTypeToString(rt repoType) (string, error) {
+	switch rt {
+	case repoTypeGitHub:
+		return "GitHub", nil
+	case repoTypeLocalDir:
+		return "local", nil
+	default:
+		return "", fmt.Errorf("unknown repo type")
+	}
+}
+
+func supportedChecks(r repoType, checkDocs docs.Doc) ([]string, error) {
+	allChecks := checks.AllChecks
+	checks := []string{}
+	for check := range allChecks {
+		c, e := checkDocs.GetCheck(check)
+		if e != nil {
+			return nil, fmt.Errorf("checkDocs.GetCheck: %w", e)
+		}
+		types := c.GetSupportedRepoTypes()
+		repoString, e := repoTypeToString(r)
+		if e != nil {
+			return nil, e
+		}
+		for _, t := range types {
+			if repoString == t {
+				checks = append(checks, c.GetName())
+			}
+		}
+	}
+	return checks, nil
+}
+
+func isSupportedCheck(names []string, name string) bool {
+	for _, n := range names {
+		if n == name {
+			return true
+		}
+	}
+	return false
+}
+
+func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
+	supportedChecks []string, repoType repoType) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
 
+	repoString, err := repoTypeToString(repoType)
+	if err != nil {
+		return enabledChecks,
+			sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
 	switch {
 	case len(argsChecks) != 0:
 		// Populate checks to run with the CLI arguments.
 		for _, checkName := range argsChecks {
+			if !isSupportedCheck(supportedChecks, checkName) {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal,
+						fmt.Sprintf("repo type %s: unsupported check: %s", repoString, checkName))
+			}
 			if !enableCheck(checkName, &enabledChecks) {
 				return enabledChecks,
-					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid check: %s", checkName))
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
 			}
 		}
 	case sp != nil:
 		// Populate checks to run with policy file.
 		for checkName := range sp.GetPolicies() {
+			if !isSupportedCheck(supportedChecks, checkName) {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal,
+						fmt.Sprintf("repo type %s: unsupported check: %s", repoString, checkName))
+			}
+
 			if !enableCheck(checkName, &enabledChecks) {
 				return enabledChecks,
-					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid check: %s", checkName))
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
 			}
 		}
 	default:
+		// Enable all checks that are supported.
+		for checkName := range checks.AllChecks {
+			if !isSupportedCheck(supportedChecks, checkName) {
+				continue
+			}
+			if !enableCheck(checkName, &enabledChecks) {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
+			}
+		}
 		enabledChecks = checks.AllChecks
 	}
 
@@ -138,16 +215,21 @@ func validateFormat(format string) bool {
 	}
 }
 
-func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clients.Repo, clients.RepoClient, error) {
-	if repo, err := localdir.MakeLocalDirRepo(uri); err == nil {
+func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clients.Repo, clients.RepoClient, repoType, error) {
+	var repo clients.Repo
+	var errLocal error
+	var errGitHub error
+	if repo, errLocal = localdir.MakeLocalDirRepo(uri); errLocal == nil {
 		// Local directory.
-		return repo, localdir.CreateLocalDirClient(ctx, logger), nil
+		return repo, localdir.CreateLocalDirClient(ctx, logger), repoTypeLocalDir, nil
 	}
-	if repo, err := githubrepo.MakeGithubRepo(uri); err == nil {
+
+	if repo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub == nil {
 		// GitHub URL.
-		return repo, githubrepo.CreateGithubRepoClient(ctx, logger), nil
+		return repo, githubrepo.CreateGithubRepoClient(ctx, logger), repoTypeGitHub, nil
 	}
-	return nil, nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s", uri))
+	return nil, nil, repoTypeUnknown,
+		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s: [%v, %v]", uri, errLocal, errGitHub))
 }
 
 var rootCmd = &cobra.Command{
@@ -215,13 +297,24 @@ var rootCmd = &cobra.Command{
 		// nolint
 		defer logger.Sync() // Flushes buffer, if any.
 
-		repoURI, repoClient, err := getRepoAccessors(ctx, repo, logger)
+		repoURI, repoClient, repoType, err := getRepoAccessors(ctx, repo, logger)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer repoClient.Close()
 
-		enabledChecks, err := getEnabledChecks(policy, checksToRun)
+		// Read docs.
+		checkDocs, err := docs.Read()
+		if err != nil {
+			log.Fatalf("cannot read yaml file: %v", err)
+		}
+
+		supportedChecks, err := supportedChecks(repoType, checkDocs)
+		if err != nil {
+			log.Fatalf("cannot read supported checks: %v", err)
+		}
+
+		enabledChecks, err := getEnabledChecks(policy, checksToRun, supportedChecks, repoType)
 		if err != nil {
 			panic(err)
 		}
@@ -248,12 +341,6 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
 			}
 			fmt.Println("\nRESULTS\n-------")
-		}
-
-		// TODO: move the doc inside Scorecard structure.
-		checkDocs, e := docs.Read()
-		if e != nil {
-			log.Fatalf("cannot read yaml file: %v", err)
 		}
 
 		switch format {

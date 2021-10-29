@@ -21,11 +21,17 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	clients "github.com/ossf/scorecard/v3/clients"
 )
 
-var errNotDirectory = errors.New("not a directory")
+var (
+	errNotDirectory = errors.New("not a directory")
+	errInvalidURI   = errors.New("invalid URI")
+)
+
+var filePrefix = "file://"
 
 type repoLocal struct {
 	path     string
@@ -77,7 +83,10 @@ func (r *repoLocal) IsScorecardRepo() bool {
 
 // MakeLocalDirRepo returns an implementation of clients.Repo interface.
 func MakeLocalDirRepo(pathfn string) (clients.Repo, error) {
-	p := path.Clean(pathfn)
+	if !strings.HasPrefix(pathfn, filePrefix) {
+		return nil, fmt.Errorf("%w", errInvalidURI)
+	}
+	p := path.Clean(pathfn[len(filePrefix):])
 	repo := &repoLocal{
 		path: p,
 	}
@@ -85,6 +94,5 @@ func MakeLocalDirRepo(pathfn string) (clients.Repo, error) {
 	if err := repo.IsValid(); err != nil {
 		return nil, fmt.Errorf("error in IsValid: %w", err)
 	}
-
 	return repo, nil
 }

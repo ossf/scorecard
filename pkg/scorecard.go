@@ -17,6 +17,7 @@ package pkg
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -55,7 +56,7 @@ func runEnabledChecks(ctx context.Context,
 
 func getRepoCommitHash(r clients.RepoClient) (string, error) {
 	commits, err := r.ListCommits()
-	if err != nil {
+	if err != nil && !errors.Is(err, clients.ErrUnsupportedFeature) {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCommits:%v", err.Error()))
 	}
 
