@@ -108,6 +108,16 @@ func (c *CheckDocImpl) GetRemediation() []string {
 	return c.internalCheck.Remediation
 }
 
+// GetSupportedRepoTypes retuns the list repo
+// types the check supports.
+func (c *CheckDocImpl) GetSupportedRepoTypes() []string {
+	l := strings.Split(c.internalCheck.Repos, ",")
+	for i := range l {
+		l[i] = strings.TrimSpace(l[i])
+	}
+	return l
+}
+
 // GetTags returns the list of tags or the check.
 func (c *CheckDocImpl) GetTags() []string {
 	l := strings.Split(c.internalCheck.Tags, ",")

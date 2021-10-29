@@ -18,6 +18,7 @@ checks:
   Maintained:
     risk: High
     tags: supply-chain, security
+    repos: GitHub
     short: Determines if the project is "actively maintained".
     description: |
       Risk: `High` (possibly unpatched vulnerabilities)
@@ -43,6 +44,7 @@ checks:
   Dependency-Update-Tool:
     risk: High
     tags: supply-chain, security, dependencies
+    repos: GitHub, local
     short: Determines if the project uses a dependency update tool.
     description: |
       Risk: `High` (possibly vulnerable to attacks on known flaws)  
@@ -73,6 +75,7 @@ checks:
   Binary-Artifacts:
     risk: High
     tags: supply-chain, security, dependencies
+    repos: GitHub, local
     short: Determines if the project has generated executable (binary) artifacts in the source repository.
     description: |
       Risk: `High` (non-reviewable code)
@@ -123,6 +126,7 @@ checks:
   Branch-Protection:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
+    repos: GitHub
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: |
       Risk: `High` (vulnerable to intentional malicious code injection)  
@@ -177,6 +181,7 @@ checks:
   CI-Tests:
     risk: Low
     tags: supply-chain, testing
+    repos: GitHub
     short: Determines if the project runs tests before pull requests are merged.
     description: |
       Risk: `Low` (possible unknown vulnerabilities)
@@ -210,6 +215,7 @@ checks:
   CII-Best-Practices:
     risk: Low
     tags: security-awareness, security-training, security
+    repos: GitHub
     short: Determines if the project has a CII Best Practices Badge.
     description: |
       Risk: `Low` (possibly not following security best practices)
@@ -249,6 +255,7 @@ checks:
   Code-Review:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
+    repos: GitHub
     short: Determines if the project requires code review before pull requests (aka merge requests) are merged.
     description: |
       Risk: `High` (unintentional vulnerabilities or possible injection of malicious
@@ -306,6 +313,7 @@ checks:
   Contributors:
     risk: Low
     tags: source-code
+    repos: GitHub
     short: Determines if the project has a set of contributors from multiple organizations (e.g., companies).
     description: |
       Risk: `Low` (lower number of trusted code reviewers)
@@ -336,6 +344,7 @@ checks:
   Fuzzing:
     risk: Medium
     tags: supply-chain, security, testing
+    repos: GitHub
     short: Determines if the project uses fuzzing.
     description: |
       Risk: `Medium` (possible vulnerabilities in code)
@@ -361,6 +370,7 @@ checks:
   Packaging:
     risk: Medium
     tags: supply-chain, security, releases
+    repos: GitHub
     short: Determines if the project is published as a package that others can easily download, install, easily update, and uninstall.
     description: |
       Risk: `Medium` (users possibly missing security updates)
@@ -404,6 +414,7 @@ checks:
   Pinned-Dependencies:
     risk: Medium
     tags: supply-chain, security, dependencies
+    repos: GitHub, local
     short: Determines if the project has declared and pinned its dependencies.
     description: |
       Risk: `Medium` (possible compromised dependencies)
@@ -483,10 +494,10 @@ checks:
          Github's
         [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
         or [renovate bot](https://github.com/renovatebot/renovate).
-
   SAST:
     risk: Medium
     tags: supply-chain, security, testing
+    repos: GitHub
     short: Determines if the project uses static code analysis.
     description: |
       Risk: `Medium` (possible unknown bugs)
@@ -517,6 +528,7 @@ checks:
   Security-Policy:
     risk: Medium
     short: Determines if the project has published a security policy.
+    repos: GitHub
     tags: supply-chain, security, policy
     description: |
       Risk: `Medium` (possible insecure reporting of vulnerabilities)
@@ -539,10 +551,10 @@ checks:
       - >-
         For GitHub, see more information
         [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository.).
-
   Signed-Releases:
     risk: High
     tags: supply-chain, security, releases
+    repos: GitHub
     short: Determines if the project cryptographically signs release artifacts.
     description: |
       Risk: `High` (possibility of installing malicious releases)
@@ -575,6 +587,7 @@ checks:
   Token-Permissions:
     risk: High
     tags: supply-chain, security, infrastructure
+    repos: GitHub, local
     short: Determines if the project's workflows follow the principle of least privilege.
     description: |
       Risk: `High` (vulnerable to malicious code additions)
@@ -602,6 +615,7 @@ checks:
   Vulnerabilities:
     risk: High
     tags: supply-chain, security, vulnerabilities
+    repos: GitHub, local
     short: Determines if the project has open, known unfixed vulnerabilities.
     description: |
       Risk: `High`  (known vulnerabilities)
