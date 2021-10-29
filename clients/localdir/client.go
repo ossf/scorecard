@@ -37,8 +37,7 @@ var (
 	errInputRepoType      = errors.New("input repo should be of type repoLocal")
 )
 
-var once sync.Once
-
+//nolint:govet
 type localDirClient struct {
 	logger   *zap.Logger
 	ctx      context.Context
