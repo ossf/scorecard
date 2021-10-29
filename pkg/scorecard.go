@@ -21,22 +21,13 @@ import (
 	"sync"
 	"time"
 
-	opencensusstats "go.opencensus.io/stats"
-	"go.opencensus.io/tag"
-
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/clients"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
 	"github.com/ossf/scorecard/v3/clients/localdir"
 	sce "github.com/ossf/scorecard/v3/errors"
 	"github.com/ossf/scorecard/v3/repos"
-	"github.com/ossf/scorecard/v3/stats"
 )
-
-func logStats(ctx context.Context, startTime time.Time) {
-	runTimeInSecs := time.Now().Unix() - startTime.Unix()
-	opencensusstats.Record(ctx, stats.RepoRuntimeInSec.M(runTimeInSecs))
-}
 
 func runEnabledChecks(ctx context.Context,
 	repo clients.Repo, checksToRun checker.CheckNameToFnMap, repoClient clients.RepoClient,
@@ -117,12 +108,6 @@ func RunScorecards(ctx context.Context,
 	repoURI *repos.RepoURI,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient) (ScorecardResult, error) {
-	ctx, err := tag.New(ctx, tag.Upsert(stats.Repo, repoURI.URL()))
-	if err != nil {
-		return ScorecardResult{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
-	}
-	defer logStats(ctx, time.Now())
-
 	repo, err := createRepo(repoURI)
 	if err != nil {
 		return ScorecardResult{}, sce.WithMessage(err, "")
