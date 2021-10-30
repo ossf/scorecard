@@ -20,6 +20,47 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestToString(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name   string
+		input  CSVStrings
+		output []string
+	}{
+		{
+			name:   "Basic",
+			input:  []string{"str1", "str2"},
+			output: []string{"str1", "str2"},
+		},
+		{
+			name:   "NilInput",
+			input:  nil,
+			output: nil,
+		},
+		{
+			name:   "EmptyString",
+			input:  []string{""},
+			output: []string{""},
+		},
+		{
+			name:   "EmptySlice",
+			input:  make([]string, 0),
+			output: nil,
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+			actual := testcase.input.ToString()
+			if !cmp.Equal(testcase.output, actual) {
+				t.Errorf("testcase failed: expected equal, got diff: %s", cmp.Diff(testcase.output, actual))
+			}
+		})
+	}
+}
+
 func TestUnmarshalCsv(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {

@@ -26,6 +26,8 @@ import (
 	"github.com/ossf/scorecard/v3/cron/data"
 )
 
+var repo1 = "repo1"
+
 type mockReceiver struct {
 	msg           *pubsub.Message
 	errOnReceive  error
@@ -53,7 +55,11 @@ func TestSubscriber(t *testing.T) {
 		{
 			name: "Basic",
 			msg: &data.ScorecardBatchRequest{
-				Repos: []string{"repo1"},
+				Repos: []*data.Repo{
+					{
+						Url: &repo1,
+					},
+				},
 			},
 		},
 		{
@@ -65,7 +71,11 @@ func TestSubscriber(t *testing.T) {
 		{
 			name: "ShutdownFails",
 			msg: &data.ScorecardBatchRequest{
-				Repos: []string{"repo1"},
+				Repos: []*data.Repo{
+					{
+						Url: &repo1,
+					},
+				},
 			},
 			hasErrOnShutdown: true,
 			// nolint: goerr113

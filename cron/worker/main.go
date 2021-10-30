@@ -74,13 +74,14 @@ func processRequest(ctx context.Context,
 	var buffer bytes.Buffer
 	var buffer2 bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
-	for _, repoURL := range batchRequest.GetRepos() {
-		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", repoURL))
-		repo, err := githubrepo.MakeGithubRepo(repoURL)
+	for _, repo := range batchRequest.GetRepos() {
+		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", *repo.Url))
+		repo, err := githubrepo.MakeGithubRepo(*repo.Url)
 		if err != nil {
 			logger.Warn(fmt.Sprintf("invalid GitHub URL: %v", err))
 			continue
 		}
+		repo.AppendMetadata(repo.Metadata()...)
 		result, err := pkg.RunScorecards(ctx, repo, checksToRun, repoClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
