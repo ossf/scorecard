@@ -42,8 +42,18 @@ func init() {
 	registerCheck(CheckFuzzing, Fuzzing)
 }
 
-// Fuzzing runs Fuzzing check.
-func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
+func checkCFLite(c *checker.CheckRequest) (bool, error) {
+	result := false
+	e := CheckFilesContent(".clusterfuzzlite/Dockerfile", true, c,
+		func(path string, content []byte, dl checker.DetailLogger, data FileCbData) (bool, error) {
+			result = CheckFileContainsCommands(content, "#")
+			return false, nil
+		}, nil)
+
+	return result, e
+}
+
+func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 	once.Do(func() {
 		logger, errOssFuzzRepo = githubrepo.NewLogger(zap.InfoLevel)
 		if errOssFuzzRepo != nil {
@@ -58,7 +68,7 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	})
 	if errOssFuzzRepo != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("InitRepo: %v", errOssFuzzRepo))
-		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+		return false, e
 	}
 
 	req := clients.SearchRequest{
@@ -68,13 +78,31 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	result, err := ossFuzzRepoClient.Search(req)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
-		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+		return false, e
 	}
 
-	if result.Hits > 0 {
+	return result.Hits > 0, nil
+}
+
+// Fuzzing runs Fuzzing check.
+func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
+	usingCFLite, e := checkCFLite(c)
+	if e != nil {
+		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+	}
+	if usingCFLite {
+		return checker.CreateMaxScoreResult(CheckFuzzing,
+			"project uses ClusterFuzzLite")
+	}
+
+	usingOSSFuzz, e := checkOSSFuzz(c)
+	if e != nil {
+		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+	}
+	if usingOSSFuzz {
 		return checker.CreateMaxScoreResult(CheckFuzzing,
 			"project is fuzzed in OSS-Fuzz")
 	}
 
-	return checker.CreateMinScoreResult(CheckFuzzing, "project is not fuzzed in OSS-Fuzz")
+	return checker.CreateMinScoreResult(CheckFuzzing, "project is not fuzzed")
 }
