@@ -77,7 +77,7 @@ func TestIsSupportedShellScriptFile(t *testing.T) {
 			var err error
 			content, err = ioutil.ReadFile(tt.filename)
 			if err != nil {
-				t.Errorf("cannot read file: %w", err)
+				t.Errorf("cannot read file: %v", err)
 			}
 			result := isSupportedShellScriptFile(tt.filename, content)
 			if result != tt.expected {

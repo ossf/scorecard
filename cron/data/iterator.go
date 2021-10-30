@@ -22,13 +22,13 @@ import (
 
 	"github.com/jszwec/csvutil"
 
-	"github.com/ossf/scorecard/v3/repos"
+	"github.com/ossf/scorecard/v3/clients/githubrepo"
 )
 
 // Iterator interface is used to iterate through list of input repos for the cron job.
 type Iterator interface {
 	HasNext() bool
-	Next() (repos.RepoURI, error)
+	Next() (RepoFormat, error)
 }
 
 // MakeIteratorFrom returns an implementation of Iterator interface.
@@ -46,7 +46,7 @@ func MakeIteratorFrom(reader io.Reader) (Iterator, error) {
 type csvIterator struct {
 	decoder *csvutil.Decoder
 	err     error
-	next    repoFormat
+	next    RepoFormat
 }
 
 func (reader *csvIterator) HasNext() bool {
@@ -54,21 +54,13 @@ func (reader *csvIterator) HasNext() bool {
 	return !errors.Is(reader.err, io.EOF)
 }
 
-func (reader *csvIterator) Next() (repos.RepoURI, error) {
-	ret := repos.RepoURI{}
+func (reader *csvIterator) Next() (RepoFormat, error) {
 	if reader.err != nil {
-		return ret, fmt.Errorf("reader has error: %w", reader.err)
+		return reader.next, fmt.Errorf("reader has error: %w", reader.err)
 	}
-
-	err := ret.SetMetadata(reader.next.Metadata)
-	if err != nil {
-		return ret, fmt.Errorf("error during SetMetadata: %w", err)
+	// Sanity check valid GitHub URL.
+	if _, err := githubrepo.MakeGithubRepo(reader.next.Repo); err != nil {
+		return reader.next, fmt.Errorf("invalid GitHub URL: %w", err)
 	}
-	if err := ret.Set(reader.next.Repo); err != nil {
-		return ret, fmt.Errorf("error during Set: %w", err)
-	}
-	if err := ret.IsValidGitHubURL(); err != nil {
-		return ret, fmt.Errorf("error during IsValidGitHubURL: %w", err)
-	}
-	return ret, nil
+	return reader.next, nil
 }

@@ -63,7 +63,6 @@ func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 		if errOssFuzzRepo != nil {
 			return
 		}
-
 		ossFuzzRepoClient = githubrepo.CreateGithubRepoClient(c.Ctx, logger)
 		errOssFuzzRepo = ossFuzzRepoClient.InitRepo(ossFuzzRepo)
 	})

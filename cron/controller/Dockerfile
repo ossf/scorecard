@@ -24,7 +24,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-pubsub
 
-FROM gcr.io/distroless/base:nonroot@sha256:56d73a61ea1135c28f2be9afe2be88fc360e5fa1a892d600512a10eb2e028fa5
+FROM gcr.io/distroless/base:nonroot@sha256:46d4514c17aca7a68559ee03975983339fc548e6d1014e2d7633f9123f2d3c59
 COPY ./cron/data/projects*csv cron/data/
 COPY --from=pubsub /src/cron/controller/controller cron/controller/controller
 ENTRYPOINT ["cron/controller/controller"]

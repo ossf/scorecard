@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v3/checker"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // CheckDependencyUpdateTool is the exported name for Automatic-Depdendency-Update.
@@ -33,7 +34,8 @@ func UsesDependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	var r bool
 	err := CheckIfFileExists(CheckDependencyUpdateTool, c, fileExists, &r)
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, err)
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, e)
 	}
 	if !r {
 		c.Dlogger.Warn3(&checker.LogMessage{

@@ -20,47 +20,124 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
+	"sync"
 
 	"go.uber.org/zap"
 
 	clients "github.com/ossf/scorecard/v3/clients"
 )
 
-var errUnsupportedFeature = errors.New("unsupported feature")
+var (
+	errUnsupportedFeature = errors.New("unsupported feature")
+	errInputRepoType      = errors.New("input repo should be of type repoLocal")
+)
 
+//nolint:govet
 type localDirClient struct {
-	logger *zap.Logger
-	ctx    context.Context
+	logger   *zap.Logger
+	ctx      context.Context
+	path     string
+	once     sync.Once
+	errFiles error
+	files    []string
 }
 
 // InitRepo sets up the local repo.
-func (client *localDirClient) InitRepo(repo clients.Repo) error {
-	// TODO
+func (client *localDirClient) InitRepo(inputRepo clients.Repo) error {
+	localRepo, ok := inputRepo.(*repoLocal)
+	if !ok {
+		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
+	}
+
+	client.path = strings.TrimPrefix(localRepo.URI(), "file://")
+
 	return nil
 }
 
 // URI implements RepoClient.URI.
 func (client *localDirClient) URI() string {
-	// TODO
-	return errUnsupportedFeature.Error()
+	return fmt.Sprintf("file://%s", client.path)
 }
 
 // IsArchived implements RepoClient.IsArchived.
 func (client *localDirClient) IsArchived() (bool, error) {
-	// TODO
-	return false, nil
+	return false, fmt.Errorf("IsArchived: %w", errUnsupportedFeature)
+}
+
+func isDir(p string) (bool, error) {
+	fileInfo, err := os.Stat(p)
+	if err != nil {
+		return false, fmt.Errorf("%w", err)
+	}
+
+	return fileInfo.IsDir(), nil
+}
+
+func listFiles(clientPath string, predicate func(string) (bool, error)) ([]string, error) {
+	files := []string{}
+	err := filepath.Walk(clientPath, func(pathfn string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("failure accessing path %q: %w", pathfn, err)
+		}
+
+		// Skip directories.
+		d, err := isDir(pathfn)
+		if err != nil {
+			return err
+		}
+		if d {
+			return nil
+		}
+
+		// Remove prefix of the folder.
+		cleanPath := path.Clean(pathfn)
+		prefix := fmt.Sprintf("%s%s", clientPath, string(os.PathSeparator))
+		p := strings.TrimPrefix(cleanPath, prefix)
+		matches, err := predicate(p)
+		if err != nil {
+			return err
+		}
+
+		if matches {
+			files = append(files, p)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error walking the path %q: %w", clientPath, err)
+	}
+
+	return files, nil
 }
 
 // ListFiles implements RepoClient.ListFiles.
 func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	// TODO
-	return nil, nil
+	client.once.Do(func() {
+		client.files, client.errFiles = listFiles(client.path, predicate)
+	})
+
+	return client.files, client.errFiles
+}
+
+func getFileContent(clientpath, filename string) ([]byte, error) {
+	// Note: the filenames do not contain the original path - see ListFiles().
+	fn := path.Join(clientpath, filename)
+	content, err := os.ReadFile(fn)
+	if err != nil {
+		return content, fmt.Errorf("%w", err)
+	}
+	return content, nil
 }
 
 // GetFileContent implements RepoClient.GetFileContent.
 func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
-	// TODO
-	return nil, nil
+	return getFileContent(client.path, filename)
 }
 
 // ListMergedPRs implements RepoClient.ListMergedPRs.
@@ -113,7 +190,6 @@ func (client *localDirClient) Search(request clients.SearchRequest) (clients.Sea
 }
 
 func (client *localDirClient) Close() error {
-	// TODO
 	return nil
 }
 
