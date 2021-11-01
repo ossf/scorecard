@@ -39,11 +39,10 @@ import (
 	sce "github.com/ossf/scorecard/v3/errors"
 	"github.com/ossf/scorecard/v3/pkg"
 	spol "github.com/ossf/scorecard/v3/policy"
-	"github.com/ossf/scorecard/v3/repos"
 )
 
 var (
-	repo        repos.RepoURI
+	repo        string
 	checksToRun []string
 	metaData    []string
 	// This one has to use goflag instead of pflag because it's defined by zap.
@@ -140,26 +139,6 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.Ch
 	return enabledChecks, nil
 }
 
-func createRepoClient(ctx context.Context, uri *repos.RepoURI, logger *zap.Logger) (clients.RepoClient, error) {
-	var rc clients.RepoClient
-	switch uri.RepoType() {
-	// URL.
-	case repos.RepoTypeURL:
-		if err := repo.IsValidGitHubURL(); err != nil {
-			return rc, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-
-		rc = githubrepo.CreateGithubRepoClient(ctx, logger)
-		return rc, nil
-
-	// Local directory.
-	case repos.RepoTypeLocalDir:
-		return localdir.CreateLocalDirClient(ctx, logger), nil
-	}
-
-	return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %v", uri.RepoType()))
-}
-
 func validateFormat(format string) bool {
 	switch format {
 	case "json", "sarif", "default":
@@ -167,6 +146,18 @@ func validateFormat(format string) bool {
 	default:
 		return false
 	}
+}
+
+func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clients.Repo, clients.RepoClient, error) {
+	if repo, err := localdir.MakeLocalDirRepo(uri); err == nil {
+		// Local directory.
+		return repo, localdir.CreateLocalDirClient(ctx, logger), nil
+	}
+	if repo, err := githubrepo.MakeGithubRepo(uri); err == nil {
+		// GitHub URL.
+		return repo, githubrepo.CreateGithubRepoClient(ctx, logger), nil
+	}
+	return nil, nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s", uri))
 }
 
 var rootCmd = &cobra.Command{
@@ -234,7 +225,7 @@ var rootCmd = &cobra.Command{
 		// nolint
 		defer logger.Sync() // Flushes buffer, if any.
 
-		repoClient, err := createRepoClient(ctx, &repo, logger)
+		repoURI, repoClient, err := getRepoAccessors(ctx, repo, logger)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -251,7 +242,7 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		repoResult, err := pkg.RunScorecards(ctx, &repo, enabledChecks, repoClient)
+		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -419,7 +410,7 @@ func enableCheck(checkName string, enabledChecks *checker.CheckNameToFnMap) bool
 func init() {
 	// Add the zap flag manually
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
-	rootCmd.Flags().Var(&repo, "repo", "repository to check")
+	rootCmd.Flags().StringVar(&repo, "repo", "", "repository to check")
 	rootCmd.Flags().StringVar(
 		&npm, "npm", "",
 		"npm package to check, given that the npm package has a GitHub repository")

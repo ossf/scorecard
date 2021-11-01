@@ -19,6 +19,11 @@ builds:
    # or a plain import path (when using GOPATH).
       - -trimpath
       - -tags=netgo
+  # Set the modified timestamp on the output binary, typically
+  # you would do this to ensure a build was reproducible. Pass
+  # empty string to skip modifying the output.
+  # Default is empty string.
+  mod_timestamp: '{{ .CommitTimestamp }}'
   goos:
     - linux
   goarch:
@@ -41,6 +46,11 @@ builds:
    # or a plain import path (when using GOPATH).
       - -trimpath
       - -tags=netgo
+  # Set the modified timestamp on the output binary, typically
+  # you would do this to ensure a build was reproducible. Pass
+  # empty string to skip modifying the output.
+  # Default is empty string.
+  mod_timestamp: '{{ .CommitTimestamp }}'
   goos:
     - darwin
   goarch:
@@ -61,6 +71,11 @@ builds:
    # or a plain import path (when using GOPATH).
       - -trimpath
       - -tags=netgo
+  # Set the modified timestamp on the output binary, typically
+  # you would do this to ensure a build was reproducible. Pass
+  # empty string to skip modifying the output.
+  # Default is empty string.
+  mod_timestamp: '{{ .CommitTimestamp }}'
   goos:
     - windows
   goarch:

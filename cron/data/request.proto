@@ -20,8 +20,14 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/ossf/scorecard/cron/data";
 
+message Repo {
+  optional string url = 1;
+  repeated string metadata = 2;
+}
+
 message ScorecardBatchRequest {
-  repeated string repos = 1;
+  repeated Repo repos = 4;
   optional int32 shard_num = 2;
   optional google.protobuf.Timestamp job_time = 3;
+  reserved 1;
 }

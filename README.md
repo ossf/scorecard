@@ -395,6 +395,8 @@ See the
 [Community Calendar](https://calendar.google.com/calendar?cid=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ)
 for the schedule and meeting invitations. The meetings [happen biweekly](https://calendar.google.com/calendar/embed?src=s63voefhp5i9pfltb5q67ngpes%40group.calendar.google.com&ctz=America%2FLos_Angeles).
 
+The biweekly meeting minutes document can be found [here](https://docs.google.com/document/d/1dB2U7_qZpNW96vtuoG7ShmgKXzIg6R5XT5Tc-0yz6kE/edit#) (join ossf-scorecard-dev@googlegroups.com for access).
+
 [Join](https://support.google.com/groups/answer/1067205?hl=en) our email groups:
 
 - ossf-scorecard-dev@googlegroups.com for topics related to Scorecard development, such as asking questions about integration or receiving design docs.

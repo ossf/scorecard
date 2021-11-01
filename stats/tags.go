@@ -21,8 +21,6 @@ var (
 	CheckName = tag.MustNewKey("checkName")
 	// ErrorName is the tag key for errors.
 	ErrorName = tag.MustNewKey("errorName")
-	// Repo is the tag key for the repo name.
-	Repo = tag.MustNewKey("repo")
 	// RequestTag is the tag key for the request type.
 	RequestTag = tag.MustNewKey("requestTag")
 )

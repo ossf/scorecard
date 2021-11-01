@@ -70,7 +70,11 @@ func TestPublish(t *testing.T) {
 				topic: testcase.topic,
 			}
 			request := data.ScorecardBatchRequest{
-				Repos: []string{"repo1"},
+				Repos: []*data.Repo{
+					{
+						Url: &repo1,
+					},
+				},
 			}
 			if err := publisher.Publish(&request); err != nil {
 				t.Errorf("Failed to parse message: %v", err)
