@@ -615,7 +615,7 @@ checks:
   Vulnerabilities:
     risk: High
     tags: supply-chain, security, vulnerabilities
-    repos: GitHub, local
+    repos: GitHub
     short: Determines if the project has open, known unfixed vulnerabilities.
     description: |
       Risk: `High`  (known vulnerabilities)
