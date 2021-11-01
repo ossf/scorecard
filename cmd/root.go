@@ -97,6 +97,16 @@ func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNam
 	return true
 }
 
+func getAllChecks() checker.CheckNameToFnMap {
+	// Returns the full list of checks, given any environment variable constraints.
+	possibleChecks := checks.AllChecks
+	// TODO: Remove this to enable the DANGEROUS_WORKFLOW by default in the next release.
+	if _, dangerousWorkflowCheck := os.LookupEnv("ENABLE_DANGEROUS_WORKFLOW"); !dangerousWorkflowCheck {
+		delete(possibleChecks, checks.CheckDangerousWorkflow)
+	}
+	return possibleChecks
+}
+
 func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
 
@@ -118,7 +128,7 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.Ch
 			}
 		}
 	default:
-		enabledChecks = checks.AllChecks
+		enabledChecks = getAllChecks()
 	}
 
 	// If a policy was passed as argument, ensure all checks
@@ -395,7 +405,7 @@ func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 // Enables checks by name.
 func enableCheck(checkName string, enabledChecks *checker.CheckNameToFnMap) bool {
 	if enabledChecks != nil {
-		for key, checkFn := range checks.AllChecks {
+		for key, checkFn := range getAllChecks() {
 			if strings.EqualFold(key, checkName) {
 				(*enabledChecks)[key] = checkFn
 				return true
