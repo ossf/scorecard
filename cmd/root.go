@@ -106,7 +106,7 @@ func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNam
 
 func getSupportedChecks(r string, checkDocs docs.Doc) ([]string, error) {
 	allChecks := checks.AllChecks
-	checks := []string{}
+	supportedChecks := []string{}
 	for check := range allChecks {
 		c, e := checkDocs.GetCheck(check)
 		if e != nil {
@@ -115,11 +115,11 @@ func getSupportedChecks(r string, checkDocs docs.Doc) ([]string, error) {
 		types := c.GetSupportedRepoTypes()
 		for _, t := range types {
 			if r == t {
-				checks = append(checks, c.GetName())
+				supportedChecks = append(supportedChecks, c.GetName())
 			}
 		}
 	}
-	return checks, nil
+	return supportedChecks, nil
 }
 
 func isSupportedCheck(names []string, name string) bool {
@@ -195,7 +195,8 @@ func validateFormat(format string) bool {
 	}
 }
 
-func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clients.Repo, clients.RepoClient, string, error) {
+func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clients.Repo,
+	clients.RepoClient, string, error) {
 	var repo clients.Repo
 	var errLocal error
 	var errGitHub error
