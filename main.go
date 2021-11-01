@@ -18,5 +18,6 @@ package main
 import "github.com/ossf/scorecard/v3/cmd"
 
 func main() {
+	/*Example of a trojan atack: ⁧ */ return
 	cmd.Execute()
 }
