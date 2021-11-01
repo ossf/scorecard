@@ -39,7 +39,7 @@ type patternCbData struct {
 	workflowPattern map[string]bool
 }
 
-// TokenPermissions runs Token-Permissions check.
+// DangerousWorkflow runs Dangerous-Workflow check.
 func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 	// data is shared across all GitHub workflows.
 	data := patternCbData{
