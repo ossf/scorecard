@@ -129,36 +129,75 @@ func isSubsetOf(a, b []string) bool {
 	return true
 }
 
-func validateRepoTypeAPIs(checkName string, repoTypes []string, checkFiles map[string]string) error {
-	// For now, we only list APIs in a check's implementation.
-	// Long-term, we should use the callgraph feature using
-	// https://github.com/golang/tools/blob/master/cmd/callgraph/main.go.
-	//
+func contains(l []string, elt string) bool {
+	for _, v := range l {
+		if v == elt {
+			return true
+		}
+	}
+	return false
+}
 
+func supportedInterfacesFromImplementation(checkName string, checkFiles map[string]string) ([]string, error) {
+	// Special case. No APIs are used,
+	// but we need the repo name for a db lookup.
+	if checkName == "CII-Best-Practices" {
+		return []string{"GitHub"}, nil
+	}
+
+	// Create our map.
+	s := make(map[string]bool)
+	for k := range allowedRepoTypes {
+		s[k] = true
+	}
+
+	// Read the source file for the check.
 	pathfn, exists := checkFiles[checkName]
 	if !exists {
 		//nolint:goerr113
-		return fmt.Errorf("check %s does not exists", checkName)
+		return nil, fmt.Errorf("check %s does not exists", checkName)
 	}
 
 	content, err := ioutil.ReadFile(pathfn)
 	if err != nil {
-		return fmt.Errorf("ioutil.ReadFile: %s: %w", pathfn, err)
+		return nil, fmt.Errorf("ioutil.ReadFile: %s: %w", pathfn, err)
 	}
 
 	// For each API, check if it's used or not.
+	// Adjust supported repo types accordingly.
 	for api, supportedInterfaces := range supportedAPIs {
 		regex := fmt.Sprintf(`\.%s`, api)
 		re := regexp.MustCompile(regex)
 		r := re.Match(content)
-		// Check if the API is used but should not.
-		if r && !isSubsetOf(repoTypes, supportedInterfaces) {
-			//nolint:goerr113
-			return fmt.Errorf("mismatch for check %s, file %s: found unexpected API use: %s(): %s not a subset of %s",
-				checkName, pathfn, api, repoTypes, supportedInterfaces)
+		if r {
+			for k := range allowedRepoTypes {
+				if !contains(supportedInterfaces, k) {
+					delete(s, k)
+				}
+			}
 		}
 	}
 
+	r := []string{}
+	for k := range s {
+		r = append(r, k)
+	}
+	return r, nil
+}
+
+func validateRepoTypeAPIs(checkName string, repoTypes []string, checkFiles map[string]string) error {
+	// For now, we only list APIs in a check's implementation.
+	// Long-term, we should use the callgraph feature using
+	// https://github.com/golang/tools/blob/master/cmd/callgraph/main.go
+	l, err := supportedInterfacesFromImplementation(checkName, checkFiles)
+	if err != nil {
+		return fmt.Errorf("supportedInterfacesFromImplementation: %w", err)
+	}
+
+	if !cmp.Equal(l, repoTypes, cmpopts.SortSlices(func(x, y string) bool { return x < y })) {
+		//nolint: goerr113
+		return fmt.Errorf("%s: got diff: %s", checkName, cmp.Diff(l, repoTypes))
+	}
 	return nil
 }
 
@@ -233,20 +272,10 @@ func main() {
 				panic(fmt.Sprintf("repo type for checkName: %s is invalid: '%s'", check, rt))
 			}
 		}
+
 		// Validate that the check only calls API the interface supports.
 		if err := validateRepoTypeAPIs(check, repoTypes, checkFiles); err != nil {
 			panic(fmt.Sprintf("validateRepoTypeAPIs: %v", err))
-		}
-		repoTypes := c.GetSupportedRepoTypes()
-		if len(repoTypes) == 0 {
-			// nolint: goerr113
-			panic(fmt.Errorf("repos for checkName: %s is empty", check))
-		}
-		for _, rt := range repoTypes {
-			if _, exists := allowedRepoTypes[rt]; !exists {
-				// nolint: goerr113
-				panic(fmt.Errorf("repo type for checkName: %s is invalid: '%s'", check, rt))
-			}
 		}
 	}
 	for _, check := range m.GetChecks() {
