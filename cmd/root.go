@@ -71,7 +71,8 @@ const (
 
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
-	scorecardUse  = `./scorecard [--repo=<repo_url>] [--local=folder] [--checks=check1,...] [--show-details] [--policy=file]
+	//nolint:lll
+	scorecardUse = `./scorecard [--repo=<repo_url>] [--local=folder] [--checks=check1,...] [--show-details] [--policy=file]
 or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show-details] [--policy=file]`
 	scorecardShort = "Security Scorecards"
 )
