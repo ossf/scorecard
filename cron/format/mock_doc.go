@@ -22,7 +22,7 @@ import (
 
 type mockCheck struct {
 	name, risk, short, description, url string
-	tags, remediation                   []string
+	tags, remediation, repos            []string
 }
 
 func (c *mockCheck) GetName() string {
@@ -49,6 +49,14 @@ func (c *mockCheck) GetTags() []string {
 	l := make([]string, len(c.tags))
 	for i := range c.tags {
 		l[i] = strings.TrimSpace(c.tags[i])
+	}
+	return l
+}
+
+func (c *mockCheck) GetSupportedRepoTypes() []string {
+	l := make([]string, len(c.repos))
+	for i := range c.repos {
+		l[i] = strings.TrimSpace(c.repos[i])
 	}
 	return l
 }
