@@ -15,6 +15,11 @@
 // Package clients defines the interface for RepoClient and related structs.
 package clients
 
+import "errors"
+
+// ErrUnsupportedFeature indicates an API that is not supported by the client.
+var ErrUnsupportedFeature = errors.New("unsupported feature")
+
 // RepoClient interface is used by Scorecard checks to access a repo.
 type RepoClient interface {
 	InitRepo(repo Repo) error

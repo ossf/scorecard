@@ -30,5 +30,6 @@ type CheckDoc interface {
 	GetDescription() string
 	GetRemediation() []string
 	GetTags() []string
+	GetSupportedRepoTypes() []string
 	GetDocumentationURL(commitish string) string
 }

@@ -34,6 +34,7 @@ type Check struct {
 	Short       string   `yaml:"short"`
 	Description string   `yaml:"description"`
 	Tags        string   `yaml:"tags"`
+	Repos       string   `yaml:"repos"`
 	Remediation []string `yaml:"remediation"`
 	Name        string   `yaml:"-"`
 	URL         string   `yaml:"-"`

@@ -61,6 +61,14 @@ const (
 	formatDefault = "default"
 )
 
+// These strings must be the same as the ones used in
+// checks.yaml for the "repos" field.
+const (
+	repoTypeUnknown = "unknown"
+	repoTypeLocal   = "local"
+	repoTypeGitHub  = "GitHub"
+)
+
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
 	scorecardUse  = `./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details] [--policy=file]
@@ -96,6 +104,33 @@ func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNam
 	return true
 }
 
+func getSupportedChecks(r string, checkDocs docs.Doc) ([]string, error) {
+	allChecks := checks.AllChecks
+	supportedChecks := []string{}
+	for check := range allChecks {
+		c, e := checkDocs.GetCheck(check)
+		if e != nil {
+			return nil, fmt.Errorf("checkDocs.GetCheck: %w", e)
+		}
+		types := c.GetSupportedRepoTypes()
+		for _, t := range types {
+			if r == t {
+				supportedChecks = append(supportedChecks, c.GetName())
+			}
+		}
+	}
+	return supportedChecks, nil
+}
+
+func isSupportedCheck(names []string, name string) bool {
+	for _, n := range names {
+		if n == name {
+			return true
+		}
+	}
+	return false
+}
+
 func getAllChecks() checker.CheckNameToFnMap {
 	// Returns the full list of checks, given any environment variable constraints.
 	possibleChecks := checks.AllChecks
@@ -106,27 +141,49 @@ func getAllChecks() checker.CheckNameToFnMap {
 	return possibleChecks
 }
 
-func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string) (checker.CheckNameToFnMap, error) {
+func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
+	supportedChecks []string, repoType string) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
 
 	switch {
 	case len(argsChecks) != 0:
 		// Populate checks to run with the CLI arguments.
 		for _, checkName := range argsChecks {
+			if !isSupportedCheck(supportedChecks, checkName) {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal,
+						fmt.Sprintf("repo type %s: unsupported check: %s", repoType, checkName))
+			}
 			if !enableCheck(checkName, &enabledChecks) {
 				return enabledChecks,
-					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid check: %s", checkName))
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
 			}
 		}
 	case sp != nil:
 		// Populate checks to run with policy file.
 		for checkName := range sp.GetPolicies() {
+			if !isSupportedCheck(supportedChecks, checkName) {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal,
+						fmt.Sprintf("repo type %s: unsupported check: %s", repoType, checkName))
+			}
+
 			if !enableCheck(checkName, &enabledChecks) {
 				return enabledChecks,
-					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid check: %s", checkName))
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
 			}
 		}
 	default:
+		// Enable all checks that are supported.
+		for checkName := range getAllChecks() {
+			if !isSupportedCheck(supportedChecks, checkName) {
+				continue
+			}
+			if !enableCheck(checkName, &enabledChecks) {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
+			}
+		}
 		enabledChecks = getAllChecks()
 	}
 
@@ -148,16 +205,22 @@ func validateFormat(format string) bool {
 	}
 }
 
-func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clients.Repo, clients.RepoClient, error) {
-	if repo, err := localdir.MakeLocalDirRepo(uri); err == nil {
+func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clients.Repo,
+	clients.RepoClient, string, error) {
+	var repo clients.Repo
+	var errLocal error
+	var errGitHub error
+	if repo, errLocal = localdir.MakeLocalDirRepo(uri); errLocal == nil {
 		// Local directory.
-		return repo, localdir.CreateLocalDirClient(ctx, logger), nil
+		return repo, localdir.CreateLocalDirClient(ctx, logger), repoTypeLocal, nil
 	}
-	if repo, err := githubrepo.MakeGithubRepo(uri); err == nil {
+
+	if repo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub == nil {
 		// GitHub URL.
-		return repo, githubrepo.CreateGithubRepoClient(ctx, logger), nil
+		return repo, githubrepo.CreateGithubRepoClient(ctx, logger), repoTypeGitHub, nil
 	}
-	return nil, nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s", uri))
+	return nil, nil, repoTypeUnknown,
+		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s: [%v, %v]", uri, errLocal, errGitHub))
 }
 
 var rootCmd = &cobra.Command{
@@ -225,13 +288,24 @@ var rootCmd = &cobra.Command{
 		// nolint
 		defer logger.Sync() // Flushes buffer, if any.
 
-		repoURI, repoClient, err := getRepoAccessors(ctx, repo, logger)
+		repoURI, repoClient, repoType, err := getRepoAccessors(ctx, repo, logger)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer repoClient.Close()
 
-		enabledChecks, err := getEnabledChecks(policy, checksToRun)
+		// Read docs.
+		checkDocs, err := docs.Read()
+		if err != nil {
+			log.Fatalf("cannot read yaml file: %v", err)
+		}
+
+		supportedChecks, err := getSupportedChecks(repoType, checkDocs)
+		if err != nil {
+			log.Fatalf("cannot read supported checks: %v", err)
+		}
+
+		enabledChecks, err := getEnabledChecks(policy, checksToRun, supportedChecks, repoType)
 		if err != nil {
 			panic(err)
 		}
@@ -258,12 +332,6 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
 			}
 			fmt.Println("\nRESULTS\n-------")
-		}
-
-		// TODO: move the doc inside Scorecard structure.
-		checkDocs, e := docs.Read()
-		if e != nil {
-			log.Fatalf("cannot read yaml file: %v", err)
 		}
 
 		switch format {
@@ -426,7 +494,7 @@ func init() {
 		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
-	for checkName := range checks.AllChecks {
+	for checkName := range getAllChecks() {
 		checkNames = append(checkNames, checkName)
 	}
 	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},

@@ -32,10 +32,7 @@ import (
 	clients "github.com/ossf/scorecard/v3/clients"
 )
 
-var (
-	errUnsupportedFeature = errors.New("unsupported feature")
-	errInputRepoType      = errors.New("input repo should be of type repoLocal")
-)
+var errInputRepoType = errors.New("input repo should be of type repoLocal")
 
 //nolint:govet
 type localDirClient struct {
@@ -66,7 +63,7 @@ func (client *localDirClient) URI() string {
 
 // IsArchived implements RepoClient.IsArchived.
 func (client *localDirClient) IsArchived() (bool, error) {
-	return false, fmt.Errorf("IsArchived: %w", errUnsupportedFeature)
+	return false, fmt.Errorf("IsArchived: %w", clients.ErrUnsupportedFeature)
 }
 
 func isDir(p string) (bool, error) {
@@ -142,51 +139,51 @@ func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
 
 // ListMergedPRs implements RepoClient.ListMergedPRs.
 func (client *localDirClient) ListMergedPRs() ([]clients.PullRequest, error) {
-	return nil, fmt.Errorf("ListMergedPRs: %w", errUnsupportedFeature)
+	return nil, fmt.Errorf("ListMergedPRs: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListBranches implements RepoClient.ListBranches.
 func (client *localDirClient) ListBranches() ([]*clients.BranchRef, error) {
-	return nil, fmt.Errorf("ListBranches: %w", errUnsupportedFeature)
+	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
 }
 
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
 func (client *localDirClient) GetDefaultBranch() (*clients.BranchRef, error) {
-	return nil, fmt.Errorf("GetDefaultBranch: %w", errUnsupportedFeature)
+	return nil, fmt.Errorf("GetDefaultBranch: %w", clients.ErrUnsupportedFeature)
 }
 
 func (client *localDirClient) ListCommits() ([]clients.Commit, error) {
-	return nil, fmt.Errorf("ListCommits: %w", errUnsupportedFeature)
+	return nil, fmt.Errorf("ListCommits: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListReleases implements RepoClient.ListReleases.
 func (client *localDirClient) ListReleases() ([]clients.Release, error) {
-	return nil, fmt.Errorf("ListReleases: %w", errUnsupportedFeature)
+	return nil, fmt.Errorf("ListReleases: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListContributors implements RepoClient.ListContributors.
 func (client *localDirClient) ListContributors() ([]clients.Contributor, error) {
-	return nil, fmt.Errorf("ListContributors: %w", errUnsupportedFeature)
+	return nil, fmt.Errorf("ListContributors: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
 func (client *localDirClient) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
-	return nil, fmt.Errorf("ListSuccessfulWorkflowRuns: %w", errUnsupportedFeature)
+	return nil, fmt.Errorf("ListSuccessfulWorkflowRuns: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.
 func (client *localDirClient) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	return nil, fmt.Errorf("ListCheckRunsForRef: %w", errUnsupportedFeature)
+	return nil, fmt.Errorf("ListCheckRunsForRef: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListStatuses implements RepoClient.ListStatuses.
 func (client *localDirClient) ListStatuses(ref string) ([]clients.Status, error) {
-	return nil, fmt.Errorf("ListStatuses: %w", errUnsupportedFeature)
+	return nil, fmt.Errorf("ListStatuses: %w", clients.ErrUnsupportedFeature)
 }
 
 // Search implements RepoClient.Search.
 func (client *localDirClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
-	return clients.SearchResponse{}, fmt.Errorf("Search: %w", errUnsupportedFeature)
+	return clients.SearchResponse{}, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
 }
 
 func (client *localDirClient) Close() error {
