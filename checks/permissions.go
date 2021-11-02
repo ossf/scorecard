@@ -375,7 +375,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	err := yaml.Unmarshal(content, &workflow)
 	if err != nil {
 		return false,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v %v", err, path))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
 	}
 
 	// 1. Top-level permission definitions.
