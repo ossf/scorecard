@@ -110,7 +110,7 @@ func getSupportedChecks(r string, checkDocs docs.Doc) ([]string, error) {
 	for check := range allChecks {
 		c, e := checkDocs.GetCheck(check)
 		if e != nil {
-			return nil, fmt.Errorf("checkDocs.GetCheck: %w", e)
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("checkDocs.GetCheck: %v", e))
 		}
 		types := c.GetSupportedRepoTypes()
 		for _, t := range types {
@@ -214,7 +214,8 @@ func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clie
 
 func getURI(repo, local string) (string, error) {
 	if repo != "" && local != "" {
-		return "", fmt.Errorf("--repo and --local options cannot be used together")
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			"--repo and --local options cannot be used together")
 	}
 	if local != "" {
 		return fmt.Sprintf("file://%s", local), nil
