@@ -46,8 +46,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  1,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
