@@ -110,7 +110,7 @@ func listFiles(clientPath string) ([]string, error) {
 	return files, nil
 }
 
-func applyPredicate(clientPath string, clientFiles []string,
+func applyPredicate(clientFiles []string,
 	errFiles error, predicate func(string) (bool, error)) ([]string, error) {
 	if errFiles != nil {
 		return nil, errFiles
@@ -118,15 +118,13 @@ func applyPredicate(clientPath string, clientFiles []string,
 
 	files := []string{}
 	for _, pathfn := range clientFiles {
-		// Remove prefix of the folder.
-		p := trimPrefix(pathfn, clientPath)
-		matches, err := predicate(p)
+		matches, err := predicate(pathfn)
 		if err != nil {
 			return nil, err
 		}
 
 		if matches {
-			files = append(files, p)
+			files = append(files, pathfn)
 		}
 	}
 
@@ -138,7 +136,7 @@ func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([
 	client.once.Do(func() {
 		client.files, client.errFiles = listFiles(client.path)
 	})
-	return applyPredicate(client.path, client.files, client.errFiles, predicate)
+	return applyPredicate(client.files, client.errFiles, predicate)
 }
 
 func getFileContent(clientpath, filename string) ([]byte, error) {
