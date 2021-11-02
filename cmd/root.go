@@ -249,7 +249,7 @@ var rootCmd = &cobra.Command{
 			log.Fatalf("readPolicy: %v", err)
 		}
 
-		// --local and --repo are incompatible.
+		// Get the URI.
 		uri, err := getURI(repo, local)
 		if err != nil {
 			log.Fatal(err)
