@@ -239,6 +239,10 @@ var rootCmd = &cobra.Command{
 			log.Fatal("policy not supported yet")
 		}
 
+		if local != "" && !v4 {
+			log.Fatal("--local option not supported yet")
+		}
+
 		// Validate format.
 		if !validateFormat(format) {
 			log.Fatalf("unsupported format '%s'", format)
