@@ -179,7 +179,8 @@ func TestClient_GetFileListAndContent(t *testing.T) {
 
 			// Test ListFiles API.
 			for _, listfiletest := range testcase.listfileTests {
-				matchedFiles, err := listFiles(testcase.inputFolder, listfiletest.predicate)
+				files, e := listFiles(testcase.inputFolder)
+				matchedFiles, err := applyPredicate(testcase.inputFolder, files, e, listfiletest.predicate)
 				if !errors.Is(err, listfiletest.err) {
 					t.Errorf("test failed: expected - %v, got - %v", listfiletest.err, err)
 					continue
