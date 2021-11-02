@@ -53,9 +53,11 @@ var (
 	}
 )
 
+// Indentify the source file that declares each check.
 func listCheckFiles() (map[string]string, error) {
 	checkFiles := make(map[string]string)
 	// Use regex to determine the file that contains the entry point.
+	// We're looking for `const someVarName = "CheckName"`.
 	regex := regexp.MustCompile(`const\s+[^"]*=\s+"(.*)"`)
 	files, err := ioutil.ReadDir("checks/")
 	if err != nil {
@@ -88,6 +90,7 @@ func listCheckFiles() (map[string]string, error) {
 	return checkFiles, nil
 }
 
+// extract API names for RepoClient interface.
 func extractAPINames() ([]string, error) {
 	fns := []string{}
 	interfaceRe := regexp.MustCompile(`type\s+RepoClient\s+interface\s+{\s*`)
@@ -119,19 +122,6 @@ func extractAPINames() ([]string, error) {
 	return fns, nil
 }
 
-func isSubsetOf(a, b []string) bool {
-	mb := make(map[string]bool)
-	for _, vb := range b {
-		mb[vb] = true
-	}
-	for _, va := range a {
-		if _, exists := mb[va]; !exists {
-			return false
-		}
-	}
-	return true
-}
-
 func contains(l []string, elt string) bool {
 	for _, v := range l {
 		if v == elt {
@@ -141,9 +131,10 @@ func contains(l []string, elt string) bool {
 	return false
 }
 
+// extract supported interfaces frmo a check implementation file.
 func supportedInterfacesFromImplementation(checkName string, checkFiles map[string]string) ([]string, error) {
 	// Special case. No APIs are used,
-	// but we need the repo name for a db lookup.
+	// but we need the repo name for an online database lookup.
 	if checkName == "CII-Best-Practices" {
 		return []string{"GitHub"}, nil
 	}
