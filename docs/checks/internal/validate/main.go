@@ -31,6 +31,9 @@ var (
 	allowedRisks     = map[string]bool{"Critical": true, "High": true, "Medium": true, "Low": true}
 	allowedRepoTypes = map[string]bool{"GitHub": true, "local": true}
 	supportedAPIs    = map[string][]string{
+		// InitRepo is supported for local reepos in general. However, in the context of checks,
+		// this is only used to look up remote data, e.g. in Fuzzinng check.
+		// So we only have "GitHub" supported.
 		"InitRepo":                   {"GitHub"},
 		"URI":                        {"GitHub", "local"},
 		"IsArchived":                 {"GitHub"},
