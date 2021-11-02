@@ -21,7 +21,10 @@ import (
 	docs "github.com/ossf/scorecard/v3/docs/checks"
 )
 
-var allowedRisks = map[string]bool{"Critical": true, "High": true, "Medium": true, "Low": true}
+var (
+	allowedRisks     = map[string]bool{"Critical": true, "High": true, "Medium": true, "Low": true}
+	allowedRepoTypes = map[string]bool{"GitHub": true, "local": true}
+)
 
 func main() {
 	m, err := docs.Read()
@@ -56,6 +59,17 @@ func main() {
 		if _, exists := allowedRisks[r]; !exists {
 			// nolint: goerr113
 			panic(fmt.Errorf("risk for checkName: %s is invalid: '%s'", check, r))
+		}
+		repoTypes := c.GetSupportedRepoTypes()
+		if len(repoTypes) == 0 {
+			// nolint: goerr113
+			panic(fmt.Errorf("repos for checkName: %s is empty", check))
+		}
+		for _, rt := range repoTypes {
+			if _, exists := allowedRepoTypes[rt]; !exists {
+				// nolint: goerr113
+				panic(fmt.Errorf("repo type for checkName: %s is invalid: '%s'", check, rt))
+			}
 		}
 	}
 	for _, check := range m.GetChecks() {

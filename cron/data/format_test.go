@@ -20,12 +20,53 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestToString(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name   string
+		input  CSVStrings
+		output []string
+	}{
+		{
+			name:   "Basic",
+			input:  []string{"str1", "str2"},
+			output: []string{"str1", "str2"},
+		},
+		{
+			name:   "NilInput",
+			input:  nil,
+			output: nil,
+		},
+		{
+			name:   "EmptyString",
+			input:  []string{""},
+			output: []string{""},
+		},
+		{
+			name:   "EmptySlice",
+			input:  make([]string, 0),
+			output: nil,
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+			actual := testcase.input.ToString()
+			if !cmp.Equal(testcase.output, actual) {
+				t.Errorf("testcase failed: expected equal, got diff: %s", cmp.Diff(testcase.output, actual))
+			}
+		})
+	}
+}
+
 func TestUnmarshalCsv(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
 		name   string
 		input  []byte
-		output csvStrings
+		output CSVStrings
 	}{
 		{
 			name:   "Basic",
@@ -53,7 +94,7 @@ func TestUnmarshalCsv(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
-			s := new(csvStrings)
+			s := new(CSVStrings)
 			if err := s.UnmarshalCSV(testcase.input); err != nil {
 				t.Errorf("testcase failed: %v", err)
 			}

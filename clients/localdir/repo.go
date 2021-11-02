@@ -19,59 +19,80 @@ package localdir
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path"
+	"strings"
 
 	clients "github.com/ossf/scorecard/v3/clients"
 )
 
-type localRepoClient struct {
-	path string
+var (
+	errNotDirectory = errors.New("not a directory")
+	errInvalidURI   = errors.New("invalid URI")
+)
+
+var filePrefix = "file://"
+
+type repoLocal struct {
+	path     string
+	metadata []string
 }
 
 // URI implements Repo.URI().
-func (r *localRepoClient) URI() string {
+func (r *repoLocal) URI() string {
 	return fmt.Sprintf("file://%s", r.path)
 }
 
 // String implements Repo.String.
-func (r *localRepoClient) String() string {
-	// TODO
-	return "unsupported String()"
+func (r *repoLocal) String() string {
+	return r.URI()
 }
 
 // Org implements Repo.Org.
-func (r *localRepoClient) Org() clients.Repo {
-	// TODO
-	return &localRepoClient{}
+func (r *repoLocal) Org() clients.Repo {
+	return nil
 }
 
 // IsValid implements Repo.IsValid.
-func (r *localRepoClient) IsValid() error {
-	// TODO
-	//nolint:goerr113
-	return errors.New("unsupported IsValid()")
+func (r *repoLocal) IsValid() error {
+	f, err := os.Stat(r.path)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+
+	if !f.IsDir() {
+		return fmt.Errorf("%w", errNotDirectory)
+	}
+	return nil
 }
 
 // Metadata implements Repo.Metadata.
-func (r *localRepoClient) Metadata() []string {
-	// TODO
+func (r *repoLocal) Metadata() []string {
 	return []string{}
 }
 
 // AppendMetadata implements Repo.AppendMetadata.
-func (r *localRepoClient) AppendMetadata(m ...string) {
-	// TODO
+func (r *repoLocal) AppendMetadata(m ...string) {
+	r.metadata = append(r.metadata, m...)
 }
 
 // IsScorecardRepo implements Repo.IsScorecardRepo.
-func (r *localRepoClient) IsScorecardRepo() bool {
-	// TODO
+func (r *repoLocal) IsScorecardRepo() bool {
 	return false
 }
 
 // MakeLocalDirRepo returns an implementation of clients.Repo interface.
-func MakeLocalDirRepo(path string) (clients.Repo, error) {
-	// TODO: validate the path exists
-	return &localRepoClient{
-		path: path,
-	}, nil
+func MakeLocalDirRepo(pathfn string) (clients.Repo, error) {
+	if !strings.HasPrefix(pathfn, filePrefix) {
+		return nil, fmt.Errorf("%w", errInvalidURI)
+	}
+	p := path.Clean(pathfn[len(filePrefix):])
+	repo := &repoLocal{
+		path: p,
+	}
+
+	if err := repo.IsValid(); err != nil {
+		return nil, fmt.Errorf("error in IsValid: %w", err)
+	}
+	return repo, nil
 }

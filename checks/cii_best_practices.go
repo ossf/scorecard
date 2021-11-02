@@ -60,6 +60,7 @@ type response struct {
 
 // CIIBestPractices runs CII-Best-Practices check.
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
+	// TODO: not supported for local clients.
 	repoURI := fmt.Sprintf("https://%s", c.Repo.URI())
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURI)
 	req, err := http.NewRequestWithContext(c.Ctx, "GET", url, nil)
