@@ -617,6 +617,7 @@ checks:
   Dangerous-Workflow:
     risk: High
     tags: supply-chain, security, infrastructure
+    repos: GitHub, local
     short: Determines if the project's workflows avoid dangerous patterns.
     description: |
       Risk: `High`  (vulnerable to repository compromise)
