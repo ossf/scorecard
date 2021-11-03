@@ -43,6 +43,7 @@ import (
 
 var (
 	repo        string
+	local       string
 	checksToRun []string
 	metaData    []string
 	// This one has to use goflag instead of pflag because it's defined by zap.
@@ -64,15 +65,15 @@ const (
 // These strings must be the same as the ones used in
 // checks.yaml for the "repos" field.
 const (
-	repoTypeUnknown = "unknown"
-	repoTypeLocal   = "local"
-	repoTypeGitHub  = "GitHub"
+	repoTypeLocal  = "local"
+	repoTypeGitHub = "GitHub"
 )
 
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
-	scorecardUse  = `./scorecard --repo=<repo_url> [--checks=check1,...] [--show-details] [--policy=file]
-or ./scorecard --{npm,pypi,rubgems}=<package_name> [--checks=check1,...] [--show-details] [--policy=file]`
+	scorecardUse  = `./scorecard [--repo=<repo_url>] [--local=folder] [--checks=check1,...]
+	 [--show-details] [--policy=file] or ./scorecard --{npm,pypi,rubgems}=<package_name> 
+	 [--checks=check1,...] [--show-details] [--policy=file]`
 	scorecardShort = "Security Scorecards"
 )
 
@@ -110,7 +111,7 @@ func getSupportedChecks(r string, checkDocs docs.Doc) ([]string, error) {
 	for check := range allChecks {
 		c, e := checkDocs.GetCheck(check)
 		if e != nil {
-			return nil, fmt.Errorf("checkDocs.GetCheck: %w", e)
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("checkDocs.GetCheck: %v", e))
 		}
 		types := c.GetSupportedRepoTypes()
 		for _, t := range types {
@@ -174,7 +175,6 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
 			}
 		}
-		enabledChecks = checks.AllChecks
 	}
 
 	// If a policy was passed as argument, ensure all checks
@@ -209,8 +209,19 @@ func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clie
 		// GitHub URL.
 		return repo, githubrepo.CreateGithubRepoClient(ctx, logger), repoTypeGitHub, nil
 	}
-	return nil, nil, repoTypeUnknown,
+	return nil, nil, "",
 		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s: [%v, %v]", uri, errLocal, errGitHub))
+}
+
+func getURI(repo, local string) (string, error) {
+	if repo != "" && local != "" {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			"--repo and --local options cannot be used together")
+	}
+	if local != "" {
+		return fmt.Sprintf("file://%s", local), nil
+	}
+	return repo, nil
 }
 
 var rootCmd = &cobra.Command{
@@ -230,6 +241,10 @@ var rootCmd = &cobra.Command{
 			log.Fatal("policy not supported yet")
 		}
 
+		if local != "" && !v4 {
+			log.Fatal("--local option not supported yet")
+		}
+
 		// Validate format.
 		if !validateFormat(format) {
 			log.Fatalf("unsupported format '%s'", format)
@@ -240,6 +255,11 @@ var rootCmd = &cobra.Command{
 			log.Fatalf("readPolicy: %v", err)
 		}
 
+		// Get the URI.
+		uri, err := getURI(repo, local)
+		if err != nil {
+			log.Fatal(err)
+		}
 		if npm != "" {
 			if git, err := fetchGitRepositoryFromNPM(npm); err != nil {
 				log.Fatal(err)
@@ -278,7 +298,7 @@ var rootCmd = &cobra.Command{
 		// nolint
 		defer logger.Sync() // Flushes buffer, if any.
 
-		repoURI, repoClient, repoType, err := getRepoAccessors(ctx, repo, logger)
+		repoURI, repoClient, repoType, err := getRepoAccessors(ctx, uri, logger)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -305,7 +325,6 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
-
 		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient)
 		if err != nil {
 			log.Fatal(err)
@@ -469,6 +488,7 @@ func init() {
 	// Add the zap flag manually
 	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
 	rootCmd.Flags().StringVar(&repo, "repo", "", "repository to check")
+	rootCmd.Flags().StringVar(&local, "local", "", "local folder to check")
 	rootCmd.Flags().StringVar(
 		&npm, "npm", "",
 		"npm package to check, given that the npm package has a GitHub repository")
