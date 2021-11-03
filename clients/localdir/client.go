@@ -75,7 +75,13 @@ func isDir(p string) (bool, error) {
 	return fileInfo.IsDir(), nil
 }
 
-func listFiles(clientPath string, predicate func(string) (bool, error)) ([]string, error) {
+func trimPrefix(pathfn, clientPath string) string {
+	cleanPath := path.Clean(pathfn)
+	prefix := fmt.Sprintf("%s%s", clientPath, string(os.PathSeparator))
+	return strings.TrimPrefix(cleanPath, prefix)
+}
+
+func listFiles(clientPath string) ([]string, error) {
 	files := []string{}
 	err := filepath.Walk(clientPath, func(pathfn string, info fs.FileInfo, err error) error {
 		if err != nil {
@@ -92,17 +98,8 @@ func listFiles(clientPath string, predicate func(string) (bool, error)) ([]strin
 		}
 
 		// Remove prefix of the folder.
-		cleanPath := path.Clean(pathfn)
-		prefix := fmt.Sprintf("%s%s", clientPath, string(os.PathSeparator))
-		p := strings.TrimPrefix(cleanPath, prefix)
-		matches, err := predicate(p)
-		if err != nil {
-			return err
-		}
-
-		if matches {
-			files = append(files, p)
-		}
+		p := trimPrefix(pathfn, clientPath)
+		files = append(files, p)
 
 		return nil
 	})
@@ -113,13 +110,33 @@ func listFiles(clientPath string, predicate func(string) (bool, error)) ([]strin
 	return files, nil
 }
 
+func applyPredicate(clientFiles []string,
+	errFiles error, predicate func(string) (bool, error)) ([]string, error) {
+	if errFiles != nil {
+		return nil, errFiles
+	}
+
+	files := []string{}
+	for _, pathfn := range clientFiles {
+		matches, err := predicate(pathfn)
+		if err != nil {
+			return nil, err
+		}
+
+		if matches {
+			files = append(files, pathfn)
+		}
+	}
+
+	return files, nil
+}
+
 // ListFiles implements RepoClient.ListFiles.
 func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	client.once.Do(func() {
-		client.files, client.errFiles = listFiles(client.path, predicate)
+		client.files, client.errFiles = listFiles(client.path)
 	})
-
-	return client.files, client.errFiles
+	return applyPredicate(client.files, client.errFiles, predicate)
 }
 
 func getFileContent(clientpath, filename string) ([]byte, error) {
