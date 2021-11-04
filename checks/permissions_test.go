@@ -230,6 +230,17 @@ func TestGithubTokenPermissions(t *testing.T) {
 				NumberOfDebug: 4,
 			},
 		},
+		{
+			name:     "Non-yaml file",
+			filename: "./testdata/script.sh",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -247,7 +258,9 @@ func TestGithubTokenPermissions(t *testing.T) {
 			}
 			dl := scut.TestDetailLogger{}
 			r := testValidateGitHubActionTokenPermissions(tt.filename, content, &dl)
-			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
+				t.Fail()
+			}
 		})
 	}
 }

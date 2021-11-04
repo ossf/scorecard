@@ -360,6 +360,9 @@ func testValidateGitHubActionTokenPermissions(pathfn string,
 // Check file content.
 func validateGitHubActionTokenPermissions(path string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	if !isWorkflowFile(path) {
+		return true, nil
+	}
 	// Verify the type of the data.
 	pdata, ok := data.(*permissionCbData)
 	if !ok {
