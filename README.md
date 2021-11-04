@@ -391,23 +391,23 @@ this project in the
 [OSSF Best Practices Working Group](https://github.com/ossf/wg-best-practices-os-developers)
 meetings.
 
-See the
-[Community Calendar](https://calendar.google.com/calendar?cid=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ)
-for the schedule and meeting invitations. The meetings [happen biweekly](https://calendar.google.com/calendar/embed?src=s63voefhp5i9pfltb5q67ngpes%40group.calendar.google.com&ctz=America%2FLos_Angeles).
-
-The biweekly meeting minutes document can be found [here](https://docs.google.com/document/d/1dB2U7_qZpNW96vtuoG7ShmgKXzIg6R5XT5Tc-0yz6kE/edit#) (join ossf-scorecard-dev@googlegroups.com for access).
-
-[Join](https://support.google.com/groups/answer/1067205?hl=en) our email groups:
-
-- ossf-scorecard-dev@googlegroups.com for topics related to Scorecard development, such as asking questions about integration or receiving design docs.
-- ossf-scorecard-announce@googlegroups.com for general announcements such as upcoming conference talks or new releases. 
 
 
-For real time discussion, you can join the
-[#security_scorecards](https://slack.openssf.org/#security_scorecards) slack
-channel. Slack requires registration, but the openssf team is open
-invitation to anyone to register here. Feel free to come and ask any
-questions.
+| Artifact                      | Link                       |
+| --------------------------    | -------------------------- |
+| Scorecard Dev Forum           | [ossf-scorecard-dev@](https://groups.google.com/g/ossf-scorecard-dev) |
+| Scorecard Announcements Forum | [ossf-scorecard-announce@](https://groups.google.com/g/ossf-scorecard-announce) |
+| Community Meeting VC          | [https://zoom.us/j/98835923979](https://zoom.us/j/98835923979) |
+| Community Meeting Calendar    | Biweekly mondays, 3:30pm-4:30pm PST <br>[Calendar](https://calendar.google.com/calendar?cid=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ) |
+| Meeting Notes                 | [Notes](https://docs.google.com/document/d/1dB2U7_qZpNW96vtuoG7ShmgKXzIg6R5XT5Tc-0yz6kE/edit#heading=h.4k8ml0qkh7tl) |
+| Slack Channel                 | [#security_scorecards](https://slack.openssf.org/#security_scorecards) |
+
+| &nbsp;                                                        | Facilitators        | Company | Profile                                            |
+| -----------------------------------------------------------   | ----------          | ------- | ------------------------------------------------   |
+| <img width="30px" src="https://github.com/azeemshaikh38.png">    | Azeem Shaik      | Google  | [azeemshaikh38](https://github.com/azeemshaikh38)  |
+| <img width="30px" src="https://github.com/laurentsimon.png">     | Laurent Simon    | Google  | [laurentsimon](https://github.com/laurentsimon)    |
+| <img width="30px" src="https://github.com/naveensrinivasan.png"> | Naveen Srinivasan|         | [naveensrinivasan](https://github.com/naveensrinivasan)          |
+
 
 ### Report a Security Issue
 To report a security issue, please follow instructions [here](SECURITY.md).
