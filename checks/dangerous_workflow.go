@@ -53,6 +53,10 @@ func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 // Check file content.
 func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checker.DetailLogger,
 	data FileCbData) (bool, error) {
+	if !isWorkflowFile(path) {
+		return true, nil
+	}
+
 	// Verify the type of the data.
 	pdata, ok := data.(*patternCbData)
 	if !ok {
@@ -191,7 +195,8 @@ func checkJobForUntrustedCodeCheckout(job map[string]interface{}, path string,
 		if !ok {
 			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 		}
-		// Check for reference. If not defined, uses default main branch.
+		// Check for reference. If not defined for a pull_request_target event, this defaults to
+		// the base branch of the pull request.
 		ref, ok := mwith["ref"]
 		if !ok {
 			continue

@@ -32,6 +32,17 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		expected scut.TestReturn
 	}{
 		{
+			name:     "Non-yaml file",
+			filename: "./testdata/script.sh",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
 			name:     "run untrusted code checkout test",
 			filename: "./testdata/github-workflow-dangerous-pattern-untrusted-checkout.yml",
 			expected: scut.TestReturn{

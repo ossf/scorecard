@@ -257,7 +257,7 @@ The highest score is awarded when all workflows avoid the dangerous code pattern
  
 
 **Remediation steps**
-- Avoid the dangerous workflow patterns. See this [advisory](https://github.com/justinsteven/advisories/blob/master/2021_github_actions_checkspelling_token_leak_via_advice_symlink.md) for information on avoiding untrusted code checkouts.
+- Avoid the dangerous workflow patterns. See this [post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/) for information on avoiding untrusted code checkouts.
 
 ## Dependency-Update-Tool 
 
