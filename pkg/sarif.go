@@ -93,7 +93,11 @@ type help struct {
 }
 
 type rule struct {
-	ID            string        `json:"id"`
+	// ID should be an opaque, stable ID.
+	// TODO: check if GitHub follows this.
+	// Last time I tried, it used ID to display to users.
+	ID string `json:"id"`
+	// Name must be understable by human.
 	Name          string        `json:"name"`
 	HelpURI       string        `json:"helpUri"`
 	ShortDesc     text          `json:"shortDescription"`
@@ -331,27 +335,31 @@ func addDefaultLocation(locs []location, policyFile string) []location {
 	return locs
 }
 
-func createSARIFHeader(url, category, name, version, commit string, t time.Time) sarif210 {
+func createSARIFHeader() sarif210 {
 	return sarif210{
 		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
 		Version: "2.1.0",
-		Runs: []run{
-			{
-				Tool: tool{
-					Driver: driver{
-						Name:           strings.Title(name),
-						InformationURI: url,
-						SemVersion:     version,
-						Rules:          nil,
-					},
-				},
-				//nolint
-				// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
-				AutomationDetails: automationDetails{
-					// Time formatting: https://pkg.go.dev/time#pkg-constants.
-					ID: fmt.Sprintf("%s/%s/%s", category, name, fmt.Sprintf("%s-%s", commit, t.Format(time.RFC822Z))),
-				},
+		Runs:    []run{},
+	}
+}
+
+func createSARIFRun(url, category, name, version, commit string, t time.Time,
+	rules []rule, results []result) run {
+	return run{
+		Tool: tool{
+			Driver: driver{
+				Name:           strings.Title(name),
+				InformationURI: url,
+				SemVersion:     version,
+				Rules:          rules,
 			},
+		},
+		Results: results,
+		//nolint
+		// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
+		AutomationDetails: automationDetails{
+			// Time formatting: https://pkg.go.dev/time#pkg-constants.
+			ID: fmt.Sprintf("%s/%s/%s", category, name, fmt.Sprintf("%s-%s", commit, t.Format(time.RFC822Z))),
 		},
 	}
 }
@@ -432,13 +440,14 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	// We only support GitHub-supported properties:
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
-	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
-		"supply-chain", "scorecard", r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date)
-	results := []result{}
-	rules := []rule{}
+	sarif := createSARIFHeader()
+	runs := []run{}
 
 	// nolint
-	for i, check := range r.Checks {
+	for _, check := range r.Checks {
+		results := []result{}
+		rules := []rule{}
+
 		doc, e := checkDocs.GetCheck(check.Name)
 		if e != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
@@ -469,7 +478,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// Set the check ID.
 		checkID := check.Name
 
-		// Create a header's rule.
+		// Create a rule.
 		rule := createSARIFRule(check.Name, checkID,
 			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
 			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
@@ -481,23 +490,29 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 
 		// Add default location if no locations are present.
 		// Note: GitHub needs at least one location to show the results.
+		var res result
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs, policyFile)
 			// Use the `reason` as message.
-			r := createSARIFCheckResult(i, checkID, check.Reason, &locs[0])
-			results = append(results, r)
+			res = createSARIFCheckResult(0, checkID, check.Reason, &locs[0])
 		} else {
-			for _, loc := range locs {
+			for n, loc := range locs {
 				// Use the location's message (check's detail's message) as message.
-				r := createSARIFCheckResult(i, checkID, loc.Message.Text, &loc)
-				results = append(results, r)
+				res = createSARIFCheckResult(n, checkID, loc.Message.Text, &loc)
 			}
 		}
+		results = append(results, res)
+
+		// Create a run and append it to our list of runs.
+		run := createSARIFRun("https://github.com/ossf/scorecard",
+			"supply-chain", check.Name, r.Scorecard.Version,
+			r.Scorecard.CommitSHA, r.Date, rules, results)
+		runs = append(runs, run)
+
 	}
 
-	// Set the results and rules to sarif.
-	sarif.Runs[0].Tool.Driver.Rules = rules
-	sarif.Runs[0].Results = results
+	// Set the sarif's runs.
+	sarif.Runs = runs
 
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "   ")
