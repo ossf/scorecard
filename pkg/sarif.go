@@ -111,7 +111,7 @@ type driver struct {
 	Name           string `json:"name"`
 	InformationURI string `json:"informationUri"`
 	SemVersion     string `json:"semanticVersion"`
-	Rules          []rule `json:"rules"`
+	Rules          []rule `json:"rules,omitempty"`
 }
 
 type tool struct {
@@ -141,8 +141,9 @@ type run struct {
 	Tool              tool              `json:"tool"`
 	// For generated files during analysis. We leave this blank.
 	// See https://github.com/microsoft/sarif-tutorials/blob/main/docs/1-Introduction.md#simple-example.
-	Artifacts string   `json:"artifacts,omitempty"`
-	Results   []result `json:"results"`
+	Artifacts string `json:"artifacts,omitempty"`
+	// Thus MUST never be omitted or left as `nil`.
+	Results []result `json:"results"`
 }
 
 type sarif210 struct {
@@ -343,22 +344,22 @@ func createSARIFHeader() sarif210 {
 	}
 }
 
-func createSARIFTool(url, name, version string, rules []rule) tool {
+func createSARIFTool(url, name, version string) tool {
 	return tool{
 		Driver: driver{
 			Name:           strings.Title(name),
 			InformationURI: url,
 			SemVersion:     version,
-			Rules:          rules,
+			Rules:          nil,
 		},
 	}
 }
 
-func createSARIFRun(category, runName, commit string, t time.Time,
-	tool tool, results []result) run {
+func createSARIFRun(uri, toolName, version, commit string, t time.Time,
+	category, runName string) run {
 	return run{
-		Tool:    tool,
-		Results: results,
+		Tool:    createSARIFTool(uri, toolName, version),
+		Results: []result{},
 		//nolint
 		// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
 		AutomationDetails: automationDetails{
@@ -457,6 +458,16 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
 		}
 
+		// We need to create a run entry even if the check is disabled or the policy is satisfied.
+		// The reason is the following: if a check has findings and is later fixed by a user,
+		// the absence of run for the check will indicate that the check was *not* run,
+		// so GitHub would keep the findings in the dahsboard. We don't want that.
+		run := createSARIFRun("https://github.com/ossf/scorecard", "scorecard",
+			r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date,
+			"supply-chain", check.Name)
+		runs = append(runs, run)
+
+		// Check the policy configuration.
 		minScore, enabled, err := getCheckPolicyInfo(policy, check.Name)
 		if err != nil {
 			return err
@@ -470,6 +481,18 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			continue
 		}
 
+		// We only set rules if we have findings.
+		// to avoid clobbering the results.
+		// See https://github.com/github/codeql-action/issues/810#issuecomment-962006930.
+		// Note: we use a single rule, i.e., one check per run.
+		checkID := check.Name
+		rule := createSARIFRule(check.Name, checkID,
+			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
+			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
+			doc.GetRemediation(), doc.GetTags())
+		rules = append(rules, rule)
+		runs[len(runs)-1].Tool.Driver.Rules = rules
+
 		// Unclear what to use for PartialFingerprints.
 		// GitHub only uses `primaryLocationLineHash`, which is not properly defined
 		// and Appendix B of https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html
@@ -478,16 +501,6 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// that after the baseline was constructed, a developer inserted additional lines of code above that
 		// location. Then in the next run, the result would occur on a different line, the computed fingerprint
 		// would change, and the result management system would erroneously report it as a new result."
-
-		// Set the check ID.
-		checkID := check.Name
-
-		// Create a rule.
-		rule := createSARIFRule(check.Name, checkID,
-			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
-			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
-			doc.GetRemediation(), doc.GetTags())
-		rules = append(rules, rule)
 
 		// Create locations.
 		locs := detailsToLocations(check.Details2, showDetails, minScore, check.Score)
@@ -509,13 +522,8 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			}
 		}
 
-		// Create a run and append it to our list of runs.
-		tool := createSARIFTool("https://github.com/ossf/scorecard", "scorecard",
-			r.Scorecard.Version, rules)
-		run := createSARIFRun("supply-chain", check.Name,
-			r.Scorecard.CommitSHA, r.Date, tool, results)
-		runs = append(runs, run)
-
+		// Set the results for the run.
+		runs[len(runs)-1].Results = results
 	}
 
 	// Set the sarif's runs.

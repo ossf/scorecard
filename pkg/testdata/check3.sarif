@@ -4,7 +4,7 @@
    "runs": [
       {
          "automationDetails": {
-            "id": "supply-chain/scorecard/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
+            "id": "supply-chain/Check-Name/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
          },
          "tool": {
             "driver": {
@@ -38,7 +38,46 @@
                            "tag2"
                         ]
                      }
-                  },
+                  }
+               ]
+            }
+         },
+         "results": [
+            {
+               "ruleId": "Check-Name",
+               "ruleIndex": 0,
+               "message": {
+                  "text": "warn message"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "byteOffset": 0
+                        },
+                        "artifactLocation": {
+                           "uri": "bin/binary.elf",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     },
+                     "message": {
+                        "text": "warn message"
+                     }
+                  }
+               ]
+            }
+         ]
+      },
+      {
+         "automationDetails": {
+            "id": "supply-chain/Check-Name2/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
+         },
+         "tool": {
+            "driver": {
+               "name": "Scorecard",
+               "informationUri": "https://github.com/ossf/scorecard",
+               "semanticVersion": "1.2.3",
+               "rules": [
                   {
                      "id": "Check-Name2",
                      "name": "Check-Name2",
@@ -66,7 +105,49 @@
                            "tag3"
                         ]
                      }
-                  },
+                  }
+               ]
+            }
+         },
+         "results": [
+            {
+               "ruleId": "Check-Name2",
+               "ruleIndex": 0,
+               "message": {
+                  "text": "warn message"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "charOffset": 3,
+                           "snippet": {
+                              "text": "some text"
+                           }
+                        },
+                        "artifactLocation": {
+                           "uri": "src/doc.txt",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     },
+                     "message": {
+                        "text": "warn message"
+                     }
+                  }
+               ]
+            }
+         ]
+      },
+      {
+         "automationDetails": {
+            "id": "supply-chain/Check-Name3/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
+         },
+         "tool": {
+            "driver": {
+               "name": "Scorecard",
+               "informationUri": "https://github.com/ossf/scorecard",
+               "semanticVersion": "1.2.3",
+               "rules": [
                   {
                      "id": "Check-Name3",
                      "name": "Check-Name3",
@@ -101,57 +182,8 @@
          },
          "results": [
             {
-               "ruleId": "Check-Name",
-               "ruleIndex": 0,
-               "message": {
-                  "text": "warn message"
-               },
-               "locations": [
-                  {
-                     "physicalLocation": {
-                        "region": {
-                           "byteOffset": 0
-                        },
-                        "artifactLocation": {
-                           "uri": "bin/binary.elf",
-                           "uriBaseId": "%SRCROOT%"
-                        }
-                     },
-                     "message": {
-                        "text": "warn message"
-                     }
-                  }
-               ]
-            },
-            {
-               "ruleId": "Check-Name2",
-               "ruleIndex": 1,
-               "message": {
-                  "text": "warn message"
-               },
-               "locations": [
-                  {
-                     "physicalLocation": {
-                        "region": {
-                           "charOffset": 3,
-                           "snippet": {
-                              "text": "some text"
-                           }
-                        },
-                        "artifactLocation": {
-                           "uri": "src/doc.txt",
-                           "uriBaseId": "%SRCROOT%"
-                        }
-                     },
-                     "message": {
-                        "text": "warn message"
-                     }
-                  }
-               ]
-            },
-            {
                "ruleId": "Check-Name3",
-               "ruleIndex": 2,
+               "ruleIndex": 0,
                "message": {
                   "text": "warn message"
                },

@@ -4,7 +4,7 @@
    "runs": [
       {
          "automationDetails": {
-            "id": "supply-chain/scorecard/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
+            "id": "supply-chain/Check-Name/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
          },
          "tool": {
             "driver": {
@@ -67,6 +67,32 @@
                ]
             }
          ]
+      },
+      {
+         "automationDetails": {
+            "id": "supply-chain/Check-Name2/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
+         },
+         "tool": {
+            "driver": {
+               "name": "Scorecard",
+               "informationUri": "https://github.com/ossf/scorecard",
+               "semanticVersion": "1.2.3"
+            }
+         },
+         "results": []
+      },
+      {
+         "automationDetails": {
+            "id": "supply-chain/Check-Name3/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
+         },
+         "tool": {
+            "driver": {
+               "name": "Scorecard",
+               "informationUri": "https://github.com/ossf/scorecard",
+               "semanticVersion": "1.2.3"
+            }
+         },
+         "results": []
       }
    ]
 }
