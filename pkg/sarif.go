@@ -97,7 +97,7 @@ type rule struct {
 	// TODO: check if GitHub follows this.
 	// Last time I tried, it used ID to display to users.
 	ID string `json:"id"`
-	// Name must be understable by human.
+	// Name must be readable by human.
 	Name          string        `json:"name"`
 	HelpURI       string        `json:"helpUri"`
 	ShortDesc     text          `json:"shortDescription"`
@@ -481,8 +481,9 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			continue
 		}
 
-		// We only set rules if we have findings.
-		// to avoid clobbering the results.
+		// We only set rules if we have findings
+		// to avoid clobbering the results. It would be fine to add
+		// rules regardless of findings.
 		// See https://github.com/github/codeql-action/issues/810#issuecomment-962006930.
 		// Note: we use a single rule, i.e., one check per run.
 		checkID := check.Name
