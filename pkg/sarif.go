@@ -343,23 +343,27 @@ func createSARIFHeader() sarif210 {
 	}
 }
 
-func createSARIFRun(url, category, name, version, commit string, t time.Time,
-	rules []rule, results []result) run {
-	return run{
-		Tool: tool{
-			Driver: driver{
-				Name:           strings.Title(name),
-				InformationURI: url,
-				SemVersion:     version,
-				Rules:          rules,
-			},
+func createSARIFTool(url, name, version string, rules []rule) tool {
+	return tool{
+		Driver: driver{
+			Name:           strings.Title(name),
+			InformationURI: url,
+			SemVersion:     version,
+			Rules:          rules,
 		},
+	}
+}
+
+func createSARIFRun(category, runName, commit string, t time.Time,
+	tool tool, results []result) run {
+	return run{
+		Tool:    tool,
 		Results: results,
 		//nolint
 		// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
 		AutomationDetails: automationDetails{
 			// Time formatting: https://pkg.go.dev/time#pkg-constants.
-			ID: fmt.Sprintf("%s/%s/%s", category, name, fmt.Sprintf("%s-%s", commit, t.Format(time.RFC822Z))),
+			ID: fmt.Sprintf("%s/%s/%s", category, runName, fmt.Sprintf("%s-%s", commit, t.Format(time.RFC822Z))),
 		},
 	}
 }
@@ -490,23 +494,26 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 
 		// Add default location if no locations are present.
 		// Note: GitHub needs at least one location to show the results.
-		var res result
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs, policyFile)
 			// Use the `reason` as message.
-			res = createSARIFCheckResult(0, checkID, check.Reason, &locs[0])
+			// Since we have a single rule per run, the indexId is 0.
+			cr := createSARIFCheckResult(0, checkID, check.Reason, &locs[0])
+			results = append(results, cr)
 		} else {
-			for n, loc := range locs {
+			for _, loc := range locs {
 				// Use the location's message (check's detail's message) as message.
-				res = createSARIFCheckResult(n, checkID, loc.Message.Text, &loc)
+				// Since we have a single rule per run, the indexId is 0.
+				cr := createSARIFCheckResult(0, checkID, loc.Message.Text, &loc)
+				results = append(results, cr)
 			}
 		}
-		results = append(results, res)
 
 		// Create a run and append it to our list of runs.
-		run := createSARIFRun("https://github.com/ossf/scorecard",
-			"supply-chain", check.Name, r.Scorecard.Version,
-			r.Scorecard.CommitSHA, r.Date, rules, results)
+		tool := createSARIFTool("https://github.com/ossf/scorecard", "scorecard",
+			r.Scorecard.Version, rules)
+		run := createSARIFRun("supply-chain", check.Name,
+			r.Scorecard.CommitSHA, r.Date, tool, results)
 		runs = append(runs, run)
 
 	}
