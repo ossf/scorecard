@@ -156,7 +156,7 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 			if !isSupportedCheck(supportedChecks, checkName) {
 				// We silently ignore the check, like we do
 				// for the default case when no argsChecks
-				// are given by the user.
+				// or policy are present.
 				continue
 			}
 
