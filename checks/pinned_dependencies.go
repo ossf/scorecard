@@ -16,107 +16,25 @@ package checks
 
 import (
 	"fmt"
-	"path"
 	"regexp"
 	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
-	"gopkg.in/yaml.v3"
+	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks/fileparser"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // CheckPinnedDependencies is the registered name for FrozenDeps.
 const CheckPinnedDependencies = "Pinned-Dependencies"
 
-// defaultShellNonWindows is the default shell used for GitHub workflow actions for Linux and Mac.
-const defaultShellNonWindows = "bash"
-
-// defaultShellWindows is the default shell used for GitHub workflow actions for Windows.
-const defaultShellWindows = "pwsh"
-
-// Structure for workflow config.
-// We only declare the fields we need.
-// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
-type gitHubActionWorkflowConfig struct {
-	Jobs map[string]gitHubActionWorkflowJob
-	Name string `yaml:"name"`
-}
-
-// A Github Action Workflow Job.
-// We only declare the fields we need.
-// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
-// nolint: govet
-type gitHubActionWorkflowJob struct {
-	Name     string                     `yaml:"name"`
-	Steps    []gitHubActionWorkflowStep `yaml:"steps"`
-	Defaults struct {
-		Run struct {
-			Shell string `yaml:"shell"`
-		} `yaml:"run"`
-	} `yaml:"defaults"`
-	RunsOn   stringOrSlice `yaml:"runs-on"`
-	Strategy struct {
-		// In most cases, the 'matrix' field will have a key of 'os' which is an array of strings, but there are
-		// some repos that have something like: 'matrix: ${{ fromJson(needs.matrix.outputs.latest) }}'.
-		Matrix interface{} `yaml:"matrix"`
-	} `yaml:"strategy"`
-}
-
-// A Github Action Workflow Step.
-// We only declare the fields we need.
-// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
-type gitHubActionWorkflowStep struct {
-	Name  string         `yaml:"name"`
-	ID    string         `yaml:"id"`
-	Shell string         `yaml:"shell"`
-	Run   string         `yaml:"run"`
-	If    string         `yaml:"if"`
-	Uses  stringWithLine `yaml:"uses"`
-}
-
-// stringOrSlice is for fields that can be a single string or a slice of strings. If the field is a single string,
-// this value will be a slice with a single string item.
-type stringOrSlice []string
-
-func (s *stringOrSlice) UnmarshalYAML(value *yaml.Node) error {
-	var stringSlice []string
-	err := value.Decode(&stringSlice)
-	if err == nil {
-		*s = stringSlice
-		return nil
-	}
-	var single string
-	err = value.Decode(&single)
-	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringOrSlice Value: %v", err))
-	}
-	*s = []string{single}
-	return nil
-}
-
-// stringWithLine is for when you want to keep track of the line number that the string came from.
-type stringWithLine struct {
-	Value string
-	Line  int
-}
-
 // Structure to host information about pinned github
 // or third party dependencies.
 type worklowPinningResult struct {
 	thirdParties pinnedResult
 	gitHubOwned  pinnedResult
-}
-
-func (ws *stringWithLine) UnmarshalYAML(value *yaml.Node) error {
-	err := value.Decode(&ws.Value)
-	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringWithLine Value: %v", err))
-	}
-	ws.Line = value.Line
-
-	return nil
 }
 
 //nolint:gochecknoinits
@@ -522,7 +440,7 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 // Returns true if the check should continue executing after this file.
 func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	if !isWorkflowFile(pathfn) {
+	if !fileparser.IsWorkflowFile(pathfn) {
 		return true, nil
 	}
 
@@ -533,11 +451,11 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 		return true, nil
 	}
 
-	var workflow gitHubActionWorkflowConfig
-	err := yaml.Unmarshal(content, &workflow)
-	if err != nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
+	workflow, errs := actionlint.Parse(content)
+	if len(errs) > 0 && workflow == nil {
+		// actionlint is a linter, so it will return errors when the yaml file does not meet its linting standards.
+		// Often we don't care about these errors.
+		return false, fileparser.FormatActionlintError(errs)
 	}
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
@@ -547,12 +465,12 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 		job := job
 		for _, step := range job.Steps {
 			step := step
-			if step.Run == "" {
+			if step.Exec.Kind() != actionlint.ExecKindRun {
 				continue
 			}
 
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
-			shell, err := getShellForStep(&step, &job)
+			shell, err := fileparser.GetShellForStep(step, job)
 			if err != nil {
 				return false, err
 			}
@@ -561,7 +479,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 				continue
 			}
 
-			run := step.Run
+			run := step.Exec.(*actionlint.ExecRun).Run.Value
 			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
 			scriptContent = fmt.Sprintf("%v\n%v", scriptContent, string(script))
@@ -569,6 +487,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	}
 
 	if scriptContent != "" {
+		var err error
 		validated, err = validateShellFile(pathfn, []byte(scriptContent), dl)
 		if err != nil {
 			return false, err
@@ -577,99 +496,6 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 
 	addPinnedResult(pdata, validated)
 	return true, nil
-}
-
-// Returns the OSes this job runs on.
-func getOSesForJob(job *gitHubActionWorkflowJob) ([]string, error) {
-	// The 'runs-on' field either lists the OS'es directly, or it can have an expression '${{ matrix.os }}' which
-	// is where the OS'es are actually listed.
-	getFromMatrix := len(job.RunsOn) == 1 && strings.Contains(job.RunsOn[0], "matrix.os")
-	if !getFromMatrix {
-		return job.RunsOn, nil
-	}
-	jobOSes := make([]string, 0)
-	// nolint: nestif
-	if m, ok := job.Strategy.Matrix.(map[string]interface{}); ok {
-		if osVal, ok := m["os"]; ok {
-			if oses, ok := osVal.([]interface{}); ok {
-				for _, os := range oses {
-					if strVal, ok := os.(string); ok {
-						jobOSes = append(jobOSes, strVal)
-					}
-				}
-				return jobOSes, nil
-			}
-		}
-	}
-	return jobOSes, sce.WithMessage(sce.ErrScorecardInternal,
-		fmt.Sprintf("unable to determine OS for job: %v", job.Name))
-}
-
-// The only OS that this job runs on is Windows.
-func jobAlwaysRunsOnWindows(job *gitHubActionWorkflowJob) (bool, error) {
-	jobOSes, err := getOSesForJob(job)
-	if err != nil {
-		return false, err
-	}
-	for _, os := range jobOSes {
-		if !strings.HasPrefix(strings.ToLower(os), "windows") {
-			return false, nil
-		}
-	}
-	return true, nil
-}
-
-// getShellForStep returns the shell that is used to run the given step.
-func getShellForStep(step *gitHubActionWorkflowStep, job *gitHubActionWorkflowJob) (string, error) {
-	// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell.
-	if step.Shell != "" {
-		return step.Shell, nil
-	}
-	if job.Defaults.Run.Shell != "" {
-		return job.Defaults.Run.Shell, nil
-	}
-
-	isStepWindows, err := isStepWindows(step)
-	if err != nil {
-		return "", err
-	}
-	if isStepWindows {
-		return defaultShellWindows, nil
-	}
-
-	alwaysRunsOnWindows, err := jobAlwaysRunsOnWindows(job)
-	if err != nil {
-		return "", err
-	}
-	if alwaysRunsOnWindows {
-		return defaultShellWindows, nil
-	}
-
-	return defaultShellNonWindows, nil
-}
-
-// isStepWindows returns true if the step will be run on Windows.
-func isStepWindows(step *gitHubActionWorkflowStep) (bool, error) {
-	windowsRegexes := []string{
-		// Looking for "if: runner.os == 'Windows'" (and variants)
-		`(?i)runner\.os\s*==\s*['"]windows['"]`,
-		// Looking for "if: ${{ startsWith(runner.os, 'Windows') }}" (and variants)
-		`(?i)\$\{\{\s*startsWith\(runner\.os,\s*['"]windows['"]\)`,
-		// Looking for "if: matrix.os == 'windows-2019'" (and variants)
-		`(?i)matrix\.os\s*==\s*['"]windows-`,
-	}
-
-	for _, windowsRegex := range windowsRegexes {
-		matches, err := regexp.MatchString(windowsRegex, step.If)
-		if err != nil {
-			return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error matching Windows regex: %v", err))
-		}
-		if matches {
-			return true, nil
-		}
-	}
-
-	return false, nil
 }
 
 // Check pinning of github actions in workflows.
@@ -697,7 +523,7 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 // should continue executing after this file.
 func validateGitHubActionWorkflow(pathfn string, content []byte,
 	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	if !isWorkflowFile(pathfn) {
+	if !fileparser.IsWorkflowFile(pathfn) {
 		return true, nil
 	}
 
@@ -709,56 +535,48 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 		return true, nil
 	}
 
-	var workflow gitHubActionWorkflowConfig
-	err := yaml.Unmarshal(content, &workflow)
-	if err != nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
+	workflow, errs := actionlint.Parse(content)
+	if len(errs) > 0 && workflow == nil {
+		// actionlint is a linter, so it will return errors when the yaml file does not meet its linting standards.
+		// Often we don't care about these errors.
+		return false, fileparser.FormatActionlintError(errs)
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
 	for jobName, job := range workflow.Jobs {
-		if len(job.Name) > 0 {
-			jobName = job.Name
+		if job.Name != nil && len(job.Name.Value) > 0 {
+			jobName = job.Name.Value
 		}
 		for _, step := range job.Steps {
-			if len(step.Uses.Value) > 0 {
-				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
-				// Example: action-name@hash
-				match := hashRegex.Match([]byte(step.Uses.Value))
-				if !match {
-					dl.Warn3(&checker.LogMessage{
-						Path: pathfn, Type: checker.FileTypeSource, Offset: step.Uses.Line, Snippet: step.Uses.Value,
-						Text: fmt.Sprintf("dependency not pinned by hash (job '%v')", jobName),
-					})
+			if step.Exec.Kind() != actionlint.ExecKindAction {
+				continue
+			}
+			execAction, ok := step.Exec.(*actionlint.ExecAction)
+			if !ok {
+				stepName := ""
+				if step.Name != nil {
+					stepName = step.Name.Value
 				}
 
-				githubOwned := isGitHubOwnedAction(step.Uses.Value)
-				addWorkflowPinnedResult(pdata, match, githubOwned)
+				return false, sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("unable to parse step '%v' for job '%v'", jobName, stepName))
 			}
+			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
+			// Example: action-name@hash
+			match := hashRegex.Match([]byte(execAction.Uses.Value))
+			if !match {
+				dl.Warn3(&checker.LogMessage{
+					Path: pathfn, Type: checker.FileTypeSource, Offset: execAction.Uses.Pos.Line, Snippet: execAction.Uses.Value,
+					Text: fmt.Sprintf("dependency not pinned by hash (job '%v')", jobName),
+				})
+			}
+
+			githubOwned := fileparser.IsGitHubOwnedAction(execAction.Uses.Value)
+			addWorkflowPinnedResult(pdata, match, githubOwned)
 		}
 	}
 
 	return true, nil
-}
-
-// isWorkflowFile returns true if this is a GitHub workflow file.
-func isWorkflowFile(pathfn string) bool {
-	// From https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions:
-	// "Workflow files use YAML syntax, and must have either a .yml or .yaml file extension."
-	switch path.Ext(pathfn) {
-	case ".yml", ".yaml":
-		return true
-	default:
-		return false
-	}
-}
-
-// isGitHubOwnedAction check github specific action.
-func isGitHubOwnedAction(v string) bool {
-	a := strings.HasPrefix(v, "actions/")
-	c := strings.HasPrefix(v, "github/")
-	return a || c
 }
 
 func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
