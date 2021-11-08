@@ -150,3 +150,6 @@ linters-settings:
       - ptrToRefParam
       - typeUnparen
       - unnecessaryBlock
+  wrapcheck:
+    ignorePackageGlobs:
+      - github.com/ossf/scorecard/v3/checks/fileparser

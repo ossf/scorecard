@@ -20,7 +20,7 @@ import (
 	"regexp"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"github.com/rhysd/actionlint"
 
 	sce "github.com/ossf/scorecard/v3/errors"
 )
@@ -31,110 +31,51 @@ const defaultShellNonWindows = "bash"
 // defaultShellWindows is the default shell used for GitHub workflow actions for Windows.
 const defaultShellWindows = "pwsh"
 
-// Structure for workflow config.
-// We only declare the fields we need.
-// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
-type GitHubActionWorkflowConfig struct {
-	Jobs map[string]GitHubActionWorkflowJob
-	Name string `yaml:"name"`
-}
-
-// A Github Action Workflow Job.
-// We only declare the fields we need.
-// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
-// nolint: govet
-type GitHubActionWorkflowJob struct {
-	Name     string                     `yaml:"name"`
-	Steps    []GitHubActionWorkflowStep `yaml:"steps"`
-	Defaults struct {
-		Run struct {
-			Shell string `yaml:"shell"`
-		} `yaml:"run"`
-	} `yaml:"defaults"`
-	RunsOn   stringOrSlice `yaml:"runs-on"`
-	Strategy struct {
-		// In most cases, the 'matrix' field will have a key of 'os' which is an array of strings, but there are
-		// some repos that have something like: 'matrix: ${{ fromJson(needs.matrix.outputs.latest) }}'.
-		Matrix interface{} `yaml:"matrix"`
-	} `yaml:"strategy"`
-}
-
-// A Github Action Workflow Step.
-// We only declare the fields we need.
-// Github workflows format: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
-type GitHubActionWorkflowStep struct {
-	Name  string         `yaml:"name"`
-	ID    string         `yaml:"id"`
-	Shell string         `yaml:"shell"`
-	Run   string         `yaml:"run"`
-	If    string         `yaml:"if"`
-	Uses  stringWithLine `yaml:"uses"`
-}
-
-// stringOrSlice is for fields that can be a single string or a slice of strings. If the field is a single string,
-// this value will be a slice with a single string item.
-type stringOrSlice []string
-
-func (s *stringOrSlice) UnmarshalYAML(value *yaml.Node) error {
-	var stringSlice []string
-	err := value.Decode(&stringSlice)
-	if err == nil {
-		*s = stringSlice
+// FormatActionlintError combines the errors into a single one.
+func FormatActionlintError(errs []*actionlint.Error) error {
+	if len(errs) == 0 {
 		return nil
 	}
-	var single string
-	err = value.Decode(&single)
-	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringOrSlice Value: %v", err))
+	builder := strings.Builder{}
+	builder.WriteString(errInvalidGitHubWorkflow.Error() + ":")
+	for _, err := range errs {
+		builder.WriteString("\n" + err.Error())
 	}
-	*s = []string{single}
-	return nil
-}
-
-// stringWithLine is for when you want to keep track of the line number that the string came from.
-type stringWithLine struct {
-	Value string
-	Line  int
-}
-
-func (ws *stringWithLine) UnmarshalYAML(value *yaml.Node) error {
-	err := value.Decode(&ws.Value)
-	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error decoding stringWithLine Value: %v", err))
-	}
-	ws.Line = value.Line
-
-	return nil
+	return sce.WithMessage(sce.ErrScorecardInternal, builder.String())
 }
 
 // GetOSesForJob returns the OSes this job runs on.
-func GetOSesForJob(job *GitHubActionWorkflowJob) ([]string, error) {
+func GetOSesForJob(job *actionlint.Job) ([]string, error) {
 	// The 'runs-on' field either lists the OS'es directly, or it can have an expression '${{ matrix.os }}' which
 	// is where the OS'es are actually listed.
-	getFromMatrix := len(job.RunsOn) == 1 && strings.Contains(job.RunsOn[0], "matrix.os")
-	if !getFromMatrix {
-		return job.RunsOn, nil
-	}
 	jobOSes := make([]string, 0)
-	// nolint: nestif
-	if m, ok := job.Strategy.Matrix.(map[string]interface{}); ok {
-		if osVal, ok := m["os"]; ok {
-			if oses, ok := osVal.([]interface{}); ok {
-				for _, os := range oses {
-					if strVal, ok := os.(string); ok {
-						jobOSes = append(jobOSes, strVal)
-					}
-				}
-				return jobOSes, nil
-			}
+	getFromMatrix := len(job.RunsOn.Labels) == 1 && strings.Contains(job.RunsOn.Labels[0].Value, "matrix.os")
+	if !getFromMatrix {
+		// We can get the OSes straight from 'runs-on'.
+		for _, os := range job.RunsOn.Labels {
+			jobOSes = append(jobOSes, os.Value)
+		}
+		return jobOSes, nil
+	}
+
+	for rowKey, rowValue := range job.Strategy.Matrix.Rows {
+		if rowKey != "os" {
+			continue
+		}
+		for _, os := range rowValue.Values {
+			jobOSes = append(jobOSes, strings.Trim(os.String(), "'\""))
 		}
 	}
-	return jobOSes, sce.WithMessage(sce.ErrScorecardInternal,
-		fmt.Sprintf("unable to determine OS for job: %v", job.Name))
+
+	if len(jobOSes) == 0 {
+		return jobOSes, sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("unable to determine OS for job: %v", job.Name.Value))
+	}
+	return jobOSes, nil
 }
 
 // JobAlwaysRunsOnWindows returns true if the only OS that this job runs on is Windows.
-func JobAlwaysRunsOnWindows(job *GitHubActionWorkflowJob) (bool, error) {
+func JobAlwaysRunsOnWindows(job *actionlint.Job) (bool, error) {
 	jobOSes, err := GetOSesForJob(job)
 	if err != nil {
 		return false, err
@@ -148,13 +89,27 @@ func JobAlwaysRunsOnWindows(job *GitHubActionWorkflowJob) (bool, error) {
 }
 
 // GetShellForStep returns the shell that is used to run the given step.
-func GetShellForStep(step *GitHubActionWorkflowStep, job *GitHubActionWorkflowJob) (string, error) {
+func GetShellForStep(step *actionlint.Step, job *actionlint.Job) (string, error) {
 	// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell.
-	if step.Shell != "" {
-		return step.Shell, nil
+	execRun, ok := step.Exec.(*actionlint.ExecRun)
+	if !ok {
+		jobName := ""
+		if job.Name != nil {
+			jobName = job.Name.Value
+		}
+		stepName := ""
+		if step.Name != nil {
+			stepName = step.Name.Value
+		}
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("unable to parse step '%v' for job '%v'", jobName, stepName))
 	}
-	if job.Defaults.Run.Shell != "" {
-		return job.Defaults.Run.Shell, nil
+	if execRun != nil && execRun.Shell != nil && execRun.Shell.Value != "" {
+		return execRun.Shell.Value, nil
+	}
+	if job.Defaults != nil && job.Defaults.Run != nil && job.Defaults.Run.Shell != nil &&
+		job.Defaults.Run.Shell.Value != "" {
+		return job.Defaults.Run.Shell.Value, nil
 	}
 
 	isStepWindows, err := IsStepWindows(step)
@@ -177,7 +132,10 @@ func GetShellForStep(step *GitHubActionWorkflowStep, job *GitHubActionWorkflowJo
 }
 
 // IsStepWindows returns true if the step will be run on Windows.
-func IsStepWindows(step *GitHubActionWorkflowStep) (bool, error) {
+func IsStepWindows(step *actionlint.Step) (bool, error) {
+	if step.If == nil {
+		return false, nil
+	}
 	windowsRegexes := []string{
 		// Looking for "if: runner.os == 'Windows'" (and variants)
 		`(?i)runner\.os\s*==\s*['"]windows['"]`,
@@ -188,7 +146,7 @@ func IsStepWindows(step *GitHubActionWorkflowStep) (bool, error) {
 	}
 
 	for _, windowsRegex := range windowsRegexes {
-		matches, err := regexp.MatchString(windowsRegex, step.If)
+		matches, err := regexp.MatchString(windowsRegex, step.If.Value)
 		if err != nil {
 			return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("error matching Windows regex: %v", err))
 		}

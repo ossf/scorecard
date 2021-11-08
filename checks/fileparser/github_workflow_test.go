@@ -18,7 +18,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"gopkg.in/yaml.v3"
+	"github.com/rhysd/actionlint"
 	"gotest.tools/assert/cmp"
 )
 
@@ -113,17 +113,17 @@ func TestGitHubWorkflowShell(t *testing.T) {
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
-			var workflow GitHubActionWorkflowConfig
-			err = yaml.Unmarshal(content, &workflow)
-			if err != nil {
-				t.Errorf("cannot unmarshal file: %v", err)
+
+			workflow, errs := actionlint.Parse(content)
+			if len(errs) > 0 && workflow == nil {
+				t.Errorf("cannot unmarshal file: %v", errs[0])
 			}
 			actualShells := make([]string, 0)
 			for _, job := range workflow.Jobs {
 				job := job
 				for _, step := range job.Steps {
 					step := step
-					shell, err := GetShellForStep(&step, &job)
+					shell, err := GetShellForStep(step, job)
 					if err != nil {
 						t.Errorf("error getting shell: %v", err)
 					}

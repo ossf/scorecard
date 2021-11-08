@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
-	"gopkg.in/yaml.v3"
+	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks/fileparser"
@@ -451,11 +451,11 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 		return true, nil
 	}
 
-	var workflow fileparser.GitHubActionWorkflowConfig
-	err := yaml.Unmarshal(content, &workflow)
-	if err != nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
+	workflow, errs := actionlint.Parse(content)
+	if len(errs) > 0 && workflow == nil {
+		// actionlint is a linter, so it will return errors when the yaml file does not meet its linting standards.
+		// Often we don't care about these errors.
+		return false, fileparser.FormatActionlintError(errs)
 	}
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
@@ -465,12 +465,12 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 		job := job
 		for _, step := range job.Steps {
 			step := step
-			if step.Run == "" {
+			if step.Exec.Kind() != actionlint.ExecKindRun {
 				continue
 			}
 
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
-			shell, err := fileparser.GetShellForStep(&step, &job)
+			shell, err := fileparser.GetShellForStep(step, job)
 			if err != nil {
 				return false, err
 			}
@@ -479,7 +479,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 				continue
 			}
 
-			run := step.Run
+			run := step.Exec.(*actionlint.ExecRun).Run.Value
 			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
 			scriptContent = fmt.Sprintf("%v\n%v", scriptContent, string(script))
@@ -487,6 +487,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	}
 
 	if scriptContent != "" {
+		var err error
 		validated, err = validateShellFile(pathfn, []byte(scriptContent), dl)
 		if err != nil {
 			return false, err
@@ -534,29 +535,41 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 		return true, nil
 	}
 
-	var workflow fileparser.GitHubActionWorkflowConfig
-	err := yaml.Unmarshal(content, &workflow)
-	if err != nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("%v: %v", errInternalInvalidYamlFile, err))
+	workflow, errs := actionlint.Parse(content)
+	if len(errs) > 0 && workflow == nil {
+		// actionlint is a linter, so it will return errors when the yaml file does not meet its linting standards.
+		// Often we don't care about these errors.
+		return false, fileparser.FormatActionlintError(errs)
 	}
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
 	for jobName, job := range workflow.Jobs {
-		if len(job.Name) > 0 {
-			jobName = job.Name
+		if job.Name != nil && len(job.Name.Value) > 0 {
+			jobName = job.Name.Value
 		}
 		for _, step := range job.Steps {
-			if len(step.Uses.Value) > 0 {
-				// Ensure a hash at least as large as SHA1 is used (40 hex characters).
-				// Example: action-name@hash
-				match := hashRegex.Match([]byte(step.Uses.Value))
-				if !match {
-					dl.Warn3(&checker.LogMessage{
-						Path: pathfn, Type: checker.FileTypeSource, Offset: step.Uses.Line, Snippet: step.Uses.Value,
-						Text: fmt.Sprintf("dependency not pinned by hash (job '%v')", jobName),
-					})
+			if step.Exec.Kind() != actionlint.ExecKindAction {
+				continue
+			}
+			execAction, ok := step.Exec.(*actionlint.ExecAction)
+			if !ok {
+				stepName := ""
+				if step.Name != nil {
+					stepName = step.Name.Value
 				}
+
+				return false, sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("unable to parse step '%v' for job '%v'", jobName, stepName))
+			}
+			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
+			// Example: action-name@hash
+			match := hashRegex.Match([]byte(execAction.Uses.Value))
+			if !match {
+				dl.Warn3(&checker.LogMessage{
+					Path: pathfn, Type: checker.FileTypeSource, Offset: execAction.Uses.Pos.Line, Snippet: execAction.Uses.Value,
+					Text: fmt.Sprintf("dependency not pinned by hash (job '%v')", jobName),
+				})
+			}
 
 			githubOwned := fileparser.IsGitHubOwnedAction(execAction.Uses.Value)
 			addWorkflowPinnedResult(pdata, match, githubOwned)
