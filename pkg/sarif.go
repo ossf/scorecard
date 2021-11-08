@@ -548,18 +548,18 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 
 		// Add default location if no locations are present.
 		// Note: GitHub needs at least one location to show the results.
-		// RuleID is the position of the corresponding rule in `run.Tool.Driver.Rules`,
+		// RuleIndex is the position of the corresponding rule in `run.Tool.Driver.Rules`,
 		// so it's the last position for us.
-		ruleId := len(run.Tool.Driver.Rules) - 1
+		RuleIndex := len(run.Tool.Driver.Rules) - 1
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs, policyFile)
 			// Use the `reason` as message.
-			cr := createSARIFCheckResult(ruleId, checkID, check.Reason, &locs[0])
+			cr := createSARIFCheckResult(RuleIndex, checkID, check.Reason, &locs[0])
 			run.Results = append(run.Results, cr)
 		} else {
 			for _, loc := range locs {
 				// Use the location's message (check's detail's message) as message.
-				cr := createSARIFCheckResult(ruleId, checkID, loc.Message.Text, &loc)
+				cr := createSARIFCheckResult(RuleIndex, checkID, loc.Message.Text, &loc)
 				run.Results = append(run.Results, cr)
 			}
 		}
