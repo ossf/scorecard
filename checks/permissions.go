@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"gopkg.in/yaml.v2"
+	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks/fileparser"
@@ -53,25 +53,24 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	return createResultForLeastPrivilegeTokens(data, err)
 }
 
-func validatePermission(key string, value interface{}, path string,
+func validatePermission(permissionKey string, permissionValue *actionlint.PermissionScope, path string,
 	dl checker.DetailLogger, pPermissions map[string]bool,
 	ignoredPermissions map[string]bool) error {
-	val, ok := value.(string)
-	if !ok {
+	if permissionValue.Value == nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
-
+	val := permissionValue.Value.Value
 	if strings.EqualFold(val, "write") {
-		if isPermissionOfInterest(key, ignoredPermissions) {
+		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
 			dl.Warn3(&checker.LogMessage{
 				Path: path,
 				Type: checker.FileTypeSource,
 				// TODO: set line.
 				Offset: 1,
-				Text:   fmt.Sprintf("'%v' permission set to '%v'", key, val),
+				Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
 				// TODO: set Snippet.
 			})
-			recordPermissionWrite(key, pPermissions)
+			recordPermissionWrite(permissionKey, pPermissions)
 		} else {
 			// Only log for debugging, otherwise
 			// it may confuse users.
@@ -80,7 +79,7 @@ func validatePermission(key string, value interface{}, path string,
 				Type: checker.FileTypeSource,
 				// TODO: set line.
 				Offset: 1,
-				Text:   fmt.Sprintf("'%v' permission set to '%v'", key, val),
+				Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
 				// TODO: set Snippet.
 			})
 		}
@@ -92,22 +91,16 @@ func validatePermission(key string, value interface{}, path string,
 		Type: checker.FileTypeSource,
 		// TODO: set line correctly.
 		Offset: 1,
-		Text:   fmt.Sprintf("'%v' permission set to '%v'", key, val),
+		Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
 		// TODO: set Snippet.
 	})
 	return nil
 }
 
-func validateMapPermissions(values map[interface{}]interface{}, path string,
+func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, path string,
 	dl checker.DetailLogger, pPermissions map[string]bool,
 	ignoredPermissions map[string]bool) error {
-	// Iterate over the permission, verify keys and values are strings.
-	for k, v := range values {
-		key, ok := k.(string)
-		if !ok {
-			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-		}
-
+	for key, v := range scopes {
 		if err := validatePermission(key, v, path, dl, pPermissions, ignoredPermissions); err != nil {
 			return err
 		}
@@ -125,14 +118,12 @@ func recordAllPermissionsWrite(pPermissions map[string]bool) {
 	pPermissions["all"] = true
 }
 
-func validatePermissions(permissions interface{}, path string,
+func validatePermissions(permissions *actionlint.Permissions, path string,
 	dl checker.DetailLogger, pPermissions map[string]bool,
 	ignoredPermissions map[string]bool) error {
-	// Check the type of our values.
-	switch val := permissions.(type) {
-	// Empty string is nil type.
-	// It defaults to 'none'
-	case nil:
+	allIsSet := permissions != nil && permissions.All != nil && permissions.All.Value != ""
+	scopeIsSet := permissions != nil && len(permissions.Scopes) > 0
+	if permissions == nil || (!allIsSet && !scopeIsSet) {
 		dl.Info3(&checker.LogMessage{
 			Path: path,
 			Type: checker.FileTypeSource,
@@ -141,8 +132,9 @@ func validatePermissions(permissions interface{}, path string,
 			Text:   "permissions set to 'none'",
 			// TODO: set Snippet.
 		})
-	// String type.
-	case string:
+	}
+	if allIsSet {
+		val := permissions.All.Value
 		if !strings.EqualFold(val, "read-all") && val != "" {
 			dl.Warn3(&checker.LogMessage{
 				Path: path,
@@ -164,25 +156,17 @@ func validatePermissions(permissions interface{}, path string,
 			Text:   fmt.Sprintf("permissions set to '%v'", val),
 			// TODO: set Snippet.
 		})
-
-	// Map type.
-	case map[interface{}]interface{}:
-		if err := validateMapPermissions(val, path, dl, pPermissions, ignoredPermissions); err != nil {
-			return err
-		}
-
-	// Invalid type.
-	default:
-		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes, path, dl, pPermissions,
+		ignoredPermissions); err != nil {
+		return err
 	}
 	return nil
 }
 
-func validateTopLevelPermissions(config map[interface{}]interface{}, path string,
+func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *permissionCbData) error {
 	// Check if permissions are set explicitly.
-	permissions, ok := config["permissions"]
-	if !ok {
+	if workflow.Permissions == nil {
 		dl.Warn3(&checker.LogMessage{
 			Path:   path,
 			Type:   checker.FileTypeSource,
@@ -193,35 +177,18 @@ func validateTopLevelPermissions(config map[interface{}]interface{}, path string
 		return nil
 	}
 
-	return validatePermissions(permissions, path, dl,
+	return validatePermissions(workflow.Permissions, path, dl,
 		pdata.topLevelWritePermissions, map[string]bool{})
 }
 
-func validateRunLevelPermissions(config map[interface{}]interface{}, path string,
+func validateRunLevelPermissions(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *permissionCbData,
 	ignoredPermissions map[string]bool) error {
-	var jobs interface{}
-
-	jobs, ok := config["jobs"]
-	if !ok {
-		return nil
-	}
-
-	mjobs, ok := jobs.(map[interface{}]interface{})
-	if !ok {
-		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-	}
-
-	for _, value := range mjobs {
-		job, ok := value.(map[interface{}]interface{})
-		if !ok {
-			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-		}
+	for _, job := range workflow.Jobs {
 		// Run-level permissions may be left undefined.
 		// For most workflows, no write permissions are needed,
 		// so only top-level read-only permissions need to be declared.
-		permissions, ok := job["permissions"]
-		if !ok {
+		if job.Permissions == nil {
 			dl.Debug3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
@@ -230,8 +197,7 @@ func validateRunLevelPermissions(config map[interface{}]interface{}, path string
 			})
 			continue
 		}
-		err := validatePermissions(permissions, path, dl,
-			pdata.runLevelWritePermissions, ignoredPermissions)
+		err := validatePermissions(job.Permissions, path, dl, pdata.runLevelWritePermissions, ignoredPermissions)
 		if err != nil {
 			return err
 		}
@@ -375,11 +341,9 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 		return true, nil
 	}
 
-	var workflow map[interface{}]interface{}
-	err := yaml.Unmarshal(content, &workflow)
-	if err != nil {
-		return false,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
+	workflow, errs := actionlint.Parse(content)
+	if len(errs) > 0 && workflow == nil {
+		return false, fileparser.FormatActionlintError(errs)
 	}
 
 	// 1. Top-level permission definitions.

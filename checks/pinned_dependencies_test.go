@@ -933,7 +933,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 				},
 				{
 					dependency: "docker/build-push-action@1.2.3",
-					lineNumber: 26,
+					lineNumber: 24,
 				},
 			},
 		},
