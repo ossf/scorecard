@@ -35,6 +35,8 @@ require (
 	mvdan.cc/sh/v3 v3.4.0
 )
 
+require gotest.tools v2.2.0+incompatible
+
 require (
 	cloud.google.com/go v0.94.1 // indirect
 	cloud.google.com/go/storage v1.16.1 // indirect
