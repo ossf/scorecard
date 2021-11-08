@@ -31,8 +31,8 @@ var (
 	allowedRisks     = map[string]bool{"Critical": true, "High": true, "Medium": true, "Low": true}
 	allowedRepoTypes = map[string]bool{"GitHub": true, "local": true}
 	supportedAPIs    = map[string][]string{
-		// InitRepo is supported for local reepos in general. However, in the context of checks,
-		// this is only used to look up remote data, e.g. in Fuzzinng check.
+		// InitRepo is supported for local repos in general. However, in the context of checks,
+		// this is only used to look up remote data, e.g. in Fuzzing check.
 		// So we only have "GitHub" supported.
 		"InitRepo":                   {"GitHub"},
 		"URI":                        {"GitHub", "local"},
@@ -90,7 +90,7 @@ func listCheckFiles() (map[string]string, error) {
 	return checkFiles, nil
 }
 
-// extract API names for RepoClient interface.
+// Extract API names for RepoClient interface.
 func extractAPINames() ([]string, error) {
 	fns := []string{}
 	interfaceRe := regexp.MustCompile(`type\s+RepoClient\s+interface\s+{\s*`)
@@ -131,7 +131,7 @@ func contains(l []string, elt string) bool {
 	return false
 }
 
-// extract supported interfaces frmo a check implementation file.
+// Extract supported interfaces from a check implementation file.
 func supportedInterfacesFromImplementation(checkName string, checkFiles map[string]string) ([]string, error) {
 	// Special case. No APIs are used,
 	// but we need the repo name for an online database lookup.
