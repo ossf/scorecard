@@ -4,77 +4,6 @@
    "runs": [
       {
          "automationDetails": {
-            "id": "supply-chain/local-scm/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
-         },
-         "tool": {
-            "driver": {
-               "name": "Scorecard",
-               "informationUri": "https://github.com/ossf/scorecard",
-               "semanticVersion": "1.2.3",
-               "rules": [
-                  {
-                     "id": "Check-Name6",
-                     "name": "Check-Name6",
-                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name6",
-                     "shortDescription": {
-                        "text": "Check-Name6"
-                     },
-                     "fullDescription": {
-                        "text": "short description 6"
-                     },
-                     "help": {
-                        "text": "short description 6",
-                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 6"
-                     },
-                     "defaultConfiguration": {
-                        "level": "error"
-                     },
-                     "properties": {
-                        "precision": "high",
-                        "problem.severity": "recommendation",
-                        "security-severity": "1.0",
-                        "tags": [
-                           "tag1",
-                           "tag2",
-                           "tag3",
-                           "tag 4"
-                        ]
-                     }
-                  }
-               ]
-            }
-         },
-         "results": [
-            {
-               "ruleId": "Check-Name6",
-               "ruleIndex": 0,
-               "message": {
-                  "text": "warn message"
-               },
-               "locations": [
-                  {
-                     "physicalLocation": {
-                        "region": {
-                           "startLine": 5,
-                           "snippet": {
-                              "text": "if (bad) {BUG();}"
-                           }
-                        },
-                        "artifactLocation": {
-                           "uri": "src/file1.cpp",
-                           "uriBaseId": "%SRCROOT%"
-                        }
-                     },
-                     "message": {
-                        "text": "warn message"
-                     }
-                  }
-               ]
-            }
-         ]
-      },
-      {
-         "automationDetails": {
             "id": "supply-chain/online-scm/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
          },
          "tool": {
@@ -309,6 +238,77 @@
                         },
                         "artifactLocation": {
                            "uri": "src/file2.cpp",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     },
+                     "message": {
+                        "text": "warn message"
+                     }
+                  }
+               ]
+            }
+         ]
+      },
+      {
+         "automationDetails": {
+            "id": "supply-chain/local-scm/ccbc59901773ab4c051dfcea0cc4201a1567abdd-17 Aug 21 18:57 +0000"
+         },
+         "tool": {
+            "driver": {
+               "name": "Scorecard",
+               "informationUri": "https://github.com/ossf/scorecard",
+               "semanticVersion": "1.2.3",
+               "rules": [
+                  {
+                     "id": "Check-Name6",
+                     "name": "Check-Name6",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name6",
+                     "shortDescription": {
+                        "text": "Check-Name6"
+                     },
+                     "fullDescription": {
+                        "text": "short description 6"
+                     },
+                     "help": {
+                        "text": "short description 6",
+                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 6"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "recommendation",
+                        "security-severity": "1.0",
+                        "tags": [
+                           "tag1",
+                           "tag2",
+                           "tag3",
+                           "tag 4"
+                        ]
+                     }
+                  }
+               ]
+            }
+         },
+         "results": [
+            {
+               "ruleId": "Check-Name6",
+               "ruleIndex": 0,
+               "message": {
+                  "text": "warn message"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "startLine": 5,
+                           "snippet": {
+                              "text": "if (bad) {BUG();}"
+                           }
+                        },
+                        "artifactLocation": {
+                           "uri": "src/file1.cpp",
                            "uriBaseId": "%SRCROOT%"
                         }
                      },

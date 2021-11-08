@@ -510,6 +510,16 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		run := getOrCreateSARIFRun(runs, category, "https://github.com/ossf/scorecard", "scorecard",
 			r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date, "supply-chain")
 
+		// Always add rules to indicae which checks were run.
+		// We don't have so many rules, so this should not clobber the output too much.
+		// See https://github.com/github/codeql-action/issues/810.
+		checkID := check.Name
+		rule := createSARIFRule(check.Name, checkID,
+			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
+			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
+			doc.GetRemediation(), doc.GetTags())
+		run.Tool.Driver.Rules = append(run.Tool.Driver.Rules, rule)
+
 		// Check the policy configuration.
 		minScore, enabled, err := getCheckPolicyInfo(policy, check.Name)
 		if err != nil {
@@ -523,16 +533,6 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		if check.Score >= minScore {
 			continue
 		}
-
-		// We only set rules if we have findings to avoid clobbering the results.
-		// It would be fine to add rules regardless of findings.
-		// See https://github.com/github/codeql-action/issues/810#issuecomment-962006930.
-		checkID := check.Name
-		rule := createSARIFRule(check.Name, checkID,
-			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
-			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
-			doc.GetRemediation(), doc.GetTags())
-		run.Tool.Driver.Rules = append(run.Tool.Driver.Rules, rule)
 
 		// Unclear what to use for PartialFingerprints.
 		// GitHub only uses `primaryLocationLineHash`, which is not properly defined
