@@ -407,6 +407,7 @@ meetings.
 | <img width="30px" src="https://github.com/azeemshaikh38.png">    | Azeem Shaik      | Google  | [azeemshaikh38](https://github.com/azeemshaikh38)  |
 | <img width="30px" src="https://github.com/laurentsimon.png">     | Laurent Simon    | Google  | [laurentsimon](https://github.com/laurentsimon)    |
 | <img width="30px" src="https://github.com/naveensrinivasan.png"> | Naveen Srinivasan|         | [naveensrinivasan](https://github.com/naveensrinivasan)          |
+| <img width="30px" src="https://github.com/chrismcgehee.png">     | Chris McGehee    | Datto   | [chrismcgehee](https://github.com/chrismcgehee)   |
 
 
 ### Report a Security Issue
