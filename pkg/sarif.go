@@ -510,7 +510,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		run := getOrCreateSARIFRun(runs, category, "https://github.com/ossf/scorecard", "scorecard",
 			r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date, "supply-chain")
 
-		// Always add rules to indicae which checks were run.
+		// Always add rules to indicate which checks were run.
 		// We don't have so many rules, so this should not clobber the output too much.
 		// See https://github.com/github/codeql-action/issues/810.
 		checkID := check.Name
