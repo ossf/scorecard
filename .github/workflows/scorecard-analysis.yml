@@ -3,10 +3,9 @@ on:
   push:
     # Only the default branch is supported.
     branches: [main, master]
-  # TODO: Re-enable after implementing the local RepoClient.
-  #pull_request:
+  pull_request:
     # All branches are supported.
-    #branches: [main]
+    branches: [main]
 
 permissions: read-all
 
@@ -22,14 +21,12 @@ jobs:
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
 
       - name: "Run analysis"
-        # This is temporary for dogfooding.
-        # We will remove the use of container and
-        # pin the dependency by hash.
-        # https://github.com/ossf/scorecard/issues/1072. 
-        uses: docker://laurentsimon/scorecard-action:dogfood
+        # TODO: pin our action.
+        uses: ossf/scorecard-actions/analyze@test/dogfood
         with:
           policy_file: .github/scorecard-policy.yml
-          sarif_file: results.sarif
+          results_file: results.sarif
+          results_format: sarif
           repo_token: ${{ secrets.GITHUB_TOKEN }}
 
       # https://docs.github.com/en/actions/advanced-guides/storing-workflow-data-as-artifacts
