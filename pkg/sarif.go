@@ -369,6 +369,17 @@ func createSARIFRun(uri, toolName, version, commit string, t time.Time,
 	}
 }
 
+func getOrCreateSARIFRun(runs map[string]*run, runName string,
+	uri, toolName, version, commit string, t time.Time,
+	category string) *run {
+	if prun, exists := runs[runName]; exists {
+		return prun
+	}
+	run := createSARIFRun(uri, toolName, version, commit, t, category, runName)
+	runs[runName] = &run
+	return &run
+}
+
 func generateRemediationMarkdown(remediation []string) string {
 	r := ""
 	for _, s := range remediation {
@@ -427,13 +438,46 @@ func getCheckPolicyInfo(policy *spol.ScorecardPolicy, name string) (minScore int
 	policies := policy.GetPolicies()
 	if _, exists := policies[name]; !exists {
 		return 0, false,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Missing policy for check: %s", name))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("missing policy for check: %s", name))
 	}
 	cp := policies[name]
 	if cp.GetMode() == spol.CheckPolicy_DISABLED {
 		return 0, false, nil
 	}
 	return int(cp.GetScore()), true, nil
+}
+
+func contains(l []string, elt string) bool {
+	for _, v := range l {
+		if v == elt {
+			return true
+		}
+	}
+	return false
+}
+
+func computeCategory(repos []string) (string, error) {
+	// local < Git-local < GitHub
+	switch {
+	default:
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("repo types not supported: %v", repos))
+	case contains(repos, "local"):
+		return "local", nil
+	// Note: Git-local is not supported by any checks yet.
+	case contains(repos, "Git-local"):
+		return "local-scm", nil
+	case contains(repos, "GitHub"),
+		contains(repos, "GitLab"):
+		return "online-scm", nil
+	}
+}
+
+func createSARIFRuns(runs map[string]*run) []run {
+	res := []run{}
+	for _, v := range runs {
+		res = append(res, *v)
+	}
+	return res
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
@@ -446,26 +490,25 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
 	sarif := createSARIFHeader()
-	runs := []run{}
+	runs := make(map[string]*run)
 
 	// nolint
 	for _, check := range r.Checks {
-		results := []result{}
-		rules := []rule{}
-
-		doc, e := checkDocs.GetCheck(check.Name)
-		if e != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
+		doc, err := checkDocs.GetCheck(check.Name)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", err, check.Name))
 		}
 
 		// We need to create a run entry even if the check is disabled or the policy is satisfied.
 		// The reason is the following: if a check has findings and is later fixed by a user,
 		// the absence of run for the check will indicate that the check was *not* run,
 		// so GitHub would keep the findings in the dahsboard. We don't want that.
-		run := createSARIFRun("https://github.com/ossf/scorecard", "scorecard",
-			r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date,
-			"supply-chain", check.Name)
-		runs = append(runs, run)
+		category, err := computeCategory(doc.GetSupportedRepoTypes())
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("computeCategory: %v: %s", err, check.Name))
+		}
+		run := getOrCreateSARIFRun(runs, category, "https://github.com/ossf/scorecard", "scorecard",
+			r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date, "supply-chain")
 
 		// Check the policy configuration.
 		minScore, enabled, err := getCheckPolicyInfo(policy, check.Name)
@@ -481,18 +524,15 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			continue
 		}
 
-		// We only set rules if we have findings
-		// to avoid clobbering the results. It would be fine to add
-		// rules regardless of findings.
+		// We only set rules if we have findings to avoid clobbering the results.
+		// It would be fine to add rules regardless of findings.
 		// See https://github.com/github/codeql-action/issues/810#issuecomment-962006930.
-		// Note: we use a single rule, i.e., one check per run.
 		checkID := check.Name
 		rule := createSARIFRule(check.Name, checkID,
 			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
 			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
 			doc.GetRemediation(), doc.GetTags())
-		rules = append(rules, rule)
-		runs[len(runs)-1].Tool.Driver.Rules = rules
+		run.Tool.Driver.Rules = append(run.Tool.Driver.Rules, rule)
 
 		// Unclear what to use for PartialFingerprints.
 		// GitHub only uses `primaryLocationLineHash`, which is not properly defined
@@ -513,22 +553,19 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			// Use the `reason` as message.
 			// Since we have a single rule per run, the indexId is 0.
 			cr := createSARIFCheckResult(0, checkID, check.Reason, &locs[0])
-			results = append(results, cr)
+			run.Results = append(run.Results, cr)
 		} else {
 			for _, loc := range locs {
 				// Use the location's message (check's detail's message) as message.
 				// Since we have a single rule per run, the indexId is 0.
 				cr := createSARIFCheckResult(0, checkID, loc.Message.Text, &loc)
-				results = append(results, cr)
+				run.Results = append(run.Results, cr)
 			}
 		}
-
-		// Set the results for the run.
-		runs[len(runs)-1].Results = results
 	}
 
 	// Set the sarif's runs.
-	sarif.Runs = runs
+	sarif.Runs = createSARIFRuns(runs)
 
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "   ")
