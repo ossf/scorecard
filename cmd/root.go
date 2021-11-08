@@ -154,9 +154,10 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 		// Populate checks to run with policy file.
 		for checkName := range sp.GetPolicies() {
 			if !isSupportedCheck(supportedChecks, checkName) {
-				return enabledChecks,
-					sce.WithMessage(sce.ErrScorecardInternal,
-						fmt.Sprintf("repo type %s: unsupported check: %s", repoType, checkName))
+				// We silently ignore the check, like we do
+				// for the default case when no argsChecks
+				// or policy are present.
+				continue
 			}
 
 			if !enableCheck(checkName, &enabledChecks) {
