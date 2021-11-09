@@ -241,17 +241,18 @@ participants.
 
 Risk: `High`  (vulnerable to repository compromise)
   
-This check determines whether the project has dangerous code patterns.
+This check determines whether the project's GitHub Action workflows has dangerous 
+code patterns. Some examples of these patterns are untrusted code checkouts, 
+logging github context and secrets, or use of potentially untrusted inputs in scripts.
 
-The first check is misuse of potentially dangerous triggers. This checks if a 
-`pull_request_target` workflow trigger was used in conjunction with an explicit 
-pull request checkout. Workflows triggered with `pull_request_target` have write 
-permission to the target repository and access to target repository secrets. With 
-the PR checkout, PR authors may compromise the repository, for example, by using 
-build scripts controlled by the author of the PR or reading token in memory.
-
-This check does not detect whether untrusted code checkouts are used safely, for
-example, only on pull request that have been assigned a label.
+The first code pattern checked is the misuse of potentially dangerous triggers. 
+This checks if a `pull_request_target` workflow trigger was used in conjunction 
+with an explicit pull request checkout. Workflows triggered with `pull_request_target`
+have write permission to the target repository and access to target repository 
+secrets. With the PR checkout, PR authors may compromise the repository, for 
+example, by using build scripts controlled by the author of the PR or reading 
+token in memory. This check does not detect whether untrusted code checkouts are 
+used safely, for example, only on pull request that have been assigned a label.
 
 The highest score is awarded when all workflows avoid the dangerous code patterns.
  
