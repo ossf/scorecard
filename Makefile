@@ -10,6 +10,7 @@ PROTOC := $(shell which protoc)
 IMAGE_NAME = scorecard
 OUTPUT = output
 IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:executable"
+PLATFORM="linux/amd64,linux/arm64,linux/386,linux/arm"
 LDFLAGS=$(shell ./scripts/version-ldflags)
 
 ############################### make help #####################################
@@ -95,7 +96,7 @@ tree-status: ## Verify tree is clean and all changes are committed
 build-cron: build-pubsub build-bq-transfer build-github-server build-webhook build-add-script \
 	  build-validate-script build-update-script
 
-build-targets = generate-docs build-proto build-scorecard build-cron dockerbuild
+build-targets = generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
@@ -159,21 +160,46 @@ cron/data/update/projects-update:  cron/data/update/*.go cron/data/*.go
 	# Run go build on the update script
 	cd cron/data/update && CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'  -o projects-update
 
+ko-build-everything: ## ko builds all binaries.
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/scorecard CGO_ENABLED=0 LDFLAGS="$(LDFLAGS)" \
+	ko publish -B --bare --local \
+			   --platform=$(PLATFORM)\
+			   --push=false \
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-controller CGO_ENABLED=0 LDFLAGS="$(LDFLAGS)" \
+	ko publish -B --bare --local \
+			   --platform=$(PLATFORM)\
+			   --push=false \
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/controller 
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-worker
+	ko publish -B --bare --local \
+			   --platform=$(PLATFORM)\
+			   --push=false \
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/worker
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-bq-transfer
+	ko publish -B --bare --local \
+			   --platform=$(PLATFORM)\
+			   --push=false \
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/bq
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cron-webhook
+	ko publish -B --bare --local \
+			   --platform=$(PLATFORM)\
+			   --push=false \
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/webhook
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-github-server
+	ko publish -B --bare --local \
+			   --platform=$(PLATFORM)\
+			   --push=false \
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/clients/githubrepo/roundtripper/tokens/server
 dockerbuild: ## Runs docker build
 	# Build all Docker images in the Repo
 	$(call ndef, GITHUB_AUTH_TOKEN)
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
-	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/scorecard-ko CGO_ENABLED=0 LDFLAGS="$(LDFLAGS)" \
-	ko publish -B --bare --local \
-			   --platform=linux/amd64,linux/arm64,linux/386,linux/arm,darwin/amd64,darwin/arm64,windows/amd64,windows/386,windows/arm64,windows/arm \
-			   --push=false \
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3
 	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
 	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
 	DOCKER_BUILDKIT=1 docker build . --file cron/webhook/Dockerfile --tag ${IMAGE_NAME}-webhook
 	DOCKER_BUILDKIT=1 docker build . --file clients/githubrepo/roundtripper/tokens/server/Dockerfile --tag ${IMAGE_NAME}-github-server
-
 ###############################################################################
 
 ################################# make test ###################################

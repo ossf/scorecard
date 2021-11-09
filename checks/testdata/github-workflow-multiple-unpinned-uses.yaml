@@ -20,7 +20,5 @@ jobs:
     steps:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
-        run: echo "unpinned dependency"
       - name: some name
-        run: echo "unpinned dependency"
         uses: docker/build-push-action@1.2.3

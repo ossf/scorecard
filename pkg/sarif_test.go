@@ -36,6 +36,7 @@ func sarifMockDocRead() *mockDoc {
 			description: "long description\n other line",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
 			tags:        []string{"tag1", "tag2"},
+			repos:       []string{"GitHub", "local"},
 			remediation: []string{"not-used1", "not-used2"},
 		},
 		"Check-Name2": {
@@ -45,6 +46,7 @@ func sarifMockDocRead() *mockDoc {
 			description: "long description\n other line 2",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
 			tags:        []string{" tag1 ", " tag2 ", "tag3"},
+			repos:       []string{"GitHub", "local"},
 			remediation: []string{"not-used1", "not-used2"},
 		},
 		"Check-Name3": {
@@ -54,6 +56,37 @@ func sarifMockDocRead() *mockDoc {
 			description: "long description\n other line 3",
 			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
 			tags:        []string{" tag1", " tag2", "tag3", "tag 4 "},
+			repos:       []string{"GitHub", "local"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name4": {
+			name:        "Check-Name4",
+			risk:        "Low",
+			short:       "short description 4",
+			description: "long description\n other line 4",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name4",
+			tags:        []string{" tag1", " tag2", "tag3", "tag 4 "},
+			repos:       []string{"GitHub"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name5": {
+			name:        "Check-Name5",
+			risk:        "Low",
+			short:       "short description 5",
+			description: "long description\n other line 5",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name5",
+			tags:        []string{" tag1", " tag2", "tag3", "tag 4 "},
+			repos:       []string{"local"},
+			remediation: []string{"not-used1", "not-used2"},
+		},
+		"Check-Name6": {
+			name:        "Check-Name6",
+			risk:        "Low",
+			short:       "short description 6",
+			description: "long description\n other line 6",
+			url:         "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name6",
+			tags:        []string{" tag1", " tag2", "tag3", "tag 4 "},
+			repos:       []string{"Git-local"},
 			remediation: []string{"not-used1", "not-used2"},
 		},
 	}
@@ -600,6 +633,135 @@ func TestSARIFOutput(t *testing.T) {
 						Score:  checker.InconclusiveResultScore,
 						Reason: "inconclusive reason",
 						Name:   "Check-Name3",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
+			name:        "check-8",
+			showDetails: true,
+			expected:    "./testdata/check8.sarif",
+			logLevel:    zapcore.DebugLevel,
+			policy: spol.ScorecardPolicy{
+				Version: 1,
+				Policies: map[string]*spol.CheckPolicy{
+					"Check-Name4": &spol.CheckPolicy{
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_ENFORCED,
+					},
+					"Check-Name": &spol.CheckPolicy{
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_ENFORCED,
+					},
+					"Check-Name5": &spol.CheckPolicy{
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_ENFORCED,
+					},
+					"Check-Name6": &spol.CheckPolicy{
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_ENFORCED,
+					},
+				},
+			},
+			result: ScorecardResult{
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
+				Checks: []checker.CheckResult{
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    checker.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+								},
+							},
+						},
+						Score:  5,
+						Reason: "half score reason",
+						Name:   "Check-Name4",
+					},
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    checker.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+								},
+							},
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file2.cpp",
+									Type:    checker.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad2) {BUG();}",
+								},
+							},
+						},
+						Score:  5,
+						Reason: "half score reason",
+						Name:   "Check-Name",
+					},
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    checker.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+								},
+							},
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file2.cpp",
+									Type:    checker.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad2) {BUG2();}",
+								},
+							},
+						},
+						Score:  8,
+						Reason: "half score reason",
+						Name:   "Check-Name5",
+					},
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    checker.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+								},
+							},
+						},
+						Score:  9,
+						Reason: "half score reason",
+						Name:   "Check-Name6",
 					},
 				},
 				Metadata: []string{},
