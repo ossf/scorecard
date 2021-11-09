@@ -21,6 +21,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks/fileparser"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
@@ -53,7 +54,7 @@ func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 // Check file content.
 func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checker.DetailLogger,
 	data FileCbData) (bool, error) {
-	if !isWorkflowFile(path) {
+	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
 
