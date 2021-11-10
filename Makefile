@@ -47,7 +47,7 @@ $(PROTOC):
 
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = update-dependencies build check-linter check-osv unit-test add-projects validate-projects tree-status 
+all-targets = update-dependencies build check-linter check-osv unit-test validate-docs add-projects validate-projects tree-status 
 .PHONY: all $(all-targets)
 all: $(all-targets)
 
@@ -111,12 +111,14 @@ clients/branch.pb.go: clients/branch.proto | $(PROTOC)
 	protoc --go_out=../../../ clients/branch.proto
 
 generate-docs: ## Generates docs
-generate-docs: docs/checks.md
+generate-docs: validate-docs docs/checks.md
 docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
-	# Validating checks.yaml
-	go run ./docs/checks/internal/validate/main.go
 	# Generating checks.md
 	go run ./docs/checks/internal/generate/main.go docs/checks.md
+
+validate-docs: docs/checks/internal/generate/main.go
+	# Validating checks.yaml
+	go run ./docs/checks/internal/validate/main.go
 
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable

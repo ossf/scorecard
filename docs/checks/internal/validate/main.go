@@ -53,7 +53,7 @@ var (
 	}
 )
 
-// Indentify the source file that declares each check.
+// Identify the source file that declares each check.
 func listCheckFiles() (map[string]string, error) {
 	checkFiles := make(map[string]string)
 	// Use regex to determine the file that contains the entry point.
