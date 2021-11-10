@@ -24,9 +24,7 @@ import (
 )
 
 const (
-	githubOrgRepo  = ".github"
-	scorecardOwner = "ossf"
-	scorecardRepo  = "scorecard"
+	githubOrgRepo = ".github"
 )
 
 type repoURL struct {
