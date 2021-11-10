@@ -65,20 +65,6 @@ func (mr *MockRepoMockRecorder) AppendMetadata(metadata ...interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendMetadata", reflect.TypeOf((*MockRepo)(nil).AppendMetadata), metadata...)
 }
 
-// IsScorecardRepo mocks base method.
-func (m *MockRepo) IsScorecardRepo() bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsScorecardRepo")
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// IsScorecardRepo indicates an expected call of IsScorecardRepo.
-func (mr *MockRepoMockRecorder) IsScorecardRepo() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsScorecardRepo", reflect.TypeOf((*MockRepo)(nil).IsScorecardRepo))
-}
-
 // IsValid mocks base method.
 func (m *MockRepo) IsValid() error {
 	m.ctrl.T.Helper()

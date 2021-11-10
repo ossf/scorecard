@@ -22,6 +22,4 @@ type Repo interface {
 	IsValid() error
 	Metadata() []string
 	AppendMetadata(metadata ...string)
-	// TODO: Find a better alterntive.
-	IsScorecardRepo() bool
 }
