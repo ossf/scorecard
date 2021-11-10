@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 
@@ -474,8 +475,16 @@ func computeCategory(repos []string) (string, error) {
 
 func createSARIFRuns(runs map[string]*run) []run {
 	res := []run{}
-	for _, v := range runs {
-		res = append(res, *v)
+	// Sort keys.
+	keys := make([]string, 0)
+	for k := range runs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	// Iterate over keys.
+	for _, k := range keys {
+		res = append(res, *runs[k])
 	}
 	return res
 }
