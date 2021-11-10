@@ -116,11 +116,6 @@ func (r *repoURL) Metadata() []string {
 	return r.metadata
 }
 
-// IsScorecardRepo implements Repo.IsScorecardRepo.
-func (r *repoURL) IsScorecardRepo() bool {
-	return r.owner == scorecardOwner && r.repo == scorecardRepo
-}
-
 // MakeGithubRepo takes input of form "owner/repo" or "github.com/owner/repo"
 // and returns an implementation of clients.Repo interface.
 func MakeGithubRepo(input string) (clients.Repo, error) {

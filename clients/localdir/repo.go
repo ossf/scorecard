@@ -76,11 +76,6 @@ func (r *repoLocal) AppendMetadata(m ...string) {
 	r.metadata = append(r.metadata, m...)
 }
 
-// IsScorecardRepo implements Repo.IsScorecardRepo.
-func (r *repoLocal) IsScorecardRepo() bool {
-	return false
-}
-
 // MakeLocalDirRepo returns an implementation of clients.Repo interface.
 func MakeLocalDirRepo(pathfn string) (clients.Repo, error) {
 	if !strings.HasPrefix(pathfn, filePrefix) {

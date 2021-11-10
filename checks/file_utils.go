@@ -49,10 +49,10 @@ func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 	return match, nil
 }
 
-func isScorecardTestFile(repo clients.Repo, fullpath string) bool {
+func isTestdataFile(repo clients.Repo, fullpath string) bool {
 	// testdata/ or /some/dir/testdata/some/other
-	return repo.IsScorecardRepo() && (strings.HasPrefix(fullpath, "testdata/") ||
-		strings.Contains(fullpath, "/testdata/"))
+	return strings.HasPrefix(fullpath, "testdata/") ||
+		strings.Contains(fullpath, "/testdata/")
 }
 
 // FileCbData is any data the caller can act upon
@@ -79,7 +79,7 @@ func CheckFilesContent(shellPathFnPattern string,
 ) error {
 	predicate := func(filepath string) (bool, error) {
 		// Filter out Scorecard's own test files.
-		if isScorecardTestFile(c.Repo, filepath) {
+		if isTestdataFile(c.Repo, filepath) {
 			return false, nil
 		}
 		// Filter out files based on path/names using the pattern.
