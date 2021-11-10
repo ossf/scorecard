@@ -25,7 +25,7 @@ import (
 // CheckSAST is the registered name for SAST.
 const CheckSAST = "SAST"
 
-var sastTools = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
+var sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
 
 //nolint:gochecknoinits
 func init() {
