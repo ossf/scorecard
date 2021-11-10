@@ -36,9 +36,12 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	// TODO: not supported for local clients.
 	var r bool
 	// Check repository for repository-specific policy.
+	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
 	onFile := func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
 		pdata := FileGetCbDataAsBoolPointer(data)
-		if strings.EqualFold(name, "security.md") {
+		if strings.EqualFold(name, "security.md") ||
+			strings.EqualFold(name, ".github/security.md") ||
+			strings.EqualFold(name, "docs/security.md") {
 			c.Dlogger.Info3(&checker.LogMessage{
 				Path: name,
 				Type: checker.FileTypeSource,
@@ -69,7 +72,9 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
 	}
 
-	// Checking for community default within the .github folder.
+	// I'm not sure what exactly the following code is supposed to do. It seems to always fail with
+	// Warn: repo unreachable: GET https://api.github.com/repos/systemd/.github: 404 Not Found []
+
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
 	logger, err := githubrepo.NewLogger(zap.InfoLevel)
 	if err != nil {
