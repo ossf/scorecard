@@ -80,6 +80,17 @@ func TestBuildQuery(t *testing.T) {
 			},
 			expectedQuery: "testquery repo:testowner/testrepo in:file filename:filename1.txt path:dir1/dir2",
 		},
+		{
+			name:  "WithFilenameAndPathWithSeparator",
+			owner: "testowner",
+			repo:  "testrepo",
+			searchReq: clients.SearchRequest{
+				Query:    "testquery/query",
+				Filename: "filename1.txt",
+				Path:     "dir1/dir2",
+			},
+			expectedQuery: "testquery query repo:testowner/testrepo in:file filename:filename1.txt path:dir1/dir2",
+		},
 	}
 
 	for _, testcase := range testcases {
