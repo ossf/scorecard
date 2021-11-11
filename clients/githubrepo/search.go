@@ -59,6 +59,10 @@ func (handler *searchHandler) buildQuery(request clients.SearchRequest) (string,
 	}
 	var queryBuilder strings.Builder
 	if _, err := queryBuilder.WriteString(
+		// The fuzzing check searches for GitHub URI, e.g. `github.com/org/repo`. The forward slash is one special character
+		// that should be replaced with a space.
+		// See https://docs.github.com/en/search-github/searching-on-github/searching-code#considerations-for-code-search
+		// for reference.
 		fmt.Sprintf("%s repo:%s/%s", strings.ReplaceAll(request.Query, "/", " "), handler.owner, handler.repo)); err != nil {
 		return "", fmt.Errorf("WriteString: %w", err)
 	}
