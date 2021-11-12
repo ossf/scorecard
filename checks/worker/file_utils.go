@@ -12,11 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-<<<<<<<< HEAD:checks/fileparser/listing.go
 package fileparser
-========
-package utils
->>>>>>>> 7a21824 (split binary artifact check):checks/utils/file_utils.go
 
 import (
 	"bufio"
