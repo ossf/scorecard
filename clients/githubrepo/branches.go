@@ -32,22 +32,22 @@ const (
 )
 
 type refUpdateRule struct {
-	AllowsDeletions              *githubv4.Boolean
-	AllowsForcePushes            *githubv4.Boolean
-	RequiredApprovingReviewCount *githubv4.Int
-	RequiresCodeOwnerReviews     *githubv4.Boolean
-	RequiresLinearHistory        *githubv4.Boolean
-	RequiredStatusCheckContexts  []githubv4.String
+	AllowsDeletions              *bool
+	AllowsForcePushes            *bool
+	RequiredApprovingReviewCount *int32
+	RequiresCodeOwnerReviews     *bool
+	RequiresLinearHistory        *bool
+	RequiredStatusCheckContexts  []string
 }
 
 type branchProtectionRule struct {
-	DismissesStaleReviews      *githubv4.Boolean
-	IsAdminEnforced            *githubv4.Boolean
-	RequiresStrictStatusChecks *githubv4.Boolean
+	DismissesStaleReviews      *bool
+	IsAdminEnforced            *bool
+	RequiresStrictStatusChecks *bool
 }
 
 type branch struct {
-	Name                 *githubv4.String
+	Name                 *string
 	RefUpdateRule        *refUpdateRule
 	BranchProtectionRule *branchProtectionRule
 }
@@ -114,96 +114,69 @@ func (handler *branchesHandler) listBranches() ([]*clients.BranchRef, error) {
 	return handler.branches, nil
 }
 
-func setPullRequestReviewRule(c *clients.BranchProtectionRule) *clients.PullRequestReviewRule {
-	if c.GetRequiredPullRequestReviews() == nil {
-		c.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
+func copyBoolPtr(src *bool, dest **bool) {
+	if src != nil {
+		*dest = new(bool)
+		**dest = *src
 	}
-	return c.GetRequiredPullRequestReviews()
 }
 
-func setStatusChecksRule(c *clients.BranchProtectionRule) *clients.StatusChecksRule {
-	if c.GetRequiredStatusChecks() == nil {
-		c.RequiredStatusChecks = new(clients.StatusChecksRule)
+func copyInt32Ptr(src *int32, dest **int32) {
+	if src != nil {
+		*dest = new(int32)
+		**dest = *src
 	}
-	return c.GetRequiredStatusChecks()
+}
+
+func copyStringSlice(src []string, dest *[]string) {
+	*dest = make([]string, len(src))
+	copy(*dest, src)
 }
 
 func getBranchRefFrom(data branch) *clients.BranchRef {
 	branchRef := new(clients.BranchRef)
 	if data.Name != nil {
-		branchRef.Name = string(*data.Name)
+		branchRef.Name = data.Name
 	}
 
+	branchRef.Protected = new(bool)
 	if data.RefUpdateRule == nil &&
 		data.BranchProtectionRule == nil {
-		branchRef.Protected = false
+		*branchRef.Protected = false
 		return branchRef
 	}
-	branchRef.Protected = true
+	*branchRef.Protected = true
 
-	branchRef.BranchProtectionRule = new(clients.BranchProtectionRule)
-	branchRule := branchRef.GetBranchProtectionRule()
-	// nolint: nestif
+	branchRule := &branchRef.BranchProtectionRule
 	if data.RefUpdateRule != nil {
 		rule := data.RefUpdateRule
-		if rule.AllowsDeletions != nil {
-			branchRule.AllowDeletions = &clients.AllowDeletions{
-				Enabled: bool(*rule.AllowsDeletions),
-			}
-		}
-		if rule.AllowsForcePushes != nil {
-			branchRule.AllowForcePushes = &clients.AllowForcePushes{
-				Enabled: bool(*rule.AllowsForcePushes),
-			}
-		}
-		if rule.RequiresLinearHistory != nil {
-			branchRule.RequireLinearHistory = &clients.RequireLinearHistory{
-				Enabled: bool(*rule.RequiresLinearHistory),
-			}
-		}
-		if rule.RequiredApprovingReviewCount != nil {
-			setPullRequestReviewRule(branchRule).RequiredApprovingReviewCount = int32(*rule.RequiredApprovingReviewCount)
-		}
-		if rule.RequiresCodeOwnerReviews != nil {
-			setPullRequestReviewRule(branchRule).RequireCodeOwnerReviews = bool(*rule.RequiresCodeOwnerReviews)
-		}
-		if rule.RequiredStatusCheckContexts != nil {
-			var contexts []string
-			for _, context := range rule.RequiredStatusCheckContexts {
-				contexts = append(contexts, string(context))
-			}
-			setStatusChecksRule(branchRule).Contexts = contexts
-		}
+		copyBoolPtr(rule.AllowsDeletions, &branchRule.AllowDeletions)
+		copyBoolPtr(rule.AllowsForcePushes, &branchRule.AllowForcePushes)
+		copyBoolPtr(rule.RequiresLinearHistory, &branchRule.RequireLinearHistory)
+		copyInt32Ptr(rule.RequiredApprovingReviewCount, &branchRule.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+		copyBoolPtr(rule.RequiresCodeOwnerReviews, &branchRule.RequiredPullRequestReviews.RequireCodeOwnerReviews)
+		copyStringSlice(rule.RequiredStatusCheckContexts, &branchRule.RequiredStatusChecks.Contexts)
 	}
-
 	if data.BranchProtectionRule != nil {
 		rule := data.BranchProtectionRule
-		if rule.IsAdminEnforced != nil {
-			branchRule.EnforceAdmins = &clients.EnforceAdmins{
-				Enabled: bool(*rule.IsAdminEnforced),
-			}
-		}
-		if rule.DismissesStaleReviews != nil {
-			setPullRequestReviewRule(branchRule).DismissStaleReviews = bool(*rule.DismissesStaleReviews)
-		}
-		if rule.RequiresStrictStatusChecks != nil {
-			setStatusChecksRule(branchRule).Strict = bool(*rule.RequiresStrictStatusChecks)
-		}
+		copyBoolPtr(rule.IsAdminEnforced, &branchRule.EnforceAdmins)
+		copyBoolPtr(rule.DismissesStaleReviews, &branchRule.RequiredPullRequestReviews.DismissStaleReviews)
+		copyBoolPtr(rule.RequiresStrictStatusChecks, &branchRule.RequiredStatusChecks.Strict)
 	}
+
 	return branchRef
 }
 
 func getBranchRefsFrom(data []branch, defaultBranch *clients.BranchRef) []*clients.BranchRef {
-	branchRefs := make([]*clients.BranchRef, len(data))
+	var branchRefs []*clients.BranchRef
 	var defaultFound bool
 	for i, b := range data {
-		branchRefs[i] = getBranchRefFrom(b)
+		branchRefs = append(branchRefs, getBranchRefFrom(b))
 		if defaultBranch != nil && branchRefs[i].Name == defaultBranch.Name {
 			defaultFound = true
 		}
 	}
 	if !defaultFound {
-		// nolint: makezero
 		branchRefs = append(branchRefs, defaultBranch)
 	}
 	return branchRefs
