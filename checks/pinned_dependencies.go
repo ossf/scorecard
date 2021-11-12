@@ -197,7 +197,8 @@ func createReturnValues(r pinnedResult, infoMsg string, dl checker.DetailLogger,
 
 func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := fileparser.CheckFilesContent("*", false, c, validateShellScriptIsFreeOfInsecureDownloads, &r)
+	err := fileparser.CheckFilesContent("*", false,
+		c, validateShellScriptIsFreeOfInsecureDownloads, &r)
 	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -236,7 +237,8 @@ func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 
 func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := fileparser.CheckFilesContent("*Dockerfile*", false, c, validateDockerfileIsFreeOfInsecureDownloads, &r)
+	err := fileparser.CheckFilesContent("*Dockerfile*",
+		false, c, validateDockerfileIsFreeOfInsecureDownloads, &r)
 	return createReturnForIsDockerfileFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -312,7 +314,8 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 
 func isDockerfilePinned(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := fileparser.CheckFilesContent("*Dockerfile*", false, c, validateDockerfileIsPinned, &r)
+	err := fileparser.CheckFilesContent("*Dockerfile*", false,
+		c, validateDockerfileIsPinned, &r)
 	return createReturnForIsDockerfilePinned(r, c.Dlogger, err)
 }
 
@@ -417,7 +420,8 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := fileparser.CheckFilesContent(".github/workflows/*", false, c, validateGitHubWorkflowIsFreeOfInsecureDownloads, &r)
+	err := fileparser.CheckFilesContent(".github/workflows/*", false,
+		c, validateGitHubWorkflowIsFreeOfInsecureDownloads, &r)
 	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -501,7 +505,8 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) (int, error) {
 	var r worklowPinningResult
-	err := fileparser.CheckFilesContent(".github/workflows/*", true, c, validateGitHubActionWorkflow, &r)
+	err := fileparser.CheckFilesContent(".github/workflows/*",
+		true, c, validateGitHubActionWorkflow, &r)
 	return createReturnForIsGitHubActionsWorkflowPinned(r, c.Dlogger, err)
 }
 

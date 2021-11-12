@@ -30,7 +30,7 @@ import (
 // File represents a file.
 type File struct {
 	Path string
-	// TODO: add type, hash if needed.
+	// TODO: add hash if needed.
 }
 
 // BinaryArtifactData contains the raw results.
