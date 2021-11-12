@@ -25,11 +25,59 @@ import (
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-// defaultShellNonWindows is the default shell used for GitHub workflow actions for Linux and Mac.
-const defaultShellNonWindows = "bash"
+const (
+	// defaultShellNonWindows is the default shell used for GitHub workflow actions for Linux and Mac.
+	defaultShellNonWindows = "bash"
+	// defaultShellWindows is the default shell used for GitHub workflow actions for Windows.
+	defaultShellWindows = "pwsh"
+	windows             = "windows"
+	os                  = "os"
+	matrixos            = "matrix.os"
+)
 
-// defaultShellWindows is the default shell used for GitHub workflow actions for Windows.
-const defaultShellWindows = "pwsh"
+// GetJobName returns Name.Value if non-nil, else returns "".
+func GetJobName(job *actionlint.Job) string {
+	if job != nil && job.Name != nil {
+		return job.Name.Value
+	}
+	return ""
+}
+
+// GetStepName returns Name.Value if non-nil, else returns "".
+func GetStepName(step *actionlint.Step) string {
+	if step != nil && step.Name != nil {
+		return step.Name.Value
+	}
+	return ""
+}
+
+func getExecRunShell(execRun *actionlint.ExecRun) string {
+	if execRun != nil && execRun.Shell != nil {
+		return execRun.Shell.Value
+	}
+	return ""
+}
+
+func getJobDefaultRunShell(job *actionlint.Job) string {
+	if job != nil && job.Defaults != nil && job.Defaults.Run != nil && job.Defaults.Run.Shell != nil {
+		return job.Defaults.Run.Shell.Value
+	}
+	return ""
+}
+
+func getJobRunsOnLabels(job *actionlint.Job) []*actionlint.String {
+	if job != nil && job.RunsOn != nil {
+		return job.RunsOn.Labels
+	}
+	return nil
+}
+
+func getJobStrategyMatrixRows(job *actionlint.Job) map[string]*actionlint.MatrixRow {
+	if job != nil && job.Strategy != nil && job.Strategy.Matrix != nil {
+		return job.Strategy.Matrix.Rows
+	}
+	return nil
+}
 
 // FormatActionlintError combines the errors into a single one.
 func FormatActionlintError(errs []*actionlint.Error) error {
@@ -49,17 +97,19 @@ func GetOSesForJob(job *actionlint.Job) ([]string, error) {
 	// The 'runs-on' field either lists the OS'es directly, or it can have an expression '${{ matrix.os }}' which
 	// is where the OS'es are actually listed.
 	jobOSes := make([]string, 0)
-	getFromMatrix := len(job.RunsOn.Labels) == 1 && strings.Contains(job.RunsOn.Labels[0].Value, "matrix.os")
+	jobRunsOnLabels := getJobRunsOnLabels(job)
+	getFromMatrix := len(jobRunsOnLabels) == 1 && strings.Contains(jobRunsOnLabels[0].Value, matrixos)
 	if !getFromMatrix {
 		// We can get the OSes straight from 'runs-on'.
-		for _, os := range job.RunsOn.Labels {
+		for _, os := range jobRunsOnLabels {
 			jobOSes = append(jobOSes, os.Value)
 		}
 		return jobOSes, nil
 	}
 
-	for rowKey, rowValue := range job.Strategy.Matrix.Rows {
-		if rowKey != "os" {
+	jobStrategyMatrixRows := getJobStrategyMatrixRows(job)
+	for rowKey, rowValue := range jobStrategyMatrixRows {
+		if rowKey != os {
 			continue
 		}
 		for _, os := range rowValue.Values {
@@ -69,7 +119,7 @@ func GetOSesForJob(job *actionlint.Job) ([]string, error) {
 
 	if len(jobOSes) == 0 {
 		return jobOSes, sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("unable to determine OS for job: %v", job.Name.Value))
+			fmt.Sprintf("unable to determine OS for job: %v", GetJobName(job)))
 	}
 	return jobOSes, nil
 }
@@ -81,7 +131,7 @@ func JobAlwaysRunsOnWindows(job *actionlint.Job) (bool, error) {
 		return false, err
 	}
 	for _, os := range jobOSes {
-		if !strings.HasPrefix(strings.ToLower(os), "windows") {
+		if !strings.HasPrefix(strings.ToLower(os), windows) {
 			return false, nil
 		}
 	}
@@ -93,23 +143,18 @@ func GetShellForStep(step *actionlint.Step, job *actionlint.Job) (string, error)
 	// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell.
 	execRun, ok := step.Exec.(*actionlint.ExecRun)
 	if !ok {
-		jobName := ""
-		if job.Name != nil {
-			jobName = job.Name.Value
-		}
-		stepName := ""
-		if step.Name != nil {
-			stepName = step.Name.Value
-		}
+		jobName := GetJobName(job)
+		stepName := GetStepName(step)
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("unable to parse step '%v' for job '%v'", jobName, stepName))
 	}
-	if execRun != nil && execRun.Shell != nil && execRun.Shell.Value != "" {
+	execRunShell := getExecRunShell(execRun)
+	if execRunShell != "" {
 		return execRun.Shell.Value, nil
 	}
-	if job.Defaults != nil && job.Defaults.Run != nil && job.Defaults.Run.Shell != nil &&
-		job.Defaults.Run.Shell.Value != "" {
-		return job.Defaults.Run.Shell.Value, nil
+	jobDefaultRunShell := getJobDefaultRunShell(job)
+	if jobDefaultRunShell != "" {
+		return jobDefaultRunShell, nil
 	}
 
 	isStepWindows, err := IsStepWindows(step)
