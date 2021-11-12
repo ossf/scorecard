@@ -16,7 +16,6 @@ package config
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -45,7 +44,7 @@ func getByteValueFromFile(filename string) ([]byte, error) {
 		return nil, nil
 	}
 	//nolint
-	return ioutil.ReadFile(filename)
+	return os.ReadFile(filename)
 }
 
 func TestYAMLParsing(t *testing.T) {

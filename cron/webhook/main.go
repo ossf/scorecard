@@ -18,7 +18,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 
@@ -42,7 +42,7 @@ var images = []string{
 func scriptHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		jsonBytes, err := ioutil.ReadAll(r.Body)
+		jsonBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("unable to read request body: %v", err),
 				http.StatusInternalServerError)

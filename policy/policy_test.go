@@ -16,7 +16,7 @@ package policy
 
 import (
 	"errors"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	sce "github.com/ossf/scorecard/v3/errors"
@@ -109,7 +109,7 @@ func TestPolicyRead(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Fatalf("cannot read file: %v", err)
 			}
