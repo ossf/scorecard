@@ -22,6 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks/fileparser"
+	"github.com/ossf/scorecard/v3/checks/utils"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
@@ -48,7 +49,7 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 		topLevelWritePermissions: make(map[string]bool),
 		runLevelWritePermissions: make(map[string]bool),
 	}
-	err := CheckFilesContent(".github/workflows/*", false,
+	err := utils.CheckFilesContent(".github/workflows/*", false,
 		c, validateGitHubActionTokenPermissions, &data)
 	return createResultForLeastPrivilegeTokens(data, err)
 }
@@ -326,7 +327,7 @@ func testValidateGitHubActionTokenPermissions(pathfn string,
 
 // Check file content.
 func validateGitHubActionTokenPermissions(path string, content []byte,
-	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	dl checker.DetailLogger, data utils.FileCbData) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
@@ -337,7 +338,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 		panic("invalid type")
 	}
 
-	if !CheckFileContainsCommands(content, "#") {
+	if !utils.CheckFileContainsCommands(content, "#") {
 		return true, nil
 	}
 

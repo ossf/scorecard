@@ -21,6 +21,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks/utils"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
@@ -39,8 +40,8 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	var r bool
 	// Check repository for repository-specific policy.
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
-	onFile := func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
-		pdata := FileGetCbDataAsBoolPointer(data)
+	onFile := func(name string, dl checker.DetailLogger, data utils.FileCbData) (bool, error) {
+		pdata := utils.FileGetCbDataAsBoolPointer(data)
 		if strings.EqualFold(name, "security.md") ||
 			strings.EqualFold(name, ".github/security.md") ||
 			strings.EqualFold(name, "docs/security.md") {
@@ -66,7 +67,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		}
 		return true, nil
 	}
-	err := CheckIfFileExists(CheckSecurityPolicy, c, onFile, &r)
+	err := utils.CheckIfFileExists(CheckSecurityPolicy, c, onFile, &r)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 	}
@@ -90,8 +91,8 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	switch {
 	case err == nil:
 		defer dotGitHub.RepoClient.Close()
-		onFile = func(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
-			pdata := FileGetCbDataAsBoolPointer(data)
+		onFile = func(name string, dl checker.DetailLogger, data utils.FileCbData) (bool, error) {
+			pdata := utils.FileGetCbDataAsBoolPointer(data)
 			if strings.EqualFold(name, "security.md") ||
 				strings.EqualFold(name, ".github/security.md") ||
 				strings.EqualFold(name, "docs/security.md") {
@@ -107,7 +108,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 			}
 			return true, nil
 		}
-		err = CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile, &r)
+		err = utils.CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile, &r)
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
 		}

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package utils
 
 import (
 	"bufio"
@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/clients"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
@@ -103,6 +104,58 @@ func CheckFilesContent(shellPathFnPattern string,
 		}
 
 		continueIter, err := onFileContent(file, content, c.Dlogger, data)
+		if err != nil {
+			return err
+		}
+
+		if !continueIter {
+			break
+		}
+	}
+
+	return nil
+}
+
+// FileContentCbV6 is the callback.
+// The bool returned indicates whether the CheckFilesContent2
+// should continue iterating over files or not.
+type FileContentCbV6 func(path string, content []byte, data FileCbData) (bool, error)
+
+// CheckFilesContentV6 is the same as CheckFilesContent
+// but for use with separated check/policy code.
+func CheckFilesContentV6(shellPathFnPattern string,
+	caseSensitive bool,
+	repoClient clients.RepoClient,
+	onFileContent FileContentCbV6,
+	data FileCbData,
+) error {
+	predicate := func(filepath string) (bool, error) {
+		// Filter out test files.
+		if isTestdataFile(filepath) {
+			return false, nil
+		}
+		// Filter out files based on path/names using the pattern.
+		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
+		if err != nil {
+			return false, err
+		}
+		return b, nil
+	}
+
+	matchedFiles, err := repoClient.ListFiles(predicate)
+	if err != nil {
+		// nolint: wrapcheck
+		return err
+	}
+
+	for _, file := range matchedFiles {
+		content, err := repoClient.GetFileContent(file)
+		if err != nil {
+			//nolint
+			return err
+		}
+
+		continueIter, err := onFileContent(file, content, data)
 		if err != nil {
 			return err
 		}
