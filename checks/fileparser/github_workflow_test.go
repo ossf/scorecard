@@ -15,7 +15,7 @@
 package fileparser
 
 import (
-	"io/ioutil"
+	stdos "os"
 	"testing"
 
 	"github.com/rhysd/actionlint"
@@ -109,7 +109,7 @@ func TestGitHubWorkflowShell(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			content, err := ioutil.ReadFile(tt.filename)
+			content, err := stdos.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}

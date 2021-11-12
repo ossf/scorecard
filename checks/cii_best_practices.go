@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math"
 	"net/http"
 	"strings"
@@ -81,9 +81,9 @@ func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 	}
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ioutil.ReadAll: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("io.ReadAll: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 

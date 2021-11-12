@@ -16,7 +16,7 @@ package e2e
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -39,7 +39,7 @@ type scorecard struct {
 var _ = Describe("E2E TEST:executable", func() {
 	Context("E2E TEST:Validating executable test", func() {
 		It("Should return valid test results for scorecard", func() {
-			file, err := ioutil.ReadFile("../output/results.json")
+			file, err := os.ReadFile("../output/results.json")
 			Expect(err).Should(BeNil())
 
 			data := scorecard{}
