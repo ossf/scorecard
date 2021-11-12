@@ -31,24 +31,32 @@ const (
 	refPrefix     = "refs/heads/"
 )
 
-type refUpdateRule struct {
+// type refUpdateRule struct {
+// 	AllowsDeletions              *bool
+// 	AllowsForcePushes            *bool
+// 	RequiredApprovingReviewCount *int32
+// 	RequiresCodeOwnerReviews     *bool
+// 	RequiresLinearHistory        *bool
+// 	RequiredStatusCheckContexts  []string
+// }
+
+type branchProtectionRule struct {
+	DismissesStaleReviews        *bool
+	IsAdminEnforced              *bool
+	RequiresStrictStatusChecks   *bool
 	AllowsDeletions              *bool
 	AllowsForcePushes            *bool
 	RequiredApprovingReviewCount *int32
 	RequiresCodeOwnerReviews     *bool
 	RequiresLinearHistory        *bool
 	RequiredStatusCheckContexts  []string
-}
-
-type branchProtectionRule struct {
-	DismissesStaleReviews      *bool
-	IsAdminEnforced            *bool
-	RequiresStrictStatusChecks *bool
+	// TODO
+	// BranchProtectionRuleConflicts interface{}
 }
 
 type branch struct {
-	Name                 *string
-	RefUpdateRule        *refUpdateRule
+	Name *string
+	// RefUpdateRule        *refUpdateRule
 	BranchProtectionRule *branchProtectionRule
 }
 
@@ -121,28 +129,21 @@ func getBranchRefFrom(data branch) *clients.BranchRef {
 	}
 
 	branchRef.Protected = new(bool)
-	if data.RefUpdateRule == nil &&
-		data.BranchProtectionRule == nil {
-		*branchRef.Protected = false
-		return branchRef
-	}
-	*branchRef.Protected = true
+	*branchRef.Protected = false
 
 	branchRule := &branchRef.BranchProtectionRule
-	if data.RefUpdateRule != nil {
-		rule := data.RefUpdateRule
+	if data.BranchProtectionRule != nil {
+		*branchRef.Protected = true
+		rule := data.BranchProtectionRule
+		copyBoolPtr(rule.IsAdminEnforced, &branchRule.EnforceAdmins)
+		copyBoolPtr(rule.DismissesStaleReviews, &branchRule.RequiredPullRequestReviews.DismissStaleReviews)
+		copyBoolPtr(rule.RequiresStrictStatusChecks, &branchRule.RequiredStatusChecks.Strict)
 		copyBoolPtr(rule.AllowsDeletions, &branchRule.AllowDeletions)
 		copyBoolPtr(rule.AllowsForcePushes, &branchRule.AllowForcePushes)
 		copyBoolPtr(rule.RequiresLinearHistory, &branchRule.RequireLinearHistory)
 		copyInt32Ptr(rule.RequiredApprovingReviewCount, &branchRule.RequiredPullRequestReviews.RequiredApprovingReviewCount)
 		copyBoolPtr(rule.RequiresCodeOwnerReviews, &branchRule.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		copyStringSlice(rule.RequiredStatusCheckContexts, &branchRule.RequiredStatusChecks.Contexts)
-	}
-	if data.BranchProtectionRule != nil {
-		rule := data.BranchProtectionRule
-		copyBoolPtr(rule.IsAdminEnforced, &branchRule.EnforceAdmins)
-		copyBoolPtr(rule.DismissesStaleReviews, &branchRule.RequiredPullRequestReviews.DismissStaleReviews)
-		copyBoolPtr(rule.RequiresStrictStatusChecks, &branchRule.RequiredStatusChecks.Strict)
 	}
 
 	return branchRef

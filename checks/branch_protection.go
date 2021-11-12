@@ -165,6 +165,9 @@ func checkReleaseAndDevBranchProtection(
 			}
 			return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 		}
+		// Protected field only indates that the branch matches
+		// one `Branch protection rules`. All settings may be disabled,
+		// so it does not provide any guarantees.
 		if branch.Protected != nil && !*branch.Protected {
 			dl.Warn("branch protection not enabled for branch '%s'", b)
 			return checker.CreateMinScoreResult(CheckBranchProtection,
