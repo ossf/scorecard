@@ -24,13 +24,13 @@ import (
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks/raw"
-	"github.com/ossf/scorecard/v3/checks/utils"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-func RunBinaryArtifacts(c *checker.CheckRequest) (raw.BinaryArtifactData, error) {
+// BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
+func BinaryArtifacts(c *checker.CheckRequest) (raw.BinaryArtifactData, error) {
 	var files []raw.File
-	err := utils.CheckFilesContentV6("*", false, c.RepoClient, checkBinaryFileContent, &files)
+	err := CheckFilesContentV6("*", false, c.RepoClient, checkBinaryFileContent, &files)
 	if err != nil {
 		return raw.BinaryArtifactData{}, err
 	}
@@ -40,7 +40,7 @@ func RunBinaryArtifacts(c *checker.CheckRequest) (raw.BinaryArtifactData, error)
 }
 
 func checkBinaryFileContent(path string, content []byte,
-	data utils.FileCbData) (bool, error) {
+	data FileCbData) (bool, error) {
 	pfiles, ok := data.(*[]raw.File)
 	if !ok {
 		// This never happens.

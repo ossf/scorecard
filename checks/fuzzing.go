@@ -21,7 +21,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/utils"
+	"github.com/ossf/scorecard/v3/checks/worker"
 	"github.com/ossf/scorecard/v3/clients"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v3/errors"
@@ -45,9 +45,9 @@ func init() {
 
 func checkCFLite(c *checker.CheckRequest) (bool, error) {
 	result := false
-	e := utils.CheckFilesContent(".clusterfuzzlite/Dockerfile", true, c,
-		func(path string, content []byte, dl checker.DetailLogger, data utils.FileCbData) (bool, error) {
-			result = utils.CheckFileContainsCommands(content, "#")
+	e := worker.CheckFilesContent(".clusterfuzzlite/Dockerfile", true, c,
+		func(path string, content []byte, dl checker.DetailLogger, data worker.FileCbData) (bool, error) {
+			result = worker.CheckFileContainsCommands(content, "#")
 			return false, nil
 		}, nil)
 

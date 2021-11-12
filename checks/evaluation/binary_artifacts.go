@@ -20,7 +20,7 @@ import (
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-// BinaryArtifacts  will check the repository if it contains binary artifacts.
+// BinaryArtifacts applies the score policy for the Binary-Artiacts check.
 func BinaryArtifacts(name string, dl checker.DetailLogger,
 	r *raw.BinaryArtifactData) checker.CheckResult {
 	if r == nil {

@@ -31,7 +31,7 @@ func init() {
 
 // BinaryArtifacts  will check the repository contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := worker.RunBinaryArtifacts(c)
+	rawData, err := worker.BinaryArtifacts(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
