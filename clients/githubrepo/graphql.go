@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/shurcooL/githubv4"
 
@@ -27,6 +28,7 @@ import (
 
 const (
 	pullRequestsToAnalyze = 30
+	issuesToAnalyze       = 30
 	reviewsToAnalyze      = 30
 	labelsToAnalyze       = 30
 	commitsToAnalyze      = 30
@@ -81,6 +83,13 @@ type graphqlData struct {
 				} `graphql:"reviews(last: $reviewsToAnalyze)"`
 			}
 		} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
+		Issues struct {
+			Nodes []struct {
+				// nolint: revive,stylecheck // naming according to githubv4 convention.
+				Url       *string
+				UpdatedAt *time.Time
+			}
+		} `graphql:"issues(first: $issuesToAnalyze, orderBy:{field:UPDATED_AT, direction:DESC})"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
 }
 
@@ -94,6 +103,7 @@ type graphqlHandler struct {
 	repo     string
 	prs      []clients.PullRequest
 	commits  []clients.Commit
+	issues   []clients.Issue
 	archived bool
 }
 
@@ -112,6 +122,7 @@ func (handler *graphqlHandler) setup() error {
 			"owner":                 githubv4.String(handler.owner),
 			"name":                  githubv4.String(handler.repo),
 			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
+			"issuesToAnalyze":       githubv4.Int(issuesToAnalyze),
 			"reviewsToAnalyze":      githubv4.Int(reviewsToAnalyze),
 			"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
 			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
@@ -122,6 +133,7 @@ func (handler *graphqlHandler) setup() error {
 		handler.archived = bool(handler.data.Repository.IsArchived)
 		handler.prs = pullRequestsFrom(handler.data)
 		handler.commits = commitsFrom(handler.data)
+		handler.issues = issuesFrom(handler.data)
 	})
 	return handler.errSetup
 }
@@ -138,6 +150,13 @@ func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
 		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
 	}
 	return handler.commits, nil
+}
+
+func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
+	if err := handler.setup(); err != nil {
+		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
+	}
+	return handler.issues, nil
 }
 
 func (handler *graphqlHandler) isArchived() (bool, error) {
@@ -190,6 +209,17 @@ func commitsFrom(data *graphqlData) []clients.Commit {
 				Login: string(commit.Committer.User.Login),
 			},
 		})
+	}
+	return ret
+}
+
+func issuesFrom(data *graphqlData) []clients.Issue {
+	var ret []clients.Issue
+	for _, issue := range data.Repository.Issues.Nodes {
+		var tmpIssue clients.Issue
+		copyStringPtr(issue.Url, &tmpIssue.URI)
+		copyTimePtr(issue.UpdatedAt, &tmpIssue.UpdatedAt)
+		ret = append(ret, tmpIssue)
 	}
 	return ret
 }

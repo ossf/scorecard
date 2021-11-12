@@ -1,7 +1,4 @@
-//go:build tools
-// +build tools
-
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package clients
 
-import (
-	_ "github.com/golang/mock/mockgen"
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
-	_ "github.com/google/addlicense"
-	_ "github.com/google/ko"
-	_ "github.com/naveensrinivasan/stunning-tribble"
-	_ "github.com/onsi/ginkgo/ginkgo"
-	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
-)
+import "time"
+
+// Issue represents a thread like GitHub issue comment thread.
+type Issue struct {
+	URI       *string
+	UpdatedAt *time.Time
+}
