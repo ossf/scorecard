@@ -51,7 +51,7 @@ func checkCFLite(c *checker.CheckRequest) (bool, error) {
 			return false, nil
 		}, nil)
 
-	return result, e
+	return result, fmt.Errorf("%w", e)
 }
 
 func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {

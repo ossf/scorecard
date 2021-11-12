@@ -589,7 +589,7 @@ func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
 	err := worker.CheckIfFileExists(CheckPinnedDependencies, c, validatePackageManagerFile, &r)
 	if err != nil {
-		return checker.InconclusiveResultScore, err
+		return checker.InconclusiveResultScore, fmt.Errorf("%w", err)
 	}
 	if r != pinned {
 		c.Dlogger.Warn("no lock files detected for a package manager")
