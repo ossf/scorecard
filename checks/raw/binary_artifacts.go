@@ -14,7 +14,7 @@
 
 package raw
 
-// File defines a file's property.
+// File represents a file.
 type File struct {
 	Path string
 	Ext  string
@@ -23,8 +23,6 @@ type File struct {
 
 // BinaryArtifactData contains the raw results.
 type BinaryArtifactData struct {
-	// Err indicates if the structure is valid.
-	Err error
 	// Files contains a list of files.
 	Files []File
 }

@@ -93,9 +93,9 @@ func checkBinaryFileContent(path string, content []byte,
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("filetype.Get:%v", err))
 	}
 
-	ok1 := binaryFileTypes[t.Extension]
-	ok2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
-	if ok1 || ok2 {
+	exists1 := binaryFileTypes[t.Extension]
+	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
+	if exists1 || exists2 {
 		*pfiles = append(*pfiles, raw.File{
 			Path: path,
 			Ext:  t.Extension,
