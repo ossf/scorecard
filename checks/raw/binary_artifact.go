@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package worker
+package raw
 
 import (
 	"fmt"
@@ -23,25 +23,37 @@ import (
 	"github.com/h2non/filetype/types"
 
 	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/raw"
+	"github.com/ossf/scorecard/v3/checks/fileparser"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
+// File represents a file.
+type File struct {
+	Path string
+	// TODO: add type, hash if needed.
+}
+
+// BinaryArtifactData contains the raw results.
+type BinaryArtifactData struct {
+	// Files contains a list of files.
+	Files []File
+}
+
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
-func BinaryArtifacts(c *checker.CheckRequest) (raw.BinaryArtifactData, error) {
-	var files []raw.File
-	err := CheckFilesContentV6("*", false, c.RepoClient, checkBinaryFileContent, &files)
+func BinaryArtifacts(c *checker.CheckRequest) (BinaryArtifactData, error) {
+	var files []File
+	err := fileparser.CheckFilesContentV6("*", false, c.RepoClient, checkBinaryFileContent, &files)
 	if err != nil {
-		return raw.BinaryArtifactData{}, err
+		return BinaryArtifactData{}, err
 	}
 
 	// No error, return the files.
-	return raw.BinaryArtifactData{Files: files}, nil
+	return BinaryArtifactData{Files: files}, nil
 }
 
 func checkBinaryFileContent(path string, content []byte,
-	data FileCbData) (bool, error) {
-	pfiles, ok := data.(*[]raw.File)
+	data fileparser.FileCbData) (bool, error) {
+	pfiles, ok := data.(*[]File)
 	if !ok {
 		// This never happens.
 		panic("invalid type")
@@ -96,9 +108,8 @@ func checkBinaryFileContent(path string, content []byte,
 	exists1 := binaryFileTypes[t.Extension]
 	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
 	if exists1 || exists2 {
-		*pfiles = append(*pfiles, raw.File{
+		*pfiles = append(*pfiles, File{
 			Path: path,
-			Ext:  t.Extension,
 		})
 	}
 

@@ -17,7 +17,7 @@ package checks
 import (
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks/evaluation"
-	"github.com/ossf/scorecard/v3/checks/worker"
+	"github.com/ossf/scorecard/v3/checks/raw"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
@@ -31,7 +31,7 @@ func init() {
 
 // BinaryArtifacts  will check the repository contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := worker.BinaryArtifacts(c)
+	rawData, err := raw.BinaryArtifacts(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
