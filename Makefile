@@ -102,13 +102,11 @@ build: ## Build all binaries and images in the repo.
 build: $(build-targets)
 
 build-proto: ## Compiles and generates all required protobufs
-build-proto: cron/data/request.pb.go cron/data/metadata.pb.go clients/branch.pb.go
+build-proto: cron/data/request.pb.go cron/data/metadata.pb.go
 cron/data/request.pb.go: cron/data/request.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/request.proto
 cron/data/metadata.pb.go: cron/data/metadata.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/metadata.proto
-clients/branch.pb.go: clients/branch.proto | $(PROTOC)
-	protoc --go_out=../../../ clients/branch.proto
 
 generate-docs: ## Generates docs
 generate-docs: validate-docs docs/checks.md
