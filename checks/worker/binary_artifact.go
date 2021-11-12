@@ -100,7 +100,6 @@ func checkBinaryFileContent(path string, content []byte,
 			Path: path,
 			Ext:  t.Extension,
 		})
-		return true, nil
 	}
 
 	return true, nil
