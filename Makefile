@@ -6,6 +6,7 @@ GIT_VERSION ?= $(shell git describe --tags --always --dirty)
 SOURCE_DATE_EPOCH=$(shell git log --date=iso8601-strict -1 --pretty=%ct)
 GOLANGGCI_LINT := golangci-lint
 PROTOC_GEN_GO := protoc-gen-go
+MOCKGEN := mockgen
 PROTOC := $(shell which protoc)
 IMAGE_NAME = scorecard
 OUTPUT = output
@@ -96,7 +97,7 @@ tree-status: ## Verify tree is clean and all changes are committed
 build-cron: build-pubsub build-bq-transfer build-github-server build-webhook build-add-script \
 	  build-validate-script build-update-script
 
-build-targets = generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
+build-targets = generate-mocks generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
@@ -107,6 +108,16 @@ cron/data/request.pb.go: cron/data/request.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/request.proto
 cron/data/metadata.pb.go: cron/data/metadata.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/metadata.proto
+
+generate-mocks: ## Compiles and generates all mocks using mockgen.
+generate-mocks: clients/mockrepo/client.go clients/mockrepo/repo.go
+clients/mockrepo/client.go: clients/repo_client.go
+	# Generating MockRepoClient
+	$(MOCKGEN) -source=clients/repo_client.go -destination clients/mockrepo/client.go -package mockrepo -copyright_file clients/mockrepo/license.txt
+clients/mockrepo/repo.go: clients/repo.go
+	# Generating MockRepoClient
+	$(MOCKGEN) -source=clients/repo.go -destination clients/mockrepo/repo.go -package mockrepo -copyright_file clients/mockrepo/license.txt
+
 
 generate-docs: ## Generates docs
 generate-docs: validate-docs docs/checks.md

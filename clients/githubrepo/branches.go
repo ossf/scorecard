@@ -114,25 +114,6 @@ func (handler *branchesHandler) listBranches() ([]*clients.BranchRef, error) {
 	return handler.branches, nil
 }
 
-func copyBoolPtr(src *bool, dest **bool) {
-	if src != nil {
-		*dest = new(bool)
-		**dest = *src
-	}
-}
-
-func copyInt32Ptr(src *int32, dest **int32) {
-	if src != nil {
-		*dest = new(int32)
-		**dest = *src
-	}
-}
-
-func copyStringSlice(src []string, dest *[]string) {
-	*dest = make([]string, len(src))
-	copy(*dest, src)
-}
-
 func getBranchRefFrom(data branch) *clients.BranchRef {
 	branchRef := new(clients.BranchRef)
 	if data.Name != nil {

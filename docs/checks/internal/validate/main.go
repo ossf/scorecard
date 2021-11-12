@@ -43,6 +43,7 @@ var (
 		"ListBranches":               {"GitHub"},
 		"GetDefaultBranch":           {"GitHub"},
 		"ListCommits":                {"GitHub"},
+		"ListIssues":                 {"GitHub"},
 		"ListReleases":               {"GitHub"},
 		"ListContributors":           {"GitHub"},
 		"ListSuccessfulWorkflowRuns": {"GitHub"},
