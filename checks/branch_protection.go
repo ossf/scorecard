@@ -24,11 +24,35 @@ import (
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
+type branchProtectionSetting int
+
 const (
 	// CheckBranchProtection is the exported name for Branch-Protected check.
-	CheckBranchProtection = "Branch-Protection"
-	minReviews            = 2
+	CheckBranchProtection                         = "Branch-Protection"
+	minReviews                                    = 2
+	allowForcePushes      branchProtectionSetting = iota
+	allowDeletions
+	requireLinearHistory
+	enforceAdmins
+	requireStrictStatusChecks
+	requireStatusChecksContexts
+	requireApprovingReviewCount
+	dismissStaleReviews
+	requireCodeOwnerReviews
 )
+
+var branchProtectionSettingScores = map[branchProtectionSetting]int{
+	allowForcePushes:            1,
+	allowDeletions:              1,
+	requireLinearHistory:        1,
+	enforceAdmins:               3,
+	requireStrictStatusChecks:   1,
+	requireStatusChecksContexts: 1,
+	requireApprovingReviewCount: 2,
+	// This is a big deal to enabled, so let's reward 3 points.
+	dismissStaleReviews:     3,
+	requireCodeOwnerReviews: 2,
+}
 
 //nolint:gochecknoinits
 func init() {
@@ -58,7 +82,9 @@ func (b branchMap) getBranchByName(name string) (*clients.BranchRef, error) {
 func getBranchMapFrom(branches []*clients.BranchRef) branchMap {
 	ret := make(branchMap)
 	for _, branch := range branches {
-		ret[branch.GetName()] = branch
+		if branch.Name != nil && *branch.Name != "" {
+			ret[*branch.Name] = branch
+		}
 	}
 	return ret
 }
@@ -86,7 +112,6 @@ func checkReleaseAndDevBranchProtection(
 		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
 	}
 
-	var scores []int
 	commit := regexp.MustCompile("^[a-f0-9]{40}$")
 	checkBranches := make(map[string]bool)
 	for _, release := range releases {
@@ -109,7 +134,7 @@ func checkReleaseAndDevBranchProtection(
 		}
 
 		// Branch is valid, add to list of branches to check.
-		checkBranches[b.GetName()] = true
+		checkBranches[*b.Name] = true
 	}
 
 	// Add default branch.
@@ -117,10 +142,9 @@ func checkReleaseAndDevBranchProtection(
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 	}
-	checkBranches[defaultBranch.GetName()] = true
+	checkBranches[*defaultBranch.Name] = true
 
-	protected := true
-	unknown := false
+	var scores []int
 	// Check protections on all the branches.
 	for b := range checkBranches {
 		branch, err := branchesMap.getBranchByName(b)
@@ -130,47 +154,28 @@ func checkReleaseAndDevBranchProtection(
 			}
 			return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 		}
-		if !branch.GetProtected() {
-			protected = false
+		if branch.Protected != nil && !*branch.Protected {
 			dl.Warn("branch protection not enabled for branch '%s'", b)
-		} else {
-			// The branch is protected. Check the protection.
-			if branch.GetBranchProtectionRule() == nil {
-				// Without an admin token, you only get information on the protection boolean.
-				// Add a score of 1 (minimal branch protection) for this protected branch.
-				unknown = true
-				scores = append(scores, 1)
-				dl.Warn("no detailed settings available for branch protection '%s'", b)
-				continue
-			}
-			score := isBranchProtected(branch.GetBranchProtectionRule(), b, dl)
-			scores = append(scores, score)
+			return checker.CreateMinScoreResult(CheckBranchProtection,
+				fmt.Sprintf("branch protection not enabled on development/release branch: %s", b))
 		}
-	}
-
-	if !protected {
-		return checker.CreateMinScoreResult(CheckBranchProtection,
-			"branch protection not enabled on development/release branches")
+		// The branch is protected. Check the protection.
+		score := isBranchProtected(&branch.BranchProtectionRule, b, dl)
+		scores = append(scores, score)
 	}
 
 	score := checker.AggregateScores(scores...)
-	if score == checker.MinResultScore {
+	switch score {
+	case checker.MinResultScore:
 		return checker.CreateMinScoreResult(CheckBranchProtection,
 			"branch protection not enabled on development/release branches")
-	}
-
-	if score == checker.MaxResultScore {
+	case checker.MaxResultScore:
 		return checker.CreateMaxScoreResult(CheckBranchProtection,
 			"branch protection is fully enabled on development and all release branches")
-	}
-
-	if unknown {
+	default:
 		return checker.CreateResultWithScore(CheckBranchProtection,
-			"branch protection is enabled on development and all release branches but settings are unknown", score)
+			"branch protection is not maximal on development and all release branches", score)
 	}
-
-	return checker.CreateResultWithScore(CheckBranchProtection,
-		"branch protection is not maximal on development and all release branches", score)
 }
 
 // isBranchProtected checks branch protection rules on a Git branch.
@@ -178,45 +183,48 @@ func isBranchProtected(protection *clients.BranchProtectionRule, branch string, 
 	totalScore := 15
 	score := 0
 
-	if protection.GetAllowForcePushes() != nil &&
-		protection.AllowForcePushes.Enabled {
-		dl.Warn("'force pushes' enabled on branch '%s'", branch)
-	} else {
-		dl.Info("'force pushes' disabled on branch '%s'", branch)
-		score++
+	if protection.AllowForcePushes != nil {
+		switch *protection.AllowForcePushes {
+		case true:
+			dl.Warn("'force pushes' enabled on branch '%s'", branch)
+		case false:
+			dl.Info("'force pushes' disabled on branch '%s'", branch)
+			score += branchProtectionSettingScores[allowForcePushes]
+		}
 	}
 
-	if protection.GetAllowDeletions() != nil &&
-		protection.AllowDeletions.Enabled {
-		dl.Warn("'allow deletion' enabled on branch '%s'", branch)
-	} else {
-		dl.Info("'allow deletion' disabled on branch '%s'", branch)
-		score++
+	if protection.AllowDeletions != nil {
+		switch *protection.AllowDeletions {
+		case true:
+			dl.Warn("'allow deletion' enabled on branch '%s'", branch)
+		case false:
+			dl.Info("'allow deletion' disabled on branch '%s'", branch)
+			score += branchProtectionSettingScores[allowDeletions]
+		}
 	}
 
-	if protection.GetRequireLinearHistory() != nil &&
-		protection.RequireLinearHistory.Enabled {
-		dl.Info("linear history enabled on branch '%s'", branch)
-		score++
-	} else {
-		dl.Warn("linear history disabled on branch '%s'", branch)
+	if protection.RequireLinearHistory != nil {
+		switch *protection.RequireLinearHistory {
+		case true:
+			dl.Info("linear history enabled on branch '%s'", branch)
+			score += branchProtectionSettingScores[requireLinearHistory]
+		case false:
+			dl.Warn("linear history disabled on branch '%s'", branch)
+		}
+	}
+
+	if protection.EnforceAdmins != nil {
+		switch *protection.EnforceAdmins {
+		case true:
+			dl.Info("'administrator' PRs need reviews before being merged on branch '%s'", branch)
+			score += branchProtectionSettingScores[enforceAdmins]
+		case false:
+			dl.Warn("'administrator' PRs are exempt from reviews on branch '%s'", branch)
+		}
 	}
 
 	score += requiresStatusChecks(protection, branch, dl)
-
 	score += requiresThoroughReviews(protection, branch, dl)
-
-	if protection.GetEnforceAdmins() != nil &&
-		protection.EnforceAdmins.Enabled {
-		dl.Info("'administrator' PRs need reviews before being merged on branch '%s'", branch)
-		score += 3
-	} else {
-		dl.Warn("'administrator' PRs are exempt from reviews on branch '%s'", branch)
-	}
-
-	if score == totalScore {
-		return checker.MaxResultScore
-	}
 
 	return checker.CreateProportionalScore(score, totalScore)
 }
@@ -226,18 +234,20 @@ func isBranchProtected(protection *clients.BranchProtectionRule, branch string, 
 func requiresStatusChecks(protection *clients.BranchProtectionRule, branch string, dl checker.DetailLogger) int {
 	score := 0
 
-	if protection.GetRequiredStatusChecks() == nil ||
-		!protection.RequiredStatusChecks.Strict {
-		dl.Warn("status checks for merging disabled on branch '%s'", branch)
-		return score
+	if protection.RequiredStatusChecks.Strict != nil {
+		switch *protection.RequiredStatusChecks.Strict {
+		case false:
+			dl.Warn("status checks for merging disabled on branch '%s'", branch)
+			return score
+		case true:
+			dl.Info("strict status check enabled on branch '%s'", branch)
+			score += branchProtectionSettingScores[requireStrictStatusChecks]
+		}
 	}
 
-	dl.Info("strict status check enabled on branch '%s'", branch)
-	score++
-
 	if len(protection.RequiredStatusChecks.Contexts) > 0 {
-		dl.Warn("status checks for merging have specific status to check on branch '%s'", branch)
-		score++
+		dl.Info("status checks for merging have specific status to check on branch '%s'", branch)
+		score += branchProtectionSettingScores[requireStatusChecksContexts]
 	} else {
 		dl.Warn("status checks for merging have no specific status to check on branch '%s'", branch)
 	}
@@ -250,34 +260,36 @@ func requiresStatusChecks(protection *clients.BranchProtectionRule, branch strin
 func requiresThoroughReviews(protection *clients.BranchProtectionRule, branch string, dl checker.DetailLogger) int {
 	score := 0
 
-	if protection.GetRequiredPullRequestReviews() == nil {
-		dl.Warn("pull request reviews disabled on branch '%s'", branch)
-		return score
+	if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
+		if *protection.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews {
+			dl.Info("number of required reviewers is %d on branch '%s'",
+				*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
+			score += branchProtectionSettingScores[requireApprovingReviewCount]
+		} else {
+			score += int(*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+			dl.Warn("number of required reviewers is only %d on branch '%s'",
+				*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
+		}
 	}
 
-	if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews {
-		dl.Info("number of required reviewers is %d on branch '%s'",
-			protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
-		score += 2
-	} else {
-		score += int(protection.RequiredPullRequestReviews.RequiredApprovingReviewCount)
-		dl.Warn("number of required reviewers is only %d on branch '%s'",
-			protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
+	if protection.RequiredPullRequestReviews.DismissStaleReviews != nil {
+		switch *protection.RequiredPullRequestReviews.DismissStaleReviews {
+		case true:
+			dl.Info("Stale review dismissal enabled on branch '%s'", branch)
+			score += branchProtectionSettingScores[dismissStaleReviews]
+		case false:
+			dl.Warn("Stale review dismissal disabled on branch '%s'", branch)
+		}
 	}
 
-	if protection.RequiredPullRequestReviews.DismissStaleReviews {
-		// This is a big deal to enabled, so let's reward 3 points.
-		dl.Info("Stale review dismissal enabled on branch '%s'", branch)
-		score += 3
-	} else {
-		dl.Warn("Stale review dismissal disabled on branch '%s'", branch)
-	}
-
-	if protection.RequiredPullRequestReviews.RequireCodeOwnerReviews {
-		score += 2
-		dl.Info("Owner review required on branch '%s'", branch)
-	} else {
-		dl.Warn("Owner review not required on branch '%s'", branch)
+	if protection.RequiredPullRequestReviews.RequireCodeOwnerReviews != nil {
+		switch *protection.RequiredPullRequestReviews.RequireCodeOwnerReviews {
+		case true:
+			score += branchProtectionSettingScores[requireCodeOwnerReviews]
+			dl.Info("Owner review required on branch '%s'", branch)
+		case false:
+			dl.Warn("Owner review not required on branch '%s'", branch)
+		}
 	}
 
 	return score
