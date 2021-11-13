@@ -258,7 +258,7 @@ func requiresStatusChecks(protection *clients.BranchProtectionRule, branch strin
 		dl.Info("status check enabled on branch '%s'", branch)
 
 		if protection.RequiredStatusChecks.UpToDate {
-			dl.Info("status check require up-to-date branches for '%s'", branch)
+			dl.Info("status checks require up-to-date branches for '%s'", branch)
 			score += branchProtectionSettingScores[requireStrictStatusChecks]
 		} else {
 			dl.Warn("status checks do not require up-to-date branches for '%s'", branch)
@@ -272,7 +272,7 @@ func requiresStatusChecks(protection *clients.BranchProtectionRule, branch strin
 		}
 
 	case false:
-		dl.Info("status check disabled on branch '%s'", branch)
+		dl.Warn("status check disabled on branch '%s'", branch)
 	}
 
 	return score
