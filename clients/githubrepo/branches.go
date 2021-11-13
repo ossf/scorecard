@@ -176,7 +176,6 @@ func getBranchRefFrom(data branch) *clients.BranchRef {
 		copyBoolPtr(rule.IsAdminEnforced, &branchRule.EnforceAdmins)
 		copyBoolPtr(rule.DismissesStaleReviews, &branchRule.RequiredPullRequestReviews.DismissStaleReviews)
 		if rule.RequiresStatusChecks != nil && *rule.RequiresStatusChecks {
-			// fmt.Printf("%+v %v\n", *rule.RequiresStatusChecks, rule.RequiresStatusChecks)
 			branchRule.RequiredStatusChecks = new(clients.StatusChecksRule)
 			branchRule.RequiredStatusChecks.UpToDate = *rule.RequiresStrictStatusChecks
 			copyStringSlice(rule.RequiredStatusCheckContexts, &branchRule.RequiredStatusChecks.Contexts)
