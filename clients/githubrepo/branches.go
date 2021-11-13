@@ -82,6 +82,7 @@ type branchProtectionRule struct {
 	DismissesStaleReviews        *bool
 	IsAdminEnforced              *bool
 	RequiresStrictStatusChecks   *bool
+	RequiresStatusChecks         *bool
 	AllowsDeletions              *bool
 	AllowsForcePushes            *bool
 	RequiredApprovingReviewCount *int32
@@ -174,13 +175,19 @@ func getBranchRefFrom(data branch) *clients.BranchRef {
 		rule := data.BranchProtectionRule
 		copyBoolPtr(rule.IsAdminEnforced, &branchRule.EnforceAdmins)
 		copyBoolPtr(rule.DismissesStaleReviews, &branchRule.RequiredPullRequestReviews.DismissStaleReviews)
-		copyBoolPtr(rule.RequiresStrictStatusChecks, &branchRule.RequiredStatusChecks.Strict)
+		if rule.RequiresStatusChecks != nil && *rule.RequiresStatusChecks {
+			// fmt.Printf("%+v %v\n", *rule.RequiresStatusChecks, rule.RequiresStatusChecks)
+			branchRule.RequiredStatusChecks = new(clients.StatusChecksRule)
+			branchRule.RequiredStatusChecks.UpToDate = *rule.RequiresStrictStatusChecks
+			copyStringSlice(rule.RequiredStatusCheckContexts, &branchRule.RequiredStatusChecks.Contexts)
+		}
+
 		copyBoolPtr(rule.AllowsDeletions, &branchRule.AllowDeletions)
 		copyBoolPtr(rule.AllowsForcePushes, &branchRule.AllowForcePushes)
 		copyBoolPtr(rule.RequiresLinearHistory, &branchRule.RequireLinearHistory)
 		copyInt32Ptr(rule.RequiredApprovingReviewCount, &branchRule.RequiredPullRequestReviews.RequiredApprovingReviewCount)
 		copyBoolPtr(rule.RequiresCodeOwnerReviews, &branchRule.RequiredPullRequestReviews.RequireCodeOwnerReviews)
-		copyStringSlice(rule.RequiredStatusCheckContexts, &branchRule.RequiredStatusChecks.Contexts)
+
 	}
 
 	return branchRef

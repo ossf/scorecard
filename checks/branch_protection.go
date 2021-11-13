@@ -42,11 +42,12 @@ const (
 )
 
 var branchProtectionSettingScores = map[branchProtectionSetting]int{
-	allowForcePushes:            1,
-	allowDeletions:              1,
-	requireLinearHistory:        1,
-	enforceAdmins:               3,
-	requireStrictStatusChecks:   1,
+	allowForcePushes:     1,
+	allowDeletions:       1,
+	requireLinearHistory: 1,
+	enforceAdmins:        3,
+	// GitHub UI: "This setting will not take effect unless at least one status check is enabled".
+	requireStrictStatusChecks:   0,
 	requireStatusChecksContexts: 1,
 	requireApprovingReviewCount: 2,
 	// This is a big deal to enabled, so let's reward 3 points.
@@ -252,22 +253,26 @@ func isBranchProtected(protection *clients.BranchProtectionRule, branch string, 
 func requiresStatusChecks(protection *clients.BranchProtectionRule, branch string, dl checker.DetailLogger) int {
 	score := 0
 
-	if protection.RequiredStatusChecks.Strict != nil {
-		switch *protection.RequiredStatusChecks.Strict {
-		case false:
-			dl.Warn("status checks for merging disabled on branch '%s'", branch)
-			return score
-		case true:
-			dl.Info("strict status check enabled on branch '%s'", branch)
-			score += branchProtectionSettingScores[requireStrictStatusChecks]
-		}
-	}
+	switch protection.RequiredStatusChecks != nil {
+	case true:
+		dl.Info("status check enabled on branch '%s'", branch)
 
-	if len(protection.RequiredStatusChecks.Contexts) > 0 {
-		dl.Info("status checks for merging have specific status to check on branch '%s'", branch)
-		score += branchProtectionSettingScores[requireStatusChecksContexts]
-	} else {
-		dl.Warn("status checks for merging have no specific status to check on branch '%s'", branch)
+		if protection.RequiredStatusChecks.UpToDate {
+			dl.Info("status check require up-to-date branches for '%s'", branch)
+			score += branchProtectionSettingScores[requireStrictStatusChecks]
+		} else {
+			dl.Warn("status checks do not require up-to-date branches for '%s'", branch)
+		}
+
+		if len(protection.RequiredStatusChecks.Contexts) > 0 {
+			dl.Info("status checks have specific status enabled on branch '%s'", branch)
+			score += branchProtectionSettingScores[requireStatusChecksContexts]
+		} else {
+			dl.Warn("status checks have no specific status enabled on branch '%s'", branch)
+		}
+
+	case false:
+		dl.Info("status check disabled on branch '%s'", branch)
 	}
 
 	return score

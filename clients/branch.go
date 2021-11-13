@@ -28,13 +28,13 @@ type BranchProtectionRule struct {
 	AllowForcePushes           *bool
 	RequireLinearHistory       *bool
 	EnforceAdmins              *bool
-	RequiredStatusChecks       StatusChecksRule
+	RequiredStatusChecks       *StatusChecksRule
 }
 
 // StatusChecksRule captures settings on status checks.
 type StatusChecksRule struct {
-	Strict   *bool
 	Contexts []string
+	UpToDate bool
 }
 
 // PullRequestReviewRule captures settings on a PullRequest.
