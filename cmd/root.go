@@ -43,6 +43,7 @@ import (
 
 var (
 	repo        string
+	raw         bool
 	local       string
 	checksToRun []string
 	metaData    []string
@@ -271,6 +272,12 @@ var rootCmd = &cobra.Command{
 			log.Fatal("--local option not supported yet")
 		}
 
+		var v6 bool
+		_, v6 = os.LookupEnv("SCORECARD_V6")
+		if raw && !v6 {
+			log.Fatal("--raw option not supported yet")
+		}
+
 		// Validate format.
 		if !validateFormat(format) {
 			log.Fatalf("unsupported format '%s'", format)
@@ -346,7 +353,7 @@ var rootCmd = &cobra.Command{
 
 		enabledChecks, err := getEnabledChecks(policy, checksToRun, supportedChecks, repoType)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
 		if format == formatDefault {
@@ -360,33 +367,68 @@ var rootCmd = &cobra.Command{
 		}
 		repoResult.Metadata = append(repoResult.Metadata, metaData...)
 
-		// Sort them by name
-		sort.Slice(repoResult.Checks, func(i, j int) bool {
-			return repoResult.Checks[i].Name < repoResult.Checks[j].Name
-		})
-
-		if format == formatDefault {
-			for checkName := range enabledChecks {
-				fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
+		if raw {
+			if format != "json" {
+				log.Fatalf("only json format is supported")
 			}
-			fmt.Println("\nRESULTS\n-------")
-		}
 
-		switch format {
-		case formatDefault:
-			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
-		case formatSarif:
-			// TODO: support config files and update checker.MaxResultScore.
-			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy)
-		case formatJSON:
-			// UPGRADEv2: rename.
-			err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
-		default:
-			err = sce.WithMessage(sce.ErrScorecardInternal,
-				fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
-		}
-		if err != nil {
-			log.Fatalf("Failed to output results: %v", err)
+			repoRawResult, err := pkg.RunScorecardsRaw(ctx, repoURI, enabledChecks, repoClient)
+			if err != nil {
+				log.Fatal(err)
+			}
+			repoRawResult.Metadata = append(repoRawResult.Metadata, metaData...)
+
+			// Note: Once we have migrated all checks, if the user
+			// does not want raw results, we will call
+			// repoResult := repoRawResult.ApplyScorePolicy()
+			// and re-use the existing code.
+
+			// Sort them by name
+			sort.Slice(repoRawResult.Checks, func(i, j int) bool {
+				return repoRawResult.Checks[i].Name < repoRawResult.Checks[j].Name
+			})
+
+			err = repoRawResult.AsJSON(checkDocs, os.Stdout)
+
+			if err != nil {
+				log.Fatalf("Failed to output results: %v", err)
+			}
+
+		} else {
+			repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient)
+			if err != nil {
+				log.Fatal(err)
+			}
+			repoResult.Metadata = append(repoResult.Metadata, metaData...)
+
+			// Sort them by name
+			sort.Slice(repoResult.Checks, func(i, j int) bool {
+				return repoResult.Checks[i].Name < repoResult.Checks[j].Name
+			})
+
+			if format == formatDefault {
+				for checkName := range enabledChecks {
+					fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
+				}
+				fmt.Println("\nRESULTS\n-------")
+			}
+
+			switch format {
+			case formatDefault:
+				err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
+			case formatSarif:
+				// TODO: support config files and update checker.MaxResultScore.
+				err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy)
+			case formatJSON:
+				// UPGRADEv2: rename.
+				err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
+			default:
+				err = sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
+			}
+			if err != nil {
+				log.Fatalf("Failed to output results: %v", err)
+			}
 		}
 	},
 }
@@ -538,4 +580,10 @@ func init() {
 	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
 	rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
+
+	var v6 bool
+	_, v6 = os.LookupEnv("SCORECARD_V6")
+	if v6 {
+		rootCmd.Flags().BoolVar(&raw, "raw", false, "generate raw results")
+	}
 }

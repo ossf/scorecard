@@ -37,6 +37,7 @@ func runEnabledChecks(ctx context.Context,
 		OssFuzzRepo: ossFuzzRepoClient,
 		CIIClient:   ciiClient,
 		Repo:        repo,
+		Raw:         raw,
 	}
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {

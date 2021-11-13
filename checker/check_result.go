@@ -118,6 +118,11 @@ type CheckResult struct {
 	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
 	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
+
+	// UPGRADEv6
+	// Stores raw data results in arbitrary format.
+	// We re-use Error2 and Version.
+	RawResults interface{}
 }
 
 // CreateProportionalScore creates a proportional score.
@@ -248,5 +253,16 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Error2:  e,
 		Score:   InconclusiveResultScore,
 		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
+	}
+}
+
+// CreateRawResults creates raw results.
+// UPGRADEv6.
+func CreateRawResults(name string, r interface{}) CheckResult {
+	return CheckResult{
+		Name:       name,
+		Version:    6,
+		Error2:     nil,
+		RawResults: r,
 	}
 }

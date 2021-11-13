@@ -12,20 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package pkg
 
 import (
-	"context"
+	"time"
 
-	"github.com/ossf/scorecard/v3/clients"
+	"github.com/ossf/scorecard/v3/checker"
 )
 
-// CheckRequest struct encapsulates all data to be passed into a CheckFn.
-type CheckRequest struct {
-	Ctx        context.Context
-	RepoClient clients.RepoClient
-	Dlogger    DetailLogger
-	Repo       clients.Repo
-	// UPGRADEv6: return raw results instead of scores.
-	Raw bool
+// ScorecardRawResult struct is returned on a successful Scorecard run.
+type ScorecardRawResult struct {
+	Repo      RepoInfo
+	Date      time.Time
+	Scorecard ScorecardInfo
+	Checks    []checker.CheckResult
+	Metadata  []string
 }

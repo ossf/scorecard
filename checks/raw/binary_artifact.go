@@ -22,8 +22,8 @@ import (
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
 
-	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks/fileparser"
+	"github.com/ossf/scorecard/v3/clients"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
@@ -40,11 +40,11 @@ type BinaryArtifactData struct {
 }
 
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
-func BinaryArtifacts(c *checker.CheckRequest) (BinaryArtifactData, error) {
+func BinaryArtifacts(c clients.RepoClient) (BinaryArtifactData, error) {
 	var files []File
-	err := fileparser.CheckFilesContentV6("*", false, c.RepoClient, checkBinaryFileContent, &files)
+	err := fileparser.CheckFilesContentV6("*", false, c, checkBinaryFileContent, &files)
 	if err != nil {
-		return BinaryArtifactData{}, err
+		return BinaryArtifactData{}, fmt.Errorf("%w", err)
 	}
 
 	// No error, return the files.
