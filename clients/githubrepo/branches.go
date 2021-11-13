@@ -31,15 +31,53 @@ const (
 	refPrefix     = "refs/heads/"
 )
 
-// type refUpdateRule struct {
-// 	AllowsDeletions              *bool
-// 	AllowsForcePushes            *bool
-// 	RequiredApprovingReviewCount *int32
-// 	RequiresCodeOwnerReviews     *bool
-// 	RequiresLinearHistory        *bool
-// 	RequiredStatusCheckContexts  []string
-// }
+// See https://github.community/t/graphql-api-protected-branch/14380
+/* Example of query:
+	query {
+  repository(owner: "laurentsimon", name: "test3") {
+    branchProtectionRules(first: 100) {
+      nodes {
+        pushAllowances (first:10){
+          edges {
+            node {
+              id
+            }
+          }
+        }
+        allowsDeletions
+        allowsForcePushes
+        dismissesStaleReviews
+        isAdminEnforced
+        requiresApprovingReviews
+        requiredApprovingReviewCount
+        requiresStatusChecks
+        requiresStrictStatusChecks
+        restrictsPushes
+        branchProtectionRuleConflicts(first:3) {
+          __typename
+          nodes {
+            __typename
+          }
+        }
+        pattern
+        matchingRefs(first: 100) {
+          nodes {
+            name
 
+          }
+        }
+      }
+    }
+	// I don't think `refs` is needed. The query qorks without it.
+    refs(first: 100, refPrefix: "refs/heads/") {
+      nodes {
+        name
+        __typename
+      }
+    }
+  }
+}
+*/
 type branchProtectionRule struct {
 	DismissesStaleReviews        *bool
 	IsAdminEnforced              *bool
@@ -50,13 +88,12 @@ type branchProtectionRule struct {
 	RequiresCodeOwnerReviews     *bool
 	RequiresLinearHistory        *bool
 	RequiredStatusCheckContexts  []string
-	// TODO
+	// TODO: verify there is no conflicts.
 	// BranchProtectionRuleConflicts interface{}
 }
 
 type branch struct {
-	Name *string
-	// RefUpdateRule        *refUpdateRule
+	Name                 *string
 	BranchProtectionRule *branchProtectionRule
 }
 
