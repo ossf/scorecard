@@ -141,8 +141,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						RequiredStatusChecks: clients.StatusChecksRule{
-							Strict:   &falseVal,
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							UpToDate: falseVal,
 							Contexts: nil,
 						},
 						RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -174,8 +174,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						RequiredStatusChecks: clients.StatusChecksRule{
-							Strict:   &trueVal,
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							UpToDate: trueVal,
 							Contexts: []string{"foo"},
 						},
 						RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -193,8 +193,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &rel1,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						RequiredStatusChecks: clients.StatusChecksRule{
-							Strict:   &falseVal,
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							UpToDate: falseVal,
 							Contexts: nil,
 						},
 						RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -226,8 +226,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						RequiredStatusChecks: clients.StatusChecksRule{
-							Strict:   &trueVal,
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							UpToDate: trueVal,
 							Contexts: []string{"foo"},
 						},
 						RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -245,8 +245,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &rel1,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						RequiredStatusChecks: clients.StatusChecksRule{
-							Strict:   &trueVal,
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							UpToDate: trueVal,
 							Contexts: []string{"foo"},
 						},
 						RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -279,8 +279,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						RequiredStatusChecks: clients.StatusChecksRule{
-							Strict:   &falseVal,
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							UpToDate: falseVal,
 							Contexts: nil,
 						},
 						RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -315,8 +315,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						RequiredStatusChecks: clients.StatusChecksRule{
-							Strict:   &falseVal,
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							UpToDate: falseVal,
 							Contexts: nil,
 						},
 						RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -350,8 +350,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						RequiredStatusChecks: clients.StatusChecksRule{
-							Strict:   &trueVal,
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							UpToDate: trueVal,
 							Contexts: []string{"foo"},
 						},
 					},
@@ -360,8 +360,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &rel1,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						RequiredStatusChecks: clients.StatusChecksRule{
-							Strict:   &trueVal,
+						RequiredStatusChecks: &clients.StatusChecksRule{
+							UpToDate: trueVal,
 							Contexts: []string{"foo"},
 						},
 					},
@@ -434,8 +434,8 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			protection: &clients.BranchProtectionRule{
-				RequiredStatusChecks: clients.StatusChecksRule{
-					Strict:   &falseVal,
+				RequiredStatusChecks: &clients.StatusChecksRule{
+					UpToDate: falseVal,
 					Contexts: nil,
 				},
 				RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -470,8 +470,8 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			protection: &clients.BranchProtectionRule{
-				RequiredStatusChecks: clients.StatusChecksRule{
-					Strict:   &trueVal,
+				RequiredStatusChecks: &clients.StatusChecksRule{
+					UpToDate: trueVal,
 					Contexts: []string{"foo"},
 				},
 				RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -495,8 +495,8 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			protection: &clients.BranchProtectionRule{
-				RequiredStatusChecks: clients.StatusChecksRule{
-					Strict:   &trueVal,
+				RequiredStatusChecks: &clients.StatusChecksRule{
+					UpToDate: trueVal,
 					Contexts: nil,
 				},
 				RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -520,8 +520,8 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			protection: &clients.BranchProtectionRule{
-				RequiredStatusChecks: clients.StatusChecksRule{
-					Strict:   &falseVal,
+				RequiredStatusChecks: &clients.StatusChecksRule{
+					UpToDate: falseVal,
 					Contexts: []string{"foo"},
 				},
 				RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -545,8 +545,8 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			protection: &clients.BranchProtectionRule{
-				RequiredStatusChecks: clients.StatusChecksRule{
-					Strict:   &falseVal,
+				RequiredStatusChecks: &clients.StatusChecksRule{
+					UpToDate: falseVal,
 					Contexts: []string{"foo"},
 				},
 				RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -570,8 +570,8 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			protection: &clients.BranchProtectionRule{
-				RequiredStatusChecks: clients.StatusChecksRule{
-					Strict:   &falseVal,
+				RequiredStatusChecks: &clients.StatusChecksRule{
+					UpToDate: falseVal,
 					Contexts: []string{"foo"},
 				},
 				RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -595,8 +595,8 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			protection: &clients.BranchProtectionRule{
-				RequiredStatusChecks: clients.StatusChecksRule{
-					Strict:   &falseVal,
+				RequiredStatusChecks: &clients.StatusChecksRule{
+					UpToDate: falseVal,
 					Contexts: []string{"foo"},
 				},
 				RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -620,8 +620,8 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			protection: &clients.BranchProtectionRule{
-				RequiredStatusChecks: clients.StatusChecksRule{
-					Strict:   &falseVal,
+				RequiredStatusChecks: &clients.StatusChecksRule{
+					UpToDate: falseVal,
 					Contexts: []string{"foo"},
 				},
 				RequiredPullRequestReviews: clients.PullRequestReviewRule{
@@ -645,8 +645,8 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			protection: &clients.BranchProtectionRule{
-				RequiredStatusChecks: clients.StatusChecksRule{
-					Strict:   &trueVal,
+				RequiredStatusChecks: &clients.StatusChecksRule{
+					UpToDate: trueVal,
 					Contexts: []string{"foo"},
 				},
 				RequiredPullRequestReviews: clients.PullRequestReviewRule{
