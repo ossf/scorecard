@@ -1,5 +1,4 @@
 SHELL := /bin/bash
-GOPATH := $(go env GOPATH)
 GINKGO := ginkgo
 GIT_HASH := $(shell git rev-parse HEAD)
 GIT_VERSION ?= $(shell git describe --tags --always --dirty)
