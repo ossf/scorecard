@@ -98,6 +98,13 @@ func checkBinaryFileContent(path string, content []byte,
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("filetype.Get:%v", err))
 	}
 
+	if strings.Contains(strings.ToLower(path), "test") {
+		dl.Debug3(&checker.LogMessage{
+			Text: fmt.Sprintf("%s looks like a test, skipping", path),
+		})
+		return true, nil
+	}
+
 	if _, ok := binaryFileTypes[t.Extension]; ok {
 		dl.Warn3(&checker.LogMessage{
 			Path: path, Type: checker.FileTypeBinary,
