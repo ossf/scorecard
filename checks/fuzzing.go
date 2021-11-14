@@ -71,6 +71,7 @@ func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 		return false, e
 	}
 
+	defer ossFuzzRepoClient.Close()
 	req := clients.SearchRequest{
 		Query:    c.RepoClient.URI(),
 		Filename: "project.yaml",
