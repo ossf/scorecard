@@ -21,7 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/clients"
-	"github.com/ossf/scorecard/v3/clients/mockrepo"
+	mockrepo "github.com/ossf/scorecard/v3/clients/mockclients"
 	sce "github.com/ossf/scorecard/v3/errors"
 	scut "github.com/ossf/scorecard/v3/utests"
 )
