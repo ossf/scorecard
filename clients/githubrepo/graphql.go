@@ -61,14 +61,10 @@ type graphqlData struct {
 				Author struct {
 					Login githubv4.String
 				}
-				Number      githubv4.Int
-				HeadRefOid  githubv4.String
-				MergeCommit struct {
-					Author struct {
-						User struct {
-							Login githubv4.String
-						}
-					}
+				Number     githubv4.Int
+				HeadRefOid githubv4.String
+				MergedBy   struct {
+					Login githubv4.String
 				}
 				MergedAt githubv4.DateTime
 				Labels   struct {
@@ -179,7 +175,7 @@ func pullRequestsFrom(data *graphqlData) []clients.PullRequest {
 			},
 			MergeCommit: clients.Commit{
 				Committer: clients.User{
-					Login: string(pr.MergeCommit.Author.User.Login),
+					Login: string(pr.MergedBy.Login),
 				},
 			},
 		}
