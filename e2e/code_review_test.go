@@ -53,6 +53,7 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 			}
 			result := checks.DoesCodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

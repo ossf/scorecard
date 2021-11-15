@@ -55,6 +55,7 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "active repo", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

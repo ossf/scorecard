@@ -59,6 +59,7 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dependabot", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return repo uses renovatebot", func() {
 			dl := scut.TestDetailLogger{}
@@ -88,6 +89,7 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "renovabot", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })
