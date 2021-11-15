@@ -196,6 +196,8 @@ func main() {
 	delete(checksToRun, checks.CheckCITests)
 	// TODO: Re-add Contributors check after fixing: #859.
 	delete(checksToRun, checks.CheckContributors)
+	// TODO: Add this in v4
+	delete(checksToRun, checks.CheckDangerousWorkflow)
 	for {
 		req, err := subscriber.SynchronousPull()
 		if err != nil {
