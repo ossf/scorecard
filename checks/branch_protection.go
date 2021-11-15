@@ -45,13 +45,16 @@ var branchProtectionSettingScores = map[branchProtectionSetting]int{
 	allowForcePushes:     1,
 	allowDeletions:       1,
 	requireLinearHistory: 1,
-	enforceAdmins:        3,
+	// Need admin token.
+	enforceAdmins: 0,
 	// GitHub UI: "This setting will not take effect unless at least one status check is enabled".
+	// Need admin token.
 	requireStrictStatusChecks:   0,
 	requireStatusChecksContexts: 1,
 	requireApprovingReviewCount: 2,
 	// This is a big deal to enabled, so let's reward 3 points.
-	dismissStaleReviews:     3,
+	// Need admin token.
+	dismissStaleReviews:     0,
 	requireCodeOwnerReviews: 2,
 }
 
@@ -200,7 +203,8 @@ func checkReleaseAndDevBranchProtection(
 
 // isBranchProtected checks branch protection rules on a Git branch.
 func isBranchProtected(protection *clients.BranchProtectionRule, branch string, dl checker.DetailLogger) int {
-	totalScore := 15
+	// Temporary score calculation that does not account for admin settings.
+	totalScore := 8
 	score := 0
 
 	if protection.AllowForcePushes != nil {
