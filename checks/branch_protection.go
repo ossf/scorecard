@@ -174,6 +174,7 @@ func checkReleaseAndDevBranchProtection(
 			return checker.CreateMinScoreResult(CheckBranchProtection,
 				fmt.Sprintf("branch protection not enabled on development/release branch: %s", b))
 		}
+		// TODO: if Protected==nil, we should not continue.
 		// The branch is protected. Check the protection.
 		score := isBranchProtected(&branch.BranchProtectionRule, b, dl)
 		scores = append(scores, score)
@@ -253,18 +254,22 @@ func isBranchProtected(protection *clients.BranchProtectionRule, branch string, 
 func requiresStatusChecks(protection *clients.BranchProtectionRule, branch string, dl checker.DetailLogger) int {
 	score := 0
 
-	switch protection.RequiredStatusChecks != nil {
+	switch protection.CheckRules.RequiresStatusChecks != nil {
 	case true:
-		dl.Info("status check enabled on branch '%s'", branch)
+		if *protection.CheckRules.RequiresStatusChecks {
+			dl.Info("status check enabled on branch '%s'", branch)
+		} else {
+			dl.Warn("status check disabled on branch '%s'", branch)
+		}
 
-		if protection.RequiredStatusChecks.UpToDate {
+		if protection.CheckRules.UpToDateBeforeMerge != nil &&
+			*protection.CheckRules.UpToDateBeforeMerge {
 			dl.Info("status checks require up-to-date branches for '%s'", branch)
-			score += branchProtectionSettingScores[requireStrictStatusChecks]
 		} else {
 			dl.Warn("status checks do not require up-to-date branches for '%s'", branch)
 		}
 
-		if len(protection.RequiredStatusChecks.Contexts) > 0 {
+		if protection.CheckRules.Contexts != nil && len(protection.CheckRules.Contexts) > 0 {
 			dl.Info("status checks have specific status enabled on branch '%s'", branch)
 			score += branchProtectionSettingScores[requireStatusChecksContexts]
 		} else {
@@ -272,7 +277,7 @@ func requiresStatusChecks(protection *clients.BranchProtectionRule, branch strin
 		}
 
 	case false:
-		dl.Warn("status check disabled on branch '%s'", branch)
+		dl.Debug("unable to retrieve status check for branch '%s'", branch)
 	}
 
 	return score
