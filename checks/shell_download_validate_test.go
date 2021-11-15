@@ -15,7 +15,7 @@
 package checks
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -75,7 +75,7 @@ func TestIsSupportedShellScriptFile(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}

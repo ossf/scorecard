@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package fileparser
 
 import (
-	"context"
-
-	"github.com/ossf/scorecard/v3/clients"
+	"errors"
 )
 
-// CheckRequest struct encapsulates all data to be passed into a CheckFn.
-type CheckRequest struct {
-	Ctx        context.Context
-	RepoClient clients.RepoClient
-	CIIClient  clients.CIIBestPracticesClient
-	Dlogger    DetailLogger
-	Repo       clients.Repo
-}
+var errInvalidGitHubWorkflow = errors.New("invalid GitHub workflow")

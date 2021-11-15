@@ -361,7 +361,7 @@ Fuzzing                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz
 Maintained                  | Is the project maintained?
 Pinned-Dependencies         | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
 Packaging                   | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
-SAST                        | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)?
+SAST                        | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [LGTM](https://lgtm.com), [SonarCloud](https://sonarcloud.io)?
 Security-Policy             | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?
 Signed-Releases             | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?
 Token-Permissions           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?
@@ -407,6 +407,7 @@ meetings.
 | <img width="30px" src="https://github.com/azeemshaikh38.png">    | Azeem Shaik      | Google  | [azeemshaikh38](https://github.com/azeemshaikh38)  |
 | <img width="30px" src="https://github.com/laurentsimon.png">     | Laurent Simon    | Google  | [laurentsimon](https://github.com/laurentsimon)    |
 | <img width="30px" src="https://github.com/naveensrinivasan.png"> | Naveen Srinivasan|         | [naveensrinivasan](https://github.com/naveensrinivasan)          |
+| <img width="30px" src="https://github.com/chrismcgehee.png">     | Chris McGehee    | Datto   | [chrismcgehee](https://github.com/chrismcgehee)   |
 
 
 ### Report a Security Issue

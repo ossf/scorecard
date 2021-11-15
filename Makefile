@@ -1,11 +1,11 @@
 SHELL := /bin/bash
-GOPATH := $(go env GOPATH)
 GINKGO := ginkgo
 GIT_HASH := $(shell git rev-parse HEAD)
 GIT_VERSION ?= $(shell git describe --tags --always --dirty)
 SOURCE_DATE_EPOCH=$(shell git log --date=iso8601-strict -1 --pretty=%ct)
 GOLANGGCI_LINT := golangci-lint
 PROTOC_GEN_GO := protoc-gen-go
+MOCKGEN := mockgen
 PROTOC := $(shell which protoc)
 IMAGE_NAME = scorecard
 OUTPUT = output
@@ -47,7 +47,7 @@ $(PROTOC):
 
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = update-dependencies build check-linter check-osv unit-test add-projects validate-projects tree-status 
+all-targets = update-dependencies build check-linter check-osv unit-test validate-docs add-projects validate-projects tree-status 
 .PHONY: all $(all-targets)
 all: $(all-targets)
 
@@ -96,27 +96,39 @@ tree-status: ## Verify tree is clean and all changes are committed
 build-cron: build-pubsub build-bq-transfer build-github-server build-webhook build-add-script \
 	  build-validate-script build-update-script
 
-build-targets = generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
+build-targets = generate-mocks generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
 
 build-proto: ## Compiles and generates all required protobufs
-build-proto: cron/data/request.pb.go cron/data/metadata.pb.go clients/branch.pb.go
+build-proto: cron/data/request.pb.go cron/data/metadata.pb.go
 cron/data/request.pb.go: cron/data/request.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/request.proto
 cron/data/metadata.pb.go: cron/data/metadata.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/metadata.proto
-clients/branch.pb.go: clients/branch.proto | $(PROTOC)
-	protoc --go_out=../../../ clients/branch.proto
+
+generate-mocks: ## Compiles and generates all mocks using mockgen.
+generate-mocks: clients/mockclients/repo_client.go clients/mockclients/repo.go clients/mockclients/cii_client.go
+clients/mockclients/repo_client.go: clients/repo_client.go
+	# Generating MockRepoClient
+	$(MOCKGEN) -source=clients/repo_client.go -destination=clients/mockclients/repo_client.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
+clients/mockclients/repo.go: clients/repo.go
+	# Generating MockRepo
+	$(MOCKGEN) -source=clients/repo.go -destination=clients/mockclients/repo.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
+clients/mockclients/cii_client.go: clients/cii_client.go
+	# Generating MockCIIClient
+	$(MOCKGEN) -source=clients/cii_client.go -destination=clients/mockclients/cii_client.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
 
 generate-docs: ## Generates docs
-generate-docs: docs/checks.md
+generate-docs: validate-docs docs/checks.md
 docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
-	# Validating checks.yaml
-	go run ./docs/checks/internal/validate/main.go
 	# Generating checks.md
 	go run ./docs/checks/internal/generate/main.go docs/checks.md
+
+validate-docs: docs/checks/internal/generate/main.go
+	# Validating checks.yaml
+	go run ./docs/checks/internal/validate/main.go
 
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable

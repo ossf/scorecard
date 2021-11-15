@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/clients"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
@@ -49,10 +48,10 @@ func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 	return match, nil
 }
 
-func isScorecardTestFile(repo clients.Repo, fullpath string) bool {
+func isTestdataFile(fullpath string) bool {
 	// testdata/ or /some/dir/testdata/some/other
-	return repo.IsScorecardRepo() && (strings.HasPrefix(fullpath, "testdata/") ||
-		strings.Contains(fullpath, "/testdata/"))
+	return strings.HasPrefix(fullpath, "testdata/") ||
+		strings.Contains(fullpath, "/testdata/")
 }
 
 // FileCbData is any data the caller can act upon
@@ -78,8 +77,8 @@ func CheckFilesContent(shellPathFnPattern string,
 	data FileCbData,
 ) error {
 	predicate := func(filepath string) (bool, error) {
-		// Filter out Scorecard's own test files.
-		if isScorecardTestFile(c.Repo, filepath) {
+		// Filter out test files.
+		if isTestdataFile(filepath) {
 			return false, nil
 		}
 		// Filter out files based on path/names using the pattern.

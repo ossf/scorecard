@@ -31,6 +31,7 @@ type RepoClient interface {
 	ListBranches() ([]*BranchRef, error)
 	GetDefaultBranch() (*BranchRef, error)
 	ListCommits() ([]Commit, error)
+	ListIssues() ([]Issue, error)
 	ListReleases() ([]Release, error)
 	ListContributors() ([]Contributor, error)
 	ListSuccessfulWorkflowRuns(filename string) ([]WorkflowRun, error)

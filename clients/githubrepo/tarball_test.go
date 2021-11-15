@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -44,11 +43,11 @@ func isSortedString(x, y string) bool {
 }
 
 func setup(inputFile string) (tarballHandler, error) {
-	tempDir, err := ioutil.TempDir("", repoDir)
+	tempDir, err := os.MkdirTemp("", repoDir)
 	if err != nil {
 		return tarballHandler{}, fmt.Errorf("test failed to create TempDir: %w", err)
 	}
-	tempFile, err := ioutil.TempFile(tempDir, repoFilename)
+	tempFile, err := os.CreateTemp(tempDir, repoFilename)
 	if err != nil {
 		return tarballHandler{}, fmt.Errorf("test failed to create TempFile: %w", err)
 	}

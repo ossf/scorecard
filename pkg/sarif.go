@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 
@@ -93,7 +94,11 @@ type help struct {
 }
 
 type rule struct {
-	ID            string        `json:"id"`
+	// ID should be an opaque, stable ID.
+	// TODO: check if GitHub follows this.
+	// Last time I tried, it used ID to display to users.
+	ID string `json:"id"`
+	// Name must be readable by human.
 	Name          string        `json:"name"`
 	HelpURI       string        `json:"helpUri"`
 	ShortDesc     text          `json:"shortDescription"`
@@ -107,7 +112,7 @@ type driver struct {
 	Name           string `json:"name"`
 	InformationURI string `json:"informationUri"`
 	SemVersion     string `json:"semanticVersion"`
-	Rules          []rule `json:"rules"`
+	Rules          []rule `json:"rules,omitempty"`
 }
 
 type tool struct {
@@ -137,8 +142,9 @@ type run struct {
 	Tool              tool              `json:"tool"`
 	// For generated files during analysis. We leave this blank.
 	// See https://github.com/microsoft/sarif-tutorials/blob/main/docs/1-Introduction.md#simple-example.
-	Artifacts string   `json:"artifacts,omitempty"`
-	Results   []result `json:"results"`
+	Artifacts string `json:"artifacts,omitempty"`
+	// This MUST never be omitted or set as `nil`.
+	Results []result `json:"results"`
 }
 
 type sarif210 struct {
@@ -331,29 +337,48 @@ func addDefaultLocation(locs []location, policyFile string) []location {
 	return locs
 }
 
-func createSARIFHeader(url, category, name, version, commit string, t time.Time) sarif210 {
+func createSARIFHeader() sarif210 {
 	return sarif210{
 		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
 		Version: "2.1.0",
-		Runs: []run{
-			{
-				Tool: tool{
-					Driver: driver{
-						Name:           strings.Title(name),
-						InformationURI: url,
-						SemVersion:     version,
-						Rules:          nil,
-					},
-				},
-				//nolint
-				// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
-				AutomationDetails: automationDetails{
-					// Time formatting: https://pkg.go.dev/time#pkg-constants.
-					ID: fmt.Sprintf("%s/%s/%s", category, name, fmt.Sprintf("%s-%s", commit, t.Format(time.RFC822Z))),
-				},
-			},
+		Runs:    []run{},
+	}
+}
+
+func createSARIFTool(url, name, version string) tool {
+	return tool{
+		Driver: driver{
+			Name:           strings.Title(name),
+			InformationURI: url,
+			SemVersion:     version,
+			Rules:          nil,
 		},
 	}
+}
+
+func createSARIFRun(uri, toolName, version, commit string, t time.Time,
+	category, runName string) run {
+	return run{
+		Tool:    createSARIFTool(uri, toolName, version),
+		Results: []result{},
+		//nolint
+		// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
+		AutomationDetails: automationDetails{
+			// Time formatting: https://pkg.go.dev/time#pkg-constants.
+			ID: fmt.Sprintf("%s/%s/%s", category, runName, fmt.Sprintf("%s-%s", commit, t.Format(time.RFC822Z))),
+		},
+	}
+}
+
+func getOrCreateSARIFRun(runs map[string]*run, runName string,
+	uri, toolName, version, commit string, t time.Time,
+	category string) *run {
+	if prun, exists := runs[runName]; exists {
+		return prun
+	}
+	run := createSARIFRun(uri, toolName, version, commit, t, category, runName)
+	runs[runName] = &run
+	return &run
 }
 
 func generateRemediationMarkdown(remediation []string) string {
@@ -414,13 +439,54 @@ func getCheckPolicyInfo(policy *spol.ScorecardPolicy, name string) (minScore int
 	policies := policy.GetPolicies()
 	if _, exists := policies[name]; !exists {
 		return 0, false,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Missing policy for check: %s", name))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("missing policy for check: %s", name))
 	}
 	cp := policies[name]
 	if cp.GetMode() == spol.CheckPolicy_DISABLED {
 		return 0, false, nil
 	}
 	return int(cp.GetScore()), true, nil
+}
+
+func contains(l []string, elt string) bool {
+	for _, v := range l {
+		if v == elt {
+			return true
+		}
+	}
+	return false
+}
+
+func computeCategory(repos []string) (string, error) {
+	// In terms of sets, local < Git-local < GitHub.
+	switch {
+	default:
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("repo types not supported: %v", repos))
+	case contains(repos, "local"):
+		return "local", nil
+	// Note: Git-local is not supported by any checks yet.
+	case contains(repos, "Git-local"):
+		return "local-scm", nil
+	case contains(repos, "GitHub"),
+		contains(repos, "GitLab"):
+		return "online-scm", nil
+	}
+}
+
+func createSARIFRuns(runs map[string]*run) []run {
+	res := []run{}
+	// Sort keys.
+	keys := make([]string, 0)
+	for k := range runs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	// Iterate over keys.
+	for _, k := range keys {
+		res = append(res, *runs[k])
+	}
+	return res
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
@@ -432,18 +498,38 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	// We only support GitHub-supported properties:
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
 	// https://github.com/microsoft/sarif-tutorials.
-	sarif := createSARIFHeader("https://github.com/ossf/scorecard",
-		"supply-chain", "scorecard", r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date)
-	results := []result{}
-	rules := []rule{}
+	sarif := createSARIFHeader()
+	runs := make(map[string]*run)
 
 	// nolint
-	for i, check := range r.Checks {
-		doc, e := checkDocs.GetCheck(check.Name)
-		if e != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", e, check.Name))
+	for _, check := range r.Checks {
+		doc, err := checkDocs.GetCheck(check.Name)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", err, check.Name))
 		}
 
+		// We need to create a run entry even if the check is disabled or the policy is satisfied.
+		// The reason is the following: if a check has findings and is later fixed by a user,
+		// the absence of run for the check will indicate that the check was *not* run,
+		// so GitHub would keep the findings in the dahsboard. We don't want that.
+		category, err := computeCategory(doc.GetSupportedRepoTypes())
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("computeCategory: %v: %s", err, check.Name))
+		}
+		run := getOrCreateSARIFRun(runs, category, "https://github.com/ossf/scorecard", "scorecard",
+			r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date, "supply-chain")
+
+		// Always add rules to indicate which checks were run.
+		// We don't have so many rules, so this should not clobber the output too much.
+		// See https://github.com/github/codeql-action/issues/810.
+		checkID := check.Name
+		rule := createSARIFRule(check.Name, checkID,
+			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
+			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
+			doc.GetRemediation(), doc.GetTags())
+		run.Tool.Driver.Rules = append(run.Tool.Driver.Rules, rule)
+
+		// Check the policy configuration.
 		minScore, enabled, err := getCheckPolicyInfo(policy, check.Name)
 		if err != nil {
 			return err
@@ -466,38 +552,30 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// location. Then in the next run, the result would occur on a different line, the computed fingerprint
 		// would change, and the result management system would erroneously report it as a new result."
 
-		// Set the check ID.
-		checkID := check.Name
-
-		// Create a header's rule.
-		rule := createSARIFRule(check.Name, checkID,
-			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
-			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
-			doc.GetRemediation(), doc.GetTags())
-		rules = append(rules, rule)
-
 		// Create locations.
 		locs := detailsToLocations(check.Details2, showDetails, minScore, check.Score)
 
 		// Add default location if no locations are present.
 		// Note: GitHub needs at least one location to show the results.
+		// RuleIndex is the position of the corresponding rule in `run.Tool.Driver.Rules`,
+		// so it's the last position for us.
+		RuleIndex := len(run.Tool.Driver.Rules) - 1
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs, policyFile)
 			// Use the `reason` as message.
-			r := createSARIFCheckResult(i, checkID, check.Reason, &locs[0])
-			results = append(results, r)
+			cr := createSARIFCheckResult(RuleIndex, checkID, check.Reason, &locs[0])
+			run.Results = append(run.Results, cr)
 		} else {
 			for _, loc := range locs {
 				// Use the location's message (check's detail's message) as message.
-				r := createSARIFCheckResult(i, checkID, loc.Message.Text, &loc)
-				results = append(results, r)
+				cr := createSARIFCheckResult(RuleIndex, checkID, loc.Message.Text, &loc)
+				run.Results = append(run.Results, cr)
 			}
 		}
 	}
 
-	// Set the results and rules to sarif.
-	sarif.Runs[0].Tool.Driver.Rules = rules
-	sarif.Runs[0].Results = results
+	// Set the sarif's runs.
+	sarif.Runs = createSARIFRuns(runs)
 
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "   ")

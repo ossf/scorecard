@@ -154,9 +154,10 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 		// Populate checks to run with policy file.
 		for checkName := range sp.GetPolicies() {
 			if !isSupportedCheck(supportedChecks, checkName) {
-				return enabledChecks,
-					sce.WithMessage(sce.ErrScorecardInternal,
-						fmt.Sprintf("repo type %s: unsupported check: %s", repoType, checkName))
+				// We silently ignore the check, like we do
+				// for the default case when no argsChecks
+				// or policy are present.
+				continue
 			}
 
 			if !enableCheck(checkName, &enabledChecks) {
@@ -304,6 +305,8 @@ var rootCmd = &cobra.Command{
 		}
 		defer repoClient.Close()
 
+		ciiClient := clients.DefaultCIIBestPracticesClient()
+
 		// Read docs.
 		checkDocs, err := docs.Read()
 		if err != nil {
@@ -325,7 +328,7 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
-		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient)
+		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient, ciiClient)
 		if err != nil {
 			log.Fatal(err)
 		}

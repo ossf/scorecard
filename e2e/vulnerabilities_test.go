@@ -56,6 +56,7 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "no osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 
 		It("Should return that there are vulnerabilities", func() {
@@ -86,6 +87,7 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

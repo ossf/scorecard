@@ -23,16 +23,10 @@ import (
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-// States for which CI system is in use.
-type ciSystemState int
-
 const (
 	// CheckCITests is the registered name for CITests.
-	CheckCITests               = "CI-Tests"
-	success                    = "success"
-	unknown      ciSystemState = iota
-	githubStatuses
-	githubCheckRuns
+	CheckCITests = "CI-Tests"
+	success      = "success"
 )
 
 //nolint:gochecknoinits
@@ -48,7 +42,6 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckCITests, e)
 	}
 
-	usedSystem := unknown
 	totalMerged := 0
 	totalTested := 0
 	for index := range prs {
@@ -61,30 +54,24 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		var foundCI bool
 
 		// Github Statuses.
-		if usedSystem != githubCheckRuns {
-			prSuccessStatus, err := prHasSuccessStatus(pr, c)
-			if err != nil {
-				return checker.CreateRuntimeErrorResult(CheckCITests, err)
-			}
-			if prSuccessStatus {
-				totalTested++
-				foundCI = true
-				usedSystem = githubStatuses
-				continue
-			}
+		prSuccessStatus, err := prHasSuccessStatus(pr, c)
+		if err != nil {
+			return checker.CreateRuntimeErrorResult(CheckCITests, err)
+		}
+		if prSuccessStatus {
+			totalTested++
+			foundCI = true
+			continue
 		}
 
 		// Github Check Runs.
-		if usedSystem != githubStatuses {
-			prCheckSuccessful, err := prHasSuccessfulCheck(pr, c)
-			if err != nil {
-				return checker.CreateRuntimeErrorResult(CheckCITests, err)
-			}
-			if prCheckSuccessful {
-				totalTested++
-				foundCI = true
-				usedSystem = githubCheckRuns
-			}
+		prCheckSuccessful, err := prHasSuccessfulCheck(pr, c)
+		if err != nil {
+			return checker.CreateRuntimeErrorResult(CheckCITests, err)
+		}
+		if prCheckSuccessful {
+			totalTested++
+			foundCI = true
 		}
 
 		if !foundCI {

@@ -15,7 +15,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -43,6 +43,7 @@ var (
 		"ListBranches":               {"GitHub"},
 		"GetDefaultBranch":           {"GitHub"},
 		"ListCommits":                {"GitHub"},
+		"ListIssues":                 {"GitHub"},
 		"ListReleases":               {"GitHub"},
 		"ListContributors":           {"GitHub"},
 		"ListSuccessfulWorkflowRuns": {"GitHub"},
@@ -53,15 +54,15 @@ var (
 	}
 )
 
-// Indentify the source file that declares each check.
+// Identify the source file that declares each check.
 func listCheckFiles() (map[string]string, error) {
 	checkFiles := make(map[string]string)
 	// Use regex to determine the file that contains the entry point.
 	// We're looking for `const someVarName = "CheckName"`.
 	regex := regexp.MustCompile(`const\s+[^"]*=\s+"(.*)"`)
-	files, err := ioutil.ReadDir("checks/")
+	files, err := os.ReadDir("checks/")
 	if err != nil {
-		return nil, fmt.Errorf("ioutil.ReadDir: %w", err)
+		return nil, fmt.Errorf("os.ReadDir: %w", err)
 	}
 
 	for _, file := range files {
@@ -70,9 +71,9 @@ func listCheckFiles() (map[string]string, error) {
 		}
 
 		fullpath := path.Join("checks/", file.Name())
-		content, err := ioutil.ReadFile(fullpath)
+		content, err := os.ReadFile(fullpath)
 		if err != nil {
-			return nil, fmt.Errorf("ioutil.ReadFile: %s: %w", fullpath, err)
+			return nil, fmt.Errorf("os.ReadFile: %s: %w", fullpath, err)
 		}
 
 		res := regex.FindStringSubmatch(string(content))
@@ -94,9 +95,9 @@ func listCheckFiles() (map[string]string, error) {
 func extractAPINames() ([]string, error) {
 	fns := []string{}
 	interfaceRe := regexp.MustCompile(`type\s+RepoClient\s+interface\s+{\s*`)
-	content, err := ioutil.ReadFile("clients/repo_client.go")
+	content, err := os.ReadFile("clients/repo_client.go")
 	if err != nil {
-		return nil, fmt.Errorf("ioutil.ReadFile: %s: %w", "clients/repo_client.go", err)
+		return nil, fmt.Errorf("os.ReadFile: %s: %w", "clients/repo_client.go", err)
 	}
 
 	locs := interfaceRe.FindIndex(content)
@@ -152,9 +153,9 @@ func supportedInterfacesFromImplementation(checkName string, checkFiles map[stri
 		return nil, fmt.Errorf("check %s does not exists", checkName)
 	}
 
-	content, err := ioutil.ReadFile(pathfn)
+	content, err := os.ReadFile(pathfn)
 	if err != nil {
-		return nil, fmt.Errorf("ioutil.ReadFile: %s: %w", pathfn, err)
+		return nil, fmt.Errorf("os.ReadFile: %s: %w", pathfn, err)
 	}
 
 	// For each API, check if it's used or not.

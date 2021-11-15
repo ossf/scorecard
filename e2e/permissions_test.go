@@ -55,6 +55,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

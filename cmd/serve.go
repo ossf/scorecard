@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard/v3/checks"
+	"github.com/ossf/scorecard/v3/clients"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
 	"github.com/ossf/scorecard/v3/pkg"
 )
@@ -64,7 +65,8 @@ var serveCmd = &cobra.Command{
 			}
 			ctx := r.Context()
 			repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient)
+			ciiClient := clients.DefaultCIIBestPracticesClient()
+			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient, ciiClient)
 			if err != nil {
 				sugar.Error(err)
 				rw.WriteHeader(http.StatusInternalServerError)

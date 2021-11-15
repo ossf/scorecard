@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -115,13 +114,13 @@ func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repo
 	}
 
 	// Create a temp file. This automatically appends a random number to the name.
-	tempDir, err := ioutil.TempDir("", repoDir)
+	tempDir, err := os.MkdirTemp("", repoDir)
 	if err != nil {
-		return fmt.Errorf("ioutil.TempDir: %w", err)
+		return fmt.Errorf("os.MkdirTemp: %w", err)
 	}
-	repoFile, err := ioutil.TempFile(tempDir, repoFilename)
+	repoFile, err := os.CreateTemp(tempDir, repoFilename)
 	if err != nil {
-		return fmt.Errorf("ioutil.TempFile: %w", err)
+		return fmt.Errorf("os.CreateTemp: %w", err)
 	}
 	defer repoFile.Close()
 	if _, err := io.Copy(repoFile, resp.Body); err != nil {
@@ -220,9 +219,9 @@ func (handler *tarballHandler) listFiles(predicate func(string) (bool, error)) (
 }
 
 func (handler *tarballHandler) getFileContent(filename string) ([]byte, error) {
-	content, err := ioutil.ReadFile(filepath.Join(handler.tempDir, filename))
+	content, err := os.ReadFile(filepath.Join(handler.tempDir, filename))
 	if err != nil {
-		return content, fmt.Errorf("ioutil.ReadFile: %w", err)
+		return content, fmt.Errorf("os.ReadFile: %w", err)
 	}
 	return content, nil
 }

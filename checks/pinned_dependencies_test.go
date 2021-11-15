@@ -15,12 +15,9 @@
 package checks
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
-	"gopkg.in/yaml.v3"
 
 	"github.com/ossf/scorecard/v3/checker"
 	scut "github.com/ossf/scorecard/v3/utests"
@@ -108,7 +105,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			var content []byte
 			var err error
 
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -199,7 +196,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					t.Errorf("cannot read file: %v", err)
 				}
@@ -244,7 +241,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			var content []byte
 			var err error
 
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -368,7 +365,7 @@ func TestDockerfilePinning(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					t.Errorf("cannot read file: %v", err)
 				}
@@ -412,7 +409,7 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 			var content []byte
 			var err error
 
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -597,7 +594,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					t.Errorf("cannot read file: %v", err)
 				}
@@ -641,7 +638,7 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 			var content []byte
 			var err error
 
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -750,7 +747,7 @@ func TestShellScriptDownload(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					t.Errorf("cannot read file: %v", err)
 				}
@@ -805,7 +802,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 			var content []byte
 			var err error
 
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -882,7 +879,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					t.Errorf("cannot read file: %v", err)
 				}
@@ -936,7 +933,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 				},
 				{
 					dependency: "docker/build-push-action@1.2.3",
-					lineNumber: 26,
+					lineNumber: 24,
 				},
 			},
 		},
@@ -945,7 +942,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			content, err := ioutil.ReadFile(tt.filename)
+			content, err := os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -964,121 +961,6 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
 					t.Errorf("test failed: log message not present: %+v", tt.expected)
 				}
-			}
-		})
-	}
-}
-
-func TestGitHubWorkflowShell(t *testing.T) {
-	t.Parallel()
-
-	repeatItem := func(item string, count int) []string {
-		ret := make([]string, 0, count)
-		for i := 0; i < count; i++ {
-			ret = append(ret, item)
-		}
-		return ret
-	}
-
-	tests := []struct {
-		name     string
-		filename string
-		// The shells used in each step, listed in order that the steps are listed in the file
-		expectedShells []string
-	}{
-		{
-			name:           "all windows, shell specified in step",
-			filename:       "testdata/github-workflow-shells-all-windows-bash.yaml",
-			expectedShells: []string{"bash"},
-		},
-		{
-			name:           "all windows, OSes listed in matrix.os",
-			filename:       "testdata/github-workflow-shells-all-windows-matrix.yaml",
-			expectedShells: []string{"pwsh"},
-		},
-		{
-			name:           "all windows",
-			filename:       "testdata/github-workflow-shells-all-windows.yaml",
-			expectedShells: []string{"pwsh"},
-		},
-		{
-			name:           "macOS defaults to bash",
-			filename:       "testdata/github-workflow-shells-default-macos.yaml",
-			expectedShells: []string{"bash"},
-		},
-		{
-			name:           "ubuntu defaults to bash",
-			filename:       "testdata/github-workflow-shells-default-ubuntu.yaml",
-			expectedShells: []string{"bash"},
-		},
-		{
-			name:           "windows defaults to pwsh",
-			filename:       "testdata/github-workflow-shells-default-windows.yaml",
-			expectedShells: []string{"pwsh"},
-		},
-		{
-			name:           "windows specified in 'if'",
-			filename:       "testdata/github-workflow-shells-runner-windows-ubuntu.yaml",
-			expectedShells: append(repeatItem("pwsh", 7), repeatItem("bash", 4)...),
-		},
-		{
-			name:           "shell specified in job and step",
-			filename:       "testdata/github-workflow-shells-specified-job-step.yaml",
-			expectedShells: []string{"bash"},
-		},
-		{
-			name:           "windows, shell specified in job",
-			filename:       "testdata/github-workflow-shells-specified-job-windows.yaml",
-			expectedShells: []string{"bash"},
-		},
-		{
-			name:           "shell specified in job",
-			filename:       "testdata/github-workflow-shells-specified-job.yaml",
-			expectedShells: []string{"pwsh"},
-		},
-		{
-			name:           "shell specified in step",
-			filename:       "testdata/github-workflow-shells-speficied-step.yaml",
-			expectedShells: []string{"pwsh"},
-		},
-		{
-			name:           "different shells in each step",
-			filename:       "testdata/github-workflow-shells-two-shells.yaml",
-			expectedShells: []string{"bash", "pwsh"},
-		},
-		{
-			name:           "windows step, bash specified",
-			filename:       "testdata/github-workflow-shells-windows-bash.yaml",
-			expectedShells: []string{"bash", "bash"},
-		},
-	}
-	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			content, err := ioutil.ReadFile(tt.filename)
-			if err != nil {
-				t.Errorf("cannot read file: %v", err)
-			}
-			var workflow gitHubActionWorkflowConfig
-			err = yaml.Unmarshal(content, &workflow)
-			if err != nil {
-				t.Errorf("cannot unmarshal file: %v", err)
-			}
-			actualShells := make([]string, 0)
-			for _, job := range workflow.Jobs {
-				job := job
-				for _, step := range job.Steps {
-					step := step
-					shell, err := getShellForStep(&step, &job)
-					if err != nil {
-						t.Errorf("error getting shell: %v", err)
-					}
-					actualShells = append(actualShells, shell)
-				}
-			}
-			if !cmp.Equal(tt.expectedShells, actualShells) {
-				t.Errorf("%v: Got (%v) expected (%v)", tt.name, actualShells, tt.expectedShells)
 			}
 		})
 	}
