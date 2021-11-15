@@ -451,7 +451,8 @@ tools can prevent known classes of bugs from being inadvertently introduced in t
 codebase.
 
 The checks currently looks for known Github apps such as
-[CodeQL](https://codeql.github.com/) (github-code-scanning) and
+[CodeQL](https://codeql.github.com/) (github-code-scanning),
+[LGTM](https://lgtm.com/) and
 [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
 of "github/codeql-action" in a GitHub workflow.
 

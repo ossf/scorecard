@@ -169,8 +169,14 @@ func (client *localDirClient) GetDefaultBranch() (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("GetDefaultBranch: %w", clients.ErrUnsupportedFeature)
 }
 
+// ListCommits implements RepoClient.ListCommits.
 func (client *localDirClient) ListCommits() ([]clients.Commit, error) {
 	return nil, fmt.Errorf("ListCommits: %w", clients.ErrUnsupportedFeature)
+}
+
+// ListIssues implements RepoClient.ListIssues.
+func (client *localDirClient) ListIssues() ([]clients.Issue, error) {
+	return nil, fmt.Errorf("ListIssues: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListReleases implements RepoClient.ListReleases.

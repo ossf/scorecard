@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -459,7 +458,7 @@ func TestJSONOutput(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-			content, err = ioutil.ReadFile(tt.expected)
+			content, err = os.ReadFile(tt.expected)
 			if err != nil {
 				t.Fatalf("cannot read file: %v", err)
 			}

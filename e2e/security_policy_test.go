@@ -55,6 +55,7 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return valid security policy for rust repositories", func() {
 			dl := scut.TestDetailLogger{}
@@ -84,6 +85,7 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

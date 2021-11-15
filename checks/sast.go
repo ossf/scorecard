@@ -25,7 +25,9 @@ import (
 // CheckSAST is the registered name for SAST.
 const CheckSAST = "SAST"
 
-var sastTools = map[string]bool{"github-code-scanning": true, "sonarcloud": true}
+var sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
+
+var allowedConclusions = map[string]bool{"success": true, "neutral": true}
 
 //nolint:gochecknoinits
 func init() {
@@ -132,7 +134,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			if cr.Status != "completed" {
 				continue
 			}
-			if cr.Conclusion != "success" {
+			if !allowedConclusions[cr.Conclusion] {
 				continue
 			}
 			if sastTools[cr.App.Slug] {

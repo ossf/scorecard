@@ -315,6 +315,8 @@ var rootCmd = &cobra.Command{
 		}
 		defer repoClient.Close()
 
+		ciiClient := clients.DefaultCIIBestPracticesClient()
+
 		// Read docs.
 		checkDocs, err := docs.Read()
 		if err != nil {
@@ -336,7 +338,7 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
-		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient)
+		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient, ciiClient)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -24,9 +24,7 @@ import (
 )
 
 const (
-	githubOrgRepo  = ".github"
-	scorecardOwner = "ossf"
-	scorecardRepo  = "scorecard"
+	githubOrgRepo = ".github"
 )
 
 type repoURL struct {
@@ -114,11 +112,6 @@ func (r *repoURL) AppendMetadata(metadata ...string) {
 // Metadata implements Repo.Metadata.
 func (r *repoURL) Metadata() []string {
 	return r.metadata
-}
-
-// IsScorecardRepo implements Repo.IsScorecardRepo.
-func (r *repoURL) IsScorecardRepo() bool {
-	return r.owner == scorecardOwner && r.repo == scorecardRepo
 }
 
 // MakeGithubRepo takes input of form "owner/repo" or "github.com/owner/repo"

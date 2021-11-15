@@ -19,7 +19,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -122,7 +122,7 @@ func transferDataToBq(ctx context.Context,
 			return fmt.Errorf("error during http.Post to %s: %w", webhookURL, err)
 		}
 		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("error reading resp.Body: %w", err)
 		}

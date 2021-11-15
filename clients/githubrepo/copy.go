@@ -12,14 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clients
+package githubrepo
 
-// Repo interface uniquely identifies a repo.
-type Repo interface {
-	URI() string
-	String() string
-	Org() Repo
-	IsValid() error
-	Metadata() []string
-	AppendMetadata(metadata ...string)
+import "time"
+
+func copyBoolPtr(src *bool, dest **bool) {
+	if src != nil {
+		*dest = new(bool)
+		**dest = *src
+	}
+}
+
+func copyStringPtr(src *string, dest **string) {
+	if src != nil {
+		*dest = new(string)
+		**dest = *src
+	}
+}
+
+func copyInt32Ptr(src *int32, dest **int32) {
+	if src != nil {
+		*dest = new(int32)
+		**dest = *src
+	}
+}
+
+func copyTimePtr(src *time.Time, dest **time.Time) {
+	if src != nil {
+		*dest = new(time.Time)
+		**dest = *src
+	}
+}
+
+func copyStringSlice(src []string, dest *[]string) {
+	*dest = make([]string, len(src))
+	copy(*dest, src)
 }

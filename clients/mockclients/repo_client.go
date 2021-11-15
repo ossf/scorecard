@@ -197,6 +197,21 @@ func (mr *MockRepoClientMockRecorder) ListFiles(predicate interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFiles", reflect.TypeOf((*MockRepoClient)(nil).ListFiles), predicate)
 }
 
+// ListIssues mocks base method.
+func (m *MockRepoClient) ListIssues() ([]clients.Issue, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListIssues")
+	ret0, _ := ret[0].([]clients.Issue)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListIssues indicates an expected call of ListIssues.
+func (mr *MockRepoClientMockRecorder) ListIssues() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIssues", reflect.TypeOf((*MockRepoClient)(nil).ListIssues))
+}
+
 // ListMergedPRs mocks base method.
 func (m *MockRepoClient) ListMergedPRs() ([]clients.PullRequest, error) {
 	m.ctrl.T.Helper()
@@ -272,7 +287,7 @@ func (mr *MockRepoClientMockRecorder) Search(request interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockRepoClient)(nil).Search), request)
 }
 
-// URL mocks base method.
+// URI mocks base method.
 func (m *MockRepoClient) URI() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "URI")
