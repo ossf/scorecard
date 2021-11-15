@@ -544,20 +544,16 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
 	for jobName, job := range workflow.Jobs {
-		if job.Name != nil && len(job.Name.Value) > 0 {
-			jobName = job.Name.Value
+		if len(fileparser.GetJobName(job)) > 0 {
+			jobName = fileparser.GetJobName(job)
 		}
 		for _, step := range job.Steps {
-			if step.Exec.Kind() != actionlint.ExecKindAction {
+			if step == nil || step.Exec == nil || step.Exec.Kind() != actionlint.ExecKindAction {
 				continue
 			}
 			execAction, ok := step.Exec.(*actionlint.ExecAction)
 			if !ok {
-				stepName := ""
-				if step.Name != nil {
-					stepName = step.Name.Value
-				}
-
+				stepName := fileparser.GetStepName(step)
 				return false, sce.WithMessage(sce.ErrScorecardInternal,
 					fmt.Sprintf("unable to parse step '%v' for job '%v'", jobName, stepName))
 			}

@@ -16,7 +16,7 @@ package checks
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/ossf/scorecard/v3/checker"
@@ -251,7 +251,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					panic(fmt.Errorf("cannot read file: %w", err))
 				}

@@ -52,6 +52,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			result := checks.PinnedDependencies(&req)
 			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

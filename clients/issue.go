@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package clients
 
-import (
-	"context"
+import "time"
 
-	"github.com/ossf/scorecard/v3/clients"
-)
-
-// CheckRequest struct encapsulates all data to be passed into a CheckFn.
-type CheckRequest struct {
-	Ctx        context.Context
-	RepoClient clients.RepoClient
-	CIIClient  clients.CIIBestPracticesClient
-	Dlogger    DetailLogger
-	Repo       clients.Repo
+// Issue represents a thread like GitHub issue comment thread.
+type Issue struct {
+	URI       *string
+	UpdatedAt *time.Time
 }

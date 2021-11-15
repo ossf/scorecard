@@ -17,7 +17,7 @@ package pkg
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -774,7 +774,7 @@ func TestSARIFOutput(t *testing.T) {
 			t.Parallel()
 			var content []byte
 			var err error
-			content, err = ioutil.ReadFile(tt.expected)
+			content, err = os.ReadFile(tt.expected)
 			if err != nil {
 				t.Fatalf("%s: cannot read file: %v", tt.name, err)
 			}

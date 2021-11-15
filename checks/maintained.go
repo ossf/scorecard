@@ -26,7 +26,7 @@ const (
 	// CheckMaintained is the exported check name for Maintained.
 	CheckMaintained = "Maintained"
 	lookBackDays    = 90
-	commitsPerWeek  = 1
+	activityPerWeek = 1
 	daysInOneWeek   = 7
 )
 
@@ -46,25 +46,35 @@ func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateMinScoreResult(CheckMaintained, "repo is marked as archived")
 	}
 
+	// If not explicitly marked archived, look for activity in past `lookBackDays`.
+	threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
-
-	tz, err := time.LoadLocation("UTC")
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("time.LoadLocation: %v", err))
-		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
-	}
-	threshold := time.Now().In(tz).AddDate(0, 0, -1*lookBackDays)
-	totalCommits := 0
+	commitsWithinThreshold := 0
 	for _, commit := range commits {
 		if commit.CommittedDate.After(threshold) {
-			totalCommits++
+			commitsWithinThreshold++
 		}
 	}
-	return checker.CreateProportionalScoreResult(CheckMaintained,
-		fmt.Sprintf("%d commit(s) found in the last %d days", totalCommits, lookBackDays),
-		totalCommits, commitsPerWeek*lookBackDays/daysInOneWeek)
+
+	issues, err := c.RepoClient.ListIssues()
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
+	}
+	issuesUpdatedWithinThreshold := 0
+	for _, issue := range issues {
+		if issue.UpdatedAt.After(threshold) {
+			issuesUpdatedWithinThreshold++
+		}
+	}
+
+	return checker.CreateProportionalScoreResult(CheckMaintained, fmt.Sprintf(
+		"%d commit(s) out of %d and %d issue activity out of %d found in the last %d days",
+		commitsWithinThreshold, len(commits), issuesUpdatedWithinThreshold, len(issues), lookBackDays),
+		commitsWithinThreshold+issuesUpdatedWithinThreshold, activityPerWeek*lookBackDays/daysInOneWeek)
 }

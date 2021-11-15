@@ -15,7 +15,7 @@
 package checks
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -105,7 +105,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			var content []byte
 			var err error
 
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -196,7 +196,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					t.Errorf("cannot read file: %v", err)
 				}
@@ -241,7 +241,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			var content []byte
 			var err error
 
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -365,7 +365,7 @@ func TestDockerfilePinning(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					t.Errorf("cannot read file: %v", err)
 				}
@@ -409,7 +409,7 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 			var content []byte
 			var err error
 
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -594,7 +594,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					t.Errorf("cannot read file: %v", err)
 				}
@@ -638,7 +638,7 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 			var content []byte
 			var err error
 
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -747,7 +747,7 @@ func TestShellScriptDownload(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					t.Errorf("cannot read file: %v", err)
 				}
@@ -802,7 +802,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 			var content []byte
 			var err error
 
-			content, err = ioutil.ReadFile(tt.filename)
+			content, err = os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
@@ -879,7 +879,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 			if tt.filename == "" {
 				content = make([]byte, 0)
 			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+				content, err = os.ReadFile(tt.filename)
 				if err != nil {
 					t.Errorf("cannot read file: %v", err)
 				}
@@ -942,7 +942,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			content, err := ioutil.ReadFile(tt.filename)
+			content, err := os.ReadFile(tt.filename)
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}

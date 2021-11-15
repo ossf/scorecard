@@ -3,6 +3,7 @@ module github.com/ossf/scorecard/tools
 go 1.17
 
 require (
+	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.42.1
 	github.com/google/addlicense v1.0.0
 	github.com/google/ko v0.9.3

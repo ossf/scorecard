@@ -19,7 +19,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -123,7 +122,7 @@ func getGoDeps(repo repositoryDepsURL) []data.RepoFormat {
 	//nolint
 	defer os.Chdir(pwd)
 	// creating temp dir for git clone
-	gitDir, err := ioutil.TempDir(pwd, "")
+	gitDir, err := os.MkdirTemp(pwd, "")
 	if err != nil {
 		log.Default().Println("Cannot create temporary dir", err)
 		return nil

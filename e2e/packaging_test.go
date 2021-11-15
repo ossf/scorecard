@@ -50,6 +50,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPackaging, func() {
 			}
 			result := checks.Packaging(&req)
 			Expect(scut.ValidateTestReturn(nil, "use packaging", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })
