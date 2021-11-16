@@ -120,26 +120,12 @@ func getSupportedChecks(r string, checkDocs docs.Doc) (map[string]bool, error) {
 			}
 		}
 	}
-	// Special case. If we're using GitHub action
-	// on a pull request, we want to be abel to run
-	// Branch-Protection even though it uses APIs.
-	// We can do this because it uses settings that can be
-	// changed without a PR.
-	// TODO: think of a better way to handle this.
-	if _, forceBP := os.LookupEnv("SCORECARD_SUPPORT_BRANCH_PROTECTION"); forceBP {
-		supportedChecks[checks.CheckBranchProtection] = true
-	}
 
 	return supportedChecks, nil
 }
 
-func isSupportedCheck(names []string, name string) bool {
-	for _, n := range names {
-		if n == name {
-			return true
-		}
-	}
-	return false
+func isSupportedCheck(names map[string]bool, name string) bool {
+	return names[name]
 }
 
 func getAllChecks() checker.CheckNameToFnMap {
@@ -153,7 +139,7 @@ func getAllChecks() checker.CheckNameToFnMap {
 }
 
 func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
-	supportedChecks []string, repoType string) (checker.CheckNameToFnMap, error) {
+	supportedChecks map[string]bool, repoType string) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
 
 	switch {
