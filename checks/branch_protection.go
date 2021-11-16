@@ -34,7 +34,8 @@ const (
 	allowDeletions
 	requireLinearHistory
 	enforceAdmins
-	requireStrictStatusChecks
+	requireUpToDateBeforeMerge
+	requireStatusChecks
 	requireStatusChecksContexts
 	requireApprovingReviewCount
 	dismissStaleReviews
@@ -42,14 +43,19 @@ const (
 )
 
 var branchProtectionSettingScores = map[branchProtectionSetting]int{
-	allowForcePushes:            1,
-	allowDeletions:              1,
-	requireLinearHistory:        1,
-	enforceAdmins:               3,
-	requireStrictStatusChecks:   1,
-	requireStatusChecksContexts: 1,
+	allowForcePushes:     1,
+	allowDeletions:       1,
+	requireLinearHistory: 1,
+	// Need admin token.
+	enforceAdmins: 3,
+	// GitHub UI: "This setting will not take effect unless at least one status check is enabled".
+	// Need admin token.
+	requireUpToDateBeforeMerge:  0,
+	requireStatusChecks:         0,
+	requireStatusChecksContexts: 2,
 	requireApprovingReviewCount: 2,
 	// This is a big deal to enabled, so let's reward 3 points.
+	// Need admin token.
 	dismissStaleReviews:     3,
 	requireCodeOwnerReviews: 2,
 }
@@ -165,11 +171,15 @@ func checkReleaseAndDevBranchProtection(
 			}
 			return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 		}
+		// Protected field only indates that the branch matches
+		// one `Branch protection rules`. All settings may be disabled,
+		// so it does not provide any guarantees.
 		if branch.Protected != nil && !*branch.Protected {
 			dl.Warn("branch protection not enabled for branch '%s'", b)
 			return checker.CreateMinScoreResult(CheckBranchProtection,
 				fmt.Sprintf("branch protection not enabled on development/release branch: %s", b))
 		}
+
 		// The branch is protected. Check the protection.
 		score := isBranchProtected(&branch.BranchProtectionRule, b, dl)
 		scores = append(scores, score)
@@ -249,22 +259,32 @@ func isBranchProtected(protection *clients.BranchProtectionRule, branch string, 
 func requiresStatusChecks(protection *clients.BranchProtectionRule, branch string, dl checker.DetailLogger) int {
 	score := 0
 
-	if protection.RequiredStatusChecks.Strict != nil {
-		switch *protection.RequiredStatusChecks.Strict {
-		case false:
-			dl.Warn("status checks for merging disabled on branch '%s'", branch)
-			return score
-		case true:
-			dl.Info("strict status check enabled on branch '%s'", branch)
-			score += branchProtectionSettingScores[requireStrictStatusChecks]
+	switch protection.CheckRules.RequiresStatusChecks != nil {
+	case true:
+		if *protection.CheckRules.RequiresStatusChecks {
+			dl.Info("status check enabled on branch '%s'", branch)
+			score += branchProtectionSettingScores[requireStatusChecks]
+		} else {
+			dl.Warn("status check disabled on branch '%s'", branch)
 		}
-	}
 
-	if len(protection.RequiredStatusChecks.Contexts) > 0 {
-		dl.Info("status checks for merging have specific status to check on branch '%s'", branch)
-		score += branchProtectionSettingScores[requireStatusChecksContexts]
-	} else {
-		dl.Warn("status checks for merging have no specific status to check on branch '%s'", branch)
+		if protection.CheckRules.UpToDateBeforeMerge != nil &&
+			*protection.CheckRules.UpToDateBeforeMerge {
+			dl.Info("status checks require up-to-date branches for '%s'", branch)
+			score += branchProtectionSettingScores[requireUpToDateBeforeMerge]
+		} else {
+			dl.Warn("status checks do not require up-to-date branches for '%s'", branch)
+		}
+
+		if len(protection.CheckRules.Contexts) > 0 {
+			dl.Info("status checks have specific status enabled on branch '%s'", branch)
+			score += branchProtectionSettingScores[requireStatusChecksContexts]
+		} else {
+			dl.Warn("status checks have no specific status enabled on branch '%s'", branch)
+		}
+
+	case false:
+		dl.Debug("unable to retrieve status check for branch '%s'", branch)
 	}
 
 	return score
