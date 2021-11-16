@@ -178,10 +178,8 @@ func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionR
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
 	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
 	if src.RequiresStatusChecks != nil && *src.RequiresStatusChecks {
-		dst.CheckRules.RequiresStatusChecks = new(bool)
-		*dst.CheckRules.RequiresStatusChecks = true
-		dst.CheckRules.RequiresStatusChecks = new(bool)
-		*dst.CheckRules.UpToDateBeforeMerge = *src.RequiresStrictStatusChecks
+		copyBoolPtr(src.RequiresStatusChecks, &dst.CheckRules.RequiresStatusChecks)
+		copyBoolPtr(src.RequiresStrictStatusChecks, &dst.CheckRules.UpToDateBeforeMerge)
 	}
 	// We retrieve the list regardless of RequiresStatusChecks, but it's
 	// probably nil when RequiresStatusChecks is nil.
@@ -232,7 +230,7 @@ func getBranchRefFrom(data branch) *clients.BranchRef {
 	// to admin settings.
 	case data.BranchProtectionRule != nil:
 		rule := data.BranchProtectionRule
-		fmt.Println("bp rule")
+
 		// Admin settings.
 		copyAdminSettings(rule, branchRule)
 
