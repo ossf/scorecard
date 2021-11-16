@@ -394,14 +394,26 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 			// Not pinned.
 			ret = false
-			dl.Warn("dependency not pinned by hash %v: '%v'", pathfn, name)
+			dl.Warn3(&checker.LogMessage{
+				Path:    pathfn,
+				Type:    checker.FileTypeSource,
+				Offset:  child.StartLine,
+				Text:    fmt.Sprintf("dependency not pinned by hash: '%v'", name),
+				Snippet: child.Original,
+			})
 
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
 				ret = false
-				dl.Warn("dependency not pinned by hash %v: '%v'", pathfn, name)
+				dl.Warn3(&checker.LogMessage{
+					Path:    pathfn,
+					Type:    checker.FileTypeSource,
+					Offset:  child.StartLine,
+					Text:    fmt.Sprintf("dependency not pinned by hash: '%v'", name),
+					Snippet: child.Original,
+				})
 			}
 
 		default:
