@@ -6,6 +6,8 @@ env:
 before:
   hooks:
     - go mod download
+gomod:
+  proxy: true
 builds:
 - id: linux
   binary: scorecard-linux-{{ .Arch }}

@@ -237,6 +237,29 @@ participants.
 **Remediation steps**
 - Ask contributors to [join their respective organizations](https://docs.github.com/en/organizations/managing-membership-in-your-organization/inviting-users-to-join-your-organization), if they have not already. Otherwise, there is no remediation for this check; it simply provides insight into which organizations have contributed so that you can make a trust-based decision based on that information.  
 
+## Dangerous-Workflow 
+
+Risk: `High`  (vulnerable to repository compromise)
+  
+This check determines whether the project's GitHub Action workflows has dangerous 
+code patterns. Some examples of these patterns are untrusted code checkouts, 
+logging github context and secrets, or use of potentially untrusted inputs in scripts.
+
+The first code pattern checked is the misuse of potentially dangerous triggers. 
+This checks if a `pull_request_target` workflow trigger was used in conjunction 
+with an explicit pull request checkout. Workflows triggered with `pull_request_target`
+have write permission to the target repository and access to target repository 
+secrets. With the PR checkout, PR authors may compromise the repository, for 
+example, by using build scripts controlled by the author of the PR or reading 
+token in memory. This check does not detect whether untrusted code checkouts are 
+used safely, for example, only on pull request that have been assigned a label.
+
+The highest score is awarded when all workflows avoid the dangerous code patterns.
+ 
+
+**Remediation steps**
+- Avoid the dangerous workflow patterns. See this [post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/) for information on avoiding untrusted code checkouts.
+
 ## Dependency-Update-Tool 
 
 Risk: `High` (possibly vulnerable to attacks on known flaws)  

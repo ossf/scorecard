@@ -11,18 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+on:
+  pull_request_target
 
-project-id: openssf
-result-data-bucket-url: gs://ossf-scorecard-data
-request-topic-url: gcppubsub://projects/openssf/topics/scorecard-batch-requests
-request-subscription-url: gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker
-bigquery-dataset: scorecardcron
-bigquery-table: scorecard
-completion-threshold: 0.99
-shard-size: 10
-webhook-url: 
-cii-data-bucket-url: gs://ossf-scorecard-cii-data
-metric-exporter: stackdriver
-# UPGRADEv2: to remove.
-result-data-bucket-url-v2: gs://ossf-scorecard-data2
-bigquery-table-v2: scorecard-v2
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - uses: actions/setup-node@v1
+    - run: |
+        npm install
+        npm build
+
+    - uses: completely/fakeaction@v2
+      with:
+        arg1: ${{ secrets.supersecret }}
+
+    - uses: fakerepo/comment-on-pr@v1
+      with:
+        message: |
+          Thank you!

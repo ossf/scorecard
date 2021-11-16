@@ -50,6 +50,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			}
 			result := checks.Fuzzing(&req)
 			Expect(scut.ValidateTestReturn(nil, "use fuzzing", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return use of ClusterFuzzLite", func() {
 			dl := scut.TestDetailLogger{}
@@ -73,6 +74,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			}
 			result := checks.Fuzzing(&req)
 			Expect(scut.ValidateTestReturn(nil, "use fuzzing", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return no fuzzing", func() {
 			dl := scut.TestDetailLogger{}
@@ -96,6 +98,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			}
 			result := checks.Fuzzing(&req)
 			Expect(scut.ValidateTestReturn(nil, "no fuzzing", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

@@ -21,14 +21,15 @@ import (
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/clients"
-	"github.com/ossf/scorecard/v3/clients/mockrepo"
+	mockrepo "github.com/ossf/scorecard/v3/clients/mockclients"
 	sce "github.com/ossf/scorecard/v3/errors"
 	scut "github.com/ossf/scorecard/v3/utests"
 )
 
 func getBranch(branches []*clients.BranchRef, name string) *clients.BranchRef {
 	for _, branch := range branches {
-		if *branch.Name == name {
+		branchName := getBranchName(branch)
+		if branchName == name {
 			return branch
 		}
 	}
@@ -68,6 +69,59 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		releases      []string
 		nonadmin      bool
 	}{
+		{
+			name: "Nil release and main branch names",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         -1,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+			defaultBranch: main,
+			branches: []*clients.BranchRef{
+				{
+					Name:      nil,
+					Protected: &trueVal,
+					BranchProtectionRule: clients.BranchProtectionRule{
+						RequiredStatusChecks: clients.StatusChecksRule{
+							Strict:   &trueVal,
+							Contexts: []string{"foo"},
+						},
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							DismissStaleReviews:          &trueVal,
+							RequireCodeOwnerReviews:      &trueVal,
+							RequiredApprovingReviewCount: &oneVal,
+						},
+						EnforceAdmins:        &trueVal,
+						RequireLinearHistory: &trueVal,
+						AllowForcePushes:     &falseVal,
+						AllowDeletions:       &falseVal,
+					},
+				},
+				{
+					Name:      nil,
+					Protected: &trueVal,
+					BranchProtectionRule: clients.BranchProtectionRule{
+						RequiredStatusChecks: clients.StatusChecksRule{
+							Strict:   &falseVal,
+							Contexts: nil,
+						},
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							DismissStaleReviews:          &falseVal,
+							RequireCodeOwnerReviews:      &falseVal,
+							RequiredApprovingReviewCount: &zeroVal,
+						},
+						EnforceAdmins:        &falseVal,
+						RequireLinearHistory: &falseVal,
+						AllowForcePushes:     &falseVal,
+						AllowDeletions:       &falseVal,
+					},
+				},
+				nil,
+			},
+			releases: []string{},
+		},
 		{
 			name: "Only development branch",
 			expected: scut.TestReturn{

@@ -82,11 +82,19 @@ func (b branchMap) getBranchByName(name string) (*clients.BranchRef, error) {
 func getBranchMapFrom(branches []*clients.BranchRef) branchMap {
 	ret := make(branchMap)
 	for _, branch := range branches {
-		if branch.Name != nil && *branch.Name != "" {
-			ret[*branch.Name] = branch
+		branchName := getBranchName(branch)
+		if branchName != "" {
+			ret[branchName] = branch
 		}
 	}
 	return ret
+}
+
+func getBranchName(branch *clients.BranchRef) string {
+	if branch == nil || branch.Name == nil {
+		return ""
+	}
+	return *branch.Name
 }
 
 // BranchProtection runs Branch-Protection check.
@@ -142,7 +150,10 @@ func checkReleaseAndDevBranchProtection(
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
 	}
-	checkBranches[*defaultBranch.Name] = true
+	defaultBranchName := getBranchName(defaultBranch)
+	if defaultBranchName != "" {
+		checkBranches[defaultBranchName] = true
+	}
 
 	var scores []int
 	// Check protections on all the branches.
@@ -162,6 +173,10 @@ func checkReleaseAndDevBranchProtection(
 		// The branch is protected. Check the protection.
 		score := isBranchProtected(&branch.BranchProtectionRule, b, dl)
 		scores = append(scores, score)
+	}
+
+	if len(scores) == 0 {
+		return checker.CreateInconclusiveResult(CheckBranchProtection, "unable to detect any development/release branches")
 	}
 
 	score := checker.AggregateScores(scores...)

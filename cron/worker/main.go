@@ -51,7 +51,7 @@ var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to tru
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
 	bucketURL, bucketURL2 string, checkDocs docs.Doc,
-	repoClient clients.RepoClient, logger *zap.Logger) error {
+	repoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient, logger *zap.Logger) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%07d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
@@ -82,7 +82,7 @@ func processRequest(ctx context.Context,
 			continue
 		}
 		repo.AppendMetadata(repo.Metadata()...)
-		result, err := pkg.RunScorecards(ctx, repo, checksToRun, repoClient)
+		result, err := pkg.RunScorecards(ctx, repo, checksToRun, repoClient, ciiClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
@@ -177,6 +177,7 @@ func main() {
 		panic(err)
 	}
 	repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
+	ciiClient := clients.DefaultCIIBestPracticesClient()
 
 	exporter, err := startMetricsExporter()
 	if err != nil {
@@ -195,6 +196,8 @@ func main() {
 	delete(checksToRun, checks.CheckCITests)
 	// TODO: Re-add Contributors check after fixing: #859.
 	delete(checksToRun, checks.CheckContributors)
+	// TODO: Add this in v4
+	delete(checksToRun, checks.CheckDangerousWorkflow)
 	for {
 		req, err := subscriber.SynchronousPull()
 		if err != nil {
@@ -207,7 +210,7 @@ func main() {
 		}
 		if err := processRequest(ctx, req, checksToRun,
 			bucketURL, bucketURL2, checkDocs,
-			repoClient, logger); err != nil {
+			repoClient, ciiClient, logger); err != nil {
 			logger.Warn(fmt.Sprintf("error processing request: %v", err))
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()

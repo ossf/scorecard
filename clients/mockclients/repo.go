@@ -121,7 +121,7 @@ func (mr *MockRepoMockRecorder) String() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockRepo)(nil).String))
 }
 
-// URL mocks base method.
+// URI mocks base method.
 func (m *MockRepo) URI() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "URI")

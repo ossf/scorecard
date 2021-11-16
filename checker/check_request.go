@@ -24,6 +24,7 @@ import (
 type CheckRequest struct {
 	Ctx        context.Context
 	RepoClient clients.RepoClient
+	CIIClient  clients.CIIBestPracticesClient
 	Dlogger    DetailLogger
 	Repo       clients.Repo
 }

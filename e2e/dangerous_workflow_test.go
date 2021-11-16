@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package e2e
 
 import (
@@ -22,40 +21,40 @@ import (
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks"
-	"github.com/ossf/scorecard/v3/clients"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v3/utests"
 )
 
-var _ = Describe("E2E TEST:CIIBestPractices", func() {
-	Context("E2E TEST:Validating use of CII Best Practices", func() {
-		It("Should return use of CII Best Practices", func() {
+var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
+	Context("E2E TEST:Validating dangerous workflow check", func() {
+		It("Should return dangerous workflow works", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-dangerous-workflow-e2e")
 			Expect(err).Should(BeNil())
-			ciiClient := clients.DefaultCIIBestPracticesClient()
-
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo)
+			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
-				RepoClient: nil,
-				CIIClient:  ciiClient,
+				RepoClient: repoClient,
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         5,
-				NumberOfWarn:  0,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.CIIBestPractices(&req)
+			result := checks.DangerousWorkflow(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
+
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "passing badge", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

@@ -132,6 +132,16 @@ func isSupportedCheck(names []string, name string) bool {
 	return false
 }
 
+func getAllChecks() checker.CheckNameToFnMap {
+	// Returns the full list of checks, given any environment variable constraints.
+	possibleChecks := checks.AllChecks
+	// TODO: Remove this to enable the DANGEROUS_WORKFLOW by default in the next release.
+	if _, dangerousWorkflowCheck := os.LookupEnv("ENABLE_DANGEROUS_WORKFLOW"); !dangerousWorkflowCheck {
+		delete(possibleChecks, checks.CheckDangerousWorkflow)
+	}
+	return possibleChecks
+}
+
 func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 	supportedChecks []string, repoType string) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
@@ -167,7 +177,7 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 		}
 	default:
 		// Enable all checks that are supported.
-		for checkName := range checks.AllChecks {
+		for checkName := range getAllChecks() {
 			if !isSupportedCheck(supportedChecks, checkName) {
 				continue
 			}
@@ -305,6 +315,8 @@ var rootCmd = &cobra.Command{
 		}
 		defer repoClient.Close()
 
+		ciiClient := clients.DefaultCIIBestPracticesClient()
+
 		// Read docs.
 		checkDocs, err := docs.Read()
 		if err != nil {
@@ -326,7 +338,7 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
-		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient)
+		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient, ciiClient)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -474,7 +486,7 @@ func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
 // Enables checks by name.
 func enableCheck(checkName string, enabledChecks *checker.CheckNameToFnMap) bool {
 	if enabledChecks != nil {
-		for key, checkFn := range checks.AllChecks {
+		for key, checkFn := range getAllChecks() {
 			if strings.EqualFold(key, checkName) {
 				(*enabledChecks)[key] = checkFn
 				return true
@@ -505,7 +517,7 @@ func init() {
 		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
-	for checkName := range checks.AllChecks {
+	for checkName := range getAllChecks() {
 		checkNames = append(checkNames, checkName)
 	}
 	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
