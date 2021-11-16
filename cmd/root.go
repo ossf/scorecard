@@ -105,9 +105,9 @@ func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNam
 	return true
 }
 
-func getSupportedChecks(r string, checkDocs docs.Doc) ([]string, error) {
+func getSupportedChecks(r string, checkDocs docs.Doc) (map[string]bool, error) {
 	allChecks := checks.AllChecks
-	supportedChecks := []string{}
+	supportedChecks := make(map[string]bool)
 	for check := range allChecks {
 		c, e := checkDocs.GetCheck(check)
 		if e != nil {
@@ -116,10 +116,18 @@ func getSupportedChecks(r string, checkDocs docs.Doc) ([]string, error) {
 		types := c.GetSupportedRepoTypes()
 		for _, t := range types {
 			if r == t {
-				supportedChecks = append(supportedChecks, c.GetName())
+				supportedChecks[c.GetName()] = true
 			}
 		}
 	}
+	// Special case. If we're using GitHub action
+	// on a pull request, we want to enable Branch-Protection
+	// even though it uses APIs.
+	// TODO: think of a better way to handle this.
+	if _, forceBP := os.LookupEnv("SCORECARD_FORCE_BRANCH_PROTECTION"); forceBP {
+		supportedChecks[checks.CheckBranchProtection] = true
+	}
+
 	return supportedChecks, nil
 }
 
