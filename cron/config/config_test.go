@@ -32,6 +32,7 @@ const (
 	prodBigQueryTable              = "scorecard"
 	prodCompletionThreshold        = 0.99
 	prodWebhookURL                 = ""
+	prodCIIDataBucket              = "gs://ossf-scorecard-cii-data"
 	prodShardSize           int    = 10
 	prodMetricExporter      string = "stackdriver"
 	// UPGRADEv2: to remove.
@@ -66,6 +67,7 @@ func TestYAMLParsing(t *testing.T) {
 				BigQueryTable:          prodBigQueryTable,
 				CompletionThreshold:    prodCompletionThreshold,
 				WebhookURL:             prodWebhookURL,
+				CIIDataBucketURL:       prodCIIDataBucket,
 				ShardSize:              prodShardSize,
 				MetricExporter:         prodMetricExporter,
 				// UPGRADEv2: to remove.

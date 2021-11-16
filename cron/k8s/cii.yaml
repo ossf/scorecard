@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project-id: openssf
-result-data-bucket-url: gs://ossf-scorecard-data
-request-topic-url: gcppubsub://projects/openssf/topics/scorecard-batch-requests
-request-subscription-url: gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker
-bigquery-dataset: scorecardcron
-bigquery-table: scorecard
-completion-threshold: 0.99
-shard-size: 10
-webhook-url: 
-cii-data-bucket-url: gs://ossf-scorecard-cii-data
-metric-exporter: stackdriver
-# UPGRADEv2: to remove.
-result-data-bucket-url-v2: gs://ossf-scorecard-data2
-bigquery-table-v2: scorecard-v2
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: scorecard-cii-worker
+spec:
+  # At 00:00UTC on 1st of every month.
+  schedule: "@monthly"
+  concurrencyPolicy: "Forbid"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: cii-worker
+            image: gcr.io/openssf/scorecard-cii-worker:stable
+            imagePullPolicy: Always
