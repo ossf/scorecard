@@ -12,30 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package evaluation
 
 import (
 	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/evaluation"
 	"github.com/ossf/scorecard/v3/checks/raw"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-// CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
-const CheckBinaryArtifacts string = "Binary-Artifacts"
-
-//nolint
-func init() {
-	registerCheck(CheckBinaryArtifacts, BinaryArtifacts)
-}
-
-// BinaryArtifacts  will check the repository contains binary artifacts.
-func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.BinaryArtifacts(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
+// BinaryArtifacts applies the score policy for the Binary-Artiacts check.
+func BinaryArtifacts(name string, dl checker.DetailLogger,
+	r *raw.BinaryArtifactData) checker.CheckResult {
+	if r == nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	return evaluation.BinaryArtifacts(CheckBinaryArtifacts, c.Dlogger, &rawData)
+	// Apply the policy evaluation.
+	if r.Files == nil || len(r.Files) == 0 {
+		return checker.CreateMaxScoreResult(name, "no binaries found in the repo")
+	}
+
+	for _, f := range r.Files {
+		dl.Warn3(&checker.LogMessage{
+			Path: f.Path, Type: checker.FileTypeBinary,
+			Text: "binary detected",
+		})
+	}
+
+	return checker.CreateMinScoreResult(name, "binaries present in source code")
 }

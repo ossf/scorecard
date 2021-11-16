@@ -48,7 +48,7 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 		topLevelWritePermissions: make(map[string]bool),
 		runLevelWritePermissions: make(map[string]bool),
 	}
-	err := CheckFilesContent(".github/workflows/*", false,
+	err := fileparser.CheckFilesContent(".github/workflows/*", false,
 		c, validateGitHubActionTokenPermissions, &data)
 	return createResultForLeastPrivilegeTokens(data, err)
 }
@@ -326,7 +326,7 @@ func testValidateGitHubActionTokenPermissions(pathfn string,
 
 // Check file content.
 func validateGitHubActionTokenPermissions(path string, content []byte,
-	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
@@ -337,7 +337,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 		panic("invalid type")
 	}
 
-	if !CheckFileContainsCommands(content, "#") {
+	if !fileparser.CheckFileContainsCommands(content, "#") {
 		return true, nil
 	}
 
