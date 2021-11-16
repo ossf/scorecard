@@ -131,7 +131,7 @@ func addPinnedResult(r *pinnedResult, to bool) {
 	}
 }
 
-func dataAsWorkflowResultPointer(data FileCbData) *worklowPinningResult {
+func dataAsWorkflowResultPointer(data fileparser.FileCbData) *worklowPinningResult {
 	pdata, ok := data.(*worklowPinningResult)
 	if !ok {
 		// panic if it is not correct type
@@ -169,7 +169,7 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 	return score, nil
 }
 
-func dataAsResultPointer(data FileCbData) *pinnedResult {
+func dataAsResultPointer(data fileparser.FileCbData) *pinnedResult {
 	pdata, ok := data.(*pinnedResult)
 	if !ok {
 		// This never happens.
@@ -197,7 +197,8 @@ func createReturnValues(r pinnedResult, infoMsg string, dl checker.DetailLogger,
 
 func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := CheckFilesContent("*", false, c, validateShellScriptIsFreeOfInsecureDownloads, &r)
+	err := fileparser.CheckFilesContent("*", false,
+		c, validateShellScriptIsFreeOfInsecureDownloads, &r)
 	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -216,7 +217,7 @@ func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
 }
 
 func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
-	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	pdata := dataAsResultPointer(data)
 
 	// Validate the file type.
@@ -236,7 +237,8 @@ func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 
 func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := CheckFilesContent("*Dockerfile*", false, c, validateDockerfileIsFreeOfInsecureDownloads, &r)
+	err := fileparser.CheckFilesContent("*Dockerfile*",
+		false, c, validateDockerfileIsFreeOfInsecureDownloads, &r)
 	return createReturnForIsDockerfileFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -256,7 +258,7 @@ func testValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
 }
 
 func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
-	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	pdata := dataAsResultPointer(data)
 
 	// Return early if this is a script, e.g. script_dockerfile_something.sh
@@ -265,7 +267,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		return true, nil
 	}
 
-	if !CheckFileContainsCommands(content, "#") {
+	if !fileparser.CheckFileContainsCommands(content, "#") {
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
@@ -312,7 +314,8 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 
 func isDockerfilePinned(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := CheckFilesContent("*Dockerfile*", false, c, validateDockerfileIsPinned, &r)
+	err := fileparser.CheckFilesContent("*Dockerfile*", false,
+		c, validateDockerfileIsPinned, &r)
 	return createReturnForIsDockerfilePinned(r, c.Dlogger, err)
 }
 
@@ -330,7 +333,7 @@ func testValidateDockerfileIsPinned(pathfn string, content []byte, dl checker.De
 }
 
 func validateDockerfileIsPinned(pathfn string, content []byte,
-	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	// Users may use various names, e.g.,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
 	// Templates may trigger false positives, e.g. FROM { NAME }.
@@ -342,7 +345,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 		return true, nil
 	}
 
-	if !CheckFileContainsCommands(content, "#") {
+	if !fileparser.CheckFileContainsCommands(content, "#") {
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
@@ -391,14 +394,26 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 			// Not pinned.
 			ret = false
-			dl.Warn("dependency not pinned by hash %v: '%v'", pathfn, name)
+			dl.Warn3(&checker.LogMessage{
+				Path:    pathfn,
+				Type:    checker.FileTypeSource,
+				Offset:  child.StartLine,
+				Text:    fmt.Sprintf("dependency not pinned by hash: '%v'", name),
+				Snippet: child.Original,
+			})
 
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
 			if !regex.Match([]byte(name)) {
 				ret = false
-				dl.Warn("dependency not pinned by hash %v: '%v'", pathfn, name)
+				dl.Warn3(&checker.LogMessage{
+					Path:    pathfn,
+					Type:    checker.FileTypeSource,
+					Offset:  child.StartLine,
+					Text:    fmt.Sprintf("dependency not pinned by hash: '%v'", name),
+					Snippet: child.Original,
+				})
 			}
 
 		default:
@@ -417,7 +432,8 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := CheckFilesContent(".github/workflows/*", false, c, validateGitHubWorkflowIsFreeOfInsecureDownloads, &r)
+	err := fileparser.CheckFilesContent(".github/workflows/*", false,
+		c, validateGitHubWorkflowIsFreeOfInsecureDownloads, &r)
 	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -439,14 +455,14 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 // validateGitHubWorkflowIsFreeOfInsecureDownloads checks if the workflow file downloads dependencies that are unpinned.
 // Returns true if the check should continue executing after this file.
 func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
-	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	if !fileparser.IsWorkflowFile(pathfn) {
 		return true, nil
 	}
 
 	pdata := dataAsResultPointer(data)
 
-	if !CheckFileContainsCommands(content, "#") {
+	if !fileparser.CheckFileContainsCommands(content, "#") {
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
@@ -501,7 +517,8 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) (int, error) {
 	var r worklowPinningResult
-	err := CheckFilesContent(".github/workflows/*", true, c, validateGitHubActionWorkflow, &r)
+	err := fileparser.CheckFilesContent(".github/workflows/*",
+		true, c, validateGitHubActionWorkflow, &r)
 	return createReturnForIsGitHubActionsWorkflowPinned(r, c.Dlogger, err)
 }
 
@@ -522,14 +539,14 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
 // should continue executing after this file.
 func validateGitHubActionWorkflow(pathfn string, content []byte,
-	dl checker.DetailLogger, data FileCbData) (bool, error) {
+	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	if !fileparser.IsWorkflowFile(pathfn) {
 		return true, nil
 	}
 
 	pdata := dataAsWorkflowResultPointer(data)
 
-	if !CheckFileContainsCommands(content, "#") {
+	if !fileparser.CheckFileContainsCommands(content, "#") {
 		addWorkflowPinnedResult(pdata, true, true)
 		addWorkflowPinnedResult(pdata, true, true)
 		return true, nil
@@ -586,9 +603,9 @@ func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
 // Check presence of lock files thru validatePackageManagerFile().
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := CheckIfFileExists(CheckPinnedDependencies, c, validatePackageManagerFile, &r)
+	err := fileparser.CheckIfFileExists(CheckPinnedDependencies, c, validatePackageManagerFile, &r)
 	if err != nil {
-		return checker.InconclusiveResultScore, err
+		return checker.InconclusiveResultScore, fmt.Errorf("%w", err)
 	}
 	if r != pinned {
 		c.Dlogger.Warn("no lock files detected for a package manager")
@@ -601,7 +618,7 @@ func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
 // TODO(laurent): need to differentiate between libraries and programs.
 // TODO(laurent): handle multi-language repos.
-func validatePackageManagerFile(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
+func validatePackageManagerFile(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	switch strings.ToLower(name) {
 	// TODO(laurent): "go.mod" is for libraries
 	default:

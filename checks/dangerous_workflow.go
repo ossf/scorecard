@@ -46,14 +46,14 @@ func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 	data := patternCbData{
 		workflowPattern: make(map[string]bool),
 	}
-	err := CheckFilesContent(".github/workflows/*", false,
+	err := fileparser.CheckFilesContent(".github/workflows/*", false,
 		c, validateGitHubActionWorkflowPatterns, &data)
 	return createResultForDangerousWorkflowPatterns(data, err)
 }
 
 // Check file content.
 func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checker.DetailLogger,
-	data FileCbData) (bool, error) {
+	data fileparser.FileCbData) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
@@ -65,7 +65,7 @@ func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checke
 		panic("invalid type")
 	}
 
-	if !CheckFileContainsCommands(content, "#") {
+	if !fileparser.CheckFileContainsCommands(content, "#") {
 		return true, nil
 	}
 

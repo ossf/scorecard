@@ -18,4 +18,7 @@ import (
 	"errors"
 )
 
-var errInvalidGitHubWorkflow = errors.New("invalid GitHub workflow")
+var (
+	errInvalidGitHubWorkflow = errors.New("invalid GitHub workflow")
+	errInternalFilenameMatch = errors.New("filename match error")
+)
