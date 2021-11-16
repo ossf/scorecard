@@ -374,6 +374,9 @@ func createIgnoredPermissions(s, fp string, dl checker.DetailLogger) map[string]
 	if requiresPackagesPermissions(s, fp, dl) {
 		ignoredPermissions["packages"] = true
 	}
+	if requiresContentsPermissions(s, fp, dl) {
+		ignoredPermissions["contents"] = true
+	}
 	if isSARIFUploadWorkflow(s, fp, dl) {
 		ignoredPermissions["security-events"] = true
 	}
@@ -462,4 +465,12 @@ func requiresPackagesPermissions(s, fp string, dl checker.DetailLogger) bool {
 	// For now, we just re-use the Packaging check to verify that the
 	// workflow is a packaging workflow.
 	return isPackagingWorkflow(s, fp, dl)
+}
+
+// Note: this needs to be improved.
+// Currently we don't differentiate between publishing on GitHub vs
+// pubishing on registries. In terms of risk, both are similar, as
+// an attacker would gain the ability to push a package.
+func requiresContentsPermissions(s, fp string, dl checker.DetailLogger) bool {
+	return requiresPackagesPermissions(s, fp, dl)
 }
