@@ -93,7 +93,7 @@ tree-status: ## Verify tree is clean and all changes are committed
 
 ################################## make build #################################
 ## Build all cron-related targets
-build-cron: build-pubsub build-bq-transfer build-github-server build-webhook build-add-script \
+build-cron: build-pubsub build-cii-worker build-bq-transfer build-github-server build-webhook build-add-script \
 	  build-validate-script build-update-script
 
 build-targets = generate-mocks generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
@@ -139,6 +139,10 @@ build-pubsub: ## Runs go build on the PubSub cron job
 	cd cron/controller && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o controller
 	cd cron/worker && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o worker
 
+build-cii-worker: ## Runs go build on the CII worker
+	# Run go build on the CII worker
+	cd cron/cii && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o cii-worker
+
 build-bq-transfer: ## Runs go build on the BQ transfer cron job
 build-bq-transfer: ./cron/bq/*.go
 	# Run go build on the Copier cron job
@@ -182,12 +186,17 @@ ko-build-everything: ## ko builds all binaries.
 	ko publish -B --bare --local \
 			   --platform=$(PLATFORM)\
 			   --push=false \
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/controller 
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/controller
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-worker
 	ko publish -B --bare --local \
 			   --platform=$(PLATFORM)\
 			   --push=false \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/worker
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cii-worker
+	ko publish -B --bare --local \
+			   --platform=$(PLATFORM)\
+			   --push=false \
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/cii
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-bq-transfer
 	ko publish -B --bare --local \
 			   --platform=$(PLATFORM)\
@@ -209,6 +218,7 @@ dockerbuild: ## Runs docker build
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
 	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
+	DOCKER_BUILDKIT=1 docker build . --file cron/cii/Dockerfile --tag $(IMAGE_NAME)-cii-worker
 	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
 	DOCKER_BUILDKIT=1 docker build . --file cron/webhook/Dockerfile --tag ${IMAGE_NAME}-webhook
 	DOCKER_BUILDKIT=1 docker build . --file clients/githubrepo/roundtripper/tokens/server/Dockerfile --tag ${IMAGE_NAME}-github-server

@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project-id: openssf
-result-data-bucket-url: gs://ossf-scorecard-data
-request-topic-url: gcppubsub://projects/openssf/topics/scorecard-batch-requests
-request-subscription-url: gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker
-bigquery-dataset: scorecardcron
-bigquery-table: scorecard
-completion-threshold: 0.99
-shard-size: 10
-webhook-url: 
-cii-data-bucket-url: gs://ossf-scorecard-cii-data
-metric-exporter: stackdriver
-# UPGRADEv2: to remove.
-result-data-bucket-url-v2: gs://ossf-scorecard-data2
-bigquery-table-v2: scorecard-v2
+FROM golang@sha256:3c4de86eec9cbc619cdd72424abd88326ffcf5d813a8338a7743c55e5898734f AS base
+WORKDIR /src
+ENV CGO_ENABLED=0
+COPY go.* ./
+RUN go mod download
+COPY . ./
+
+FROM base AS cii
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 make build-cii-worker
+
+FROM gcr.io/distroless/base:nonroot@sha256:46d4514c17aca7a68559ee03975983339fc548e6d1014e2d7633f9123f2d3c59
+COPY --from=cii /src/cron/cii/cii-worker cron/cii/cii-worker
+ENTRYPOINT ["cron/cii/cii-worker"]

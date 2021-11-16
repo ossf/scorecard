@@ -45,6 +45,7 @@ const (
 	shardSize              string = "SCORECARD_SHARD_SIZE"
 	webhookURL             string = "SCORECARD_WEBHOOK_URL"
 	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
+	ciiDataBucketURL       string = "SCORECARD_CII_DATA_BUCKET_URL"
 
 	bigqueryTableV2       string = "SCORECARD_BIGQUERY_TABLEV2"
 	resultDataBucketURLV2 string = "SCORECARD_DATA_BUCKET_URLV2"
@@ -69,6 +70,7 @@ type config struct {
 	BigQueryTable          string  `yaml:"bigquery-table"`
 	CompletionThreshold    float32 `yaml:"completion-threshold"`
 	WebhookURL             string  `yaml:"webhook-url"`
+	CIIDataBucketURL       string  `yaml:"cii-data-bucket-url"`
 	MetricExporter         string  `yaml:"metric-exporter"`
 	ShardSize              int     `yaml:"shard-size"`
 	// UPGRADEv2: to remove.
@@ -200,6 +202,15 @@ func GetShardSize() (int, error) {
 // GetWebhookURL returns the webhook URL to ping on a successful cron job completion.
 func GetWebhookURL() (string, error) {
 	url, err := getStringConfigValue(webhookURL, configYAML, "WebhookURL", "webhook-url")
+	if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
+		return url, err
+	}
+	return url, nil
+}
+
+// GetCIIDataBucketURL returns the bucket URL where CII data is stored.
+func GetCIIDataBucketURL() (string, error) {
+	url, err := getStringConfigValue(ciiDataBucketURL, configYAML, "CIIDataBucketURL", "cii-data-bucket-url")
 	if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
 		return url, err
 	}
