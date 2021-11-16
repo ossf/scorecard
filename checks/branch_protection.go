@@ -32,32 +32,32 @@ const (
 	minReviews                                    = 2
 	allowForcePushes      branchProtectionSetting = iota
 	allowDeletions
-	requireLinearHistory
-	enforceAdmins
-	requireUpToDateBeforeMerge
-	requireStatusChecks
+	requiresPullRequests
 	requireStatusChecksContexts
 	requireApprovingReviewCount
+	// Admin settings.
+	enforceAdmins
+	requireUpToDateBeforeMerge
 	dismissStaleReviews
-	requireCodeOwnerReviews
+	// requireCodeOwnerReviews no longer used.
+	// requireLinearHistory no longer used, see https://github.com/ossf/scorecard/issues/1027.
 )
 
 var branchProtectionSettingScores = map[branchProtectionSetting]int{
-	allowForcePushes:     1,
-	allowDeletions:       1,
-	requireLinearHistory: 1,
-	// Need admin token.
-	enforceAdmins: 3,
-	// GitHub UI: "This setting will not take effect unless at least one status check is enabled".
-	// Need admin token.
-	requireUpToDateBeforeMerge:  0,
-	requireStatusChecks:         0,
-	requireStatusChecksContexts: 2,
+	// The basics.
+	// We would like to have enforceAdmins,
+	// but it's only available to admins.
+	allowForcePushes:            1,
+	allowDeletions:              1,
+	requiresPullRequests:        1,
+	requireStatusChecksContexts: 1, // Gated by requireStatusChecks=true.
+
 	requireApprovingReviewCount: 2,
-	// This is a big deal to enabled, so let's reward 3 points.
-	// Need admin token.
-	dismissStaleReviews:     3,
-	requireCodeOwnerReviews: 2,
+
+	// Need admin token, so we cannot rely on them in general.
+	requireUpToDateBeforeMerge: 1, // Gated by requireStatusChecks=true.
+	enforceAdmins:              1,
+	dismissStaleReviews:        1,
 }
 
 //nolint:gochecknoinits
@@ -181,7 +181,7 @@ func checkReleaseAndDevBranchProtection(
 		}
 
 		// The branch is protected. Check the protection.
-		score := isBranchProtected(&branch.BranchProtectionRule, b, dl)
+		naScore, naMax, adScore, adMax, naRev, naRevMax, adRev, adRevMax := readBranchProtection(&branch.BranchProtectionRule, b, dl)
 		scores = append(scores, score)
 	}
 
@@ -203,11 +203,12 @@ func checkReleaseAndDevBranchProtection(
 	}
 }
 
-// isBranchProtected checks branch protection rules on a Git branch.
-func isBranchProtected(protection *clients.BranchProtectionRule, branch string, dl checker.DetailLogger) int {
-	totalScore := 15
+func basicNonAdminProtection(protection *clients.BranchProtectionRule,
+	branch string, dl checker.DetailLogger) (int, int) {
 	score := 0
+	max := 0
 
+	max += branchProtectionSettingScores[allowForcePushes]
 	if protection.AllowForcePushes != nil {
 		switch *protection.AllowForcePushes {
 		case true:
@@ -218,6 +219,7 @@ func isBranchProtected(protection *clients.BranchProtectionRule, branch string, 
 		}
 	}
 
+	max += branchProtectionSettingScores[allowDeletions]
 	if protection.AllowDeletions != nil {
 		switch *protection.AllowDeletions {
 		case true:
@@ -228,86 +230,86 @@ func isBranchProtected(protection *clients.BranchProtectionRule, branch string, 
 		}
 	}
 
-	if protection.RequireLinearHistory != nil {
-		switch *protection.RequireLinearHistory {
-		case true:
-			dl.Info("linear history enabled on branch '%s'", branch)
-			score += branchProtectionSettingScores[requireLinearHistory]
-		case false:
-			dl.Warn("linear history disabled on branch '%s'", branch)
-		}
+	max += branchProtectionSettingScores[requiresPullRequests]
+	switch protection.RequiredPullRequestReviews.RequiredApprovingReviewCount {
+	case nil:
+		dl.Warn("pull requests disabled on branch '%s'", branch)
+	default:
+		dl.Info("pull requests enabled on branch '%s'", branch)
+		score += branchProtectionSettingScores[requiresPullRequests]
 	}
 
+	// This means there are specific checks enabled.
+	// If only `Requires status check to pass before merging` is enabled
+	// but no specific checks are declared, it's equivalent
+	// to having no status check at all. So we merge them both in one Warn/Info.
+	max += branchProtectionSettingScores[requireStatusChecksContexts]
+	switch {
+	case len(protection.CheckRules.Contexts) > 0:
+		dl.Info("no status check found to merge onto on branch '%s'", branch)
+		score += branchProtectionSettingScores[requireStatusChecksContexts]
+	default:
+		dl.Warn("status checks found to merge onto branch '%s'", branch)
+	}
+
+	return score, max
+}
+
+func basicAdminProtection(protection *clients.BranchProtectionRule,
+	branch string, dl checker.DetailLogger) (int, int) {
+	score := 0
+	max := 0
+
+	// nil typically means we do not have access to the value.
 	if protection.EnforceAdmins != nil {
+		// Note: we don't inrecase max possible score for non-admin viewers.
+		max += branchProtectionSettingScores[enforceAdmins]
 		switch *protection.EnforceAdmins {
 		case true:
-			dl.Info("'administrator' PRs need reviews before being merged on branch '%s'", branch)
+			dl.Info("settings apply to administrators on branch '%s'", branch)
 			score += branchProtectionSettingScores[enforceAdmins]
 		case false:
-			dl.Warn("'administrator' PRs are exempt from reviews on branch '%s'", branch)
+			dl.Warn("settings do not apply to administrators on branch '%s'", branch)
 		}
+	} else {
+		dl.Debug("unable to retrieve whether or not settings apply to administrators on branch '%s'", branch)
 	}
 
-	score += requiresStatusChecks(protection, branch, dl)
-	score += requiresThoroughReviews(protection, branch, dl)
-
-	return checker.CreateProportionalScore(score, totalScore)
+	return score, max
 }
 
-// Returns true if several PR status checks requirements are enabled. Otherwise returns false and logs why it failed.
-// Maximum score returned is 2.
-func requiresStatusChecks(protection *clients.BranchProtectionRule, branch string, dl checker.DetailLogger) int {
+func nonAdminReviewProtection(protection *clients.BranchProtectionRule, branch string,
+	dl checker.DetailLogger) (int, int) {
 	score := 0
+	max := 0
 
-	switch protection.CheckRules.RequiresStatusChecks != nil {
-	case true:
-		if *protection.CheckRules.RequiresStatusChecks {
-			dl.Info("status check enabled on branch '%s'", branch)
-			score += branchProtectionSettingScores[requireStatusChecks]
-		} else {
-			dl.Warn("status check disabled on branch '%s'", branch)
-		}
-
-		if protection.CheckRules.UpToDateBeforeMerge != nil &&
-			*protection.CheckRules.UpToDateBeforeMerge {
-			dl.Info("status checks require up-to-date branches for '%s'", branch)
-			score += branchProtectionSettingScores[requireUpToDateBeforeMerge]
-		} else {
-			dl.Warn("status checks do not require up-to-date branches for '%s'", branch)
-		}
-
-		if len(protection.CheckRules.Contexts) > 0 {
-			dl.Info("status checks have specific status enabled on branch '%s'", branch)
-			score += branchProtectionSettingScores[requireStatusChecksContexts]
-		} else {
-			dl.Warn("status checks have no specific status enabled on branch '%s'", branch)
-		}
-
-	case false:
-		dl.Debug("unable to retrieve status check for branch '%s'", branch)
-	}
-
-	return score
-}
-
-// Returns true if several PR review requirements are enabled. Otherwise returns false and logs why it failed.
-// Maximum score returned is 7.
-func requiresThoroughReviews(protection *clients.BranchProtectionRule, branch string, dl checker.DetailLogger) int {
-	score := 0
-
+	max += branchProtectionSettingScores[requireApprovingReviewCount]
 	if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
-		if *protection.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews {
+		switch *protection.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews {
+		case true:
 			dl.Info("number of required reviewers is %d on branch '%s'",
 				*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
 			score += branchProtectionSettingScores[requireApprovingReviewCount]
-		} else {
-			score += int(*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+		default:
 			dl.Warn("number of required reviewers is only %d on branch '%s'",
 				*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
 		}
+	} else {
+		dl.Warn("number of required reviewers is only %d on branch '%s'", 0, branch)
+		return score, max
 	}
 
+	return score, max
+}
+
+func adminReviewProtection(protection *clients.BranchProtectionRule, branch string,
+	dl checker.DetailLogger) (int, int) {
+	score := 0
+	max := 0
+
 	if protection.RequiredPullRequestReviews.DismissStaleReviews != nil {
+		// Note: we don't inrecase max possible score for non-admin viewers.
+		max += branchProtectionSettingScores[dismissStaleReviews]
 		switch *protection.RequiredPullRequestReviews.DismissStaleReviews {
 		case true:
 			dl.Info("Stale review dismissal enabled on branch '%s'", branch)
@@ -315,17 +317,37 @@ func requiresThoroughReviews(protection *clients.BranchProtectionRule, branch st
 		case false:
 			dl.Warn("Stale review dismissal disabled on branch '%s'", branch)
 		}
+	} else {
+		dl.Debug("unable to retrieve review dismissal on branch '%s'", branch)
 	}
 
-	if protection.RequiredPullRequestReviews.RequireCodeOwnerReviews != nil {
-		switch *protection.RequiredPullRequestReviews.RequireCodeOwnerReviews {
+	if protection.CheckRules.UpToDateBeforeMerge != nil {
+		// Note: `This setting will not take effect unless at least one status check is enabled`.
+		// Even though it technically is not enforced by GitHub if Context=nil, we still
+		// show a positive outcome for users. Otherwise it will be confusing when they compare
+		// their settings to screcard results.
+		switch *protection.CheckRules.UpToDateBeforeMerge {
 		case true:
-			score += branchProtectionSettingScores[requireCodeOwnerReviews]
-			dl.Info("Owner review required on branch '%s'", branch)
-		case false:
-			dl.Warn("Owner review not required on branch '%s'", branch)
+			dl.Info("status checks require up-to-date branches for '%s'", branch)
+			score += branchProtectionSettingScores[requireUpToDateBeforeMerge]
+		default:
+			dl.Warn("status checks do not require up-to-date branches for '%s'", branch)
 		}
+	} else {
+		dl.Debug("unable to retrieve whether up-to-date branches are needed to merge on branch '%s'", branch)
 	}
 
-	return score
+	return score, max
+}
+
+// readBranchProtection reads branch protection rules on a Git branch.
+func readBranchProtection(protection *clients.BranchProtectionRule,
+	branch string, dl checker.DetailLogger) (int, int, int, int, int, int, int, int) {
+
+	naScore, naMax := basicNonAdminProtection(protection, branch, dl)
+	adScore, adMax := basicAdminProtection(protection, branch, dl)
+
+	naRev, naRevMax := nonAdminReviewProtection(protection, branch, dl)
+	adRev, adRevMax := adminReviewProtection(protection, branch, dl)
+	return naScore, naMax, adScore, adMax, naRev, naRevMax, adRev, adRevMax
 }
