@@ -36,29 +36,11 @@ const (
 	query {
   repository(owner: "laurentsimon", name: "test3") {
     branchProtectionRules(first: 100) {
-      nodes {
-        pushAllowances (first:10){
-          edges {
-            node {
-              id
-            }
-          }
-        }
         allowsDeletions
         allowsForcePushes
         dismissesStaleReviews
         isAdminEnforced
-        requiresApprovingReviews
-        requiredApprovingReviewCount
-        requiresStatusChecks
-        requiresStrictStatusChecks
-        restrictsPushes
-        branchProtectionRuleConflicts(first:3) {
-          __typename
-          nodes {
-            __typename
-          }
-        }
+        ...
         pattern
         matchingRefs(first: 100) {
           nodes {
@@ -68,11 +50,14 @@ const (
         }
       }
     }
-	// I don't think `refs` is needed. The query qorks without it.
     refs(first: 100, refPrefix: "refs/heads/") {
       nodes {
         name
-        __typename
+        refUpdateRule {
+          requiredApprovingReviewCount
+          allowsForcePushes
+		  ...
+        }
       }
     }
   }
@@ -177,13 +162,10 @@ func (handler *branchesHandler) listBranches() ([]*clients.BranchRef, error) {
 func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
 	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
-	if src.RequiresStatusChecks != nil && *src.RequiresStatusChecks {
+	if src.RequiresStatusChecks != nil {
 		copyBoolPtr(src.RequiresStatusChecks, &dst.CheckRules.RequiresStatusChecks)
 		copyBoolPtr(src.RequiresStrictStatusChecks, &dst.CheckRules.UpToDateBeforeMerge)
 	}
-	// We retrieve the list regardless of RequiresStatusChecks, but it's
-	// probably nil when RequiresStatusChecks is nil.
-	copyStringSlice(src.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 }
 
 func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
@@ -195,6 +177,7 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
 		copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
 		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
+		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 
 	case *refUpdateRule:
 		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
@@ -202,6 +185,7 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
 		copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
 		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
+		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 	}
 }
 

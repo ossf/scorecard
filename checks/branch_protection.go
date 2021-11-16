@@ -34,7 +34,8 @@ const (
 	allowDeletions
 	requireLinearHistory
 	enforceAdmins
-	requireStrictStatusChecks
+	requireUpToDateBeforeMerge
+	requireStatusChecks
 	requireStatusChecksContexts
 	requireApprovingReviewCount
 	dismissStaleReviews
@@ -49,8 +50,9 @@ var branchProtectionSettingScores = map[branchProtectionSetting]int{
 	enforceAdmins: 3,
 	// GitHub UI: "This setting will not take effect unless at least one status check is enabled".
 	// Need admin token.
-	requireStrictStatusChecks:   1,
-	requireStatusChecksContexts: 1,
+	requireUpToDateBeforeMerge:  0,
+	requireStatusChecks:         0,
+	requireStatusChecksContexts: 2,
 	requireApprovingReviewCount: 2,
 	// This is a big deal to enabled, so let's reward 3 points.
 	// Need admin token.
@@ -261,6 +263,7 @@ func requiresStatusChecks(protection *clients.BranchProtectionRule, branch strin
 	case true:
 		if *protection.CheckRules.RequiresStatusChecks {
 			dl.Info("status check enabled on branch '%s'", branch)
+			score += branchProtectionSettingScores[requireStatusChecks]
 		} else {
 			dl.Warn("status check disabled on branch '%s'", branch)
 		}
@@ -268,11 +271,12 @@ func requiresStatusChecks(protection *clients.BranchProtectionRule, branch strin
 		if protection.CheckRules.UpToDateBeforeMerge != nil &&
 			*protection.CheckRules.UpToDateBeforeMerge {
 			dl.Info("status checks require up-to-date branches for '%s'", branch)
+			score += branchProtectionSettingScores[requireUpToDateBeforeMerge]
 		} else {
 			dl.Warn("status checks do not require up-to-date branches for '%s'", branch)
 		}
 
-		if protection.CheckRules.Contexts != nil && len(protection.CheckRules.Contexts) > 0 {
+		if len(protection.CheckRules.Contexts) > 0 {
 			dl.Info("status checks have specific status enabled on branch '%s'", branch)
 			score += branchProtectionSettingScores[requireStatusChecksContexts]
 		} else {
