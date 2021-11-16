@@ -31,6 +31,40 @@ const (
 	refPrefix     = "refs/heads/"
 )
 
+// See https://github.community/t/graphql-api-protected-branch/14380
+/* Example of query:
+	query {
+  repository(owner: "laurentsimon", name: "test3") {
+    branchProtectionRules(first: 100) {
+        allowsDeletions
+        allowsForcePushes
+        dismissesStaleReviews
+        isAdminEnforced
+        ...
+        pattern
+        matchingRefs(first: 100) {
+          nodes {
+            name
+
+          }
+        }
+      }
+    }
+    refs(first: 100, refPrefix: "refs/heads/") {
+      nodes {
+        name
+        refUpdateRule {
+          requiredApprovingReviewCount
+          allowsForcePushes
+		  ...
+        }
+      }
+    }
+  }
+}
+*/
+
+// Used for non-admin settings.
 type refUpdateRule struct {
 	AllowsDeletions              *bool
 	AllowsForcePushes            *bool
@@ -40,10 +74,21 @@ type refUpdateRule struct {
 	RequiredStatusCheckContexts  []string
 }
 
+// Used for all settings, both admin and non-admin ones.
+// This only works with an admin token.
 type branchProtectionRule struct {
-	DismissesStaleReviews      *bool
-	IsAdminEnforced            *bool
-	RequiresStrictStatusChecks *bool
+	DismissesStaleReviews        *bool
+	IsAdminEnforced              *bool
+	RequiresStrictStatusChecks   *bool
+	RequiresStatusChecks         *bool
+	AllowsDeletions              *bool
+	AllowsForcePushes            *bool
+	RequiredApprovingReviewCount *int32
+	RequiresCodeOwnerReviews     *bool
+	RequiresLinearHistory        *bool
+	RequiredStatusCheckContexts  []string
+	// TODO: verify there is no conflicts.
+	// BranchProtectionRuleConflicts interface{}
 }
 
 type branch struct {
@@ -114,35 +159,73 @@ func (handler *branchesHandler) listBranches() ([]*clients.BranchRef, error) {
 	return handler.branches, nil
 }
 
+func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
+	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
+	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
+	if src.RequiresStatusChecks != nil {
+		copyBoolPtr(src.RequiresStatusChecks, &dst.CheckRules.RequiresStatusChecks)
+		copyBoolPtr(src.RequiresStrictStatusChecks, &dst.CheckRules.UpToDateBeforeMerge)
+	}
+}
+
+func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
+	// TODO: requiresConversationResolution, requiresSignatures, viewerAllowedToDismissReviews, viewerCanPush
+	switch v := src.(type) {
+	case *branchProtectionRule:
+		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
+		copyBoolPtr(v.AllowsForcePushes, &dst.AllowForcePushes)
+		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
+		copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
+		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
+
+	case *refUpdateRule:
+		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
+		copyBoolPtr(v.AllowsForcePushes, &dst.AllowForcePushes)
+		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
+		copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
+		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
+	}
+}
+
 func getBranchRefFrom(data branch) *clients.BranchRef {
 	branchRef := new(clients.BranchRef)
 	if data.Name != nil {
 		branchRef.Name = data.Name
 	}
 
+	// Protected means we found some data,
+	// i.e., there's a rule for the branch.
+	// It says nothing about what protection is enabled at all.
 	branchRef.Protected = new(bool)
 	if data.RefUpdateRule == nil &&
 		data.BranchProtectionRule == nil {
 		*branchRef.Protected = false
 		return branchRef
 	}
-	*branchRef.Protected = true
 
+	*branchRef.Protected = true
 	branchRule := &branchRef.BranchProtectionRule
-	if data.RefUpdateRule != nil {
-		rule := data.RefUpdateRule
-		copyBoolPtr(rule.AllowsDeletions, &branchRule.AllowDeletions)
-		copyBoolPtr(rule.AllowsForcePushes, &branchRule.AllowForcePushes)
-		copyBoolPtr(rule.RequiresLinearHistory, &branchRule.RequireLinearHistory)
-		copyInt32Ptr(rule.RequiredApprovingReviewCount, &branchRule.RequiredPullRequestReviews.RequiredApprovingReviewCount)
-		copyBoolPtr(rule.RequiresCodeOwnerReviews, &branchRule.RequiredPullRequestReviews.RequireCodeOwnerReviews)
-		copyStringSlice(rule.RequiredStatusCheckContexts, &branchRule.RequiredStatusChecks.Contexts)
-	}
-	if data.BranchProtectionRule != nil {
+
+	switch {
+	// All settings are available. This typically means
+	// scorecard is run with a token that has access
+	// to admin settings.
+	case data.BranchProtectionRule != nil:
 		rule := data.BranchProtectionRule
-		copyBoolPtr(rule.IsAdminEnforced, &branchRule.EnforceAdmins)
-		copyBoolPtr(rule.DismissesStaleReviews, &branchRule.RequiredPullRequestReviews.DismissStaleReviews)
-		copyBoolPtr(rule.RequiresStrictStatusChecks, &branchRule.RequiredStatusChecks.Strict)
+
+		// Admin settings.
+		copyAdminSettings(rule, branchRule)
+
+		// Non-admin settings.
+		copyNonAdminSettings(rule, branchRule)
+
+	// Only non-admin settings are available.
+	// https://docs.github.com/en/graphql/reference/objects#refupdaterule.
+	case data.RefUpdateRule != nil:
+		rule := data.RefUpdateRule
+		copyNonAdminSettings(rule, branchRule)
 	}
 
 	return branchRef
