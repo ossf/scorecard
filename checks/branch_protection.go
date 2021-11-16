@@ -179,7 +179,7 @@ func checkReleaseAndDevBranchProtection(
 			return checker.CreateMinScoreResult(CheckBranchProtection,
 				fmt.Sprintf("branch protection not enabled on development/release branch: %s", b))
 		}
-		// TODO: if Protected==nil, we should not continue.
+
 		// The branch is protected. Check the protection.
 		score := isBranchProtected(&branch.BranchProtectionRule, b, dl)
 		scores = append(scores, score)
