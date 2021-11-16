@@ -40,7 +40,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -51,7 +51,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -62,7 +62,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  3,
 				NumberOfInfo:  2,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -72,7 +72,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 3,
 			},
 		},
@@ -84,7 +84,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -95,7 +95,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -106,7 +106,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -117,7 +117,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -128,7 +128,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -139,7 +139,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 5,
+				NumberOfDebug: 6,
 			},
 		},
 		{
@@ -150,7 +150,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  10,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -161,7 +161,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  10,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -172,7 +172,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -183,7 +183,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  2,
 				NumberOfInfo:  2,
-				NumberOfDebug: 5,
+				NumberOfDebug: 6,
 			},
 		},
 		{
@@ -194,7 +194,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore - 2,
 				NumberOfWarn:  2,
 				NumberOfInfo:  3,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -205,7 +205,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -216,7 +216,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -227,7 +227,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -239,6 +239,28 @@ func TestGithubTokenPermissions(t *testing.T) {
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "release workflow write",
+			filename: "./testdata/github-workflow-permissions-release-writes.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  3,
+				NumberOfDebug: 3,
+			},
+		},
+		{
+			name:     "package workflow write",
+			filename: "./testdata/github-workflow-permissions-packages-writes.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  3,
+				NumberOfDebug: 3,
 			},
 		},
 	}

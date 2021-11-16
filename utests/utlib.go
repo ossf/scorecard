@@ -123,7 +123,7 @@ func ValidateTestReturn(t *testing.T, name string, expected *TestReturn,
 		panic(err)
 	}
 	if !cmp.Equal(*expected, *actualTestReturn, cmp.Comparer(errCmp)) {
-		log.Println(cmp.Diff(*expected, *actualTestReturn))
+		log.Println(name+":", cmp.Diff(*expected, *actualTestReturn))
 		return false
 	}
 	return true
