@@ -316,6 +316,11 @@ var rootCmd = &cobra.Command{
 		defer repoClient.Close()
 
 		ciiClient := clients.DefaultCIIBestPracticesClient()
+		ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer ossFuzzRepoClient.Close()
 
 		// Read docs.
 		checkDocs, err := docs.Read()
@@ -338,7 +343,7 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
-		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient, ciiClient)
+		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
 		if err != nil {
 			log.Fatal(err)
 		}

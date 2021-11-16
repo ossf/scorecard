@@ -230,3 +230,18 @@ func NewLogger(logLevel zapcore.Level) (*zap.Logger, error) {
 	}
 	return logger, nil
 }
+
+// CreateOssFuzzRepoClient returns a RepoClient implementation
+// intialized to `google/oss-fuzz` GitHub repository.
+func CreateOssFuzzRepoClient(ctx context.Context, logger *zap.Logger) (clients.RepoClient, error) {
+	ossFuzzRepo, err := MakeGithubRepo("google/oss-fuzz")
+	if err != nil {
+		return nil, fmt.Errorf("error during githubrepo.MakeGithubRepo: %w", err)
+	}
+
+	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger)
+	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo); err != nil {
+		return nil, fmt.Errorf("error during InitRepo: %w", err)
+	}
+	return ossFuzzRepoClient, nil
+}

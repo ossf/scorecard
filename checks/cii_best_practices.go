@@ -37,6 +37,10 @@ func init() {
 
 // CIIBestPractices runs CII-Best-Practices check.
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
+	if c.CIIClient == nil {
+		return checker.CreateInconclusiveResult(CheckCIIBestPractices, "CII client is nil")
+	}
+
 	// TODO: not supported for local clients.
 	badgeLevel, err := c.CIIClient.GetBadgeLevel(c.Ctx, c.Repo.URI())
 	if err == nil {
