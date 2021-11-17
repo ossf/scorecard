@@ -17,6 +17,7 @@ package checks
 import (
 	"errors"
 	"fmt"
+	"math"
 	"regexp"
 
 	"github.com/ossf/scorecard/v3/checker"
@@ -28,16 +29,22 @@ type branchProtectionSetting int
 
 const (
 	// CheckBranchProtection is the exported name for Branch-Protected check.
-	CheckBranchProtection                         = "Branch-Protection"
-	minReviews                                    = 2
-	allowForcePushes      branchProtectionSetting = iota
+	CheckBranchProtection = "Branch-Protection"
+	minReviews            = 2
+	// First level.
+	allowForcePushes branchProtectionSetting = iota
 	allowDeletions
 	requiresPullRequests
+	// Second level.
 	requireStatusChecksContexts
+	// Third level.
 	requireApprovingReviewCount
 	// Admin settings.
+	// First level.
 	enforceAdmins
+	// Second level.
 	requireUpToDateBeforeMerge
+	// Third level.
 	dismissStaleReviews
 	// requireCodeOwnerReviews no longer used.
 	// requireLinearHistory no longer used, see https://github.com/ossf/scorecard/issues/1027.
@@ -181,8 +188,10 @@ func checkReleaseAndDevBranchProtection(
 		}
 
 		// The branch is protected. Check the protection.
-		naScore, naMax, adScore, adMax, naRev, naRevMax, adRev, adRevMax := readBranchProtection(&branch.BranchProtectionRule, b, dl)
-		scores = append(scores, score)
+		// naScore, naMax, adScore, adMax, naRev, naRevMax, adRev, adRevMax :=
+		readBranchProtection(&branch.BranchProtectionRule, b, dl)
+
+		// scores = append(scores, score)
 	}
 
 	if len(scores) == 0 {
@@ -239,19 +248,6 @@ func basicNonAdminProtection(protection *clients.BranchProtectionRule,
 		score += branchProtectionSettingScores[requiresPullRequests]
 	}
 
-	// This means there are specific checks enabled.
-	// If only `Requires status check to pass before merging` is enabled
-	// but no specific checks are declared, it's equivalent
-	// to having no status check at all. So we merge them both in one Warn/Info.
-	max += branchProtectionSettingScores[requireStatusChecksContexts]
-	switch {
-	case len(protection.CheckRules.Contexts) > 0:
-		dl.Info("no status check found to merge onto on branch '%s'", branch)
-		score += branchProtectionSettingScores[requireStatusChecksContexts]
-	default:
-		dl.Warn("status checks found to merge onto branch '%s'", branch)
-	}
-
 	return score, max
 }
 
@@ -283,22 +279,24 @@ func nonAdminReviewProtection(protection *clients.BranchProtectionRule, branch s
 	score := 0
 	max := 0
 
-	max += branchProtectionSettingScores[requireApprovingReviewCount]
-	if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
-		switch *protection.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews {
-		case true:
-			dl.Info("number of required reviewers is %d on branch '%s'",
-				*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
-			score += branchProtectionSettingScores[requireApprovingReviewCount]
-		default:
-			dl.Warn("number of required reviewers is only %d on branch '%s'",
-				*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
-		}
-	} else {
-		dl.Warn("number of required reviewers is only %d on branch '%s'", 0, branch)
-		return score, max
+	// This means there are specific checks enabled.
+	// If only `Requires status check to pass before merging` is enabled
+	// but no specific checks are declared, it's equivalent
+	// to having no status check at all.
+	max += branchProtectionSettingScores[requireStatusChecksContexts]
+	switch {
+	case len(protection.CheckRules.Contexts) > 0:
+		dl.Info("no status check found to merge onto on branch '%s'", branch)
+		score += branchProtectionSettingScores[requireStatusChecksContexts]
+	default:
+		dl.Warn("status checks found to merge onto branch '%s'", branch)
 	}
 
+	max += branchProtectionSettingScores[requireApprovingReviewCount]
+	if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
+		// We do not display anything here, it's done in nonAdminThoroughReviewProtection()
+		score += int(math.Min(float64(*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount), minReviews))
+	}
 	return score, max
 }
 
@@ -306,20 +304,6 @@ func adminReviewProtection(protection *clients.BranchProtectionRule, branch stri
 	dl checker.DetailLogger) (int, int) {
 	score := 0
 	max := 0
-
-	if protection.RequiredPullRequestReviews.DismissStaleReviews != nil {
-		// Note: we don't inrecase max possible score for non-admin viewers.
-		max += branchProtectionSettingScores[dismissStaleReviews]
-		switch *protection.RequiredPullRequestReviews.DismissStaleReviews {
-		case true:
-			dl.Info("Stale review dismissal enabled on branch '%s'", branch)
-			score += branchProtectionSettingScores[dismissStaleReviews]
-		case false:
-			dl.Warn("Stale review dismissal disabled on branch '%s'", branch)
-		}
-	} else {
-		dl.Debug("unable to retrieve review dismissal on branch '%s'", branch)
-	}
 
 	if protection.CheckRules.UpToDateBeforeMerge != nil {
 		// Note: `This setting will not take effect unless at least one status check is enabled`.
@@ -340,14 +324,62 @@ func adminReviewProtection(protection *clients.BranchProtectionRule, branch stri
 	return score, max
 }
 
+func adminThoroughReviewProtection(protection *clients.BranchProtectionRule, branch string,
+	dl checker.DetailLogger) (int, int) {
+	score := 0
+	max := 0
+	if protection.RequiredPullRequestReviews.DismissStaleReviews != nil {
+		// Note: we don't inrecase max possible score for non-admin viewers.
+		max += branchProtectionSettingScores[dismissStaleReviews]
+		switch *protection.RequiredPullRequestReviews.DismissStaleReviews {
+		case true:
+			dl.Info("Stale review dismissal enabled on branch '%s'", branch)
+			score += branchProtectionSettingScores[dismissStaleReviews]
+		case false:
+			dl.Warn("Stale review dismissal disabled on branch '%s'", branch)
+		}
+	} else {
+		dl.Debug("unable to retrieve review dismissal on branch '%s'", branch)
+	}
+	return score, max
+}
+
+func nonAdminThoroughReviewProtection(protection *clients.BranchProtectionRule, branch string,
+	dl checker.DetailLogger) (int, int) {
+	score := 0
+	max := 0
+
+	max += branchProtectionSettingScores[requireApprovingReviewCount]
+	if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
+		switch *protection.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews {
+		case true:
+			dl.Info("number of required reviewers is %d on branch '%s'",
+				*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
+			score += branchProtectionSettingScores[requireApprovingReviewCount]
+		default:
+			dl.Warn("number of required reviewers is only %d on branch '%s'",
+				*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
+			// RequiredApprovingReviewCount is 0 or 1.
+			score += int(*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+		}
+	} else {
+		// This happens when pull requests are disabled entirely.
+		dl.Warn("number of required reviewers is only %d on branch '%s'", 0, branch)
+	}
+	return score, max
+}
+
 // readBranchProtection reads branch protection rules on a Git branch.
 func readBranchProtection(protection *clients.BranchProtectionRule,
-	branch string, dl checker.DetailLogger) (int, int, int, int, int, int, int, int) {
+	branch string, dl checker.DetailLogger) (int, int, int, int, int, int, int, int, int, int, int, int) {
 
 	naScore, naMax := basicNonAdminProtection(protection, branch, dl)
 	adScore, adMax := basicAdminProtection(protection, branch, dl)
 
 	naRev, naRevMax := nonAdminReviewProtection(protection, branch, dl)
 	adRev, adRevMax := adminReviewProtection(protection, branch, dl)
-	return naScore, naMax, adScore, adMax, naRev, naRevMax, adRev, adRevMax
+
+	a, b := nonAdminThoroughReviewProtection(protection, branch, dl)
+	c, d := adminThoroughReviewProtection(protection, branch, dl) // Do we want this?
+	return naScore, naMax, adScore, adMax, naRev, naRevMax, adRev, adRevMax, a, b, c, d
 }
