@@ -481,7 +481,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 		job := job
 		for _, step := range job.Steps {
 			step := step
-			if step.Exec.Kind() != actionlint.ExecKindRun {
+			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
 				continue
 			}
 
@@ -565,7 +565,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 			jobName = fileparser.GetJobName(job)
 		}
 		for _, step := range job.Steps {
-			if step == nil || step.Exec == nil || step.Exec.Kind() != actionlint.ExecKindAction {
+			if !fileparser.IsStepExecKind(step, actionlint.ExecKindAction) {
 				continue
 			}
 			execAction, ok := step.Exec.(*actionlint.ExecAction)

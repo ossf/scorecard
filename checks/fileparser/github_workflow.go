@@ -51,6 +51,14 @@ func GetStepName(step *actionlint.Step) string {
 	return ""
 }
 
+// IsStepExecKind compares input `step` ExecKind with `kind` and returns true on a match.
+func IsStepExecKind(step *actionlint.Step, kind actionlint.ExecKind) bool {
+	if step == nil || step.Exec == nil {
+		return false
+	}
+	return step.Exec.Kind() == kind
+}
+
 func getExecRunShell(execRun *actionlint.ExecRun) string {
 	if execRun != nil && execRun.Shell != nil {
 		return execRun.Shell.Value
