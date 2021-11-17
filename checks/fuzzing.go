@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks/fileparser"
 	"github.com/ossf/scorecard/v3/clients"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
@@ -32,13 +33,15 @@ func init() {
 
 func checkCFLite(c *checker.CheckRequest) (bool, error) {
 	result := false
-	e := CheckFilesContent(".clusterfuzzlite/Dockerfile", true, c,
-		func(path string, content []byte, dl checker.DetailLogger, data FileCbData) (bool, error) {
-			result = CheckFileContainsCommands(content, "#")
+	e := fileparser.CheckFilesContent(".clusterfuzzlite/Dockerfile", true, c,
+		func(path string, content []byte, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
+			result = fileparser.CheckFileContainsCommands(content, "#")
 			return false, nil
 		}, nil)
-
-	return result, e
+	if e != nil {
+		return result, fmt.Errorf("%w", e)
+	}
+	return result, nil
 }
 
 func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
