@@ -787,7 +787,7 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 func validateShellFileAndRecord(pathfn string, content []byte, files map[string]bool,
 	dl checker.DetailLogger) (bool, error) {
 	in := strings.NewReader(string(content))
-	f, err := syntax.NewParser().Parse(in, "")
+	f, err := syntax.NewParser().Parse(in, pathfn)
 	if err != nil {
 		// Note: this is caught by internal caller and only printed
 		// to avoid failing on shell scripts that our parser does not understand.
