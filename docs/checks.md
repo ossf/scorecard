@@ -495,7 +495,7 @@ Signed releases attest to the provenance of the artifact.
 
 This check looks for the following filenames in the project's last five
 releases: [*.minisig ](https://github.com/jedisct1/minisign), *.asc (pgp),
-*.sign.
+*.sig, *.sign.
 
 Note: The check does not verify the signatures. 
  
