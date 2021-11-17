@@ -45,7 +45,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 				Error:         nil,
 				Score:         8,
 				NumberOfWarn:  1,
-				NumberOfInfo:  8,
+				NumberOfInfo:  9,
 				NumberOfDebug: 0,
 			}
 			result := checks.BranchProtection(&req)
