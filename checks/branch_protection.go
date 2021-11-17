@@ -38,7 +38,7 @@ const (
 	// First level.
 	allowForcePushes branchProtectionSetting = iota
 	allowDeletions
-	// Third and fourth level.
+	// Second and third level.
 	requireApprovingReviewCount
 	// Fourth level.
 	requireStatusChecksContexts
@@ -304,7 +304,7 @@ func computeScore(scores []levelScore) (int, error) {
 		return int(score), nil
 	}
 
-	// Fourth, check the through non-admin review config.
+	// Fourth, check the thorough non-admin review config.
 	thoroughReviewScore, maxThoroughReviewScore := computeNonAdminThoroughReviewScore(scores, maxScores)
 	score += noarmalizeScore(thoroughReviewScore, maxThoroughReviewScore, level4)
 	// fmt.Printf("score level 4: %f\n", noarmalizeScore(thoroughReviewScore, maxThoroughReviewScore, level4))
@@ -312,7 +312,7 @@ func computeScore(scores []levelScore) (int, error) {
 		return int(score), nil
 	}
 
-	// Last, check the through admin review config.
+	// Last, check the thorough admin review config.
 	// This one is controversial and has usability issues
 	// https://github.com/ossf/scorecard/issues/1027, so we may remove it.
 	adminThoroughReviewScore, maxAdminThoroughReviewScore := computeAdminThoroughReviewScore(scores, maxScores)
