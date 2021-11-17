@@ -38,16 +38,16 @@ const (
 	// First level.
 	allowForcePushes branchProtectionSetting = iota
 	allowDeletions
-	// Second level.
-	requireStatusChecksContexts
 	// Third and fourth level.
 	requireApprovingReviewCount
+	// Fourth level.
+	requireStatusChecksContexts
 	// Admin settings.
 	// First level.
 	enforceAdmins
 	// Second level.
 	requireUpToDateBeforeMerge
-	// Fourth level.
+	// Fifth level.
 	dismissStaleReviews
 	// requireCodeOwnerReviews no longer used.
 	// requireLinearHistory no longer used, see https://github.com/ossf/scorecard/issues/1027.
