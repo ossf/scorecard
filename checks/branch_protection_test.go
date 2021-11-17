@@ -14,7 +14,6 @@
 
 package checks
 
-/*
 import (
 	"testing"
 
@@ -676,4 +675,3 @@ func TestIsBranchProtected(t *testing.T) {
 		})
 	}
 }
-*/
