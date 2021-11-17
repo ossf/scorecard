@@ -50,8 +50,10 @@ func checkCFLite(c *checker.CheckRequest) (bool, error) {
 			result = fileparser.CheckFileContainsCommands(content, "#")
 			return false, nil
 		}, nil)
-
-	return result, fmt.Errorf("%w", e)
+	if e != nil {
+		return result, fmt.Errorf("%w", e)
+	}
+	return result, nil
 }
 
 func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
