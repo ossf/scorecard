@@ -25,6 +25,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks"
 	docs "github.com/ossf/scorecard/v3/docs/checks"
 	sce "github.com/ossf/scorecard/v3/errors"
 	spol "github.com/ossf/scorecard/v3/policy"
@@ -457,11 +458,15 @@ func contains(l []string, elt string) bool {
 	return false
 }
 
-func computeCategory(repos []string) (string, error) {
+func computeCategory(name string, repos []string) (string, error) {
 	// In terms of sets, local < Git-local < GitHub.
 	switch {
 	default:
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("repo types not supported: %v", repos))
+	// Special case: we want to run branch rotection on PRs,
+	// even though it's not supported on local repos in general.
+	case name == checks.CheckBranchProtection:
+		return "online-scm-pr", nil
 	case contains(repos, "local"):
 		return "local", nil
 	// Note: Git-local is not supported by any checks yet.
@@ -512,7 +517,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// The reason is the following: if a check has findings and is later fixed by a user,
 		// the absence of run for the check will indicate that the check was *not* run,
 		// so GitHub would keep the findings in the dahsboard. We don't want that.
-		category, err := computeCategory(doc.GetSupportedRepoTypes())
+		category, err := computeCategory(doc.GetName(), doc.GetSupportedRepoTypes())
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("computeCategory: %v: %s", err, check.Name))
 		}
