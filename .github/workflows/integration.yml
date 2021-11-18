@@ -97,14 +97,14 @@ jobs:
           comment-author: 'github-actions[bot]'
           body-includes: Integration tests ran for
 
-      - name: create or update comment
-        if: (${{ always() }})
-        uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae # v1.4.5
-        with:
-          issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          body: |
-            Integration tests ${{ job.status }} for [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}](https://github.com/ossf/scorecard/actions/runs/${{ github.run_id }})
+      # - name: create or update comment
+      #   if: (${{ always() }})
+      #   uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae # v1.4.5
+      #   with:
+      #     issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
+      #     comment-id: ${{ steps.fc.outputs.comment-id }}
+      #     body: |
+      #       Integration tests ${{ job.status }} for [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}](https://github.com/ossf/scorecard/actions/runs/${{ github.run_id }})
 
       - name: set fork job status
         uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
