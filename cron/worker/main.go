@@ -178,12 +178,17 @@ func main() {
 		panic(err)
 	}
 
+	ciiDataBucketURL, err := config.GetCIIDataBucketURL()
+	if err != nil {
+		panic(err)
+	}
+
 	logger, err := githubrepo.NewLogger(zap.InfoLevel)
 	if err != nil {
 		panic(err)
 	}
 	repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-	ciiClient := clients.DefaultCIIBestPracticesClient()
+	ciiClient := clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
 	ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
 	if err != nil {
 		panic(err)

@@ -18,10 +18,6 @@ import (
 	"context"
 )
 
-// BadgeLevel corresponds to CII-Best-Practices badge levels.
-// https://bestpractices.coreinfrastructure.org/en
-type BadgeLevel uint
-
 const (
 	// Unknown or non-parsable CII Best Practices badge.
 	Unknown BadgeLevel = iota
@@ -37,12 +33,23 @@ const (
 	Gold
 )
 
+// BadgeLevel corresponds to CII-Best-Practices badge levels.
+// https://bestpractices.coreinfrastructure.org/en
+type BadgeLevel uint
+
 // CIIBestPracticesClient interface returns the BadgeLevel for a repo URL.
 type CIIBestPracticesClient interface {
 	GetBadgeLevel(ctx context.Context, uri string) (BadgeLevel, error)
 }
 
-// DefaultCIIBestPracticesClient returns HTTPClientCIIBestPractices implementation of the interface.
+// DefaultCIIBestPracticesClient returns http-based implementation of the interface.
 func DefaultCIIBestPracticesClient() CIIBestPracticesClient {
-	return &HTTPClientCIIBestPractices{}
+	return &httpClientCIIBestPractices{}
+}
+
+// BlobCIIBestPracticesClient returns a blob-based implementation of the interface.
+func BlobCIIBestPracticesClient(bucketURL string) CIIBestPracticesClient {
+	return &blobClientCIIBestPractices{
+		bucketURL: bucketURL,
+	}
 }
