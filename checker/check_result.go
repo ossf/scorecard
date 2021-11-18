@@ -58,7 +58,7 @@ const (
 	FileTypeURL
 )
 
-// OffsetDefault is sed if we can't determine the offset, for example when referencing a file but not a 
+// OffsetDefault is used if we can't determine the offset, for example when referencing a file but not a
 // specific location in the file.
 const OffsetDefault = 1
 

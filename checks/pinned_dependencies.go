@@ -155,18 +155,18 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 	if r.gitHubOwned != notPinned {
 		score += 2
 		dl.Info3(&checker.LogMessage{
-			Type: checker.FileTypeSource,
+			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
-			Text: fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
+			Text:   fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
 		})
 	}
 
 	if r.thirdParties != notPinned {
 		score += 8
 		dl.Info3(&checker.LogMessage{
-			Type: checker.FileTypeSource,
+			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
-			Text: fmt.Sprintf("%s %s", "Third-party", infoMsg),
+			Text:   fmt.Sprintf("%s %s", "Third-party", infoMsg),
 		})
 	}
 
