@@ -23,6 +23,17 @@ import (
 	"github.com/jszwec/csvutil"
 )
 
+// WriteTo writes `repos` to `out`.
+func WriteTo(out io.Writer, repos []RepoFormat) error {
+	csvWriter := csv.NewWriter(out)
+	enc := csvutil.NewEncoder(csvWriter)
+	if err := enc.Encode(repos); err != nil {
+		return fmt.Errorf("error during Encode: %w", err)
+	}
+	csvWriter.Flush()
+	return nil
+}
+
 // SortAndAppendTo appends `oldRepos` and `newRepos` before sorting and writing out the result to `out`.
 func SortAndAppendTo(out io.Writer, oldRepos, newRepos []RepoFormat) error {
 	oldRepos = append(oldRepos, newRepos...)
@@ -30,13 +41,7 @@ func SortAndAppendTo(out io.Writer, oldRepos, newRepos []RepoFormat) error {
 	sort.SliceStable(oldRepos, func(i, j int) bool {
 		return oldRepos[i].Repo < oldRepos[j].Repo
 	})
-	csvWriter := csv.NewWriter(out)
-	enc := csvutil.NewEncoder(csvWriter)
-	if err := enc.Encode(oldRepos); err != nil {
-		return fmt.Errorf("error during Encode: %w", err)
-	}
-	csvWriter.Flush()
-	return nil
+	return WriteTo(out, oldRepos)
 }
 
 // SortAndAppendFrom reads from `in`, appends to newRepos and writes the sorted output to `out`.

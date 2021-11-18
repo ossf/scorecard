@@ -93,8 +93,9 @@ tree-status: ## Verify tree is clean and all changes are committed
 
 ################################## make build #################################
 ## Build all cron-related targets
-build-cron: build-pubsub build-cii-worker build-bq-transfer build-github-server build-webhook build-add-script \
-	  build-validate-script build-update-script
+build-cron: build-controller build-worker build-cii-worker \
+	build-shuffler build-bq-transfer build-github-server \
+	build-webhook build-add-script build-validate-script build-update-script
 
 build-targets = generate-mocks generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
 .PHONY: build $(build-targets)
@@ -134,14 +135,21 @@ build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable
 	CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'
 
-build-pubsub: ## Runs go build on the PubSub cron job
-	# Run go build and the PubSub cron job
+build-controller: ## Runs go build on the cron PubSub controller
+	# Run go build on the cron PubSub controller
 	cd cron/controller && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o controller
+
+build-worker: ## Runs go build on the cron PubSub worker
+	# Run go build on the cron PubSub worker
 	cd cron/worker && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o worker
 
 build-cii-worker: ## Runs go build on the CII worker
 	# Run go build on the CII worker
 	cd cron/cii && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o cii-worker
+
+build-shuffler: ## Runs go build on the cron shuffle script
+	# Run go build on the cron shuffle script
+	cd cron/shuffle && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o shuffle
 
 build-bq-transfer: ## Runs go build on the BQ transfer cron job
 build-bq-transfer: ./cron/bq/*.go
