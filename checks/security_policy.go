@@ -48,8 +48,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 			c.Dlogger.Info3(&checker.LogMessage{
 				Path: name,
 				Type: checker.FileTypeSource,
-				// Source file must have line number > 0.
-				Offset: 1,
+				Offset: checker.OffsetDefault,
 				Text:   "security policy detected",
 			})
 			*pdata = true
@@ -58,8 +57,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 			c.Dlogger.Info3(&checker.LogMessage{
 				Path: name,
 				Type: checker.FileTypeSource,
-				// Source file must have line number > 0.
-				Offset: 1,
+				Offset: checker.OffsetDefault,
 				Text:   "security policy detected",
 			})
 			*pdata = true
@@ -99,8 +97,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 				dl.Info3(&checker.LogMessage{
 					Path: name,
 					Type: checker.FileTypeSource,
-					// Source file must have line number > 0.
-					Offset: 1,
+					Offset: checker.OffsetDefault,
 					Text:   "security policy detected in .github folder",
 				})
 				*pdata = true
