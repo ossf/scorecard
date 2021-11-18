@@ -280,7 +280,6 @@ func computeScore(scores []levelScore) (int, error) {
 	basicScore, maxBasicScore := computeNonAdminBasicScore(scores, maxScores)
 	adminBasicScore, maxAdminBasicScore := computeAdminBasicScore(scores, maxScores)
 	score += noarmalizeScore(basicScore+adminBasicScore, maxBasicScore+maxAdminBasicScore, level1)
-	// fmt.Printf("score level 1: %f\n", noarmalizeScore(basicScore+adminBasicScore, maxBasicScore+maxAdminBasicScore, level1))
 	if basicScore != maxBasicScore ||
 		adminBasicScore != maxAdminBasicScore {
 		return int(score), nil
@@ -290,7 +289,6 @@ func computeScore(scores []levelScore) (int, error) {
 	reviewScore, maxReviewScore := computeNonAdminReviewScore(scores, maxScores)
 	adminReviewScore, maxAdminReviewScore := computeAdminReviewScore(scores, maxScores)
 	score += noarmalizeScore(reviewScore+adminReviewScore, maxReviewScore+maxAdminReviewScore, level2)
-	// fmt.Printf("score level 2: %f\n", noarmalizeScore(reviewScore+adminReviewScore, maxReviewScore+maxAdminReviewScore, level2))
 	if reviewScore != maxReviewScore ||
 		adminReviewScore != maxAdminReviewScore {
 		return int(score), nil
@@ -299,7 +297,6 @@ func computeScore(scores []levelScore) (int, error) {
 	// Third, check the use of context.
 	contextScore, maxContextScore := computeNonAdminContextScore(scores, maxScores)
 	score += noarmalizeScore(contextScore, maxContextScore, level3)
-	// fmt.Printf("score level 3: %f\n", noarmalizeScore(contextScore, maxContextScore, level3))
 	if contextScore != maxContextScore {
 		return int(score), nil
 	}
@@ -307,7 +304,6 @@ func computeScore(scores []levelScore) (int, error) {
 	// Fourth, check the thorough non-admin review config.
 	thoroughReviewScore, maxThoroughReviewScore := computeNonAdminThoroughReviewScore(scores, maxScores)
 	score += noarmalizeScore(thoroughReviewScore, maxThoroughReviewScore, level4)
-	// fmt.Printf("score level 4: %f\n", noarmalizeScore(thoroughReviewScore, maxThoroughReviewScore, level4))
 	if thoroughReviewScore != maxThoroughReviewScore {
 		return int(score), nil
 	}
@@ -317,7 +313,6 @@ func computeScore(scores []levelScore) (int, error) {
 	// https://github.com/ossf/scorecard/issues/1027, so we may remove it.
 	adminThoroughReviewScore, maxAdminThoroughReviewScore := computeAdminThoroughReviewScore(scores, maxScores)
 	score += noarmalizeScore(adminThoroughReviewScore, maxAdminThoroughReviewScore, level5)
-	// fmt.Printf("score level 5: %f\n", noarmalizeScore(adminThoroughReviewScore, maxAdminThoroughReviewScore, level5))
 	if adminThoroughReviewScore != maxAdminThoroughReviewScore {
 		return int(score), nil
 	}
