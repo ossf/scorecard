@@ -173,6 +173,11 @@ func main() {
 		panic(err)
 	}
 
+	blacklistedChecks, err := config.GetBlacklistedChecks()
+	if err != nil {
+		panic(err)
+	}
+
 	logger, err := githubrepo.NewLogger(zap.InfoLevel)
 	if err != nil {
 		panic(err)
@@ -197,13 +202,9 @@ func main() {
 	}()
 
 	checksToRun := checks.AllChecks
-	// TODO: Temporarily remove checks which require lot of GitHub API token.
-	delete(checksToRun, checks.CheckSAST)
-	delete(checksToRun, checks.CheckCITests)
-	// TODO: Re-add Contributors check after fixing: #859.
-	delete(checksToRun, checks.CheckContributors)
-	// TODO: Add this in v4
-	delete(checksToRun, checks.CheckDangerousWorkflow)
+	for _, check := range blacklistedChecks {
+		delete(checksToRun, check)
+	}
 	for {
 		req, err := subscriber.SynchronousPull()
 		if err != nil {

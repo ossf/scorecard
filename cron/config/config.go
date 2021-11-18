@@ -24,6 +24,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -46,6 +47,7 @@ const (
 	webhookURL             string = "SCORECARD_WEBHOOK_URL"
 	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
 	ciiDataBucketURL       string = "SCORECARD_CII_DATA_BUCKET_URL"
+	blacklistedChecks      string = "SCORECARD_BLACKLISTED_CHECKS"
 
 	bigqueryTableV2       string = "SCORECARD_BIGQUERY_TABLEV2"
 	resultDataBucketURLV2 string = "SCORECARD_DATA_BUCKET_URLV2"
@@ -71,6 +73,7 @@ type config struct {
 	CompletionThreshold    float32 `yaml:"completion-threshold"`
 	WebhookURL             string  `yaml:"webhook-url"`
 	CIIDataBucketURL       string  `yaml:"cii-data-bucket-url"`
+	BlacklistedChecks      string  `yaml:"blacklisted-checks"`
 	MetricExporter         string  `yaml:"metric-exporter"`
 	ShardSize              int     `yaml:"shard-size"`
 	// UPGRADEv2: to remove.
@@ -215,6 +218,15 @@ func GetCIIDataBucketURL() (string, error) {
 		return url, err
 	}
 	return url, nil
+}
+
+// GetBlacklistedChecks returns a list of checks which are not to be run.
+func GetBlacklistedChecks() ([]string, error) {
+	checks, err := getStringConfigValue(blacklistedChecks, configYAML, "BlacklistedChecks", "blacklisted-checks")
+	if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
+		return nil, err
+	}
+	return strings.Split(checks, ","), nil
 }
 
 // GetMetricExporter returns the opencensus exporter type.
