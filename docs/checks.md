@@ -97,6 +97,28 @@ Additionally, in some cases these rules will need to be suspended. For example,
 if a past commit includes illegal content such as child pornography, it may be
 necessary to use a force push to rewrite the history rather than simply hide the
 commit. 
+
+This test has tiered scoring. Each tier must be fully satisfied to achieve points at the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.
+
+Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” are ignored.
+
+Tier 1 Requirements (3/10 points):
+  - Force push
+  - Force deletion
+  - For administrators: Include administrators
+
+Tier 2 Requirements (6/10 points):
+  - Required reviewers >=1 ​
+  - For administrators: Strict status checks (require branches to be up-to-date before merging)
+
+Tier 3 Requirements (8/10 points):
+  - Status checks defined
+
+Tier 4 Requirements (9/10 points):
+  - Required reviewers >= 2
+
+Tier 5 Requirements (10/10 points):
+  - For administrators: Dismiss stale reviews
  
 
 **Remediation steps**
