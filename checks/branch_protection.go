@@ -30,11 +30,12 @@ const (
 	// CheckBranchProtection is the exported name for Branch-Protected check.
 	CheckBranchProtection = "Branch-Protection"
 	minReviews            = 2
-	level1                = 3
-	level2                = 3
-	level3                = 2
-	level4                = 1
-	level5                = 1
+	// Points incremented at each level.
+	level1 = 3
+	level2 = 3
+	level3 = 2
+	level4 = 1
+	level5 = 1
 	// First level.
 	allowForcePushes branchProtectionSetting = iota
 	allowDeletions
@@ -129,13 +130,9 @@ func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 }
 
 func updateMaxScore(s1, s2 int) (int, error) {
-	if s2 != 0 && s1 != 0 && s1 != s2 {
+	if s1 != s2 {
 		return 0, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid score %d != %d",
 			s1, s2))
-	}
-
-	if s1 < s2 {
-		return s2, nil
 	}
 
 	return s1, nil
