@@ -31,11 +31,11 @@ const (
 	CheckBranchProtection = "Branch-Protection"
 	minReviews            = 2
 	// Points incremented at each level.
-	level1 = 3
-	level2 = 3
-	level3 = 2
-	level4 = 1
-	level5 = 1
+	adminNonAdminBasicLevel     = 3 // Level 1.
+	adminNonAdminReviewLevel    = 3 // Level 2.
+	nonAdminContextLevel        = 2 // Level 3.
+	nonAdminThoroughReviewLevel = 1 // Level 4.
+	adminThoroughReviewLevel    = 1 // Level 5.
 	// First level.
 	allowForcePushes branchProtectionSetting = iota
 	allowDeletions
@@ -54,10 +54,13 @@ const (
 	// requireLinearHistory no longer used, see https://github.com/ossf/scorecard/issues/1027.
 )
 
+// Note: we don't need these since they are all `1`, so we may remove them.
 var branchProtectionSettingScores = map[branchProtectionSetting]int{
-	allowForcePushes:            1,
-	allowDeletions:              1,
-	requireStatusChecksContexts: 1, // Gated by requireStatusChecks=true.
+	allowForcePushes: 1,
+	allowDeletions:   1,
+	// Used to check if required status checks before merging is non-empty,
+	// rather than checking if requireStatusChecks is set.
+	requireStatusChecksContexts: 1,
 	requireApprovingReviewCount: 1,
 	// Need admin token, so we cannot rely on them in general.
 	enforceAdmins:              1,
@@ -75,9 +78,10 @@ type scoresInfo struct {
 	adminThoroughReview int
 }
 
+// Maximum score depending on whether admin token is used.
 type levelScore struct {
-	scores scoresInfo
-	maxes  scoresInfo
+	scores scoresInfo // Score result for a branch.
+	maxes  scoresInfo // Maximum possible score for a branch.
 }
 
 //nolint:gochecknoinits
@@ -129,15 +133,18 @@ func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	return checkReleaseAndDevBranchProtection(c.RepoClient, c.Dlogger)
 }
 
-func updateMaxScore(s1, s2 int) (int, error) {
+func validateMaxScore(s1, s2 int) error {
 	if s1 != s2 {
-		return 0, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid score %d != %d",
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid score %d != %d",
 			s1, s2))
 	}
 
-	return s1, nil
+	return nil
 }
 
+// This function validates that all maximum scores are the same
+// for each level and branch. An error would mean a logic bug in our
+// implementation.
 func getMaxScores(scores []levelScore) (scoresInfo, error) {
 	if len(scores) == 0 {
 		return scoresInfo{}, sce.WithMessage(sce.ErrScorecardInternal, "empty score")
@@ -145,32 +152,31 @@ func getMaxScores(scores []levelScore) (scoresInfo, error) {
 
 	score := scores[0]
 	for _, s := range scores[1:] {
-		var err error
-		if score.maxes.basic, err = updateMaxScore(score.maxes.basic, s.maxes.basic); err != nil {
+		if err := validateMaxScore(score.maxes.basic, s.maxes.basic); err != nil {
 			return scoresInfo{}, err
 		}
 
-		if score.maxes.adminBasic, err = updateMaxScore(score.maxes.adminBasic, s.maxes.adminBasic); err != nil {
+		if err := validateMaxScore(score.maxes.adminBasic, s.maxes.adminBasic); err != nil {
 			return scoresInfo{}, err
 		}
 
-		if score.maxes.review, err = updateMaxScore(score.maxes.review, s.maxes.review); err != nil {
+		if err := validateMaxScore(score.maxes.review, s.maxes.review); err != nil {
 			return scoresInfo{}, err
 		}
 
-		if score.maxes.adminReview, err = updateMaxScore(score.maxes.adminReview, s.maxes.adminReview); err != nil {
+		if err := validateMaxScore(score.maxes.adminReview, s.maxes.adminReview); err != nil {
 			return scoresInfo{}, err
 		}
 
-		if score.maxes.context, err = updateMaxScore(score.maxes.context, s.maxes.context); err != nil {
+		if err := validateMaxScore(score.maxes.context, s.maxes.context); err != nil {
 			return scoresInfo{}, err
 		}
 
-		if score.maxes.thoroughReview, err = updateMaxScore(score.maxes.thoroughReview, s.maxes.thoroughReview); err != nil {
+		if err := validateMaxScore(score.maxes.thoroughReview, s.maxes.thoroughReview); err != nil {
 			return scoresInfo{}, err
 		}
 
-		if score.maxes.adminThoroughReview, err = updateMaxScore(score.maxes.adminThoroughReview,
+		if err := validateMaxScore(score.maxes.adminThoroughReview,
 			s.maxes.adminThoroughReview); err != nil {
 			return scoresInfo{}, err
 		}
@@ -265,7 +271,7 @@ func noarmalizeScore(score, max, level int) float64 {
 }
 
 func computeScore(scores []levelScore) (int, error) {
-	// Validate the maximum scores are the same.
+	// Validate and retrieve the maximum scores.
 	maxScores, err := getMaxScores(scores)
 	if err != nil {
 		return 0, err
@@ -273,34 +279,34 @@ func computeScore(scores []levelScore) (int, error) {
 
 	score := float64(0)
 
-	// First, check if they all pass the basic checks.
+	// First, check if they all pass the basic (admin and non-admin) checks.
 	basicScore, maxBasicScore := computeNonAdminBasicScore(scores, maxScores)
 	adminBasicScore, maxAdminBasicScore := computeAdminBasicScore(scores, maxScores)
-	score += noarmalizeScore(basicScore+adminBasicScore, maxBasicScore+maxAdminBasicScore, level1)
+	score += noarmalizeScore(basicScore+adminBasicScore, maxBasicScore+maxAdminBasicScore, adminNonAdminBasicLevel)
 	if basicScore != maxBasicScore ||
 		adminBasicScore != maxAdminBasicScore {
 		return int(score), nil
 	}
 
-	// Second, check the review config.
+	// Second, check the (admin and non-admin) reviews.
 	reviewScore, maxReviewScore := computeNonAdminReviewScore(scores, maxScores)
 	adminReviewScore, maxAdminReviewScore := computeAdminReviewScore(scores, maxScores)
-	score += noarmalizeScore(reviewScore+adminReviewScore, maxReviewScore+maxAdminReviewScore, level2)
+	score += noarmalizeScore(reviewScore+adminReviewScore, maxReviewScore+maxAdminReviewScore, adminNonAdminReviewLevel)
 	if reviewScore != maxReviewScore ||
 		adminReviewScore != maxAdminReviewScore {
 		return int(score), nil
 	}
 
-	// Third, check the use of context.
+	// Third, check the use of non-admin context.
 	contextScore, maxContextScore := computeNonAdminContextScore(scores, maxScores)
-	score += noarmalizeScore(contextScore, maxContextScore, level3)
+	score += noarmalizeScore(contextScore, maxContextScore, nonAdminContextLevel)
 	if contextScore != maxContextScore {
 		return int(score), nil
 	}
 
-	// Fourth, check the thorough non-admin review config.
+	// Fourth, check the thorough non-admin reviews.
 	thoroughReviewScore, maxThoroughReviewScore := computeNonAdminThoroughReviewScore(scores, maxScores)
-	score += noarmalizeScore(thoroughReviewScore, maxThoroughReviewScore, level4)
+	score += noarmalizeScore(thoroughReviewScore, maxThoroughReviewScore, nonAdminThoroughReviewLevel)
 	if thoroughReviewScore != maxThoroughReviewScore {
 		return int(score), nil
 	}
@@ -309,7 +315,7 @@ func computeScore(scores []levelScore) (int, error) {
 	// This one is controversial and has usability issues
 	// https://github.com/ossf/scorecard/issues/1027, so we may remove it.
 	adminThoroughReviewScore, maxAdminThoroughReviewScore := computeAdminThoroughReviewScore(scores, maxScores)
-	score += noarmalizeScore(adminThoroughReviewScore, maxAdminThoroughReviewScore, level5)
+	score += noarmalizeScore(adminThoroughReviewScore, maxAdminThoroughReviewScore, adminThoroughReviewLevel)
 	if adminThoroughReviewScore != maxAdminThoroughReviewScore {
 		return int(score), nil
 	}
@@ -392,7 +398,7 @@ func checkReleaseAndDevBranchProtection(
 
 		// The branch is protected. Check the protection.
 		score.scores.basic, score.maxes.basic = basicNonAdminProtection(&branch.BranchProtectionRule, b, dl)
-		score.scores.adminBasic, score.maxes.adminBasic = adminBasicProtection(&branch.BranchProtectionRule, b, dl)
+		score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(&branch.BranchProtectionRule, b, dl)
 		score.scores.review, score.maxes.review = nonAdminReviewProtection(&branch.BranchProtectionRule)
 		score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(&branch.BranchProtectionRule, b, dl)
 		score.scores.context, score.maxes.context = nonAdminContextProtection(&branch.BranchProtectionRule, b, dl)
@@ -456,7 +462,7 @@ func basicNonAdminProtection(protection *clients.BranchProtectionRule,
 	return score, max
 }
 
-func adminBasicProtection(protection *clients.BranchProtectionRule,
+func basicAdminProtection(protection *clients.BranchProtectionRule,
 	branch string, dl checker.DetailLogger) (int, int) {
 	score := 0
 	max := 0
@@ -518,9 +524,6 @@ func adminReviewProtection(protection *clients.BranchProtectionRule, branch stri
 
 	if protection.CheckRules.UpToDateBeforeMerge != nil {
 		// Note: `This setting will not take effect unless at least one status check is enabled`.
-		// Even though it technically is not enforced by GitHub if Context=nil, we still
-		// show a positive outcome for users. Otherwise it will be confusing when they compare
-		// their settings to screcard results.
 		max += branchProtectionSettingScores[requireUpToDateBeforeMerge]
 		switch *protection.CheckRules.UpToDateBeforeMerge {
 		case true:
