@@ -39,6 +39,15 @@ func (client *blobClientCIIBestPractices) GetBadgeLevel(ctx context.Context, uri
 	defer bucket.Close()
 
 	objectName := fmt.Sprintf("%s/result.json", uri)
+
+	exists, err := bucket.Exists(ctx, objectName)
+	if err != nil {
+		return Unknown, fmt.Errorf("error during bucket.Exists: %w", err)
+	}
+	if !exists {
+		return NotFound, nil
+	}
+
 	jsonData, err := bucket.ReadAll(ctx, objectName)
 	if err != nil {
 		return Unknown, fmt.Errorf("error during bucket.ReadAll: %w", err)
