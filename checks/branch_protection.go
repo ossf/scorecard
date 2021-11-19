@@ -429,22 +429,6 @@ func checkReleaseAndDevBranchProtection(
 	}
 }
 
-func testScore(protection *clients.BranchProtectionRule,
-	branch string, dl checker.DetailLogger) (int, error) {
-	var score levelScore
-	score.scores.basic, score.maxes.basic = basicNonAdminProtection(protection, branch, dl)
-	score.scores.adminBasic, score.maxes.adminBasic = adminBasicProtection(protection, branch, dl)
-	score.scores.review, score.maxes.review = nonAdminReviewProtection(protection)
-	score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(protection, branch, dl)
-	score.scores.context, score.maxes.context = nonAdminContextProtection(protection, branch, dl)
-	score.scores.thoroughReview, score.maxes.thoroughReview =
-		nonAdminThoroughReviewProtection(protection, branch, dl)
-	score.scores.adminThoroughReview, score.maxes.adminThoroughReview =
-		adminThoroughReviewProtection(protection, branch, dl)
-
-	return computeScore([]levelScore{score})
-}
-
 func basicNonAdminProtection(protection *clients.BranchProtectionRule,
 	branch string, dl checker.DetailLogger) (int, int) {
 	score := 0
