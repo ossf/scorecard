@@ -12,70 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Run secret-dependent integration tests only after /ok-to-test approval
-on:
-  pull_request:
-  repository_dispatch:
-    types: [ok-to-test-command]
-
+# Run secret-dependent integration tests only after approval
 name: Integration tests
-env:
-  IMAGE_NAME: scorecard
-  OUTPUT_PATH: output
+on: pull_request_target
 
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  integration-trusted:
+  approve:
     runs-on: ubuntu-latest
     steps:
-      - id: debug-outputs
-        run: |
-          echo ${{ github.event_name }}
-          echo ${{ github.event.client_payload }}
+      - name: approve
+        run: echo For security reasons, all pull requests need to be approved before running integration tests.
 
-      - id: verify-sha-input
-        if: github.event_name == 'repository_dispatch'
-        run: |
-          echo \"${{ github.event.client_payload.pull_request.head.sha }}\"
-          echo \"${{ github.event.client_payload.slash_command.args.named.sha }}\"
-          SHAINPUT=$(echo ${{github.event.client_payload.slash_command.args.named.sha}} | cut -c1-7)
-          if [ ${#SHAINPUT} -le 6 ]; then echo "error::input sha not at least 7 characters long" ; exit 1
-          else echo "done"
-          fi
-          SHAHEAD=$(echo ${{github.event.client_payload.pull_request.head.sha}} | cut -c1-7)
-          echo ${#SHAINPUT}
-          echo ${#SHAHEAD}
-          if [ "${SHAHEAD}" != "${SHAINPUT}" ]; then echo "sha input from slash command does not equal the head sha" ; exit 1
-          else echo "shas are equal"
-          fi
-
+  integration-trusted:
+    runs-on: ubuntu-latest
+    environment: integration-test
+    needs: [approve]
+    steps:
       - name: pull_request actions/checkout
-        if: github.event_name == 'pull_request'
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.3.4
-
-      - name: pull_request actions/checkout
-        if: github.event_name == 'repository_dispatch'
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.3.4
-        with:
-          ref: 'refs/pull/${{ github.event.client_payload.pull_request.number }}/merge'
 
       - name: setup-go
         uses: actions/setup-go@331ce1d993939866bb63c32c6cbbfd48fa76fc57 # v2.1.3
         with:
           go-version: '1.17'
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba # v0.2.1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCRTOKEN }}
-          export_default_credentials: true
-
-      - name: Use gcloud CLI
-        run: gcloud info
 
       - name: Prepare test env
         run: |
@@ -89,7 +52,6 @@ jobs:
               make ci-e2e
 
       - name: find comment
-        if: ${{ always() }}
         uses: peter-evans/find-comment@d2dae40ed151c634e4189471272b57e76ec19ba8 # v1.2.0
         id: fc
         with:
@@ -98,48 +60,11 @@ jobs:
           body-includes: Integration tests ran for
 
       - name: create or update comment
-        if: (${{ always() }})
         uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae # v1.4.5
         with:
           issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
           comment-id: ${{ steps.fc.outputs.comment-id }}
           body: |
-            Integration tests ${{ job.status }} for [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}](https://github.com/ossf/scorecard/actions/runs/${{ github.run_id }})
-
-      - name: set fork job status
-        uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # v5.0.0
-        if: ${{ always() }}
-        id: update-check-run
-        env:
-          number: ${{ github.event.client_payload.pull_request.number }}
-          job: ${{ github.job }}
-          # Conveniently, job.status maps to https://developer.github.com/v3/checks/runs/#update-a-check-run
-          conclusion: ${{ job.status }}
-          sha: ${{ github.event.client_payload.slash_command.args.named.sha }}
-          event_name: ${{ github.event_name }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            if (process.env.event_name !== 'repository_dispatch') {
-              console.log("Not repository_dispatch... nothing to do!");
-              return process.env.event_name;
-            }
-
-            const ref = process.env.sha;
-
-            const { data: checks } = await github.checks.listForRef({
-              ...context.repo,
-              ref
-            });
-
-            const check = checks.check_runs.filter(c => c.name === process.env.job);
-            console.log(check);
-
-            const { data: result } = await github.checks.update({
-              ...context.repo,
-              check_run_id: check[0].id,
-              status: 'completed',
-              conclusion: process.env.conclusion
-            });
-
-            return result;
+            Integration tests ${{ job.status }} for
+            [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}]
+            (https://github.com/ossf/scorecard/actions/runs/${{ github.run_id }})
