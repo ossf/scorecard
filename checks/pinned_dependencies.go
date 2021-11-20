@@ -602,6 +602,17 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 				// Cannot check further, continue.
 				continue
 			}
+
+			// CIFuzz and CFLite can't be pinned properly
+			// https://github.com/ossf/scorecard/issues/1305
+			if isSkipped(execAction.Uses.Value) {
+				dl.Debug3(&checker.LogMessage{
+					Path: pathfn, Type: checker.FileTypeSource, Offset: execAction.Uses.Pos.Line, Snippet: execAction.Uses.Value,
+					Text: fmt.Sprintf("dependency not pinned by hash (job '%v')", jobName),
+				})
+				continue
+			}
+
 			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 			// Example: action-name@hash
 			match := hashRegex.Match([]byte(execAction.Uses.Value))
@@ -675,4 +686,16 @@ func validatePackageManagerFile(name string, dl checker.DetailLogger, data filep
 	pdata := dataAsResultPointer(data)
 	addPinnedResult(pdata, true)
 	return false, nil
+}
+
+func isSkipped(s string) bool {
+	for _, pattern := range []string{
+		"google/clusterfuzzlite/actions",
+		"google/oss-fuzz/infra/cifuzz/actions",
+	} {
+		if strings.Contains(s, pattern) {
+			return true
+		}
+	}
+	return false
 }
