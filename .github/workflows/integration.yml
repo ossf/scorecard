@@ -34,6 +34,8 @@ jobs:
     steps:
       - name: pull_request actions/checkout
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: setup-go
         uses: actions/setup-go@331ce1d993939866bb63c32c6cbbfd48fa76fc57 # v2.1.3
