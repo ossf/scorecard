@@ -42,6 +42,7 @@ RUN ["pip3", "install", "-r", "requirements.txt", "--require-hashes"]
 RUN ["/bin/pip", "install", "--upgrade", "-r", "requirements.txt"]
 RUN ["/bin/pip", "install", "--upgrade"]
 RUN pip3 install -r bla-requirements.txt --require-hashes
+RUN pip3 install --require-hashes -r bla-requirements.txt
 
 RUN pip install somepkg
 RUN pip3 install somepkg==1.2.3
