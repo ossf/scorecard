@@ -18,7 +18,7 @@ metadata:
   name: scorecard-cii-worker
 spec:
   # At 00:00UTC on 1st of every month.
-  schedule: "@monthly"
+  schedule: "0 20 * * 0"
   concurrencyPolicy: "Forbid"
   jobTemplate:
     spec:
