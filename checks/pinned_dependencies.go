@@ -651,7 +651,7 @@ func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
 // TODO(laurent): need to differentiate between libraries and programs.
 // TODO(laurent): handle multi-language repos.
-//nolint:unused,deadcode
+//nolint:unused
 func validatePackageManagerFile(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	switch strings.ToLower(name) {
 	// TODO(laurent): "go.mod" is for libraries
