@@ -633,6 +633,7 @@ func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
 }
 
 // Check presence of lock files thru validatePackageManagerFile().
+//nolint:deadcode
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
 	err := fileparser.CheckIfFileExists(CheckPinnedDependencies, c, validatePackageManagerFile, &r)
@@ -650,6 +651,7 @@ func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
 // TODO(laurent): need to differentiate between libraries and programs.
 // TODO(laurent): handle multi-language repos.
+//nolint:deadcode
 func validatePackageManagerFile(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	switch strings.ToLower(name) {
 	// TODO(laurent): "go.mod" is for libraries
