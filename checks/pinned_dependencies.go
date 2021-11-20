@@ -45,10 +45,15 @@ func init() {
 // PinnedDependencies will check the repository if it contains frozen dependecies.
 func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 	// Lock file.
+	/* WARNING: this code is inherently incorrect:
+	- does not differenetiate between libs and main
+	- only looks at root fodler.
+	=> disabling to avoid false positives.
 	lockScore, lockErr := isPackageManagerLockFilePresent(c)
 	if lockErr != nil {
 		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, lockErr)
 	}
+	*/
 
 	// GitHub actions.
 	actionScore, actionErr := isGitHubActionsWorkflowPinned(c)
@@ -81,13 +86,12 @@ func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Scores may be inconclusive.
-	lockScore = maxScore(0, lockScore)
 	actionScore = maxScore(0, actionScore)
 	dockerFromScore = maxScore(0, dockerFromScore)
 	dockerDownloadScore = maxScore(0, dockerDownloadScore)
 	scriptScore = maxScore(0, scriptScore)
 	actionScriptScore = maxScore(0, actionScriptScore)
-	score := checker.AggregateScores(lockScore, actionScore, dockerFromScore,
+	score := checker.AggregateScores(actionScore, dockerFromScore,
 		dockerDownloadScore, scriptScore, actionScriptScore)
 
 	if score == checker.MaxResultScore {
