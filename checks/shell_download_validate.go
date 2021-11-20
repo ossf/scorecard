@@ -484,9 +484,7 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			continue
 		}
 
-		// TODO(laurent): https://github.com/ossf/scorecard/pull/611#discussion_r660203476.
-		// Support -r <> --require-hashes.
-
+		// https://github.com/ossf/scorecard/issues/1306#issuecomment-974539197.
 		if strings.EqualFold(cmd[i], "--require-hashes") {
 			hashHashes = true
 			continue
