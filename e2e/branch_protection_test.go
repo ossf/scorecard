@@ -28,7 +28,7 @@ import (
 
 var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 	Context("E2E TEST:Validating branch protection", func() {
-		It("Should fail to return branch protection on other repositories (1)", func() {
+		It("Should fail to return branch protection on other repositories", func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
 			Expect(err).Should(BeNil())
