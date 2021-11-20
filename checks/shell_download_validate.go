@@ -497,8 +497,7 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			continue
 		}
 
-		// Any other arguments are considered unpinned,
-		// unless hashHashes is true.
+		// Other arguments are present.
 		hasAddArgs = true
 	}
 
