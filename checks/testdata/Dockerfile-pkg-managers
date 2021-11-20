@@ -37,6 +37,11 @@ RUN pip install
 RUN pip3 install
 RUN pip install -r any_file
 RUN pip3 install -r bla-requirements.txt
+RUN ["pip", "install", "-r", "requirements.txt", "--require-hashes"]
+RUN ["pip3", "install", "-r", "requirements.txt", "--require-hashes"]
+RUN ["/bin/pip", "install", "--upgrade", "-r", "requirements.txt"]
+RUN ["/bin/pip", "install", "--upgrade"]
+RUN pip3 install -r bla-requirements.txt --require-hashes
 
 RUN pip install somepkg
 RUN pip3 install somepkg==1.2.3
