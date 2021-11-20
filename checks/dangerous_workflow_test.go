@@ -57,13 +57,9 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			name:     "run trusted code checkout test",
 			filename: "./testdata/github-workflow-dangerous-pattern-trusted-checkout.yml",
 			expected: scut.TestReturn{
-				Error: nil,
-				// TODO(#1294): Fix the score calculation to return MaxScore.
-				// Score:         checker.MaxResultScore,
-				Score: checker.MinResultScore,
-				// TODO(#1294): NumberOfWarn should be 0.
-				// NumberOfWarn:  0,
-				NumberOfWarn:  1,
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
@@ -106,7 +102,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				}
 			}
 			dl := scut.TestDetailLogger{}
-			r := testValidateGitHubActionDangerousWOrkflow(tt.filename, content, &dl)
+			r := testValidateGitHubActionDangerousWorkflow(tt.filename, content, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
 				t.Fail()
 			}
