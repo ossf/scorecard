@@ -471,9 +471,7 @@ func isUnpinnedPipInstall(cmd []string) bool {
 	hasWhl := false
 	hashHashes := false
 	hasAddArgs := false
-	fmt.Println("testing", cmd, len(cmd))
 	for i := 1; i < len(cmd); i++ {
-		fmt.Println("", cmd[i])
 		// Search for install commands.
 		if strings.EqualFold(cmd[i], "install") {
 			isInstall = true
@@ -506,7 +504,6 @@ func isUnpinnedPipInstall(cmd []string) bool {
 
 	// We get here only for
 	// `pip install [bla.whl ...]`, `pip install <> --require-hashes`
-	fmt.Println(cmd, !((hasWhl && !hasAddArgs) || hashHashes))
 	return isInstall && !((hasWhl && !hasAddArgs) || hashHashes)
 }
 
