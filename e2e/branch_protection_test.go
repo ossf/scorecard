@@ -53,6 +53,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 			// Old version.
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
+
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
