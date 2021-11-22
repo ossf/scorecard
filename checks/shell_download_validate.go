@@ -494,8 +494,8 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			continue
 		}
 
-		// Other arguments are present.
-		hasAddArgs = true
+		// Unresolved dependencies are present.
+		hasUnresolvedDeps = true
 	}
 
 	// We get here only for
