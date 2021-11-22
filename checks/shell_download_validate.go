@@ -482,8 +482,8 @@ func isUnpinnedPipInstall(cmd []string) bool {
 
 		// https://github.com/ossf/scorecard/issues/1306#issuecomment-974539197.
 		if strings.EqualFold(cmd[i], "--require-hashes") {
-			hashHashes = true
-			continue
+			hasUnresolvedDeps = false
+			break
 		}
 
 		// Exclude *.whl as they're mostly used
