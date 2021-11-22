@@ -50,6 +50,16 @@ func TestGitHubWorkflowShell(t *testing.T) {
 			expectedShells: []string{"pwsh"},
 		},
 		{
+			name:           "all windows, OSes listed in matrix.include",
+			filename:       "../testdata/github-workflow-shells-all-windows-matrix-include.yaml",
+			expectedShells: []string{"pwsh"},
+		},
+		{
+			name:           "all windows, empty matrix.include",
+			filename:       "../testdata/github-workflow-shells-all-windows-matrix-include-empty.yaml",
+			expectedShells: []string{"pwsh"},
+		},
+		{
 			name:           "all windows",
 			filename:       "../testdata/github-workflow-shells-all-windows.yaml",
 			expectedShells: []string{"pwsh"},
