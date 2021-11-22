@@ -87,6 +87,14 @@ func getJobStrategyMatrixRows(job *actionlint.Job) map[string]*actionlint.Matrix
 	return nil
 }
 
+func getJobStrategyMatrixIncludeCombinations(job *actionlint.Job) []*actionlint.MatrixCombination {
+	if job != nil && job.Strategy != nil && job.Strategy.Matrix != nil && job.Strategy.Matrix.Include != nil &&
+		job.Strategy.Matrix.Include.Combinations != nil {
+		return job.Strategy.Matrix.Include.Combinations
+	}
+	return nil
+}
+
 // FormatActionlintError combines the errors into a single one.
 func FormatActionlintError(errs []*actionlint.Error) error {
 	if len(errs) == 0 {
@@ -122,6 +130,19 @@ func GetOSesForJob(job *actionlint.Job) ([]string, error) {
 		}
 		for _, os := range rowValue.Values {
 			jobOSes = append(jobOSes, strings.Trim(os.String(), "'\""))
+		}
+	}
+
+	matrixCombinations := getJobStrategyMatrixIncludeCombinations(job)
+	for _, combination := range matrixCombinations {
+		if combination.Assigns == nil {
+			continue
+		}
+		for _, assign := range combination.Assigns {
+			if assign.Key == nil || assign.Key.Value != os || assign.Value == nil {
+				continue
+			}
+			jobOSes = append(jobOSes, strings.Trim(assign.Value.String(), "'\""))
 		}
 	}
 

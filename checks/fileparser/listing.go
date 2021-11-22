@@ -222,3 +222,22 @@ func CheckFileContainsCommands(content []byte, comment string) bool {
 	}
 	return false
 }
+
+// IsTemplateFile returns true if the file name contains a string commonly used in template files.
+func IsTemplateFile(pathfn string) bool {
+	parts := strings.FieldsFunc(path.Base(pathfn), func(r rune) bool {
+		switch r {
+		case '.', '-', '_':
+			return true
+		default:
+			return false
+		}
+	})
+	for _, part := range parts {
+		switch strings.ToLower(part) {
+		case "template", "tmpl", "tpl":
+			return true
+		}
+	}
+	return false
+}
