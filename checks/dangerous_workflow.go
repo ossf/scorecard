@@ -98,7 +98,7 @@ func checkPullRequestTrigger(workflow *actionlint.Workflow) bool {
 	// Check if the webhook event trigger is a pull_request_target
 	for _, event := range workflow.On {
 		e, ok := event.(*actionlint.WebhookEvent)
-		if ok && e.Hook.Value == "pull_request_target" {
+		if ok && e.Hook != nil && e.Hook.Value == "pull_request_target" {
 			return true
 		}
 	}
@@ -108,8 +108,15 @@ func checkPullRequestTrigger(workflow *actionlint.Workflow) bool {
 
 func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
+	if job == nil {
+		return nil
+	}
+
 	// Check each step, which is a map, for checkouts with untrusted ref
 	for _, step := range job.Steps {
+		if step == nil || step.Exec == nil {
+			continue
+		}
 		// Check for a step that uses actions/checkout
 		e, ok := step.Exec.(*actionlint.ExecAction)
 		if !ok || e.Uses == nil {
@@ -121,7 +128,7 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 		// Check for reference. If not defined for a pull_request_target event, this defaults to
 		// the base branch of the pull request.
 		ref, ok := e.Inputs["ref"]
-		if !ok {
+		if !ok || ref.Value == nil {
 			continue
 		}
 		if strings.Contains(ref.Value.Value, "github.event.pull_request") {
