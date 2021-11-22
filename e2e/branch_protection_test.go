@@ -43,16 +43,17 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         9,
+				Score:         6,
 				NumberOfWarn:  1,
-				NumberOfInfo:  8,
+				NumberOfInfo:  6,
 				NumberOfDebug: 0,
 			}
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
+			Expect(result.Pass).Should(BeFalse())
+
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())

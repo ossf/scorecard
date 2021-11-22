@@ -46,14 +46,14 @@ func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 	data := patternCbData{
 		workflowPattern: make(map[string]bool),
 	}
-	err := CheckFilesContent(".github/workflows/*", false,
+	err := fileparser.CheckFilesContent(".github/workflows/*", false,
 		c, validateGitHubActionWorkflowPatterns, &data)
 	return createResultForDangerousWorkflowPatterns(data, err)
 }
 
 // Check file content.
 func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checker.DetailLogger,
-	data FileCbData) (bool, error) {
+	data fileparser.FileCbData) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
@@ -65,7 +65,7 @@ func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checke
 		panic("invalid type")
 	}
 
-	if !CheckFileContainsCommands(content, "#") {
+	if !fileparser.CheckFileContainsCommands(content, "#") {
 		return true, nil
 	}
 
@@ -140,18 +140,18 @@ func checkPullRequestTrigger(config map[interface{}]interface{}) (bool, error) {
 		if strings.EqualFold(val, "pull_request_target") {
 			isPullRequestTrigger = true
 		}
-	case []string:
+	case []interface{}:
 		for _, onVal := range val {
-			if strings.EqualFold(onVal, "pull_request_target") {
-				isPullRequestTrigger = true
-			}
-		}
-	case map[interface{}]interface{}:
-		for k := range val {
-			key, ok := k.(string)
+			key, ok := onVal.(string)
 			if !ok {
 				return false, sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 			}
+			if strings.EqualFold(key, "pull_request_target") {
+				isPullRequestTrigger = true
+			}
+		}
+	case map[string]interface{}:
+		for key := range val {
 			if strings.EqualFold(key, "pull_request_target") {
 				isPullRequestTrigger = true
 			}
@@ -258,7 +258,7 @@ func createResultForDangerousWorkflowPatterns(result patternCbData, err error) c
 		"no dangerous workflow patterns detected")
 }
 
-func testValidateGitHubActionDangerousWOrkflow(pathfn string,
+func testValidateGitHubActionDangerousWorkflow(pathfn string,
 	content []byte, dl checker.DetailLogger) checker.CheckResult {
 	data := patternCbData{
 		workflowPattern: make(map[string]bool),

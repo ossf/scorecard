@@ -136,7 +136,7 @@ func contains(l []string, elt string) bool {
 func supportedInterfacesFromImplementation(checkName string, checkFiles map[string]string) ([]string, error) {
 	// Special case. No APIs are used,
 	// but we need the repo name for an online database lookup.
-	if checkName == "CII-Best-Practices" {
+	if checkName == checks.CheckCIIBestPractices || checkName == checks.CheckFuzzing {
 		return []string{"GitHub"}, nil
 	}
 

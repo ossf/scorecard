@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ossf/scorecard/v3/clients"
 	"github.com/ossf/scorecard/v3/cron/config"
 	"github.com/ossf/scorecard/v3/cron/data"
 )
@@ -38,9 +39,15 @@ func writeToCIIDataBucket(ctx context.Context, pageResp []ciiPageResp, bucketURL
 	for _, project := range pageResp {
 		projectURL := strings.TrimPrefix(project.RepoURL, "https://")
 		projectURL = strings.TrimPrefix(projectURL, "http://")
+		jsonData, err := clients.BadgeResponse{
+			BadgeLevel: project.BadgeLevel,
+		}.AsJSON()
+		if err != nil {
+			return fmt.Errorf("error during AsJSON: %w", err)
+		}
 		fmt.Printf("Writing result for: %s\n", projectURL)
 		if err := data.WriteToBlobStore(ctx, bucketURL,
-			fmt.Sprintf("%s/result.json", projectURL), []byte(project.BadgeLevel)); err != nil {
+			fmt.Sprintf("%s/result.json", projectURL), jsonData); err != nil {
 			return fmt.Errorf("error during data.WriteToBlobStore: %w", err)
 		}
 	}

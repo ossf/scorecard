@@ -51,7 +51,8 @@ var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to tru
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
 	bucketURL, bucketURL2 string, checkDocs docs.Doc,
-	repoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient, logger *zap.Logger) error {
+	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient, logger *zap.Logger) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%07d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
@@ -82,7 +83,7 @@ func processRequest(ctx context.Context,
 			continue
 		}
 		repo.AppendMetadata(repo.Metadata()...)
-		result, err := pkg.RunScorecards(ctx, repo, checksToRun, repoClient, ciiClient)
+		result, err := pkg.RunScorecards(ctx, repo, checksToRun, repoClient, ossFuzzRepoClient, ciiClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
@@ -172,12 +173,27 @@ func main() {
 		panic(err)
 	}
 
+	blacklistedChecks, err := config.GetBlacklistedChecks()
+	if err != nil {
+		panic(err)
+	}
+
+	ciiDataBucketURL, err := config.GetCIIDataBucketURL()
+	if err != nil {
+		panic(err)
+	}
+
 	logger, err := githubrepo.NewLogger(zap.InfoLevel)
 	if err != nil {
 		panic(err)
 	}
 	repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-	ciiClient := clients.DefaultCIIBestPracticesClient()
+	ciiClient := clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
+	ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+	if err != nil {
+		panic(err)
+	}
+	defer ossFuzzRepoClient.Close()
 
 	exporter, err := startMetricsExporter()
 	if err != nil {
@@ -191,13 +207,9 @@ func main() {
 	}()
 
 	checksToRun := checks.AllChecks
-	// TODO: Temporarily remove checks which require lot of GitHub API token.
-	delete(checksToRun, checks.CheckSAST)
-	delete(checksToRun, checks.CheckCITests)
-	// TODO: Re-add Contributors check after fixing: #859.
-	delete(checksToRun, checks.CheckContributors)
-	// TODO: Add this in v4
-	delete(checksToRun, checks.CheckDangerousWorkflow)
+	for _, check := range blacklistedChecks {
+		delete(checksToRun, check)
+	}
 	for {
 		req, err := subscriber.SynchronousPull()
 		if err != nil {
@@ -210,7 +222,7 @@ func main() {
 		}
 		if err := processRequest(ctx, req, checksToRun,
 			bucketURL, bucketURL2, checkDocs,
-			repoClient, ciiClient, logger); err != nil {
+			repoClient, ossFuzzRepoClient, ciiClient, logger); err != nil {
 			logger.Warn(fmt.Sprintf("error processing request: %v", err))
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()

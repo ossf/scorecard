@@ -8,6 +8,7 @@ cron/data/update/projects-update
 cron/controller/controller
 cron/worker/worker
 cron/cii/cii-worker
+cron/shuffle/shuffle
 cron/webhook/webhook
 cron/bq/data-transfer
 

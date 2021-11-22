@@ -35,11 +35,14 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
+			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:         context.Background(),
+				RepoClient:  repoClient,
+				OssFuzzRepo: ossFuzzRepoClient,
+				Repo:        repo,
+				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -51,6 +54,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			result := checks.Fuzzing(&req)
 			Expect(scut.ValidateTestReturn(nil, "use fuzzing", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
+			Expect(ossFuzzRepoClient.Close()).Should(BeNil())
 		})
 		It("Should return use of ClusterFuzzLite", func() {
 			dl := scut.TestDetailLogger{}
@@ -59,11 +63,14 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
+			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:         context.Background(),
+				RepoClient:  repoClient,
+				OssFuzzRepo: ossFuzzRepoClient,
+				Repo:        repo,
+				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -75,6 +82,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			result := checks.Fuzzing(&req)
 			Expect(scut.ValidateTestReturn(nil, "use fuzzing", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
+			Expect(ossFuzzRepoClient.Close()).Should(BeNil())
 		})
 		It("Should return no fuzzing", func() {
 			dl := scut.TestDetailLogger{}
@@ -83,11 +91,14 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
+			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:         context.Background(),
+				RepoClient:  repoClient,
+				OssFuzzRepo: ossFuzzRepoClient,
+				Repo:        repo,
+				Dlogger:     &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -99,6 +110,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			result := checks.Fuzzing(&req)
 			Expect(scut.ValidateTestReturn(nil, "no fuzzing", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
+			Expect(ossFuzzRepoClient.Close()).Should(BeNil())
 		})
 	})
 })
