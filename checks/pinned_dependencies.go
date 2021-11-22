@@ -46,7 +46,7 @@ func init() {
 func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 	// Lock file.
 	/* WARNING: this code is inherently incorrect:
-	- does not differenetiate between libs and main
+	- does not differentiate between libs and main
 	- only looks at root folder.
 	=> disabling to avoid false positives.
 	lockScore, lockErr := isPackageManagerLockFilePresent(c)
