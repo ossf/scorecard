@@ -14,13 +14,20 @@
 
 name: "Close stale issues"
 on:
+  push:
   schedule:
   - cron: "30 1 * * *"
 
+permissions: read-all
+
 jobs:
   stale:
+    permissions:
+      issues: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
+    - uses: step-security/harden-runner@7206db2ec98c5538323a6d70e51f965d55c11c87
     - uses: actions/stale@cdf15f641adb27a71842045a94023bef6945e3aa # v3.0.18
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
