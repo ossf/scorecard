@@ -468,9 +468,7 @@ func isUnpinnedPipInstall(cmd []string) bool {
 	}
 
 	isInstall := false
-	hasWhl := false
-	hashHashes := false
-	hasAddArgs := false
+	hasUnresolvedDeps := false
 	for i := 1; i < len(cmd); i++ {
 		// Search for install commands.
 		if strings.EqualFold(cmd[i], "install") {
