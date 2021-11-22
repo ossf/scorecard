@@ -491,7 +491,6 @@ func isUnpinnedPipInstall(cmd []string) bool {
 		// Exclude *.whl as they're mostly used
 		// for tests. See https://github.com/ossf/scorecard/pull/611.
 		if strings.HasSuffix(cmd[i], ".whl") {
-			hasWhl = true
 			// We continue because a command may contain
 			// multiple packages to install, not just `.whl` files.
 			continue
