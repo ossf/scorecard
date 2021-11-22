@@ -500,7 +500,7 @@ func isUnpinnedPipInstall(cmd []string) bool {
 
 	// We get here only for
 	// `pip install [bla.whl ...]`, `pip install <> --require-hashes`
-	return isInstall && !((hasWhl && !hasAddArgs) || hashHashes)
+	return isInstall && hasUnresolvedDeps
 }
 
 func isPythonCommand(cmd []string) bool {
