@@ -477,7 +477,7 @@ func isUnpinnedPipInstall(cmd []string) bool {
 		}
 
 		if !isInstall {
-			continue
+			break
 		}
 
 		// https://github.com/ossf/scorecard/issues/1306#issuecomment-974539197.
