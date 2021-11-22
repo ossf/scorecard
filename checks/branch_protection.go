@@ -82,7 +82,7 @@ type scoresInfo struct {
 type levelScore struct {
 	scores    scoresInfo // Score result for a branch.
 	maxes     scoresInfo // Maximum possible score for a branch.
-	protected bool
+	protected bool       // Protection enabled on the branch.
 }
 
 //nolint:gochecknoinits
