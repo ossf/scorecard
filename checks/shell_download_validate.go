@@ -468,7 +468,9 @@ func isUnpinnedPipInstall(cmd []string) bool {
 	}
 
 	isInstall := false
-	hasWhl := false
+	hasRequireHashes := false
+	hasAdditionalArgs := false
+	hasWheel := false
 	for i := 1; i < len(cmd); i++ {
 		// Search for install commands.
 		if strings.EqualFold(cmd[i], "install") {
@@ -477,25 +479,47 @@ func isUnpinnedPipInstall(cmd []string) bool {
 		}
 
 		if !isInstall {
-			continue
+			break
 		}
 
-		// TODO(laurent): https://github.com/ossf/scorecard/pull/611#discussion_r660203476.
-		// Support -r <> --require-hashes.
+		// https://github.com/ossf/scorecard/issues/1306#issuecomment-974539197.
+		if strings.EqualFold(cmd[i], "--require-hashes") {
+			hasRequireHashes = true
+			break
+		}
 
 		// Exclude *.whl as they're mostly used
 		// for tests. See https://github.com/ossf/scorecard/pull/611.
 		if strings.HasSuffix(cmd[i], ".whl") {
-			hasWhl = true
+			// We continue because a command may contain
+			// multiple packages to install, not just `.whl` files.
+			hasWheel = true
 			continue
 		}
 
-		// Any other arguments are considered unpinned.
+		hasAdditionalArgs = true
+	}
+
+	// If hashes are required, it's pinned.
+	if hasRequireHashes {
+		return false
+	}
+
+	// With additional arguments, it's unpinned.
+	// Example: `pip install bla.whl pkg1`
+	if hasAdditionalArgs {
 		return true
 	}
 
-	// We get here only for `pip install [bla.whl ...]`.
-	return isInstall && !hasWhl
+	// No additional arguments and hashes are not required.
+	// The only pinned command is `pip install *.whl`
+	if hasWheel {
+		return false
+	}
+
+	// Any other form of install is unpinned,
+	// e.g. `pip install`.
+	return isInstall
 }
 
 func isPythonCommand(cmd []string) bool {
