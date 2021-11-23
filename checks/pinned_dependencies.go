@@ -336,7 +336,6 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	// Users may use various names, e.g.,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
-	// Templates may trigger false positives, e.g. FROM { NAME }.
 
 	pdata := dataAsResultPointer(data)
 	// Return early if this is a script, e.g. script_dockerfile_something.sh
@@ -346,6 +345,11 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	}
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {
+		addPinnedResult(pdata, true)
+		return true, nil
+	}
+
+	if fileparser.IsTemplateFile(pathfn) {
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
