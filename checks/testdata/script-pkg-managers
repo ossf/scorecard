@@ -34,6 +34,8 @@ pip3 install
 pip install
 pip install -r any_file
 pip3 install -r bla-requirements.txt
+pip3 install -r bla-requirements.txt --require-hashes
+pip3 install --require-hashes -r bla-requirements.txt
 
 pip install somepkg
 pip3 install somepkg==1.2.3
