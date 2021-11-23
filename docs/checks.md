@@ -103,9 +103,9 @@ This test has tiered scoring. Each tier must be fully satisfied to achieve point
 Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” are ignored.
 
 Tier 1 Requirements (3/10 points):
-  - Force push
-  - Force deletion
-  - For administrators: Include administrators
+  - Prevent force push
+  - Prevent branch deletion
+  - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
   - Required reviewers >=1 ​
