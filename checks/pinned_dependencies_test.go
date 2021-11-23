@@ -641,7 +641,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  34,
+				NumberOfWarn:  36,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
