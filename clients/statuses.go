@@ -16,7 +16,8 @@ package clients
 
 // Status for a Git object/ref.
 type Status struct {
-	State   string
-	Context string
-	URL     string
+	State     string
+	Context   string
+	URL       string
+	TargetURL string
 }
