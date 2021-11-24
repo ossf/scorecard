@@ -16,35 +16,19 @@ package clients
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"math"
 	"net/http"
-	"strings"
 	"time"
 )
 
-const (
-	inProgressResp = "in_progress"
-	passingResp    = "passing"
-	silverResp     = "silver"
-	goldResp       = "gold"
-)
+var errTooManyRequests = errors.New("failed after exponential backoff")
 
-var (
-	errTooManyRequests  = errors.New("failed after exponential backoff")
-	errUnsupportedBadge = errors.New("unsupported badge")
-)
-
-// HTTPClientCIIBestPractices implements the CIIBestPracticesClient interface.
+// httpClientCIIBestPractices implements the CIIBestPracticesClient interface.
 // A HTTP client with exponential backoff is used to communicate with the CII Best Practices servers.
-type HTTPClientCIIBestPractices struct{}
-
-type response struct {
-	BadgeLevel string `json:"badge_level"`
-}
+type httpClientCIIBestPractices struct{}
 
 type expBackoffTransport struct {
 	numRetries uint8
@@ -63,7 +47,7 @@ func (transport *expBackoffTransport) RoundTrip(req *http.Request) (*http.Respon
 }
 
 // GetBadgeLevel implements CIIBestPracticesClient.GetBadgeLevel.
-func (client *HTTPClientCIIBestPractices) GetBadgeLevel(ctx context.Context, uri string) (BadgeLevel, error) {
+func (client *httpClientCIIBestPractices) GetBadgeLevel(ctx context.Context, uri string) (BadgeLevel, error) {
 	repoURI := fmt.Sprintf("https://%s", uri)
 	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURI)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -82,31 +66,17 @@ func (client *HTTPClientCIIBestPractices) GetBadgeLevel(ctx context.Context, uri
 	}
 	defer resp.Body.Close()
 
-	b, err := io.ReadAll(resp.Body)
+	jsonData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return Unknown, fmt.Errorf("error during io.ReadAll: %w", err)
 	}
 
-	parsedResponse := []response{}
-	if err := json.Unmarshal(b, &parsedResponse); err != nil {
-		return Unknown, fmt.Errorf("error during json.Unmarshal: %w", err)
+	parsedResponse, err := ParseBadgeResponseFromJSON(jsonData)
+	if err != nil {
+		return Unknown, fmt.Errorf("error during json parsing: %w", err)
 	}
-
 	if len(parsedResponse) < 1 {
 		return NotFound, nil
 	}
-	badgeLevel := parsedResponse[0].BadgeLevel
-	if strings.Contains(badgeLevel, inProgressResp) {
-		return InProgress, nil
-	}
-	if strings.Contains(badgeLevel, passingResp) {
-		return Passing, nil
-	}
-	if strings.Contains(badgeLevel, silverResp) {
-		return Silver, nil
-	}
-	if strings.Contains(badgeLevel, goldResp) {
-		return Gold, nil
-	}
-	return Unknown, fmt.Errorf("%w: %s", errUnsupportedBadge, badgeLevel)
+	return parsedResponse[0].getBadgeLevel()
 }

@@ -51,6 +51,14 @@ func GetStepName(step *actionlint.Step) string {
 	return ""
 }
 
+// IsStepExecKind compares input `step` ExecKind with `kind` and returns true on a match.
+func IsStepExecKind(step *actionlint.Step, kind actionlint.ExecKind) bool {
+	if step == nil || step.Exec == nil {
+		return false
+	}
+	return step.Exec.Kind() == kind
+}
+
 func getExecRunShell(execRun *actionlint.ExecRun) string {
 	if execRun != nil && execRun.Shell != nil {
 		return execRun.Shell.Value
@@ -75,6 +83,14 @@ func getJobRunsOnLabels(job *actionlint.Job) []*actionlint.String {
 func getJobStrategyMatrixRows(job *actionlint.Job) map[string]*actionlint.MatrixRow {
 	if job != nil && job.Strategy != nil && job.Strategy.Matrix != nil {
 		return job.Strategy.Matrix.Rows
+	}
+	return nil
+}
+
+func getJobStrategyMatrixIncludeCombinations(job *actionlint.Job) []*actionlint.MatrixCombination {
+	if job != nil && job.Strategy != nil && job.Strategy.Matrix != nil && job.Strategy.Matrix.Include != nil &&
+		job.Strategy.Matrix.Include.Combinations != nil {
+		return job.Strategy.Matrix.Include.Combinations
 	}
 	return nil
 }
@@ -114,6 +130,19 @@ func GetOSesForJob(job *actionlint.Job) ([]string, error) {
 		}
 		for _, os := range rowValue.Values {
 			jobOSes = append(jobOSes, strings.Trim(os.String(), "'\""))
+		}
+	}
+
+	matrixCombinations := getJobStrategyMatrixIncludeCombinations(job)
+	for _, combination := range matrixCombinations {
+		if combination.Assigns == nil {
+			continue
+		}
+		for _, assign := range combination.Assigns {
+			if assign.Key == nil || assign.Key.Value != os || assign.Value == nil {
+				continue
+			}
+			jobOSes = append(jobOSes, strings.Trim(assign.Value.String(), "'\""))
 		}
 	}
 

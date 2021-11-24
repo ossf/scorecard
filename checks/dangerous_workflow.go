@@ -18,11 +18,10 @@ import (
 	"fmt"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks/fileparser"
-	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // CheckDangerousWorkflow is the exported name for Dangerous-Workflow check.
@@ -69,11 +68,9 @@ func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checke
 		return true, nil
 	}
 
-	var workflow map[interface{}]interface{}
-	err := yaml.Unmarshal(content, &workflow)
-	if err != nil {
-		return false,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("yaml.Unmarshal: %v", err))
+	workflow, errs := actionlint.Parse(content)
+	if len(errs) > 0 && workflow == nil {
+		return false, fileparser.FormatActionlintError(errs)
 	}
 
 	// 1. Check for untrusted code checkout with pull_request_target and a ref
@@ -85,135 +82,61 @@ func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checke
 	return true, nil
 }
 
-func validateUntrustedCodeCheckout(config map[interface{}]interface{}, path string,
+func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
-	checkPullRequestTrigger, err := checkPullRequestTrigger(config)
-	if err != nil {
-		return err
-	}
-
-	if checkPullRequestTrigger {
-		return validateUntrustedCodeCheckoutRef(config, path, dl, pdata)
-	}
-
-	return nil
-}
-
-func validateUntrustedCodeCheckoutRef(config map[interface{}]interface{}, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
-	var jobs interface{}
-
-	// Now check if this is used with untrusted code checkout ref in jobs
-	jobs, ok := config["jobs"]
-	if !ok {
-		return nil
-	}
-
-	mjobs, ok := jobs.(map[string]interface{})
-	if !ok {
-		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-	}
-
-	for _, value := range mjobs {
-		job, ok := value.(map[string]interface{})
-		if !ok {
-			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-		}
-
-		if err := checkJobForUntrustedCodeCheckout(job, path, dl, pdata); err != nil {
-			return err
+	if checkPullRequestTrigger(workflow) {
+		for _, job := range workflow.Jobs {
+			if err := checkJobForUntrustedCodeCheckout(job, path, dl, pdata); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func checkPullRequestTrigger(config map[interface{}]interface{}) (bool, error) {
-	// Check event trigger (required) is pull_request_target
-	trigger, ok := config["on"]
-	if !ok {
-		return false, sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+func checkPullRequestTrigger(workflow *actionlint.Workflow) bool {
+	// Check if the webhook event trigger is a pull_request_target
+	for _, event := range workflow.On {
+		e, ok := event.(*actionlint.WebhookEvent)
+		if ok && e.Hook != nil && e.Hook.Value == "pull_request_target" {
+			return true
+		}
 	}
 
-	isPullRequestTrigger := false
-	switch val := trigger.(type) {
-	case string:
-		if strings.EqualFold(val, "pull_request_target") {
-			isPullRequestTrigger = true
-		}
-	case []string:
-		for _, onVal := range val {
-			if strings.EqualFold(onVal, "pull_request_target") {
-				isPullRequestTrigger = true
-			}
-		}
-	case map[interface{}]interface{}:
-		for k := range val {
-			key, ok := k.(string)
-			if !ok {
-				return false, sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-			}
-			if strings.EqualFold(key, "pull_request_target") {
-				isPullRequestTrigger = true
-			}
-		}
-	default:
-		return false, sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-	}
-	return isPullRequestTrigger, nil
+	return false
 }
 
-func checkJobForUntrustedCodeCheckout(job map[string]interface{}, path string,
+func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
-	steps, ok := job["steps"]
-	if !ok {
+	if job == nil {
 		return nil
 	}
-	msteps, ok := steps.([]interface{})
-	if !ok {
-		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-	}
+
 	// Check each step, which is a map, for checkouts with untrusted ref
-	for _, step := range msteps {
-		mstep, ok := step.(map[string]interface{})
-		if !ok {
-			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+	for _, step := range job.Steps {
+		if step == nil || step.Exec == nil {
+			continue
 		}
 		// Check for a step that uses actions/checkout
-		uses, ok := mstep["uses"]
-		if !ok {
+		e, ok := step.Exec.(*actionlint.ExecAction)
+		if !ok || e.Uses == nil {
+			return nil
+		}
+		if !strings.Contains(e.Uses.Value, "actions/checkout") {
 			continue
-		}
-		muses, ok := uses.(string)
-		if !ok {
-			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-		}
-		// Uses defaults if not defined.
-		with, ok := mstep["with"]
-		if !ok {
-			continue
-		}
-		mwith, ok := with.(map[string]interface{})
-		if !ok {
-			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 		}
 		// Check for reference. If not defined for a pull_request_target event, this defaults to
 		// the base branch of the pull request.
-		ref, ok := mwith["ref"]
-		if !ok {
+		ref, ok := e.Inputs["ref"]
+		if !ok || ref.Value == nil {
 			continue
 		}
-		mref, ok := ref.(string)
-		if !ok {
-			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-		}
-		if strings.Contains(muses, "actions/checkout") &&
-			strings.Contains(mref, "github.event.pull_request.head.sha") {
+		if strings.Contains(ref.Value.Value, "github.event.pull_request") {
 			dl.Warn3(&checker.LogMessage{
-				Path: path,
-				Type: checker.FileTypeSource,
-				// TODO: set line correctly.
-				Offset: 1,
-				Text:   fmt.Sprintf("untrusted code checkout '%v'", mref),
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: step.Pos.Line,
+				Text:   fmt.Sprintf("untrusted code checkout '%v'", ref.Value.Value),
 				// TODO: set Snippet.
 			})
 			// Detected untrusted checkout.
@@ -258,7 +181,7 @@ func createResultForDangerousWorkflowPatterns(result patternCbData, err error) c
 		"no dangerous workflow patterns detected")
 }
 
-func testValidateGitHubActionDangerousWOrkflow(pathfn string,
+func testValidateGitHubActionDangerousWorkflow(pathfn string,
 	content []byte, dl checker.DetailLogger) checker.CheckResult {
 	data := patternCbData{
 		workflowPattern: make(map[string]bool),

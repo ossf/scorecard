@@ -336,7 +336,6 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	// Users may use various names, e.g.,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
-	// Templates may trigger false positives, e.g. FROM { NAME }.
 
 	pdata := dataAsResultPointer(data)
 	// Return early if this is a script, e.g. script_dockerfile_something.sh
@@ -346,6 +345,11 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	}
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {
+		addPinnedResult(pdata, true)
+		return true, nil
+	}
+
+	if fileparser.IsTemplateFile(pathfn) {
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
@@ -454,6 +458,7 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 
 // validateGitHubWorkflowIsFreeOfInsecureDownloads checks if the workflow file downloads dependencies that are unpinned.
 // Returns true if the check should continue executing after this file.
+// nolint: gocognit
 func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	if !fileparser.IsWorkflowFile(pathfn) {
@@ -477,14 +482,31 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
 	validated := true
 	scriptContent := ""
-	for _, job := range workflow.Jobs {
+	for jobName, job := range workflow.Jobs {
+		jobName := jobName
 		job := job
+		if len(fileparser.GetJobName(job)) > 0 {
+			jobName = fileparser.GetJobName(job)
+		}
 		for _, step := range job.Steps {
 			step := step
-			if step.Exec.Kind() != actionlint.ExecKindRun {
+			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
 				continue
 			}
 
+			execRun, ok := step.Exec.(*actionlint.ExecRun)
+			if !ok {
+				stepName := fileparser.GetStepName(step)
+				return false, sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("unable to parse step '%v' for job '%v'", jobName, stepName))
+			}
+
+			if execRun == nil || execRun.Run == nil {
+				// Cannot check further, continue.
+				continue
+			}
+
+			run := execRun.Run.Value
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
 			shell, err := fileparser.GetShellForStep(step, job)
 			if err != nil {
@@ -495,7 +517,6 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 				continue
 			}
 
-			run := step.Exec.(*actionlint.ExecRun).Run.Value
 			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
 			scriptContent = fmt.Sprintf("%v\n%v", scriptContent, string(script))
@@ -561,11 +582,13 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 
 	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
 	for jobName, job := range workflow.Jobs {
+		jobName := jobName
+		job := job
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
 		}
 		for _, step := range job.Steps {
-			if step == nil || step.Exec == nil || step.Exec.Kind() != actionlint.ExecKindAction {
+			if !fileparser.IsStepExecKind(step, actionlint.ExecKindAction) {
 				continue
 			}
 			execAction, ok := step.Exec.(*actionlint.ExecAction)
@@ -573,6 +596,11 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 				stepName := fileparser.GetStepName(step)
 				return false, sce.WithMessage(sce.ErrScorecardInternal,
 					fmt.Sprintf("unable to parse step '%v' for job '%v'", jobName, stepName))
+			}
+
+			if execAction == nil || execAction.Uses == nil {
+				// Cannot check further, continue.
+				continue
 			}
 			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 			// Example: action-name@hash
