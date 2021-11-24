@@ -7,6 +7,7 @@ GOLANGGCI_LINT := golangci-lint
 PROTOC_GEN_GO := protoc-gen-go
 MOCKGEN := mockgen
 PROTOC := $(shell which protoc)
+GORELEASER := goreleaser
 IMAGE_NAME = scorecard
 OUTPUT = output
 IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:executable"
@@ -97,7 +98,7 @@ build-cron: build-controller build-worker build-cii-worker \
 	build-shuffler build-bq-transfer build-github-server \
 	build-webhook build-add-script build-validate-script build-update-script
 
-build-targets = generate-mocks generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
+build-targets = generate-mocks generate-docs build-proto build-scorecard build-releaser build-cron ko-build-everything dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
@@ -134,6 +135,11 @@ validate-docs: docs/checks/internal/generate/main.go
 build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable
 	CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'
+
+build-releaser: ## Runs goreleaser on the repo
+	# Run go releaser on the Scorecard repo
+	$(GORELEASER) check
+	VERSION_LDFLAGS="$(LDFLAGS)" $(GORELEASER) release --snapshot --rm-dist --skip-publish --skip-sign
 
 build-controller: ## Runs go build on the cron PubSub controller
 	# Run go build on the cron PubSub controller
