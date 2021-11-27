@@ -230,6 +230,7 @@ Tests that are rated as “High” risk are:
 * Signed-Releases
 * Token-Permissions
 * Vulnerabilities
+* Dangerous-Workflow
 
 Tests that are rated as “Medium” risk are:
 * Fuzzing
@@ -356,6 +357,7 @@ CI-Tests                    | Does the project run tests in CI, e.g. [GitHub Act
 CII-Best-Practices          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
 Code-Review                 | Does the project require code review before code is merged?
 Contributors                | Does the project have contributors from at least two different organizations?
+Dangerous-Workflow          | Does the project have GitHub Action workflows avoid dangerous patterns?
 Dependency-Update-Tool      | Does the project use tools to help update its dependencies?
 Fuzzing                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
 Maintained                  | Is the project maintained?
