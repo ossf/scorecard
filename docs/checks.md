@@ -305,7 +305,7 @@ low score is therefore not a definitive indication that the project is at risk.
  
 
 **Remediation steps**
-- Signup for automatic dependency updates with [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools.
+- Signup for automatic dependency updates with [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
 
 ## Fuzzing 
 
