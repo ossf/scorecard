@@ -33,10 +33,13 @@ results.json
 *.iml
 .idea
 
-# tools 
+# tools
 bin
 
 cache
 output
 gitfolder.*
 githubrepo.tar.gz
+
+# goreleaser
+dist/*
