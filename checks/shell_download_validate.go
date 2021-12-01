@@ -938,6 +938,7 @@ func validateShellFile(pathfn string, content []byte, dl checker.DetailLogger) (
 	if err != nil && errors.Is(err, sce.ErrorShellParsing) {
 		// Discard and print this particular error for now.
 		dl.Debug(err.Error())
+		err = nil
 	}
 	return r, err
 }
