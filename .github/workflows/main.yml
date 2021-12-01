@@ -52,8 +52,6 @@ jobs:
       - name: Check license headers
         run: |
           go env -w GOFLAGS=-mod=mod
-          make install
-          make all
-          set -e
+          go install github.com/google/addlicense@2fe3ee94479d08be985a84861de4e6b06a1c7208
           addlicense -ignore "**/script-empty.sh" -ignore "pkg/testdata/*" -ignore "checks/testdata/*" -l apache -c 'Security Scorecard Authors' -v *
           git diff --exit-code
