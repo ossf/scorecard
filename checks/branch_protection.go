@@ -80,8 +80,9 @@ type scoresInfo struct {
 
 // Maximum score depending on whether admin token is used.
 type levelScore struct {
-	scores scoresInfo // Score result for a branch.
-	maxes  scoresInfo // Maximum possible score for a branch.
+	scores    scoresInfo // Score result for a branch.
+	maxes     scoresInfo // Maximum possible score for a branch.
+	protected bool       // Protection enabled on the branch.
 }
 
 //nolint:gochecknoinits
@@ -152,6 +153,10 @@ func getMaxScores(scores []levelScore) (scoresInfo, error) {
 
 	score := scores[0]
 	for _, s := range scores[1:] {
+		// Only validate the maximum scores if both entries have the same protection status.
+		if s.protected != score.protected {
+			continue
+		}
 		if err := validateMaxScore(score.maxes.basic, s.maxes.basic); err != nil {
 			return scoresInfo{}, err
 		}
@@ -397,6 +402,7 @@ func checkReleaseAndDevBranchProtection(
 		}
 
 		// The branch is protected. Check the protection.
+		score.protected = true
 		score.scores.basic, score.maxes.basic = basicNonAdminProtection(&branch.BranchProtectionRule, b, dl)
 		score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(&branch.BranchProtectionRule, b, dl)
 		score.scores.review, score.maxes.review = nonAdminReviewProtection(&branch.BranchProtectionRule)
