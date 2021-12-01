@@ -17,6 +17,8 @@ package checks
 import (
 	"os"
 	"testing"
+
+	scut "github.com/ossf/scorecard/v3/utests"
 )
 
 func TestIsSupportedShellScriptFile(t *testing.T) {
@@ -84,5 +86,22 @@ func TestIsSupportedShellScriptFile(t *testing.T) {
 				t.Errorf("%v: Got (%v) expected (%v)", tt.name, result, tt.expected)
 			}
 		})
+	}
+}
+
+func TestValidateShellFile(t *testing.T) {
+	t.Parallel()
+	filename := "testdata/script-invalid.sh"
+	var content []byte
+	var err error
+
+	content, err = os.ReadFile(filename)
+	if err != nil {
+		t.Errorf("cannot read file: %v", err)
+	}
+	dl := scut.TestDetailLogger{}
+	_, err = validateShellFile(filename, content, &dl)
+	if err != nil {
+		t.Errorf("failed to discard shell parsing error: %v", err)
 	}
 }
