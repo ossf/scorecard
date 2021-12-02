@@ -35,7 +35,7 @@ spec:
             - name: SCORECARD_BIGQUERY_TABLE
               value: "scorecard_releasetest2"
             - name: SCORECARD_COMPLETION_THRESHOLD
-              value: "1"
+              value: "0.9"
             resources:
               limits:
                 memory: 1Gi
