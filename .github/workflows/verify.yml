@@ -16,8 +16,12 @@ name: PR Verifier
 on:
   pull_request_target:
     types: [opened, edited, reopened]
+permissions: read-all
+
 jobs:
   verify:
+    permissions:
+      checks: write
     name: Verify PR contents
     runs-on: ubuntu-latest
     steps:
