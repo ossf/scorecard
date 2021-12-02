@@ -38,7 +38,7 @@ jobs:
      - name: Run presubmit tests
        run: |
             go env -w GOFLAGS=-mod=mod
-            make all
+            make -j 5 all
   license-check:
     name: license boilerplate check
     runs-on: ubuntu-latest
