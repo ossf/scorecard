@@ -357,9 +357,10 @@ CI-Tests                    | Does the project run tests in CI, e.g. [GitHub Act
 CII-Best-Practices          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
 Code-Review                 | Does the project require code review before code is merged?
 Contributors                | Does the project have contributors from at least two different organizations?
-Dangerous-Workflow          | Does the project have GitHub Action workflows avoid dangerous patterns?
+Dangerous-Workflow          | Does the project avoid dangerous coding patterns in GitHub Action workflows?
 Dependency-Update-Tool      | Does the project use tools to help update its dependencies?
 Fuzzing                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
+License                     | Does the project declare a license?
 Maintained                  | Is the project maintained?
 Pinned-Dependencies         | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
 Packaging                   | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
