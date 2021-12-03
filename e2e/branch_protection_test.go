@@ -45,8 +45,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 				Error:         nil,
 				Score:         6,
 				NumberOfWarn:  1,
-				NumberOfInfo:  6,
-				NumberOfDebug: 0,
+				NumberOfInfo:  3,
+				NumberOfDebug: 3,
 			}
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
