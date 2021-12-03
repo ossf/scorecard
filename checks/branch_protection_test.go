@@ -55,7 +55,7 @@ func testScore(protection *clients.BranchProtectionRule,
 	var score levelScore
 	score.scores.basic, score.maxes.basic = basicNonAdminProtection(protection, branch, dl, true)
 	score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(protection, branch, dl, true)
-	score.scores.review, score.maxes.review = nonAdminReviewProtection(protection, true)
+	score.scores.review, score.maxes.review = nonAdminReviewProtection(protection)
 	score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(protection, branch, dl, true)
 	score.scores.context, score.maxes.context = nonAdminContextProtection(protection, branch, dl, true)
 	score.scores.thoroughReview, score.maxes.thoroughReview =
