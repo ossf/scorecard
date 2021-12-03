@@ -332,7 +332,7 @@ func checkReleaseAndDevBranchProtection(
 		}
 		score.scores.basic, score.maxes.basic = basicNonAdminProtection(&branch.BranchProtectionRule, b, dl, protected)
 		score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(&branch.BranchProtectionRule, b, dl, protected)
-		score.scores.review, score.maxes.review = nonAdminReviewProtection(&branch.BranchProtectionRule, protected)
+		score.scores.review, score.maxes.review = nonAdminReviewProtection(&branch.BranchProtectionRule)
 		score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(&branch.BranchProtectionRule, b, dl, protected)
 		score.scores.context, score.maxes.context = nonAdminContextProtection(&branch.BranchProtectionRule, b, dl, protected)
 		score.scores.thoroughReview, score.maxes.thoroughReview =
@@ -437,7 +437,7 @@ func nonAdminContextProtection(protection *clients.BranchProtectionRule, branch 
 	return score, max
 }
 
-func nonAdminReviewProtection(protection *clients.BranchProtectionRule, doLogging bool) (int, int) {
+func nonAdminReviewProtection(protection *clients.BranchProtectionRule) (int, int) {
 	score := 0
 	max := 0
 
