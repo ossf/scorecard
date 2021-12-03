@@ -104,15 +104,6 @@ func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	return checkReleaseAndDevBranchProtection(c.RepoClient, c.Dlogger)
 }
 
-func validateMaxScore(s1, s2 int) error {
-	if s1 != s2 {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid score %d != %d",
-			s1, s2))
-	}
-
-	return nil
-}
-
 func computeNonAdminBasicScore(scores []levelScore) int {
 	score := 0
 	for _, s := range scores {
@@ -330,11 +321,16 @@ func checkReleaseAndDevBranchProtection(
 		if !protected {
 			dl.Warn("branch protection not enabled for branch '%s'", b)
 		}
-		score.scores.basic, score.maxes.basic = basicNonAdminProtection(&branch.BranchProtectionRule, b, dl, protected)
-		score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(&branch.BranchProtectionRule, b, dl, protected)
-		score.scores.review, score.maxes.review = nonAdminReviewProtection(&branch.BranchProtectionRule)
-		score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(&branch.BranchProtectionRule, b, dl, protected)
-		score.scores.context, score.maxes.context = nonAdminContextProtection(&branch.BranchProtectionRule, b, dl, protected)
+		score.scores.basic, score.maxes.basic =
+			basicNonAdminProtection(&branch.BranchProtectionRule, b, dl, protected)
+		score.scores.adminBasic, score.maxes.adminBasic =
+			basicAdminProtection(&branch.BranchProtectionRule, b, dl, protected)
+		score.scores.review, score.maxes.review =
+			nonAdminReviewProtection(&branch.BranchProtectionRule)
+		score.scores.adminReview, score.maxes.adminReview =
+			adminReviewProtection(&branch.BranchProtectionRule, b, dl, protected)
+		score.scores.context, score.maxes.context =
+			nonAdminContextProtection(&branch.BranchProtectionRule, b, dl, protected)
 		score.scores.thoroughReview, score.maxes.thoroughReview =
 			nonAdminThoroughReviewProtection(&branch.BranchProtectionRule, b, dl, protected)
 		score.scores.adminThoroughReview, score.maxes.adminThoroughReview =
