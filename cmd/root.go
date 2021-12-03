@@ -361,18 +361,13 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
-		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
-		if err != nil {
-			log.Fatal(err)
-		}
-		repoResult.Metadata = append(repoResult.Metadata, metaData...)
 
 		if raw {
 			if format != "json" {
 				log.Fatalf("only json format is supported")
 			}
 
-			repoRawResult, err := pkg.RunScorecardsRaw(ctx, repoURI, enabledChecks, repoClient)
+			repoRawResult, err := pkg.RunScorecardsRaw(ctx, repoURI, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -395,7 +390,7 @@ var rootCmd = &cobra.Command{
 			}
 
 		} else {
-			repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient)
+			repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
 			if err != nil {
 				log.Fatal(err)
 			}

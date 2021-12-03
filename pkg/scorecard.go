@@ -28,7 +28,7 @@ import (
 )
 
 func runEnabledChecks(ctx context.Context,
-	repo clients.Repo, checksToRun checker.CheckNameToFnMap,
+	repo clients.Repo, raw bool, checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient,
 	resultsCh chan checker.CheckResult) {
 	request := checker.CheckRequest{
@@ -102,7 +102,45 @@ func RunScorecards(ctx context.Context,
 		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)
-	go runEnabledChecks(ctx, repo, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
+	go runEnabledChecks(ctx, repo, false, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
+	for result := range resultsCh {
+		ret.Checks = append(ret.Checks, result)
+	}
+	return ret, nil
+}
+
+// RunScorecards runs enabled Scorecard checks on a Repo.
+func RunScorecardsRaw(ctx context.Context,
+	repo clients.Repo,
+	checksToRun checker.CheckNameToFnMap,
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient) (ScorecardRawResult, error) {
+	if err := repoClient.InitRepo(repo); err != nil {
+		// No need to call sce.WithMessage() since InitRepo will do that for us.
+		//nolint:wrapcheck
+		return ScorecardRawResult{}, err
+	}
+	defer repoClient.Close()
+
+	commitSHA, err := getRepoCommitHash(repoClient)
+	if err != nil {
+		return ScorecardRawResult{}, err
+	}
+
+	ret := ScorecardRawResult{
+		Repo: RepoInfo{
+			Name:      repo.URI(),
+			CommitSHA: commitSHA,
+		},
+		Scorecard: ScorecardInfo{
+			Version:   GetSemanticVersion(),
+			CommitSHA: GetCommit(),
+		},
+		Date: time.Now(),
+	}
+	resultsCh := make(chan checker.CheckResult)
+	go runEnabledChecks(ctx, repo, true, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}

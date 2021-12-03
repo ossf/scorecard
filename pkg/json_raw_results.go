@@ -29,13 +29,6 @@ type jsonRawCheckResult struct {
 	RawResults interface{}
 }
 
-type jsonScorecardRawResult struct {
-	Repo     string
-	Date     string
-	Checks   []jsonRawCheckResult
-	Metadata []string
-}
-
 //nolint
 type jsonRawCheckResultV6 struct {
 	Name       string                   `json:"name"`
@@ -43,7 +36,6 @@ type jsonRawCheckResultV6 struct {
 	RawResults interface{}              `json:"results"`
 }
 
-//nolint:govet
 type jsonScorecardRawResultV6 struct {
 	Date      string                 `json:"date"`
 	Repo      jsonRepoV2             `json:"repo"`
