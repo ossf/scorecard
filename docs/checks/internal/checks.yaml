@@ -657,7 +657,7 @@ checks:
         on <https://osv.dev>.
 
   Dangerous-Workflow:
-    risk: High
+    risk: Critical
     tags: supply-chain, security, infrastructure
     repos: GitHub, local
     short: Determines if the project's GitHub Action workflows avoid dangerous patterns.

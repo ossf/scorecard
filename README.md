@@ -357,7 +357,7 @@ CI-Tests                    | Does the project run tests in CI, e.g. [GitHub Act
 CII-Best-Practices          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
 Code-Review                 | Does the project require code review before code is merged?
 Contributors                | Does the project have contributors from at least two different organizations?
-Dangerous-Workflow          | Does the project have GitHub Action workflows avoid dangerous patterns?
+Dangerous-Workflow          | Does the project avoid dangerous coding patterns in GitHub Action workflows?
 Dependency-Update-Tool      | Does the project use tools to help update its dependencies?
 Fuzzing                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
 License                     | Does the project declare a license?
