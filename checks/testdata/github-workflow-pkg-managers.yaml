@@ -43,7 +43,7 @@ jobs:
       - name:
         run: npm i -g typescript
       - name:
-        run: pip3 install -r bla-requirements.txt --require-hashes && pip3 install --require-hashes -r bla-requirements.txt
+        run: npm ci
       - name:
         run: go get github.com@some_tag
       - name:
@@ -92,3 +92,5 @@ jobs:
         run: python -m pip install 'some-pkg==1.2.3'
       - name:
         run: python -m pip install 'some-pkg>1.2.3'
+      - name:
+        run: pip3 install -r bla-requirements.txt --require-hashes && pip3 install --require-hashes -r bla-requirements.txt

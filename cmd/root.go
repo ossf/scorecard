@@ -72,7 +72,7 @@ const (
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
 	scorecardUse  = `./scorecard [--repo=<repo_url>] [--local=folder] [--checks=check1,...]
-	 [--show-details] [--policy=file] or ./scorecard --{npm,pypi,rubgems}=<package_name> 
+	 [--show-details] [--policy=file] or ./scorecard --{npm,pypi,rubygems}=<package_name> 
 	 [--checks=check1,...] [--show-details] [--policy=file]`
 	scorecardShort = "Security Scorecards"
 )
@@ -138,6 +138,10 @@ func getAllChecks() checker.CheckNameToFnMap {
 	// TODO: Remove this to enable the DANGEROUS_WORKFLOW by default in the next release.
 	if _, dangerousWorkflowCheck := os.LookupEnv("ENABLE_DANGEROUS_WORKFLOW"); !dangerousWorkflowCheck {
 		delete(possibleChecks, checks.CheckDangerousWorkflow)
+	}
+	// TODO: Remove this to enable the LICENSE_CHECK by default in the next release.
+	if _, licenseflowCheck := os.LookupEnv("ENABLE_LICENSE_CHECK"); !licenseflowCheck {
+		delete(possibleChecks, checks.LicenseCheckPolicy)
 	}
 	return possibleChecks
 }
@@ -206,22 +210,33 @@ func validateFormat(format string) bool {
 	}
 }
 
-func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clients.Repo,
-	clients.RepoClient, string, error) {
-	var repo clients.Repo
-	var errLocal error
-	var errGitHub error
-	if repo, errLocal = localdir.MakeLocalDirRepo(uri); errLocal == nil {
+func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (
+	repo clients.Repo,
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient,
+	repoType string,
+	err error) {
+	var localRepo, githubRepo clients.Repo
+	var errLocal, errGitHub error
+	if localRepo, errLocal = localdir.MakeLocalDirRepo(uri); errLocal == nil {
 		// Local directory.
-		return repo, localdir.CreateLocalDirClient(ctx, logger), repoTypeLocal, nil
+		repoType = repoTypeLocal
+		repo = localRepo
+		repoClient = localdir.CreateLocalDirClient(ctx, logger)
+		return
 	}
-
-	if repo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub == nil {
+	if githubRepo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub == nil {
 		// GitHub URL.
-		return repo, githubrepo.CreateGithubRepoClient(ctx, logger), repoTypeGitHub, nil
+		repoType = repoTypeGitHub
+		repo = githubRepo
+		repoClient = githubrepo.CreateGithubRepoClient(ctx, logger)
+		ciiClient = clients.DefaultCIIBestPracticesClient()
+		ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+		return
 	}
-	return nil, nil, "",
-		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s: [%v, %v]", uri, errLocal, errGitHub))
+	err = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s: [%v, %v]", uri, errLocal, errGitHub))
+	return
 }
 
 func getURI(repo, local string) (string, error) {
@@ -309,18 +324,14 @@ var rootCmd = &cobra.Command{
 		// nolint
 		defer logger.Sync() // Flushes buffer, if any.
 
-		repoURI, repoClient, repoType, err := getRepoAccessors(ctx, uri, logger)
+		repoURI, repoClient, ossFuzzRepoClient, ciiClient, repoType, err := getRepoAccessors(ctx, uri, logger)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer repoClient.Close()
-
-		ciiClient := clients.DefaultCIIBestPracticesClient()
-		ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
-		if err != nil {
-			log.Fatal(err)
+		if ossFuzzRepoClient != nil {
+			defer ossFuzzRepoClient.Close()
 		}
-		defer ossFuzzRepoClient.Close()
 
 		// Read docs.
 		checkDocs, err := docs.Read()
