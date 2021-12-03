@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package e2e
 
 import (
@@ -26,11 +25,11 @@ import (
 	scut "github.com/ossf/scorecard/v3/utests"
 )
 
-var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
-	Context("E2E TEST:Validating branch protection", func() {
-		It("Should get non-admin branch protection on other repositories", func() {
+var _ = Describe("E2E TEST:"+checks.LicenseCheckPolicy, func() {
+	Context("E2E TEST:Validating license file check", func() {
+		It("Should return license check works", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-dangerous-workflow-e2e")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo)
@@ -43,20 +42,18 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         6,
-				NumberOfWarn:  1,
-				NumberOfInfo:  3,
-				NumberOfDebug: 3,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
 			}
-			result := checks.BranchProtection(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeFalse())
+			result := checks.LicenseCheck(&req)
 
-			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
-			Expect(repoClient.Close()).Should(BeNil())
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+
+			Expect(scut.ValidateTestReturn(nil, "license check", &expected, &result,
+				&dl)).Should(BeTrue())
 		})
 	})
 })
