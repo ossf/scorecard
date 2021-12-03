@@ -28,7 +28,7 @@ import (
 
 var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 	Context("E2E TEST:Validating branch protection", func() {
-		It("Should fail to return branch protection on other repositories", func() {
+		It("Should get non-admin branch protection on other repositories", func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
 			Expect(err).Should(BeNil())
@@ -45,8 +45,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 				Error:         nil,
 				Score:         6,
 				NumberOfWarn:  1,
-				NumberOfInfo:  6,
-				NumberOfDebug: 0,
+				NumberOfInfo:  3,
+				NumberOfDebug: 3,
 			}
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
