@@ -319,13 +319,6 @@ var rootCmd = &cobra.Command{
 		}
 		defer repoClient.Close()
 
-		ciiClient := clients.DefaultCIIBestPracticesClient()
-		ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer ossFuzzRepoClient.Close()
-
 		// Read docs.
 		checkDocs, err := docs.Read()
 		if err != nil {
@@ -340,6 +333,21 @@ var rootCmd = &cobra.Command{
 		enabledChecks, err := getEnabledChecks(policy, checksToRun, supportedChecks, repoType)
 		if err != nil {
 			panic(err)
+		}
+
+		var ciiClient clients.CIIBestPracticesClient
+		var ossFuzzRepoClient clients.RepoClient
+
+		if _, exists := enabledChecks[checks.CheckCIIBestPractices]; exists {
+			ciiClient = clients.DefaultCIIBestPracticesClient()
+		}
+
+		if _, exists := enabledChecks[checks.CheckCIIBestPractices]; exists {
+			ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer ossFuzzRepoClient.Close()
 		}
 
 		if format == formatDefault {

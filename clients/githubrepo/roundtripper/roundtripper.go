@@ -59,6 +59,7 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 			log.Panic(err)
 		}
 	} else {
+		panic("aa")
 		log.Fatalf("GitHub token env var is not set. " +
 			"Please read https://github.com/ossf/scorecard#authentication")
 	}
