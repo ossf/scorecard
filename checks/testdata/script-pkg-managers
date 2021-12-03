@@ -65,13 +65,12 @@ python3 -m pip install -X -H somepkg \
     'some-ther==1.2.3' \
     'somebla<3.4.5'
 
-# These first 3 should not result in findings.
-npm install
-npm install -g
-npm i
 
-# These 4 result in findings.
 npm install typescript
 npm install -g typescript
 npm i typescript
 npm i -g typescript
+npm install
+npm install -g
+npm i
+npm ci
