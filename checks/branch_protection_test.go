@@ -53,15 +53,15 @@ func scrubBranches(branches []*clients.BranchRef) []*clients.BranchRef {
 func testScore(protection *clients.BranchProtectionRule,
 	branch string, dl checker.DetailLogger) (int, error) {
 	var score levelScore
-	score.scores.basic, score.maxes.basic = basicNonAdminProtection(protection, branch, dl)
-	score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(protection, branch, dl)
+	score.scores.basic, score.maxes.basic = basicNonAdminProtection(protection, branch, dl, true)
+	score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(protection, branch, dl, true)
 	score.scores.review, score.maxes.review = nonAdminReviewProtection(protection)
-	score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(protection, branch, dl)
-	score.scores.context, score.maxes.context = nonAdminContextProtection(protection, branch, dl)
+	score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(protection, branch, dl, true)
+	score.scores.context, score.maxes.context = nonAdminContextProtection(protection, branch, dl, true)
 	score.scores.thoroughReview, score.maxes.thoroughReview =
-		nonAdminThoroughReviewProtection(protection, branch, dl)
+		nonAdminThoroughReviewProtection(protection, branch, dl, true)
 	score.scores.adminThoroughReview, score.maxes.adminThoroughReview =
-		adminThoroughReviewProtection(protection, branch, dl)
+		adminThoroughReviewProtection(protection, branch, dl, true)
 
 	return computeScore([]levelScore{score})
 }
