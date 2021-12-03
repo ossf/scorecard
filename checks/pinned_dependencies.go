@@ -602,6 +602,14 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 				// Cannot check further, continue.
 				continue
 			}
+
+			// nolint:lll
+			// Check whether this is an action defined in the same repo,
+			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
+			if strings.HasPrefix(execAction.Uses.Value, "./") {
+				continue
+			}
+
 			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 			// Example: action-name@hash
 			match := hashRegex.Match([]byte(execAction.Uses.Value))
