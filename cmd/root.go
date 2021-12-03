@@ -139,6 +139,10 @@ func getAllChecks() checker.CheckNameToFnMap {
 	if _, dangerousWorkflowCheck := os.LookupEnv("ENABLE_DANGEROUS_WORKFLOW"); !dangerousWorkflowCheck {
 		delete(possibleChecks, checks.CheckDangerousWorkflow)
 	}
+	// TODO: Remove this to enable the LICENSE_CHECK by default in the next release.
+	if _, licenseflowCheck := os.LookupEnv("ENABLE_LICENSE_CHECK"); !licenseflowCheck {
+		delete(possibleChecks, checks.LicenseCheckPolicy)
+	}
 	return possibleChecks
 }
 
