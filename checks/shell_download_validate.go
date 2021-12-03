@@ -384,36 +384,17 @@ func isNpmUnpinnedDownload(cmd []string) bool {
 		return false
 	}
 
-	// `Npm install` will automatically look up the
+	// `npm install` will automatically look up the
 	// package.json and package-lock.json, so we don't flag it.
-
-	if len(cmd) <= 2 {
-		return false
-	}
-
-	found := false
-	for i := 1; i < len(cmd)-1; i++ {
-		// Search for get and install commands.
+	for i := 1; i < len(cmd); i++ {
+		// Search for get/install/update commands.
+		// `npm ci` wil verify all hashes are present.
 		if strings.EqualFold(cmd[i], "install") ||
-			strings.EqualFold(cmd[i], "i") {
-			found = true
+			strings.EqualFold(cmd[i], "i") ||
+			strings.EqualFold(cmd[i], "update") {
+			return true
 		}
-
-		if !found {
-			continue
-		}
-
-		nextArg := cmd[i+1]
-
-		// If this is a option to install, skip over it.
-		if nextArg[0] == '-' {
-			continue
-		}
-
-		// We've skipped all options, `nextArg` holds the package.
-		return true
 	}
-
 	return false
 }
 
