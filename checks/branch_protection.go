@@ -24,8 +24,6 @@ import (
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-type branchProtectionSetting int
-
 const (
 	// CheckBranchProtection is the exported name for Branch-Protected check.
 	CheckBranchProtection = "Branch-Protection"
