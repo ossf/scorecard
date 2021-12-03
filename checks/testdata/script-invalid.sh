@@ -1,3 +1,4 @@
+#!/bin/sh
 # Copyright 2021 Security Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,25 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: scorecard-bq-transfer
-spec:
-  # At 02:00UTC on Monday and Thursday.
-  schedule: "0 2 * * 1,4"
-  concurrencyPolicy: "Forbid"
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: bq-transfer
-            image: gcr.io/openssf/scorecard-bq-transfer:stable
-            imagePullPolicy: Always
-            resources:
-              limits:
-                memory: 1Gi
-              requests:
-                memory: 1Gi
-          restartPolicy: OnFailure
+# syntax error: unexpected token 'fi'
+fi

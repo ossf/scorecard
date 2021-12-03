@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: scorecard-bq-transfer-releasetest
@@ -35,7 +35,7 @@ spec:
             - name: SCORECARD_BIGQUERY_TABLE
               value: "scorecard_releasetest"
             - name: SCORECARD_COMPLETION_THRESHOLD
-              value: "1"
+              value: "0.9"
             - name: SCORECARD_WEBHOOK_URL
               value: "http://10.4.8.246/"
             resources:
