@@ -45,6 +45,7 @@ type jsonScorecardRawResultV6 struct {
 	Metadata  []string               `json:"metadata"`
 }
 
+// Flat JSON structure.
 type jsonScorecardRawResult struct {
 	Date      string          `json:"date"`
 	Repo      jsonRepoV2      `json:"repo"`
@@ -53,7 +54,7 @@ type jsonScorecardRawResult struct {
 	Results   jsonRawResults  `json:"results"`
 }
 
-// Flat JSON structure.
+// TODO: separate each chec extraction into ts own file.
 type jsonBinaryFiles struct {
 	Path string `json:"path"`
 }
@@ -62,6 +63,7 @@ type jsonRawResults struct {
 	Binaries []jsonBinaryFiles `json:"binaries"`
 }
 
+//nolint:unparam
 func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *raw.BinaryArtifactData) error {
 	for _, v := range ba.Files {
 		r.Results.Binaries = append(r.Results.Binaries, jsonBinaryFiles{
