@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/ossf/scorecard/v3/checks/raw"
 	docs "github.com/ossf/scorecard/v3/docs/checks"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
@@ -44,8 +45,69 @@ type jsonScorecardRawResultV6 struct {
 	Metadata  []string               `json:"metadata"`
 }
 
+type jsonScorecardRawResult struct {
+	Date      string          `json:"date"`
+	Repo      jsonRepoV2      `json:"repo"`
+	Scorecard jsonScorecardV2 `json:"scorecard"`
+	Metadata  []string        `json:"metadata"`
+	Results   jsonRawResults  `json:"results"`
+}
+
+// Flat JSON structure.
+type jsonBinaryFiles struct {
+	Path string `json:"path"`
+}
+
+type jsonRawResults struct {
+	Binaries []jsonBinaryFiles `json:"binaries"`
+}
+
+func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *raw.BinaryArtifactData) error {
+	for _, v := range ba.Files {
+		r.Results.Binaries = append(r.Results.Binaries, jsonBinaryFiles{
+			Path: v.Path,
+		})
+	}
+	return nil
+}
+
 // AsJSON exports results as JSON for new detail format.
-func (r *ScorecardRawResult) AsJSON(checkDocs docs.Doc, writer io.Writer) error {
+func (r *ScorecardRawResult) AsJSON(writer io.Writer) error {
+	encoder := json.NewEncoder(writer)
+	out := jsonScorecardRawResult{
+		Repo: jsonRepoV2{
+			Name:   r.Repo.Name,
+			Commit: r.Repo.CommitSHA,
+		},
+		Scorecard: jsonScorecardV2{
+			Version: r.Scorecard.Version,
+			Commit:  r.Scorecard.CommitSHA,
+		},
+		Date:     r.Date.Format("2006-01-02"),
+		Metadata: r.Metadata,
+	}
+
+	//nolint
+	for _, checkResult := range r.Checks {
+		switch v := checkResult.RawResults.(type) {
+		case raw.BinaryArtifactData:
+			if err := out.addBinaryArtifactRawResults(&v); err != nil {
+				return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+			}
+		default:
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid type: %v", v))
+		}
+	}
+	if err := encoder.Encode(out); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+	}
+
+	return nil
+}
+
+// AsJSONRaw exports results as JSON for new detail format without indirection.
+// This is used for testing.
+func (r *ScorecardRawResult) AsJSONRaw(checkDocs docs.Doc, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	out := jsonScorecardRawResultV6{
 		Repo: jsonRepoV2{

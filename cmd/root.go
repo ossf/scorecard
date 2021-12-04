@@ -383,7 +383,8 @@ var rootCmd = &cobra.Command{
 				return repoRawResult.Checks[i].Name < repoRawResult.Checks[j].Name
 			})
 
-			err = repoRawResult.AsJSON(checkDocs, os.Stdout)
+			// Testing with: err = repoRawResult.AsJSONRaw(checkDocs, os.Stdout)
+			err = repoRawResult.AsJSON(os.Stdout)
 
 			if err != nil {
 				log.Fatalf("Failed to output results: %v", err)
