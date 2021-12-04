@@ -30,12 +30,12 @@ type checks struct {
 	p    []string
 }
 
-// LicenseCheckPolicy is the registered name for LicenseCheck.
-const LicenseCheckPolicy = "LicenseCheck"
+// CheckLicense is the registered name for License.
+const CheckLicense = "License"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(LicenseCheckPolicy, LicenseCheck)
+	registerCheck(CheckLicense, LicenseCheck)
 }
 
 const (
@@ -114,14 +114,14 @@ func LicenseCheck(c *checker.CheckRequest) checker.CheckResult {
 		return true, nil
 	}
 
-	err := fileparser.CheckIfFileExists(LicenseCheckPolicy, c, onFile, &r)
+	err := fileparser.CheckIfFileExists(CheckLicense, c, onFile, &r)
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(LicenseCheckPolicy, err)
+		return checker.CreateRuntimeErrorResult(CheckLicense, err)
 	}
 	if r {
-		return checker.CreateMaxScoreResult(LicenseCheckPolicy, "license file detected")
+		return checker.CreateMaxScoreResult(CheckLicense, "license file detected")
 	}
-	return checker.CreateMinScoreResult(LicenseCheckPolicy, "license file not detected")
+	return checker.CreateMinScoreResult(CheckLicense, "license file not detected")
 }
 
 // CheckLicense to check whether the name parameter fulfill license file criteria.
