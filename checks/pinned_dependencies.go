@@ -45,10 +45,15 @@ func init() {
 // PinnedDependencies will check the repository if it contains frozen dependecies.
 func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 	// Lock file.
+	/* WARNING: this code is inherently incorrect:
+	- does not differentiate between libs and main
+	- only looks at root folder.
+	=> disabling to avoid false positives.
 	lockScore, lockErr := isPackageManagerLockFilePresent(c)
 	if lockErr != nil {
 		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, lockErr)
 	}
+	*/
 
 	// GitHub actions.
 	actionScore, actionErr := isGitHubActionsWorkflowPinned(c)
@@ -81,13 +86,12 @@ func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Scores may be inconclusive.
-	lockScore = maxScore(0, lockScore)
 	actionScore = maxScore(0, actionScore)
 	dockerFromScore = maxScore(0, dockerFromScore)
 	dockerDownloadScore = maxScore(0, dockerDownloadScore)
 	scriptScore = maxScore(0, scriptScore)
 	actionScriptScore = maxScore(0, actionScriptScore)
-	score := checker.AggregateScores(lockScore, actionScore, dockerFromScore,
+	score := checker.AggregateScores(actionScore, dockerFromScore,
 		dockerDownloadScore, scriptScore, actionScriptScore)
 
 	if score == checker.MaxResultScore {
@@ -629,6 +633,7 @@ func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
 }
 
 // Check presence of lock files thru validatePackageManagerFile().
+//nolint:unused,deadcode
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
 	err := fileparser.CheckIfFileExists(CheckPinnedDependencies, c, validatePackageManagerFile, &r)
@@ -646,6 +651,7 @@ func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
 // TODO(laurent): need to differentiate between libraries and programs.
 // TODO(laurent): handle multi-language repos.
+//nolint:unused
 func validatePackageManagerFile(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	switch strings.ToLower(name) {
 	// TODO(laurent): "go.mod" is for libraries
