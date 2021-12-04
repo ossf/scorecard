@@ -25,7 +25,7 @@ import (
 	scut "github.com/ossf/scorecard/v3/utests"
 )
 
-var _ = Describe("E2E TEST:"+checks.LicenseCheckPolicy, func() {
+var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 	Context("E2E TEST:Validating license file check", func() {
 		It("Should return license check works", func() {
 			dl := scut.TestDetailLogger{}
