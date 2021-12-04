@@ -29,7 +29,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 	Context("E2E TEST:Validating license file check", func() {
 		It("Should return license check works", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-dangerous-workflow-e2e")
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-license-e2e")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo)
@@ -52,7 +52,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 
-			Expect(scut.ValidateTestReturn(nil, "license check", &expected, &result,
+			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
 	})
