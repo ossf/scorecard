@@ -330,6 +330,31 @@ is therefore not a definitive indication that the project is at risk.
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
 
+## License 
+
+Risk: `Low` (possible impediment to security review)
+
+This check tries to determine if the project has published a license. It
+works by checking standard locations for a file named according to common
+conventions for licenses.
+
+A license can give users information about how the source code may or may
+not be used. The lack of a license will impede any kind of security review
+or audit and creates a legal risk for potential users.
+
+This check will detect files in the top-level directory with any combination
+of the following names and extensions:`LICENSE`, `LICENCE`, `COPYING`,
+`COPYRIGHT` and .html, .txt, .md. It will also detect these files in a
+directory named `LICENSES`. (Files in a `LICENSES` directory are typically
+named as their [SPDX](https://spdx.org/licenses/) license identifier followed
+by an appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
+ 
+
+**Remediation steps**
+- Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to apply to your project.
+- Create the license in a .txt, .html, or .md file named LICENSE or COPYING, and place it in the top-level directory.
+- Alternately, create a `LICENSE` directory and add license files with a name that matches your [SPDX license identifier](https://spdx.dev/ids/).
+
 ## Maintained 
 
 Risk: `High` (possibly unpatched vulnerabilities)

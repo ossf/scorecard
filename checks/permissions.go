@@ -268,6 +268,16 @@ func calculateScore(result permissionCbData) int {
 		score--
 	}
 
+	// pull-requests: https://docs.github.com/en/rest/reference/pulls.
+	// May allow an attacker to change a pull request and merge it.
+	// Dependent on what it's used for: creating pull requests is fine,
+	// but merging is dangerous; update to existing request maybe bypass reviews.
+	// Ultimately we will probably need a list of acceptable actions.
+	// High risk: -5
+	if permissionIsPresent(result, "pull-requests") {
+		score -= (checker.MaxResultScore / 2)
+	}
+
 	// contents.
 	// Allows attacker to commit unreviewed code.
 	// High risk: -10
