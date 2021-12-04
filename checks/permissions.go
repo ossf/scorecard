@@ -207,7 +207,8 @@ func validateRunLevelPermissions(workflow *actionlint.Workflow, path string,
 			recordAllPermissionsWrite(pdata.runLevelWritePermissions)
 			continue
 		}
-		err := validatePermissions(job.Permissions, runLevelPermission, path, dl, pdata.runLevelWritePermissions, ignoredPermissions)
+		err := validatePermissions(job.Permissions, runLevelPermission,
+			path, dl, pdata.runLevelWritePermissions, ignoredPermissions)
 		if err != nil {
 			return err
 		}
