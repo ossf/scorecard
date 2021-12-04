@@ -383,7 +383,7 @@ var rootCmd = &cobra.Command{
 				return repoRawResult.Checks[i].Name < repoRawResult.Checks[j].Name
 			})
 
-			// Testing with: err = repoRawResult.AsJSONRaw(checkDocs, os.Stdout)
+			// Testing with: err = repoRawResult.AsInternalJSON(checkDocs, os.Stdout)
 			err = repoRawResult.AsJSON(os.Stdout)
 
 			if err != nil {

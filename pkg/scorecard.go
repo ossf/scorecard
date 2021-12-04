@@ -109,7 +109,8 @@ func RunScorecards(ctx context.Context,
 	return ret, nil
 }
 
-// RunScorecards runs enabled Scorecard checks on a Repo.
+// RunScorecardsRaw runs enabled Scorecard checks on a Repo
+// and returns raw results.
 func RunScorecardsRaw(ctx context.Context,
 	repo clients.Repo,
 	checksToRun checker.CheckNameToFnMap,

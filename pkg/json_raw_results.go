@@ -46,9 +46,9 @@ type jsonScorecardRawResultV6 struct {
 	Metadata  []string               `json:"metadata"`
 }
 
-// AsJSONRaw exports results as JSON for new detail format without indirection.
+// AsInternalJSON exports results as JSON for new detail format without indirection.
 // This is used for testing.
-func (r *ScorecardRawResult) AsJSONRaw(checkDocs docs.Doc, writer io.Writer) error {
+func (r *ScorecardRawResult) AsInternalJSON(checkDocs docs.Doc, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	out := jsonScorecardRawResultV6{
 		Repo: jsonRepoV2{
