@@ -45,10 +45,15 @@ func init() {
 // PinnedDependencies will check the repository if it contains frozen dependecies.
 func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 	// Lock file.
+	/* WARNING: this code is inherently incorrect:
+	- does not differentiate between libs and main
+	- only looks at root folder.
+	=> disabling to avoid false positives.
 	lockScore, lockErr := isPackageManagerLockFilePresent(c)
 	if lockErr != nil {
 		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, lockErr)
 	}
+	*/
 
 	// GitHub actions.
 	actionScore, actionErr := isGitHubActionsWorkflowPinned(c)
@@ -81,13 +86,12 @@ func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Scores may be inconclusive.
-	lockScore = maxScore(0, lockScore)
 	actionScore = maxScore(0, actionScore)
 	dockerFromScore = maxScore(0, dockerFromScore)
 	dockerDownloadScore = maxScore(0, dockerDownloadScore)
 	scriptScore = maxScore(0, scriptScore)
 	actionScriptScore = maxScore(0, actionScriptScore)
-	score := checker.AggregateScores(lockScore, actionScore, dockerFromScore,
+	score := checker.AggregateScores(actionScore, dockerFromScore,
 		dockerDownloadScore, scriptScore, actionScriptScore)
 
 	if score == checker.MaxResultScore {
@@ -150,19 +154,19 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 
 	if r.gitHubOwned != notPinned {
 		score += 2
-		// TODO: set Snippet and line numbers.
 		dl.Info3(&checker.LogMessage{
-			Type: checker.FileTypeSource,
-			Text: fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
 		})
 	}
 
 	if r.thirdParties != notPinned {
 		score += 8
-		// TODO: set Snippet and line numbers.
 		dl.Info3(&checker.LogMessage{
-			Type: checker.FileTypeSource,
-			Text: fmt.Sprintf("%s %s", "Third-party", infoMsg),
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   fmt.Sprintf("%s %s", "Third-party", infoMsg),
 		})
 	}
 
@@ -637,6 +641,7 @@ func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
 }
 
 // Check presence of lock files thru validatePackageManagerFile().
+//nolint:unused,deadcode
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
 	err := fileparser.CheckIfFileExists(CheckPinnedDependencies, c, validatePackageManagerFile, &r)
@@ -654,6 +659,7 @@ func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 // validatePackageManagerFile will validate the if frozen dependecies file name exists.
 // TODO(laurent): need to differentiate between libraries and programs.
 // TODO(laurent): handle multi-language repos.
+//nolint:unused
 func validatePackageManagerFile(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	switch strings.ToLower(name) {
 	// TODO(laurent): "go.mod" is for libraries

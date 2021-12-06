@@ -61,20 +61,18 @@ func fileExists(name string, dl checker.DetailLogger, data fileparser.FileCbData
 	switch strings.ToLower(name) {
 	case ".github/dependabot.yml":
 		dl.Info3(&checker.LogMessage{
-			Path: name,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
+			Path:   name,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
 			Text:   "dependabot detected",
 		})
 		// https://docs.renovatebot.com/configuration-options/
 	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
 		"renovate.json5", ".renovaterc":
 		dl.Info3(&checker.LogMessage{
-			Path: name,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
+			Path:   name,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
 			Text:   "renovate detected",
 		})
 	default:
