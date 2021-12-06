@@ -142,6 +142,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 		if permissions.All.Pos != nil {
 			lineNumber = permissions.All.Pos.Line
 		}
+
 		if !strings.EqualFold(val, "read-all") && val != "" {
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
@@ -256,14 +257,12 @@ func calculateScore(result permissionCbData) int {
 
 	// If no top level permissions are defined...
 	if permissionIsPresentInTopLevel(result, "all") {
-		switch permissionIsPresentInRunLevel(result, "all") {
-		case true:
-			// ... loweset score if no run level permissions are defined either.
+		if permissionIsPresentInRunLevel(result, "all") {
+			// ... give lowest score if no run level permissions are defined either.
 			return checker.MinResultScore
-		case false:
-			// ... reduce score if run level permissions are defined.
-			score--
 		}
+		// ... reduce score if run level permissions are defined.
+		score--
 	}
 
 	// status: https://docs.github.com/en/rest/reference/repos#statuses.
