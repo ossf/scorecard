@@ -184,8 +184,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 		c.Dlogger.Debug3(&checker.LogMessage{
 			Path: result.Path,
 			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
+			Offset: checker.OffsetDefault,
 			Text:   "CodeQL detected",
 		})
 	}

@@ -60,13 +60,16 @@ func validatePermission(permissionKey string, permissionValue *actionlint.Permis
 		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
 	val := permissionValue.Value.Value
+	lineNumber := checker.OffsetDefault
+	if permissionValue.Value.Pos != nil {
+		lineNumber = permissionValue.Value.Pos.Line
+	}
 	if strings.EqualFold(val, "write") {
 		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
 			dl.Warn3(&checker.LogMessage{
-				Path: path,
-				Type: checker.FileTypeSource,
-				// TODO: set line.
-				Offset: 1,
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: lineNumber,
 				Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
 				// TODO: set Snippet.
 			})
@@ -75,10 +78,9 @@ func validatePermission(permissionKey string, permissionValue *actionlint.Permis
 			// Only log for debugging, otherwise
 			// it may confuse users.
 			dl.Debug3(&checker.LogMessage{
-				Path: path,
-				Type: checker.FileTypeSource,
-				// TODO: set line.
-				Offset: 1,
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: lineNumber,
 				Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
 				// TODO: set Snippet.
 			})
@@ -87,10 +89,9 @@ func validatePermission(permissionKey string, permissionValue *actionlint.Permis
 	}
 
 	dl.Info3(&checker.LogMessage{
-		Path: path,
-		Type: checker.FileTypeSource,
-		// TODO: set line correctly.
-		Offset: 1,
+		Path:   path,
+		Type:   checker.FileTypeSource,
+		Offset: lineNumber,
 		Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
 		// TODO: set Snippet.
 	})
@@ -125,22 +126,23 @@ func validatePermissions(permissions *actionlint.Permissions, path string,
 	scopeIsSet := permissions != nil && len(permissions.Scopes) > 0
 	if permissions == nil || (!allIsSet && !scopeIsSet) {
 		dl.Info3(&checker.LogMessage{
-			Path: path,
-			Type: checker.FileTypeSource,
-			// TODO: set line correctly.
-			Offset: 1,
+			Path:   path,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
 			Text:   "permissions set to 'none'",
-			// TODO: set Snippet.
 		})
 	}
 	if allIsSet {
 		val := permissions.All.Value
+		lineNumber := checker.OffsetDefault
+		if permissions.All.Pos != nil {
+			lineNumber = permissions.All.Pos.Line
+		}
 		if !strings.EqualFold(val, "read-all") && val != "" {
 			dl.Warn3(&checker.LogMessage{
-				Path: path,
-				Type: checker.FileTypeSource,
-				// TODO: set line correctly.
-				Offset: 1,
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: lineNumber,
 				Text:   fmt.Sprintf("permissions set to '%v'", val),
 				// TODO: set Snippet.
 			})
@@ -149,10 +151,9 @@ func validatePermissions(permissions *actionlint.Permissions, path string,
 		}
 
 		dl.Info3(&checker.LogMessage{
-			Path: path,
-			Type: checker.FileTypeSource,
-			// TODO: set line correctly.
-			Offset: 1,
+			Path:   path,
+			Type:   checker.FileTypeSource,
+			Offset: lineNumber,
 			Text:   fmt.Sprintf("permissions set to '%v'", val),
 			// TODO: set Snippet.
 		})
@@ -170,7 +171,7 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 		dl.Warn3(&checker.LogMessage{
 			Path:   path,
 			Type:   checker.FileTypeSource,
-			Offset: 1,
+			Offset: checker.OffsetDefault,
 			Text:   "no permission defined",
 		})
 		recordAllPermissionsWrite(pdata.topLevelWritePermissions)
@@ -189,10 +190,14 @@ func validateRunLevelPermissions(workflow *actionlint.Workflow, path string,
 		// For most workflows, no write permissions are needed,
 		// so only top-level read-only permissions need to be declared.
 		if job.Permissions == nil {
+			lineNumber := checker.OffsetDefault
+			if job.Pos != nil {
+				lineNumber = job.Pos.Line
+			}
 			dl.Debug3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
-				Offset: 1,
+				Offset: lineNumber,
 				Text:   "no permission defined",
 			})
 			continue
