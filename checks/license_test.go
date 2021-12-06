@@ -119,7 +119,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 	}{
 		{
 			name:        "With LICENSE",
-			inputFolder: "file://licensedir/withlicense",
+			inputFolder: "file://testdata/licensedir/withlicense",
 			expected: scut.TestReturn{
 				Error:        nil,
 				Score:        checker.MaxResultScore,
@@ -129,7 +129,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 		},
 		{
 			name:        "Without LICENSE",
-			inputFolder: "file://licensedir/withoutlicense",
+			inputFolder: "file://testdata/licensedir/withoutlicense",
 			expected: scut.TestReturn{
 				Error: nil,
 				Score: checker.MinResultScore,
