@@ -86,6 +86,28 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name:     "run script injection",
+			filename: "./testdata/github-workflow-dangerous-pattern-untrusted-script-injection.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "run safe script injection",
+			filename: "./testdata/github-workflow-dangerous-pattern-trusted-script-injection.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below

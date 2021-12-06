@@ -16,16 +16,46 @@ package checks
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks/fileparser"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // CheckDangerousWorkflow is the exported name for Dangerous-Workflow check.
 const CheckDangerousWorkflow = "Dangerous-Workflow"
+
+func containsUntrustedContextPattern(variable string) bool {
+	// regexp for untrusted code patterns github.event.
+	untrustedContextPattern := regexp.MustCompile(
+		`.*(issue\.title|` +
+			`issue\.body|` +
+			`pull_request\.title|` +
+			`pull_request\.body|` +
+			`comment\.body|` +
+			`review\.body|` +
+			`review_comment\.body|` +
+			`pages.*\.page_name|` +
+			`commits.*\.message|` +
+			`head_commit\.message|` +
+			`head_commit\.author\.email|` +
+			`head_commit\.author\.name|` +
+			`commits.*\.author\.email|` +
+			`commits.*\.author\.name|` +
+			`pull_request\.head\.ref|` +
+			`pull_request\.head\.label|` +
+			`pull_request\.head\.repo\.default_branch).*`)
+
+	if strings.Contains(variable, "github.head_ref") {
+		return true
+	}
+	fmt.Printf("%s %t\n", variable, untrustedContextPattern.MatchString(variable))
+	return strings.Contains(variable, "github.event.") && untrustedContextPattern.MatchString(variable)
+}
 
 //nolint:gochecknoinits
 func init() {
@@ -75,6 +105,11 @@ func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checke
 
 	// 1. Check for untrusted code checkout with pull_request_target and a ref
 	if err := validateUntrustedCodeCheckout(workflow, path, dl, pdata); err != nil {
+		return false, err
+	}
+
+	// 2. Check for script injection in workflow inline scripts.
+	if err := validateScriptInjection(workflow, path, dl, pdata); err != nil {
 		return false, err
 	}
 
@@ -132,10 +167,14 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 			continue
 		}
 		if strings.Contains(ref.Value.Value, "github.event.pull_request") {
+			line := 1
+			if step.Pos != nil {
+				line = step.Pos.Line
+			}
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
-				Offset: step.Pos.Line,
+				Offset: line,
 				Text:   fmt.Sprintf("untrusted code checkout '%v'", ref.Value.Value),
 				// TODO: set Snippet.
 			})
@@ -146,6 +185,65 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 	return nil
 }
 
+func validateScriptInjection(workflow *actionlint.Workflow, path string,
+	dl checker.DetailLogger, pdata *patternCbData) error {
+	for _, job := range workflow.Jobs {
+		if job == nil {
+			continue
+		}
+		for _, step := range job.Steps {
+			if step == nil {
+				continue
+			}
+			run, ok := step.Exec.(*actionlint.ExecRun)
+			if !ok || run.Run == nil {
+				continue
+			}
+			// Check Run *String for user-controllable (untrustworthy) properties.
+			if err := checkVariablesInScript(run.Run.Value, run.Run.Pos, path, dl, pdata); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func checkVariablesInScript(script string, pos *actionlint.Pos, path string, dl checker.DetailLogger, pdata *patternCbData) error {
+	for {
+		s := strings.Index(script, "${{")
+		if s == -1 {
+			return nil
+		}
+
+		e := strings.Index(script[s:], "}}")
+		if e == -1 {
+			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+
+		}
+
+		// Check if the variable may be untrustworthy.
+		// See https://securitylab.github.com/research/github-actions-untrusted-input/
+		variable := script[s+3 : s+e]
+		if containsUntrustedContextPattern(variable) {
+			line := 1
+			if pos != nil {
+				line = pos.Line
+			}
+			dl.Warn3(&checker.LogMessage{
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: line,
+				Text:   fmt.Sprintf("script injection with untrusted input '%v'", variable),
+				// TODO: set Snippet.
+			})
+			pdata.workflowPattern["script_injection"] = true
+			return nil
+		}
+		script = script[s+e:]
+	}
+}
+
 // Calculate the workflow score.
 func calculateWorkflowScore(result patternCbData) int {
 	// Start with a perfect score.
@@ -153,6 +251,11 @@ func calculateWorkflowScore(result patternCbData) int {
 
 	// pull_request_event indicates untrusted code checkout
 	if ok := result.workflowPattern["untrusted_checkout"]; ok {
+		score -= 10
+	}
+
+	// script injection with an untrusted context
+	if ok := result.workflowPattern["script_injection"]; ok {
 		score -= 10
 	}
 
