@@ -43,9 +43,9 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
+				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			}
 			result := checks.TokenPermissions(&req)
 			// UPGRADEv2: to remove.
