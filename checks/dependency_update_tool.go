@@ -33,7 +33,7 @@ func init() {
 // UsesDependencyUpdateTool will check the repository uses a dependency update tool.
 func UsesDependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	var r bool
-	err := fileparser.CheckIfFileExists(CheckDependencyUpdateTool, c, fileExists, &r)
+	err := fileparser.CheckIfFileExists(c, fileExists, &r)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, e)

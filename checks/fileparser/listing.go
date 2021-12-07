@@ -174,7 +174,7 @@ type FileCb func(path string,
 
 // CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
 // for the occurrence.
-func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile FileCb, data FileCbData) error {
+func CheckIfFileExists(c *checker.CheckRequest, onFile FileCb, data FileCbData) error {
 	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
 	if err != nil {
 		// nolint: wrapcheck

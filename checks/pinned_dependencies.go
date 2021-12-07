@@ -654,7 +654,7 @@ func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
 //nolint:unused,deadcode
 func isPackageManagerLockFilePresent(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := fileparser.CheckIfFileExists(CheckPinnedDependencies, c, validatePackageManagerFile, &r)
+	err := fileparser.CheckIfFileExists(c, validatePackageManagerFile, &r)
 	if err != nil {
 		return checker.InconclusiveResultScore, fmt.Errorf("%w", err)
 	}
