@@ -219,7 +219,9 @@ Each individual check returns a score of 0 to 10, with 10 representing the best 
 * “Medium” risk checks are weighted at 5
 * “Low” risk checks are weighted at 2.5
 
-Note: there are currently no Scorecards checks rated as “Critical” risk.
+Tests that are rated as “Critical” risk are: 
+
+* Dangerous-Workflow
 
 Tests that are rated as “High” risk are: 
 * Maintained
@@ -230,7 +232,6 @@ Tests that are rated as “High” risk are:
 * Signed-Releases
 * Token-Permissions
 * Vulnerabilities
-* Dangerous-Workflow
 
 Tests that are rated as “Medium” risk are:
 * Fuzzing
@@ -244,6 +245,7 @@ Tests that are rated as “Low” risk are:
 * CI-Tests
 * CII-Best-Practices
 * Contributors
+* License
 
 #### Showing Detailed Results 
 For more details about why a check fails, use the `--show-details` option:
