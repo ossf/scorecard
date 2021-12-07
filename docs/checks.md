@@ -261,7 +261,7 @@ participants.
 
 ## Dangerous-Workflow 
 
-Risk: `High`  (vulnerable to repository compromise)
+Risk: `Critical`  (vulnerable to repository compromise)
   
 This check determines whether the project's GitHub Action workflows has dangerous 
 code patterns. Some examples of these patterns are untrusted code checkouts, 
