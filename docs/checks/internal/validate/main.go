@@ -14,7 +14,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
 	"regexp"
@@ -54,6 +56,28 @@ var (
 	}
 )
 
+// TODO: UPGRADEv6: remove this temporary fix once
+// all checks have been migrated to raw results.
+func mergeFiles(nonRawFiles, rawFiles []fs.DirEntry) []fs.DirEntry {
+	files := []fs.DirEntry{}
+	m := make(map[string]bool)
+
+	// Use raw files.
+	for _, f := range rawFiles {
+		m[f.Name()] = true
+		files = append(files, f)
+	}
+
+	// Append non-Rraw files if raw files are not present.
+	for _, f := range nonRawFiles {
+		if _, exists := m[f.Name()]; exists {
+			continue
+		}
+		files = append(files, f)
+	}
+	return files
+}
+
 // Identify the source file that declares each check.
 func listCheckFiles() (map[string]string, error) {
 	checkFiles := make(map[string]string)
@@ -70,6 +94,10 @@ func listCheckFiles() (map[string]string, error) {
 			continue
 		}
 
+		// WARNING: assume the filename is the same during migration
+		// from `checks/`` to `checks/raw/`.
+		// TODO: UPGRADEv6: remove this temporary fix.
+		fullpathraw := path.Join("checks/raw", file.Name())
 		fullpath := path.Join("checks/", file.Name())
 		content, err := os.ReadFile(fullpath)
 		if err != nil {
@@ -86,8 +114,14 @@ func listCheckFiles() (map[string]string, error) {
 			//nolint:goerr113
 			return nil, fmt.Errorf("check %s already exists: %v", r, entry)
 		}
-		checkFiles[r] = fullpath
+		// TODO: UPGRADEv6: remove this temporary fix.
+		if _, err := os.Stat(fullpathraw); errors.Is(err, os.ErrNotExist) {
+			checkFiles[r] = fullpath
+		} else {
+			checkFiles[r] = fullpathraw
+		}
 	}
+
 	return checkFiles, nil
 }
 
