@@ -491,8 +491,7 @@ func createSARIFRuns(runs map[string]*run) []run {
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
-	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
-	policyFile string) error {
+	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
 	// We only support GitHub-supported properties:
@@ -561,7 +560,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// so it's the last position for us.
 		RuleIndex := len(run.Tool.Driver.Rules) - 1
 		if len(locs) == 0 {
-			locs = addDefaultLocation(locs, policyFile)
+			locs = addDefaultLocation(locs, "no-source-file")
 			// Use the `reason` as message.
 			cr := createSARIFCheckResult(RuleIndex, checkID, check.Reason, &locs[0])
 			run.Results = append(run.Results, cr)
