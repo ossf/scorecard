@@ -154,19 +154,19 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 
 	if r.gitHubOwned != notPinned {
 		score += 2
-		// TODO: set Snippet and line numbers.
 		dl.Info3(&checker.LogMessage{
-			Type: checker.FileTypeSource,
-			Text: fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
 		})
 	}
 
 	if r.thirdParties != notPinned {
 		score += 8
-		// TODO: set Snippet and line numbers.
 		dl.Info3(&checker.LogMessage{
-			Type: checker.FileTypeSource,
-			Text: fmt.Sprintf("%s %s", "Third-party", infoMsg),
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   fmt.Sprintf("%s %s", "Third-party", infoMsg),
 		})
 	}
 
@@ -561,6 +561,13 @@ func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker
 	return createReturnForIsGitHubActionsWorkflowPinned(r, dl, err)
 }
 
+func generateOwnerToDisplay(gitHubOwned bool) string {
+	if gitHubOwned {
+		return "GitHub-owned"
+	}
+	return "third-party"
+}
+
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
 // should continue executing after this file.
 func validateGitHubActionWorkflow(pathfn string, content []byte,
@@ -606,18 +613,29 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 				// Cannot check further, continue.
 				continue
 			}
+
+			// nolint:lll
+			// Check whether this is an action defined in the same repo,
+			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
+			if strings.HasPrefix(execAction.Uses.Value, "./") {
+				continue
+			}
+
+			// Check if we are dealing with a GitHub action or a third-party one.
+			gitHubOwned := fileparser.IsGitHubOwnedAction(execAction.Uses.Value)
+			owner := generateOwnerToDisplay(gitHubOwned)
+
 			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 			// Example: action-name@hash
 			match := hashRegex.Match([]byte(execAction.Uses.Value))
 			if !match {
 				dl.Warn3(&checker.LogMessage{
 					Path: pathfn, Type: checker.FileTypeSource, Offset: execAction.Uses.Pos.Line, Snippet: execAction.Uses.Value,
-					Text: fmt.Sprintf("dependency not pinned by hash (job '%v')", jobName),
+					Text: fmt.Sprintf("%s dependency not pinned by hash (job '%v')", owner, jobName),
 				})
 			}
 
-			githubOwned := fileparser.IsGitHubOwnedAction(execAction.Uses.Value)
-			addWorkflowPinnedResult(pdata, match, githubOwned)
+			addWorkflowPinnedResult(pdata, match, gitHubOwned)
 		}
 	}
 
