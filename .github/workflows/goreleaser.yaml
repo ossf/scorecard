@@ -53,6 +53,7 @@ jobs:
           version: latest
           args: release --rm-dist
         env:
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.GH_PATH }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           VERSION_LDFLAGS: ${{ steps.ldflags.outputs.version_flags }}
