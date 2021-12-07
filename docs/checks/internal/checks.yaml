@@ -683,7 +683,7 @@ checks:
         Avoid the dangerous workflow patterns. See this [post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/)
         for information on avoiding untrusted code checkouts.
 
-  LicenseCheck:
+  License:
     risk: Low
     tags: license
     repos: GitHub, local
