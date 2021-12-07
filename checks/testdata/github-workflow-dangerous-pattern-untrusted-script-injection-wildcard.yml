@@ -22,10 +22,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Check title
+    - name: Check msg
       run: |
-        title="${{ github.event.issue.title }}"
-        if [[ ! $title =~ ^.*:\ .*$ ]]; then
-          echo "Bad issue title"
+        msg="${{ github.event.commits[0].message }}"
+        if [[ ! $msg =~ ^.*:\ .*$ ]]; then
+          echo "Bad message "
           exit 1
         fi

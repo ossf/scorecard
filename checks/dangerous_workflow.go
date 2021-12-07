@@ -209,7 +209,8 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 	return nil
 }
 
-func checkVariablesInScript(script string, pos *actionlint.Pos, path string, dl checker.DetailLogger, pdata *patternCbData) error {
+func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
+	dl checker.DetailLogger, pdata *patternCbData) error {
 	for {
 		s := strings.Index(script, "${{")
 		if s == -1 {
@@ -219,7 +220,6 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string, dl 
 		e := strings.Index(script[s:], "}}")
 		if e == -1 {
 			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-
 		}
 
 		// Check if the variable may be untrustworthy.
@@ -238,7 +238,6 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string, dl 
 				// TODO: set Snippet.
 			})
 			pdata.workflowPattern["script_injection"] = true
-			return nil
 		}
 		script = script[s+e:]
 	}

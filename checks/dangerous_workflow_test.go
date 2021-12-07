@@ -108,6 +108,39 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name:     "run multiple script injection",
+			filename: "./testdata/github-workflow-dangerous-pattern-untrusted-multiple-script-injection.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultConfidence,
+				NumberOfWarn:  2,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "run inline script injection",
+			filename: "./testdata/github-workflow-dangerous-pattern-untrusted-inline-script-injection.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultConfidence,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "run wildcard script injection",
+			filename: "./testdata/github-workflow-dangerous-pattern-untrusted-script-injection-wildcard.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultConfidence,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -126,6 +159,61 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			r := testValidateGitHubActionDangerousWorkflow(tt.filename, content, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
+				t.Fail()
+			}
+		})
+	}
+}
+
+func TestUntrustedContextVariables(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		variable string
+		expected bool
+	}{
+		{
+			name:     "trusted",
+			variable: "github.action",
+			expected: false,
+		},
+		{
+			name:     "untrusted",
+			variable: "github.head_ref",
+			expected: true,
+		},
+		{
+			name:     "untrusted event",
+			variable: "github.event.issue.title",
+			expected: true,
+		},
+		{
+			name:     "untrusted pull request",
+			variable: "github.event.pull_request.body",
+			expected: true,
+		},
+		{
+			name:     "trusted pull request",
+			variable: "github.event.pull_request.number",
+			expected: false,
+		},
+		{
+			name:     "untrusted wildcard",
+			variable: "github.event.commits[0].message",
+			expected: true,
+		},
+		{
+			name:     "trusted wildcard",
+			variable: "github.event.commits[0].id",
+			expected: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if r := containsUntrustedContextPattern(tt.variable); !r == tt.expected {
 				t.Fail()
 			}
 		})

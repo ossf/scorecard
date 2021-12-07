@@ -24,8 +24,8 @@ jobs:
 
     - name: Check title
       run: |
-        title="${{ github.event.issue.title }}"
-        if [[ ! $title =~ ^.*:\ .*$ ]]; then
+        echo "Some first line"
+        if [[ ! ${{ github.event.issue.title }} =~ ^.*:\ .*$ ]]; then
           echo "Bad issue title"
           exit 1
         fi

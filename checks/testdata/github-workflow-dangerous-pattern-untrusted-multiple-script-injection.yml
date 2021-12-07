@@ -29,3 +29,4 @@ jobs:
           echo "Bad issue title"
           exit 1
         fi
+        another_test="${{ github.head_ref }}"
