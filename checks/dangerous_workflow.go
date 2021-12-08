@@ -30,7 +30,8 @@ import (
 const CheckDangerousWorkflow = "Dangerous-Workflow"
 
 func containsUntrustedContextPattern(variable string) bool {
-	// regexp for untrusted code patterns github.event.
+	// GitHub event context details that may be attacker controlled.
+	// See https://securitylab.github.com/research/github-actions-untrusted-input/
 	untrustedContextPattern := regexp.MustCompile(
 		`.*(issue\.title|` +
 			`issue\.body|` +
@@ -53,7 +54,6 @@ func containsUntrustedContextPattern(variable string) bool {
 	if strings.Contains(variable, "github.head_ref") {
 		return true
 	}
-	fmt.Printf("%s %t\n", variable, untrustedContextPattern.MatchString(variable))
 	return strings.Contains(variable, "github.event.") && untrustedContextPattern.MatchString(variable)
 }
 
@@ -223,7 +223,6 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 		}
 
 		// Check if the variable may be untrustworthy.
-		// See https://securitylab.github.com/research/github-actions-untrusted-input/
 		variable := script[s+3 : s+e]
 		if containsUntrustedContextPattern(variable) {
 			line := 1
