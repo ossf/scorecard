@@ -50,9 +50,10 @@ func statusesFrom(data []*github.RepoStatus) []clients.Status {
 	var statuses []clients.Status
 	for _, status := range data {
 		statuses = append(statuses, clients.Status{
-			State:   status.GetState(),
-			Context: status.GetContext(),
-			URL:     status.GetURL(),
+			State:     status.GetState(),
+			Context:   status.GetContext(),
+			URL:       status.GetURL(),
+			TargetURL: status.GetTargetURL(),
 		})
 	}
 	return statuses

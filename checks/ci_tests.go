@@ -100,7 +100,7 @@ func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool,
 		if status.State != success {
 			continue
 		}
-		if isTest(status.Context) {
+		if isTest(status.Context) || isTest(status.TargetURL) {
 			c.Dlogger.Debug3(&checker.LogMessage{
 				Path: status.URL,
 				Type: checker.FileTypeURL,
