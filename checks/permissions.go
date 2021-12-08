@@ -255,7 +255,8 @@ func calculateScore(result permissionCbData) int {
 	// Start with a perfect score.
 	score := float32(checker.MaxResultScore)
 
-	// If no top level permissions are defined...
+	// If no top level permissions are defined, all the permissions
+	// are enabled by default, hence "all". In this case,
 	if permissionIsPresentInTopLevel(result, "all") {
 		if permissionIsPresentInRunLevel(result, "all") {
 			// ... give lowest score if no run level permissions are defined either.
