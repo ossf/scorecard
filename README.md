@@ -69,11 +69,28 @@ Language: You must have GoLang installed to run Scorecards (https://golang.org/d
 
 ### Installation
 
-To install Scorecards:
+#### Standalone
+
+To install Scorecards as a standalone:
 
 1. Visit our latest [release page](https://github.com/ossf/scorecard/releases/latest) and download the correct binary for your operating system
 2. Extract the binary file 
 3. Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to identify your directory if necessary)
+
+#### Using Homebrew
+
+You can use [Homebrew](https://brew.sh/) (on macOS or Linux) to install Scorecards.
+
+```sh
+brew install scorecard
+```
+
+### Using Linux package managers
+
+| Package Manager                                            | Linux Distribution | Command                                    |
+|------------------------------------------------------------|--------------------|--------------------------------------------|
+| Nix                                                        | NixOS              | `nix-env -iA nixpkgs.scorecard`            |
+| [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) | Arch Linux         | Use your AUR helper to install `scorecard` |
 
 ### Authentication
 
