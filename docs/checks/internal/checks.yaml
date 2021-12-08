@@ -577,7 +577,7 @@ checks:
         support, encrypted email with a published public key).
       - >-
         For GitHub, see more information
-        [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository.).
+        [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository).
   Signed-Releases:
     risk: High
     tags: supply-chain, security, releases
@@ -662,7 +662,7 @@ checks:
     repos: GitHub, local
     short: Determines if the project's GitHub Action workflows avoid dangerous patterns.
     description: |
-      Risk: `High`  (vulnerable to repository compromise)
+      Risk: `Critical`  (vulnerable to repository compromise)
         
       This check determines whether the project's GitHub Action workflows has dangerous 
       code patterns. Some examples of these patterns are untrusted code checkouts, 
@@ -683,7 +683,7 @@ checks:
         Avoid the dangerous workflow patterns. See this [post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/)
         for information on avoiding untrusted code checkouts.
 
-  LicenseCheck:
+  License:
     risk: Low
     tags: license
     repos: GitHub, local

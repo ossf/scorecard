@@ -119,9 +119,6 @@ func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (boo
 	if err != nil {
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 	}
-	if crs == nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal, "cannot list check runs by ref")
-	}
 
 	for _, cr := range crs {
 		if cr.Status != "completed" {

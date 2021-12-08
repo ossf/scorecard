@@ -65,6 +65,17 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			},
 		},
 		{
+			name:     "Local action workflow",
+			filename: "./testdata/workflow-local-action.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+		},
+		{
 			name:     "Non-pinned workflow",
 			filename: "./testdata/workflow-not-pinned.yaml",
 			expected: scut.TestReturn{
