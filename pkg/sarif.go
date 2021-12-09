@@ -496,8 +496,7 @@ func createSARIFRuns(runs map[string]*run) []run {
 
 func createCheckIdentifiers(name string) (string, string) {
 	// Identifier must be in Pascal case.
-	// We keep the check name the same as the on in the documentation
-	// to be consistent for users.
+	// We keep the check name the same as the one used in the documentation.
 	n := strings.ReplaceAll(name, "-", "")
 	return name, fmt.Sprintf("%sID", n)
 }
