@@ -581,6 +581,9 @@ yaml file are set as read-only at the
 [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions)
 and the required write permissions are declared at the
 [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions).
+One point is reduced from the score if all jobs have their permissions defined but the top level permissions are not defined. 
+This configuration is secure, but there is a chance that when a new job is added to the workflow, its job permissions could be 
+left undefined because of human error.
         
 The check cannot detect if the "read-only" GitHub permission setting is
 enabled, as there is no API available.   
