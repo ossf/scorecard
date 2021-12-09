@@ -69,11 +69,28 @@ Language: You must have GoLang installed to run Scorecards (https://golang.org/d
 
 ### Installation
 
-To install Scorecards:
+#### Standalone
+
+To install Scorecards as a standalone:
 
 1. Visit our latest [release page](https://github.com/ossf/scorecard/releases/latest) and download the correct binary for your operating system
 2. Extract the binary file 
 3. Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to identify your directory if necessary)
+
+#### Using Homebrew
+
+You can use [Homebrew](https://brew.sh/) (on macOS or Linux) to install Scorecards.
+
+```sh
+brew install scorecard
+```
+
+### Using Linux package managers
+
+| Package Manager                                            | Linux Distribution | Command                                    |
+|------------------------------------------------------------|--------------------|--------------------------------------------|
+| Nix                                                        | NixOS              | `nix-env -iA nixpkgs.scorecard`            |
+| [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) | Arch Linux         | Use your AUR helper to install `scorecard` |
 
 ### Authentication
 
@@ -219,7 +236,9 @@ Each individual check returns a score of 0 to 10, with 10 representing the best 
 * “Medium” risk checks are weighted at 5
 * “Low” risk checks are weighted at 2.5
 
-Note: there are currently no Scorecards checks rated as “Critical” risk.
+Tests that are rated as “Critical” risk are: 
+
+* Dangerous-Workflow
 
 Tests that are rated as “High” risk are: 
 * Maintained
@@ -230,7 +249,6 @@ Tests that are rated as “High” risk are:
 * Signed-Releases
 * Token-Permissions
 * Vulnerabilities
-* Dangerous-Workflow
 
 Tests that are rated as “Medium” risk are:
 * Fuzzing
@@ -244,6 +262,7 @@ Tests that are rated as “Low” risk are:
 * CI-Tests
 * CII-Best-Practices
 * Contributors
+* License
 
 #### Showing Detailed Results 
 For more details about why a check fails, use the `--show-details` option:

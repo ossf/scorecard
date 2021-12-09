@@ -100,7 +100,7 @@ func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool,
 		if status.State != success {
 			continue
 		}
-		if isTest(status.Context) {
+		if isTest(status.Context) || isTest(status.TargetURL) {
 			c.Dlogger.Debug3(&checker.LogMessage{
 				Path: status.URL,
 				Type: checker.FileTypeURL,
@@ -118,9 +118,6 @@ func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (boo
 	crs, err := c.RepoClient.ListCheckRunsForRef(pr.HeadSHA)
 	if err != nil {
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
-	}
-	if crs == nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal, "cannot list check runs by ref")
 	}
 
 	for _, cr := range crs {
