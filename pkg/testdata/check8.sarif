@@ -13,11 +13,11 @@
                "semanticVersion": "1.2.3",
                "rules": [
                   {
-                     "id": "Check-Name",
-                     "name": "Check-Name",
+                     "id": "CheckNameID",
+                     "name": "CheckName",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
                      "shortDescription": {
-                        "text": "Check-Name"
+                        "text": "CheckName"
                      },
                      "fullDescription": {
                         "text": "short description"
@@ -40,11 +40,11 @@
                      }
                   },
                   {
-                     "id": "Check-Name5",
-                     "name": "Check-Name5",
+                     "id": "CheckName5ID",
+                     "name": "CheckName5",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name5",
                      "shortDescription": {
-                        "text": "Check-Name5"
+                        "text": "CheckName5"
                      },
                      "fullDescription": {
                         "text": "short description 5"
@@ -73,7 +73,7 @@
          },
          "results": [
             {
-               "ruleId": "Check-Name",
+               "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
                   "text": "warn message"
@@ -99,7 +99,7 @@
                ]
             },
             {
-               "ruleId": "Check-Name",
+               "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
                   "text": "warn message"
@@ -125,7 +125,7 @@
                ]
             },
             {
-               "ruleId": "Check-Name5",
+               "ruleId": "CheckName5ID",
                "ruleIndex": 1,
                "message": {
                   "text": "warn message"
@@ -151,7 +151,7 @@
                ]
             },
             {
-               "ruleId": "Check-Name5",
+               "ruleId": "CheckName5ID",
                "ruleIndex": 1,
                "message": {
                   "text": "warn message"
@@ -189,11 +189,11 @@
                "semanticVersion": "1.2.3",
                "rules": [
                   {
-                     "id": "Check-Name6",
-                     "name": "Check-Name6",
+                     "id": "CheckName6ID",
+                     "name": "CheckName6",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name6",
                      "shortDescription": {
-                        "text": "Check-Name6"
+                        "text": "CheckName6"
                      },
                      "fullDescription": {
                         "text": "short description 6"
@@ -222,7 +222,7 @@
          },
          "results": [
             {
-               "ruleId": "Check-Name6",
+               "ruleId": "CheckName6ID",
                "ruleIndex": 0,
                "message": {
                   "text": "warn message"
@@ -260,11 +260,11 @@
                "semanticVersion": "1.2.3",
                "rules": [
                   {
-                     "id": "Check-Name4",
-                     "name": "Check-Name4",
+                     "id": "CheckName4ID",
+                     "name": "CheckName4",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name4",
                      "shortDescription": {
-                        "text": "Check-Name4"
+                        "text": "CheckName4"
                      },
                      "fullDescription": {
                         "text": "short description 4"
@@ -293,7 +293,7 @@
          },
          "results": [
             {
-               "ruleId": "Check-Name4",
+               "ruleId": "CheckName4ID",
                "ruleIndex": 0,
                "message": {
                   "text": "warn message"

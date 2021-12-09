@@ -25,6 +25,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks"
 	docs "github.com/ossf/scorecard/v3/docs/checks"
 	sce "github.com/ossf/scorecard/v3/errors"
 	spol "github.com/ossf/scorecard/v3/policy"
@@ -457,11 +458,15 @@ func contains(l []string, elt string) bool {
 	return false
 }
 
-func computeCategory(repos []string) (string, error) {
+func computeCategory(checkName string, repos []string) (string, error) {
 	// In terms of sets, local < Git-local < GitHub.
 	switch {
 	default:
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("repo types not supported: %v", repos))
+	case checkName == checks.CheckBranchProtection:
+		// This is a special case to be give us more flexibility to move this check around
+		// and run it on differnet GitHub triggers.
+		return strings.ToLower(checks.CheckBranchProtection), nil
 	case contains(repos, "local"):
 		return "local", nil
 	// Note: Git-local is not supported by any checks yet.
@@ -489,6 +494,12 @@ func createSARIFRuns(runs map[string]*run) []run {
 	return res
 }
 
+func createCheckIdentifiers(name string) (string, string) {
+	// Identifier must be in Pascal case.
+	n := strings.ReplaceAll(name, "-", "")
+	return n, fmt.Sprintf("%sID", n)
+}
+
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy) error {
@@ -507,11 +518,13 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", err, check.Name))
 		}
 
+		sarifCheckName, sarifCheckID := createCheckIdentifiers(check.Name)
+
 		// We need to create a run entry even if the check is disabled or the policy is satisfied.
 		// The reason is the following: if a check has findings and is later fixed by a user,
 		// the absence of run for the check will indicate that the check was *not* run,
 		// so GitHub would keep the findings in the dahsboard. We don't want that.
-		category, err := computeCategory(doc.GetSupportedRepoTypes())
+		category, err := computeCategory(sarifCheckName, doc.GetSupportedRepoTypes())
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("computeCategory: %v: %s", err, check.Name))
 		}
@@ -521,14 +534,15 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// Always add rules to indicate which checks were run.
 		// We don't have so many rules, so this should not clobber the output too much.
 		// See https://github.com/github/codeql-action/issues/810.
-		checkID := check.Name
-		rule := createSARIFRule(check.Name, checkID,
+		rule := createSARIFRule(sarifCheckName, sarifCheckID,
 			doc.GetDocumentationURL(r.Scorecard.CommitSHA),
 			doc.GetDescription(), doc.GetShort(), doc.GetRisk(),
 			doc.GetRemediation(), doc.GetTags())
 		run.Tool.Driver.Rules = append(run.Tool.Driver.Rules, rule)
 
 		// Check the policy configuration.
+		// Here we need to use check.Name instead of sarifCheckName since
+		// we need to original check's name.
 		minScore, enabled, err := getCheckPolicyInfo(policy, check.Name)
 		if err != nil {
 			return err
@@ -562,12 +576,12 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs, "no file available")
 			// Use the `reason` as message.
-			cr := createSARIFCheckResult(RuleIndex, checkID, check.Reason, &locs[0])
+			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, check.Reason, &locs[0])
 			run.Results = append(run.Results, cr)
 		} else {
 			for _, loc := range locs {
 				// Use the location's message (check's detail's message) as message.
-				cr := createSARIFCheckResult(RuleIndex, checkID, loc.Message.Text, &loc)
+				cr := createSARIFCheckResult(RuleIndex, sarifCheckID, loc.Message.Text, &loc)
 				run.Results = append(run.Results, cr)
 			}
 		}
