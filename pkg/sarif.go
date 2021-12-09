@@ -560,7 +560,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// so it's the last position for us.
 		RuleIndex := len(run.Tool.Driver.Rules) - 1
 		if len(locs) == 0 {
-			locs = addDefaultLocation(locs, "no-source-file")
+			locs = addDefaultLocation(locs, "no file available")
 			// Use the `reason` as message.
 			cr := createSARIFCheckResult(RuleIndex, checkID, check.Reason, &locs[0])
 			run.Results = append(run.Results, cr)
