@@ -465,7 +465,7 @@ func computeCategory(checkName string, repos []string) (string, error) {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("repo types not supported: %v", repos))
 	case checkName == checks.CheckBranchProtection:
 		// This is a special case to be give us more flexibility to move this check around
-		// and run it on differnet GitHub triggers.
+		// and run it on different GitHub triggers.
 		return strings.ToLower(checks.CheckBranchProtection), nil
 	case contains(repos, "local"):
 		return "local", nil
@@ -496,8 +496,10 @@ func createSARIFRuns(runs map[string]*run) []run {
 
 func createCheckIdentifiers(name string) (string, string) {
 	// Identifier must be in Pascal case.
+	// We keep the check name the same as the on in the documentation
+	// to be consistent for users.
 	n := strings.ReplaceAll(name, "-", "")
-	return n, fmt.Sprintf("%sID", n)
+	return name, fmt.Sprintf("%sID", n)
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
