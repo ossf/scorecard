@@ -62,20 +62,18 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		}
 		if len(runs) > 0 {
 			c.Dlogger.Info3(&checker.LogMessage{
-				Path: fp,
-				Type: checker.FileTypeSource,
-				// Source file must have line number > 0.
-				Offset: 1,
+				Path:   fp,
+				Type:   checker.FileTypeSource,
+				Offset: checker.OffsetDefault,
 				Text:   fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL),
 			})
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
 		c.Dlogger.Info3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
+			Path:   fp,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
 			Text:   "GitHub publishing workflow not used in runs",
 		})
 	}

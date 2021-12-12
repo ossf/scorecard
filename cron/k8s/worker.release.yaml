@@ -39,6 +39,8 @@ spec:
           value: "gs://ossf-scorecard-data-releasetest2"
         - name: SCORECARD_REQUEST_SUBSCRIPTION_URL
           value: "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker-releasetest"
+        - name: SCORECARD_BLAKCLISTED_CHECKS
+          value: "SAST,CI-Tests,Contributors"
         - name: SCORECARD_METRIC_EXPORTER
           value: "printer"
         - name: GITHUB_AUTH_SERVER

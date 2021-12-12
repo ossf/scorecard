@@ -7,6 +7,7 @@ GOLANGGCI_LINT := golangci-lint
 PROTOC_GEN_GO := protoc-gen-go
 MOCKGEN := mockgen
 PROTOC := $(shell which protoc)
+GORELEASER := goreleaser
 IMAGE_NAME = scorecard
 OUTPUT = output
 IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:executable"
@@ -47,9 +48,10 @@ $(PROTOC):
 
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = update-dependencies build check-linter check-osv unit-test validate-docs add-projects validate-projects tree-status 
-.PHONY: all $(all-targets)
-all: $(all-targets)
+all-targets = build check-linter check-osv unit-test validate-docs add-projects validate-projects
+.PHONY: all all-targets-update-dependencies $(all-targets) update-dependencies tree-status
+all-targets-update-dependencies: $(all-targets) | update-dependencies
+all: update-dependencies all-targets-update-dependencies tree-status
 
 update-dependencies: ## Update go dependencies for all modules
 	# Update root go modules
@@ -67,7 +69,7 @@ check-osv: ## Checks osv.dev for any vulnerabilities
 check-osv: $(install)
 	# Run stunning-tribble for checking the dependencies have any OSV
 	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
-			| stunning-tribble 
+			| stunning-tribble
 	# Checking the tools which also has go.mod
 	cd tools 
 	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
@@ -84,19 +86,19 @@ validate-projects: ./cron/data/projects.csv | build-validate-script
 	# Validate ./cron/data/projects.csv
 	./cron/data/validate/validate ./cron/data/projects.csv
 
-tree-status: ## Verify tree is clean and all changes are committed
+tree-status: | all-targets-update-dependencies ## Verify tree is clean and all changes are committed
 	# Verify the tree is clean and all changes are commited
 	./scripts/tree-status
-
 
 ###############################################################################
 
 ################################## make build #################################
 ## Build all cron-related targets
-build-cron: build-pubsub build-bq-transfer build-github-server build-webhook build-add-script \
-	  build-validate-script build-update-script
+build-cron: build-controller build-worker build-cii-worker \
+	build-shuffler build-bq-transfer build-github-server \
+	build-webhook build-add-script build-validate-script build-update-script
 
-build-targets = generate-mocks generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
+build-targets = generate-mocks generate-docs build-proto build-scorecard build-releaser build-cron ko-build-everything dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
@@ -134,10 +136,26 @@ build-scorecard: ## Runs go build on repo
 	# Run go build and generate scorecard executable
 	CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'
 
-build-pubsub: ## Runs go build on the PubSub cron job
-	# Run go build and the PubSub cron job
+build-releaser: ## Runs goreleaser on the repo
+	# Run go releaser on the Scorecard repo
+	$(GORELEASER) check
+	VERSION_LDFLAGS="$(LDFLAGS)" $(GORELEASER) release --snapshot --rm-dist --skip-publish --skip-sign
+
+build-controller: ## Runs go build on the cron PubSub controller
+	# Run go build on the cron PubSub controller
 	cd cron/controller && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o controller
+
+build-worker: ## Runs go build on the cron PubSub worker
+	# Run go build on the cron PubSub worker
 	cd cron/worker && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o worker
+
+build-cii-worker: ## Runs go build on the CII worker
+	# Run go build on the CII worker
+	cd cron/cii && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o cii-worker
+
+build-shuffler: ## Runs go build on the cron shuffle script
+	# Run go build on the cron shuffle script
+	cd cron/shuffle && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o shuffle
 
 build-bq-transfer: ## Runs go build on the BQ transfer cron job
 build-bq-transfer: ./cron/bq/*.go
@@ -172,45 +190,70 @@ cron/data/update/projects-update:  cron/data/update/*.go cron/data/*.go
 	# Run go build on the update script
 	cd cron/data/update && CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'  -o projects-update
 
-ko-build-everything: ## ko builds all binaries.
+ko-targets = scorecard-ko cron-controller-ko cron-worker-ko cron-cii-worker-ko cron-bq-transfer-ko cron-webhook-ko cron-github-server-ko
+.PHONY: ko-build-everything $(ko-targets)
+ko-build-everything: $(ko-targets)
+
+scorecard-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/scorecard CGO_ENABLED=0 LDFLAGS="$(LDFLAGS)" \
 	ko publish -B --bare --local \
 			   --platform=$(PLATFORM)\
 			   --push=false \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3
+cron-controller-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-controller CGO_ENABLED=0 LDFLAGS="$(LDFLAGS)" \
 	ko publish -B --bare --local \
 			   --platform=$(PLATFORM)\
 			   --push=false \
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/controller 
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/controller
+cron-worker-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-worker
 	ko publish -B --bare --local \
 			   --platform=$(PLATFORM)\
 			   --push=false \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/worker
+cron-cii-worker-ko:
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cii-worker
+	ko publish -B --bare --local \
+			   --platform=$(PLATFORM)\
+			   --push=false \
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/cii
+cron-bq-transfer-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-bq-transfer
 	ko publish -B --bare --local \
 			   --platform=$(PLATFORM)\
 			   --push=false \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/bq
+cron-webhook-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cron-webhook
 	ko publish -B --bare --local \
 			   --platform=$(PLATFORM)\
 			   --push=false \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/webhook
+cron-github-server-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-github-server
 	ko publish -B --bare --local \
 			   --platform=$(PLATFORM)\
 			   --push=false \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/clients/githubrepo/roundtripper/tokens/server
-dockerbuild: ## Runs docker build
-	# Build all Docker images in the Repo
-	$(call ndef, GITHUB_AUTH_TOKEN)
+
+docker-targets = scorecard-docker cron-controller-docker cron-worker-docker cron-cii-worker-docker cron-bq-transfer-docker cron-webhook-docker cron-github-server-docker
+.PHONY: dockerbuild $(docker-targets)
+dockerbuild: $(docker-targets)
+
+scorecard-docker:
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
+cron-controller-docker:
 	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
+cron-worker-docker:
 	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
+cron-cii-worker-docker:
+	DOCKER_BUILDKIT=1 docker build . --file cron/cii/Dockerfile --tag $(IMAGE_NAME)-cii-worker
+cron-bq-transfer-docker:
 	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
+cron-webhook-docker:
 	DOCKER_BUILDKIT=1 docker build . --file cron/webhook/Dockerfile --tag ${IMAGE_NAME}-webhook
+cron-github-server-docker:
 	DOCKER_BUILDKIT=1 docker build . --file clients/githubrepo/roundtripper/tokens/server/Dockerfile --tag ${IMAGE_NAME}-github-server
 ###############################################################################
 

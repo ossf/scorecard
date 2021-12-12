@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks/fileparser"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
@@ -32,7 +33,7 @@ func init() {
 // UsesDependencyUpdateTool will check the repository uses a dependency update tool.
 func UsesDependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	var r bool
-	err := CheckIfFileExists(CheckDependencyUpdateTool, c, fileExists, &r)
+	err := fileparser.CheckIfFileExists(CheckDependencyUpdateTool, c, fileExists, &r)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, e)
@@ -54,26 +55,24 @@ func UsesDependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 }
 
 // fileExists will validate the if frozen dependencies file name exists.
-func fileExists(name string, dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pdata := FileGetCbDataAsBoolPointer(data)
+func fileExists(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
+	pdata := fileparser.FileGetCbDataAsBoolPointer(data)
 
 	switch strings.ToLower(name) {
 	case ".github/dependabot.yml":
 		dl.Info3(&checker.LogMessage{
-			Path: name,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
+			Path:   name,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
 			Text:   "dependabot detected",
 		})
 		// https://docs.renovatebot.com/configuration-options/
 	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
 		"renovate.json5", ".renovaterc":
 		dl.Info3(&checker.LogMessage{
-			Path: name,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
+			Path:   name,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
 			Text:   "renovate detected",
 		})
 	default:

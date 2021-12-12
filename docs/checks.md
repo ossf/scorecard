@@ -97,6 +97,28 @@ Additionally, in some cases these rules will need to be suspended. For example,
 if a past commit includes illegal content such as child pornography, it may be
 necessary to use a force push to rewrite the history rather than simply hide the
 commit. 
+
+This test has tiered scoring. Each tier must be fully satisfied to achieve points at the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.
+
+Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” are ignored.
+
+Tier 1 Requirements (3/10 points):
+  - Prevent force push
+  - Prevent branch deletion
+  - For administrators: Include administrator for review
+
+Tier 2 Requirements (6/10 points):
+  - Required reviewers >=1 ​
+  - For administrators: Strict status checks (require branches to be up-to-date before merging)
+
+Tier 3 Requirements (8/10 points):
+  - Status checks defined
+
+Tier 4 Requirements (9/10 points):
+  - Required reviewers >= 2
+
+Tier 5 Requirements (10/10 points):
+  - For administrators: Dismiss stale reviews
  
 
 **Remediation steps**
@@ -237,6 +259,38 @@ participants.
 **Remediation steps**
 - Ask contributors to [join their respective organizations](https://docs.github.com/en/organizations/managing-membership-in-your-organization/inviting-users-to-join-your-organization), if they have not already. Otherwise, there is no remediation for this check; it simply provides insight into which organizations have contributed so that you can make a trust-based decision based on that information.  
 
+## Dangerous-Workflow 
+
+Risk: `Critical`  (vulnerable to repository compromise)
+  
+This check determines whether the project's GitHub Action workflows has dangerous 
+code patterns. Some examples of these patterns are untrusted code checkouts, 
+logging github context and secrets, or use of potentially untrusted inputs in scripts.
+The following patterns are checked:
+
+Untrusted Code Checkout: This is the misuse of potentially dangerous triggers. 
+This checks if a `pull_request_target` workflow trigger was used in conjunction 
+with an explicit pull request checkout. Workflows triggered with `pull_request_target`
+have write permission to the target repository and access to target repository 
+secrets. With the PR checkout, PR authors may compromise the repository, for 
+example, by using build scripts controlled by the author of the PR or reading 
+token in memory. This check does not detect whether untrusted code checkouts are 
+used safely, for example, only on pull request that have been assigned a label.
+
+Script Injection with Untrusted Context Variables: This pattern detects whether a 
+workflow's inline script may execute untrusted input from attackers. This occurs when 
+an attacker adds malicious commands and scripts to a context. When a workflow runs, 
+these strings may be interpreted as code that is executed on the runner. Attackers 
+can add their own content to certain github context variables that are considered 
+untrusted, for example, `github.event.issue.title`. These values should not flow 
+directly into executable code.
+
+The highest score is awarded when all workflows avoid the dangerous code patterns.
+ 
+
+**Remediation steps**
+- Avoid the dangerous workflow patterns.  See this [post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/) for information on avoiding untrusted code checkouts. See this [document](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections) for information on avoiding and mitigating the risk of script injections.
+
 ## Dependency-Update-Tool 
 
 Risk: `High` (possibly vulnerable to attacks on known flaws)  
@@ -260,7 +314,7 @@ low score is therefore not a definitive indication that the project is at risk.
  
 
 **Remediation steps**
-- Signup for automatic dependency updates with [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools.
+- Signup for automatic dependency updates with [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
 
 ## Fuzzing 
 
@@ -284,6 +338,31 @@ is therefore not a definitive indication that the project is at risk.
 
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
+
+## License 
+
+Risk: `Low` (possible impediment to security review)
+
+This check tries to determine if the project has published a license. It
+works by checking standard locations for a file named according to common
+conventions for licenses.
+
+A license can give users information about how the source code may or may
+not be used. The lack of a license will impede any kind of security review
+or audit and creates a legal risk for potential users.
+
+This check will detect files in the top-level directory with any combination
+of the following names and extensions:`LICENSE`, `LICENCE`, `COPYING`,
+`COPYRIGHT` and .html, .txt, .md. It will also detect these files in a
+directory named `LICENSES`. (Files in a `LICENSES` directory are typically
+named as their [SPDX](https://spdx.org/licenses/) license identifier followed
+by an appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
+ 
+
+**Remediation steps**
+- Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to apply to your project.
+- Create the license in a .txt, .html, or .md file named LICENSE or COPYING, and place it in the top-level directory.
+- Alternately, create a `LICENSE` directory and add license files with a name that matches your [SPDX license identifier](https://spdx.dev/ids/).
 
 ## Maintained 
 
@@ -472,7 +551,7 @@ Signed releases attest to the provenance of the artifact.
 
 This check looks for the following filenames in the project's last five
 releases: [*.minisig ](https://github.com/jedisct1/minisign), *.asc (pgp),
-*.sign.
+*.sig, *.sign.
 
 Note: The check does not verify the signatures. 
  
@@ -502,6 +581,9 @@ yaml file are set as read-only at the
 [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions)
 and the required write permissions are declared at the
 [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions).
+One point is reduced from the score if all jobs have their permissions defined but the top level permissions are not defined. 
+This configuration is secure, but there is a chance that when a new job is added to the workflow, its job permissions could be 
+left undefined because of human error.
         
 The check cannot detect if the "read-only" GitHub permission setting is
 enabled, as there is no API available.   

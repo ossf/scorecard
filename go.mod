@@ -115,6 +115,8 @@ replace (
 	github.com/gorilla/handlers => github.com/gorilla/handlers v1.3.0
 	// https://github.com/miekg/dns/issues/1037
 	github.com/miekg/dns => github.com/miekg/dns v1.1.25-0.20191211073109-8ebf2e419df7
+	//https://github.com/opencontainers/distribution-spec/security/advisories/GHSA-mc8v-mgrf-8f4m
+	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 	// This replace is for https://nvd.nist.gov/vuln/detail/CVE-2021-3538
 	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.1-0.20181016170032-d91630c85102
 	// This replace is for https://github.com/advisories/GHSA-25xm-hr59-7c27
