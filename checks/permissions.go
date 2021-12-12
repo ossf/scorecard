@@ -26,7 +26,11 @@ import (
 )
 
 // CheckTokenPermissions is the exported name for Token-Permissions check.
-const CheckTokenPermissions = "Token-Permissions"
+const (
+	CheckTokenPermissions = "Token-Permissions"
+	runLevelPermission    = "run level"
+	topLevelPermission    = "top level"
+)
 
 //nolint:gochecknoinits
 func init() {
@@ -53,21 +57,24 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	return createResultForLeastPrivilegeTokens(data, err)
 }
 
-func validatePermission(permissionKey string, permissionValue *actionlint.PermissionScope, path string,
-	dl checker.DetailLogger, pPermissions map[string]bool,
+func validatePermission(permissionKey string, permissionValue *actionlint.PermissionScope,
+	permLevel, path string, dl checker.DetailLogger, pPermissions map[string]bool,
 	ignoredPermissions map[string]bool) error {
 	if permissionValue.Value == nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
 	val := permissionValue.Value.Value
+	lineNumber := checker.OffsetDefault
+	if permissionValue.Value.Pos != nil {
+		lineNumber = permissionValue.Value.Pos.Line
+	}
 	if strings.EqualFold(val, "write") {
 		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
 			dl.Warn3(&checker.LogMessage{
-				Path: path,
-				Type: checker.FileTypeSource,
-				// TODO: set line.
-				Offset: 1,
-				Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: lineNumber,
+				Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 				// TODO: set Snippet.
 			})
 			recordPermissionWrite(permissionKey, pPermissions)
@@ -75,11 +82,10 @@ func validatePermission(permissionKey string, permissionValue *actionlint.Permis
 			// Only log for debugging, otherwise
 			// it may confuse users.
 			dl.Debug3(&checker.LogMessage{
-				Path: path,
-				Type: checker.FileTypeSource,
-				// TODO: set line.
-				Offset: 1,
-				Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: lineNumber,
+				Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 				// TODO: set Snippet.
 			})
 		}
@@ -87,21 +93,20 @@ func validatePermission(permissionKey string, permissionValue *actionlint.Permis
 	}
 
 	dl.Info3(&checker.LogMessage{
-		Path: path,
-		Type: checker.FileTypeSource,
-		// TODO: set line correctly.
-		Offset: 1,
-		Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
+		Path:   path,
+		Type:   checker.FileTypeSource,
+		Offset: lineNumber,
+		Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 		// TODO: set Snippet.
 	})
 	return nil
 }
 
-func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, path string,
+func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, permLevel, path string,
 	dl checker.DetailLogger, pPermissions map[string]bool,
 	ignoredPermissions map[string]bool) error {
 	for key, v := range scopes {
-		if err := validatePermission(key, v, path, dl, pPermissions, ignoredPermissions); err != nil {
+		if err := validatePermission(key, v, permLevel, path, dl, pPermissions, ignoredPermissions); err != nil {
 			return err
 		}
 	}
@@ -118,30 +123,32 @@ func recordAllPermissionsWrite(pPermissions map[string]bool) {
 	pPermissions["all"] = true
 }
 
-func validatePermissions(permissions *actionlint.Permissions, path string,
+func validatePermissions(permissions *actionlint.Permissions, permLevel, path string,
 	dl checker.DetailLogger, pPermissions map[string]bool,
 	ignoredPermissions map[string]bool) error {
 	allIsSet := permissions != nil && permissions.All != nil && permissions.All.Value != ""
 	scopeIsSet := permissions != nil && len(permissions.Scopes) > 0
 	if permissions == nil || (!allIsSet && !scopeIsSet) {
 		dl.Info3(&checker.LogMessage{
-			Path: path,
-			Type: checker.FileTypeSource,
-			// TODO: set line correctly.
-			Offset: 1,
-			Text:   "permissions set to 'none'",
-			// TODO: set Snippet.
+			Path:   path,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   fmt.Sprintf("%s permissions set to 'none'", permLevel),
 		})
 	}
 	if allIsSet {
 		val := permissions.All.Value
+		lineNumber := checker.OffsetDefault
+		if permissions.All.Pos != nil {
+			lineNumber = permissions.All.Pos.Line
+		}
+
 		if !strings.EqualFold(val, "read-all") && val != "" {
 			dl.Warn3(&checker.LogMessage{
-				Path: path,
-				Type: checker.FileTypeSource,
-				// TODO: set line correctly.
-				Offset: 1,
-				Text:   fmt.Sprintf("permissions set to '%v'", val),
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: lineNumber,
+				Text:   fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
 				// TODO: set Snippet.
 			})
 			recordAllPermissionsWrite(pPermissions)
@@ -149,14 +156,13 @@ func validatePermissions(permissions *actionlint.Permissions, path string,
 		}
 
 		dl.Info3(&checker.LogMessage{
-			Path: path,
-			Type: checker.FileTypeSource,
-			// TODO: set line correctly.
-			Offset: 1,
-			Text:   fmt.Sprintf("permissions set to '%v'", val),
+			Path:   path,
+			Type:   checker.FileTypeSource,
+			Offset: lineNumber,
+			Text:   fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
 			// TODO: set Snippet.
 		})
-	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes, path, dl, pPermissions,
+	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes, permLevel, path, dl, pPermissions,
 		ignoredPermissions); err != nil {
 		return err
 	}
@@ -170,14 +176,14 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 		dl.Warn3(&checker.LogMessage{
 			Path:   path,
 			Type:   checker.FileTypeSource,
-			Offset: 1,
-			Text:   "no permission defined",
+			Offset: checker.OffsetDefault,
+			Text:   fmt.Sprintf("no %s permission defined", topLevelPermission),
 		})
 		recordAllPermissionsWrite(pdata.topLevelWritePermissions)
 		return nil
 	}
 
-	return validatePermissions(workflow.Permissions, path, dl,
+	return validatePermissions(workflow.Permissions, topLevelPermission, path, dl,
 		pdata.topLevelWritePermissions, map[string]bool{})
 }
 
@@ -189,15 +195,21 @@ func validateRunLevelPermissions(workflow *actionlint.Workflow, path string,
 		// For most workflows, no write permissions are needed,
 		// so only top-level read-only permissions need to be declared.
 		if job.Permissions == nil {
+			lineNumber := checker.OffsetDefault
+			if job.Pos != nil {
+				lineNumber = job.Pos.Line
+			}
 			dl.Debug3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
-				Offset: 1,
-				Text:   "no permission defined",
+				Offset: lineNumber,
+				Text:   fmt.Sprintf("no %s permission defined", runLevelPermission),
 			})
+			recordAllPermissionsWrite(pdata.runLevelWritePermissions)
 			continue
 		}
-		err := validatePermissions(job.Permissions, path, dl, pdata.runLevelWritePermissions, ignoredPermissions)
+		err := validatePermissions(job.Permissions, runLevelPermission,
+			path, dl, pdata.runLevelWritePermissions, ignoredPermissions)
 		if err != nil {
 			return err
 		}
@@ -220,9 +232,18 @@ func isPermissionOfInterest(name string, ignoredPermissions map[string]bool) boo
 }
 
 func permissionIsPresent(result permissionCbData, name string) bool {
-	_, ok1 := result.topLevelWritePermissions[name]
-	_, ok2 := result.runLevelWritePermissions[name]
-	return ok1 || ok2
+	return permissionIsPresentInTopLevel(result, name) ||
+		permissionIsPresentInRunLevel(result, name)
+}
+
+func permissionIsPresentInTopLevel(result permissionCbData, name string) bool {
+	_, ok := result.topLevelWritePermissions[name]
+	return ok
+}
+
+func permissionIsPresentInRunLevel(result permissionCbData, name string) bool {
+	_, ok := result.runLevelWritePermissions[name]
+	return ok
 }
 
 // Calculate the score.
@@ -231,12 +252,19 @@ func calculateScore(result permissionCbData) int {
 	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
 	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
 
-	if permissionIsPresent(result, "all") {
-		return checker.MinResultScore
-	}
-
 	// Start with a perfect score.
 	score := float32(checker.MaxResultScore)
+
+	// If no top level permissions are defined, all the permissions
+	// are enabled by default, hence "all". In this case,
+	if permissionIsPresentInTopLevel(result, "all") {
+		if permissionIsPresentInRunLevel(result, "all") {
+			// ... give lowest score if no run level permissions are defined either.
+			return checker.MinResultScore
+		}
+		// ... reduce score if run level permissions are defined.
+		score--
+	}
 
 	// status: https://docs.github.com/en/rest/reference/repos#statuses.
 	// May allow an attacker to change the result of pre-submit and get a PR merged.

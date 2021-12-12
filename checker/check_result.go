@@ -58,6 +58,10 @@ const (
 	FileTypeURL
 )
 
+// OffsetDefault is used if we can't determine the offset, for example when referencing a file but not a
+// specific location in the file.
+const OffsetDefault = 1
+
 // LogMessage is a structure that encapsulates detail's information.
 // This allows updating the definition easily.
 //nolint

@@ -56,7 +56,7 @@
                            "startLine": 1
                         },
                         "artifactLocation": {
-                           "uri": "/path/to/policy.yml",
+                           "uri": "no file available",
                            "uriBaseId": "%SRCROOT%"
                         }
                      }

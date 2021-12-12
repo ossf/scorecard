@@ -126,6 +126,13 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 					pr.Number, pr.Author.Login, pr.MergeCommit.Committer.Login),
 			})
 			totalReviewed++
+			foundApprovedReview = true
+		}
+
+		if !foundApprovedReview {
+			c.Dlogger.Debug3(&checker.LogMessage{
+				Text: fmt.Sprintf("merged PR without code review: %d", pr.Number),
+			})
 		}
 
 	}

@@ -384,36 +384,17 @@ func isNpmUnpinnedDownload(cmd []string) bool {
 		return false
 	}
 
-	// `Npm install` will automatically look up the
+	// `npm install` will automatically look up the
 	// package.json and package-lock.json, so we don't flag it.
-
-	if len(cmd) <= 2 {
-		return false
-	}
-
-	found := false
-	for i := 1; i < len(cmd)-1; i++ {
-		// Search for get and install commands.
+	for i := 1; i < len(cmd); i++ {
+		// Search for get/install/update commands.
+		// `npm ci` wil verify all hashes are present.
 		if strings.EqualFold(cmd[i], "install") ||
-			strings.EqualFold(cmd[i], "i") {
-			found = true
+			strings.EqualFold(cmd[i], "i") ||
+			strings.EqualFold(cmd[i], "update") {
+			return true
 		}
-
-		if !found {
-			continue
-		}
-
-		nextArg := cmd[i+1]
-
-		// If this is a option to install, skip over it.
-		if nextArg[0] == '-' {
-			continue
-		}
-
-		// We've skipped all options, `nextArg` holds the package.
-		return true
 	}
-
 	return false
 }
 
@@ -468,7 +449,9 @@ func isUnpinnedPipInstall(cmd []string) bool {
 	}
 
 	isInstall := false
-	hasWhl := false
+	hasRequireHashes := false
+	hasAdditionalArgs := false
+	hasWheel := false
 	for i := 1; i < len(cmd); i++ {
 		// Search for install commands.
 		if strings.EqualFold(cmd[i], "install") {
@@ -477,25 +460,47 @@ func isUnpinnedPipInstall(cmd []string) bool {
 		}
 
 		if !isInstall {
-			continue
+			break
 		}
 
-		// TODO(laurent): https://github.com/ossf/scorecard/pull/611#discussion_r660203476.
-		// Support -r <> --require-hashes.
+		// https://github.com/ossf/scorecard/issues/1306#issuecomment-974539197.
+		if strings.EqualFold(cmd[i], "--require-hashes") {
+			hasRequireHashes = true
+			break
+		}
 
 		// Exclude *.whl as they're mostly used
 		// for tests. See https://github.com/ossf/scorecard/pull/611.
 		if strings.HasSuffix(cmd[i], ".whl") {
-			hasWhl = true
+			// We continue because a command may contain
+			// multiple packages to install, not just `.whl` files.
+			hasWheel = true
 			continue
 		}
 
-		// Any other arguments are considered unpinned.
+		hasAdditionalArgs = true
+	}
+
+	// If hashes are required, it's pinned.
+	if hasRequireHashes {
+		return false
+	}
+
+	// With additional arguments, it's unpinned.
+	// Example: `pip install bla.whl pkg1`
+	if hasAdditionalArgs {
 		return true
 	}
 
-	// We get here only for `pip install [bla.whl ...]`.
-	return isInstall && !hasWhl
+	// No additional arguments and hashes are not required.
+	// The only pinned command is `pip install *.whl`
+	if hasWheel {
+		return false
+	}
+
+	// Any other form of install is unpinned,
+	// e.g. `pip install`.
+	return isInstall
 }
 
 func isPythonCommand(cmd []string) bool {
@@ -763,7 +768,7 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 func validateShellFileAndRecord(pathfn string, content []byte, files map[string]bool,
 	dl checker.DetailLogger) (bool, error) {
 	in := strings.NewReader(string(content))
-	f, err := syntax.NewParser().Parse(in, "")
+	f, err := syntax.NewParser().Parse(in, pathfn)
 	if err != nil {
 		// Note: this is caught by internal caller and only printed
 		// to avoid failing on shell scripts that our parser does not understand.
@@ -914,6 +919,7 @@ func validateShellFile(pathfn string, content []byte, dl checker.DetailLogger) (
 	if err != nil && errors.Is(err, sce.ErrorShellParsing) {
 		// Discard and print this particular error for now.
 		dl.Debug(err.Error())
+		err = nil
 	}
 	return r, err
 }

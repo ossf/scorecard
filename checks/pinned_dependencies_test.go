@@ -65,6 +65,17 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			},
 		},
 		{
+			name:     "Local action workflow",
+			filename: "./testdata/workflow-local-action.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+		},
+		{
 			name:     "Non-pinned workflow",
 			filename: "./testdata/workflow-not-pinned.yaml",
 			expected: scut.TestReturn{
@@ -228,7 +239,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  22,
+				NumberOfWarn:  25,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
@@ -641,7 +652,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  31,
+				NumberOfWarn:  36,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
@@ -805,7 +816,7 @@ func TestShellScriptDownload(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  28,
+				NumberOfWarn:  31,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
