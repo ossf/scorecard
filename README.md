@@ -94,13 +94,10 @@ brew install scorecard
 
 ### Authentication
 
-Before running Scorecard, you need to either:
+GitHub imposes [api rate limits](https://developer.github.com/v3/#rate-limiting) on unauthenticated requests. To avoid these limits, you must authenticate your requests before running Scorecard. There are two ways to authenticate your requests: either create a GitHub personal access token, or create a GitHub App Installation. 
 
--   [create a GitHub access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
-    and set it in an environment variable called `GITHUB_AUTH_TOKEN`,
-    `GITHUB_TOKEN`, `GH_AUTH_TOKEN` or `GH_TOKEN`. This helps to avoid the
-    GitHub's [api rate limits](https://developer.github.com/v3/#rate-limiting)
-    with unauthenticated requests.
+- [Create a GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token). When creating the personal access token, we suggest you choose the `public_repo` scope. Set the token in an environment variable called `GITHUB_AUTH_TOKEN`,
+    `GITHUB_TOKEN`, `GH_AUTH_TOKEN` or `GH_TOKEN` using the commands below according to your platform. 
 
 ```shell
 # For posix platforms, e.g. linux, mac:
@@ -114,9 +111,11 @@ set GITHUB_AUTH_TOKEN=<your access token>
 set GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
 ```
 
--   create a GitHub App Installations for higher rate-limit quotas. If you have
+OR 
+
+- [Create a GitHub App Installation](https://docs.github.com/en/rest/reference/apps) for higher rate-limit quotas. If you have
     an installed GitHub App and key file, you can use the three environment
-    variables below, following the commands shown above for your platform.
+    variables below, following the commands (`set` or `export`) shown above for your platform.
 
 ```
 GITHUB_APP_KEY_PATH=<path to the key file on disk>
