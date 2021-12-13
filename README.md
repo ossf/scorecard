@@ -113,7 +113,7 @@ set GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
 
 OR 
 
-- [Create a GitHub App Installation](https://docs.github.com/en/rest/reference/apps) for higher rate-limit quotas. If you have
+- [Create a GitHub App Installation](https://docs.github.com/en/developers/apps/building-github-apps/creating-a-github-app) for higher rate-limit quotas. If you have
     an installed GitHub App and key file, you can use the three environment
     variables below, following the commands (`set` or `export`) shown above for your platform.
 
