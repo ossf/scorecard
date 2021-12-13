@@ -46,12 +46,13 @@ jobs:
         run: |
             go mod download
 
-      - name: Run E2E
+      - name: Run E2E  #using retry because the GitHub token is being throttled. 
+        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-        run: |
-              go env -w GOFLAGS=-mod=mod
-              make ci-e2e
+        max_attempts: 3
+        retry_on: error
+        command: make ci-e2e
 
       - name: find comment
         uses: peter-evans/find-comment@d2dae40ed151c634e4189471272b57e76ec19ba8 # v1.2.0
