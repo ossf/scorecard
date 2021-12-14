@@ -16,13 +16,12 @@ package evaluation
 
 import (
 	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/raw"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // BinaryArtifacts applies the score policy for the Binary-Artiacts check.
 func BinaryArtifacts(name string, dl checker.DetailLogger,
-	r *raw.BinaryArtifactData) checker.CheckResult {
+	r *checker.BinaryArtifactData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)

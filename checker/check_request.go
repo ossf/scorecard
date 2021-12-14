@@ -28,4 +28,6 @@ type CheckRequest struct {
 	OssFuzzRepo clients.RepoClient
 	Dlogger     DetailLogger
 	Repo        clients.Repo
+	// UPGRADEv6: return raw results instead of scores.
+	RawResults *RawResults
 }

@@ -72,7 +72,7 @@ var serveCmd = &cobra.Command{
 			}
 			defer ossFuzzRepoClient.Close()
 			ciiClient := clients.DefaultCIIBestPracticesClient()
-			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient, ossFuzzRepoClient, ciiClient)
+			repoResult, err := pkg.RunScorecards(ctx, repo, false, checks.AllChecks, repoClient, ossFuzzRepoClient, ciiClient)
 			if err != nil {
 				sugar.Error(err)
 				rw.WriteHeader(http.StatusInternalServerError)

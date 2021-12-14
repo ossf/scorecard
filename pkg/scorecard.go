@@ -28,7 +28,7 @@ import (
 )
 
 func runEnabledChecks(ctx context.Context,
-	repo clients.Repo, checksToRun checker.CheckNameToFnMap,
+	repo clients.Repo, raw *checker.RawResults, checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient,
 	resultsCh chan checker.CheckResult) {
 	request := checker.CheckRequest{
@@ -37,6 +37,7 @@ func runEnabledChecks(ctx context.Context,
 		OssFuzzRepo: ossFuzzRepoClient,
 		CIIClient:   ciiClient,
 		Repo:        repo,
+		RawResults:  raw,
 	}
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
@@ -73,6 +74,7 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 // RunScorecards runs enabled Scorecard checks on a Repo.
 func RunScorecards(ctx context.Context,
 	repo clients.Repo,
+	raw bool,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,
@@ -101,7 +103,12 @@ func RunScorecards(ctx context.Context,
 		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)
-	go runEnabledChecks(ctx, repo, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
+	if raw {
+		go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
+	} else {
+		go runEnabledChecks(ctx, repo, nil, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
+	}
+
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}
