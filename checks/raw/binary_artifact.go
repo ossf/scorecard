@@ -22,38 +22,27 @@ import (
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
 
+	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks/fileparser"
 	"github.com/ossf/scorecard/v3/clients"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-// File represents a file.
-type File struct {
-	Path string
-	// TODO: add hash if needed.
-}
-
-// BinaryArtifactData contains the raw results.
-type BinaryArtifactData struct {
-	// Files contains a list of files.
-	Files []File
-}
-
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
-func BinaryArtifacts(c clients.RepoClient) (BinaryArtifactData, error) {
-	var files []File
+func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
+	var files []checker.File
 	err := fileparser.CheckFilesContentV6("*", false, c, checkBinaryFileContent, &files)
 	if err != nil {
-		return BinaryArtifactData{}, fmt.Errorf("%w", err)
+		return checker.BinaryArtifactData{}, fmt.Errorf("%w", err)
 	}
 
 	// No error, return the files.
-	return BinaryArtifactData{Files: files}, nil
+	return checker.BinaryArtifactData{Files: files}, nil
 }
 
 func checkBinaryFileContent(path string, content []byte,
 	data fileparser.FileCbData) (bool, error) {
-	pfiles, ok := data.(*[]File)
+	pfiles, ok := data.(*[]checker.File)
 	if !ok {
 		// This never happens.
 		panic("invalid type")
@@ -97,7 +86,7 @@ func checkBinaryFileContent(path string, content []byte,
 	exists1 := binaryFileTypes[t.Extension]
 	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
 	if exists1 || exists2 {
-		*pfiles = append(*pfiles, File{
+		*pfiles = append(*pfiles, checker.File{
 			Path: path,
 		})
 	}

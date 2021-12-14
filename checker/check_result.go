@@ -125,6 +125,27 @@ type CheckResult struct {
 	RawResults interface{}
 }
 
+// Raw results for checks.
+
+// File represents a file.
+type File struct {
+	Path string
+	// TODO: add hash if needed.
+}
+
+// BinaryArtifactData contains the raw results
+// for the Binary-Artifact check.
+type BinaryArtifactData struct {
+	// Files contains a list of files.
+	Files []File
+}
+
+// RawResults contains results before a policy
+// is applied.
+type RawResults struct {
+	BinaryArtifactResults BinaryArtifactData
+}
+
 // CreateProportionalScore creates a proportional score.
 func CreateProportionalScore(success, total int) int {
 	if total == 0 {

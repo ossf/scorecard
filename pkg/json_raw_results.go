@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ossf/scorecard/v3/checks/raw"
+	"github.com/ossf/scorecard/v3/checker"
 	docs "github.com/ossf/scorecard/v3/docs/checks"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
@@ -109,7 +109,7 @@ type jsonRawResults struct {
 }
 
 //nolint:unparam
-func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *raw.BinaryArtifactData) error {
+func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryArtifactData) error {
 	for _, v := range ba.Files {
 		r.Results.Binaries = append(r.Results.Binaries, jsonBinaryFiles{
 			Path: v.Path,
@@ -137,7 +137,7 @@ func (r *ScorecardRawResult) AsJSON(writer io.Writer) error {
 	//nolint
 	for _, checkResult := range r.Checks {
 		switch v := checkResult.RawResults.(type) {
-		case raw.BinaryArtifactData:
+		case checker.BinaryArtifactData:
 			if err := out.addBinaryArtifactRawResults(&v); err != nil {
 				return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 			}
