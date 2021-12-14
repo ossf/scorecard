@@ -40,7 +40,7 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	// Return raw results.
 	if c.RawResults != nil {
 		c.RawResults.BinaryArtifactResults = rawResults
-		return checker.CreateRawResults(CheckBinaryArtifacts)
+		return checker.CheckResult{}
 	}
 
 	// Return the score evaluation.
