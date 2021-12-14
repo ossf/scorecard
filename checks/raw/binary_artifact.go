@@ -30,7 +30,7 @@ import (
 
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
 func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
-	var files []checker.File
+	files := []checker.File{}
 	err := fileparser.CheckFilesContentV6("*", false, c, checkBinaryFileContent, &files)
 	if err != nil {
 		return checker.BinaryArtifactData{}, fmt.Errorf("%w", err)
@@ -89,7 +89,7 @@ func checkBinaryFileContent(path string, content []byte,
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
 			Type:   checker.FileTypeBinary,
-			Offset: 1,
+			Offset: checker.OffsetDefault,
 		})
 	}
 

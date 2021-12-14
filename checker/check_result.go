@@ -132,6 +132,13 @@ type File struct {
 	// TODO: add hash.
 }
 
+// SecurityPolicyData contains the raw results
+// for the Security-Policy check.
+type SecurityPolicyData struct {
+	// Files contains a list of files.
+	Files []File
+}
+
 // BinaryArtifactData contains the raw results
 // for the Binary-Artifact check.
 type BinaryArtifactData struct {
@@ -143,6 +150,7 @@ type BinaryArtifactData struct {
 // is applied.
 type RawResults struct {
 	BinaryArtifactResults BinaryArtifactData
+	SecurityPolicyResults SecurityPolicyData
 }
 
 // CreateProportionalScore creates a proportional score.

@@ -33,20 +33,35 @@ type jsonScorecardRawResult struct {
 }
 
 // TODO: separate each check extraction into its own file.
-type jsonBinaryFiles struct {
+type jsonFiles struct {
 	Path   string `json:"path"`
 	Offset int    `json:"offset,omitempty"`
 }
 
 type jsonRawResults struct {
 	// List of binaries found in the repo.
-	Binaries []jsonBinaryFiles `json:"binaries"`
+	Binaries []jsonFiles `json:"binaries"`
+	// List of security policy files found in the repo.
+	// Note: we return one at most.
+	SecurityPolicies []jsonFiles `json:"security-policies"`
 }
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryArtifactData) error {
+	r.Results.Binaries = []jsonFiles{}
 	for _, v := range ba.Files {
-		r.Results.Binaries = append(r.Results.Binaries, jsonBinaryFiles{
+		r.Results.Binaries = append(r.Results.Binaries, jsonFiles{
+			Path: v.Path,
+		})
+	}
+	return nil
+}
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(ba *checker.SecurityPolicyData) error {
+	r.Results.SecurityPolicies = []jsonFiles{}
+	for _, v := range ba.Files {
+		r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonFiles{
 			Path: v.Path,
 		})
 	}
@@ -56,6 +71,11 @@ func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryA
 func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) error {
 	// Binary-Artifacts.
 	if err := r.addBinaryArtifactRawResults(&raw.BinaryArtifactResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Security-Policy.
+	if err := r.addSecurityPolicyRawResults(&raw.SecurityPolicyResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 	return nil
