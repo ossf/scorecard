@@ -119,10 +119,6 @@ type CheckResult struct {
 	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
 
-	// UPGRADEv6
-	// Stores raw data results.
-	// We re-use Error2 and Version.
-	RawResults *RawResults `json:"-"`
 }
 
 // ====== Raw results for checks =========.

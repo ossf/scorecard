@@ -20,74 +20,73 @@ import (
 	"io"
 
 	"github.com/ossf/scorecard/v3/checker"
-	docs "github.com/ossf/scorecard/v3/docs/checks"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-// =========== Used to generate raw result without indirection for testing ===============.
-//nolint
-type jsonRawCheckResult struct {
-	Name       string
-	RawResults interface{}
-}
+// // =========== Used to generate raw result without indirection for testing ===============.
+// //nolint
+// type jsonRawCheckResult struct {
+// 	Name       string
+// 	RawResults interface{}
+// }
 
-//nolint
-type jsonRawCheckResultV6 struct {
-	Name       string                   `json:"name"`
-	Doc        jsonCheckDocumentationV2 `json:"documentation"`
-	RawResults interface{}              `json:"results"`
-}
+// //nolint
+// type jsonRawCheckResultV6 struct {
+// 	Name       string                   `json:"name"`
+// 	Doc        jsonCheckDocumentationV2 `json:"documentation"`
+// 	RawResults interface{}              `json:"results"`
+// }
 
-type jsonScorecardRawResultV6 struct {
-	Date      string                 `json:"date"`
-	Repo      jsonRepoV2             `json:"repo"`
-	Scorecard jsonScorecardV2        `json:"scorecard"`
-	Checks    []jsonRawCheckResultV6 `json:"checks"`
-	Metadata  []string               `json:"metadata"`
-}
+// type jsonScorecardRawResultV6 struct {
+// 	Date      string                 `json:"date"`
+// 	Repo      jsonRepoV2             `json:"repo"`
+// 	Scorecard jsonScorecardV2        `json:"scorecard"`
+// 	Checks    []jsonRawCheckResultV6 `json:"checks"`
+// 	Metadata  []string               `json:"metadata"`
+// }
 
-// AsInternalJSON exports results as JSON for new detail format without indirection.
-// This is used for testing.
-func (r *ScorecardRawResult) AsInternalJSON(checkDocs docs.Doc, writer io.Writer) error {
-	encoder := json.NewEncoder(writer)
-	out := jsonScorecardRawResultV6{
-		Repo: jsonRepoV2{
-			Name:   r.Repo.Name,
-			Commit: r.Repo.CommitSHA,
-		},
-		Scorecard: jsonScorecardV2{
-			Version: r.Scorecard.Version,
-			Commit:  r.Scorecard.CommitSHA,
-		},
-		Date:     r.Date.Format("2006-01-02"),
-		Metadata: r.Metadata,
-	}
+// // AsInternalJSON exports results as JSON for new detail format without indirection.
+// // This is used for testing.
+// func (r *ScorecardRawResult) AsInternalJSON(checkDocs docs.Doc, writer io.Writer) error {
+// 	encoder := json.NewEncoder(writer)
+// 	out := jsonScorecardRawResultV6{
+// 		Repo: jsonRepoV2{
+// 			Name:   r.Repo.Name,
+// 			Commit: r.Repo.CommitSHA,
+// 		},
+// 		Scorecard: jsonScorecardV2{
+// 			Version: r.Scorecard.Version,
+// 			Commit:  r.Scorecard.CommitSHA,
+// 		},
+// 		Date:     r.Date.Format("2006-01-02"),
+// 		Metadata: r.Metadata,
+// 	}
 
-	//nolint
-	for _, checkResult := range r.Checks {
-		doc, e := checkDocs.GetCheck(checkResult.Name)
-		if e != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
-		}
+// 	//nolint
+// 	for _, checkResult := range r.Checks {
+// 		doc, e := checkDocs.GetCheck(checkResult.Name)
+// 		if e != nil {
+// 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
+// 		}
 
-		tmpResult := jsonRawCheckResultV6{
-			Name: checkResult.Name,
-			Doc: jsonCheckDocumentationV2{
-				URL:   doc.GetDocumentationURL(r.Scorecard.CommitSHA),
-				Short: doc.GetShort(),
-			},
-			// TODO: create a level of indirection for raw results.
-			RawResults: checkResult.RawResults,
-		}
+// 		tmpResult := jsonRawCheckResultV6{
+// 			Name: checkResult.Name,
+// 			Doc: jsonCheckDocumentationV2{
+// 				URL:   doc.GetDocumentationURL(r.Scorecard.CommitSHA),
+// 				Short: doc.GetShort(),
+// 			},
+// 			// TODO: create a level of indirection for raw results.
+// 			RawResults: checkResult.RawResults,
+// 		}
 
-		out.Checks = append(out.Checks, tmpResult)
-	}
-	if err := encoder.Encode(out); err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-	}
+// 		out.Checks = append(out.Checks, tmpResult)
+// 	}
+// 	if err := encoder.Encode(out); err != nil {
+// 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // ========= Flat JSON structure with indirection ===============.
 type jsonScorecardRawResult struct {
@@ -100,7 +99,8 @@ type jsonScorecardRawResult struct {
 
 // TODO: separate each check extraction into its own file.
 type jsonBinaryFiles struct {
-	Path string `json:"path"`
+	Path   string `json:"path"`
+	Offset int    `json:"offset,omitempty"`
 }
 
 type jsonRawResults struct {
@@ -119,7 +119,6 @@ func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryA
 }
 
 func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) error {
-	// TODO: Upgradev6: move this code to pkg.RunScorecardsRaw()
 	// Binary-Artifacts.
 	if err := r.addBinaryArtifactRawResults(&raw.BinaryArtifactResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
@@ -127,8 +126,8 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 	return nil
 }
 
-// AsJSON exports results as JSON for new detail format.
-func (r *ScorecardRawResult) AsJSON(writer io.Writer) error {
+// AsRawJSON exports results as JSON for raw results.
+func (r *ScorecardResult) AsRawJSON(writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	out := jsonScorecardRawResult{
 		Repo: jsonRepoV2{
@@ -143,7 +142,8 @@ func (r *ScorecardRawResult) AsJSON(writer io.Writer) error {
 		Metadata: r.Metadata,
 	}
 
-	if err := out.fillJSONRawResults(r.Checks[0].RawResults); err != nil {
+	// if err := out.fillJSONRawResults(r.Checks[0].RawResults); err != nil {
+	if err := out.fillJSONRawResults(&r.RawResults); err != nil {
 		return err
 	}
 

@@ -74,6 +74,7 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 // RunScorecards runs enabled Scorecard checks on a Repo.
 func RunScorecards(ctx context.Context,
 	repo clients.Repo,
+	raw bool,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,
@@ -102,47 +103,12 @@ func RunScorecards(ctx context.Context,
 		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)
-	go runEnabledChecks(ctx, repo, nil, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
-	for result := range resultsCh {
-		ret.Checks = append(ret.Checks, result)
-	}
-	return ret, nil
-}
-
-// RunScorecardsRaw runs enabled Scorecard checks on a Repo
-// and returns raw results.
-func RunScorecardsRaw(ctx context.Context,
-	repo clients.Repo,
-	checksToRun checker.CheckNameToFnMap,
-	repoClient clients.RepoClient,
-	ossFuzzRepoClient clients.RepoClient,
-	ciiClient clients.CIIBestPracticesClient) (ScorecardRawResult, error) {
-	if err := repoClient.InitRepo(repo); err != nil {
-		// No need to call sce.WithMessage() since InitRepo will do that for us.
-		//nolint:wrapcheck
-		return ScorecardRawResult{}, err
-	}
-	defer repoClient.Close()
-
-	commitSHA, err := getRepoCommitHash(repoClient)
-	if err != nil {
-		return ScorecardRawResult{}, err
+	if raw {
+		go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
+	} else {
+		go runEnabledChecks(ctx, repo, nil, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
 	}
 
-	ret := ScorecardRawResult{
-		Repo: RepoInfo{
-			Name:      repo.URI(),
-			CommitSHA: commitSHA,
-		},
-		Scorecard: ScorecardInfo{
-			Version:   GetSemanticVersion(),
-			CommitSHA: GetCommit(),
-		},
-		Date: time.Now(),
-	}
-	resultsCh := make(chan checker.CheckResult)
-	raw := checker.RawResults{}
-	go runEnabledChecks(ctx, repo, &raw, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}

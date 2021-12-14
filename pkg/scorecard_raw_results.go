@@ -22,9 +22,10 @@ import (
 
 // ScorecardRawResult struct is returned on a successful Scorecard run.
 type ScorecardRawResult struct {
-	Repo      RepoInfo
-	Date      time.Time
-	Scorecard ScorecardInfo
-	Checks    []checker.CheckResult
-	Metadata  []string
+	Repo       RepoInfo
+	Date       time.Time
+	Scorecard  ScorecardInfo
+	Checks     []checker.CheckResult
+	RawResults checker.RawResults
+	Metadata   []string
 }

@@ -362,69 +362,48 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		if raw {
-			if format != "json" {
-				log.Fatalf("only json format is supported")
+		if raw && format != "json" {
+			log.Fatalf("only json format is supported")
+		}
+
+		repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
+		if err != nil {
+			log.Fatal(err)
+		}
+		repoResult.Metadata = append(repoResult.Metadata, metaData...)
+
+		// Sort them by name
+		sort.Slice(repoResult.Checks, func(i, j int) bool {
+			return repoResult.Checks[i].Name < repoResult.Checks[j].Name
+		})
+
+		if format == formatDefault {
+			for checkName := range enabledChecks {
+				fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
 			}
+			fmt.Println("\nRESULTS\n-------")
+		}
 
-			repoRawResult, err := pkg.RunScorecardsRaw(ctx, repoURI, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
-			if err != nil {
-				log.Fatal(err)
-			}
-			repoRawResult.Metadata = append(repoRawResult.Metadata, metaData...)
-
-			// Note: Once we have migrated all checks, if the user
-			// does not want raw results, we will call
-			// repoResult := repoRawResult.ApplyScorePolicy()
-			// and re-use the existing code.
-
-			// Sort them by name
-			sort.Slice(repoRawResult.Checks, func(i, j int) bool {
-				return repoRawResult.Checks[i].Name < repoRawResult.Checks[j].Name
-			})
-
-			// Testing with: err = repoRawResult.AsInternalJSON(checkDocs, os.Stdout)
-			err = repoRawResult.AsJSON(os.Stdout)
-
-			if err != nil {
-				log.Fatalf("Failed to output results: %v", err)
-			}
-
-		} else {
-			repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
-			if err != nil {
-				log.Fatal(err)
-			}
-			repoResult.Metadata = append(repoResult.Metadata, metaData...)
-
-			// Sort them by name
-			sort.Slice(repoResult.Checks, func(i, j int) bool {
-				return repoResult.Checks[i].Name < repoResult.Checks[j].Name
-			})
-
-			if format == formatDefault {
-				for checkName := range enabledChecks {
-					fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
-				}
-				fmt.Println("\nRESULTS\n-------")
-			}
-
-			switch format {
-			case formatDefault:
-				err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
-			case formatSarif:
-				// TODO: support config files and update checker.MaxResultScore.
-				err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy)
-			case formatJSON:
-				// UPGRADEv2: rename.
+		switch format {
+		case formatDefault:
+			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
+		case formatSarif:
+			// TODO: support config files and update checker.MaxResultScore.
+			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy)
+		case formatJSON:
+			// UPGRADEv2: rename.
+			if raw {
+				err = repoResult.AsRawJSON(os.Stdout)
+			} else {
 				err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
-			default:
-				err = sce.WithMessage(sce.ErrScorecardInternal,
-					fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
 			}
-			if err != nil {
-				log.Fatalf("Failed to output results: %v", err)
-			}
+
+		default:
+			err = sce.WithMessage(sce.ErrScorecardInternal,
+				fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
+		}
+		if err != nil {
+			log.Fatalf("Failed to output results: %v", err)
 		}
 	},
 }
