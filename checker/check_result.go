@@ -122,7 +122,7 @@ type CheckResult struct {
 	// UPGRADEv6
 	// Stores raw data results in arbitrary format.
 	// We re-use Error2 and Version.
-	RawResults interface{}
+	RawResults *RawResults `json:"-"`
 }
 
 // Raw results for checks.
@@ -279,11 +279,11 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 
 // CreateRawResults creates raw results.
 // UPGRADEv6.
-func CreateRawResults(name string, r interface{}) CheckResult {
+func CreateRawResults(name string) CheckResult {
 	return CheckResult{
-		Name:       name,
-		Version:    6,
-		Error2:     nil,
-		RawResults: r,
+		Name:    name,
+		Version: 6,
+		Error2:  nil,
+		// Note: RawResults are set by checks.
 	}
 }

@@ -118,6 +118,15 @@ func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryA
 	return nil
 }
 
+func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) error {
+	// TODO: Upgradev6: move this code to pkg.RunScorecardsRaw()
+	// Binary-Artifacts.
+	if err := r.addBinaryArtifactRawResults(&raw.BinaryArtifactResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+	return nil
+}
+
 // AsJSON exports results as JSON for new detail format.
 func (r *ScorecardRawResult) AsJSON(writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
@@ -135,16 +144,10 @@ func (r *ScorecardRawResult) AsJSON(writer io.Writer) error {
 	}
 
 	//nolint
-	for _, checkResult := range r.Checks {
-		switch v := checkResult.RawResults.(type) {
-		case checker.BinaryArtifactData:
-			if err := out.addBinaryArtifactRawResults(&v); err != nil {
-				return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-			}
-		default:
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid type: %v", v))
-		}
+	if err := out.fillJSONRawResults(r.Checks[0].RawResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%w", err))
 	}
+
 	if err := encoder.Encode(out); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}

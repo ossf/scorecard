@@ -31,17 +31,18 @@ func init() {
 
 // BinaryArtifacts  will check the repository contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.BinaryArtifacts(c.RepoClient)
+	rawResults, err := raw.BinaryArtifacts(c.RepoClient)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
 	}
 
 	// Return raw results.
-	if c.Raw {
-		return checker.CreateRawResults(CheckBinaryArtifacts, rawData)
+	if c.RawResults != nil {
+		c.RawResults.BinaryArtifactResults = rawResults
+		return checker.CreateRawResults(CheckBinaryArtifacts)
 	}
 
 	// Return the score evaluation.
-	return evaluation.BinaryArtifacts(CheckBinaryArtifacts, c.Dlogger, &rawData)
+	return evaluation.BinaryArtifacts(CheckBinaryArtifacts, c.Dlogger, &rawResults)
 }

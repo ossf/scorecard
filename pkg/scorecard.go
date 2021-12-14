@@ -28,7 +28,7 @@ import (
 )
 
 func runEnabledChecks(ctx context.Context,
-	repo clients.Repo, raw bool, checksToRun checker.CheckNameToFnMap,
+	repo clients.Repo, raw *checker.RawResults, checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient,
 	resultsCh chan checker.CheckResult) {
 	request := checker.CheckRequest{
@@ -37,7 +37,7 @@ func runEnabledChecks(ctx context.Context,
 		OssFuzzRepo: ossFuzzRepoClient,
 		CIIClient:   ciiClient,
 		Repo:        repo,
-		Raw:         raw,
+		RawResults:  raw,
 	}
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
@@ -102,7 +102,7 @@ func RunScorecards(ctx context.Context,
 		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)
-	go runEnabledChecks(ctx, repo, false, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
+	go runEnabledChecks(ctx, repo, nil, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}
@@ -141,7 +141,8 @@ func RunScorecardsRaw(ctx context.Context,
 		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)
-	go runEnabledChecks(ctx, repo, true, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
+	raw := checker.RawResults{}
+	go runEnabledChecks(ctx, repo, &raw, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}
