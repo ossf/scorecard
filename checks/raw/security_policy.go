@@ -59,7 +59,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		return true, nil
 	}
 
-	files := []checker.File{}
+	files := make([]checker.File, 0)
 	err := fileparser.CheckIfFileExists(c, onFile, &files)
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
