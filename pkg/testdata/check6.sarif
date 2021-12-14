@@ -13,7 +13,7 @@
                "semanticVersion": "1.2.3",
                "rules": [
                   {
-                     "id": "Check-Name",
+                     "id": "CheckNameID",
                      "name": "Check-Name",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
                      "shortDescription": {
@@ -44,7 +44,7 @@
          },
          "results": [
             {
-               "ruleId": "Check-Name",
+               "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
                   "text": "six score reason"

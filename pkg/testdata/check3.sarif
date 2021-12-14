@@ -13,7 +13,7 @@
                "semanticVersion": "1.2.3",
                "rules": [
                   {
-                     "id": "Check-Name",
+                     "id": "CheckNameID",
                      "name": "Check-Name",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name",
                      "shortDescription": {
@@ -40,7 +40,7 @@
                      }
                   },
                   {
-                     "id": "Check-Name2",
+                     "id": "CheckName2ID",
                      "name": "Check-Name2",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name2",
                      "shortDescription": {
@@ -68,7 +68,7 @@
                      }
                   },
                   {
-                     "id": "Check-Name3",
+                     "id": "CheckName3ID",
                      "name": "Check-Name3",
                      "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name3",
                      "shortDescription": {
@@ -101,7 +101,7 @@
          },
          "results": [
             {
-               "ruleId": "Check-Name",
+               "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
                   "text": "warn message"
@@ -124,7 +124,7 @@
                ]
             },
             {
-               "ruleId": "Check-Name2",
+               "ruleId": "CheckName2ID",
                "ruleIndex": 1,
                "message": {
                   "text": "warn message"
@@ -150,7 +150,7 @@
                ]
             },
             {
-               "ruleId": "Check-Name3",
+               "ruleId": "CheckName3ID",
                "ruleIndex": 2,
                "message": {
                   "text": "warn message"
