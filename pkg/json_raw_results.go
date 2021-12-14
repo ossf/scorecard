@@ -23,72 +23,7 @@ import (
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-// // =========== Used to generate raw result without indirection for testing ===============.
-// //nolint
-// type jsonRawCheckResult struct {
-// 	Name       string
-// 	RawResults interface{}
-// }
-
-// //nolint
-// type jsonRawCheckResultV6 struct {
-// 	Name       string                   `json:"name"`
-// 	Doc        jsonCheckDocumentationV2 `json:"documentation"`
-// 	RawResults interface{}              `json:"results"`
-// }
-
-// type jsonScorecardRawResultV6 struct {
-// 	Date      string                 `json:"date"`
-// 	Repo      jsonRepoV2             `json:"repo"`
-// 	Scorecard jsonScorecardV2        `json:"scorecard"`
-// 	Checks    []jsonRawCheckResultV6 `json:"checks"`
-// 	Metadata  []string               `json:"metadata"`
-// }
-
-// // AsInternalJSON exports results as JSON for new detail format without indirection.
-// // This is used for testing.
-// func (r *ScorecardRawResult) AsInternalJSON(checkDocs docs.Doc, writer io.Writer) error {
-// 	encoder := json.NewEncoder(writer)
-// 	out := jsonScorecardRawResultV6{
-// 		Repo: jsonRepoV2{
-// 			Name:   r.Repo.Name,
-// 			Commit: r.Repo.CommitSHA,
-// 		},
-// 		Scorecard: jsonScorecardV2{
-// 			Version: r.Scorecard.Version,
-// 			Commit:  r.Scorecard.CommitSHA,
-// 		},
-// 		Date:     r.Date.Format("2006-01-02"),
-// 		Metadata: r.Metadata,
-// 	}
-
-// 	//nolint
-// 	for _, checkResult := range r.Checks {
-// 		doc, e := checkDocs.GetCheck(checkResult.Name)
-// 		if e != nil {
-// 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
-// 		}
-
-// 		tmpResult := jsonRawCheckResultV6{
-// 			Name: checkResult.Name,
-// 			Doc: jsonCheckDocumentationV2{
-// 				URL:   doc.GetDocumentationURL(r.Scorecard.CommitSHA),
-// 				Short: doc.GetShort(),
-// 			},
-// 			// TODO: create a level of indirection for raw results.
-// 			RawResults: checkResult.RawResults,
-// 		}
-
-// 		out.Checks = append(out.Checks, tmpResult)
-// 	}
-// 	if err := encoder.Encode(out); err != nil {
-// 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-// 	}
-
-// 	return nil
-// }
-
-// ========= Flat JSON structure with indirection ===============.
+// Flat JSON structure to hold raw results.
 type jsonScorecardRawResult struct {
 	Date      string          `json:"date"`
 	Repo      jsonRepoV2      `json:"repo"`
