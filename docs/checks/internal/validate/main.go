@@ -16,7 +16,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path"
 	"regexp"
@@ -55,28 +54,6 @@ var (
 		"Close":                      {"GitHub", "local"},
 	}
 )
-
-// TODO: UPGRADEv6: remove this temporary fix once
-// all checks have been migrated to raw results.
-func mergeFiles(nonRawFiles, rawFiles []fs.DirEntry) []fs.DirEntry {
-	files := []fs.DirEntry{}
-	m := make(map[string]bool)
-
-	// Use raw files.
-	for _, f := range rawFiles {
-		m[f.Name()] = true
-		files = append(files, f)
-	}
-
-	// Append non-Rraw files if raw files are not present.
-	for _, f := range nonRawFiles {
-		if _, exists := m[f.Name()]; exists {
-			continue
-		}
-		files = append(files, f)
-	}
-	return files
-}
 
 // Identify the source file that declares each check.
 func listCheckFiles() (map[string]string, error) {
