@@ -35,4 +35,7 @@ jobs:
         exempt-issue-labels: 'awaiting-approval,work-in-progress'
         stale-pr-label: 'no-pr-activity'
         exempt-pr-labels: 'awaiting-approval,work-in-progress'
-        only-labels: 'awaiting-feedback,awaiting-answers'
+        days-before-pr-stale: '10'
+        days-before-pr-close: '20'
+        days-before-issue-stale: '60'
+
