@@ -98,7 +98,7 @@ type jsonScorecardRawResult struct {
 	Results   jsonRawResults  `json:"results"`
 }
 
-// TODO: separate each check extraction into ts own file.
+// TODO: separate each check extraction into its own file.
 type jsonBinaryFiles struct {
 	Path string `json:"path"`
 }
