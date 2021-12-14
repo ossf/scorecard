@@ -391,7 +391,6 @@ var rootCmd = &cobra.Command{
 			// TODO: support config files and update checker.MaxResultScore.
 			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy)
 		case formatJSON:
-			// UPGRADEv2: rename.
 			if raw {
 				err = repoResult.AsRawJSON(os.Stdout)
 			} else {
