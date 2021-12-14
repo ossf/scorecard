@@ -16,12 +16,11 @@ package evaluation
 
 import (
 	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/raw"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
-func SecurityPolicy(name string, dl checker.DetailLogger, r *raw.SecurityPolicyData) checker.CheckResult {
+func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPolicyData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)

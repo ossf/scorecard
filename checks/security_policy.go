@@ -37,5 +37,11 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, e)
 	}
 
+	// Set the raw results.
+	if c.RawResults != nil {
+		c.RawResults.SecurityPolicyResults = rawData
+		return checker.CheckResult{}
+	}
+
 	return evaluation.SecurityPolicy(CheckSecurityPolicy, c.Dlogger, &rawData)
 }
