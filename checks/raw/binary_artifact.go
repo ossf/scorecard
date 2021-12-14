@@ -87,7 +87,9 @@ func checkBinaryFileContent(path string, content []byte,
 	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
 	if exists1 || exists2 {
 		*pfiles = append(*pfiles, checker.File{
-			Path: path,
+			Path:   path,
+			Type:   checker.FileTypeBinary,
+			Offset: 1,
 		})
 	}
 

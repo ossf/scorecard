@@ -120,17 +120,20 @@ type CheckResult struct {
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
 
 	// UPGRADEv6
-	// Stores raw data results in arbitrary format.
+	// Stores raw data results.
 	// We re-use Error2 and Version.
 	RawResults *RawResults `json:"-"`
 }
 
-// Raw results for checks.
+// ====== Raw results for checks =========.
 
 // File represents a file.
 type File struct {
-	Path string
-	// TODO: add hash if needed.
+	Path    string
+	Snippet string   // Snippet of code
+	Offset  int      // Offset in the file of Path (line for source/text files).
+	Type    FileType // Type of file.
+	// TODO: add hash.
 }
 
 // BinaryArtifactData contains the raw results
