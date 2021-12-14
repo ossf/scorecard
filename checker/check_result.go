@@ -275,14 +275,3 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
 	}
 }
-
-// CreateRawResults creates raw results.
-// UPGRADEv6.
-func CreateRawResults(name string) CheckResult {
-	return CheckResult{
-		Name:    name,
-		Version: 6,
-		Error2:  nil,
-		// Note: RawResults are set by checks.
-	}
-}
