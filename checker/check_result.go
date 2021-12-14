@@ -132,7 +132,8 @@ type File struct {
 	// TODO: add hash.
 }
 
-// SecurityPolicyData contains the raw results.
+// SecurityPolicyData contains the raw results
+// for the Security-Policy check.
 type SecurityPolicyData struct {
 	// Files contains a list of files.
 	Files []File

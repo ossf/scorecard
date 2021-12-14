@@ -62,8 +62,7 @@ func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(ba *checker.Securit
 	r.Results.SecurityPolicies = []jsonFiles{}
 	for _, v := range ba.Files {
 		r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonFiles{
-			Path:   v.Path,
-			Offset: v.Offset,
+			Path: v.Path,
 		})
 	}
 	return nil
