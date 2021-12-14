@@ -143,9 +143,8 @@ func (r *ScorecardRawResult) AsJSON(writer io.Writer) error {
 		Metadata: r.Metadata,
 	}
 
-	//nolint
 	if err := out.fillJSONRawResults(r.Checks[0].RawResults); err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%w", err))
+		return err
 	}
 
 	if err := encoder.Encode(out); err != nil {
