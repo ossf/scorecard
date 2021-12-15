@@ -32,6 +32,15 @@ type MergeRequest struct {
 	// TODO: add fields, e.g., State=["merged"|"closed"]
 }
 
+// File represents a file.
+type File struct {
+	Path    string
+	Snippet string   // Snippet of code
+	Offset  int      // Offset in the file of Path (line for source/text files).
+	Type    FileType // Type of file.
+	// TODO: add hash.
+}
+
 // Tool represents a tool.
 type Tool struct {
 	// Runs of the tool.
@@ -44,6 +53,13 @@ type Tool struct {
 	URL           string
 	Desc          string
 	ConfigFiles   []File
+}
+
+// SecurityPolicyData contains the raw results
+// for the Security-Policy check.
+type SecurityPolicyData struct {
+	// Files contains a list of files.
+	Files []File
 }
 
 // BinaryArtifactData contains the raw results
@@ -75,8 +91,10 @@ type BranchProtectionData struct {
 	RequiresStatusChecks                *bool
 	RequiresUpToDateBranchBeforeMerging *bool
 	RequiredApprovingReviewCount        *int
-	StatusCheckContexts                 *[]string
-	Name                                string
+	// StatusCheckContexts is always available, so
+	// we don't use a pointer.
+	StatusCheckContexts []string
+	Name                string
 }
 
 // BranchProtectionsData contains the raw results

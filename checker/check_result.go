@@ -20,6 +20,11 @@ import (
 	"math"
 )
 
+type (
+	DetailType int
+	FileType   int
+)
+
 const (
 	// MaxResultConfidence implies full certainty about a check result.
 	// TODO(#1393): remove after deprecation.
@@ -100,9 +105,6 @@ type LogMessage struct {
 	// UPGRADEv3: to remove.
 	Version int // `3` to indicate the detail was logged using new structure.
 }
-
-// DetailType is the type of details.
-type DetailType int
 
 // CreateProportionalScore creates a proportional score.
 func CreateProportionalScore(success, total int) int {
