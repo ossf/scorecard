@@ -26,6 +26,7 @@ import (
 	scut "github.com/ossf/scorecard/v3/utests"
 )
 
+/*
 func getBranch(branches []*clients.BranchRef, name string) *clients.BranchRef {
 	for _, branch := range branches {
 		branchName := getBranchName(branch)
@@ -34,7 +35,7 @@ func getBranch(branches []*clients.BranchRef, name string) *clients.BranchRef {
 		}
 	}
 	return nil
-}
+}*/
 
 func scrubBranch(branch *clients.BranchRef) *clients.BranchRef {
 	ret := branch

@@ -16,6 +16,7 @@ package evaluation
 
 import (
 	"github.com/ossf/scorecard/v3/checker"
+	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 const (
@@ -47,10 +48,58 @@ type levelScore struct {
 // BranchProtection runs Branch-Protection check.
 func BranchProtection(name string, dl checker.DetailLogger,
 	r *checker.BranchProtectionsData) checker.CheckResult {
+
+	var scores []levelScore
+
+	// Check protections on all the branches.
+	for i := range r.Branches {
+		var score levelScore
+		b := r.Branches[i]
+
+		// Protected field only indates that the branch matches
+		// one `Branch protection rules`. All settings may be disabled,
+		// so it does not provide any guarantees.
+		protected := !(b.Protected != nil && !*b.Protected)
+		if !protected {
+			dl.Warn("branch protection not enabled for branch '%s'", b)
+		}
+		score.scores.basic, score.maxes.basic = basicNonAdminProtection(&b, dl)
+		score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(&b, dl)
+		score.scores.review, score.maxes.review = nonAdminReviewProtection(&b)
+		score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(&b, dl)
+		score.scores.context, score.maxes.context = nonAdminContextProtection(&b, dl)
+		score.scores.thoroughReview, score.maxes.thoroughReview = nonAdminThoroughReviewProtection(&b, dl)
+		// Do we want this?
+		score.scores.adminThoroughReview, score.maxes.adminThoroughReview = adminThoroughReviewProtection(&b, dl)
+
+		scores = append(scores, score)
+	}
+
+	if len(scores) == 0 {
+		return checker.CreateInconclusiveResult(name, "unable to detect any development/release branches")
+	}
+
+	score, err := computeScore(scores)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(name, err)
+	}
+
+	switch score {
+	case checker.MinResultScore:
+		return checker.CreateMinScoreResult(name,
+			"branch protection not enabled on development/release branches")
+	case checker.MaxResultScore:
+		return checker.CreateMaxScoreResult(name,
+			"branch protection is fully enabled on development and all release branches")
+	default:
+		return checker.CreateResultWithScore(name,
+			"branch protection is not maximal on development and all release branches", score)
+	}
+
+	// Never happens.
 	return checker.CheckResult{}
 }
 
-/*
 func computeNonAdminBasicScore(scores []levelScore) int {
 	score := 0
 	for _, s := range scores {
@@ -197,140 +246,30 @@ func warn(dl checker.DetailLogger, doLogging bool, desc string, args ...interfac
 	dl.Warn(desc, args...)
 }
 
-func checkReleaseAndDevBranchProtection(
-	repoClient clients.RepoClient, dl checker.DetailLogger) checker.CheckResult {
-	// Get all branches. This will include information on whether they are protected.
-	branches, err := repoClient.ListBranches()
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
-	}
-	branchesMap := getBranchMapFrom(branches)
-
-	// Get release branches.
-	releases, err := repoClient.ListReleases()
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
-	}
-
-	commit := regexp.MustCompile("^[a-f0-9]{40}$")
-	checkBranches := make(map[string]bool)
-	for _, release := range releases {
-		if release.TargetCommitish == "" {
-			// Log with a named error if target_commitish is nil.
-			e := sce.WithMessage(sce.ErrScorecardInternal, errInternalCommitishNil.Error())
-			return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
-		}
-
-		// TODO: if this is a sha, get the associated branch. for now, ignore.
-		if commit.Match([]byte(release.TargetCommitish)) {
-			continue
-		}
-
-		// Try to resolve the branch name.
-		b, err := branchesMap.getBranchByName(release.TargetCommitish)
-		if err != nil {
-			// If the commitish branch is still not found, fail.
-			return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
-		}
-
-		// Branch is valid, add to list of branches to check.
-		checkBranches[*b.Name] = true
-	}
-
-	// Add default branch.
-	defaultBranch, err := repoClient.GetDefaultBranch()
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
-	}
-	defaultBranchName := getBranchName(defaultBranch)
-	if defaultBranchName != "" {
-		checkBranches[defaultBranchName] = true
-	}
-
-	var scores []levelScore
-
-	// Check protections on all the branches.
-	for b := range checkBranches {
-		var score levelScore
-		branch, err := branchesMap.getBranchByName(b)
-		if err != nil {
-			if errors.Is(err, errInternalBranchNotFound) {
-				continue
-			}
-			return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
-		}
-		// Protected field only indates that the branch matches
-		// one `Branch protection rules`. All settings may be disabled,
-		// so it does not provide any guarantees.
-		protected := !(branch.Protected != nil && !*branch.Protected)
-		if !protected {
-			dl.Warn("branch protection not enabled for branch '%s'", b)
-		}
-		score.scores.basic, score.maxes.basic =
-			basicNonAdminProtection(&branch.BranchProtectionRule, b, dl, protected)
-		score.scores.adminBasic, score.maxes.adminBasic =
-			basicAdminProtection(&branch.BranchProtectionRule, b, dl, protected)
-		score.scores.review, score.maxes.review =
-			nonAdminReviewProtection(&branch.BranchProtectionRule)
-		score.scores.adminReview, score.maxes.adminReview =
-			adminReviewProtection(&branch.BranchProtectionRule, b, dl, protected)
-		score.scores.context, score.maxes.context =
-			nonAdminContextProtection(&branch.BranchProtectionRule, b, dl, protected)
-		score.scores.thoroughReview, score.maxes.thoroughReview =
-			nonAdminThoroughReviewProtection(&branch.BranchProtectionRule, b, dl, protected)
-		score.scores.adminThoroughReview, score.maxes.adminThoroughReview =
-			adminThoroughReviewProtection(&branch.BranchProtectionRule, b, dl, protected) // Do we want this?
-
-		scores = append(scores, score)
-	}
-
-	if len(scores) == 0 {
-		return checker.CreateInconclusiveResult(CheckBranchProtection, "unable to detect any development/release branches")
-	}
-
-	score, err := computeScore(scores)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckBranchProtection, err)
-	}
-
-	switch score {
-	case checker.MinResultScore:
-		return checker.CreateMinScoreResult(CheckBranchProtection,
-			"branch protection not enabled on development/release branches")
-	case checker.MaxResultScore:
-		return checker.CreateMaxScoreResult(CheckBranchProtection,
-			"branch protection is fully enabled on development and all release branches")
-	default:
-		return checker.CreateResultWithScore(CheckBranchProtection,
-			"branch protection is not maximal on development and all release branches", score)
-	}
-}
-
-func basicNonAdminProtection(protection *clients.BranchProtectionRule,
-	branch string, dl checker.DetailLogger, doLogging bool) (int, int) {
+func basicNonAdminProtection(branch *checker.BranchProtectionData, dl checker.DetailLogger) (int, int) {
 	score := 0
 	max := 0
+	// Only log information if the branch is protected.
+	log := *branch.Protected
 
 	max++
-	if protection.AllowForcePushes != nil {
-		switch *protection.AllowForcePushes {
+	if branch.AllowsForcePushes != nil {
+		switch *branch.AllowsForcePushes {
 		case true:
-			warn(dl, doLogging, "'force pushes' enabled on branch '%s'", branch)
+			warn(dl, log, "'force pushes' enabled on branch '%s'", branch.Name)
 		case false:
-			info(dl, doLogging, "'force pushes' disabled on branch '%s'", branch)
+			info(dl, log, "'force pushes' disabled on branch '%s'", branch.Name)
 			score++
 		}
 	}
 
 	max++
-	if protection.AllowDeletions != nil {
-		switch *protection.AllowDeletions {
+	if branch.AllowsDeletions != nil {
+		switch *branch.AllowsDeletions {
 		case true:
-			warn(dl, doLogging, "'allow deletion' enabled on branch '%s'", branch)
+			warn(dl, log, "'allow deletion' enabled on branch '%s'", branch.Name)
 		case false:
-			info(dl, doLogging, "'allow deletion' disabled on branch '%s'", branch)
+			info(dl, log, "'allow deletion' disabled on branch '%s'", branch.Name)
 			score++
 		}
 	}
@@ -338,122 +277,130 @@ func basicNonAdminProtection(protection *clients.BranchProtectionRule,
 	return score, max
 }
 
-func basicAdminProtection(protection *clients.BranchProtectionRule,
-	branch string, dl checker.DetailLogger, doLogging bool) (int, int) {
+func basicAdminProtection(branch *checker.BranchProtectionData, dl checker.DetailLogger) (int, int) {
 	score := 0
 	max := 0
+	// Only log information if the branch is protected.
+	log := *branch.Protected
 
 	// nil typically means we do not have access to the value.
-	if protection.EnforceAdmins != nil {
+	if branch.EnforcesAdmins != nil {
 		// Note: we don't inrecase max possible score for non-admin viewers.
 		max++
-		switch *protection.EnforceAdmins {
+		switch *branch.EnforcesAdmins {
 		case true:
-			info(dl, doLogging, "settings apply to administrators on branch '%s'", branch)
+			info(dl, log, "settings apply to administrators on branch '%s'", branch.Name)
 			score++
 		case false:
-			warn(dl, doLogging, "settings do not apply to administrators on branch '%s'", branch)
+			warn(dl, log, "settings do not apply to administrators on branch '%s'", branch.Name)
 		}
 	} else {
-		debug(dl, doLogging, "unable to retrieve whether or not settings apply to administrators on branch '%s'", branch)
+		debug(dl, log, "unable to retrieve whether or not settings apply to administrators on branch '%s'", branch.Name)
 	}
 
 	return score, max
 }
 
-func nonAdminContextProtection(protection *clients.BranchProtectionRule, branch string,
-	dl checker.DetailLogger, doLogging bool) (int, int) {
+func nonAdminContextProtection(branch *checker.BranchProtectionData, dl checker.DetailLogger) (int, int) {
 	score := 0
 	max := 0
+	// Only log information if the branch is protected.
+	log := *branch.Protected
+
 	// This means there are specific checks enabled.
 	// If only `Requires status check to pass before merging` is enabled
 	// but no specific checks are declared, it's equivalent
 	// to having no status check at all.
 	max++
 	switch {
-	case len(protection.CheckRules.Contexts) > 0:
-		info(dl, doLogging, "status check found to merge onto on branch '%s'", branch)
+	case len(branch.StatusCheckContexts) > 0:
+		info(dl, log, "status check found to merge onto on branch '%s'", branch.Name)
 		score++
 	default:
-		warn(dl, doLogging, "no status checks found to merge onto branch '%s'", branch)
+		warn(dl, log, "no status checks found to merge onto branch '%s'", branch.Name)
 	}
 	return score, max
 }
 
-func nonAdminReviewProtection(protection *clients.BranchProtectionRule) (int, int) {
+func nonAdminReviewProtection(branch *checker.BranchProtectionData) (int, int) {
 	score := 0
 	max := 0
 
 	max++
-	if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil &&
-		*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount > 0 {
+	if branch.RequiredApprovingReviewCount != nil &&
+		*branch.RequiredApprovingReviewCount > 0 {
 		// We do not display anything here, it's done in nonAdminThoroughReviewProtection()
 		score++
 	}
 	return score, max
 }
 
-func adminReviewProtection(protection *clients.BranchProtectionRule, branch string,
-	dl checker.DetailLogger, doLogging bool) (int, int) {
+func adminReviewProtection(branch *checker.BranchProtectionData, dl checker.DetailLogger) (int, int) {
 	score := 0
 	max := 0
 
-	if protection.CheckRules.UpToDateBeforeMerge != nil {
+	// Only log information if the branch is protected.
+	log := *branch.Protected
+
+	if branch.RequiresUpToDateBranchBeforeMerging != nil {
 		// Note: `This setting will not take effect unless at least one status check is enabled`.
 		max++
-		switch *protection.CheckRules.UpToDateBeforeMerge {
+		switch *branch.RequiresUpToDateBranchBeforeMerging {
 		case true:
-			info(dl, doLogging, "status checks require up-to-date branches for '%s'", branch)
+			info(dl, log, "status checks require up-to-date branches for '%s'", branch.Name)
 			score++
 		default:
-			warn(dl, doLogging, "status checks do not require up-to-date branches for '%s'", branch)
+			warn(dl, log, "status checks do not require up-to-date branches for '%s'", branch.Name)
 		}
 	} else {
-		debug(dl, doLogging, "unable to retrieve whether up-to-date branches are needed to merge on branch '%s'", branch)
+		debug(dl, log, "unable to retrieve whether up-to-date branches are needed to merge on branch '%s'", branch.Name)
 	}
 
 	return score, max
 }
 
-func adminThoroughReviewProtection(protection *clients.BranchProtectionRule, branch string,
-	dl checker.DetailLogger, doLogging bool) (int, int) {
+func adminThoroughReviewProtection(branch *checker.BranchProtectionData, dl checker.DetailLogger) (int, int) {
 	score := 0
 	max := 0
-	if protection.RequiredPullRequestReviews.DismissStaleReviews != nil {
+	// Only log information if the branch is protected.
+	log := *branch.Protected
+
+	if branch.DismissesStaleReviews != nil {
 		// Note: we don't inrecase max possible score for non-admin viewers.
 		max++
-		switch *protection.RequiredPullRequestReviews.DismissStaleReviews {
+		switch *branch.DismissesStaleReviews {
 		case true:
-			info(dl, doLogging, "Stale review dismissal enabled on branch '%s'", branch)
+			info(dl, log, "Stale review dismissal enabled on branch '%s'", branch.Name)
 			score++
 		case false:
-			warn(dl, doLogging, "Stale review dismissal disabled on branch '%s'", branch)
+			warn(dl, log, "Stale review dismissal disabled on branch '%s'", branch.Name)
 		}
 	} else {
-		debug(dl, doLogging, "unable to retrieve review dismissal on branch '%s'", branch)
+		debug(dl, log, "unable to retrieve review dismissal on branch '%s'", branch.Name)
 	}
 	return score, max
 }
 
-func nonAdminThoroughReviewProtection(protection *clients.BranchProtectionRule, branch string,
-	dl checker.DetailLogger, doLogging bool) (int, int) {
+func nonAdminThoroughReviewProtection(branch *checker.BranchProtectionData, dl checker.DetailLogger) (int, int) {
 	score := 0
 	max := 0
 
+	// Only log information if the branch is protected.
+	log := *branch.Protected
+
 	max++
-	if protection.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
-		switch *protection.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews {
+	if branch.RequiredApprovingReviewCount != nil {
+		switch *branch.RequiredApprovingReviewCount >= minReviews {
 		case true:
-			info(dl, doLogging, "number of required reviewers is %d on branch '%s'",
-				*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
+			info(dl, log, "number of required reviewers is %d on branch '%s'",
+				*branch.RequiredApprovingReviewCount, branch.Name)
 			score++
 		default:
-			warn(dl, doLogging, "number of required reviewers is only %d on branch '%s'",
-				*protection.RequiredPullRequestReviews.RequiredApprovingReviewCount, branch)
+			warn(dl, log, "number of required reviewers is only %d on branch '%s'",
+				*branch.RequiredApprovingReviewCount, branch.Name)
 		}
 	} else {
-		warn(dl, doLogging, "number of required reviewers is 0 on branch '%s'", branch)
+		warn(dl, log, "number of required reviewers is 0 on branch '%s'", branch.Name)
 	}
 	return score, max
 }
-*/
