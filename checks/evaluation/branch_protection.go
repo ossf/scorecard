@@ -48,7 +48,6 @@ type levelScore struct {
 // BranchProtection runs Branch-Protection check.
 func BranchProtection(name string, dl checker.DetailLogger,
 	r *checker.BranchProtectionsData) checker.CheckResult {
-
 	var scores []levelScore
 
 	// Check protections on all the branches.
@@ -95,9 +94,6 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		return checker.CreateResultWithScore(name,
 			"branch protection is not maximal on development and all release branches", score)
 	}
-
-	// Never happens.
-	return checker.CheckResult{}
 }
 
 func computeNonAdminBasicScore(scores []levelScore) int {
@@ -250,7 +246,7 @@ func basicNonAdminProtection(branch *checker.BranchProtectionData, dl checker.De
 	score := 0
 	max := 0
 	// Only log information if the branch is protected.
-	log := *branch.Protected
+	log := branch.Protected != nil && *branch.Protected
 
 	max++
 	if branch.AllowsForcePushes != nil {
@@ -281,7 +277,7 @@ func basicAdminProtection(branch *checker.BranchProtectionData, dl checker.Detai
 	score := 0
 	max := 0
 	// Only log information if the branch is protected.
-	log := *branch.Protected
+	log := branch.Protected != nil && *branch.Protected
 
 	// nil typically means we do not have access to the value.
 	if branch.EnforcesAdmins != nil {
@@ -305,7 +301,7 @@ func nonAdminContextProtection(branch *checker.BranchProtectionData, dl checker.
 	score := 0
 	max := 0
 	// Only log information if the branch is protected.
-	log := *branch.Protected
+	log := branch.Protected != nil && *branch.Protected
 
 	// This means there are specific checks enabled.
 	// If only `Requires status check to pass before merging` is enabled
@@ -340,7 +336,7 @@ func adminReviewProtection(branch *checker.BranchProtectionData, dl checker.Deta
 	max := 0
 
 	// Only log information if the branch is protected.
-	log := *branch.Protected
+	log := branch.Protected != nil && *branch.Protected
 
 	if branch.RequiresUpToDateBranchBeforeMerging != nil {
 		// Note: `This setting will not take effect unless at least one status check is enabled`.
@@ -363,7 +359,7 @@ func adminThoroughReviewProtection(branch *checker.BranchProtectionData, dl chec
 	score := 0
 	max := 0
 	// Only log information if the branch is protected.
-	log := *branch.Protected
+	log := branch.Protected != nil && *branch.Protected
 
 	if branch.DismissesStaleReviews != nil {
 		// Note: we don't inrecase max possible score for non-admin viewers.
@@ -386,7 +382,7 @@ func nonAdminThoroughReviewProtection(branch *checker.BranchProtectionData, dl c
 	max := 0
 
 	// Only log information if the branch is protected.
-	log := *branch.Protected
+	log := branch.Protected != nil && *branch.Protected
 
 	max++
 	if branch.RequiredApprovingReviewCount != nil {
