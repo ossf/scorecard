@@ -20,32 +20,33 @@ import (
 	"math"
 )
 
-// UPGRADEv2: to remove.
 const (
-	MaxResultConfidence  = 10
+	// MaxResultConfidence implies full certainty about a check result.
+	// TODO(#1393): remove after deprecation.
+	MaxResultConfidence = 10
+	// HalfResultConfidence signifies uncertainty about a check's score.
+	// TODO(#1393): remove after deprecation.
 	HalfResultConfidence = 5
-	MinResultConfidence  = 0
-)
+	// MinResultConfidence signifies no confidence in the check result.
+	// TODO(#1393): remove after deprecation.
+	MinResultConfidence = 0
+	// TODO(#1393): remove after deprecation.
+	migrationThresholdPassValue = 8
 
-// UPGRADEv2: to remove.
-const migrationThresholdPassValue = 8
+	// MaxResultScore is the best score that can be given by a check.
+	MaxResultScore = 10
+	// MinResultScore is the worst score that can be given by a check.
+	MinResultScore = 0
+	// InconclusiveResultScore is returned when no reliable information can be retrieved by a check.
+	InconclusiveResultScore = -1
 
-// DetailType is the type of details.
-type DetailType int
-
-const (
 	// DetailInfo is info-level log.
 	DetailInfo DetailType = iota
 	// DetailWarn is warn log.
 	DetailWarn
 	// DetailDebug is debug log.
 	DetailDebug
-)
 
-// FileType is the type of a file.
-type FileType int
-
-const (
 	// FileTypeNone is a default, not defined.
 	FileTypeNone FileType = iota
 	// FileTypeSource is for source code files.
@@ -56,55 +57,16 @@ const (
 	FileTypeText
 	// FileTypeURL for URLs.
 	FileTypeURL
-)
 
-// OffsetDefault is used if we can't determine the offset, for example when referencing a file but not a
-// specific location in the file.
-const OffsetDefault = 1
-
-// LogMessage is a structure that encapsulates detail's information.
-// This allows updating the definition easily.
-//nolint
-type LogMessage struct {
-	Text    string   // A short string explaining why the detail was recorded/logged.
-	Path    string   // Fullpath to the file.
-	Type    FileType // Type of file.
-	Offset  int      // Offset in the file of Path (line for source/text files).
-	Snippet string   // Snippet of code
-	// UPGRADEv3: to remove.
-	Version int // `3` to indicate the detail was logged using new structure.
-}
-
-// CheckDetail contains information for each detail.
-type CheckDetail struct {
-	Msg  LogMessage
-	Type DetailType // Any of DetailWarn, DetailInfo, DetailDebug.
-}
-
-// DetailLogger logs a CheckDetail struct.
-type DetailLogger interface {
-	Info(desc string, args ...interface{})
-	Warn(desc string, args ...interface{})
-	Debug(desc string, args ...interface{})
-
-	// Functions to use for moving to SARIF format.
-	// UPGRADEv3: to rename.
-	Info3(msg *LogMessage)
-	Warn3(msg *LogMessage)
-	Debug3(msg *LogMessage)
-}
-
-//nolint
-const (
-	MaxResultScore          = 10
-	MinResultScore          = 0
-	InconclusiveResultScore = -1
+	// OffsetDefault is used if we can't determine the offset, for example when referencing a file but not a
+	// specific location in the file.
+	OffsetDefault = 1
 )
 
 // CheckResult captures result from a check run.
-// nolint
+// nolint:govet
 type CheckResult struct {
-	// Old structure
+	// TODO(#1393): Remove old structure after deprecation.
 	Error      error `json:"-"`
 	Name       string
 	Details    []string
@@ -118,81 +80,32 @@ type CheckResult struct {
 	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
 	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
-
 }
 
-// ====== Raw results for checks =========.
+// CheckDetail contains information for each detail.
+type CheckDetail struct {
+	Msg  LogMessage
+	Type DetailType // Any of DetailWarn, DetailInfo, DetailDebug.
+}
 
-// File represents a file.
-type File struct {
-	Path    string
-	Snippet string   // Snippet of code
-	Offset  int      // Offset in the file of Path (line for source/text files).
+// LogMessage is a structure that encapsulates detail's information.
+// This allows updating the definition easily.
+// nolint:govet
+type LogMessage struct {
+	Text    string   // A short string explaining why the detail was recorded/logged.
+	Path    string   // Fullpath to the file.
 	Type    FileType // Type of file.
-	// TODO: add hash.
+	Offset  int      // Offset in the file of Path (line for source/text files).
+	Snippet string   // Snippet of code
+	// UPGRADEv3: to remove.
+	Version int // `3` to indicate the detail was logged using new structure.
 }
 
-// SecurityPolicyData contains the raw results
-// for the Security-Policy check.
-type SecurityPolicyData struct {
-	// Files contains a list of files.
-	Files []File
-}
+// DetailType is the type of details.
+type DetailType int
 
-// Run represents a run.
-type Run struct {
-	URL string
-	// TODO: add fields, e.g., Result=["success", "failure"]
-}
-
-// Issue represents an issue.
-type Issue struct {
-	URL string
-	// TODO: add fields, e.g., state=[opened|closed]
-}
-
-// MergeRequest represents a merge request.
-type MergeRequest struct {
-	URL string
-	// TODO: add fields, e.g., State=["merged"|"closed"]
-}
-
-// Tool represents a tool.
-type Tool struct {
-	// Runs of the tool.
-	Runs []Run
-	// Issues created by the tool.
-	Issues []Issue
-	// Merges requests created by the tool.
-	MergeRequests []MergeRequest
-	Name          string
-	URL           string
-	Desc          string
-	ConfigFiles   []File
-}
-
-// BinaryArtifactData contains the raw results
-// for the Binary-Artifact check.
-type BinaryArtifactData struct {
-	// Files contains a list of files.
-	Files []File
-}
-
-// DependencyUpdateToolData contains the raw results
-// for the Dependency-Update-Tool check.
-type DependencyUpdateToolData struct {
-	// Tools contains a list of tools.
-	// Note: we only populate one entry at most.
-	Tools []Tool
-}
-
-// RawResults contains results before a policy
-// is applied.
-type RawResults struct {
-	BinaryArtifactResults       BinaryArtifactData
-	SecurityPolicyResults       SecurityPolicyData
-	DependencyUpdateToolResults DependencyUpdateToolData
-}
+// FileType is the type of a file.
+type FileType int
 
 // CreateProportionalScore creates a proportional score.
 func CreateProportionalScore(success, total int) int {
