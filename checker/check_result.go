@@ -104,9 +104,6 @@ type LogMessage struct {
 // DetailType is the type of details.
 type DetailType int
 
-// FileType is the type of a file.
-type FileType int
-
 // CreateProportionalScore creates a proportional score.
 func CreateProportionalScore(success, total int) int {
 	if total == 0 {

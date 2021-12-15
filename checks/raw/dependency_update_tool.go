@@ -31,7 +31,7 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 		return checker.DependencyUpdateToolData{}, fmt.Errorf("%w", err)
 	}
 
-	// No error, return the files.
+	// No error, return the tools.
 	return checker.DependencyUpdateToolData{Tools: tools}, nil
 }
 
