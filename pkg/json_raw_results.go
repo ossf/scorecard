@@ -82,7 +82,8 @@ func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.Securit
 //nolint:unparam
 func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.DependencyUpdateToolData) error {
 	r.Results.DependencyUpdateTools = []jsonTool{}
-	for _, t := range dut.Tools {
+	for i := range dut.Tools {
+		t := dut.Tools[i]
 		offset := len(r.Results.DependencyUpdateTools)
 		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jsonTool{
 			Name: t.Name,
