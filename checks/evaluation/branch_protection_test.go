@@ -21,17 +21,6 @@ import (
 	scut "github.com/ossf/scorecard/v3/utests"
 )
 
-/*
-func getBranch(branches []*clients.BranchRef, name string) *clients.BranchRef {
-	for _, branch := range branches {
-		branchName := getBranchName(branch)
-		if branchName == name {
-			return branch
-		}
-	}
-	return nil
-}*/
-
 func testScore(branch *checker.BranchProtectionData, dl checker.DetailLogger) (int, error) {
 	var score levelScore
 	score.scores.basic, score.maxes.basic = basicNonAdminProtection(branch, dl)
@@ -51,19 +40,6 @@ func TestIsBranchProtected(t *testing.T) {
 	falseVal := false
 	var zeroVal int
 	var oneVal int = 1
-
-	/*Protected                           *bool
-	AllowsDeletions                     *bool
-	AllowsForcePushes                   *bool
-	RequiresCodeOwnerReviews            *bool
-	RequiresLinearHistory               *bool
-	DismissesStaleReviews               *bool
-	EnforcesAdmins                      *bool
-	RequiresStatusChecks                *bool
-	RequiresUpToDateBranchBeforeMerging *bool
-	RequiredApprovingReviewCount        *int
-	// Value always accessible.
-	StatusCheckContexts []string*/
 
 	tests := []struct {
 		name     string
