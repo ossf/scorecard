@@ -64,10 +64,7 @@ func validatePermission(permissionKey string, permissionValue *actionlint.Permis
 		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
 	val := permissionValue.Value.Value
-	lineNumber := checker.OffsetDefault
-	if permissionValue.Value.Pos != nil {
-		lineNumber = permissionValue.Value.Pos.Line
-	}
+	lineNumber := fileparser.GetLineNumber(permissionValue.Value.Pos)
 	if strings.EqualFold(val, "write") {
 		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
 			dl.Warn3(&checker.LogMessage{
@@ -138,11 +135,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 	}
 	if allIsSet {
 		val := permissions.All.Value
-		lineNumber := checker.OffsetDefault
-		if permissions.All.Pos != nil {
-			lineNumber = permissions.All.Pos.Line
-		}
-
+		lineNumber := fileparser.GetLineNumber(permissions.All.Pos)
 		if !strings.EqualFold(val, "read-all") && val != "" {
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
@@ -195,14 +188,10 @@ func validateRunLevelPermissions(workflow *actionlint.Workflow, path string,
 		// For most workflows, no write permissions are needed,
 		// so only top-level read-only permissions need to be declared.
 		if job.Permissions == nil {
-			lineNumber := checker.OffsetDefault
-			if job.Pos != nil {
-				lineNumber = job.Pos.Line
-			}
 			dl.Debug3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
-				Offset: lineNumber,
+				Offset: fileparser.GetLineNumber(job.Pos),
 				Text:   fmt.Sprintf("no %s permission defined", runLevelPermission),
 			})
 			recordAllPermissionsWrite(pdata.runLevelWritePermissions)
@@ -385,7 +374,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 
 	// 2. Run-level permission definitions,
 	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
-	ignoredPermissions := createIgnoredPermissions(string(content), path, dl)
+	ignoredPermissions := createIgnoredPermissions(workflow, path, dl)
 	if err := validateRunLevelPermissions(workflow, path, dl, pdata, ignoredPermissions); err != nil {
 		return false, err
 	}
@@ -397,15 +386,15 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	return true, nil
 }
 
-func createIgnoredPermissions(s, fp string, dl checker.DetailLogger) map[string]bool {
+func createIgnoredPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) map[string]bool {
 	ignoredPermissions := make(map[string]bool)
-	if requiresPackagesPermissions(s, fp, dl) {
+	if requiresPackagesPermissions(workflow, fp, dl) {
 		ignoredPermissions["packages"] = true
 	}
-	if requiresContentsPermissions(s, fp, dl) {
+	if requiresContentsPermissions(workflow, fp, dl) {
 		ignoredPermissions["contents"] = true
 	}
-	if isSARIFUploadWorkflow(s, fp, dl) {
+	if isSARIFUploadWorkflow(workflow, fp, dl) {
 		ignoredPermissions["security-events"] = true
 	}
 
@@ -413,12 +402,12 @@ func createIgnoredPermissions(s, fp string, dl checker.DetailLogger) map[string]
 }
 
 // Scanning tool run externally and SARIF file uploaded.
-func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
+func isSARIFUploadWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
 	//nolint
 	// CodeQl analysis workflow automatically sends sarif file to GitHub.
 	// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#about-sarif-file-uploads-for-code-scanning.
 	// `The CodeQL action uploads the SARIF file automatically when it completes analysis`.
-	if isCodeQlAnalysisWorkflow(s, fp, dl) {
+	if isCodeQlAnalysisWorkflow(workflow, fp, dl) {
 		return true
 	}
 
@@ -426,7 +415,7 @@ func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
 	// Third-party scanning tools use the SARIF-upload action from code-ql.
 	// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#uploading-a-code-scanning-analysis-with-github-actions
 	// We only support CodeQl today.
-	if isSARIFUploadAction(s, fp, dl) {
+	if isSARIFUploadAction(workflow, fp, dl) {
 		return true
 	}
 
@@ -438,22 +427,29 @@ func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
 }
 
 // CodeQl run externally and SARIF file uploaded.
-func isSARIFUploadAction(s, fp string, dl checker.DetailLogger) bool {
-	if strings.Contains(s, "github/codeql-action/upload-sarif@") {
-		dl.Debug3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// TODO: set line.
-			Offset: 1,
-			Text:   "codeql SARIF upload workflow detected",
-			// TODO: set Snippet.
-		})
-		return true
+func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	for _, job := range workflow.Jobs {
+		for _, step := range job.Steps {
+			uses := fileparser.GetUses(step)
+			if uses == nil {
+				continue
+			}
+			if strings.HasPrefix(uses.Value, "github/codeql-action/upload-sarif@") {
+				dl.Debug3(&checker.LogMessage{
+					Path:   fp,
+					Type:   checker.FileTypeSource,
+					Offset: fileparser.GetLineNumber(uses.Pos),
+					Text:   "codeql SARIF upload workflow detected",
+					// TODO: set Snippet.
+				})
+				return true
+			}
+		}
 	}
 	dl.Debug3(&checker.LogMessage{
 		Path:   fp,
 		Type:   checker.FileTypeSource,
-		Offset: 1,
+		Offset: checker.OffsetDefault,
 		Text:   "not a codeql upload SARIF workflow",
 	})
 	return false
@@ -463,22 +459,29 @@ func isSARIFUploadAction(s, fp string, dl checker.DetailLogger) bool {
 // CodeQl run within GitHub worklow automatically bubbled up to
 // security events, see
 // https://docs.github.com/en/code-security/secure-coding/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning.
-func isCodeQlAnalysisWorkflow(s, fp string, dl checker.DetailLogger) bool {
-	if strings.Contains(s, "github/codeql-action/analyze@") {
-		dl.Debug3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// TODO: set line.
-			Offset: 1,
-			Text:   "codeql workflow detected",
-			// TODO: set Snippet.
-		})
-		return true
+func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	for _, job := range workflow.Jobs {
+		for _, step := range job.Steps {
+			uses := fileparser.GetUses(step)
+			if uses == nil {
+				continue
+			}
+			if strings.HasPrefix(uses.Value, "github/codeql-action/analyze@") {
+				dl.Debug3(&checker.LogMessage{
+					Path:   fp,
+					Type:   checker.FileTypeSource,
+					Offset: fileparser.GetLineNumber(uses.Pos),
+					Text:   "codeql workflow detected",
+					// TODO: set Snippet.
+				})
+				return true
+			}
+		}
 	}
 	dl.Debug3(&checker.LogMessage{
 		Path:   fp,
 		Type:   checker.FileTypeSource,
-		Offset: 1,
+		Offset: checker.OffsetDefault,
 		Text:   "not a codeql workflow",
 	})
 	return false
@@ -486,19 +489,19 @@ func isCodeQlAnalysisWorkflow(s, fp string, dl checker.DetailLogger) bool {
 
 // A packaging workflow using GitHub's supported packages:
 // https://docs.github.com/en/packages.
-func requiresPackagesPermissions(s, fp string, dl checker.DetailLogger) bool {
+func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
 	// TODO: add support for GitHub registries.
 	// Example: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry.
 	// This feature requires parsing actions properly.
 	// For now, we just re-use the Packaging check to verify that the
 	// workflow is a packaging workflow.
-	return isPackagingWorkflow(s, fp, dl)
+	return isPackagingWorkflow(workflow, fp, dl)
 }
 
 // Note: this needs to be improved.
 // Currently we don't differentiate between publishing on GitHub vs
 // pubishing on registries. In terms of risk, both are similar, as
 // an attacker would gain the ability to push a package.
-func requiresContentsPermissions(s, fp string, dl checker.DetailLogger) bool {
-	return requiresPackagesPermissions(s, fp, dl)
+func requiresContentsPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	return requiresPackagesPermissions(workflow, fp, dl)
 }
