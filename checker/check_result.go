@@ -118,6 +118,39 @@ type CheckResult struct {
 	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
 	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
+
+}
+
+// ====== Raw results for checks =========.
+
+// File represents a file.
+type File struct {
+	Path    string
+	Snippet string   // Snippet of code
+	Offset  int      // Offset in the file of Path (line for source/text files).
+	Type    FileType // Type of file.
+	// TODO: add hash.
+}
+
+// SecurityPolicyData contains the raw results
+// for the Security-Policy check.
+type SecurityPolicyData struct {
+	// Files contains a list of files.
+	Files []File
+}
+
+// BinaryArtifactData contains the raw results
+// for the Binary-Artifact check.
+type BinaryArtifactData struct {
+	// Files contains a list of files.
+	Files []File
+}
+
+// RawResults contains results before a policy
+// is applied.
+type RawResults struct {
+	BinaryArtifactResults BinaryArtifactData
+	SecurityPolicyResults SecurityPolicyData
 }
 
 // CreateProportionalScore creates a proportional score.

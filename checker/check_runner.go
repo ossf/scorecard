@@ -128,10 +128,12 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		break
 	}
 
+	// Set details.
 	res.Details2 = l.messages2
 	for _, d := range l.messages2 {
 		res.Details = append(res.Details, d.Msg.Text)
 	}
+
 	if err := logStats(ctx, startTime, &res); err != nil {
 		panic(err)
 	}

@@ -26,7 +26,11 @@ import (
 )
 
 // CheckTokenPermissions is the exported name for Token-Permissions check.
-const CheckTokenPermissions = "Token-Permissions"
+const (
+	CheckTokenPermissions = "Token-Permissions"
+	runLevelPermission    = "run level"
+	topLevelPermission    = "top level"
+)
 
 //nolint:gochecknoinits
 func init() {
@@ -53,24 +57,21 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	return createResultForLeastPrivilegeTokens(data, err)
 }
 
-func validatePermission(permissionKey string, permissionValue *actionlint.PermissionScope, path string,
-	dl checker.DetailLogger, pPermissions map[string]bool,
+func validatePermission(permissionKey string, permissionValue *actionlint.PermissionScope,
+	permLevel, path string, dl checker.DetailLogger, pPermissions map[string]bool,
 	ignoredPermissions map[string]bool) error {
 	if permissionValue.Value == nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
 	val := permissionValue.Value.Value
-	lineNumber := checker.OffsetDefault
-	if permissionValue.Value.Pos != nil {
-		lineNumber = permissionValue.Value.Pos.Line
-	}
+	lineNumber := fileparser.GetLineNumber(permissionValue.Value.Pos)
 	if strings.EqualFold(val, "write") {
 		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
 				Offset: lineNumber,
-				Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
+				Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 				// TODO: set Snippet.
 			})
 			recordPermissionWrite(permissionKey, pPermissions)
@@ -81,7 +82,7 @@ func validatePermission(permissionKey string, permissionValue *actionlint.Permis
 				Path:   path,
 				Type:   checker.FileTypeSource,
 				Offset: lineNumber,
-				Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
+				Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 				// TODO: set Snippet.
 			})
 		}
@@ -92,17 +93,17 @@ func validatePermission(permissionKey string, permissionValue *actionlint.Permis
 		Path:   path,
 		Type:   checker.FileTypeSource,
 		Offset: lineNumber,
-		Text:   fmt.Sprintf("'%v' permission set to '%v'", permissionKey, val),
+		Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 		// TODO: set Snippet.
 	})
 	return nil
 }
 
-func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, path string,
+func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, permLevel, path string,
 	dl checker.DetailLogger, pPermissions map[string]bool,
 	ignoredPermissions map[string]bool) error {
 	for key, v := range scopes {
-		if err := validatePermission(key, v, path, dl, pPermissions, ignoredPermissions); err != nil {
+		if err := validatePermission(key, v, permLevel, path, dl, pPermissions, ignoredPermissions); err != nil {
 			return err
 		}
 	}
@@ -119,7 +120,7 @@ func recordAllPermissionsWrite(pPermissions map[string]bool) {
 	pPermissions["all"] = true
 }
 
-func validatePermissions(permissions *actionlint.Permissions, path string,
+func validatePermissions(permissions *actionlint.Permissions, permLevel, path string,
 	dl checker.DetailLogger, pPermissions map[string]bool,
 	ignoredPermissions map[string]bool) error {
 	allIsSet := permissions != nil && permissions.All != nil && permissions.All.Value != ""
@@ -129,21 +130,18 @@ func validatePermissions(permissions *actionlint.Permissions, path string,
 			Path:   path,
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
-			Text:   "permissions set to 'none'",
+			Text:   fmt.Sprintf("%s permissions set to 'none'", permLevel),
 		})
 	}
 	if allIsSet {
 		val := permissions.All.Value
-		lineNumber := checker.OffsetDefault
-		if permissions.All.Pos != nil {
-			lineNumber = permissions.All.Pos.Line
-		}
+		lineNumber := fileparser.GetLineNumber(permissions.All.Pos)
 		if !strings.EqualFold(val, "read-all") && val != "" {
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
 				Offset: lineNumber,
-				Text:   fmt.Sprintf("permissions set to '%v'", val),
+				Text:   fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
 				// TODO: set Snippet.
 			})
 			recordAllPermissionsWrite(pPermissions)
@@ -154,10 +152,10 @@ func validatePermissions(permissions *actionlint.Permissions, path string,
 			Path:   path,
 			Type:   checker.FileTypeSource,
 			Offset: lineNumber,
-			Text:   fmt.Sprintf("permissions set to '%v'", val),
+			Text:   fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
 			// TODO: set Snippet.
 		})
-	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes, path, dl, pPermissions,
+	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes, permLevel, path, dl, pPermissions,
 		ignoredPermissions); err != nil {
 		return err
 	}
@@ -172,13 +170,13 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 			Path:   path,
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
-			Text:   "no permission defined",
+			Text:   fmt.Sprintf("no %s permission defined", topLevelPermission),
 		})
 		recordAllPermissionsWrite(pdata.topLevelWritePermissions)
 		return nil
 	}
 
-	return validatePermissions(workflow.Permissions, path, dl,
+	return validatePermissions(workflow.Permissions, topLevelPermission, path, dl,
 		pdata.topLevelWritePermissions, map[string]bool{})
 }
 
@@ -190,19 +188,17 @@ func validateRunLevelPermissions(workflow *actionlint.Workflow, path string,
 		// For most workflows, no write permissions are needed,
 		// so only top-level read-only permissions need to be declared.
 		if job.Permissions == nil {
-			lineNumber := checker.OffsetDefault
-			if job.Pos != nil {
-				lineNumber = job.Pos.Line
-			}
 			dl.Debug3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
-				Offset: lineNumber,
-				Text:   "no permission defined",
+				Offset: fileparser.GetLineNumber(job.Pos),
+				Text:   fmt.Sprintf("no %s permission defined", runLevelPermission),
 			})
+			recordAllPermissionsWrite(pdata.runLevelWritePermissions)
 			continue
 		}
-		err := validatePermissions(job.Permissions, path, dl, pdata.runLevelWritePermissions, ignoredPermissions)
+		err := validatePermissions(job.Permissions, runLevelPermission,
+			path, dl, pdata.runLevelWritePermissions, ignoredPermissions)
 		if err != nil {
 			return err
 		}
@@ -225,9 +221,18 @@ func isPermissionOfInterest(name string, ignoredPermissions map[string]bool) boo
 }
 
 func permissionIsPresent(result permissionCbData, name string) bool {
-	_, ok1 := result.topLevelWritePermissions[name]
-	_, ok2 := result.runLevelWritePermissions[name]
-	return ok1 || ok2
+	return permissionIsPresentInTopLevel(result, name) ||
+		permissionIsPresentInRunLevel(result, name)
+}
+
+func permissionIsPresentInTopLevel(result permissionCbData, name string) bool {
+	_, ok := result.topLevelWritePermissions[name]
+	return ok
+}
+
+func permissionIsPresentInRunLevel(result permissionCbData, name string) bool {
+	_, ok := result.runLevelWritePermissions[name]
+	return ok
 }
 
 // Calculate the score.
@@ -236,12 +241,19 @@ func calculateScore(result permissionCbData) int {
 	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
 	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
 
-	if permissionIsPresent(result, "all") {
-		return checker.MinResultScore
-	}
-
 	// Start with a perfect score.
 	score := float32(checker.MaxResultScore)
+
+	// If no top level permissions are defined, all the permissions
+	// are enabled by default, hence "all". In this case,
+	if permissionIsPresentInTopLevel(result, "all") {
+		if permissionIsPresentInRunLevel(result, "all") {
+			// ... give lowest score if no run level permissions are defined either.
+			return checker.MinResultScore
+		}
+		// ... reduce score if run level permissions are defined.
+		score--
+	}
 
 	// status: https://docs.github.com/en/rest/reference/repos#statuses.
 	// May allow an attacker to change the result of pre-submit and get a PR merged.
@@ -362,7 +374,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 
 	// 2. Run-level permission definitions,
 	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
-	ignoredPermissions := createIgnoredPermissions(string(content), path, dl)
+	ignoredPermissions := createIgnoredPermissions(workflow, path, dl)
 	if err := validateRunLevelPermissions(workflow, path, dl, pdata, ignoredPermissions); err != nil {
 		return false, err
 	}
@@ -374,15 +386,15 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	return true, nil
 }
 
-func createIgnoredPermissions(s, fp string, dl checker.DetailLogger) map[string]bool {
+func createIgnoredPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) map[string]bool {
 	ignoredPermissions := make(map[string]bool)
-	if requiresPackagesPermissions(s, fp, dl) {
+	if requiresPackagesPermissions(workflow, fp, dl) {
 		ignoredPermissions["packages"] = true
 	}
-	if requiresContentsPermissions(s, fp, dl) {
+	if requiresContentsPermissions(workflow, fp, dl) {
 		ignoredPermissions["contents"] = true
 	}
-	if isSARIFUploadWorkflow(s, fp, dl) {
+	if isSARIFUploadWorkflow(workflow, fp, dl) {
 		ignoredPermissions["security-events"] = true
 	}
 
@@ -390,12 +402,12 @@ func createIgnoredPermissions(s, fp string, dl checker.DetailLogger) map[string]
 }
 
 // Scanning tool run externally and SARIF file uploaded.
-func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
+func isSARIFUploadWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
 	//nolint
 	// CodeQl analysis workflow automatically sends sarif file to GitHub.
 	// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#about-sarif-file-uploads-for-code-scanning.
 	// `The CodeQL action uploads the SARIF file automatically when it completes analysis`.
-	if isCodeQlAnalysisWorkflow(s, fp, dl) {
+	if isCodeQlAnalysisWorkflow(workflow, fp, dl) {
 		return true
 	}
 
@@ -403,7 +415,7 @@ func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
 	// Third-party scanning tools use the SARIF-upload action from code-ql.
 	// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#uploading-a-code-scanning-analysis-with-github-actions
 	// We only support CodeQl today.
-	if isSARIFUploadAction(s, fp, dl) {
+	if isSARIFUploadAction(workflow, fp, dl) {
 		return true
 	}
 
@@ -415,22 +427,29 @@ func isSARIFUploadWorkflow(s, fp string, dl checker.DetailLogger) bool {
 }
 
 // CodeQl run externally and SARIF file uploaded.
-func isSARIFUploadAction(s, fp string, dl checker.DetailLogger) bool {
-	if strings.Contains(s, "github/codeql-action/upload-sarif@") {
-		dl.Debug3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// TODO: set line.
-			Offset: 1,
-			Text:   "codeql SARIF upload workflow detected",
-			// TODO: set Snippet.
-		})
-		return true
+func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	for _, job := range workflow.Jobs {
+		for _, step := range job.Steps {
+			uses := fileparser.GetUses(step)
+			if uses == nil {
+				continue
+			}
+			if strings.HasPrefix(uses.Value, "github/codeql-action/upload-sarif@") {
+				dl.Debug3(&checker.LogMessage{
+					Path:   fp,
+					Type:   checker.FileTypeSource,
+					Offset: fileparser.GetLineNumber(uses.Pos),
+					Text:   "codeql SARIF upload workflow detected",
+					// TODO: set Snippet.
+				})
+				return true
+			}
+		}
 	}
 	dl.Debug3(&checker.LogMessage{
 		Path:   fp,
 		Type:   checker.FileTypeSource,
-		Offset: 1,
+		Offset: checker.OffsetDefault,
 		Text:   "not a codeql upload SARIF workflow",
 	})
 	return false
@@ -440,22 +459,29 @@ func isSARIFUploadAction(s, fp string, dl checker.DetailLogger) bool {
 // CodeQl run within GitHub worklow automatically bubbled up to
 // security events, see
 // https://docs.github.com/en/code-security/secure-coding/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning.
-func isCodeQlAnalysisWorkflow(s, fp string, dl checker.DetailLogger) bool {
-	if strings.Contains(s, "github/codeql-action/analyze@") {
-		dl.Debug3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// TODO: set line.
-			Offset: 1,
-			Text:   "codeql workflow detected",
-			// TODO: set Snippet.
-		})
-		return true
+func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	for _, job := range workflow.Jobs {
+		for _, step := range job.Steps {
+			uses := fileparser.GetUses(step)
+			if uses == nil {
+				continue
+			}
+			if strings.HasPrefix(uses.Value, "github/codeql-action/analyze@") {
+				dl.Debug3(&checker.LogMessage{
+					Path:   fp,
+					Type:   checker.FileTypeSource,
+					Offset: fileparser.GetLineNumber(uses.Pos),
+					Text:   "codeql workflow detected",
+					// TODO: set Snippet.
+				})
+				return true
+			}
+		}
 	}
 	dl.Debug3(&checker.LogMessage{
 		Path:   fp,
 		Type:   checker.FileTypeSource,
-		Offset: 1,
+		Offset: checker.OffsetDefault,
 		Text:   "not a codeql workflow",
 	})
 	return false
@@ -463,19 +489,19 @@ func isCodeQlAnalysisWorkflow(s, fp string, dl checker.DetailLogger) bool {
 
 // A packaging workflow using GitHub's supported packages:
 // https://docs.github.com/en/packages.
-func requiresPackagesPermissions(s, fp string, dl checker.DetailLogger) bool {
+func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
 	// TODO: add support for GitHub registries.
 	// Example: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry.
 	// This feature requires parsing actions properly.
 	// For now, we just re-use the Packaging check to verify that the
 	// workflow is a packaging workflow.
-	return isPackagingWorkflow(s, fp, dl)
+	return isPackagingWorkflow(workflow, fp, dl)
 }
 
 // Note: this needs to be improved.
 // Currently we don't differentiate between publishing on GitHub vs
 // pubishing on registries. In terms of risk, both are similar, as
 // an attacker would gain the ability to push a package.
-func requiresContentsPermissions(s, fp string, dl checker.DetailLogger) bool {
-	return requiresPackagesPermissions(s, fp, dl)
+func requiresContentsPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	return requiresPackagesPermissions(workflow, fp, dl)
 }

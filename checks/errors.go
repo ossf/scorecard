@@ -20,13 +20,14 @@ import (
 
 //nolint
 var (
-	errInternalInvalidDockerFile = errors.New("invalid Dockerfile")
-	errInternalInvalidYamlFile   = errors.New("invalid yaml file")
-	errInternalFilenameMatch     = errors.New("filename match error")
-	errInternalEmptyFile         = errors.New("empty file")
-	errInternalCommitishNil      = errors.New("commitish is nil")
-	errInternalBranchNotFound    = errors.New("branch not found")
-	errInvalidGitHubWorkflow     = errors.New("invalid GitHub workflow")
-	errInternalNoReviews         = errors.New("no reviews found")
-	errInternalNoCommits         = errors.New("no commits found")
+	errInternalInvalidDockerFile  = errors.New("invalid Dockerfile")
+	errInternalInvalidYamlFile    = errors.New("invalid yaml file")
+	errInternalFilenameMatch      = errors.New("filename match error")
+	errInternalEmptyFile          = errors.New("empty file")
+	errInternalCommitishNil       = errors.New("commitish is nil")
+	errInternalBranchNotFound     = errors.New("branch not found")
+	errInvalidGitHubWorkflow      = errors.New("invalid GitHub workflow")
+	errInternalNoReviews          = errors.New("no reviews found")
+	errInternalNoCommits          = errors.New("no commits found")
+	errInternalInvalidPermissions = errors.New("invalid permissions")
 )

@@ -43,6 +43,7 @@ import (
 
 var (
 	repo        string
+	raw         bool
 	local       string
 	checksToRun []string
 	metaData    []string
@@ -271,6 +272,12 @@ var rootCmd = &cobra.Command{
 			log.Fatal("--local option not supported yet")
 		}
 
+		var v6 bool
+		_, v6 = os.LookupEnv("SCORECARD_V6")
+		if raw && !v6 {
+			log.Fatal("--raw option not supported yet")
+		}
+
 		// Validate format.
 		if !validateFormat(format) {
 			log.Fatalf("unsupported format '%s'", format)
@@ -346,7 +353,7 @@ var rootCmd = &cobra.Command{
 
 		enabledChecks, err := getEnabledChecks(policy, checksToRun, supportedChecks, repoType)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
 		if format == formatDefault {
@@ -354,7 +361,12 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
-		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
+
+		if raw && format != "json" {
+			log.Fatalf("only json format is supported")
+		}
+
+		repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -377,11 +389,14 @@ var rootCmd = &cobra.Command{
 			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatSarif:
 			// TODO: support config files and update checker.MaxResultScore.
-			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy,
-				policyFile)
+			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy)
 		case formatJSON:
-			// UPGRADEv2: rename.
-			err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
+			if raw {
+				err = repoResult.AsRawJSON(os.Stdout)
+			} else {
+				err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
+			}
+
 		default:
 			err = sce.WithMessage(sce.ErrScorecardInternal,
 				fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
@@ -539,4 +554,10 @@ func init() {
 	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
 	rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
+
+	var v6 bool
+	_, v6 = os.LookupEnv("SCORECARD_V6")
+	if v6 {
+		rootCmd.Flags().BoolVar(&raw, "raw", false, "generate raw results")
+	}
 }

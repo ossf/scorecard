@@ -263,6 +263,28 @@ func TestGithubTokenPermissions(t *testing.T) {
 				NumberOfDebug: 3,
 			},
 		},
+		{
+			name:     "workflow jobs only",
+			filename: "./testdata/github-workflow-permissions-jobs-only.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         9,
+				NumberOfWarn:  1,
+				NumberOfInfo:  3,
+				NumberOfDebug: 4,
+			},
+		},
+		{
+			name:     "security-events write, codeql comment",
+			filename: "./testdata/github-workflow-permissions-run-write-codeql-comment.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore - 1,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
+				NumberOfDebug: 4,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
