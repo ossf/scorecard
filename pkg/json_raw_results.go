@@ -33,24 +33,34 @@ type jsonScorecardRawResult struct {
 }
 
 // TODO: separate each check extraction into its own file.
-type jsonFiles struct {
+type jsonFile struct {
 	Path   string `json:"path"`
 	Offset int    `json:"offset,omitempty"`
 }
 
+type jsonConfigFiles struct {
+	Name string   `json:"name"`
+	URL  string   `json:"url"`
+	Desc string   `json:"desc"`
+	File jsonFile `json:"file"`
+}
+
 type jsonRawResults struct {
 	// List of binaries found in the repo.
-	Binaries []jsonFiles `json:"binaries"`
+	Binaries []jsonFile `json:"binaries"`
 	// List of security policy files found in the repo.
 	// Note: we return one at most.
-	SecurityPolicies []jsonFiles `json:"security-policies"`
+	SecurityPolicies []jsonFile `json:"security-policies"`
+	// List of update tools.
+	// Note: we return one at most.
+	DependencyUpdateTools []jsonConfigFiles `json:"dependency-update-tools"`
 }
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryArtifactData) error {
-	r.Results.Binaries = []jsonFiles{}
+	r.Results.Binaries = []jsonFile{}
 	for _, v := range ba.Files {
-		r.Results.Binaries = append(r.Results.Binaries, jsonFiles{
+		r.Results.Binaries = append(r.Results.Binaries, jsonFile{
 			Path: v.Path,
 		})
 	}
@@ -58,11 +68,28 @@ func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryA
 }
 
 //nolint:unparam
-func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(ba *checker.SecurityPolicyData) error {
-	r.Results.SecurityPolicies = []jsonFiles{}
-	for _, v := range ba.Files {
-		r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonFiles{
+func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.SecurityPolicyData) error {
+	r.Results.SecurityPolicies = []jsonFile{}
+	for _, v := range sp.Files {
+		r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonFile{
 			Path: v.Path,
+		})
+	}
+	return nil
+}
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.DependencyUpdateToolData) error {
+	r.Results.DependencyUpdateTools = []jsonConfigFiles{}
+	for _, v := range dut.ConfigFiles {
+		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jsonConfigFiles{
+			Name: v.Name,
+			URL:  v.URL,
+			Desc: v.Desc,
+			File: jsonFile{
+				Path:   v.File.Path,
+				Offset: v.File.Offset,
+			},
 		})
 	}
 	return nil
@@ -78,6 +105,12 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 	if err := r.addSecurityPolicyRawResults(&raw.SecurityPolicyResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
+
+	// Dependecy-Update-Tool.
+	if err := r.addDependencyUpdateToolRawResults(&raw.DependencyUpdateToolResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
 	return nil
 }
 

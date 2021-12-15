@@ -139,6 +139,15 @@ type SecurityPolicyData struct {
 	Files []File
 }
 
+// ToolConfigFile represents a config file
+// for a tool.
+type ToolConfigFile struct {
+	Name string
+	URL  string
+	Desc string
+	File File
+}
+
 // BinaryArtifactData contains the raw results
 // for the Binary-Artifact check.
 type BinaryArtifactData struct {
@@ -146,11 +155,19 @@ type BinaryArtifactData struct {
 	Files []File
 }
 
+// DependencyUpdateToolData contains the raw results
+// for the Dependency-Update-Tool check.
+type DependencyUpdateToolData struct {
+	// ConfigFiles contains a list of config files.
+	ConfigFiles []ToolConfigFile
+}
+
 // RawResults contains results before a policy
 // is applied.
 type RawResults struct {
-	BinaryArtifactResults BinaryArtifactData
-	SecurityPolicyResults SecurityPolicyData
+	BinaryArtifactResults       BinaryArtifactData
+	SecurityPolicyResults       SecurityPolicyData
+	DependencyUpdateToolResults DependencyUpdateToolData
 }
 
 // CreateProportionalScore creates a proportional score.
