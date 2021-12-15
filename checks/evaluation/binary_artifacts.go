@@ -19,7 +19,7 @@ import (
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-// BinaryArtifacts applies the score policy for the Binary-Artiacts check.
+// BinaryArtifacts applies the score policy for the Binary-Artifacts check.
 func BinaryArtifacts(name string, dl checker.DetailLogger,
 	r *checker.BinaryArtifactData) checker.CheckResult {
 	if r == nil {

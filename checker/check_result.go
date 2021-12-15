@@ -139,6 +139,38 @@ type SecurityPolicyData struct {
 	Files []File
 }
 
+// Run represents a run.
+type Run struct {
+	URL string
+	// TODO: add fields, e.g., Result=["success", "failure"]
+}
+
+// Issue represents an issue.
+type Issue struct {
+	URL string
+	// TODO: add fields, e.g., state=[opened|closed]
+}
+
+// MergeRequest represents a merge request.
+type MergeRequest struct {
+	URL string
+	// TODO: add fields, e.g., State=["merged"|"closed"]
+}
+
+// Tool represents a tool.
+type Tool struct {
+	// Runs of the tool.
+	Runs []Run
+	// Issues created by the tool.
+	Issues []Issue
+	// Merges requests created by the tool.
+	MergeRequests []MergeRequest
+	Name          string
+	URL           string
+	Desc          string
+	ConfigFiles   []File
+}
+
 // BinaryArtifactData contains the raw results
 // for the Binary-Artifact check.
 type BinaryArtifactData struct {
@@ -146,11 +178,20 @@ type BinaryArtifactData struct {
 	Files []File
 }
 
+// DependencyUpdateToolData contains the raw results
+// for the Dependency-Update-Tool check.
+type DependencyUpdateToolData struct {
+	// Tools contains a list of tools.
+	// Note: we only populate one entry at most.
+	Tools []Tool
+}
+
 // RawResults contains results before a policy
 // is applied.
 type RawResults struct {
-	BinaryArtifactResults BinaryArtifactData
-	SecurityPolicyResults SecurityPolicyData
+	BinaryArtifactResults       BinaryArtifactData
+	SecurityPolicyResults       SecurityPolicyData
+	DependencyUpdateToolResults DependencyUpdateToolData
 }
 
 // CreateProportionalScore creates a proportional score.
