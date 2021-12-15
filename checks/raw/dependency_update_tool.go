@@ -25,18 +25,18 @@ import (
 
 // DependencyUpdateTool is the exported name for Depdendency-Update-Tool.
 func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolData, error) {
-	var files []checker.ToolConfigFile
-	err := fileparser.CheckIfFileExistsV6(c, checkDependencyFileExists, &files)
+	var tools []checker.Tool
+	err := fileparser.CheckIfFileExistsV6(c, checkDependencyFileExists, &tools)
 	if err != nil {
 		return checker.DependencyUpdateToolData{}, fmt.Errorf("%w", err)
 	}
 
 	// No error, return the files.
-	return checker.DependencyUpdateToolData{ConfigFiles: files}, nil
+	return checker.DependencyUpdateToolData{Tools: tools}, nil
 }
 
 func checkDependencyFileExists(name string, data fileparser.FileCbData) (bool, error) {
-	pfiles, ok := data.(*[]checker.ToolConfigFile)
+	ptools, ok := data.(*[]checker.Tool)
 	if !ok {
 		// This never happens.
 		panic("invalid type")
@@ -44,28 +44,32 @@ func checkDependencyFileExists(name string, data fileparser.FileCbData) (bool, e
 
 	switch strings.ToLower(name) {
 	case ".github/dependabot.yml":
-		*pfiles = append(*pfiles, checker.ToolConfigFile{
+		*ptools = append(*ptools, checker.Tool{
 			Name: "Dependabot",
 			URL:  "https://github.com/dependabot",
 			Desc: "Automated dependency updates built into GitHub",
-			File: checker.File{
-				Path:   name,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
+			ConfigFiles: []checker.File{
+				{
+					Path:   name,
+					Type:   checker.FileTypeSource,
+					Offset: checker.OffsetDefault,
+				},
 			},
 		})
 
 		// https://docs.renovatebot.com/configuration-options/
 	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
 		"renovate.json5", ".renovaterc":
-		*pfiles = append(*pfiles, checker.ToolConfigFile{
+		*ptools = append(*ptools, checker.Tool{
 			Name: "Renovabot",
 			URL:  "https://github.com/renovatebot/renovate",
 			Desc: "Automated dependency updates. Multi-platform and multi-language.",
-			File: checker.File{
-				Path:   name,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
+			ConfigFiles: []checker.File{
+				{
+					Path:   name,
+					Type:   checker.FileTypeSource,
+					Offset: checker.OffsetDefault,
+				},
 			},
 		})
 	default:

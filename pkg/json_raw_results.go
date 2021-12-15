@@ -38,11 +38,13 @@ type jsonFile struct {
 	Offset int    `json:"offset,omitempty"`
 }
 
-type jsonConfigFile struct {
-	Name string   `json:"name"`
-	URL  string   `json:"url"`
-	Desc string   `json:"desc"`
-	File jsonFile `json:"file"`
+type jsonTool struct {
+	Name        string     `json:"name"`
+	URL         string     `json:"url"`
+	Desc        string     `json:"desc"`
+	ConfigFiles []jsonFile `json:"files"`
+	Runs        []string   `json:"runs`
+	// TODO: Runs, Issues, Merge requests.
 }
 
 type jsonRawResults struct {
@@ -53,7 +55,7 @@ type jsonRawResults struct {
 	SecurityPolicies []jsonFile `json:"security-policies"`
 	// List of update tools.
 	// Note: we return one at most.
-	DependencyUpdateTools []jsonConfigFile `json:"dependency-update-tools"`
+	DependencyUpdateTools []jsonTool `json:"dependency-update-tools"`
 }
 
 //nolint:unparam
@@ -80,17 +82,21 @@ func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.Securit
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.DependencyUpdateToolData) error {
-	r.Results.DependencyUpdateTools = []jsonConfigFile{}
-	for _, v := range dut.ConfigFiles {
-		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jsonConfigFile{
-			Name: v.Name,
-			URL:  v.URL,
-			Desc: v.Desc,
-			File: jsonFile{
-				Path:   v.File.Path,
-				Offset: v.File.Offset,
-			},
+	r.Results.DependencyUpdateTools = []jsonTool{}
+	for _, t := range dut.Tools {
+		offset := len(r.Results.DependencyUpdateTools)
+		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jsonTool{
+			Name: t.Name,
+			URL:  t.URL,
+			Desc: t.Desc,
 		})
+		for _, f := range t.ConfigFiles {
+			r.Results.DependencyUpdateTools[offset].ConfigFiles =
+				append(r.Results.DependencyUpdateTools[offset].ConfigFiles, jsonFile{
+					Path:   f.Path,
+					Offset: f.Offset,
+				})
+		}
 	}
 	return nil
 }

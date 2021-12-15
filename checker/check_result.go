@@ -139,13 +139,36 @@ type SecurityPolicyData struct {
 	Files []File
 }
 
-// ToolConfigFile represents a config file
-// for a tool.
-type ToolConfigFile struct {
-	Name string
-	URL  string
-	Desc string
-	File File
+// Run represents a run.
+type Run struct {
+	URL string
+	// TODO: add fields, e.g., Result=["success", "failure"]
+}
+
+// Issue represents an issue.
+type Issue struct {
+	URL string
+	// TODO: add fields, e.g., state=[opened|closed]
+}
+
+// MergeRequest represents a merge request.
+type MergeRequest struct {
+	URL string
+	// TODO: add fields, e.g., State=["merged"|"closed"]
+}
+
+// Tool represents a tool.
+type Tool struct {
+	// Runs of the tool.
+	Runs []Run
+	// Issues created by the tool.
+	Issues []Issue
+	// Merges requests created by the tool.
+	MergeRequests []MergeRequest
+	Name          string
+	URL           string
+	Desc          string
+	ConfigFiles   []File
 }
 
 // BinaryArtifactData contains the raw results
@@ -158,8 +181,9 @@ type BinaryArtifactData struct {
 // DependencyUpdateToolData contains the raw results
 // for the Dependency-Update-Tool check.
 type DependencyUpdateToolData struct {
-	// ConfigFiles contains a list of config files.
-	ConfigFiles []ToolConfigFile
+	// Tools contains a list of tools.
+	// Note: we only populate one entry at most.
+	Tools []Tool
 }
 
 // RawResults contains results before a policy

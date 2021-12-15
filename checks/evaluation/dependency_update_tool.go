@@ -15,6 +15,8 @@
 package evaluation
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v3/checker"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
@@ -28,7 +30,7 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 	}
 
 	// Apply the policy evaluation.
-	if r.ConfigFiles == nil || len(r.ConfigFiles) == 0 {
+	if r.Tools == nil || len(r.Tools) == 0 {
 		dl.Warn3(&checker.LogMessage{
 			Text: `dependabot config file not detected in source location.
 			We recommend setting this configuration in code so it can be easily verified by others.`,
@@ -40,13 +42,26 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 		return checker.CreateMinScoreResult(name, "no update tool detected")
 	}
 
-	for _, f := range r.ConfigFiles {
-		dl.Info3(&checker.LogMessage{
-			Path:   f.File.Path,
-			Type:   f.File.Type,
-			Offset: f.File.Offset,
-		})
+	// Validate the input.
+	if len(r.Tools) != 1 {
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("found %d tools, expected 1", len(r.Tools)))
+		return checker.CreateRuntimeErrorResult(name, e)
 	}
+
+	if len(r.Tools[0].ConfigFiles) != 1 {
+		e := sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("found %d config files, expected 1", len(r.Tools[0].ConfigFiles)))
+		return checker.CreateRuntimeErrorResult(name, e)
+	}
+
+	// Note: only one file per tool is present,
+	// so we do not iterate thru all entries.
+	dl.Info3(&checker.LogMessage{
+		Path:   r.Tools[0].ConfigFiles[0].Path,
+		Type:   r.Tools[0].ConfigFiles[0].Type,
+		Offset: r.Tools[0].ConfigFiles[0].Offset,
+		Text:   fmt.Sprintf("%s detected", r.Tools[0].Name),
+	})
 
 	// High score result.
 	return checker.CreateMaxScoreResult(name, "update tool detected")
