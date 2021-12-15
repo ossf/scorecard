@@ -263,6 +263,28 @@ func TestGithubTokenPermissions(t *testing.T) {
 				NumberOfDebug: 3,
 			},
 		},
+		{
+			name:     "workflow jobs only",
+			filename: "./testdata/github-workflow-permissions-jobs-only.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         9,
+				NumberOfWarn:  1,
+				NumberOfInfo:  3,
+				NumberOfDebug: 4,
+			},
+		},
+		{
+			name:     "security-events write, codeql comment",
+			filename: "./testdata/github-workflow-permissions-run-write-codeql-comment.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore - 1,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
+				NumberOfDebug: 4,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -282,6 +304,61 @@ func TestGithubTokenPermissions(t *testing.T) {
 			r := testValidateGitHubActionTokenPermissions(tt.filename, content, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
 				t.Fail()
+			}
+		})
+	}
+}
+
+func TestGithubTokenPermissionsLineNumber(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected []struct {
+			lineNumber int
+		}
+	}{
+		{
+			name:     "Job level write permission",
+			filename: "./testdata/github-workflow-permissions-run-no-codeql-write.yaml",
+			expected: []struct {
+				lineNumber int
+			}{
+				{
+					lineNumber: 22,
+				},
+			},
+		},
+		{
+			name:     "Workflow level write permission",
+			filename: "./testdata/github-workflow-permissions-writeall.yaml",
+			expected: []struct {
+				lineNumber int
+			}{
+				{
+					lineNumber: 16,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := os.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %v", err)
+			}
+			dl := scut.TestDetailLogger{}
+			testValidateGitHubActionTokenPermissions(tt.filename, content, &dl)
+			for _, expectedLog := range tt.expected {
+				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == tt.filename &&
+						logType == checker.DetailWarn
+				}
+				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
+					t.Errorf("test failed: log message not present: %+v", tt.expected)
+				}
 			}
 		})
 	}

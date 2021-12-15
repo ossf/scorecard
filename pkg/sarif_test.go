@@ -790,7 +790,7 @@ func TestSARIFOutput(t *testing.T) {
 
 			var result bytes.Buffer
 			err = tt.result.AsSARIF(tt.showDetails, tt.logLevel, &result,
-				checkDocs, &tt.policy, "/path/to/policy.yml")
+				checkDocs, &tt.policy)
 			if err != nil {
 				t.Fatalf("%s: AsSARIF: %v", tt.name, err)
 			}

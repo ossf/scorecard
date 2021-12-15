@@ -65,6 +65,17 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			},
 		},
 		{
+			name:     "Local action workflow",
+			filename: "./testdata/workflow-local-action.yaml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+		},
+		{
 			name:     "Non-pinned workflow",
 			filename: "./testdata/workflow-not-pinned.yaml",
 			expected: scut.TestReturn{
@@ -228,7 +239,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  22,
+				NumberOfWarn:  25,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
@@ -378,6 +389,79 @@ func TestDockerfilePinning(t *testing.T) {
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()
+			}
+		})
+	}
+}
+
+func TestDockerfilePinningFromLineNumber(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected []struct {
+			snippet    string
+			lineNumber int
+		}
+	}{
+		{
+			name:     "Non-pinned dockerfile as",
+			filename: "./testdata/Dockerfile-not-pinned-as",
+			expected: []struct {
+				snippet    string
+				lineNumber int
+			}{
+				{
+					snippet:    "FROM python:3.7 as build",
+					lineNumber: 17,
+				},
+				{
+					snippet:    "FROM build",
+					lineNumber: 23,
+				},
+				{
+					snippet:    "FROM base2",
+					lineNumber: 29,
+				},
+			},
+		},
+		{
+			name:     "Non-pinned dockerfile",
+			filename: "./testdata/Dockerfile-not-pinned",
+			expected: []struct {
+				snippet    string
+				lineNumber int
+			}{
+				{
+					snippet:    "FROM python:3.7",
+					lineNumber: 17,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := os.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %v", err)
+			}
+			dl := scut.TestDetailLogger{}
+			var pinned pinnedResult
+			_, err = validateDockerfileIsPinned(tt.filename, content, &dl, &pinned)
+			if err != nil {
+				t.Errorf("error during validateDockerfileIsPinned: %v", err)
+			}
+			for _, expectedLog := range tt.expected {
+				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == tt.filename &&
+						logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn &&
+						strings.Contains(logMessage.Text, "dependency not pinned by hash")
+				}
+				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
+					t.Errorf("test failed: log message not present: %+v", tt.expected)
+				}
 			}
 		})
 	}
@@ -568,7 +652,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  31,
+				NumberOfWarn:  36,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
@@ -732,7 +816,7 @@ func TestShellScriptDownload(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  28,
+				NumberOfWarn:  31,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},

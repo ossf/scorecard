@@ -7,6 +7,8 @@ cron/data/validate/validate
 cron/data/update/projects-update
 cron/controller/controller
 cron/worker/worker
+cron/cii/cii-worker
+cron/shuffle/shuffle
 cron/webhook/webhook
 cron/bq/data-transfer
 
@@ -31,10 +33,13 @@ results.json
 *.iml
 .idea
 
-# tools 
+# tools
 bin
 
 cache
 output
 gitfolder.*
 githubrepo.tar.gz
+
+# goreleaser
+dist/*

@@ -43,6 +43,7 @@ import (
 
 var (
 	repo        string
+	raw         bool
 	local       string
 	checksToRun []string
 	metaData    []string
@@ -72,7 +73,7 @@ const (
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
 	scorecardUse  = `./scorecard [--repo=<repo_url>] [--local=folder] [--checks=check1,...]
-	 [--show-details] [--policy=file] or ./scorecard --{npm,pypi,rubgems}=<package_name> 
+	 [--show-details] [--policy=file] or ./scorecard --{npm,pypi,rubygems}=<package_name> 
 	 [--checks=check1,...] [--show-details] [--policy=file]`
 	scorecardShort = "Security Scorecards"
 )
@@ -138,6 +139,10 @@ func getAllChecks() checker.CheckNameToFnMap {
 	// TODO: Remove this to enable the DANGEROUS_WORKFLOW by default in the next release.
 	if _, dangerousWorkflowCheck := os.LookupEnv("ENABLE_DANGEROUS_WORKFLOW"); !dangerousWorkflowCheck {
 		delete(possibleChecks, checks.CheckDangerousWorkflow)
+	}
+	// TODO: Remove this to enable the LICENSE_CHECK by default in the next release.
+	if _, licenseflowCheck := os.LookupEnv("ENABLE_LICENSE"); !licenseflowCheck {
+		delete(possibleChecks, checks.CheckLicense)
 	}
 	return possibleChecks
 }
@@ -206,22 +211,33 @@ func validateFormat(format string) bool {
 	}
 }
 
-func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (clients.Repo,
-	clients.RepoClient, string, error) {
-	var repo clients.Repo
-	var errLocal error
-	var errGitHub error
-	if repo, errLocal = localdir.MakeLocalDirRepo(uri); errLocal == nil {
+func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (
+	repo clients.Repo,
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient,
+	repoType string,
+	err error) {
+	var localRepo, githubRepo clients.Repo
+	var errLocal, errGitHub error
+	if localRepo, errLocal = localdir.MakeLocalDirRepo(uri); errLocal == nil {
 		// Local directory.
-		return repo, localdir.CreateLocalDirClient(ctx, logger), repoTypeLocal, nil
+		repoType = repoTypeLocal
+		repo = localRepo
+		repoClient = localdir.CreateLocalDirClient(ctx, logger)
+		return
 	}
-
-	if repo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub == nil {
+	if githubRepo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub == nil {
 		// GitHub URL.
-		return repo, githubrepo.CreateGithubRepoClient(ctx, logger), repoTypeGitHub, nil
+		repoType = repoTypeGitHub
+		repo = githubRepo
+		repoClient = githubrepo.CreateGithubRepoClient(ctx, logger)
+		ciiClient = clients.DefaultCIIBestPracticesClient()
+		ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+		return
 	}
-	return nil, nil, "",
-		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s: [%v, %v]", uri, errLocal, errGitHub))
+	err = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s: [%v, %v]", uri, errLocal, errGitHub))
+	return
 }
 
 func getURI(repo, local string) (string, error) {
@@ -254,6 +270,12 @@ var rootCmd = &cobra.Command{
 
 		if local != "" && !v4 {
 			log.Fatal("--local option not supported yet")
+		}
+
+		var v6 bool
+		_, v6 = os.LookupEnv("SCORECARD_V6")
+		if raw && !v6 {
+			log.Fatal("--raw option not supported yet")
 		}
 
 		// Validate format.
@@ -309,13 +331,14 @@ var rootCmd = &cobra.Command{
 		// nolint
 		defer logger.Sync() // Flushes buffer, if any.
 
-		repoURI, repoClient, repoType, err := getRepoAccessors(ctx, uri, logger)
+		repoURI, repoClient, ossFuzzRepoClient, ciiClient, repoType, err := getRepoAccessors(ctx, uri, logger)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer repoClient.Close()
-
-		ciiClient := clients.DefaultCIIBestPracticesClient()
+		if ossFuzzRepoClient != nil {
+			defer ossFuzzRepoClient.Close()
+		}
 
 		// Read docs.
 		checkDocs, err := docs.Read()
@@ -330,7 +353,7 @@ var rootCmd = &cobra.Command{
 
 		enabledChecks, err := getEnabledChecks(policy, checksToRun, supportedChecks, repoType)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
 		if format == formatDefault {
@@ -338,7 +361,12 @@ var rootCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 			}
 		}
-		repoResult, err := pkg.RunScorecards(ctx, repoURI, enabledChecks, repoClient, ciiClient)
+
+		if raw && format != "json" {
+			log.Fatalf("only json format is supported")
+		}
+
+		repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -361,11 +389,14 @@ var rootCmd = &cobra.Command{
 			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
 		case formatSarif:
 			// TODO: support config files and update checker.MaxResultScore.
-			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy,
-				policyFile)
+			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy)
 		case formatJSON:
-			// UPGRADEv2: rename.
-			err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
+			if raw {
+				err = repoResult.AsRawJSON(os.Stdout)
+			} else {
+				err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
+			}
+
 		default:
 			err = sce.WithMessage(sce.ErrScorecardInternal,
 				fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
@@ -523,4 +554,10 @@ func init() {
 	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
 	rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
+
+	var v6 bool
+	_, v6 = os.LookupEnv("SCORECARD_V6")
+	if v6 {
+		rootCmd.Flags().BoolVar(&raw, "raw", false, "generate raw results")
+	}
 }

@@ -58,6 +58,10 @@ const (
 	FileTypeURL
 )
 
+// OffsetDefault is used if we can't determine the offset, for example when referencing a file but not a
+// specific location in the file.
+const OffsetDefault = 1
+
 // LogMessage is a structure that encapsulates detail's information.
 // This allows updating the definition easily.
 //nolint
@@ -114,6 +118,80 @@ type CheckResult struct {
 	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
 	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
+
+}
+
+// ====== Raw results for checks =========.
+
+// File represents a file.
+type File struct {
+	Path    string
+	Snippet string   // Snippet of code
+	Offset  int      // Offset in the file of Path (line for source/text files).
+	Type    FileType // Type of file.
+	// TODO: add hash.
+}
+
+// SecurityPolicyData contains the raw results
+// for the Security-Policy check.
+type SecurityPolicyData struct {
+	// Files contains a list of files.
+	Files []File
+}
+
+// Run represents a run.
+type Run struct {
+	URL string
+	// TODO: add fields, e.g., Result=["success", "failure"]
+}
+
+// Issue represents an issue.
+type Issue struct {
+	URL string
+	// TODO: add fields, e.g., state=[opened|closed]
+}
+
+// MergeRequest represents a merge request.
+type MergeRequest struct {
+	URL string
+	// TODO: add fields, e.g., State=["merged"|"closed"]
+}
+
+// Tool represents a tool.
+type Tool struct {
+	// Runs of the tool.
+	Runs []Run
+	// Issues created by the tool.
+	Issues []Issue
+	// Merges requests created by the tool.
+	MergeRequests []MergeRequest
+	Name          string
+	URL           string
+	Desc          string
+	ConfigFiles   []File
+}
+
+// BinaryArtifactData contains the raw results
+// for the Binary-Artifact check.
+type BinaryArtifactData struct {
+	// Files contains a list of files.
+	Files []File
+}
+
+// DependencyUpdateToolData contains the raw results
+// for the Dependency-Update-Tool check.
+type DependencyUpdateToolData struct {
+	// Tools contains a list of tools.
+	// Note: we only populate one entry at most.
+	Tools []Tool
+}
+
+// RawResults contains results before a policy
+// is applied.
+type RawResults struct {
+	BinaryArtifactResults       BinaryArtifactData
+	SecurityPolicyResults       SecurityPolicyData
+	DependencyUpdateToolResults DependencyUpdateToolData
 }
 
 // CreateProportionalScore creates a proportional score.

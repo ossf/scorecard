@@ -15,14 +15,9 @@
 package checks
 
 import (
-	"fmt"
-	"path/filepath"
-	"strings"
-
-	"github.com/h2non/filetype"
-	"github.com/h2non/filetype/types"
-
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks/evaluation"
+	"github.com/ossf/scorecard/v3/checks/raw"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
@@ -34,86 +29,20 @@ func init() {
 	registerCheck(CheckBinaryArtifacts, BinaryArtifacts)
 }
 
-// BinaryArtifacts  will check the repository if it contains binary artifacts.
+// BinaryArtifacts  will check the repository contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	var binFound bool
-	err := CheckFilesContent("*", false, c, checkBinaryFileContent, &binFound)
+	rawData, err := raw.BinaryArtifacts(c.RepoClient)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
 	}
-	if binFound {
-		return checker.CreateMinScoreResult(CheckBinaryArtifacts, "binaries present in source code")
+
+	// Return raw results.
+	if c.RawResults != nil {
+		c.RawResults.BinaryArtifactResults = rawData
+		return checker.CheckResult{}
 	}
 
-	return checker.CreateMaxScoreResult(CheckBinaryArtifacts, "no binaries found in the repo")
-}
-
-func checkBinaryFileContent(path string, content []byte,
-	dl checker.DetailLogger, data FileCbData) (bool, error) {
-	pfound := FileGetCbDataAsBoolPointer(data)
-	binaryFileTypes := map[string]bool{
-		"crx":     true,
-		"deb":     true,
-		"dex":     true,
-		"dey":     true,
-		"elf":     true,
-		"bin":     true,
-		"o":       true,
-		"so":      true,
-		"iso":     true,
-		"class":   true,
-		"jar":     true,
-		"bundle":  true,
-		"dylib":   true,
-		"lib":     true,
-		"msi":     true,
-		"acm":     true,
-		"ax":      true,
-		"cpl":     true,
-		"dll":     true,
-		"drv":     true,
-		"efi":     true,
-		"exe":     true,
-		"mui":     true,
-		"ocx":     true,
-		"scr":     true,
-		"sys":     true,
-		"tsp":     true,
-		"pyc":     true,
-		"pyo":     true,
-		"par":     true,
-		"rpm":     true,
-		"swf":     true,
-		"torrent": true,
-		"cab":     true,
-		"whl":     true,
-	}
-	var t types.Type
-	var err error
-	if len(content) == 0 {
-		return true, nil
-	}
-	if t, err = filetype.Get(content); err != nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("filetype.Get:%v", err))
-	}
-
-	if _, ok := binaryFileTypes[t.Extension]; ok {
-		dl.Warn3(&checker.LogMessage{
-			Path: path, Type: checker.FileTypeBinary,
-			Text: "binary detected",
-		})
-		*pfound = true
-		return true, nil
-	} else if _, ok := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]; ok {
-		// Falling back to file based extension.
-		dl.Warn3(&checker.LogMessage{
-			Path: path, Type: checker.FileTypeBinary,
-			Text: "binary detected",
-		})
-		*pfound = true
-		return true, nil
-	}
-
-	return true, nil
+	// Return the score evaluation.
+	return evaluation.BinaryArtifacts(CheckBinaryArtifacts, c.Dlogger, &rawData)
 }

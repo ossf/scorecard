@@ -22,5 +22,4 @@ jobs:
       packages: write
     steps:
       - name: some name
-        run: echo "write-and-read workflow"
         uses: docker/build-push-action@1.2.3

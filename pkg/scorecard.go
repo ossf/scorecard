@@ -28,14 +28,16 @@ import (
 )
 
 func runEnabledChecks(ctx context.Context,
-	repo clients.Repo, checksToRun checker.CheckNameToFnMap,
-	repoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient,
+	repo clients.Repo, raw *checker.RawResults, checksToRun checker.CheckNameToFnMap,
+	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient,
 	resultsCh chan checker.CheckResult) {
 	request := checker.CheckRequest{
-		Ctx:        ctx,
-		RepoClient: repoClient,
-		CIIClient:  ciiClient,
-		Repo:       repo,
+		Ctx:         ctx,
+		RepoClient:  repoClient,
+		OssFuzzRepo: ossFuzzRepoClient,
+		CIIClient:   ciiClient,
+		Repo:        repo,
+		RawResults:  raw,
 	}
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
@@ -72,8 +74,11 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 // RunScorecards runs enabled Scorecard checks on a Repo.
 func RunScorecards(ctx context.Context,
 	repo clients.Repo,
+	raw bool,
 	checksToRun checker.CheckNameToFnMap,
-	repoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient) (ScorecardResult, error) {
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient) (ScorecardResult, error) {
 	if err := repoClient.InitRepo(repo); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
@@ -98,7 +103,12 @@ func RunScorecards(ctx context.Context,
 		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)
-	go runEnabledChecks(ctx, repo, checksToRun, repoClient, ciiClient, resultsCh)
+	if raw {
+		go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
+	} else {
+		go runEnabledChecks(ctx, repo, nil, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, resultsCh)
+	}
+
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}

@@ -28,7 +28,7 @@ const (
 	releaseLookBack     = 5
 )
 
-var artifactExtensions = []string{".asc", ".minisig", ".sig"}
+var artifactExtensions = []string{".asc", ".minisig", ".sig", ".sign"}
 
 //nolint:gochecknoinits
 func init() {

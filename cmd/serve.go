@@ -65,8 +65,14 @@ var serveCmd = &cobra.Command{
 			}
 			ctx := r.Context()
 			repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
+			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+			if err != nil {
+				sugar.Error(err)
+				rw.WriteHeader(http.StatusInternalServerError)
+			}
+			defer ossFuzzRepoClient.Close()
 			ciiClient := clients.DefaultCIIBestPracticesClient()
-			repoResult, err := pkg.RunScorecards(ctx, repo, checks.AllChecks, repoClient, ciiClient)
+			repoResult, err := pkg.RunScorecards(ctx, repo, false, checks.AllChecks, repoClient, ossFuzzRepoClient, ciiClient)
 			if err != nil {
 				sugar.Error(err)
 				rw.WriteHeader(http.StatusInternalServerError)

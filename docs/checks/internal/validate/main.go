@@ -14,6 +14,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -70,6 +71,10 @@ func listCheckFiles() (map[string]string, error) {
 			continue
 		}
 
+		// WARNING: assume the filename is the same during migration
+		// from `checks/`` to `checks/raw/`.
+		// TODO: UPGRADEv6: remove this temporary fix.
+		fullpathraw := path.Join("checks/raw", file.Name())
 		fullpath := path.Join("checks/", file.Name())
 		content, err := os.ReadFile(fullpath)
 		if err != nil {
@@ -86,8 +91,14 @@ func listCheckFiles() (map[string]string, error) {
 			//nolint:goerr113
 			return nil, fmt.Errorf("check %s already exists: %v", r, entry)
 		}
-		checkFiles[r] = fullpath
+		// TODO: UPGRADEv6: remove this temporary fix.
+		if _, err := os.Stat(fullpathraw); errors.Is(err, os.ErrNotExist) {
+			checkFiles[r] = fullpath
+		} else {
+			checkFiles[r] = fullpathraw
+		}
 	}
+
 	return checkFiles, nil
 }
 
@@ -136,7 +147,7 @@ func contains(l []string, elt string) bool {
 func supportedInterfacesFromImplementation(checkName string, checkFiles map[string]string) ([]string, error) {
 	// Special case. No APIs are used,
 	// but we need the repo name for an online database lookup.
-	if checkName == "CII-Best-Practices" {
+	if checkName == checks.CheckCIIBestPractices || checkName == checks.CheckFuzzing {
 		return []string{"GitHub"}, nil
 	}
 

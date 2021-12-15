@@ -17,10 +17,12 @@ package checks
 import (
 	"fmt"
 	"path/filepath"
-	"regexp"
 	"strings"
 
+	"github.com/rhysd/actionlint"
+
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/checks/fileparser"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
@@ -51,7 +53,12 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 
-		if !isPackagingWorkflow(string(fc), fp, c.Dlogger) {
+		workflow, errs := actionlint.Parse(fc)
+		if len(errs) > 0 && workflow == nil {
+			e := fileparser.FormatActionlintError(errs)
+			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
+		}
+		if !isPackagingWorkflow(workflow, fp, c.Dlogger) {
 			continue
 		}
 
@@ -62,20 +69,18 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		}
 		if len(runs) > 0 {
 			c.Dlogger.Info3(&checker.LogMessage{
-				Path: fp,
-				Type: checker.FileTypeSource,
-				// Source file must have line number > 0.
-				Offset: 1,
+				Path:   fp,
+				Type:   checker.FileTypeSource,
+				Offset: checker.OffsetDefault,
 				Text:   fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL),
 			})
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
 		c.Dlogger.Info3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
+			Path:   fp,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
 			Text:   "GitHub publishing workflow not used in runs",
 		})
 	}
@@ -89,147 +94,135 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 }
 
 // A packaging workflow.
-func isPackagingWorkflow(s, fp string, dl checker.DetailLogger) bool {
-	// Nodejs packages.
-	if strings.Contains(s, "actions/setup-node@") {
-		r1 := regexp.MustCompile(`(?s)registry-url.*https://registry\.npmjs\.org`)
-		r2 := regexp.MustCompile(`(?s)npm.*publish`)
+func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	jobMatchers := []fileparser.JobMatcher{
+		{
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-node",
+					With: map[string]string{"registry-url": "https://registry.npmjs.org"},
+				},
+				{
+					Run: "npm.*publish",
+				},
+			},
+			LogText: "candidate node publishing workflow using npm",
+		},
+		{
+			// Java packages with maven.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-java",
+				},
+				{
+					Run: "mvn.*deploy",
+				},
+			},
+			LogText: "candidate java publishing workflow using maven",
+		},
+		{
+			// Java packages with gradle.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-java",
+				},
+				{
+					Run: "gradle.*publish",
+				},
+			},
+			LogText: "candidate java publishing workflow using gradle",
+		},
+		{
+			// Ruby packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Run: "gem.*push",
+				},
+			},
+			LogText: "candidate ruby publishing workflow using gem",
+		},
+		{
+			// NuGet packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Run: "nuget.*push",
+				},
+			},
+			LogText: "candidate nuget publishing workflow",
+		},
+		{
+			// Docker packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Run: "docker.*push",
+				},
+			},
+			LogText: "candidate docker publishing workflow",
+		},
+		{
+			// Docker packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "docker/build-push-action",
+				},
+			},
+			LogText: "candidate docker publishing workflow",
+		},
+		{
+			// Python packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-python",
+				},
+				{
+					Uses: "pypa/gh-action-pypi-publish",
+				},
+			},
+			LogText: "candidate python publishing workflow using pypi",
+		},
+		{
+			// Go packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-go",
+				},
+				{
+					Uses: "goreleaser/goreleaser-action",
+				},
+			},
+			LogText: "candidate golang publishing workflow",
+		},
+		{
+			// Rust packages. https://doc.rust-lang.org/cargo/reference/publishing.html
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Run: "cargo.*publish",
+				},
+			},
+			LogText: "candidate rust publishing workflow using cargo",
+		},
+	}
 
-		if r1.MatchString(s) && r2.MatchString(s) {
+	for _, job := range workflow.Jobs {
+		for _, matcher := range jobMatchers {
+			if !matcher.Matches(job) {
+				continue
+			}
+
 			dl.Info3(&checker.LogMessage{
-				Path: fp,
-				Type: checker.FileTypeSource,
-				// Source file must have line number > 0.
-				Offset: 1,
-				Text:   "candidate node publishing workflow using npm",
+				Path:   fp,
+				Type:   checker.FileTypeSource,
+				Offset: fileparser.GetLineNumber(job.Pos),
+				Text:   matcher.LogText,
 			})
 			return true
 		}
-	}
-
-	// Java packages.
-	if strings.Contains(s, "actions/setup-java@") {
-		// Java packages with maven.
-		r1 := regexp.MustCompile(`(?s)mvn.*deploy`)
-		if r1.MatchString(s) {
-			dl.Info3(&checker.LogMessage{
-				Path: fp,
-				Type: checker.FileTypeSource,
-				// Source file must have line number > 0.
-				Offset: 1,
-				Text:   "candidate java publishing workflow using maven",
-			})
-			return true
-		}
-
-		// Java packages with gradle.
-		r2 := regexp.MustCompile(`(?s)gradle.*publish`)
-		if r2.MatchString(s) {
-			dl.Info3(&checker.LogMessage{
-				Path: fp,
-				Type: checker.FileTypeSource,
-				// Source file must have line number > 0.
-				Offset: 1,
-				Text:   "candidate java publishing workflow using gradle",
-			})
-			return true
-		}
-	}
-
-	// Ruby packages.
-	r := regexp.MustCompile(`(?s)gem.*push`)
-	if r.MatchString(s) {
-		dl.Info3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
-			Text:   "candidate ruby publishing workflow using gem",
-		})
-		return true
-	}
-
-	// NuGet packages.
-	r = regexp.MustCompile(`(?s)nuget.*push`)
-	if r.MatchString(s) {
-		dl.Info3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
-			Text:   "candidate nuget publishing workflow",
-		})
-		return true
-	}
-
-	// Docker packages.
-	if strings.Contains(s, "docker/build-push-action@") {
-		dl.Info3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
-			Text:   "candidate docker publishing workflow",
-		})
-		return true
-	}
-
-	r = regexp.MustCompile(`(?s)docker.*push`)
-	if r.MatchString(s) {
-		dl.Info3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
-			Text:   "candidate docker publishing workflow",
-		})
-		return true
-	}
-
-	// Python packages.
-	if strings.Contains(s, "actions/setup-python@") && strings.Contains(s, "pypa/gh-action-pypi-publish@master") {
-		dl.Info3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
-			Text:   "candidate python publishing workflow using pypi",
-		})
-		return true
-	}
-
-	// Go packages.
-	if strings.Contains(s, "actions/setup-go") &&
-		strings.Contains(s, "goreleaser/goreleaser-action@") {
-		dl.Info3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
-			Text:   "candidate golang publishing workflow",
-		})
-		return true
-	}
-
-	// Rust packages.
-	// https://doc.rust-lang.org/cargo/reference/publishing.html.
-	r = regexp.MustCompile(`(?s)cargo.*publish`)
-	if r.MatchString(s) {
-		dl.Info3(&checker.LogMessage{
-			Path: fp,
-			Type: checker.FileTypeSource,
-			// Source file must have line number > 0.
-			Offset: 1,
-			Text:   "candidate rust publishing workflow using cargo",
-		})
-		return true
 	}
 
 	dl.Debug3(&checker.LogMessage{
-		Path: fp,
-		Type: checker.FileTypeSource,
-		// Source file must have line number > 0.
-		Offset: 1,
+		Path:   fp,
+		Type:   checker.FileTypeSource,
+		Offset: checker.OffsetDefault,
 		Text:   "not a publishing workflow",
 	})
 	return false
