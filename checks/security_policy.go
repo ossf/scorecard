@@ -15,14 +15,9 @@
 package checks
 
 import (
-	"errors"
-	"strings"
-
-	"go.uber.org/zap"
-
 	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	"github.com/ossf/scorecard/v3/checks/evaluation"
+	"github.com/ossf/scorecard/v3/checks/raw"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
@@ -36,96 +31,17 @@ func init() {
 
 // SecurityPolicy runs Security-Policy check.
 func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
-	// TODO: not supported for local clients.
-	var r bool
-	// Check repository for repository-specific policy.
-	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
-	onFile := func(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
-		pdata := fileparser.FileGetCbDataAsBoolPointer(data)
-		if strings.EqualFold(name, "security.md") ||
-			strings.EqualFold(name, ".github/security.md") ||
-			strings.EqualFold(name, "docs/security.md") {
-			c.Dlogger.Info3(&checker.LogMessage{
-				Path:   name,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
-				Text:   "security policy detected",
-			})
-			*pdata = true
-			return false, nil
-		} else if isSecurityRstFound(name) {
-			c.Dlogger.Info3(&checker.LogMessage{
-				Path:   name,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
-				Text:   "security policy detected",
-			})
-			*pdata = true
-			return false, nil
-		}
-		return true, nil
-	}
-	err := fileparser.CheckIfFileExists(CheckSecurityPolicy, c, onFile, &r)
+	rawData, err := raw.SecurityPolicy(c)
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
-	}
-	if r {
-		return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, e)
 	}
 
-	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
-	logger, err := githubrepo.NewLogger(zap.InfoLevel)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
-	}
-	dotGitHub := &checker.CheckRequest{
-		Ctx:        c.Ctx,
-		Dlogger:    c.Dlogger,
-		RepoClient: githubrepo.CreateGithubRepoClient(c.Ctx, logger),
-		Repo:       c.Repo.Org(),
+	// Set the raw results.
+	if c.RawResults != nil {
+		c.RawResults.SecurityPolicyResults = rawData
+		return checker.CheckResult{}
 	}
 
-	err = dotGitHub.RepoClient.InitRepo(dotGitHub.Repo)
-	switch {
-	case err == nil:
-		defer dotGitHub.RepoClient.Close()
-		onFile = func(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
-			pdata := fileparser.FileGetCbDataAsBoolPointer(data)
-			if strings.EqualFold(name, "security.md") ||
-				strings.EqualFold(name, ".github/security.md") ||
-				strings.EqualFold(name, "docs/security.md") {
-				dl.Info3(&checker.LogMessage{
-					Path:   name,
-					Type:   checker.FileTypeSource,
-					Offset: checker.OffsetDefault,
-					Text:   "security policy detected in .github folder",
-				})
-				*pdata = true
-				return false, nil
-			}
-			return true, nil
-		}
-		err = fileparser.CheckIfFileExists(CheckSecurityPolicy, dotGitHub, onFile, &r)
-		if err != nil {
-			return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
-		}
-		if r {
-			return checker.CreateMaxScoreResult(CheckSecurityPolicy, "security policy file detected")
-		}
-	case errors.Is(err, sce.ErrRepoUnreachable):
-		break
-	default:
-		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, err)
-	}
-
-	return checker.CreateMinScoreResult(CheckSecurityPolicy, "security policy file not detected")
-}
-
-func isSecurityRstFound(name string) bool {
-	if strings.EqualFold(name, "doc/security.rst") {
-		return true
-	} else if strings.EqualFold(name, "docs/security.rst") {
-		return true
-	}
-	return false
+	return evaluation.SecurityPolicy(CheckSecurityPolicy, c.Dlogger, &rawData)
 }

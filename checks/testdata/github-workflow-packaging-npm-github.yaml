@@ -11,15 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-name: write-and-read workflow
-on: [push]
-permissions: read-all
 
 jobs:
-  Explore-GitHub-Actions:
+  publish:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
     steps:
-      - name: some name
-        uses: docker/build-push-action@1.2.3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          registry-url: 'https://npm.pkg.github.com'
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

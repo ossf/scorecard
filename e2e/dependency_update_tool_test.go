@@ -52,7 +52,7 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 				NumberOfDebug: 0,
 			}
 
-			result := checks.UsesDependencyUpdateTool(&req)
+			result := checks.DependencyUpdateTool(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
@@ -82,7 +82,7 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
-			result := checks.UsesDependencyUpdateTool(&req)
+			result := checks.DependencyUpdateTool(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())

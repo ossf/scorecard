@@ -114,7 +114,7 @@ func LicenseCheck(c *checker.CheckRequest) checker.CheckResult {
 		return true, nil
 	}
 
-	err := fileparser.CheckIfFileExists(CheckLicense, c, onFile, &r)
+	err := fileparser.CheckIfFileExists(c, onFile, &r)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckLicense, err)
 	}

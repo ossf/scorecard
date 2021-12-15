@@ -19,9 +19,8 @@ import (
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
-// BinaryArtifacts applies the score policy for the Binary-Artifacts check.
-func BinaryArtifacts(name string, dl checker.DetailLogger,
-	r *checker.BinaryArtifactData) checker.CheckResult {
+// SecurityPolicy applies the score policy for the Security-Policy check.
+func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPolicyData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)
@@ -29,15 +28,22 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 
 	// Apply the policy evaluation.
 	if r.Files == nil || len(r.Files) == 0 {
-		return checker.CreateMaxScoreResult(name, "no binaries found in the repo")
+		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
 
 	for _, f := range r.Files {
-		dl.Warn3(&checker.LogMessage{
-			Path: f.Path, Type: checker.FileTypeBinary,
-			Text: "binary detected",
-		})
+		msg := checker.LogMessage{
+			Path:   f.Path,
+			Type:   f.Type,
+			Offset: f.Offset,
+		}
+		if msg.Type == checker.FileTypeURL {
+			msg.Text = "security policy detected in org repo"
+		} else {
+			msg.Text = "security policy detected"
+		}
+		dl.Info3(&msg)
 	}
 
-	return checker.CreateMinScoreResult(name, "binaries present in source code")
+	return checker.CreateMaxScoreResult(name, "security policy file detected")
 }

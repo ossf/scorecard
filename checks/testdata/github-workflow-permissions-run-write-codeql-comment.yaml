@@ -19,7 +19,9 @@ jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     permissions:
-      packages: write
+      security-events: write
     steps:
-      - name: some name
-        uses: docker/build-push-action@1.2.3
+      - name: Perform CodeQL Analysis
+        uses: github/some-action/analyze@v1
+        run: echo "write-and-read workflow"
+        # Some comment about github/codeql-action/analyze@v1

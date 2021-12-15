@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2021 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,22 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
+package raw
 
-import (
-	"context"
+import "github.com/ossf/scorecard/v3/checker"
 
-	"github.com/ossf/scorecard/v3/clients"
-)
-
-// CheckRequest struct encapsulates all data to be passed into a CheckFn.
-type CheckRequest struct {
-	Ctx         context.Context
-	RepoClient  clients.RepoClient
-	CIIClient   clients.CIIBestPracticesClient
-	OssFuzzRepo clients.RepoClient
-	Dlogger     DetailLogger
-	Repo        clients.Repo
-	// UPGRADEv6: return raw results instead of scores.
-	RawResults *RawResults
+// File represents a file.
+type File struct {
+	Path   string
+	Type   checker.FileType
+	Offset int
+	// TODO: add hash if needed.
 }

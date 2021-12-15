@@ -11,15 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-name: write-and-read workflow
-on: [push]
-permissions: read-all
 
 jobs:
-  Explore-GitHub-Actions:
+  publish:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
     steps:
-      - name: some name
-        uses: docker/build-push-action@1.2.3
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v2
+        with:
+         go-version: 1.17
+      - uses: goreleaser/goreleaser-action@v2
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
