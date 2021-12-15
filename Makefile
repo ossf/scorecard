@@ -197,36 +197,43 @@ ko-build-everything: $(ko-targets)
 scorecard-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/scorecard LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
+			   --push=false \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3
 cron-controller-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-controller LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
+			   --push=false \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/controller
 cron-worker-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-worker LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
+			   --push=false \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/worker
 cron-cii-worker-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cii-worker LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
+			   --push=false \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/cii
 cron-bq-transfer-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-bq-transfer LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
+			   --push=false \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/bq
 cron-webhook-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cron-webhook LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
+			   --push=false \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/webhook
 cron-github-server-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-github-server LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
+			   --push=false \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/clients/githubrepo/roundtripper/tokens/server
 

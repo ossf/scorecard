@@ -13,9 +13,9 @@
 # limitations under the License.
 
 steps:
-- name: ghcr.io/google/ko
-  env:
-  - KO_PREFIX=gcr.io/${PROJECT_ID}
-  entrypoint: make
-  args:
-  - make ko-build-everything
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '.',
+    '-t', 'gcr.io/openssf/scorecard:latest',
+    '-t', 'gcr.io/openssf/scorecard:$COMMIT_SHA',
+    '-f', 'Dockerfile']
+images: ['gcr.io/openssf/scorecard']
