@@ -47,16 +47,16 @@ type jsonTool struct {
 }
 
 type jsonBranchProtectionSettings struct {
-	RequiredApprovingReviewCount        *int      `json:"required-reviewer-count"`
-	AllowsDeletions                     *bool     `json:"allows-deletions"`
-	AllowsForcePushes                   *bool     `json:"allows-force-pushes"`
-	RequiresCodeOwnerReviews            *bool     `json:"requires-code-owner-review"`
-	RequiresLinearHistory               *bool     `json:"required-linear-history"`
-	DismissesStaleReviews               *bool     `json:"dismisses-stale-reviews"`
-	EnforcesAdmins                      *bool     `json:"enforces-admin"`
-	RequiresStatusChecks                *bool     `json:"requires-status-checks"`
-	RequiresUpToDateBranchBeforeMerging *bool     `json:"requires-updated-branches-to-merge"`
-	StatusCheckContexts                 *[]string `json:"status-checks-contexts"`
+	RequiredApprovingReviewCount        *int     `json:"required-reviewer-count"`
+	AllowsDeletions                     *bool    `json:"allows-deletions"`
+	AllowsForcePushes                   *bool    `json:"allows-force-pushes"`
+	RequiresCodeOwnerReviews            *bool    `json:"requires-code-owner-review"`
+	RequiresLinearHistory               *bool    `json:"required-linear-history"`
+	DismissesStaleReviews               *bool    `json:"dismisses-stale-reviews"`
+	EnforcesAdmins                      *bool    `json:"enforces-admin"`
+	RequiresStatusChecks                *bool    `json:"requires-status-checks"`
+	RequiresUpToDateBranchBeforeMerging *bool    `json:"requires-updated-branches-to-merge"`
+	StatusCheckContexts                 []string `json:"status-checks-contexts"`
 }
 
 type jsonBranchProtection struct {

@@ -105,10 +105,7 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 			v := int(*bp.RequiredPullRequestReviews.RequiredApprovingReviewCount)
 			bpData.RequiredApprovingReviewCount = &v
 		}
-
-		if len(bp.CheckRules.Contexts) > 0 {
-			bpData.StatusCheckContexts = &bp.CheckRules.Contexts
-		}
+		bpData.StatusCheckContexts = bp.CheckRules.Contexts
 
 		rawData.Branches = append(rawData.Branches, bpData)
 	}
