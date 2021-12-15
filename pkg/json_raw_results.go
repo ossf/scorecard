@@ -38,7 +38,7 @@ type jsonFile struct {
 	Offset int    `json:"offset,omitempty"`
 }
 
-type jsonConfigFiles struct {
+type jsonConfigFile struct {
 	Name string   `json:"name"`
 	URL  string   `json:"url"`
 	Desc string   `json:"desc"`
@@ -53,7 +53,7 @@ type jsonRawResults struct {
 	SecurityPolicies []jsonFile `json:"security-policies"`
 	// List of update tools.
 	// Note: we return one at most.
-	DependencyUpdateTools []jsonConfigFiles `json:"dependency-update-tools"`
+	DependencyUpdateTools []jsonConfigFile `json:"dependency-update-tools"`
 }
 
 //nolint:unparam
@@ -80,9 +80,9 @@ func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.Securit
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.DependencyUpdateToolData) error {
-	r.Results.DependencyUpdateTools = []jsonConfigFiles{}
+	r.Results.DependencyUpdateTools = []jsonConfigFile{}
 	for _, v := range dut.ConfigFiles {
-		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jsonConfigFiles{
+		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jsonConfigFile{
 			Name: v.Name,
 			URL:  v.URL,
 			Desc: v.Desc,
