@@ -43,7 +43,6 @@ type jsonTool struct {
 	URL         string     `json:"url"`
 	Desc        string     `json:"desc"`
 	ConfigFiles []jsonFile `json:"files"`
-	Runs        []string   `json:"runs`
 	// TODO: Runs, Issues, Merge requests.
 }
 
