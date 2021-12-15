@@ -55,28 +55,231 @@ var (
 	rubygems    string
 	showDetails bool
 	policyFile  string
+	rootCmd     = &cobra.Command{
+		Use:   scorecardUse,
+		Short: scorecardShort,
+		Long:  scorecardLong,
+		Run:   scorecardCmd,
+	}
 )
 
 const (
 	formatJSON    = "json"
 	formatSarif   = "sarif"
 	formatDefault = "default"
-)
 
-// These strings must be the same as the ones used in
-// checks.yaml for the "repos" field.
-const (
+	// These strings must be the same as the ones used in
+	// checks.yaml for the "repos" field.
 	repoTypeLocal  = "local"
 	repoTypeGitHub = "GitHub"
-)
 
-const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
 	scorecardUse  = `./scorecard [--repo=<repo_url>] [--local=folder] [--checks=check1,...]
 	 [--show-details] [--policy=file] or ./scorecard --{npm,pypi,rubygems}=<package_name> 
 	 [--checks=check1,...] [--show-details] [--policy=file]`
 	scorecardShort = "Security Scorecards"
 )
+
+//nolint:gochecknoinits
+func init() {
+	// Add the zap flag manually
+	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
+	rootCmd.Flags().StringVar(&repo, "repo", "", "repository to check")
+	rootCmd.Flags().StringVar(&local, "local", "", "local folder to check")
+	rootCmd.Flags().StringVar(
+		&npm, "npm", "",
+		"npm package to check, given that the npm package has a GitHub repository")
+	rootCmd.Flags().StringVar(
+		&pypi, "pypi", "",
+		"pypi package to check, given that the pypi package has a GitHub repository")
+	rootCmd.Flags().StringVar(
+		&rubygems, "rubygems", "",
+		"rubygems package to check, given that the rubygems package has a GitHub repository")
+	rootCmd.Flags().StringVar(&format, "format", formatDefault,
+		"output format. allowed values are [default, sarif, json]")
+	rootCmd.Flags().StringSliceVar(
+		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
+	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
+	checkNames := []string{}
+	for checkName := range getAllChecks() {
+		checkNames = append(checkNames, checkName)
+	}
+	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
+		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
+	rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
+
+	var v6 bool
+	_, v6 = os.LookupEnv("SCORECARD_V6")
+	if v6 {
+		rootCmd.Flags().BoolVar(&raw, "raw", false, "generate raw results")
+	}
+}
+
+// Execute runs the Scorecard commandline.
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+// nolint: gocognit, gocyclo
+func scorecardCmd(cmd *cobra.Command, args []string) {
+	// UPGRADEv4: remove.
+	var v4 bool
+	_, v4 = os.LookupEnv("SCORECARD_V4")
+
+	if format == formatSarif && !v4 {
+		log.Panic("sarif not supported yet")
+	}
+
+	if policyFile != "" && !v4 {
+		log.Panic("policy not supported yet")
+	}
+
+	if local != "" && !v4 {
+		log.Panic("--local option not supported yet")
+	}
+
+	var v6 bool
+	_, v6 = os.LookupEnv("SCORECARD_V6")
+	if raw && !v6 {
+		log.Panic("--raw option not supported yet")
+	}
+
+	// Validate format.
+	if !validateFormat(format) {
+		log.Panicf("unsupported format '%s'", format)
+	}
+
+	policy, err := readPolicy()
+	if err != nil {
+		log.Panicf("readPolicy: %v", err)
+	}
+
+	// Get the URI.
+	uri, err := getURI(repo, local)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	// Set `repo` from package managers.
+	exists, gitRepo, err := fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems)
+	if err != nil {
+		log.Panic(err)
+	}
+	if exists {
+		if err := cmd.Flags().Set("repo", gitRepo); err != nil {
+			log.Panic(err)
+		}
+	}
+
+	// Sanity check that `repo` is set.
+	if err := cmd.MarkFlagRequired("repo"); err != nil {
+		log.Panic(err)
+	}
+
+	ctx := context.Background()
+	logger, err := githubrepo.NewLogger(*logLevel)
+	if err != nil {
+		log.Panic(err)
+	}
+	// nolint: errcheck
+	defer logger.Sync() // Flushes buffer, if any.
+
+	repoURI, repoClient, ossFuzzRepoClient, ciiClient, repoType, err := getRepoAccessors(ctx, uri, logger)
+	if err != nil {
+		log.Panic(err)
+	}
+	defer repoClient.Close()
+	if ossFuzzRepoClient != nil {
+		defer ossFuzzRepoClient.Close()
+	}
+
+	// Read docs.
+	checkDocs, err := docs.Read()
+	if err != nil {
+		log.Panicf("cannot read yaml file: %v", err)
+	}
+
+	supportedChecks, err := getSupportedChecks(repoType, checkDocs)
+	if err != nil {
+		log.Panicf("cannot read supported checks: %v", err)
+	}
+
+	enabledChecks, err := getEnabledChecks(policy, checksToRun, supportedChecks, repoType)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	if format == formatDefault {
+		for checkName := range enabledChecks {
+			fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
+		}
+	}
+
+	if raw && format != "json" {
+		log.Panicf("only json format is supported")
+	}
+
+	repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
+	if err != nil {
+		log.Panic(err)
+	}
+	repoResult.Metadata = append(repoResult.Metadata, metaData...)
+
+	// Sort them by name
+	sort.Slice(repoResult.Checks, func(i, j int) bool {
+		return repoResult.Checks[i].Name < repoResult.Checks[j].Name
+	})
+
+	if format == formatDefault {
+		for checkName := range enabledChecks {
+			fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
+		}
+		fmt.Println("\nRESULTS\n-------")
+	}
+
+	switch format {
+	case formatDefault:
+		err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
+	case formatSarif:
+		// TODO: support config files and update checker.MaxResultScore.
+		err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy)
+	case formatJSON:
+		if raw {
+			err = repoResult.AsRawJSON(os.Stdout)
+		} else {
+			err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
+		}
+
+	default:
+		err = sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
+	}
+	if err != nil {
+		log.Panicf("Failed to output results: %v", err)
+	}
+}
+
+func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems string) (bool, string, error) {
+	if npm != "" {
+		gitRepo, err := fetchGitRepositoryFromNPM(npm)
+		return true, gitRepo, err
+	}
+
+	if pypi != "" {
+		gitRepo, err := fetchGitRepositoryFromPYPI(pypi)
+		return true, gitRepo, err
+	}
+
+	if rubygems != "" {
+		gitRepo, err := fetchGitRepositoryFromRubyGems(rubygems)
+		return false, gitRepo, err
+	}
+
+	return false, "", nil
+}
 
 func readPolicy() (*spol.ScorecardPolicy, error) {
 	if policyFile != "" {
@@ -251,162 +454,6 @@ func getURI(repo, local string) (string, error) {
 	return repo, nil
 }
 
-var rootCmd = &cobra.Command{
-	Use:   scorecardUse,
-	Short: scorecardShort,
-	Long:  scorecardLong,
-	Run: func(cmd *cobra.Command, args []string) {
-		// UPGRADEv4: remove.
-		var v4 bool
-		_, v4 = os.LookupEnv("SCORECARD_V4")
-
-		if format == formatSarif && !v4 {
-			log.Fatal("sarif not supported yet")
-		}
-
-		if policyFile != "" && !v4 {
-			log.Fatal("policy not supported yet")
-		}
-
-		if local != "" && !v4 {
-			log.Fatal("--local option not supported yet")
-		}
-
-		var v6 bool
-		_, v6 = os.LookupEnv("SCORECARD_V6")
-		if raw && !v6 {
-			log.Fatal("--raw option not supported yet")
-		}
-
-		// Validate format.
-		if !validateFormat(format) {
-			log.Fatalf("unsupported format '%s'", format)
-		}
-
-		policy, err := readPolicy()
-		if err != nil {
-			log.Fatalf("readPolicy: %v", err)
-		}
-
-		// Get the URI.
-		uri, err := getURI(repo, local)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if npm != "" {
-			if git, err := fetchGitRepositoryFromNPM(npm); err != nil {
-				log.Fatal(err)
-			} else {
-				if err := cmd.Flags().Set("repo", git); err != nil {
-					log.Fatal(err)
-				}
-			}
-		} else if pypi != "" {
-			if git, err := fetchGitRepositoryFromPYPI(pypi); err != nil {
-				log.Fatal(err)
-			} else {
-				if err := cmd.Flags().Set("repo", git); err != nil {
-					log.Fatal(err)
-				}
-			}
-		} else if rubygems != "" {
-			if git, err := fetchGitRepositoryFromRubyGems(rubygems); err != nil {
-				log.Fatal(err)
-			} else {
-				if err := cmd.Flags().Set("repo", git); err != nil {
-					log.Fatal(err)
-				}
-			}
-		} else {
-			if err := cmd.MarkFlagRequired("repo"); err != nil {
-				log.Fatal(err)
-			}
-		}
-
-		ctx := context.Background()
-		logger, err := githubrepo.NewLogger(*logLevel)
-		if err != nil {
-			log.Fatal(err)
-		}
-		// nolint
-		defer logger.Sync() // Flushes buffer, if any.
-
-		repoURI, repoClient, ossFuzzRepoClient, ciiClient, repoType, err := getRepoAccessors(ctx, uri, logger)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer repoClient.Close()
-		if ossFuzzRepoClient != nil {
-			defer ossFuzzRepoClient.Close()
-		}
-
-		// Read docs.
-		checkDocs, err := docs.Read()
-		if err != nil {
-			log.Fatalf("cannot read yaml file: %v", err)
-		}
-
-		supportedChecks, err := getSupportedChecks(repoType, checkDocs)
-		if err != nil {
-			log.Fatalf("cannot read supported checks: %v", err)
-		}
-
-		enabledChecks, err := getEnabledChecks(policy, checksToRun, supportedChecks, repoType)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if format == formatDefault {
-			for checkName := range enabledChecks {
-				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
-			}
-		}
-
-		if raw && format != "json" {
-			log.Fatalf("only json format is supported")
-		}
-
-		repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
-		if err != nil {
-			log.Fatal(err)
-		}
-		repoResult.Metadata = append(repoResult.Metadata, metaData...)
-
-		// Sort them by name
-		sort.Slice(repoResult.Checks, func(i, j int) bool {
-			return repoResult.Checks[i].Name < repoResult.Checks[j].Name
-		})
-
-		if format == formatDefault {
-			for checkName := range enabledChecks {
-				fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
-			}
-			fmt.Println("\nRESULTS\n-------")
-		}
-
-		switch format {
-		case formatDefault:
-			err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
-		case formatSarif:
-			// TODO: support config files and update checker.MaxResultScore.
-			err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy)
-		case formatJSON:
-			if raw {
-				err = repoResult.AsRawJSON(os.Stdout)
-			} else {
-				err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
-			}
-
-		default:
-			err = sce.WithMessage(sce.ErrScorecardInternal,
-				fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
-		}
-		if err != nil {
-			log.Fatalf("Failed to output results: %v", err)
-		}
-	},
-}
-
 type npmSearchResults struct {
 	Objects []struct {
 		Package struct {
@@ -427,14 +474,6 @@ type pypiSearchResults struct {
 
 type rubyGemsSearchResults struct {
 	SourceCodeURI string `json:"source_code_uri"`
-}
-
-// Execute runs the Scorecard commandline.
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
 }
 
 // Gets the GitHub repository URL for the npm package.
@@ -525,39 +564,4 @@ func enableCheck(checkName string, enabledChecks *checker.CheckNameToFnMap) bool
 		}
 	}
 	return false
-}
-
-//nolint:gochecknoinits
-func init() {
-	// Add the zap flag manually
-	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
-	rootCmd.Flags().StringVar(&repo, "repo", "", "repository to check")
-	rootCmd.Flags().StringVar(&local, "local", "", "local folder to check")
-	rootCmd.Flags().StringVar(
-		&npm, "npm", "",
-		"npm package to check, given that the npm package has a GitHub repository")
-	rootCmd.Flags().StringVar(
-		&pypi, "pypi", "",
-		"pypi package to check, given that the pypi package has a GitHub repository")
-	rootCmd.Flags().StringVar(
-		&rubygems, "rubygems", "",
-		"rubygems package to check, given that the rubygems package has a GitHub repository")
-	rootCmd.Flags().StringVar(&format, "format", formatDefault,
-		"output format. allowed values are [default, sarif, json]")
-	rootCmd.Flags().StringSliceVar(
-		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
-	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
-	checkNames := []string{}
-	for checkName := range getAllChecks() {
-		checkNames = append(checkNames, checkName)
-	}
-	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
-		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
-	rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
-
-	var v6 bool
-	_, v6 = os.LookupEnv("SCORECARD_V6")
-	if v6 {
-		rootCmd.Flags().BoolVar(&raw, "raw", false, "generate raw results")
-	}
 }
