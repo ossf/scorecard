@@ -21,8 +21,10 @@ import (
 )
 
 type (
+	// DetailType is the type of details.
 	DetailType int
-	FileType   int
+	// FileType is the type of a file.
+	FileType int
 )
 
 const (
