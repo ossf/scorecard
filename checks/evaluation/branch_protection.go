@@ -60,7 +60,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		// so it does not provide any guarantees.
 		protected := !(b.Protected != nil && !*b.Protected)
 		if !protected {
-			dl.Warn("branch protection not enabled for branch '%s'", b)
+			dl.Warn("branch protection not enabled for branch '%s'", b.Name)
 		}
 		score.scores.basic, score.maxes.basic = basicNonAdminProtection(&b, dl)
 		score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(&b, dl)

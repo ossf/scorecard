@@ -14,6 +14,77 @@
 
 package checker
 
+// RawResults contains results before a policy
+// is applied.
+type RawResults struct {
+	BinaryArtifactResults       BinaryArtifactData
+	SecurityPolicyResults       SecurityPolicyData
+	DependencyUpdateToolResults DependencyUpdateToolData
+	BranchProtectionResults     BranchProtectionsData
+}
+
+// SecurityPolicyData contains the raw results
+// for the Security-Policy check.
+type SecurityPolicyData struct {
+	// Files contains a list of files.
+	Files []File
+}
+
+// BinaryArtifactData contains the raw results
+// for the Binary-Artifact check.
+type BinaryArtifactData struct {
+	// Files contains a list of files.
+	Files []File
+}
+
+// DependencyUpdateToolData contains the raw results
+// for the Dependency-Update-Tool check.
+type DependencyUpdateToolData struct {
+	// Tools contains a list of tools.
+	// Note: we only populate one entry at most.
+	Tools []Tool
+}
+
+// BranchProtectionsData contains the raw results
+// for the Branch-Protection check.
+type BranchProtectionsData struct {
+	Branches []BranchProtectionData
+}
+
+// BranchProtectionData contains the raw results
+// for one branch.
+//nolint:govet
+type BranchProtectionData struct {
+	Protected                           *bool
+	AllowsDeletions                     *bool
+	AllowsForcePushes                   *bool
+	RequiresCodeOwnerReviews            *bool
+	RequiresLinearHistory               *bool
+	DismissesStaleReviews               *bool
+	EnforcesAdmins                      *bool
+	RequiresStatusChecks                *bool
+	RequiresUpToDateBranchBeforeMerging *bool
+	RequiredApprovingReviewCount        *int
+	// StatusCheckContexts is always available, so
+	// we don't use a pointer.
+	StatusCheckContexts []string
+	Name                string
+}
+
+// Tool represents a tool.
+type Tool struct {
+	// Runs of the tool.
+	Runs []Run
+	// Issues created by the tool.
+	Issues []Issue
+	// Merges requests created by the tool.
+	MergeRequests []MergeRequest
+	Name          string
+	URL           string
+	Desc          string
+	ConfigFiles   []File
+}
+
 // Run represents a run.
 type Run struct {
 	URL string
@@ -39,75 +110,4 @@ type File struct {
 	Offset  int      // Offset in the file of Path (line for source/text files).
 	Type    FileType // Type of file.
 	// TODO: add hash.
-}
-
-// Tool represents a tool.
-type Tool struct {
-	// Runs of the tool.
-	Runs []Run
-	// Issues created by the tool.
-	Issues []Issue
-	// Merges requests created by the tool.
-	MergeRequests []MergeRequest
-	Name          string
-	URL           string
-	Desc          string
-	ConfigFiles   []File
-}
-
-// SecurityPolicyData contains the raw results
-// for the Security-Policy check.
-type SecurityPolicyData struct {
-	// Files contains a list of files.
-	Files []File
-}
-
-// BinaryArtifactData contains the raw results
-// for the Binary-Artifact check.
-type BinaryArtifactData struct {
-	// Files contains a list of files.
-	Files []File
-}
-
-// DependencyUpdateToolData contains the raw results
-// for the Dependency-Update-Tool check.
-type DependencyUpdateToolData struct {
-	// Tools contains a list of tools.
-	// Note: we only populate one entry at most.
-	Tools []Tool
-}
-
-// BranchProtectionData contains the raw results
-// for one branch.
-//nolint:govet
-type BranchProtectionData struct {
-	Protected                           *bool
-	AllowsDeletions                     *bool
-	AllowsForcePushes                   *bool
-	RequiresCodeOwnerReviews            *bool
-	RequiresLinearHistory               *bool
-	DismissesStaleReviews               *bool
-	EnforcesAdmins                      *bool
-	RequiresStatusChecks                *bool
-	RequiresUpToDateBranchBeforeMerging *bool
-	RequiredApprovingReviewCount        *int
-	// StatusCheckContexts is always available, so
-	// we don't use a pointer.
-	StatusCheckContexts []string
-	Name                string
-}
-
-// BranchProtectionsData contains the raw results
-// for the Branch-Protection check.
-type BranchProtectionsData struct {
-	Branches []BranchProtectionData
-}
-
-// RawResults contains results before a policy
-// is applied.
-type RawResults struct {
-	BinaryArtifactResults       BinaryArtifactData
-	SecurityPolicyResults       SecurityPolicyData
-	DependencyUpdateToolResults DependencyUpdateToolData
-	BranchProtectionResults     BranchProtectionsData
 }
