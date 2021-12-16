@@ -46,6 +46,24 @@ type jsonTool struct {
 	// TODO: Runs, Issues, Merge requests.
 }
 
+type jsonBranchProtectionSettings struct {
+	RequiredApprovingReviewCount        *int     `json:"required-reviewer-count"`
+	AllowsDeletions                     *bool    `json:"allows-deletions"`
+	AllowsForcePushes                   *bool    `json:"allows-force-pushes"`
+	RequiresCodeOwnerReviews            *bool    `json:"requires-code-owner-review"`
+	RequiresLinearHistory               *bool    `json:"required-linear-history"`
+	DismissesStaleReviews               *bool    `json:"dismisses-stale-reviews"`
+	EnforcesAdmins                      *bool    `json:"enforces-admin"`
+	RequiresStatusChecks                *bool    `json:"requires-status-checks"`
+	RequiresUpToDateBranchBeforeMerging *bool    `json:"requires-updated-branches-to-merge"`
+	StatusCheckContexts                 []string `json:"status-checks-contexts"`
+}
+
+type jsonBranchProtection struct {
+	Protection *jsonBranchProtectionSettings `json:"protection"`
+	Name       string                        `json:"name"`
+}
+
 type jsonRawResults struct {
 	// List of binaries found in the repo.
 	Binaries []jsonFile `json:"binaries"`
@@ -55,6 +73,8 @@ type jsonRawResults struct {
 	// List of update tools.
 	// Note: we return one at most.
 	DependencyUpdateTools []jsonTool `json:"dependency-update-tools"`
+	// Branch protection settings for development and release branches.
+	BranchProtections []jsonBranchProtection `json:"branch-protections"`
 }
 
 //nolint:unparam
@@ -93,10 +113,36 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 		for _, f := range t.ConfigFiles {
 			r.Results.DependencyUpdateTools[offset].ConfigFiles =
 				append(r.Results.DependencyUpdateTools[offset].ConfigFiles, jsonFile{
-					Path:   f.Path,
-					Offset: f.Offset,
+					Path: f.Path,
 				})
 		}
+	}
+	return nil
+}
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.BranchProtectionsData) error {
+	r.Results.BranchProtections = []jsonBranchProtection{}
+	for _, v := range bp.Branches {
+		var bp *jsonBranchProtectionSettings
+		if v.Protected != nil && *v.Protected {
+			bp = &jsonBranchProtectionSettings{
+				AllowsDeletions:                     v.AllowsDeletions,
+				AllowsForcePushes:                   v.AllowsForcePushes,
+				RequiresCodeOwnerReviews:            v.RequiresCodeOwnerReviews,
+				RequiresLinearHistory:               v.RequiresLinearHistory,
+				DismissesStaleReviews:               v.DismissesStaleReviews,
+				EnforcesAdmins:                      v.EnforcesAdmins,
+				RequiresStatusChecks:                v.RequiresStatusChecks,
+				RequiresUpToDateBranchBeforeMerging: v.RequiresUpToDateBranchBeforeMerging,
+				RequiredApprovingReviewCount:        v.RequiredApprovingReviewCount,
+				StatusCheckContexts:                 v.StatusCheckContexts,
+			}
+		}
+		r.Results.BranchProtections = append(r.Results.BranchProtections, jsonBranchProtection{
+			Name:       v.Name,
+			Protection: bp,
+		})
 	}
 	return nil
 }
@@ -112,8 +158,13 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
-	// Dependecy-Update-Tool.
+	// Dependency-Update-Tool.
 	if err := r.addDependencyUpdateToolRawResults(&raw.DependencyUpdateToolResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Branch-Protection.
+	if err := r.addBranchProtectionRawResults(&raw.BranchProtectionResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

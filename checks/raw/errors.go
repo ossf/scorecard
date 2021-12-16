@@ -14,12 +14,12 @@
 
 package raw
 
-import "github.com/ossf/scorecard/v3/checker"
+import (
+	"errors"
+)
 
-// File represents a file.
-type File struct {
-	Path   string
-	Type   checker.FileType
-	Offset int
-	// TODO: add hash if needed.
-}
+//nolint
+var (
+	errInternalCommitishNil   = errors.New("commitish is nil")
+	errInternalBranchNotFound = errors.New("branch not found")
+)
