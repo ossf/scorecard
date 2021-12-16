@@ -23,6 +23,27 @@ import (
 	scut "github.com/ossf/scorecard/v3/utests"
 )
 
+type file struct {
+	pathfn  string
+	content []byte
+}
+
+func testValidateGitHubActionTokenPermissions(files []file,
+	dl checker.DetailLogger) checker.CheckResult {
+	data := permissionCbData{
+		workflows: make(map[string]permissions),
+	}
+	var err error
+	for _, f := range files {
+		_, err = validateGitHubActionTokenPermissions(f.pathfn, f.content, dl, &data)
+		if err != nil {
+			break
+		}
+	}
+
+	return createResultForLeastPrivilegeTokens(data, err)
+}
+
 //nolint
 func TestGithubTokenPermissions(t *testing.T) {
 	t.Parallel()
@@ -332,25 +353,17 @@ func TestGithubTokenPermissions(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			var files []struct {
-				pathfn  string
-				content []byte
-			}
+			var files []file
 			var content []byte
 			var err error
 			for _, fn := range tt.filenames {
-				if fn == "" {
-					content = make([]byte, 0)
-				} else {
-					content, err = os.ReadFile(fn)
-					if err != nil {
-						panic(fmt.Errorf("cannot read file: %w", err))
-					}
+
+				content, err = os.ReadFile(fn)
+				if err != nil {
+					panic(fmt.Errorf("cannot read file: %w", err))
 				}
-				files = append(files, struct {
-					pathfn  string
-					content []byte
-				}{pathfn: fn, content: content})
+
+				files = append(files, file{pathfn: fn, content: content})
 			}
 
 			dl := scut.TestDetailLogger{}
@@ -403,10 +416,7 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 				t.Errorf("cannot read file: %v", err)
 			}
 			dl := scut.TestDetailLogger{}
-			files := []struct {
-				pathfn  string
-				content []byte
-			}{{pathfn: tt.filename, content: content}}
+			files := []file{{pathfn: tt.filename, content: content}}
 			testValidateGitHubActionTokenPermissions(files, &dl)
 			for _, expectedLog := range tt.expected {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
