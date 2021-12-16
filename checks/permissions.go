@@ -89,7 +89,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 	val := permissionValue.Value.Value
 	lineNumber := fileparser.GetLineNumber(permissionValue.Value.Pos)
 	if strings.EqualFold(val, "write") {
-		if isPermissionOfInterest(permission(permissionKey), ignoredPermissions) {
+		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
