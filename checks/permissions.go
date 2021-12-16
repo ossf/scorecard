@@ -32,6 +32,25 @@ const (
 	topLevelPermission    = "top level"
 )
 
+type permission string
+
+const (
+	permissionAll            = permission("all")
+	permissionStatuses       = permission("statuses")
+	permissionChecks         = permission("checks")
+	permissionSecurityEvents = permission("security-events")
+	permissionDeployments    = permission("deployments")
+	permissionContents       = permission("contents")
+	permissionPackages       = permission("packages")
+	permissionActions        = permission("actions")
+)
+
+var permissionsOfInterest = []permission{
+	permissionStatuses, permissionChecks,
+	permissionSecurityEvents, permissionDeployments,
+	permissionContents, permissionPackages, permissionActions,
+}
+
 //nolint:gochecknoinits
 func init() {
 	registerCheck(CheckTokenPermissions, TokenPermissions)
@@ -41,8 +60,8 @@ func init() {
 // Each field correpsonds to a GitHub permission type, and
 // will hold true if declared non-write, false otherwise.
 type permissions struct {
-	topLevelWritePermissions map[string]bool
-	runLevelWritePermissions map[string]bool
+	topLevelWritePermissions map[permission]bool
+	runLevelWritePermissions map[permission]bool
 }
 
 type permissionCbData struct {
@@ -60,16 +79,16 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	return createResultForLeastPrivilegeTokens(data, err)
 }
 
-func validatePermission(permissionKey string, permissionValue *actionlint.PermissionScope,
-	permLevel, path string, dl checker.DetailLogger, pPermissions map[string]bool,
-	ignoredPermissions map[string]bool) error {
+func validatePermission(permissionKey permission, permissionValue *actionlint.PermissionScope,
+	permLevel, path string, dl checker.DetailLogger, pPermissions map[permission]bool,
+	ignoredPermissions map[permission]bool) error {
 	if permissionValue.Value == nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
 	val := permissionValue.Value.Value
 	lineNumber := fileparser.GetLineNumber(permissionValue.Value.Pos)
 	if strings.EqualFold(val, "write") {
-		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
+		if isPermissionOfInterest(permission(permissionKey), ignoredPermissions) {
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
@@ -103,25 +122,25 @@ func validatePermission(permissionKey string, permissionValue *actionlint.Permis
 }
 
 func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, permLevel, path string,
-	dl checker.DetailLogger, pPermissions map[string]bool,
-	ignoredPermissions map[string]bool) error {
+	dl checker.DetailLogger, pPermissions map[permission]bool,
+	ignoredPermissions map[permission]bool) error {
 	for key, v := range scopes {
-		if err := validatePermission(key, v, permLevel, path, dl, pPermissions, ignoredPermissions); err != nil {
+		if err := validatePermission(permission(key), v, permLevel, path, dl, pPermissions, ignoredPermissions); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func recordPermissionWrite(pPermissions map[string]bool, perm string) {
+func recordPermissionWrite(pPermissions map[permission]bool, perm permission) {
 	pPermissions[perm] = true
 }
 
-func getWritePermissionsMap(p *permissionCbData, path, permLevel string) map[string]bool {
+func getWritePermissionsMap(p *permissionCbData, path, permLevel string) map[permission]bool {
 	if _, exists := p.workflows[path]; !exists {
 		p.workflows[path] = permissions{
-			topLevelWritePermissions: make(map[string]bool),
-			runLevelWritePermissions: make(map[string]bool),
+			topLevelWritePermissions: make(map[permission]bool),
+			runLevelWritePermissions: make(map[permission]bool),
 		}
 	}
 	if permLevel == runLevelPermission {
@@ -134,12 +153,12 @@ func recordAllPermissionsWrite(p *permissionCbData, permLevel, path string) {
 	// Special case: `all` does not correspond
 	// to a GitHub permission.
 	m := getWritePermissionsMap(p, path, permLevel)
-	m["all"] = true
+	m[permissionAll] = true
 }
 
 func validatePermissions(permissions *actionlint.Permissions, permLevel, path string,
 	dl checker.DetailLogger, pdata *permissionCbData,
-	ignoredPermissions map[string]bool) error {
+	ignoredPermissions map[permission]bool) error {
 	allIsSet := permissions != nil && permissions.All != nil && permissions.All.Value != ""
 	scopeIsSet := permissions != nil && len(permissions.Scopes) > 0
 	if permissions == nil || (!allIsSet && !scopeIsSet) {
@@ -194,12 +213,12 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 	}
 
 	return validatePermissions(workflow.Permissions, topLevelPermission, path, dl,
-		pdata, map[string]bool{})
+		pdata, map[permission]bool{})
 }
 
 func validateRunLevelPermissions(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *permissionCbData,
-	ignoredPermissions map[string]bool) error {
+	ignoredPermissions map[permission]bool) error {
 	for _, job := range workflow.Jobs {
 		// Run-level permissions may be left undefined.
 		// For most workflows, no write permissions are needed,
@@ -223,31 +242,27 @@ func validateRunLevelPermissions(workflow *actionlint.Workflow, path string,
 	return nil
 }
 
-func isPermissionOfInterest(name string, ignoredPermissions map[string]bool) bool {
-	permissions := []string{
-		"statuses", "checks", "security-events",
-		"deployments", "contents", "packages", "actions",
-	}
-	for _, p := range permissions {
+func isPermissionOfInterest(name permission, ignoredPermissions map[permission]bool) bool {
+	for _, p := range permissionsOfInterest {
 		_, present := ignoredPermissions[p]
-		if strings.EqualFold(name, p) && !present {
+		if strings.EqualFold(string(name), string(p)) && !present {
 			return true
 		}
 	}
 	return false
 }
 
-func permissionIsPresent(perms permissions, name string) bool {
+func permissionIsPresent(perms permissions, name permission) bool {
 	return permissionIsPresentInTopLevel(perms, name) ||
 		permissionIsPresentInRunLevel(perms, name)
 }
 
-func permissionIsPresentInTopLevel(perms permissions, name string) bool {
+func permissionIsPresentInTopLevel(perms permissions, name permission) bool {
 	_, ok := perms.topLevelWritePermissions[name]
 	return ok
 }
 
-func permissionIsPresentInRunLevel(perms permissions, name string) bool {
+func permissionIsPresentInRunLevel(perms permissions, name permission) bool {
 	_, ok := perms.runLevelWritePermissions[name]
 	return ok
 }
@@ -264,9 +279,9 @@ func calculateScore(result permissionCbData) int {
 	// Retrieve the overall results.
 	for _, perms := range result.workflows {
 		// If no top level permissions are defined, all the permissions
-		// are enabled by default, hence "all". In this case,
-		if permissionIsPresentInTopLevel(perms, "all") {
-			if permissionIsPresentInRunLevel(perms, "all") {
+		// are enabled by default, hence permissionAll. In this case,
+		if permissionIsPresentInTopLevel(perms, permissionAll) {
+			if permissionIsPresentInRunLevel(perms, permissionAll) {
 				// ... give lowest score if no run level permissions are defined either.
 				return checker.MinResultScore
 			}
@@ -277,21 +292,21 @@ func calculateScore(result permissionCbData) int {
 		// status: https://docs.github.com/en/rest/reference/repos#statuses.
 		// May allow an attacker to change the result of pre-submit and get a PR merged.
 		// Low risk: -0.5.
-		if permissionIsPresent(perms, "statuses") {
+		if permissionIsPresent(perms, permissionStatuses) {
 			score -= 0.5
 		}
 
 		// checks.
 		// May allow an attacker to edit checks to remove pre-submit and introduce a bug.
 		// Low risk: -0.5.
-		if permissionIsPresent(perms, "checks") {
+		if permissionIsPresent(perms, permissionChecks) {
 			score -= 0.5
 		}
 
 		// secEvents.
 		// May allow attacker to read vuln reports before patch available.
 		// Low risk: -1
-		if permissionIsPresent(perms, "security-events") {
+		if permissionIsPresent(perms, permissionSecurityEvents) {
 			score--
 		}
 
@@ -300,28 +315,28 @@ func calculateScore(result permissionCbData) int {
 		// and tiny chance an attacker can trigger a remote
 		// service with code they own if server accepts code/location var unsanitized.
 		// Low risk: -1
-		if permissionIsPresent(perms, "deployments") {
+		if permissionIsPresent(perms, permissionDeployments) {
 			score--
 		}
 
 		// contents.
 		// Allows attacker to commit unreviewed code.
 		// High risk: -10
-		if permissionIsPresent(perms, "contents") {
+		if permissionIsPresent(perms, permissionContents) {
 			score -= checker.MaxResultScore
 		}
 
 		// packages: https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages.
 		// Allows attacker to publish packages.
 		// High risk: -10
-		if permissionIsPresent(perms, "packages") {
+		if permissionIsPresent(perms, permissionPackages) {
 			score -= checker.MaxResultScore
 		}
 
 		// actions.
 		// May allow an attacker to steal GitHub secrets by adding a malicious workflow/action.
 		// High risk: -10
-		if permissionIsPresent(perms, "actions") {
+		if permissionIsPresent(perms, permissionActions) {
 			score -= checker.MaxResultScore
 		}
 
@@ -400,16 +415,16 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	return true, nil
 }
 
-func createIgnoredPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) map[string]bool {
-	ignoredPermissions := make(map[string]bool)
+func createIgnoredPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) map[permission]bool {
+	ignoredPermissions := make(map[permission]bool)
 	if requiresPackagesPermissions(workflow, fp, dl) {
-		ignoredPermissions["packages"] = true
+		ignoredPermissions[permissionPackages] = true
 	}
 	if requiresContentsPermissions(workflow, fp, dl) {
-		ignoredPermissions["contents"] = true
+		ignoredPermissions[permissionContents] = true
 	}
 	if isSARIFUploadWorkflow(workflow, fp, dl) {
-		ignoredPermissions["security-events"] = true
+		ignoredPermissions[permissionSecurityEvents] = true
 	}
 
 	return ignoredPermissions
