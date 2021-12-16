@@ -299,6 +299,34 @@ func TestGithubTokenPermissions(t *testing.T) {
 				NumberOfDebug: 9,
 			},
 		},
+		{
+			name: "two files mix run-level and absent",
+			filenames: []string{
+				"./testdata/github-workflow-permissions-run-level-only.yaml",
+				"./testdata/github-workflow-permissions-absent.yaml",
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  2,
+				NumberOfInfo:  1,
+				NumberOfDebug: 9,
+			},
+		},
+		{
+			name: "two files mix top-level and absent",
+			filenames: []string{
+				"./testdata/github-workflow-permissions-top-level-only.yaml",
+				"./testdata/github-workflow-permissions-absent.yaml",
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
+				NumberOfDebug: 10,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
