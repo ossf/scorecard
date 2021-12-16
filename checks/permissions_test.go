@@ -28,13 +28,13 @@ func TestGithubTokenPermissions(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		filename string
-		expected scut.TestReturn
+		name      string
+		filenames []string
+		expected  scut.TestReturn
 	}{
 		{
-			name:     "run workflow codeql write test",
-			filename: "./testdata/github-workflow-permissions-run-codeql-write.yaml",
+			name:      "run workflow codeql write test",
+			filenames: []string{"./testdata/github-workflow-permissions-run-codeql-write.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -44,8 +44,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "run workflow no codeql write test",
-			filename: "./testdata/github-workflow-permissions-run-no-codeql-write.yaml",
+			name:      "run workflow no codeql write test",
+			filenames: []string{"./testdata/github-workflow-permissions-run-no-codeql-write.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 1,
@@ -55,8 +55,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "run workflow write test",
-			filename: "./testdata/github-workflow-permissions-run-writes-2.yaml",
+			name:      "run workflow write test",
+			filenames: []string{"./testdata/github-workflow-permissions-run-writes-2.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -66,8 +66,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "run package workflow write test",
-			filename: "./testdata/github-workflow-permissions-run-package-workflow-write.yaml",
+			name:      "run package workflow write test",
+			filenames: []string{"./testdata/github-workflow-permissions-run-package-workflow-write.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -77,8 +77,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "run package write test",
-			filename: "./testdata/github-workflow-permissions-run-package-write.yaml",
+			name:      "run package write test",
+			filenames: []string{"./testdata/github-workflow-permissions-run-package-write.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -88,8 +88,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "run writes test",
-			filename: "./testdata/github-workflow-permissions-run-writes.yaml",
+			name:      "run writes test",
+			filenames: []string{"./testdata/github-workflow-permissions-run-writes.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -99,8 +99,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "write all test",
-			filename: "./testdata/github-workflow-permissions-writeall.yaml",
+			name:      "write all test",
+			filenames: []string{"./testdata/github-workflow-permissions-writeall.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -110,8 +110,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "read all test",
-			filename: "./testdata/github-workflow-permissions-readall.yaml",
+			name:      "read all test",
+			filenames: []string{"./testdata/github-workflow-permissions-readall.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -121,8 +121,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "no permission test",
-			filename: "./testdata/github-workflow-permissions-absent.yaml",
+			name:      "no permission test",
+			filenames: []string{"./testdata/github-workflow-permissions-absent.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -132,8 +132,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "writes test",
-			filename: "./testdata/github-workflow-permissions-writes.yaml",
+			name:      "writes test",
+			filenames: []string{"./testdata/github-workflow-permissions-writes.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -143,8 +143,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "reads test",
-			filename: "./testdata/github-workflow-permissions-reads.yaml",
+			name:      "reads test",
+			filenames: []string{"./testdata/github-workflow-permissions-reads.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -154,8 +154,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "nones test",
-			filename: "./testdata/github-workflow-permissions-nones.yaml",
+			name:      "nones test",
+			filenames: []string{"./testdata/github-workflow-permissions-nones.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -165,8 +165,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "none test",
-			filename: "./testdata/github-workflow-permissions-none.yaml",
+			name:      "none test",
+			filenames: []string{"./testdata/github-workflow-permissions-none.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -176,8 +176,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "status/checks write",
-			filename: "./testdata/github-workflow-permissions-status-checks.yaml",
+			name:      "status/checks write",
+			filenames: []string{"./testdata/github-workflow-permissions-status-checks.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 1,
@@ -187,8 +187,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "sec-events/deployments write",
-			filename: "./testdata/github-workflow-permissions-secevent-deployments.yaml",
+			name:      "sec-events/deployments write",
+			filenames: []string{"./testdata/github-workflow-permissions-secevent-deployments.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 2,
@@ -198,8 +198,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "contents write",
-			filename: "./testdata/github-workflow-permissions-contents.yaml",
+			name:      "contents write",
+			filenames: []string{"./testdata/github-workflow-permissions-contents.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -209,8 +209,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "actions write",
-			filename: "./testdata/github-workflow-permissions-actions.yaml",
+			name:      "actions write",
+			filenames: []string{"./testdata/github-workflow-permissions-actions.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -220,8 +220,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "packages write",
-			filename: "./testdata/github-workflow-permissions-packages.yaml",
+			name:      "packages write",
+			filenames: []string{"./testdata/github-workflow-permissions-packages.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -231,8 +231,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "Non-yaml file",
-			filename: "./testdata/script.sh",
+			name:      "Non-yaml file",
+			filenames: []string{"./testdata/script.sh"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -242,8 +242,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "release workflow write",
-			filename: "./testdata/github-workflow-permissions-release-writes.yaml",
+			name:      "release workflow write",
+			filenames: []string{"./testdata/github-workflow-permissions-release-writes.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -253,8 +253,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "package workflow write",
-			filename: "./testdata/github-workflow-permissions-packages-writes.yaml",
+			name:      "package workflow write",
+			filenames: []string{"./testdata/github-workflow-permissions-packages-writes.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -264,8 +264,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "workflow jobs only",
-			filename: "./testdata/github-workflow-permissions-jobs-only.yaml",
+			name:      "workflow jobs only",
+			filenames: []string{"./testdata/github-workflow-permissions-jobs-only.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         9,
@@ -275,8 +275,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:     "security-events write, codeql comment",
-			filename: "./testdata/github-workflow-permissions-run-write-codeql-comment.yaml",
+			name:      "security-events write, codeql comment",
+			filenames: []string{"./testdata/github-workflow-permissions-run-write-codeql-comment.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 1,
@@ -285,23 +285,48 @@ func TestGithubTokenPermissions(t *testing.T) {
 				NumberOfDebug: 4,
 			},
 		},
+		{
+			name: "two files mix run-level and top-level",
+			filenames: []string{
+				"./testdata/github-workflow-permissions-top-level-only.yaml",
+				"./testdata/github-workflow-permissions-run-level-only.yaml",
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore - 1,
+				NumberOfWarn:  1,
+				NumberOfInfo:  2,
+				NumberOfDebug: 9,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			var files []struct {
+				pathfn  string
+				content []byte
+			}
 			var content []byte
 			var err error
-			if tt.filename == "" {
-				content = make([]byte, 0)
-			} else {
-				content, err = os.ReadFile(tt.filename)
-				if err != nil {
-					panic(fmt.Errorf("cannot read file: %w", err))
+			for _, fn := range tt.filenames {
+				if fn == "" {
+					content = make([]byte, 0)
+				} else {
+					content, err = os.ReadFile(fn)
+					if err != nil {
+						panic(fmt.Errorf("cannot read file: %w", err))
+					}
 				}
+				files = append(files, struct {
+					pathfn  string
+					content []byte
+				}{pathfn: fn, content: content})
 			}
+
 			dl := scut.TestDetailLogger{}
-			r := testValidateGitHubActionTokenPermissions(tt.filename, content, &dl)
+			r := testValidateGitHubActionTokenPermissions(files, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
 				t.Fail()
 			}
@@ -350,7 +375,11 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 				t.Errorf("cannot read file: %v", err)
 			}
 			dl := scut.TestDetailLogger{}
-			testValidateGitHubActionTokenPermissions(tt.filename, content, &dl)
+			files := []struct {
+				pathfn  string
+				content []byte
+			}{{pathfn: tt.filename, content: content}}
+			testValidateGitHubActionTokenPermissions(files, &dl)
 			for _, expectedLog := range tt.expected {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
 					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == tt.filename &&

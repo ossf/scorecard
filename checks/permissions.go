@@ -355,12 +355,22 @@ func createResultForLeastPrivilegeTokens(result permissionCbData, err error) che
 		"tokens are read-only in GitHub workflows")
 }
 
-func testValidateGitHubActionTokenPermissions(pathfn string,
-	content []byte, dl checker.DetailLogger) checker.CheckResult {
+func testValidateGitHubActionTokenPermissions(files []struct {
+	pathfn  string
+	content []byte
+},
+	dl checker.DetailLogger) checker.CheckResult {
 	data := permissionCbData{
 		workflows: make(map[string]permissions),
 	}
-	_, err := validateGitHubActionTokenPermissions(pathfn, content, dl, &data)
+	var err error
+	for _, f := range files {
+		_, err = validateGitHubActionTokenPermissions(f.pathfn, f.content, dl, &data)
+		if err != nil {
+			break
+		}
+	}
+
 	return createResultForLeastPrivilegeTokens(data, err)
 }
 
