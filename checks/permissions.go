@@ -65,6 +65,7 @@ type permissions struct {
 }
 
 type permissionCbData struct {
+	// map of filename to write permissions used.
 	workflows map[string]permissions
 }
 
