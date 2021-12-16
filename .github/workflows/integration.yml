@@ -53,7 +53,7 @@ jobs:
         with:
           max_attempts: 3
           retry_on: error
-          timeout_seconds: 30
+          timeout_minutes: 30
           command: make ci-e2e
 
       - name: find comment
