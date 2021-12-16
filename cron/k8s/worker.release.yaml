@@ -39,14 +39,12 @@ spec:
           value: "gs://ossf-scorecard-data-releasetest2"
         - name: SCORECARD_REQUEST_SUBSCRIPTION_URL
           value: "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker-releasetest"
-        - name: SCORECARD_BLAKCLISTED_CHECKS
+        - name: SCORECARD_BLACKLISTED_CHECKS
           value: "SAST,CI-Tests,Contributors"
         - name: SCORECARD_METRIC_EXPORTER
           value: "printer"
         - name: GITHUB_AUTH_SERVER
           value: "10.4.4.210:80"
-        - name: ENABLE_DANGEROUS_WORKFLOW
-          value: 1
         resources:
           requests:
             memory: 5Gi
