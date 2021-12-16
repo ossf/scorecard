@@ -69,7 +69,7 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 	// Add default branch.
 	defaultBranch, err := c.GetDefaultBranch()
 	if err != nil {
-		return checker.BranchProtectionsData{}, err
+		return checker.BranchProtectionsData{}, fmt.Errorf("%w", err)
 	}
 	defaultBranchName := getBranchName(defaultBranch)
 	if defaultBranchName != "" {

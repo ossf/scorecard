@@ -39,7 +39,7 @@ func TestIsBranchProtected(t *testing.T) {
 	trueVal := true
 	falseVal := false
 	var zeroVal int
-	var oneVal int = 1
+	oneVal := 1
 
 	tests := []struct {
 		name     string
