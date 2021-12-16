@@ -45,6 +45,8 @@ spec:
           value: "printer"
         - name: GITHUB_AUTH_SERVER
           value: "10.4.4.210:80"
+        - name: ENABLE_DANGEROUS_WORKFLOW
+          value: 1
         resources:
           requests:
             memory: 5Gi
