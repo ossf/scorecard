@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2020 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package raw
+package checker
 
-import "github.com/ossf/scorecard/v3/checker"
+// DetailLogger logs a CheckDetail struct.
+type DetailLogger interface {
+	Info(desc string, args ...interface{})
+	Warn(desc string, args ...interface{})
+	Debug(desc string, args ...interface{})
 
-// File represents a file.
-type File struct {
-	Path   string
-	Type   checker.FileType
-	Offset int
-	// TODO: add hash if needed.
+	// Functions to use for moving to SARIF format.
+	// UPGRADEv3: to rename.
+	Info3(msg *LogMessage)
+	Warn3(msg *LogMessage)
+	Debug3(msg *LogMessage)
 }
