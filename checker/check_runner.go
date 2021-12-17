@@ -42,55 +42,6 @@ type CheckFn func(*CheckRequest) CheckResult
 // CheckNameToFnMap defined here for convenience.
 type CheckNameToFnMap map[string]CheckFn
 
-// UPGRADEv2: messages2 will ultimately
-// be renamed to messages.
-type logger struct {
-	messages2 []CheckDetail
-}
-
-func (l *logger) Info(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailInfo, Msg: LogMessage{Text: fmt.Sprintf(desc, args...)}}
-	l.messages2 = append(l.messages2, cd)
-}
-
-func (l *logger) Warn(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailWarn, Msg: LogMessage{Text: fmt.Sprintf(desc, args...)}}
-	l.messages2 = append(l.messages2, cd)
-}
-
-func (l *logger) Debug(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailDebug, Msg: LogMessage{Text: fmt.Sprintf(desc, args...)}}
-	l.messages2 = append(l.messages2, cd)
-}
-
-// UPGRADEv3: to rename.
-func (l *logger) Info3(msg *LogMessage) {
-	cd := CheckDetail{
-		Type: DetailInfo,
-		Msg:  *msg,
-	}
-	cd.Msg.Version = 3
-	l.messages2 = append(l.messages2, cd)
-}
-
-func (l *logger) Warn3(msg *LogMessage) {
-	cd := CheckDetail{
-		Type: DetailWarn,
-		Msg:  *msg,
-	}
-	cd.Msg.Version = 3
-	l.messages2 = append(l.messages2, cd)
-}
-
-func (l *logger) Debug3(msg *LogMessage) {
-	cd := CheckDetail{
-		Type: DetailDebug,
-		Msg:  *msg,
-	}
-	cd.Msg.Version = 3
-	l.messages2 = append(l.messages2, cd)
-}
-
 func logStats(ctx context.Context, startTime time.Time, result *CheckResult) error {
 	runTimeInSecs := time.Now().Unix() - startTime.Unix()
 	opencensusstats.Record(ctx, stats.CheckRuntimeInSec.M(runTimeInSecs))
@@ -128,10 +79,12 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		break
 	}
 
+	// Set details.
 	res.Details2 = l.messages2
 	for _, d := range l.messages2 {
 		res.Details = append(res.Details, d.Msg.Text)
 	}
+
 	if err := logStats(ctx, startTime, &res); err != nil {
 		panic(err)
 	}

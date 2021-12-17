@@ -168,13 +168,41 @@ func CheckFilesContentV6(shellPathFnPattern string,
 	return nil
 }
 
+// FileCbV6 is the callback.
+// The bool returned indicates whether the FileCbData
+// should continue iterating over files or not.
+type FileCbV6 func(path string, data FileCbData) (bool, error)
+
+// CheckIfFileExistsV6 downloads the tar of the repository and calls the onFile() to check
+// for the occurrence.
+func CheckIfFileExistsV6(repoClient clients.RepoClient,
+	onFile FileCbV6, data FileCbData) error {
+	matchedFiles, err := repoClient.ListFiles(func(string) (bool, error) { return true, nil })
+	if err != nil {
+		// nolint: wrapcheck
+		return err
+	}
+	for _, filename := range matchedFiles {
+		continueIter, err := onFile(filename, data)
+		if err != nil {
+			return err
+		}
+
+		if !continueIter {
+			break
+		}
+	}
+
+	return nil
+}
+
 // FileCb represents a callback fn.
 type FileCb func(path string,
 	dl checker.DetailLogger, data FileCbData) (bool, error)
 
 // CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
 // for the occurrence.
-func CheckIfFileExists(checkName string, c *checker.CheckRequest, onFile FileCb, data FileCbData) error {
+func CheckIfFileExists(c *checker.CheckRequest, onFile FileCb, data FileCbData) error {
 	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
 	if err != nil {
 		// nolint: wrapcheck

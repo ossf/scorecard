@@ -1,0 +1,27 @@
+# Copyright 2021 Security Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+name: write-and-read workflow
+on: [push]
+permissions: read-all
+
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - name: Perform CodeQL Analysis
+        uses: github/some-action/analyze@v1
+        run: echo "write-and-read workflow"
+        # Some comment about github/codeql-action/analyze@v1
