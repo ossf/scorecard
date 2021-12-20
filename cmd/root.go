@@ -80,6 +80,8 @@ const (
 	scorecardShort = "Security Scorecards"
 )
 
+const cliEnableSarif = "ENABLE_SARIF"
+
 //nolint:gochecknoinits
 func init() {
 	// Add the zap flag manually
@@ -106,7 +108,7 @@ func init() {
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
 
 	var sarifEnabled bool
-	_, sarifEnabled = os.LookupEnv("ENABLE_SARIF")
+	_, sarifEnabled = os.LookupEnv(cliEnableSarif)
 	if sarifEnabled {
 		rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
 		rootCmd.Flags().StringVar(&format, "format", formatDefault,
@@ -135,7 +137,7 @@ func Execute() {
 func scorecardCmd(cmd *cobra.Command, args []string) {
 	// UPGRADEv4: remove.
 	var sarifEnabled bool
-	_, sarifEnabled = os.LookupEnv("ENABLE_SARIF")
+	_, sarifEnabled = os.LookupEnv(cliEnableSarif)
 
 	if format == formatSarif && !sarifEnabled {
 		log.Panic("sarif not supported yet")
