@@ -104,7 +104,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			// TODO: upload real binaries to the repo as well.
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MinResultScore - 4,
+				Score:         checker.MaxResultScore - 4,
 				NumberOfWarn:  4,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
