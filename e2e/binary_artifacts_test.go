@@ -84,7 +84,34 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, " binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return binary artifacts present in source code", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-binary-artifacts-e2e-4-binaries")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			// TODO: upload real binaries to the repo as well.
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore - 4,
+				NumberOfWarn:  4,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.BinaryArtifacts(&req)
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
