@@ -112,10 +112,10 @@ func init() {
 	if sarifEnabled {
 		rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
 		rootCmd.Flags().StringVar(&format, "format", formatDefault,
-			"output format. allowed values are [default, sarif, json]")
+			"output format allowed values are [default, sarif, json]")
 	} else {
 		rootCmd.Flags().StringVar(&format, "format", formatDefault,
-			"output format. allowed values are [default, json]")
+			"output format allowed values are [default, json]")
 	}
 
 	var v6 bool
