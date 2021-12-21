@@ -147,10 +147,6 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 		log.Panic("policy not supported yet")
 	}
 
-	if local != "" && !sarifEnabled {
-		log.Panic("--local option not supported yet")
-	}
-
 	var v6 bool
 	_, v6 = os.LookupEnv("SCORECARD_V6")
 	if raw && !v6 {
