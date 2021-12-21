@@ -32,12 +32,19 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 		return checker.CreateMaxScoreResult(name, "no binaries found in the repo")
 	}
 
+	score := checker.MaxResultScore
 	for _, f := range r.Files {
 		dl.Warn3(&checker.LogMessage{
 			Path: f.Path, Type: checker.FileTypeBinary,
 			Text: "binary detected",
 		})
+		// We remove one point for each binary.
+		score--
 	}
 
-	return checker.CreateMinScoreResult(name, "binaries present in source code")
+	if score < checker.MinResultScore {
+		score = checker.MinResultScore
+	}
+
+	return checker.CreateResultWithScore(name, "binaries present in source code", score)
 }
