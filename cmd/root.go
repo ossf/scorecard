@@ -75,10 +75,12 @@ const (
 
 	scorecardLong = "A program that shows security scorecard for an open source software."
 	scorecardUse  = `./scorecard [--repo=<repo_url>] [--local=folder] [--checks=check1,...]
-	 [--show-details] [--policy=file] or ./scorecard --{npm,pypi,rubygems}=<package_name> 
-	 [--checks=check1,...] [--show-details] [--policy=file]`
+	 [--show-details] or ./scorecard --{npm,pypi,rubygems}=<package_name> 
+	 [--checks=check1,...] [--show-details]`
 	scorecardShort = "Security Scorecards"
 )
+
+const cliEnableSarif = "ENABLE_SARIF"
 
 //nolint:gochecknoinits
 func init() {
@@ -95,8 +97,6 @@ func init() {
 	rootCmd.Flags().StringVar(
 		&rubygems, "rubygems", "",
 		"rubygems package to check, given that the rubygems package has a GitHub repository")
-	rootCmd.Flags().StringVar(&format, "format", formatDefault,
-		"output format. allowed values are [default, sarif, json]")
 	rootCmd.Flags().StringSliceVar(
 		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
@@ -106,7 +106,17 @@ func init() {
 	}
 	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
-	rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
+
+	var sarifEnabled bool
+	_, sarifEnabled = os.LookupEnv(cliEnableSarif)
+	if sarifEnabled {
+		rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
+		rootCmd.Flags().StringVar(&format, "format", formatDefault,
+			"output format allowed values are [default, sarif, json]")
+	} else {
+		rootCmd.Flags().StringVar(&format, "format", formatDefault,
+			"output format allowed values are [default, json]")
+	}
 
 	var v6 bool
 	_, v6 = os.LookupEnv("SCORECARD_V6")
@@ -126,19 +136,15 @@ func Execute() {
 // nolint: gocognit, gocyclo
 func scorecardCmd(cmd *cobra.Command, args []string) {
 	// UPGRADEv4: remove.
-	var v4 bool
-	_, v4 = os.LookupEnv("SCORECARD_V4")
+	var sarifEnabled bool
+	_, sarifEnabled = os.LookupEnv(cliEnableSarif)
 
-	if format == formatSarif && !v4 {
+	if format == formatSarif && !sarifEnabled {
 		log.Panic("sarif not supported yet")
 	}
 
-	if policyFile != "" && !v4 {
+	if policyFile != "" && !sarifEnabled {
 		log.Panic("policy not supported yet")
-	}
-
-	if local != "" && !v4 {
-		log.Panic("--local option not supported yet")
 	}
 
 	var v6 bool
