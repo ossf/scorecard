@@ -18,6 +18,7 @@
 -  [Basic Usage](#basic-usage)
 -  [Report Problems](#report-problems) 
 -  [Scorecards' Public Data](#public-data)
+-  [Example of using scorecard public data](#using-public-data)
 
 ## Checks 
 
@@ -361,6 +362,9 @@ on other source control systems.
 between **0 and 10**. A confidence of 0 indicates that the check was unable to
 achieve any real signal, and that the result should be ignored. A confidence of 10
 indicates the check was completely sure of the result. 
+
+### Using public data
+[example of using scorecard bigquery](examples/bigquery/scorecarddata)
 
 ## Checks
 ### Scorecard Checks
