@@ -41,9 +41,16 @@ type osvResponse struct {
 	} `json:"vulns"`
 }
 
+// Vulnerabilities cheks for vulnerabilities in api.osv.dev.
+type Vulnerabilities interface {
+	HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult
+}
+type vulns struct{}
+
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckVulnerabilities, HasUnfixedVulnerabilities)
+	v := &vulns{}
+	registerCheck(CheckVulnerabilities, v.HasUnfixedVulnerabilities)
 }
 
 func (resp *osvResponse) getVulnerabilities() []string {
@@ -54,8 +61,13 @@ func (resp *osvResponse) getVulnerabilities() []string {
 	return ids
 }
 
+// NewVulnerabilities creates a new Vulnerabilities check.
+func NewVulnerabilities() Vulnerabilities {
+	return &vulns{}
+}
+
 // HasUnfixedVulnerabilities runs Vulnerabilities check.
-func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
+func (v *vulns) HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "Client.Repositories.ListCommits")
