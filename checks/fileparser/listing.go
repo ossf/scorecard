@@ -49,10 +49,24 @@ func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) 
 	return match, nil
 }
 
-func isTestdataFile(fullpath string) bool {
-	// testdata/ or /some/dir/testdata/some/other
-	return strings.HasPrefix(fullpath, "testdata/") ||
-		strings.Contains(fullpath, "/testdata/")
+func containsTestdataFile(fullpath string, ignoreDirs []string) bool {
+	check := func(name string) bool {
+		// name/ or /some/dir/name/some/other
+		return strings.HasPrefix(fullpath, name+"/") ||
+			strings.Contains(fullpath, "/"+name+"/")
+	}
+
+	if check("testdata") {
+		return false
+	}
+
+	for _, dir := range ignoreDirs {
+		if check(dir) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // FileCbData is any data the caller can act upon
@@ -79,7 +93,7 @@ func CheckFilesContent(shellPathFnPattern string,
 ) error {
 	predicate := func(filepath string) (bool, error) {
 		// Filter out test files.
-		if isTestdataFile(filepath) {
+		if containsTestdataFile(filepath, c.IgnoreDirs) {
 			return false, nil
 		}
 		// Filter out files based on path/names using the pattern.
@@ -131,7 +145,7 @@ func CheckFilesContentV6(shellPathFnPattern string,
 ) error {
 	predicate := func(filepath string) (bool, error) {
 		// Filter out test files.
-		if isTestdataFile(filepath) {
+		if containsTestdataFile(filepath, []string{}) {
 			return false, nil
 		}
 		// Filter out files based on path/names using the pattern.
