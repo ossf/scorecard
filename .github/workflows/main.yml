@@ -15,11 +15,9 @@
 name: build
 on: [push, pull_request]
 jobs:
-  validate:
-    name: Validate
+  setup:
+    name: setup
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
@@ -35,13 +33,41 @@ jobs:
          go-version: '^1.17'
      - name: Install tools
        run: make install
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: setup
+    steps:
      - name: Run presubmit tests
        run: |
             go env -w GOFLAGS=-mod=mod
             make -j 5 all
+  check-osv:
+    name: check-osv
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: setup
+    steps:
+     - name: Runs osv-check
+       run: |
+            make check-osv
+  check-linter:
+    name: check-linter
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: setup
+    steps:
+     - name: Runs linter
+       run: |
+            make check-linter
   license-check:
     name: license boilerplate check
     runs-on: ubuntu-latest
+    needs: setup
     permissions:
       contents: read
     steps:
