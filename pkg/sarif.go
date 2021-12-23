@@ -501,6 +501,28 @@ func createCheckIdentifiers(name string) (string, string) {
 	return name, fmt.Sprintf("%sID", n)
 }
 
+func removeDetailType(details []checker.CheckDetail, t checker.DetailType) []checker.CheckDetail {
+	ret := make([]checker.CheckDetail, 0)
+	for i := range details {
+		d := details[i]
+		if d.Type == t {
+			continue
+		}
+		ret = append(ret, d)
+	}
+	return ret
+}
+
+func createDefaultLocationMessage(check *checker.CheckResult) string {
+	details := removeDetailType(check.Details2, checker.DetailInfo)
+	s, b := detailsToString(details, zapcore.WarnLevel)
+	if b {
+		// Warning: GitHub UX needs a single `\n` to turn it into a `<br>`.
+		return fmt.Sprintf("%s:\n%s", check.Reason, s)
+	}
+	return check.Reason
+}
+
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy) error {
@@ -576,8 +598,9 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		RuleIndex := len(run.Tool.Driver.Rules) - 1
 		if len(locs) == 0 {
 			locs = addDefaultLocation(locs, "no file available")
-			// Use the `reason` as message.
-			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, check.Reason, &locs[0])
+			// Use the `reason` as message, and append the detailed to it.
+			msg := createDefaultLocationMessage(&check)
+			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &locs[0])
 			run.Results = append(run.Results, cr)
 		} else {
 			for _, loc := range locs {

@@ -116,7 +116,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	}
 
 	// Return raw results.
-	return checker.SecurityPolicyData{Files: files}, err
+	return checker.SecurityPolicyData{Files: files}, nil
 }
 
 func isSecurityRstFound(name string) bool {
