@@ -1212,3 +1212,70 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected []struct {
+			snippet   string
+			startLine uint
+			endLine   uint
+		}
+	}{
+		{
+			name:     "downloads",
+			filename: "testdata/github-workflow-download-lines.yaml",
+			expected: []struct {
+				snippet   string
+				startLine uint
+				endLine   uint
+			}{
+				{
+					snippet:   "bash /tmp/file",
+					startLine: 27,
+					endLine:   2,
+				},
+				{
+					snippet:   "/tmp/file2",
+					startLine: 29,
+					endLine:   4,
+				},
+				{
+					snippet:   "curl bla | bash",
+					startLine: 32,
+					endLine:   7,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := os.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %v", err)
+			}
+			dl := scut.TestDetailLogger{}
+			var pinned pinnedResult
+			_, err = validateGitHubWorkflowIsFreeOfInsecureDownloads(tt.filename, content, &dl, &pinned)
+			if err != nil {
+				t.Errorf("error during validateGitHubWorkflowIsFreeOfInsecureDownloads: %v", err)
+			}
+			for _, expectedLog := range tt.expected {
+				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+					return logMessage.Offset == expectedLog.startLine &&
+						logMessage.EndOffset == expectedLog.endLine &&
+						logMessage.Path == tt.filename &&
+						logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn
+				}
+
+				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
+					t.Errorf("test failed: log message not present: %+v", tt.expected)
+				}
+			}
+		})
+	}
+}
