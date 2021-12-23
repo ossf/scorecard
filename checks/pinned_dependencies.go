@@ -229,8 +229,7 @@ func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
-
-	r, err := validateShellFile(pathfn, content, dl)
+	r, err := validateShellFile(pathfn, 0, 0, content, dl)
 	if err != nil {
 		return false, err
 	}
@@ -283,10 +282,12 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	}
 
 	var bytes []byte
-
+	var startLine, endLine uint
 	// Walk the Dockerfile's AST.
-	for _, child := range res.AST.Children {
+	for i := range res.AST.Children {
+		child := res.AST.Children[i]
 		cmdType := child.Value
+
 		// Only look for the 'RUN' command.
 		if cmdType != "run" {
 			continue
@@ -307,7 +308,11 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		bytes = append(bytes, '\n')
 	}
 
-	r, err := validateShellFile(pathfn, bytes, dl)
+	if len(res.AST.Children) > 0 {
+		startLine = uint(res.AST.Children[len(res.AST.Children)-1].StartLine - 1)
+		endLine = uint(res.AST.Children[len(res.AST.Children)-1].EndLine - 1)
+	}
+	r, err := validateShellFile(pathfn, startLine, endLine, bytes, dl)
 	if err != nil {
 		return false, err
 	}
@@ -405,8 +410,8 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 			dl.Warn3(&checker.LogMessage{
 				Path:    pathfn,
 				Type:    checker.FileTypeSource,
-				Offset:  child.StartLine,
-				Text:    fmt.Sprintf("dependency not pinned by hash: '%v'", name),
+				Offset:  uint(child.StartLine),
+				Text:    fmt.Sprintf("docker image not pinned by hash: '%v'", name),
 				Snippet: child.Original,
 			})
 
@@ -418,8 +423,8 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 				dl.Warn3(&checker.LogMessage{
 					Path:    pathfn,
 					Type:    checker.FileTypeSource,
-					Offset:  child.StartLine,
-					Text:    fmt.Sprintf("dependency not pinned by hash: '%v'", name),
+					Offset:  uint(child.StartLine),
+					Text:    fmt.Sprintf("docker image not pinned by hash: '%v'", name),
 					Snippet: child.Original,
 				})
 			}
@@ -529,7 +534,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 
 	if scriptContent != "" {
 		var err error
-		validated, err = validateShellFile(pathfn, []byte(scriptContent), dl)
+		validated, err = validateShellFile(pathfn, 0, 0, []byte(scriptContent), dl)
 		if err != nil {
 			return false, err
 		}
@@ -630,8 +635,9 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 			match := hashRegex.Match([]byte(execAction.Uses.Value))
 			if !match {
 				dl.Warn3(&checker.LogMessage{
-					Path: pathfn, Type: checker.FileTypeSource, Offset: execAction.Uses.Pos.Line, Snippet: execAction.Uses.Value,
-					Text: fmt.Sprintf("%s dependency not pinned by hash (job '%v')", owner, jobName),
+					Path: pathfn, Type: checker.FileTypeSource, Offset: uint(execAction.Uses.Pos.Line),
+					Snippet: execAction.Uses.Value,
+					Text:    fmt.Sprintf("%s action not pinned by hash", owner),
 				})
 			}
 

@@ -401,7 +401,7 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 		filename string
 		expected []struct {
 			snippet    string
-			lineNumber int
+			lineNumber uint
 		}
 	}{
 		{
@@ -409,7 +409,7 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 			filename: "./testdata/Dockerfile-not-pinned-as",
 			expected: []struct {
 				snippet    string
-				lineNumber int
+				lineNumber uint
 			}{
 				{
 					snippet:    "FROM python:3.7 as build",
@@ -430,7 +430,7 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 			filename: "./testdata/Dockerfile-not-pinned",
 			expected: []struct {
 				snippet    string
-				lineNumber int
+				lineNumber uint
 			}{
 				{
 					snippet:    "FROM python:3.7",
@@ -457,7 +457,7 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
 					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == tt.filename &&
 						logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn &&
-						strings.Contains(logMessage.Text, "dependency not pinned by hash")
+						strings.Contains(logMessage.Text, "image not pinned by hash")
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
 					t.Errorf("test failed: log message not present: %+v", tt.expected)
@@ -475,7 +475,7 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 		expected scut.TestReturn
 	}{
 		{
-			name:     "Pinned dockerfile as",
+			name:     "Pinned dockerfile as no hash",
 			filename: "./testdata/Dockerfile-pinned-as-without-hash",
 			expected: scut.TestReturn{
 				Error:         nil,
@@ -508,11 +508,11 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 			}
 
 			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-				return strings.Contains(logMessage.Text, "dependency not pinned by hash")
+				return strings.Contains(logMessage.Text, "image not pinned by hash")
 			}
 
 			if !scut.ValidateLogMessage(isExpectedLog, &dl) {
-				t.Fail()
+				t.Errorf("test failed: log message not present: %+v", tt.expected)
 			}
 		})
 	}
@@ -988,7 +988,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		filename string
 		expected []struct {
 			dependency string
-			lineNumber int
+			lineNumber uint
 		}
 	}{
 		{
@@ -996,7 +996,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			filename: "testdata/github-workflow-permissions-run-codeql-write.yaml",
 			expected: []struct {
 				dependency string
-				lineNumber int
+				lineNumber uint
 			}{
 				{
 					dependency: "github/codeql-action/analyze@v1",
@@ -1009,7 +1009,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			filename: "testdata/github-workflow-multiple-unpinned-uses.yaml",
 			expected: []struct {
 				dependency string
-				lineNumber int
+				lineNumber uint
 			}{
 				{
 					dependency: "github/codeql-action/analyze@v1",
@@ -1040,8 +1040,9 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
 					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == tt.filename &&
 						logMessage.Snippet == expectedLog.dependency && logType == checker.DetailWarn &&
-						strings.Contains(logMessage.Text, "dependency not pinned by hash")
+						strings.Contains(logMessage.Text, "action not pinned by hash")
 				}
+
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
 					t.Errorf("test failed: log message not present: %+v", tt.expected)
 				}

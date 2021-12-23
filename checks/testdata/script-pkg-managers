@@ -13,16 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-go get github.com@some_tag
-go install github.com@some_tag
+go get github.com/org/name@some_tag
+go install github.com/org/name@some_tag
 go install
 
-/bin/go install github.com@some_tag
-go get github.com@some_tag
-go get github.com@1111111111ccccccccccaaaaaaaaaa9999999999
-go get github.com@1111111111ccccccccccaaaaaaaaaa9999999999
-go install -Y github.com@1111111111ccccccccccaaaaaaaaaa9999999999
-go get github.com@1111111111ccccccccccaaaaaaaaaa9999999999
+/bin/go install github.com/org/name@some_tag
+go get github.com/org/name@some_tag
+go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
+go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
+go install -Y github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
+go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 
 go mod download
 go build -a bla

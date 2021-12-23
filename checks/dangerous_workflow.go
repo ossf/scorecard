@@ -167,9 +167,9 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 			continue
 		}
 		if strings.Contains(ref.Value.Value, "github.event.pull_request") {
-			line := 1
+			line := checker.OffsetDefault
 			if step.Pos != nil {
-				line = step.Pos.Line
+				line = uint(step.Pos.Line)
 			}
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
@@ -225,9 +225,9 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 		// Check if the variable may be untrustworthy.
 		variable := script[s+3 : s+e]
 		if containsUntrustedContextPattern(variable) {
-			line := 1
+			line := checker.OffsetDefault
 			if pos != nil {
-				line = pos.Line
+				line = uint(pos.Line)
 			}
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,

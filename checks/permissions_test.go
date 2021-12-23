@@ -381,14 +381,14 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 		name     string
 		filename string
 		expected []struct {
-			lineNumber int
+			lineNumber uint
 		}
 	}{
 		{
 			name:     "Job level write permission",
 			filename: "./testdata/github-workflow-permissions-run-no-codeql-write.yaml",
 			expected: []struct {
-				lineNumber int
+				lineNumber uint
 			}{
 				{
 					lineNumber: 22,
@@ -399,7 +399,7 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 			name:     "Workflow level write permission",
 			filename: "./testdata/github-workflow-permissions-writeall.yaml",
 			expected: []struct {
-				lineNumber int
+				lineNumber uint
 			}{
 				{
 					lineNumber: 16,
