@@ -233,7 +233,11 @@ func detailToRegion(details *checker.CheckDetail) region {
 			Snippet:   snippet,
 		}
 	case checker.FileTypeNone:
-		// Do nothing.
+		line := maxOffset(1, details.Msg.Offset)
+		reg = region{
+			StartLine: &line,
+			Snippet:   snippet,
+		}
 	case checker.FileTypeSource:
 		line := maxOffset(1, details.Msg.Offset)
 		reg = region{
@@ -261,16 +265,27 @@ func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 	switch {
 	default:
 		return false
-	case detail.Msg.Path == "",
+	case // detail.Msg.Path == "",
 		!showDetails,
-		detail.Type != checker.DetailWarn,
-		detail.Msg.Type == checker.FileTypeURL:
+		detail.Type != checker.DetailWarn:
+		// detail.Msg.Type == checker.FileTypeURL:
 		return false
 	case score == checker.InconclusiveResultScore:
 		return true
 	case minScore >= score:
 		return true
 	}
+}
+
+func detailToURI(detail *checker.CheckDetail) string {
+	if detail.Msg.Path != "" {
+		if detail.Msg.Type == checker.FileTypeURL {
+			return fmt.Sprintf("url_%s", strings.Replace(detail.Msg.Path, "https://", "", 0))
+		}
+		return detail.Msg.Path
+	}
+
+	return strings.ReplaceAll(detail.Msg.Text, " ", "_")
 }
 
 func detailsToLocations(details []checker.CheckDetail,
@@ -296,7 +311,7 @@ func detailsToLocations(details []checker.CheckDetail,
 		loc := location{
 			PhysicalLocation: physicalLocation{
 				ArtifactLocation: artifactLocation{
-					URI:       d.Msg.Path,
+					URI:       detailToURI(&d),
 					URIBaseID: "%SRCROOT%",
 				},
 			},

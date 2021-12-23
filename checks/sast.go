@@ -171,7 +171,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 // nolint
 func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	searchRequest := clients.SearchRequest{
-		Query: "github/codeql-action",
+		Query: "github/codeql-action/analyze",
 		Path:  "/.github/workflows",
 	}
 	resp, err := c.RepoClient.Search(searchRequest)
@@ -182,8 +182,8 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 
 	for _, result := range resp.Results {
 		c.Dlogger.Debug3(&checker.LogMessage{
-			Path: result.Path,
-			Type: checker.FileTypeSource,
+			Path:   result.Path,
+			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   "CodeQL detected",
 		})
