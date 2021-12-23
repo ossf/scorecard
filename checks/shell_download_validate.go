@@ -283,7 +283,7 @@ func extractCommand(cmd interface{}) ([]string, bool) {
 	return ret, true
 }
 
-func isFetchPipeExecute(node syntax.Node, cmd, pathfn string,
+func isFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
 	dl checker.DetailLogger) bool {
 	// BinaryCmd {Op=|, X=CallExpr{Args={curl, -s, url}}, Y=CallExpr{Args={bash,}}}.
 	bc, ok := node.(*syntax.BinaryCmd)
@@ -314,11 +314,12 @@ func isFetchPipeExecute(node syntax.Node, cmd, pathfn string,
 	}
 
 	dl.Warn3(&checker.LogMessage{
-		Path:    pathfn,
-		Type:    checker.FileTypeSource,
-		Offset:  0, // TODO: add line numbers
-		Snippet: cmd,
-		Text:    "insecure (not pinned by hash) download detected",
+		Path:      pathfn,
+		Type:      checker.FileTypeSource,
+		Offset:    startLine + node.Pos().Line(),
+		EndOffset: endLine + node.Pos().Line(),
+		Snippet:   cmd,
+		Text:      "insecure (not pinned by hash) download detected",
 	})
 	return true
 }
@@ -344,7 +345,7 @@ func getRedirectFile(red []*syntax.Redirect) (string, bool) {
 	return "", false
 }
 
-func isExecuteFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
+func isExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn string, files map[string]bool,
 	dl checker.DetailLogger) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
@@ -360,11 +361,12 @@ func isExecuteFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
 	for fn := range files {
 		if isInterpreterWithFile(c, fn) || isExecuteFile(c, fn) {
 			dl.Warn3(&checker.LogMessage{
-				Path:    pathfn,
-				Type:    checker.FileTypeSource,
-				Offset:  0, // TODO: add line numbers
-				Snippet: cmd,
-				Text:    "insecure (not pinned by hash) download detected",
+				Path:      pathfn,
+				Type:      checker.FileTypeSource,
+				Offset:    startLine + node.Pos().Line(),
+				EndOffset: endLine + node.Pos().Line(),
+				Snippet:   cmd,
+				Text:      "insecure (not pinned by hash) download detected",
 			})
 			ok = true
 		}
@@ -639,7 +641,7 @@ func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err erro
 	return fn, true, nil
 }
 
-func isFetchProcSubsExecute(node syntax.Node, cmd, pathfn string,
+func isFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
 	dl checker.DetailLogger) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
@@ -691,11 +693,12 @@ func isFetchProcSubsExecute(node syntax.Node, cmd, pathfn string,
 	}
 
 	dl.Warn3(&checker.LogMessage{
-		Path:    pathfn,
-		Type:    checker.FileTypeSource,
-		Offset:  0, // TODO: add line numbers
-		Snippet: cmd,
-		Text:    "insecure (not pinned by hash) download",
+		Path:      pathfn,
+		Type:      checker.FileTypeSource,
+		Offset:    startLine + node.Pos().Line(),
+		EndOffset: endLine + node.Pos().Line(),
+		Snippet:   cmd,
+		Text:      "insecure (not pinned by hash) download",
 	})
 	return true
 }
@@ -811,18 +814,18 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 		}
 
 		// `curl | bash` (supports `sudo`).
-		if isFetchPipeExecute(node, cmdStr, pathfn, dl) {
+		if isFetchPipeExecute(startLine, endLine, node, cmdStr, pathfn, dl) {
 			validated = false
 		}
 
 		// Check if we're calling a file we previously downloaded.
 		// Includes `curl > /tmp/file [&&|;] [bash] /tmp/file`
-		if isExecuteFiles(node, cmdStr, pathfn, files, dl) {
+		if isExecuteFiles(startLine, endLine, node, cmdStr, pathfn, files, dl) {
 			validated = false
 		}
 
 		// `bash <(wget -qO- http://website.com/my-script.sh)`. (supports `sudo`).
-		if isFetchProcSubsExecute(node, cmdStr, pathfn, dl) {
+		if isFetchProcSubsExecute(startLine, endLine, node, cmdStr, pathfn, dl) {
 			validated = false
 		}
 

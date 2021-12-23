@@ -229,7 +229,7 @@ func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
-	r, err := validateShellFile(pathfn, 0, 0, content, dl)
+	r, err := validateShellFile(pathfn, 0, 0 /*unknown*/, content, dl)
 	if err != nil {
 		return false, err
 	}
@@ -281,10 +281,10 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
-	var bytes []byte
-	var startLine, endLine uint
 	// Walk the Dockerfile's AST.
 	for i := range res.AST.Children {
+		var bytes []byte
+
 		child := res.AST.Children[i]
 		cmdType := child.Value
 
@@ -305,19 +305,13 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		// Build a file content.
 		cmd := strings.Join(valueList, " ")
 		bytes = append(bytes, cmd...)
-		bytes = append(bytes, '\n')
+		r, err := validateShellFile(pathfn, uint(child.StartLine)-1, uint(child.EndLine)-1, bytes, dl)
+		if err != nil {
+			return false, err
+		}
+		addPinnedResult(pdata, r)
 	}
 
-	if len(res.AST.Children) > 0 {
-		startLine = uint(res.AST.Children[len(res.AST.Children)-1].StartLine - 1)
-		endLine = uint(res.AST.Children[len(res.AST.Children)-1].EndLine - 1)
-	}
-	r, err := validateShellFile(pathfn, startLine, endLine, bytes, dl)
-	if err != nil {
-		return false, err
-	}
-
-	addPinnedResult(pdata, r)
 	return true, nil
 }
 
@@ -489,8 +483,6 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	}
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
-	validated := true
-	scriptContent := ""
 	for jobName, job := range workflow.Jobs {
 		jobName := jobName
 		job := job
@@ -528,19 +520,14 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 
 			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
-			scriptContent = fmt.Sprintf("%v\n%v", scriptContent, string(script))
+			validated, err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line)-1, 0 /*unknown*/, []byte(script), dl)
+			if err != nil {
+				return false, err
+			}
+			addPinnedResult(pdata, validated)
 		}
 	}
 
-	if scriptContent != "" {
-		var err error
-		validated, err = validateShellFile(pathfn, 0, 0, []byte(scriptContent), dl)
-		if err != nil {
-			return false, err
-		}
-	}
-
-	addPinnedResult(pdata, validated)
 	return true, nil
 }
 
