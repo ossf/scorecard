@@ -400,28 +400,33 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 		name     string
 		filename string
 		expected []struct {
-			snippet    string
-			lineNumber uint
+			snippet   string
+			startLine uint
+			endLine   uint
 		}
 	}{
 		{
 			name:     "Non-pinned dockerfile as",
 			filename: "./testdata/Dockerfile-not-pinned-as",
 			expected: []struct {
-				snippet    string
-				lineNumber uint
+				snippet   string
+				startLine uint
+				endLine   uint
 			}{
 				{
-					snippet:    "FROM python:3.7 as build",
-					lineNumber: 17,
+					snippet:   "FROM python:3.7 as build",
+					startLine: 17,
+					endLine:   17,
 				},
 				{
-					snippet:    "FROM build",
-					lineNumber: 23,
+					snippet:   "FROM build",
+					startLine: 23,
+					endLine:   23,
 				},
 				{
-					snippet:    "FROM base2",
-					lineNumber: 29,
+					snippet:   "FROM base2",
+					startLine: 29,
+					endLine:   29,
 				},
 			},
 		},
@@ -429,12 +434,14 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 			name:     "Non-pinned dockerfile",
 			filename: "./testdata/Dockerfile-not-pinned",
 			expected: []struct {
-				snippet    string
-				lineNumber uint
+				snippet   string
+				startLine uint
+				endLine   uint
 			}{
 				{
-					snippet:    "FROM python:3.7",
-					lineNumber: 17,
+					snippet:   "FROM python:3.7",
+					startLine: 17,
+					endLine:   17,
 				},
 			},
 		},
@@ -455,9 +462,156 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 			}
 			for _, expectedLog := range tt.expected {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == tt.filename &&
+					return logMessage.Offset == expectedLog.startLine &&
+						logMessage.EndOffset == expectedLog.endLine &&
+						logMessage.Path == tt.filename &&
 						logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn &&
 						strings.Contains(logMessage.Text, "image not pinned by hash")
+				}
+				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
+					t.Errorf("test failed: log message not present: %+v", tt.expected)
+				}
+			}
+		})
+	}
+}
+
+func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected []struct {
+			snippet   string
+			startLine uint
+			endLine   uint
+		}
+	}{
+		{
+			name:     "dockerfile downloads",
+			filename: "./testdata/Dockerfile-download-lines",
+			expected: []struct {
+				snippet   string
+				startLine uint
+				endLine   uint
+			}{
+				{
+					snippet:   "curl bla | bash",
+					startLine: 35,
+					endLine:   36,
+				},
+				{
+					snippet:   "pip install -r requirements.txt",
+					startLine: 41,
+					endLine:   42,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := os.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %v", err)
+			}
+			dl := scut.TestDetailLogger{}
+			var pinned pinnedResult
+			_, err = validateDockerfileIsFreeOfInsecureDownloads(tt.filename, content, &dl, &pinned)
+			if err != nil {
+				t.Errorf("error during validateDockerfileIsPinned: %v", err)
+			}
+
+			for _, expectedLog := range tt.expected {
+				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+					return logMessage.Offset == expectedLog.startLine &&
+						logMessage.EndOffset == expectedLog.endLine &&
+						logMessage.Path == tt.filename &&
+						logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn
+				}
+				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
+					t.Errorf("test failed: log message not present: %+v", tt.expected)
+				}
+			}
+		})
+	}
+}
+
+func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected []struct {
+			snippet   string
+			startLine uint
+			endLine   uint
+		}
+	}{
+		{
+			name:     "shell downloads",
+			filename: "./testdata/shell-download-lines.sh",
+			expected: []struct {
+				snippet   string
+				startLine uint
+				endLine   uint
+			}{
+				{
+					snippet:   "bash /tmp/file",
+					startLine: 6,
+					endLine:   6,
+				},
+				{
+					snippet:   "curl bla | bash",
+					startLine: 11,
+					endLine:   11,
+				},
+				{
+					snippet:   "bash <(wget -qO- http://website.com/my-script.sh)",
+					startLine: 18,
+					endLine:   18,
+				},
+				{
+					snippet:   "bash <(wget -qO- http://website.com/my-script.sh)",
+					startLine: 20,
+					endLine:   20,
+				},
+				{
+					snippet:   "pip install -r requirements.txt",
+					startLine: 26,
+					endLine:   26,
+				},
+				{
+					snippet:   "curl bla | bash",
+					startLine: 28,
+					endLine:   28,
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := os.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %v", err)
+			}
+			dl := scut.TestDetailLogger{}
+			var pinned pinnedResult
+			_, err = validateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &dl, &pinned)
+			if err != nil {
+				t.Errorf("error during validateDockerfileIsPinned: %v", err)
+			}
+
+			for _, expectedLog := range tt.expected {
+				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+					return logMessage.Offset == expectedLog.startLine &&
+						logMessage.EndOffset == expectedLog.endLine &&
+						logMessage.Path == tt.filename &&
+						logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
 					t.Errorf("test failed: log message not present: %+v", tt.expected)
@@ -988,7 +1142,8 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		filename string
 		expected []struct {
 			dependency string
-			lineNumber uint
+			startLine  uint
+			endLine    uint
 		}
 	}{
 		{
@@ -996,11 +1151,13 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			filename: "testdata/github-workflow-permissions-run-codeql-write.yaml",
 			expected: []struct {
 				dependency string
-				lineNumber uint
+				startLine  uint
+				endLine    uint
 			}{
 				{
 					dependency: "github/codeql-action/analyze@v1",
-					lineNumber: 25,
+					startLine:  25,
+					endLine:    25,
 				},
 			},
 		},
@@ -1009,15 +1166,18 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			filename: "testdata/github-workflow-multiple-unpinned-uses.yaml",
 			expected: []struct {
 				dependency string
-				lineNumber uint
+				startLine  uint
+				endLine    uint
 			}{
 				{
 					dependency: "github/codeql-action/analyze@v1",
-					lineNumber: 22,
+					startLine:  22,
+					endLine:    22,
 				},
 				{
 					dependency: "docker/build-push-action@1.2.3",
-					lineNumber: 24,
+					startLine:  24,
+					endLine:    24,
 				},
 			},
 		},
@@ -1038,7 +1198,9 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			}
 			for _, expectedLog := range tt.expected {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == tt.filename &&
+					return logMessage.Offset == expectedLog.startLine &&
+						logMessage.EndOffset == expectedLog.endLine &&
+						logMessage.Path == tt.filename &&
 						logMessage.Snippet == expectedLog.dependency && logType == checker.DetailWarn &&
 						strings.Contains(logMessage.Text, "action not pinned by hash")
 				}

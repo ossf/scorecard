@@ -402,11 +402,12 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 			// Not pinned.
 			ret = false
 			dl.Warn3(&checker.LogMessage{
-				Path:    pathfn,
-				Type:    checker.FileTypeSource,
-				Offset:  uint(child.StartLine),
-				Text:    fmt.Sprintf("docker image not pinned by hash: '%v'", name),
-				Snippet: child.Original,
+				Path:      pathfn,
+				Type:      checker.FileTypeSource,
+				Offset:    uint(child.StartLine),
+				EndOffset: uint(child.EndLine),
+				Text:      fmt.Sprintf("docker image not pinned by hash: '%v'", name),
+				Snippet:   child.Original,
 			})
 
 		// FROM name.
@@ -415,11 +416,12 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 			if !regex.Match([]byte(name)) {
 				ret = false
 				dl.Warn3(&checker.LogMessage{
-					Path:    pathfn,
-					Type:    checker.FileTypeSource,
-					Offset:  uint(child.StartLine),
-					Text:    fmt.Sprintf("docker image not pinned by hash: '%v'", name),
-					Snippet: child.Original,
+					Path:      pathfn,
+					Type:      checker.FileTypeSource,
+					Offset:    uint(child.StartLine),
+					EndOffset: uint(child.EndLine),
+					Text:      fmt.Sprintf("docker image not pinned by hash: '%v'", name),
+					Snippet:   child.Original,
 				})
 			}
 
@@ -520,7 +522,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 
 			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
-			validated, err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line)-1, 0 /*unknown*/, []byte(script), dl)
+			validated, err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line), 0 /*unknown*/, []byte(script), dl)
 			if err != nil {
 				return false, err
 			}
@@ -622,9 +624,11 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 			match := hashRegex.Match([]byte(execAction.Uses.Value))
 			if !match {
 				dl.Warn3(&checker.LogMessage{
-					Path: pathfn, Type: checker.FileTypeSource, Offset: uint(execAction.Uses.Pos.Line),
-					Snippet: execAction.Uses.Value,
-					Text:    fmt.Sprintf("%s action not pinned by hash", owner),
+					Path: pathfn, Type: checker.FileTypeSource,
+					Offset:    uint(execAction.Uses.Pos.Line),
+					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
+					Snippet:   execAction.Uses.Value,
+					Text:      fmt.Sprintf("%s action not pinned by hash", owner),
 				})
 			}
 
