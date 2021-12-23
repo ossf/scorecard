@@ -794,7 +794,7 @@ func TestSARIFOutput(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: AsSARIF: %v", tt.name, err)
 			}
-
+			fmt.Println(string(result.Bytes()))
 			r := bytes.Compare(expected.Bytes(), result.Bytes())
 			if r != 0 {
 				t.Fatalf("%s: invalid result: %d", tt.name, r)
