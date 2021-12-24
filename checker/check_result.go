@@ -63,6 +63,7 @@ const (
 
 const (
 	// FileTypeNone is a default, not defined.
+	// FileTypeNone must be `0`.
 	FileTypeNone FileType = iota
 	// FileTypeSource is for source code files.
 	FileTypeSource
