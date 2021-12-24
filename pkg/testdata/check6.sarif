@@ -47,7 +47,7 @@
                "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
-                  "text": "six score reason:\nWarn: warn message"
+                  "text": "warn message"
                },
                "locations": [
                   {
@@ -56,9 +56,12 @@
                            "startLine": 1
                         },
                         "artifactLocation": {
-                           "uri": "no file available",
+                           "uri": "url_8e7117053f268338d403bd5d14b976f2",
                            "uriBaseId": "%SRCROOT%"
                         }
+                     },
+                     "message": {
+                        "text": "warn message"
                      }
                   }
                ]

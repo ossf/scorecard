@@ -145,7 +145,7 @@ func isTest(s string) bool {
 
 	// Add more patterns here!
 	for _, pattern := range []string{
-		"appveyor", "buildkite", "circleci", "e2e", "github-actions", "jenkins",
+		"appveyor", "buildkite", "circleci", "e2e" /*"github-actions",*/, "jenkins",
 		"mergeable", "packit-as-a-service", "semaphoreci", "test", "travis-ci",
 	} {
 		if strings.Contains(l, pattern) {

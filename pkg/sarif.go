@@ -15,6 +15,8 @@
 package pkg
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -280,12 +282,17 @@ func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 func detailToURI(detail *checker.CheckDetail) string {
 	if detail.Msg.Path != "" {
 		if detail.Msg.Type == checker.FileTypeURL {
-			return fmt.Sprintf("url_%s", strings.Replace(detail.Msg.Path, "https://", "", 0))
+			return stringToURI(detail.Msg.Path, "url")
 		}
 		return detail.Msg.Path
 	}
 
-	return strings.ReplaceAll(detail.Msg.Text, " ", "_")
+	return stringToURI(detail.Msg.Text, "text")
+}
+
+func stringToURI(s, p string) string {
+	hash := md5.Sum([]byte(s))
+	return fmt.Sprintf("%s_%s", p, hex.EncodeToString(hash[:]))
 }
 
 func detailsToLocations(details []checker.CheckDetail,
@@ -612,7 +619,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// so it's the last position for us.
 		RuleIndex := len(run.Tool.Driver.Rules) - 1
 		if len(locs) == 0 {
-			locs = addDefaultLocation(locs, "no file available")
+			locs = addDefaultLocation(locs, stringToURI(sarifCheckID, "checkid"))
 			msg := createDefaultLocationMessage(&check)
 			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &locs[0])
 			run.Results = append(run.Results, cr)
