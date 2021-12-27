@@ -45,8 +45,8 @@ var _ = Describe("E2E TEST:"+checks.CheckPackaging, func() {
 				Error:         nil,
 				Score:         checker.InconclusiveResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  2,
-				NumberOfDebug: 2,
+				NumberOfInfo:  1,
+				NumberOfDebug: 3,
 			}
 			result := checks.Packaging(&req)
 			Expect(scut.ValidateTestReturn(nil, "use packaging", &expected, &result, &dl)).Should(BeTrue())
