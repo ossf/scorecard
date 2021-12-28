@@ -445,21 +445,13 @@ checks:
     description: |
       Risk: `Medium` (possible compromised dependencies)
 
-      This check tries to determine if the project is an application that has declared
-      and pinned its dependencies. A "pinned dependency" is a dependency that is
-      explicitly set to a specific version instead of allowing a range of versions. It
+      This check tries to determine if the project pins its dependencies. 
+      A "pinned dependency" is a dependency that is explicitly set to a specific hash instead of 
+      allowing a mutable version or range of versions. It
       is currently limited to repositories hosted on GitHub, and does not support
-      other source hosting repositories (i.e., Forges). If this project is a library
-      (not an application), this check should automatically pass (but see limitations
-      below).
+      other source hosting repositories (i.e., Forges). 
 
-      The check works by looking for:
-
-        - the following files in the root directory: go.mod, go.sum (Golang),
-          package-lock.json, npm-shrinkwrap.json (Javascript), requirements.txt,
-          pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock
-          (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; 
-        - unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. 
+      The check works by looking for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows.
 
       Pinned dependencies reduce several security risks:
 
@@ -470,8 +462,7 @@ checks:
           security of the project (in the case where you've evaluated the pinned
           dependency, you are confident it's not compromised, and a later version is
           released that is compromised). 
-        - They are one way to
-          [counter dependency confusion (aka substitution) attacks](https://azure.microsoft.com/en-us/resources/3-ways-to-mitigate-risk-using-private-package-feeds/),
+        - They are one way to [counter dependency confusion (aka substitution) attacks](https://azure.microsoft.com/en-us/resources/3-ways-to-mitigate-risk-using-private-package-feeds/),
           in which an application uses multiple feeds to acquire software packages (a
           "hybrid configuration"), and attackers fool the user into using a malicious
           package via a feed that was not expected for that package.
@@ -480,20 +471,13 @@ checks:
       security vulnerability or because the pinned version is compromised. Mitigate
       this risk by:
 
-        - [having applications and _not_ libraries pin to specific versions](https://jbeckwith.com/2019/12/18/package-lock/);
+        - [having applications and _not_ libraries pin to specific hashes](https://jbeckwith.com/2019/12/18/package-lock/);
         - using automated tools to notify applications when their dependencies are
           outdated;
         - quickly updating applications that do pin dependencies.
 
-      _Limitations:_ This check should apply only to applications, as libraries
-      shouldn't normally have enforced pinned dependencies. Unfortunately, Scorecards
-      currently can't detect if a project is a library or application. Even when
-      [application detection is added](https://github.com/ossf/scorecard/issues/689),
-      it's always possible for an automated tool like Scorecards to incorrectly
-      categorize software (especially in projects that include both libraries and
-      applications). For projects hosted on GitHub, you can learn more about
-      dependencies using the
-      [GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph).
+      For projects hosted on GitHub, you can learn more about
+      dependencies using the [GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph).
     remediation:
       - >- 
         First determine if your project is producing a library or
