@@ -2,6 +2,7 @@
 
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard)](https://goreportcard.com/report/github.com/ossf/scorecard)
 
 <img align="right" src="artwork/openssf_security.png" width="200" height="400">
 
@@ -135,6 +136,12 @@ The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
 
 ```shell
 docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-details --repo=https://github.com/ossf/scorecard
+```
+
+To use a specific scorecards version (e.g., v3.2.1), run:
+
+```shell
+docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:v3.2.1 --show-details --repo=https://github.com/ossf/scorecard
 ```
 
 #### Using repository URL
