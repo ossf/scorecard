@@ -138,6 +138,12 @@ The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
 docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-details --repo=https://github.com/ossf/scorecard
 ```
 
+To use a specific scorecards version (e.g., v3.2.1), run:
+
+```shell
+docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:v3.2.1 --show-details --repo=https://github.com/ossf/scorecard
+```
+
 #### Using repository URL
 
 Scorecards can run using just one argument, the URL of the target repo:
