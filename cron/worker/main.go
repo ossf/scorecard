@@ -52,7 +52,9 @@ func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
 	bucketURL, bucketURL2 string, checkDocs docs.Doc,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
-	ciiClient clients.CIIBestPracticesClient, logger *zap.Logger) error {
+	ciiClient clients.CIIBestPracticesClient,
+	vulnsClient clients.VulnerabilitiesClient,
+	logger *zap.Logger) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%07d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
@@ -83,7 +85,8 @@ func processRequest(ctx context.Context,
 			continue
 		}
 		repo.AppendMetadata(repo.Metadata()...)
-		result, err := pkg.RunScorecards(ctx, repo, false, checksToRun, repoClient, ossFuzzRepoClient, ciiClient)
+		result, err := pkg.RunScorecards(ctx, repo, false, checksToRun,
+			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
@@ -190,6 +193,7 @@ func main() {
 	repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 	ciiClient := clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
 	ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+	vulnsClient := clients.DefaultVulnerabilitiesClient()
 	if err != nil {
 		panic(err)
 	}
@@ -222,7 +226,7 @@ func main() {
 		}
 		if err := processRequest(ctx, req, checksToRun,
 			bucketURL, bucketURL2, checkDocs,
-			repoClient, ossFuzzRepoClient, ciiClient, logger); err != nil {
+			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, logger); err != nil {
 			logger.Warn(fmt.Sprintf("error processing request: %v", err))
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()

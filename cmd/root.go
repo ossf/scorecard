@@ -193,7 +193,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	// nolint: errcheck
 	defer logger.Sync() // Flushes buffer, if any.
 
-	repoURI, repoClient, ossFuzzRepoClient, ciiClient, repoType, err := getRepoAccessors(ctx, uri, logger)
+	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, repoType, err := getRepoAccessors(ctx, uri, logger)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -228,7 +228,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 		log.Panicf("only json format is supported")
 	}
 
-	repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient)
+	repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -425,6 +425,7 @@ func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
+	vulnerabilityClient clients.VulnerabilitiesClient,
 	repoType string,
 	err error) {
 	var localRepo, githubRepo clients.Repo
@@ -442,6 +443,7 @@ func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (
 		repo = githubRepo
 		repoClient = githubrepo.CreateGithubRepoClient(ctx, logger)
 		ciiClient = clients.DefaultCIIBestPracticesClient()
+		vulnerabilityClient = clients.DefaultVulnerabilitiesClient()
 		ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(ctx, logger)
 		return
 	}

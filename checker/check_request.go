@@ -22,12 +22,13 @@ import (
 
 // CheckRequest struct encapsulates all data to be passed into a CheckFn.
 type CheckRequest struct {
-	Ctx         context.Context
-	RepoClient  clients.RepoClient
-	CIIClient   clients.CIIBestPracticesClient
-	OssFuzzRepo clients.RepoClient
-	Dlogger     DetailLogger
-	Repo        clients.Repo
+	Ctx                   context.Context
+	RepoClient            clients.RepoClient
+	CIIClient             clients.CIIBestPracticesClient
+	OssFuzzRepo           clients.RepoClient
+	Dlogger               DetailLogger
+	Repo                  clients.Repo
+	VulnerabilitiesClient clients.VulnerabilitiesClient
 	// UPGRADEv6: return raw results instead of scores.
 	RawResults *RawResults
 }
