@@ -15,45 +15,25 @@
 package checks
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v3/clients"
 	sce "github.com/ossf/scorecard/v3/errors"
 )
 
 const (
 	// CheckVulnerabilities is the registered name for the OSV check.
 	CheckVulnerabilities = "Vulnerabilities"
-	osvQueryEndpoint     = "https://api.osv.dev/v1/query"
 )
-
-type osvQuery struct {
-	Commit string `json:"commit"`
-}
-
-type osvResponse struct {
-	Vulns []struct {
-		ID string `json:"id"`
-	} `json:"vulns"`
-}
-
-// Vulnerabilities cheks for vulnerabilities in api.osv.dev.
-type Vulnerabilities interface {
-	HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult
-}
-type vulns struct{}
 
 //nolint:gochecknoinits
 func init() {
-	v := &vulns{}
-	registerCheck(CheckVulnerabilities, v.HasUnfixedVulnerabilities)
+	registerCheck(CheckVulnerabilities, HasUnfixedVulnerabilities)
 }
 
-func (resp *osvResponse) getVulnerabilities() []string {
+func getVulnerabilities(resp *clients.VulnerabilitiesResponse) []string {
 	ids := make([]string, 0, len(resp.Vulns))
 	for _, vuln := range resp.Vulns {
 		ids = append(ids, vuln.ID)
@@ -61,13 +41,8 @@ func (resp *osvResponse) getVulnerabilities() []string {
 	return ids
 }
 
-// NewVulnerabilities creates a new Vulnerabilities check.
-func NewVulnerabilities() Vulnerabilities {
-	return &vulns{}
-}
-
 // HasUnfixedVulnerabilities runs Vulnerabilities check.
-func (v *vulns) HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
+func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "Client.Repositories.ListCommits")
@@ -78,38 +53,14 @@ func (v *vulns) HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.Check
 		return checker.CreateInconclusiveResult(CheckVulnerabilities, "no commits found")
 	}
 
-	query, err := json.Marshal(&osvQuery{
-		Commit: commits[0].SHA,
-	})
+	resp, err := c.VulnerabilitiesClient.HasUnfixedVulnerabilities(c.Ctx, commits[0].SHA)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "json.Marshal")
-		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
-	}
-
-	req, err := http.NewRequestWithContext(c.Ctx, http.MethodPost, osvQueryEndpoint, bytes.NewReader(query))
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("http.NewRequestWithContext: %v", err))
-		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
-	}
-
-	// Use our own http client as the one from CheckRequest adds GitHub tokens to the headers.
-	httpClient := &http.Client{}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("httpClient.Do: %v", err))
-		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
-	}
-	defer resp.Body.Close()
-
-	var osvResp osvResponse
-	decoder := json.NewDecoder(resp.Body)
-	if err := decoder.Decode(&osvResp); err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("decoder.Decode: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, "VulnerabilitiesClient.HasUnfixedVulnerabilities")
 		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
 	// TODO: take severity into account.
-	vulnIDs := osvResp.getVulnerabilities()
+	vulnIDs := getVulnerabilities(&resp)
 	if len(vulnIDs) > 0 {
 		c.Dlogger.Warn3(&checker.LogMessage{
 			Text: fmt.Sprintf("HEAD is vulnerable to %s", strings.Join(vulnIDs, ", ")),

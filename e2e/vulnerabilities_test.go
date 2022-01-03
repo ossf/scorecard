@@ -22,6 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/v3/checker"
 	"github.com/ossf/scorecard/v3/checks"
+	"github.com/ossf/scorecard/v3/clients"
 	"github.com/ossf/scorecard/v3/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v3/utests"
 )
@@ -37,10 +38,11 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:                   context.Background(),
+				RepoClient:            repoClient,
+				VulnerabilitiesClient: clients.DefaultVulnerabilitiesClient(),
+				Repo:                  repo,
+				Dlogger:               &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -50,7 +52,7 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 				NumberOfDebug: 0,
 			}
 
-			result := checks.NewVulnerabilities().HasUnfixedVulnerabilities(&req)
+			result := checks.HasUnfixedVulnerabilities(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
@@ -69,10 +71,11 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 
 			dl := scut.TestDetailLogger{}
 			checkRequest := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:                   context.Background(),
+				RepoClient:            repoClient,
+				VulnerabilitiesClient: clients.DefaultVulnerabilitiesClient(),
+				Repo:                  repo,
+				Dlogger:               &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -81,7 +84,7 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.NewVulnerabilities().HasUnfixedVulnerabilities(&checkRequest)
+			result := checks.HasUnfixedVulnerabilities(&checkRequest)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
