@@ -228,7 +228,8 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 		log.Panicf("only json format is supported")
 	}
 
-	repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
+	repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient,
+		ossFuzzRepoClient, ciiClient, vulnsClient)
 	if err != nil {
 		log.Panic(err)
 	}

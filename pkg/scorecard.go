@@ -107,9 +107,11 @@ func RunScorecards(ctx context.Context,
 	}
 	resultsCh := make(chan checker.CheckResult)
 	if raw {
-		go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, resultsCh)
+		go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun, repoClient, ossFuzzRepoClient,
+			ciiClient, vulnsClient, resultsCh)
 	} else {
-		go runEnabledChecks(ctx, repo, nil, checksToRun, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, resultsCh)
+		go runEnabledChecks(ctx, repo, nil, checksToRun, repoClient, ossFuzzRepoClient,
+			ciiClient, vulnsClient, resultsCh)
 	}
 
 	for result := range resultsCh {

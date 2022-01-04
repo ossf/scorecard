@@ -51,10 +51,10 @@ func (m *MockVulnerabilitiesClient) EXPECT() *MockVulnerabilitiesClientMockRecor
 }
 
 // HasUnfixedVulnerabilities mocks base method.
-func (m *MockVulnerabilitiesClient) HasUnfixedVulnerabilities(context context.Context, commit string) (clients.OSVResponse, error) {
+func (m *MockVulnerabilitiesClient) HasUnfixedVulnerabilities(context context.Context, commit string) (clients.VulnerabilitiesResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HasUnfixedVulnerabilities", context, commit)
-	ret0, _ := ret[0].(clients.OSVResponse)
+	ret0, _ := ret[0].(clients.VulnerabilitiesResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
