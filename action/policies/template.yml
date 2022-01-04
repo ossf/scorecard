@@ -49,7 +49,7 @@ policies:
       mode: enforced
   Signed-Releases:
       score: 10
-      mode: enforced
+      mode: disabled
   Dependency-Update-Tool:
       score: 10
       mode: enforced
