@@ -49,7 +49,7 @@ const (
 
 	// OffsetDefault is used if we can't determine the offset, for example when referencing a file but not a
 	// specific location in the file.
-	OffsetDefault = 1
+	OffsetDefault = uint(1)
 )
 
 const (
