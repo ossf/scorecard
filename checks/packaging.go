@@ -77,7 +77,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
-		c.Dlogger.Info3(&checker.LogMessage{
+		c.Dlogger.Debug3(&checker.LogMessage{
 			Path:   fp,
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,

@@ -47,14 +47,23 @@ const (
 	// InconclusiveResultScore is returned when no reliable information can be retrieved by a check.
 	InconclusiveResultScore = -1
 
+	// OffsetDefault is used if we can't determine the offset, for example when referencing a file but not a
+	// specific location in the file.
+	OffsetDefault = 1
+)
+
+const (
 	// DetailInfo is info-level log.
 	DetailInfo DetailType = iota
 	// DetailWarn is warn log.
 	DetailWarn
 	// DetailDebug is debug log.
 	DetailDebug
+)
 
+const (
 	// FileTypeNone is a default, not defined.
+	// FileTypeNone must be `0`.
 	FileTypeNone FileType = iota
 	// FileTypeSource is for source code files.
 	FileTypeSource
@@ -64,10 +73,6 @@ const (
 	FileTypeText
 	// FileTypeURL for URLs.
 	FileTypeURL
-
-	// OffsetDefault is used if we can't determine the offset, for example when referencing a file but not a
-	// specific location in the file.
-	OffsetDefault = 1
 )
 
 // CheckResult captures result from a check run.

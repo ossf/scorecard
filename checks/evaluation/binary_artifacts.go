@@ -36,7 +36,8 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 	for _, f := range r.Files {
 		dl.Warn3(&checker.LogMessage{
 			Path: f.Path, Type: checker.FileTypeBinary,
-			Text: "binary detected",
+			Offset: f.Offset,
+			Text:   "binary detected",
 		})
 		// We remove one point for each binary.
 		score--

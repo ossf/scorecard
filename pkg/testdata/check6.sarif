@@ -47,7 +47,7 @@
                "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
-                  "text": "six score reason"
+                  "text": "six score reason:\nWarn: warn message"
                },
                "locations": [
                   {
