@@ -671,6 +671,28 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name:     "Dockerfile with args",
+			filename: "./testdata/Dockerfile-args",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  2,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "Dockerfile with base",
+			filename: "./testdata/Dockerfile-base",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below

@@ -363,7 +363,10 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
 	contentReader := strings.NewReader(string(content))
-	regex := regexp.MustCompile(`.*@sha256:[a-f\d]{64}`)
+	// The dependency must be pinned by sha256 hash, e.g.,
+	// FROM something@sha256:${ARG},
+	// FROM something:@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
+	regex := regexp.MustCompile(`.*@sha256:([a-f\d]{64}|\${.*})`)
 
 	ret := true
 	pinnedAsNames := make(map[string]bool)
@@ -395,7 +398,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 			// Check if the name is pinned.
 			// (1): name = <>@sha245:hash
 			// (2): name = XXX where XXX was pinned
-			_, pinned := pinnedAsNames[name]
+			pinned := pinnedAsNames[name]
 			if pinned || regex.Match([]byte(name)) {
 				// Record the asName.
 				pinnedAsNames[asName] = true
@@ -416,7 +419,8 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
-			if !regex.Match([]byte(name)) {
+			pinned := pinnedAsNames[name]
+			if !pinned && !regex.Match([]byte(name)) {
 				ret = false
 				dl.Warn3(&checker.LogMessage{
 					Path:      pathfn,
