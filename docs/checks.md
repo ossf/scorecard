@@ -59,9 +59,8 @@ Allowed by Scorecards:
 Risk: `High` (vulnerable to intentional malicious code injection)  
 
 This check determines whether a project's default and release branches are
-protected with GitHub's
-[branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
-settings. Branch protection allows maintainers to define rules that enforce
+protected with GitHub's [branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) settings. 
+Branch protection allows maintainers to define rules that enforce
 certain workflows for branches, such as requiring review or passing certain
 status checks before acceptance into a main branch, or preventing rewriting of
 public history.
@@ -83,15 +82,13 @@ Different types of branch protection protect against different risks:
     branches, which overwrites code irrevocably. This protection prevents the
     rewriting of public history without external notice.
 
-  - Require
-    [status checks](https://docs.github.com/en/github/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/about-status-checks):
+  - Require [status checks](https://docs.github.com/en/github/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/about-status-checks):
     ensures that all required CI tests are met before a change is accepted. 
 
 Although requiring code review can greatly reduce the chance that
 unintentional or malicious code enters the "main" branch, it is not feasible for
 all projects, such as those that don't have many active participants. For more
-discussion, see
-[Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews).
+discussion, see [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews).
 
 Additionally, in some cases these rules will need to be suspended. For example,
 if a past commit includes illegal content such as child pornography, it may be
@@ -158,14 +155,12 @@ If a project's system was not detected and you think it should be, please
 
 Risk: `Low` (possibly not following security best practices)
 
-This check determines whether the project has earned a [CII Best Practices
-Badge](https://bestpractices.coreinfrastructure.org/), which indicates that the
-project uses a set of security-focused best development practices for open
+This check determines whether the project has earned a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/), 
+which indicates that the project uses a set of security-focused best development practices for open
 source software. The check uses the URL for the Git repo and the CII API.
 
 The CII Best Practices badge has 3 tiers: passing, silver, and gold. We give
-full credit to projects that meet the [passing
-criteria](https://bestpractices.coreinfrastructure.org/criteria/0), which is a
+full credit to projects that meet the [passing criteria](https://bestpractices.coreinfrastructure.org/criteria/0), which is a
 significant achievement for many projects. Lower scores represent a project that
 is at least working to achieve a badge, with increasingly more points awarded as
 more criteria are met.
@@ -473,16 +468,15 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
 - If the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
 - For Dockerfiles and GitHub workflows, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) and [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) for examples.
 - To help update your dependencies after pinning them, use tools such as
- Github's
-[dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/) or [renovate bot](https://github.com/renovatebot/renovate).
+ Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
+or [renovate bot](https://github.com/renovatebot/renovate).
 
 ## SAST 
 
 Risk: `Medium` (possible unknown bugs)
 
 This check tries to determine if the project uses Static Application Security
-Testing (SAST), also known as
-[static code analysis](https://owasp.org/www-community/controls/Static_Code_Analysis).
+Testing (SAST), also known as [static code analysis](https://owasp.org/www-community/controls/Static_Code_Analysis).
 It is currently limited to repositories hosted on GitHub, and does not support
 other source hosting repositories (i.e., Forges).
 
@@ -534,7 +528,7 @@ not support other source hosting repositories (i.e., Forges).
 Signed releases attest to the provenance of the artifact.
 
 This check looks for the following filenames in the project's last five
-releases: [*.minisig ](https://github.com/jedisct1/minisign), *.asc (pgp),
+releases: [*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),
 *.sig, *.sign.
 
 Note: The check does not verify the signatures. 
