@@ -167,10 +167,7 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 			continue
 		}
 		if strings.Contains(ref.Value.Value, "github.event.pull_request") {
-			line := checker.OffsetDefault
-			if step.Pos != nil {
-				line = uint(step.Pos.Line)
-			}
+			line := fileparser.GetLineNumber(step.Pos)
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,

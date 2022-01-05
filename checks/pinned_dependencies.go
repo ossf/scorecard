@@ -229,7 +229,8 @@ func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
-	r, err := validateShellFile(pathfn, 0, 0 /*unknown*/, content, dl)
+
+	r, err := validateShellFile(pathfn, 0, 0 /*unknown*/, content, map[string]bool{}, dl)
 	if err != nil {
 		return false, err
 	}
@@ -282,6 +283,7 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	}
 
 	// Walk the Dockerfile's AST.
+	taintedFiles := make(map[string]bool)
 	for i := range res.AST.Children {
 		var bytes []byte
 
@@ -305,7 +307,8 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		// Build a file content.
 		cmd := strings.Join(valueList, " ")
 		bytes = append(bytes, cmd...)
-		r, err := validateShellFile(pathfn, uint(child.StartLine)-1, uint(child.EndLine)-1, bytes, dl)
+		r, err := validateShellFile(pathfn, uint(child.StartLine)-1, uint(child.EndLine)-1,
+			bytes, taintedFiles, dl)
 		if err != nil {
 			return false, err
 		}
@@ -406,7 +409,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 				Type:      checker.FileTypeSource,
 				Offset:    uint(child.StartLine),
 				EndOffset: uint(child.EndLine),
-				Text:      fmt.Sprintf("docker image not pinned by hash: '%v'", name),
+				Text:      "docker image not pinned by hash",
 				Snippet:   child.Original,
 			})
 
@@ -420,7 +423,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 					Type:      checker.FileTypeSource,
 					Offset:    uint(child.StartLine),
 					EndOffset: uint(child.EndLine),
-					Text:      fmt.Sprintf("docker image not pinned by hash: '%v'", name),
+					Text:      "docker image not pinned by hash",
 					Snippet:   child.Original,
 				})
 			}
@@ -491,6 +494,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
 		}
+		taintedFiles := make(map[string]bool)
 		for _, step := range job.Steps {
 			step := step
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
@@ -522,7 +526,8 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 
 			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
-			validated, err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line), 0 /*unknown*/, []byte(script), dl)
+			validated, err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line), uint(execRun.Run.Pos.Line),
+				[]byte(script), taintedFiles, dl)
 			if err != nil {
 				return false, err
 			}

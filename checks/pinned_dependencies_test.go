@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -487,23 +488,53 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 			endLine   uint
 		}
 	}{
+		// {
+		// 	name:     "dockerfile downloads",
+		// 	filename: "./testdata/Dockerfile-download-lines",
+		// 	expected: []struct {
+		// 		snippet   string
+		// 		startLine uint
+		// 		endLine   uint
+		// 	}{
+		// 		{
+		// 			snippet:   "curl bla | bash",
+		// 			startLine: 35,
+		// 			endLine:   36,
+		// 		},
+		// 		{
+		// 			snippet:   "pip install -r requirements.txt",
+		// 			startLine: 41,
+		// 			endLine:   42,
+		// 		},
+		// 	},
+		// },
 		{
-			name:     "dockerfile downloads",
-			filename: "./testdata/Dockerfile-download-lines",
+			name:     "dockerfile downloads multi-run",
+			filename: "./testdata/Dockerfile-download-multi-runs",
 			expected: []struct {
 				snippet   string
 				startLine uint
 				endLine   uint
 			}{
 				{
-					snippet:   "curl bla | bash",
-					startLine: 35,
-					endLine:   36,
+					snippet:   "/tmp/file3",
+					startLine: 28,
+					endLine:   28,
 				},
 				{
-					snippet:   "pip install -r requirements.txt",
-					startLine: 41,
-					endLine:   42,
+					snippet:   "/tmp/file1",
+					startLine: 30,
+					endLine:   30,
+				},
+				{
+					snippet:   "bash /tmp/file3",
+					startLine: 32,
+					endLine:   34,
+				},
+				{
+					snippet:   "bash /tmp/file1",
+					startLine: 37,
+					endLine:   38,
 				},
 			},
 		},
@@ -525,6 +556,7 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 
 			for _, expectedLog := range tt.expected {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+					fmt.Println(logMessage)
 					return logMessage.Offset == expectedLog.startLine &&
 						logMessage.EndOffset == expectedLog.endLine &&
 						logMessage.Path == tt.filename &&
@@ -970,7 +1002,7 @@ func TestShellScriptDownload(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  31,
+				NumberOfWarn:  33,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
@@ -1235,17 +1267,17 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 				{
 					snippet:   "bash /tmp/file",
 					startLine: 27,
-					endLine:   2,
+					endLine:   27,
 				},
 				{
 					snippet:   "/tmp/file2",
 					startLine: 29,
-					endLine:   4,
+					endLine:   29,
 				},
 				{
 					snippet:   "curl bla | bash",
 					startLine: 32,
-					endLine:   7,
+					endLine:   32,
 				},
 			},
 		},

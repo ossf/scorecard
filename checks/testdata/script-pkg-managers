@@ -20,6 +20,14 @@ go install
 /bin/go install github.com/org/name@some_tag
 go get github.com/org/name@some_tag
 go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
+go get somerepo.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
+go get another-repo.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
+go get somerepo.com/org/name@v1.2.3
+go get another-repo.com/org/name@release
+go get local-folder
+go get ./local-folder
+go get /some/local/folder
+go get ../../some/local/folder
 go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 go install -Y github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999

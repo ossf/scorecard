@@ -283,6 +283,16 @@ func extractCommand(cmd interface{}) ([]string, bool) {
 	return ret, true
 }
 
+func getLine(startLine, endLine uint, node syntax.Node) (uint, uint) {
+	// endLine of 0 means it's unknown, in which case we re-use the startLine.
+	if endLine >= startLine {
+		return startLine + node.Pos().Line(),
+			endLine + node.Pos().Line()
+	}
+	return startLine + node.Pos().Line(),
+		startLine + node.Pos().Line()
+}
+
 func isFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
 	dl checker.DetailLogger) bool {
 	// BinaryCmd {Op=|, X=CallExpr{Args={curl, -s, url}}, Y=CallExpr{Args={bash,}}}.
@@ -313,11 +323,12 @@ func isFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn s
 		return false
 	}
 
+	startLine, endLine = getLine(startLine, endLine, node)
 	dl.Warn3(&checker.LogMessage{
 		Path:      pathfn,
 		Type:      checker.FileTypeSource,
-		Offset:    startLine + node.Pos().Line(),
-		EndOffset: endLine + node.Pos().Line(),
+		Offset:    startLine,
+		EndOffset: endLine,
 		Snippet:   cmd,
 		Text:      "insecure (not pinned by hash) download detected",
 	})
@@ -358,13 +369,14 @@ func isExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn strin
 	}
 
 	ok = false
+	startLine, endLine = getLine(startLine, endLine, node)
 	for fn := range files {
 		if isInterpreterWithFile(c, fn) || isExecuteFile(c, fn) {
 			dl.Warn3(&checker.LogMessage{
 				Path:      pathfn,
 				Type:      checker.FileTypeSource,
-				Offset:    startLine + node.Pos().Line(),
-				EndOffset: endLine + node.Pos().Line(),
+				Offset:    startLine,
+				EndOffset: endLine,
 				Snippet:   cmd,
 				Text:      "insecure (not pinned by hash) download detected",
 			})
@@ -429,10 +441,9 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		}
 
 		pkg := cmd[i+1]
-		// Consider strings that do not start with github.com
-		// as referring to a local path or an golang package
-		// from golang.org.
-		if !strings.HasPrefix(pkg, "github.com/") {
+		// Consider strings thaht are not URLs as local folders.
+		regex := regexp.MustCompile(`\w+\.\w+/\w+`)
+		if !regex.Match([]byte(pkg)) {
 			return false
 		}
 		// Verify pkg = name@hash
@@ -574,13 +585,15 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 		return false
 	}
 
+	startLine, endLine = getLine(startLine, endLine, node)
+
 	// Go get/install.
 	if isGoUnpinnedDownload(c) {
 		dl.Warn3(&checker.LogMessage{
 			Path:      pathfn,
 			Type:      checker.FileTypeSource,
-			Offset:    startLine + node.Pos().Line(),
-			EndOffset: endLine + node.Pos().Line(),
+			Offset:    startLine,
+			EndOffset: endLine,
 			Snippet:   cmd,
 			Text:      "go installation not pinned by hash",
 		})
@@ -592,8 +605,8 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 		dl.Warn3(&checker.LogMessage{
 			Path:      pathfn,
 			Type:      checker.FileTypeSource,
-			Offset:    startLine + node.Pos().Line(),
-			EndOffset: endLine + node.Pos().Line(),
+			Offset:    startLine,
+			EndOffset: endLine,
 			Snippet:   cmd,
 			Text:      "pip installation not pinned by hash",
 		})
@@ -605,8 +618,8 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 		dl.Warn3(&checker.LogMessage{
 			Path:      pathfn,
 			Type:      checker.FileTypeSource,
-			Offset:    startLine + node.Pos().Line(),
-			EndOffset: endLine + node.Pos().Line(),
+			Offset:    startLine,
+			EndOffset: endLine,
 			Snippet:   cmd,
 			Text:      "npm installation not pinned by hash",
 		})
@@ -692,11 +705,13 @@ func isFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd, path
 		return false
 	}
 
+	startLine, endLine = getLine(startLine, endLine, node)
+
 	dl.Warn3(&checker.LogMessage{
 		Path:      pathfn,
 		Type:      checker.FileTypeSource,
-		Offset:    startLine + node.Pos().Line(),
-		EndOffset: endLine + node.Pos().Line(),
+		Offset:    startLine,
+		EndOffset: endLine,
 		Snippet:   cmd,
 		Text:      "insecure (not pinned by hash) download",
 	})
@@ -804,7 +819,8 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 		// HOST_PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')``
 		// nolinter
 		if ok && isShellInterpreterOrCommand([]string{i}) {
-			ok, e := validateShellFileAndRecord(pathfn, startLine+node.Pos().Line(), endLine+node.Pos().Line(),
+			start, end := getLine(startLine, endLine, node)
+			ok, e := validateShellFileAndRecord(pathfn, start, end,
 				[]byte(c), files, dl)
 			validated = ok
 			if e != nil {
@@ -925,9 +941,9 @@ func isMatchingShellScriptFile(pathfn string, content []byte, shellsToMatch []st
 	return false // It has a shebang, but it's not one of our matching shells.
 }
 
-func validateShellFile(pathfn string, startLine, endLine uint, content []byte, dl checker.DetailLogger) (bool, error) {
-	files := make(map[string]bool)
-	r, err := validateShellFileAndRecord(pathfn, startLine, endLine, content, files, dl)
+func validateShellFile(pathfn string, startLine, endLine uint,
+	content []byte, taintedFiles map[string]bool, dl checker.DetailLogger) (bool, error) {
+	r, err := validateShellFileAndRecord(pathfn, startLine, endLine, content, taintedFiles, dl)
 	if err != nil && errors.Is(err, sce.ErrorShellParsing) {
 		// Discard and print this particular error for now.
 		dl.Debug(err.Error())
