@@ -531,7 +531,7 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
 			validated, err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line), uint(execRun.Run.Pos.Line),
-				[]byte(script), taintedFiles, dl)
+				script, taintedFiles, dl)
 			if err != nil {
 				return false, err
 			}
