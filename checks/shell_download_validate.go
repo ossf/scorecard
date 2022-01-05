@@ -441,7 +441,8 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		}
 
 		pkg := cmd[i+1]
-		// Consider strings thaht are not URLs as local folders.
+		// Consider strings that are not URLs as local folders
+		// which are pinned.
 		regex := regexp.MustCompile(`\w+\.\w+/\w+`)
 		if !regex.Match([]byte(pkg)) {
 			return false
