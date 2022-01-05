@@ -424,11 +424,6 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 					startLine: 23,
 					endLine:   23,
 				},
-				{
-					snippet:   "FROM base2",
-					startLine: 29,
-					endLine:   29,
-				},
 			},
 		},
 		{
@@ -716,7 +711,10 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 			}
 
 			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-				return strings.Contains(logMessage.Text, "image not pinned by hash")
+				if tt.expected.NumberOfWarn > 0 {
+					return strings.Contains(logMessage.Text, "image not pinned by hash")
+				}
+				return true
 			}
 
 			if !scut.ValidateLogMessage(isExpectedLog, &dl) {
