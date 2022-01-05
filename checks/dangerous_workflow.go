@@ -222,10 +222,7 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 		// Check if the variable may be untrustworthy.
 		variable := script[s+3 : s+e]
 		if containsUntrustedContextPattern(variable) {
-			line := checker.OffsetDefault
-			if pos != nil {
-				line = uint(pos.Line)
-			}
+			line := fileparser.GetLineNumber(pos)
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
