@@ -242,33 +242,7 @@ Each individual check returns a score of 0 to 10, with 10 representing the best 
 * “Medium” risk checks are weighted at 5
 * “Low” risk checks are weighted at 2.5
 
-Tests that are rated as “Critical” risk are: 
-
-* Dangerous-Workflow
-
-Tests that are rated as “High” risk are: 
-* Maintained
-* Dependency-Update-Tool
-* Binary-Artifacts
-* Branch-Protection
-* Code-Review
-* Signed-Releases
-* Token-Permissions
-* Vulnerabilities
-
-Tests that are rated as “Medium” risk are:
-* Fuzzing
-* Packaging
-* Pinned-Dependencies
-* SAST
-* Security-Policy
-
-
-Tests that are rated as “Low” risk are:
-* CI-Tests
-* CII-Best-Practices
-* Contributors
-* License
+See the [list of current Scorecards checks](#scorecard-checks) for each check's risk level.
 
 #### Showing Detailed Results 
 For more details about why a check fails, use the `--show-details` option:
@@ -374,26 +348,26 @@ indicates the check was completely sure of the result.
 
 The following checks are all run against the target project by default:
 
-Name                        | Description
---------------------------- | -----------
-[Binary-Artifacts](docs/checks.md#binary-artifacts)            | Is the project free of checked-in binaries?
-[Branch-Protection](docs/checks.md#branch-protection)           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?
-[CI-Tests](docs/checks.md#ci-tests)                    | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?
-[CII-Best-Practices](docs/checks.md#cii-best-practices)          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
-[Code-Review](docs/checks.md#code-review)                 | Does the project require code review before code is merged?
-[Contributors](docs/checks.md#contributors)                | Does the project have contributors from at least two different organizations?
-[Dangerous-Workflow](docs/checks.md#dangerous-workflow)          | Does the project avoid dangerous coding patterns in GitHub Action workflows?
-[Dependency-Update-Tool](docs/checks.md#dependency-update-tool)      | Does the project use tools to help update its dependencies?
-[Fuzzing](docs/checks.md#fuzzing)                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
-[License](docs/checks.md#license)                     | Does the project declare a license?
-[Maintained](docs/checks.md#maintained)                  | Is the project maintained?
-[Pinned-Dependencies](docs/checks.md#pinned-dependencies)         | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
-[Packaging](docs/checks.md#packaging)                   | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
-[SAST](docs/checks.md#sast)                        | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [LGTM](https://lgtm.com), [SonarCloud](https://sonarcloud.io)?
-[Security-Policy](docs/checks.md#security-policy)             | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?
-[Signed-Releases](docs/checks.md#signed-releases)             | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?
-[Token-Permissions](docs/checks.md#token-permissions)           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?
-[Vulnerabilities](docs/checks.md#vulnerabilities)             | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).
+Name                        | Description | Risk Level
+--------------------------- | ----------- | ------------
+[Binary-Artifacts](docs/checks.md#binary-artifacts)            | Is the project free of checked-in binaries? | High
+[Branch-Protection](docs/checks.md#branch-protection)           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ? | High
+[CI-Tests](docs/checks.md#ci-tests)                    | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)? |Low
+[CII-Best-Practices](docs/checks.md#cii-best-practices)          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)? |Low
+[Code-Review](docs/checks.md#code-review)                 | Does the project require code review before code is merged? |High
+[Contributors](docs/checks.md#contributors)                | Does the project have contributors from at least two different organizations? |Low
+[Dangerous-Workflow](docs/checks.md#dangerous-workflow)          | Does the project avoid dangerous coding patterns in GitHub Action workflows? |Critical
+[Dependency-Update-Tool](docs/checks.md#dependency-update-tool)      | Does the project use tools to help update its dependencies? |High
+[Fuzzing](docs/checks.md#fuzzing)                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)? |Medium
+[License](docs/checks.md#license)                     | Does the project declare a license? | Low
+[Maintained](docs/checks.md#maintained)                  | Is the project maintained? |High
+[Pinned-Dependencies](docs/checks.md#pinned-dependencies)         | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)? |Medium
+[Packaging](docs/checks.md#packaging)                   | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ? |Medium
+[SAST](docs/checks.md#sast)                        | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [LGTM](https://lgtm.com), [SonarCloud](https://sonarcloud.io)? |Medium
+[Security-Policy](docs/checks.md#security-policy)             | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)? |Medium
+[Signed-Releases](docs/checks.md#signed-releases)             | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)? |High
+[Token-Permissions](docs/checks.md#token-permissions)           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)? |High
+[Vulnerabilities](docs/checks.md#vulnerabilities)             | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev). |High
 
 ### Detailed Checks Documentation
 To see detailed information about each check, its scoring criteria, and remediation steps, check out
