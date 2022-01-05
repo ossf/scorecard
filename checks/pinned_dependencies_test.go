@@ -351,7 +351,7 @@ func TestDockerfilePinning(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  3, // TODO: should be 2, https://github.com/ossf/scorecard/issues/701.
+				NumberOfWarn:  2,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
@@ -689,7 +689,7 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			},
 		},
