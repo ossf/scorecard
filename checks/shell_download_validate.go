@@ -378,7 +378,7 @@ func isExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn strin
 				Offset:    startLine,
 				EndOffset: endLine,
 				Snippet:   cmd,
-				Text:      "insecure (not pinned by hash) download detected",
+				Text:      "insecure (not pinned by hash) download-then-run",
 			})
 			ok = true
 		}
@@ -714,7 +714,7 @@ func isFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd, path
 		Offset:    startLine,
 		EndOffset: endLine,
 		Snippet:   cmd,
-		Text:      "insecure (not pinned by hash) download",
+		Text:      "insecure (not pinned by hash) download-then-run",
 	})
 	return true
 }
