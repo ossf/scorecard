@@ -322,12 +322,12 @@ the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
 # Get the latest PARTITION_ID
 bq query --nouse_legacy_sql 'SELECT partition_id FROM
 openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS WHERE table_name="scorecard-v2"
-ORDER BY partition_id DESC
+AND partition_id!="__NULL__" ORDER BY partition_id DESC
 LIMIT 1'
 
 # Extract to GCS
 bq extract --destination_format=NEWLINE_DELIMITED_JSON
-'openssf:scorecardcron.scorecard-v2$<partition_id>' gs://bucket-name/filename.json
+'openssf:scorecardcron.scorecard-v2$<partition_id>' gs://bucket-name/filename-*.json
 
 ```
 
