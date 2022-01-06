@@ -61,11 +61,11 @@ func IsStepExecKind(step *actionlint.Step, kind actionlint.ExecKind) bool {
 }
 
 // GetLineNumber returns the line number for this position.
-func GetLineNumber(pos *actionlint.Pos) int {
+func GetLineNumber(pos *actionlint.Pos) uint {
 	if pos == nil {
 		return checker.OffsetDefault
 	}
-	return pos.Line
+	return uint(pos.Line)
 }
 
 // GetUses returns the 'uses' statement in this step or nil if this step does not have one.
