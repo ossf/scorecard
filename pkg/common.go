@@ -36,6 +36,8 @@ func DetailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
 			return ""
 		}
 		switch {
+		case d.Msg.Path != "" && d.Msg.Offset != 0 && d.Msg.EndOffset != 0 && d.Msg.Offset < d.Msg.EndOffset:
+			return fmt.Sprintf("%s: %s: %s:%d-%d", typeToString(d.Type), d.Msg.Text, d.Msg.Path, d.Msg.Offset, d.Msg.EndOffset)
 		case d.Msg.Path != "" && d.Msg.Offset != 0:
 			return fmt.Sprintf("%s: %s: %s:%d", typeToString(d.Type), d.Msg.Text, d.Msg.Path, d.Msg.Offset)
 		case d.Msg.Path != "" && d.Msg.Offset == 0:
