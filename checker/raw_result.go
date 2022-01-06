@@ -107,7 +107,7 @@ type MergeRequest struct {
 type File struct {
 	Path    string
 	Snippet string   // Snippet of code
-	Offset  int      // Offset in the file of Path (line for source/text files).
+	Offset  uint     // Offset in the file of Path (line for source/text files).
 	Type    FileType // Type of file.
 	// TODO: add hash.
 }
