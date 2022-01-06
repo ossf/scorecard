@@ -54,6 +54,7 @@
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }
