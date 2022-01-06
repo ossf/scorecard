@@ -66,5 +66,5 @@ policies:
       score: 10
       mode: enforced
   Maintained:
-      score: 10
+      score: 1
       mode: enforced
