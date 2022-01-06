@@ -148,33 +148,6 @@
                      }
                   }
                ]
-            },
-            {
-               "ruleId": "CheckName3ID",
-               "ruleIndex": 2,
-               "message": {
-                  "text": "warn message"
-               },
-               "locations": [
-                  {
-                     "physicalLocation": {
-                        "region": {
-                           "startLine": 3,
-                           "endLine": 3,
-                           "snippet": {
-                              "text": "if (bad) {BUG2();}"
-                           }
-                        },
-                        "artifactLocation": {
-                           "uri": "some/path.py",
-                           "uriBaseId": "%SRCROOT%"
-                        }
-                     },
-                     "message": {
-                        "text": "warn message"
-                     }
-                  }
-               ]
             }
          ]
       }
