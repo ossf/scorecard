@@ -56,7 +56,7 @@
                            "startLine": 1
                         },
                         "artifactLocation": {
-                           "uri": "no file available",
+                           "uri": " ",
                            "uriBaseId": "%SRCROOT%"
                         }
                      }
