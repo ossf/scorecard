@@ -37,12 +37,12 @@ type text struct {
 
 //nolint
 type region struct {
-	StartLine   *int `json:"startLine,omitempty"`
-	EndLine     *int `json:"endLine,omitempty"`
-	StartColumn *int `json:"startColumn,omitempty"`
-	EndColumn   *int `json:"endColumn,omitempty"`
-	CharOffset  *int `json:"charOffset,omitempty"`
-	ByteOffset  *int `json:"byteOffset,omitempty"`
+	StartLine   *uint `json:"startLine,omitempty"`
+	EndLine     *uint `json:"endLine,omitempty"`
+	StartColumn *uint `json:"startColumn,omitempty"`
+	EndColumn   *uint `json:"endColumn,omitempty"`
+	CharOffset  *uint `json:"charOffset,omitempty"`
+	ByteOffset  *uint `json:"byteOffset,omitempty"`
 	// Use pointer to omit the entire structure.
 	Snippet *text `json:"snippet,omitempty"`
 }
@@ -154,7 +154,7 @@ type sarif210 struct {
 	Runs    []run  `json:"runs"`
 }
 
-func maxOffset(x, y int) int {
+func maxOffset(x, y uint) uint {
 	if x < y {
 		return y
 	}
@@ -209,13 +209,6 @@ func detailToRegion(details *checker.CheckDetail) region {
 		snippet = &text{Text: details.Msg.Snippet}
 	}
 
-	// This should never happen unless
-	// the check is buggy. We want to catch it
-	// quickly and not fail silently.
-	if details.Msg.Offset < 0 {
-		panic("invalid offset")
-	}
-
 	// https://github.com/github/codeql-action/issues/754.
 	// "code-scanning currently only supports character offset/length and start/end line/columns offsets".
 
@@ -227,7 +220,7 @@ func detailToRegion(details *checker.CheckDetail) region {
 	default:
 		panic("invalid")
 	case checker.FileTypeURL:
-		line := maxOffset(1, details.Msg.Offset)
+		line := maxOffset(checker.OffsetDefault, details.Msg.Offset)
 		reg = region{
 			StartLine: &line,
 			Snippet:   snippet,
@@ -235,9 +228,11 @@ func detailToRegion(details *checker.CheckDetail) region {
 	case checker.FileTypeNone:
 		// Do nothing.
 	case checker.FileTypeSource:
-		line := maxOffset(1, details.Msg.Offset)
+		startLine := maxOffset(checker.OffsetDefault, details.Msg.Offset)
+		endLine := maxOffset(startLine, details.Msg.EndOffset)
 		reg = region{
-			StartLine: &line,
+			StartLine: &startLine,
+			EndLine:   &endLine,
 			Snippet:   snippet,
 		}
 	case checker.FileTypeText:
@@ -319,7 +314,7 @@ func addDefaultLocation(locs []location, policyFile string) []location {
 		return locs
 	}
 
-	detaultLine := 1
+	detaultLine := checker.OffsetDefault
 	loc := location{
 		PhysicalLocation: physicalLocation{
 			ArtifactLocation: artifactLocation{

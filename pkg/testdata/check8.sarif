@@ -83,6 +83,7 @@
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }
@@ -109,6 +110,7 @@
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad2) {BUG();}"
                            }
@@ -135,6 +137,7 @@
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }
@@ -161,6 +164,7 @@
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad2) {BUG2();}"
                            }
@@ -232,6 +236,7 @@
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }
@@ -303,6 +308,7 @@
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }

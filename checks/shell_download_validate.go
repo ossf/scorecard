@@ -283,7 +283,17 @@ func extractCommand(cmd interface{}) ([]string, bool) {
 	return ret, true
 }
 
-func isFetchPipeExecute(node syntax.Node, cmd, pathfn string,
+func getLine(startLine, endLine uint, node syntax.Node) (uint, uint) {
+	// endLine of 0 means it's unknown, in which case we re-use the startLine.
+	if endLine >= startLine {
+		return startLine + node.Pos().Line(),
+			endLine + node.Pos().Line()
+	}
+	return startLine + node.Pos().Line(),
+		startLine + node.Pos().Line()
+}
+
+func isFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
 	dl checker.DetailLogger) bool {
 	// BinaryCmd {Op=|, X=CallExpr{Args={curl, -s, url}}, Y=CallExpr{Args={bash,}}}.
 	bc, ok := node.(*syntax.BinaryCmd)
@@ -313,12 +323,14 @@ func isFetchPipeExecute(node syntax.Node, cmd, pathfn string,
 		return false
 	}
 
+	startLine, endLine = getLine(startLine, endLine, node)
 	dl.Warn3(&checker.LogMessage{
-		Path:    pathfn,
-		Type:    checker.FileTypeSource,
-		Offset:  0, // TODO: add line numbers
-		Snippet: cmd,
-		Text:    "insecure (not pinned by hash) download detected",
+		Path:      pathfn,
+		Type:      checker.FileTypeSource,
+		Offset:    startLine,
+		EndOffset: endLine,
+		Snippet:   cmd,
+		Text:      "insecure (not pinned by hash) download detected",
 	})
 	return true
 }
@@ -344,7 +356,7 @@ func getRedirectFile(red []*syntax.Redirect) (string, bool) {
 	return "", false
 }
 
-func isExecuteFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
+func isExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn string, files map[string]bool,
 	dl checker.DetailLogger) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
@@ -357,14 +369,16 @@ func isExecuteFiles(node syntax.Node, cmd, pathfn string, files map[string]bool,
 	}
 
 	ok = false
+	startLine, endLine = getLine(startLine, endLine, node)
 	for fn := range files {
 		if isInterpreterWithFile(c, fn) || isExecuteFile(c, fn) {
 			dl.Warn3(&checker.LogMessage{
-				Path:    pathfn,
-				Type:    checker.FileTypeSource,
-				Offset:  0, // TODO: add line numbers
-				Snippet: cmd,
-				Text:    "insecure (not pinned by hash) download detected",
+				Path:      pathfn,
+				Type:      checker.FileTypeSource,
+				Offset:    startLine,
+				EndOffset: endLine,
+				Snippet:   cmd,
+				Text:      "insecure (not pinned by hash) download-then-run",
 			})
 			ok = true
 		}
@@ -409,7 +423,6 @@ func isGoUnpinnedDownload(cmd []string) bool {
 
 	// `Go install` will automatically look up the
 	// go.mod and go.sum, so we don't flag it.
-
 	if len(cmd) <= 2 {
 		return false
 	}
@@ -428,6 +441,12 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		}
 
 		pkg := cmd[i+1]
+		// Consider strings that are not URLs as local folders
+		// which are pinned.
+		regex := regexp.MustCompile(`\w+\.\w+/\w+`)
+		if !regex.Match([]byte(pkg)) {
+			return false
+		}
 		// Verify pkg = name@hash
 		parts := strings.Split(pkg, "@")
 
@@ -555,8 +574,8 @@ func isPipUnpinnedDownload(cmd []string) bool {
 	return false
 }
 
-func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
-	dl checker.DetailLogger) bool {
+func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
+	cmd, pathfn string, dl checker.DetailLogger) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
 		return false
@@ -567,14 +586,17 @@ func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
 		return false
 	}
 
+	startLine, endLine = getLine(startLine, endLine, node)
+
 	// Go get/install.
 	if isGoUnpinnedDownload(c) {
 		dl.Warn3(&checker.LogMessage{
-			Path:    pathfn,
-			Type:    checker.FileTypeSource,
-			Offset:  0, // TODO: add line numbers
-			Snippet: cmd,
-			Text:    "insecure (not pinned by hash) download detected",
+			Path:      pathfn,
+			Type:      checker.FileTypeSource,
+			Offset:    startLine,
+			EndOffset: endLine,
+			Snippet:   cmd,
+			Text:      "go installation not pinned by hash",
 		})
 		return true
 	}
@@ -582,11 +604,12 @@ func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
 	// Pip install.
 	if isPipUnpinnedDownload(c) {
 		dl.Warn3(&checker.LogMessage{
-			Path:    pathfn,
-			Type:    checker.FileTypeSource,
-			Offset:  0, // TODO: add line numbers
-			Snippet: cmd,
-			Text:    "insecure (not pinned by hash) download detected",
+			Path:      pathfn,
+			Type:      checker.FileTypeSource,
+			Offset:    startLine,
+			EndOffset: endLine,
+			Snippet:   cmd,
+			Text:      "pip installation not pinned by hash",
 		})
 		return true
 	}
@@ -594,11 +617,12 @@ func isUnpinnedPakageManagerDownload(node syntax.Node, cmd, pathfn string,
 	// Npm install.
 	if isNpmUnpinnedDownload(c) {
 		dl.Warn3(&checker.LogMessage{
-			Path:    pathfn,
-			Type:    checker.FileTypeSource,
-			Offset:  0, // TODO: add line numbers
-			Snippet: cmd,
-			Text:    "insecure (not pinned by hash) download detected",
+			Path:      pathfn,
+			Type:      checker.FileTypeSource,
+			Offset:    startLine,
+			EndOffset: endLine,
+			Snippet:   cmd,
+			Text:      "npm installation not pinned by hash",
 		})
 		return true
 	}
@@ -631,7 +655,7 @@ func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err erro
 	return fn, true, nil
 }
 
-func isFetchProcSubsExecute(node syntax.Node, cmd, pathfn string,
+func isFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
 	dl checker.DetailLogger) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
@@ -682,12 +706,15 @@ func isFetchProcSubsExecute(node syntax.Node, cmd, pathfn string,
 		return false
 	}
 
+	startLine, endLine = getLine(startLine, endLine, node)
+
 	dl.Warn3(&checker.LogMessage{
-		Path:    pathfn,
-		Type:    checker.FileTypeSource,
-		Offset:  0, // TODO: add line numbers
-		Snippet: cmd,
-		Text:    "insecure (not pinned by hash) download detected",
+		Path:      pathfn,
+		Type:      checker.FileTypeSource,
+		Offset:    startLine,
+		EndOffset: endLine,
+		Snippet:   cmd,
+		Text:      "insecure (not pinned by hash) download-then-run",
 	})
 	return true
 }
@@ -765,7 +792,7 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 	return buf.String(), nil
 }
 
-func validateShellFileAndRecord(pathfn string, content []byte, files map[string]bool,
+func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content []byte, files map[string]bool,
 	dl checker.DetailLogger) (bool, error) {
 	in := strings.NewReader(string(content))
 	f, err := syntax.NewParser().Parse(in, pathfn)
@@ -793,7 +820,9 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		// HOST_PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')``
 		// nolinter
 		if ok && isShellInterpreterOrCommand([]string{i}) {
-			ok, e := validateShellFileAndRecord(pathfn, []byte(c), files, dl)
+			start, end := getLine(startLine, endLine, node)
+			ok, e := validateShellFileAndRecord(pathfn, start, end,
+				[]byte(c), files, dl)
 			validated = ok
 			if e != nil {
 				err = e
@@ -802,23 +831,23 @@ func validateShellFileAndRecord(pathfn string, content []byte, files map[string]
 		}
 
 		// `curl | bash` (supports `sudo`).
-		if isFetchPipeExecute(node, cmdStr, pathfn, dl) {
+		if isFetchPipeExecute(startLine, endLine, node, cmdStr, pathfn, dl) {
 			validated = false
 		}
 
 		// Check if we're calling a file we previously downloaded.
 		// Includes `curl > /tmp/file [&&|;] [bash] /tmp/file`
-		if isExecuteFiles(node, cmdStr, pathfn, files, dl) {
+		if isExecuteFiles(startLine, endLine, node, cmdStr, pathfn, files, dl) {
 			validated = false
 		}
 
 		// `bash <(wget -qO- http://website.com/my-script.sh)`. (supports `sudo`).
-		if isFetchProcSubsExecute(node, cmdStr, pathfn, dl) {
+		if isFetchProcSubsExecute(startLine, endLine, node, cmdStr, pathfn, dl) {
 			validated = false
 		}
 
 		// Package manager's unpinned installs.
-		if isUnpinnedPakageManagerDownload(node, cmdStr, pathfn, dl) {
+		if isUnpinnedPakageManagerDownload(startLine, endLine, node, cmdStr, pathfn, dl) {
 			validated = false
 		}
 		// TODO(laurent): add check for cat file | bash.
@@ -913,9 +942,9 @@ func isMatchingShellScriptFile(pathfn string, content []byte, shellsToMatch []st
 	return false // It has a shebang, but it's not one of our matching shells.
 }
 
-func validateShellFile(pathfn string, content []byte, dl checker.DetailLogger) (bool, error) {
-	files := make(map[string]bool)
-	r, err := validateShellFileAndRecord(pathfn, content, files, dl)
+func validateShellFile(pathfn string, startLine, endLine uint,
+	content []byte, taintedFiles map[string]bool, dl checker.DetailLogger) (bool, error) {
+	r, err := validateShellFileAndRecord(pathfn, startLine, endLine, content, taintedFiles, dl)
 	if err != nil && errors.Is(err, sce.ErrorShellParsing) {
 		// Discard and print this particular error for now.
 		dl.Debug(err.Error())
