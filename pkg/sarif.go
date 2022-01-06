@@ -570,7 +570,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		}
 
 		// Skip check that do not violate the policy.
-		if check.Score >= minScore {
+		if check.Score >= minScore || check.Score == checker.InconclusiveResultScore {
 			continue
 		}
 
