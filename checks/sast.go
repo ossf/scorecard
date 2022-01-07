@@ -124,12 +124,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			return checker.InconclusiveResultScore,
 				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 		}
-		if crs == nil {
-			c.Dlogger.Warn3(&checker.LogMessage{
-				Text: "no pull requests merged into dev branch",
-			})
-			return checker.InconclusiveResultScore, nil
-		}
+		// Note: crs may bi `nil`.
 		for _, cr := range crs {
 			if cr.Status != "completed" {
 				continue
