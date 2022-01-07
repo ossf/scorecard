@@ -124,7 +124,8 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			return checker.InconclusiveResultScore,
 				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 		}
-		// Note: crs may bi `nil`.
+		// Note: crs may be `nil`: in this case
+		// the loop below will be skipped.
 		for _, cr := range crs {
 			if cr.Status != "completed" {
 				continue
