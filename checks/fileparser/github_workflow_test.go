@@ -146,3 +146,111 @@ func TestGitHubWorkflowShell(t *testing.T) {
 		})
 	}
 }
+
+func TestIsWorkflowFile(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		pathfn string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "yaml",
+			args: args{
+				pathfn: "../testdata/github-workflow-shells-all-windows.yaml",
+			},
+			want: true,
+		},
+		{
+			name: "yml",
+			args: args{
+				pathfn: "../testdata/github-workflow-shells-all-windows.yml",
+			},
+			want: true,
+		},
+		{
+			name: "json",
+			args: args{
+				pathfn: "../testdata/github-workflow-shells-all-windows.json",
+			},
+			want: false,
+		},
+		{
+			name: "txt",
+			args: args{
+				pathfn: "../testdata/github-workflow-shells-all-windows.txt",
+			},
+			want: false,
+		},
+		{
+			name: "md",
+			args: args{
+				pathfn: "../testdata/github-workflow-shells-all-windows.md",
+			},
+			want: false,
+		},
+		{
+			name: "unknown",
+			args: args{
+				pathfn: "../testdata/github-workflow-shells-all-windows.unknown",
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := IsWorkflowFile(tt.args.pathfn); got != tt.want {
+				t.Errorf("IsWorkflowFile() = %v, want %v for tests %v", got, tt.want, tt.name)
+			}
+		})
+	}
+}
+
+func TestIsGitHubOwnedAction(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		actionName string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "github/foo/bar",
+			args: args{
+				actionName: "github/foo/bar",
+			},
+			want: true,
+		},
+		{
+			name: "actions",
+			args: args{
+				actionName: "actions/bar/",
+			},
+			want: true,
+		},
+		{
+			name: "foo/bar/",
+			args: args{
+				actionName: "foo/bar/",
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := IsGitHubOwnedAction(tt.args.actionName); got != tt.want {
+				t.Errorf("IsGitHubOwnedAction() = %v, want %v for test %v", got, tt.want, tt.name)
+			}
+		})
+	}
+}
