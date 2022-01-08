@@ -47,14 +47,20 @@ func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.Chec
 func checkRunsFrom(data *github.ListCheckRunsResults) []clients.CheckRun {
 	var checkRuns []clients.CheckRun
 	for _, checkRun := range data.CheckRuns {
-		checkRuns = append(checkRuns, clients.CheckRun{
+		cr := clients.CheckRun{
 			Status:     checkRun.GetStatus(),
 			Conclusion: checkRun.GetConclusion(),
 			URL:        checkRun.GetURL(),
 			App: clients.CheckRunApp{
 				Slug: checkRun.GetApp().GetSlug(),
 			},
-		})
+		}
+		if checkRun.Name != nil {
+			cr.Name = *checkRun.Name
+		}
+
+		checkRuns = append(checkRuns, cr)
+
 	}
 	return checkRuns
 }

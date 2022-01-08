@@ -20,6 +20,7 @@ type CheckRun struct {
 	Conclusion string
 	URL        string
 	App        CheckRunApp
+	Name       string
 }
 
 // CheckRunApp is the app running the Check.
