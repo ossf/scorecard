@@ -16,10 +16,13 @@ package checks
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/rhysd/actionlint"
 )
 
 // CheckSAST is the registered name for SAST.
@@ -204,4 +207,105 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 		Text: "CodeQL tool not detected",
 	})
 	return checker.MinResultScore, nil
+}
+
+func NewFunc(c *checker.CheckRequest) checker.CheckResult {
+	// List pull requests.
+	prs, err := c.RepoClient.ListMergedPRs()
+	if err != nil {
+		//nolint
+		return checker.InconclusiveResultScore,
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+	}
+
+	// List workflows.
+	matchedFiles, err := c.RepoClient.ListFiles(isGithubWorkflowFile)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckSAST, e)
+	}
+
+	for _, fp := range matchedFiles {
+		fc, err := c.RepoClient.GetFileContent(fp)
+		if err != nil {
+			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetFileContent: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckSAST, e)
+		}
+
+		workflow, errs := actionlint.Parse(fc)
+		if len(errs) > 0 && workflow == nil {
+			e := fileparser.FormatActionlintError(errs)
+			return checker.CreateRuntimeErrorResult(CheckSAST, e)
+		}
+
+		if !isLinter(workflow, fp, c.Dlogger) {
+			continue
+		}
+
+		runs, err := c.RepoClient.ListSuccessfulWorkflowRuns(filepath.Base(fp))
+		if err != nil {
+			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Actions.ListWorkflowRunsByFileName: %v", err))
+			return checker.CreateRuntimeErrorResult(CheckSAST, e)
+		}
+		if len(runs) > 0 {
+			c.Dlogger.Info3(&checker.LogMessage{
+				Path:   fp,
+				Type:   checker.FileTypeSource,
+				Offset: checker.OffsetDefault,
+				Text:   fmt.Sprintf("Linter workflow used in run %s", runs[0].URL),
+			})
+			return checker.CreateMaxScoreResult(CheckSAST,
+				"publishing workflow detected")
+		}
+		c.Dlogger.Debug3(&checker.LogMessage{
+			Path:   fp,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   "GitHub publishing workflow not used in runs",
+		})
+	}
+
+	c.Dlogger.Warn3(&checker.LogMessage{
+		Text: "no GitHub publishing workflow detected",
+	})
+
+	return checker.CreateInconclusiveResult(CheckPackaging,
+		"no published package detected")
+}
+
+func isLinter(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	jobMatchers := []fileparser.JobMatcher{
+		{
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "github/super-linter",
+				},
+			},
+			LogText: "super-linter action configured",
+		},
+	}
+
+	for _, job := range workflow.Jobs {
+		for _, matcher := range jobMatchers {
+			if !matcher.Matches(job) {
+				continue
+			}
+
+			dl.Info3(&checker.LogMessage{
+				Path:   fp,
+				Type:   checker.FileTypeSource,
+				Offset: fileparser.GetLineNumber(job.Pos),
+				Text:   matcher.LogText,
+			})
+			return true
+		}
+	}
+
+	dl.Debug3(&checker.LogMessage{
+		Path:   fp,
+		Type:   checker.FileTypeSource,
+		Offset: checker.OffsetDefault,
+		Text:   "not a linter workflow",
+	})
+	return false
 }
