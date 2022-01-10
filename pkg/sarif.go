@@ -391,7 +391,7 @@ func generateRemediationMarkdown(remediation []string) string {
 func generateMarkdownText(longDesc, risk string, remediation []string) string {
 	rSev := fmt.Sprintf("**Severity**: %s", risk)
 	rDesc := fmt.Sprintf("**Details**:\n%s", longDesc)
-	rRem := fmt.Sprintf("**Remediation**:\n%s", generateRemediationMarkdown(remediation))
+	rRem := fmt.Sprintf("**Remediation (click \"Show more\" below)**:\n%s", generateRemediationMarkdown(remediation))
 	return textToMarkdown(fmt.Sprintf("%s\n\n%s\n\n%s", rRem, rSev, rDesc))
 }
 
@@ -426,7 +426,7 @@ func createSARIFCheckResult(pos int, checkID, message string, loc *location) res
 		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
 		// Level:     scoreToLevel(minScore, score),
 		RuleIndex: pos,
-		Message:   text{Text: message},
+		Message:   text{Text: fmt.Sprintf("%s\nClick Remediation section below to solve this issue", message)},
 		Locations: []location{*loc},
 	}
 }
@@ -593,7 +593,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		RuleIndex := len(run.Tool.Driver.Rules) - 1
 		if len(locs) == 0 {
 			// Use an "empty" filename to avoid confusing users.
-			locs = addDefaultLocation(locs, " ")
+			locs = addDefaultLocation(locs, "no file associated with this results")
 			msg := createDefaultLocationMessage(&check)
 			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &locs[0])
 			run.Results = append(run.Results, cr)
