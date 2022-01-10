@@ -24,7 +24,7 @@
                      },
                      "help": {
                         "text": "short description",
-                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nlong description\n\n other line"
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nlong description\n\n other line"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -51,7 +51,7 @@
                      },
                      "help": {
                         "text": "short description 2",
-                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Medium\n\n\n\n**Details**:\n\nlong description\n\n other line 2"
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Medium\n\n\n\n**Details**:\n\nlong description\n\n other line 2"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -79,7 +79,7 @@
                      },
                      "help": {
                         "text": "short description 3",
-                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 3"
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 3"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -104,7 +104,7 @@
                "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
-                  "text": "warn message"
+                  "text": "warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {

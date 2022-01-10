@@ -62,8 +62,6 @@ type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
 	//nolint
 	// This is optional https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#location-object.
-	// We may populate it later if we can indicate which config file
-	// line was violated by the failing check.
 	Message *text `json:"message,omitempty"`
 }
 

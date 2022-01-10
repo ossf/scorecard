@@ -24,7 +24,7 @@
                      },
                      "help": {
                         "text": "short description",
-                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nlong description\n\n other line"
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nlong description\n\n other line"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -47,7 +47,7 @@
                "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
-                  "text": "six score reason:\nWarn: warn message"
+                  "text": "six score reason:\nWarn: warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
@@ -56,7 +56,7 @@
                            "startLine": 1
                         },
                         "artifactLocation": {
-                           "uri": " ",
+                           "uri": "no file associated with this results",
                            "uriBaseId": "%SRCROOT%"
                         }
                      }
