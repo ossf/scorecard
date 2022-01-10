@@ -40,7 +40,7 @@ policies:
       mode: enforced
   Contributors:
       score: 10
-      mode: enforced
+      mode: disabled
   Packaging:
       score: 10
       mode: enforced
