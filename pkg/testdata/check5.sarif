@@ -24,7 +24,7 @@
                      },
                      "help": {
                         "text": "short description",
-                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nlong description\n\n other line"
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nlong description\n\n other line"
                      },
                      "defaultConfiguration": {
                         "level": "error"
