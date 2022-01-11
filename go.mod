@@ -27,7 +27,7 @@ require (
 	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.19.1
 	gocloud.dev v0.24.0
-	golang.org/x/tools v0.1.7
+	golang.org/x/tools v0.1.8
 	google.golang.org/genproto v0.0.0-20210924002016-3dee208752a0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
@@ -92,7 +92,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
-	golang.org/x/net v0.0.0-20210825183410-e898025ed96a // indirect
+	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20211113001501-0c823b97ae02 // indirect
