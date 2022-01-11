@@ -236,13 +236,11 @@ func detailToRegion(details *checker.CheckDetail) region {
 			Snippet:   snippet,
 		}
 	case checker.FileTypeText:
-		// Offset of 0 is acceptable here.
 		reg = region{
 			CharOffset: &details.Msg.Offset,
 			Snippet:    snippet,
 		}
 	case checker.FileTypeBinary:
-		// Offset of 0 is acceptable here.
 		reg = region{
 			// Note: GitHub does not support ByteOffset, so we also set
 			// StartLine.
