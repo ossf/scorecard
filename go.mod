@@ -25,7 +25,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
 	go.opencensus.io v0.23.0
-	go.uber.org/zap v1.19.1
+	go.uber.org/zap v1.20.0
 	gocloud.dev v0.24.0
 	golang.org/x/tools v0.1.8
 	google.golang.org/genproto v0.0.0-20210924002016-3dee208752a0
