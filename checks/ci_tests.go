@@ -140,6 +140,7 @@ func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (boo
 	return false, nil
 }
 
+// isTest returns true if the given string is a CI test.
 func isTest(s string) bool {
 	l := strings.ToLower(s)
 
