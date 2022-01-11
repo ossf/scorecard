@@ -240,7 +240,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  25,
+				NumberOfWarn:  26,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
@@ -858,7 +858,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  36,
+				NumberOfWarn:  37,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
@@ -1022,7 +1022,7 @@ func TestShellScriptDownload(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  33,
+				NumberOfWarn:  34,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},

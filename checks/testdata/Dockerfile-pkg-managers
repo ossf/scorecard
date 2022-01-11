@@ -80,3 +80,5 @@ RUN npm install
 RUN npm install -g
 RUN npm i
 RUN npm ci
+RUN npm install-test
+RUN npm install-ci-test

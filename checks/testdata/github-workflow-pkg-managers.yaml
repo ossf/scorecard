@@ -45,6 +45,10 @@ jobs:
       - name:
         run: npm ci
       - name:
+        run: |
+          npm install-test
+          npm install-ci-test
+      - name:
         run: go get github.com/org/name@some_tag
       - name:
         run: go install github.com/org/name@some_tag
