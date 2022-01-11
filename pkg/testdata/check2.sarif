@@ -53,6 +53,7 @@
                   {
                      "physicalLocation": {
                         "region": {
+                           "startLine": 0,
                            "byteOffset": 0
                         },
                         "artifactLocation": {
