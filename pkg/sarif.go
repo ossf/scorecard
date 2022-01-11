@@ -591,7 +591,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		RuleIndex := len(run.Tool.Driver.Rules) - 1
 		if len(locs) == 0 {
 			// Use an "empty" filename to avoid confusing users.
-			locs = addDefaultLocation(locs, "no file associated with this results")
+			locs = addDefaultLocation(locs, "no file associated with this alert")
 			msg := createDefaultLocationMessage(&check)
 			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &locs[0])
 			run.Results = append(run.Results, cr)

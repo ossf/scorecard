@@ -56,7 +56,7 @@
                            "startLine": 1
                         },
                         "artifactLocation": {
-                           "uri": "no file associated with this results",
+                           "uri": "no file associated with this alert",
                            "uriBaseId": "%SRCROOT%"
                         }
                      }
