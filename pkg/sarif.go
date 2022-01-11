@@ -590,7 +590,8 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// so it's the last position for us.
 		RuleIndex := len(run.Tool.Driver.Rules) - 1
 		if len(locs) == 0 {
-			// Use an "empty" filename to avoid confusing users.
+			// Note: this is not a valid URI but GitHub still accepts it.
+			// See https://sarifweb.azurewebsites.net/Validation to test verification.
 			locs = addDefaultLocation(locs, "no file associated with this alert")
 			msg := createDefaultLocationMessage(&check)
 			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &locs[0])
