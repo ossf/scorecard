@@ -82,3 +82,5 @@ npm install
 npm install -g
 npm i
 npm ci
+npm install-test
+npm install-ci-test

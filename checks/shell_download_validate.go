@@ -398,13 +398,12 @@ func isNpmUnpinnedDownload(cmd []string) bool {
 		return false
 	}
 
-	// `npm install` will automatically look up the
-	// package.json and package-lock.json, so we don't flag it.
 	for i := 1; i < len(cmd); i++ {
 		// Search for get/install/update commands.
 		// `npm ci` wil verify all hashes are present.
 		if strings.EqualFold(cmd[i], "install") ||
 			strings.EqualFold(cmd[i], "i") ||
+			strings.EqualFold(cmd[i], "install-test") ||
 			strings.EqualFold(cmd[i], "update") {
 			return true
 		}
