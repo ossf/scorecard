@@ -35,7 +35,10 @@ const CheckLicense = "License"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckLicense, LicenseCheck)
+	if err := registerCheck(CheckLicense, LicenseCheck); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 const (

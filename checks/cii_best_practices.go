@@ -32,7 +32,10 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckCIIBestPractices, CIIBestPractices)
+	if err := registerCheck(CheckCIIBestPractices, CIIBestPractices); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // CIIBestPractices runs CII-Best-Practices check.

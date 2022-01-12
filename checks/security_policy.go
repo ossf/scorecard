@@ -26,7 +26,10 @@ const CheckSecurityPolicy = "Security-Policy"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckSecurityPolicy, SecurityPolicy)
+	if err := registerCheck(CheckSecurityPolicy, SecurityPolicy); err != nil {
+		// This should never happen.
+		panic(err)
+	}
 }
 
 // SecurityPolicy runs Security-Policy check.

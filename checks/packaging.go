@@ -31,7 +31,10 @@ const CheckPackaging = "Packaging"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckPackaging, Packaging)
+	if err := registerCheck(CheckPackaging, Packaging); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 func isGithubWorkflowFile(filename string) (bool, error) {

@@ -31,7 +31,10 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckContributors, Contributors)
+	if err := registerCheck(CheckContributors, Contributors); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // Contributors run Contributors check.

@@ -28,7 +28,10 @@ const CheckFuzzing = "Fuzzing"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckFuzzing, Fuzzing)
+	if err := registerCheck(CheckFuzzing, Fuzzing); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 func checkCFLite(c *checker.CheckRequest) (bool, error) {
