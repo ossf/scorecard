@@ -51,7 +51,7 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 		}
 
 		// TODO: if this is a sha, get the associated branch. for now, ignore.
-		if commit.Match([]byte(release.TargetCommitish)) {
+		if commit.MatchString(release.TargetCommitish) {
 			continue
 		}
 
