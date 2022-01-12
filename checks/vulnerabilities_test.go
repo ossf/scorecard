@@ -20,9 +20,9 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/clients"
-	mockrepo "github.com/ossf/scorecard/v3/clients/mockclients"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
 func TestVulnerabilities(t *testing.T) {

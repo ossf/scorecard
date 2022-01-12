@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v3/docs/checks/internal"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/docs/checks/internal"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 var errCheckNotExist = errors.New("check does not exist")

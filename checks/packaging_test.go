@@ -21,7 +21,7 @@ import (
 
 	"github.com/rhysd/actionlint"
 
-	scut "github.com/ossf/scorecard/v3/utests"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestIsPackagingWorkflow(t *testing.T) {

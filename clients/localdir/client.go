@@ -29,7 +29,7 @@ import (
 
 	"go.uber.org/zap"
 
-	clients "github.com/ossf/scorecard/v3/clients"
+	clients "github.com/ossf/scorecard/v4/clients"
 )
 
 var errInputRepoType = errors.New("input repo should be of type repoLocal")
