@@ -443,7 +443,7 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		// Consider strings that are not URLs as local folders
 		// which are pinned.
 		regex := regexp.MustCompile(`\w+\.\w+/\w+`)
-		if !regex.Match([]byte(pkg)) {
+		if !regex.MatchString(pkg) {
 			return false
 		}
 		// Verify pkg = name@hash
@@ -453,7 +453,7 @@ func isGoUnpinnedDownload(cmd []string) bool {
 			continue
 		}
 		hash := parts[1]
-		if hashRegex.Match([]byte(hash)) {
+		if hashRegex.MatchString(hash) {
 			return false
 		}
 	}
