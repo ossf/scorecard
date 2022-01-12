@@ -20,12 +20,14 @@ import (
 
 //nolint
 var (
-	errInternalInvalidDockerFile  = errors.New("invalid Dockerfile")
-	errInternalInvalidYamlFile    = errors.New("invalid yaml file")
-	errInternalFilenameMatch      = errors.New("filename match error")
-	errInternalEmptyFile          = errors.New("empty file")
-	errInvalidGitHubWorkflow      = errors.New("invalid GitHub workflow")
-	errInternalNoReviews          = errors.New("no reviews found")
-	errInternalNoCommits          = errors.New("no commits found")
-	errInternalInvalidPermissions = errors.New("invalid permissions")
+	errInternalInvalidDockerFile    = errors.New("invalid Dockerfile")
+	errInternalInvalidYamlFile      = errors.New("invalid yaml file")
+	errInternalFilenameMatch        = errors.New("filename match error")
+	errInternalEmptyFile            = errors.New("empty file")
+	errInvalidGitHubWorkflow        = errors.New("invalid GitHub workflow")
+	errInternalNoReviews            = errors.New("no reviews found")
+	errInternalNoCommits            = errors.New("no commits found")
+	errInternalInvalidPermissions   = errors.New("invalid permissions")
+	errInternalNameCannotBeEmpty    = errors.New("name cannot be empty")
+	errInternalCheckFuncCannotBeNil = errors.New("checkFunc cannot be nil")
 )

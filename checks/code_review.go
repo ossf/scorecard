@@ -27,7 +27,10 @@ const CheckCodeReview = "Code-Review"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckCodeReview, DoesCodeReview)
+	if err := registerCheck(CheckCodeReview, DoesCodeReview); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // DoesCodeReview attempts to determine whether a project requires review before code gets merged.

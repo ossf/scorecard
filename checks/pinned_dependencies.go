@@ -39,7 +39,10 @@ type worklowPinningResult struct {
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckPinnedDependencies, PinnedDependencies)
+	if err := registerCheck(CheckPinnedDependencies, PinnedDependencies); err != nil {
+		// This should never happen.
+		panic(err)
+	}
 }
 
 // PinnedDependencies will check the repository if it contains frozen dependecies.

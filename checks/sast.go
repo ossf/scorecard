@@ -31,7 +31,10 @@ var allowedConclusions = map[string]bool{"success": true, "neutral": true}
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckSAST, SAST)
+	if err := registerCheck(CheckSAST, SAST); err != nil {
+		// This should never happen.
+		panic(err)
+	}
 }
 
 // SAST runs SAST check.

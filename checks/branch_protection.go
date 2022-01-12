@@ -28,7 +28,10 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckBranchProtection, BranchProtection)
+	if err := registerCheck(CheckBranchProtection, BranchProtection); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // BranchProtection runs the Branch-Protection check.

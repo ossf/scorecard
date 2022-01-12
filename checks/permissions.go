@@ -53,7 +53,10 @@ var permissionsOfInterest = []permission{
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckTokenPermissions, TokenPermissions)
+	if err := registerCheck(CheckTokenPermissions, TokenPermissions); err != nil {
+		// This should never happen.
+		panic(err)
+	}
 }
 
 // Holds stateful data to pass thru callbacks.

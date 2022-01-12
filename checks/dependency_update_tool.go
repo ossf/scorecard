@@ -26,7 +26,10 @@ const CheckDependencyUpdateTool = "Dependency-Update-Tool"
 
 //nolint
 func init() {
-	registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool)
+	if err := registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // DependencyUpdateTool checks if the repository uses a dependency update tool.

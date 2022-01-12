@@ -26,7 +26,10 @@ const CheckBinaryArtifacts string = "Binary-Artifacts"
 
 //nolint
 func init() {
-	registerCheck(CheckBinaryArtifacts, BinaryArtifacts)
+	if err := registerCheck(CheckBinaryArtifacts, BinaryArtifacts); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // BinaryArtifacts  will check the repository contains binary artifacts.

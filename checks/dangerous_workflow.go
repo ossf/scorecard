@@ -59,7 +59,10 @@ func containsUntrustedContextPattern(variable string) bool {
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckDangerousWorkflow, DangerousWorkflow)
+	if err := registerCheck(CheckDangerousWorkflow, DangerousWorkflow); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // Holds stateful data to pass thru callbacks.
