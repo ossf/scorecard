@@ -21,7 +21,7 @@ import (
 
 	"github.com/google/go-github/v38/github"
 
-	"github.com/ossf/scorecard/v3/clients"
+	"github.com/ossf/scorecard/v4/clients"
 )
 
 type contributorsHandler struct {

@@ -20,10 +20,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/clients"
-	mockrepo "github.com/ossf/scorecard/v3/clients/mockclients"
-	scut "github.com/ossf/scorecard/v3/utests"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestSignedRelease(t *testing.T) {

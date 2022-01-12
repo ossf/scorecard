@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/errors"
 )
 
 const osvQueryEndpoint = "https://api.osv.dev/v1/query"

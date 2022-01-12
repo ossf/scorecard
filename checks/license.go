@@ -18,8 +18,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
 )
 
 type check func(str string, extCheck []string) bool
