@@ -38,7 +38,11 @@ func init() {
 
 // Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
+<<<<<<< HEAD
 	matchedFiles, err := c.RepoClient.ListFiles(fileparser.IsGithubWorkflowFileCb)
+=======
+	matchedFiles, err := c.RepoClient.ListFiles(fileparser.IsWorkflowFileCb)
+>>>>>>> 8d875e4 (draft)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)

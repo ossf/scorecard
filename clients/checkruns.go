@@ -16,11 +16,12 @@ package clients
 
 // CheckRun is a single instance of a VCS CheckRun.
 type CheckRun struct {
-	Status     string
-	Conclusion string
-	URL        string
-	App        CheckRunApp
-	Name       string
+	Status       string
+	Conclusion   string
+	URL          string
+	App          CheckRunApp
+	Name         string
+	PullRequests []PullRequest
 }
 
 // CheckRunApp is the app running the Check.

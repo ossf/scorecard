@@ -54,9 +54,20 @@ func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]
 func workflowsRunsFrom(data *github.WorkflowRuns) []clients.WorkflowRun {
 	var workflowRuns []clients.WorkflowRun
 	for _, workflowRun := range data.WorkflowRuns {
-		workflowRuns = append(workflowRuns, clients.WorkflowRun{
+		r := clients.WorkflowRun{
 			URL: workflowRun.GetURL(),
-		})
+		}
+
+		// prs := workflowRun.PullRequests
+		// for _, pr := range prs {
+		// 	cp := clients.PullRequest{
+		// 		// TODO: fill ul the rest of the structure.
+		// 		Number: pr.GetNumber(),
+		// 	}
+		// 	r.PullRequests = append(r.PullRequests, cp)
+		// }
+
+		workflowRuns = append(workflowRuns, r)
 	}
 	return workflowRuns
 }

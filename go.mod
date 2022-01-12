@@ -50,6 +50,8 @@ require (
 	sigs.k8s.io/release-utils v0.6.0
 )
 
+require github.com/ossf/scorecard/v3 v3.2.1
+
 require (
 	cloud.google.com/go v0.100.2 // indirect
 	cloud.google.com/go/compute v1.5.0 // indirect
