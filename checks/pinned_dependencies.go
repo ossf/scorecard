@@ -399,7 +399,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 			// (1): name = <>@sha245:hash
 			// (2): name = XXX where XXX was pinned
 			pinned := pinnedAsNames[name]
-			if pinned || regex.Match([]byte(name)) {
+			if pinned || regex.MatchString(name) {
 				// Record the asName.
 				pinnedAsNames[asName] = true
 				continue
@@ -420,7 +420,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 		case len(valueList) == 1:
 			name := valueList[0]
 			pinned := pinnedAsNames[name]
-			if !pinned && !regex.Match([]byte(name)) {
+			if !pinned && !regex.MatchString(name) {
 				ret = false
 				dl.Warn3(&checker.LogMessage{
 					Path:      pathfn,
@@ -630,7 +630,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 
 			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 			// Example: action-name@hash
-			match := hashRegex.Match([]byte(execAction.Uses.Value))
+			match := hashRegex.MatchString(execAction.Uses.Value)
 			if !match {
 				dl.Warn3(&checker.LogMessage{
 					Path: pathfn, Type: checker.FileTypeSource,
