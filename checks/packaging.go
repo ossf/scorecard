@@ -48,8 +48,12 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
-	for _, fp := range matchedFiles {
-		fc, err := c.RepoClient.GetFileContent(fp)
+	for _, fn := range matchedFiles {
+		if !fileparser.IsWorkflowFile(fn) {
+			continue
+		}
+
+		fc, err := c.RepoClient.GetFileContent(fn)
 		if err != nil {
 			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetFileContent: %v", err))
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
@@ -60,18 +64,23 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			e := fileparser.FormatActionlintError(errs)
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
-		if !isPackagingWorkflow(workflow, fp, c.Dlogger) {
+		if !isPackagingWorkflow(workflow, fn, c.Dlogger) {
 			continue
 		}
 
-		runs, err := c.RepoClient.ListSuccessfulWorkflowRuns(filepath.Base(fp))
+		runs, err := c.RepoClient.ListSuccessfulWorkflowRuns(filepath.Base(fn))
 		if err != nil {
 			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Actions.ListWorkflowRunsByFileName: %v", err))
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if len(runs) > 0 {
+<<<<<<< HEAD
 			c.Dlogger.Info(&checker.LogMessage{
 				Path:   fp,
+=======
+			c.Dlogger.Info3(&checker.LogMessage{
+				Path:   fn,
+>>>>>>> d9ff5a7 (draft)
 				Type:   checker.FileTypeSource,
 				Offset: checker.OffsetDefault,
 				Text:   fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL),
@@ -79,8 +88,13 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
+<<<<<<< HEAD
 		c.Dlogger.Debug(&checker.LogMessage{
 			Path:   fp,
+=======
+		c.Dlogger.Debug3(&checker.LogMessage{
+			Path:   fn,
+>>>>>>> d9ff5a7 (draft)
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   "GitHub publishing workflow not used in runs",

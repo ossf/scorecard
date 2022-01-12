@@ -58,14 +58,15 @@ func workflowsRunsFrom(data *github.WorkflowRuns) []clients.WorkflowRun {
 			URL: workflowRun.GetURL(),
 		}
 
-		// prs := workflowRun.PullRequests
-		// for _, pr := range prs {
-		// 	cp := clients.PullRequest{
-		// 		// TODO: fill ul the rest of the structure.
-		// 		Number: pr.GetNumber(),
-		// 	}
-		// 	r.PullRequests = append(r.PullRequests, cp)
-		// }
+		prs := workflowRun.PullRequests
+		fmt.Println(len(prs))
+		for _, pr := range prs {
+			cp := clients.PullRequest{
+				// TODO: fill up the rest of the structure.
+				Number: pr.GetNumber(),
+			}
+			r.PullRequests = append(r.PullRequests, cp)
+		}
 
 		workflowRuns = append(workflowRuns, r)
 	}
