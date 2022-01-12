@@ -15,8 +15,8 @@
 package evaluation
 
 import (
-	"github.com/ossf/scorecard/v3/checker"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // SecurityPolicy applies the score policy for the Security-Policy check.

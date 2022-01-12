@@ -15,7 +15,7 @@
 // Package checks defines all Scorecard checks.
 package checks
 
-import "github.com/ossf/scorecard/v3/checker"
+import "github.com/ossf/scorecard/v4/checker"
 
 // AllChecks is the list of all security checks that will be run.
 var AllChecks = checker.CheckNameToFnMap{}

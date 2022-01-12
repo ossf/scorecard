@@ -18,7 +18,7 @@ import (
 	"os"
 	"testing"
 
-	scut "github.com/ossf/scorecard/v3/utests"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestIsSupportedShellScriptFile(t *testing.T) {

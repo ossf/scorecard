@@ -18,7 +18,7 @@ import (
 	"os"
 	"sort"
 
-	docs "github.com/ossf/scorecard/v3/docs/checks"
+	docs "github.com/ossf/scorecard/v4/docs/checks"
 )
 
 func main() {

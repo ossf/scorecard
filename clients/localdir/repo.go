@@ -23,7 +23,7 @@ import (
 	"path"
 	"strings"
 
-	clients "github.com/ossf/scorecard/v3/clients"
+	clients "github.com/ossf/scorecard/v4/clients"
 )
 
 var (

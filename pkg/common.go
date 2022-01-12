@@ -20,7 +20,7 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v4/checker"
 )
 
 func textToMarkdown(s string) string {

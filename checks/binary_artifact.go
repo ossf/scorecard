@@ -15,10 +15,10 @@
 package checks
 
 import (
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/evaluation"
-	"github.com/ossf/scorecard/v3/checks/raw"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckBinaryArtifacts is the exported name for Binary-Artifacts check.

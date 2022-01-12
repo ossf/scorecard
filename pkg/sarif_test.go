@@ -23,8 +23,8 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v3/checker"
-	spol "github.com/ossf/scorecard/v3/policy"
+	"github.com/ossf/scorecard/v4/checker"
+	spol "github.com/ossf/scorecard/v4/policy"
 )
 
 func sarifMockDocRead() *mockDoc {

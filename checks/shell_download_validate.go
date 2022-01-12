@@ -27,8 +27,8 @@ import (
 
 	"mvdan.cc/sh/v3/syntax"
 
-	"github.com/ossf/scorecard/v3/checker"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 var (

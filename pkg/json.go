@@ -21,8 +21,8 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	docs "github.com/ossf/scorecard/v3/docs/checks"
-	sce "github.com/ossf/scorecard/v3/errors"
+	docs "github.com/ossf/scorecard/v4/docs/checks"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 //nolint

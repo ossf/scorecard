@@ -17,8 +17,8 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v3/checker"
-	scut "github.com/ossf/scorecard/v3/utests"
+	"github.com/ossf/scorecard/v4/checker"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func testScore(branch *checker.BranchProtectionData, dl checker.DetailLogger) (int, error) {

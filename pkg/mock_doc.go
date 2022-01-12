@@ -17,7 +17,7 @@ package pkg
 import (
 	"strings"
 
-	docs "github.com/ossf/scorecard/v3/docs/checks"
+	docs "github.com/ossf/scorecard/v4/docs/checks"
 )
 
 type mockCheck struct {

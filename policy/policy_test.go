@@ -19,7 +19,7 @@ import (
 	"os"
 	"testing"
 
-	sce "github.com/ossf/scorecard/v3/errors"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 func TestPolicyRead(t *testing.T) {

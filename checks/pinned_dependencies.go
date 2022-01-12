@@ -22,9 +22,9 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/rhysd/actionlint"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckPinnedDependencies is the registered name for FrozenDeps.

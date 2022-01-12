@@ -21,7 +21,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	sce "github.com/ossf/scorecard/v3/errors"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 type outcome struct {

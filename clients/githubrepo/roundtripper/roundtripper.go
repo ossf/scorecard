@@ -25,7 +25,7 @@ import (
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/v3/clients/githubrepo/roundtripper/tokens"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens"
 )
 
 const (

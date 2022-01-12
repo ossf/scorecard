@@ -22,7 +22,7 @@ import (
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
 )
 
 var logger *zap.Logger
