@@ -346,14 +346,6 @@ func isSupportedCheck(names []string, name string) bool {
 func getAllChecks() checker.CheckNameToFnMap {
 	// Returns the full list of checks, given any environment variable constraints.
 	possibleChecks := checks.AllChecks
-	// TODO: Remove this to enable the DANGEROUS_WORKFLOW by default in the next release.
-	if _, dangerousWorkflowCheck := os.LookupEnv("ENABLE_DANGEROUS_WORKFLOW"); !dangerousWorkflowCheck {
-		delete(possibleChecks, checks.CheckDangerousWorkflow)
-	}
-	// TODO: Remove this to enable the LICENSE_CHECK by default in the next release.
-	if _, licenseflowCheck := os.LookupEnv("ENABLE_LICENSE"); !licenseflowCheck {
-		delete(possibleChecks, checks.CheckLicense)
-	}
 	return possibleChecks
 }
 
