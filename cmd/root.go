@@ -193,7 +193,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	// nolint: errcheck
 	defer logger.Sync() // Flushes buffer, if any.
 
-	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, repoType, err := getRepoAccessors(ctx, uri, logger)
+	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, binaryArtifactsClient, repoType, err := getRepoAccessors(ctx, uri, logger)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -229,7 +229,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	}
 
 	repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient,
-		ossFuzzRepoClient, ciiClient, vulnsClient)
+		ossFuzzRepoClient, ciiClient, vulnsClient, binaryArtifactsClient)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -419,6 +419,7 @@ func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnerabilityClient clients.VulnerabilitiesClient,
+	binaryArtifactsClient clients.BinaryArtifactsClient,
 	repoType string,
 	err error) {
 	var localRepo, githubRepo clients.Repo
@@ -437,10 +438,12 @@ func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (
 		repoClient = githubrepo.CreateGithubRepoClient(ctx, logger)
 		ciiClient = clients.DefaultCIIBestPracticesClient()
 		vulnerabilityClient = clients.DefaultVulnerabilitiesClient()
+		binaryArtifactsClient = clients.DefaultBinaryArtifactsClient()
 		ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(ctx, logger)
 		return
 	}
 	err = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s: [%v, %v]", uri, errLocal, errGitHub))
+	//nolint:nakedret
 	return
 }
 

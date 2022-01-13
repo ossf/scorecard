@@ -22,6 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -35,14 +36,16 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			binaryArtifactsChecker := clients.DefaultBinaryArtifactsClient()
 			err = repoClient.InitRepo(repo)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:                   context.Background(),
+				RepoClient:            repoClient,
+				BinaryArtifactsClient: binaryArtifactsChecker,
+				Repo:                  repo,
+				Dlogger:               &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -62,13 +65,15 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo)
+			binaryArtifactsChecker := clients.DefaultBinaryArtifactsClient()
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:                   context.Background(),
+				BinaryArtifactsClient: binaryArtifactsChecker,
+				RepoClient:            repoClient,
+				Repo:                  repo,
+				Dlogger:               &dl,
 			}
 			// TODO: upload real binaries to the repo as well.
 			expected := scut.TestReturn{
@@ -93,13 +98,15 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo)
+			binaryArtifactsChecker := clients.DefaultBinaryArtifactsClient()
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:                   context.Background(),
+				RepoClient:            repoClient,
+				BinaryArtifactsClient: binaryArtifactsChecker,
+				Repo:                  repo,
+				Dlogger:               &dl,
 			}
 			// TODO: upload real binaries to the repo as well.
 			expected := scut.TestReturn{

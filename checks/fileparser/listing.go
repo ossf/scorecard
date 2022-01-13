@@ -119,7 +119,7 @@ func CheckFilesContent(shellPathFnPattern string,
 // FileContentCbV6 is the callback.
 // The bool returned indicates whether the CheckFilesContent2
 // should continue iterating over files or not.
-type FileContentCbV6 func(path string, content []byte, data FileCbData) (bool, error)
+type FileContentCbV6 func(path string, content []byte, data FileCbData, bac clients.BinaryArtifactsClient) (bool, error)
 
 // CheckFilesContentV6 is the same as CheckFilesContent
 // but for use with separated check/policy code.
@@ -128,6 +128,7 @@ func CheckFilesContentV6(shellPathFnPattern string,
 	repoClient clients.RepoClient,
 	onFileContent FileContentCbV6,
 	data FileCbData,
+	bac clients.BinaryArtifactsClient,
 ) error {
 	predicate := func(filepath string) (bool, error) {
 		// Filter out test files.
@@ -155,7 +156,7 @@ func CheckFilesContentV6(shellPathFnPattern string,
 			return err
 		}
 
-		continueIter, err := onFileContent(file, content, data)
+		continueIter, err := onFileContent(file, content, data, bac)
 		if err != nil {
 			return err
 		}

@@ -67,6 +67,7 @@ var serveCmd = &cobra.Command{
 			repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
 			vulnsClient := clients.DefaultVulnerabilitiesClient()
+			binaryArtifactsClient := clients.DefaultBinaryArtifactsClient()
 			if err != nil {
 				sugar.Error(err)
 				rw.WriteHeader(http.StatusInternalServerError)
@@ -74,7 +75,7 @@ var serveCmd = &cobra.Command{
 			defer ossFuzzRepoClient.Close()
 			ciiClient := clients.DefaultCIIBestPracticesClient()
 			repoResult, err := pkg.RunScorecards(ctx, repo, false, checks.AllChecks, repoClient,
-				ossFuzzRepoClient, ciiClient, vulnsClient)
+				ossFuzzRepoClient, ciiClient, vulnsClient, binaryArtifactsClient)
 			if err != nil {
 				sugar.Error(err)
 				rw.WriteHeader(http.StatusInternalServerError)

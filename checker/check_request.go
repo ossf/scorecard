@@ -29,6 +29,7 @@ type CheckRequest struct {
 	Dlogger               DetailLogger
 	Repo                  clients.Repo
 	VulnerabilitiesClient clients.VulnerabilitiesClient
+	BinaryArtifactsClient clients.BinaryArtifactsClient
 	// UPGRADEv6: return raw results instead of scores.
 	RawResults *RawResults
 }

@@ -31,6 +31,7 @@ func runEnabledChecks(ctx context.Context,
 	repo clients.Repo, raw *checker.RawResults, checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
+	binaryArtifactsClient clients.BinaryArtifactsClient,
 	resultsCh chan checker.CheckResult) {
 	request := checker.CheckRequest{
 		Ctx:                   ctx,
@@ -38,6 +39,7 @@ func runEnabledChecks(ctx context.Context,
 		OssFuzzRepo:           ossFuzzRepoClient,
 		CIIClient:             ciiClient,
 		VulnerabilitiesClient: vulnsClient,
+		BinaryArtifactsClient: binaryArtifactsClient,
 		Repo:                  repo,
 		RawResults:            raw,
 	}
@@ -81,7 +83,8 @@ func RunScorecards(ctx context.Context,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
-	vulnsClient clients.VulnerabilitiesClient) (ScorecardResult, error) {
+	vulnsClient clients.VulnerabilitiesClient,
+	binaryArtifactsClient clients.BinaryArtifactsClient) (ScorecardResult, error) {
 	if err := repoClient.InitRepo(repo); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
@@ -108,10 +111,10 @@ func RunScorecards(ctx context.Context,
 	resultsCh := make(chan checker.CheckResult)
 	if raw {
 		go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun, repoClient, ossFuzzRepoClient,
-			ciiClient, vulnsClient, resultsCh)
+			ciiClient, vulnsClient, binaryArtifactsClient, resultsCh)
 	} else {
 		go runEnabledChecks(ctx, repo, nil, checksToRun, repoClient, ossFuzzRepoClient,
-			ciiClient, vulnsClient, resultsCh)
+			ciiClient, vulnsClient, binaryArtifactsClient, resultsCh)
 	}
 
 	for result := range resultsCh {
