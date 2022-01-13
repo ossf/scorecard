@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"net/rpc"
 
-	"github.com/ossf/scorecard/v3/clients/githubrepo/roundtripper/tokens"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens"
 )
 
 func main() {

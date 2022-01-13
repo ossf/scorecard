@@ -15,10 +15,10 @@
 package checks
 
 import (
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/evaluation"
-	"github.com/ossf/scorecard/v3/checks/raw"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 const (
@@ -28,7 +28,10 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckBranchProtection, BranchProtection)
+	if err := registerCheck(CheckBranchProtection, BranchProtection); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // BranchProtection runs the Branch-Protection check.

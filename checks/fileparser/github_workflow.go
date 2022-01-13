@@ -22,8 +22,8 @@ import (
 
 	"github.com/rhysd/actionlint"
 
-	"github.com/ossf/scorecard/v3/checker"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 const (

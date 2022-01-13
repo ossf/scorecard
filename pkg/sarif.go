@@ -24,11 +24,11 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks"
-	docs "github.com/ossf/scorecard/v3/docs/checks"
-	sce "github.com/ossf/scorecard/v3/errors"
-	spol "github.com/ossf/scorecard/v3/policy"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks"
+	docs "github.com/ossf/scorecard/v4/docs/checks"
+	sce "github.com/ossf/scorecard/v4/errors"
+	spol "github.com/ossf/scorecard/v4/policy"
 )
 
 type text struct {
@@ -62,8 +62,6 @@ type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
 	//nolint
 	// This is optional https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#location-object.
-	// We may populate it later if we can indicate which config file
-	// line was violated by the failing check.
 	Message *text `json:"message,omitempty"`
 }
 
@@ -236,16 +234,16 @@ func detailToRegion(details *checker.CheckDetail) region {
 			Snippet:   snippet,
 		}
 	case checker.FileTypeText:
-		// Offset of 0 is acceptable here.
 		reg = region{
 			CharOffset: &details.Msg.Offset,
 			Snippet:    snippet,
 		}
 	case checker.FileTypeBinary:
-		// Offset of 0 is acceptable here.
 		reg = region{
-			// Note: GitHub does not support this.
+			// Note: GitHub does not support ByteOffset, so we also set
+			// StartLine.
 			ByteOffset: &details.Msg.Offset,
+			StartLine:  &details.Msg.Offset,
 		}
 	}
 	return reg
@@ -391,7 +389,7 @@ func generateRemediationMarkdown(remediation []string) string {
 func generateMarkdownText(longDesc, risk string, remediation []string) string {
 	rSev := fmt.Sprintf("**Severity**: %s", risk)
 	rDesc := fmt.Sprintf("**Details**:\n%s", longDesc)
-	rRem := fmt.Sprintf("**Remediation**:\n%s", generateRemediationMarkdown(remediation))
+	rRem := fmt.Sprintf("**Remediation (click \"Show more\" below)**:\n%s", generateRemediationMarkdown(remediation))
 	return textToMarkdown(fmt.Sprintf("%s\n\n%s\n\n%s", rRem, rSev, rDesc))
 }
 
@@ -426,7 +424,7 @@ func createSARIFCheckResult(pos int, checkID, message string, loc *location) res
 		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
 		// Level:     scoreToLevel(minScore, score),
 		RuleIndex: pos,
-		Message:   text{Text: message},
+		Message:   text{Text: fmt.Sprintf("%s\nClick Remediation section below to solve this issue", message)},
 		Locations: []location{*loc},
 	}
 }
@@ -570,7 +568,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		}
 
 		// Skip check that do not violate the policy.
-		if check.Score >= minScore {
+		if check.Score >= minScore || check.Score == checker.InconclusiveResultScore {
 			continue
 		}
 
@@ -592,7 +590,9 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
 		// so it's the last position for us.
 		RuleIndex := len(run.Tool.Driver.Rules) - 1
 		if len(locs) == 0 {
-			locs = addDefaultLocation(locs, "no file available")
+			// Note: this is not a valid URI but GitHub still accepts it.
+			// See https://sarifweb.azurewebsites.net/Validation to test verification.
+			locs = addDefaultLocation(locs, "no file associated with this alert")
 			msg := createDefaultLocationMessage(&check)
 			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &locs[0])
 			run.Results = append(run.Results, cr)

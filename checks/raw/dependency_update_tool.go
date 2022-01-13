@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
-	"github.com/ossf/scorecard/v3/clients"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
+	"github.com/ossf/scorecard/v4/clients"
 )
 
 // DependencyUpdateTool is the exported name for Depdendency-Update-Tool.

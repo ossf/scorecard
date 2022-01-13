@@ -24,8 +24,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v3/checks"
-	docs "github.com/ossf/scorecard/v3/docs/checks"
+	"github.com/ossf/scorecard/v4/checks"
+	docs "github.com/ossf/scorecard/v4/docs/checks"
 )
 
 var (

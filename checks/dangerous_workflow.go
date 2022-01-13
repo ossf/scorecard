@@ -21,9 +21,9 @@ import (
 
 	"github.com/rhysd/actionlint"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckDangerousWorkflow is the exported name for Dangerous-Workflow check.
@@ -59,7 +59,10 @@ func containsUntrustedContextPattern(variable string) bool {
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckDangerousWorkflow, DangerousWorkflow)
+	if err := registerCheck(CheckDangerousWorkflow, DangerousWorkflow); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // Holds stateful data to pass thru callbacks.

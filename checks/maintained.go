@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ossf/scorecard/v3/checker"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 const (
@@ -32,7 +32,10 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckMaintained, IsMaintained)
+	if err := registerCheck(CheckMaintained, IsMaintained); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // IsMaintained runs Maintained check.

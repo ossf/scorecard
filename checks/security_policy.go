@@ -15,10 +15,10 @@
 package checks
 
 import (
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/evaluation"
-	"github.com/ossf/scorecard/v3/checks/raw"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckSecurityPolicy is the registred name for SecurityPolicy.
@@ -26,7 +26,10 @@ const CheckSecurityPolicy = "Security-Policy"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckSecurityPolicy, SecurityPolicy)
+	if err := registerCheck(CheckSecurityPolicy, SecurityPolicy); err != nil {
+		// This should never happen.
+		panic(err)
+	}
 }
 
 // SecurityPolicy runs Security-Policy check.

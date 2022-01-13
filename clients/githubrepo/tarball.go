@@ -29,7 +29,7 @@ import (
 
 	"github.com/google/go-github/v38/github"
 
-	sce "github.com/ossf/scorecard/v3/errors"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 const (

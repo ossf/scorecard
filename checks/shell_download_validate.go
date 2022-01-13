@@ -27,8 +27,8 @@ import (
 
 	"mvdan.cc/sh/v3/syntax"
 
-	"github.com/ossf/scorecard/v3/checker"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 var (
@@ -398,13 +398,12 @@ func isNpmUnpinnedDownload(cmd []string) bool {
 		return false
 	}
 
-	// `npm install` will automatically look up the
-	// package.json and package-lock.json, so we don't flag it.
 	for i := 1; i < len(cmd); i++ {
 		// Search for get/install/update commands.
 		// `npm ci` wil verify all hashes are present.
 		if strings.EqualFold(cmd[i], "install") ||
 			strings.EqualFold(cmd[i], "i") ||
+			strings.EqualFold(cmd[i], "install-test") ||
 			strings.EqualFold(cmd[i], "update") {
 			return true
 		}
@@ -444,7 +443,7 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		// Consider strings that are not URLs as local folders
 		// which are pinned.
 		regex := regexp.MustCompile(`\w+\.\w+/\w+`)
-		if !regex.Match([]byte(pkg)) {
+		if !regex.MatchString(pkg) {
 			return false
 		}
 		// Verify pkg = name@hash
@@ -454,7 +453,7 @@ func isGoUnpinnedDownload(cmd []string) bool {
 			continue
 		}
 		hash := parts[1]
-		if hashRegex.Match([]byte(hash)) {
+		if hashRegex.MatchString(hash) {
 			return false
 		}
 	}

@@ -15,10 +15,10 @@
 package checks
 
 import (
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/evaluation"
-	"github.com/ossf/scorecard/v3/checks/raw"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckDependencyUpdateTool is the exported name for Automatic-Depdendency-Update.
@@ -26,7 +26,10 @@ const CheckDependencyUpdateTool = "Dependency-Update-Tool"
 
 //nolint
 func init() {
-	registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool)
+	if err := registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // DependencyUpdateTool checks if the repository uses a dependency update tool.

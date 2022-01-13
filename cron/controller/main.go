@@ -24,10 +24,10 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/ossf/scorecard/v3/cron/config"
-	"github.com/ossf/scorecard/v3/cron/data"
-	"github.com/ossf/scorecard/v3/cron/pubsub"
-	"github.com/ossf/scorecard/v3/pkg"
+	"github.com/ossf/scorecard/v4/cron/config"
+	"github.com/ossf/scorecard/v4/cron/data"
+	"github.com/ossf/scorecard/v4/cron/pubsub"
+	"github.com/ossf/scorecard/v4/pkg"
 )
 
 func publishToRepoRequestTopic(iter data.Iterator, topicPublisher pubsub.Publisher,

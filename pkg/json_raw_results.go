@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ossf/scorecard/v3/checker"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // Flat JSON structure to hold raw results.

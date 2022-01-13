@@ -20,15 +20,15 @@ import (
 
 	"github.com/rhysd/actionlint"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckTokenPermissions is the exported name for Token-Permissions check.
 const (
 	CheckTokenPermissions = "Token-Permissions"
-	runLevelPermission    = "run level"
+	jobLevelPermission    = "job level"
 	topLevelPermission    = "top level"
 )
 
@@ -53,7 +53,10 @@ var permissionsOfInterest = []permission{
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckTokenPermissions, TokenPermissions)
+	if err := registerCheck(CheckTokenPermissions, TokenPermissions); err != nil {
+		// This should never happen.
+		panic(err)
+	}
 }
 
 // Holds stateful data to pass thru callbacks.
@@ -61,7 +64,7 @@ func init() {
 // will hold true if declared non-write, false otherwise.
 type permissions struct {
 	topLevelWritePermissions map[permission]bool
-	runLevelWritePermissions map[permission]bool
+	jobLevelWritePermissions map[permission]bool
 }
 
 type permissionCbData struct {
@@ -141,11 +144,11 @@ func getWritePermissionsMap(p *permissionCbData, path, permLevel string) map[per
 	if _, exists := p.workflows[path]; !exists {
 		p.workflows[path] = permissions{
 			topLevelWritePermissions: make(map[permission]bool),
-			runLevelWritePermissions: make(map[permission]bool),
+			jobLevelWritePermissions: make(map[permission]bool),
 		}
 	}
-	if permLevel == runLevelPermission {
-		return p.workflows[path].runLevelWritePermissions
+	if permLevel == jobLevelPermission {
+		return p.workflows[path].jobLevelWritePermissions
 	}
 	return p.workflows[path].topLevelWritePermissions
 }
@@ -217,7 +220,7 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 		pdata, map[permission]bool{})
 }
 
-func validateRunLevelPermissions(workflow *actionlint.Workflow, path string,
+func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *permissionCbData,
 	ignoredPermissions map[permission]bool) error {
 	for _, job := range workflow.Jobs {
@@ -229,12 +232,12 @@ func validateRunLevelPermissions(workflow *actionlint.Workflow, path string,
 				Path:   path,
 				Type:   checker.FileTypeSource,
 				Offset: fileparser.GetLineNumber(job.Pos),
-				Text:   fmt.Sprintf("no %s permission defined", runLevelPermission),
+				Text:   fmt.Sprintf("no %s permission defined", jobLevelPermission),
 			})
-			recordAllPermissionsWrite(pdata, runLevelPermission, path)
+			recordAllPermissionsWrite(pdata, jobLevelPermission, path)
 			continue
 		}
-		err := validatePermissions(job.Permissions, runLevelPermission,
+		err := validatePermissions(job.Permissions, jobLevelPermission,
 			path, dl, pdata, ignoredPermissions)
 		if err != nil {
 			return err
@@ -264,7 +267,7 @@ func permissionIsPresentInTopLevel(perms permissions, name permission) bool {
 }
 
 func permissionIsPresentInRunLevel(perms permissions, name permission) bool {
-	_, ok := perms.runLevelWritePermissions[name]
+	_, ok := perms.jobLevelWritePermissions[name]
 	return ok
 }
 
@@ -405,7 +408,7 @@ func validateGitHubActionTokenPermissions(path string, content []byte,
 	// 2. Run-level permission definitions,
 	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
 	ignoredPermissions := createIgnoredPermissions(workflow, path, dl)
-	if err := validateRunLevelPermissions(workflow, path, dl, pdata, ignoredPermissions); err != nil {
+	if err := validatejobLevelPermissions(workflow, path, dl, pdata, ignoredPermissions); err != nil {
 		return false, err
 	}
 

@@ -30,15 +30,15 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks"
-	"github.com/ossf/scorecard/v3/clients"
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	"github.com/ossf/scorecard/v3/clients/localdir"
-	docs "github.com/ossf/scorecard/v3/docs/checks"
-	sce "github.com/ossf/scorecard/v3/errors"
-	"github.com/ossf/scorecard/v3/pkg"
-	spol "github.com/ossf/scorecard/v3/policy"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/localdir"
+	docs "github.com/ossf/scorecard/v4/docs/checks"
+	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/pkg"
+	spol "github.com/ossf/scorecard/v4/policy"
 )
 
 var (
@@ -346,14 +346,6 @@ func isSupportedCheck(names []string, name string) bool {
 func getAllChecks() checker.CheckNameToFnMap {
 	// Returns the full list of checks, given any environment variable constraints.
 	possibleChecks := checks.AllChecks
-	// TODO: Remove this to enable the DANGEROUS_WORKFLOW by default in the next release.
-	if _, dangerousWorkflowCheck := os.LookupEnv("ENABLE_DANGEROUS_WORKFLOW"); !dangerousWorkflowCheck {
-		delete(possibleChecks, checks.CheckDangerousWorkflow)
-	}
-	// TODO: Remove this to enable the LICENSE_CHECK by default in the next release.
-	if _, licenseflowCheck := os.LookupEnv("ENABLE_LICENSE"); !licenseflowCheck {
-		delete(possibleChecks, checks.CheckLicense)
-	}
 	return possibleChecks
 }
 

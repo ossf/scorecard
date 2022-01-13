@@ -15,10 +15,10 @@
 package checks
 
 import (
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/evaluation"
-	"github.com/ossf/scorecard/v3/checks/raw"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
@@ -26,7 +26,10 @@ const CheckBinaryArtifacts string = "Binary-Artifacts"
 
 //nolint
 func init() {
-	registerCheck(CheckBinaryArtifacts, BinaryArtifacts)
+	if err := registerCheck(CheckBinaryArtifacts, BinaryArtifacts); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // BinaryArtifacts  will check the repository contains binary artifacts.

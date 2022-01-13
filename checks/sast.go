@@ -17,9 +17,9 @@ package checks
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/clients"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckSAST is the registered name for SAST.
@@ -31,7 +31,10 @@ var allowedConclusions = map[string]bool{"success": true, "neutral": true}
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckSAST, SAST)
+	if err := registerCheck(CheckSAST, SAST); err != nil {
+		// This should never happen.
+		panic(err)
+	}
 }
 
 // SAST runs SAST check.
@@ -124,12 +127,8 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			return checker.InconclusiveResultScore,
 				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 		}
-		if crs == nil {
-			c.Dlogger.Warn3(&checker.LogMessage{
-				Text: "no pull requests merged into dev branch",
-			})
-			return checker.InconclusiveResultScore, nil
-		}
+		// Note: crs may be `nil`: in this case
+		// the loop below will be skipped.
 		for _, cr := range crs {
 			if cr.Status != "completed" {
 				continue

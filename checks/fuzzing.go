@@ -17,10 +17,10 @@ package checks
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
-	"github.com/ossf/scorecard/v3/clients"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
+	"github.com/ossf/scorecard/v4/clients"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckFuzzing is the registered name for Fuzzing.
@@ -28,7 +28,10 @@ const CheckFuzzing = "Fuzzing"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckFuzzing, Fuzzing)
+	if err := registerCheck(CheckFuzzing, Fuzzing); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 func checkCFLite(c *checker.CheckRequest) (bool, error) {

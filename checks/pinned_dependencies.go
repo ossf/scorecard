@@ -22,9 +22,9 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/rhysd/actionlint"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckPinnedDependencies is the registered name for FrozenDeps.
@@ -39,7 +39,10 @@ type worklowPinningResult struct {
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckPinnedDependencies, PinnedDependencies)
+	if err := registerCheck(CheckPinnedDependencies, PinnedDependencies); err != nil {
+		// This should never happen.
+		panic(err)
+	}
 }
 
 // PinnedDependencies will check the repository if it contains frozen dependecies.
@@ -399,7 +402,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 			// (1): name = <>@sha245:hash
 			// (2): name = XXX where XXX was pinned
 			pinned := pinnedAsNames[name]
-			if pinned || regex.Match([]byte(name)) {
+			if pinned || regex.MatchString(name) {
 				// Record the asName.
 				pinnedAsNames[asName] = true
 				continue
@@ -420,7 +423,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 		case len(valueList) == 1:
 			name := valueList[0]
 			pinned := pinnedAsNames[name]
-			if !pinned && !regex.Match([]byte(name)) {
+			if !pinned && !regex.MatchString(name) {
 				ret = false
 				dl.Warn3(&checker.LogMessage{
 					Path:      pathfn,
@@ -630,7 +633,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 
 			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 			// Example: action-name@hash
-			match := hashRegex.Match([]byte(execAction.Uses.Value))
+			match := hashRegex.MatchString(execAction.Uses.Value)
 			if !match {
 				dl.Warn3(&checker.LogMessage{
 					Path: pathfn, Type: checker.FileTypeSource,

@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/clients"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 type branchMap map[string]*clients.BranchRef
@@ -51,7 +51,7 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 		}
 
 		// TODO: if this is a sha, get the associated branch. for now, ignore.
-		if commit.Match([]byte(release.TargetCommitish)) {
+		if commit.MatchString(release.TargetCommitish) {
 			continue
 		}
 

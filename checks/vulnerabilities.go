@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/clients"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 const (
@@ -30,7 +30,10 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckVulnerabilities, HasUnfixedVulnerabilities)
+	if err := registerCheck(CheckVulnerabilities, HasUnfixedVulnerabilities); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 func getVulnerabilities(resp *clients.VulnerabilitiesResponse) []string {

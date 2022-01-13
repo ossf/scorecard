@@ -98,7 +98,7 @@ build-cron: build-controller build-worker build-cii-worker \
 	build-shuffler build-bq-transfer build-github-server \
 	build-webhook build-add-script build-validate-script build-update-script
 
-build-targets = generate-mocks generate-docs build-proto build-scorecard build-releaser build-cron ko-build-everything dockerbuild
+build-targets = generate-mocks generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
@@ -202,43 +202,43 @@ scorecard-ko:
 	ko publish -B \
 			   --push=false \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4
 cron-controller-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-controller LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
 			   --push=false \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/controller
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/controller
 cron-worker-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-worker LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
 			   --push=false \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/worker
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/worker
 cron-cii-worker-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cii-worker LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
 			   --push=false \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/cii
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/cii
 cron-bq-transfer-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-bq-transfer LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
 			   --push=false \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/bq
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/bq
 cron-webhook-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cron-webhook LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
 			   --push=false \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/cron/webhook
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/webhook
 cron-github-server-ko:
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-github-server LDFLAGS="$(LDFLAGS)" \
 	ko publish -B \
 			   --push=false \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v3/clients/githubrepo/roundtripper/tokens/server
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens/server
 
 docker-targets = scorecard-docker cron-controller-docker cron-worker-docker cron-cii-worker-docker cron-bq-transfer-docker cron-webhook-docker cron-github-server-docker
 .PHONY: dockerbuild $(docker-targets)
