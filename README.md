@@ -10,15 +10,16 @@
 
 -  [What Is Scorecards?](#what-is-scorecards)
 -  [Prominent Scorecards Users](#prominent-scorecards-users)
+-  [Scorecards' Public Data](#public-data)
 
 ## Using Scorecards
-
--  [Prerequisites](#prerequisites) 
--  [Installation](#installation)
--  [Authentication](#authentication)
--  [Basic Usage](#basic-usage)
--  [Report Problems](#report-problems) 
--  [Scorecards' Public Data](#public-data)
+- [Scorecards GitHub Action](#scorecards-github-action)
+- [Scorecards Command Line Interface](#scorecards-command-line-interface)
+   -  [Prerequisites](#prerequisites) 
+   -  [Installation](#installation)
+   -  [Authentication](#authentication)
+   -  [Basic Usage](#basic-usage)
+   -  [Report Problems](#report-problems) 
 
 ## Checks 
 
@@ -60,7 +61,51 @@ Scorecards has been run on thousands of projects to monitor and track security m
 - [deps.dev](https://deps.dev)
 - [metrics.openssf.org](https://metrics.openssf.org)
 
+### Public Data
+
+We run a weekly Scorecards scan of the 1 million most critical open source projects judged by their direct dependencies, and publish the results in a
+[BigQuery public dataset](https://cloud.google.com/bigquery/public-data).
+
+This data is available in the public BigQuery dataset
+`openssf:scorecardcron.scorecard-v2`. The latest results are available in the
+BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
+
+[TODO:ADD DASHBOARDS?]
+
+You can extract the latest results to Google Cloud storage in JSON format using
+the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
+
+```
+# Get the latest PARTITION_ID
+bq query --nouse_legacy_sql 'SELECT partition_id FROM
+openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS WHERE table_name="scorecard-v2"
+AND partition_id!="__NULL__" ORDER BY partition_id DESC
+LIMIT 1'
+
+# Extract to GCS
+bq extract --destination_format=NEWLINE_DELIMITED_JSON
+'openssf:scorecardcron.scorecard-v2$<partition_id>' gs://bucket-name/filename-*.json
+
+```
+
+The list of projects that are checked is available in the
+[`cron/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/data/projects.csv)
+file in this repository. If you would like us to track more, please feel free to
+send a Pull Request with others. Currently, this list is derived from **projects hosted on GitHub
+ONLY**. We do plan to expand them in near future to account for projects hosted
+on other source control systems.
+
+**NOTE**: The public dataset uses a Pass/Fail scoring system with a confidence score
+between **0 and 10**. A confidence of 0 indicates that the check was unable to
+achieve any real signal, and that the result should be ignored. A confidence of 10
+indicates the check was completely sure of the result. 
+
 ## Using Scorecards
+### Scorecards GitHub Action
+[TODO:write this section]
+
+### Scorecards Command Line Interface
+[TODO: write small intro and fix heading levels that follow]
 
 ### Prerequisites
 
@@ -304,44 +349,6 @@ If you have what looks like a bug, please use the
 [Github issue tracking system.](https://github.com/ossf/scorecard/issues)
 Before you file an issue, please search existing issues to see if your issue
 is already covered.
-
-### Public Data
-
-If you're interested in seeing a list of projects with their Scorecard
-check results, we publish these results in a
-[BigQuery public dataset](https://cloud.google.com/bigquery/public-data).
-
-This data is available in the public BigQuery dataset
-`openssf:scorecardcron.scorecard-v2`. The latest results are available in the
-BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
-
-You can extract the latest results to Google Cloud storage in JSON format using
-the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
-
-```
-# Get the latest PARTITION_ID
-bq query --nouse_legacy_sql 'SELECT partition_id FROM
-openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS WHERE table_name="scorecard-v2"
-AND partition_id!="__NULL__" ORDER BY partition_id DESC
-LIMIT 1'
-
-# Extract to GCS
-bq extract --destination_format=NEWLINE_DELIMITED_JSON
-'openssf:scorecardcron.scorecard-v2$<partition_id>' gs://bucket-name/filename-*.json
-
-```
-
-The list of projects that are checked is available in the
-[`cron/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/data/projects.csv)
-file in this repository. If you would like us to track more, please feel free to
-send a Pull Request with others. Currently, this list is derived from **projects hosted on GitHub
-ONLY**. We do plan to expand them in near future to account for projects hosted
-on other source control systems.
-
-**NOTE**: The public dataset uses a Pass/Fail scoring system with a confidence score
-between **0 and 10**. A confidence of 0 indicates that the check was unable to
-achieve any real signal, and that the result should be ignored. A confidence of 10
-indicates the check was completely sure of the result. 
 
 ## Checks
 ### Scorecard Checks
