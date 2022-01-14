@@ -70,8 +70,6 @@ This data is available in the public BigQuery dataset
 `openssf:scorecardcron.scorecard-v2`. The latest results are available in the
 BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
 
-[TODO:ADD DASHBOARDS?]
-
 You can extract the latest results to Google Cloud storage in JSON format using
 the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
 
@@ -97,7 +95,8 @@ on other source control systems.
 
 ## Using Scorecards
 ### Scorecards GitHub Action
-[TODO:write this section]
+
+The easiest way to use Scorecards on repositories you own is with the [Scorecards GitHub Action](https://github.com/ossf/scorecard-action). The Action runs on any repository change and issues alerts that maintainers can view in the repository’s Security tab. For more information, see the Scorecards GitHub Action [installation instructions](https://github.com/ossf/scorecard-action#installation). 
 
 ### Scorecards Command Line Interface
 [TODO: write small intro and fix heading levels that follow]
@@ -374,7 +373,6 @@ Name                        | Description | Risk Level
 ### Detailed Checks Documentation
 To see detailed information about each check, its scoring criteria, and remediation steps, check out
 the [checks documentation page](docs/checks.md).
-
 
 ## Contribute
 ### Code of Conduct
