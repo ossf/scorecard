@@ -12,23 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-build:
-  images:
-  - gcr.io/openssf/scorecard:$TAG_NAME
-  options: {}
-  steps:
-  - args:
-    - build
-    - -t
-    - gcr.io/openssf/scorecard:$TAG_NAME
-    - .
-    name: gcr.io/cloud-builders/docker
-description: scorecard build based on tag
-github:
-  name: scorecard
-  owner: ossf
-  push:
-    tag: .*
-name: scorecard-tag
-tags:
-- v*
+steps:
+- id: 'Get Git history'
+  name: 'gcr.io/cloud-builders/git'
+  args: ['fetch', '--unshallow', '--tags', 'origin', '$COMMIT_SHA']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '.',
+    '-t', 'gcr.io/openssf/scorecard:stable',
+    '-t', 'gcr.io/openssf/scorecard:$TAG_NAME',
+    '-f', 'Dockerfile']
+images: ['gcr.io/openssf/scorecard']
