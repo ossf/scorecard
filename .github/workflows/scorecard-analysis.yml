@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
 
       - name: "Run analysis"
-        uses: ossf/scorecard-action@5f4e3145c8e85f00681e145122bfe721eb0d69a7
+        uses: ossf/scorecard-action@005020cb6a7f4d6d23450b2957d8e5e77983a6d4
         with:
           policy_file: .github/scorecard-policy.yml
           results_file: results.sarif
