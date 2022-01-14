@@ -95,11 +95,6 @@ send a Pull Request with others. Currently, this list is derived from **projects
 ONLY**. We do plan to expand them in near future to account for projects hosted
 on other source control systems.
 
-**NOTE**: The public dataset uses a Pass/Fail scoring system with a confidence score
-between **0 and 10**. A confidence of 0 indicates that the check was unable to
-achieve any real signal, and that the result should be ignored. A confidence of 10
-indicates the check was completely sure of the result. 
-
 ## Using Scorecards
 ### Scorecards GitHub Action
 [TODO:write this section]
