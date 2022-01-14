@@ -99,7 +99,7 @@ on other source control systems.
 The easiest way to use Scorecards on GitHub projects you own is with the [Scorecards GitHub Action](https://github.com/ossf/scorecard-action). The Action runs on any repository change and issues alerts that maintainers can view in the repository’s Security tab. For more information, see the Scorecards GitHub Action [installation instructions](https://github.com/ossf/scorecard-action#installation). 
 
 ### Scorecards Command Line Interface
-To run a Scorecards scan on projects you don not own, use the command line interface installation option.
+To run a Scorecards scan on projects you do not own, use the command line interface installation option.
 
 #### Prerequisites
 
