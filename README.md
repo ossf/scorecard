@@ -63,7 +63,7 @@ Scorecards has been run on thousands of projects to monitor and track security m
 
 ### Public Data
 
-We run a weekly Scorecards scan of the 1 million most critical open source projects judged by their direct dependencies, and publish the results in a
+We run a weekly Scorecards scan of the 1 million most critical open source projects judged by their direct dependencies and publish the results in a
 [BigQuery public dataset](https://cloud.google.com/bigquery/public-data).
 
 This data is available in the public BigQuery dataset
