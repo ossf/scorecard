@@ -96,20 +96,20 @@ on other source control systems.
 ## Using Scorecards
 ### Scorecards GitHub Action
 
-The easiest way to use Scorecards on repositories you own is with the [Scorecards GitHub Action](https://github.com/ossf/scorecard-action). The Action runs on any repository change and issues alerts that maintainers can view in the repository’s Security tab. For more information, see the Scorecards GitHub Action [installation instructions](https://github.com/ossf/scorecard-action#installation). 
+The easiest way to use Scorecards on GitHub projects you own is with the [Scorecards GitHub Action](https://github.com/ossf/scorecard-action). The Action runs on any repository change and issues alerts that maintainers can view in the repository’s Security tab. For more information, see the Scorecards GitHub Action [installation instructions](https://github.com/ossf/scorecard-action#installation). 
 
 ### Scorecards Command Line Interface
-[TODO: write small intro and fix heading levels that follow]
+To run a Scorecards scan on projects you don not own, use the command line interface installation option.
 
-### Prerequisites
+#### Prerequisites
 
 Platforms: Currently, Scorecards supports OSX and Linux platforms. If you are using a Windows OS you may experience issues. Contributions towards supporting Windows are welcome.
 
 Language: You must have GoLang installed to run Scorecards (https://golang.org/doc/install)
 
-### Installation
+#### Installation
 
-#### Standalone
+##### Standalone
 
 To install Scorecards as a standalone:
 
@@ -117,7 +117,7 @@ To install Scorecards as a standalone:
 2. Extract the binary file 
 3. Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to identify your directory if necessary)
 
-#### Using Homebrew
+##### Using Homebrew
 
 You can use [Homebrew](https://brew.sh/) (on macOS or Linux) to install Scorecards.
 
@@ -125,14 +125,14 @@ You can use [Homebrew](https://brew.sh/) (on macOS or Linux) to install Scorecar
 brew install scorecard
 ```
 
-### Using Linux package managers
+#### Using Linux package managers
 
 | Package Manager                                            | Linux Distribution | Command                                    |
 |------------------------------------------------------------|--------------------|--------------------------------------------|
 | Nix                                                        | NixOS              | `nix-env -iA nixpkgs.scorecard`            |
 | [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) | Arch Linux         | Use your AUR helper to install `scorecard` |
 
-### Authentication
+#### Authentication
 
 GitHub imposes [api rate limits](https://developer.github.com/v3/#rate-limiting) on unauthenticated requests. To avoid these limits, you must authenticate your requests before running Scorecard. There are two ways to authenticate your requests: either create a GitHub personal access token, or create a GitHub App Installation. 
 
@@ -166,8 +166,8 @@ GITHUB_APP_ID=<app id>
 These variables can be obtained from the GitHub
 [developer settings](https://github.com/settings/apps) page.
 
-### Basic Usage
-#### Docker
+#### Basic Usage
+##### Docker
 
 `scorecard` is available as a Docker container:
 
@@ -183,7 +183,7 @@ To use a specific scorecards version (e.g., v3.2.1), run:
 docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:v3.2.1 --show-details --repo=https://github.com/ossf/scorecard
 ```
 
-#### Using repository URL
+##### Using repository URL
 
 Scorecards can run using just one argument, the URL of the target repo:
 
@@ -273,7 +273,7 @@ Check scores:
 | 10 / 10 | Vulnerabilities        | no vulnerabilities detected    | github.com/ossf/scorecard/blob/main/docs/checks.md#vulnerabilities        |
 |---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
-#### Scoring
+##### Scoring
 Each individual check returns a score of 0 to 10, with 10 representing the best possible score. Scorecards also produces an aggregate score, which is a weight-based average of the individual checks weighted by risk. 
 
 * “Critical” risk checks are weighted at 10
@@ -283,7 +283,7 @@ Each individual check returns a score of 0 to 10, with 10 representing the best 
 
 See the [list of current Scorecards checks](#scorecard-checks) for each check's risk level.
 
-#### Showing Detailed Results 
+##### Showing Detailed Results 
 For more details about why a check fails, use the `--show-details` option:
 
 ```
@@ -317,27 +317,27 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
-#### Using a Package manager
+##### Using a Package manager
 
 For projects in the `--npm`, `--pypi`, or `--rubygems` ecosystems, you have the option to run Scorecards using a package manager. Provide the package name to run the checks on the corresponding GitHub source code.
 
 For example, `--npm=angular`.
 
-#### Running specific checks
+##### Running specific checks
 
 To run only specific check(s), add the `--checks` argument with a list of check
 names.
 
 For example, `--checks=CI-Tests,Code-Review`.
 
-#### Formatting Results
+##### Formatting Results
 
 There are three formats currently: `default`, `json`, and `csv`. Others may be
 added in the future.
 
 These may be specified with the `--format` flag. For example, `--format=json`.
 
-### Report Problems
+#### Report Problems
 
 If you have what looks like a bug, please use the
 [Github issue tracking system.](https://github.com/ossf/scorecard/issues)
