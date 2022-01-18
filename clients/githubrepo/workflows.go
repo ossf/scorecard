@@ -16,10 +16,17 @@ package githubrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
+<<<<<<< HEAD
 	"strings"
+=======
+	"net/url"
+	"reflect"
+>>>>>>> adbef21 (use check suite ID)
 
 	"github.com/google/go-github/v38/github"
+	"github.com/google/go-querystring/query"
 
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -31,9 +38,79 @@ type workflowsHandler struct {
 	repourl *repoURL
 }
 
+var (
+	errWorkflowEmptyID   = errors.New("workflow ID is empty")
+	errWorkflowEmptyName = errors.New("workflow Name is empty")
+	errWorkflowEmptyPath = errors.New("workflow Path is empty")
+)
+
 func (handler *workflowsHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.ctx = ctx
 	handler.repourl = repourl
+}
+
+func (handler *workflowsHandler) GetWorkflowByFileName(filename string) (clients.Workflow, error) {
+	workflow, _, err := handler.client.Actions.GetWorkflowByFileName(
+		handler.ctx, handler.owner, handler.repo, filename)
+	if err != nil {
+		return clients.Workflow{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", err))
+	}
+	if workflow.ID == nil {
+		return clients.Workflow{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyID))
+	}
+	if workflow.Name == nil {
+		return clients.Workflow{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyName))
+	}
+	if workflow.Path == nil {
+		return clients.Workflow{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyPath))
+	}
+
+	return clients.Workflow{
+		ID:   *workflow.ID,
+		Path: *workflow.Path,
+		Name: *workflow.Name,
+	}, nil
+}
+
+func addOptions(s string, opts interface{}) (string, error) {
+	v := reflect.ValueOf(opts)
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		return s, nil
+	}
+
+	u, err := url.Parse(s)
+	if err != nil {
+		return s, err
+	}
+
+	qs, err := query.Values(opts)
+	if err != nil {
+		return s, err
+	}
+
+	u.RawQuery = qs.Encode()
+	return u.String(), nil
+}
+
+func (handler *workflowsHandler) listWorkflowRuns(opts *clients.ListWorkflowRunOptions) ([]clients.WorkflowRun, error) {
+	endpoint := fmt.Sprintf("repos/%s/%s/actions/runs", handler.owner, handler.repo)
+	u, err := addOptions(endpoint, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := handler.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListWorkflowRuns: %v", err))
+	}
+
+	workflowRuns := new(github.WorkflowRuns)
+	_, err = handler.client.Do(handler.ctx, req, &workflowRuns)
+	if err != nil {
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListWorkflowRuns: %v", err))
+	}
+
+	return workflowsRunsFrom(workflowRuns), nil
 }
 
 func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
@@ -55,10 +132,11 @@ func workflowsRunsFrom(data *github.WorkflowRuns) []clients.WorkflowRun {
 	var workflowRuns []clients.WorkflowRun
 	for _, workflowRun := range data.WorkflowRuns {
 		r := clients.WorkflowRun{
-			URL: workflowRun.GetURL(),
+			URL:        workflowRun.GetURL(),
+			WorkflowID: workflowRun.WorkflowID,
 		}
 
-		prs := workflowRun.PullRequests
+		/*prs := workflowRun.PullRequests
 		fmt.Println(len(prs))
 		for _, pr := range prs {
 			cp := clients.PullRequest{
@@ -67,7 +145,7 @@ func workflowsRunsFrom(data *github.WorkflowRuns) []clients.WorkflowRun {
 			}
 			r.PullRequests = append(r.PullRequests, cp)
 		}
-
+		*/
 		workflowRuns = append(workflowRuns, r)
 	}
 	return workflowRuns

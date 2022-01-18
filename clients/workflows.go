@@ -18,4 +18,17 @@ package clients
 type WorkflowRun struct {
 	URL          string
 	PullRequests []PullRequest
+	WorkflowID   *int64
+}
+
+// Workflow represents a workflow.
+type Workflow struct {
+	ID   int64
+	Path string
+	Name string
+}
+
+type ListWorkflowRunOptions struct {
+	Status       *string `url:"status,omitempty"`
+	CheckSuiteID *int64  `url:"check_suite_id,omitempty"`
 }

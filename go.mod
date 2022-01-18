@@ -5,7 +5,12 @@ go 1.17
 // TODO(go.mod): Is there a reason these deps are kept separately from the
 //               other `require`s?
 require (
+<<<<<<< HEAD
 	github.com/rhysd/actionlint v1.6.11
+=======
+	github.com/google/go-querystring v1.1.0
+	github.com/rhysd/actionlint v1.6.8
+>>>>>>> adbef21 (use check suite ID)
 	gotest.tools v2.2.0+incompatible
 )
 
@@ -78,7 +83,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-github/v41 v41.0.0 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.2.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect

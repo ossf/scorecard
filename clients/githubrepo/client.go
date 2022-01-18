@@ -164,6 +164,16 @@ func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.Wor
 	return client.workflows.listSuccessfulWorkflowRuns(filename)
 }
 
+// ListWorkflowRuns implements RepoClient.ListWorkflowRuns.
+func (client *Client) ListWorkflowRuns(opts *clients.ListWorkflowRunOptions) ([]clients.WorkflowRun, error) {
+	return client.workflows.listWorkflowRuns(opts)
+}
+
+// GetWorkflowByFileName implements RepoClient.GetWorkflowByFileName.
+func (client *Client) GetWorkflowByFileName(filename string) (clients.Workflow, error) {
+	return client.workflows.GetWorkflowByFileName(filename)
+}
+
 // ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.
 func (client *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	return client.checkruns.listCheckRunsForRef(ref)

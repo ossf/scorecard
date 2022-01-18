@@ -39,6 +39,8 @@ type RepoClient interface {
 	ListReleases() ([]Release, error)
 	ListContributors() ([]Contributor, error)
 	ListSuccessfulWorkflowRuns(filename string) ([]WorkflowRun, error)
+	ListWorkflowRuns(opts *ListWorkflowRunOptions) ([]WorkflowRun, error)
+	GetWorkflowByFileName(filename string) (Workflow, error)
 	ListCheckRunsForRef(ref string) ([]CheckRun, error)
 	ListStatuses(ref string) ([]Status, error)
 	ListWebhooks() ([]*Webhook, error)

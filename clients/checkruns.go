@@ -21,7 +21,8 @@ type CheckRun struct {
 	URL          string
 	App          CheckRunApp
 	Name         string
-	PullRequests []PullRequest
+	CheckSuiteID *int64
+	// PullRequests []PullRequest
 }
 
 // CheckRunApp is the app running the Check.

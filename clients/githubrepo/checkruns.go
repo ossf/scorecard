@@ -58,16 +58,20 @@ func checkRunsFrom(data *github.ListCheckRunsResults) []clients.CheckRun {
 		if checkRun.Name != nil {
 			cr.Name = *checkRun.Name
 		}
-
-		prs := checkRun.PullRequests
-		fmt.Println(len(prs))
-		for _, pr := range prs {
-			cp := clients.PullRequest{
-				// TODO: fill ul the rest of the structure.
-				Number: pr.GetNumber(),
-			}
-			cr.PullRequests = append(cr.PullRequests, cp)
+		if checkRun.CheckSuite != nil &&
+			checkRun.CheckSuite.ID != nil {
+			cr.CheckSuiteID = checkRun.CheckSuite.ID
 		}
+		/*
+			prs := checkRun.PullRequests
+			for _, pr := range prs {
+				cp := clients.PullRequest{
+					// TODO: fill ul the rest of the structure.
+					Number: pr.GetNumber(),
+				}
+				cr.PullRequests = append(cr.PullRequests, cp)
+			}
+		*/
 		checkRuns = append(checkRuns, cr)
 
 	}

@@ -191,6 +191,16 @@ func (client *localDirClient) ListSuccessfulWorkflowRuns(filename string) ([]cli
 	return nil, fmt.Errorf("ListSuccessfulWorkflowRuns: %w", clients.ErrUnsupportedFeature)
 }
 
+// ListWorkflowRuns implements RepoClient.ListWorkflowRuns.
+func (client *localDirClient) ListWorkflowRuns(opts *clients.ListWorkflowRunOptions) ([]clients.WorkflowRun, error) {
+	return nil, fmt.Errorf("ListWorkflowRuns: %w", clients.ErrUnsupportedFeature)
+}
+
+// GetWorkflowByFileName implements RepoClient.GetWorkflowByFileName.
+func (client *localDirClient) GetWorkflowByFileName(filename string) (clients.Workflow, error) {
+	return clients.Workflow{}, fmt.Errorf("GetWorkflowByFileName: %w", clients.ErrUnsupportedFeature)
+}
+
 // ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.
 func (client *localDirClient) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	return nil, fmt.Errorf("ListCheckRunsForRef: %w", clients.ErrUnsupportedFeature)
