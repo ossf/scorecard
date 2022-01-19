@@ -39,6 +39,11 @@ jobs:
        run: |
             go env -w GOFLAGS=-mod=mod
             make -j 5 all
+     - name: Upload codecoverage
+       uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # 2.1.0
+       with:
+         files: ./unit-coverage.out
+         verbose: true
   license-check:
     name: license boilerplate check
     runs-on: ubuntu-latest
