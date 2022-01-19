@@ -25,7 +25,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
 )
 
 func TestClient_CreationAndCaching(t *testing.T) {

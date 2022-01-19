@@ -21,9 +21,9 @@ import (
 
 	"github.com/rhysd/actionlint"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckPackaging is the registered name for Packaging.
@@ -31,7 +31,10 @@ const CheckPackaging = "Packaging"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckPackaging, Packaging)
+	if err := registerCheck(CheckPackaging, Packaging); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 func isGithubWorkflowFile(filename string) (bool, error) {
@@ -77,7 +80,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
-		c.Dlogger.Info3(&checker.LogMessage{
+		c.Dlogger.Debug3(&checker.LogMessage{
 			Path:   fp,
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,

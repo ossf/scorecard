@@ -45,17 +45,21 @@ jobs:
       - name:
         run: npm ci
       - name:
-        run: go get github.com@some_tag
+        run: |
+          npm install-test
+          npm install-ci-test
       - name:
-        run: go install github.com@some_tag
+        run: go get github.com/org/name@some_tag
       - name:
-        run: go install github.com@some_tag
+        run: go install github.com/org/name@some_tag
       - name:
-        run: go get github.com@some_tag
+        run: go install github.com/org/name@some_tag
       - name:
-        run: go get github.com@1111111111ccccccccccaaaaaaaaaa9999999999
+        run: go get github.com/org/name@some_tag
       - name:
-        run: go get github.com@1111111111ccccccccccaaaaaaaaaa9999999999
+        run: go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
+      - name:
+        run: go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
       - name:
         run: go mod download
       - name:

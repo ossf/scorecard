@@ -21,9 +21,9 @@ import (
 
 	"github.com/rhysd/actionlint"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckDangerousWorkflow is the exported name for Dangerous-Workflow check.
@@ -59,7 +59,10 @@ func containsUntrustedContextPattern(variable string) bool {
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckDangerousWorkflow, DangerousWorkflow)
+	if err := registerCheck(CheckDangerousWorkflow, DangerousWorkflow); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // Holds stateful data to pass thru callbacks.
@@ -167,10 +170,7 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 			continue
 		}
 		if strings.Contains(ref.Value.Value, "github.event.pull_request") {
-			line := 1
-			if step.Pos != nil {
-				line = step.Pos.Line
-			}
+			line := fileparser.GetLineNumber(step.Pos)
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
@@ -225,10 +225,7 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 		// Check if the variable may be untrustworthy.
 		variable := script[s+3 : s+e]
 		if containsUntrustedContextPattern(variable) {
-			line := 1
-			if pos != nil {
-				line = pos.Line
-			}
+			line := fileparser.GetLineNumber(pos)
 			dl.Warn3(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,

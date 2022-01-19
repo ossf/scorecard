@@ -30,20 +30,20 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks"
-	"github.com/ossf/scorecard/v3/clients"
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	githubstats "github.com/ossf/scorecard/v3/clients/githubrepo/stats"
-	"github.com/ossf/scorecard/v3/cron/config"
-	"github.com/ossf/scorecard/v3/cron/data"
-	format "github.com/ossf/scorecard/v3/cron/format"
-	"github.com/ossf/scorecard/v3/cron/monitoring"
-	"github.com/ossf/scorecard/v3/cron/pubsub"
-	docs "github.com/ossf/scorecard/v3/docs/checks"
-	sce "github.com/ossf/scorecard/v3/errors"
-	"github.com/ossf/scorecard/v3/pkg"
-	"github.com/ossf/scorecard/v3/stats"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
+	"github.com/ossf/scorecard/v4/cron/config"
+	"github.com/ossf/scorecard/v4/cron/data"
+	format "github.com/ossf/scorecard/v4/cron/format"
+	"github.com/ossf/scorecard/v4/cron/monitoring"
+	"github.com/ossf/scorecard/v4/cron/pubsub"
+	docs "github.com/ossf/scorecard/v4/docs/checks"
+	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v4/stats"
 )
 
 var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
@@ -52,7 +52,9 @@ func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
 	bucketURL, bucketURL2 string, checkDocs docs.Doc,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
-	ciiClient clients.CIIBestPracticesClient, logger *zap.Logger) error {
+	ciiClient clients.CIIBestPracticesClient,
+	vulnsClient clients.VulnerabilitiesClient,
+	logger *zap.Logger) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%07d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
@@ -83,7 +85,8 @@ func processRequest(ctx context.Context,
 			continue
 		}
 		repo.AppendMetadata(repo.Metadata()...)
-		result, err := pkg.RunScorecards(ctx, repo, false, checksToRun, repoClient, ossFuzzRepoClient, ciiClient)
+		result, err := pkg.RunScorecards(ctx, repo, false, checksToRun,
+			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
@@ -190,6 +193,7 @@ func main() {
 	repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 	ciiClient := clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
 	ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+	vulnsClient := clients.DefaultVulnerabilitiesClient()
 	if err != nil {
 		panic(err)
 	}
@@ -222,7 +226,7 @@ func main() {
 		}
 		if err := processRequest(ctx, req, checksToRun,
 			bucketURL, bucketURL2, checkDocs,
-			repoClient, ossFuzzRepoClient, ciiClient, logger); err != nil {
+			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, logger); err != nil {
 			logger.Warn(fmt.Sprintf("error processing request: %v", err))
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()

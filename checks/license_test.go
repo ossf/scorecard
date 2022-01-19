@@ -22,10 +22,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	"github.com/ossf/scorecard/v3/clients/localdir"
-	scut "github.com/ossf/scorecard/v3/utests"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/localdir"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestLicenseFileCheck(t *testing.T) {

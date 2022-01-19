@@ -22,7 +22,7 @@ import (
 
 	"github.com/jszwec/csvutil"
 
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
 )
 
 // Iterator interface is used to iterate through list of input repos for the cron job.

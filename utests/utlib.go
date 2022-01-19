@@ -23,7 +23,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v3/checker"
+	"github.com/ossf/scorecard/v4/checker"
 )
 
 // TestReturn encapsulates expected CheckResult return values.
@@ -142,8 +142,9 @@ func ValidateLogMessage(isExpectedMessage func(checker.LogMessage, checker.Detai
 
 // ValidateLogMessageOffsets tests that the log message offsets match those
 // in the passed in slice.
-func ValidateLogMessageOffsets(dl *TestDetailLogger, offsets []int) bool {
+func ValidateLogMessageOffsets(dl *TestDetailLogger, offsets []uint) bool {
 	if len(dl.messages) != len(offsets) {
+		log.Println(cmp.Diff(dl.messages, offsets))
 		return false
 	}
 	for i, message := range dl.messages {

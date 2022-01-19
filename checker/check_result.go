@@ -47,14 +47,23 @@ const (
 	// InconclusiveResultScore is returned when no reliable information can be retrieved by a check.
 	InconclusiveResultScore = -1
 
+	// OffsetDefault is used if we can't determine the offset, for example when referencing a file but not a
+	// specific location in the file.
+	OffsetDefault = uint(1)
+)
+
+const (
 	// DetailInfo is info-level log.
 	DetailInfo DetailType = iota
 	// DetailWarn is warn log.
 	DetailWarn
 	// DetailDebug is debug log.
 	DetailDebug
+)
 
+const (
 	// FileTypeNone is a default, not defined.
+	// FileTypeNone must be `0`.
 	FileTypeNone FileType = iota
 	// FileTypeSource is for source code files.
 	FileTypeSource
@@ -64,10 +73,6 @@ const (
 	FileTypeText
 	// FileTypeURL for URLs.
 	FileTypeURL
-
-	// OffsetDefault is used if we can't determine the offset, for example when referencing a file but not a
-	// specific location in the file.
-	OffsetDefault = 1
 )
 
 // CheckResult captures result from a check run.
@@ -99,11 +104,12 @@ type CheckDetail struct {
 // This allows updating the definition easily.
 // nolint:govet
 type LogMessage struct {
-	Text    string   // A short string explaining why the detail was recorded/logged.
-	Path    string   // Fullpath to the file.
-	Type    FileType // Type of file.
-	Offset  int      // Offset in the file of Path (line for source/text files).
-	Snippet string   // Snippet of code
+	Text      string   // A short string explaining why the detail was recorded/logged.
+	Path      string   // Fullpath to the file.
+	Type      FileType // Type of file.
+	Offset    uint     // Offset in the file of Path (line for source/text files).
+	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
+	Snippet   string   // Snippet of code
 	// UPGRADEv3: to remove.
 	Version int // `3` to indicate the detail was logged using new structure.
 }

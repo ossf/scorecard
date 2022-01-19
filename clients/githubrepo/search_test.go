@@ -18,7 +18,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ossf/scorecard/v3/clients"
+	"github.com/ossf/scorecard/v4/clients"
 )
 
 func TestBuildQuery(t *testing.T) {

@@ -24,7 +24,7 @@
                      },
                      "help": {
                         "text": "short description",
-                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nlong description\n\n other line"
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nlong description\n\n other line"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -51,7 +51,7 @@
                      },
                      "help": {
                         "text": "short description 5",
-                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 5"
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 5"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -76,13 +76,14 @@
                "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
-                  "text": "warn message"
+                  "text": "warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }
@@ -102,13 +103,14 @@
                "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
-                  "text": "warn message"
+                  "text": "warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad2) {BUG();}"
                            }
@@ -128,13 +130,14 @@
                "ruleId": "CheckName5ID",
                "ruleIndex": 1,
                "message": {
-                  "text": "warn message"
+                  "text": "warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }
@@ -154,13 +157,14 @@
                "ruleId": "CheckName5ID",
                "ruleIndex": 1,
                "message": {
-                  "text": "warn message"
+                  "text": "warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad2) {BUG2();}"
                            }
@@ -200,7 +204,7 @@
                      },
                      "help": {
                         "text": "short description 6",
-                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 6"
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 6"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -225,13 +229,14 @@
                "ruleId": "CheckName6ID",
                "ruleIndex": 0,
                "message": {
-                  "text": "warn message"
+                  "text": "warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }
@@ -271,7 +276,7 @@
                      },
                      "help": {
                         "text": "short description 4",
-                        "markdown": "**Remediation**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 4"
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- not-used1\n\n- not-used2\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nlong description\n\n other line 4"
                      },
                      "defaultConfiguration": {
                         "level": "error"
@@ -296,13 +301,14 @@
                "ruleId": "CheckName4ID",
                "ruleIndex": 0,
                "message": {
-                  "text": "warn message"
+                  "text": "warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
                      "physicalLocation": {
                         "region": {
                            "startLine": 5,
+                           "endLine": 5,
                            "snippet": {
                               "text": "if (bad) {BUG();}"
                            }

@@ -19,10 +19,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks"
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	scut "github.com/ossf/scorecard/v3/utests"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 // TODO: use dedicated repo that don't change.
@@ -46,7 +46,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         3,
-				NumberOfWarn:  149,
+				NumberOfWarn:  139,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			}

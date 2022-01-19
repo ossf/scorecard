@@ -29,8 +29,8 @@ import (
 	"github.com/google/go-github/v38/github"
 	"golang.org/x/tools/go/vcs"
 
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	"github.com/ossf/scorecard/v3/cron/data"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 var (

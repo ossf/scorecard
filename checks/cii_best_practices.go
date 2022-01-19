@@ -17,9 +17,9 @@ package checks
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/clients"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 const (
@@ -32,7 +32,10 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckCIIBestPractices, CIIBestPractices)
+	if err := registerCheck(CheckCIIBestPractices, CIIBestPractices); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // CIIBestPractices runs CII-Best-Practices check.

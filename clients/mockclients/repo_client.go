@@ -23,7 +23,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	clients "github.com/ossf/scorecard/v3/clients"
+	clients "github.com/ossf/scorecard/v4/clients"
 )
 
 // MockRepoClient is a mock of RepoClient interface.

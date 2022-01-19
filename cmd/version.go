@@ -19,7 +19,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ossf/scorecard/v3/pkg"
+	"github.com/ossf/scorecard/v4/pkg"
 )
 
 //nolint:gochecknoinits

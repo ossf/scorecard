@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v3/checker"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckCodeReview is the registered name for DoesCodeReview.
@@ -27,7 +27,10 @@ const CheckCodeReview = "Code-Review"
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckCodeReview, DoesCodeReview)
+	if err := registerCheck(CheckCodeReview, DoesCodeReview); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // DoesCodeReview attempts to determine whether a project requires review before code gets merged.

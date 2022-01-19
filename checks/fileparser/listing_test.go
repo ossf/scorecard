@@ -120,3 +120,50 @@ func TestIsTemplateFile(t *testing.T) {
 		})
 	}
 }
+
+// TestCheckFileContainsCommands tests if the content starts with a comment.
+func TestCheckFileContainsCommands(t *testing.T) {
+	t.Parallel()
+	//nolint
+	type args struct {
+		content []byte
+		comment string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "Dockerfile.template",
+			args: args{
+				content: []byte(`FROM golang:1.12.4`),
+			},
+			want: false,
+		},
+		{
+			name: "Dockerfile.template with a comment",
+			args: args{
+				content: []byte(`# This is a comment
+				FROM golang:1.12.4`),
+				// start with a comment
+				comment: "#",
+			},
+			want: true,
+		},
+		{
+			name: "empty file",
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := CheckFileContainsCommands(tt.args.content, tt.args.comment); got != tt.want {
+				t.Errorf("CheckFileContainsCommands() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

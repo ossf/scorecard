@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-RUN go get github.com@some_tag
-RUN go install github.com@some_tag
-RUN ["go", "install", "github.com@tag"]
+RUN go get github.com/org/name@some_tag
+RUN go install github.com/org/name@some_tag
+RUN ["go", "install", "github.com/org/name@tag"]
 RUN ["go", "install"]
 
-RUN go install github.com@some_tag
-RUN go get github.com@some_tag
-RUN go get github.com@1111111111ccccccccccaaaaaaaaaa9999999999
-RUN go get github.com@1111111111ccccccccccaaaaaaaaaa9999999999
-RUN ["go", "install", "-Y", "github.com@1111111111ccccccccccaaaaaaaaaa9999999999"]
-RUN ["go", "get", "github.com@1111111111ccccccccccaaaaaaaaaa9999999999"]
+RUN go install github.com/org/name@some_tag
+RUN go get github.com/org/name@some_tag
+RUN go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
+RUN go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
+RUN ["go", "install", "-Y", "github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999"]
+RUN ["go", "get", "github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999"]
 
+RUN go install /some/local/path
 RUN go mod download
 RUN go build -a bla
 
@@ -79,3 +80,5 @@ RUN npm install
 RUN npm install -g
 RUN npm i
 RUN npm ci
+RUN npm install-test
+RUN npm install-ci-test

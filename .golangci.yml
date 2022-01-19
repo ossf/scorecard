@@ -152,4 +152,4 @@ linters-settings:
       - unnecessaryBlock
   wrapcheck:
     ignorePackageGlobs:
-      - github.com/ossf/scorecard/v3/checks/fileparser
+      - github.com/ossf/scorecard/v4/checks/fileparser

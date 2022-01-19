@@ -2,6 +2,7 @@
 
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard)](https://goreportcard.com/report/github.com/ossf/scorecard)
 
 <img align="right" src="artwork/openssf_security.png" width="200" height="400">
 
@@ -9,15 +10,16 @@
 
 -  [What Is Scorecards?](#what-is-scorecards)
 -  [Prominent Scorecards Users](#prominent-scorecards-users)
+-  [Scorecards' Public Data](#public-data)
 
 ## Using Scorecards
-
--  [Prerequisites](#prerequisites) 
--  [Installation](#installation)
--  [Authentication](#authentication)
--  [Basic Usage](#basic-usage)
--  [Report Problems](#report-problems) 
--  [Scorecards' Public Data](#public-data)
+- [Scorecards GitHub Action](#scorecards-github-action)
+- [Scorecards Command Line Interface](#scorecards-command-line-interface)
+   -  [Prerequisites](#prerequisites) 
+   -  [Installation](#installation)
+   -  [Authentication](#authentication)
+   -  [Basic Usage](#basic-usage)
+   -  [Report Problems](#report-problems) 
 
 ## Checks 
 
@@ -59,17 +61,55 @@ Scorecards has been run on thousands of projects to monitor and track security m
 - [deps.dev](https://deps.dev)
 - [metrics.openssf.org](https://metrics.openssf.org)
 
-## Using Scorecards
+### Public Data
 
-### Prerequisites
+We run a weekly Scorecards scan of the 1 million most critical open source projects judged by their direct dependencies and publish the results in a
+[BigQuery public dataset](https://cloud.google.com/bigquery/public-data).
+
+This data is available in the public BigQuery dataset
+`openssf:scorecardcron.scorecard-v2`. The latest results are available in the
+BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
+
+You can extract the latest results to Google Cloud storage in JSON format using
+the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
+
+```
+# Get the latest PARTITION_ID
+bq query --nouse_legacy_sql 'SELECT partition_id FROM
+openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS WHERE table_name="scorecard-v2"
+AND partition_id!="__NULL__" ORDER BY partition_id DESC
+LIMIT 1'
+
+# Extract to GCS
+bq extract --destination_format=NEWLINE_DELIMITED_JSON
+'openssf:scorecardcron.scorecard-v2$<partition_id>' gs://bucket-name/filename-*.json
+
+```
+
+The list of projects that are checked is available in the
+[`cron/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/data/projects.csv)
+file in this repository. If you would like us to track more, please feel free to
+send a Pull Request with others. Currently, this list is derived from **projects hosted on GitHub
+ONLY**. We do plan to expand them in near future to account for projects hosted
+on other source control systems.
+
+## Using Scorecards
+### Scorecards GitHub Action
+
+The easiest way to use Scorecards on GitHub projects you own is with the [Scorecards GitHub Action](https://github.com/ossf/scorecard-action). The Action runs on any repository change and issues alerts that maintainers can view in the repository’s Security tab. For more information, see the Scorecards GitHub Action [installation instructions](https://github.com/ossf/scorecard-action#installation). 
+
+### Scorecards Command Line Interface
+To run a Scorecards scan on projects you do not own, use the command line interface installation option.
+
+#### Prerequisites
 
 Platforms: Currently, Scorecards supports OSX and Linux platforms. If you are using a Windows OS you may experience issues. Contributions towards supporting Windows are welcome.
 
 Language: You must have GoLang installed to run Scorecards (https://golang.org/doc/install)
 
-### Installation
+#### Installation
 
-#### Standalone
+##### Standalone
 
 To install Scorecards as a standalone:
 
@@ -77,7 +117,7 @@ To install Scorecards as a standalone:
 2. Extract the binary file 
 3. Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to identify your directory if necessary)
 
-#### Using Homebrew
+##### Using Homebrew
 
 You can use [Homebrew](https://brew.sh/) (on macOS or Linux) to install Scorecards.
 
@@ -85,14 +125,14 @@ You can use [Homebrew](https://brew.sh/) (on macOS or Linux) to install Scorecar
 brew install scorecard
 ```
 
-### Using Linux package managers
+#### Using Linux package managers
 
 | Package Manager                                            | Linux Distribution | Command                                    |
 |------------------------------------------------------------|--------------------|--------------------------------------------|
 | Nix                                                        | NixOS              | `nix-env -iA nixpkgs.scorecard`            |
 | [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) | Arch Linux         | Use your AUR helper to install `scorecard` |
 
-### Authentication
+#### Authentication
 
 GitHub imposes [api rate limits](https://developer.github.com/v3/#rate-limiting) on unauthenticated requests. To avoid these limits, you must authenticate your requests before running Scorecard. There are two ways to authenticate your requests: either create a GitHub personal access token, or create a GitHub App Installation. 
 
@@ -126,8 +166,8 @@ GITHUB_APP_ID=<app id>
 These variables can be obtained from the GitHub
 [developer settings](https://github.com/settings/apps) page.
 
-### Basic Usage
-#### Docker
+#### Basic Usage
+##### Docker
 
 `scorecard` is available as a Docker container:
 
@@ -137,7 +177,13 @@ The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
 docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-details --repo=https://github.com/ossf/scorecard
 ```
 
-#### Using repository URL
+To use a specific scorecards version (e.g., v3.2.1), run:
+
+```shell
+docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:v3.2.1 --show-details --repo=https://github.com/ossf/scorecard
+```
+
+##### Using repository URL
 
 Scorecards can run using just one argument, the URL of the target repo:
 
@@ -227,7 +273,7 @@ Check scores:
 | 10 / 10 | Vulnerabilities        | no vulnerabilities detected    | github.com/ossf/scorecard/blob/main/docs/checks.md#vulnerabilities        |
 |---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
-#### Scoring
+##### Scoring
 Each individual check returns a score of 0 to 10, with 10 representing the best possible score. Scorecards also produces an aggregate score, which is a weight-based average of the individual checks weighted by risk. 
 
 * “Critical” risk checks are weighted at 10
@@ -235,35 +281,9 @@ Each individual check returns a score of 0 to 10, with 10 representing the best 
 * “Medium” risk checks are weighted at 5
 * “Low” risk checks are weighted at 2.5
 
-Tests that are rated as “Critical” risk are: 
+See the [list of current Scorecards checks](#scorecard-checks) for each check's risk level.
 
-* Dangerous-Workflow
-
-Tests that are rated as “High” risk are: 
-* Maintained
-* Dependency-Update-Tool
-* Binary-Artifacts
-* Branch-Protection
-* Code-Review
-* Signed-Releases
-* Token-Permissions
-* Vulnerabilities
-
-Tests that are rated as “Medium” risk are:
-* Fuzzing
-* Packaging
-* Pinned-Dependencies
-* SAST
-* Security-Policy
-
-
-Tests that are rated as “Low” risk are:
-* CI-Tests
-* CII-Best-Practices
-* Contributors
-* License
-
-#### Showing Detailed Results 
+##### Showing Detailed Results 
 For more details about why a check fails, use the `--show-details` option:
 
 ```
@@ -297,101 +317,62 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
-#### Using a Package manager
+##### Using a Package manager
 
 For projects in the `--npm`, `--pypi`, or `--rubygems` ecosystems, you have the option to run Scorecards using a package manager. Provide the package name to run the checks on the corresponding GitHub source code.
 
 For example, `--npm=angular`.
 
-#### Running specific checks
+##### Running specific checks
 
 To run only specific check(s), add the `--checks` argument with a list of check
 names.
 
 For example, `--checks=CI-Tests,Code-Review`.
 
-#### Formatting Results
+##### Formatting Results
 
 There are three formats currently: `default`, `json`, and `csv`. Others may be
 added in the future.
 
 These may be specified with the `--format` flag. For example, `--format=json`.
 
-### Report Problems
+#### Report Problems
 
 If you have what looks like a bug, please use the
 [Github issue tracking system.](https://github.com/ossf/scorecard/issues)
 Before you file an issue, please search existing issues to see if your issue
 is already covered.
 
-### Public Data
-
-If you're interested in seeing a list of projects with their Scorecard
-check results, we publish these results in a
-[BigQuery public dataset](https://cloud.google.com/bigquery/public-data).
-
-This data is available in the public BigQuery dataset
-`openssf:scorecardcron.scorecard-v2`. The latest results are available in the
-BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
-
-You can extract the latest results to Google Cloud storage in JSON format using
-the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
-
-```
-# Get the latest PARTITION_ID
-bq query --nouse_legacy_sql 'SELECT partition_id FROM
-openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS WHERE table_name="scorecard-v2"
-ORDER BY partition_id DESC
-LIMIT 1'
-
-# Extract to GCS
-bq extract --destination_format=NEWLINE_DELIMITED_JSON
-'openssf:scorecardcron.scorecard-v2$<partition_id>' gs://bucket-name/filename.json
-
-```
-
-The list of projects that are checked is available in the
-[`cron/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/data/projects.csv)
-file in this repository. If you would like us to track more, please feel free to
-send a Pull Request with others. Currently, this list is derived from **projects hosted on GitHub
-ONLY**. We do plan to expand them in near future to account for projects hosted
-on other source control systems.
-
-**NOTE**: The public dataset uses a Pass/Fail scoring system with a confidence score
-between **0 and 10**. A confidence of 0 indicates that the check was unable to
-achieve any real signal, and that the result should be ignored. A confidence of 10
-indicates the check was completely sure of the result. 
-
 ## Checks
 ### Scorecard Checks
 
 The following checks are all run against the target project by default:
 
-Name                        | Description
---------------------------- | -----------
-Binary-Artifacts            | Is the project free of checked-in binaries?
-Branch-Protection           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?
-CI-Tests                    | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?
-CII-Best-Practices          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
-Code-Review                 | Does the project require code review before code is merged?
-Contributors                | Does the project have contributors from at least two different organizations?
-Dangerous-Workflow          | Does the project avoid dangerous coding patterns in GitHub Action workflows?
-Dependency-Update-Tool      | Does the project use tools to help update its dependencies?
-Fuzzing                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?
-License                     | Does the project declare a license?
-Maintained                  | Is the project maintained?
-Pinned-Dependencies         | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?
-Packaging                   | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?
-SAST                        | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [LGTM](https://lgtm.com), [SonarCloud](https://sonarcloud.io)?
-Security-Policy             | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?
-Signed-Releases             | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?
-Token-Permissions           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?
-Vulnerabilities             | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).
+Name                        | Description | Risk Level
+--------------------------- | ----------- | ------------
+[Binary-Artifacts](docs/checks.md#binary-artifacts)            | Is the project free of checked-in binaries? | High
+[Branch-Protection](docs/checks.md#branch-protection)           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ? | High
+[CI-Tests](docs/checks.md#ci-tests)                    | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)? |Low
+[CII-Best-Practices](docs/checks.md#cii-best-practices)          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)? |Low
+[Code-Review](docs/checks.md#code-review)                 | Does the project require code review before code is merged? |High
+[Contributors](docs/checks.md#contributors)                | Does the project have contributors from at least two different organizations? |Low
+[Dangerous-Workflow](docs/checks.md#dangerous-workflow)          | Does the project avoid dangerous coding patterns in GitHub Action workflows? |Critical
+[Dependency-Update-Tool](docs/checks.md#dependency-update-tool)      | Does the project use tools to help update its dependencies? |High
+[Fuzzing](docs/checks.md#fuzzing)                     | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)? |Medium
+[License](docs/checks.md#license)                     | Does the project declare a license? | Low
+[Maintained](docs/checks.md#maintained)                  | Is the project maintained? |High
+[Pinned-Dependencies](docs/checks.md#pinned-dependencies)         | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)? |Medium
+[Packaging](docs/checks.md#packaging)                   | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ? |Medium
+[SAST](docs/checks.md#sast)                        | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [LGTM](https://lgtm.com), [SonarCloud](https://sonarcloud.io)? |Medium
+[Security-Policy](docs/checks.md#security-policy)             | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)? |Medium
+[Signed-Releases](docs/checks.md#signed-releases)             | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)? |High
+[Token-Permissions](docs/checks.md#token-permissions)           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)? |High
+[Vulnerabilities](docs/checks.md#vulnerabilities)             | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev). |High
 
 ### Detailed Checks Documentation
 To see detailed information about each check, its scoring criteria, and remediation steps, check out
 the [checks documentation page](docs/checks.md).
-
 
 ## Contribute
 ### Code of Conduct

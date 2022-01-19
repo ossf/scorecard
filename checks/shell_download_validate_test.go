@@ -18,7 +18,7 @@ import (
 	"os"
 	"testing"
 
-	scut "github.com/ossf/scorecard/v3/utests"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestIsSupportedShellScriptFile(t *testing.T) {
@@ -100,7 +100,7 @@ func TestValidateShellFile(t *testing.T) {
 		t.Errorf("cannot read file: %v", err)
 	}
 	dl := scut.TestDetailLogger{}
-	_, err = validateShellFile(filename, content, &dl)
+	_, err = validateShellFile(filename, 0, 0, content, map[string]bool{}, &dl)
 	if err != nil {
 		t.Errorf("failed to discard shell parsing error: %v", err)
 	}

@@ -22,8 +22,8 @@ import (
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	"github.com/ossf/scorecard/v3/clients/githubrepo/roundtripper/tokens"
-	githubstats "github.com/ossf/scorecard/v3/clients/githubrepo/stats"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens"
+	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
 )
 
 // makeGitHubTransport wraps input RoundTripper with GitHub authorization logic.

@@ -24,10 +24,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ossf/scorecard/v3/checks"
-	"github.com/ossf/scorecard/v3/clients"
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	"github.com/ossf/scorecard/v3/pkg"
+	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/pkg"
 )
 
 //nolint:gochecknoinits
@@ -66,13 +66,15 @@ var serveCmd = &cobra.Command{
 			ctx := r.Context()
 			repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+			vulnsClient := clients.DefaultVulnerabilitiesClient()
 			if err != nil {
 				sugar.Error(err)
 				rw.WriteHeader(http.StatusInternalServerError)
 			}
 			defer ossFuzzRepoClient.Close()
 			ciiClient := clients.DefaultCIIBestPracticesClient()
-			repoResult, err := pkg.RunScorecards(ctx, repo, false, checks.AllChecks, repoClient, ossFuzzRepoClient, ciiClient)
+			repoResult, err := pkg.RunScorecards(ctx, repo, false, checks.AllChecks, repoClient,
+				ossFuzzRepoClient, ciiClient, vulnsClient)
 			if err != nil {
 				sugar.Error(err)
 				rw.WriteHeader(http.StatusInternalServerError)

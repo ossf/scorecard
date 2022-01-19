@@ -20,10 +20,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks"
-	"github.com/ossf/scorecard/v3/clients/githubrepo"
-	scut "github.com/ossf/scorecard/v3/utests"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 var _ = Describe("E2E TEST:Vulnerabilities", func() {
@@ -37,10 +38,11 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:                   context.Background(),
+				RepoClient:            repoClient,
+				VulnerabilitiesClient: clients.DefaultVulnerabilitiesClient(),
+				Repo:                  repo,
+				Dlogger:               &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -49,6 +51,7 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
+
 			result := checks.HasUnfixedVulnerabilities(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
@@ -68,10 +71,11 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 
 			dl := scut.TestDetailLogger{}
 			checkRequest := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:                   context.Background(),
+				RepoClient:            repoClient,
+				VulnerabilitiesClient: clients.DefaultVulnerabilitiesClient(),
+				Repo:                  repo,
+				Dlogger:               &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,

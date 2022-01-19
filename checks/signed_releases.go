@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v3/checker"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 const (
@@ -32,7 +32,10 @@ var artifactExtensions = []string{".asc", ".minisig", ".sig", ".sign"}
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckSignedReleases, SignedReleases)
+	if err := registerCheck(CheckSignedReleases, SignedReleases); err != nil {
+		// this should never happen
+		panic(err)
+	}
 }
 
 // SignedReleases runs Signed-Releases check.

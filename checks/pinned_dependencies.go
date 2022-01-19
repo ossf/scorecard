@@ -22,9 +22,9 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/rhysd/actionlint"
 
-	"github.com/ossf/scorecard/v3/checker"
-	"github.com/ossf/scorecard/v3/checks/fileparser"
-	sce "github.com/ossf/scorecard/v3/errors"
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckPinnedDependencies is the registered name for FrozenDeps.
@@ -39,7 +39,10 @@ type worklowPinningResult struct {
 
 //nolint:gochecknoinits
 func init() {
-	registerCheck(CheckPinnedDependencies, PinnedDependencies)
+	if err := registerCheck(CheckPinnedDependencies, PinnedDependencies); err != nil {
+		// This should never happen.
+		panic(err)
+	}
 }
 
 // PinnedDependencies will check the repository if it contains frozen dependecies.
@@ -230,7 +233,7 @@ func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		return true, nil
 	}
 
-	r, err := validateShellFile(pathfn, content, dl)
+	r, err := validateShellFile(pathfn, 0, 0 /*unknown*/, content, map[string]bool{}, dl)
 	if err != nil {
 		return false, err
 	}
@@ -282,11 +285,14 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
-	var bytes []byte
-
 	// Walk the Dockerfile's AST.
-	for _, child := range res.AST.Children {
+	taintedFiles := make(map[string]bool)
+	for i := range res.AST.Children {
+		var bytes []byte
+
+		child := res.AST.Children[i]
 		cmdType := child.Value
+
 		// Only look for the 'RUN' command.
 		if cmdType != "run" {
 			continue
@@ -304,15 +310,14 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 		// Build a file content.
 		cmd := strings.Join(valueList, " ")
 		bytes = append(bytes, cmd...)
-		bytes = append(bytes, '\n')
+		r, err := validateShellFile(pathfn, uint(child.StartLine)-1, uint(child.EndLine)-1,
+			bytes, taintedFiles, dl)
+		if err != nil {
+			return false, err
+		}
+		addPinnedResult(pdata, r)
 	}
 
-	r, err := validateShellFile(pathfn, bytes, dl)
-	if err != nil {
-		return false, err
-	}
-
-	addPinnedResult(pdata, r)
 	return true, nil
 }
 
@@ -361,7 +366,10 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
 	contentReader := strings.NewReader(string(content))
-	regex := regexp.MustCompile(`.*@sha256:[a-f\d]{64}`)
+	// The dependency must be pinned by sha256 hash, e.g.,
+	// FROM something@sha256:${ARG},
+	// FROM something:@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
+	regex := regexp.MustCompile(`.*@sha256:([a-f\d]{64}|\${.*})`)
 
 	ret := true
 	pinnedAsNames := make(map[string]bool)
@@ -393,8 +401,8 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 			// Check if the name is pinned.
 			// (1): name = <>@sha245:hash
 			// (2): name = XXX where XXX was pinned
-			_, pinned := pinnedAsNames[name]
-			if pinned || regex.Match([]byte(name)) {
+			pinned := pinnedAsNames[name]
+			if pinned || regex.MatchString(name) {
 				// Record the asName.
 				pinnedAsNames[asName] = true
 				continue
@@ -403,24 +411,27 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 			// Not pinned.
 			ret = false
 			dl.Warn3(&checker.LogMessage{
-				Path:    pathfn,
-				Type:    checker.FileTypeSource,
-				Offset:  child.StartLine,
-				Text:    fmt.Sprintf("dependency not pinned by hash: '%v'", name),
-				Snippet: child.Original,
+				Path:      pathfn,
+				Type:      checker.FileTypeSource,
+				Offset:    uint(child.StartLine),
+				EndOffset: uint(child.EndLine),
+				Text:      "docker image not pinned by hash",
+				Snippet:   child.Original,
 			})
 
 		// FROM name.
 		case len(valueList) == 1:
 			name := valueList[0]
-			if !regex.Match([]byte(name)) {
+			pinned := pinnedAsNames[name]
+			if !pinned && !regex.MatchString(name) {
 				ret = false
 				dl.Warn3(&checker.LogMessage{
-					Path:    pathfn,
-					Type:    checker.FileTypeSource,
-					Offset:  child.StartLine,
-					Text:    fmt.Sprintf("dependency not pinned by hash: '%v'", name),
-					Snippet: child.Original,
+					Path:      pathfn,
+					Type:      checker.FileTypeSource,
+					Offset:    uint(child.StartLine),
+					EndOffset: uint(child.EndLine),
+					Text:      "docker image not pinned by hash",
+					Snippet:   child.Original,
 				})
 			}
 
@@ -484,14 +495,13 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 	}
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
-	validated := true
-	scriptContent := ""
 	for jobName, job := range workflow.Jobs {
 		jobName := jobName
 		job := job
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
 		}
+		taintedFiles := make(map[string]bool)
 		for _, step := range job.Steps {
 			step := step
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
@@ -523,19 +533,15 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 
 			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
-			scriptContent = fmt.Sprintf("%v\n%v", scriptContent, string(script))
+			validated, err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line), uint(execRun.Run.Pos.Line),
+				script, taintedFiles, dl)
+			if err != nil {
+				return false, err
+			}
+			addPinnedResult(pdata, validated)
 		}
 	}
 
-	if scriptContent != "" {
-		var err error
-		validated, err = validateShellFile(pathfn, []byte(scriptContent), dl)
-		if err != nil {
-			return false, err
-		}
-	}
-
-	addPinnedResult(pdata, validated)
 	return true, nil
 }
 
@@ -627,11 +633,14 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 
 			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
 			// Example: action-name@hash
-			match := hashRegex.Match([]byte(execAction.Uses.Value))
+			match := hashRegex.MatchString(execAction.Uses.Value)
 			if !match {
 				dl.Warn3(&checker.LogMessage{
-					Path: pathfn, Type: checker.FileTypeSource, Offset: execAction.Uses.Pos.Line, Snippet: execAction.Uses.Value,
-					Text: fmt.Sprintf("%s dependency not pinned by hash (job '%v')", owner, jobName),
+					Path: pathfn, Type: checker.FileTypeSource,
+					Offset:    uint(execAction.Uses.Pos.Line),
+					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
+					Snippet:   execAction.Uses.Value,
+					Text:      fmt.Sprintf("%s action not pinned by hash", owner),
 				})
 			}
 
