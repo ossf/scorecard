@@ -21,12 +21,17 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// Logger exposes logging capabilities.
+// The struct name was chosen to closely mimic other logging facilities within
+// to project to make them easier to search/replace.
+// Initial implementation was designed to encapsulate calls to `zap`, but
+// future iterations will seek to directly expose logging methods.
 type Logger struct {
 	Zap *zap.Logger
 }
 
 // NewLogger creates an instance of *zap.Logger.
-// Copied from clients/githubrepo/client.go
+// Copied from clients/githubrepo/client.go.
 func NewLogger(logLevel Level) (*Logger, error) {
 	zapCfg := zap.NewProductionConfig()
 	zapLevel := parseLogLevelZap(string(logLevel))
