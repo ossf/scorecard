@@ -291,7 +291,7 @@ The highest score is awarded when all workflows avoid the dangerous code pattern
 Risk: `High` (possibly vulnerable to attacks on known flaws)  
 
 This check tries to determine if the project uses a dependency update tool,
-specifically [dependabot](https://dependabot.com/docs/config-file/) or
+specifically [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or
 [renovatebot](https://docs.renovatebot.com/configuration-options/). Out-of-date
 dependencies make a project vulnerable to known flaws and prone to attacks.
 These tools automate the process of updating dependencies by scanning for
@@ -309,7 +309,7 @@ low score is therefore not a definitive indication that the project is at risk.
  
 
 **Remediation steps**
-- Signup for automatic dependency updates with [dependabot](https://dependabot.com/docs/config-file/) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
+- Signup for automatic dependency updates with [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
 
 ## Fuzzing 
 
