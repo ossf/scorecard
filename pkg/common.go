@@ -18,9 +18,8 @@ import (
 	"fmt"
 	"strings"
 
-	"go.uber.org/zap/zapcore"
-
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 func textToMarkdown(s string) string {
@@ -28,11 +27,11 @@ func textToMarkdown(s string) string {
 }
 
 // DetailToString turns a detail information into a string.
-func DetailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
+func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
 	// UPGRADEv3: remove switch statement.
 	switch d.Msg.Version {
 	case 3:
-		if d.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
+		if d.Type == checker.DetailDebug && logLevel != log.DebugLevel {
 			return ""
 		}
 		switch {
@@ -46,14 +45,14 @@ func DetailToString(d *checker.CheckDetail, logLevel zapcore.Level) string {
 			return fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text)
 		}
 	default:
-		if d.Type == checker.DetailDebug && logLevel != zapcore.DebugLevel {
+		if d.Type == checker.DetailDebug && logLevel != log.DebugLevel {
 			return ""
 		}
 		return fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text)
 	}
 }
 
-func detailsToString(details []checker.CheckDetail, logLevel zapcore.Level) (string, bool) {
+func detailsToString(details []checker.CheckDetail, logLevel log.Level) (string, bool) {
 	// UPGRADEv2: change to make([]string, len(details)).
 	var sa []string
 	for i := range details {

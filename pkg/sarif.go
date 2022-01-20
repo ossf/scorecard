@@ -22,12 +22,11 @@ import (
 	"strings"
 	"time"
 
-	"go.uber.org/zap/zapcore"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/log"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
 
@@ -508,7 +507,7 @@ func filterOutDetailType(details []checker.CheckDetail, t checker.DetailType) []
 
 func createDefaultLocationMessage(check *checker.CheckResult) string {
 	details := filterOutDetailType(check.Details2, checker.DetailInfo)
-	s, b := detailsToString(details, zapcore.WarnLevel)
+	s, b := detailsToString(details, log.WarnLevel)
 	if b {
 		// Warning: GitHub UX needs a single `\n` to turn it into a `<br>`.
 		return fmt.Sprintf("%s:\n%s", check.Reason, s)
@@ -517,7 +516,7 @@ func createDefaultLocationMessage(check *checker.CheckResult) string {
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
-func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel zapcore.Level,
+func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.

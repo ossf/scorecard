@@ -23,9 +23,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 func TestClient_CreationAndCaching(t *testing.T) {
@@ -63,12 +63,12 @@ func TestClient_CreationAndCaching(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			logger, err := githubrepo.NewLogger(zapcore.DebugLevel)
+			logger, err := githubrepo.NewLogger(log.DebugLevel)
 			if err != nil {
 				t.Errorf("githubrepo.NewLogger: %v", err)
 			}
 			// nolint
-			defer logger.Sync() // Flushes buffer, if any.
+			defer logger.Zap.Sync() // Flushes buffer, if any.
 
 			// Create repo.
 			repo, err := MakeLocalDirRepo(tt.inputFolder)

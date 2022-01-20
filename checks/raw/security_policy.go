@@ -19,12 +19,11 @@ import (
 	"fmt"
 	"strings"
 
-	"go.uber.org/zap"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 // SecurityPolicy checks for presence of security policy.
@@ -71,7 +70,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	}
 
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
-	logger, err := githubrepo.NewLogger(zap.InfoLevel)
+	logger, err := githubrepo.NewLogger(log.InfoLevel)
 	if err != nil {
 		return checker.SecurityPolicyData{}, fmt.Errorf("%w", err)
 	}
