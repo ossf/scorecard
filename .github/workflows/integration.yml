@@ -56,6 +56,12 @@ jobs:
           timeout_minutes: 30
           command: make ci-e2e
 
+      - name: codecov
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # 2.1.0
+        with:
+         files: ./e2e-coverage.out
+         verbose: true
+
       - name: find comment
         uses: peter-evans/find-comment@d2dae40ed151c634e4189471272b57e76ec19ba8 # v1.2.0
         id: fc
