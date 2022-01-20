@@ -52,14 +52,19 @@ type Level string
 // TODO(log): Revisit if all levels are required. The current list mimics zap
 //            log levels.
 const (
-	DebugLevel  Level = "debug"
-	InfoLevel   Level = "info"
-	WarnLevel   Level = "warn"
-	ErrorLevel  Level = "error"
-	DPanicLevel Level = "dpanic"
-	PanicLevel  Level = "panic"
-	FatalLevel  Level = "fatal"
+	DefaultLevel       = InfoLevel
+	DebugLevel   Level = "debug"
+	InfoLevel    Level = "info"
+	WarnLevel    Level = "warn"
+	ErrorLevel   Level = "error"
+	DPanicLevel  Level = "dpanic"
+	PanicLevel   Level = "panic"
+	FatalLevel   Level = "fatal"
 )
+
+func (l Level) String() string {
+	return string(l)
+}
 
 // parseLogLevelZap parses a log level string and returning a zapcore.Level,
 // which defaults to `zapcore.InfoLevel` when the provided string is not

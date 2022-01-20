@@ -27,7 +27,6 @@ import (
 	_ "net/http/pprof"
 
 	"go.opencensus.io/stats/view"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
@@ -107,11 +106,11 @@ func processRequest(ctx context.Context,
 			logger.Zap.Warn(errorMsg)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime()
-		if err := format.AsJSON(&result, true /*showDetails*/, zapcore.InfoLevel, &buffer); err != nil {
+		if err := format.AsJSON(&result, true /*showDetails*/, log.InfoLevel, &buffer); err != nil {
 			return fmt.Errorf("error during result.AsJSON: %w", err)
 		}
 
-		if err := format.AsJSON2(&result, true /*showDetails*/, zapcore.InfoLevel, checkDocs, &buffer2); err != nil {
+		if err := format.AsJSON2(&result, true /*showDetails*/, log.InfoLevel, checkDocs, &buffer2); err != nil {
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
 	}

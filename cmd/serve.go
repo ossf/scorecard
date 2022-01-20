@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
@@ -40,7 +41,7 @@ var serveCmd = &cobra.Command{
 	Short: "Serve the scorecard program over http",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		logger, err := githubrepo.NewLogger(*logLevel)
+		logger, err := githubrepo.NewLogger(sclog.Level(logLevel))
 		if err != nil {
 			log.Fatalf("unable to construct logger: %v", err)
 		}
@@ -81,7 +82,7 @@ var serveCmd = &cobra.Command{
 			}
 
 			if r.Header.Get("Content-Type") == "application/json" {
-				if err := repoResult.AsJSON(showDetails, *logLevel, rw); err != nil {
+				if err := repoResult.AsJSON(showDetails, sclog.Level(logLevel), rw); err != nil {
 					sugar.Error(err)
 					rw.WriteHeader(http.StatusInternalServerError)
 				}
