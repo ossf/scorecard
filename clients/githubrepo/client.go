@@ -23,12 +23,12 @@ import (
 
 	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 var errInputRepoType = errors.New("input repo should be of type repoURL")
@@ -180,9 +180,9 @@ func (client *Client) Close() error {
 }
 
 // CreateGithubRepoClient returns a Client which implements RepoClient interface.
-func CreateGithubRepoClient(ctx context.Context, logger *zap.Logger) clients.RepoClient {
+func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
 	// Use our custom roundtripper
-	rt := roundtripper.NewTransport(ctx, logger.Sugar())
+	rt := roundtripper.NewTransport(ctx, logger.Zap.Sugar())
 	httpClient := &http.Client{
 		Transport: rt,
 	}
@@ -220,20 +220,14 @@ func CreateGithubRepoClient(ctx context.Context, logger *zap.Logger) clients.Rep
 	}
 }
 
-// NewLogger creates an instance of *zap.Logger.
-func NewLogger(logLevel zapcore.Level) (*zap.Logger, error) {
-	cfg := zap.NewProductionConfig()
-	cfg.Level.SetLevel(logLevel)
-	logger, err := cfg.Build()
-	if err != nil {
-		return nil, fmt.Errorf("cfg.Build: %w", err)
-	}
-	return logger, nil
+// NewLogger creates an instance of *log.Logger.
+func NewLogger(logLevel zapcore.Level) (*log.Logger, error) {
+	return log.NewLogger(logLevel)
 }
 
 // CreateOssFuzzRepoClient returns a RepoClient implementation
 // intialized to `google/oss-fuzz` GitHub repository.
-func CreateOssFuzzRepoClient(ctx context.Context, logger *zap.Logger) (clients.RepoClient, error) {
+func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	ossFuzzRepo, err := MakeGithubRepo("google/oss-fuzz")
 	if err != nil {
 		return nil, fmt.Errorf("error during githubrepo.MakeGithubRepo: %w", err)

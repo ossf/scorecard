@@ -148,7 +148,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			}
 
 			// nolint
-			defer logger.Sync()
+			defer logger.Zap.Sync()
 
 			ctrl := gomock.NewController(t)
 			repo, err := localdir.MakeLocalDirRepo(tt.inputFolder)

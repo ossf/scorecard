@@ -37,6 +37,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
@@ -191,7 +192,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 		log.Panic(err)
 	}
 	// nolint: errcheck
-	defer logger.Sync() // Flushes buffer, if any.
+	defer logger.Zap.Sync() // Flushes buffer, if any.
 
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, repoType, err := getRepoAccessors(ctx, uri, logger)
 	if err != nil {
@@ -413,7 +414,7 @@ func validateFormat(format string) bool {
 	}
 }
 
-func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (
+func getRepoAccessors(ctx context.Context, uri string, logger *sclog.Logger) (
 	repo clients.Repo,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,

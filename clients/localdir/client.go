@@ -27,16 +27,15 @@ import (
 	"strings"
 	"sync"
 
-	"go.uber.org/zap"
-
 	clients "github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 var errInputRepoType = errors.New("input repo should be of type repoLocal")
 
 //nolint:govet
 type localDirClient struct {
-	logger   *zap.Logger
+	logger   *log.Logger
 	ctx      context.Context
 	path     string
 	once     sync.Once
@@ -214,7 +213,7 @@ func (client *localDirClient) Close() error {
 }
 
 // CreateLocalDirClient returns a client which implements RepoClient interface.
-func CreateLocalDirClient(ctx context.Context, logger *zap.Logger) clients.RepoClient {
+func CreateLocalDirClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
 	return &localDirClient{
 		ctx:    ctx,
 		logger: logger,

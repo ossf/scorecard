@@ -45,8 +45,8 @@ var serveCmd = &cobra.Command{
 			log.Fatalf("unable to construct logger: %v", err)
 		}
 		//nolint
-		defer logger.Sync() // flushes buffer, if any
-		sugar := logger.Sugar()
+		defer logger.Zap.Sync() // flushes buffer, if any
+		sugar := logger.Zap.Sugar()
 		t, err := template.New("webpage").Parse(tpl)
 		if err != nil {
 			sugar.Panic(err)

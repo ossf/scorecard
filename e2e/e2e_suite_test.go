@@ -23,9 +23,10 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/log"
 )
 
-var logger *zap.Logger
+var logger *log.Logger
 
 func TestE2e(t *testing.T) {
 	t.Parallel()
