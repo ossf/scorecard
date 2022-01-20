@@ -42,3 +42,35 @@ func NewLogger(logLevel zapcore.Level) (*Logger, error) {
 
 	return logger, nil
 }
+
+// Level is a string representation of log level, which can easily be passed as
+// a parameter, in lieu of defined types in upstream logging packages.
+type Level string
+
+// parseLogLevelZap parses a log level string and returning a zapcore.Level,
+// which defaults to `zapcore.InfoLevel` when the provided string is not
+// recognized.
+// It is an inversion of go.uber.org/zap/zapcore.Level.String().
+// TODO(log): Should we include a strict option here, which fails if the
+//            provided log level is not recognized or is it fine to default to
+//            InfoLevel?
+func parseLogLevelZap(level string) zapcore.Level {
+	switch level {
+	case "debug":
+		return zapcore.DebugLevel
+	case "info":
+		return zapcore.InfoLevel
+	case "warn":
+		return zapcore.WarnLevel
+	case "error":
+		return zapcore.ErrorLevel
+	case "dpanic":
+		return zapcore.DPanicLevel
+	case "panic":
+		return zapcore.PanicLevel
+	case "fatal":
+		return zapcore.FatalLevel
+	default:
+		return zapcore.InfoLevel
+	}
+}
