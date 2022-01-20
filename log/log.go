@@ -27,9 +27,10 @@ type Logger struct {
 
 // NewLogger creates an instance of *zap.Logger.
 // Copied from clients/githubrepo/client.go
-func NewLogger(logLevel zapcore.Level) (*Logger, error) {
+func NewLogger(logLevel Level) (*Logger, error) {
 	zapCfg := zap.NewProductionConfig()
-	zapCfg.Level.SetLevel(logLevel)
+	zapLevel := parseLogLevelZap(string(logLevel))
+	zapCfg.Level.SetLevel(zapLevel)
 
 	zapLogger, err := zapCfg.Build()
 	if err != nil {
@@ -46,6 +47,19 @@ func NewLogger(logLevel zapcore.Level) (*Logger, error) {
 // Level is a string representation of log level, which can easily be passed as
 // a parameter, in lieu of defined types in upstream logging packages.
 type Level string
+
+// Log levels
+// TODO(log): Revisit if all levels are required. The current list mimics zap
+//            log levels.
+const (
+	DebugLevel  Level = "debug"
+	InfoLevel   Level = "info"
+	WarnLevel   Level = "warn"
+	ErrorLevel  Level = "error"
+	DPanicLevel Level = "dpanic"
+	PanicLevel  Level = "panic"
+	FatalLevel  Level = "fatal"
+)
 
 // parseLogLevelZap parses a log level string and returning a zapcore.Level,
 // which defaults to `zapcore.InfoLevel` when the provided string is not

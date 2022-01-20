@@ -23,7 +23,6 @@ import (
 
 	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
@@ -221,7 +220,7 @@ func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.Rep
 }
 
 // NewLogger creates an instance of *log.Logger.
-func NewLogger(logLevel zapcore.Level) (*log.Logger, error) {
+func NewLogger(logLevel log.Level) (*log.Logger, error) {
 	return log.NewLogger(logLevel)
 }
 

@@ -27,7 +27,6 @@ import (
 	_ "net/http/pprof"
 
 	"go.opencensus.io/stats/view"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -187,7 +186,7 @@ func main() {
 		panic(err)
 	}
 
-	logger, err := githubrepo.NewLogger(zap.InfoLevel)
+	logger, err := githubrepo.NewLogger(log.InfoLevel)
 	if err != nil {
 		panic(err)
 	}
