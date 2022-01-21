@@ -136,9 +136,9 @@ type User struct {
 var (
 	// ReviewPlatformGitHub is the name of ReviewPlatform for GitHub.
 	ReviewPlatformGitHub = "GitHub"
-	// ReviewPlatformGitHub is the name of ReviewPlatform for Prow.
+	// ReviewPlatformProw is the name of ReviewPlatform for Prow.
 	ReviewPlatformProw = "Prow"
-	// ReviewPlatformGitHub is the name of ReviewPlatform for Gerrit.
+	// ReviewPlatformGerrit is the name of ReviewPlatform for Gerrit.
 	ReviewPlatformGerrit = "Gerrit"
 )
 
