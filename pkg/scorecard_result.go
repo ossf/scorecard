@@ -21,11 +21,11 @@ import (
 	"time"
 
 	"github.com/olekukonko/tablewriter"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v4/checker"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 // ScorecardInfo contains information about the scorecard code that was run.
@@ -98,7 +98,7 @@ func (r *ScorecardResult) GetAggregateScore(checkDocs docs.Doc) (float64, error)
 }
 
 // AsString returns ScorecardResult in string format.
-func (r *ScorecardResult) AsString(showDetails bool, logLevel zapcore.Level,
+func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 	checkDocs docs.Doc, writer io.Writer) error {
 	data := make([][]string, len(r.Checks))
 	//nolint

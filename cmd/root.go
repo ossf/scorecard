@@ -18,7 +18,6 @@ package cmd
 import (
 	"context"
 	"encoding/json"
-	goflag "flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -28,7 +27,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
@@ -37,6 +35,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
@@ -47,8 +46,7 @@ var (
 	local       string
 	checksToRun []string
 	metaData    []string
-	// This one has to use goflag instead of pflag because it's defined by zap.
-	logLevel    = zap.LevelFlag("verbosity", zap.InfoLevel, "override the default log level")
+	logLevel    string
 	format      string
 	npm         string
 	pypi        string
@@ -84,10 +82,14 @@ const cliEnableSarif = "ENABLE_SARIF"
 
 //nolint:gochecknoinits
 func init() {
-	// Add the zap flag manually
-	rootCmd.PersistentFlags().AddGoFlagSet(goflag.CommandLine)
 	rootCmd.Flags().StringVar(&repo, "repo", "", "repository to check")
 	rootCmd.Flags().StringVar(&local, "local", "", "local folder to check")
+	rootCmd.Flags().StringVar(
+		&logLevel,
+		"verbosity",
+		sclog.DefaultLevel.String(),
+		"set the log level",
+	)
 	rootCmd.Flags().StringVar(
 		&npm, "npm", "",
 		"npm package to check, given that the npm package has a GitHub repository")
@@ -186,12 +188,12 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	}
 
 	ctx := context.Background()
-	logger, err := githubrepo.NewLogger(*logLevel)
+	logger, err := githubrepo.NewLogger(sclog.Level(logLevel))
 	if err != nil {
 		log.Panic(err)
 	}
 	// nolint: errcheck
-	defer logger.Sync() // Flushes buffer, if any.
+	defer logger.Zap.Sync() // Flushes buffer, if any.
 
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, repoType, err := getRepoAccessors(ctx, uri, logger)
 	if err != nil {
@@ -249,15 +251,15 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 
 	switch format {
 	case formatDefault:
-		err = repoResult.AsString(showDetails, *logLevel, checkDocs, os.Stdout)
+		err = repoResult.AsString(showDetails, sclog.Level(logLevel), checkDocs, os.Stdout)
 	case formatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
-		err = repoResult.AsSARIF(showDetails, *logLevel, os.Stdout, checkDocs, policy)
+		err = repoResult.AsSARIF(showDetails, sclog.Level(logLevel), os.Stdout, checkDocs, policy)
 	case formatJSON:
 		if raw {
 			err = repoResult.AsRawJSON(os.Stdout)
 		} else {
-			err = repoResult.AsJSON2(showDetails, *logLevel, checkDocs, os.Stdout)
+			err = repoResult.AsJSON2(showDetails, sclog.Level(logLevel), checkDocs, os.Stdout)
 		}
 
 	default:
@@ -413,7 +415,7 @@ func validateFormat(format string) bool {
 	}
 }
 
-func getRepoAccessors(ctx context.Context, uri string, logger *zap.Logger) (
+func getRepoAccessors(ctx context.Context, uri string, logger *sclog.Logger) (
 	repo clients.Repo,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,

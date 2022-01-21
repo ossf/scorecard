@@ -21,9 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"go.uber.org/zap/zapcore"
-
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/log"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
 
@@ -122,7 +121,7 @@ func TestSARIFOutput(t *testing.T) {
 		name        string
 		expected    string
 		showDetails bool
-		logLevel    zapcore.Level
+		logLevel    log.Level
 		result      ScorecardResult
 		policy      spol.ScorecardPolicy
 	}{
@@ -130,7 +129,7 @@ func TestSARIFOutput(t *testing.T) {
 			name:        "check-1",
 			showDetails: true,
 			expected:    "./testdata/check1.sarif",
-			logLevel:    zapcore.DebugLevel,
+			logLevel:    log.DebugLevel,
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
@@ -180,7 +179,7 @@ func TestSARIFOutput(t *testing.T) {
 			name:        "check-2",
 			showDetails: true,
 			expected:    "./testdata/check2.sarif",
-			logLevel:    zapcore.DebugLevel,
+			logLevel:    log.DebugLevel,
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
@@ -229,7 +228,7 @@ func TestSARIFOutput(t *testing.T) {
 			name:        "check-3",
 			showDetails: true,
 			expected:    "./testdata/check3.sarif",
-			logLevel:    zapcore.InfoLevel,
+			logLevel:    log.InfoLevel,
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
@@ -336,7 +335,7 @@ func TestSARIFOutput(t *testing.T) {
 			name:        "check-4",
 			showDetails: true,
 			expected:    "./testdata/check4.sarif",
-			logLevel:    zapcore.DebugLevel,
+			logLevel:    log.DebugLevel,
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
@@ -443,7 +442,7 @@ func TestSARIFOutput(t *testing.T) {
 			name:        "check-5",
 			showDetails: true,
 			expected:    "./testdata/check5.sarif",
-			logLevel:    zapcore.WarnLevel,
+			logLevel:    log.WarnLevel,
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
@@ -491,7 +490,7 @@ func TestSARIFOutput(t *testing.T) {
 			// https://github.com/github/codeql-action/issues/754
 			// Disabled related locations.
 			expected: "./testdata/check6.sarif",
-			logLevel: zapcore.WarnLevel,
+			logLevel: log.WarnLevel,
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
@@ -535,7 +534,7 @@ func TestSARIFOutput(t *testing.T) {
 			name:        "check-7",
 			showDetails: true,
 			expected:    "./testdata/check7.sarif",
-			logLevel:    zapcore.DebugLevel,
+			logLevel:    log.DebugLevel,
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
@@ -642,7 +641,7 @@ func TestSARIFOutput(t *testing.T) {
 			name:        "check-8",
 			showDetails: true,
 			expected:    "./testdata/check8.sarif",
-			logLevel:    zapcore.DebugLevel,
+			logLevel:    log.DebugLevel,
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{

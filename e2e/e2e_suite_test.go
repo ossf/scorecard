@@ -20,12 +20,12 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"go.uber.org/zap"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/log"
 )
 
-var logger *zap.Logger
+var logger *log.Logger
 
 func TestE2e(t *testing.T) {
 	t.Parallel()
@@ -41,7 +41,7 @@ var _ = BeforeSuite(func() {
 		"GITHUB_AUTH_TOKEN env variable is not set.The GITHUB_AUTH_TOKEN env variable has to be set to run e2e test.")
 	Expect(len(token)).ShouldNot(BeZero(), "Length of the GITHUB_AUTH_TOKEN env variable is zero.")
 
-	l, err := githubrepo.NewLogger(zap.InfoLevel)
+	l, err := githubrepo.NewLogger(log.InfoLevel)
 	Expect(err).Should(BeNil())
 	logger = l
 })

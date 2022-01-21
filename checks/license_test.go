@@ -20,11 +20,11 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
+	"github.com/ossf/scorecard/v4/log"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -142,13 +142,13 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			logger, err := githubrepo.NewLogger(zapcore.DebugLevel)
+			logger, err := githubrepo.NewLogger(log.DebugLevel)
 			if err != nil {
 				t.Errorf("githubrepo.NewLogger: %v", err)
 			}
 
 			// nolint
-			defer logger.Sync()
+			defer logger.Zap.Sync()
 
 			ctrl := gomock.NewController(t)
 			repo, err := localdir.MakeLocalDirRepo(tt.inputFolder)

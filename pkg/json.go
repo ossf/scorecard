@@ -19,10 +19,9 @@ import (
 	"fmt"
 	"io"
 
-	"go.uber.org/zap/zapcore"
-
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 //nolint
@@ -83,7 +82,7 @@ type jsonScorecardResultV2 struct {
 }
 
 // AsJSON exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, writer io.Writer) error {
+func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
 	out := jsonScorecardResult{
@@ -119,7 +118,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel zapcore.Level, write
 
 // AsJSON2 exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON2(showDetails bool,
-	logLevel zapcore.Level, checkDocs docs.Doc, writer io.Writer) error {
+	logLevel log.Level, checkDocs docs.Doc, writer io.Writer) error {
 	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
 		return err
