@@ -122,7 +122,9 @@ type Commit struct {
 	// Note: SHA is not directly accessible from a pull request.
 	// TODO:SHA          string
 	Committer User
-	Review    *Review
+	// Note: not all commits are reviewed.
+	// `nil` indicate no reviews.
+	Review *Review
 }
 
 // MergeRequest represents a merge request.
@@ -145,7 +147,9 @@ type ReviewPlatform struct {
 
 // Review represents a review.
 type Review struct {
-	Platform     ReviewPlatform
+	Platform ReviewPlatform
+	// Note: Not all reviews contain a merge request, e.g. for Gerrit.
+	// `nil` indicates there are no merge requests associated with a commit.
 	MergeRequest *MergeRequest
 	Authors      []User
 }
