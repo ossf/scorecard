@@ -39,7 +39,6 @@ func CodeReview(name string, dl checker.DetailLogger,
 	}
 
 	for _, commit := range r.Commits {
-
 		if commit.Review == nil && isBot(commit.Committer.Login) {
 			dl.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("skip commit from bot account: %s", commit.Committer),
@@ -65,20 +64,19 @@ func CodeReview(name string, dl checker.DetailLogger,
 					checker.ReviewPlatformGitHub, commit.Review.MergeRequest.Number),
 			})
 
-		// Gerrit reviews.
-		case checker.ReviewPlatformGerrit:
+		// Prow reviews.
+		case checker.ReviewPlatformProw:
 			dl.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("%s #%d merge request approved",
 					checker.ReviewPlatformProw, commit.Review.MergeRequest.Number),
 			})
 
-		// Prow reviews.
+		// Gerrit reviews.
 		case checker.ReviewPlatformGerrit:
 			dl.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("%s commit approved", checker.ReviewPlatformGerrit),
 			})
 		}
-
 	}
 
 	if totalCommits == 0 {

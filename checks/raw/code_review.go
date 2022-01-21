@@ -32,7 +32,8 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 		return checker.CodeReviewData{}, fmt.Errorf("%w", err)
 	}
 
-	for _, mr := range mrs {
+	for i := range mrs {
+		mr := mrs[i]
 		if mr.MergedAt.IsZero() {
 			continue
 		}
@@ -42,7 +43,7 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 			Committer: checker.User{
 				Login: mr.MergeCommit.Committer.Login,
 			},
-			Review: ReviewData(&mr),
+			Review: reviewData(mr),
 		}
 		results = append(results, com)
 	}
@@ -58,7 +59,7 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 	}
 
 	for _, commit := range commits {
-		com := commitRequestData(&commit)
+		com := commitRequestData(commit)
 		results = append(results, com)
 	}
 
@@ -74,7 +75,7 @@ func reviewPlatform(platform string) checker.Review {
 	return review
 }
 
-func commitRequestData(c *clients.Commit) checker.Commit {
+func commitRequestData(c clients.Commit) checker.Commit {
 	r := checker.Commit{
 		Committer: checker.User{
 			Login: c.Committer.Login,
@@ -89,7 +90,7 @@ func commitRequestData(c *clients.Commit) checker.Commit {
 	return r
 }
 
-func ReviewData(mr *clients.PullRequest) *checker.Review {
+func reviewData(mr clients.PullRequest) *checker.Review {
 	var review checker.Review
 
 	// Review platform.
@@ -118,7 +119,7 @@ func ReviewData(mr *clients.PullRequest) *checker.Review {
 
 func reviewAuthors(mr *clients.PullRequest) []checker.User {
 	authors := []checker.User{}
-	mauthors := make(map[string]bool, 0)
+	mauthors := make(map[string]bool)
 	for _, m := range mr.Reviews {
 		if !(m.State == "APPROVED" &&
 			m.Author != nil &&

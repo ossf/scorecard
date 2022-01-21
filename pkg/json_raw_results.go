@@ -73,20 +73,19 @@ type jsonReviewPlatform struct {
 }
 
 type jsonReview struct {
-	Platform     jsonReviewPlatform `json:"platform"`
 	Authors      []jsonUser         `json:"authors"`
 	MergeRequest jsonMergeRequest   `json:"merge-request"`
+	Platform     jsonReviewPlatform `json:"platform"`
 }
 
 type jsonMergeRequest struct {
-	Number int      `json:"number"`
 	Author jsonUser `json:"author"`
+	Number int      `json:"number"`
 }
 
 type jsonCommit struct {
-	Committer jsonUser    `json:"committer"`
 	Review    *jsonReview `json:"review"`
-
+	Committer jsonUser    `json:"committer"`
 	// TODO: check runs, etc.
 }
 

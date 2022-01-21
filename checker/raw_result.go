@@ -26,6 +26,7 @@ type RawResults struct {
 }
 
 var (
+	//nolint:revive
 	ReviewPlatformGitHub = "GitHub"
 	ReviewPlatformProw   = "Prow"
 	ReviewPlatformGerrit = "Gerrit"
@@ -119,18 +120,18 @@ type Issue struct {
 
 // Commit represents a commit.
 type Commit struct {
-	// Note: SHA is not directly accessible from a pull request.
-	// TODO:SHA          string
-	Committer User
 	// Note: not all commits are reviewed.
 	// `nil` indicate no reviews.
 	Review *Review
+	// Note: SHA is not directly accessible from a pull request.
+	// TODO:SHA          string
+	Committer User
 }
 
 // MergeRequest represents a merge request.
 type MergeRequest struct {
-	Number int
 	Author User
+	Number int
 	// TODO: add fields, e.g., State=["merged"|"closed"]
 }
 
@@ -147,11 +148,11 @@ type ReviewPlatform struct {
 
 // Review represents a review.
 type Review struct {
-	Platform ReviewPlatform
 	// Note: Not all reviews contain a merge request, e.g. for Gerrit.
 	// `nil` indicates there are no merge requests associated with a commit.
 	MergeRequest *MergeRequest
 	Authors      []User
+	Platform     ReviewPlatform
 }
 
 // File represents a file.

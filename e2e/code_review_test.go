@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			}
-			result := checks.DoesCodeReview(&req)
+			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
