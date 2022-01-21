@@ -22,6 +22,19 @@ type RawResults struct {
 	SecurityPolicyResults       SecurityPolicyData
 	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
+	CodeReviewResults           CodeReviewData
+}
+
+var (
+	ReviewPlatformGitHub = "GitHub"
+	ReviewPlatformProw   = "Prow"
+	ReviewPlatformGerrit = "Gerrit"
+)
+
+// CodeReviewData contains the raw results
+// for the Code-Review check.
+type CodeReviewData struct {
+	Commits []Commit
 }
 
 // VulnerabilitiesData contains the raw results
@@ -84,7 +97,7 @@ type Tool struct {
 	Runs []Run
 	// Issues created by the tool.
 	Issues []Issue
-	// Merges requests created by the tool.
+	// Merge requests created by the tool.
 	MergeRequests []MergeRequest
 	Name          string
 	URL           string
@@ -104,10 +117,37 @@ type Issue struct {
 	// TODO: add fields, e.g., state=[opened|closed]
 }
 
+// Commit represents a commit.
+type Commit struct {
+	// Note: SHA is not directly accessible from a pull request.
+	// TODO:SHA          string
+	Committer User
+	Review    *Review
+}
+
 // MergeRequest represents a merge request.
 type MergeRequest struct {
-	URL string
+	Number int
+	Author User
 	// TODO: add fields, e.g., State=["merged"|"closed"]
+}
+
+// User represent a user.
+type User struct {
+	Login string
+}
+
+// ReviewPlatform represents a review platform.
+type ReviewPlatform struct {
+	Name string
+	// TODO: add fields, e.g. config files, etc.
+}
+
+// Review represents a review.
+type Review struct {
+	Platform     ReviewPlatform
+	MergeRequest *MergeRequest
+	Authors      []User
 }
 
 // File represents a file.

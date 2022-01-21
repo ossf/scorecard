@@ -37,5 +37,6 @@ type Label struct {
 
 // Review represents a PR review.
 type Review struct {
-	State string
+	State  string
+	Author *User
 }

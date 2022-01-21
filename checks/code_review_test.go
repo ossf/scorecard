@@ -225,7 +225,7 @@ func TestCodereview(t *testing.T) {
 				RepoClient: mockRepo,
 			}
 			req.Dlogger = &scut.TestDetailLogger{}
-			res := DoesCodeReview(&req)
+			res := CodeReview(&req)
 
 			if tt.err != nil {
 				if res.Error2 == nil {

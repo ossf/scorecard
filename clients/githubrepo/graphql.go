@@ -94,6 +94,36 @@ type graphqlData struct {
 				} `graphql:"... on Commit"`
 			}
 		}
+		PullRequests struct {
+			Nodes []struct {
+				Author struct {
+					Login githubv4.String
+				}
+				Number      githubv4.Int
+				HeadRefOid  githubv4.String
+				MergeCommit struct {
+					Author struct {
+						User struct {
+							Login githubv4.String
+						}
+					}
+				}
+				MergedAt githubv4.DateTime
+				Labels   struct {
+					Nodes []struct {
+						Name githubv4.String
+					}
+				} `graphql:"labels(last: $labelsToAnalyze)"`
+				Reviews struct {
+					Nodes []struct {
+						State  githubv4.String
+						Author struct {
+							Login githubv4.String
+						}
+					}
+				} `graphql:"reviews(last: $reviewsToAnalyze)"`
+			}
+		} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
 		Issues struct {
 			Nodes []struct {
 				// nolint: revive,stylecheck // naming according to githubv4 convention.
@@ -226,6 +256,25 @@ func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.P
 			ret = append(ret, toAppend)
 			break
 		}
+		for _, label := range pr.Labels.Nodes {
+			toAppend.Labels = append(toAppend.Labels, clients.Label{
+				Name: string(label.Name),
+			})
+		}
+		for _, review := range pr.Reviews.Nodes {
+			r := clients.Review{
+				State: string(review.State),
+			}
+
+			a := clients.User{
+				Login: string(review.Author.Login),
+			}
+			if a.Login != "" {
+				r.Author = &a
+			}
+			toAppend.Reviews = append(toAppend.Reviews, r)
+		}
+		ret[i] = toAppend
 	}
 	return ret
 }
