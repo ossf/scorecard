@@ -62,7 +62,6 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 		results = append(results, com)
 	}
 
-	// No error, return the files.
 	return checker.CodeReviewData{Commits: results}, nil
 }
 
@@ -95,7 +94,7 @@ func ReviewData(mr *clients.PullRequest) *checker.Review {
 
 	// Review platform.
 	// Note: Gerrit does not use merge requests and is checked
-	// in
+	// in for commits only via commitRequestData().
 	switch {
 	case isReviewedOnGitHub(mr):
 		review = reviewPlatform(checker.ReviewPlatformGitHub)
@@ -141,6 +140,9 @@ func reviewAuthors(mr *clients.PullRequest) []checker.User {
 		return authors
 	}
 
+	// Check if the merge request is committed by someone other than author. This is kind
+	// of equivalent to a review and is done several times on small prs to save
+	// time on clicking the approve button.
 	if mr.MergeCommit.Committer.Login != "" &&
 		mr.MergeCommit.Committer.Login != mr.Author.Login {
 		authors = append(authors, checker.User{
@@ -158,7 +160,7 @@ func isReviewedOnGitHub(mr *clients.PullRequest) bool {
 		}
 	}
 
-	// Check if the PR is committed by someone other than author. this is kind
+	// Check if the merge request is committed by someone other than author. This is kind
 	// of equivalent to a review and is done several times on small prs to save
 	// time on clicking the approve button.
 	if mr.MergeCommit.Committer.Login != "" &&
