@@ -88,11 +88,16 @@ func CodeReview(name string, dl checker.DetailLogger,
 	if totalReviewed[checker.ReviewPlatformGitHub] == 0 &&
 		totalReviewed[checker.ReviewPlatformGerrit] == 0 &&
 		totalReviewed[checker.ReviewPlatformProw] == 0 {
-		return checker.CreateMaxScoreResult(name, "no reviews found")
+		return checker.CreateMinScoreResult(name, "no reviews found")
 	}
 
 	// Consider a single review system.
 	nbReviews, reviewSystem := reviews(totalReviewed)
+	if nbReviews == totalCommits {
+		return checker.CreateMaxScoreResult(name,
+			fmt.Sprintf("all last %v commits are reviewed through %s", totalCommits, reviewSystem))
+	}
+
 	reason := fmt.Sprintf("%s code reviews found for %v commits out of the last %v", reviewSystem, nbReviews, totalCommits)
 	return checker.CreateProportionalScoreResult(name, reason, nbReviews, totalCommits)
 }
