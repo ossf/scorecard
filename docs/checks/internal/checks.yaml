@@ -50,7 +50,7 @@ checks:
       Risk: `High` (possibly vulnerable to attacks on known flaws)  
 
       This check tries to determine if the project uses a dependency update tool,
-      specifically [dependabot](https://dependabot.com/docs/config-file/) or
+      specifically [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or
       [renovatebot](https://docs.renovatebot.com/configuration-options/). Out-of-date
       dependencies make a project vulnerable to known flaws and prone to attacks.
       These tools automate the process of updating dependencies by scanning for
@@ -69,7 +69,7 @@ checks:
     remediation:
       - >-
         Signup for automatic dependency updates with
-        [dependabot](https://dependabot.com/docs/config-file/) or
+        [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or
         [renovatebot](https://docs.renovatebot.com/configuration-options/) and place
         the config file in the locations that are recommended by these tools. Due to
         https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can
