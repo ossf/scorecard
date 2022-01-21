@@ -73,9 +73,9 @@ type jsonReviewPlatform struct {
 }
 
 type jsonReview struct {
-	Authors      []jsonUser         `json:"authors"`
-	MergeRequest jsonMergeRequest   `json:"merge-request"`
+	MergeRequest *jsonMergeRequest  `json:"merge-request"`
 	Platform     jsonReviewPlatform `json:"platform"`
+	Authors      []jsonUser         `json:"authors"`
 }
 
 type jsonMergeRequest struct {
@@ -136,7 +136,7 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 					},
 				}
 
-				review.MergeRequest = mr
+				review.MergeRequest = &mr
 			}
 
 			com.Review = &review

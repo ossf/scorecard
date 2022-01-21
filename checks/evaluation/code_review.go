@@ -86,6 +86,14 @@ func CodeReview(name string, dl checker.DetailLogger,
 	if totalReviewed[checker.ReviewPlatformGitHub] == 0 &&
 		totalReviewed[checker.ReviewPlatformGerrit] == 0 &&
 		totalReviewed[checker.ReviewPlatformProw] == 0 {
+		// Only show all warnings if all fail.
+		// We should not show warning if at least one succeeds, as this is confusing.
+		for k, _ := range totalReviewed {
+			dl.Warn3(&checker.LogMessage{
+				Text: fmt.Sprintf("no %s reviews found", k),
+			})
+		}
+
 		return checker.CreateMinScoreResult(name, "no reviews found")
 	}
 

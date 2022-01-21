@@ -25,13 +25,6 @@ type RawResults struct {
 	CodeReviewResults           CodeReviewData
 }
 
-var (
-	//nolint:revive
-	ReviewPlatformGitHub = "GitHub"
-	ReviewPlatformProw   = "Prow"
-	ReviewPlatformGerrit = "Gerrit"
-)
-
 // CodeReviewData contains the raw results
 // for the Code-Review check.
 type CodeReviewData struct {
@@ -140,6 +133,15 @@ type User struct {
 	Login string
 }
 
+var (
+	// ReviewPlatformGitHub is the name of ReviewPlatform for GitHub.
+	ReviewPlatformGitHub = "GitHub"
+	// ReviewPlatformGitHub is the name of ReviewPlatform for Prow.
+	ReviewPlatformProw = "Prow"
+	// ReviewPlatformGitHub is the name of ReviewPlatform for Gerrit.
+	ReviewPlatformGerrit = "Gerrit"
+)
+
 // ReviewPlatform represents a review platform.
 type ReviewPlatform struct {
 	Name string
@@ -151,8 +153,8 @@ type Review struct {
 	// Note: Not all reviews contain a merge request, e.g. for Gerrit.
 	// `nil` indicates there are no merge requests associated with a commit.
 	MergeRequest *MergeRequest
-	Authors      []User
 	Platform     ReviewPlatform
+	Authors      []User
 }
 
 // File represents a file.
