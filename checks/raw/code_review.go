@@ -43,7 +43,7 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 			Committer: checker.User{
 				Login: mr.MergeCommit.Committer.Login,
 			},
-			Review: reviewData(mr),
+			Review: reviewData(&mr),
 		}
 		results = append(results, com)
 	}
@@ -90,7 +90,7 @@ func commitRequestData(c clients.Commit) checker.Commit {
 	return r
 }
 
-func reviewData(mr clients.PullRequest) *checker.Review {
+func reviewData(mr *clients.PullRequest) *checker.Review {
 	var review checker.Review
 
 	// Review platform.
@@ -117,7 +117,7 @@ func reviewData(mr clients.PullRequest) *checker.Review {
 	return &review
 }
 
-func reviewAuthors(mr clients.PullRequest) []checker.User {
+func reviewAuthors(mr *clients.PullRequest) []checker.User {
 	authors := []checker.User{}
 	mauthors := make(map[string]bool)
 	for _, m := range mr.Reviews {
@@ -154,7 +154,7 @@ func reviewAuthors(mr clients.PullRequest) []checker.User {
 	return authors
 }
 
-func isReviewedOnGitHub(mr clients.PullRequest) bool {
+func isReviewedOnGitHub(mr *clients.PullRequest) bool {
 	for _, m := range mr.Reviews {
 		if m.State == "APPROVED" {
 			return true
@@ -172,7 +172,7 @@ func isReviewedOnGitHub(mr clients.PullRequest) bool {
 	return false
 }
 
-func isReviewedOnProw(mr clients.PullRequest) bool {
+func isReviewedOnProw(mr *clients.PullRequest) bool {
 	for _, l := range mr.Labels {
 		if l.Name == "lgtm" || l.Name == "approved" {
 			return true
