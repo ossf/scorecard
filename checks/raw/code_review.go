@@ -95,7 +95,7 @@ func reviewData(mr clients.PullRequest) *checker.Review {
 
 	// Review platform.
 	// Note: Gerrit does not use merge requests and is checked
-	// in for commits only via commitRequestData().
+	// via commits in commitRequestData().
 	switch {
 	case isReviewedOnGitHub(mr):
 		review = reviewPlatform(checker.ReviewPlatformGitHub)
@@ -117,7 +117,7 @@ func reviewData(mr clients.PullRequest) *checker.Review {
 	return &review
 }
 
-func reviewAuthors(mr *clients.PullRequest) []checker.User {
+func reviewAuthors(mr clients.PullRequest) []checker.User {
 	authors := []checker.User{}
 	mauthors := make(map[string]bool)
 	for _, m := range mr.Reviews {
@@ -154,7 +154,7 @@ func reviewAuthors(mr *clients.PullRequest) []checker.User {
 	return authors
 }
 
-func isReviewedOnGitHub(mr *clients.PullRequest) bool {
+func isReviewedOnGitHub(mr clients.PullRequest) bool {
 	for _, m := range mr.Reviews {
 		if m.State == "APPROVED" {
 			return true
@@ -172,7 +172,7 @@ func isReviewedOnGitHub(mr *clients.PullRequest) bool {
 	return false
 }
 
-func isReviewedOnProw(mr *clients.PullRequest) bool {
+func isReviewedOnProw(mr clients.PullRequest) bool {
 	for _, l := range mr.Labels {
 		if l.Name == "lgtm" || l.Name == "approved" {
 			return true
@@ -181,7 +181,7 @@ func isReviewedOnProw(mr *clients.PullRequest) bool {
 	return false
 }
 
-func isReviewedOnGerrit(c *clients.Commit) bool {
+func isReviewedOnGerrit(c clients.Commit) bool {
 	commitMessage := c.Message
 	return strings.Contains(commitMessage, "\nReviewed-on: ") &&
 		strings.Contains(commitMessage, "\nReviewed-by: ")
