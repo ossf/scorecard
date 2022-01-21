@@ -167,3 +167,208 @@ func TestCheckFileContainsCommands(t *testing.T) {
 		})
 	}
 }
+
+func Test_isMatchingPath(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		pattern       string
+		fullpath      string
+		caseSensitive bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "matching path",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile",
+				caseSensitive: true,
+			},
+			want: true,
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "dockerfile",
+				caseSensitive: false,
+			},
+			want: true,
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "dockerfile",
+				caseSensitive: true,
+			},
+			want: false,
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: false,
+			},
+			want: false,
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: true,
+			},
+			want: false,
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: false,
+			},
+			want: false,
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: true,
+			},
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: false,
+			},
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: true,
+			},
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: false,
+			},
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: true,
+			},
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: false,
+			},
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: true,
+			},
+		},
+		{
+			name: "matching path with case insensitive",
+			args: args{
+				pattern:       "Dockerfile",
+				fullpath:      "Dockerfile.template",
+				caseSensitive: false,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := isMatchingPath(tt.args.pattern, tt.args.fullpath, tt.args.caseSensitive)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("isMatchingPath() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("isMatchingPath() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_isTestdataFile(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		fullpath string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "testdata file",
+			args: args{
+				fullpath: "testdata/Dockerfile",
+			},
+			want: true,
+		},
+		{
+			name: "testdata file",
+			args: args{
+				fullpath: "testdata/Dockerfile.template",
+			},
+			want: true,
+		},
+		{
+			name: "testdata file",
+			args: args{
+				fullpath: "testdata/Dockerfile.template.template",
+			},
+			want: true,
+		},
+		{
+			name: "testdata file",
+			args: args{
+				fullpath: "testdata/Dockerfile.template.template.template",
+			},
+			want: true,
+		},
+		{
+			name: "testdata file",
+			args: args{
+				fullpath: "testdata/Dockerfile.template.template.template.template",
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := isTestdataFile(tt.args.fullpath); got != tt.want {
+				t.Errorf("isTestdataFile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
