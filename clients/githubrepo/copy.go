@@ -14,8 +14,6 @@
 
 package githubrepo
 
-import "time"
-
 func copyBoolPtr(src *bool, dest **bool) {
 	if src != nil {
 		*dest = new(bool)
@@ -33,13 +31,6 @@ func copyStringPtr(src *string, dest **string) {
 func copyInt32Ptr(src *int32, dest **int32) {
 	if src != nil {
 		*dest = new(int32)
-		**dest = *src
-	}
-}
-
-func copyTimePtr(src *time.Time, dest **time.Time) {
-	if src != nil {
-		*dest = new(time.Time)
 		**dest = *src
 	}
 }

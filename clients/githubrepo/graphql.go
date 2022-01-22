@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/shurcooL/githubv4"
 
@@ -27,11 +26,12 @@ import (
 )
 
 const (
-	pullRequestsToAnalyze = 30
-	issuesToAnalyze       = 30
-	reviewsToAnalyze      = 30
-	labelsToAnalyze       = 30
-	commitsToAnalyze      = 30
+	pullRequestsToAnalyze  = 30
+	issuesToAnalyze        = 30
+	issueCommentsToAnalyze = 30
+	reviewsToAnalyze       = 30
+	labelsToAnalyze        = 30
+	commitsToAnalyze       = 30
 )
 
 // nolint: govet
@@ -86,8 +86,16 @@ type graphqlData struct {
 		Issues struct {
 			Nodes []struct {
 				// nolint: revive,stylecheck // naming according to githubv4 convention.
-				Url       *string
-				UpdatedAt *time.Time
+				Url               *string
+				AuthorAssociation githubv4.String
+				CreatedAt         githubv4.DateTime
+				ClosedAt          githubv4.DateTime
+				Comments          struct {
+					Nodes []struct {
+						AuthorAssociation githubv4.String
+						CreatedAt         githubv4.DateTime
+					}
+				} `graphql:"comments(last: $issueCommentsToAnalyze)"`
 			}
 		} `graphql:"issues(first: $issuesToAnalyze, orderBy:{field:UPDATED_AT, direction:DESC})"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
@@ -119,13 +127,14 @@ func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) {
 func (handler *graphqlHandler) setup() error {
 	handler.once.Do(func() {
 		vars := map[string]interface{}{
-			"owner":                 githubv4.String(handler.owner),
-			"name":                  githubv4.String(handler.repo),
-			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-			"issuesToAnalyze":       githubv4.Int(issuesToAnalyze),
-			"reviewsToAnalyze":      githubv4.Int(reviewsToAnalyze),
-			"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
-			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
+			"owner":                  githubv4.String(handler.owner),
+			"name":                   githubv4.String(handler.repo),
+			"pullRequestsToAnalyze":  githubv4.Int(pullRequestsToAnalyze),
+			"issuesToAnalyze":        githubv4.Int(issuesToAnalyze),
+			"issueCommentsToAnalyze": githubv4.Int(issueCommentsToAnalyze),
+			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
+			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
+			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
 		}
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
@@ -216,9 +225,18 @@ func commitsFrom(data *graphqlData) []clients.Commit {
 func issuesFrom(data *graphqlData) []clients.Issue {
 	var ret []clients.Issue
 	for _, issue := range data.Repository.Issues.Nodes {
-		var tmpIssue clients.Issue
+		tmpIssue := clients.Issue{
+			AuthorAssociation: string(issue.AuthorAssociation),
+			CreatedAt:         issue.CreatedAt.Time,
+			ClosedAt:          issue.ClosedAt.Time,
+		}
 		copyStringPtr(issue.Url, &tmpIssue.URI)
-		copyTimePtr(issue.UpdatedAt, &tmpIssue.UpdatedAt)
+		for _, comment := range issue.Comments.Nodes {
+			tmpIssue.Comments = append(tmpIssue.Comments, clients.IssueComment{
+				AuthorAssociation: string(comment.AuthorAssociation),
+				CreatedAt:         comment.CreatedAt.Time,
+			})
+		}
 		ret = append(ret, tmpIssue)
 	}
 	return ret

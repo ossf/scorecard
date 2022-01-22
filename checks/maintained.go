@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -70,8 +71,8 @@ func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
 	issuesUpdatedWithinThreshold := 0
-	for _, issue := range issues {
-		if issue.UpdatedAt.After(threshold) {
+	for i := range issues {
+		if hasActivityByCollaboratorOrHigher(&issues[i], threshold) {
 			issuesUpdatedWithinThreshold++
 		}
 	}
@@ -80,4 +81,40 @@ func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 		"%d commit(s) out of %d and %d issue activity out of %d found in the last %d days",
 		commitsWithinThreshold, len(commits), issuesUpdatedWithinThreshold, len(issues), lookBackDays),
 		commitsWithinThreshold+issuesUpdatedWithinThreshold, activityPerWeek*lookBackDays/daysInOneWeek)
+}
+
+// hasActivityByCollaboratorOrHigher returns true if there is activity by an owner/collaborator/member since the
+// threshold.
+func hasActivityByCollaboratorOrHigher(issue *clients.Issue, threshold time.Time) bool {
+	if issue.ClosedAt.After(threshold) {
+		// To close an issue, one must have sufficient permission in a repository, typically a collaborator or higher.
+		return true
+	}
+	if isCollaboratorOrHigher(issue.AuthorAssociation) && issue.CreatedAt.After(threshold) {
+		// The creator of the issue is a collaborator or higher.
+		return true
+	}
+	for _, comment := range issue.Comments {
+		if isCollaboratorOrHigher(comment.AuthorAssociation) && comment.CreatedAt.After(threshold) {
+			// The author of the comment is a collaborator or higher.
+			return true
+		}
+	}
+	return false
+}
+
+// isCollaboratorOrHigher returns true if the user is a collaborator or higher.
+func isCollaboratorOrHigher(persona string) bool {
+	// Roles are from https://docs.github.com/en/graphql/reference/enums#commentauthorassociation
+	priviledgedRoles := []string{
+		"COLLABORATOR",
+		"MEMBER",
+		"OWNER",
+	}
+	for _, role := range priviledgedRoles {
+		if role == persona {
+			return true
+		}
+	}
+	return false
 }

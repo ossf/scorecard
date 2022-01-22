@@ -111,6 +111,190 @@ func TestMaintained(t *testing.T) {
 				Score: 3,
 			},
 		},
+		{
+			name:       "old issues, no comments",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -200),
+					AuthorAssociation: "OWNER",
+				},
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -201),
+					AuthorAssociation: "NONE",
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name:       "new issues by non-associated users",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -5),
+					AuthorAssociation: "NONE",
+				},
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -2),
+					AuthorAssociation: "NONE",
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name:       "new issues with comments by non-associated users",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -5),
+					AuthorAssociation: "NONE",
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         time.Now().AddDate(0, 0, -4),
+							AuthorAssociation: "NONE",
+						},
+					},
+				},
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -2),
+					AuthorAssociation: "NONE",
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         time.Now().AddDate(0, 0, -1),
+							AuthorAssociation: "NONE",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name:       "old issues with old comments by owner",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -200),
+					AuthorAssociation: "NONE",
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         time.Now().AddDate(0, 0, -199),
+							AuthorAssociation: "OWNER",
+						},
+					},
+				},
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -201),
+					AuthorAssociation: "NONE",
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         time.Now().AddDate(0, 0, -1198),
+							AuthorAssociation: "OWNER",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name:       "old issues with new comments by owner",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -200),
+					AuthorAssociation: "NONE",
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         time.Now().AddDate(0, 0, -4),
+							AuthorAssociation: "OWNER",
+						},
+					},
+				},
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -201),
+					AuthorAssociation: "NONE",
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         time.Now().AddDate(0, 0, -1),
+							AuthorAssociation: "OWNER",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 1,
+			},
+		},
+		{
+			name:       "new issues by owner",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -5),
+					AuthorAssociation: "OWNER",
+				},
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -2),
+					AuthorAssociation: "OWNER",
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 1,
+			},
+		},
+		{
+			name:       "old issues closed long ago",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -200),
+					AuthorAssociation: "NONE",
+					ClosedAt:          time.Now().AddDate(0, 0, -199),
+				},
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -98),
+					AuthorAssociation: "NONE",
+					ClosedAt:          time.Now().AddDate(0, 0, -195),
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name:       "new issues closed recently",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -5),
+					AuthorAssociation: "NONE",
+					ClosedAt:          time.Now().AddDate(0, 0, -2),
+				},
+				{
+					CreatedAt:         time.Now().AddDate(0, 0, -3),
+					AuthorAssociation: "NONE",
+					ClosedAt:          time.Now().AddDate(0, 0, -1),
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 1,
+			},
+		},
 	}
 
 	for _, tt := range tests {
