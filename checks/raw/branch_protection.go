@@ -24,6 +24,8 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
+const master = "master"
+
 type branchMap map[string]*clients.BranchRef
 
 // BranchProtection retrieves the raw data for the Branch-Protection check.
@@ -123,7 +125,7 @@ func (b branchMap) getBranchByName(name string) (*clients.BranchRef, error) {
 	// Ideally, we should check using repositories.GetBranch if there was a branch redirect.
 	// See https://github.com/google/go-github/issues/1895
 	// For now, handle the common master -> main redirect.
-	if name == "master" {
+	if name == master {
 		val, exists := b["main"]
 		if exists {
 			return val, nil
