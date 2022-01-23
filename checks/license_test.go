@@ -22,7 +22,6 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	"github.com/ossf/scorecard/v4/log"
 	scut "github.com/ossf/scorecard/v4/utests"
@@ -142,10 +141,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			logger, err := githubrepo.NewLogger(log.DebugLevel)
-			if err != nil {
-				t.Errorf("githubrepo.NewLogger: %v", err)
-			}
+			logger := log.NewLogger(log.DebugLevel)
 
 			ctrl := gomock.NewController(t)
 			repo, err := localdir.MakeLocalDirRepo(tt.inputFolder)

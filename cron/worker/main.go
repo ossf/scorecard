@@ -187,10 +187,7 @@ func main() {
 		panic(err)
 	}
 
-	logger, err := githubrepo.NewLogger(log.InfoLevel)
-	if err != nil {
-		panic(err)
-	}
+	logger := log.NewLogger(log.InfoLevel)
 	repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 	ciiClient := clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
 	ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)

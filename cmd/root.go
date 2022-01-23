@@ -188,11 +188,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	}
 
 	ctx := context.Background()
-	logger, err := githubrepo.NewLogger(sclog.Level(logLevel))
-	if err != nil {
-		log.Panic(err)
-	}
-
+	logger := sclog.NewLogger(sclog.Level(logLevel))
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, repoType, err := getRepoAccessors(ctx, uri, logger)
 	if err != nil {
 		log.Panic(err)

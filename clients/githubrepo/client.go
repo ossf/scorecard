@@ -219,18 +219,6 @@ func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.Rep
 	}
 }
 
-// NewLogger creates an instance of *log.Logger.
-// TODO(log): Consider removing this function, as it only serves to wrap
-//            `log.NewLogger` for convenience.
-func NewLogger(logLevel log.Level) (*log.Logger, error) {
-	logger, err := log.NewLogger(logLevel)
-	if err != nil {
-		return nil, fmt.Errorf("creating GitHub repo client logger: %w", err)
-	}
-
-	return logger, nil
-}
-
 // CreateOssFuzzRepoClient returns a RepoClient implementation
 // intialized to `google/oss-fuzz` GitHub repository.
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {

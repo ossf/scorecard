@@ -8,8 +8,10 @@ require (
 	cloud.google.com/go/pubsub v1.17.0
 	cloud.google.com/go/trace v0.1.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.8
+	github.com/bombsimon/logrusr/v2 v2.0.1
 	github.com/bradleyfalzon/ghinstallation/v2 v2.0.4
 	github.com/go-git/go-git/v5 v5.4.2
+	github.com/go-logr/logr v1.2.2
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.5.7
 	github.com/google/go-containerregistry v0.8.0
@@ -22,6 +24,7 @@ require (
 	github.com/onsi/gomega v1.18.0
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.3.0
 	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
 	go.opencensus.io v0.23.0
@@ -34,11 +37,10 @@ require (
 	mvdan.cc/sh/v3 v3.4.2
 )
 
+// TODO(go.mod): Is there a reason these deps are kept separately from the
+//               other `require`s?
 require (
-	github.com/bombsimon/logrusr/v2 v2.0.1
-	github.com/go-logr/logr v1.0.0
 	github.com/rhysd/actionlint v1.6.8
-	github.com/sirupsen/logrus v1.8.1
 	gotest.tools v2.2.0+incompatible
 )
 

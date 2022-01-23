@@ -63,7 +63,7 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 		// Retry
 		time.Sleep(duration)
 		// TODO(log): Previously Warn. Consider logging an error here.
-		gh.logger.Info(fmt.Sprintf("Rate limit exceeded. Retrying..."))
+		gh.logger.Info("Rate limit exceeded. Retrying...")
 		return gh.RoundTrip(r)
 	}
 
