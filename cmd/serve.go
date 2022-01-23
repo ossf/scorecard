@@ -43,14 +43,15 @@ var serveCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		logger, err := githubrepo.NewLogger(sclog.Level(logLevel))
 		if err != nil {
+			// TODO(log): Drop stdlib log
 			log.Fatalf("unable to construct logger: %v", err)
 		}
-		//nolint
-		defer logger.Zap.Sync() // flushes buffer, if any
-		sugar := logger.Zap.Sugar()
+
 		t, err := template.New("webpage").Parse(tpl)
 		if err != nil {
-			sugar.Panic(err)
+			// TODO(log): Should this actually panic?
+			logger.Error(err, "parsing webpage template")
+			panic(err)
 		}
 
 		http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
@@ -69,7 +70,7 @@ var serveCmd = &cobra.Command{
 			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
 			vulnsClient := clients.DefaultVulnerabilitiesClient()
 			if err != nil {
-				sugar.Error(err)
+				logger.Error(err, "initializing clients")
 				rw.WriteHeader(http.StatusInternalServerError)
 			}
 			defer ossFuzzRepoClient.Close()
@@ -77,19 +78,21 @@ var serveCmd = &cobra.Command{
 			repoResult, err := pkg.RunScorecards(ctx, repo, false, checks.AllChecks, repoClient,
 				ossFuzzRepoClient, ciiClient, vulnsClient)
 			if err != nil {
-				sugar.Error(err)
+				logger.Error(err, "running enabled scorecard checks on repo")
 				rw.WriteHeader(http.StatusInternalServerError)
 			}
 
 			if r.Header.Get("Content-Type") == "application/json" {
 				if err := repoResult.AsJSON(showDetails, sclog.Level(logLevel), rw); err != nil {
-					sugar.Error(err)
+					// TODO(log): Improve error message
+					logger.Error(err, "")
 					rw.WriteHeader(http.StatusInternalServerError)
 				}
 				return
 			}
 			if err := t.Execute(rw, repoResult); err != nil {
-				sugar.Warn(err)
+				// TODO(log): Improve error message
+				logger.Error(err, "")
 			}
 		})
 		port := os.Getenv("PORT")
@@ -99,7 +102,9 @@ var serveCmd = &cobra.Command{
 		fmt.Printf("Listening on localhost:%s\n", port)
 		err = http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil)
 		if err != nil {
-			log.Fatal("ListenAndServe ", err)
+			// TODO(log): Should this actually panic?
+			logger.Error(err, "listening and serving")
+			panic(err)
 		}
 	},
 }

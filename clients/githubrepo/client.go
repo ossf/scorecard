@@ -181,7 +181,7 @@ func (client *Client) Close() error {
 // CreateGithubRepoClient returns a Client which implements RepoClient interface.
 func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
 	// Use our custom roundtripper
-	rt := roundtripper.NewTransport(ctx, logger.Zap.Sugar())
+	rt := roundtripper.NewTransport(ctx, logger)
 	httpClient := &http.Client{
 		Transport: rt,
 	}

@@ -15,54 +15,76 @@
 package log
 
 import (
-	"fmt"
+	"log"
+	"strings"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/bombsimon/logrusr/v2"
+	"github.com/go-logr/logr"
+	"github.com/sirupsen/logrus"
 )
 
-// Logger exposes logging capabilities.
-// The struct name was chosen to closely mimic other logging facilities within
-// to project to make them easier to search/replace.
-// Initial implementation was designed to encapsulate calls to `zap`, but
-// future iterations will seek to directly expose logging methods.
+// Logger exposes logging capabilities using
+// https://pkg.go.dev/github.com/go-logr/logr.
 type Logger struct {
-	Zap *zap.Logger
+	*logr.Logger
 }
 
-// NewLogger creates an instance of *zap.Logger.
-// Copied from clients/githubrepo/client.go.
-func NewLogger(logLevel Level) (*Logger, error) {
-	zapCfg := zap.NewProductionConfig()
-	zapLevel := parseLogLevelZap(string(logLevel))
-	zapCfg.Level.SetLevel(zapLevel)
+// NewLogger creates an instance of *Logger.
+// TODO(log): Consider adopting production config from zap.
+func NewLogger(logLevel Level) *Logger {
+	logrusLog := logrus.New()
 
-	zapLogger, err := zapCfg.Build()
-	if err != nil {
-		return nil, fmt.Errorf("configuring zap logger: %w", err)
-	}
+	// Set log level from logrus
+	logrusLevel := parseLogrusLevel(logLevel)
+	logrusLog.SetLevel(logrusLevel)
 
+	logrLogger := logrusr.New(logrusLog)
 	logger := &Logger{
-		Zap: zapLogger,
+		&logrLogger,
 	}
 
-	return logger, nil
+	return logger
+}
+
+// ParseLevel takes a string level and returns the Logrus log level constant.
+// If the level is not recognized, it defaults to `logrus.InfoLevel` to swallow
+// potential configuration errors/typos when specifying log levels.
+// https://pkg.go.dev/github.com/sirupsen/logrus#ParseLevel
+func ParseLevel(lvl string) logrus.Level {
+	logLevel := DefaultLevel
+
+	switch strings.ToLower(lvl) {
+	case "panic":
+		logLevel = PanicLevel
+	case "fatal":
+		logLevel = FatalLevel
+	case "error":
+		logLevel = ErrorLevel
+	case "warn":
+		logLevel = WarnLevel
+	case "info":
+		logLevel = InfoLevel
+	case "debug":
+		logLevel = DebugLevel
+	case "trace":
+		logLevel = TraceLevel
+	}
+
+	return parseLogrusLevel(logLevel)
 }
 
 // Level is a string representation of log level, which can easily be passed as
 // a parameter, in lieu of defined types in upstream logging packages.
 type Level string
 
-// Log levels
-// TODO(log): Revisit if all levels are required. The current list mimics zap
-//            log levels.
+// Log levels.
 const (
 	DefaultLevel       = InfoLevel
+	TraceLevel   Level = "trace"
 	DebugLevel   Level = "debug"
 	InfoLevel    Level = "info"
 	WarnLevel    Level = "warn"
 	ErrorLevel   Level = "error"
-	DPanicLevel  Level = "dpanic"
 	PanicLevel   Level = "panic"
 	FatalLevel   Level = "fatal"
 )
@@ -71,30 +93,17 @@ func (l Level) String() string {
 	return string(l)
 }
 
-// parseLogLevelZap parses a log level string and returning a zapcore.Level,
-// which defaults to `zapcore.InfoLevel` when the provided string is not
-// recognized.
-// It is an inversion of go.uber.org/zap/zapcore.Level.String().
-// TODO(log): Should we include a strict option here, which fails if the
-//            provided log level is not recognized or is it fine to default to
-//            InfoLevel?
-func parseLogLevelZap(level string) zapcore.Level {
-	switch level {
-	case "debug":
-		return zapcore.DebugLevel
-	case "info":
-		return zapcore.InfoLevel
-	case "warn":
-		return zapcore.WarnLevel
-	case "error":
-		return zapcore.ErrorLevel
-	case "dpanic":
-		return zapcore.DPanicLevel
-	case "panic":
-		return zapcore.PanicLevel
-	case "fatal":
-		return zapcore.FatalLevel
-	default:
-		return zapcore.InfoLevel
+func parseLogrusLevel(lvl Level) logrus.Level {
+	logrusLevel, err := logrus.ParseLevel(lvl.String())
+	if err != nil {
+		log.Printf(
+			"defaulting to INFO log level, as %s is not a valid log level: %+v",
+			lvl,
+			err,
+		)
+
+		logrusLevel = logrus.InfoLevel
 	}
+
+	return logrusLevel
 }

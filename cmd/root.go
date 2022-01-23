@@ -192,8 +192,6 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Panic(err)
 	}
-	// nolint: errcheck
-	defer logger.Zap.Sync() // Flushes buffer, if any.
 
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, repoType, err := getRepoAccessors(ctx, uri, logger)
 	if err != nil {

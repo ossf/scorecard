@@ -67,8 +67,6 @@ func TestClient_CreationAndCaching(t *testing.T) {
 			if err != nil {
 				t.Errorf("githubrepo.NewLogger: %v", err)
 			}
-			// nolint
-			defer logger.Zap.Sync() // Flushes buffer, if any.
 
 			// Create repo.
 			repo, err := MakeLocalDirRepo(tt.inputFolder)

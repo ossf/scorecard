@@ -147,9 +147,6 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 				t.Errorf("githubrepo.NewLogger: %v", err)
 			}
 
-			// nolint
-			defer logger.Zap.Sync()
-
 			ctrl := gomock.NewController(t)
 			repo, err := localdir.MakeLocalDirRepo(tt.inputFolder)
 

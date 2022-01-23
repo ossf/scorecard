@@ -20,13 +20,12 @@ import (
 	"strconv"
 	"time"
 
-	"go.uber.org/zap"
-
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 // MakeRateLimitedTransport returns a RoundTripper which rate limits GitHub requests.
-func MakeRateLimitedTransport(innerTransport http.RoundTripper, logger *zap.SugaredLogger) http.RoundTripper {
+func MakeRateLimitedTransport(innerTransport http.RoundTripper, logger *log.Logger) http.RoundTripper {
 	return &rateLimitTransport{
 		logger:         logger,
 		innerTransport: innerTransport,
@@ -35,7 +34,7 @@ func MakeRateLimitedTransport(innerTransport http.RoundTripper, logger *zap.Suga
 
 // rateLimitTransport is a rate-limit aware http.Transport for Github.
 type rateLimitTransport struct {
-	logger         *zap.SugaredLogger
+	logger         *log.Logger
 	innerTransport http.RoundTripper
 }
 
@@ -58,11 +57,13 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 		}
 
 		duration := time.Until(time.Unix(int64(reset), 0))
-		gh.logger.Warnf("Rate limit exceeded. Waiting %s to retry...", duration)
+		// TODO(log): Previously Warn. Consider logging an error here.
+		gh.logger.Info(fmt.Sprintf("Rate limit exceeded. Waiting %s to retry...", duration))
 
 		// Retry
 		time.Sleep(duration)
-		gh.logger.Warnf("Rate limit exceeded. Retrying...")
+		// TODO(log): Previously Warn. Consider logging an error here.
+		gh.logger.Info(fmt.Sprintf("Rate limit exceeded. Retrying..."))
 		return gh.RoundTrip(r)
 	}
 

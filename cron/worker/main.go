@@ -68,7 +68,7 @@ func processRequest(ctx context.Context,
 		return fmt.Errorf("error during BlobExists: %w", err)
 	}
 	if exists1 && exists2 {
-		logger.Zap.Info(fmt.Sprintf("Already processed shard %s. Nothing to do.", filename))
+		logger.Info(fmt.Sprintf("Already processed shard %s. Nothing to do.", filename))
 		// We have already processed this request, nothing to do.
 		return nil
 	}
@@ -77,10 +77,11 @@ func processRequest(ctx context.Context,
 	var buffer2 bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repo := range batchRequest.GetRepos() {
-		logger.Zap.Info(fmt.Sprintf("Running Scorecard for repo: %s", *repo.Url))
+		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", *repo.Url))
 		repo, err := githubrepo.MakeGithubRepo(*repo.Url)
 		if err != nil {
-			logger.Zap.Warn(fmt.Sprintf("invalid GitHub URL: %v", err))
+			// TODO(log): Previously Warn. Consider logging an error here.
+			logger.Info(fmt.Sprintf("invalid GitHub URL: %v", err))
 			continue
 		}
 		repo.AppendMetadata(repo.Metadata()...)
@@ -103,7 +104,8 @@ func processRequest(ctx context.Context,
 				// nolint: goerr113
 				return errors.New(errorMsg)
 			}
-			logger.Zap.Warn(errorMsg)
+			// TODO(log): Previously Warn. Consider logging an error here.
+			logger.Info(errorMsg)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime()
 		if err := format.AsJSON(&result, true /*showDetails*/, log.InfoLevel, &buffer); err != nil {
@@ -122,7 +124,7 @@ func processRequest(ctx context.Context,
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
 
-	logger.Zap.Info(fmt.Sprintf("Write to shard file successful: %s", filename))
+	logger.Info(fmt.Sprintf("Write to shard file successful: %s", filename))
 
 	return nil
 }
@@ -206,7 +208,8 @@ func main() {
 
 	// Exposed for monitoring runtime profiles
 	go func() {
-		logger.Zap.Fatal(fmt.Sprintf("%v", http.ListenAndServe(":8080", nil)))
+		// TODO(log): Previously Fatal. Need to handle the error here.
+		logger.Info(fmt.Sprintf("%v", http.ListenAndServe(":8080", nil)))
 	}()
 
 	checksToRun := checks.AllChecks
@@ -218,21 +221,23 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		logger.Zap.Info("Received message from subscription")
+
+		logger.Info("Received message from subscription")
 		if req == nil {
-			logger.Zap.Warn("subscription returned nil message during Receive, exiting")
+			// TODO(log): Previously Warn. Consider logging an error here.
+			logger.Info("subscription returned nil message during Receive, exiting")
 			break
 		}
 		if err := processRequest(ctx, req, checksToRun,
 			bucketURL, bucketURL2, checkDocs,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, logger); err != nil {
-			logger.Zap.Warn(fmt.Sprintf("error processing request: %v", err))
+			// TODO(log): Previously Warn. Consider logging an error here.
+			logger.Info(fmt.Sprintf("error processing request: %v", err))
 			// Nack the message so that another worker can retry.
 			subscriber.Nack()
 			continue
 		}
-		// nolint: errcheck // flushes buffer
-		logger.Zap.Sync()
+
 		exporter.Flush()
 		subscriber.Ack()
 	}

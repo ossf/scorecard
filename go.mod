@@ -25,7 +25,6 @@ require (
 	github.com/spf13/cobra v1.3.0
 	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
 	go.opencensus.io v0.23.0
-	go.uber.org/zap v1.20.0
 	gocloud.dev v0.24.0
 	golang.org/x/tools v0.1.8
 	google.golang.org/genproto v0.0.0-20220111164026-67b88f271998
@@ -36,7 +35,10 @@ require (
 )
 
 require (
+	github.com/bombsimon/logrusr/v2 v2.0.1
+	github.com/go-logr/logr v1.0.0
 	github.com/rhysd/actionlint v1.6.8
+	github.com/sirupsen/logrus v1.8.1
 	gotest.tools v2.2.0+incompatible
 )
 
@@ -86,14 +88,11 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
