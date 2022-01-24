@@ -86,16 +86,20 @@ func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 // hasActivityByCollaboratorOrHigher returns true if there is activity by an owner/collaborator/member since the
 // threshold.
 func hasActivityByCollaboratorOrHigher(issue *clients.Issue, threshold time.Time) bool {
-	if issue.ClosedAt.After(threshold) {
+	if issue == nil {
+		return false
+	}
+	if issue.ClosedAt != nil && issue.ClosedAt.After(threshold) {
 		// To close an issue, one must have sufficient permission in a repository, typically a collaborator or higher.
 		return true
 	}
-	if isCollaboratorOrHigher(issue.AuthorAssociation) && issue.CreatedAt.After(threshold) {
+	if isCollaboratorOrHigher(issue.AuthorAssociation) && issue.CreatedAt != nil && issue.CreatedAt.After(threshold) {
 		// The creator of the issue is a collaborator or higher.
 		return true
 	}
 	for _, comment := range issue.Comments {
-		if isCollaboratorOrHigher(comment.AuthorAssociation) && comment.CreatedAt.After(threshold) {
+		if isCollaboratorOrHigher(comment.AuthorAssociation) && comment.CreatedAt != nil &&
+			comment.CreatedAt.After(threshold) {
 			// The author of the comment is a collaborator or higher.
 			return true
 		}
@@ -104,15 +108,17 @@ func hasActivityByCollaboratorOrHigher(issue *clients.Issue, threshold time.Time
 }
 
 // isCollaboratorOrHigher returns true if the user is a collaborator or higher.
-func isCollaboratorOrHigher(persona string) bool {
-	// Roles are from https://docs.github.com/en/graphql/reference/enums#commentauthorassociation
-	priviledgedRoles := []string{
-		"COLLABORATOR",
-		"MEMBER",
-		"OWNER",
+func isCollaboratorOrHigher(repoAssociation *clients.RepoAssociation) bool {
+	if repoAssociation == nil {
+		return false
+	}
+	priviledgedRoles := []clients.RepoAssociation{
+		clients.RepoAssociationCollaborator,
+		clients.RepoAssociationMember,
+		clients.RepoAssociationOwner,
 	}
 	for _, role := range priviledgedRoles {
-		if role == persona {
+		if role == *repoAssociation {
 			return true
 		}
 	}

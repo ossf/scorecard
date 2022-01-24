@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/shurcooL/githubv4"
 
@@ -87,13 +88,13 @@ type graphqlData struct {
 			Nodes []struct {
 				// nolint: revive,stylecheck // naming according to githubv4 convention.
 				Url               *string
-				AuthorAssociation githubv4.String
-				CreatedAt         githubv4.DateTime
-				ClosedAt          githubv4.DateTime
+				AuthorAssociation *string
+				CreatedAt         *time.Time
+				ClosedAt          *time.Time
 				Comments          struct {
 					Nodes []struct {
-						AuthorAssociation githubv4.String
-						CreatedAt         githubv4.DateTime
+						AuthorAssociation *string
+						CreatedAt         *time.Time
 					}
 				} `graphql:"comments(last: $issueCommentsToAnalyze)"`
 			}
@@ -225,19 +226,47 @@ func commitsFrom(data *graphqlData) []clients.Commit {
 func issuesFrom(data *graphqlData) []clients.Issue {
 	var ret []clients.Issue
 	for _, issue := range data.Repository.Issues.Nodes {
-		tmpIssue := clients.Issue{
-			AuthorAssociation: string(issue.AuthorAssociation),
-			CreatedAt:         issue.CreatedAt.Time,
-			ClosedAt:          issue.ClosedAt.Time,
-		}
+		var tmpIssue clients.Issue
 		copyStringPtr(issue.Url, &tmpIssue.URI)
+		copyRepoAssociationPtr(getRepoAssociation(issue.AuthorAssociation), &tmpIssue.AuthorAssociation)
+		copyTimePtr(issue.CreatedAt, &tmpIssue.CreatedAt)
+		copyTimePtr(issue.ClosedAt, &tmpIssue.ClosedAt)
 		for _, comment := range issue.Comments.Nodes {
-			tmpIssue.Comments = append(tmpIssue.Comments, clients.IssueComment{
-				AuthorAssociation: string(comment.AuthorAssociation),
-				CreatedAt:         comment.CreatedAt.Time,
-			})
+			var tmpComment clients.IssueComment
+			copyRepoAssociationPtr(getRepoAssociation(comment.AuthorAssociation), &tmpComment.AuthorAssociation)
+			copyTimePtr(comment.CreatedAt, &tmpComment.CreatedAt)
+			tmpIssue.Comments = append(tmpIssue.Comments, tmpComment)
 		}
 		ret = append(ret, tmpIssue)
 	}
 	return ret
+}
+
+// getRepoAssociation returns the association of the user with the repository.
+func getRepoAssociation(association *string) *clients.RepoAssociation {
+	if association == nil {
+		return nil
+	}
+	var repoAssociaton clients.RepoAssociation
+	switch *association {
+	case "COLLABORATOR":
+		repoAssociaton = clients.RepoAssociationCollaborator
+	case "CONTRIBUTOR":
+		repoAssociaton = clients.RepoAssociationContributor
+	case "FIRST_TIMER":
+		repoAssociaton = clients.RepoAssociationFirstTimer
+	case "FIRST_TIME_CONTRIBUTOR":
+		repoAssociaton = clients.RepoAssociationFirstTimeContributor
+	case "MANNEQUIN":
+		repoAssociaton = clients.RepoAssociationMannequin
+	case "MEMBER":
+		repoAssociaton = clients.RepoAssociationMember
+	case "NONE":
+		repoAssociaton = clients.RepoAssociationNone
+	case "OWNER":
+		repoAssociaton = clients.RepoAssociationOwner
+	default:
+		return nil
+	}
+	return &repoAssociaton
 }

@@ -14,6 +14,12 @@
 
 package githubrepo
 
+import (
+	"time"
+
+	"github.com/ossf/scorecard/v4/clients"
+)
+
 func copyBoolPtr(src *bool, dest **bool) {
 	if src != nil {
 		*dest = new(bool)
@@ -35,7 +41,21 @@ func copyInt32Ptr(src *int32, dest **int32) {
 	}
 }
 
+func copyTimePtr(src *time.Time, dest **time.Time) {
+	if src != nil {
+		*dest = new(time.Time)
+		**dest = *src
+	}
+}
+
 func copyStringSlice(src []string, dest *[]string) {
 	*dest = make([]string, len(src))
 	copy(*dest, src)
+}
+
+func copyRepoAssociationPtr(src *clients.RepoAssociation, dest **clients.RepoAssociation) {
+	if src != nil {
+		*dest = new(clients.RepoAssociation)
+		**dest = *src
+	}
 }

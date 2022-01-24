@@ -32,6 +32,13 @@ import (
 // TestMaintained tests the maintained check.
 func TestMaintained(t *testing.T) {
 	t.Parallel()
+	threeHundredDaysAgo := time.Now().AddDate(0, 0, -300)
+	twoHundredDaysAgo := time.Now().AddDate(0, 0, -200)
+	oneHundredDaysAgo := time.Now().AddDate(0, 0, -100)
+	fiveDaysAgo := time.Now().AddDate(0, 0, -5)
+	oneDayAgo := time.Now().AddDate(0, 0, -1)
+	ownerAssociation := clients.RepoAssociationOwner
+	noneAssociation := clients.RepoAssociationNone
 	//fieldalignment lint issue. Ignoring it as it is not important for this test.
 	//nolint
 	tests := []struct {
@@ -117,12 +124,12 @@ func TestMaintained(t *testing.T) {
 			commits:    []clients.Commit{},
 			issues: []clients.Issue{
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -200),
-					AuthorAssociation: "OWNER",
+					CreatedAt:         &threeHundredDaysAgo,
+					AuthorAssociation: &ownerAssociation,
 				},
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -201),
-					AuthorAssociation: "NONE",
+					CreatedAt:         &twoHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
 				},
 			},
 			expected: checker.CheckResult{
@@ -135,12 +142,12 @@ func TestMaintained(t *testing.T) {
 			commits:    []clients.Commit{},
 			issues: []clients.Issue{
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -5),
-					AuthorAssociation: "NONE",
+					CreatedAt:         &fiveDaysAgo,
+					AuthorAssociation: &noneAssociation,
 				},
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -2),
-					AuthorAssociation: "NONE",
+					CreatedAt:         &oneDayAgo,
+					AuthorAssociation: &noneAssociation,
 				},
 			},
 			expected: checker.CheckResult{
@@ -153,22 +160,22 @@ func TestMaintained(t *testing.T) {
 			commits:    []clients.Commit{},
 			issues: []clients.Issue{
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -5),
-					AuthorAssociation: "NONE",
+					CreatedAt:         &fiveDaysAgo,
+					AuthorAssociation: &noneAssociation,
 					Comments: []clients.IssueComment{
 						{
-							CreatedAt:         time.Now().AddDate(0, 0, -4),
-							AuthorAssociation: "NONE",
+							CreatedAt:         &oneDayAgo,
+							AuthorAssociation: &noneAssociation,
 						},
 					},
 				},
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -2),
-					AuthorAssociation: "NONE",
+					CreatedAt:         &oneDayAgo,
+					AuthorAssociation: &noneAssociation,
 					Comments: []clients.IssueComment{
 						{
-							CreatedAt:         time.Now().AddDate(0, 0, -1),
-							AuthorAssociation: "NONE",
+							CreatedAt:         &oneDayAgo,
+							AuthorAssociation: &noneAssociation,
 						},
 					},
 				},
@@ -183,22 +190,22 @@ func TestMaintained(t *testing.T) {
 			commits:    []clients.Commit{},
 			issues: []clients.Issue{
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -200),
-					AuthorAssociation: "NONE",
+					CreatedAt:         &twoHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
 					Comments: []clients.IssueComment{
 						{
-							CreatedAt:         time.Now().AddDate(0, 0, -199),
-							AuthorAssociation: "OWNER",
+							CreatedAt:         &twoHundredDaysAgo,
+							AuthorAssociation: &ownerAssociation,
 						},
 					},
 				},
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -201),
-					AuthorAssociation: "NONE",
+					CreatedAt:         &threeHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
 					Comments: []clients.IssueComment{
 						{
-							CreatedAt:         time.Now().AddDate(0, 0, -1198),
-							AuthorAssociation: "OWNER",
+							CreatedAt:         &twoHundredDaysAgo,
+							AuthorAssociation: &ownerAssociation,
 						},
 					},
 				},
@@ -213,22 +220,22 @@ func TestMaintained(t *testing.T) {
 			commits:    []clients.Commit{},
 			issues: []clients.Issue{
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -200),
-					AuthorAssociation: "NONE",
+					CreatedAt:         &twoHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
 					Comments: []clients.IssueComment{
 						{
-							CreatedAt:         time.Now().AddDate(0, 0, -4),
-							AuthorAssociation: "OWNER",
+							CreatedAt:         &fiveDaysAgo,
+							AuthorAssociation: &ownerAssociation,
 						},
 					},
 				},
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -201),
-					AuthorAssociation: "NONE",
+					CreatedAt:         &threeHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
 					Comments: []clients.IssueComment{
 						{
-							CreatedAt:         time.Now().AddDate(0, 0, -1),
-							AuthorAssociation: "OWNER",
+							CreatedAt:         &oneDayAgo,
+							AuthorAssociation: &ownerAssociation,
 						},
 					},
 				},
@@ -243,12 +250,12 @@ func TestMaintained(t *testing.T) {
 			commits:    []clients.Commit{},
 			issues: []clients.Issue{
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -5),
-					AuthorAssociation: "OWNER",
+					CreatedAt:         &fiveDaysAgo,
+					AuthorAssociation: &ownerAssociation,
 				},
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -2),
-					AuthorAssociation: "OWNER",
+					CreatedAt:         &oneDayAgo,
+					AuthorAssociation: &ownerAssociation,
 				},
 			},
 			expected: checker.CheckResult{
@@ -261,14 +268,14 @@ func TestMaintained(t *testing.T) {
 			commits:    []clients.Commit{},
 			issues: []clients.Issue{
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -200),
-					AuthorAssociation: "NONE",
-					ClosedAt:          time.Now().AddDate(0, 0, -199),
+					CreatedAt:         &threeHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					ClosedAt:          &twoHundredDaysAgo,
 				},
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -98),
-					AuthorAssociation: "NONE",
-					ClosedAt:          time.Now().AddDate(0, 0, -195),
+					CreatedAt:         &twoHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					ClosedAt:          &oneHundredDaysAgo,
 				},
 			},
 			expected: checker.CheckResult{
@@ -281,14 +288,14 @@ func TestMaintained(t *testing.T) {
 			commits:    []clients.Commit{},
 			issues: []clients.Issue{
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -5),
-					AuthorAssociation: "NONE",
-					ClosedAt:          time.Now().AddDate(0, 0, -2),
+					CreatedAt:         &fiveDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					ClosedAt:          &oneDayAgo,
 				},
 				{
-					CreatedAt:         time.Now().AddDate(0, 0, -3),
-					AuthorAssociation: "NONE",
-					ClosedAt:          time.Now().AddDate(0, 0, -1),
+					CreatedAt:         &oneDayAgo,
+					AuthorAssociation: &noneAssociation,
+					ClosedAt:          &oneDayAgo,
 				},
 			},
 			expected: checker.CheckResult{
