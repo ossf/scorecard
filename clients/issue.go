@@ -18,6 +18,15 @@ import "time"
 
 // Issue represents a thread like GitHub issue comment thread.
 type Issue struct {
-	URI       *string
-	UpdatedAt *time.Time
+	URI               *string
+	CreatedAt         *time.Time
+	ClosedAt          *time.Time
+	AuthorAssociation *RepoAssociation
+	Comments          []IssueComment
+}
+
+// IssueComment represents a comment on an issue.
+type IssueComment struct {
+	CreatedAt         *time.Time
+	AuthorAssociation *RepoAssociation
 }

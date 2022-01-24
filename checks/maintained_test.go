@@ -32,6 +32,13 @@ import (
 // TestMaintained tests the maintained check.
 func TestMaintained(t *testing.T) {
 	t.Parallel()
+	threeHundredDaysAgo := time.Now().AddDate(0, 0, -300)
+	twoHundredDaysAgo := time.Now().AddDate(0, 0, -200)
+	oneHundredDaysAgo := time.Now().AddDate(0, 0, -100)
+	fiveDaysAgo := time.Now().AddDate(0, 0, -5)
+	oneDayAgo := time.Now().AddDate(0, 0, -1)
+	ownerAssociation := clients.RepoAssociationOwner
+	noneAssociation := clients.RepoAssociationNone
 	//fieldalignment lint issue. Ignoring it as it is not important for this test.
 	//nolint
 	tests := []struct {
@@ -109,6 +116,190 @@ func TestMaintained(t *testing.T) {
 			issues: []clients.Issue{},
 			expected: checker.CheckResult{
 				Score: 3,
+			},
+		},
+		{
+			name:       "old issues, no comments",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         &threeHundredDaysAgo,
+					AuthorAssociation: &ownerAssociation,
+				},
+				{
+					CreatedAt:         &twoHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name:       "new issues by non-associated users",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         &fiveDaysAgo,
+					AuthorAssociation: &noneAssociation,
+				},
+				{
+					CreatedAt:         &oneDayAgo,
+					AuthorAssociation: &noneAssociation,
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name:       "new issues with comments by non-associated users",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         &fiveDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         &oneDayAgo,
+							AuthorAssociation: &noneAssociation,
+						},
+					},
+				},
+				{
+					CreatedAt:         &oneDayAgo,
+					AuthorAssociation: &noneAssociation,
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         &oneDayAgo,
+							AuthorAssociation: &noneAssociation,
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name:       "old issues with old comments by owner",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         &twoHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         &twoHundredDaysAgo,
+							AuthorAssociation: &ownerAssociation,
+						},
+					},
+				},
+				{
+					CreatedAt:         &threeHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         &twoHundredDaysAgo,
+							AuthorAssociation: &ownerAssociation,
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name:       "old issues with new comments by owner",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         &twoHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         &fiveDaysAgo,
+							AuthorAssociation: &ownerAssociation,
+						},
+					},
+				},
+				{
+					CreatedAt:         &threeHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         &oneDayAgo,
+							AuthorAssociation: &ownerAssociation,
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 1,
+			},
+		},
+		{
+			name:       "new issues by owner",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         &fiveDaysAgo,
+					AuthorAssociation: &ownerAssociation,
+				},
+				{
+					CreatedAt:         &oneDayAgo,
+					AuthorAssociation: &ownerAssociation,
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 1,
+			},
+		},
+		{
+			name:       "old issues closed long ago",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         &threeHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					ClosedAt:          &twoHundredDaysAgo,
+				},
+				{
+					CreatedAt:         &twoHundredDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					ClosedAt:          &oneHundredDaysAgo,
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name:       "new issues closed recently",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         &fiveDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					ClosedAt:          &oneDayAgo,
+				},
+				{
+					CreatedAt:         &oneDayAgo,
+					AuthorAssociation: &noneAssociation,
+					ClosedAt:          &oneDayAgo,
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 1,
 			},
 		},
 	}

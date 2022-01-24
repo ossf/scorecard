@@ -27,11 +27,12 @@ import (
 )
 
 const (
-	pullRequestsToAnalyze = 30
-	issuesToAnalyze       = 30
-	reviewsToAnalyze      = 30
-	labelsToAnalyze       = 30
-	commitsToAnalyze      = 30
+	pullRequestsToAnalyze  = 30
+	issuesToAnalyze        = 30
+	issueCommentsToAnalyze = 30
+	reviewsToAnalyze       = 30
+	labelsToAnalyze        = 30
+	commitsToAnalyze       = 30
 )
 
 // nolint: govet
@@ -86,8 +87,16 @@ type graphqlData struct {
 		Issues struct {
 			Nodes []struct {
 				// nolint: revive,stylecheck // naming according to githubv4 convention.
-				Url       *string
-				UpdatedAt *time.Time
+				Url               *string
+				AuthorAssociation *string
+				CreatedAt         *time.Time
+				ClosedAt          *time.Time
+				Comments          struct {
+					Nodes []struct {
+						AuthorAssociation *string
+						CreatedAt         *time.Time
+					}
+				} `graphql:"comments(last: $issueCommentsToAnalyze)"`
 			}
 		} `graphql:"issues(first: $issuesToAnalyze, orderBy:{field:UPDATED_AT, direction:DESC})"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
@@ -119,13 +128,14 @@ func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) {
 func (handler *graphqlHandler) setup() error {
 	handler.once.Do(func() {
 		vars := map[string]interface{}{
-			"owner":                 githubv4.String(handler.owner),
-			"name":                  githubv4.String(handler.repo),
-			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-			"issuesToAnalyze":       githubv4.Int(issuesToAnalyze),
-			"reviewsToAnalyze":      githubv4.Int(reviewsToAnalyze),
-			"labelsToAnalyze":       githubv4.Int(labelsToAnalyze),
-			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
+			"owner":                  githubv4.String(handler.owner),
+			"name":                   githubv4.String(handler.repo),
+			"pullRequestsToAnalyze":  githubv4.Int(pullRequestsToAnalyze),
+			"issuesToAnalyze":        githubv4.Int(issuesToAnalyze),
+			"issueCommentsToAnalyze": githubv4.Int(issueCommentsToAnalyze),
+			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
+			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
+			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
 		}
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
@@ -218,8 +228,45 @@ func issuesFrom(data *graphqlData) []clients.Issue {
 	for _, issue := range data.Repository.Issues.Nodes {
 		var tmpIssue clients.Issue
 		copyStringPtr(issue.Url, &tmpIssue.URI)
-		copyTimePtr(issue.UpdatedAt, &tmpIssue.UpdatedAt)
+		copyRepoAssociationPtr(getRepoAssociation(issue.AuthorAssociation), &tmpIssue.AuthorAssociation)
+		copyTimePtr(issue.CreatedAt, &tmpIssue.CreatedAt)
+		copyTimePtr(issue.ClosedAt, &tmpIssue.ClosedAt)
+		for _, comment := range issue.Comments.Nodes {
+			var tmpComment clients.IssueComment
+			copyRepoAssociationPtr(getRepoAssociation(comment.AuthorAssociation), &tmpComment.AuthorAssociation)
+			copyTimePtr(comment.CreatedAt, &tmpComment.CreatedAt)
+			tmpIssue.Comments = append(tmpIssue.Comments, tmpComment)
+		}
 		ret = append(ret, tmpIssue)
 	}
 	return ret
+}
+
+// getRepoAssociation returns the association of the user with the repository.
+func getRepoAssociation(association *string) *clients.RepoAssociation {
+	if association == nil {
+		return nil
+	}
+	var repoAssociaton clients.RepoAssociation
+	switch *association {
+	case "COLLABORATOR":
+		repoAssociaton = clients.RepoAssociationCollaborator
+	case "CONTRIBUTOR":
+		repoAssociaton = clients.RepoAssociationContributor
+	case "FIRST_TIMER":
+		repoAssociaton = clients.RepoAssociationFirstTimer
+	case "FIRST_TIME_CONTRIBUTOR":
+		repoAssociaton = clients.RepoAssociationFirstTimeContributor
+	case "MANNEQUIN":
+		repoAssociaton = clients.RepoAssociationMannequin
+	case "MEMBER":
+		repoAssociaton = clients.RepoAssociationMember
+	case "NONE":
+		repoAssociaton = clients.RepoAssociationNone
+	case "OWNER":
+		repoAssociaton = clients.RepoAssociationOwner
+	default:
+		return nil
+	}
+	return &repoAssociaton
 }
