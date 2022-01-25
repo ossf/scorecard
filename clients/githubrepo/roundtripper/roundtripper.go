@@ -17,15 +17,15 @@ package roundtripper
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
-	"go.uber.org/zap"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 const (
@@ -38,7 +38,7 @@ const (
 )
 
 // NewTransport returns a configured http.Transport for use with GitHub.
-func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTripper {
+func NewTransport(ctx context.Context, logger *log.Logger) http.RoundTripper {
 	transport := http.DefaultTransport
 
 	// nolint
@@ -48,19 +48,19 @@ func NewTransport(ctx context.Context, logger *zap.SugaredLogger) http.RoundTrip
 	} else if keyPath := os.Getenv(githubAppKeyPath); keyPath != "" { // Also try a GITHUB_APP
 		appID, err := strconv.Atoi(os.Getenv(githubAppID))
 		if err != nil {
-			log.Panic(err)
+			logger.Error(err, "getting GitHub application ID from environment")
 		}
 		installationID, err := strconv.Atoi(os.Getenv(githubAppInstallationID))
 		if err != nil {
-			log.Panic(err)
+			logger.Error(err, "getting GitHub application installation ID")
 		}
 		transport, err = ghinstallation.NewKeyFromFile(transport, int64(appID), int64(installationID), keyPath)
 		if err != nil {
-			log.Panic(err)
+			logger.Error(err, "getting a private key from file")
 		}
 	} else {
-		log.Fatalf("GitHub token env var is not set. " +
-			"Please read https://github.com/ossf/scorecard#authentication")
+		// TODO(log): Improve error message
+		logger.Error(fmt.Errorf("an error occurred while getting GitHub credentials"), "GitHub token env var is not set. Please read https://github.com/ossf/scorecard#authentication")
 	}
 
 	return MakeCensusTransport(MakeRateLimitedTransport(transport, logger))

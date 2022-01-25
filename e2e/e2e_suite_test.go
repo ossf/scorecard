@@ -21,7 +21,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -41,8 +40,7 @@ var _ = BeforeSuite(func() {
 		"GITHUB_AUTH_TOKEN env variable is not set.The GITHUB_AUTH_TOKEN env variable has to be set to run e2e test.")
 	Expect(len(token)).ShouldNot(BeZero(), "Length of the GITHUB_AUTH_TOKEN env variable is zero.")
 
-	l, err := githubrepo.NewLogger(log.InfoLevel)
-	Expect(err).Should(BeNil())
+	l := log.NewLogger(log.InfoLevel)
 	logger = l
 })
 

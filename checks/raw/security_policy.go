@@ -16,7 +16,6 @@ package raw
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -70,10 +69,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	}
 
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
-	logger, err := githubrepo.NewLogger(log.InfoLevel)
-	if err != nil {
-		return checker.SecurityPolicyData{}, fmt.Errorf("%w", err)
-	}
+	logger := log.NewLogger(log.InfoLevel)
 	dotGitHub := &checker.CheckRequest{
 		Ctx:        c.Ctx,
 		Dlogger:    c.Dlogger,

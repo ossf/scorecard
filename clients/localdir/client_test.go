@@ -24,7 +24,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -63,12 +62,7 @@ func TestClient_CreationAndCaching(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			logger, err := githubrepo.NewLogger(log.DebugLevel)
-			if err != nil {
-				t.Errorf("githubrepo.NewLogger: %v", err)
-			}
-			// nolint
-			defer logger.Zap.Sync() // Flushes buffer, if any.
+			logger := log.NewLogger(log.DebugLevel)
 
 			// Create repo.
 			repo, err := MakeLocalDirRepo(tt.inputFolder)
