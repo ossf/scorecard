@@ -25,7 +25,9 @@ checks:
          
       This check determines whether the project is actively maintained. If the project
       is archived, it receives the lowest score. If there is at least one commit per
-      week during the previous 90 days, the project receives the highest score. 
+      week during the previous 90 days, the project receives the highest score.  If there
+      is activity on issues from users who are collaborators, members, or owners of the
+      project, the project receives a partial score.
 
       A project which is not active might not be patched, have its
       dependencies patched, or be actively tested and used. However, a lack

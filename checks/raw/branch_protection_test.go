@@ -15,8 +15,9 @@
 package raw
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v4/clients"
 )
@@ -92,7 +93,7 @@ func Test_getBranchMapFrom(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := getBranchMapFrom(tt.args.branches); !reflect.DeepEqual(got, tt.want) {
+			if got := getBranchMapFrom(tt.args.branches); !cmp.Equal(got, tt.want) {
 				t.Errorf("getBranchMapFrom() = %v, want %v", got, tt.want)
 			}
 		})
@@ -166,7 +167,7 @@ func Test_branchMap_getBranchByName(t *testing.T) {
 				t.Errorf("branchMap.getBranchByName() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !cmp.Equal(got, tt.want) {
 				t.Errorf("branchMap.getBranchByName() = %v, want %v", got, tt.want)
 			}
 		})
