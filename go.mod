@@ -2,6 +2,13 @@ module github.com/ossf/scorecard/v4
 
 go 1.17
 
+// TODO(go.mod): Is there a reason these deps are kept separately from the
+//               other `require`s?
+require (
+	github.com/rhysd/actionlint v1.6.8
+	gotest.tools v2.2.0+incompatible
+)
+
 require (
 	cloud.google.com/go/bigquery v1.27.0
 	cloud.google.com/go/monitoring v0.1.0 // indirect
@@ -35,13 +42,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	mvdan.cc/sh/v3 v3.4.2
-)
-
-// TODO(go.mod): Is there a reason these deps are kept separately from the
-//               other `require`s?
-require (
-	github.com/rhysd/actionlint v1.6.8
-	gotest.tools v2.2.0+incompatible
 )
 
 require (
