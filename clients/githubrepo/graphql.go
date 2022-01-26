@@ -90,7 +90,6 @@ type graphqlData struct {
 				Url               *string
 				AuthorAssociation *string
 				CreatedAt         *time.Time
-				ClosedAt          *time.Time
 				Comments          struct {
 					Nodes []struct {
 						AuthorAssociation *string
@@ -230,7 +229,6 @@ func issuesFrom(data *graphqlData) []clients.Issue {
 		copyStringPtr(issue.Url, &tmpIssue.URI)
 		copyRepoAssociationPtr(getRepoAssociation(issue.AuthorAssociation), &tmpIssue.AuthorAssociation)
 		copyTimePtr(issue.CreatedAt, &tmpIssue.CreatedAt)
-		copyTimePtr(issue.ClosedAt, &tmpIssue.ClosedAt)
 		for _, comment := range issue.Comments.Nodes {
 			var tmpComment clients.IssueComment
 			copyRepoAssociationPtr(getRepoAssociation(comment.AuthorAssociation), &tmpComment.AuthorAssociation)

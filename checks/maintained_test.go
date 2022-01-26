@@ -34,7 +34,6 @@ func TestMaintained(t *testing.T) {
 	t.Parallel()
 	threeHundredDaysAgo := time.Now().AddDate(0, 0, -300)
 	twoHundredDaysAgo := time.Now().AddDate(0, 0, -200)
-	oneHundredDaysAgo := time.Now().AddDate(0, 0, -100)
 	fiveDaysAgo := time.Now().AddDate(0, 0, -5)
 	oneDayAgo := time.Now().AddDate(0, 0, -1)
 	ownerAssociation := clients.RepoAssociationOwner
@@ -256,46 +255,6 @@ func TestMaintained(t *testing.T) {
 				{
 					CreatedAt:         &oneDayAgo,
 					AuthorAssociation: &ownerAssociation,
-				},
-			},
-			expected: checker.CheckResult{
-				Score: 1,
-			},
-		},
-		{
-			name:       "old issues closed long ago",
-			isarchived: false,
-			commits:    []clients.Commit{},
-			issues: []clients.Issue{
-				{
-					CreatedAt:         &threeHundredDaysAgo,
-					AuthorAssociation: &noneAssociation,
-					ClosedAt:          &twoHundredDaysAgo,
-				},
-				{
-					CreatedAt:         &twoHundredDaysAgo,
-					AuthorAssociation: &noneAssociation,
-					ClosedAt:          &oneHundredDaysAgo,
-				},
-			},
-			expected: checker.CheckResult{
-				Score: 0,
-			},
-		},
-		{
-			name:       "new issues closed recently",
-			isarchived: false,
-			commits:    []clients.Commit{},
-			issues: []clients.Issue{
-				{
-					CreatedAt:         &fiveDaysAgo,
-					AuthorAssociation: &noneAssociation,
-					ClosedAt:          &oneDayAgo,
-				},
-				{
-					CreatedAt:         &oneDayAgo,
-					AuthorAssociation: &noneAssociation,
-					ClosedAt:          &oneDayAgo,
 				},
 			},
 			expected: checker.CheckResult{

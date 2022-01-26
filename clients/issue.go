@@ -20,7 +20,6 @@ import "time"
 type Issue struct {
 	URI               *string
 	CreatedAt         *time.Time
-	ClosedAt          *time.Time
 	AuthorAssociation *RepoAssociation
 	Comments          []IssueComment
 }
