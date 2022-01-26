@@ -4,6 +4,7 @@
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard)](https://goreportcard.com/report/github.com/ossf/scorecard)
 [![codecov](https://codecov.io/gh/ossf/scorecard/branch/main/graph/badge.svg?token=PMJ6NAN9J3)](https://codecov.io/gh/ossf/scorecard)
+[![Slack](https://slack.babeljs.io/badge.svg)](https://slack.openssf.org/#security_scorecards)
 
 <img align="right" src="artwork/openssf_security_compressed.png" width="200" height="400">
 
@@ -456,7 +457,7 @@ Slack Channel                 | [#security_scorecards](https://slack.openssf.org
 
 &nbsp;                                                           | Facilitators      | Company | Profile
 ---------------------------------------------------------------- | ----------------- | ------- | -------
-<img width="30px" src="https://github.com/azeemshaikh38.png">    | Azeem Shaik       | Google  | [azeemshaikh38](https://github.com/azeemshaikh38)
+<img width="30px" src="https://github.com/azeemshaikh38.png">    | Azeem Shaikh      | Google  | [azeemshaikh38](https://github.com/azeemshaikh38)
 <img width="30px" src="https://github.com/laurentsimon.png">     | Laurent Simon     | Google  | [laurentsimon](https://github.com/laurentsimon)
 <img width="30px" src="https://github.com/naveensrinivasan.png"> | Naveen Srinivasan |         | [naveensrinivasan](https://github.com/naveensrinivasan)
 <img width="30px" src="https://github.com/chrismcgehee.png">     | Chris McGehee     | Datto   | [chrismcgehee](https://github.com/chrismcgehee)
