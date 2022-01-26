@@ -125,5 +125,5 @@ type Vulnerability struct {
 	// For OSV: OSV-2020-484
 	// For CVE: CVE-2022-23945
 	ID string
-	// Note:: add fields here if needed.
+	// TODO(vuln): Add additional fields, if needed.
 }
