@@ -119,9 +119,11 @@ type File struct {
 	// TODO: add hash.
 }
 
+// Vulnerability defines a vulnerability
+// from a database.
 type Vulnerability struct {
 	// For OSV: OSV-2020-484
 	// For CVE: CVE-2022-23945
 	ID string
-	// TODO: additional information
+	// Note:: add fields here if needed.
 }

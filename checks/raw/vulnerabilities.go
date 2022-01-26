@@ -44,7 +44,7 @@ func Vulnerabilities(c *checker.CheckRequest) (checker.VulnerabilitiesData, erro
 	for _, id := range vulnIDs {
 		v := checker.Vulnerability{
 			ID: id,
-			// TODO: add fields.
+			// Note: add fields if needed.
 		}
 		vulns = append(vulns, v)
 	}
