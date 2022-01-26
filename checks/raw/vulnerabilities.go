@@ -24,16 +24,19 @@ import (
 func Vulnerabilities(c *checker.CheckRequest) (checker.VulnerabilitiesData, error) {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		return checker.VulnerabilitiesData{}, sce.WithMessage(sce.ErrScorecardInternal, "Client.Repositories.ListCommits")
+		return checker.VulnerabilitiesData{},
+			sce.WithMessage(sce.ErrScorecardInternal, "Client.Repositories.ListCommits")
 	}
 
 	if len(commits) < 1 || commits[0].SHA == "" {
-		return checker.VulnerabilitiesData{}, sce.WithMessage(sce.ErrScorecardInternal, "no commits found")
+		return checker.VulnerabilitiesData{},
+			sce.WithMessage(sce.ErrScorecardInternal, "no commits found")
 	}
 
 	resp, err := c.VulnerabilitiesClient.HasUnfixedVulnerabilities(c.Ctx, commits[0].SHA)
 	if err != nil {
-		return checker.VulnerabilitiesData{}, sce.WithMessage(sce.ErrScorecardInternal, "VulnerabilitiesClient.HasUnfixedVulnerabilities")
+		return checker.VulnerabilitiesData{},
+			sce.WithMessage(sce.ErrScorecardInternal, "VulnerabilitiesClient.HasUnfixedVulnerabilities")
 	}
 
 	vulnIDs := getVulnerabilities(&resp)
