@@ -52,7 +52,7 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 				NumberOfDebug: 0,
 			}
 
-			result := checks.HasUnfixedVulnerabilities(&req)
+			result := checks.Vulnerabilities(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
@@ -79,12 +79,12 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MinResultScore,
+				Score:         checker.MaxResultScore - 3, // 3 vulnerabilities remove 3 points.
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.HasUnfixedVulnerabilities(&checkRequest)
+			result := checks.Vulnerabilities(&checkRequest)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
