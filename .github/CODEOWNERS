@@ -1,5 +1,15 @@
-# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# CODEOWNERS reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-.github/workflows/*       @inferno-chromium @naveensrinivasan @azeemshaikh38 @laurentsimon
-*.md    @olivekl
-docs/checks/internal/checks.yaml    @olivekl
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# the following users/teams will be requested for
+# review when someone opens a pull request.
+# TODO(owners): For ease of management, this should eventually shift to a
+#               defined GitHub team instead of individual usernames
+* @azeemshaikh38 @inferno-chromium @laurentsimon @naveensrinivasan
+
+# Docs
+# TODO(owners): For ease of management, this should eventually shift to a
+#               defined GitHub team instead of individual usernames
+*.md @olivekl
+/docs/ @olivekl
