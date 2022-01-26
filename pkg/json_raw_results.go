@@ -65,6 +65,7 @@ type jsonBranchProtection struct {
 }
 
 type jsonRawResults struct {
+	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"database-vulnerabilities"`
 	// List of binaries found in the repo.
 	Binaries []jsonFile `json:"binaries"`
 	// List of security policy files found in the repo.
@@ -75,6 +76,25 @@ type jsonRawResults struct {
 	DependencyUpdateTools []jsonTool `json:"dependency-update-tools"`
 	// Branch protection settings for development and release branches.
 	BranchProtections []jsonBranchProtection `json:"branch-protections"`
+}
+
+type jsonDatabaseVulnerability struct {
+	// For OSV: OSV-2020-484
+	// For CVE: CVE-2022-23945
+	ID string
+	// TODO: additional information
+}
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addVulnerbilitiesRawResults(vd *checker.VulnerabilitiesData) error {
+	r.Results.DatabaseVulnerabilities = []jsonDatabaseVulnerability{}
+	for _, v := range vd.Vulnerabilities {
+		r.Results.DatabaseVulnerabilities = append(r.Results.DatabaseVulnerabilities,
+			jsonDatabaseVulnerability{
+				ID: v.ID,
+			})
+	}
+	return nil
 }
 
 //nolint:unparam
@@ -148,6 +168,11 @@ func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.Branc
 }
 
 func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) error {
+	// Vulnerabiliries.
+	if err := r.addVulnerbilitiesRawResults(&raw.VulnerabilitiesResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
 	// Binary-Artifacts.
 	if err := r.addBinaryArtifactRawResults(&raw.BinaryArtifactResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())

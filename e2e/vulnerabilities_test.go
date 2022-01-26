@@ -52,7 +52,7 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 				NumberOfDebug: 0,
 			}
 
-			result := checks.HasUnfixedVulnerabilities(&req)
+			result := checks.Vulnerabilities(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())
@@ -84,7 +84,7 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.HasUnfixedVulnerabilities(&checkRequest)
+			result := checks.Vulnerabilities(&checkRequest)
 			// UPGRADEv2: to remove.
 			// Old version.
 			Expect(result.Error).Should(BeNil())

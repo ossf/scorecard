@@ -66,7 +66,7 @@ func TestVulnerabilities(t *testing.T) {
 				Ctx:                   context.TODO(),
 				VulnerabilitiesClient: mockVulnClient,
 			}
-			res := HasUnfixedVulnerabilities(&req)
+			res := Vulnerabilities(&req)
 			if !tt.isError && res.Error != nil {
 				t.Fail()
 			} else if tt.isError && res.Error == nil {

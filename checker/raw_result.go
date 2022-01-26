@@ -17,10 +17,17 @@ package checker
 // RawResults contains results before a policy
 // is applied.
 type RawResults struct {
+	VulnerabilitiesResults      VulnerabilitiesData
 	BinaryArtifactResults       BinaryArtifactData
 	SecurityPolicyResults       SecurityPolicyData
 	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
+}
+
+// VulnerabilitiesData contains the raw results
+// for the Vulnerabilities check.
+type VulnerabilitiesData struct {
+	Vulnerabilities []Vulnerability
 }
 
 // SecurityPolicyData contains the raw results
@@ -110,4 +117,11 @@ type File struct {
 	Offset  uint     // Offset in the file of Path (line for source/text files).
 	Type    FileType // Type of file.
 	// TODO: add hash.
+}
+
+type Vulnerability struct {
+	// For OSV: OSV-2020-484
+	// For CVE: CVE-2022-23945
+	ID string
+	// TODO: additional information
 }

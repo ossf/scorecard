@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2020 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,61 +15,36 @@
 package checks
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-const (
-	// CheckVulnerabilities is the registered name for the OSV check.
-	CheckVulnerabilities = "Vulnerabilities"
-)
+// CheckVulnerabilities is the registered name for the OSV check.
+const CheckVulnerabilities = "Vulnerabilities"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckVulnerabilities, HasUnfixedVulnerabilities); err != nil {
+	if err := registerCheck(CheckVulnerabilities, Vulnerabilities); err != nil {
 		// this should never happen
 		panic(err)
 	}
 }
 
-func getVulnerabilities(resp *clients.VulnerabilitiesResponse) []string {
-	ids := make([]string, 0, len(resp.Vulns))
-	for _, vuln := range resp.Vulns {
-		ids = append(ids, vuln.ID)
-	}
-	return ids
-}
-
-// HasUnfixedVulnerabilities runs Vulnerabilities check.
-func HasUnfixedVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
-	commits, err := c.RepoClient.ListCommits()
+// Vulnerabilities runs Vulnerabilities check.
+func Vulnerabilities(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.Vulnerabilities(c)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "Client.Repositories.ListCommits")
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
-	if len(commits) < 1 || commits[0].SHA == "" {
-		return checker.CreateInconclusiveResult(CheckVulnerabilities, "no commits found")
+	// Set the raw results.
+	if c.RawResults != nil {
+		c.RawResults.VulnerabilitiesResults = rawData
+		return checker.CheckResult{}
 	}
 
-	resp, err := c.VulnerabilitiesClient.HasUnfixedVulnerabilities(c.Ctx, commits[0].SHA)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "VulnerabilitiesClient.HasUnfixedVulnerabilities")
-		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
-	}
-
-	// TODO: take severity into account.
-	vulnIDs := getVulnerabilities(&resp)
-	if len(vulnIDs) > 0 {
-		c.Dlogger.Warn3(&checker.LogMessage{
-			Text: fmt.Sprintf("HEAD is vulnerable to %s", strings.Join(vulnIDs, ", ")),
-		})
-		return checker.CreateMinScoreResult(CheckVulnerabilities, "existing vulnerabilities detected")
-	}
-
-	return checker.CreateMaxScoreResult(CheckVulnerabilities, "no vulnerabilities detected")
+	return evaluation.Vulnerabilities(CheckVulnerabilities, c.Dlogger, &rawData)
 }
