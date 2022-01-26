@@ -7,6 +7,13 @@ updates:
   commit-message:
       prefix: ":seedling:"
   open-pull-requests-limit: 10
+- package-ecosystem: gomod
+  directory: "/tools"
+  schedule:
+    interval: daily
+  commit-message:
+      prefix: ":seedling:"
+  open-pull-requests-limit: 10
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
