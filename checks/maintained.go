@@ -83,15 +83,11 @@ func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 		commitsWithinThreshold+issuesUpdatedWithinThreshold, activityPerWeek*lookBackDays/daysInOneWeek)
 }
 
-// hasActivityByCollaboratorOrHigher returns true if there is activity by an owner/collaborator/member since the
-// threshold.
+// hasActivityByCollaboratorOrHigher returns true if the issue was created or commented on by an
+// owner/collaborator/member since the threshold.
 func hasActivityByCollaboratorOrHigher(issue *clients.Issue, threshold time.Time) bool {
 	if issue == nil {
 		return false
-	}
-	if issue.ClosedAt != nil && issue.ClosedAt.After(threshold) {
-		// To close an issue, one must have sufficient permission in a repository, typically a collaborator or higher.
-		return true
 	}
 	if isCollaboratorOrHigher(issue.AuthorAssociation) && issue.CreatedAt != nil && issue.CreatedAt.After(threshold) {
 		// The creator of the issue is a collaborator or higher.
