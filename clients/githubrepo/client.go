@@ -181,7 +181,7 @@ func (client *Client) Close() error {
 // CreateGithubRepoClient returns a Client which implements RepoClient interface.
 func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
 	// Use our custom roundtripper
-	rt := roundtripper.NewTransport(ctx, logger.Zap.Sugar())
+	rt := roundtripper.NewTransport(ctx, logger)
 	httpClient := &http.Client{
 		Transport: rt,
 	}
@@ -217,18 +217,6 @@ func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.Rep
 			ghClient: client,
 		},
 	}
-}
-
-// NewLogger creates an instance of *log.Logger.
-// TODO(log): Consider removing this function, as it only serves to wrap
-//            `log.NewLogger` for convenience.
-func NewLogger(logLevel log.Level) (*log.Logger, error) {
-	logger, err := log.NewLogger(logLevel)
-	if err != nil {
-		return nil, fmt.Errorf("creating GitHub repo client logger: %w", err)
-	}
-
-	return logger, nil
 }
 
 // CreateOssFuzzRepoClient returns a RepoClient implementation
