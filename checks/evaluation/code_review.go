@@ -38,8 +38,8 @@ func CodeReview(name string, dl checker.DetailLogger,
 		checker.ReviewPlatformGerrit: 0,
 	}
 
-	for _, commit := range r.Commits {
-		if commit.Review == nil && isBot(commit.Committer.Login) {
+	for _, commit := range r.DefaultBranchCommits {
+		if commit.ApprovedReviews == nil && isBot(commit.Committer.Login) {
 			dl.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("skip commit from bot account: %s", commit.Committer),
 			})
@@ -50,25 +50,25 @@ func CodeReview(name string, dl checker.DetailLogger,
 		totalCommits++
 
 		// No reviews.
-		if commit.Review == nil {
+		if commit.ApprovedReviews == nil {
 			continue
 		}
 
-		totalReviewed[commit.Review.Platform.Name]++
+		totalReviewed[commit.ApprovedReviews.Platform.Name]++
 
-		switch commit.Review.Platform.Name {
+		switch commit.ApprovedReviews.Platform.Name {
 		// GitHub reviews.
 		case checker.ReviewPlatformGitHub:
 			dl.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("%s #%d merge request approved",
-					checker.ReviewPlatformGitHub, commit.Review.MergeRequest.Number),
+					checker.ReviewPlatformGitHub, commit.MergeRequest.Number),
 			})
 
 		// Prow reviews.
 		case checker.ReviewPlatformProw:
 			dl.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("%s #%d merge request approved",
-					checker.ReviewPlatformProw, commit.Review.MergeRequest.Number),
+					checker.ReviewPlatformProw, commit.MergeRequest.Number),
 			})
 
 		// Gerrit reviews.

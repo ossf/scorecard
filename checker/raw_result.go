@@ -28,7 +28,7 @@ type RawResults struct {
 // CodeReviewData contains the raw results
 // for the Code-Review check.
 type CodeReviewData struct {
-	Commits []Commit
+	DefaultBranchCommits []DefaultBranchCommit
 }
 
 // VulnerabilitiesData contains the raw results
@@ -111,21 +111,28 @@ type Issue struct {
 	// TODO: add fields, e.g., state=[opened|closed]
 }
 
-// Commit represents a commit.
-type Commit struct {
-	// Note: not all commits are reviewed.
-	// `nil` indicate no reviews.
-	Review *Review
-	// Note: SHA is not directly accessible from a pull request.
-	// TODO:SHA          string
-	Committer User
+// DefaultBranchCommit represents a commit
+// to the default branch.
+type DefaultBranchCommit struct {
+	// Review indicate whether the commit was reviewed,
+	// using scorecard's logic.
+	// Note: this field may disppear if we decide the purely "raw"
+	// results are enough.
+	ApprovedReviews *ApprovedReviews
+	// Fields below are taken directly from cloud
+	// version control systems, e.g. GitHub.
+	SHA           string
+	Committer     User
+	CommitMessage string
+	MergeRequest  *MergeRequest
 }
 
 // MergeRequest represents a merge request.
 type MergeRequest struct {
-	Author User
-	Number int
-	// TODO: add fields, e.g., State=["merged"|"closed"]
+	Author  User
+	Number  int
+	Labels  []string
+	Reviews []Review
 }
 
 // User represent a user.
@@ -140,6 +147,8 @@ var (
 	ReviewPlatformProw = "Prow"
 	// ReviewPlatformGerrit is the name of ReviewPlatform for Gerrit.
 	ReviewPlatformGerrit = "Gerrit"
+	// ReviewStateApproved means an approved review.
+	ReviewStateApproved = "approved"
 )
 
 // ReviewPlatform represents a review platform.
@@ -148,13 +157,19 @@ type ReviewPlatform struct {
 	// TODO: add fields, e.g. config files, etc.
 }
 
-// Review represents a review.
+// ApprovedReviews represents the LGTMs associated with a commit
+// to the default branch.
+type ApprovedReviews struct {
+	Platform ReviewPlatform
+	// Note: this field is only populated for GitHub and Prow.
+	MaintainerReviews []Review
+}
+
+// Review represent a single-maintainer's review.
 type Review struct {
-	// Note: Not all reviews contain a merge request, e.g. for Gerrit.
-	// `nil` indicates there are no merge requests associated with a commit.
-	MergeRequest *MergeRequest
-	Platform     ReviewPlatform
-	Authors      []User
+	Reviewer User
+	State    string
+	// TODO(Review): add fields here if needed.
 }
 
 // File represents a file.

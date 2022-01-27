@@ -107,6 +107,7 @@ type graphqlData struct {
 							Login githubv4.String
 						}
 					}
+					Oid githubv4.GitObjectID
 				}
 				MergedAt githubv4.DateTime
 				Labels   struct {
@@ -242,39 +243,31 @@ func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.P
 						Login: string(commit.Author.User.Login),
 					},
 				},
+				SHA: string(pr.MergeCommit.Oid),
 			}
+
 			for _, label := range pr.Labels.Nodes {
 				toAppend.Labels = append(toAppend.Labels, clients.Label{
 					Name: string(label.Name),
 				})
 			}
+
 			for _, review := range pr.Reviews.Nodes {
-				toAppend.Reviews = append(toAppend.Reviews, clients.Review{
+				r := clients.Review{
 					State: string(review.State),
-				})
-			}
-			ret = append(ret, toAppend)
-			break
-		}
-		for _, label := range pr.Labels.Nodes {
-			toAppend.Labels = append(toAppend.Labels, clients.Label{
-				Name: string(label.Name),
-			})
-		}
-		for _, review := range pr.Reviews.Nodes {
-			r := clients.Review{
-				State: string(review.State),
+				}
+
+				a := clients.User{
+					Login: string(review.Author.Login),
+				}
+				if a.Login != "" {
+					r.Author = &a
+				}
+				toAppend.Reviews = append(toAppend.Reviews, r)
 			}
 
-			a := clients.User{
-				Login: string(review.Author.Login),
-			}
-			if a.Login != "" {
-				r.Author = &a
-			}
-			toAppend.Reviews = append(toAppend.Reviews, r)
+			ret[i] = toAppend
 		}
-		ret[i] = toAppend
 	}
 	return ret
 }

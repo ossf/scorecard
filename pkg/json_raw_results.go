@@ -64,6 +64,11 @@ type jsonBranchProtection struct {
 	Name       string                        `json:"name"`
 }
 
+type jsonReview struct {
+	Reviewer jsonUser `json:"reviewer`
+	State    string   `json:"state`
+}
+
 type jsonUser struct {
 	Login string `json:"login"`
 }
@@ -72,20 +77,25 @@ type jsonReviewPlatform struct {
 	Name string `json:"name"`
 }
 
-type jsonReview struct {
-	MergeRequest *jsonMergeRequest  `json:"merge-request"`
-	Platform     jsonReviewPlatform `json:"platform"`
-	Authors      []jsonUser         `json:"authors"`
+type jsonApprovedReviews struct {
+	Platform          jsonReviewPlatform `json:"platform"`
+	MaintainerReviews []jsonReview       `json:"reviews"`
 }
 
 type jsonMergeRequest struct {
-	Author jsonUser `json:"author"`
-	Number int      `json:"number"`
+	Author  jsonUser     `json:"author"`
+	Number  int          `json:"number"`
+	Labels  []string     `json:"labels"`
+	Reviews []jsonReview `json:"reviews"`
 }
 
-type jsonCommit struct {
-	Review    *jsonReview `json:"review"`
-	Committer jsonUser    `json:"committer"`
+type jsonDefaultBranchCommit struct {
+	ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
+	Committer       jsonUser             `json:"committer"`
+	MergeRequest    *jsonMergeRequest    `json:"merge-request"`
+	CommitMessage   string               `json:"commit-message"`
+	SHA             string               `json:"sha"`
+
 	// TODO: check runs, etc.
 }
 
@@ -102,47 +112,66 @@ type jsonRawResults struct {
 	// Branch protection settings for development and release branches.
 	BranchProtections []jsonBranchProtection `json:"branch-protections"`
 	// Commits.
-	Commits []jsonCommit `json:"commits"`
+	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
 }
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewData) error {
-	r.Results.Commits = []jsonCommit{}
-	for _, commit := range cr.Commits {
-		com := jsonCommit{
+	r.Results.DefaultBranchCommits = []jsonDefaultBranchCommit{}
+	for _, commit := range cr.DefaultBranchCommits {
+		com := jsonDefaultBranchCommit{
 			Committer: jsonUser{
 				Login: commit.Committer.Login,
 			},
+			CommitMessage: commit.CommitMessage,
+			SHA:           commit.SHA,
 		}
 
-		if commit.Review != nil {
-			review := jsonReview{
+		// Approved reviews.
+		if commit.ApprovedReviews != nil {
+			reviews := jsonApprovedReviews{
 				Platform: jsonReviewPlatform{
-					Name: commit.Review.Platform.Name,
+					Name: commit.ApprovedReviews.Platform.Name,
 				},
 			}
-			// Reviewers' names.
-			for _, n := range commit.Review.Authors {
-				review.Authors = append(review.Authors, jsonUser{
-					Login: n.Login,
+
+			// Reviews.
+			for _, n := range commit.ApprovedReviews.MaintainerReviews {
+				reviews.MaintainerReviews = append(reviews.MaintainerReviews,
+					jsonReview{
+						Reviewer: jsonUser{
+							Login: n.Reviewer.Login,
+						},
+						State: n.State,
+					})
+			}
+		}
+
+		// Merge request field.
+		if commit.MergeRequest != nil {
+			mr := jsonMergeRequest{
+				Number: commit.MergeRequest.Number,
+				Author: jsonUser{
+					Login: commit.MergeRequest.Author.Login,
+				},
+				Labels: commit.MergeRequest.Labels,
+			}
+
+			for _, r := range commit.MergeRequest.Reviews {
+				mr.Reviews = append(mr.Reviews, jsonReview{
+					State: r.State,
+					Reviewer: jsonUser{
+						Login: r.Reviewer.Login,
+					},
 				})
 			}
 
-			if commit.Review.MergeRequest != nil {
-				mr := jsonMergeRequest{
-					Number: commit.Review.MergeRequest.Number,
-					Author: jsonUser{
-						Login: commit.Review.MergeRequest.Author.Login,
-					},
-				}
-
-				review.MergeRequest = &mr
-			}
-
-			com.Review = &review
+			com.MergeRequest = &mr
 		}
 
-		r.Results.Commits = append(r.Results.Commits, com)
+		com.CommitMessage = commit.CommitMessage
+
+		r.Results.DefaultBranchCommits = append(r.Results.DefaultBranchCommits, com)
 	}
 	return nil
 }
