@@ -7,7 +7,7 @@ require (
 	github.com/golangci/golangci-lint v1.44.0
 	github.com/google/addlicense v1.0.0
 	github.com/google/ko v0.9.4-0.20211123143443-5787600e9220
-	github.com/goreleaser/goreleaser v1.3.1
+	github.com/goreleaser/goreleaser v1.4.1
 	github.com/naveensrinivasan/stunning-tribble v0.4.2
 	github.com/onsi/ginkgo v1.16.5
 	google.golang.org/protobuf v1.27.1
@@ -206,6 +206,8 @@ require (
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moricho/tparallel v0.2.1 // indirect
+	github.com/muesli/mango v0.0.0-20220118122812-f367188b892e // indirect
+	github.com/muesli/roff v0.1.0 // indirect
 	github.com/nakabonne/nestif v0.3.1 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354 // indirect
 	github.com/nishanths/exhaustive v0.7.11 // indirect
