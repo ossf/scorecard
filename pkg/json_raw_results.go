@@ -131,10 +131,12 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 			Desc: t.Desc,
 		})
 		for _, f := range t.ConfigFiles {
-			r.Results.DependencyUpdateTools[offset].ConfigFiles =
-				append(r.Results.DependencyUpdateTools[offset].ConfigFiles, jsonFile{
+			r.Results.DependencyUpdateTools[offset].ConfigFiles = append(
+				r.Results.DependencyUpdateTools[offset].ConfigFiles,
+				jsonFile{
 					Path: f.Path,
-				})
+				},
+			)
 		}
 	}
 	return nil
