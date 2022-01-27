@@ -22,6 +22,9 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
@@ -339,9 +342,11 @@ func createSARIFHeader() sarif210 {
 }
 
 func createSARIFTool(url, name, version string) tool {
+	titleCaser := cases.Title(language.English)
+
 	return tool{
 		Driver: driver{
-			Name:           strings.Title(name),
+			Name:           titleCaser.String(name),
 			InformationURI: url,
 			SemVersion:     version,
 			Rules:          nil,
