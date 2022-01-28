@@ -17,7 +17,10 @@ package raw
 import (
 	"testing"
 
+	"github.com/golang/mock/gomock"
+
 	"github.com/ossf/scorecard/v4/checker"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
 func Test_checkDependencyFileExists(t *testing.T) {
@@ -118,6 +121,56 @@ func Test_checkDependencyFileExists(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("checkDependencyFileExists() = %v, want %v for test %v", got, tt.want, tt.name)
+			}
+		})
+	}
+}
+
+// TestDependencyUpdateTool tests the DependencyUpdateTool function.
+func TestDependencyUpdateTool(t *testing.T) {
+	t.Parallel()
+	//nolint
+	tests := []struct {
+		name    string
+		wantErr bool
+		want    int
+		files   []string
+	}{
+		{
+			name:    "dependency update tool",
+			wantErr: false,
+			want:    1,
+			files: []string{
+				".github/dependabot.yml",
+			},
+		},
+		{
+			name:    "foo bar",
+			wantErr: false,
+			want:    0,
+			files: []string{
+				".github/foobar.yml",
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
+
+			got, err := DependencyUpdateTool(mockRepo)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DependencyUpdateTool() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				if len(got.Tools) != tt.want {
+					t.Errorf("DependencyUpdateTool() = %v, want %v", got.Tools, tt.want)
+				}
 			}
 		})
 	}
