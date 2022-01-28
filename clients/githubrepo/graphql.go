@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -33,6 +34,7 @@ const (
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
 	commitsToAnalyze       = 30
+	allowedCommitterName   = "github"
 )
 
 // nolint: govet
@@ -48,8 +50,9 @@ type graphqlData struct {
 							Message       githubv4.String
 							Oid           githubv4.GitObjectID
 							Committer     struct {
+								Name *string
 								User struct {
-									Login githubv4.String
+									Login *string
 								}
 							}
 						}
@@ -138,10 +141,11 @@ func (handler *graphqlHandler) setup() error {
 		}
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+			return
 		}
 		handler.archived = bool(handler.data.Repository.IsArchived)
 		handler.prs = pullRequestsFrom(handler.data)
-		handler.commits = commitsFrom(handler.data)
+		handler.commits, handler.errSetup = commitsFrom(handler.data)
 		handler.issues = issuesFrom(handler.data)
 	})
 	return handler.errSetup
@@ -207,19 +211,30 @@ func pullRequestsFrom(data *graphqlData) []clients.PullRequest {
 	return ret
 }
 
-func commitsFrom(data *graphqlData) []clients.Commit {
+func commitsFrom(data *graphqlData) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.DefaultBranchRef.Target.Commit.History.Nodes {
+		var committer string
+		if commit.Committer.User.Login != nil {
+			committer = *commit.Committer.User.Login
+		} else if commit.Committer.Name != nil {
+			committer = *commit.Committer.Name
+			// committer.name will be set to `github` if this was auto-merged by GitHub.
+			if !strings.EqualFold(committer, allowedCommitterName) {
+				return nil, sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("committer name is not '%s': %s", allowedCommitterName, committer))
+			}
+		}
 		ret = append(ret, clients.Commit{
 			CommittedDate: commit.CommittedDate.Time,
 			Message:       string(commit.Message),
 			SHA:           string(commit.Oid),
 			Committer: clients.User{
-				Login: string(commit.Committer.User.Login),
+				Login: committer,
 			},
 		})
 	}
-	return ret
+	return ret, nil
 }
 
 func issuesFrom(data *graphqlData) []clients.Issue {
