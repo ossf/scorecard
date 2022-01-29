@@ -461,7 +461,7 @@ Slack Channel                 | [#security_scorecards](https://slack.openssf.org
 <img width="30px" src="https://github.com/laurentsimon.png">     | Laurent Simon     | Google  | [laurentsimon](https://github.com/laurentsimon)
 <img width="30px" src="https://github.com/naveensrinivasan.png"> | Naveen Srinivasan |         | [naveensrinivasan](https://github.com/naveensrinivasan)
 <img width="30px" src="https://github.com/chrismcgehee.png">     | Chris McGehee     | Datto   | [chrismcgehee](https://github.com/chrismcgehee)
-<img width="30px" src="https://github.com/justaugustus.png">     | Justin Augustus   | Cisco   | [justaugustus](https://github.com/justaugutus)
+<img width="30px" src="https://github.com/justaugustus.png">     | Stephen Augustus  | Cisco   | [justaugustus](https://github.com/justaugustus)
 
 ### Report a Security Issue
 
