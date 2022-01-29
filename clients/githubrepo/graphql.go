@@ -180,7 +180,7 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 }
 
 func pullRequestsFrom(data *graphqlData) []clients.PullRequest {
-	ret := make([]clients.PullRequest, len(data.Repository.PullRequests.Nodes))
+	var ret []clients.PullRequest
 	for i := range data.Repository.PullRequests.Nodes {
 		pr := data.Repository.PullRequests.Nodes[i]
 		toAppend := clients.PullRequest{
@@ -206,7 +206,7 @@ func pullRequestsFrom(data *graphqlData) []clients.PullRequest {
 				State: string(review.State),
 			})
 		}
-		ret[i] = toAppend
+		ret = append(ret, toAppend)
 	}
 	return ret
 }
