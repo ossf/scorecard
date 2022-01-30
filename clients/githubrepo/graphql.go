@@ -49,44 +49,53 @@ type graphqlData struct {
 							CommittedDate githubv4.DateTime
 							Message       githubv4.String
 							Oid           githubv4.GitObjectID
-							Committer     struct {
+							Author        struct {
+								User struct {
+									Login githubv4.String
+								}
+							}
+							Committer struct {
 								Name *string
 								User struct {
 									Login *string
 								}
 							}
+							AssociatedPullRequests struct {
+								Nodes []struct {
+									Repository struct {
+										Name  githubv4.String
+										Owner struct {
+											Login githubv4.String
+										}
+									}
+									Author struct {
+										Login githubv4.String
+									}
+									Number      githubv4.Int
+									HeadRefOid  githubv4.String
+									MergedAt    githubv4.DateTime
+									MergeCommit struct {
+										// NOTE: only used for sanity check.
+										// Use original commit oid instead.
+										Oid githubv4.GitObjectID
+									}
+									Labels struct {
+										Nodes []struct {
+											Name githubv4.String
+										}
+									} `graphql:"labels(last: $labelsToAnalyze)"`
+									Reviews struct {
+										Nodes []struct {
+											State githubv4.String
+										}
+									} `graphql:"reviews(last: $reviewsToAnalyze)"`
+								}
+							} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 						}
 					} `graphql:"history(first: $commitsToAnalyze)"`
 				} `graphql:"... on Commit"`
 			}
 		}
-		PullRequests struct {
-			Nodes []struct {
-				Author struct {
-					Login githubv4.String
-				}
-				Number      githubv4.Int
-				HeadRefOid  githubv4.String
-				MergeCommit struct {
-					Author struct {
-						User struct {
-							Login githubv4.String
-						}
-					}
-				}
-				MergedAt githubv4.DateTime
-				Labels   struct {
-					Nodes []struct {
-						Name githubv4.String
-					}
-				} `graphql:"labels(last: $labelsToAnalyze)"`
-				Reviews struct {
-					Nodes []struct {
-						State githubv4.String
-					}
-				} `graphql:"reviews(last: $reviewsToAnalyze)"`
-			}
-		} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
 		Issues struct {
 			Nodes []struct {
 				// nolint: revive,stylecheck // naming according to githubv4 convention.
@@ -144,8 +153,11 @@ func (handler *graphqlHandler) setup() error {
 			return
 		}
 		handler.archived = bool(handler.data.Repository.IsArchived)
-		handler.prs = pullRequestsFrom(handler.data)
+		handler.prs = pullRequestsFrom(handler.data, handler.owner, handler.repo)
 		handler.commits, handler.errSetup = commitsFrom(handler.data)
+		if handler.errSetup != nil {
+			return
+		}
 		handler.issues = issuesFrom(handler.data)
 	})
 	return handler.errSetup
@@ -179,34 +191,43 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-func pullRequestsFrom(data *graphqlData) []clients.PullRequest {
-	ret := make([]clients.PullRequest, len(data.Repository.PullRequests.Nodes))
-	for i := range data.Repository.PullRequests.Nodes {
-		pr := data.Repository.PullRequests.Nodes[i]
-		toAppend := clients.PullRequest{
-			Number:   int(pr.Number),
-			HeadSHA:  string(pr.HeadRefOid),
-			MergedAt: pr.MergedAt.Time,
-			Author: clients.User{
-				Login: string(pr.Author.Login),
-			},
-			MergeCommit: clients.Commit{
-				Committer: clients.User{
-					Login: string(pr.MergeCommit.Author.User.Login),
+func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.PullRequest {
+	var ret []clients.PullRequest
+	for _, commit := range data.Repository.DefaultBranchRef.Target.Commit.History.Nodes {
+		for i := range commit.AssociatedPullRequests.Nodes {
+			pr := commit.AssociatedPullRequests.Nodes[i]
+			if pr.MergeCommit.Oid != commit.Oid ||
+				string(pr.Repository.Name) != repoName ||
+				string(pr.Repository.Owner.Login) != repoOwner {
+				continue
+			}
+			toAppend := clients.PullRequest{
+				Number:   int(pr.Number),
+				HeadSHA:  string(pr.HeadRefOid),
+				MergedAt: pr.MergedAt.Time,
+				Author: clients.User{
+					Login: string(pr.Author.Login),
 				},
-			},
+				// TODO(#575): Use the original commit data here directly.
+				MergeCommit: clients.Commit{
+					Committer: clients.User{
+						Login: string(commit.Author.User.Login),
+					},
+				},
+			}
+			for _, label := range pr.Labels.Nodes {
+				toAppend.Labels = append(toAppend.Labels, clients.Label{
+					Name: string(label.Name),
+				})
+			}
+			for _, review := range pr.Reviews.Nodes {
+				toAppend.Reviews = append(toAppend.Reviews, clients.Review{
+					State: string(review.State),
+				})
+			}
+			ret = append(ret, toAppend)
+			break
 		}
-		for _, label := range pr.Labels.Nodes {
-			toAppend.Labels = append(toAppend.Labels, clients.Label{
-				Name: string(label.Name),
-			})
-		}
-		for _, review := range pr.Reviews.Nodes {
-			toAppend.Reviews = append(toAppend.Reviews, clients.Review{
-				State: string(review.State),
-			})
-		}
-		ret[i] = toAppend
 	}
 	return ret
 }
