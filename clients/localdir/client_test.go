@@ -38,13 +38,13 @@ func TestClient_CreationAndCaching(t *testing.T) {
 		{
 			name:        "invalid fullpath",
 			outputFiles: []string{},
-			inputFolder: "file:///invalid/fullpath",
+			inputFolder: "invalid/fullpath",
 			err:         os.ErrNotExist,
 		},
 		{
 			name:        "invalid relative path",
 			outputFiles: []string{},
-			inputFolder: "file://invalid/relative/path",
+			inputFolder: "invalid/relative/path",
 			err:         os.ErrNotExist,
 		},
 		{
@@ -52,7 +52,7 @@ func TestClient_CreationAndCaching(t *testing.T) {
 			outputFiles: []string{
 				"file0", "dir1/file1", "dir1/dir2/file2",
 			},
-			inputFolder: "file://testdata/repo0",
+			inputFolder: "testdata/repo0",
 			err:         nil,
 		},
 	}
