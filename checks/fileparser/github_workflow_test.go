@@ -254,3 +254,210 @@ func TestIsGitHubOwnedAction(t *testing.T) {
 		})
 	}
 }
+
+// TestGetJobName tests the GetJobName function.
+func TestGetJobName(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		job *actionlint.Job
+	}
+	var name actionlint.String
+	name.Value = "foo"
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "job name",
+			args: args{
+				job: &actionlint.Job{
+					Name: &name,
+				},
+			},
+			want: "foo",
+		},
+		{
+			name: "job name is empty",
+			args: args{
+				job: &actionlint.Job{},
+			},
+			want: "",
+		},
+		{
+			name: "job is nil",
+			args: args{},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := GetJobName(tt.args.job); got != tt.want {
+				t.Errorf("GetJobName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetStepName(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		step *actionlint.Step
+	}
+	var name actionlint.String
+	name.Value = "foo"
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "step name",
+			args: args{
+				step: &actionlint.Step{
+					Name: &name,
+				},
+			},
+			want: "foo",
+		},
+		{
+			name: "step name is empty",
+			args: args{
+				step: &actionlint.Step{},
+			},
+			want: "",
+		},
+		{
+			name: "step is nil",
+			args: args{},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := GetStepName(tt.args.step); got != tt.want {
+				t.Errorf("GetStepName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsStepExecKind(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		step *actionlint.Step
+		kind actionlint.ExecKind
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "step is nil",
+			args: args{},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := IsStepExecKind(tt.args.step, tt.args.kind); got != tt.want {
+				t.Errorf("IsStepExecKind() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetLineNumber(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		pos *actionlint.Pos
+	}
+	//nolint
+	tests := []struct {
+		name string
+		args args
+		want uint
+	}{
+		{
+			name: "line number",
+			args: args{
+				pos: &actionlint.Pos{
+					Line: 1,
+				},
+			},
+			want: 1,
+		},
+		{
+			name: "line number is empty",
+			args: args{
+				pos: &actionlint.Pos{
+					Line: 1,
+				},
+			},
+			want: 1,
+		},
+		{
+			name: "pos is nil",
+			args: args{},
+			want: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := GetLineNumber(tt.args.pos); got != tt.want {
+				t.Errorf("GetLineNumber() = %v, want %v for %v", got, tt.want, tt.name)
+			}
+		})
+	}
+}
+
+func TestFormatActionlintError(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		errs []*actionlint.Error
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "no errors",
+			args: args{
+				errs: []*actionlint.Error{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "one error",
+			args: args{
+				errs: []*actionlint.Error{
+					{
+						Message: "foo",
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if err := FormatActionlintError(tt.args.errs); (err != nil) != tt.wantErr {
+				t.Errorf("FormatActionlintError() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
