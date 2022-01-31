@@ -310,6 +310,7 @@ low score is therefore not a definitive indication that the project is at risk.
 
 **Remediation steps**
 - Signup for automatic dependency updates with [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
+- Renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning  via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
 
 ## Fuzzing 
 
@@ -517,7 +518,7 @@ information about a bug is not publicly visible.
 
 **Remediation steps**
 - Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.
-- The file should contain information on what constitutes a vulnerability and a way to report it securely, e.g., an issue tracker with private issue support, encrypted email with a published public key. Follow the [coordinated vulnerability disclosure guidelines](https://github.com/ossf/oss-vulnerability-guide/blob/main/guide.md) to respond to vulnerability disclosures.
+- The file should contain information on what constitutes a vulnerability and a way to report it securely (e.g. issue tracker with private issue support, encrypted email with a published public key). Follow the  [coordinated vulnerability disclosure guidelines](https://github.com/ossf/oss-vulnerability-guide/blob/main/guide.md) to respond to vulnerability disclosures.
 - For GitHub, see more information [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository).
 
 ## Signed-Releases 
