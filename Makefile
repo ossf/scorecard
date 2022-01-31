@@ -17,22 +17,14 @@ LDFLAGS=$(shell ./scripts/version-ldflags)
 ############################### make help #####################################
 .PHONY: help
 help:  ## Display this help
-	@awk \
-		-v "col=${COLOR}" -v "nocol=${NOCOLOR}" \
-		' \
-			BEGIN { \
-				FS = ":.*##" ; \
-				printf "Available targets:\n"; \
-			} \
-			/^[a-zA-Z0-9_-]+:.*?##/ { \
-				printf "  %s%-25s%s %s\n", col, $$1, nocol, $$2 \
-			} \
-			/^##@/ { \
-				printf "\n%s%s%s\n", col, substr($$0, 5), nocol \
-			} \
-		' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*##"; \
+			printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ \
+			{ printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } \
+			/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
 ###############################################################################
 
+##@ Development
 ################################ make install #################################
 .PHONY: install
 install: ## Installs all dependencies needed to compile Scorecard
@@ -46,6 +38,7 @@ $(PROTOC):
 	endif
 ###############################################################################
 
+##@ Build
 ################################## make all ###################################
 all:  ## Runs build, test and verify
 all-targets = build check-linter check-osv unit-test validate-docs add-projects validate-projects
@@ -260,6 +253,7 @@ cron-github-server-docker:
 	DOCKER_BUILDKIT=1 docker build . --file clients/githubrepo/roundtripper/tokens/server/Dockerfile --tag ${IMAGE_NAME}-github-server
 ###############################################################################
 
+##@ Tests
 ################################# make test ###################################
 test-targets = unit-test e2e ci-e2e
 .PHONY: test $(test-targets)
