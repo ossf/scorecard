@@ -79,7 +79,7 @@ checks:
         maintaining stable forks should evaluate whether this behavior is satisfactory
         before turning it on.
       - >-
-        Renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning 
+        Unlike dependabot, renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning 
         via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without
         aditional manual effort.
   Binary-Artifacts:
