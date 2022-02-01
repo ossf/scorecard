@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package raw
+package checks
 
 import (
 	"testing"
@@ -24,57 +24,12 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func Test_isSecurityRstFound(t *testing.T) {
-	t.Parallel()
-	type args struct {
-		name string
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{
-			name: "test1",
-			args: args{
-				name: "test1",
-			},
-			want: false,
-		},
-		{
-			name: "docs/security.rst",
-			args: args{
-				name: "docs/security.rst",
-			},
-			want: true,
-		},
-		{
-			name: "doc/security.rst",
-			args: args{
-				name: "doc/security.rst",
-			},
-			want: true,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			if got := isSecurityRstFound(tt.args.name); got != tt.want {
-				t.Errorf("isSecurityRstFound() = %v, want %v for %v", got, tt.want, tt.name)
-			}
-		})
-	}
-}
-
-// TestSecurityPolicy tests the security policy.
 func TestSecurityPolicy(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
 		name    string
 		files   []string
-		result  checker.SecurityPolicyData
 		wantErr bool
 		want    scut.TestReturn
 	}{
@@ -83,11 +38,19 @@ func TestSecurityPolicy(t *testing.T) {
 			files: []string{
 				"security.md",
 			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
+			},
 		},
 		{
 			name: ".github/security.md",
 			files: []string{
 				".github/security.md",
+			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
 			},
 		},
 		{
@@ -95,11 +58,19 @@ func TestSecurityPolicy(t *testing.T) {
 			files: []string{
 				"docs/security.md",
 			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
+			},
 		},
 		{
 			name: "docs/security.rst",
 			files: []string{
 				"docs/security.rst",
+			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
 			},
 		},
 		{
@@ -107,12 +78,17 @@ func TestSecurityPolicy(t *testing.T) {
 			files: []string{
 				"doc/security.rst",
 			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
+			},
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 
@@ -123,19 +99,10 @@ func TestSecurityPolicy(t *testing.T) {
 				Dlogger:    &dl,
 			}
 
-			res, err := SecurityPolicy(&c)
+			res := SecurityPolicy(&c)
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.want, &checker.CheckResult{}, &dl) {
-				t.Errorf("test failed: log message not present: %+v , for test %v", tt.want, tt.name)
-			}
-
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SecurityPolicy() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			if len(res.Files) != len(tt.files) {
-				t.Errorf("test failed: number of files returned is not correct: %+v", res)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.want, &res, &dl) {
+				t.Errorf("test failed: log message not present: %+v", tt.want)
 			}
 		})
 	}
