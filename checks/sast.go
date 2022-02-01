@@ -78,7 +78,8 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 			const sastWeight = 3
 			const codeQlWeight = 7
 			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, codeQlScore: codeQlWeight})
-			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not run on all commmits", score)
+			return checker.CreateResultWithScore(CheckSAST,
+				fmt.Sprintf("SAST tool (CodeQL) detected but not run on all commits"), score)
 		default:
 			return checker.CreateRuntimeErrorResult(CheckSAST, sce.WithMessage(sce.ErrScorecardInternal, "contact team"))
 		}
@@ -87,7 +88,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	// Sast inconclusive.
 	if codeQlScore != checker.InconclusiveResultScore {
 		if codeQlScore == checker.MaxResultScore {
-			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool detected")
+			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool (CodeQL) detected")
 		}
 		return checker.CreateMinScoreResult(CheckSAST, "no SAST tool detected")
 	}

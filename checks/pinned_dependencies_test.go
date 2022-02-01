@@ -472,6 +472,9 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 	}
 }
 
+func TestDockerfileInvalidFiles(t *testing.T) {
+}
+
 func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -483,26 +486,26 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 			endLine   uint
 		}
 	}{
-		// {
-		// 	name:     "dockerfile downloads",
-		// 	filename: "./testdata/Dockerfile-download-lines",
-		// 	expected: []struct {
-		// 		snippet   string
-		// 		startLine uint
-		// 		endLine   uint
-		// 	}{
-		// 		{
-		// 			snippet:   "curl bla | bash",
-		// 			startLine: 35,
-		// 			endLine:   36,
-		// 		},
-		// 		{
-		// 			snippet:   "pip install -r requirements.txt",
-		// 			startLine: 41,
-		// 			endLine:   42,
-		// 		},
-		// 	},
-		// },
+		{
+			name:     "dockerfile downloads",
+			filename: "./testdata/Dockerfile-download-lines",
+			expected: []struct {
+				snippet   string
+				startLine uint
+				endLine   uint
+			}{
+				{
+					snippet:   "curl bla | bash",
+					startLine: 35,
+					endLine:   36,
+				},
+				{
+					snippet:   "pip install -r requirements.txt",
+					startLine: 41,
+					endLine:   42,
+				},
+			},
+		},
 		{
 			name:     "dockerfile downloads multi-run",
 			filename: "./testdata/Dockerfile-download-multi-runs",
