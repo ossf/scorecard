@@ -118,7 +118,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 	}{
 		{
 			name:        "With LICENSE",
-			inputFolder: "file://testdata/licensedir/withlicense",
+			inputFolder: "testdata/licensedir/withlicense",
 			expected: scut.TestReturn{
 				Error:        nil,
 				Score:        checker.MaxResultScore,
@@ -128,7 +128,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 		},
 		{
 			name:        "Without LICENSE",
-			inputFolder: "file://testdata/licensedir/withoutlicense",
+			inputFolder: "testdata/licensedir/withoutlicense",
 			expected: scut.TestReturn{
 				Error: nil,
 				Score: checker.MinResultScore,
@@ -143,6 +143,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 
 			logger := log.NewLogger(log.DebugLevel)
 
+			// TODO: Use gMock instead of Localdir here.
 			ctrl := gomock.NewController(t)
 			repo, err := localdir.MakeLocalDirRepo(tt.inputFolder)
 

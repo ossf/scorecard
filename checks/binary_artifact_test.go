@@ -37,7 +37,7 @@ func TestBinaryArtifacts(t *testing.T) {
 	}{
 		{
 			name:        "Jar file",
-			inputFolder: "file://testdata/binaryartifacts/jars",
+			inputFolder: "testdata/binaryartifacts/jars",
 			err:         nil,
 			expected: checker.CheckResult{
 				Score: 9,
@@ -46,7 +46,7 @@ func TestBinaryArtifacts(t *testing.T) {
 		},
 		{
 			name:        "non binary file",
-			inputFolder: "file://testdata/licensedir/withlicense",
+			inputFolder: "testdata/licensedir/withlicense",
 			err:         nil,
 			expected: checker.CheckResult{
 				Score: 10,
@@ -61,6 +61,7 @@ func TestBinaryArtifacts(t *testing.T) {
 
 			logger := log.NewLogger(log.DebugLevel)
 
+			// TODO: Use gMock instead of Localdir here.
 			ctrl := gomock.NewController(t)
 			repo, err := localdir.MakeLocalDirRepo(tt.inputFolder)
 

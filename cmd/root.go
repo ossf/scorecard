@@ -17,14 +17,11 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 
@@ -40,31 +37,13 @@ import (
 	spol "github.com/ossf/scorecard/v4/policy"
 )
 
-var (
-	repo        string
-	raw         bool
-	local       string
-	checksToRun []string
-	metaData    []string
-	logLevel    string
-	format      string
-	npm         string
-	pypi        string
-	rubygems    string
-	showDetails bool
-	policyFile  string
-	rootCmd     = &cobra.Command{
-		Use:   scorecardUse,
-		Short: scorecardShort,
-		Long:  scorecardLong,
-		Run:   scorecardCmd,
-	}
-)
-
 const (
 	formatJSON    = "json"
 	formatSarif   = "sarif"
 	formatDefault = "default"
+	formatRaw     = "raw"
+
+	cliEnableSarif = "ENABLE_SARIF"
 
 	// These strings must be the same as the ones used in
 	// checks.yaml for the "repos" field.
@@ -78,52 +57,49 @@ const (
 	scorecardShort = "Security Scorecards"
 )
 
-const cliEnableSarif = "ENABLE_SARIF"
+var rootCmd = &cobra.Command{
+	Use:   scorecardUse,
+	Short: scorecardShort,
+	Long:  scorecardLong,
+	Run:   scorecardCmd,
+}
 
 //nolint:gochecknoinits
 func init() {
-	rootCmd.Flags().StringVar(&repo, "repo", "", "repository to check")
-	rootCmd.Flags().StringVar(&local, "local", "", "local folder to check")
+	rootCmd.Flags().StringVar(&flagRepo, "repo", "", "repository to check")
+	rootCmd.Flags().StringVar(&flagLocal, "local", "", "local folder to check")
 	rootCmd.Flags().StringVar(
-		&logLevel,
+		&flagLogLevel,
 		"verbosity",
 		sclog.DefaultLevel.String(),
 		"set the log level",
 	)
 	rootCmd.Flags().StringVar(
-		&npm, "npm", "",
+		&flagNPM, "npm", "",
 		"npm package to check, given that the npm package has a GitHub repository")
 	rootCmd.Flags().StringVar(
-		&pypi, "pypi", "",
+		&flagPyPI, "pypi", "",
 		"pypi package to check, given that the pypi package has a GitHub repository")
 	rootCmd.Flags().StringVar(
-		&rubygems, "rubygems", "",
+		&flagRubyGems, "rubygems", "",
 		"rubygems package to check, given that the rubygems package has a GitHub repository")
 	rootCmd.Flags().StringSliceVar(
-		&metaData, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
-	rootCmd.Flags().BoolVar(&showDetails, "show-details", false, "show extra details about each check")
+		&flagMetadata, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
+	rootCmd.Flags().BoolVar(&flagShowDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
 	for checkName := range getAllChecks() {
 		checkNames = append(checkNames, checkName)
 	}
-	rootCmd.Flags().StringSliceVar(&checksToRun, "checks", []string{},
+	rootCmd.Flags().StringSliceVar(&flagChecksToRun, "checks", []string{},
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
 
-	var sarifEnabled bool
-	_, sarifEnabled = os.LookupEnv(cliEnableSarif)
-	if sarifEnabled {
-		rootCmd.Flags().StringVar(&policyFile, "policy", "", "policy to enforce")
-		rootCmd.Flags().StringVar(&format, "format", formatDefault,
+	if isSarifEnabled() {
+		rootCmd.Flags().StringVar(&flagPolicyFile, "policy", "", "policy to enforce")
+		rootCmd.Flags().StringVar(&flagFormat, "format", formatDefault,
 			"output format allowed values are [default, sarif, json]")
 	} else {
-		rootCmd.Flags().StringVar(&format, "format", formatDefault,
+		rootCmd.Flags().StringVar(&flagFormat, "format", formatDefault,
 			"output format allowed values are [default, json]")
-	}
-
-	var v6 bool
-	_, v6 = os.LookupEnv("SCORECARD_V6")
-	if v6 {
-		rootCmd.Flags().BoolVar(&raw, "raw", false, "generate raw results")
 	}
 }
 
@@ -135,29 +111,18 @@ func Execute() {
 	}
 }
 
-// nolint: gocognit, gocyclo
 func scorecardCmd(cmd *cobra.Command, args []string) {
-	// UPGRADEv4: remove.
-	var sarifEnabled bool
-	_, sarifEnabled = os.LookupEnv(cliEnableSarif)
+	validateCmdFlags()
 
-	if format == formatSarif && !sarifEnabled {
-		log.Panic("sarif not supported yet")
+	// Set `repo` from package managers.
+	pkgResp, err := fetchGitRepositoryFromPackageManagers(flagNPM, flagPyPI, flagRubyGems)
+	if err != nil {
+		log.Panic(err)
 	}
-
-	if policyFile != "" && !sarifEnabled {
-		log.Panic("policy not supported yet")
-	}
-
-	var v6 bool
-	_, v6 = os.LookupEnv("SCORECARD_V6")
-	if raw && !v6 {
-		log.Panic("--raw option not supported yet")
-	}
-
-	// Validate format.
-	if !validateFormat(format) {
-		log.Panicf("unsupported format '%s'", format)
+	if pkgResp.exists {
+		if err := cmd.Flags().Set("repo", pkgResp.associatedRepo); err != nil {
+			log.Panic(err)
+		}
 	}
 
 	policy, err := readPolicy()
@@ -165,31 +130,10 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 		log.Panicf("readPolicy: %v", err)
 	}
 
-	// Get the URI.
-	uri, err := getURI(repo, local)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	// Set `repo` from package managers.
-	exists, gitRepo, err := fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems)
-	if err != nil {
-		log.Panic(err)
-	}
-	if exists {
-		if err := cmd.Flags().Set("repo", gitRepo); err != nil {
-			log.Panic(err)
-		}
-	}
-
-	// Sanity check that `repo` is set.
-	if err := cmd.MarkFlagRequired("repo"); err != nil {
-		log.Panic(err)
-	}
-
 	ctx := context.Background()
-	logger := sclog.NewLogger(sclog.Level(logLevel))
-	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, repoType, err := getRepoAccessors(ctx, uri, logger)
+	logger := sclog.NewLogger(sclog.Level(flagLogLevel))
+	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := getRepoAccessors(
+		ctx, flagRepo, flagLocal, logger)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -204,89 +148,132 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 		log.Panicf("cannot read yaml file: %v", err)
 	}
 
+	repoType := repoTypeGitHub
+	if flagLocal != "" {
+		repoType = repoTypeLocal
+	}
 	supportedChecks, err := getSupportedChecks(repoType, checkDocs)
 	if err != nil {
 		log.Panicf("cannot read supported checks: %v", err)
 	}
 
-	enabledChecks, err := getEnabledChecks(policy, checksToRun, supportedChecks, repoType)
+	enabledChecks, err := getEnabledChecks(policy, flagChecksToRun, supportedChecks, repoType)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	if format == formatDefault {
+	if flagFormat == formatDefault {
 		for checkName := range enabledChecks {
 			fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 		}
 	}
 
-	if raw && format != "json" {
-		log.Panicf("only json format is supported")
-	}
-
-	repoResult, err := pkg.RunScorecards(ctx, repoURI, raw, enabledChecks, repoClient,
+	repoResult, err := pkg.RunScorecards(ctx, repoURI, flagFormat == formatRaw, enabledChecks, repoClient,
 		ossFuzzRepoClient, ciiClient, vulnsClient)
 	if err != nil {
 		log.Panic(err)
 	}
-	repoResult.Metadata = append(repoResult.Metadata, metaData...)
+	repoResult.Metadata = append(repoResult.Metadata, flagMetadata...)
 
 	// Sort them by name
 	sort.Slice(repoResult.Checks, func(i, j int) bool {
 		return repoResult.Checks[i].Name < repoResult.Checks[j].Name
 	})
 
-	if format == formatDefault {
+	if flagFormat == formatDefault {
 		for checkName := range enabledChecks {
 			fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
 		}
 		fmt.Println("\nRESULTS\n-------")
 	}
 
-	switch format {
+	switch flagFormat {
 	case formatDefault:
-		err = repoResult.AsString(showDetails, sclog.Level(logLevel), checkDocs, os.Stdout)
+		err = repoResult.AsString(flagShowDetails, sclog.Level(flagLogLevel), checkDocs, os.Stdout)
 	case formatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
-		err = repoResult.AsSARIF(showDetails, sclog.Level(logLevel), os.Stdout, checkDocs, policy)
+		err = repoResult.AsSARIF(flagShowDetails, sclog.Level(flagLogLevel), os.Stdout, checkDocs, policy)
 	case formatJSON:
-		if raw {
-			err = repoResult.AsRawJSON(os.Stdout)
-		} else {
-			err = repoResult.AsJSON2(showDetails, sclog.Level(logLevel), checkDocs, os.Stdout)
-		}
-
+		err = repoResult.AsJSON2(flagShowDetails, sclog.Level(flagLogLevel), checkDocs, os.Stdout)
+	case formatRaw:
+		err = repoResult.AsRawJSON(os.Stdout)
 	default:
 		err = sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("invalid format flag: %v. Expected [default, json]", format))
+			fmt.Sprintf("invalid format flag: %v. Expected [default, json]", flagFormat))
 	}
 	if err != nil {
 		log.Panicf("Failed to output results: %v", err)
 	}
 }
 
-func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems string) (bool, string, error) {
-	if npm != "" {
-		gitRepo, err := fetchGitRepositoryFromNPM(npm)
-		return true, gitRepo, err
+func validateCmdFlags() {
+	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--local` is enabled.
+	if boolSum(flagRepo != "",
+		flagNPM != "",
+		flagPyPI != "",
+		flagRubyGems != "",
+		flagLocal != "") != 1 {
+		log.Panic("Exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems` or `--local` must be set")
 	}
 
-	if pypi != "" {
-		gitRepo, err := fetchGitRepositoryFromPYPI(pypi)
-		return true, gitRepo, err
+	// Validate SARIF features are flag-guarded.
+	if !isSarifEnabled() {
+		if flagFormat == formatSarif {
+			log.Panic("sarif format not supported yet")
+		}
+		if flagPolicyFile != "" {
+			log.Panic("policy file not supported yet")
+		}
 	}
 
-	if rubygems != "" {
-		gitRepo, err := fetchGitRepositoryFromRubyGems(rubygems)
-		return false, gitRepo, err
+	// Validate V6 features are flag-guarded.
+	if !isV6Enabled() {
+		if flagFormat == formatRaw {
+			log.Panic("raw option not supported yet")
+		}
 	}
 
-	return false, "", nil
+	// Validate format.
+	if !validateFormat(flagFormat) {
+		log.Panicf("unsupported format '%s'", flagFormat)
+	}
+}
+
+func boolSum(bools ...bool) int {
+	sum := 0
+	for _, b := range bools {
+		if b {
+			sum++
+		}
+	}
+	return sum
+}
+
+func isSarifEnabled() bool {
+	// UPGRADEv4: remove.
+	var sarifEnabled bool
+	_, sarifEnabled = os.LookupEnv(cliEnableSarif)
+	return sarifEnabled
+}
+
+func isV6Enabled() bool {
+	var v6 bool
+	_, v6 = os.LookupEnv("SCORECARD_V6")
+	return v6
+}
+
+func validateFormat(format string) bool {
+	switch format {
+	case formatJSON, formatSarif, formatDefault, formatRaw:
+		return true
+	default:
+		return false
+	}
 }
 
 func readPolicy() (*spol.ScorecardPolicy, error) {
-	if policyFile != "" {
-		data, err := os.ReadFile(policyFile)
+	if flagPolicyFile != "" {
+		data, err := os.ReadFile(flagPolicyFile)
 		if err != nil {
 			return nil, sce.WithMessage(sce.ErrScorecardInternal,
 				fmt.Sprintf("os.ReadFile: %v", err))
@@ -400,154 +387,43 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 	return enabledChecks, nil
 }
 
-func validateFormat(format string) bool {
-	switch format {
-	case "json", "sarif", "default":
-		return true
-	default:
-		return false
-	}
-}
-
-func getRepoAccessors(ctx context.Context, uri string, logger *sclog.Logger) (
-	repo clients.Repo,
-	repoClient clients.RepoClient,
-	ossFuzzRepoClient clients.RepoClient,
-	ciiClient clients.CIIBestPracticesClient,
-	vulnerabilityClient clients.VulnerabilitiesClient,
-	repoType string,
-	err error) {
-	var localRepo, githubRepo clients.Repo
-	var errLocal, errGitHub error
-	if localRepo, errLocal = localdir.MakeLocalDirRepo(uri); errLocal == nil {
-		// Local directory.
-		repoType = repoTypeLocal
-		repo = localRepo
-		repoClient = localdir.CreateLocalDirClient(ctx, logger)
-		return
-	}
-	if githubRepo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub == nil {
-		// GitHub URL.
-		repoType = repoTypeGitHub
-		repo = githubRepo
-		repoClient = githubrepo.CreateGithubRepoClient(ctx, logger)
-		ciiClient = clients.DefaultCIIBestPracticesClient()
-		vulnerabilityClient = clients.DefaultVulnerabilitiesClient()
-		ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(ctx, logger)
-		return
-	}
-	err = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unspported URI: %s: [%v, %v]", uri, errLocal, errGitHub))
-	return
-}
-
-func getURI(repo, local string) (string, error) {
-	if repo != "" && local != "" {
-		return "", sce.WithMessage(sce.ErrScorecardInternal,
-			"--repo and --local options cannot be used together")
-	}
-	if local != "" {
-		return fmt.Sprintf("file://%s", local), nil
-	}
-	return repo, nil
-}
-
-type npmSearchResults struct {
-	Objects []struct {
-		Package struct {
-			Links struct {
-				Repository string `json:"repository"`
-			} `json:"links"`
-		} `json:"package"`
-	} `json:"objects"`
-}
-
-type pypiSearchResults struct {
-	Info struct {
-		ProjectUrls struct {
-			Source string `json:"Source"`
-		} `json:"project_urls"`
-	} `json:"info"`
-}
-
-type rubyGemsSearchResults struct {
-	SourceCodeURI string `json:"source_code_uri"`
-}
-
-// Gets the GitHub repository URL for the npm package.
-//nolint:noctx
-func fetchGitRepositoryFromNPM(packageName string) (string, error) {
-	npmSearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
-	const timeout = 10
-	client := &http.Client{
-		Timeout: timeout * time.Second,
-	}
-	resp, err := client.Get(fmt.Sprintf(npmSearchURL, packageName))
-	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get npm package json: %v", err))
+func getRepoAccessors(ctx context.Context, repoURI, localURI string, logger *sclog.Logger) (
+	clients.Repo, // repo
+	clients.RepoClient, // repoClient
+	clients.RepoClient, // ossFuzzClient
+	clients.CIIBestPracticesClient, // ciiClient
+	clients.VulnerabilitiesClient, // vulnClient
+	error) {
+	var githubRepo clients.Repo
+	var errGitHub error
+	if localURI != "" {
+		localRepo, errLocal := localdir.MakeLocalDirRepo(localURI)
+		return localRepo, /*repo*/
+			localdir.CreateLocalDirClient(ctx, logger), /*repoClient*/
+			nil, /*ossFuzzClient*/
+			nil, /*ciiClient*/
+			nil, /*vulnClient*/
+			errLocal
 	}
 
-	defer resp.Body.Close()
-	v := &npmSearchResults{}
-	err = json.NewDecoder(resp.Body).Decode(v)
-	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse npm package json: %v", err))
-	}
-	if len(v.Objects) == 0 {
-		return "", sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("could not find source repo for npm package: %s", packageName))
-	}
-	return v.Objects[0].Package.Links.Repository, nil
-}
-
-// Gets the GitHub repository URL for the pypi package.
-//nolint:noctx
-func fetchGitRepositoryFromPYPI(packageName string) (string, error) {
-	pypiSearchURL := "https://pypi.org/pypi/%s/json"
-	const timeout = 10
-	client := &http.Client{
-		Timeout: timeout * time.Second,
-	}
-	resp, err := client.Get(fmt.Sprintf(pypiSearchURL, packageName))
-	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get pypi package json: %v", err))
+	githubRepo, errGitHub = githubrepo.MakeGithubRepo(repoURI)
+	if errGitHub != nil {
+		// nolint: wrapcheck
+		return githubRepo,
+			nil,
+			nil,
+			nil,
+			nil,
+			errGitHub
 	}
 
-	defer resp.Body.Close()
-	v := &pypiSearchResults{}
-	err = json.NewDecoder(resp.Body).Decode(v)
-	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse pypi package json: %v", err))
-	}
-	if v.Info.ProjectUrls.Source == "" {
-		return "", sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("could not find source repo for pypi package: %s", packageName))
-	}
-	return v.Info.ProjectUrls.Source, nil
-}
-
-// Gets the GitHub repository URL for the rubygems package.
-//nolint:noctx
-func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
-	rubyGemsSearchURL := "https://rubygems.org/api/v1/gems/%s.json"
-	const timeout = 10
-	client := &http.Client{
-		Timeout: timeout * time.Second,
-	}
-	resp, err := client.Get(fmt.Sprintf(rubyGemsSearchURL, packageName))
-	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get ruby gem json: %v", err))
-	}
-
-	defer resp.Body.Close()
-	v := &rubyGemsSearchResults{}
-	err = json.NewDecoder(resp.Body).Decode(v)
-	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse ruby gem json: %v", err))
-	}
-	if v.SourceCodeURI == "" {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("could not find source repo for ruby gem: %v", err))
-	}
-	return v.SourceCodeURI, nil
+	ossFuzzRepoClient, errOssFuzz := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+	return githubRepo, /*repo*/
+		githubrepo.CreateGithubRepoClient(ctx, logger), /*repoClient*/
+		ossFuzzRepoClient, /*ossFuzzClient*/
+		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
+		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
+		errOssFuzz
 }
 
 // Enables checks by name.
