@@ -473,6 +473,74 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 }
 
 func TestDockerfileInvalidFiles(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected bool
+	}{
+		{
+			name:     "dockerfile go",
+			filename: "./testdata/Dockerfile.go",
+			expected: false,
+		},
+		{
+			name:     "dockerfile c",
+			filename: "./testdata/Dockerfile.c",
+			expected: false,
+		},
+		{
+			name:     "dockerfile cpp",
+			filename: "./testdata/Dockerfile.cpp",
+			expected: false,
+		},
+		{
+			name:     "dockerfile rust",
+			filename: "./testdata/Dockerfile.rs",
+			expected: false,
+		},
+		{
+			name:     "dockerfile js",
+			filename: "./testdata/Dockerfile.js",
+			expected: false,
+		},
+		{
+			name:     "dockerfile sh",
+			filename: "./testdata/Dockerfile.sh",
+			expected: false,
+		},
+		{
+			name:     "dockerfile py",
+			filename: "./testdata/Dockerfile.py",
+			expected: false,
+		},
+		{
+			name:     "dockerfile pyc",
+			filename: "./testdata/Dockerfile.pyc",
+			expected: false,
+		},
+		{
+			name:     "dockerfile java",
+			filename: "./testdata/Dockerfile.java",
+			expected: false,
+		},
+		{
+			name:     "dockerfile ",
+			filename: "./testdata/Dockerfile.any",
+			expected: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var c []byte
+			r := isDockerfile(tt.filename, c)
+			if r != tt.expected {
+				t.Errorf("test failed: %s. Expected %v. Got %v", tt.filename, r, tt.expected)
+			}
+		})
+	}
 }
 
 func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {

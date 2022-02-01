@@ -271,6 +271,7 @@ func isDockerfile(pathfn string, content []byte) bool {
 		strings.HasSuffix(pathfn, ".rs") ||
 		strings.HasSuffix(pathfn, ".js") ||
 		strings.HasSuffix(pathfn, ".py") ||
+		strings.HasSuffix(pathfn, ".pyc") ||
 		strings.HasSuffix(pathfn, ".java") ||
 		isShellScriptFile(pathfn, content) {
 		return false
