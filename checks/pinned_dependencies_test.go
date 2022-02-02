@@ -34,7 +34,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 	}{
 		{
 			name:     "empty file",
-			filename: "./testdata/github-workflow-empty.yaml",
+			filename: ".github/workflows/github-workflow-empty.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -45,7 +45,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "comments only",
-			filename: "./testdata/github-workflow-comments.yaml",
+			filename: ".github/workflows/github-workflow-comments.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -56,7 +56,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Pinned workflow",
-			filename: "./testdata/workflow-pinned.yaml",
+			filename: ".github/workflows/workflow-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -67,7 +67,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Local action workflow",
-			filename: "./testdata/workflow-local-action.yaml",
+			filename: ".github/workflows/workflow-local-action.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -78,7 +78,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Non-pinned workflow",
-			filename: "./testdata/workflow-not-pinned.yaml",
+			filename: ".github/workflows/workflow-not-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 2,
@@ -89,7 +89,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Non-yaml file",
-			filename: "./testdata/script.sh",
+			filename: "script.sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -100,7 +100,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Matrix as expression",
-			filename: "./testdata/github-workflow-matrix-expression.yaml",
+			filename: ".github/workflows/github-workflow-matrix-expression.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -110,6 +110,11 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			},
 		},
 	}
+
+	if err := os.Chdir("./testdata/"); err != nil {
+		panic(fmt.Errorf("os.Chdir: %w", err))
+	}
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -145,7 +150,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 	}{
 		{
 			name:     "Pinned non-github workflow",
-			filename: "./testdata/workflow-non-github-pinned.yaml",
+			filename: ".github/workflows/workflow-non-github-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -156,7 +161,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Pinned github workflow",
-			filename: "./testdata/workflow-mix-github-and-non-github-not-pinned.yaml",
+			filename: ".github/workflows/workflow-mix-github-and-non-github-not-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -167,7 +172,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Pinned github workflow",
-			filename: "./testdata/workflow-mix-github-and-non-github-pinned.yaml",
+			filename: ".github/workflows/workflow-mix-github-and-non-github-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -178,7 +183,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Mix of pinned and non-pinned GitHub actions",
-			filename: "./testdata/workflow-mix-pinned-and-non-pinned-github.yaml",
+			filename: ".github/workflows/workflow-mix-pinned-and-non-pinned-github.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 2,
@@ -189,7 +194,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Mix of pinned and non-pinned non-GitHub actions",
-			filename: "./testdata/workflow-mix-pinned-and-non-pinned-non-github.yaml",
+			filename: ".github/workflows/workflow-mix-pinned-and-non-pinned-non-github.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 8,
@@ -199,6 +204,11 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 			},
 		},
 	}
+
+	if err := os.Chdir("./testdata/"); err != nil {
+		panic(fmt.Errorf("os.Chdir: %w", err))
+	}
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -236,7 +246,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 	}{
 		{
 			name:     "npm packages without verification",
-			filename: "./testdata/github-workflow-pkg-managers.yaml",
+			filename: ".github/workflows/github-workflow-pkg-managers.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -246,6 +256,11 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			},
 		},
 	}
+
+	if err := os.Chdir("./testdata/"); err != nil {
+		panic(fmt.Errorf("os.Chdir: %w", err))
+	}
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -1199,7 +1214,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 	}{
 		{
 			name:     "workflow curl default",
-			filename: "testdata/github-workflow-curl-default.yaml",
+			filename: "./testdata/.github/workflows/testdata/github-workflow-curl-default.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1210,7 +1225,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 		},
 		{
 			name:     "workflow curl no default",
-			filename: "testdata/github-workflow-curl-no-default.yaml",
+			filename: "./testdata/.github/workflows/testdata/github-workflow-curl-no-default.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1221,7 +1236,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 		},
 		{
 			name:     "wget across steps",
-			filename: "testdata/github-workflow-wget-across-steps.yaml",
+			filename: "./testdata/.github/workflows/testdata/github-workflow-wget-across-steps.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1271,7 +1286,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 	}{
 		{
 			name:     "unpinned dependency in uses",
-			filename: "testdata/github-workflow-permissions-run-codeql-write.yaml",
+			filename: "./testdata/.github/workflows/testdata/github-workflow-permissions-run-codeql-write.yaml",
 			expected: []struct {
 				dependency string
 				startLine  uint
@@ -1286,7 +1301,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		},
 		{
 			name:     "multiple unpinned dependency in uses",
-			filename: "testdata/github-workflow-multiple-unpinned-uses.yaml",
+			filename: "./testdata/.github/workflows/testdata/github-workflow-multiple-unpinned-uses.yaml",
 			expected: []struct {
 				dependency string
 				startLine  uint
@@ -1349,7 +1364,7 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 	}{
 		{
 			name:     "downloads",
-			filename: "testdata/github-workflow-download-lines.yaml",
+			filename: "./testdata/.github/workflows/testdata/github-workflow-download-lines.yaml",
 			expected: []struct {
 				snippet   string
 				startLine uint
