@@ -264,12 +264,27 @@ func testValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
 	return createReturnForIsDockerfileFreeOfInsecureDownloads(r, dl, err)
 }
 
+func isDockerfile(pathfn string, content []byte) bool {
+	if strings.HasSuffix(pathfn, ".go") ||
+		strings.HasSuffix(pathfn, ".c") ||
+		strings.HasSuffix(pathfn, ".cpp") ||
+		strings.HasSuffix(pathfn, ".rs") ||
+		strings.HasSuffix(pathfn, ".js") ||
+		strings.HasSuffix(pathfn, ".py") ||
+		strings.HasSuffix(pathfn, ".pyc") ||
+		strings.HasSuffix(pathfn, ".java") ||
+		isShellScriptFile(pathfn, content) {
+		return false
+	}
+	return true
+}
+
 func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
 	pdata := dataAsResultPointer(data)
 
-	// Return early if this is a script, e.g. script_dockerfile_something.sh
-	if isShellScriptFile(pathfn, content) {
+	// Return early if this is not a docker file.
+	if !isDockerfile(pathfn, content) {
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
@@ -347,8 +362,8 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
 
 	pdata := dataAsResultPointer(data)
-	// Return early if this is a script, e.g. script_dockerfile_something.sh
-	if isShellScriptFile(pathfn, content) {
+	// Return early if this is not a dockerfile.
+	if !isDockerfile(pathfn, content) {
 		addPinnedResult(pdata, true)
 		return true, nil
 	}

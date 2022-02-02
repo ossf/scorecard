@@ -17,7 +17,6 @@ package githubrepo
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -34,7 +33,6 @@ const (
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
 	commitsToAnalyze       = 30
-	allowedCommitterName   = "github"
 )
 
 // nolint: govet
@@ -232,20 +230,15 @@ func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.P
 	return ret
 }
 
+// nolint: unparam
 func commitsFrom(data *graphqlData) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.DefaultBranchRef.Target.Commit.History.Nodes {
 		var committer string
 		if commit.Committer.User.Login != nil {
 			committer = *commit.Committer.User.Login
-		} else if commit.Committer.Name != nil {
-			committer = *commit.Committer.Name
-			// committer.name will be set to `github` if this was auto-merged by GitHub.
-			if !strings.EqualFold(committer, allowedCommitterName) {
-				return nil, sce.WithMessage(sce.ErrScorecardInternal,
-					fmt.Sprintf("committer name is not '%s': %s", allowedCommitterName, committer))
-			}
 		}
+		// TODO(#1543): Figure out a way to safely get committer if `User.Login` is `nil`.
 		ret = append(ret, clients.Commit{
 			CommittedDate: commit.CommittedDate.Time,
 			Message:       string(commit.Message),
