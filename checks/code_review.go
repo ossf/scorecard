@@ -16,16 +16,23 @@ package checks
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
+
+type scoreAndReason struct {
+	reason string
+	score  int
+}
 
 // CheckCodeReview is the registered name for DoesCodeReview.
 const CheckCodeReview = "Code-Review"
 
-//nolint:gochecknoinits
+// nolint:gochecknoinits
 func init() {
 	if err := registerCheck(CheckCodeReview, DoesCodeReview); err != nil {
 		// this should never happen
@@ -39,27 +46,52 @@ func init() {
 // - Checking if most of the recent merged PRs were "Approved".
 // - Looking for other well-known review labels.
 func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
-	// GitHub reviews.
-	ghScore, ghReason, err := githubCodeReview(c)
+	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
+		return checker.CreateRuntimeErrorResult(CheckCodeReview,
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.Commits: %v", err)))
 	}
 
-	// Review messages.
-	hintScore, hintReason, err := commitMessageHints(c)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
+	totalNonBotCommits := 0
+	totalMergedPRs := 0
+	totalGerritReviewed := 0
+	totalGitHubReviewed := 0
+	totalProwReviewed := 0
+	for i := range commits {
+		commit := &commits[i]
+		if !isBotCommitted(commit, c.Dlogger) {
+			totalNonBotCommits++
+			if isGerritReviewed(commit, c.Dlogger) {
+				totalGerritReviewed++
+			}
+		}
+
+		pr := commit.AssociatedMergeRequest
+		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
+		// but the PR was created in the original repo.
+		if pr.MergedAt.IsZero() || pr.Repository != c.Repo.String() {
+			continue
+		}
+		totalMergedPRs++
+
+		if isGitHubReviewed(commit, c.Dlogger) {
+			totalGitHubReviewed++
+		}
+
+		if isProwReviewed(commit) {
+			totalProwReviewed++
+		}
 	}
 
-	score, reason := selectBestScoreAndReason(hintScore, ghScore, hintReason, ghReason, c.Dlogger)
+	gerritScoreAndReason := createReturn("Gerrit", totalGerritReviewed, totalNonBotCommits)
+	githubScoreAndReason := createReturn("GitHub", totalGitHubReviewed, totalMergedPRs)
+	prowScoreAndReason := createReturn("Prow", totalProwReviewed, totalMergedPRs)
 
-	// Prow CI/CD.
-	prowScore, prowReason, err := prowCodeReview(c)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(CheckCodeReview, err)
-	}
-
-	score, reason = selectBestScoreAndReason(prowScore, score, prowReason, reason, c.Dlogger)
+	bestScoreAndReason := selectBestScoreAndReason([]scoreAndReason{
+		gerritScoreAndReason, githubScoreAndReason, prowScoreAndReason,
+	}, c.Dlogger)
+	score := bestScoreAndReason.score
+	reason := bestScoreAndReason.reason
 	if score == checker.MinResultScore {
 		c.Dlogger.Info3(&checker.LogMessage{
 			Text: reason,
@@ -74,155 +106,103 @@ func DoesCodeReview(c *checker.CheckRequest) checker.CheckResult {
 	return checker.CreateResultWithScore(CheckCodeReview, checker.NormalizeReason(reason, score), score)
 }
 
-//nolint
-func selectBestScoreAndReason(s1, s2 int, r1, r2 string,
-	dl checker.DetailLogger) (int, string) {
-	if s1 > s2 {
-		dl.Info3(&checker.LogMessage{
-			Text: r2,
-		})
-		return s1, r1
-	}
-
-	dl.Info3(&checker.LogMessage{
-		Text: r1,
-	})
-	return s2, r2
-}
-
-//nolint
-func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
-	// Look at some merged PRs to see if they were reviewed.
-	totalMerged := 0
-	totalReviewed := 0
-	commits, err := c.RepoClient.ListCommits()
-	if err != nil {
-		return 0, "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.Commits: %v", err))
-	}
-	for _, commit := range commits {
-		pr := commit.AssociatedMergeRequest
-		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
-		// but the PR was created in the original repo.
-		if pr.MergedAt.IsZero() || pr.Repository != c.Repo.String() {
-			continue
-		}
-		totalMerged++
-
-		// Check if the PR is approved by a reviewer.
-		foundApprovedReview := false
-		for _, r := range pr.Reviews {
-			if r.State == "APPROVED" {
-				c.Dlogger.Debug3(&checker.LogMessage{
-					Text: fmt.Sprintf("found review approved pr: %d", pr.Number),
-				})
-				totalReviewed++
-				foundApprovedReview = true
-				break
-			}
-		}
-
-		// Check if the PR is committed by someone other than author. this is kind
-		// of equivalent to a review and is done several times on small prs to save
-		// time on clicking the approve button.
-		if !foundApprovedReview &&
-			commit.Committer.Login != "" &&
-			commit.Committer.Login != pr.Author.Login {
-			c.Dlogger.Debug3(&checker.LogMessage{
-				Text: fmt.Sprintf("found PR#%d with committer (%s) different from author (%s)",
-					pr.Number, pr.Author.Login, commit.Committer.Login),
+func isGitHubReviewed(commit *clients.Commit, logger checker.DetailLogger) bool {
+	// Check if the associatedPR is approved by a reviewer.
+	pr := commit.AssociatedMergeRequest
+	foundApprovedReview := false
+	for _, r := range pr.Reviews {
+		if r.State == "APPROVED" {
+			logger.Debug3(&checker.LogMessage{
+				Text: fmt.Sprintf("found review approved pr: %d", pr.Number),
 			})
-			totalReviewed++
 			foundApprovedReview = true
+			break
 		}
-
-		if !foundApprovedReview {
-			c.Dlogger.Debug3(&checker.LogMessage{
-				Text: fmt.Sprintf("merged PR without code review: %d", pr.Number),
-			})
-		}
-
 	}
 
-	return createReturn("GitHub", totalReviewed, totalMerged)
+	// Check if the PR is committed by someone other than author. this is kind
+	// of equivalent to a review and is done several times on small prs to save
+	// time on clicking the approve button.
+	if !foundApprovedReview &&
+		commit.Committer.Login != "" &&
+		commit.Committer.Login != pr.Author.Login {
+		logger.Debug3(&checker.LogMessage{
+			Text: fmt.Sprintf("found PR#%d with committer (%s) different from author (%s)",
+				pr.Number, pr.Author.Login, commit.Committer.Login),
+		})
+		foundApprovedReview = true
+	}
+
+	if !foundApprovedReview {
+		logger.Debug3(&checker.LogMessage{
+			Text: fmt.Sprintf("merged PR without code review: %d", pr.Number),
+		})
+	}
+
+	return foundApprovedReview
 }
 
-//nolint
-func prowCodeReview(c *checker.CheckRequest) (int, string, error) {
-	// Look at some merged PRs to see if they were reviewed
-	totalMerged := 0
-	totalReviewed := 0
-	commits, err := c.RepoClient.ListCommits()
-	if err != nil {
-		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
-	}
-	for _, commit := range commits {
-		pr := commit.AssociatedMergeRequest
-		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
-		// but the PR was created in the original repo.
-		if pr.MergedAt.IsZero() || pr.Repository != c.Repo.String() {
-			continue
-		}
-		totalMerged++
-		for _, l := range pr.Labels {
-			if l.Name == "lgtm" || l.Name == "approved" {
-				totalReviewed++
-				break
-			}
+func isProwReviewed(commit *clients.Commit) bool {
+	for _, l := range commit.AssociatedMergeRequest.Labels {
+		if l.Name == "lgtm" || l.Name == "approved" {
+			return true
 		}
 	}
-
-	return createReturn("Prow", totalReviewed, totalMerged)
+	return false
 }
 
-//nolint
-func commitMessageHints(c *checker.CheckRequest) (int, string, error) {
-	commits, err := c.RepoClient.ListCommits()
-	if err != nil {
-		return checker.InconclusiveResultScore, "",
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListCommits: %v", err))
+// Check for gerrit use via Reviewed-on and Reviewed-by.
+func isGerritReviewed(commit *clients.Commit, logger checker.DetailLogger) bool {
+	commitMessage := commit.Message
+	isReviewed := strings.Contains(commitMessage, "\nReviewed-on: ") &&
+		strings.Contains(commitMessage, "\nReviewed-by: ")
+	if isReviewed {
+		logger.Debug3(&checker.LogMessage{
+			Text: fmt.Sprintf("Gerrit review found for commit '%s'", commit.SHA),
+		})
 	}
 
-	total := 0
-	totalReviewed := 0
-	for _, commit := range commits {
-		isBot := false
-		committer := commit.Committer.Login
-		for _, substring := range []string{"bot", "gardener"} {
-			if strings.Contains(committer, substring) {
-				isBot = true
-				break
-			}
-		}
-		if isBot {
-			c.Dlogger.Debug3(&checker.LogMessage{
-				Text: fmt.Sprintf("skip commit from bot account: %s", committer),
-			})
-			continue
-		}
-
-		total++
-
-		// check for gerrit use via Reviewed-on and Reviewed-by
-		commitMessage := commit.Message
-		if strings.Contains(commitMessage, "\nReviewed-on: ") &&
-			strings.Contains(commitMessage, "\nReviewed-by: ") {
-			c.Dlogger.Debug3(&checker.LogMessage{
-				Text: fmt.Sprintf("Gerrit review found for commit '%s'", commit.SHA),
-			})
-			totalReviewed++
-			continue
-		}
-	}
-
-	return createReturn("Gerrit", totalReviewed, total)
+	return isReviewed
 }
 
-//nolint
-func createReturn(reviewName string, reviewed, total int) (int, string, error) {
+func isBotCommitted(commit *clients.Commit, logger checker.DetailLogger) bool {
+	committer := commit.Committer.Login
+	isBot := strings.Contains(committer, "bot") ||
+		strings.Contains(committer, "gardener")
+	if isBot {
+		logger.Debug3(&checker.LogMessage{
+			Text: fmt.Sprintf("committed from bot account: %s", commit.Committer.Login),
+		})
+	}
+
+	return isBot
+}
+
+func createReturn(reviewName string, reviewed, total int) scoreAndReason {
 	if total > 0 {
-		reason := fmt.Sprintf("%s code reviews found for %v commits out of the last %v", reviewName, reviewed, total)
-		return checker.CreateProportionalScore(reviewed, total), reason, nil
+		return scoreAndReason{
+			score: checker.CreateProportionalScore(reviewed, total),
+			reason: fmt.Sprintf(
+				"%s code reviews found for %v commits out of the last %v", reviewName, reviewed, total),
+		}
 	}
+	return scoreAndReason{
+		score:  checker.InconclusiveResultScore,
+		reason: fmt.Sprintf("no %v commits found", reviewName),
+	}
+}
 
-	return checker.InconclusiveResultScore, fmt.Sprintf("no %v commits found", reviewName), nil
+func selectBestScoreAndReason(scoresAndReasons []scoreAndReason, logger checker.DetailLogger) scoreAndReason {
+	// Sort descending.
+	sort.SliceStable(scoresAndReasons, func(i, j int) bool {
+		return scoresAndReasons[i].score > scoresAndReasons[j].score
+	})
+
+	// Log every reason except the highest score.
+	for _, sr := range scoresAndReasons[1:] {
+		logger.Info3(&checker.LogMessage{
+			Text: sr.reason,
+		})
+	}
+	return scoresAndReasons[0]
 }
