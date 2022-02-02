@@ -33,8 +33,6 @@ var (
 // to the default branch.
 type approvedReviews struct {
 	Platform string
-	// Note: this field is only populated for GitHub and Prow.
-	MaintainerReviews []review
 }
 
 // Review represent a single-maintainer's review.
@@ -63,37 +61,13 @@ func CodeReview(name string, dl checker.DetailLogger,
 		// New commit to consider.
 		totalCommits++
 
-		ar := getApprovedReviews(&commit, dl)
+		rs := getApprovedReviewSystem(&commit, dl)
 		// No commits.
-		if ar.Platform == "" {
+		if rs == "" {
 			continue
 		}
 
-		totalReviewed[ar.Platform]++
-
-		switch ar.Platform {
-		// GitHub reviews.
-		case reviewPlatformGitHub:
-			dl.Debug3(&checker.LogMessage{
-				Text: fmt.Sprintf("%s #%d merge request approved",
-					reviewPlatformGitHub, commit.MergeRequest.Number),
-			})
-
-		// Prow reviews.
-		case reviewPlatformProw:
-			if commit.MergeRequest != nil {
-				dl.Debug3(&checker.LogMessage{
-					Text: fmt.Sprintf("%s #%d merge request approved",
-						reviewPlatformProw, commit.MergeRequest.Number),
-				})
-			}
-
-		// Gerrit reviews.
-		case reviewPlatformGerrit:
-			dl.Debug3(&checker.LogMessage{
-				Text: fmt.Sprintf("%s commit approved", reviewPlatformGerrit),
-			})
-		}
+		totalReviewed[rs]++
 	}
 
 	if totalCommits == 0 {
@@ -146,66 +120,23 @@ func isBot(name string) bool {
 	return false
 }
 
-func getApprovedReviews(c *checker.DefaultBranchCommit, dl checker.DetailLogger) approvedReviews {
-	var review approvedReviews
-
-	// Review platform.
+func getApprovedReviewSystem(c *checker.DefaultBranchCommit, dl checker.DetailLogger) string {
 	switch {
-	case isReviewedOnGitHub(c):
-		review.Platform = reviewPlatformGitHub
+	case isReviewedOnGitHub(c, dl):
+		return reviewPlatformGitHub
 
 	case isReviewedOnProw(c, dl):
-		review.Platform = reviewPlatformProw
+		return reviewPlatformProw
 
 	case isReviewedOnGerrit(c, dl):
-		review.Platform = reviewPlatformGerrit
+		return reviewPlatformGerrit
 
 	}
 
-	return review
+	return ""
 }
 
-func maintainerReviews(c *checker.DefaultBranchCommit) []review {
-	reviews := []review{}
-	mauthors := make(map[string]bool)
-	mr := c.MergeRequest
-	for _, r := range mr.Reviews {
-
-		if !(r.State == "APPROVED" &&
-			r.Reviewer.Login != "") {
-			continue
-		}
-
-		if _, exists := mauthors[r.Reviewer.Login]; !exists {
-			reviews = append(reviews, review{
-				Reviewer: r.Reviewer.Login,
-				State:    reviewStateApproved,
-			})
-			// Needed because it's is possible for a user
-			// to approve a merge request multiple times.
-			mauthors[r.Reviewer.Login] = true
-		}
-
-	}
-
-	if len(reviews) > 0 {
-		return reviews
-	}
-
-	// Check if the merge request is committed by someone other than author. This is kind
-	// of equivalent to a review and is done several times on small prs to save
-	// time on clicking the approve button.
-	if c.Committer.Login != "" &&
-		c.Committer.Login != mr.Author.Login {
-		reviews = append(reviews, review{
-			State:    reviewStateApproved,
-			Reviewer: c.Committer.Login,
-		})
-	}
-	return reviews
-}
-
-func isReviewedOnGitHub(c *checker.DefaultBranchCommit) bool {
+func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
 	mr := c.MergeRequest
 	if mr == nil {
 		return false
@@ -213,6 +144,10 @@ func isReviewedOnGitHub(c *checker.DefaultBranchCommit) bool {
 
 	for _, r := range mr.Reviews {
 		if r.State == "APPROVED" {
+			dl.Debug3(&checker.LogMessage{
+				Text: fmt.Sprintf("%s #%d merge request approved",
+					reviewPlatformGitHub, mr.Number),
+			})
 			return true
 		}
 	}
@@ -222,6 +157,10 @@ func isReviewedOnGitHub(c *checker.DefaultBranchCommit) bool {
 	// time on clicking the approve button.
 	if c.Committer.Login != "" &&
 		c.Committer.Login != mr.Author.Login {
+		dl.Debug3(&checker.LogMessage{
+			Text: fmt.Sprintf("%s #%d merge request approved",
+				reviewPlatformGitHub, mr.Number),
+		})
 		return true
 	}
 
@@ -239,6 +178,10 @@ func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) b
 	if c.MergeRequest != nil {
 		for _, l := range c.MergeRequest.Labels {
 			if l == "lgtm" || l == "approved" {
+				dl.Debug3(&checker.LogMessage{
+					Text: fmt.Sprintf("%s #%d merge request approved",
+						reviewPlatformProw, c.MergeRequest.Number),
+				})
 				return true
 			}
 		}
@@ -255,6 +198,12 @@ func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 	}
 
 	m := c.CommitMessage
-	return strings.Contains(m, "\nReviewed-on: ") &&
-		strings.Contains(m, "\nReviewed-by: ")
+	if strings.Contains(m, "\nReviewed-on: ") &&
+		strings.Contains(m, "\nReviewed-by: ") {
+		dl.Debug3(&checker.LogMessage{
+			Text: fmt.Sprintf("%s commit approved", reviewPlatformGerrit),
+		})
+		return true
+	}
+	return false
 }
