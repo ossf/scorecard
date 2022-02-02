@@ -83,6 +83,36 @@ func TestSecurityPolicy(t *testing.T) {
 				NumberOfInfo: 1,
 			},
 		},
+		{
+			name: "security.adoc",
+			files: []string{
+				"security.adoc",
+			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
+			},
+		},
+		{
+			name: ".github/security.adoc",
+			files: []string{
+				".github/security.adoc",
+			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
+			},
+		},
+		{
+			name: "docs/security.adoc",
+			files: []string{
+				"docs/security.adoc",
+			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
