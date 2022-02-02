@@ -39,7 +39,10 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		}
 		if strings.EqualFold(name, "security.md") ||
 			strings.EqualFold(name, ".github/security.md") ||
-			strings.EqualFold(name, "docs/security.md") {
+			strings.EqualFold(name, "docs/security.md") ||
+			strings.EqualFold(name, "security.adoc") ||
+			strings.EqualFold(name, ".github/security.adoc") ||
+			strings.EqualFold(name, "docs/security.adoc") {
 			*pfiles = append(*pfiles, checker.File{
 				Path:   name,
 				Type:   checker.FileTypeSource,
@@ -89,7 +92,10 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			}
 			if strings.EqualFold(name, "security.md") ||
 				strings.EqualFold(name, ".github/security.md") ||
-				strings.EqualFold(name, "docs/security.md") {
+				strings.EqualFold(name, "docs/security.md") ||
+				strings.EqualFold(name, "security.adoc") ||
+				strings.EqualFold(name, ".github/security.adoc") ||
+				strings.EqualFold(name, "docs/security.adoc") {
 				*pfiles = append(*pfiles, checker.File{
 					Path:   name,
 					Type:   checker.FileTypeURL,
