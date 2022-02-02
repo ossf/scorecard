@@ -84,7 +84,10 @@ type graphqlData struct {
 									} `graphql:"labels(last: $labelsToAnalyze)"`
 									Reviews struct {
 										Nodes []struct {
-											State githubv4.String
+											State  githubv4.String
+											Author struct {
+												Login githubv4.String
+											}
 										}
 									} `graphql:"reviews(last: $reviewsToAnalyze)"`
 								}
@@ -211,18 +214,29 @@ func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.P
 					Committer: clients.User{
 						Login: string(commit.Author.User.Login),
 					},
+					SHA: string(pr.MergeCommit.Oid),
 				},
 			}
+
 			for _, label := range pr.Labels.Nodes {
 				toAppend.Labels = append(toAppend.Labels, clients.Label{
 					Name: string(label.Name),
 				})
 			}
 			for _, review := range pr.Reviews.Nodes {
-				toAppend.Reviews = append(toAppend.Reviews, clients.Review{
+				r := clients.Review{
 					State: string(review.State),
-				})
+				}
+
+				a := clients.User{
+					Login: string(review.Author.Login),
+				}
+				if a.Login != "" {
+					r.Author = &a
+				}
+				toAppend.Reviews = append(toAppend.Reviews, r)
 			}
+
 			ret = append(ret, toAppend)
 			break
 		}

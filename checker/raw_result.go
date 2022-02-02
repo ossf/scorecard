@@ -22,6 +22,13 @@ type RawResults struct {
 	SecurityPolicyResults       SecurityPolicyData
 	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
+	CodeReviewResults           CodeReviewData
+}
+
+// CodeReviewData contains the raw results
+// for the Code-Review check.
+type CodeReviewData struct {
+	DefaultBranchCommits []DefaultBranchCommit
 }
 
 // VulnerabilitiesData contains the raw results
@@ -84,7 +91,7 @@ type Tool struct {
 	Runs []Run
 	// Issues created by the tool.
 	Issues []Issue
-	// Merges requests created by the tool.
+	// Merge requests created by the tool.
 	MergeRequests []MergeRequest
 	Name          string
 	URL           string
@@ -104,10 +111,36 @@ type Issue struct {
 	// TODO: add fields, e.g., state=[opened|closed]
 }
 
+// DefaultBranchCommit represents a commit
+// to the default branch.
+type DefaultBranchCommit struct {
+	// Fields below are taken directly from cloud
+	// version control systems, e.g. GitHub.
+	SHA           string
+	CommitMessage string
+	MergeRequest  *MergeRequest
+	Committer     User
+}
+
 // MergeRequest represents a merge request.
+//nolint:govet
 type MergeRequest struct {
-	URL string
-	// TODO: add fields, e.g., State=["merged"|"closed"]
+	Number  int
+	Labels  []string
+	Reviews []Review
+	Author  User
+}
+
+// Review represent a review using the built-in review system.
+type Review struct {
+	Reviewer User
+	State    string
+	// TODO(Review): add fields here if needed.
+}
+
+// User represent a user.
+type User struct {
+	Login string
 }
 
 // File represents a file.

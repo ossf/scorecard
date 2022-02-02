@@ -47,11 +47,11 @@ var _ = Describe("E2E TEST:CodeReview", func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  3,
+				NumberOfWarn:  3,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.DoesCodeReview(&req)
+			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
