@@ -44,7 +44,9 @@ func CodeReview(name string, dl checker.DetailLogger,
 		reviewPlatformGerrit: 0,
 	}
 
-	for _, commit := range r.DefaultBranchCommits {
+	for i := range r.DefaultBranchCommits {
+		commit := r.DefaultBranchCommit[i]
+
 		// New commit to consider.
 		totalCommits++
 
@@ -117,7 +119,6 @@ func getApprovedReviewSystem(c *checker.DefaultBranchCommit, dl checker.DetailLo
 
 	case isReviewedOnGerrit(c, dl):
 		return reviewPlatformGerrit
-
 	}
 
 	return ""

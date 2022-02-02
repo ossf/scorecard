@@ -57,6 +57,7 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 		if exists {
 			// Sanity checks the logins are the same.
 			// TODO(#1543): re-enable this code.
+			//nolint:gocritic
 			/*if com.Committer.Login != mr.MergeCommit.Committer.Login {
 				return checker.CodeReviewData{}, sce.WithMessage(sce.ErrScorecardInternal,
 					fmt.Sprintf("commit login (%s) different from merge request commit login (%s)",

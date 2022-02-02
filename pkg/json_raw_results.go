@@ -74,10 +74,10 @@ type jsonUser struct {
 }
 
 type jsonMergeRequest struct {
-	Author  jsonUser     `json:"author"`
 	Number  int          `json:"number"`
 	Labels  []string     `json:"labels"`
 	Reviews []jsonReview `json:"reviews"`
+	Author  jsonUser     `json:"author"`
 }
 
 type jsonDefaultBranchCommit struct {

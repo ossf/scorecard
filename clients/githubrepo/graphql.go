@@ -235,12 +235,10 @@ func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.P
 					r.Author = &a
 				}
 				toAppend.Reviews = append(toAppend.Reviews, r)
-
 			}
 
 			ret = append(ret, toAppend)
 			break
-
 		}
 	}
 	return ret

@@ -117,17 +117,17 @@ type DefaultBranchCommit struct {
 	// Fields below are taken directly from cloud
 	// version control systems, e.g. GitHub.
 	SHA           string
-	Committer     User
 	CommitMessage string
 	MergeRequest  *MergeRequest
+	Committer     User
 }
 
 // MergeRequest represents a merge request.
 type MergeRequest struct {
-	Author  User
 	Number  int
 	Labels  []string
 	Reviews []Review
+	Author  User
 }
 
 // Review represent a review using the built-in review system.
