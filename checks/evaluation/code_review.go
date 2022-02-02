@@ -45,7 +45,7 @@ func CodeReview(name string, dl checker.DetailLogger,
 	}
 
 	for i := range r.DefaultBranchCommits {
-		commit := r.DefaultBranchCommit[i]
+		commit := r.DefaultBranchCommits[i]
 
 		// New commit to consider.
 		totalCommits++
