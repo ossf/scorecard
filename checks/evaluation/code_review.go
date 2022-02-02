@@ -63,7 +63,6 @@ func CodeReview(name string, dl checker.DetailLogger,
 		// New commit to consider.
 		totalCommits++
 
-		fmt.Println(commit)
 		ar := getApprovedReviews(&commit, dl)
 		// No commits.
 		if ar.Platform == "" {
