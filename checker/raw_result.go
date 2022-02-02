@@ -123,6 +123,7 @@ type DefaultBranchCommit struct {
 }
 
 // MergeRequest represents a merge request.
+//nolint:govet
 type MergeRequest struct {
 	Number  int
 	Labels  []string

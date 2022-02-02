@@ -73,6 +73,7 @@ type jsonUser struct {
 	Login string `json:"login"`
 }
 
+//nolint:govet
 type jsonMergeRequest struct {
 	Number  int          `json:"number"`
 	Labels  []string     `json:"labels"`
