@@ -38,7 +38,8 @@ func init() {
 }
 
 func isGithubWorkflowFile(filename string) (bool, error) {
-	return strings.HasPrefix(strings.ToLower(filename), ".github/workflows"), nil
+	return filepath.Dir(strings.ToLower(filename)) == ".github/workflows",
+		nil
 }
 
 // Packaging runs Packaging check.
