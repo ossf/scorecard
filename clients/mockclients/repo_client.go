@@ -212,21 +212,6 @@ func (mr *MockRepoClientMockRecorder) ListIssues() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIssues", reflect.TypeOf((*MockRepoClient)(nil).ListIssues))
 }
 
-// ListMergedPRs mocks base method.
-func (m *MockRepoClient) ListMergedPRs() ([]clients.PullRequest, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMergedPRs")
-	ret0, _ := ret[0].([]clients.PullRequest)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListMergedPRs indicates an expected call of ListMergedPRs.
-func (mr *MockRepoClientMockRecorder) ListMergedPRs() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMergedPRs", reflect.TypeOf((*MockRepoClient)(nil).ListMergedPRs))
-}
-
 // ListReleases mocks base method.
 func (m *MockRepoClient) ListReleases() ([]clients.Release, error) {
 	m.ctrl.T.Helper()

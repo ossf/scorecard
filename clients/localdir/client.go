@@ -153,11 +153,6 @@ func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
 	return getFileContent(client.path, filename)
 }
 
-// ListMergedPRs implements RepoClient.ListMergedPRs.
-func (client *localDirClient) ListMergedPRs() ([]clients.PullRequest, error) {
-	return nil, fmt.Errorf("ListMergedPRs: %w", clients.ErrUnsupportedFeature)
-}
-
 // ListBranches implements RepoClient.ListBranches.
 func (client *localDirClient) ListBranches() ([]*clients.BranchRef, error) {
 	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
