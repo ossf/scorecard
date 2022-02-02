@@ -25,7 +25,7 @@ import (
 func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 	results := []checker.DefaultBranchCommit{}
 
-	// 1. Look at the latest commits
+	// Look at the latest commits.
 	commits, err := c.ListCommits()
 	if err != nil {
 		return checker.CodeReviewData{}, fmt.Errorf("%w", err)
@@ -38,7 +38,7 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 		oc[commit.SHA] = com
 	}
 
-	// 2. Look at merge requests.
+	// Look at merge requests.
 	mrs, err := c.ListMergedPRs()
 	if err != nil {
 		return checker.CodeReviewData{}, fmt.Errorf("%w", err)

@@ -26,7 +26,6 @@ var (
 	reviewPlatformGitHub = "GitHub"
 	reviewPlatformProw   = "Prow"
 	reviewPlatformGerrit = "Gerrit"
-	reviewStateApproved  = "approved"
 )
 
 // CodeReview applies the score policy for the Code-Review check.
