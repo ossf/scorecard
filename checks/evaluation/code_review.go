@@ -29,18 +29,6 @@ var (
 	reviewStateApproved  = "approved"
 )
 
-// ApprovedReviews represents the LGTMs associated with a commit
-// to the default branch.
-type approvedReviews struct {
-	Platform string
-}
-
-// Review represent a single-maintainer's review.
-type review struct {
-	Reviewer string
-	State    string
-}
-
 // CodeReview applies the score policy for the Code-Review check.
 func CodeReview(name string, dl checker.DetailLogger,
 	r *checker.CodeReviewData) checker.CheckResult {

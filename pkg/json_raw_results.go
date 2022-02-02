@@ -118,26 +118,6 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 			SHA:           commit.SHA,
 		}
 
-		// Approved reviews.
-		/*if commit.ApprovedReviews != nil {
-			reviews := jsonApprovedReviews{
-				Platform: jsonReviewPlatform{
-					Name: commit.ApprovedReviews.Platform.Name,
-				},
-			}
-
-			// Reviews.
-			for _, n := range commit.ApprovedReviews.MaintainerReviews {
-				reviews.MaintainerReviews = append(reviews.MaintainerReviews,
-					jsonReview{
-						Reviewer: jsonUser{
-							Login: n.Reviewer.Login,
-						},
-						State: n.State,
-					})
-			}
-		}*/
-
 		// Merge request field.
 		if commit.MergeRequest != nil {
 			mr := jsonMergeRequest{
