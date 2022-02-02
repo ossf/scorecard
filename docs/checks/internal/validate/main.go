@@ -40,7 +40,6 @@ var (
 		"IsArchived":                 {"GitHub"},
 		"ListFiles":                  {"GitHub", "local"},
 		"GetFileContent":             {"GitHub", "local"},
-		"ListMergedPRs":              {"GitHub"},
 		"ListBranches":               {"GitHub"},
 		"GetDefaultBranch":           {"GitHub"},
 		"ListCommits":                {"GitHub"},
@@ -67,7 +66,8 @@ func listCheckFiles() (map[string]string, error) {
 	}
 
 	for _, file := range files {
-		if !strings.HasSuffix(file.Name(), ".go") || file.IsDir() {
+		if !strings.HasSuffix(file.Name(), ".go") ||
+			strings.HasSuffix(file.Name(), "_test.go") || file.IsDir() {
 			continue
 		}
 

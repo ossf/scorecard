@@ -30,14 +30,15 @@ import (
 // TestCodeReview tests the code review checker.
 func TestCodereview(t *testing.T) {
 	t.Parallel()
-	//fieldalignment lint issue. Ignoring it as it is not important for this test.
-	//nolint
+	const testRepo = "test-repo"
+
+	// fieldalignment lint issue. Ignoring it as it is not important for this test.
+	// nolint: govet, goerr113
 	tests := []struct {
 		err       error
 		name      string
 		commiterr error
 		commits   []clients.Commit
-		prs       []clients.PullRequest
 		expected  checker.CheckResult
 	}{
 		{
@@ -70,132 +71,145 @@ func TestCodereview(t *testing.T) {
 		},
 		{
 			name: "Valid PR's and commits as not a bot",
-			prs: []clients.PullRequest{
-				{
-					Number:   1,
-					MergedAt: time.Now(),
-					Reviews: []clients.Review{
-						{
-							State: "APPROVED",
-						},
-					},
-					Labels: []clients.Label{
-						{
-							Name: "lgtm",
-						},
-					},
-				},
-			},
 			commits: []clients.Commit{
 				{
 					SHA: "sha",
 					Committer: clients.User{
 						Login: "user",
 					},
+					AssociatedMergeRequest: clients.PullRequest{
+						Repository: testRepo,
+						Number:     1,
+						MergedAt:   time.Now(),
+						Reviews: []clients.Review{
+							{
+								State: "APPROVED",
+							},
+						},
+						Labels: []clients.Label{
+							{
+								Name: "lgtm",
+							},
+						},
+					},
 				},
 			},
-
 			expected: checker.CheckResult{
 				Score: 10,
 				Pass:  true,
 			},
 		},
-
 		{
 			name: "Valid PR's and commits as bot",
-			prs: []clients.PullRequest{
-				{
-					Number:   1,
-					MergedAt: time.Now(),
-					Reviews: []clients.Review{
-						{
-							State: "APPROVED",
-						},
-					},
-					Labels: []clients.Label{
-						{
-							Name: "lgtm",
-						},
-					},
-				},
-			},
 			commits: []clients.Commit{
 				{
 					SHA: "sha",
 					Committer: clients.User{
 						Login: "bot",
 					},
+					AssociatedMergeRequest: clients.PullRequest{
+						Repository: testRepo,
+						Number:     1,
+						MergedAt:   time.Now(),
+						Reviews: []clients.Review{
+							{
+								State: "APPROVED",
+							},
+						},
+						Labels: []clients.Label{
+							{
+								Name: "lgtm",
+							},
+						},
+					},
 				},
 			},
-
 			expected: checker.CheckResult{
 				Score: 10,
 				Pass:  true,
 			},
 		},
-
 		{
 			name: "Valid PR's and commits not yet merged",
-			prs: []clients.PullRequest{
-				{
-					Number: 1,
-					Reviews: []clients.Review{
-						{
-							State: "APPROVED",
-						},
-					},
-					Labels: []clients.Label{
-						{
-							Name: "lgtm",
-						},
-					},
-				},
-			},
 			commits: []clients.Commit{
 				{
 					SHA: "sha",
 					Committer: clients.User{
 						Login: "bot",
 					},
+					AssociatedMergeRequest: clients.PullRequest{
+						Repository: testRepo,
+						Number:     1,
+						Reviews: []clients.Review{
+							{
+								State: "APPROVED",
+							},
+						},
+						Labels: []clients.Label{
+							{
+								Name: "lgtm",
+							},
+						},
+					},
 				},
 			},
-
 			expected: checker.CheckResult{
 				Score: -1,
 			},
 		},
 		{
 			name: "Valid PR's and commits with merged by someone else",
-			prs: []clients.PullRequest{
-				{
-					Number: 1,
-					Reviews: []clients.Review{
-						{
-							State: "APPROVED",
-						},
-					},
-					Labels: []clients.Label{
-						{
-							Name: "lgtm",
-						},
-					},
-					MergeCommit: clients.Commit{
-						SHA: "sha",
-						Committer: clients.User{
-							Login: "bob",
-						},
-					},
-				},
-			},
 			commits: []clients.Commit{
 				{
 					SHA: "sha",
 					Committer: clients.User{
 						Login: "bot",
 					},
+					AssociatedMergeRequest: clients.PullRequest{
+						Repository: testRepo,
+						Number:     1,
+						Reviews: []clients.Review{
+							{
+								State: "APPROVED",
+							},
+						},
+						Labels: []clients.Label{
+							{
+								Name: "lgtm",
+							},
+						},
+					},
 				},
 			},
-
+			expected: checker.CheckResult{
+				Score: -1,
+			},
+		},
+		{
+			name: "Merged PR in a different repo",
+			commits: []clients.Commit{
+				{
+					SHA: "sha",
+					Committer: clients.User{
+						Login: "bot",
+					},
+					AssociatedMergeRequest: clients.PullRequest{
+						Repository: "does-not-exist",
+						MergedAt:   time.Now(),
+						Number:     1,
+						Reviews: []clients.Review{
+							{
+								State: "APPROVED",
+							},
+						},
+						Labels: []clients.Label{
+							{
+								Name: "lgtm",
+							},
+						},
+					},
+				},
+			},
 			expected: checker.CheckResult{
 				Score: -1,
 			},
@@ -207,22 +221,19 @@ func TestCodereview(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListMergedPRs().DoAndReturn(func() ([]clients.PullRequest, error) {
-				if tt.err != nil {
-					return tt.prs, tt.err
-				}
-				return tt.prs, tt.err
-			}).AnyTimes()
-			mockRepo.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
 				if tt.commiterr != nil {
 					return tt.commits, tt.commiterr
 				}
 				return tt.commits, tt.err
 			}).AnyTimes()
+			mockRepo := mockrepo.NewMockRepo(ctrl)
+			mockRepo.EXPECT().String().Return(testRepo).AnyTimes()
 
 			req := checker.CheckRequest{
-				RepoClient: mockRepo,
+				RepoClient: mockRepoClient,
+				Repo:       mockRepo,
 			}
 			req.Dlogger = &scut.TestDetailLogger{}
 			res := DoesCodeReview(&req)

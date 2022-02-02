@@ -39,17 +39,19 @@ func init() {
 
 // CITests runs CI-Tests check.
 func CITests(c *checker.CheckRequest) checker.CheckResult {
-	prs, err := c.RepoClient.ListMergedPRs()
+	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckCITests, e)
 	}
 
 	totalMerged := 0
 	totalTested := 0
-	for index := range prs {
-		pr := &prs[index]
-		if pr.MergedAt.IsZero() {
+	for i := range commits {
+		pr := &commits[i].AssociatedMergeRequest
+		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
+		// but the PR was created in the original repo.
+		if pr.MergedAt.IsZero() || pr.Repository != c.Repo.String() {
 			continue
 		}
 		totalMerged++

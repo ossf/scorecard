@@ -95,12 +95,15 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 	// Look at some merged PRs to see if they were reviewed.
 	totalMerged := 0
 	totalReviewed := 0
-	prs, err := c.RepoClient.ListMergedPRs()
+	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		return 0, "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+		return 0, "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.Commits: %v", err))
 	}
-	for _, pr := range prs {
-		if pr.MergedAt.IsZero() {
+	for _, commit := range commits {
+		pr := commit.AssociatedMergeRequest
+		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
+		// but the PR was created in the original repo.
+		if pr.MergedAt.IsZero() || pr.Repository != c.Repo.String() {
 			continue
 		}
 		totalMerged++
@@ -122,11 +125,11 @@ func githubCodeReview(c *checker.CheckRequest) (int, string, error) {
 		// of equivalent to a review and is done several times on small prs to save
 		// time on clicking the approve button.
 		if !foundApprovedReview &&
-			pr.MergeCommit.Committer.Login != "" &&
-			pr.MergeCommit.Committer.Login != pr.Author.Login {
+			commit.Committer.Login != "" &&
+			commit.Committer.Login != pr.Author.Login {
 			c.Dlogger.Debug3(&checker.LogMessage{
 				Text: fmt.Sprintf("found PR#%d with committer (%s) different from author (%s)",
-					pr.Number, pr.Author.Login, pr.MergeCommit.Committer.Login),
+					pr.Number, pr.Author.Login, commit.Committer.Login),
 			})
 			totalReviewed++
 			foundApprovedReview = true
@@ -148,12 +151,15 @@ func prowCodeReview(c *checker.CheckRequest) (int, string, error) {
 	// Look at some merged PRs to see if they were reviewed
 	totalMerged := 0
 	totalReviewed := 0
-	prs, err := c.RepoClient.ListMergedPRs()
+	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+		sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
 	}
-	for _, pr := range prs {
-		if pr.MergedAt.IsZero() {
+	for _, commit := range commits {
+		pr := commit.AssociatedMergeRequest
+		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
+		// but the PR was created in the original repo.
+		if pr.MergedAt.IsZero() || pr.Repository != c.Repo.String() {
 			continue
 		}
 		totalMerged++

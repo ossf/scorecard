@@ -108,17 +108,20 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 
 // nolint
 func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
-	prs, err := c.RepoClient.ListMergedPRs()
+	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
 		//nolint
 		return checker.InconclusiveResultScore,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListMergedPRs: %v", err))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
 	}
 
 	totalMerged := 0
 	totalTested := 0
-	for _, pr := range prs {
-		if pr.MergedAt.IsZero() {
+	for _, commit := range commits {
+		pr := commit.AssociatedMergeRequest
+		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
+		// but the PR was created in the original repo.
+		if pr.MergedAt.IsZero() || pr.Repository != c.Repo.String() {
 			continue
 		}
 		totalMerged++
