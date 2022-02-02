@@ -65,21 +65,12 @@ type jsonBranchProtection struct {
 }
 
 type jsonReview struct {
-	Reviewer jsonUser `json:"reviewer`
-	State    string   `json:"state`
+	Reviewer jsonUser `json:"reviewer"`
+	State    string   `json:"state"`
 }
 
 type jsonUser struct {
 	Login string `json:"login"`
-}
-
-type jsonReviewPlatform struct {
-	Name string `json:"name"`
-}
-
-type jsonApprovedReviews struct {
-	Platform          jsonReviewPlatform `json:"platform"`
-	MaintainerReviews []jsonReview       `json:"reviews"`
 }
 
 type jsonMergeRequest struct {
@@ -90,11 +81,11 @@ type jsonMergeRequest struct {
 }
 
 type jsonDefaultBranchCommit struct {
-	ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
-	Committer       jsonUser             `json:"committer"`
-	MergeRequest    *jsonMergeRequest    `json:"merge-request"`
-	CommitMessage   string               `json:"commit-message"`
-	SHA             string               `json:"sha"`
+	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
+	Committer     jsonUser          `json:"committer"`
+	MergeRequest  *jsonMergeRequest `json:"merge-request"`
+	CommitMessage string            `json:"commit-message"`
+	SHA           string            `json:"sha"`
 
 	// TODO: check runs, etc.
 }
@@ -128,7 +119,7 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 		}
 
 		// Approved reviews.
-		if commit.ApprovedReviews != nil {
+		/*if commit.ApprovedReviews != nil {
 			reviews := jsonApprovedReviews{
 				Platform: jsonReviewPlatform{
 					Name: commit.ApprovedReviews.Platform.Name,
@@ -145,7 +136,7 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 						State: n.State,
 					})
 			}
-		}
+		}*/
 
 		// Merge request field.
 		if commit.MergeRequest != nil {
@@ -154,7 +145,10 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 				Author: jsonUser{
 					Login: commit.MergeRequest.Author.Login,
 				},
-				Labels: commit.MergeRequest.Labels,
+			}
+
+			if len(commit.MergeRequest.Labels) > 0 {
+				mr.Labels = commit.MergeRequest.Labels
 			}
 
 			for _, r := range commit.MergeRequest.Reviews {

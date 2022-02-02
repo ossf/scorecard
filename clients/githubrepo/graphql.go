@@ -84,7 +84,10 @@ type graphqlData struct {
 									} `graphql:"labels(last: $labelsToAnalyze)"`
 									Reviews struct {
 										Nodes []struct {
-											State githubv4.String
+											State  githubv4.String
+											Author struct {
+												Login githubv4.String
+											}
 										}
 									} `graphql:"reviews(last: $reviewsToAnalyze)"`
 								}
@@ -94,37 +97,6 @@ type graphqlData struct {
 				} `graphql:"... on Commit"`
 			}
 		}
-		PullRequests struct {
-			Nodes []struct {
-				Author struct {
-					Login githubv4.String
-				}
-				Number      githubv4.Int
-				HeadRefOid  githubv4.String
-				MergeCommit struct {
-					Author struct {
-						User struct {
-							Login githubv4.String
-						}
-					}
-					Oid githubv4.GitObjectID
-				}
-				MergedAt githubv4.DateTime
-				Labels   struct {
-					Nodes []struct {
-						Name githubv4.String
-					}
-				} `graphql:"labels(last: $labelsToAnalyze)"`
-				Reviews struct {
-					Nodes []struct {
-						State  githubv4.String
-						Author struct {
-							Login githubv4.String
-						}
-					}
-				} `graphql:"reviews(last: $reviewsToAnalyze)"`
-			}
-		} `graphql:"pullRequests(last: $pullRequestsToAnalyze, states: MERGED)"`
 		Issues struct {
 			Nodes []struct {
 				// nolint: revive,stylecheck // naming according to githubv4 convention.
@@ -242,8 +214,8 @@ func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.P
 					Committer: clients.User{
 						Login: string(commit.Author.User.Login),
 					},
+					SHA: string(pr.MergeCommit.Oid),
 				},
-				SHA: string(pr.MergeCommit.Oid),
 			}
 
 			for _, label := range pr.Labels.Nodes {
@@ -251,7 +223,6 @@ func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.P
 					Name: string(label.Name),
 				})
 			}
-
 			for _, review := range pr.Reviews.Nodes {
 				r := clients.Review{
 					State: string(review.State),
@@ -264,9 +235,12 @@ func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.P
 					r.Author = &a
 				}
 				toAppend.Reviews = append(toAppend.Reviews, r)
+
 			}
 
-			ret[i] = toAppend
+			ret = append(ret, toAppend)
+			break
+
 		}
 	}
 	return ret

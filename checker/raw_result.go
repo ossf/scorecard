@@ -114,11 +114,6 @@ type Issue struct {
 // DefaultBranchCommit represents a commit
 // to the default branch.
 type DefaultBranchCommit struct {
-	// Review indicate whether the commit was reviewed,
-	// using scorecard's logic.
-	// Note: this field may disppear if we decide the purely "raw"
-	// results are enough.
-	ApprovedReviews *ApprovedReviews
 	// Fields below are taken directly from cloud
 	// version control systems, e.g. GitHub.
 	SHA           string
@@ -135,41 +130,16 @@ type MergeRequest struct {
 	Reviews []Review
 }
 
-// User represent a user.
-type User struct {
-	Login string
-}
-
-var (
-	// ReviewPlatformGitHub is the name of ReviewPlatform for GitHub.
-	ReviewPlatformGitHub = "GitHub"
-	// ReviewPlatformProw is the name of ReviewPlatform for Prow.
-	ReviewPlatformProw = "Prow"
-	// ReviewPlatformGerrit is the name of ReviewPlatform for Gerrit.
-	ReviewPlatformGerrit = "Gerrit"
-	// ReviewStateApproved means an approved review.
-	ReviewStateApproved = "approved"
-)
-
-// ReviewPlatform represents a review platform.
-type ReviewPlatform struct {
-	Name string
-	// TODO: add fields, e.g. config files, etc.
-}
-
-// ApprovedReviews represents the LGTMs associated with a commit
-// to the default branch.
-type ApprovedReviews struct {
-	Platform ReviewPlatform
-	// Note: this field is only populated for GitHub and Prow.
-	MaintainerReviews []Review
-}
-
-// Review represent a single-maintainer's review.
+// Review represent a review using the built-in review system.
 type Review struct {
 	Reviewer User
 	State    string
 	// TODO(Review): add fields here if needed.
+}
+
+// User represent a user.
+type User struct {
+	Login string
 }
 
 // File represents a file.
