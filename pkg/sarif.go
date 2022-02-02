@@ -510,14 +510,14 @@ func filterOutDetailType(details []checker.CheckDetail, t checker.DetailType) []
 	return ret
 }
 
-func createDefaultLocationMessage(check *checker.CheckResult) string {
+func createDefaultLocationMessage(check *checker.CheckResult, score int) string {
 	details := filterOutDetailType(check.Details2, checker.DetailInfo)
 	s, b := detailsToString(details, log.WarnLevel)
 	if b {
 		// Warning: GitHub UX needs a single `\n` to turn it into a `<br>`.
-		return fmt.Sprintf("%s:\n%s", check.Reason, s)
+		return fmt.Sprintf("score is %d: %s:\n%s", score, check.Reason, s)
 	}
-	return check.Reason
+	return fmt.Sprintf("score is %d: %s", score, check.Reason)
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
@@ -597,7 +597,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 			// Note: this is not a valid URI but GitHub still accepts it.
 			// See https://sarifweb.azurewebsites.net/Validation to test verification.
 			locs = addDefaultLocation(locs, "no file associated with this alert")
-			msg := createDefaultLocationMessage(&check)
+			msg := createDefaultLocationMessage(&check, check.Score)
 			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &locs[0])
 			run.Results = append(run.Results, cr)
 		} else {
