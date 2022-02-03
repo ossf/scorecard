@@ -31,63 +31,21 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 		return checker.CodeReviewData{}, fmt.Errorf("%w", err)
 	}
 
-	oc := make(map[string]checker.DefaultBranchCommit)
-	for _, commit := range commits {
-		com := commitRequest(commit)
-		// Keep an index of commits by SHA.
-		oc[commit.SHA] = com
-	}
-
-	// Look at merge requests.
-	mrs, err := c.ListMergedPRs()
-	if err != nil {
-		return checker.CodeReviewData{}, fmt.Errorf("%w", err)
-	}
-
-	for i := range mrs {
-		mr := mrs[i]
-
-		if mr.MergedAt.IsZero() {
-			continue
-		}
-
-		// If the merge request is not a recent commit, skip.
-		com, exists := oc[mr.MergeCommit.SHA]
-
-		if exists {
-			// Sanity checks the logins are the same.
-			// TODO(#1543): re-enable this code.
-			//nolint:gocritic
-			/*if com.Committer.Login != mr.MergeCommit.Committer.Login {
-				return checker.CodeReviewData{}, sce.WithMessage(sce.ErrScorecardInternal,
-					fmt.Sprintf("commit login (%s) different from merge request commit login (%s)",
-						com.Committer.Login, mr.MergeCommit.Committer.Login))
-			}*/
-
-			// We have a recent merge request, update it.
-			com.MergeRequest = mergeRequest(&mr)
-			oc[com.SHA] = com
-		}
-	}
-
-	for _, v := range oc {
-		results = append(results, v)
-	}
-
-	if len(results) > 0 {
-		return checker.CodeReviewData{DefaultBranchCommits: results}, nil
+	for i := range commits {
+		results = append(results, getRawDataFrom(&commits[i]))
 	}
 
 	return checker.CodeReviewData{DefaultBranchCommits: results}, nil
 }
 
-func commitRequest(c clients.Commit) checker.DefaultBranchCommit {
+func getRawDataFrom(c *clients.Commit) checker.DefaultBranchCommit {
 	r := checker.DefaultBranchCommit{
 		Committer: checker.User{
 			Login: c.Committer.Login,
 		},
 		SHA:           c.SHA,
 		CommitMessage: c.Message,
+		MergeRequest:  mergeRequest(&c.AssociatedMergeRequest),
 	}
 
 	return r
@@ -99,9 +57,9 @@ func mergeRequest(mr *clients.PullRequest) *checker.MergeRequest {
 		Author: checker.User{
 			Login: mr.Author.Login,
 		},
-
-		Labels:  labels(mr),
-		Reviews: reviews(mr),
+		MergedAt: mr.MergedAt,
+		Labels:   labels(mr),
+		Reviews:  reviews(mr),
 	}
 	return &r
 }

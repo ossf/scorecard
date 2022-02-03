@@ -122,7 +122,6 @@ type graphqlHandler struct {
 	errSetup error
 	owner    string
 	repo     string
-	prs      []clients.PullRequest
 	commits  []clients.Commit
 	issues   []clients.Issue
 	archived bool
@@ -154,21 +153,13 @@ func (handler *graphqlHandler) setup() error {
 			return
 		}
 		handler.archived = bool(handler.data.Repository.IsArchived)
-		handler.prs = pullRequestsFrom(handler.data, handler.owner, handler.repo)
-		handler.commits, handler.errSetup = commitsFrom(handler.data)
+		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.owner, handler.repo)
 		if handler.errSetup != nil {
 			return
 		}
 		handler.issues = issuesFrom(handler.data)
 	})
 	return handler.errSetup
-}
-
-func (handler *graphqlHandler) getMergedPRs() ([]clients.PullRequest, error) {
-	if err := handler.setup(); err != nil {
-		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
-	}
-	return handler.prs, nil
 }
 
 func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
@@ -192,60 +183,8 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.PullRequest {
-	var ret []clients.PullRequest
-	for _, commit := range data.Repository.DefaultBranchRef.Target.Commit.History.Nodes {
-		for i := range commit.AssociatedPullRequests.Nodes {
-			pr := commit.AssociatedPullRequests.Nodes[i]
-			if pr.MergeCommit.Oid != commit.Oid ||
-				string(pr.Repository.Name) != repoName ||
-				string(pr.Repository.Owner.Login) != repoOwner {
-				continue
-			}
-			toAppend := clients.PullRequest{
-				Number:   int(pr.Number),
-				HeadSHA:  string(pr.HeadRefOid),
-				MergedAt: pr.MergedAt.Time,
-				Author: clients.User{
-					Login: string(pr.Author.Login),
-				},
-				// TODO(#575): Use the original commit data here directly.
-				MergeCommit: clients.Commit{
-					Committer: clients.User{
-						Login: string(commit.Author.User.Login),
-					},
-					SHA: string(pr.MergeCommit.Oid),
-				},
-			}
-
-			for _, label := range pr.Labels.Nodes {
-				toAppend.Labels = append(toAppend.Labels, clients.Label{
-					Name: string(label.Name),
-				})
-			}
-			for _, review := range pr.Reviews.Nodes {
-				r := clients.Review{
-					State: string(review.State),
-				}
-
-				a := clients.User{
-					Login: string(review.Author.Login),
-				}
-				if a.Login != "" {
-					r.Author = &a
-				}
-				toAppend.Reviews = append(toAppend.Reviews, r)
-			}
-
-			ret = append(ret, toAppend)
-			break
-		}
-	}
-	return ret
-}
-
 // nolint: unparam
-func commitsFrom(data *graphqlData) ([]clients.Commit, error) {
+func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.DefaultBranchRef.Target.Commit.History.Nodes {
 		var committer string
@@ -253,6 +192,34 @@ func commitsFrom(data *graphqlData) ([]clients.Commit, error) {
 			committer = *commit.Committer.User.Login
 		}
 		// TODO(#1543): Figure out a way to safely get committer if `User.Login` is `nil`.
+		var associatedPR clients.PullRequest
+		for i := range commit.AssociatedPullRequests.Nodes {
+			pr := commit.AssociatedPullRequests.Nodes[i]
+			if pr.MergeCommit.Oid != commit.Oid ||
+				string(pr.Repository.Owner.Login) != repoOwner ||
+				string(pr.Repository.Name) != repoName {
+				continue
+			}
+			associatedPR = clients.PullRequest{
+				Number:   int(pr.Number),
+				HeadSHA:  string(pr.HeadRefOid),
+				MergedAt: pr.MergedAt.Time,
+				Author: clients.User{
+					Login: string(pr.Author.Login),
+				},
+			}
+			for _, label := range pr.Labels.Nodes {
+				associatedPR.Labels = append(associatedPR.Labels, clients.Label{
+					Name: string(label.Name),
+				})
+			}
+			for _, review := range pr.Reviews.Nodes {
+				associatedPR.Reviews = append(associatedPR.Reviews, clients.Review{
+					State: string(review.State),
+				})
+			}
+			break
+		}
 		ret = append(ret, clients.Commit{
 			CommittedDate: commit.CommittedDate.Time,
 			Message:       string(commit.Message),
@@ -260,6 +227,7 @@ func commitsFrom(data *graphqlData) ([]clients.Commit, error) {
 			Committer: clients.User{
 				Login: committer,
 			},
+			AssociatedMergeRequest: associatedPR,
 		})
 	}
 	return ret, nil

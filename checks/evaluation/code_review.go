@@ -126,7 +126,7 @@ func getApprovedReviewSystem(c *checker.DefaultBranchCommit, dl checker.DetailLo
 
 func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
 	mr := c.MergeRequest
-	if mr == nil {
+	if mr == nil || mr.MergedAt.IsZero() {
 		return false
 	}
 
@@ -163,7 +163,7 @@ func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) b
 		return true
 	}
 
-	if c.MergeRequest != nil {
+	if c.MergeRequest != nil && !c.MergeRequest.MergedAt.IsZero() {
 		for _, l := range c.MergeRequest.Labels {
 			if l == "lgtm" || l == "approved" {
 				dl.Debug3(&checker.LogMessage{

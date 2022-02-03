@@ -14,6 +14,8 @@
 
 package checker
 
+import "time"
+
 // RawResults contains results before a policy
 // is applied.
 type RawResults struct {
@@ -123,12 +125,13 @@ type DefaultBranchCommit struct {
 }
 
 // MergeRequest represents a merge request.
-//nolint:govet
+// nolint:govet
 type MergeRequest struct {
-	Number  int
-	Labels  []string
-	Reviews []Review
-	Author  User
+	Number   int
+	Labels   []string
+	Reviews  []Review
+	Author   User
+	MergedAt time.Time
 }
 
 // Review represent a review using the built-in review system.

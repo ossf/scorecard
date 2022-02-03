@@ -113,11 +113,6 @@ func (client *Client) GetFileContent(filename string) ([]byte, error) {
 	return client.tarball.getFileContent(filename)
 }
 
-// ListMergedPRs implements RepoClient.ListMergedPRs.
-func (client *Client) ListMergedPRs() ([]clients.PullRequest, error) {
-	return client.graphClient.getMergedPRs()
-}
-
 // ListCommits implements RepoClient.ListCommits.
 func (client *Client) ListCommits() ([]clients.Commit, error) {
 	return client.graphClient.getCommits()
