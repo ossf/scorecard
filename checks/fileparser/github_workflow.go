@@ -299,6 +299,8 @@ func IsWorkflowFile(pathfn string) bool {
 	}
 }
 
+// IsGithubWorkflowFileCb determines if a file is a workflow
+// as a callback to use for repo client's ListFiles() API.
 func IsGithubWorkflowFileCb(pathfn string) (bool, error) {
 	return IsWorkflowFile(pathfn), nil
 }
