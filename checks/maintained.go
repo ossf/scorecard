@@ -59,8 +59,8 @@ func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
 	commitsWithinThreshold := 0
-	for _, commit := range commits {
-		if commit.CommittedDate.After(threshold) {
+	for i := range commits {
+		if commits[i].CommittedDate.After(threshold) {
 			commitsWithinThreshold++
 		}
 	}

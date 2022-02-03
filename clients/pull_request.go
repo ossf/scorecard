@@ -21,13 +21,12 @@ import (
 // PullRequest struct represents a PR as returned by RepoClient.
 // nolint: govet
 type PullRequest struct {
-	MergedAt    time.Time
-	MergeCommit Commit
-	Number      int
-	HeadSHA     string
-	Labels      []Label
-	Reviews     []Review
-	Author      User
+	Number   int
+	MergedAt time.Time
+	HeadSHA  string
+	Author   User
+	Labels   []Label
+	Reviews  []Review
 }
 
 // Label represents a PR label.

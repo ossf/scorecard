@@ -18,8 +18,9 @@ import "time"
 
 // Commit represents a Git commit.
 type Commit struct {
-	CommittedDate time.Time
-	Message       string
-	SHA           string
-	Committer     User
+	CommittedDate          time.Time
+	Message                string
+	SHA                    string
+	Committer              User
+	AssociatedMergeRequest PullRequest
 }
