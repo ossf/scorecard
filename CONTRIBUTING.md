@@ -71,6 +71,7 @@ git clone git@github.com:<user>/scorecard.git $GOPATH/src/github.com/<user>/scor
 
 1.  Ensure you activate module support before continue (`$ export
     GO111MODULE=on`)
+1.  Install the build tools for the project by running the command `make install`
 1.  Run the command `make build` to build the source code
 
 ## PR Process
