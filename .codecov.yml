@@ -2,7 +2,7 @@
 codecov:
   notify:
     after_n_builds: 1
-    require_ci_to_pass: false
+    require_ci_to_pass: yes
 
 coverage:
   precision: 2
@@ -21,7 +21,7 @@ coverage:
     patch:
       default:
         enabled: true
-        threshold: null
+        threshold: 90%
         if_not_found: success
         if_no_uploads: success
         if_ci_failed: error
@@ -31,3 +31,5 @@ comment:
   layout: "header, diff"
   behavior: default
   require_changes: false
+github_checks:
+  annotations: true
