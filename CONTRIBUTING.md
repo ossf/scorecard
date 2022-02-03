@@ -71,6 +71,7 @@ git clone git@github.com:<user>/scorecard.git $GOPATH/src/github.com/<user>/scor
 
 1.  Ensure you activate module support before continue (`$ export
     GO111MODULE=on`)
+1.  Install the build tools for the project by running the command `make install`
 1.  Run the command `make build` to build the source code
 
 ## PR Process
@@ -87,8 +88,7 @@ Every PR should be annotated with an icon indicating whether it's a:
 Use :ghost: (no release note) only for the PRs that change or revert unreleased
 changes, which don't deserve a release note. Please don't abuse it.
 
-You can also use the equivalent emoji directly, since GitHub doesn't render the
-`:xyz:` aliases in PR titles.
+You are free to use the `:xyz:` aliases or to use the equivalent emoji directly.
 
 Individual commits should not be tagged separately, but will generally be
 assumed to match the PR. For instance, if you have a bugfix in with a breaking

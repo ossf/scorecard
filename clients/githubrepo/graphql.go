@@ -17,7 +17,6 @@ package githubrepo
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -34,7 +33,6 @@ const (
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
 	commitsToAnalyze       = 30
-	allowedCommitterName   = "github"
 )
 
 // nolint: govet
@@ -86,7 +84,10 @@ type graphqlData struct {
 									} `graphql:"labels(last: $labelsToAnalyze)"`
 									Reviews struct {
 										Nodes []struct {
-											State githubv4.String
+											State  githubv4.String
+											Author struct {
+												Login githubv4.String
+											}
 										}
 									} `graphql:"reviews(last: $reviewsToAnalyze)"`
 								}
@@ -121,7 +122,6 @@ type graphqlHandler struct {
 	errSetup error
 	owner    string
 	repo     string
-	prs      []clients.PullRequest
 	commits  []clients.Commit
 	issues   []clients.Issue
 	archived bool
@@ -153,21 +153,13 @@ func (handler *graphqlHandler) setup() error {
 			return
 		}
 		handler.archived = bool(handler.data.Repository.IsArchived)
-		handler.prs = pullRequestsFrom(handler.data, handler.owner, handler.repo)
-		handler.commits, handler.errSetup = commitsFrom(handler.data)
+		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.owner, handler.repo)
 		if handler.errSetup != nil {
 			return
 		}
 		handler.issues = issuesFrom(handler.data)
 	})
 	return handler.errSetup
-}
-
-func (handler *graphqlHandler) getMergedPRs() ([]clients.PullRequest, error) {
-	if err := handler.setup(); err != nil {
-		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
-	}
-	return handler.prs, nil
 }
 
 func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
@@ -191,60 +183,42 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-func pullRequestsFrom(data *graphqlData, repoOwner, repoName string) []clients.PullRequest {
-	var ret []clients.PullRequest
+// nolint: unparam
+func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
+	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.DefaultBranchRef.Target.Commit.History.Nodes {
+		var committer string
+		if commit.Committer.User.Login != nil {
+			committer = *commit.Committer.User.Login
+		}
+		// TODO(#1543): Figure out a way to safely get committer if `User.Login` is `nil`.
+		var associatedPR clients.PullRequest
 		for i := range commit.AssociatedPullRequests.Nodes {
 			pr := commit.AssociatedPullRequests.Nodes[i]
 			if pr.MergeCommit.Oid != commit.Oid ||
-				string(pr.Repository.Name) != repoName ||
-				string(pr.Repository.Owner.Login) != repoOwner {
+				string(pr.Repository.Owner.Login) != repoOwner ||
+				string(pr.Repository.Name) != repoName {
 				continue
 			}
-			toAppend := clients.PullRequest{
+			associatedPR = clients.PullRequest{
 				Number:   int(pr.Number),
 				HeadSHA:  string(pr.HeadRefOid),
 				MergedAt: pr.MergedAt.Time,
 				Author: clients.User{
 					Login: string(pr.Author.Login),
 				},
-				// TODO(#575): Use the original commit data here directly.
-				MergeCommit: clients.Commit{
-					Committer: clients.User{
-						Login: string(commit.Author.User.Login),
-					},
-				},
 			}
 			for _, label := range pr.Labels.Nodes {
-				toAppend.Labels = append(toAppend.Labels, clients.Label{
+				associatedPR.Labels = append(associatedPR.Labels, clients.Label{
 					Name: string(label.Name),
 				})
 			}
 			for _, review := range pr.Reviews.Nodes {
-				toAppend.Reviews = append(toAppend.Reviews, clients.Review{
+				associatedPR.Reviews = append(associatedPR.Reviews, clients.Review{
 					State: string(review.State),
 				})
 			}
-			ret = append(ret, toAppend)
 			break
-		}
-	}
-	return ret
-}
-
-func commitsFrom(data *graphqlData) ([]clients.Commit, error) {
-	ret := make([]clients.Commit, 0)
-	for _, commit := range data.Repository.DefaultBranchRef.Target.Commit.History.Nodes {
-		var committer string
-		if commit.Committer.User.Login != nil {
-			committer = *commit.Committer.User.Login
-		} else if commit.Committer.Name != nil {
-			committer = *commit.Committer.Name
-			// committer.name will be set to `github` if this was auto-merged by GitHub.
-			if !strings.EqualFold(committer, allowedCommitterName) {
-				return nil, sce.WithMessage(sce.ErrScorecardInternal,
-					fmt.Sprintf("committer name is not '%s': %s", allowedCommitterName, committer))
-			}
 		}
 		ret = append(ret, clients.Commit{
 			CommittedDate: commit.CommittedDate.Time,
@@ -253,6 +227,7 @@ func commitsFrom(data *graphqlData) ([]clients.Commit, error) {
 			Committer: clients.User{
 				Login: committer,
 			},
+			AssociatedMergeRequest: associatedPR,
 		})
 	}
 	return ret, nil

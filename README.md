@@ -160,7 +160,7 @@ brew install scorecard
 
 Package Manager                                            | Linux Distribution | Command
 ---------------------------------------------------------- | ------------------ | -------
-Nix                                                        | NixOS              | `nix-env -iA nixpkgs.scorecard`
+Nix                                                        | NixOS              | `nix-shell -p nixpkgs.scorecard`
 [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) | Arch Linux         | Use your AUR helper to install `scorecard`
 
 #### Authentication

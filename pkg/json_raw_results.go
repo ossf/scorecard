@@ -64,6 +64,33 @@ type jsonBranchProtection struct {
 	Name       string                        `json:"name"`
 }
 
+type jsonReview struct {
+	Reviewer jsonUser `json:"reviewer"`
+	State    string   `json:"state"`
+}
+
+type jsonUser struct {
+	Login string `json:"login"`
+}
+
+//nolint:govet
+type jsonMergeRequest struct {
+	Number  int          `json:"number"`
+	Labels  []string     `json:"labels"`
+	Reviews []jsonReview `json:"reviews"`
+	Author  jsonUser     `json:"author"`
+}
+
+type jsonDefaultBranchCommit struct {
+	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
+	Committer     jsonUser          `json:"committer"`
+	MergeRequest  *jsonMergeRequest `json:"merge-request"`
+	CommitMessage string            `json:"commit-message"`
+	SHA           string            `json:"sha"`
+
+	// TODO: check runs, etc.
+}
+
 type jsonRawResults struct {
 	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"database-vulnerabilities"`
 	// List of binaries found in the repo.
@@ -76,6 +103,52 @@ type jsonRawResults struct {
 	DependencyUpdateTools []jsonTool `json:"dependency-update-tools"`
 	// Branch protection settings for development and release branches.
 	BranchProtections []jsonBranchProtection `json:"branch-protections"`
+	// Commits.
+	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
+}
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewData) error {
+	r.Results.DefaultBranchCommits = []jsonDefaultBranchCommit{}
+	for _, commit := range cr.DefaultBranchCommits {
+		com := jsonDefaultBranchCommit{
+			Committer: jsonUser{
+				Login: commit.Committer.Login,
+			},
+			CommitMessage: commit.CommitMessage,
+			SHA:           commit.SHA,
+		}
+
+		// Merge request field.
+		if commit.MergeRequest != nil {
+			mr := jsonMergeRequest{
+				Number: commit.MergeRequest.Number,
+				Author: jsonUser{
+					Login: commit.MergeRequest.Author.Login,
+				},
+			}
+
+			if len(commit.MergeRequest.Labels) > 0 {
+				mr.Labels = commit.MergeRequest.Labels
+			}
+
+			for _, r := range commit.MergeRequest.Reviews {
+				mr.Reviews = append(mr.Reviews, jsonReview{
+					State: r.State,
+					Reviewer: jsonUser{
+						Login: r.Reviewer.Login,
+					},
+				})
+			}
+
+			com.MergeRequest = &mr
+		}
+
+		com.CommitMessage = commit.CommitMessage
+
+		r.Results.DefaultBranchCommits = append(r.Results.DefaultBranchCommits, com)
+	}
+	return nil
 }
 
 type jsonDatabaseVulnerability struct {
@@ -192,6 +265,11 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Branch-Protection.
 	if err := r.addBranchProtectionRawResults(&raw.BranchProtectionResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Code-Review.
+	if err := r.addCodeReviewRawResults(&raw.CodeReviewResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

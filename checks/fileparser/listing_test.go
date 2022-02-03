@@ -15,7 +15,13 @@
 package fileparser
 
 import (
+	"errors"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+
+	"github.com/ossf/scorecard/v4/checker"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
 func TestIsTemplateFile(t *testing.T) {
@@ -368,6 +374,247 @@ func Test_isTestdataFile(t *testing.T) {
 			t.Parallel()
 			if got := isTestdataFile(tt.args.fullpath); got != tt.want {
 				t.Errorf("isTestdataFile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestFileGetCbDataAsBoolPointer tests the FileGetCbDataAsBoolPointer function.
+func TestFileGetCbDataAsBoolPointer(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		data FileCbData
+	}
+	b := true
+	//nolint
+	tests := []struct {
+		name      string
+		args      args
+		want      *bool
+		wantPanic bool
+	}{
+		{
+			name: "true",
+			args: args{
+				data: &b,
+			},
+			want: &b,
+		},
+		{
+			name:      "nil",
+			args:      args{},
+			want:      &b,
+			wantPanic: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if tt.wantPanic {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Errorf("FileGetCbDataAsBoolPointer() did not panic")
+					}
+				}()
+				FileGetCbDataAsBoolPointer(tt.args.data)
+				return
+			}
+			if got := FileGetCbDataAsBoolPointer(tt.args.data); got != tt.want {
+				t.Errorf("FileGetCbDataAsBoolPointer() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestCheckIfFileExistsV6 tests the CheckIfFileExistsV6 function.
+func TestCheckIfFileExistsV6(t *testing.T) {
+	t.Parallel()
+	//nolint
+	tests := []struct {
+		name                   string
+		wantErr                bool
+		shellPattern           string
+		caseSensitive          bool
+		shouldFuncFail         bool
+		shouldGetPredicateFail bool
+		files                  []string
+	}{
+		{
+			name:          "no files",
+			shellPattern:  "Dockerfile",
+			caseSensitive: true,
+			files: []string{
+				"Dockerfile",
+				"Dockerfile.template",
+				"Dockerfile.template.template",
+				"Dockerfile.template.template.template",
+				"Dockerfile.template.template.template.template",
+			},
+		},
+		{
+			name:          "no files",
+			shellPattern:  "Dockerfile",
+			caseSensitive: false,
+			files:         []string{},
+		},
+		{
+			name:          "no files",
+			shellPattern:  "Dockerfile",
+			caseSensitive: true,
+			files:         []string{},
+		},
+		{
+			name:          "no files",
+			shellPattern:  "Dockerfile",
+			caseSensitive: false,
+			files: []string{
+				"Dockerfile",
+				"Dockerfile.template",
+				"Dockerfile.template.template",
+				"Dockerfile.template.template.template",
+				"Dockerfile.template.template.template.template",
+			},
+			shouldFuncFail: true,
+		},
+		{
+			name:                   "no files",
+			shellPattern:           "Dockerfile",
+			caseSensitive:          false,
+			shouldGetPredicateFail: true,
+			files: []string{
+				"Dockerfile",
+				"Dockerfile.template",
+				"Dockerfile.template.template",
+				"Dockerfile.template.template.template",
+				"Dockerfile.template.template.template.template",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			x := func(path string, content []byte, data FileCbData) (bool, error) {
+				if tt.shouldFuncFail {
+					//nolint
+					return false, errors.New("test error")
+				}
+				if tt.shouldGetPredicateFail {
+					return false, nil
+				}
+				return true, nil
+			}
+
+			ctrl := gomock.NewController(t)
+			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			mockRepo.EXPECT().GetFileContent(gomock.Any()).Return(nil, nil).AnyTimes()
+
+			result := CheckFilesContentV6(tt.shellPattern, tt.caseSensitive, mockRepo, x, x)
+
+			if tt.wantErr && result == nil {
+				t.Errorf("CheckFilesContentV6() = %v, want %v test name %v", result, tt.wantErr, tt.name)
+			}
+		})
+	}
+}
+
+// TestCheckIfFileExistsV6 tests the CheckIfFileExistsV6 function.
+func TestCheckIfFileExists(t *testing.T) {
+	t.Parallel()
+	//nolint
+	tests := []struct {
+		name                   string
+		wantErr                bool
+		shellPattern           string
+		caseSensitive          bool
+		shouldFuncFail         bool
+		shouldGetPredicateFail bool
+		files                  []string
+	}{
+		{
+			name:          "no files",
+			shellPattern:  "Dockerfile",
+			caseSensitive: true,
+			files: []string{
+				"Dockerfile",
+				"Dockerfile.template",
+				"Dockerfile.template.template",
+				"Dockerfile.template.template.template",
+				"Dockerfile.template.template.template.template",
+			},
+		},
+		{
+			name:          "no files",
+			shellPattern:  "Dockerfile",
+			caseSensitive: false,
+			files:         []string{},
+		},
+		{
+			name:          "no files",
+			shellPattern:  "Dockerfile",
+			caseSensitive: true,
+			files:         []string{},
+		},
+		{
+			name:          "no files",
+			shellPattern:  "Dockerfile",
+			caseSensitive: false,
+			files: []string{
+				"Dockerfile",
+				"Dockerfile.template",
+				"Dockerfile.template.template",
+				"Dockerfile.template.template.template",
+				"Dockerfile.template.template.template.template",
+			},
+			shouldFuncFail: true,
+		},
+		{
+			name:                   "no files",
+			shellPattern:           "Dockerfile",
+			caseSensitive:          false,
+			shouldGetPredicateFail: true,
+			files: []string{
+				"Dockerfile",
+				"Dockerfile.template",
+				"Dockerfile.template.template",
+				"Dockerfile.template.template.template",
+				"Dockerfile.template.template.template.template",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			x := func(path string, content []byte,
+				dl checker.DetailLogger, data FileCbData) (bool, error) {
+				if tt.shouldFuncFail {
+					//nolint
+					return false, errors.New("test error")
+				}
+				if tt.shouldGetPredicateFail {
+					return false, nil
+				}
+				return true, nil
+			}
+
+			ctrl := gomock.NewController(t)
+			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			mockRepo.EXPECT().GetFileContent(gomock.Any()).Return(nil, nil).AnyTimes()
+
+			c := checker.CheckRequest{
+				RepoClient: mockRepo,
+			}
+
+			result := CheckFilesContent(tt.shellPattern, tt.caseSensitive, &c, x, x)
+
+			if tt.wantErr && result == nil {
+				t.Errorf("CheckFilesContentV6() = %v, want %v test name %v", result, tt.wantErr, tt.name)
 			}
 		})
 	}
