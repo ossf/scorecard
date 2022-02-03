@@ -111,9 +111,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 	}
 
-	if err := os.Chdir("./testdata/"); err != nil {
-		panic(fmt.Errorf("os.Chdir: %w", err))
-	}
+	changeDir()
 
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -205,9 +203,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 	}
 
-	if err := os.Chdir("./testdata/"); err != nil {
-		panic(fmt.Errorf("os.Chdir: %w", err))
-	}
+	changeDir()
 
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -257,9 +253,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 		},
 	}
 
-	if err := os.Chdir("./testdata/"); err != nil {
-		panic(fmt.Errorf("os.Chdir: %w", err))
-	}
+	changeDir()
 
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -296,7 +290,7 @@ func TestDockerfilePinning(t *testing.T) {
 	}{
 		{
 			name:     "invalid dockerfile",
-			filename: "./testdata/Dockerfile-invalid",
+			filename: "./Dockerfile-invalid",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -307,7 +301,7 @@ func TestDockerfilePinning(t *testing.T) {
 		},
 		{
 			name:     "invalid dockerfile sh",
-			filename: "./testdata/script-sh",
+			filename: "./script-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -318,7 +312,7 @@ func TestDockerfilePinning(t *testing.T) {
 		},
 		{
 			name:     "empty file",
-			filename: "./testdata/Dockerfile-empty",
+			filename: "./Dockerfile-empty",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -329,7 +323,7 @@ func TestDockerfilePinning(t *testing.T) {
 		},
 		{
 			name:     "comments only",
-			filename: "./testdata/Dockerfile-comments",
+			filename: "./Dockerfile-comments",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -340,7 +334,7 @@ func TestDockerfilePinning(t *testing.T) {
 		},
 		{
 			name:     "Pinned dockerfile",
-			filename: "./testdata/Dockerfile-pinned",
+			filename: "./Dockerfile-pinned",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -351,7 +345,7 @@ func TestDockerfilePinning(t *testing.T) {
 		},
 		{
 			name:     "Pinned dockerfile as",
-			filename: "./testdata/Dockerfile-pinned-as",
+			filename: "./Dockerfile-pinned-as",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -362,7 +356,7 @@ func TestDockerfilePinning(t *testing.T) {
 		},
 		{
 			name:     "Non-pinned dockerfile as",
-			filename: "./testdata/Dockerfile-not-pinned-as",
+			filename: "./Dockerfile-not-pinned-as",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -373,7 +367,7 @@ func TestDockerfilePinning(t *testing.T) {
 		},
 		{
 			name:     "Non-pinned dockerfile",
-			filename: "./testdata/Dockerfile-not-pinned",
+			filename: "./Dockerfile-not-pinned",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -383,6 +377,9 @@ func TestDockerfilePinning(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -423,7 +420,7 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 	}{
 		{
 			name:     "Non-pinned dockerfile as",
-			filename: "./testdata/Dockerfile-not-pinned-as",
+			filename: "./Dockerfile-not-pinned-as",
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -443,7 +440,7 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 		},
 		{
 			name:     "Non-pinned dockerfile",
-			filename: "./testdata/Dockerfile-not-pinned",
+			filename: "./Dockerfile-not-pinned",
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -496,55 +493,58 @@ func TestDockerfileInvalidFiles(t *testing.T) {
 	}{
 		{
 			name:     "dockerfile go",
-			filename: "./testdata/Dockerfile.go",
+			filename: "./Dockerfile.go",
 			expected: false,
 		},
 		{
 			name:     "dockerfile c",
-			filename: "./testdata/Dockerfile.c",
+			filename: "./Dockerfile.c",
 			expected: false,
 		},
 		{
 			name:     "dockerfile cpp",
-			filename: "./testdata/Dockerfile.cpp",
+			filename: "./Dockerfile.cpp",
 			expected: false,
 		},
 		{
 			name:     "dockerfile rust",
-			filename: "./testdata/Dockerfile.rs",
+			filename: "./Dockerfile.rs",
 			expected: false,
 		},
 		{
 			name:     "dockerfile js",
-			filename: "./testdata/Dockerfile.js",
+			filename: "./Dockerfile.js",
 			expected: false,
 		},
 		{
 			name:     "dockerfile sh",
-			filename: "./testdata/Dockerfile.sh",
+			filename: "./Dockerfile.sh",
 			expected: false,
 		},
 		{
 			name:     "dockerfile py",
-			filename: "./testdata/Dockerfile.py",
+			filename: "./Dockerfile.py",
 			expected: false,
 		},
 		{
 			name:     "dockerfile pyc",
-			filename: "./testdata/Dockerfile.pyc",
+			filename: "./Dockerfile.pyc",
 			expected: false,
 		},
 		{
 			name:     "dockerfile java",
-			filename: "./testdata/Dockerfile.java",
+			filename: "./Dockerfile.java",
 			expected: false,
 		},
 		{
 			name:     "dockerfile ",
-			filename: "./testdata/Dockerfile.any",
+			filename: "./Dockerfile.any",
 			expected: true,
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -571,7 +571,7 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 	}{
 		{
 			name:     "dockerfile downloads",
-			filename: "./testdata/Dockerfile-download-lines",
+			filename: "./Dockerfile-download-lines",
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -591,7 +591,7 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 		},
 		{
 			name:     "dockerfile downloads multi-run",
-			filename: "./testdata/Dockerfile-download-multi-runs",
+			filename: "./Dockerfile-download-multi-runs",
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -620,6 +620,9 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -664,7 +667,7 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 	}{
 		{
 			name:     "shell downloads",
-			filename: "./testdata/shell-download-lines.sh",
+			filename: "./shell-download-lines.sh",
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -703,6 +706,8 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
 
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -743,7 +748,7 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 	}{
 		{
 			name:     "Pinned dockerfile as no hash",
-			filename: "./testdata/Dockerfile-pinned-as-without-hash",
+			filename: "./Dockerfile-pinned-as-without-hash",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -754,7 +759,7 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 		},
 		{
 			name:     "Dockerfile with args",
-			filename: "./testdata/Dockerfile-args",
+			filename: "./Dockerfile-args",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -765,7 +770,7 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 		},
 		{
 			name:     "Dockerfile with base",
-			filename: "./testdata/Dockerfile-base",
+			filename: "./Dockerfile-base",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -775,6 +780,9 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -819,7 +827,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 	}{
 		{
 			name:     "curl | sh",
-			filename: "testdata/Dockerfile-curl-sh",
+			filename: "Dockerfile-curl-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -830,7 +838,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "empty file",
-			filename: "./testdata/Dockerfile-empty",
+			filename: "Dockerfile-empty",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -841,7 +849,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "invalid file sh",
-			filename: "./testdata/script.sh",
+			filename: "script.sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -852,7 +860,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "comments only",
-			filename: "./testdata/Dockerfile-comments",
+			filename: "Dockerfile-comments",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -863,7 +871,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "wget | /bin/sh",
-			filename: "testdata/Dockerfile-wget-bin-sh",
+			filename: "Dockerfile-wget-bin-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -874,7 +882,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "wget no exec",
-			filename: "testdata/Dockerfile-script-ok",
+			filename: "Dockerfile-script-ok",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -885,7 +893,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "curl file sh",
-			filename: "testdata/Dockerfile-curl-file-sh",
+			filename: "Dockerfile-curl-file-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -896,7 +904,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "proc substitution",
-			filename: "testdata/Dockerfile-proc-subs",
+			filename: "Dockerfile-proc-subs",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -907,7 +915,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "wget file",
-			filename: "testdata/Dockerfile-wget-file",
+			filename: "Dockerfile-wget-file",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -918,7 +926,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "gsutil file",
-			filename: "testdata/Dockerfile-gsutil-file",
+			filename: "Dockerfile-gsutil-file",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -929,7 +937,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "aws file",
-			filename: "testdata/Dockerfile-aws-file",
+			filename: "Dockerfile-aws-file",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -940,7 +948,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "pkg managers",
-			filename: "testdata/Dockerfile-pkg-managers",
+			filename: "Dockerfile-pkg-managers",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -951,7 +959,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "download with some python",
-			filename: "testdata/Dockerfile-some-python",
+			filename: "Dockerfile-some-python",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -961,6 +969,9 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -997,7 +1008,7 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 	}{
 		{
 			name:     "curl | sh",
-			filename: "testdata/Dockerfile-no-curl-sh",
+			filename: "Dockerfile-no-curl-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -1007,6 +1018,9 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -1049,7 +1063,7 @@ func TestShellScriptDownload(t *testing.T) {
 	}{
 		{
 			name:     "sh script",
-			filename: "testdata/script-sh",
+			filename: "script-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1060,7 +1074,7 @@ func TestShellScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "empty file",
-			filename: "./testdata/script-empty.sh",
+			filename: "./script-empty.sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -1071,7 +1085,7 @@ func TestShellScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "comments",
-			filename: "./testdata/script-comments.sh",
+			filename: "./script-comments.sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -1082,7 +1096,7 @@ func TestShellScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "bash script",
-			filename: "testdata/script-bash",
+			filename: "script-bash",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1093,7 +1107,7 @@ func TestShellScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "sh script 2",
-			filename: "testdata/script.sh",
+			filename: "script.sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1104,7 +1118,7 @@ func TestShellScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "pkg managers",
-			filename: "testdata/script-pkg-managers",
+			filename: "script-pkg-managers",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1114,6 +1128,9 @@ func TestShellScriptDownload(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -1150,7 +1167,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 	}{
 		{
 			name:     "sh script",
-			filename: "testdata/script-comments.sh",
+			filename: "script-comments.sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -1161,7 +1178,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 		},
 		{
 			name:     "script free of download",
-			filename: "testdata/script-free-from-download.sh",
+			filename: "script-free-from-download.sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -1171,6 +1188,9 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -1214,7 +1234,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 	}{
 		{
 			name:     "workflow curl default",
-			filename: "./testdata/.github/workflows/testdata/github-workflow-curl-default.yaml",
+			filename: ".github/workflows/github-workflow-curl-default.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1225,7 +1245,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 		},
 		{
 			name:     "workflow curl no default",
-			filename: "./testdata/.github/workflows/testdata/github-workflow-curl-no-default.yaml",
+			filename: ".github/workflows/github-workflow-curl-no-default.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1236,7 +1256,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 		},
 		{
 			name:     "wget across steps",
-			filename: "./testdata/.github/workflows/testdata/github-workflow-wget-across-steps.yaml",
+			filename: ".github/workflows/github-workflow-wget-across-steps.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1246,6 +1266,9 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -1286,7 +1309,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 	}{
 		{
 			name:     "unpinned dependency in uses",
-			filename: "./testdata/.github/workflows/testdata/github-workflow-permissions-run-codeql-write.yaml",
+			filename: ".github/workflows/github-workflow-permissions-run-codeql-write.yaml",
 			expected: []struct {
 				dependency string
 				startLine  uint
@@ -1301,7 +1324,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		},
 		{
 			name:     "multiple unpinned dependency in uses",
-			filename: "./testdata/.github/workflows/testdata/github-workflow-multiple-unpinned-uses.yaml",
+			filename: ".github/workflows/github-workflow-multiple-unpinned-uses.yaml",
 			expected: []struct {
 				dependency string
 				startLine  uint
@@ -1320,6 +1343,9 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
@@ -1364,7 +1390,7 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 	}{
 		{
 			name:     "downloads",
-			filename: "./testdata/.github/workflows/testdata/github-workflow-download-lines.yaml",
+			filename: ".github/workflows/github-workflow-download-lines.yaml",
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -1388,6 +1414,9 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {

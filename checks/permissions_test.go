@@ -17,6 +17,7 @@ package checks
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -26,6 +27,18 @@ import (
 type file struct {
 	pathfn  string
 	content []byte
+}
+
+func changeDir() {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(fmt.Errorf("os.Getwd: %w", err))
+	}
+	if "testdata" != filepath.Base(wd) {
+		if err := os.Chdir("./testdata/"); err != nil {
+			panic(fmt.Errorf("os.Chdir: %w", err))
+		}
+	}
 }
 
 func testValidateGitHubActionTokenPermissions(files []file,
@@ -350,9 +363,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 		},
 	}
 
-	if err := os.Chdir("./testdata/"); err != nil {
-		panic(fmt.Errorf("os.Chdir: %w", err))
-	}
+	changeDir()
 
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -412,6 +423,9 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 			},
 		},
 	}
+
+	changeDir()
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
