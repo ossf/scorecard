@@ -427,8 +427,8 @@ func TestFileGetCbDataAsBoolPointer(t *testing.T) {
 	}
 }
 
-// TestCheckIfFileExistsV6 tests the CheckIfFileExistsV6 function.
-func TestCheckIfFileExistsV6(t *testing.T) {
+// TestCheckFilesContentV6 tests the CheckFilesContentV6 function.
+func TestCheckFilesContentV6(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
@@ -521,8 +521,8 @@ func TestCheckIfFileExistsV6(t *testing.T) {
 	}
 }
 
-// TestCheckIfFileExistsV6 tests the CheckIfFileExistsV6 function.
-func TestCheckIfFileExists(t *testing.T) {
+// TestCheckFilesContent tests the CheckFilesContent function.
+func TestCheckFilesContent(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
@@ -615,6 +615,151 @@ func TestCheckIfFileExists(t *testing.T) {
 
 			if tt.wantErr && result == nil {
 				t.Errorf("CheckFilesContentV6() = %v, want %v test name %v", result, tt.wantErr, tt.name)
+			}
+		})
+	}
+}
+
+// TestCheckFilesContentV6 tests the CheckFilesContentV6 function.
+func TestCheckIfFileExistsV6(t *testing.T) {
+	t.Parallel()
+	//nolint
+	type args struct {
+		cbReturn             bool
+		cbwantErr            bool
+		listFilesReturnError error
+	}
+	//nolint
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "cb true and no error",
+			args: args{
+				cbReturn:             true,
+				cbwantErr:            false,
+				listFilesReturnError: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "cb false and no error",
+			args: args{
+				cbReturn:             false,
+				cbwantErr:            false,
+				listFilesReturnError: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "cb wantErr and error",
+			args: args{
+				cbReturn:             true,
+				cbwantErr:            true,
+				listFilesReturnError: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "listFilesReturnError and error",
+			args: args{
+				cbReturn:  true,
+				cbwantErr: true,
+				//nolint
+				listFilesReturnError: errors.New("test error"),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			x := func(path string, data FileCbData) (bool, error) {
+				if tt.args.cbwantErr {
+					//nolint
+					return false, errors.New("test error")
+				}
+				return tt.args.cbReturn, nil
+			}
+
+			ctrl := gomock.NewController(t)
+			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo.EXPECT().ListFiles(gomock.Any()).Return([]string{"foo"}, nil).AnyTimes()
+
+			err := CheckIfFileExistsV6(mockRepo, x, x)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CheckIfFileExistsV6() error = %v, wantErr %v for %v", err, tt.wantErr, tt.name)
+				return
+			}
+		})
+	}
+}
+
+// TestCheckIfFileExists tests the CheckIfFileExists function.
+func TestCheckIfFileExists(t *testing.T) {
+	t.Parallel()
+	//nolint
+	type args struct {
+		cbReturn bool
+		cbErr    error
+	}
+	//nolint
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "cb true and no error",
+			args: args{
+				cbReturn: true,
+				cbErr:    nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "cb false and no error",
+			args: args{
+				cbReturn: false,
+				cbErr:    nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "cb error",
+			args: args{
+				cbReturn: true,
+				cbErr:    errors.New("test error"),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo.EXPECT().ListFiles(gomock.Any()).Return([]string{"foo"}, nil).AnyTimes()
+			c := checker.CheckRequest{
+				RepoClient: mockRepo,
+			}
+			x := func(path string,
+				dl checker.DetailLogger, data FileCbData) (bool, error) {
+				return tt.args.cbReturn, tt.args.cbErr
+			}
+
+			err := CheckIfFileExists(&c, x, x)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CheckIfFileExists() error = %v, wantErr %v for %v", err, tt.wantErr, tt.name)
+				return
 			}
 		})
 	}
