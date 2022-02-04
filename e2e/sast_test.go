@@ -31,7 +31,8 @@ var _ = Describe("E2E TEST:"+checks.CheckSAST, func() {
 	Context("E2E TEST:Validating use of SAST tools", func() {
 		It("Should return use of SAST tools", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
+			// Warning: this test does not work on forks.
+			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA)
@@ -44,9 +45,9 @@ var _ = Describe("E2E TEST:"+checks.CheckSAST, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         0,
-				NumberOfWarn:  2,
-				NumberOfInfo:  0,
+				Score:         6,
+				NumberOfWarn:  3,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.SAST(&req)

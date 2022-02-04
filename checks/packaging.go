@@ -38,20 +38,13 @@ func init() {
 
 // Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
-<<<<<<< HEAD
 	matchedFiles, err := c.RepoClient.ListFiles(fileparser.IsGithubWorkflowFileCb)
-=======
-	matchedFiles, err := c.RepoClient.ListFiles(fileparser.IsWorkflowFileCb)
->>>>>>> 8d875e4 (draft)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
 	for _, fn := range matchedFiles {
-		if !fileparser.IsWorkflowFile(fn) {
-			continue
-		}
 
 		fc, err := c.RepoClient.GetFileContent(fn)
 		if err != nil {
@@ -74,13 +67,8 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if len(runs) > 0 {
-<<<<<<< HEAD
-			c.Dlogger.Info(&checker.LogMessage{
-				Path:   fp,
-=======
 			c.Dlogger.Info3(&checker.LogMessage{
 				Path:   fn,
->>>>>>> d9ff5a7 (draft)
 				Type:   checker.FileTypeSource,
 				Offset: checker.OffsetDefault,
 				Text:   fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL),
@@ -88,13 +76,8 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
-<<<<<<< HEAD
-		c.Dlogger.Debug(&checker.LogMessage{
-			Path:   fp,
-=======
 		c.Dlogger.Debug3(&checker.LogMessage{
 			Path:   fn,
->>>>>>> d9ff5a7 (draft)
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   "GitHub publishing workflow not used in runs",

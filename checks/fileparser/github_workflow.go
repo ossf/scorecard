@@ -300,14 +300,20 @@ func IsWorkflowFile(pathfn string) bool {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3cd962d (e2e tests)
 // IsGithubWorkflowFileCb determines if a file is a workflow
 // as a callback to use for repo client's ListFiles() API.
 func IsGithubWorkflowFileCb(pathfn string) (bool, error) {
 	return IsWorkflowFile(pathfn), nil
+<<<<<<< HEAD
 =======
 func IsWorkflowFileCb(filename string) (bool, error) {
 	return strings.HasPrefix(strings.ToLower(filename), ".github/workflows"), nil
 >>>>>>> 8d875e4 (draft)
+=======
+>>>>>>> 3cd962d (e2e tests)
 }
 
 // IsGitHubOwnedAction checks if this is a github specific action.
