@@ -17,6 +17,7 @@ package checks
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -44,7 +45,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 		{
 			name:     "run untrusted code checkout test",
-			filename: "./testdata/github-workflow-dangerous-pattern-untrusted-checkout.yml",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-checkout.yml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -55,7 +56,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 		{
 			name:     "run trusted code checkout test",
-			filename: "./testdata/github-workflow-dangerous-pattern-trusted-checkout.yml",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-trusted-checkout.yml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -66,7 +67,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 		{
 			name:     "run default code checkout test",
-			filename: "./testdata/github-workflow-dangerous-pattern-default-checkout.yml",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-default-checkout.yml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -77,7 +78,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 		{
 			name:     "run safe trigger with code checkout test",
-			filename: "./testdata/github-workflow-dangerous-pattern-safe-trigger.yml",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-safe-trigger.yml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -88,7 +89,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 		{
 			name:     "run script injection",
-			filename: "./testdata/github-workflow-dangerous-pattern-untrusted-script-injection.yml",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection.yml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -99,7 +100,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 		{
 			name:     "run safe script injection",
-			filename: "./testdata/github-workflow-dangerous-pattern-trusted-script-injection.yml",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-trusted-script-injection.yml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -110,7 +111,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 		{
 			name:     "run multiple script injection",
-			filename: "./testdata/github-workflow-dangerous-pattern-untrusted-multiple-script-injection.yml",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-multiple-script-injection.yml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultConfidence,
@@ -121,7 +122,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 		{
 			name:     "run inline script injection",
-			filename: "./testdata/github-workflow-dangerous-pattern-untrusted-inline-script-injection.yml",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-inline-script-injection.yml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultConfidence,
@@ -132,7 +133,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 		{
 			name:     "run wildcard script injection",
-			filename: "./testdata/github-workflow-dangerous-pattern-untrusted-script-injection-wildcard.yml",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-wildcard.yml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultConfidence,
@@ -157,7 +158,9 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				}
 			}
 			dl := scut.TestDetailLogger{}
-			r := testValidateGitHubActionDangerousWorkflow(tt.filename, content, &dl)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+
+			r := testValidateGitHubActionDangerousWorkflow(p, content, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
 				t.Fail()
 			}
