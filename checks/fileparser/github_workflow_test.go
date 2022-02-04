@@ -16,6 +16,7 @@ package fileparser
 
 import (
 	stdos "os"
+	"strings"
 	"testing"
 
 	"github.com/rhysd/actionlint"
@@ -41,77 +42,77 @@ func TestGitHubWorkflowShell(t *testing.T) {
 	}{
 		{
 			name:           "all windows, shell specified in step",
-			filename:       "../testdata/github-workflow-shells-all-windows-bash.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-all-windows-bash.yaml",
 			expectedShells: []string{"bash"},
 		},
 		{
 			name:           "all windows, OSes listed in matrix.os",
-			filename:       "../testdata/github-workflow-shells-all-windows-matrix.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-all-windows-matrix.yaml",
 			expectedShells: []string{"pwsh"},
 		},
 		{
 			name:           "all windows, OSes listed in matrix.include",
-			filename:       "../testdata/github-workflow-shells-all-windows-matrix-include.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-all-windows-matrix-include.yaml",
 			expectedShells: []string{"pwsh"},
 		},
 		{
 			name:           "all windows, empty matrix.include",
-			filename:       "../testdata/github-workflow-shells-all-windows-matrix-include-empty.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-all-windows-matrix-include-empty.yaml",
 			expectedShells: []string{"pwsh"},
 		},
 		{
 			name:           "all windows",
-			filename:       "../testdata/github-workflow-shells-all-windows.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-all-windows.yaml",
 			expectedShells: []string{"pwsh"},
 		},
 		{
 			name:           "macOS defaults to bash",
-			filename:       "../testdata/github-workflow-shells-default-macos.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-default-macos.yaml",
 			expectedShells: []string{"bash"},
 		},
 		{
 			name:           "ubuntu defaults to bash",
-			filename:       "../testdata/github-workflow-shells-default-ubuntu.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-default-ubuntu.yaml",
 			expectedShells: []string{"bash"},
 		},
 		{
 			name:           "windows defaults to pwsh",
-			filename:       "../testdata/github-workflow-shells-default-windows.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-default-windows.yaml",
 			expectedShells: []string{"pwsh"},
 		},
 		{
 			name:           "windows specified in 'if'",
-			filename:       "../testdata/github-workflow-shells-runner-windows-ubuntu.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-runner-windows-ubuntu.yaml",
 			expectedShells: append(repeatItem("pwsh", 7), repeatItem("bash", 4)...),
 		},
 		{
 			name:           "shell specified in job and step",
-			filename:       "../testdata/github-workflow-shells-specified-job-step.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-specified-job-step.yaml",
 			expectedShells: []string{"bash"},
 		},
 		{
 			name:           "windows, shell specified in job",
-			filename:       "../testdata/github-workflow-shells-specified-job-windows.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-specified-job-windows.yaml",
 			expectedShells: []string{"bash"},
 		},
 		{
 			name:           "shell specified in job",
-			filename:       "../testdata/github-workflow-shells-specified-job.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-specified-job.yaml",
 			expectedShells: []string{"pwsh"},
 		},
 		{
 			name:           "shell specified in step",
-			filename:       "../testdata/github-workflow-shells-speficied-step.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-speficied-step.yaml",
 			expectedShells: []string{"pwsh"},
 		},
 		{
 			name:           "different shells in each step",
-			filename:       "../testdata/github-workflow-shells-two-shells.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-two-shells.yaml",
 			expectedShells: []string{"bash", "pwsh"},
 		},
 		{
 			name:           "windows step, bash specified",
-			filename:       "../testdata/github-workflow-shells-windows-bash.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-windows-bash.yaml",
 			expectedShells: []string{"bash", "bash"},
 		},
 	}
@@ -160,42 +161,42 @@ func TestIsWorkflowFile(t *testing.T) {
 		{
 			name: "yaml",
 			args: args{
-				pathfn: "../testdata/github-workflow-shells-all-windows.yaml",
+				pathfn: "./testdata/.github/workflows/github-workflow-shells-all-windows.yaml",
 			},
 			want: true,
 		},
 		{
 			name: "yml",
 			args: args{
-				pathfn: "../testdata/github-workflow-shells-all-windows.yml",
+				pathfn: "./testdata/.github/workflows/github-workflow-shells-all-windows.yml",
 			},
 			want: true,
 		},
 		{
 			name: "json",
 			args: args{
-				pathfn: "../testdata/github-workflow-shells-all-windows.json",
+				pathfn: "./testdata/.github/workflows/github-workflow-shells-all-windows.json",
 			},
 			want: false,
 		},
 		{
 			name: "txt",
 			args: args{
-				pathfn: "../testdata/github-workflow-shells-all-windows.txt",
+				pathfn: "./testdata/.github/workflows/github-workflow-shells-all-windows.txt",
 			},
 			want: false,
 		},
 		{
 			name: "md",
 			args: args{
-				pathfn: "../testdata/github-workflow-shells-all-windows.md",
+				pathfn: "./testdata/.github/workflows/github-workflow-shells-all-windows.md",
 			},
 			want: false,
 		},
 		{
 			name: "unknown",
 			args: args{
-				pathfn: "../testdata/github-workflow-shells-all-windows.unknown",
+				pathfn: "./testdata/.github/workflows/github-workflow-shells-all-windows.unknown",
 			},
 			want: false,
 		},
@@ -205,7 +206,8 @@ func TestIsWorkflowFile(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := IsWorkflowFile(tt.args.pathfn); got != tt.want {
+			p := strings.Replace(tt.args.pathfn, "./testdata/", "", 1)
+			if got := IsWorkflowFile(p); got != tt.want {
 				t.Errorf("IsWorkflowFile() = %v, want %v for tests %v", got, tt.want, tt.name)
 			}
 		})

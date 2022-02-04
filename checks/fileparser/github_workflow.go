@@ -17,6 +17,7 @@ package fileparser
 import (
 	"fmt"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -292,10 +293,16 @@ func IsWorkflowFile(pathfn string) bool {
 	// "Workflow files use YAML syntax, and must have either a .yml or .yaml file extension."
 	switch path.Ext(pathfn) {
 	case ".yml", ".yaml":
-		return true
+		return filepath.Dir(strings.ToLower(pathfn)) == ".github/workflows"
 	default:
 		return false
 	}
+}
+
+// IsGithubWorkflowFileCb determines if a file is a workflow
+// as a callback to use for repo client's ListFiles() API.
+func IsGithubWorkflowFileCb(pathfn string) (bool, error) {
+	return IsWorkflowFile(pathfn), nil
 }
 
 // IsGitHubOwnedAction checks if this is a github specific action.

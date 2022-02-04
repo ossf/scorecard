@@ -17,7 +17,6 @@ package checks
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/rhysd/actionlint"
 
@@ -37,13 +36,9 @@ func init() {
 	}
 }
 
-func isGithubWorkflowFile(filename string) (bool, error) {
-	return strings.HasPrefix(strings.ToLower(filename), ".github/workflows"), nil
-}
-
 // Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
-	matchedFiles, err := c.RepoClient.ListFiles(isGithubWorkflowFile)
+	matchedFiles, err := c.RepoClient.ListFiles(fileparser.IsGithubWorkflowFileCb)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)

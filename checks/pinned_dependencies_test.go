@@ -34,7 +34,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 	}{
 		{
 			name:     "empty file",
-			filename: "./testdata/github-workflow-empty.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-empty.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -45,7 +45,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "comments only",
-			filename: "./testdata/github-workflow-comments.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-comments.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -56,7 +56,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Pinned workflow",
-			filename: "./testdata/workflow-pinned.yaml",
+			filename: "./testdata/.github/workflows/workflow-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -67,7 +67,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Local action workflow",
-			filename: "./testdata/workflow-local-action.yaml",
+			filename: "./testdata/.github/workflows/workflow-local-action.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -78,7 +78,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Non-pinned workflow",
-			filename: "./testdata/workflow-not-pinned.yaml",
+			filename: "./testdata/.github/workflows/workflow-not-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 2,
@@ -100,7 +100,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Matrix as expression",
-			filename: "./testdata/github-workflow-matrix-expression.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-matrix-expression.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -123,7 +123,9 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			}
 
 			dl := scut.TestDetailLogger{}
-			s, e := testIsGitHubActionsWorkflowPinned(tt.filename, content, &dl)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+
+			s, e := testIsGitHubActionsWorkflowPinned(p, content, &dl)
 			actual := checker.CheckResult{
 				Score:  s,
 				Error2: e,
@@ -145,7 +147,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 	}{
 		{
 			name:     "Pinned non-github workflow",
-			filename: "./testdata/workflow-non-github-pinned.yaml",
+			filename: "./testdata/.github/workflows/workflow-non-github-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -156,7 +158,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Pinned github workflow",
-			filename: "./testdata/workflow-mix-github-and-non-github-not-pinned.yaml",
+			filename: "./testdata/.github/workflows/workflow-mix-github-and-non-github-not-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -167,7 +169,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Pinned github workflow",
-			filename: "./testdata/workflow-mix-github-and-non-github-pinned.yaml",
+			filename: "./testdata/.github/workflows/workflow-mix-github-and-non-github-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -178,7 +180,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Mix of pinned and non-pinned GitHub actions",
-			filename: "./testdata/workflow-mix-pinned-and-non-pinned-github.yaml",
+			filename: "./testdata/.github/workflows/workflow-mix-pinned-and-non-pinned-github.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 2,
@@ -189,7 +191,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Mix of pinned and non-pinned non-GitHub actions",
-			filename: "./testdata/workflow-mix-pinned-and-non-pinned-non-github.yaml",
+			filename: "./testdata/.github/workflows/workflow-mix-pinned-and-non-pinned-non-github.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 8,
@@ -214,7 +216,9 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 				}
 			}
 			dl := scut.TestDetailLogger{}
-			s, e := testIsGitHubActionsWorkflowPinned(tt.filename, content, &dl)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+
+			s, e := testIsGitHubActionsWorkflowPinned(p, content, &dl)
 			actual := checker.CheckResult{
 				Score:  s,
 				Error2: e,
@@ -236,7 +240,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 	}{
 		{
 			name:     "npm packages without verification",
-			filename: "./testdata/github-workflow-pkg-managers.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-pkg-managers.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -259,7 +263,9 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			}
 
 			dl := scut.TestDetailLogger{}
-			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(tt.filename, content, &dl)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+
+			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(p, content, &dl)
 			actual := checker.CheckResult{
 				Score:  s,
 				Error2: e,
@@ -804,7 +810,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 	}{
 		{
 			name:     "curl | sh",
-			filename: "testdata/Dockerfile-curl-sh",
+			filename: "./testdata/Dockerfile-curl-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -848,7 +854,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "wget | /bin/sh",
-			filename: "testdata/Dockerfile-wget-bin-sh",
+			filename: "./testdata/Dockerfile-wget-bin-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -859,7 +865,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "wget no exec",
-			filename: "testdata/Dockerfile-script-ok",
+			filename: "./testdata/Dockerfile-script-ok",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -870,7 +876,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "curl file sh",
-			filename: "testdata/Dockerfile-curl-file-sh",
+			filename: "./testdata/Dockerfile-curl-file-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -881,7 +887,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "proc substitution",
-			filename: "testdata/Dockerfile-proc-subs",
+			filename: "./testdata/Dockerfile-proc-subs",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -892,7 +898,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "wget file",
-			filename: "testdata/Dockerfile-wget-file",
+			filename: "./testdata/Dockerfile-wget-file",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -903,7 +909,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "gsutil file",
-			filename: "testdata/Dockerfile-gsutil-file",
+			filename: "./testdata/Dockerfile-gsutil-file",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -914,7 +920,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "aws file",
-			filename: "testdata/Dockerfile-aws-file",
+			filename: "./testdata/Dockerfile-aws-file",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -925,7 +931,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "pkg managers",
-			filename: "testdata/Dockerfile-pkg-managers",
+			filename: "./testdata/Dockerfile-pkg-managers",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -936,7 +942,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "download with some python",
-			filename: "testdata/Dockerfile-some-python",
+			filename: "./testdata/Dockerfile-some-python",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -982,7 +988,7 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 	}{
 		{
 			name:     "curl | sh",
-			filename: "testdata/Dockerfile-no-curl-sh",
+			filename: "./testdata/Dockerfile-no-curl-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -1034,7 +1040,7 @@ func TestShellScriptDownload(t *testing.T) {
 	}{
 		{
 			name:     "sh script",
-			filename: "testdata/script-sh",
+			filename: "./testdata/script-sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1067,7 +1073,7 @@ func TestShellScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "bash script",
-			filename: "testdata/script-bash",
+			filename: "./testdata/script-bash",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1078,7 +1084,7 @@ func TestShellScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "sh script 2",
-			filename: "testdata/script.sh",
+			filename: "./testdata/script.sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1089,7 +1095,7 @@ func TestShellScriptDownload(t *testing.T) {
 		},
 		{
 			name:     "pkg managers",
-			filename: "testdata/script-pkg-managers",
+			filename: "./testdata/script-pkg-managers",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1135,7 +1141,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 	}{
 		{
 			name:     "sh script",
-			filename: "testdata/script-comments.sh",
+			filename: "./testdata/script-comments.sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -1146,7 +1152,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 		},
 		{
 			name:     "script free of download",
-			filename: "testdata/script-free-from-download.sh",
+			filename: "./testdata/script-free-from-download.sh",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -1199,7 +1205,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 	}{
 		{
 			name:     "workflow curl default",
-			filename: "testdata/github-workflow-curl-default.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-curl-default.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1210,7 +1216,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 		},
 		{
 			name:     "workflow curl no default",
-			filename: "testdata/github-workflow-curl-no-default.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-curl-no-default.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1221,7 +1227,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 		},
 		{
 			name:     "wget across steps",
-			filename: "testdata/github-workflow-wget-across-steps.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-wget-across-steps.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -1246,7 +1252,9 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 				}
 			}
 			dl := scut.TestDetailLogger{}
-			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(tt.filename, content, &dl)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+
+			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(p, content, &dl)
 			actual := checker.CheckResult{
 				Score:  s,
 				Error2: e,
@@ -1271,7 +1279,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 	}{
 		{
 			name:     "unpinned dependency in uses",
-			filename: "testdata/github-workflow-permissions-run-codeql-write.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-permissions-run-codeql-write.yaml",
 			expected: []struct {
 				dependency string
 				startLine  uint
@@ -1286,7 +1294,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		},
 		{
 			name:     "multiple unpinned dependency in uses",
-			filename: "testdata/github-workflow-multiple-unpinned-uses.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-multiple-unpinned-uses.yaml",
 			expected: []struct {
 				dependency string
 				startLine  uint
@@ -1315,7 +1323,9 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			}
 			dl := scut.TestDetailLogger{}
 			var pinned worklowPinningResult
-			_, err = validateGitHubActionWorkflow(tt.filename, content, &dl, &pinned)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+
+			_, err = validateGitHubActionWorkflow(p, content, &dl, &pinned)
 			if err != nil {
 				t.Errorf("error during validateGitHubActionWorkflow: %v", err)
 			}
@@ -1323,7 +1333,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
 					return logMessage.Offset == expectedLog.startLine &&
 						logMessage.EndOffset == expectedLog.endLine &&
-						logMessage.Path == tt.filename &&
+						logMessage.Path == p &&
 						logMessage.Snippet == expectedLog.dependency && logType == checker.DetailWarn &&
 						strings.Contains(logMessage.Text, "action not pinned by hash")
 				}
@@ -1349,7 +1359,7 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 	}{
 		{
 			name:     "downloads",
-			filename: "testdata/github-workflow-download-lines.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-download-lines.yaml",
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -1383,7 +1393,9 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 			}
 			dl := scut.TestDetailLogger{}
 			var pinned pinnedResult
-			_, err = validateGitHubWorkflowIsFreeOfInsecureDownloads(tt.filename, content, &dl, &pinned)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+
+			_, err = validateGitHubWorkflowIsFreeOfInsecureDownloads(p, content, &dl, &pinned)
 			if err != nil {
 				t.Errorf("error during validateGitHubWorkflowIsFreeOfInsecureDownloads: %v", err)
 			}
@@ -1391,7 +1403,7 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
 					return logMessage.Offset == expectedLog.startLine &&
 						logMessage.EndOffset == expectedLog.endLine &&
-						logMessage.Path == tt.filename &&
+						logMessage.Path == p &&
 						logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn
 				}
 
