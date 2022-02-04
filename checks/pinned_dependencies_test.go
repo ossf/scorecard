@@ -147,7 +147,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 	}{
 		{
 			name:     "Pinned non-github workflow",
-			filename: "./testdata/workflow-non-github-pinned.yaml",
+			filename: "./testdata/.github/workflows/workflow-non-github-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -158,7 +158,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Pinned github workflow",
-			filename: "./testdata/workflow-mix-github-and-non-github-not-pinned.yaml",
+			filename: "./testdata/.github/workflows/workflow-mix-github-and-non-github-not-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
@@ -169,7 +169,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Pinned github workflow",
-			filename: "./testdata/workflow-mix-github-and-non-github-pinned.yaml",
+			filename: "./testdata/.github/workflows/workflow-mix-github-and-non-github-pinned.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -180,7 +180,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Mix of pinned and non-pinned GitHub actions",
-			filename: "./testdata/workflow-mix-pinned-and-non-pinned-github.yaml",
+			filename: "./testdata/.github/workflows/workflow-mix-pinned-and-non-pinned-github.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 2,
@@ -191,7 +191,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 		{
 			name:     "Mix of pinned and non-pinned non-GitHub actions",
-			filename: "./testdata/workflow-mix-pinned-and-non-pinned-non-github.yaml",
+			filename: "./testdata/.github/workflows/workflow-mix-pinned-and-non-pinned-non-github.yaml",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 8,
@@ -216,7 +216,9 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 				}
 			}
 			dl := scut.TestDetailLogger{}
-			s, e := testIsGitHubActionsWorkflowPinned(tt.filename, content, &dl)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+
+			s, e := testIsGitHubActionsWorkflowPinned(p, content, &dl)
 			actual := checker.CheckResult{
 				Score:  s,
 				Error2: e,
@@ -261,7 +263,9 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			}
 
 			dl := scut.TestDetailLogger{}
-			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(tt.filename, content, &dl)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+
+			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(p, content, &dl)
 			actual := checker.CheckResult{
 				Score:  s,
 				Error2: e,
