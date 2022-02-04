@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2022 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package checks
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 
@@ -272,6 +273,216 @@ func Test_prHasSuccessfulCheck(t *testing.T) {
 			got, _ := prHasSuccessfulCheck(&tt.args.pr, &req)
 			if got != tt.want {
 				t.Errorf("prHasSuccessfulCheck() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// Test_prHasSuccessStatus tests that the prHasSuccessStatus function returns the correct value.
+func Test_prHasSuccessStatus(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		pr *clients.PullRequest
+	}
+	//nolint
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+		status  string
+	}{
+		{
+			name: "check run with conclusion success",
+			args: args{
+				pr: &clients.PullRequest{
+					HeadSHA: "sha",
+					Number:  1,
+					Labels: []clients.Label{
+						{
+							Name: "label",
+						},
+					},
+					Reviews: []clients.Review{
+						{
+							State: "success",
+						},
+					},
+				},
+			},
+			status: "success",
+			want:   true,
+		},
+		{
+			name: "check run with conclusion not success",
+			args: args{
+				pr: &clients.PullRequest{
+					HeadSHA: "sha",
+					Number:  1,
+					Labels: []clients.Label{
+						{
+							Name: "label",
+						},
+					},
+					Reviews: []clients.Review{
+						{
+							State: "failure",
+						},
+					},
+				},
+			},
+			status: "failure",
+			want:   false,
+		},
+		{
+			name:    "check run with error",
+			wantErr: true,
+			args: args{
+				pr: &clients.PullRequest{
+					HeadSHA: "sha",
+					Number:  1,
+					Labels: []clients.Label{
+						{
+							Name: "label",
+						},
+					},
+					Reviews: []clients.Review{
+						{
+							State: "success",
+						},
+					},
+				},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			mockrepoclient := mockrepo.NewMockRepoClient(ctrl)
+			mockrepoclient.EXPECT().ListStatuses(gomock.Any()).DoAndReturn(
+				func(sha string) ([]clients.Status, error) {
+					if tt.wantErr {
+						//nolint
+						return nil, errors.New("error")
+					}
+					return []clients.Status{
+						{
+							State:   tt.status,
+							Context: "buildkite",
+						},
+					}, nil
+				}).AnyTimes()
+			c := checker.CheckRequest{
+				RepoClient: mockrepoclient,
+				Dlogger:    &scut.TestDetailLogger{},
+			}
+			got, err := prHasSuccessStatus(tt.args.pr, &c)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("prHasSuccessStatus() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("prHasSuccessStatus() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestCITests tests that the CITests function returns the correct value.
+func TestCITests(t *testing.T) {
+	t.Parallel()
+	//nolint
+	tests := []struct {
+		name     string
+		want     checker.CheckResult
+		status   string
+		wantErr  bool
+		commit   []clients.Commit
+		r        []clients.CheckRun
+		expected scut.TestReturn
+	}{
+		{
+			name: "success",
+			expected: scut.TestReturn{
+				NumberOfDebug: 1,
+			},
+			commit: []clients.Commit{
+				{
+					SHA: "sha",
+					AssociatedMergeRequest: clients.PullRequest{
+						HeadSHA: "sha",
+						Number:  1,
+						Labels: []clients.Label{
+							{
+								Name: "label",
+							},
+						},
+						MergedAt: time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
+					},
+				},
+			},
+		},
+		{
+			name: "commit 0",
+			expected: scut.TestReturn{
+				Score: -1,
+			},
+			commit: []clients.Commit{
+				{
+					SHA: "sha",
+					AssociatedMergeRequest: clients.PullRequest{
+						HeadSHA: "sha",
+						Number:  1,
+						Labels: []clients.Label{
+							{
+								Name: "label",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+
+			mockRepoClient.EXPECT().ListCommits().Return(tt.commit, nil)
+
+			mockRepoClient.EXPECT().ListStatuses(gomock.Any()).DoAndReturn(
+				func(sha string) ([]clients.Status, error) {
+					if tt.wantErr {
+						//nolint
+						return nil, errors.New("error")
+					}
+					return []clients.Status{
+						{
+							State:   tt.status,
+							Context: "buildkite",
+						},
+					}, nil
+				}).AnyTimes()
+
+			mockRepoClient.EXPECT().ListCheckRunsForRef(gomock.Any()).DoAndReturn(
+				func(sha string) ([]clients.CheckRun, error) {
+					return tt.r, nil
+				}).AnyTimes()
+
+			dl := scut.TestDetailLogger{}
+			c := checker.CheckRequest{
+				RepoClient: mockRepoClient,
+				Dlogger:    &dl,
+			}
+			r := CITests(&c)
+
+			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
+				t.Fail()
 			}
 		})
 	}
