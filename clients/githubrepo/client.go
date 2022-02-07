@@ -52,6 +52,7 @@ type Client struct {
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
 func (client *Client) InitRepo(inputRepo clients.Repo) error {
+	commitSHA := "HEAD"
 	ghRepo, ok := inputRepo.(*repoURL)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
@@ -67,12 +68,13 @@ func (client *Client) InitRepo(inputRepo clients.Repo) error {
 	client.repoName = repo.GetName()
 
 	// Init tarballHandler.
-	if err := client.tarball.init(client.ctx, client.repo); err != nil {
+	if err := client.tarball.init(client.ctx, client.repo, commitSHA); err != nil {
 		return fmt.Errorf("error during tarballHandler.init: %w", err)
 	}
 
 	// Setup GraphQL.
-	client.graphClient.init(client.ctx, client.owner, client.repoName)
+	client.graphClient.init(client.ctx, client.owner, client.repoName,
+		client.repo.GetDefaultBranch(), commitSHA)
 
 	// Setup contributorsHandler.
 	client.contributors.init(client.ctx, client.owner, client.repoName)

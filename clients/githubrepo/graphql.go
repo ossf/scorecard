@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -38,65 +39,63 @@ const (
 // nolint: govet
 type graphqlData struct {
 	Repository struct {
-		IsArchived       githubv4.Boolean
-		DefaultBranchRef struct {
-			Target struct {
-				Commit struct {
-					History struct {
-						Nodes []struct {
-							CommittedDate githubv4.DateTime
-							Message       githubv4.String
-							Oid           githubv4.GitObjectID
-							Author        struct {
-								User struct {
+		IsArchived githubv4.Boolean
+		Object     struct {
+			Commit struct {
+				History struct {
+					Nodes []struct {
+						CommittedDate githubv4.DateTime
+						Message       githubv4.String
+						Oid           githubv4.GitObjectID
+						Author        struct {
+							User struct {
+								Login githubv4.String
+							}
+						}
+						Committer struct {
+							Name *string
+							User struct {
+								Login *string
+							}
+						}
+						AssociatedPullRequests struct {
+							Nodes []struct {
+								Repository struct {
+									Name  githubv4.String
+									Owner struct {
+										Login githubv4.String
+									}
+								}
+								Author struct {
 									Login githubv4.String
 								}
-							}
-							Committer struct {
-								Name *string
-								User struct {
-									Login *string
+								Number      githubv4.Int
+								HeadRefOid  githubv4.String
+								MergedAt    githubv4.DateTime
+								MergeCommit struct {
+									// NOTE: only used for sanity check.
+									// Use original commit oid instead.
+									Oid githubv4.GitObjectID
 								}
-							}
-							AssociatedPullRequests struct {
-								Nodes []struct {
-									Repository struct {
-										Name  githubv4.String
-										Owner struct {
+								Labels struct {
+									Nodes []struct {
+										Name githubv4.String
+									}
+								} `graphql:"labels(last: $labelsToAnalyze)"`
+								Reviews struct {
+									Nodes []struct {
+										State  githubv4.String
+										Author struct {
 											Login githubv4.String
 										}
 									}
-									Author struct {
-										Login githubv4.String
-									}
-									Number      githubv4.Int
-									HeadRefOid  githubv4.String
-									MergedAt    githubv4.DateTime
-									MergeCommit struct {
-										// NOTE: only used for sanity check.
-										// Use original commit oid instead.
-										Oid githubv4.GitObjectID
-									}
-									Labels struct {
-										Nodes []struct {
-											Name githubv4.String
-										}
-									} `graphql:"labels(last: $labelsToAnalyze)"`
-									Reviews struct {
-										Nodes []struct {
-											State  githubv4.String
-											Author struct {
-												Login githubv4.String
-											}
-										}
-									} `graphql:"reviews(last: $reviewsToAnalyze)"`
-								}
-							} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
-						}
-					} `graphql:"history(first: $commitsToAnalyze)"`
-				} `graphql:"... on Commit"`
-			}
-		}
+								} `graphql:"reviews(last: $reviewsToAnalyze)"`
+							}
+						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
+					}
+				} `graphql:"history(first: $commitsToAnalyze)"`
+			} `graphql:"... on Commit"`
+		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
 			Nodes []struct {
 				// nolint: revive,stylecheck // naming according to githubv4 convention.
@@ -115,22 +114,26 @@ type graphqlData struct {
 }
 
 type graphqlHandler struct {
-	client   *githubv4.Client
-	data     *graphqlData
-	once     *sync.Once
-	ctx      context.Context
-	errSetup error
-	owner    string
-	repo     string
-	commits  []clients.Commit
-	issues   []clients.Issue
-	archived bool
+	client        *githubv4.Client
+	data          *graphqlData
+	once          *sync.Once
+	ctx           context.Context
+	errSetup      error
+	owner         string
+	repo          string
+	defaultBranch string
+	commitSHA     string
+	commits       []clients.Commit
+	issues        []clients.Issue
+	archived      bool
 }
 
-func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) {
+func (handler *graphqlHandler) init(ctx context.Context, owner, repo, defaultBranch, commitSHA string) {
 	handler.ctx = ctx
 	handler.owner = owner
 	handler.repo = repo
+	handler.defaultBranch = defaultBranch
+	handler.commitSHA = commitSHA
 	handler.data = new(graphqlData)
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
@@ -138,6 +141,12 @@ func (handler *graphqlHandler) init(ctx context.Context, owner, repo string) {
 
 func (handler *graphqlHandler) setup() error {
 	handler.once.Do(func() {
+		commitExpression := handler.commitSHA
+		if strings.EqualFold(handler.commitSHA, "HEAD") {
+			// TODO(#575): Confirm that this works as expected.
+			commitExpression = fmt.Sprintf("heads/%s", handler.defaultBranch)
+		}
+
 		vars := map[string]interface{}{
 			"owner":                  githubv4.String(handler.owner),
 			"name":                   githubv4.String(handler.repo),
@@ -147,6 +156,7 @@ func (handler *graphqlHandler) setup() error {
 			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
 			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
 			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
+			"commitExpression":       githubv4.String(commitExpression),
 		}
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
@@ -186,7 +196,7 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 // nolint: unparam
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
-	for _, commit := range data.Repository.DefaultBranchRef.Target.Commit.History.Nodes {
+	for _, commit := range data.Repository.Object.Commit.History.Nodes {
 		var committer string
 		if commit.Committer.User.Login != nil {
 			committer = *commit.Committer.User.Login
