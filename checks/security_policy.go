@@ -26,7 +26,10 @@ const CheckSecurityPolicy = "Security-Policy"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckSecurityPolicy, SecurityPolicy); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.FileBased,
+	}
+	if err := registerCheck(CheckSecurityPolicy, SecurityPolicy, supportedRequestTypes); err != nil {
 		// This should never happen.
 		panic(err)
 	}

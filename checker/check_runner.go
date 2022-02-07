@@ -31,16 +31,22 @@ const checkRetries = 3
 
 // Runner runs a check with retries.
 type Runner struct {
-	CheckRequest CheckRequest
 	CheckName    string
 	Repo         string
+	CheckRequest CheckRequest
 }
 
 // CheckFn defined for convenience.
 type CheckFn func(*CheckRequest) CheckResult
 
+// Check defines a Scorecard check fn and its supported request types.
+type Check struct {
+	Fn                    CheckFn
+	SupportedRequestTypes []RequestType
+}
+
 // CheckNameToFnMap defined here for convenience.
-type CheckNameToFnMap map[string]CheckFn
+type CheckNameToFnMap map[string]Check
 
 func logStats(ctx context.Context, startTime time.Time, result *CheckResult) error {
 	runTimeInSecs := time.Now().Unix() - startTime.Unix()
@@ -57,7 +63,15 @@ func logStats(ctx context.Context, startTime time.Time, result *CheckResult) err
 }
 
 // Run runs a given check.
-func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
+func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
+	// Sanity check.
+	unsupported := ListUnsupported(r.CheckRequest.RequiredTypes, c.SupportedRequestTypes)
+	if len(unsupported) != 0 {
+		return CreateRuntimeErrorResult(r.CheckName,
+			sce.WithMessage(sce.ErrorUnsupportedCheck,
+				fmt.Sprintf("requiredType: %s not supported by check %s", fmt.Sprint(unsupported), r.CheckName)))
+	}
+
 	ctx, err := tag.New(ctx, tag.Upsert(stats.CheckName, r.CheckName))
 	if err != nil {
 		panic(err)
@@ -71,7 +85,7 @@ func (r *Runner) Run(ctx context.Context, f CheckFn) CheckResult {
 		checkRequest.Ctx = ctx
 		l = logger{}
 		checkRequest.Dlogger = &l
-		res = f(&checkRequest)
+		res = c.Fn(&checkRequest)
 		if res.Error2 != nil && errors.Is(res.Error2, sce.ErrRepoUnreachable) {
 			checkRequest.Dlogger.Warn("%v", res.Error2)
 			continue

@@ -33,7 +33,7 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckMaintained, IsMaintained); err != nil {
+	if err := registerCheck(CheckMaintained, IsMaintained, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}

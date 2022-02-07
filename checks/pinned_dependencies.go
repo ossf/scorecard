@@ -39,7 +39,10 @@ type worklowPinningResult struct {
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckPinnedDependencies, PinnedDependencies); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.FileBased,
+	}
+	if err := registerCheck(CheckPinnedDependencies, PinnedDependencies, supportedRequestTypes); err != nil {
 		// This should never happen.
 		panic(err)
 	}

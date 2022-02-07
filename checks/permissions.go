@@ -53,7 +53,10 @@ var permissionsOfInterest = []permission{
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckTokenPermissions, TokenPermissions); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.FileBased,
+	}
+	if err := registerCheck(CheckTokenPermissions, TokenPermissions, supportedRequestTypes); err != nil {
 		// This should never happen.
 		panic(err)
 	}

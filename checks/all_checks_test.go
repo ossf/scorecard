@@ -62,7 +62,7 @@ func Test_registerCheck(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if err := registerCheck(tt.args.name, tt.args.fn); (err != nil) != tt.wanterr {
+			if err := registerCheck(tt.args.name, tt.args.fn, nil /*supportedRequestTypes*/); (err != nil) != tt.wanterr {
 				t.Errorf("registerCheck() error = %v, wantErr %v", err, tt.wanterr)
 			}
 		})
