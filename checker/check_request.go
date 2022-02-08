@@ -30,5 +30,34 @@ type CheckRequest struct {
 	Repo                  clients.Repo
 	VulnerabilitiesClient clients.VulnerabilitiesClient
 	// UPGRADEv6: return raw results instead of scores.
-	RawResults *RawResults
+	RawResults    *RawResults
+	RequiredTypes []RequestType
+}
+
+// RequestType identifies special requirements/attributes that need to be supported by checks.
+type RequestType int
+
+const (
+	// FileBased request types require checks to run solely on file-content.
+	FileBased RequestType = iota
+)
+
+// ListUnsupported returns []RequestType not in `supported` and are `required`.
+func ListUnsupported(required, supported []RequestType) []RequestType {
+	var ret []RequestType
+	for _, t := range required {
+		if !contains(supported, t) {
+			ret = append(ret, t)
+		}
+	}
+	return ret
+}
+
+func contains(in []RequestType, exists RequestType) bool {
+	for _, r := range in {
+		if r == exists {
+			return true
+		}
+	}
+	return false
 }

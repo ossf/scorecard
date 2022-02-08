@@ -30,7 +30,7 @@ const CheckPackaging = "Packaging"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckPackaging, Packaging); err != nil {
+	if err := registerCheck(CheckPackaging, Packaging, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}

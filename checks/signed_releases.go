@@ -32,7 +32,7 @@ var artifactExtensions = []string{".asc", ".minisig", ".sig", ".sign"}
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckSignedReleases, SignedReleases); err != nil {
+	if err := registerCheck(CheckSignedReleases, SignedReleases, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}

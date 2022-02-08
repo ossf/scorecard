@@ -31,7 +31,7 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckCITests, CITests); err != nil {
+	if err := registerCheck(CheckCITests, CITests, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}

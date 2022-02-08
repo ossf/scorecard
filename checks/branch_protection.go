@@ -21,14 +21,12 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-const (
-	// CheckBranchProtection is the exported name for Branch-Protected check.
-	CheckBranchProtection = "Branch-Protection"
-)
+// CheckBranchProtection is the exported name for Branch-Protected check.
+const CheckBranchProtection = "Branch-Protection"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckBranchProtection, BranchProtection); err != nil {
+	if err := registerCheck(CheckBranchProtection, BranchProtection, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}

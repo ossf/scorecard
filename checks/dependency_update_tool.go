@@ -26,7 +26,10 @@ const CheckDependencyUpdateTool = "Dependency-Update-Tool"
 
 //nolint
 func init() {
-	if err := registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool); err != nil {
+	var supportedRequestTypes = []checker.RequestType{
+		checker.FileBased,
+	}
+	if err := registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}

@@ -59,7 +59,10 @@ func containsUntrustedContextPattern(variable string) bool {
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckDangerousWorkflow, DangerousWorkflow); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.FileBased,
+	}
+	if err := registerCheck(CheckDangerousWorkflow, DangerousWorkflow, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}

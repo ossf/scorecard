@@ -19,16 +19,19 @@ import (
 	"fmt"
 )
 
-//nolint
 var (
+	// ErrScorecardInternal indicates a runtime error in Scorecard code.
 	ErrScorecardInternal = errors.New("internal error")
-	ErrRepoUnreachable   = errors.New("repo unreachable")
+	// ErrRepoUnreachable indicates Scorecard is unable to establish connection with the repository.
+	ErrRepoUnreachable = errors.New("repo unreachable")
 	// ErrorUnsupportedHost indicates the repo's host is unsupported.
 	ErrorUnsupportedHost = errors.New("unsupported host")
 	// ErrorInvalidURL indicates the repo's full URL was not passed.
 	ErrorInvalidURL = errors.New("invalid repo flag")
 	// ErrorShellParsing indicates there was an error when parsing shell code.
 	ErrorShellParsing = errors.New("error parsing shell code")
+	// ErrorUnsupportedCheck indicates check caanot be run for given request.
+	ErrorUnsupportedCheck = errors.New("check is not supported for this request")
 )
 
 // WithMessage wraps any of the errors listed above.
