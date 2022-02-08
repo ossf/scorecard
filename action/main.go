@@ -42,6 +42,29 @@ type repositoryInformation struct {
 	Private       bool   `json:"private"`
 }
 
+const (
+	enableSarif             = "ENABLE_SARIF"
+	enableLicense           = "ENABLE_LICENSE"
+	enableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
+	enabledChecks           = "ENABLED_CHECKS"
+	githubEventPath         = "GITHUB_EVENT_PATH"
+	githubRepository        = "GITHUB_REPOSITORY"
+	//nolint:gosec
+	githubAuthToken            = "GITHUB_AUTH_TOKEN"
+	inputresultsfile           = "INPUT_RESULTS_FILE"
+	inputresultsformat         = "INPUT_RESULTS_FORMAT"
+	inputpublishresults        = "INPUT_PUBLISH_RESULTS"
+	scorecardBin               = "SCORECARD_BIN"
+	scorecardResultsFormat     = "SCORECARD_RESULTS_FORMAT"
+	scorecardPublishResults    = "SCORECARD_PUBLISH_RESULTS"
+	scorecardPolicyFile        = "SCORECARD_POLICY_FILE"
+	scorecardResultsFile       = "SCORECARD_RESULTS_FILE"
+	scorecardFork              = "SCORECARD_IS_FORK"
+	scorecardDefaultBranch     = "SCORECARD_DEFAULT_BRANCH"
+	scorecardPrivateRepository = "SCORECARD_PRIVATE_REPOSITORY"
+	sarif                      = "sarif"
+)
+
 // main is the entrypoint for the action.
 func main() {
 	// TODO - This is a port of the entrypoint.sh script.
@@ -53,8 +76,8 @@ func main() {
 		panic(err)
 	}
 
-	repository := os.Getenv("GITHUB_REPOSITORY")
-	token := os.Getenv("GITHUB_AUTH_TOKEN")
+	repository := os.Getenv(githubRepository)
+	token := os.Getenv(githubAuthToken)
 
 	repo, err := getRepositoryInformation(repository, token)
 	if err != nil {
@@ -83,12 +106,12 @@ func initalizeENVVariables() error {
 	*/
 
 	envvars := make(map[string]string)
-	envvars["ENABLE_SARIF"] = "1"
-	envvars["ENABLE_LICENSE"] = "1"
-	envvars["ENABLE_DANGEROUS_WORKFLOW"] = "1"
-	envvars["SCORECARD_POLICY_FILE"] = "./policy.yml"
-	envvars["SCORECARD_BIN"] = "/scorecard"
-	envvars["ENABLED_CHECKS"] = ""
+	envvars[enableSarif] = "1"
+	envvars[enableLicense] = "1"
+	envvars[enableDangerousWorkflow] = "1"
+	envvars[scorecardPolicyFile] = "./policy.yml"
+	envvars[scorecardBin] = "/scorecard"
+	envvars[enabledChecks] = ""
 
 	for key, val := range envvars {
 		if err := os.Setenv(key, val); err != nil {
@@ -96,36 +119,36 @@ func initalizeENVVariables() error {
 		}
 	}
 
-	if result, exists := os.LookupEnv("INPUT_RESULTS_FILE"); !exists {
+	if result, exists := os.LookupEnv(inputresultsfile); !exists {
 		return errInputResultFileNotSet
 	} else {
 		if result == "" {
 			return errInputResultFileEmpty
 		}
-		if err := os.Setenv("SCORECARD_RESULTS_FILE", result); err != nil {
-			return fmt.Errorf("error setting SCORECARD_RESULTS_FILE: %w", err)
+		if err := os.Setenv(scorecardResultsFile, result); err != nil {
+			return fmt.Errorf("error setting %s: %w", scorecardResultsFile, err)
 		}
 	}
 
-	if result, exists := os.LookupEnv("INPUT_RESULTS_FORMAT"); !exists {
+	if result, exists := os.LookupEnv(inputresultsformat); !exists {
 		return errInputResultFormatNotSet
 	} else {
 		if result == "" {
 			return errInputResultFormatEmtpy
 		}
-		if err := os.Setenv("SCORECARD_RESULTS_FORMAT", result); err != nil {
-			return fmt.Errorf("error setting SCORECARD_RESULTS_FORMAT: %w", err)
+		if err := os.Setenv(scorecardResultsFormat, result); err != nil {
+			return fmt.Errorf("error setting %s: %w", scorecardResultsFormat, err)
 		}
 	}
 
-	if result, exists := os.LookupEnv("INPUT_PUBLISH_RESULTS"); !exists {
+	if result, exists := os.LookupEnv(inputpublishresults); !exists {
 		return errInputPublishResultsNotSet
 	} else {
 		if result == "" {
 			return errInputPublishResultsEmpty
 		}
-		if err := os.Setenv("SCORECARD_PUBLISH_RESULTS", result); err != nil {
-			return fmt.Errorf("error setting SCORECARD_PUBLISH_RESULTS: %w", err)
+		if err := os.Setenv(scorecardPublishResults, result); err != nil {
+			return fmt.Errorf("error setting %s: %w", scorecardPublishResults, err)
 		}
 	}
 
@@ -138,7 +161,7 @@ func gitHubEventPath() error {
 	var result string
 	var exists bool
 
-	if result, exists = os.LookupEnv("GITHUB_EVENT_PATH"); !exists {
+	if result, exists = os.LookupEnv(githubEventPath); !exists {
 		return errGitHubEventPathNotSet
 	}
 
@@ -148,7 +171,7 @@ func gitHubEventPath() error {
 
 	data, err := ioutil.ReadFile(result)
 	if err != nil {
-		return fmt.Errorf("error reading GITHUB_EVENT_PATH: %w", err)
+		return fmt.Errorf("error reading %s: %w", githubEventPath, err)
 	}
 	var isFork bool
 
@@ -157,12 +180,12 @@ func gitHubEventPath() error {
 	}
 
 	if isFork {
-		if err := os.Setenv("SCORECARD_IS_FORK", "true"); err != nil {
-			return fmt.Errorf("error setting SCORECARD_IS_FORK: %w", err)
+		if err := os.Setenv(scorecardFork, "true"); err != nil {
+			return fmt.Errorf("error setting %s: %w", scorecardFork, err)
 		}
 	} else {
-		if err := os.Setenv("SCORECARD_IS_FORK", "false"); err != nil {
-			return fmt.Errorf("error setting SCORECARD_IS_FORK: %w", err)
+		if err := os.Setenv(scorecardFork, "false"); err != nil {
+			return fmt.Errorf("error setting %s: %w", scorecardFork, err)
 		}
 	}
 
@@ -194,8 +217,8 @@ func scorecardIsFork(ghEventPath string) (bool, error) {
 // checkIfRequiredENVSet is a function to check if the required environment variables are set.
 func checkIfRequiredENVSet() error {
 	envVariables := make(map[string]bool)
-	envVariables["GITHUB_REPOSITORY"] = true
-	envVariables["GITHUB_AUTH_TOKEN"] = true
+	envVariables[githubRepository] = true
+	envVariables[githubAuthToken] = true
 
 	for key := range envVariables {
 		if _, exists := os.LookupEnv(key); !exists {
@@ -239,25 +262,27 @@ func updateRepositoryInformation(privateRepo bool, defaultBranch string) error {
 		return errEmptyDefaultBranch
 	}
 
-	if err := os.Setenv("SCORECARD_PRIVATE_REPOSITORY", strconv.FormatBool(privateRepo)); err != nil {
-		return fmt.Errorf("error setting SCORECARD_PRIVATE_REPOSITORY: %w", err)
+	if err := os.Setenv(scorecardPrivateRepository, strconv.FormatBool(privateRepo)); err != nil {
+		return fmt.Errorf("error setting %s: %w", scorecardPrivateRepository, err)
 	}
-	if err := os.Setenv("SCORECARD_DEFAULT_BRANCH", defaultBranch); err != nil {
-		return fmt.Errorf("error setting SCORECARD_DEFAULT_BRANCH: %w", err)
+	if err := os.Setenv(scorecardDefaultBranch, fmt.Sprintf("refs/heads/%s", defaultBranch)); err != nil {
+		return fmt.Errorf("error setting %s: %w", scorecardDefaultBranch, err)
 	}
 	return nil
 }
 
 // updateEnvVariables is a function to update the ENV variables based on results format and private repository.
 func updateEnvVariables() error {
-	resultsFileFormat := os.Getenv("SCORECARD_RESULTS_FORMAT")
-	if resultsFileFormat != "sarif" {
-		os.Unsetenv("SCORECARD_POLICY_FILE")
+	resultsFileFormat := os.Getenv(scorecardResultsFormat)
+	if resultsFileFormat != sarif {
+		if err := os.Unsetenv(scorecardPolicyFile); err != nil {
+			return fmt.Errorf("error unsetting %s: %w", scorecardPolicyFile, err)
+		}
 	}
-	isPrivateRepo := os.Getenv("SCORECARD_PRIVATE_REPOSITORY")
+	isPrivateRepo := os.Getenv(scorecardPrivateRepository)
 	if isPrivateRepo != "true" {
-		if err := os.Setenv("SCORECARD_PUBLISH_RESULTS", "false"); err != nil {
-			return fmt.Errorf("error setting SCORECARD_PUBLISH_RESULTS: %w", err)
+		if err := os.Setenv(scorecardPublishResults, "false"); err != nil {
+			return fmt.Errorf("error setting %s: %w", scorecardPublishResults, err)
 		}
 	}
 	return nil
