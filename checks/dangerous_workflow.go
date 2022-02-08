@@ -155,7 +155,7 @@ func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
 		return err
 	}
 
-	/// Secrets used on jobs.
+	// Secrets used on jobs.
 	for _, job := range workflow.Jobs {
 		if err := checkJobForUsedSecrets(job, path, dl, pdata); err != nil {
 			return err
