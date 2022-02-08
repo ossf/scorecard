@@ -139,7 +139,6 @@ func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checke
 
 func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
-
 	// We need pull request trigger.
 	if !usesPullRequestTrigger(workflow) {
 		return nil
@@ -387,7 +386,7 @@ func checkSecretInScript(script string, pos *actionlint.Pos, path string,
 	for {
 		s := strings.Index(script, "${{")
 		if s == -1 {
-			return nil
+			break
 		}
 
 		e := strings.Index(script[s:], "}}")
@@ -417,7 +416,7 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 	for {
 		s := strings.Index(script, "${{")
 		if s == -1 {
-			return nil
+			break
 		}
 
 		e := strings.Index(script[s:], "}}")
