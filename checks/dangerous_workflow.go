@@ -69,18 +69,26 @@ func init() {
 	}
 }
 
+type dangerousResults int
+
+const (
+	scriptInjection dangerousResults = iota
+	untrustedCheckout
+	secretsViaPullRequests
+)
+
 // Holds stateful data to pass thru callbacks.
 // Each field correpsonds to a dangerous GitHub workflow pattern, and
 // will hold true if the pattern is avoided, false otherwise.
 type patternCbData struct {
-	workflowPattern map[string]bool
+	workflowPattern map[dangerousResults]bool
 }
 
 // DangerousWorkflow runs Dangerous-Workflow check.
 func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 	// data is shared across all GitHub workflows.
 	data := patternCbData{
-		workflowPattern: make(map[string]bool),
+		workflowPattern: make(map[dangerousResults]bool),
 	}
 	err := fileparser.CheckFilesContent(".github/workflows/*", false,
 		c, validateGitHubActionWorkflowPatterns, &data)
@@ -120,27 +128,138 @@ func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checke
 		return false, err
 	}
 
+	// 3. Check for secrets used in workflows triggered by pull requests.
+	if err := validateSecretsInPullRequests(workflow, path, dl, pdata); err != nil {
+		return false, err
+	}
+
 	// TODO: Check other dangerous patterns.
 	return true, nil
 }
 
-func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
+func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
-	if checkPullRequestTrigger(workflow) {
-		for _, job := range workflow.Jobs {
-			if err := checkJobForUntrustedCodeCheckout(job, path, dl, pdata); err != nil {
-				return err
-			}
+
+	// We need pull request trigger.
+	if !usesPullRequestTrigger(workflow) {
+		return nil
+	}
+
+	// We need code checkout.
+	if !workflowUsesCodeCheckout(workflow) {
+		return nil
+	}
+
+	// Secrets used in env at the top of the wokflow.
+	if err := checkSecretInEnv(workflow.Env, path, dl, pdata); err != nil {
+		return err
+	}
+
+	/// Secrets used on jobs.
+	for _, job := range workflow.Jobs {
+		if err := checkJobForUsedSecrets(job, path, dl, pdata); err != nil {
+			return err
 		}
 	}
+
 	return nil
 }
 
-func checkPullRequestTrigger(workflow *actionlint.Workflow) bool {
+func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
+	dl checker.DetailLogger, pdata *patternCbData) error {
+	if !usesPullRequestTargetTrigger(workflow) {
+		return nil
+	}
+
+	for _, job := range workflow.Jobs {
+		if err := checkJobForUntrustedCodeCheckout(job, path, dl, pdata); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func usesPullRequestTrigger(workflow *actionlint.Workflow) bool {
+	// Check if the webhook event trigger is a pull_request_target
+	for _, event := range workflow.On {
+		e, ok := event.(*actionlint.WebhookEvent)
+		if ok && e.Hook != nil && e.Hook.Value == "pull_request" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func usesPullRequestTargetTrigger(workflow *actionlint.Workflow) bool {
 	// Check if the webhook event trigger is a pull_request_target
 	for _, event := range workflow.On {
 		e, ok := event.(*actionlint.WebhookEvent)
 		if ok && e.Hook != nil && e.Hook.Value == "pull_request_target" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func checkJobForUsedSecrets(job *actionlint.Job, path string,
+	dl checker.DetailLogger, pdata *patternCbData) error {
+	if job == nil || !jobUsesCodeCheckout(job) {
+		return nil
+	}
+
+	// https://docs.github.com/en/actions/security-guides/encrypted-secrets#naming-your-secrets
+	for _, step := range job.Steps {
+		if step == nil {
+			continue
+		}
+
+		if err := checkSecretInActionArgrs(step, path, dl, pdata); err != nil {
+			return err
+		}
+
+		if err := checkSecretInRun(step, path, dl, pdata); err != nil {
+			return err
+		}
+
+		if err := checkSecretInEnv(step.Env, path, dl, pdata); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func workflowUsesCodeCheckout(workflow *actionlint.Workflow) bool {
+	if workflow == nil {
+		return false
+	}
+
+	for _, job := range workflow.Jobs {
+		if jobUsesCodeCheckout(job) {
+			return true
+		}
+	}
+	return false
+}
+
+func jobUsesCodeCheckout(job *actionlint.Job) bool {
+	if job == nil {
+		return false
+	}
+	for _, step := range job.Steps {
+		if step == nil || step.Exec == nil {
+			continue
+		}
+		// Check for a step that uses actions/checkout
+		e, ok := step.Exec.(*actionlint.ExecAction)
+		if !ok || e.Uses == nil {
+			continue
+		}
+		if strings.Contains(e.Uses.Value, "actions/checkout") {
 			return true
 		}
 	}
@@ -162,7 +281,7 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 		// Check for a step that uses actions/checkout
 		e, ok := step.Exec.(*actionlint.ExecAction)
 		if !ok || e.Uses == nil {
-			return nil
+			continue
 		}
 		if !strings.Contains(e.Uses.Value, "actions/checkout") {
 			continue
@@ -183,7 +302,7 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 				// TODO: set Snippet.
 			})
 			// Detected untrusted checkout.
-			pdata.workflowPattern["untrusted_checkout"] = true
+			pdata.workflowPattern[untrustedCheckout] = true
 		}
 	}
 	return nil
@@ -213,6 +332,86 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 	return nil
 }
 
+func checkSecretInEnv(env *actionlint.Env, path string,
+	dl checker.DetailLogger, pdata *patternCbData) error {
+	if env == nil {
+		return nil
+	}
+
+	for _, v := range env.Vars {
+		if err := checkSecretInScript(v.Value.Value, v.Value.Pos, path, dl, pdata); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func checkSecretInRun(step *actionlint.Step, path string,
+	dl checker.DetailLogger, pdata *patternCbData) error {
+	if step == nil || step.Exec == nil {
+		return nil
+	}
+
+	run, ok := step.Exec.(*actionlint.ExecRun)
+	if ok && run.Run != nil {
+		if err := checkSecretInScript(run.Run.Value, run.Run.Pos, path, dl, pdata); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func checkSecretInActionArgrs(step *actionlint.Step, path string,
+	dl checker.DetailLogger, pdata *patternCbData) error {
+	if step == nil || step.Exec == nil {
+		return nil
+	}
+
+	e, ok := step.Exec.(*actionlint.ExecAction)
+	if ok && e.Uses != nil {
+		// Check for reference. If not defined for a pull_request_target event, this defaults to
+		// the base branch of the pull request.
+		for _, v := range e.Inputs {
+			if v.Value != nil {
+				if err := checkSecretInScript(v.Value.Value, v.Value.Pos, path, dl, pdata); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func checkSecretInScript(script string, pos *actionlint.Pos, path string,
+	dl checker.DetailLogger, pdata *patternCbData) error {
+	for {
+		s := strings.Index(script, "${{")
+		if s == -1 {
+			return nil
+		}
+
+		e := strings.Index(script[s:], "}}")
+		if e == -1 {
+			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+		}
+
+		variable := strings.Trim(script[s:s+e+2], " ")
+		if strings.Contains(variable, "secrets.") {
+			line := fileparser.GetLineNumber(pos)
+			dl.Warn3(&checker.LogMessage{
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: line,
+				Text:   fmt.Sprintf("secret accessible to pull requests '%v'", variable),
+				// TODO: set Snippet.
+			})
+			pdata.workflowPattern[secretsViaPullRequests] = true
+		}
+		script = script[s+e:]
+	}
+	return nil
+}
+
 func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
 	for {
@@ -237,7 +436,7 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 				Text:   fmt.Sprintf("script injection with untrusted input '%v'", variable),
 				// TODO: set Snippet.
 			})
-			pdata.workflowPattern["script_injection"] = true
+			pdata.workflowPattern[scriptInjection] = true
 		}
 		script = script[s+e:]
 	}
@@ -248,13 +447,18 @@ func calculateWorkflowScore(result patternCbData) int {
 	// Start with a perfect score.
 	score := float32(checker.MaxResultScore)
 
-	// pull_request_event indicates untrusted code checkout
-	if ok := result.workflowPattern["untrusted_checkout"]; ok {
+	// Pull_request_event indicates untrusted code checkout.
+	if ok := result.workflowPattern[untrustedCheckout]; ok {
 		score -= 10
 	}
 
-	// script injection with an untrusted context
-	if ok := result.workflowPattern["script_injection"]; ok {
+	// Script injection with an untrusted context.
+	if ok := result.workflowPattern[scriptInjection]; ok {
+		score -= 10
+	}
+
+	// Secrets available by pull requests.
+	if ok := result.workflowPattern[secretsViaPullRequests]; ok {
 		score -= 10
 	}
 
@@ -286,7 +490,7 @@ func createResultForDangerousWorkflowPatterns(result patternCbData, err error) c
 func testValidateGitHubActionDangerousWorkflow(pathfn string,
 	content []byte, dl checker.DetailLogger) checker.CheckResult {
 	data := patternCbData{
-		workflowPattern: make(map[string]bool),
+		workflowPattern: make(map[dangerousResults]bool),
 	}
 	_, err := validateGitHubActionWorkflowPatterns(pathfn, content, dl, &data)
 	return createResultForDangerousWorkflowPatterns(data, err)
