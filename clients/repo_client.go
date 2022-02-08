@@ -22,7 +22,7 @@ var ErrUnsupportedFeature = errors.New("unsupported feature")
 
 // RepoClient interface is used by Scorecard checks to access a repo.
 type RepoClient interface {
-	InitRepo(repo Repo) error
+	InitRepo(repo Repo, commitSHA string) error
 	URI() string
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)

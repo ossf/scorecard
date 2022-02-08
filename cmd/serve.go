@@ -70,7 +70,7 @@ var serveCmd = &cobra.Command{
 			}
 			defer ossFuzzRepoClient.Close()
 			ciiClient := clients.DefaultCIIBestPracticesClient()
-			repoResult, err := pkg.RunScorecards(ctx, repo, false, checks.AllChecks, repoClient,
+			repoResult, err := pkg.RunScorecards(ctx, repo, "HEAD" /*commitSHA*/, false /*raw*/, checks.AllChecks, repoClient,
 				ossFuzzRepoClient, ciiClient, vulnsClient)
 			if err != nil {
 				logger.Error(err, "running enabled scorecard checks on repo")

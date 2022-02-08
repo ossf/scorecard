@@ -80,7 +80,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		Repo:       c.Repo.Org(),
 	}
 
-	err = dotGitHub.RepoClient.InitRepo(dotGitHub.Repo)
+	err = dotGitHub.RepoClient.InitRepo(dotGitHub.Repo, "HEAD")
 	switch {
 	case err == nil:
 		defer dotGitHub.RepoClient.Close()

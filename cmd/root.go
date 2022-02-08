@@ -63,6 +63,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.Flags().StringVar(&flagRepo, "repo", "", "repository to check")
 	rootCmd.Flags().StringVar(&flagLocal, "local", "", "local folder to check")
+	rootCmd.Flags().StringVar(&flagCommit, "commit", "HEAD", "commit to analyze")
 	rootCmd.Flags().StringVar(
 		&flagLogLevel,
 		"verbosity",
@@ -147,6 +148,9 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	if flagLocal != "" {
 		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
 	}
+	if !strings.EqualFold(flagCommit, "HEAD") {
+		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
+	}
 	enabledChecks, err := getEnabledChecks(policy, flagChecksToRun, requiredRequestTypes)
 	if err != nil {
 		log.Panic(err)
@@ -158,7 +162,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	repoResult, err := pkg.RunScorecards(ctx, repoURI, flagFormat == formatRaw, enabledChecks, repoClient,
+	repoResult, err := pkg.RunScorecards(ctx, repoURI, flagCommit, flagFormat == formatRaw, enabledChecks, repoClient,
 		ossFuzzRepoClient, ciiClient, vulnsClient)
 	if err != nil {
 		log.Panic(err)
@@ -221,11 +225,19 @@ func validateCmdFlags() {
 		if flagFormat == formatRaw {
 			log.Panic("raw option not supported yet")
 		}
+		if flagCommit != "HEAD" {
+			log.Panic("--commit option not supported yet")
+		}
 	}
 
 	// Validate format.
 	if !validateFormat(flagFormat) {
 		log.Panicf("unsupported format '%s'", flagFormat)
+	}
+
+	// Validate `commit` is non-empty.
+	if flagCommit == "" {
+		log.Panic("commit should be non-empty")
 	}
 }
 

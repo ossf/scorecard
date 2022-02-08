@@ -41,6 +41,7 @@ type worklowPinningResult struct {
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.FileBased,
+		checker.CommitBased,
 	}
 	if err := registerCheck(CheckPinnedDependencies, PinnedDependencies, supportedRequestTypes); err != nil {
 		// This should never happen.

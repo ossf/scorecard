@@ -31,6 +31,7 @@ var allowedConclusions = map[string]bool{"success": true, "neutral": true}
 
 //nolint:gochecknoinits
 func init() {
+	// TODO(#575): Check if we can support commit-based requests here.
 	if err := registerCheck(CheckSAST, SAST, nil); err != nil {
 		// This should never happen.
 		panic(err)

@@ -55,6 +55,7 @@ var permissionsOfInterest = []permission{
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.FileBased,
+		checker.CommitBased,
 	}
 	if err := registerCheck(CheckTokenPermissions, TokenPermissions, supportedRequestTypes); err != nil {
 		// This should never happen.
