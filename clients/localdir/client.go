@@ -44,7 +44,7 @@ type localDirClient struct {
 }
 
 // InitRepo sets up the local repo.
-func (client *localDirClient) InitRepo(inputRepo clients.Repo) error {
+func (client *localDirClient) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	localRepo, ok := inputRepo.(*repoLocal)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)

@@ -51,8 +51,7 @@ type Client struct {
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
-func (client *Client) InitRepo(inputRepo clients.Repo) error {
-	commitSHA := "HEAD"
+func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	ghRepo, ok := inputRepo.(*repoURL)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
@@ -225,7 +224,7 @@ func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.R
 	}
 
 	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger)
-	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo); err != nil {
+	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, "HEAD"); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
 	return ossFuzzRepoClient, nil

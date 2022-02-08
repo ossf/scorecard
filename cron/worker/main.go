@@ -85,7 +85,7 @@ func processRequest(ctx context.Context,
 			continue
 		}
 		repo.AppendMetadata(repo.Metadata()...)
-		result, err := pkg.RunScorecards(ctx, repo, false, checksToRun,
+		result, err := pkg.RunScorecards(ctx, repo, "HEAD" /*commitSHA*/, false /*raw*/, checksToRun,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.

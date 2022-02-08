@@ -61,6 +61,7 @@ func containsUntrustedContextPattern(variable string) bool {
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.FileBased,
+		checker.CommitBased,
 	}
 	if err := registerCheck(CheckDangerousWorkflow, DangerousWorkflow, supportedRequestTypes); err != nil {
 		// this should never happen

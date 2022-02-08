@@ -31,7 +31,10 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckCITests, CITests, nil); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.CommitBased,
+	}
+	if err := registerCheck(CheckCITests, CITests, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}

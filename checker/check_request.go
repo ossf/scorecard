@@ -40,6 +40,8 @@ type RequestType int
 const (
 	// FileBased request types require checks to run solely on file-content.
 	FileBased RequestType = iota
+	// CommitBased request types require checks to run on non-HEAD commit content.
+	CommitBased
 )
 
 // ListUnsupported returns []RequestType not in `supported` and are `required`.

@@ -32,7 +32,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-license-e2e")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo)
+			err = repoClient.InitRepo(repo, "HEAD")
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
