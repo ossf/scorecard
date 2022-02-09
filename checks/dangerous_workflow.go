@@ -144,18 +144,16 @@ func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
 		return nil
 	}
 
-	// We need code checkout.
-	if !workflowUsesCodeCheckout(workflow) {
-		return nil
-	}
-
 	// Secrets used in env at the top of the wokflow.
-	if err := checkSecretInEnv(workflow.Env, path, dl, pdata); err != nil {
+	if err := checkWorkflowSecretInEnv(workflow, path, dl, pdata); err != nil {
 		return err
 	}
 
 	// Secrets used on jobs.
 	for _, job := range workflow.Jobs {
+		if !jobUsesCodeCheckout(job) {
+			continue
+		}
 		if err := checkJobForUsedSecrets(job, path, dl, pdata); err != nil {
 			return err
 		}
@@ -179,11 +177,11 @@ func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
 	return nil
 }
 
-func usesPullRequestTrigger(workflow *actionlint.Workflow) bool {
+func usesEventTrigger(workflow *actionlint.Workflow, eventName string) bool {
 	// Check if the webhook event trigger is a pull_request_target
 	for _, event := range workflow.On {
 		e, ok := event.(*actionlint.WebhookEvent)
-		if ok && e.Hook != nil && e.Hook.Value == "pull_request" {
+		if ok && e.Hook != nil && e.Hook.Value == eventName {
 			return true
 		}
 	}
@@ -192,20 +190,31 @@ func usesPullRequestTrigger(workflow *actionlint.Workflow) bool {
 }
 
 func usesPullRequestTargetTrigger(workflow *actionlint.Workflow) bool {
-	// Check if the webhook event trigger is a pull_request_target
-	for _, event := range workflow.On {
-		e, ok := event.(*actionlint.WebhookEvent)
-		if ok && e.Hook != nil && e.Hook.Value == "pull_request_target" {
-			return true
-		}
+	return usesEventTrigger(workflow, "pull_request_target")
+}
+
+func usesPullRequestTrigger(workflow *actionlint.Workflow) bool {
+	return usesEventTrigger(workflow, "pull_request")
+}
+
+func jobUsesEnvironment(job *actionlint.Job) bool {
+	if job.Environment == nil {
+		return false
 	}
 
-	return false
+	return job.Environment.Name != nil &&
+		job.Environment.Name.Value != ""
 }
 
 func checkJobForUsedSecrets(job *actionlint.Job, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
-	if job == nil || !jobUsesCodeCheckout(job) {
+	if job == nil {
+		return nil
+	}
+
+	// If the job has an environment, assume it's an env secret gated by
+	// some approval and don't alert.
+	if jobUsesEnvironment(job) {
 		return nil
 	}
 
@@ -215,7 +224,7 @@ func checkJobForUsedSecrets(job *actionlint.Job, path string,
 			continue
 		}
 
-		if err := checkSecretInActionArgrs(step, path, dl, pdata); err != nil {
+		if err := checkSecretInActionArgs(step, path, dl, pdata); err != nil {
 			return err
 		}
 
@@ -228,17 +237,17 @@ func checkJobForUsedSecrets(job *actionlint.Job, path string,
 		}
 
 	}
-
 	return nil
 }
 
-func workflowUsesCodeCheckout(workflow *actionlint.Workflow) bool {
+func workflowUsesCodeCheckoutAndNoEnvironment(workflow *actionlint.Workflow) bool {
 	if workflow == nil {
 		return false
 	}
 
 	for _, job := range workflow.Jobs {
-		if jobUsesCodeCheckout(job) {
+		if jobUsesCodeCheckout(job) &&
+			!jobUsesEnvironment(job) {
 			return true
 		}
 	}
@@ -262,7 +271,6 @@ func jobUsesCodeCheckout(job *actionlint.Job) bool {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -327,8 +335,18 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 			}
 		}
 	}
-
 	return nil
+}
+
+func checkWorkflowSecretInEnv(workflow *actionlint.Workflow, path string,
+	dl checker.DetailLogger, pdata *patternCbData) error {
+
+	// We need code checkout and not environment rule protection.
+	if !workflowUsesCodeCheckoutAndNoEnvironment(workflow) {
+		return nil
+	}
+
+	return checkSecretInEnv(workflow.Env, path, dl, pdata)
 }
 
 func checkSecretInEnv(env *actionlint.Env, path string,
@@ -360,7 +378,7 @@ func checkSecretInRun(step *actionlint.Step, path string,
 	return nil
 }
 
-func checkSecretInActionArgrs(step *actionlint.Step, path string,
+func checkSecretInActionArgs(step *actionlint.Step, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
 	if step == nil || step.Exec == nil {
 		return nil
