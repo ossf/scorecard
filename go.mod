@@ -12,7 +12,7 @@ require (
 require (
 	cloud.google.com/go/bigquery v1.27.0
 	cloud.google.com/go/monitoring v0.1.0 // indirect
-	cloud.google.com/go/pubsub v1.17.0
+	cloud.google.com/go/pubsub v1.18.0
 	cloud.google.com/go/trace v0.1.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.8
 	github.com/bombsimon/logrusr/v2 v2.0.1
@@ -38,7 +38,7 @@ require (
 	gocloud.dev v0.24.0
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.9
-	google.golang.org/genproto v0.0.0-20220111164026-67b88f271998
+	google.golang.org/genproto v0.0.0-20220207164111-0872dc986b00
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
@@ -100,9 +100,9 @@ require (
 	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	google.golang.org/api v0.65.0 // indirect
+	google.golang.org/api v0.67.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/grpc v1.43.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
