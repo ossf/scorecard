@@ -439,6 +439,7 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 		}
 		script = script[s+e:]
 	}
+	return nil
 }
 
 // Calculate the workflow score.
