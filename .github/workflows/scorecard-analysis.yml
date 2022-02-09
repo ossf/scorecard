@@ -26,7 +26,6 @@ jobs:
       - name: "Run analysis"
         uses: ossf/scorecard-action@b614d455ee90608b5e36e3299cd50d457eb37d5f
         with:
-          policy_file: .github/scorecard-policy.yml
           results_file: results.sarif
           results_format: sarif
           repo_token: ${{ secrets.GITHUB_TOKEN }}
