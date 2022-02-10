@@ -187,8 +187,7 @@ func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
 func usesEventTrigger(workflow *actionlint.Workflow, name triggerName) bool {
 	// Check if the webhook event trigger is a pull_request_target
 	for _, event := range workflow.On {
-		e, ok := event.(*actionlint.WebhookEvent)
-		if ok && e.Hook != nil && e.Hook.Value == string(name) {
+		if event.EventName() == string(name) {
 			return true
 		}
 	}
