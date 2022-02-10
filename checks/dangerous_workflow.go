@@ -77,6 +77,13 @@ const (
 	secretsViaPullRequests
 )
 
+type triggerName string
+
+var (
+	triggerPullRequestTarget = triggerName("pull_request_target")
+	triggerPullRequest       = triggerName("pull_request")
+)
+
 // Holds stateful data to pass thru callbacks.
 // Each field correpsonds to a dangerous GitHub workflow pattern, and
 // will hold true if the pattern is avoided, false otherwise.
@@ -140,7 +147,7 @@ func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checke
 func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
 	// We need pull request trigger.
-	if !usesPullRequestTrigger(workflow) {
+	if !usesEventTrigger(workflow, triggerPullRequest) {
 		return nil
 	}
 
@@ -164,7 +171,7 @@ func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
 
 func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
-	if !usesPullRequestTargetTrigger(workflow) {
+	if !usesEventTrigger(workflow, triggerPullRequestTarget) {
 		return nil
 	}
 
@@ -177,24 +184,16 @@ func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
 	return nil
 }
 
-func usesEventTrigger(workflow *actionlint.Workflow, eventName string) bool {
+func usesEventTrigger(workflow *actionlint.Workflow, name triggerName) bool {
 	// Check if the webhook event trigger is a pull_request_target
 	for _, event := range workflow.On {
 		e, ok := event.(*actionlint.WebhookEvent)
-		if ok && e.Hook != nil && e.Hook.Value == eventName {
+		if ok && e.Hook != nil && e.Hook.Value == string(name) {
 			return true
 		}
 	}
 
 	return false
-}
-
-func usesPullRequestTargetTrigger(workflow *actionlint.Workflow) bool {
-	return usesEventTrigger(workflow, "pull_request_target")
-}
-
-func usesPullRequestTrigger(workflow *actionlint.Workflow) bool {
-	return usesEventTrigger(workflow, "pull_request")
 }
 
 func jobUsesEnvironment(job *actionlint.Job) bool {
