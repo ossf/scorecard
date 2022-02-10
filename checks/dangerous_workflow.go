@@ -233,7 +233,6 @@ func checkJobForUsedSecrets(job *actionlint.Job, path string,
 		if err := checkSecretInEnv(step.Env, path, dl, pdata); err != nil {
 			return err
 		}
-
 	}
 	return nil
 }
@@ -338,7 +337,6 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 
 func checkWorkflowSecretInEnv(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *patternCbData) error {
-
 	// We need code checkout and not environment rule protection.
 	if !workflowUsesCodeCheckoutAndNoEnvironment(workflow) {
 		return nil
