@@ -87,15 +87,18 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 		checkRequest.Dlogger = &l
 		res = c.Fn(&checkRequest)
 		if res.Error2 != nil && errors.Is(res.Error2, sce.ErrRepoUnreachable) {
-			checkRequest.Dlogger.Warn("%v", res.Error2)
+			checkRequest.Dlogger.Warn(&LogMessage{
+				Text: fmt.Sprintf("%v", res.Error2),
+			})
 			continue
 		}
 		break
 	}
 
 	// Set details.
-	res.Details2 = l.messages2
-	for _, d := range l.messages2 {
+	// TODO(#1393): Remove.
+	res.Details2 = l.Flush()
+	for _, d := range res.Details2 {
 		res.Details = append(res.Details, d.Msg.Text)
 	}
 

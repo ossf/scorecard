@@ -16,13 +16,9 @@ package checker
 
 // DetailLogger logs a CheckDetail struct.
 type DetailLogger interface {
-	Info(desc string, args ...interface{})
-	Warn(desc string, args ...interface{})
-	Debug(desc string, args ...interface{})
-
-	// Functions to use for moving to SARIF format.
-	// UPGRADEv3: to rename.
-	Info3(msg *LogMessage)
-	Warn3(msg *LogMessage)
-	Debug3(msg *LogMessage)
+	Info(msg *LogMessage)
+	Warn(msg *LogMessage)
+	Debug(msg *LogMessage)
+	// Flush resets the logger state and returns collected logs.
+	Flush() []CheckDetail
 }

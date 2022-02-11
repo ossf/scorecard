@@ -42,8 +42,9 @@ func Vulnerabilities(name string, dl checker.DetailLogger,
 	}
 
 	if len(IDs) > 0 {
-		dl.Warn3(&checker.LogMessage{
-			Text: fmt.Sprintf("HEAD is vulnerable to %s", strings.Join(IDs, ", ")),
+		dl.Warn(&checker.LogMessage{
+			Text:    fmt.Sprintf("HEAD is vulnerable to %s", strings.Join(IDs, ", ")),
+			Version: 3,
 		})
 		return checker.CreateResultWithScore(name,
 			fmt.Sprintf("%v existing vulnerabilities detected", len(IDs)), score)

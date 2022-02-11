@@ -109,10 +109,11 @@ func LicenseCheck(c *checker.CheckRequest) checker.CheckResult {
 		pdata := fileparser.FileGetCbDataAsBoolPointer(data)
 
 		if checkLicense(name) {
-			c.Dlogger.Info3(&checker.LogMessage{
-				Path:   name,
-				Type:   checker.FileTypeSource,
-				Offset: 1,
+			c.Dlogger.Info(&checker.LogMessage{
+				Path:    name,
+				Type:    checker.FileTypeSource,
+				Offset:  1,
+				Version: 3,
 			})
 			*pdata = true
 			return false, nil

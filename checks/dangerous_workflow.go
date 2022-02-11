@@ -298,11 +298,12 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 		}
 		if strings.Contains(ref.Value.Value, "github.event.pull_request") {
 			line := fileparser.GetLineNumber(step.Pos)
-			dl.Warn3(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: line,
-				Text:   fmt.Sprintf("untrusted code checkout '%v'", ref.Value.Value),
+			dl.Warn(&checker.LogMessage{
+				Path:    path,
+				Type:    checker.FileTypeSource,
+				Offset:  line,
+				Text:    fmt.Sprintf("untrusted code checkout '%v'", ref.Value.Value),
+				Version: 3,
 				// TODO: set Snippet.
 			})
 			// Detected untrusted checkout.
@@ -411,11 +412,12 @@ func checkSecretInScript(script string, pos *actionlint.Pos, path string,
 		variable := strings.Trim(script[s:s+e+2], " ")
 		if strings.Contains(variable, "secrets.") {
 			line := fileparser.GetLineNumber(pos)
-			dl.Warn3(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: line,
-				Text:   fmt.Sprintf("secret accessible to pull requests '%v'", variable),
+			dl.Warn(&checker.LogMessage{
+				Path:    path,
+				Type:    checker.FileTypeSource,
+				Offset:  line,
+				Text:    fmt.Sprintf("secret accessible to pull requests '%v'", variable),
+				Version: 3,
 				// TODO: set Snippet.
 			})
 			pdata.workflowPattern[secretsViaPullRequests] = true
@@ -442,11 +444,12 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 		variable := script[s+3 : s+e]
 		if containsUntrustedContextPattern(variable) {
 			line := fileparser.GetLineNumber(pos)
-			dl.Warn3(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: line,
-				Text:   fmt.Sprintf("script injection with untrusted input '%v'", variable),
+			dl.Warn(&checker.LogMessage{
+				Path:    path,
+				Type:    checker.FileTypeSource,
+				Offset:  line,
+				Text:    fmt.Sprintf("script injection with untrusted input '%v'", variable),
+				Version: 3,
 				// TODO: set Snippet.
 			})
 			pdata.workflowPattern[scriptInjection] = true
