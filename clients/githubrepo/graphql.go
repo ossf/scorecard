@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	pullRequestsToAnalyze  = 30
+	pullRequestsToAnalyze  = 1
 	issuesToAnalyze        = 30
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
