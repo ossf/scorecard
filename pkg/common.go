@@ -28,7 +28,7 @@ func textToMarkdown(s string) string {
 
 // DetailToString turns a detail information into a string.
 func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
-	// UPGRADEv3: remove switch statement.
+	// TODO(#1393): remove switch statement.
 	switch d.Msg.Version {
 	case 3:
 		if d.Type == checker.DetailDebug && logLevel != log.DebugLevel {

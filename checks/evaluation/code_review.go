@@ -69,8 +69,9 @@ func CodeReview(name string, dl checker.DetailLogger,
 		// Only show all warnings if all fail.
 		// We should not show warning if at least one succeeds, as this is confusing.
 		for k := range totalReviewed {
-			dl.Warn3(&checker.LogMessage{
-				Text: fmt.Sprintf("no %s reviews found", k),
+			dl.Warn(&checker.LogMessage{
+				Text:    fmt.Sprintf("no %s reviews found", k),
+				Version: 3,
 			})
 		}
 
@@ -132,9 +133,10 @@ func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 
 	for _, r := range mr.Reviews {
 		if r.State == "APPROVED" {
-			dl.Debug3(&checker.LogMessage{
+			dl.Debug(&checker.LogMessage{
 				Text: fmt.Sprintf("%s #%d merge request approved",
 					reviewPlatformGitHub, mr.Number),
+				Version: 3,
 			})
 			return true
 		}
@@ -145,9 +147,10 @@ func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 	// time on clicking the approve button.
 	if c.Committer.Login != "" &&
 		c.Committer.Login != mr.Author.Login {
-		dl.Debug3(&checker.LogMessage{
+		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("%s #%d merge request approved",
 				reviewPlatformGitHub, mr.Number),
+			Version: 3,
 		})
 		return true
 	}
@@ -157,8 +160,9 @@ func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 
 func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
 	if isBot(c.Committer.Login) {
-		dl.Debug3(&checker.LogMessage{
-			Text: fmt.Sprintf("skip commit from bot account: %s", c.Committer.Login),
+		dl.Debug(&checker.LogMessage{
+			Text:    fmt.Sprintf("skip commit from bot account: %s", c.Committer.Login),
+			Version: 3,
 		})
 		return true
 	}
@@ -166,9 +170,10 @@ func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) b
 	if c.MergeRequest != nil && !c.MergeRequest.MergedAt.IsZero() {
 		for _, l := range c.MergeRequest.Labels {
 			if l == "lgtm" || l == "approved" {
-				dl.Debug3(&checker.LogMessage{
+				dl.Debug(&checker.LogMessage{
 					Text: fmt.Sprintf("%s #%d merge request approved",
 						reviewPlatformProw, c.MergeRequest.Number),
+					Version: 3,
 				})
 				return true
 			}
@@ -179,8 +184,9 @@ func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) b
 
 func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
 	if isBot(c.Committer.Login) {
-		dl.Debug3(&checker.LogMessage{
-			Text: fmt.Sprintf("skip commit from bot account: %s", c.Committer.Login),
+		dl.Debug(&checker.LogMessage{
+			Text:    fmt.Sprintf("skip commit from bot account: %s", c.Committer.Login),
+			Version: 3,
 		})
 		return true
 	}
@@ -188,8 +194,9 @@ func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 	m := c.CommitMessage
 	if strings.Contains(m, "\nReviewed-on: ") &&
 		strings.Contains(m, "\nReviewed-by: ") {
-		dl.Debug3(&checker.LogMessage{
-			Text: fmt.Sprintf("%s commit approved", reviewPlatformGerrit),
+		dl.Debug(&checker.LogMessage{
+			Text:    fmt.Sprintf("%s commit approved", reviewPlatformGerrit),
+			Version: 3,
 		})
 		return true
 	}

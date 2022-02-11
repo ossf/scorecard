@@ -324,13 +324,14 @@ func isFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn s
 	}
 
 	startLine, endLine = getLine(startLine, endLine, node)
-	dl.Warn3(&checker.LogMessage{
+	dl.Warn(&checker.LogMessage{
 		Path:      pathfn,
 		Type:      checker.FileTypeSource,
 		Offset:    startLine,
 		EndOffset: endLine,
 		Snippet:   cmd,
 		Text:      "insecure (not pinned by hash) download detected",
+		Version:   3,
 	})
 	return true
 }
@@ -372,13 +373,14 @@ func isExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn strin
 	startLine, endLine = getLine(startLine, endLine, node)
 	for fn := range files {
 		if isInterpreterWithFile(c, fn) || isExecuteFile(c, fn) {
-			dl.Warn3(&checker.LogMessage{
+			dl.Warn(&checker.LogMessage{
 				Path:      pathfn,
 				Type:      checker.FileTypeSource,
 				Offset:    startLine,
 				EndOffset: endLine,
 				Snippet:   cmd,
 				Text:      "insecure (not pinned by hash) download-then-run",
+				Version:   3,
 			})
 			ok = true
 		}
@@ -589,39 +591,42 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 
 	// Go get/install.
 	if isGoUnpinnedDownload(c) {
-		dl.Warn3(&checker.LogMessage{
+		dl.Warn(&checker.LogMessage{
 			Path:      pathfn,
 			Type:      checker.FileTypeSource,
 			Offset:    startLine,
 			EndOffset: endLine,
 			Snippet:   cmd,
 			Text:      "go installation not pinned by hash",
+			Version:   3,
 		})
 		return true
 	}
 
 	// Pip install.
 	if isPipUnpinnedDownload(c) {
-		dl.Warn3(&checker.LogMessage{
+		dl.Warn(&checker.LogMessage{
 			Path:      pathfn,
 			Type:      checker.FileTypeSource,
 			Offset:    startLine,
 			EndOffset: endLine,
 			Snippet:   cmd,
 			Text:      "pip installation not pinned by hash",
+			Version:   3,
 		})
 		return true
 	}
 
 	// Npm install.
 	if isNpmUnpinnedDownload(c) {
-		dl.Warn3(&checker.LogMessage{
+		dl.Warn(&checker.LogMessage{
 			Path:      pathfn,
 			Type:      checker.FileTypeSource,
 			Offset:    startLine,
 			EndOffset: endLine,
 			Snippet:   cmd,
 			Text:      "npm installation not pinned by hash",
+			Version:   3,
 		})
 		return true
 	}
@@ -707,13 +712,14 @@ func isFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd, path
 
 	startLine, endLine = getLine(startLine, endLine, node)
 
-	dl.Warn3(&checker.LogMessage{
+	dl.Warn(&checker.LogMessage{
 		Path:      pathfn,
 		Type:      checker.FileTypeSource,
 		Offset:    startLine,
 		EndOffset: endLine,
 		Snippet:   cmd,
 		Text:      "insecure (not pinned by hash) download-then-run",
+		Version:   3,
 	})
 	return true
 }
@@ -946,7 +952,9 @@ func validateShellFile(pathfn string, startLine, endLine uint,
 	r, err := validateShellFileAndRecord(pathfn, startLine, endLine, content, taintedFiles, dl)
 	if err != nil && errors.Is(err, sce.ErrorShellParsing) {
 		// Discard and print this particular error for now.
-		dl.Debug(err.Error())
+		dl.Debug(&checker.LogMessage{
+			Text: err.Error(),
+		})
 		err = nil
 	}
 	return r, err

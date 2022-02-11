@@ -161,19 +161,21 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 
 	if r.gitHubOwned != notPinned {
 		score += 2
-		dl.Info3(&checker.LogMessage{
-			Type:   checker.FileTypeSource,
-			Offset: checker.OffsetDefault,
-			Text:   fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
+		dl.Info(&checker.LogMessage{
+			Type:    checker.FileTypeSource,
+			Offset:  checker.OffsetDefault,
+			Text:    fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
+			Version: 3,
 		})
 	}
 
 	if r.thirdParties != notPinned {
 		score += 8
-		dl.Info3(&checker.LogMessage{
-			Type:   checker.FileTypeSource,
-			Offset: checker.OffsetDefault,
-			Text:   fmt.Sprintf("%s %s", "Third-party", infoMsg),
+		dl.Info(&checker.LogMessage{
+			Type:    checker.FileTypeSource,
+			Offset:  checker.OffsetDefault,
+			Text:    fmt.Sprintf("%s %s", "Third-party", infoMsg),
+			Version: 3,
 		})
 	}
 
@@ -198,7 +200,9 @@ func createReturnValues(r pinnedResult, infoMsg string, dl checker.DetailLogger,
 	default:
 		panic("invalid value")
 	case pinned, pinnedUndefined:
-		dl.Info(infoMsg)
+		dl.Info(&checker.LogMessage{
+			Text: infoMsg,
+		})
 		return checker.MaxResultScore, nil
 	case notPinned:
 		// No logging needed as it's done by the checks.
@@ -429,13 +433,14 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 			// Not pinned.
 			ret = false
-			dl.Warn3(&checker.LogMessage{
+			dl.Warn(&checker.LogMessage{
 				Path:      pathfn,
 				Type:      checker.FileTypeSource,
 				Offset:    uint(child.StartLine),
 				EndOffset: uint(child.EndLine),
 				Text:      "docker image not pinned by hash",
 				Snippet:   child.Original,
+				Version:   3,
 			})
 
 		// FROM name.
@@ -444,13 +449,14 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 			pinned := pinnedAsNames[name]
 			if !pinned && !regex.MatchString(name) {
 				ret = false
-				dl.Warn3(&checker.LogMessage{
+				dl.Warn(&checker.LogMessage{
 					Path:      pathfn,
 					Type:      checker.FileTypeSource,
 					Offset:    uint(child.StartLine),
 					EndOffset: uint(child.EndLine),
 					Text:      "docker image not pinned by hash",
 					Snippet:   child.Original,
+					Version:   3,
 				})
 			}
 
@@ -654,12 +660,13 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 			// Example: action-name@hash
 			match := hashRegex.MatchString(execAction.Uses.Value)
 			if !match {
-				dl.Warn3(&checker.LogMessage{
+				dl.Warn(&checker.LogMessage{
 					Path: pathfn, Type: checker.FileTypeSource,
 					Offset:    uint(execAction.Uses.Pos.Line),
 					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
 					Snippet:   execAction.Uses.Value,
 					Text:      fmt.Sprintf("%s action not pinned by hash", owner),
+					Version:   3,
 				})
 			}
 

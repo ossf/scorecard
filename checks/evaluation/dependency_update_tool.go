@@ -31,13 +31,15 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 
 	// Apply the policy evaluation.
 	if r.Tools == nil || len(r.Tools) == 0 {
-		dl.Warn3(&checker.LogMessage{
+		dl.Warn(&checker.LogMessage{
 			Text: `dependabot config file not detected in source location.
 			We recommend setting this configuration in code so it can be easily verified by others.`,
+			Version: 3,
 		})
-		dl.Warn3(&checker.LogMessage{
+		dl.Warn(&checker.LogMessage{
 			Text: `renovatebot config file not detected in source location.
 			We recommend setting this configuration in code so it can be easily verified by others.`,
+			Version: 3,
 		})
 		return checker.CreateMinScoreResult(name, "no update tool detected")
 	}
@@ -56,11 +58,12 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 
 	// Note: only one file per tool is present,
 	// so we do not iterate thru all entries.
-	dl.Info3(&checker.LogMessage{
-		Path:   r.Tools[0].ConfigFiles[0].Path,
-		Type:   r.Tools[0].ConfigFiles[0].Type,
-		Offset: r.Tools[0].ConfigFiles[0].Offset,
-		Text:   fmt.Sprintf("%s detected", r.Tools[0].Name),
+	dl.Info(&checker.LogMessage{
+		Path:    r.Tools[0].ConfigFiles[0].Path,
+		Type:    r.Tools[0].ConfigFiles[0].Type,
+		Offset:  r.Tools[0].ConfigFiles[0].Offset,
+		Text:    fmt.Sprintf("%s detected", r.Tools[0].Name),
+		Version: 3,
 	})
 
 	// High score result.

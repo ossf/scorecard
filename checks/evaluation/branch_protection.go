@@ -15,6 +15,8 @@
 package evaluation
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -60,7 +62,9 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		// so it does not provide any guarantees.
 		protected := !(b.Protected != nil && !*b.Protected)
 		if !protected {
-			dl.Warn("branch protection not enabled for branch '%s'", b.Name)
+			dl.Warn(&checker.LogMessage{
+				Text: fmt.Sprintf("branch protection not enabled for branch '%s'", b.Name),
+			})
 		}
 		score.scores.basic, score.maxes.basic = basicNonAdminProtection(&b, dl)
 		score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(&b, dl)
@@ -223,7 +227,9 @@ func info(dl checker.DetailLogger, doLogging bool, desc string, args ...interfac
 		return
 	}
 
-	dl.Info(desc, args...)
+	dl.Info(&checker.LogMessage{
+		Text: fmt.Sprintf(desc, args...),
+	})
 }
 
 func debug(dl checker.DetailLogger, doLogging bool, desc string, args ...interface{}) {
@@ -231,7 +237,9 @@ func debug(dl checker.DetailLogger, doLogging bool, desc string, args ...interfa
 		return
 	}
 
-	dl.Debug(desc, args...)
+	dl.Debug(&checker.LogMessage{
+		Text: fmt.Sprintf(desc, args...),
+	})
 }
 
 func warn(dl checker.DetailLogger, doLogging bool, desc string, args ...interface{}) {
@@ -239,7 +247,9 @@ func warn(dl checker.DetailLogger, doLogging bool, desc string, args ...interfac
 		return
 	}
 
-	dl.Warn(desc, args...)
+	dl.Warn(&checker.LogMessage{
+		Text: fmt.Sprintf(desc, args...),
+	})
 }
 
 func basicNonAdminProtection(branch *checker.BranchProtectionData, dl checker.DetailLogger) (int, int) {

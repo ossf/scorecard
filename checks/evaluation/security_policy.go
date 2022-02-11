@@ -33,16 +33,17 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 
 	for _, f := range r.Files {
 		msg := checker.LogMessage{
-			Path:   f.Path,
-			Type:   f.Type,
-			Offset: f.Offset,
+			Path:    f.Path,
+			Type:    f.Type,
+			Offset:  f.Offset,
+			Version: 3,
 		}
 		if msg.Type == checker.FileTypeURL {
 			msg.Text = "security policy detected in org repo"
 		} else {
 			msg.Text = "security policy detected"
 		}
-		dl.Info3(&msg)
+		dl.Info(&msg)
 	}
 
 	return checker.CreateMaxScoreResult(name, "security policy file detected")

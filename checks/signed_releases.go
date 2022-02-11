@@ -52,18 +52,20 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 		if len(r.Assets) == 0 {
 			continue
 		}
-		c.Dlogger.Debug3(&checker.LogMessage{
-			Text: fmt.Sprintf("GitHub release found: %s", r.TagName),
+		c.Dlogger.Debug(&checker.LogMessage{
+			Text:    fmt.Sprintf("GitHub release found: %s", r.TagName),
+			Version: 3,
 		})
 		totalReleases++
 		signed := false
 		for _, asset := range r.Assets {
 			for _, suffix := range artifactExtensions {
 				if strings.HasSuffix(asset.Name, suffix) {
-					c.Dlogger.Info3(&checker.LogMessage{
-						Path: asset.URL,
-						Type: checker.FileTypeURL,
-						Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
+					c.Dlogger.Info(&checker.LogMessage{
+						Path:    asset.URL,
+						Type:    checker.FileTypeURL,
+						Text:    fmt.Sprintf("signed release artifact: %s", asset.Name),
+						Version: 3,
 					})
 					signed = true
 					break
@@ -75,10 +77,11 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 			}
 		}
 		if !signed {
-			c.Dlogger.Warn3(&checker.LogMessage{
-				Path: r.URL,
-				Type: checker.FileTypeURL,
-				Text: fmt.Sprintf("release artifact %s not signed", r.TagName),
+			c.Dlogger.Warn(&checker.LogMessage{
+				Path:    r.URL,
+				Type:    checker.FileTypeURL,
+				Text:    fmt.Sprintf("release artifact %s not signed", r.TagName),
+				Version: 3,
 			})
 		}
 		if totalReleases >= releaseLookBack {
@@ -87,8 +90,9 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalReleases == 0 {
-		c.Dlogger.Warn3(&checker.LogMessage{
-			Text: "no GitHub releases found",
+		c.Dlogger.Warn(&checker.LogMessage{
+			Text:    "no GitHub releases found",
+			Version: 3,
 		})
 		// Generic summary.
 		return checker.CreateInconclusiveResult(CheckSignedReleases, "no releases found")

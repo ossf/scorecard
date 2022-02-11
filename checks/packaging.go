@@ -66,25 +66,28 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if len(runs) > 0 {
-			c.Dlogger.Info3(&checker.LogMessage{
-				Path:   fp,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
-				Text:   fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL),
+			c.Dlogger.Info(&checker.LogMessage{
+				Path:    fp,
+				Type:    checker.FileTypeSource,
+				Offset:  checker.OffsetDefault,
+				Text:    fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL),
+				Version: 3,
 			})
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
-		c.Dlogger.Debug3(&checker.LogMessage{
-			Path:   fp,
-			Type:   checker.FileTypeSource,
-			Offset: checker.OffsetDefault,
-			Text:   "GitHub publishing workflow not used in runs",
+		c.Dlogger.Debug(&checker.LogMessage{
+			Path:    fp,
+			Type:    checker.FileTypeSource,
+			Offset:  checker.OffsetDefault,
+			Text:    "GitHub publishing workflow not used in runs",
+			Version: 3,
 		})
 	}
 
-	c.Dlogger.Warn3(&checker.LogMessage{
-		Text: "no GitHub publishing workflow detected",
+	c.Dlogger.Warn(&checker.LogMessage{
+		Text:    "no GitHub publishing workflow detected",
+		Version: 3,
 	})
 
 	return checker.CreateInconclusiveResult(CheckPackaging,
@@ -207,21 +210,23 @@ func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 				continue
 			}
 
-			dl.Info3(&checker.LogMessage{
-				Path:   fp,
-				Type:   checker.FileTypeSource,
-				Offset: fileparser.GetLineNumber(job.Pos),
-				Text:   matcher.LogText,
+			dl.Info(&checker.LogMessage{
+				Path:    fp,
+				Type:    checker.FileTypeSource,
+				Offset:  fileparser.GetLineNumber(job.Pos),
+				Text:    matcher.LogText,
+				Version: 3,
 			})
 			return true
 		}
 	}
 
-	dl.Debug3(&checker.LogMessage{
-		Path:   fp,
-		Type:   checker.FileTypeSource,
-		Offset: checker.OffsetDefault,
-		Text:   "not a publishing workflow",
+	dl.Debug(&checker.LogMessage{
+		Path:    fp,
+		Type:    checker.FileTypeSource,
+		Offset:  checker.OffsetDefault,
+		Text:    "not a publishing workflow",
+		Version: 3,
 	})
 	return false
 }
