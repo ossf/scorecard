@@ -17,24 +17,28 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 var (
-	errInputResultFileNotSet     = errors.New("INPUT_RESULTS_FILE is not set")
-	errInputResultFileEmpty      = errors.New("INPUT_RESULTS_FILE is empty")
-	errInputResultFormatNotSet   = errors.New("INPUT_RESULTS_FORMAT is not set")
-	errInputResultFormatEmtpy    = errors.New("INPUT_RESULTS_FORMAT is empty")
-	errInputPublishResultsNotSet = errors.New("INPUT_PUBLISH_RESULTS is not set")
-	errInputPublishResultsEmpty  = errors.New("INPUT_PUBLISH_RESULTS is empty")
-	errRequiredENVNotSet         = errors.New("required environment variables are not set")
-	errGitHubEventPath           = errors.New("error getting GITHUB_EVENT_PATH")
-	errGitHubEventPathEmpty      = errors.New("GITHUB_EVENT_PATH is empty")
-	errGitHubEventPathNotSet     = errors.New("GITHUB_EVENT_PATH is not set")
-	errEmptyDefaultBranch        = errors.New("default branch is empty")
+	errInputResultFileNotSet      = errors.New("INPUT_RESULTS_FILE is not set")
+	errInputResultFileEmpty       = errors.New("INPUT_RESULTS_FILE is empty")
+	errInputResultFormatNotSet    = errors.New("INPUT_RESULTS_FORMAT is not set")
+	errInputResultFormatEmtpy     = errors.New("INPUT_RESULTS_FORMAT is empty")
+	errInputPublishResultsNotSet  = errors.New("INPUT_PUBLISH_RESULTS is not set")
+	errInputPublishResultsEmpty   = errors.New("INPUT_PUBLISH_RESULTS is empty")
+	errRequiredENVNotSet          = errors.New("required environment variables are not set")
+	errGitHubEventPath            = errors.New("error getting GITHUB_EVENT_PATH")
+	errGitHubEventPathEmpty       = errors.New("GITHUB_EVENT_PATH is empty")
+	errGitHubEventPathNotSet      = errors.New("GITHUB_EVENT_PATH is not set")
+	errEmptyDefaultBranch         = errors.New("default branch is empty")
+	errEmptyGitHubAuthToken       = errors.New("repo_token variable is empty")
+	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
 )
 
 type repositoryInformation struct {
@@ -48,7 +52,9 @@ const (
 	enableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
 	enabledChecks           = "ENABLED_CHECKS"
 	githubEventPath         = "GITHUB_EVENT_PATH"
+	githubEventName         = "GITHUB_EVENT_NAME"
 	githubRepository        = "GITHUB_REPOSITORY"
+	githubRef               = "GITHUB_REF"
 	//nolint:gosec
 	githubAuthToken            = "GITHUB_AUTH_TOKEN"
 	inputresultsfile           = "INPUT_RESULTS_FILE"
@@ -89,6 +95,12 @@ func main() {
 	}
 
 	if err := updateEnvVariables(); err != nil {
+		panic(err)
+	}
+
+	printEnvVariables(os.Stdout)
+
+	if err := validate(os.Stderr); err != nil {
 		panic(err)
 	}
 }
@@ -284,6 +296,41 @@ func updateEnvVariables() error {
 		if err := os.Setenv(scorecardPublishResults, "false"); err != nil {
 			return fmt.Errorf("error setting %s: %w", scorecardPublishResults, err)
 		}
+	}
+	return nil
+}
+
+// printEnvVariables is a function to print the ENV variables.
+func printEnvVariables(writer io.Writer) {
+	fmt.Fprintf(writer, "GITHUB_EVENT_PATH=%s\n", os.Getenv(githubEventPath))
+	fmt.Fprintf(writer, "GITHUB_EVENT_NAME=%s\n", os.Getenv(githubEventName))
+	fmt.Fprintf(writer, "GITHUB_REPOSITORY=%s\n", os.Getenv(githubRepository))
+	fmt.Fprintf(writer, "SCORECARD_IS_FORK=%s\n", os.Getenv(scorecardFork))
+	fmt.Fprintf(writer, "Ref=%s\n", os.Getenv(githubRef))
+	fmt.Fprintf(writer, "SCORECARD_PRIVATE_REPOSITORY=%s\n", os.Getenv(scorecardPrivateRepository))
+	fmt.Fprintf(writer, "SCORECARD_PUBLISH_RESULTS=%s\n", os.Getenv(scorecardPublishResults))
+	fmt.Fprintf(writer, "Format=%s\n", os.Getenv(scorecardResultsFormat))
+	fmt.Fprintf(writer, "Policy file=%s\n", os.Getenv(scorecardPolicyFile))
+	fmt.Fprintf(writer, "Default branch=%s\n", os.Getenv(scorecardDefaultBranch))
+}
+
+// validate is a function to validate the scorecard configuration based on the environment variables.
+func validate(writer io.Writer) error {
+	if os.Getenv(githubAuthToken) == "" {
+		fmt.Fprintf(writer, "The 'repo_token' variable is empty.\n")
+		if os.Getenv(scorecardFork) == "true" {
+			fmt.Fprintf(writer, "We have detected you are running on a fork.\n")
+		}
+		//nolint:lll
+		fmt.Fprintf(writer,
+			"Please follow the instructions at https://github.com/ossf/scorecard-action#authentication to create the read-only PAT token.\n")
+		return errEmptyGitHubAuthToken
+	}
+	if strings.Contains(os.Getenv(githubEventName), "pull_request") &&
+		os.Getenv(githubRef) == os.Getenv(scorecardDefaultBranch) {
+		fmt.Fprintf(writer, "%s not supported with %s event.\n", os.Getenv(githubRef), os.Getenv(githubEventName))
+		fmt.Fprintf(writer, "Only the default branch %s is supported.\n", os.Getenv(scorecardDefaultBranch))
+		return errOnlyDefaultBranchSupported
 	}
 	return nil
 }
