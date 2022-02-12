@@ -1,5 +1,6 @@
 # Security Scorecards
 
+[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/5621/badge)](https://bestpractices.coreinfrastructure.org/projects/5621)
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard)](https://goreportcard.com/report/github.com/ossf/scorecard)
