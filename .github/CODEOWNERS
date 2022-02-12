@@ -4,6 +4,10 @@
 # the repo. Unless a later match takes precedence,
 # the following users/teams will be requested for
 # review when someone opens a pull request.
+
+# THIS LIST SHOULD ALWAYS MATCH TEAMS AND COLLABORATORS IN
+# https://github.com/ossf/scorecard/blob/main/.github/settings.yml
+
 # TODO(owners): For ease of management, this should eventually shift to a
 #               defined GitHub team instead of individual usernames
 * @azeemshaikh38 @inferno-chromium @justaugustus @laurentsimon @naveensrinivasan
