@@ -38,6 +38,7 @@ teams: []
 # TODO(owners): For ease of management, this should eventually shift to a
 #               defined GitHub team instead of individual usernames
 collaborators:
+  # Admin
   - name: azeemshaikh38
     permission: admin
 
@@ -51,6 +52,21 @@ collaborators:
     permission: admin
 
   - name: naveensrinivasan
+    permission: admin
+
+  - name: oliverchang
+    permission: admin
+
+  # Maintain
+  - name: olivekl
+    permission: maintain
+
+  # Write
+  - name: chrismcgehee
+    permission: write
+
+  # Triage
+  - name: meder
     permission: admin
 
 branches:
