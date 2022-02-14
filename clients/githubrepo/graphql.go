@@ -114,26 +114,20 @@ type graphqlData struct {
 }
 
 type graphqlHandler struct {
-	client        *githubv4.Client
-	data          *graphqlData
-	once          *sync.Once
-	ctx           context.Context
-	errSetup      error
-	owner         string
-	repo          string
-	defaultBranch string
-	commitSHA     string
-	commits       []clients.Commit
-	issues        []clients.Issue
-	archived      bool
+	client   *githubv4.Client
+	data     *graphqlData
+	once     *sync.Once
+	ctx      context.Context
+	errSetup error
+	repourl  *repoURL
+	commits  []clients.Commit
+	issues   []clients.Issue
+	archived bool
 }
 
-func (handler *graphqlHandler) init(ctx context.Context, owner, repo, defaultBranch, commitSHA string) {
+func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.ctx = ctx
-	handler.owner = owner
-	handler.repo = repo
-	handler.defaultBranch = defaultBranch
-	handler.commitSHA = commitSHA
+	handler.repourl = repourl
 	handler.data = new(graphqlData)
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
@@ -141,15 +135,15 @@ func (handler *graphqlHandler) init(ctx context.Context, owner, repo, defaultBra
 
 func (handler *graphqlHandler) setup() error {
 	handler.once.Do(func() {
-		commitExpression := handler.commitSHA
-		if strings.EqualFold(handler.commitSHA, "HEAD") {
+		commitExpression := handler.repourl.commitSHA
+		if strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
 			// TODO(#575): Confirm that this works as expected.
-			commitExpression = fmt.Sprintf("heads/%s", handler.defaultBranch)
+			commitExpression = fmt.Sprintf("heads/%s", handler.repourl.defaultBranch)
 		}
 
 		vars := map[string]interface{}{
-			"owner":                  githubv4.String(handler.owner),
-			"name":                   githubv4.String(handler.repo),
+			"owner":                  githubv4.String(handler.repourl.owner),
+			"name":                   githubv4.String(handler.repourl.repo),
 			"pullRequestsToAnalyze":  githubv4.Int(pullRequestsToAnalyze),
 			"issuesToAnalyze":        githubv4.Int(issuesToAnalyze),
 			"issueCommentsToAnalyze": githubv4.Int(issueCommentsToAnalyze),
@@ -163,7 +157,7 @@ func (handler *graphqlHandler) setup() error {
 			return
 		}
 		handler.archived = bool(handler.data.Repository.IsArchived)
-		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.owner, handler.repo)
+		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
 		if handler.errSetup != nil {
 			return
 		}
@@ -180,6 +174,9 @@ func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
 }
 
 func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
+	if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+		return nil, fmt.Errorf("%w: ListIssues only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	}
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
 	}
@@ -187,6 +184,9 @@ func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 }
 
 func (handler *graphqlHandler) isArchived() (bool, error) {
+	if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+		return false, fmt.Errorf("%w: IsArchived only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	}
 	if err := handler.setup(); err != nil {
 		return false, fmt.Errorf("error during graphqlHandler.setup: %w", err)
 	}

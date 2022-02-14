@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/go-github/v38/github"
 
@@ -25,21 +26,22 @@ import (
 )
 
 type statusesHandler struct {
-	client *github.Client
-	ctx    context.Context
-	owner  string
-	repo   string
+	client  *github.Client
+	ctx     context.Context
+	repourl *repoURL
 }
 
-func (handler *statusesHandler) init(ctx context.Context, owner, repo string) {
+func (handler *statusesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.ctx = ctx
-	handler.owner = owner
-	handler.repo = repo
+	handler.repourl = repourl
 }
 
 func (handler *statusesHandler) listStatuses(ref string) ([]clients.Status, error) {
-	statuses, _, err := handler.client.Repositories.ListStatuses(handler.ctx, handler.owner, handler.repo, ref,
-		&github.ListOptions{})
+	if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+		return nil, fmt.Errorf("%w: ListStatuses only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	}
+	statuses, _, err := handler.client.Repositories.ListStatuses(
+		handler.ctx, handler.repourl.owner, handler.repourl.repo, ref, &github.ListOptions{})
 	if err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListStatuses: %v", err))
 	}

@@ -34,8 +34,7 @@ var errInputRepoType = errors.New("input repo should be of type repoURL")
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	owner        string
-	repoName     string
+	repourl      *repoURL
 	repo         *github.Repository
 	repoClient   *github.Client
 	graphClient  *graphqlHandler
@@ -62,9 +61,14 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}
+
 	client.repo = repo
-	client.owner = repo.Owner.GetLogin()
-	client.repoName = repo.GetName()
+	client.repourl = &repoURL{
+		owner:         repo.Owner.GetLogin(),
+		repo:          repo.GetName(),
+		defaultBranch: repo.GetDefaultBranch(),
+		commitSHA:     commitSHA,
+	}
 
 	// Init tarballHandler.
 	if err := client.tarball.init(client.ctx, client.repo, commitSHA); err != nil {
@@ -72,36 +76,35 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	}
 
 	// Setup GraphQL.
-	client.graphClient.init(client.ctx, client.owner, client.repoName,
-		client.repo.GetDefaultBranch(), commitSHA)
+	client.graphClient.init(client.ctx, client.repourl)
 
 	// Setup contributorsHandler.
-	client.contributors.init(client.ctx, client.owner, client.repoName)
+	client.contributors.init(client.ctx, client.repourl)
 
 	// Setup branchesHandler.
-	client.branches.init(client.ctx, client.owner, client.repoName)
+	client.branches.init(client.ctx, client.repourl)
 
 	// Setup releasesHandler.
-	client.releases.init(client.ctx, client.owner, client.repoName)
+	client.releases.init(client.ctx, client.repourl)
 
 	// Setup workflowsHandler.
-	client.workflows.init(client.ctx, client.owner, client.repoName)
+	client.workflows.init(client.ctx, client.repourl)
 
 	// Setup checkrunsHandler.
-	client.checkruns.init(client.ctx, client.owner, client.repoName)
+	client.checkruns.init(client.ctx, client.repourl)
 
 	// Setup statusesHandler.
-	client.statuses.init(client.ctx, client.owner, client.repoName)
+	client.statuses.init(client.ctx, client.repourl)
 
 	// Setup searchHandler.
-	client.search.init(client.ctx, client.owner, client.repoName)
+	client.search.init(client.ctx, client.repourl)
 
 	return nil
 }
 
 // URI implements RepoClient.URI.
 func (client *Client) URI() string {
-	return fmt.Sprintf("github.com/%s/%s", client.owner, client.repoName)
+	return fmt.Sprintf("github.com/%s/%s", client.repourl.owner, client.repourl.repo)
 }
 
 // ListFiles implements RepoClient.ListFiles.
