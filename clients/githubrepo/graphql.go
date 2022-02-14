@@ -69,15 +69,10 @@ type graphqlData struct {
 								Author struct {
 									Login githubv4.String
 								}
-								Number      githubv4.Int
-								HeadRefOid  githubv4.String
-								MergedAt    githubv4.DateTime
-								MergeCommit struct {
-									// NOTE: only used for sanity check.
-									// Use original commit oid instead.
-									Oid githubv4.GitObjectID
-								}
-								Labels struct {
+								Number     githubv4.Int
+								HeadRefOid githubv4.String
+								MergedAt   githubv4.DateTime
+								Labels     struct {
 									Nodes []struct {
 										Name githubv4.String
 									}
@@ -205,8 +200,10 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 		var associatedPR clients.PullRequest
 		for i := range commit.AssociatedPullRequests.Nodes {
 			pr := commit.AssociatedPullRequests.Nodes[i]
-			if pr.MergeCommit.Oid != commit.Oid ||
-				string(pr.Repository.Owner.Login) != repoOwner ||
+			// NOTE: PR mergeCommit may not match commit.SHA in case repositories
+			// have `enableSquashCommit` disabled. So we accept any associatedPR
+			// to handle this case.
+			if string(pr.Repository.Owner.Login) != repoOwner ||
 				string(pr.Repository.Name) != repoName {
 				continue
 			}
