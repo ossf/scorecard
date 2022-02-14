@@ -299,7 +299,6 @@ func jobUsesCodeCheckout(job *actionlint.Job) (bool, string) {
 			}
 			return true, ref.Value.Value
 		}
-
 	}
 	return hasCheckout, ""
 }
