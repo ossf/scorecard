@@ -22,6 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -33,7 +34,7 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 			repo, err := githubrepo.MakeGithubRepo("apache/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "HEAD")
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),

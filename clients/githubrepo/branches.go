@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/google/go-github/v38/github"
@@ -113,31 +114,34 @@ type branchesHandler struct {
 	once             *sync.Once
 	ctx              context.Context
 	errSetup         error
-	owner            string
-	repo             string
+	repourl          *repoURL
 	defaultBranchRef *clients.BranchRef
 	branches         []*clients.BranchRef
 }
 
-func (handler *branchesHandler) init(ctx context.Context, owner, repo string) {
+func (handler *branchesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.ctx = ctx
-	handler.owner = owner
-	handler.repo = repo
+	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
 }
 
 func (handler *branchesHandler) setup() error {
 	handler.once.Do(func() {
+		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+			handler.errSetup = fmt.Errorf("%w: branches only supported for HEAD queries", clients.ErrUnsupportedFeature)
+			return
+		}
 		vars := map[string]interface{}{
-			"owner":         githubv4.String(handler.owner),
-			"name":          githubv4.String(handler.repo),
+			"owner":         githubv4.String(handler.repourl.owner),
+			"name":          githubv4.String(handler.repourl.repo),
 			"refsToAnalyze": githubv4.Int(refsToAnalyze),
 			"refPrefix":     githubv4.String(refPrefix),
 		}
 		handler.data = new(branchesData)
 		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+			return
 		}
 		handler.defaultBranchRef = getBranchRefFrom(handler.data.Repository.DefaultBranchRef)
 		handler.branches = getBranchRefsFrom(handler.data.Repository.Refs.Nodes, handler.defaultBranchRef)

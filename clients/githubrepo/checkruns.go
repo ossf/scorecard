@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/go-github/v38/github"
 
@@ -25,21 +26,22 @@ import (
 )
 
 type checkrunsHandler struct {
-	client *github.Client
-	ctx    context.Context
-	owner  string
-	repo   string
+	client  *github.Client
+	ctx     context.Context
+	repourl *repoURL
 }
 
-func (handler *checkrunsHandler) init(ctx context.Context, owner, repo string) {
+func (handler *checkrunsHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.ctx = ctx
-	handler.owner = owner
-	handler.repo = repo
+	handler.repourl = repourl
 }
 
 func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	checkRuns, _, err := handler.client.Checks.ListCheckRunsForRef(handler.ctx, handler.owner, handler.repo, ref,
-		&github.ListCheckRunsOptions{})
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+		return nil, fmt.Errorf("%w: ListCheckRuns only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	}
+	checkRuns, _, err := handler.client.Checks.ListCheckRunsForRef(
+		handler.ctx, handler.repourl.owner, handler.repourl.repo, ref, &github.ListCheckRunsOptions{})
 	if err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCheckRunsForRef: %v", err))
 	}

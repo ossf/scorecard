@@ -63,7 +63,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.Flags().StringVar(&flagRepo, "repo", "", "repository to check")
 	rootCmd.Flags().StringVar(&flagLocal, "local", "", "local folder to check")
-	rootCmd.Flags().StringVar(&flagCommit, "commit", "HEAD", "commit to analyze")
+	rootCmd.Flags().StringVar(&flagCommit, "commit", clients.HeadSHA, "commit to analyze")
 	rootCmd.Flags().StringVar(
 		&flagLogLevel,
 		"verbosity",
@@ -148,7 +148,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	if flagLocal != "" {
 		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
 	}
-	if !strings.EqualFold(flagCommit, "HEAD") {
+	if !strings.EqualFold(flagCommit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
 	enabledChecks, err := getEnabledChecks(policy, flagChecksToRun, requiredRequestTypes)
@@ -225,7 +225,7 @@ func validateCmdFlags() {
 		if flagFormat == formatRaw {
 			log.Panic("raw option not supported yet")
 		}
-		if flagCommit != "HEAD" {
+		if flagCommit != clients.HeadSHA {
 			log.Panic("--commit option not supported yet")
 		}
 	}
