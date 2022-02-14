@@ -44,7 +44,7 @@ func (handler *releasesHandler) init(ctx context.Context, repourl *repoURL) {
 
 func (handler *releasesHandler) setup() error {
 	handler.once.Do(func() {
-		if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 			handler.errSetup = fmt.Errorf("%w: ListReleases only supported for HEAD queries", clients.ErrUnsupportedFeature)
 			return
 		}

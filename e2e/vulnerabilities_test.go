@@ -33,7 +33,7 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "HEAD")
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
 			Expect(err).Should(BeNil())
 
 			dl := scut.TestDetailLogger{}
@@ -66,7 +66,7 @@ var _ = Describe("E2E TEST:Vulnerabilities", func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-vulnerabilities-open62541")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "HEAD")
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
 			Expect(err).Should(BeNil())
 
 			dl := scut.TestDetailLogger{}

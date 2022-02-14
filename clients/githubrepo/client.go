@@ -227,7 +227,7 @@ func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.R
 	}
 
 	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger)
-	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, "HEAD"); err != nil {
+	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, clients.HeadSHA); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
 	return ossFuzzRepoClient, nil

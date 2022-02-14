@@ -128,7 +128,7 @@ func (handler *branchesHandler) init(ctx context.Context, repourl *repoURL) {
 
 func (handler *branchesHandler) setup() error {
 	handler.once.Do(func() {
-		if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 			handler.errSetup = fmt.Errorf("%w: branches only supported for HEAD queries", clients.ErrUnsupportedFeature)
 			return
 		}

@@ -43,7 +43,7 @@ func (handler *contributorsHandler) init(ctx context.Context, repourl *repoURL) 
 
 func (handler *contributorsHandler) setup() error {
 	handler.once.Do(func() {
-		if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 			handler.errSetup = fmt.Errorf("%w: ListContributors only supported for HEAD queries", clients.ErrUnsupportedFeature)
 			return
 		}
