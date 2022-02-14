@@ -91,7 +91,11 @@ branches:
         # Required. Require branches to be up to date before merging.
         strict: true
         # Required. The list of status checks to require in order to merge into this branch
-        contexts: []
+        # KEEP IN SYNC WITH WORKFLOWS IN .github/workflows
+        checks:
+          - context: "Validate"
+          - context: "license boilerplate check"
+          - context: "integration-trusted"
       # Required. Enforce all configured restrictions for administrators. Set to true to enforce required status checks for repository administrators. Set to null to disable.
       enforce_admins: true
       # Prevent merge commits from being pushed to matching branches
@@ -101,3 +105,5 @@ branches:
         apps: []
         users: []
         teams: []
+      # Requires all conversations on code to be resolved before a pull request can be merged into a branch that matches this rule. Set to false to disable. Default: false.
+      required_conversation_resolution: true
