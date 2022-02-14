@@ -22,6 +22,7 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	"github.com/ossf/scorecard/v4/log"
 	scut "github.com/ossf/scorecard/v4/utests"
@@ -72,7 +73,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			ctx := context.Background()
 
 			client := localdir.CreateLocalDirClient(ctx, logger)
-			if err := client.InitRepo(repo, "HEAD"); err != nil {
+			if err := client.InitRepo(repo, clients.HeadSHA); err != nil {
 				t.Errorf("InitRepo: %v", err)
 			}
 

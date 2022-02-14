@@ -136,7 +136,7 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 func (handler *graphqlHandler) setup() error {
 	handler.once.Do(func() {
 		commitExpression := handler.repourl.commitSHA
-		if strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+		if strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 			// TODO(#575): Confirm that this works as expected.
 			commitExpression = fmt.Sprintf("heads/%s", handler.repourl.defaultBranch)
 		}
@@ -174,7 +174,7 @@ func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
 }
 
 func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
-	if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		return nil, fmt.Errorf("%w: ListIssues only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
 	if err := handler.setup(); err != nil {
@@ -184,7 +184,7 @@ func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 }
 
 func (handler *graphqlHandler) isArchived() (bool, error) {
-	if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		return false, fmt.Errorf("%w: IsArchived only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
 	if err := handler.setup(); err != nil {

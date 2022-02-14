@@ -37,7 +37,7 @@ func (handler *workflowsHandler) init(ctx context.Context, repourl *repoURL) {
 }
 
 func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
-	if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		return nil, fmt.Errorf(
 			"%w: ListWorkflowRunsByFileName only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}

@@ -37,7 +37,7 @@ func (handler *statusesHandler) init(ctx context.Context, repourl *repoURL) {
 }
 
 func (handler *statusesHandler) listStatuses(ref string) ([]clients.Status, error) {
-	if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		return nil, fmt.Errorf("%w: ListStatuses only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
 	statuses, _, err := handler.client.Repositories.ListStatuses(

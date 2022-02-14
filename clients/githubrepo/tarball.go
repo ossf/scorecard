@@ -29,6 +29,7 @@ import (
 
 	"github.com/google/go-github/v38/github"
 
+	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -96,7 +97,7 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repository, commitSHA string) error {
 	url := repo.GetArchiveURL()
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
-	if strings.EqualFold(commitSHA, "HEAD") {
+	if strings.EqualFold(commitSHA, clients.HeadSHA) {
 		url = strings.Replace(url, "{/ref}", "", 1)
 	} else {
 		url = strings.Replace(url, "{/ref}", commitSHA, 1)

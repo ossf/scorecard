@@ -39,7 +39,7 @@ func (handler *searchHandler) init(ctx context.Context, repourl *repoURL) {
 }
 
 func (handler *searchHandler) search(request clients.SearchRequest) (clients.SearchResponse, error) {
-	if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		return clients.SearchResponse{}, fmt.Errorf(
 			"%w: Search only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}

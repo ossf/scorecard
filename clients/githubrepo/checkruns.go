@@ -37,7 +37,7 @@ func (handler *checkrunsHandler) init(ctx context.Context, repourl *repoURL) {
 }
 
 func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	if !strings.EqualFold(handler.repourl.commitSHA, "HEAD") {
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		return nil, fmt.Errorf("%w: ListCheckRuns only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
 	checkRuns, _, err := handler.client.Checks.ListCheckRunsForRef(
