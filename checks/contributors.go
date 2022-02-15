@@ -74,8 +74,7 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	c.Dlogger.Info(&checker.LogMessage{
-		Text:    fmt.Sprintf("contributors work for: %v", strings.Join(names, ",")),
-		Version: 3,
+		Text: fmt.Sprintf("contributors work for: %v", strings.Join(names, ",")),
 	})
 
 	reason := fmt.Sprintf("%d different companies found", len(companies))

@@ -110,10 +110,9 @@ func LicenseCheck(c *checker.CheckRequest) checker.CheckResult {
 
 		if checkLicense(name) {
 			c.Dlogger.Info(&checker.LogMessage{
-				Path:    name,
-				Type:    checker.FileTypeSource,
-				Offset:  1,
-				Version: 3,
+				Path:   name,
+				Type:   checker.FileTypeSource,
+				Offset: 1,
 			})
 			*pdata = true
 			return false, nil

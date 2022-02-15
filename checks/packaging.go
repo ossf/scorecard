@@ -67,27 +67,24 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		}
 		if len(runs) > 0 {
 			c.Dlogger.Info(&checker.LogMessage{
-				Path:    fp,
-				Type:    checker.FileTypeSource,
-				Offset:  checker.OffsetDefault,
-				Text:    fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL),
-				Version: 3,
+				Path:   fp,
+				Type:   checker.FileTypeSource,
+				Offset: checker.OffsetDefault,
+				Text:   fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL),
 			})
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
 		c.Dlogger.Debug(&checker.LogMessage{
-			Path:    fp,
-			Type:    checker.FileTypeSource,
-			Offset:  checker.OffsetDefault,
-			Text:    "GitHub publishing workflow not used in runs",
-			Version: 3,
+			Path:   fp,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   "GitHub publishing workflow not used in runs",
 		})
 	}
 
 	c.Dlogger.Warn(&checker.LogMessage{
-		Text:    "no GitHub publishing workflow detected",
-		Version: 3,
+		Text: "no GitHub publishing workflow detected",
 	})
 
 	return checker.CreateInconclusiveResult(CheckPackaging,
@@ -211,22 +208,20 @@ func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 			}
 
 			dl.Info(&checker.LogMessage{
-				Path:    fp,
-				Type:    checker.FileTypeSource,
-				Offset:  fileparser.GetLineNumber(job.Pos),
-				Text:    matcher.LogText,
-				Version: 3,
+				Path:   fp,
+				Type:   checker.FileTypeSource,
+				Offset: fileparser.GetLineNumber(job.Pos),
+				Text:   matcher.LogText,
 			})
 			return true
 		}
 	}
 
 	dl.Debug(&checker.LogMessage{
-		Path:    fp,
-		Type:    checker.FileTypeSource,
-		Offset:  checker.OffsetDefault,
-		Text:    "not a publishing workflow",
-		Version: 3,
+		Path:   fp,
+		Type:   checker.FileTypeSource,
+		Offset: checker.OffsetDefault,
+		Text:   "not a publishing workflow",
 	})
 	return false
 }

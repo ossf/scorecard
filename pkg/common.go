@@ -28,26 +28,18 @@ func textToMarkdown(s string) string {
 
 // DetailToString turns a detail information into a string.
 func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
-	// TODO(#1393): remove switch statement.
-	switch d.Msg.Version {
-	case 3:
-		if d.Type == checker.DetailDebug && logLevel != log.DebugLevel {
-			return ""
-		}
-		switch {
-		case d.Msg.Path != "" && d.Msg.Offset != 0 && d.Msg.EndOffset != 0 && d.Msg.Offset < d.Msg.EndOffset:
-			return fmt.Sprintf("%s: %s: %s:%d-%d", typeToString(d.Type), d.Msg.Text, d.Msg.Path, d.Msg.Offset, d.Msg.EndOffset)
-		case d.Msg.Path != "" && d.Msg.Offset != 0:
-			return fmt.Sprintf("%s: %s: %s:%d", typeToString(d.Type), d.Msg.Text, d.Msg.Path, d.Msg.Offset)
-		case d.Msg.Path != "" && d.Msg.Offset == 0:
-			return fmt.Sprintf("%s: %s: %s", typeToString(d.Type), d.Msg.Text, d.Msg.Path)
-		default:
-			return fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text)
-		}
+	if d.Type == checker.DetailDebug && logLevel != log.DebugLevel {
+		return ""
+	}
+
+	switch {
+	case d.Msg.Path != "" && d.Msg.Offset != 0 && d.Msg.EndOffset != 0 && d.Msg.Offset < d.Msg.EndOffset:
+		return fmt.Sprintf("%s: %s: %s:%d-%d", typeToString(d.Type), d.Msg.Text, d.Msg.Path, d.Msg.Offset, d.Msg.EndOffset)
+	case d.Msg.Path != "" && d.Msg.Offset != 0:
+		return fmt.Sprintf("%s: %s: %s:%d", typeToString(d.Type), d.Msg.Text, d.Msg.Path, d.Msg.Offset)
+	case d.Msg.Path != "" && d.Msg.Offset == 0:
+		return fmt.Sprintf("%s: %s: %s", typeToString(d.Type), d.Msg.Text, d.Msg.Path)
 	default:
-		if d.Type == checker.DetailDebug && logLevel != log.DebugLevel {
-			return ""
-		}
 		return fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text)
 	}
 }

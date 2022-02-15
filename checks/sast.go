@@ -141,10 +141,9 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			}
 			if sastTools[cr.App.Slug] {
 				c.Dlogger.Debug(&checker.LogMessage{
-					Path:    cr.URL,
-					Type:    checker.FileTypeURL,
-					Text:    "tool detected",
-					Version: 3,
+					Path: cr.URL,
+					Type: checker.FileTypeURL,
+					Text: "tool detected",
 				})
 				totalTested++
 				break
@@ -153,21 +152,18 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 	}
 	if totalMerged == 0 {
 		c.Dlogger.Warn(&checker.LogMessage{
-			Text:    "no pull requests merged into dev branch",
-			Version: 3,
+			Text: "no pull requests merged into dev branch",
 		})
 		return checker.InconclusiveResultScore, nil
 	}
 
 	if totalTested == totalMerged {
 		c.Dlogger.Info(&checker.LogMessage{
-			Text:    fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalMerged),
-			Version: 3,
+			Text: fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalMerged),
 		})
 	} else {
 		c.Dlogger.Warn(&checker.LogMessage{
-			Text:    fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged),
-			Version: 3,
+			Text: fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged),
 		})
 	}
 
@@ -188,11 +184,10 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 
 	for _, result := range resp.Results {
 		c.Dlogger.Debug(&checker.LogMessage{
-			Path:    result.Path,
-			Type:    checker.FileTypeSource,
-			Offset:  checker.OffsetDefault,
-			Text:    "CodeQL detected",
-			Version: 3,
+			Path:   result.Path,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   "CodeQL detected",
 		})
 	}
 
@@ -200,15 +195,13 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	// TODO: check which branches it is enabled on. We should find main.
 	if resp.Hits > 0 {
 		c.Dlogger.Info(&checker.LogMessage{
-			Text:    "SAST tool detected: CodeQL",
-			Version: 3,
+			Text: "SAST tool detected: CodeQL",
 		})
 		return checker.MaxResultScore, nil
 	}
 
 	c.Dlogger.Warn(&checker.LogMessage{
-		Text:    "CodeQL tool not detected",
-		Version: 3,
+		Text: "CodeQL tool not detected",
 	})
 	return checker.MinResultScore, nil
 }

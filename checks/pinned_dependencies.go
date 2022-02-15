@@ -162,20 +162,18 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 	if r.gitHubOwned != notPinned {
 		score += 2
 		dl.Info(&checker.LogMessage{
-			Type:    checker.FileTypeSource,
-			Offset:  checker.OffsetDefault,
-			Text:    fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
-			Version: 3,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
 		})
 	}
 
 	if r.thirdParties != notPinned {
 		score += 8
 		dl.Info(&checker.LogMessage{
-			Type:    checker.FileTypeSource,
-			Offset:  checker.OffsetDefault,
-			Text:    fmt.Sprintf("%s %s", "Third-party", infoMsg),
-			Version: 3,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   fmt.Sprintf("%s %s", "Third-party", infoMsg),
 		})
 	}
 
@@ -440,7 +438,6 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 				EndOffset: uint(child.EndLine),
 				Text:      "docker image not pinned by hash",
 				Snippet:   child.Original,
-				Version:   3,
 			})
 
 		// FROM name.
@@ -456,7 +453,6 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 					EndOffset: uint(child.EndLine),
 					Text:      "docker image not pinned by hash",
 					Snippet:   child.Original,
-					Version:   3,
 				})
 			}
 
@@ -666,7 +662,6 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
 					Snippet:   execAction.Uses.Value,
 					Text:      fmt.Sprintf("%s action not pinned by hash", owner),
-					Version:   3,
 				})
 			}
 

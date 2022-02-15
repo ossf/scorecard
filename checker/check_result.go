@@ -110,8 +110,6 @@ type LogMessage struct {
 	Offset    uint     // Offset in the file of Path (line for source/text files).
 	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
 	Snippet   string   // Snippet of code
-	// UPGRADEv3: to remove.
-	Version int // `3` to indicate the detail was logged using new structure.
 }
 
 // CreateProportionalScore creates a proportional score.
