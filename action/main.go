@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -39,6 +40,7 @@ var (
 	errEmptyDefaultBranch         = errors.New("default branch is empty")
 	errEmptyGitHubAuthToken       = errors.New("repo_token variable is empty")
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
+	errEmptyScorecardBin          = errors.New("scorecard_bin variable is empty")
 )
 
 type repositoryInformation struct {
@@ -55,6 +57,7 @@ const (
 	githubEventName         = "GITHUB_EVENT_NAME"
 	githubRepository        = "GITHUB_REPOSITORY"
 	githubRef               = "GITHUB_REF"
+	githubWorkspace         = "GITHUB_WORKSPACE"
 	//nolint:gosec
 	githubAuthToken            = "GITHUB_AUTH_TOKEN"
 	inputresultsfile           = "INPUT_RESULTS_FILE"
@@ -103,6 +106,25 @@ func main() {
 	if err := validate(os.Stderr); err != nil {
 		panic(err)
 	}
+
+	// gets the cmd run settings
+	cmd, err := runScorecardSettings(os.Getenv(githubEventName),
+		os.Getenv(scorecardPolicyFile), os.Getenv(scorecardResultsFormat),
+		os.Getenv(scorecardBin), os.Getenv(scorecardResultsFile), os.Getenv(githubRepository))
+	if err != nil {
+		panic(err)
+	}
+	cmd.Dir = os.Getenv(githubWorkspace)
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
+
+	results, err := ioutil.ReadFile(os.Getenv(scorecardResultsFile))
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(results))
 }
 
 // initalizeENVVariables is a function to initialize the environment variables required for the action.
@@ -333,4 +355,73 @@ func validate(writer io.Writer) error {
 		return errOnlyDefaultBranchSupported
 	}
 	return nil
+}
+
+func runScorecardSettings(githubEventName, scorecardPolicyFile, scorecardResultsFormat, scorecardBin,
+	scorecardResultsFile, githubRepository string) (*exec.Cmd, error) {
+	if scorecardBin == "" {
+		return nil, errEmptyScorecardBin
+	}
+	var result exec.Cmd
+	result.Path = scorecardBin
+	// if pull_request
+	if strings.Contains(githubEventName, "pull_request") {
+		// empty policy file
+		if scorecardPolicyFile == "" {
+			result.Args = []string{
+				"--local",
+				".",
+				"--format",
+				scorecardResultsFormat,
+				"--show-details",
+				">",
+				scorecardResultsFile,
+			}
+			return &result, nil
+		}
+		result.Args = []string{
+			"--local",
+			".",
+			"--format",
+			scorecardResultsFormat,
+			"--policy",
+			scorecardPolicyFile,
+			"--show-details",
+			">",
+			scorecardResultsFile,
+		}
+		return &result, nil
+	}
+
+	enabledChecks := ""
+	if githubEventName == "branch_protection_rule" {
+		enabledChecks = "--checks Branch-Protection"
+	}
+
+	if scorecardPolicyFile == "" {
+		result.Args = []string{
+			"--repo",
+			githubRepository,
+			"--format",
+			enabledChecks,
+			scorecardResultsFormat,
+			"--show-details",
+			">",
+			scorecardResultsFile,
+		}
+		return &result, nil
+	}
+	result.Args = []string{
+		"--repo",
+		githubRepository,
+		"--format",
+		enabledChecks,
+		scorecardResultsFormat,
+		"--policy",
+		scorecardPolicyFile,
+		"--show-details",
+		">",
+		scorecardResultsFile,
+	}
+	return &result, nil
 }
