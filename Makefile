@@ -41,7 +41,7 @@ $(PROTOC):
 ##@ Build
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = build check-linter check-osv unit-test validate-docs add-projects validate-projects
+all-targets = build check-linter check-osv unit-test validate-docs add-projects validate-projects ko-build-everything
 .PHONY: all all-targets-update-dependencies $(all-targets) update-dependencies tree-status
 all-targets-update-dependencies: $(all-targets) | update-dependencies
 all: update-dependencies all-targets-update-dependencies tree-status
@@ -91,7 +91,7 @@ build-cron: build-controller build-worker build-cii-worker \
 	build-shuffler build-bq-transfer build-github-server \
 	build-webhook build-add-script build-validate-script build-update-script
 
-build-targets = generate-mocks generate-docs build-proto build-scorecard build-cron ko-build-everything dockerbuild
+build-targets = generate-mocks generate-docs build-proto build-scorecard build-cron 
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
