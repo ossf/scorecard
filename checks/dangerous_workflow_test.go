@@ -49,7 +49,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  1,
+				NumberOfWarn:  2,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
@@ -208,6 +208,61 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name:     "secret with environment protection pull request target",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-environment-prt.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultConfidence,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "secret in env pull request target",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-run-prt.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultConfidence,
+				NumberOfWarn:  2,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "secret in env pull request target",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-prt.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultConfidence,
+				NumberOfWarn:  4,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "secret in top env no checkout pull request target",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-no-checkout-prt.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultConfidence,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "secret in top env checkout no ref pull request target",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-checkout-noref-prt.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultConfidence,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -225,7 +280,6 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			}
 			dl := scut.TestDetailLogger{}
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
-
 			r := testValidateGitHubActionDangerousWorkflow(p, content, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
 				t.Fail()
