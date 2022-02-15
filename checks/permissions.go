@@ -98,11 +98,10 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 	if strings.EqualFold(val, "write") {
 		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
 			dl.Warn(&checker.LogMessage{
-				Path:    path,
-				Type:    checker.FileTypeSource,
-				Offset:  lineNumber,
-				Text:    fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
-				Version: 3,
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: lineNumber,
+				Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 				// TODO: set Snippet.
 			})
 			recordPermissionWrite(pPermissions, permissionKey)
@@ -110,11 +109,10 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 			// Only log for debugging, otherwise
 			// it may confuse users.
 			dl.Debug(&checker.LogMessage{
-				Path:    path,
-				Type:    checker.FileTypeSource,
-				Offset:  lineNumber,
-				Text:    fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
-				Version: 3,
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: lineNumber,
+				Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 				// TODO: set Snippet.
 			})
 		}
@@ -122,11 +120,10 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 	}
 
 	dl.Info(&checker.LogMessage{
-		Path:    path,
-		Type:    checker.FileTypeSource,
-		Offset:  lineNumber,
-		Text:    fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
-		Version: 3,
+		Path:   path,
+		Type:   checker.FileTypeSource,
+		Offset: lineNumber,
+		Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 		// TODO: set Snippet.
 	})
 	return nil
@@ -174,11 +171,10 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 	scopeIsSet := permissions != nil && len(permissions.Scopes) > 0
 	if permissions == nil || (!allIsSet && !scopeIsSet) {
 		dl.Info(&checker.LogMessage{
-			Path:    path,
-			Type:    checker.FileTypeSource,
-			Offset:  checker.OffsetDefault,
-			Text:    fmt.Sprintf("%s permissions set to 'none'", permLevel),
-			Version: 3,
+			Path:   path,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   fmt.Sprintf("%s permissions set to 'none'", permLevel),
 		})
 	}
 	if allIsSet {
@@ -186,11 +182,10 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 		lineNumber := fileparser.GetLineNumber(permissions.All.Pos)
 		if !strings.EqualFold(val, "read-all") && val != "" {
 			dl.Warn(&checker.LogMessage{
-				Path:    path,
-				Type:    checker.FileTypeSource,
-				Offset:  lineNumber,
-				Text:    fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
-				Version: 3,
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: lineNumber,
+				Text:   fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
 				// TODO: set Snippet.
 			})
 			recordAllPermissionsWrite(pdata, permLevel, path)
@@ -198,11 +193,10 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 		}
 
 		dl.Info(&checker.LogMessage{
-			Path:    path,
-			Type:    checker.FileTypeSource,
-			Offset:  lineNumber,
-			Text:    fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
-			Version: 3,
+			Path:   path,
+			Type:   checker.FileTypeSource,
+			Offset: lineNumber,
+			Text:   fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
 			// TODO: set Snippet.
 		})
 	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes,
@@ -217,11 +211,10 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 	// Check if permissions are set explicitly.
 	if workflow.Permissions == nil {
 		dl.Warn(&checker.LogMessage{
-			Path:    path,
-			Type:    checker.FileTypeSource,
-			Offset:  checker.OffsetDefault,
-			Text:    fmt.Sprintf("no %s permission defined", topLevelPermission),
-			Version: 3,
+			Path:   path,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   fmt.Sprintf("no %s permission defined", topLevelPermission),
 		})
 		recordAllPermissionsWrite(pdata, topLevelPermission, path)
 		return nil
@@ -240,11 +233,10 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 		// so only top-level read-only permissions need to be declared.
 		if job.Permissions == nil {
 			dl.Debug(&checker.LogMessage{
-				Path:    path,
-				Type:    checker.FileTypeSource,
-				Offset:  fileparser.GetLineNumber(job.Pos),
-				Text:    fmt.Sprintf("no %s permission defined", jobLevelPermission),
-				Version: 3,
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: fileparser.GetLineNumber(job.Pos),
+				Text:   fmt.Sprintf("no %s permission defined", jobLevelPermission),
 			})
 			recordAllPermissionsWrite(pdata, jobLevelPermission, path)
 			continue
@@ -481,11 +473,10 @@ func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, dl checker.De
 			}
 			if strings.HasPrefix(uses.Value, "github/codeql-action/upload-sarif@") {
 				dl.Debug(&checker.LogMessage{
-					Path:    fp,
-					Type:    checker.FileTypeSource,
-					Offset:  fileparser.GetLineNumber(uses.Pos),
-					Text:    "codeql SARIF upload workflow detected",
-					Version: 3,
+					Path:   fp,
+					Type:   checker.FileTypeSource,
+					Offset: fileparser.GetLineNumber(uses.Pos),
+					Text:   "codeql SARIF upload workflow detected",
 					// TODO: set Snippet.
 				})
 				return true
@@ -493,11 +484,10 @@ func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, dl checker.De
 		}
 	}
 	dl.Debug(&checker.LogMessage{
-		Path:    fp,
-		Type:    checker.FileTypeSource,
-		Offset:  checker.OffsetDefault,
-		Text:    "not a codeql upload SARIF workflow",
-		Version: 3,
+		Path:   fp,
+		Type:   checker.FileTypeSource,
+		Offset: checker.OffsetDefault,
+		Text:   "not a codeql upload SARIF workflow",
 	})
 	return false
 }
@@ -515,11 +505,10 @@ func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, dl check
 			}
 			if strings.HasPrefix(uses.Value, "github/codeql-action/analyze@") {
 				dl.Debug(&checker.LogMessage{
-					Path:    fp,
-					Type:    checker.FileTypeSource,
-					Offset:  fileparser.GetLineNumber(uses.Pos),
-					Text:    "codeql workflow detected",
-					Version: 3,
+					Path:   fp,
+					Type:   checker.FileTypeSource,
+					Offset: fileparser.GetLineNumber(uses.Pos),
+					Text:   "codeql workflow detected",
 					// TODO: set Snippet.
 				})
 				return true
@@ -527,11 +516,10 @@ func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, dl check
 		}
 	}
 	dl.Debug(&checker.LogMessage{
-		Path:    fp,
-		Type:    checker.FileTypeSource,
-		Offset:  checker.OffsetDefault,
-		Text:    "not a codeql workflow",
-		Version: 3,
+		Path:   fp,
+		Type:   checker.FileTypeSource,
+		Offset: checker.OffsetDefault,
+		Text:   "not a codeql workflow",
 	})
 	return false
 }

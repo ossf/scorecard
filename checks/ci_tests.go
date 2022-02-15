@@ -84,8 +84,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 
 		if !foundCI {
 			c.Dlogger.Debug(&checker.LogMessage{
-				Text:    fmt.Sprintf("merged PR without CI test: %d", pr.Number),
-				Version: 3,
+				Text: fmt.Sprintf("merged PR without CI test: %d", pr.Number),
 			})
 		}
 	}
@@ -115,7 +114,6 @@ func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool,
 				Type: checker.FileTypeURL,
 				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,
 					status.Context),
-				Version: 3,
 			})
 			return true, nil
 		}
@@ -143,7 +141,6 @@ func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (boo
 				Type: checker.FileTypeURL,
 				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,
 					cr.App.Slug),
-				Version: 3,
 			})
 			return true, nil
 		}

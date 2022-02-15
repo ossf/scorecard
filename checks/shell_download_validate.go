@@ -331,7 +331,6 @@ func isFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn s
 		EndOffset: endLine,
 		Snippet:   cmd,
 		Text:      "insecure (not pinned by hash) download detected",
-		Version:   3,
 	})
 	return true
 }
@@ -380,7 +379,6 @@ func isExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn strin
 				EndOffset: endLine,
 				Snippet:   cmd,
 				Text:      "insecure (not pinned by hash) download-then-run",
-				Version:   3,
 			})
 			ok = true
 		}
@@ -598,7 +596,6 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 			EndOffset: endLine,
 			Snippet:   cmd,
 			Text:      "go installation not pinned by hash",
-			Version:   3,
 		})
 		return true
 	}
@@ -612,7 +609,6 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 			EndOffset: endLine,
 			Snippet:   cmd,
 			Text:      "pip installation not pinned by hash",
-			Version:   3,
 		})
 		return true
 	}
@@ -626,7 +622,6 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 			EndOffset: endLine,
 			Snippet:   cmd,
 			Text:      "npm installation not pinned by hash",
-			Version:   3,
 		})
 		return true
 	}
@@ -719,7 +714,6 @@ func isFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd, path
 		EndOffset: endLine,
 		Snippet:   cmd,
 		Text:      "insecure (not pinned by hash) download-then-run",
-		Version:   3,
 	})
 	return true
 }

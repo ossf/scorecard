@@ -47,7 +47,7 @@
                "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
-                  "text": "score is 6: six score reason:\nWarn: warn message\nClick Remediation section below to solve this issue"
+                  "text": "score is 6: six score reason:\nWarn: warn message: https://domain.com/something\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {

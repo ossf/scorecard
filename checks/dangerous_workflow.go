@@ -331,11 +331,10 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 		if strings.Contains(ref.Value.Value, checkoutUntrustedRef) {
 			line := fileparser.GetLineNumber(step.Pos)
 			dl.Warn(&checker.LogMessage{
-				Path:    path,
-				Type:    checker.FileTypeSource,
-				Offset:  line,
-				Text:    fmt.Sprintf("untrusted code checkout '%v'", ref.Value.Value),
-				Version: 3,
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: line,
+				Text:   fmt.Sprintf("untrusted code checkout '%v'", ref.Value.Value),
 				// TODO: set Snippet.
 			})
 			// Detected untrusted checkout.
@@ -445,11 +444,10 @@ func checkSecretInScript(script string, pos *actionlint.Pos, path string,
 		if strings.Contains(variable, "secrets.") {
 			line := fileparser.GetLineNumber(pos)
 			dl.Warn(&checker.LogMessage{
-				Path:    path,
-				Type:    checker.FileTypeSource,
-				Offset:  line,
-				Text:    fmt.Sprintf("secret accessible to pull requests '%v'", variable),
-				Version: 3,
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: line,
+				Text:   fmt.Sprintf("secret accessible to pull requests '%v'", variable),
 				// TODO: set Snippet.
 			})
 			pdata.workflowPattern[secretsViaPullRequests] = true
@@ -477,11 +475,10 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 		if containsUntrustedContextPattern(variable) {
 			line := fileparser.GetLineNumber(pos)
 			dl.Warn(&checker.LogMessage{
-				Path:    path,
-				Type:    checker.FileTypeSource,
-				Offset:  line,
-				Text:    fmt.Sprintf("script injection with untrusted input '%v'", variable),
-				Version: 3,
+				Path:   path,
+				Type:   checker.FileTypeSource,
+				Offset: line,
+				Text:   fmt.Sprintf("script injection with untrusted input '%v'", variable),
 				// TODO: set Snippet.
 			})
 			pdata.workflowPattern[scriptInjection] = true

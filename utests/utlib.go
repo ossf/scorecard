@@ -46,7 +46,6 @@ func (l *TestDetailLogger) Info(msg *checker.LogMessage) {
 		Type: checker.DetailInfo,
 		Msg:  *msg,
 	}
-	cd.Msg.Version = 3
 	l.messages = append(l.messages, cd)
 }
 
@@ -56,7 +55,6 @@ func (l *TestDetailLogger) Warn(msg *checker.LogMessage) {
 		Type: checker.DetailWarn,
 		Msg:  *msg,
 	}
-	cd.Msg.Version = 3
 	l.messages = append(l.messages, cd)
 }
 
@@ -66,7 +64,6 @@ func (l *TestDetailLogger) Debug(msg *checker.LogMessage) {
 		Type: checker.DetailDebug,
 		Msg:  *msg,
 	}
-	cd.Msg.Version = 3
 	l.messages = append(l.messages, cd)
 }
 
