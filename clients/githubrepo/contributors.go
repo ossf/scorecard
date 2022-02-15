@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/google/go-github/v38/github"
@@ -29,25 +30,28 @@ type contributorsHandler struct {
 	once         *sync.Once
 	ctx          context.Context
 	errSetup     error
-	owner        string
-	repo         string
+	repourl      *repoURL
 	contributors []clients.Contributor
 }
 
-func (handler *contributorsHandler) init(ctx context.Context, owner, repo string) {
+func (handler *contributorsHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.ctx = ctx
-	handler.owner = owner
-	handler.repo = repo
+	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
 }
 
 func (handler *contributorsHandler) setup() error {
 	handler.once.Do(func() {
+		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+			handler.errSetup = fmt.Errorf("%w: ListContributors only supported for HEAD queries", clients.ErrUnsupportedFeature)
+			return
+		}
 		contribs, _, err := handler.ghClient.Repositories.ListContributors(
-			handler.ctx, handler.owner, handler.repo, &github.ListContributorsOptions{})
+			handler.ctx, handler.repourl.owner, handler.repourl.repo, &github.ListContributorsOptions{})
 		if err != nil {
 			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
+			return
 		}
 
 		for _, contrib := range contribs {

@@ -30,17 +30,19 @@ var errEmptyQuery = errors.New("search query is empty")
 type searchHandler struct {
 	ghClient *github.Client
 	ctx      context.Context
-	owner    string
-	repo     string
+	repourl  *repoURL
 }
 
-func (handler *searchHandler) init(ctx context.Context, owner, repo string) {
+func (handler *searchHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.ctx = ctx
-	handler.owner = owner
-	handler.repo = repo
+	handler.repourl = repourl
 }
 
 func (handler *searchHandler) search(request clients.SearchRequest) (clients.SearchResponse, error) {
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+		return clients.SearchResponse{}, fmt.Errorf(
+			"%w: Search only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	}
 	query, err := handler.buildQuery(request)
 	if err != nil {
 		return clients.SearchResponse{}, fmt.Errorf("handler.buildQuery: %w", err)
@@ -63,7 +65,9 @@ func (handler *searchHandler) buildQuery(request clients.SearchRequest) (string,
 		// that should be replaced with a space.
 		// See https://docs.github.com/en/search-github/searching-on-github/searching-code#considerations-for-code-search
 		// for reference.
-		fmt.Sprintf("%s repo:%s/%s", strings.ReplaceAll(request.Query, "/", " "), handler.owner, handler.repo)); err != nil {
+		fmt.Sprintf("%s repo:%s/%s",
+			strings.ReplaceAll(request.Query, "/", " "),
+			handler.repourl.owner, handler.repourl.repo)); err != nil {
 		return "", fmt.Errorf("WriteString: %w", err)
 	}
 	if request.Filename != "" {

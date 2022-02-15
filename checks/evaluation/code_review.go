@@ -36,7 +36,10 @@ func CodeReview(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	totalCommits := 0
+	if len(r.DefaultBranchCommits) == 0 {
+		return checker.CreateInconclusiveResult(name, "no commits found")
+	}
+
 	totalReviewed := map[string]int{
 		// The 3 platforms we support.
 		reviewPlatformGitHub: 0,
@@ -47,37 +50,25 @@ func CodeReview(name string, dl checker.DetailLogger,
 	for i := range r.DefaultBranchCommits {
 		commit := r.DefaultBranchCommits[i]
 
-		// New commit to consider.
-		totalCommits++
-
 		rs := getApprovedReviewSystem(&commit, dl)
-		// No commits.
 		if rs == "" {
+			dl.Warn(&checker.LogMessage{
+				Text:    fmt.Sprintf("no reviews found for commit: %s", commit.SHA),
+				Version: 3,
+			})
 			continue
 		}
 
 		totalReviewed[rs]++
 	}
 
-	if totalCommits == 0 {
-		return checker.CreateInconclusiveResult(name, "no commits found")
-	}
-
 	if totalReviewed[reviewPlatformGitHub] == 0 &&
 		totalReviewed[reviewPlatformGerrit] == 0 &&
 		totalReviewed[reviewPlatformProw] == 0 {
-		// Only show all warnings if all fail.
-		// We should not show warning if at least one succeeds, as this is confusing.
-		for k := range totalReviewed {
-			dl.Warn(&checker.LogMessage{
-				Text:    fmt.Sprintf("no %s reviews found", k),
-				Version: 3,
-			})
-		}
-
 		return checker.CreateMinScoreResult(name, "no reviews found")
 	}
 
+	totalCommits := len(r.DefaultBranchCommits)
 	// Consider a single review system.
 	nbReviews, reviewSystem := computeReviews(totalReviewed)
 	if nbReviews == totalCommits {
@@ -134,8 +125,8 @@ func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 	for _, r := range mr.Reviews {
 		if r.State == "APPROVED" {
 			dl.Debug(&checker.LogMessage{
-				Text: fmt.Sprintf("%s #%d merge request approved",
-					reviewPlatformGitHub, mr.Number),
+				Text: fmt.Sprintf("commit %s was reviewed through %s #%d approved merge request",
+					c.SHA, reviewPlatformGitHub, mr.Number),
 				Version: 3,
 			})
 			return true
@@ -148,8 +139,8 @@ func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 	if c.Committer.Login != "" &&
 		c.Committer.Login != mr.Author.Login {
 		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("%s #%d merge request approved",
-				reviewPlatformGitHub, mr.Number),
+			Text: fmt.Sprintf("commit %s was reviewed through %s #%d merge request",
+				c.SHA, reviewPlatformGitHub, mr.Number),
 			Version: 3,
 		})
 		return true
@@ -161,7 +152,7 @@ func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
 	if isBot(c.Committer.Login) {
 		dl.Debug(&checker.LogMessage{
-			Text:    fmt.Sprintf("skip commit from bot account: %s", c.Committer.Login),
+			Text:    fmt.Sprintf("skip commit %s from bot account: %s", c.SHA, c.Committer.Login),
 			Version: 3,
 		})
 		return true
@@ -171,8 +162,8 @@ func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) b
 		for _, l := range c.MergeRequest.Labels {
 			if l == "lgtm" || l == "approved" {
 				dl.Debug(&checker.LogMessage{
-					Text: fmt.Sprintf("%s #%d merge request approved",
-						reviewPlatformProw, c.MergeRequest.Number),
+					Text: fmt.Sprintf("commit %s review was through %s #%d approved merge request",
+						c.SHA, reviewPlatformProw, c.MergeRequest.Number),
 					Version: 3,
 				})
 				return true
@@ -185,7 +176,7 @@ func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) b
 func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
 	if isBot(c.Committer.Login) {
 		dl.Debug(&checker.LogMessage{
-			Text:    fmt.Sprintf("skip commit from bot account: %s", c.Committer.Login),
+			Text:    fmt.Sprintf("skip commit %s from bot account: %s", c.SHA, c.Committer.Login),
 			Version: 3,
 		})
 		return true
@@ -195,7 +186,7 @@ func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 	if strings.Contains(m, "\nReviewed-on: ") &&
 		strings.Contains(m, "\nReviewed-by: ") {
 		dl.Debug(&checker.LogMessage{
-			Text:    fmt.Sprintf("%s commit approved", reviewPlatformGerrit),
+			Text:    fmt.Sprintf("commit %s was approved through %s", c.SHA, reviewPlatformGerrit),
 			Version: 3,
 		})
 		return true
