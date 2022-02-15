@@ -106,6 +106,9 @@ type graphqlData struct {
 			}
 		} `graphql:"issues(first: $issuesToAnalyze, orderBy:{field:UPDATED_AT, direction:DESC})"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
+	RateLimit struct {
+		Cost *int
+	}
 }
 
 type graphqlHandler struct {

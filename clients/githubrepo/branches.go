@@ -98,6 +98,7 @@ type branch struct {
 	BranchProtectionRule *branchProtectionRule
 }
 
+// nolint:govet // internal structure, ignore.
 type branchesData struct {
 	Repository struct {
 		DefaultBranchRef branch
@@ -105,6 +106,9 @@ type branchesData struct {
 			Nodes []branch
 		} `graphql:"refs(first: $refsToAnalyze, refPrefix: $refPrefix)"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
+	RateLimit struct {
+		Cost *int
+	}
 }
 
 type branchesHandler struct {
