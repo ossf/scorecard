@@ -261,7 +261,7 @@ test: $(test-targets)
 unit-test: ## Runs unit test without e2e
 	# Run unit tests, ignoring e2e tests
 	# run the go tests and gen the file coverage-all used to do the integration with codecov
-	go test -race -covermode=atomic  -coverprofile=unit-coverage.out `go list ./... | grep -v e2e`
+	SKIP_GINKGO=1 go test -race -covermode=atomic  -coverprofile=unit-coverage.out `go list ./...`
 
 $(GINKGO): install
 

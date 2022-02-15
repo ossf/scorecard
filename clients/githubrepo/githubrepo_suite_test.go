@@ -12,29 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package e2e
+package githubrepo
 
 import (
+	"context"
+	"net/http"
 	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/shurcooL/githubv4"
 
+	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	"github.com/ossf/scorecard/v4/log"
 )
 
-func TestE2e(t *testing.T) {
+func TestGithubrepo(t *testing.T) {
 	if val, exists := os.LookupEnv("SKIP_GINKGO"); exists && val == "1" {
 		t.Skip()
 	}
 	t.Parallel()
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "E2e Suite")
+	RunSpecs(t, "Githubrepo Suite")
 }
 
-var logger *log.Logger
+var graphClient *githubv4.Client
 
 var _ = BeforeSuite(func() {
-	logger = log.NewLogger(log.DebugLevel)
+	ctx := context.Background()
+	logger := log.NewLogger(log.DebugLevel)
+	rt := roundtripper.NewTransport(ctx, logger)
+	httpClient := &http.Client{
+		Transport: rt,
+	}
+	graphClient = githubv4.NewClient(httpClient)
 })
