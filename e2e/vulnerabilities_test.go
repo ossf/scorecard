@@ -17,7 +17,7 @@ package e2e
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -27,7 +27,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-var _ = Describe("E2E TEST:Vulnerabilities", func() {
+var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 	Context("E2E TEST:Validating vulnerabilities status", func() {
 		It("Should return that there are no vulnerabilities", func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard")

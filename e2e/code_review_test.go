@@ -17,7 +17,7 @@ package e2e
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -29,7 +29,7 @@ import (
 
 // TODO: use dedicated repo that don't change.
 // TODO: need negative results.
-var _ = Describe("E2E TEST:CodeReview", func() {
+var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 	Context("E2E TEST:Validating use of code reviews", func() {
 		It("Should return use of code reviews", func() {
 			dl := scut.TestDetailLogger{}
