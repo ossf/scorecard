@@ -9,7 +9,7 @@ require (
 	github.com/google/ko v0.9.4-0.20211123143443-5787600e9220
 	github.com/goreleaser/goreleaser v1.5.0
 	github.com/naveensrinivasan/stunning-tribble v0.4.2
-	github.com/onsi/ginkgo v1.16.5
+	github.com/onsi/ginkgo/v2 v2.0.0
 	google.golang.org/protobuf v1.27.1
 )
 
@@ -150,6 +150,7 @@ require (
 	github.com/google/go-containerregistry v0.8.0 // indirect
 	github.com/google/go-github/v42 v42.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
 	github.com/google/rpmpack v0.0.0-20211125064518-d0ed9b1b61b9 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
@@ -215,8 +216,8 @@ require (
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354 // indirect
 	github.com/nishanths/exhaustive v0.7.11 // indirect
 	github.com/nishanths/predeclared v0.2.1 // indirect
-	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2-0.20211117181255-693428a734f5 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
@@ -295,7 +296,6 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/mail.v2 v2.3.1 // indirect
-	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect

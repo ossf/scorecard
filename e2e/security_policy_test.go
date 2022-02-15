@@ -16,7 +16,7 @@ package e2e
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -26,7 +26,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-var _ = Describe("E2E TEST:SecurityPolicy", func() {
+var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 	Context("E2E TEST:Validating security policy", func() {
 		It("Should return valid security policy", func() {
 			dl := scut.TestDetailLogger{}

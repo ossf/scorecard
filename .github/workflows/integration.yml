@@ -72,7 +72,7 @@ jobs:
           max_attempts: 3
           retry_on: error
           timeout_minutes: 30
-          command: make ci-e2e
+          command: make e2e
 
       - name: codecov
         uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # 2.1.0

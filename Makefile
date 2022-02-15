@@ -10,7 +10,6 @@ PROTOC := $(shell which protoc)
 GORELEASER := goreleaser
 IMAGE_NAME = scorecard
 OUTPUT = output
-IGNORED_CI_TEST="E2E TEST:blob|E2E TEST:executable"
 PLATFORM="linux/amd64,linux/arm64,linux/386,linux/arm"
 LDFLAGS=$(shell ./scripts/version-ldflags)
 
@@ -264,23 +263,15 @@ unit-test: ## Runs unit test without e2e
 	# run the go tests and gen the file coverage-all used to do the integration with codecov
 	go test -race -covermode=atomic  -coverprofile=unit-coverage.out `go list ./... | grep -v e2e`
 
-e2e: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
-e2e: build-scorecard check-env | $(GINKGO)
-	# Run e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
-	$(GINKGO) --race --skip="E2E TEST:executable" -p -v -cover  -coverprofile=filename ./...
-
 $(GINKGO): install
-
-ci-e2e: ## Runs CI e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
-ci-e2e: build-scorecard check-env | $(GINKGO)
-	# Run CI e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
-	$(call ndef, GITHUB_AUTH_TOKEN)
-	@echo Ignoring these test for ci-e2e $(IGNORED_CI_TEST)
-	$(GINKGO) -p  -v -cover --skip=$(IGNORED_CI_TEST) -coverprofile=e2e-coverage.out ./e2e/...
-
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN
 	$(error GITHUB_AUTH_TOKEN is undefined)
 endif
+
+e2e: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
+e2e: build-scorecard check-env | $(GINKGO)
+	# Run e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
+	$(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out ./...
 ###############################################################################
