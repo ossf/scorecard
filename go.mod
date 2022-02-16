@@ -44,7 +44,7 @@ require (
 	mvdan.cc/sh/v3 v3.4.2
 )
 
-require github.com/onsi/ginkgo/v2 v2.0.0
+require github.com/onsi/ginkgo/v2 v2.1.3
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
