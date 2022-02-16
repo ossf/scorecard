@@ -177,10 +177,8 @@ func (client *Client) Close() error {
 	return client.tarball.cleanup()
 }
 
-// CreateGithubRepoClient returns a Client which implements RepoClient interface.
-func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
-	// Use our custom roundtripper
-	rt := roundtripper.NewTransport(ctx, logger)
+// CreateGithubRepoClientWithTransport returns a Client which implements RepoClient interface.
+func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripper) clients.RepoClient {
 	httpClient := &http.Client{
 		Transport: rt,
 	}
@@ -216,6 +214,13 @@ func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.Rep
 			ghClient: client,
 		},
 	}
+}
+
+// CreateGithubRepoClient returns a Client which implements RepoClient interface.
+func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
+	// Use our custom roundtripper
+	rt := roundtripper.NewTransport(ctx, logger)
+	return CreateGithubRepoClientWithTransport(ctx, rt)
 }
 
 // CreateOssFuzzRepoClient returns a RepoClient implementation
