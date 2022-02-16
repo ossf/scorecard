@@ -29,11 +29,11 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
+	"github.com/ossf/scorecard/v4/format"
 	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
 	"github.com/ossf/scorecard/v4/policy"
-	"github.com/ossf/scorecard/v4/refactor/format"
 )
 
 const (
