@@ -127,7 +127,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	}
 
 	ctx := context.Background()
-	logger := sclog.NewLogger(sclog.Level(flagLogLevel))
+	logger := sclog.NewLogger(sclog.ParseLevel(flagLogLevel))
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := getRepoAccessors(
 		ctx, flagRepo, flagLocal, logger)
 	if err != nil {
@@ -183,12 +183,12 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 
 	switch flagFormat {
 	case formatDefault:
-		err = repoResult.AsString(flagShowDetails, sclog.Level(flagLogLevel), checkDocs, os.Stdout)
+		err = repoResult.AsString(flagShowDetails, sclog.ParseLevel(flagLogLevel), checkDocs, os.Stdout)
 	case formatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
-		err = repoResult.AsSARIF(flagShowDetails, sclog.Level(flagLogLevel), os.Stdout, checkDocs, policy)
+		err = repoResult.AsSARIF(flagShowDetails, sclog.ParseLevel(flagLogLevel), os.Stdout, checkDocs, policy)
 	case formatJSON:
-		err = repoResult.AsJSON2(flagShowDetails, sclog.Level(flagLogLevel), checkDocs, os.Stdout)
+		err = repoResult.AsJSON2(flagShowDetails, sclog.ParseLevel(flagLogLevel), checkDocs, os.Stdout)
 	case formatRaw:
 		err = repoResult.AsRawJSON(os.Stdout)
 	default:

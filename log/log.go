@@ -46,31 +46,29 @@ func NewLogger(logLevel Level) *Logger {
 	return logger
 }
 
-// ParseLevel takes a string level and returns the Logrus log level constant.
-// If the level is not recognized, it defaults to `logrus.InfoLevel` to swallow
+// ParseLevel takes a string level and returns the sclog Level constant.
+// If the level is not recognized, it defaults to `sclog.InfoLevel` to swallow
 // potential configuration errors/typos when specifying log levels.
 // https://pkg.go.dev/github.com/sirupsen/logrus#ParseLevel
-func ParseLevel(lvl string) logrus.Level {
-	logLevel := DefaultLevel
-
+func ParseLevel(lvl string) Level {
 	switch strings.ToLower(lvl) {
 	case "panic":
-		logLevel = PanicLevel
+		return PanicLevel
 	case "fatal":
-		logLevel = FatalLevel
+		return FatalLevel
 	case "error":
-		logLevel = ErrorLevel
+		return ErrorLevel
 	case "warn":
-		logLevel = WarnLevel
+		return WarnLevel
 	case "info":
-		logLevel = InfoLevel
+		return InfoLevel
 	case "debug":
-		logLevel = DebugLevel
+		return DebugLevel
 	case "trace":
-		logLevel = TraceLevel
+		return TraceLevel
 	}
 
-	return parseLogrusLevel(logLevel)
+	return DefaultLevel
 }
 
 // Level is a string representation of log level, which can easily be passed as
