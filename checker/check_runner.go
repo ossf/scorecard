@@ -79,12 +79,11 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 	startTime := time.Now()
 
 	var res CheckResult
-	var l logger
+	l := NewLogger()
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx
-		l = logger{}
-		checkRequest.Dlogger = &l
+		checkRequest.Dlogger = l
 		res = c.Fn(&checkRequest)
 		if res.Error2 != nil && errors.Is(res.Error2, sce.ErrRepoUnreachable) {
 			checkRequest.Dlogger.Warn(&LogMessage{
