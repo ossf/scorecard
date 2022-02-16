@@ -32,9 +32,8 @@ import (
 	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
-	"github.com/ossf/scorecard/v4/refactor/check"
+	"github.com/ossf/scorecard/v4/policy"
 	"github.com/ossf/scorecard/v4/refactor/format"
-	"github.com/ossf/scorecard/v4/refactor/policy"
 )
 
 const (
@@ -78,7 +77,7 @@ func init() {
 		&opts.Metadata, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&opts.ShowDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
-	for checkName := range check.GetAll() {
+	for checkName := range policy.GetAll() {
 		checkNames = append(checkNames, checkName)
 	}
 	rootCmd.Flags().StringSliceVar(&opts.ChecksToRun, "checks", []string{},
@@ -127,7 +126,7 @@ func RunScorecard(args []string) {
 		opts.Repo = pkgResp.associatedRepo
 	}
 
-	pol, err := policy.FromFile(opts.PolicyFile)
+	pol, err := policy.ParseFromFile(opts.PolicyFile)
 	if err != nil {
 		log.Panicf("readPolicy: %v", err)
 	}
@@ -157,7 +156,7 @@ func RunScorecard(args []string) {
 	if !strings.EqualFold(opts.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
-	enabledChecks, err := check.GetEnabled(pol, opts.ChecksToRun, requiredRequestTypes)
+	enabledChecks, err := policy.GetEnabled(pol, opts.ChecksToRun, requiredRequestTypes)
 	if err != nil {
 		log.Panic(err)
 	}
