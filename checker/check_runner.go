@@ -36,6 +36,30 @@ type Runner struct {
 	CheckRequest CheckRequest
 }
 
+// NewRunner creates a new instance of `Runner`.
+func NewRunner(checkName, repo string, checkReq *CheckRequest) *Runner {
+	return &Runner{
+		CheckName:    checkName,
+		Repo:         repo,
+		CheckRequest: *checkReq,
+	}
+}
+
+// WithCheckName sets the check name.
+func (r *Runner) WithCheckName(check string) {
+	r.CheckName = check
+}
+
+// WithRepo sets the repository.
+func (r *Runner) WithRepo(repo string) {
+	r.Repo = repo
+}
+
+// WithCheckRequest sets the check request.
+func (r *Runner) WithCheckRequest(checkReq *CheckRequest) {
+	r.CheckRequest = *checkReq
+}
+
 // CheckFn defined for convenience.
 type CheckFn func(*CheckRequest) CheckResult
 

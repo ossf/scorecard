@@ -48,11 +48,12 @@ func runEnabledChecks(ctx context.Context,
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			runner := checker.Runner{
-				Repo:         repo.URI(),
-				CheckName:    checkName,
-				CheckRequest: request,
-			}
+			runner := checker.NewRunner(
+				checkName,
+				repo.URI(),
+				&request,
+			)
+
 			resultsCh <- runner.Run(ctx, checkFn)
 		}()
 	}
