@@ -27,6 +27,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
@@ -34,7 +35,6 @@ import (
 	"github.com/ossf/scorecard/v4/refactor/check"
 	"github.com/ossf/scorecard/v4/refactor/format"
 	"github.com/ossf/scorecard/v4/refactor/policy"
-	"github.com/ossf/scorecard/v4/refactor/repo"
 )
 
 const (
@@ -134,7 +134,7 @@ func RunScorecard(args []string) {
 
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.ParseLevel(opts.LogLevel))
-	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := repo.GetClients(
+	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := githubrepo.GetClients(
 		ctx, opts.Repo, opts.Local, logger)
 	if err != nil {
 		log.Panic(err)

@@ -26,6 +26,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v4/clients/localdir"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
 )
@@ -228,7 +229,7 @@ func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.Rep
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	ossFuzzRepo, err := MakeGithubRepo("google/oss-fuzz")
 	if err != nil {
-		return nil, fmt.Errorf("error during githubrepo.MakeGithubRepo: %w", err)
+		return nil, fmt.Errorf("error during MakeGithubRepo: %w", err)
 	}
 
 	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger)
@@ -236,4 +237,44 @@ func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.R
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
 	return ossFuzzRepoClient, nil
+}
+
+// TODO(repo): Pass a `http.RoundTripper` here
+func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logger) (
+	clients.Repo, // repo
+	clients.RepoClient, // repoClient
+	clients.RepoClient, // ossFuzzClient
+	clients.CIIBestPracticesClient, // ciiClient
+	clients.VulnerabilitiesClient, // vulnClient
+	error) {
+	var githubRepo clients.Repo
+	var errGitHub error
+	if localURI != "" {
+		localRepo, errLocal := localdir.MakeLocalDirRepo(localURI)
+		return localRepo, /*repo*/
+			localdir.CreateLocalDirClient(ctx, logger), /*repoClient*/
+			nil, /*ossFuzzClient*/
+			nil, /*ciiClient*/
+			nil, /*vulnClient*/
+			errLocal
+	}
+
+	githubRepo, errGitHub = MakeGithubRepo(repoURI)
+	if errGitHub != nil {
+		// nolint: wrapcheck
+		return githubRepo,
+			nil,
+			nil,
+			nil,
+			nil,
+			errGitHub
+	}
+
+	ossFuzzRepoClient, errOssFuzz := CreateOssFuzzRepoClient(ctx, logger)
+	return githubRepo, /*repo*/
+		CreateGithubRepoClient(ctx, logger), /*repoClient*/
+		ossFuzzRepoClient, /*ossFuzzClient*/
+		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
+		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
+		errOssFuzz
 }
