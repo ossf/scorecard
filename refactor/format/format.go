@@ -21,9 +21,9 @@ import (
 	"github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	sclog "github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
 	spol "github.com/ossf/scorecard/v4/policy"
-	"github.com/ossf/scorecard/v4/refactor/options"
 )
 
 func FormatResults(

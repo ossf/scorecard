@@ -29,10 +29,10 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sclog "github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
 	"github.com/ossf/scorecard/v4/refactor/check"
 	"github.com/ossf/scorecard/v4/refactor/format"
-	"github.com/ossf/scorecard/v4/refactor/options"
 	"github.com/ossf/scorecard/v4/refactor/policy"
 	"github.com/ossf/scorecard/v4/refactor/repo"
 )
