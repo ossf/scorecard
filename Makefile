@@ -40,7 +40,7 @@ $(PROTOC):
 ##@ Build
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = build check-linter check-osv unit-test validate-docs add-projects validate-projects ko-build-everything
+all-targets = build check-linter check-osv unit-test validate-docs add-projects validate-projects 
 .PHONY: all all-targets-update-dependencies $(all-targets) update-dependencies tree-status
 all-targets-update-dependencies: $(all-targets) | update-dependencies
 all: update-dependencies all-targets-update-dependencies tree-status
