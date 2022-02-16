@@ -36,12 +36,12 @@ func FormatResults(
 
 	switch opts.Format {
 	case options.FormatDefault:
-		err = results.AsString(opts.ShowDetails, sclog.Level(opts.LogLevel), docs, os.Stdout)
+		err = results.AsString(opts.ShowDetails, sclog.ParseLevel(opts.LogLevel), docs, os.Stdout)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
-		err = results.AsSARIF(opts.ShowDetails, sclog.Level(opts.LogLevel), os.Stdout, docs, policy)
+		err = results.AsSARIF(opts.ShowDetails, sclog.ParseLevel(opts.LogLevel), os.Stdout, docs, policy)
 	case options.FormatJSON:
-		err = results.AsJSON2(opts.ShowDetails, sclog.Level(opts.LogLevel), docs, os.Stdout)
+		err = results.AsJSON2(opts.ShowDetails, sclog.ParseLevel(opts.LogLevel), docs, os.Stdout)
 	case options.FormatRaw:
 		err = results.AsRawJSON(os.Stdout)
 	default:

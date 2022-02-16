@@ -40,7 +40,11 @@ var serveCmd = &cobra.Command{
 	Short: "Serve the scorecard program over http",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+<<<<<<< HEAD
 		logger := log.NewLogger(log.ParseLevel(flagLogLevel))
+=======
+		logger := log.NewLogger(log.Level(opts.LogLevel))
+>>>>>>> 9bc5c20 (cmd: Update to use refactored packages)
 
 		t, err := template.New("webpage").Parse(tpl)
 		if err != nil {
@@ -79,7 +83,11 @@ var serveCmd = &cobra.Command{
 			}
 
 			if r.Header.Get("Content-Type") == "application/json" {
+<<<<<<< HEAD
 				if err := repoResult.AsJSON(flagShowDetails, log.ParseLevel(flagLogLevel), rw); err != nil {
+=======
+				if err := repoResult.AsJSON(opts.ShowDetails, log.Level(opts.LogLevel), rw); err != nil {
+>>>>>>> 9bc5c20 (cmd: Update to use refactored packages)
 					// TODO(log): Improve error message
 					logger.Error(err, "")
 					rw.WriteHeader(http.StatusInternalServerError)
