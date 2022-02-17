@@ -78,6 +78,11 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "python semantic release publish",
+			filename: "./testdata/github-workflow-packaging-python-semantic-release.yaml",
+			expected: true,
+		},
+		{
 			name:     "go publish",
 			filename: "./testdata/github-workflow-packaging-go.yaml",
 			expected: true,
