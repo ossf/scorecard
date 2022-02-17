@@ -26,7 +26,10 @@ const CheckCodeReview = "Code-Review"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckCodeReview, CodeReview); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.CommitBased,
+	}
+	if err := registerCheck(CheckCodeReview, CodeReview, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}

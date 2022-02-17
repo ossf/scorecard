@@ -14,55 +14,36 @@
 
 package checker
 
-import (
-	"fmt"
-)
-
-// UPGRADEv2: messages2 will ultimately
-// be renamed to messages.
 type logger struct {
-	messages2 []CheckDetail
+	logs []CheckDetail
 }
 
-func (l *logger) Info(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailInfo, Msg: LogMessage{Text: fmt.Sprintf(desc, args...)}}
-	l.messages2 = append(l.messages2, cd)
-}
-
-func (l *logger) Warn(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailWarn, Msg: LogMessage{Text: fmt.Sprintf(desc, args...)}}
-	l.messages2 = append(l.messages2, cd)
-}
-
-func (l *logger) Debug(desc string, args ...interface{}) {
-	cd := CheckDetail{Type: DetailDebug, Msg: LogMessage{Text: fmt.Sprintf(desc, args...)}}
-	l.messages2 = append(l.messages2, cd)
-}
-
-// UPGRADEv3: to rename.
-func (l *logger) Info3(msg *LogMessage) {
+func (l *logger) Info(msg *LogMessage) {
 	cd := CheckDetail{
 		Type: DetailInfo,
 		Msg:  *msg,
 	}
-	cd.Msg.Version = 3
-	l.messages2 = append(l.messages2, cd)
+	l.logs = append(l.logs, cd)
 }
 
-func (l *logger) Warn3(msg *LogMessage) {
+func (l *logger) Warn(msg *LogMessage) {
 	cd := CheckDetail{
 		Type: DetailWarn,
 		Msg:  *msg,
 	}
-	cd.Msg.Version = 3
-	l.messages2 = append(l.messages2, cd)
+	l.logs = append(l.logs, cd)
 }
 
-func (l *logger) Debug3(msg *LogMessage) {
+func (l *logger) Debug(msg *LogMessage) {
 	cd := CheckDetail{
 		Type: DetailDebug,
 		Msg:  *msg,
 	}
-	cd.Msg.Version = 3
-	l.messages2 = append(l.messages2, cd)
+	l.logs = append(l.logs, cd)
+}
+
+func (l *logger) Flush() []CheckDetail {
+	ret := l.logs
+	l.logs = nil
+	return ret
 }

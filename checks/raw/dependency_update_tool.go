@@ -43,7 +43,7 @@ func checkDependencyFileExists(name string, data fileparser.FileCbData) (bool, e
 	}
 
 	switch strings.ToLower(name) {
-	case ".github/dependabot.yml":
+	case ".github/dependabot.yml", ".github/dependabot.yaml":
 		*ptools = append(*ptools, checker.Tool{
 			Name: "Dependabot",
 			URL:  "https://github.com/dependabot",

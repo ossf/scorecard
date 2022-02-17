@@ -324,7 +324,7 @@ func isFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn s
 	}
 
 	startLine, endLine = getLine(startLine, endLine, node)
-	dl.Warn3(&checker.LogMessage{
+	dl.Warn(&checker.LogMessage{
 		Path:      pathfn,
 		Type:      checker.FileTypeSource,
 		Offset:    startLine,
@@ -372,7 +372,7 @@ func isExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn strin
 	startLine, endLine = getLine(startLine, endLine, node)
 	for fn := range files {
 		if isInterpreterWithFile(c, fn) || isExecuteFile(c, fn) {
-			dl.Warn3(&checker.LogMessage{
+			dl.Warn(&checker.LogMessage{
 				Path:      pathfn,
 				Type:      checker.FileTypeSource,
 				Offset:    startLine,
@@ -589,7 +589,7 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 
 	// Go get/install.
 	if isGoUnpinnedDownload(c) {
-		dl.Warn3(&checker.LogMessage{
+		dl.Warn(&checker.LogMessage{
 			Path:      pathfn,
 			Type:      checker.FileTypeSource,
 			Offset:    startLine,
@@ -602,7 +602,7 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 
 	// Pip install.
 	if isPipUnpinnedDownload(c) {
-		dl.Warn3(&checker.LogMessage{
+		dl.Warn(&checker.LogMessage{
 			Path:      pathfn,
 			Type:      checker.FileTypeSource,
 			Offset:    startLine,
@@ -615,7 +615,7 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 
 	// Npm install.
 	if isNpmUnpinnedDownload(c) {
-		dl.Warn3(&checker.LogMessage{
+		dl.Warn(&checker.LogMessage{
 			Path:      pathfn,
 			Type:      checker.FileTypeSource,
 			Offset:    startLine,
@@ -707,7 +707,7 @@ func isFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd, path
 
 	startLine, endLine = getLine(startLine, endLine, node)
 
-	dl.Warn3(&checker.LogMessage{
+	dl.Warn(&checker.LogMessage{
 		Path:      pathfn,
 		Type:      checker.FileTypeSource,
 		Offset:    startLine,
@@ -946,7 +946,9 @@ func validateShellFile(pathfn string, startLine, endLine uint,
 	r, err := validateShellFileAndRecord(pathfn, startLine, endLine, content, taintedFiles, dl)
 	if err != nil && errors.Is(err, sce.ErrorShellParsing) {
 		// Discard and print this particular error for now.
-		dl.Debug(err.Error())
+		dl.Debug(&checker.LogMessage{
+			Text: err.Error(),
+		})
 		err = nil
 	}
 	return r, err

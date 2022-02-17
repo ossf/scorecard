@@ -113,8 +113,6 @@ func TestJSONOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 						},
@@ -151,8 +149,6 @@ func TestJSONOutput(t *testing.T) {
 									Path:   "bin/binary.elf",
 									Type:   checker.FileTypeBinary,
 									Offset: 0,
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 						},
@@ -189,8 +185,6 @@ func TestJSONOutput(t *testing.T) {
 									Path:   "bin/binary.elf",
 									Type:   checker.FileTypeBinary,
 									Offset: 0,
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 						},
@@ -208,8 +202,6 @@ func TestJSONOutput(t *testing.T) {
 									Type:    checker.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 						},
@@ -227,8 +219,6 @@ func TestJSONOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG();}",
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 							{
@@ -239,8 +229,6 @@ func TestJSONOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG2();}",
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 							{
@@ -251,8 +239,6 @@ func TestJSONOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG5();}",
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 						},
@@ -289,8 +275,6 @@ func TestJSONOutput(t *testing.T) {
 									Path:   "bin/binary.elf",
 									Type:   checker.FileTypeBinary,
 									Offset: 0,
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 						},
@@ -308,8 +292,6 @@ func TestJSONOutput(t *testing.T) {
 									Type:    checker.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 						},
@@ -327,8 +309,6 @@ func TestJSONOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG();}",
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 							{
@@ -339,8 +319,6 @@ func TestJSONOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG2();}",
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 							{
@@ -351,8 +329,6 @@ func TestJSONOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG5();}",
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 						},
@@ -390,8 +366,6 @@ func TestJSONOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 						},
@@ -427,8 +401,6 @@ func TestJSONOutput(t *testing.T) {
 									Text: "warn message",
 									Path: "https://domain.com/something",
 									Type: checker.FileTypeURL,
-									// UPGRADEv3: to remove.
-									Version: 3,
 								},
 							},
 						},

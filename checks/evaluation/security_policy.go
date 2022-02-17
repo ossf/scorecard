@@ -42,7 +42,7 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 		} else {
 			msg.Text = "security policy detected"
 		}
-		dl.Info3(&msg)
+		dl.Info(&msg)
 	}
 
 	return checker.CreateMaxScoreResult(name, "security policy file detected")

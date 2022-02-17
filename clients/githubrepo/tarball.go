@@ -29,6 +29,7 @@ import (
 
 	"github.com/google/go-github/v38/github"
 
+	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -68,14 +69,14 @@ type tarballHandler struct {
 	files       []string
 }
 
-func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository) error {
+func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository, commitSHA string) error {
 	// Cleanup any previous state.
 	if err := handler.cleanup(); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
 	// Setup temp dir/files and download repo tarball.
-	if err := handler.getTarball(ctx, repo); errors.Is(err, errTarballNotFound) {
+	if err := handler.getTarball(ctx, repo, commitSHA); errors.Is(err, errTarballNotFound) {
 		log.Printf("unable to get tarball %v. Skipping...", err)
 		return nil
 	} else if err != nil {
@@ -93,10 +94,14 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 	return nil
 }
 
-func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repository) error {
+func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repository, commitSHA string) error {
 	url := repo.GetArchiveURL()
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
-	url = strings.Replace(url, "{/ref}", "", 1)
+	if strings.EqualFold(commitSHA, clients.HeadSHA) {
+		url = strings.Replace(url, "{/ref}", "", 1)
+	} else {
+		url = strings.Replace(url, "{/ref}", commitSHA, 1)
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)

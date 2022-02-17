@@ -16,23 +16,24 @@ package e2e
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-var _ = Describe("E2E TEST:SecurityPolicy", func() {
+var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 	Context("E2E TEST:Validating security policy", func() {
 		It("Should return valid security policy", func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo)
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -62,7 +63,7 @@ var _ = Describe("E2E TEST:SecurityPolicy", func() {
 			repo, err := githubrepo.MakeGithubRepo("randombit/botan")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo)
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{

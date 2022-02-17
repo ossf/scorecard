@@ -41,53 +41,37 @@ type TestDetailLogger struct {
 }
 
 // Info implements DetailLogger.Info.
-func (l *TestDetailLogger) Info(desc string, args ...interface{}) {
-	cd := checker.CheckDetail{Type: checker.DetailInfo, Msg: checker.LogMessage{Text: fmt.Sprintf(desc, args...)}}
-	l.messages = append(l.messages, cd)
-}
-
-// Warn implements DetailLogger.Warn.
-func (l *TestDetailLogger) Warn(desc string, args ...interface{}) {
-	cd := checker.CheckDetail{Type: checker.DetailWarn, Msg: checker.LogMessage{Text: fmt.Sprintf(desc, args...)}}
-	l.messages = append(l.messages, cd)
-}
-
-// Debug implements DetailLogger.Debug.
-func (l *TestDetailLogger) Debug(desc string, args ...interface{}) {
-	cd := checker.CheckDetail{Type: checker.DetailDebug, Msg: checker.LogMessage{Text: fmt.Sprintf(desc, args...)}}
-	l.messages = append(l.messages, cd)
-}
-
-// UPGRADEv3: to rename.
-
-// Info3 implements DetailLogger.Info3.
-func (l *TestDetailLogger) Info3(msg *checker.LogMessage) {
+func (l *TestDetailLogger) Info(msg *checker.LogMessage) {
 	cd := checker.CheckDetail{
 		Type: checker.DetailInfo,
 		Msg:  *msg,
 	}
-	cd.Msg.Version = 3
 	l.messages = append(l.messages, cd)
 }
 
-// Warn3 implements DetailLogger.Warn3.
-func (l *TestDetailLogger) Warn3(msg *checker.LogMessage) {
+// Warn implements DetailLogger.Warn.
+func (l *TestDetailLogger) Warn(msg *checker.LogMessage) {
 	cd := checker.CheckDetail{
 		Type: checker.DetailWarn,
 		Msg:  *msg,
 	}
-	cd.Msg.Version = 3
 	l.messages = append(l.messages, cd)
 }
 
-// Debug3 implements DetailLogger.Debug3.
-func (l *TestDetailLogger) Debug3(msg *checker.LogMessage) {
+// Debug implements DetailLogger.Debug.
+func (l *TestDetailLogger) Debug(msg *checker.LogMessage) {
 	cd := checker.CheckDetail{
 		Type: checker.DetailDebug,
 		Msg:  *msg,
 	}
-	cd.Msg.Version = 3
 	l.messages = append(l.messages, cd)
+}
+
+// Flush implements DetailLogger.Flush.
+func (l *TestDetailLogger) Flush() []checker.CheckDetail {
+	ret := l.messages
+	l.messages = nil
+	return ret
 }
 
 func getTestReturn(cr *checker.CheckResult, logger *TestDetailLogger) (*TestReturn, error) {

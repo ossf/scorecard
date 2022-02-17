@@ -32,7 +32,7 @@ var artifactExtensions = []string{".asc", ".minisig", ".sig", ".sign"}
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckSignedReleases, SignedReleases); err != nil {
+	if err := registerCheck(CheckSignedReleases, SignedReleases, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}
@@ -52,7 +52,7 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 		if len(r.Assets) == 0 {
 			continue
 		}
-		c.Dlogger.Debug3(&checker.LogMessage{
+		c.Dlogger.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("GitHub release found: %s", r.TagName),
 		})
 		totalReleases++
@@ -60,7 +60,7 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 		for _, asset := range r.Assets {
 			for _, suffix := range artifactExtensions {
 				if strings.HasSuffix(asset.Name, suffix) {
-					c.Dlogger.Info3(&checker.LogMessage{
+					c.Dlogger.Info(&checker.LogMessage{
 						Path: asset.URL,
 						Type: checker.FileTypeURL,
 						Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
@@ -75,7 +75,7 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 			}
 		}
 		if !signed {
-			c.Dlogger.Warn3(&checker.LogMessage{
+			c.Dlogger.Warn(&checker.LogMessage{
 				Path: r.URL,
 				Type: checker.FileTypeURL,
 				Text: fmt.Sprintf("release artifact %s not signed", r.TagName),
@@ -87,7 +87,7 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	if totalReleases == 0 {
-		c.Dlogger.Warn3(&checker.LogMessage{
+		c.Dlogger.Warn(&checker.LogMessage{
 			Text: "no GitHub releases found",
 		})
 		// Generic summary.

@@ -26,7 +26,10 @@ const CheckVulnerabilities = "Vulnerabilities"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckVulnerabilities, Vulnerabilities); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.CommitBased,
+	}
+	if err := registerCheck(CheckVulnerabilities, Vulnerabilities, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}

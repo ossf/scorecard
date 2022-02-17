@@ -45,11 +45,6 @@ const (
 
 	cliEnableSarif = "ENABLE_SARIF"
 
-	// These strings must be the same as the ones used in
-	// checks.yaml for the "repos" field.
-	repoTypeLocal  = "local"
-	repoTypeGitHub = "GitHub"
-
 	scorecardLong = "A program that shows security scorecard for an open source software."
 	scorecardUse  = `./scorecard [--repo=<repo_url>] [--local=folder] [--checks=check1,...]
 	 [--show-details] or ./scorecard --{npm,pypi,rubygems}=<package_name> 
@@ -68,6 +63,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.Flags().StringVar(&flagRepo, "repo", "", "repository to check")
 	rootCmd.Flags().StringVar(&flagLocal, "local", "", "local folder to check")
+	rootCmd.Flags().StringVar(&flagCommit, "commit", clients.HeadSHA, "commit to analyze")
 	rootCmd.Flags().StringVar(
 		&flagLogLevel,
 		"verbosity",
@@ -131,7 +127,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	}
 
 	ctx := context.Background()
-	logger := sclog.NewLogger(sclog.Level(flagLogLevel))
+	logger := sclog.NewLogger(sclog.ParseLevel(flagLogLevel))
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := getRepoAccessors(
 		ctx, flagRepo, flagLocal, logger)
 	if err != nil {
@@ -148,16 +144,14 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 		log.Panicf("cannot read yaml file: %v", err)
 	}
 
-	repoType := repoTypeGitHub
+	var requiredRequestTypes []checker.RequestType
 	if flagLocal != "" {
-		repoType = repoTypeLocal
+		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
 	}
-	supportedChecks, err := getSupportedChecks(repoType, checkDocs)
-	if err != nil {
-		log.Panicf("cannot read supported checks: %v", err)
+	if !strings.EqualFold(flagCommit, clients.HeadSHA) {
+		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
-
-	enabledChecks, err := getEnabledChecks(policy, flagChecksToRun, supportedChecks, repoType)
+	enabledChecks, err := getEnabledChecks(policy, flagChecksToRun, requiredRequestTypes)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -168,7 +162,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	repoResult, err := pkg.RunScorecards(ctx, repoURI, flagFormat == formatRaw, enabledChecks, repoClient,
+	repoResult, err := pkg.RunScorecards(ctx, repoURI, flagCommit, flagFormat == formatRaw, enabledChecks, repoClient,
 		ossFuzzRepoClient, ciiClient, vulnsClient)
 	if err != nil {
 		log.Panic(err)
@@ -189,12 +183,12 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 
 	switch flagFormat {
 	case formatDefault:
-		err = repoResult.AsString(flagShowDetails, sclog.Level(flagLogLevel), checkDocs, os.Stdout)
+		err = repoResult.AsString(flagShowDetails, sclog.ParseLevel(flagLogLevel), checkDocs, os.Stdout)
 	case formatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
-		err = repoResult.AsSARIF(flagShowDetails, sclog.Level(flagLogLevel), os.Stdout, checkDocs, policy)
+		err = repoResult.AsSARIF(flagShowDetails, sclog.ParseLevel(flagLogLevel), os.Stdout, checkDocs, policy)
 	case formatJSON:
-		err = repoResult.AsJSON2(flagShowDetails, sclog.Level(flagLogLevel), checkDocs, os.Stdout)
+		err = repoResult.AsJSON2(flagShowDetails, sclog.ParseLevel(flagLogLevel), checkDocs, os.Stdout)
 	case formatRaw:
 		err = repoResult.AsRawJSON(os.Stdout)
 	default:
@@ -231,11 +225,19 @@ func validateCmdFlags() {
 		if flagFormat == formatRaw {
 			log.Panic("raw option not supported yet")
 		}
+		if flagCommit != clients.HeadSHA {
+			log.Panic("--commit option not supported yet")
+		}
 	}
 
 	// Validate format.
 	if !validateFormat(flagFormat) {
 		log.Panicf("unsupported format '%s'", flagFormat)
+	}
+
+	// Validate `commit` is non-empty.
+	if flagCommit == "" {
+		log.Panic("commit should be non-empty")
 	}
 }
 
@@ -299,31 +301,11 @@ func checksHavePolicies(sp *spol.ScorecardPolicy, enabledChecks checker.CheckNam
 	return true
 }
 
-func getSupportedChecks(r string, checkDocs docs.Doc) ([]string, error) {
-	allChecks := checks.AllChecks
-	supportedChecks := []string{}
-	for check := range allChecks {
-		c, e := checkDocs.GetCheck(check)
-		if e != nil {
-			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("checkDocs.GetCheck: %v", e))
-		}
-		types := c.GetSupportedRepoTypes()
-		for _, t := range types {
-			if r == t {
-				supportedChecks = append(supportedChecks, c.GetName())
-			}
-		}
-	}
-	return supportedChecks, nil
-}
-
-func isSupportedCheck(names []string, name string) bool {
-	for _, n := range names {
-		if n == name {
-			return true
-		}
-	}
-	return false
+func isSupportedCheck(checkName string, requiredRequestTypes []checker.RequestType) bool {
+	unsupported := checker.ListUnsupported(
+		requiredRequestTypes,
+		checks.AllChecks[checkName].SupportedRequestTypes)
+	return len(unsupported) == 0
 }
 
 func getAllChecks() checker.CheckNameToFnMap {
@@ -333,17 +315,18 @@ func getAllChecks() checker.CheckNameToFnMap {
 }
 
 func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
-	supportedChecks []string, repoType string) (checker.CheckNameToFnMap, error) {
+	requiredRequestTypes []checker.RequestType) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
 
 	switch {
 	case len(argsChecks) != 0:
-		// Populate checks to run with the CLI arguments.
+		// Populate checks to run with the `--repo` CLI argument.
 		for _, checkName := range argsChecks {
-			if !isSupportedCheck(supportedChecks, checkName) {
+			if !isSupportedCheck(checkName, requiredRequestTypes) {
 				return enabledChecks,
 					sce.WithMessage(sce.ErrScorecardInternal,
-						fmt.Sprintf("repo type %s: unsupported check: %s", repoType, checkName))
+						fmt.Sprintf("Unsupported RequestType %s by check: %s",
+							fmt.Sprint(requiredRequestTypes), checkName))
 			}
 			if !enableCheck(checkName, &enabledChecks) {
 				return enabledChecks,
@@ -353,7 +336,7 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 	case sp != nil:
 		// Populate checks to run with policy file.
 		for checkName := range sp.GetPolicies() {
-			if !isSupportedCheck(supportedChecks, checkName) {
+			if !isSupportedCheck(checkName, requiredRequestTypes) {
 				// We silently ignore the check, like we do
 				// for the default case when no argsChecks
 				// or policy are present.
@@ -368,7 +351,7 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 	default:
 		// Enable all checks that are supported.
 		for checkName := range getAllChecks() {
-			if !isSupportedCheck(supportedChecks, checkName) {
+			if !isSupportedCheck(checkName, requiredRequestTypes) {
 				continue
 			}
 			if !enableCheck(checkName, &enabledChecks) {

@@ -28,8 +28,8 @@ const (
 )
 
 type repoURL struct {
-	host, owner, repo string
-	metadata          []string
+	host, owner, repo, defaultBranch, commitSHA string
+	metadata                                    []string
 }
 
 // Parses input string into repoURL struct.

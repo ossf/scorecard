@@ -31,7 +31,7 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckContributors, Contributors); err != nil {
+	if err := registerCheck(CheckContributors, Contributors, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}
@@ -73,7 +73,7 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 		names = append(names, c)
 	}
 
-	c.Dlogger.Info3(&checker.LogMessage{
+	c.Dlogger.Info(&checker.LogMessage{
 		Text: fmt.Sprintf("contributors work for: %v", strings.Join(names, ",")),
 	})
 

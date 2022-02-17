@@ -17,6 +17,7 @@ package checks
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/rhysd/actionlint"
@@ -34,47 +35,47 @@ func TestIsPackagingWorkflow(t *testing.T) {
 	}{
 		{
 			name:     "npmjs.org publish",
-			filename: "./testdata/github-workflow-packaging-npm.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-npm.yaml",
 			expected: true,
 		},
 		{
 			name:     "npm github publish",
-			filename: "./testdata/github-workflow-packaging-npm-github.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-npm-github.yaml",
 			expected: false, // Should this be false?
 		},
 		{
 			name:     "maven publish",
-			filename: "./testdata/github-workflow-packaging-maven.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-maven.yaml",
 			expected: true,
 		},
 		{
 			name:     "gradle publish",
-			filename: "./testdata/github-workflow-packaging-gradle.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-gradle.yaml",
 			expected: true,
 		},
 		{
 			name:     "gem publish",
-			filename: "./testdata/github-workflow-packaging-gem.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-gem.yaml",
 			expected: true,
 		},
 		{
 			name:     "nuget publish",
-			filename: "./testdata/github-workflow-packaging-nuget.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-nuget.yaml",
 			expected: true,
 		},
 		{
 			name:     "docker action publish",
-			filename: "./testdata/github-workflow-packaging-docker-action.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-docker-action.yaml",
 			expected: true,
 		},
 		{
 			name:     "docker push publish",
-			filename: "./testdata/github-workflow-packaging-docker-push.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-docker-push.yaml",
 			expected: true,
 		},
 		{
 			name:     "pypi publish",
-			filename: "./testdata/github-workflow-packaging-pypi.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-pypi.yaml",
 			expected: true,
 		},
 		{
@@ -84,12 +85,12 @@ func TestIsPackagingWorkflow(t *testing.T) {
 		},
 		{
 			name:     "go publish",
-			filename: "./testdata/github-workflow-packaging-go.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-go.yaml",
 			expected: true,
 		},
 		{
 			name:     "cargo publish",
-			filename: "./testdata/github-workflow-packaging-cargo.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-cargo.yaml",
 			expected: true,
 		},
 	}
@@ -106,7 +107,9 @@ func TestIsPackagingWorkflow(t *testing.T) {
 				panic(fmt.Errorf("cannot parse file: %w", err))
 			}
 			dl := scut.TestDetailLogger{}
-			result := isPackagingWorkflow(workflow, tt.filename, &dl)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+
+			result := isPackagingWorkflow(workflow, p, &dl)
 			if result != tt.expected {
 				t.Errorf("isPackagingWorkflow() = %v, expected %v", result, tt.expected)
 			}

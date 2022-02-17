@@ -39,7 +39,11 @@ type worklowPinningResult struct {
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckPinnedDependencies, PinnedDependencies); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.FileBased,
+		checker.CommitBased,
+	}
+	if err := registerCheck(CheckPinnedDependencies, PinnedDependencies, supportedRequestTypes); err != nil {
 		// This should never happen.
 		panic(err)
 	}
@@ -157,7 +161,7 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 
 	if r.gitHubOwned != notPinned {
 		score += 2
-		dl.Info3(&checker.LogMessage{
+		dl.Info(&checker.LogMessage{
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
@@ -166,7 +170,7 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 
 	if r.thirdParties != notPinned {
 		score += 8
-		dl.Info3(&checker.LogMessage{
+		dl.Info(&checker.LogMessage{
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   fmt.Sprintf("%s %s", "Third-party", infoMsg),
@@ -194,7 +198,9 @@ func createReturnValues(r pinnedResult, infoMsg string, dl checker.DetailLogger,
 	default:
 		panic("invalid value")
 	case pinned, pinnedUndefined:
-		dl.Info(infoMsg)
+		dl.Info(&checker.LogMessage{
+			Text: infoMsg,
+		})
 		return checker.MaxResultScore, nil
 	case notPinned:
 		// No logging needed as it's done by the checks.
@@ -425,7 +431,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 			// Not pinned.
 			ret = false
-			dl.Warn3(&checker.LogMessage{
+			dl.Warn(&checker.LogMessage{
 				Path:      pathfn,
 				Type:      checker.FileTypeSource,
 				Offset:    uint(child.StartLine),
@@ -440,7 +446,7 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 			pinned := pinnedAsNames[name]
 			if !pinned && !regex.MatchString(name) {
 				ret = false
-				dl.Warn3(&checker.LogMessage{
+				dl.Warn(&checker.LogMessage{
 					Path:      pathfn,
 					Type:      checker.FileTypeSource,
 					Offset:    uint(child.StartLine),
@@ -650,7 +656,7 @@ func validateGitHubActionWorkflow(pathfn string, content []byte,
 			// Example: action-name@hash
 			match := hashRegex.MatchString(execAction.Uses.Value)
 			if !match {
-				dl.Warn3(&checker.LogMessage{
+				dl.Warn(&checker.LogMessage{
 					Path: pathfn, Type: checker.FileTypeSource,
 					Offset:    uint(execAction.Uses.Pos.Line),
 					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.

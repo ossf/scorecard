@@ -53,7 +53,11 @@ var permissionsOfInterest = []permission{
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckTokenPermissions, TokenPermissions); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.FileBased,
+		checker.CommitBased,
+	}
+	if err := registerCheck(CheckTokenPermissions, TokenPermissions, supportedRequestTypes); err != nil {
 		// This should never happen.
 		panic(err)
 	}
@@ -93,7 +97,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 	lineNumber := fileparser.GetLineNumber(permissionValue.Value.Pos)
 	if strings.EqualFold(val, "write") {
 		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
-			dl.Warn3(&checker.LogMessage{
+			dl.Warn(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
 				Offset: lineNumber,
@@ -104,7 +108,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 		} else {
 			// Only log for debugging, otherwise
 			// it may confuse users.
-			dl.Debug3(&checker.LogMessage{
+			dl.Debug(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
 				Offset: lineNumber,
@@ -115,7 +119,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 		return nil
 	}
 
-	dl.Info3(&checker.LogMessage{
+	dl.Info(&checker.LogMessage{
 		Path:   path,
 		Type:   checker.FileTypeSource,
 		Offset: lineNumber,
@@ -166,7 +170,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 	allIsSet := permissions != nil && permissions.All != nil && permissions.All.Value != ""
 	scopeIsSet := permissions != nil && len(permissions.Scopes) > 0
 	if permissions == nil || (!allIsSet && !scopeIsSet) {
-		dl.Info3(&checker.LogMessage{
+		dl.Info(&checker.LogMessage{
 			Path:   path,
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
@@ -177,7 +181,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 		val := permissions.All.Value
 		lineNumber := fileparser.GetLineNumber(permissions.All.Pos)
 		if !strings.EqualFold(val, "read-all") && val != "" {
-			dl.Warn3(&checker.LogMessage{
+			dl.Warn(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
 				Offset: lineNumber,
@@ -188,7 +192,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 			return nil
 		}
 
-		dl.Info3(&checker.LogMessage{
+		dl.Info(&checker.LogMessage{
 			Path:   path,
 			Type:   checker.FileTypeSource,
 			Offset: lineNumber,
@@ -206,7 +210,7 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *permissionCbData) error {
 	// Check if permissions are set explicitly.
 	if workflow.Permissions == nil {
-		dl.Warn3(&checker.LogMessage{
+		dl.Warn(&checker.LogMessage{
 			Path:   path,
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
@@ -228,7 +232,7 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 		// For most workflows, no write permissions are needed,
 		// so only top-level read-only permissions need to be declared.
 		if job.Permissions == nil {
-			dl.Debug3(&checker.LogMessage{
+			dl.Debug(&checker.LogMessage{
 				Path:   path,
 				Type:   checker.FileTypeSource,
 				Offset: fileparser.GetLineNumber(job.Pos),
@@ -468,7 +472,7 @@ func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, dl checker.De
 				continue
 			}
 			if strings.HasPrefix(uses.Value, "github/codeql-action/upload-sarif@") {
-				dl.Debug3(&checker.LogMessage{
+				dl.Debug(&checker.LogMessage{
 					Path:   fp,
 					Type:   checker.FileTypeSource,
 					Offset: fileparser.GetLineNumber(uses.Pos),
@@ -479,7 +483,7 @@ func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, dl checker.De
 			}
 		}
 	}
-	dl.Debug3(&checker.LogMessage{
+	dl.Debug(&checker.LogMessage{
 		Path:   fp,
 		Type:   checker.FileTypeSource,
 		Offset: checker.OffsetDefault,
@@ -500,7 +504,7 @@ func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, dl check
 				continue
 			}
 			if strings.HasPrefix(uses.Value, "github/codeql-action/analyze@") {
-				dl.Debug3(&checker.LogMessage{
+				dl.Debug(&checker.LogMessage{
 					Path:   fp,
 					Type:   checker.FileTypeSource,
 					Offset: fileparser.GetLineNumber(uses.Pos),
@@ -511,7 +515,7 @@ func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, dl check
 			}
 		}
 	}
-	dl.Debug3(&checker.LogMessage{
+	dl.Debug(&checker.LogMessage{
 		Path:   fp,
 		Type:   checker.FileTypeSource,
 		Offset: checker.OffsetDefault,

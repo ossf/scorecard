@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/google/go-github/v38/github"
@@ -30,23 +31,25 @@ type releasesHandler struct {
 	once     *sync.Once
 	ctx      context.Context
 	errSetup error
-	owner    string
-	repo     string
+	repourl  *repoURL
 	releases []clients.Release
 }
 
-func (handler *releasesHandler) init(ctx context.Context, owner, repo string) {
+func (handler *releasesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.ctx = ctx
-	handler.owner = owner
-	handler.repo = repo
+	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
 }
 
 func (handler *releasesHandler) setup() error {
 	handler.once.Do(func() {
+		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+			handler.errSetup = fmt.Errorf("%w: ListReleases only supported for HEAD queries", clients.ErrUnsupportedFeature)
+			return
+		}
 		releases, _, err := handler.client.Repositories.ListReleases(
-			handler.ctx, handler.owner, handler.repo, &github.ListOptions{})
+			handler.ctx, handler.repourl.owner, handler.repourl.repo, &github.ListOptions{})
 		if err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 		}

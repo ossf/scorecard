@@ -145,6 +145,14 @@ func TestDependencyUpdateTool(t *testing.T) {
 			},
 		},
 		{
+			name:    "dependency update tool",
+			wantErr: false,
+			want:    1,
+			files: []string{
+				".github/dependabot.yaml",
+			},
+		},
+		{
 			name:    "foo bar",
 			wantErr: false,
 			want:    0,

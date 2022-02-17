@@ -21,6 +21,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/log"
 	spol "github.com/ossf/scorecard/v4/policy"
@@ -767,8 +769,8 @@ func TestSARIFOutput(t *testing.T) {
 			},
 		},
 	}
-	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+	for i := range tests {
+		tt := &tests[i] // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -796,7 +798,7 @@ func TestSARIFOutput(t *testing.T) {
 
 			r := bytes.Compare(expected.Bytes(), result.Bytes())
 			if r != 0 {
-				t.Fatalf("%s: invalid result: %d", tt.name, r)
+				t.Fatalf("%s: invalid result: %d, %s", tt.name, r, cmp.Diff(expected.Bytes(), result.Bytes()))
 			}
 		})
 	}

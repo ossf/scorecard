@@ -17,7 +17,7 @@ package e2e
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -27,7 +27,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-var _ = Describe("E2E TEST:CIIBestPractices", func() {
+var _ = Describe("E2E TEST:"+checks.CheckCIIBestPractices, func() {
 	Context("E2E TEST:Validating use of CII Best Practices", func() {
 		It("Should return use of CII Best Practices", func() {
 			dl := scut.TestDetailLogger{}

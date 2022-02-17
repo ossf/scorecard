@@ -34,8 +34,7 @@ var errInputRepoType = errors.New("input repo should be of type repoURL")
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	owner        string
-	repoName     string
+	repourl      *repoURL
 	repo         *github.Repository
 	repoClient   *github.Client
 	graphClient  *graphqlHandler
@@ -51,7 +50,7 @@ type Client struct {
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
-func (client *Client) InitRepo(inputRepo clients.Repo) error {
+func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	ghRepo, ok := inputRepo.(*repoURL)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
@@ -62,45 +61,50 @@ func (client *Client) InitRepo(inputRepo clients.Repo) error {
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}
+
 	client.repo = repo
-	client.owner = repo.Owner.GetLogin()
-	client.repoName = repo.GetName()
+	client.repourl = &repoURL{
+		owner:         repo.Owner.GetLogin(),
+		repo:          repo.GetName(),
+		defaultBranch: repo.GetDefaultBranch(),
+		commitSHA:     commitSHA,
+	}
 
 	// Init tarballHandler.
-	if err := client.tarball.init(client.ctx, client.repo); err != nil {
+	if err := client.tarball.init(client.ctx, client.repo, commitSHA); err != nil {
 		return fmt.Errorf("error during tarballHandler.init: %w", err)
 	}
 
 	// Setup GraphQL.
-	client.graphClient.init(client.ctx, client.owner, client.repoName)
+	client.graphClient.init(client.ctx, client.repourl)
 
 	// Setup contributorsHandler.
-	client.contributors.init(client.ctx, client.owner, client.repoName)
+	client.contributors.init(client.ctx, client.repourl)
 
 	// Setup branchesHandler.
-	client.branches.init(client.ctx, client.owner, client.repoName)
+	client.branches.init(client.ctx, client.repourl)
 
 	// Setup releasesHandler.
-	client.releases.init(client.ctx, client.owner, client.repoName)
+	client.releases.init(client.ctx, client.repourl)
 
 	// Setup workflowsHandler.
-	client.workflows.init(client.ctx, client.owner, client.repoName)
+	client.workflows.init(client.ctx, client.repourl)
 
 	// Setup checkrunsHandler.
-	client.checkruns.init(client.ctx, client.owner, client.repoName)
+	client.checkruns.init(client.ctx, client.repourl)
 
 	// Setup statusesHandler.
-	client.statuses.init(client.ctx, client.owner, client.repoName)
+	client.statuses.init(client.ctx, client.repourl)
 
 	// Setup searchHandler.
-	client.search.init(client.ctx, client.owner, client.repoName)
+	client.search.init(client.ctx, client.repourl)
 
 	return nil
 }
 
 // URI implements RepoClient.URI.
 func (client *Client) URI() string {
-	return fmt.Sprintf("github.com/%s/%s", client.owner, client.repoName)
+	return fmt.Sprintf("github.com/%s/%s", client.repourl.owner, client.repourl.repo)
 }
 
 // ListFiles implements RepoClient.ListFiles.
@@ -173,10 +177,8 @@ func (client *Client) Close() error {
 	return client.tarball.cleanup()
 }
 
-// CreateGithubRepoClient returns a Client which implements RepoClient interface.
-func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
-	// Use our custom roundtripper
-	rt := roundtripper.NewTransport(ctx, logger)
+// CreateGithubRepoClientWithTransport returns a Client which implements RepoClient interface.
+func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripper) clients.RepoClient {
 	httpClient := &http.Client{
 		Transport: rt,
 	}
@@ -214,6 +216,13 @@ func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.Rep
 	}
 }
 
+// CreateGithubRepoClient returns a Client which implements RepoClient interface.
+func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
+	// Use our custom roundtripper
+	rt := roundtripper.NewTransport(ctx, logger)
+	return CreateGithubRepoClientWithTransport(ctx, rt)
+}
+
 // CreateOssFuzzRepoClient returns a RepoClient implementation
 // intialized to `google/oss-fuzz` GitHub repository.
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
@@ -223,7 +232,7 @@ func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.R
 	}
 
 	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger)
-	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo); err != nil {
+	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, clients.HeadSHA); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
 	return ossFuzzRepoClient, nil

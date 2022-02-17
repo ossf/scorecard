@@ -27,32 +27,37 @@ func TestBuildQuery(t *testing.T) {
 		searchReq       clients.SearchRequest
 		expectedErrType error
 		name            string
-		owner           string
-		repo            string
+		repourl         *repoURL
 		expectedQuery   string
 		hasError        bool
 	}{
 		{
-			name:  "Basic",
-			owner: "testowner",
-			repo:  "testrepo",
+			name: "Basic",
+			repourl: &repoURL{
+				owner: "testowner",
+				repo:  "testrepo",
+			},
 			searchReq: clients.SearchRequest{
 				Query: "testquery",
 			},
 			expectedQuery: "testquery repo:testowner/testrepo",
 		},
 		{
-			name:            "EmptyQuery",
-			owner:           "testowner",
-			repo:            "testrepo",
+			name: "EmptyQuery",
+			repourl: &repoURL{
+				owner: "testowner",
+				repo:  "testrepo",
+			},
 			searchReq:       clients.SearchRequest{},
 			hasError:        true,
 			expectedErrType: errEmptyQuery,
 		},
 		{
-			name:  "WithFilename",
-			owner: "testowner",
-			repo:  "testrepo",
+			name: "WithFilename",
+			repourl: &repoURL{
+				owner: "testowner",
+				repo:  "testrepo",
+			},
 			searchReq: clients.SearchRequest{
 				Query:    "testquery",
 				Filename: "filename1.txt",
@@ -60,9 +65,11 @@ func TestBuildQuery(t *testing.T) {
 			expectedQuery: "testquery repo:testowner/testrepo in:file filename:filename1.txt",
 		},
 		{
-			name:  "WithPath",
-			owner: "testowner",
-			repo:  "testrepo",
+			name: "WithPath",
+			repourl: &repoURL{
+				owner: "testowner",
+				repo:  "testrepo",
+			},
 			searchReq: clients.SearchRequest{
 				Query: "testquery",
 				Path:  "dir1/file1.txt",
@@ -70,9 +77,11 @@ func TestBuildQuery(t *testing.T) {
 			expectedQuery: "testquery repo:testowner/testrepo path:dir1/file1.txt",
 		},
 		{
-			name:  "WithFilenameAndPath",
-			owner: "testowner",
-			repo:  "testrepo",
+			name: "WithFilenameAndPath",
+			repourl: &repoURL{
+				owner: "testowner",
+				repo:  "testrepo",
+			},
 			searchReq: clients.SearchRequest{
 				Query:    "testquery",
 				Filename: "filename1.txt",
@@ -81,9 +90,11 @@ func TestBuildQuery(t *testing.T) {
 			expectedQuery: "testquery repo:testowner/testrepo in:file filename:filename1.txt path:dir1/dir2",
 		},
 		{
-			name:  "WithFilenameAndPathWithSeparator",
-			owner: "testowner",
-			repo:  "testrepo",
+			name: "WithFilenameAndPathWithSeparator",
+			repourl: &repoURL{
+				owner: "testowner",
+				repo:  "testrepo",
+			},
 			searchReq: clients.SearchRequest{
 				Query:    "testquery/query",
 				Filename: "filename1.txt",
@@ -99,8 +110,7 @@ func TestBuildQuery(t *testing.T) {
 			t.Parallel()
 
 			handler := searchHandler{
-				owner: testcase.owner,
-				repo:  testcase.repo,
+				repourl: testcase.repourl,
 			}
 
 			query, err := handler.buildQuery(testcase.searchReq)

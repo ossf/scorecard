@@ -31,7 +31,10 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckCITests, CITests); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.CommitBased,
+	}
+	if err := registerCheck(CheckCITests, CITests, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}
@@ -80,7 +83,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		}
 
 		if !foundCI {
-			c.Dlogger.Debug3(&checker.LogMessage{
+			c.Dlogger.Debug(&checker.LogMessage{
 				Text: fmt.Sprintf("merged PR without CI test: %d", pr.Number),
 			})
 		}
@@ -106,7 +109,7 @@ func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool,
 			continue
 		}
 		if isTest(status.Context) || isTest(status.TargetURL) {
-			c.Dlogger.Debug3(&checker.LogMessage{
+			c.Dlogger.Debug(&checker.LogMessage{
 				Path: status.URL,
 				Type: checker.FileTypeURL,
 				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,
@@ -133,7 +136,7 @@ func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (boo
 			continue
 		}
 		if isTest(cr.App.Slug) {
-			c.Dlogger.Debug3(&checker.LogMessage{
+			c.Dlogger.Debug(&checker.LogMessage{
 				Path: cr.URL,
 				Type: checker.FileTypeURL,
 				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,

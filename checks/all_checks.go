@@ -22,13 +22,16 @@ import (
 // AllChecks is the list of all security checks that will be run.
 var AllChecks = checker.CheckNameToFnMap{}
 
-func registerCheck(name string, fn checker.CheckFn) error {
+func registerCheck(name string, fn checker.CheckFn, supportedRequestTypes []checker.RequestType) error {
 	if name == "" {
 		return errInternalNameCannotBeEmpty
 	}
 	if fn == nil {
 		return errInternalCheckFuncCannotBeNil
 	}
-	AllChecks[name] = fn
+	AllChecks[name] = checker.Check{
+		Fn:                    fn,
+		SupportedRequestTypes: supportedRequestTypes,
+	}
 	return nil
 }

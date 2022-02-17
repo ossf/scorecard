@@ -35,7 +35,10 @@ const CheckLicense = "License"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckLicense, LicenseCheck); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.FileBased,
+	}
+	if err := registerCheck(CheckLicense, LicenseCheck, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}
@@ -106,7 +109,7 @@ func LicenseCheck(c *checker.CheckRequest) checker.CheckResult {
 		pdata := fileparser.FileGetCbDataAsBoolPointer(data)
 
 		if checkLicense(name) {
-			c.Dlogger.Info3(&checker.LogMessage{
+			c.Dlogger.Info(&checker.LogMessage{
 				Path:   name,
 				Type:   checker.FileTypeSource,
 				Offset: 1,

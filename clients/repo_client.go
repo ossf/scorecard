@@ -20,9 +20,12 @@ import "errors"
 // ErrUnsupportedFeature indicates an API that is not supported by the client.
 var ErrUnsupportedFeature = errors.New("unsupported feature")
 
+// HeadSHA is default commitSHA value used to denote git HEAD.
+const HeadSHA = "HEAD"
+
 // RepoClient interface is used by Scorecard checks to access a repo.
 type RepoClient interface {
-	InitRepo(repo Repo) error
+	InitRepo(repo Repo, commitSHA string) error
 	URI() string
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)

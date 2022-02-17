@@ -24,6 +24,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -75,7 +76,7 @@ func TestClient_CreationAndCaching(t *testing.T) {
 			}
 
 			client := CreateLocalDirClient(ctx, logger)
-			if err := client.InitRepo(repo); err != nil {
+			if err := client.InitRepo(repo, clients.HeadSHA); err != nil {
 				t.Errorf("InitRepo: %v", err)
 			}
 

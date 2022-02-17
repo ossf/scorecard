@@ -17,7 +17,6 @@ package checks
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/rhysd/actionlint"
 
@@ -31,19 +30,15 @@ const CheckPackaging = "Packaging"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckPackaging, Packaging); err != nil {
+	if err := registerCheck(CheckPackaging, Packaging, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}
 }
 
-func isGithubWorkflowFile(filename string) (bool, error) {
-	return strings.HasPrefix(strings.ToLower(filename), ".github/workflows"), nil
-}
-
 // Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
-	matchedFiles, err := c.RepoClient.ListFiles(isGithubWorkflowFile)
+	matchedFiles, err := c.RepoClient.ListFiles(fileparser.IsGithubWorkflowFileCb)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
@@ -71,7 +66,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if len(runs) > 0 {
-			c.Dlogger.Info3(&checker.LogMessage{
+			c.Dlogger.Info(&checker.LogMessage{
 				Path:   fp,
 				Type:   checker.FileTypeSource,
 				Offset: checker.OffsetDefault,
@@ -80,7 +75,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
-		c.Dlogger.Debug3(&checker.LogMessage{
+		c.Dlogger.Debug(&checker.LogMessage{
 			Path:   fp,
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
@@ -88,7 +83,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		})
 	}
 
-	c.Dlogger.Warn3(&checker.LogMessage{
+	c.Dlogger.Warn(&checker.LogMessage{
 		Text: "no GitHub publishing workflow detected",
 	})
 
@@ -223,7 +218,7 @@ func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 				continue
 			}
 
-			dl.Info3(&checker.LogMessage{
+			dl.Info(&checker.LogMessage{
 				Path:   fp,
 				Type:   checker.FileTypeSource,
 				Offset: fileparser.GetLineNumber(job.Pos),
@@ -233,7 +228,7 @@ func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 		}
 	}
 
-	dl.Debug3(&checker.LogMessage{
+	dl.Debug(&checker.LogMessage{
 		Path:   fp,
 		Type:   checker.FileTypeSource,
 		Offset: checker.OffsetDefault,

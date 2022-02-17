@@ -18,31 +18,23 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/log"
 )
 
-var logger *log.Logger
-
 func TestE2e(t *testing.T) {
+	if val, exists := os.LookupEnv("SKIP_GINKGO"); exists && val == "1" {
+		t.Skip()
+	}
 	t.Parallel()
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "E2e Suite")
 }
 
+var logger *log.Logger
+
 var _ = BeforeSuite(func() {
-	// making sure the GITHUB_AUTH_TOKEN is set prior to running e2e tests
-	token, contains := os.LookupEnv("GITHUB_AUTH_TOKEN")
-
-	Expect(contains).ShouldNot(BeFalse(),
-		"GITHUB_AUTH_TOKEN env variable is not set.The GITHUB_AUTH_TOKEN env variable has to be set to run e2e test.")
-	Expect(len(token)).ShouldNot(BeZero(), "Length of the GITHUB_AUTH_TOKEN env variable is zero.")
-
-	l := log.NewLogger(log.InfoLevel)
-	logger = l
-})
-
-var _ = AfterSuite(func() {
+	logger = log.NewLogger(log.DebugLevel)
 })

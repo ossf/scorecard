@@ -20,6 +20,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
@@ -80,7 +81,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		Repo:       c.Repo.Org(),
 	}
 
-	err = dotGitHub.RepoClient.InitRepo(dotGitHub.Repo)
+	err = dotGitHub.RepoClient.InitRepo(dotGitHub.Repo, clients.HeadSHA)
 	switch {
 	case err == nil:
 		defer dotGitHub.RepoClient.Close()

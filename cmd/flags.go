@@ -18,6 +18,7 @@ package cmd
 var (
 	flagRepo        string
 	flagLocal       string
+	flagCommit      string
 	flagChecksToRun []string
 	flagMetadata    []string
 	flagLogLevel    string
