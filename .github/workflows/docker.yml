@@ -13,7 +13,15 @@
 # limitations under the License.
 
 name: docker-build
-on: [push, pull_request]
+on: 
+ push:
+   branches: main
+   paths-ignore:
+     - "*.md"
+ pull_request:
+   branches: main
+   paths-ignore:
+     - "*.md"
 jobs:
   scorecard:
     name: scorecard-docker
