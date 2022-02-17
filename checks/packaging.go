@@ -179,6 +179,17 @@ func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 			LogText: "candidate python publishing workflow using pypi",
 		},
 		{
+			// Python packages.
+			// This is a custom Python packaging workflow based on semantic versioning.
+			// TODO(#1642): accept custom workflows through a separate configuration.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "relekang/python-semantic-release",
+				},
+			},
+			LogText: "candidate python publishing workflow using pypi",
+		},
+		{
 			// Go packages.
 			Steps: []*fileparser.JobMatcherStep{
 				{
