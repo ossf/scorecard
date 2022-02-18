@@ -13,7 +13,13 @@
 # limitations under the License.
 
 name: build
-on: [push, pull_request]
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
 jobs:
   unit-test:
     name: unit-test
