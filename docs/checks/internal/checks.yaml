@@ -618,9 +618,23 @@ checks:
       One point is reduced from the score if all jobs have their permissions defined but the top level permissions are not defined. 
       This configuration is secure, but there is a chance that when a new job is added to the workflow, its job permissions could be 
       left undefined because of human error.
-              
+
       The check cannot detect if the "read-only" GitHub permission setting is
-      enabled, as there is no API available.   
+      enabled, as there is no API available.
+
+      Additionally, points are reduced if certain write permissions are defined for a job. 
+
+      ### Write permissions causing a small reduction
+      * `statuses` - May allow an attacker to change the result of pre-submit checks and get a PR merged.
+      * `checks` - May allow an attacker to remove pre-submit checks and introduce a bug.
+      * `security-events` - May allow an attacker to read vulnerability reports before a patch is available. However, points are not reduced if the job utilizes a recognized action for uploading SARIF results.
+      * `deployments` - May allow an attacker to charge repo owner by triggering VM runs, and tiny chance an attacker can trigger a remote service with code they own if server accepts code/location variables unsanitized.
+
+      ### Write permissions causing a large reduction
+      * `contents` - Allows an attacker to commit unreviewed code. However, points are not reduced if the job utilizes a recognized packaging action or command.
+      * `packages` - Allows an attacker to publish packages. However, points are not reduced if the job utilizes a recognized packaging action or command.
+      * `actions` - May allow an attacker to steal GitHub secrets by adding a malicious workflow or action.
+ 
     remediation:
       - >-
         Set permissions as `read-all` or `contents: read` as described in
