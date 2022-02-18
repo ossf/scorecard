@@ -12,6 +12,13 @@ IMAGE_NAME = scorecard
 OUTPUT = output
 PLATFORM="linux/amd64,linux/arm64,linux/386,linux/arm"
 LDFLAGS=$(shell ./scripts/version-ldflags)
+KOCACHE_PATH=/tmp/ko
+
+define create_kocache_path
+  mkdir -p $(KOCACHE_PATH)
+endef
+
+
 
 ############################### make help #####################################
 .PHONY: help
@@ -190,45 +197,59 @@ ko-targets = scorecard-ko cron-controller-ko cron-worker-ko cron-cii-worker-ko c
 ko-build-everything: $(ko-targets)
 
 scorecard-ko:
+	$(call create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/scorecard LDFLAGS="$(LDFLAGS)" \
-	ko publish -B \
+	KO_CACHE=$(KOCACHE_PATH) ko build -B \
 			   --push=false \
+			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4
 cron-controller-ko:
+	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-controller LDFLAGS="$(LDFLAGS)" \
-	ko publish -B \
+	KOCACHE=$(KOCACHE_PATH) ko build -B \
 			   --push=false \
+			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/controller
 cron-worker-ko:
+	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-worker LDFLAGS="$(LDFLAGS)" \
-	ko publish -B \
+	KOCACHE=$(KOCACHE_PATH) ko build -B \
 			   --push=false \
+			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/worker
 cron-cii-worker-ko:
+	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cii-worker LDFLAGS="$(LDFLAGS)" \
-	ko publish -B \
+	KOCACHE=$(KOCACHE_PATH) ko build -B \
 			   --push=false \
+			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/cii
 cron-bq-transfer-ko:
+	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-bq-transfer LDFLAGS="$(LDFLAGS)" \
-	ko publish -B \
+	KOCACHE=$(KOCACHE_PATH) ko build -B \
 			   --push=false \
+			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/bq
 cron-webhook-ko:
+	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cron-webhook LDFLAGS="$(LDFLAGS)" \
-	ko publish -B \
+	KOCACHE=$(KOCACHE_PATH) ko build -B \
 			   --push=false \
+			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/webhook
 cron-github-server-ko:
+	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-github-server LDFLAGS="$(LDFLAGS)" \
-	ko publish -B \
+	KOCACHE=$(KOCACHE_PATH) ko build -B \
 			   --push=false \
+			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens/server
 
