@@ -535,10 +535,37 @@ func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, dl ch
 	return isPackagingWorkflow(workflow, fp, dl)
 }
 
-// Note: this needs to be improved.
-// Currently we don't differentiate between publishing on GitHub vs
-// pubishing on registries. In terms of risk, both are similar, as
-// an attacker would gain the ability to push a package.
+// requiresContentsPermissions returns true if the workflow requires the `contents: write` permission.
 func requiresContentsPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
-	return requiresPackagesPermissions(workflow, fp, dl)
+	return isReleasingWorkflow(workflow, fp, dl)
+}
+
+// isReleasingWorkflow returns true if the workflow involves creating a release on GitHub.
+func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	jobMatchers := []fileparser.JobMatcher{
+		{
+			// Python packages.
+			// This is a custom Python packaging/releasing workflow based on semantic versioning.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "relekang/python-semantic-release",
+				},
+			},
+			LogText: "candidate python publishing workflow using python-semantic-release",
+		},
+		{
+			// Go packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-go",
+				},
+				{
+					Uses: "goreleaser/goreleaser-action",
+				},
+			},
+			LogText: "candidate golang publishing workflow",
+		},
+	}
+
+	return fileparser.AnyJobsMatch(workflow, jobMatchers, fp, dl, "not a releasing workflow")
 }
