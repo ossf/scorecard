@@ -18,9 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-
-	// nolint:gosec
-	_ "net/http/pprof"
+	_ "net/http/pprof" // nolint:gosec
 
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"

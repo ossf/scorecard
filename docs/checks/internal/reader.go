@@ -16,7 +16,6 @@
 package internal
 
 import (
-
 	// Used to embed `checks.yaml` file.
 	_ "embed"
 	"fmt"

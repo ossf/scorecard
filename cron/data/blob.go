@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"gocloud.dev/blob"
-
 	// Needed to link in GCP drivers.
 	_ "gocloud.dev/blob/gcsblob"
 
