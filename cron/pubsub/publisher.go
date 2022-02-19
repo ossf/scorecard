@@ -24,7 +24,6 @@ import (
 	"sync/atomic"
 
 	"gocloud.dev/pubsub"
-
 	// Needed to link in GCP drivers.
 	_ "gocloud.dev/pubsub/gcppubsub"
 	"google.golang.org/protobuf/encoding/protojson"

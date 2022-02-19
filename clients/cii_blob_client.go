@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	"gocloud.dev/blob"
-
 	// Needed to link GCP drivers.
 	_ "gocloud.dev/blob/gcsblob"
 )

@@ -22,9 +22,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-
-	// nolint:gosec
-	_ "net/http/pprof"
+	_ "net/http/pprof" // nolint:gosec
 
 	"go.opencensus.io/stats/view"
 

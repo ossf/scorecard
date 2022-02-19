@@ -16,7 +16,6 @@
 package config
 
 import (
-
 	// Used to embed config.yaml.
 	_ "embed"
 	"errors"
