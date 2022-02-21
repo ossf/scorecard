@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// package options implements Scorecard options.
+// Package options implements Scorecard options.
 package options
 
 import (
-	"fmt"
+	"errors"
 	"os"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
 )
 
+// Options define common options for configuring scorecard.
 type Options struct {
 	Repo        string
 	Local       string
@@ -33,35 +34,58 @@ type Options struct {
 	PyPI        string
 	RubyGems    string
 	PolicyFile  string
-	ShowDetails bool
 	ChecksToRun []string
 	Metadata    []string
+	ShowDetails bool
 }
 
+// New creates a new instance of `Options`.
 func New() *Options {
 	return &Options{}
 }
 
 const (
+	// DefaultCommit specifies the default commit reference to use.
 	DefaultCommit = clients.HeadSHA
 
-	// Formats
-	FormatJSON    = "json"
-	FormatSarif   = "sarif"
-	FormatDefault = "default"
-	FormatRaw     = "raw"
+	// Formats.
 
-	// Environment variables
+	// FormatJSON specifies that results should be output in JSON format.
+	FormatJSON = "json"
+	// FormatSarif specifies that results should be output in SARIF format.
+	FormatSarif = "sarif"
+	// FormatDefault specifies that results should be output in default format.
+	FormatDefault = "default"
+	// FormatRaw specifies that results should be output in raw format.
+	FormatRaw = "raw"
+
+	// Environment variables.
+
+	// EnvVarEnableSarif is the environment variable which controls enabling
+	// SARIF logging.
 	EnvVarEnableSarif = "ENABLE_SARIF"
+	// EnvVarScorecardV6 is the environment variable which enables scorecard v6
+	// options.
 	EnvVarScorecardV6 = "SCORECARD_V6"
 )
 
 var (
+	// DefaultLogLevel retrieves the default log level.
 	DefaultLogLevel = log.DefaultLevel.String()
+
+	errCommitIsEmpty            = errors.New("commit should be non-empty")
+	errCommitOptionNotSupported = errors.New("commit option is not supported yet")
+	errFormatNotSupported       = errors.New("unsupported format")
+	errPolicyFileNotSupported   = errors.New("policy file is not supported yet")
+	errRawOptionNotSupported    = errors.New("raw option is not supported yet")
+	errRepoOptionMustBeSet      = errors.New(
+		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
+	)
+	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
 )
 
-// TODO(options): Create explicit error types
-// TODO(options): Cleanup error messages
+// Validate validates scorecard configuration options.
+// TODO(options): Cleanup error messages.
 func (o *Options) Validate() []error {
 	var errs []error
 
@@ -73,7 +97,7 @@ func (o *Options) Validate() []error {
 		o.Local != "") != 1 {
 		errs = append(
 			errs,
-			fmt.Errorf("Exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems` or `--local` must be set"),
+			errRepoOptionMustBeSet,
 		)
 	}
 
@@ -82,13 +106,13 @@ func (o *Options) Validate() []error {
 		if o.Format == FormatSarif {
 			errs = append(
 				errs,
-				fmt.Errorf("sarif format not supported yet"),
+				errSARIFNotSupported,
 			)
 		}
 		if o.PolicyFile != "" {
 			errs = append(
 				errs,
-				fmt.Errorf("policy file not supported yet"),
+				errPolicyFileNotSupported,
 			)
 		}
 	}
@@ -98,13 +122,13 @@ func (o *Options) Validate() []error {
 		if o.Format == FormatRaw {
 			errs = append(
 				errs,
-				fmt.Errorf("raw option not supported yet"),
+				errRawOptionNotSupported,
 			)
 		}
 		if o.Commit != clients.HeadSHA {
 			errs = append(
 				errs,
-				fmt.Errorf("--commit option not supported yet"),
+				errCommitOptionNotSupported,
 			)
 		}
 	}
@@ -113,7 +137,7 @@ func (o *Options) Validate() []error {
 	if !validateFormat(o.Format) {
 		errs = append(
 			errs,
-			fmt.Errorf("unsupported format '%s'", o.Format),
+			errFormatNotSupported,
 		)
 	}
 
@@ -121,7 +145,7 @@ func (o *Options) Validate() []error {
 	if o.Commit == "" {
 		errs = append(
 			errs,
-			fmt.Errorf("commit should be non-empty"),
+			errCommitIsEmpty,
 		)
 	}
 
@@ -138,7 +162,8 @@ func boolSum(bools ...bool) int {
 	return sum
 }
 
-// TODO(options): This probably doesn't need to be exported
+// IsSarifEnabled returns true if `EnvVarEnableSarif` is specified.
+// TODO(options): This probably doesn't need to be exported.
 func IsSarifEnabled() bool {
 	// UPGRADEv4: remove.
 	var sarifEnabled bool

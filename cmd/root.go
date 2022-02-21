@@ -106,6 +106,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	RunScorecard(args)
 }
 
+// RunScorecard runs scorecard checks given a set of arguments.
 // TODO(cmd): Is `args` required?
 func RunScorecard(args []string) {
 	// TODO(cmd): Catch validation errors
@@ -167,8 +168,17 @@ func RunScorecard(args []string) {
 		}
 	}
 
-	repoResult, err := pkg.RunScorecards(ctx, repoURI, opts.Commit, opts.Format == options.FormatRaw, enabledChecks, repoClient,
-		ossFuzzRepoClient, ciiClient, vulnsClient)
+	repoResult, err := pkg.RunScorecards(
+		ctx,
+		repoURI,
+		opts.Commit,
+		opts.Format == options.FormatRaw,
+		enabledChecks,
+		repoClient,
+		ossFuzzRepoClient,
+		ciiClient,
+		vulnsClient,
+	)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -186,9 +196,9 @@ func RunScorecard(args []string) {
 		fmt.Println("\nRESULTS\n-------")
 	}
 
-	resultsErr := format.FormatResults(
+	resultsErr := format.Results(
 		opts,
-		repoResult,
+		&repoResult,
 		checkDocs,
 		pol,
 	)

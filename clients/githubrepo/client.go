@@ -239,7 +239,8 @@ func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.R
 	return ossFuzzRepoClient, nil
 }
 
-// TODO(repo): Pass a `http.RoundTripper` here
+// GetClients returns a list of clients for running scorecard checks.
+// TODO(repo): Pass a `http.RoundTripper` here.
 func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logger) (
 	clients.Repo, // repo
 	clients.RepoClient, // repoClient
@@ -261,7 +262,6 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 
 	githubRepo, errGitHub = MakeGithubRepo(repoURI)
 	if errGitHub != nil {
-		// nolint: wrapcheck
 		return githubRepo,
 			nil,
 			nil,

@@ -66,6 +66,7 @@ func modeToProto(m string) CheckPolicy_Mode {
 	}
 }
 
+// ParseFromFile takes a policy file and returns a `ScorecardPolicy`.
 func ParseFromFile(policyFile string) (*ScorecardPolicy, error) {
 	if policyFile != "" {
 		data, err := os.ReadFile(policyFile)
@@ -74,7 +75,7 @@ func ParseFromFile(policyFile string) (*ScorecardPolicy, error) {
 				fmt.Sprintf("os.ReadFile: %v", err))
 		}
 
-		sp, err := ParseFromYAML(data)
+		sp, err := parseFromYAML(data)
 		if err != nil {
 			return nil,
 				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("spol.ParseFromYAML: %v", err))
@@ -86,9 +87,8 @@ func ParseFromFile(policyFile string) (*ScorecardPolicy, error) {
 	return nil, nil
 }
 
-// ParseFromYAML parses a policy file and returns
-// a scorecardPolicy.
-func ParseFromYAML(b []byte) (*ScorecardPolicy, error) {
+// parseFromYAML parses a policy file and returns a `ScorecardPolicy`.
+func parseFromYAML(b []byte) (*ScorecardPolicy, error) {
 	// Internal golang for unmarshalling the policy file.
 	sp := scorecardPolicy{}
 	// Protobuf-defined policy (policy.proto and policy.pb.go).
@@ -137,14 +137,19 @@ func ParseFromYAML(b []byte) (*ScorecardPolicy, error) {
 	return &retPolicy, nil
 }
 
+// GetAll returns the full list of checks, given any environment variable
+// constraints.
 func GetAll() checker.CheckNameToFnMap {
-	// Returns the full list of checks, given any environment variable constraints.
 	possibleChecks := checks.AllChecks
 	return possibleChecks
 }
 
-func GetEnabled(sp *ScorecardPolicy, argsChecks []string,
-	requiredRequestTypes []checker.RequestType) (checker.CheckNameToFnMap, error) {
+// GetEnabled returns the list of enabled checks.
+func GetEnabled(
+	sp *ScorecardPolicy,
+	argsChecks []string,
+	requiredRequestTypes []checker.RequestType,
+) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
 
 	switch {

@@ -26,9 +26,10 @@ import (
 	spol "github.com/ossf/scorecard/v4/policy"
 )
 
-func FormatResults(
+// Results formats scorecard results.
+func Results(
 	opts *options.Options,
-	results pkg.ScorecardResult,
+	results *pkg.ScorecardResult,
 	docs checks.Doc,
 	policy *spol.ScorecardPolicy,
 ) error {
@@ -55,7 +56,7 @@ func FormatResults(
 	}
 
 	if err != nil {
-		return fmt.Errorf("Failed to output results: %v", err)
+		return fmt.Errorf("failed to output results: %w", err)
 	}
 
 	return nil
