@@ -196,42 +196,6 @@ func CheckIfFileExistsV6(repoClient clients.RepoClient,
 	return nil
 }
 
-// FileCb represents a callback fn.
-type FileCb func(path string,
-	dl checker.DetailLogger, data FileCbData) (bool, error)
-
-// CheckIfFileExists downloads the tar of the repository and calls the onFile() to check
-// for the occurrence.
-func CheckIfFileExists(c *checker.CheckRequest, onFile FileCb, data FileCbData) error {
-	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
-	if err != nil {
-		// nolint: wrapcheck
-		return err
-	}
-	for _, filename := range matchedFiles {
-		continueIter, err := onFile(filename, c.Dlogger, data)
-		if err != nil {
-			return err
-		}
-
-		if !continueIter {
-			break
-		}
-	}
-
-	return nil
-}
-
-// FileGetCbDataAsBoolPointer returns callback data as bool.
-func FileGetCbDataAsBoolPointer(data FileCbData) *bool {
-	pdata, ok := data.(*bool)
-	if !ok {
-		// This never happens.
-		panic("invalid type")
-	}
-	return pdata
-}
-
 // CheckFileContainsCommands checks if the file content contains commands or not.
 // `comment` is the string or character that indicates a comment:
 // for example for Dockerfiles, it would be `#`.
