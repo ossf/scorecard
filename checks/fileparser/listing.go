@@ -20,16 +20,16 @@ import (
 	"path"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // isMatchingPath uses 'pattern' to shell-match the 'path' and its filename
 // 'caseSensitive' indicates the match should be case-sensitive. Default: no.
-func isMatchingPath(pattern, fullpath string, caseSensitive bool) (bool, error) {
-	if !caseSensitive {
-		pattern = strings.ToLower(pattern)
+func isMatchingPath(fullpath string, matchPathTo PathMatcher) (bool, error) {
+	pattern := matchPathTo.Pattern
+	if !matchPathTo.CaseSensitive {
+		pattern = strings.ToLower(matchPathTo.Pattern)
 		fullpath = strings.ToLower(fullpath)
 	}
 
@@ -55,87 +55,30 @@ func isTestdataFile(fullpath string) bool {
 		strings.Contains(fullpath, "/testdata/")
 }
 
-// FileCbData is any data the caller can act upon
-// to keep state.
-type FileCbData interface{}
-
-// FileContentCb is the callback.
-// The bool returned indicates whether the CheckFilesContent2
-// should continue iterating over files or not.
-type FileContentCb func(path string, content []byte,
-	dl checker.DetailLogger, data FileCbData) (bool, error)
-
-// CheckFilesContent downloads the tar of the repository and calls the onFileContent() function
-// shellPathFnPattern is used for https://golang.org/pkg/path/#Match
-// Warning: the pattern is used to match (1) the entire path AND (2) the filename alone. This means:
-// 	- To scope the search to a directory, use "./dirname/*". Example, for the root directory,
-// 		use "./*".
-//	- A pattern such as "*mypatern*" will match files containing mypattern in *any* directory.
-func CheckFilesContent(shellPathFnPattern string,
-	caseSensitive bool,
-	c *checker.CheckRequest,
-	onFileContent FileContentCb,
-	data FileCbData,
-) error {
-	predicate := func(filepath string) (bool, error) {
-		// Filter out test files.
-		if isTestdataFile(filepath) {
-			return false, nil
-		}
-		// Filter out files based on path/names using the pattern.
-		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
-		if err != nil {
-			return false, err
-		}
-		return b, nil
-	}
-
-	matchedFiles, err := c.RepoClient.ListFiles(predicate)
-	if err != nil {
-		// nolint: wrapcheck
-		return err
-	}
-
-	for _, file := range matchedFiles {
-		content, err := c.RepoClient.GetFileContent(file)
-		if err != nil {
-			//nolint
-			return err
-		}
-
-		continueIter, err := onFileContent(file, content, c.Dlogger, data)
-		if err != nil {
-			return err
-		}
-
-		if !continueIter {
-			break
-		}
-	}
-
-	return nil
+// PathMatcher represents a query for a filepath.
+type PathMatcher struct {
+	Pattern       string
+	CaseSensitive bool
 }
 
-// FileContentCbV6 is the callback.
-// The bool returned indicates whether the CheckFilesContent2
-// should continue iterating over files or not.
-type FileContentCbV6 func(path string, content []byte, data FileCbData) (bool, error)
+// DoWhileTrueOnFileContent takes a filepath, its content and
+// optional variadic args. It returns a boolean indicating whether
+// iterating over next files should continue.
+type DoWhileTrueOnFileContent func(path string, content []byte, args ...interface{}) (bool, error)
 
-// CheckFilesContentV6 is the same as CheckFilesContent
-// but for use with separated check/policy code.
-func CheckFilesContentV6(shellPathFnPattern string,
-	caseSensitive bool,
-	repoClient clients.RepoClient,
-	onFileContent FileContentCbV6,
-	data FileCbData,
-) error {
+// OnMatchingFileContentDo matches all files listed by `repoClient` against `matchPathTo`
+// and on every successful match, runs onFileContent fn on the file's contents.
+// Continues iterating along the matched files until onFileContent returns
+// either a false value or an error.
+func OnMatchingFileContentDo(repoClient clients.RepoClient, matchPathTo PathMatcher,
+	onFileContent DoWhileTrueOnFileContent, args ...interface{}) error {
 	predicate := func(filepath string) (bool, error) {
 		// Filter out test files.
 		if isTestdataFile(filepath) {
 			return false, nil
 		}
 		// Filter out files based on path/names using the pattern.
-		b, err := isMatchingPath(shellPathFnPattern, filepath, caseSensitive)
+		b, err := isMatchingPath(filepath, matchPathTo)
 		if err != nil {
 			return false, err
 		}
@@ -144,18 +87,16 @@ func CheckFilesContentV6(shellPathFnPattern string,
 
 	matchedFiles, err := repoClient.ListFiles(predicate)
 	if err != nil {
-		// nolint: wrapcheck
-		return err
+		return fmt.Errorf("error during ListFiles: %w", err)
 	}
 
 	for _, file := range matchedFiles {
 		content, err := repoClient.GetFileContent(file)
 		if err != nil {
-			//nolint
-			return err
+			return fmt.Errorf("error during GetFileContent: %w", err)
 		}
 
-		continueIter, err := onFileContent(file, content, data)
+		continueIter, err := onFileContent(file, content, args...)
 		if err != nil {
 			return err
 		}

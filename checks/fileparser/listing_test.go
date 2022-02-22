@@ -20,7 +20,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v4/checker"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
@@ -316,7 +315,10 @@ func Test_isMatchingPath(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := isMatchingPath(tt.args.pattern, tt.args.fullpath, tt.args.caseSensitive)
+			got, err := isMatchingPath(tt.args.fullpath, PathMatcher{
+				Pattern:       tt.args.pattern,
+				CaseSensitive: tt.args.caseSensitive,
+			})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("isMatchingPath() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -385,8 +387,8 @@ func Test_isTestdataFile(t *testing.T) {
 	}
 }
 
-// TestCheckFilesContentV6 tests the CheckFilesContentV6 function.
-func TestCheckFilesContentV6(t *testing.T) {
+// TestOnMatchingFileContentDo tests the OnMatchingFileContent function.
+func TestOnMatchingFileContent(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
@@ -448,50 +450,6 @@ func TestCheckFilesContentV6(t *testing.T) {
 				"Dockerfile.template.template.template.template",
 			},
 		},
-	}
-
-	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			x := func(path string, content []byte, data FileCbData) (bool, error) {
-				if tt.shouldFuncFail {
-					//nolint
-					return false, errors.New("test error")
-				}
-				if tt.shouldGetPredicateFail {
-					return false, nil
-				}
-				return true, nil
-			}
-
-			ctrl := gomock.NewController(t)
-			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
-			mockRepo.EXPECT().GetFileContent(gomock.Any()).Return(nil, nil).AnyTimes()
-
-			result := CheckFilesContentV6(tt.shellPattern, tt.caseSensitive, mockRepo, x, x)
-
-			if tt.wantErr && result == nil {
-				t.Errorf("CheckFilesContentV6() = %v, want %v test name %v", result, tt.wantErr, tt.name)
-			}
-		})
-	}
-}
-
-// TestCheckFilesContent tests the CheckFilesContent function.
-func TestCheckFilesContent(t *testing.T) {
-	t.Parallel()
-	//nolint
-	tests := []struct {
-		name                   string
-		wantErr                bool
-		shellPattern           string
-		caseSensitive          bool
-		shouldFuncFail         bool
-		shouldGetPredicateFail bool
-		files                  []string
-	}{
 		{
 			name:          "no files",
 			shellPattern:  "Dockerfile",
@@ -548,8 +506,7 @@ func TestCheckFilesContent(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			x := func(path string, content []byte,
-				dl checker.DetailLogger, data FileCbData) (bool, error) {
+			x := func(path string, content []byte, args ...interface{}) (bool, error) {
 				if tt.shouldFuncFail {
 					//nolint
 					return false, errors.New("test error")
@@ -565,14 +522,13 @@ func TestCheckFilesContent(t *testing.T) {
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
 			mockRepo.EXPECT().GetFileContent(gomock.Any()).Return(nil, nil).AnyTimes()
 
-			c := checker.CheckRequest{
-				RepoClient: mockRepo,
-			}
-
-			result := CheckFilesContent(tt.shellPattern, tt.caseSensitive, &c, x, x)
+			result := OnMatchingFileContentDo(mockRepo, PathMatcher{
+				Pattern:       tt.shellPattern,
+				CaseSensitive: tt.caseSensitive,
+			}, x)
 
 			if tt.wantErr && result == nil {
-				t.Errorf("CheckFilesContentV6() = %v, want %v test name %v", result, tt.wantErr, tt.name)
+				t.Errorf("OnMatchingFileContentDo() = %v, want %v test name %v", result, tt.wantErr, tt.name)
 			}
 		})
 	}
