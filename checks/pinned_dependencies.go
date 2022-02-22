@@ -142,11 +142,29 @@ func addPinnedResult(r *pinnedResult, to bool) {
 	}
 }
 
-func dataAsWorkflowResultPointer(data fileparser.FileCbData) *worklowPinningResult {
+func dataAsWorkflowResultPointer(data interface{}) *worklowPinningResult {
 	pdata, ok := data.(*worklowPinningResult)
 	if !ok {
 		// panic if it is not correct type
 		panic("type need to be of worklowPinningResult")
+	}
+	return pdata
+}
+
+func dataAsResultPointer(data interface{}) *pinnedResult {
+	pdata, ok := data.(*pinnedResult)
+	if !ok {
+		// This never happens.
+		panic("invalid type")
+	}
+	return pdata
+}
+
+func dataAsDetailLogger(data interface{}) checker.DetailLogger {
+	pdata, ok := data.(checker.DetailLogger)
+	if !ok {
+		// This never happens.
+		panic("invalid type")
 	}
 	return pdata
 }
@@ -180,15 +198,6 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 	return score, nil
 }
 
-func dataAsResultPointer(data fileparser.FileCbData) *pinnedResult {
-	pdata, ok := data.(*pinnedResult)
-	if !ok {
-		// This never happens.
-		panic("invalid type")
-	}
-	return pdata
-}
-
 func createReturnValues(r pinnedResult, infoMsg string, dl checker.DetailLogger, err error) (int, error) {
 	if err != nil {
 		return checker.InconclusiveResultScore, err
@@ -210,8 +219,10 @@ func createReturnValues(r pinnedResult, infoMsg string, dl checker.DetailLogger,
 
 func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := fileparser.CheckFilesContent("*", false,
-		c, validateShellScriptIsFreeOfInsecureDownloads, &r)
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*",
+		CaseSensitive: false,
+	}, validateShellScriptIsFreeOfInsecureDownloads, c.Dlogger, &r)
 	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -229,9 +240,16 @@ func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
 	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, dl, err)
 }
 
-func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
-	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
-	pdata := dataAsResultPointer(data)
+var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
+	pathfn string,
+	content []byte,
+	args ...interface{}) (bool, error) {
+	if len(args) != 2 {
+		return false, fmt.Errorf(
+			"validateShellScriptIsFreeOfInsecureDownloads requires exactly 2 arguments: %w", errInvalidArgLength)
+	}
+	pdata := dataAsResultPointer(args[1])
+	dl := dataAsDetailLogger(args[0])
 
 	// Validate the file type.
 	if !isSupportedShellScriptFile(pathfn, content) {
@@ -250,8 +268,10 @@ func validateShellScriptIsFreeOfInsecureDownloads(pathfn string, content []byte,
 
 func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := fileparser.CheckFilesContent("*Dockerfile*",
-		false, c, validateDockerfileIsFreeOfInsecureDownloads, &r)
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*Dockerfile*",
+		CaseSensitive: false,
+	}, validateDockerfileIsFreeOfInsecureDownloads, c.Dlogger, &r)
 	return createReturnForIsDockerfileFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -285,9 +305,16 @@ func isDockerfile(pathfn string, content []byte) bool {
 	return true
 }
 
-func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
-	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
-	pdata := dataAsResultPointer(data)
+var validateDockerfileIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
+	pathfn string,
+	content []byte,
+	args ...interface{}) (bool, error) {
+	if len(args) != 2 {
+		return false, fmt.Errorf(
+			"validateDockerfileIsFreeOfInsecureDownloads requires exactly 2 arguments: %w", errInvalidArgLength)
+	}
+	pdata := dataAsResultPointer(args[1])
+	dl := dataAsDetailLogger(args[0])
 
 	// Return early if this is not a docker file.
 	if !isDockerfile(pathfn, content) {
@@ -344,8 +371,10 @@ func validateDockerfileIsFreeOfInsecureDownloads(pathfn string, content []byte,
 
 func isDockerfilePinned(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := fileparser.CheckFilesContent("*Dockerfile*", false,
-		c, validateDockerfileIsPinned, &r)
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*Dockerfile*",
+		CaseSensitive: false,
+	}, validateDockerfileIsPinned, c.Dlogger, &r)
 	return createReturnForIsDockerfilePinned(r, c.Dlogger, err)
 }
 
@@ -362,12 +391,19 @@ func testValidateDockerfileIsPinned(pathfn string, content []byte, dl checker.De
 	return createReturnForIsDockerfilePinned(r, dl, err)
 }
 
-func validateDockerfileIsPinned(pathfn string, content []byte,
-	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
+var validateDockerfileIsPinned fileparser.DoWhileTrueOnFileContent = func(
+	pathfn string,
+	content []byte,
+	args ...interface{}) (bool, error) {
 	// Users may use various names, e.g.,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
 
-	pdata := dataAsResultPointer(data)
+	if len(args) != 2 {
+		return false, fmt.Errorf(
+			"validateDockerfileIsPinned requires exactly 2 arguments: %w", errInvalidArgLength)
+	}
+	pdata := dataAsResultPointer(args[1])
+	dl := dataAsDetailLogger(args[0])
 	// Return early if this is not a dockerfile.
 	if !isDockerfile(pathfn, content) {
 		addPinnedResult(pdata, true)
@@ -472,8 +508,10 @@ func validateDockerfileIsPinned(pathfn string, content []byte,
 
 func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 	var r pinnedResult
-	err := fileparser.CheckFilesContent(".github/workflows/*", false,
-		c, validateGitHubWorkflowIsFreeOfInsecureDownloads, &r)
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       ".github/workflows/*",
+		CaseSensitive: false,
+	}, validateGitHubWorkflowIsFreeOfInsecureDownloads, c.Dlogger, &r)
 	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, c.Dlogger, err)
 }
 
@@ -494,14 +532,20 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 
 // validateGitHubWorkflowIsFreeOfInsecureDownloads checks if the workflow file downloads dependencies that are unpinned.
 // Returns true if the check should continue executing after this file.
-// nolint: gocognit
-func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []byte,
-	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
+var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
+	pathfn string,
+	content []byte,
+	args ...interface{}) (bool, error) {
 	if !fileparser.IsWorkflowFile(pathfn) {
 		return true, nil
 	}
 
-	pdata := dataAsResultPointer(data)
+	if len(args) != 2 {
+		return false, fmt.Errorf(
+			"validateGitHubWorkflowIsFreeOfInsecureDownloads requires exactly 2 arguments: %w", errInvalidArgLength)
+	}
+	pdata := dataAsResultPointer(args[1])
+	dl := dataAsDetailLogger(args[0])
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {
 		addPinnedResult(pdata, true)
@@ -569,8 +613,10 @@ func validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn string, content []by
 // Check pinning of github actions in workflows.
 func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) (int, error) {
 	var r worklowPinningResult
-	err := fileparser.CheckFilesContent(".github/workflows/*",
-		true, c, validateGitHubActionWorkflow, &r)
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       ".github/workflows/*",
+		CaseSensitive: true,
+	}, validateGitHubActionWorkflow, c.Dlogger, &r)
 	return createReturnForIsGitHubActionsWorkflowPinned(r, c.Dlogger, err)
 }
 
@@ -597,13 +643,20 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
 // should continue executing after this file.
-func validateGitHubActionWorkflow(pathfn string, content []byte,
-	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
+var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
+	pathfn string,
+	content []byte,
+	args ...interface{}) (bool, error) {
 	if !fileparser.IsWorkflowFile(pathfn) {
 		return true, nil
 	}
 
-	pdata := dataAsWorkflowResultPointer(data)
+	if len(args) != 2 {
+		return false, fmt.Errorf(
+			"validateGitHubActionWorkflow requires exactly 2 arguments: %w", errInvalidArgLength)
+	}
+	pdata := dataAsWorkflowResultPointer(args[1])
+	dl := dataAsDetailLogger(args[0])
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {
 		addWorkflowPinnedResult(pdata, true, true)
