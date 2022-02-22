@@ -24,6 +24,12 @@ import (
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
+var (
+	errInvalidArgType   = errors.New("invalid arg type")
+	errInvalidArgLength = errors.New("invalid arg length")
+	errTest             = errors.New("test")
+)
+
 func TestIsTemplateFile(t *testing.T) {
 	t.Parallel()
 
@@ -572,57 +578,90 @@ func TestCheckFilesContent(t *testing.T) {
 	}
 }
 
-// TestCheckFilesContentV6 tests the CheckFilesContentV6 function.
-func TestCheckIfFileExistsV6(t *testing.T) {
+// TestOnAllFilesDo tests the OnAllFilesDo function.
+// nolint:gocognit
+func TestOnAllFilesDo(t *testing.T) {
 	t.Parallel()
-	//nolint
-	type args struct {
-		cbReturn             bool
-		cbwantErr            bool
-		listFilesReturnError error
+
+	type testArgsFn func(args ...interface{}) bool
+	validateCountIs := func(count int) testArgsFn {
+		return func(args ...interface{}) bool {
+			if len(args) == 0 {
+				return false
+			}
+			val, ok := args[0].(*int)
+			if !ok {
+				return false
+			}
+			return val != nil && *val == count
+		}
 	}
-	//nolint
+
+	incrementCount := func(path string, args ...interface{}) (bool, error) {
+		if len(args) < 1 {
+			return false, errInvalidArgLength
+		}
+		val, ok := args[0].(*int)
+		if !ok || val == nil {
+			return false, errInvalidArgType
+		}
+		(*val)++
+		if len(args) > 1 {
+			maxVal, ok := args[1].(int)
+			if !ok {
+				return false, errInvalidArgType
+			}
+			if *val >= maxVal {
+				return false, nil
+			}
+		}
+		return true, nil
+	}
+	alwaysFail := func(path string, args ...interface{}) (bool, error) {
+		return false, errTest
+	}
+	// nolint
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name         string
+		onFile       DoWhileTrueOnFilename
+		onFileArgs   []interface{}
+		listFiles    []string
+		errListFiles error
+		err          error
+		testArgs     testArgsFn
 	}{
 		{
-			name: "cb true and no error",
-			args: args{
-				cbReturn:             true,
-				cbwantErr:            false,
-				listFilesReturnError: nil,
-			},
-			wantErr: false,
+			name:         "error during ListFiles",
+			errListFiles: errTest,
+			err:          errTest,
+			onFile:       alwaysFail,
 		},
 		{
-			name: "cb false and no error",
-			args: args{
-				cbReturn:             false,
-				cbwantErr:            false,
-				listFilesReturnError: nil,
-			},
-			wantErr: false,
+			name:       "empty ListFiles",
+			listFiles:  []string{},
+			onFile:     incrementCount,
+			onFileArgs: []interface{}{new(int)},
+			testArgs:   validateCountIs(0),
 		},
 		{
-			name: "cb wantErr and error",
-			args: args{
-				cbReturn:             true,
-				cbwantErr:            true,
-				listFilesReturnError: nil,
-			},
-			wantErr: true,
+			name:       "onFile true and no error",
+			listFiles:  []string{"foo", "bar"},
+			onFile:     incrementCount,
+			onFileArgs: []interface{}{new(int)},
+			testArgs:   validateCountIs(2),
 		},
 		{
-			name: "listFilesReturnError and error",
-			args: args{
-				cbReturn:  true,
-				cbwantErr: true,
-				//nolint
-				listFilesReturnError: errors.New("test error"),
-			},
-			wantErr: true,
+			name:       "onFile false and no error",
+			listFiles:  []string{"foo", "bar"},
+			onFile:     incrementCount,
+			onFileArgs: []interface{}{new(int), 1 /*maxVal*/},
+			testArgs:   validateCountIs(1),
+		},
+		{
+			name:      "onFile has error",
+			listFiles: []string{"foo", "bar"},
+			onFile:    alwaysFail,
+			err:       errTest,
 		},
 	}
 	for _, tt := range tests {
@@ -630,23 +669,17 @@ func TestCheckIfFileExistsV6(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			x := func(path string, data FileCbData) (bool, error) {
-				if tt.args.cbwantErr {
-					//nolint
-					return false, errors.New("test error")
-				}
-				return tt.args.cbReturn, nil
-			}
-
 			ctrl := gomock.NewController(t)
-			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListFiles(gomock.Any()).Return([]string{"foo"}, nil).AnyTimes()
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).
+				Return(tt.listFiles, tt.errListFiles).AnyTimes()
 
-			err := CheckIfFileExistsV6(mockRepo, x, x)
-
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CheckIfFileExistsV6() error = %v, wantErr %v for %v", err, tt.wantErr, tt.name)
-				return
+			err := OnAllFilesDo(mockRepoClient, tt.onFile, tt.onFileArgs...)
+			if !errors.Is(err, tt.err) {
+				t.Errorf("OnAllFilesDo() expected error = %v, got %v", tt.err, err)
+			}
+			if tt.testArgs != nil && !tt.testArgs(tt.onFileArgs...) {
+				t.Error("testArgs validation failed")
 			}
 		})
 	}

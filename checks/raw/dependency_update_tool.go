@@ -26,7 +26,7 @@ import (
 // DependencyUpdateTool is the exported name for Depdendency-Update-Tool.
 func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolData, error) {
 	var tools []checker.Tool
-	err := fileparser.CheckIfFileExistsV6(c, checkDependencyFileExists, &tools)
+	err := fileparser.OnAllFilesDo(c, checkDependencyFileExists, &tools)
 	if err != nil {
 		return checker.DependencyUpdateToolData{}, fmt.Errorf("%w", err)
 	}
@@ -35,11 +35,14 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 	return checker.DependencyUpdateToolData{Tools: tools}, nil
 }
 
-func checkDependencyFileExists(name string, data fileparser.FileCbData) (bool, error) {
-	ptools, ok := data.(*[]checker.Tool)
+var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name string, args ...interface{}) (bool, error) {
+	if len(args) != 1 {
+		return false, fmt.Errorf("checkDependencyFileExists requires exactly one argument: %w", errInvalidArgLength)
+	}
+	ptools, ok := args[0].(*[]checker.Tool)
 	if !ok {
-		// This never happens.
-		panic("invalid type")
+		return false, fmt.Errorf(
+			"checkDependencyFileExists requires an argument of type: *[]checker.Tool: %w", errInvalidArgType)
 	}
 
 	switch strings.ToLower(name) {
