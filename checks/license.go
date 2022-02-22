@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -105,17 +106,7 @@ func testLicenseCheck(name string) bool {
 func LicenseCheck(c *checker.CheckRequest) checker.CheckResult {
 	var s string
 
-	onFile := func(name string, data fileparser.FileCbData) (bool, error) {
-		if checkLicense(name) {
-			if strData, ok := data.(*string); ok && strData != nil {
-				*strData = name
-			}
-			return false, nil
-		}
-		return true, nil
-	}
-
-	err := fileparser.CheckIfFileExistsV6(c.RepoClient, onFile, &s)
+	err := fileparser.OnAllFilesDo(c.RepoClient, isLicenseFile, &s)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckLicense, err)
 	}
@@ -128,6 +119,23 @@ func LicenseCheck(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateMaxScoreResult(CheckLicense, "license file detected")
 	}
 	return checker.CreateMinScoreResult(CheckLicense, "license file not detected")
+}
+
+var isLicenseFile fileparser.DoWhileTrueOnFilename = func(name string, args ...interface{}) (bool, error) {
+	if len(args) != 1 {
+		return false, fmt.Errorf("isLicenseFile requires exactly one argument: %w", errInvalidArgLength)
+	}
+	s, ok := args[0].(*string)
+	if !ok {
+		return false, fmt.Errorf("isLicenseFile requires argument of type: *string: %w", errInvalidArgType)
+	}
+	if checkLicense(name) {
+		if s != nil {
+			*s = name
+		}
+		return false, nil
+	}
+	return true, nil
 }
 
 // CheckLicense to check whether the name parameter fulfill license file criteria.
