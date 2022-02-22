@@ -103,28 +103,28 @@ func testLicenseCheck(name string) bool {
 
 // LicenseCheck runs LicenseCheck check.
 func LicenseCheck(c *checker.CheckRequest) checker.CheckResult {
-	var r bool
+	var s string
 
-	onFile := func(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
-		pdata := fileparser.FileGetCbDataAsBoolPointer(data)
-
+	onFile := func(name string, data fileparser.FileCbData) (bool, error) {
 		if checkLicense(name) {
-			c.Dlogger.Info(&checker.LogMessage{
-				Path:   name,
-				Type:   checker.FileTypeSource,
-				Offset: 1,
-			})
-			*pdata = true
+			if strData, ok := data.(*string); ok && strData != nil {
+				*strData = name
+			}
 			return false, nil
 		}
 		return true, nil
 	}
 
-	err := fileparser.CheckIfFileExists(c, onFile, &r)
+	err := fileparser.CheckIfFileExistsV6(c.RepoClient, onFile, &s)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(CheckLicense, err)
 	}
-	if r {
+	if s != "" {
+		c.Dlogger.Info(&checker.LogMessage{
+			Path:   s,
+			Type:   checker.FileTypeSource,
+			Offset: 1,
+		})
 		return checker.CreateMaxScoreResult(CheckLicense, "license file detected")
 	}
 	return checker.CreateMinScoreResult(CheckLicense, "license file not detected")

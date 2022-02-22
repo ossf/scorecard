@@ -32,7 +32,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 
 	// Check repository for repository-specific policy.
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
-	onFile := func(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
+	onFile := func(name string, data fileparser.FileCbData) (bool, error) {
 		pfiles, ok := data.(*[]checker.File)
 		if !ok {
 			// This never happens.
@@ -62,7 +62,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	}
 
 	files := make([]checker.File, 0)
-	err := fileparser.CheckIfFileExists(c, onFile, &files)
+	err := fileparser.CheckIfFileExistsV6(c.RepoClient, onFile, &files)
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
 	}
@@ -74,18 +74,12 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
 	logger := log.NewLogger(log.InfoLevel)
-	dotGitHub := &checker.CheckRequest{
-		Ctx:        c.Ctx,
-		Dlogger:    c.Dlogger,
-		RepoClient: githubrepo.CreateGithubRepoClient(c.Ctx, logger),
-		Repo:       c.Repo.Org(),
-	}
-
-	err = dotGitHub.RepoClient.InitRepo(dotGitHub.Repo, clients.HeadSHA)
+	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
+	err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA)
 	switch {
 	case err == nil:
-		defer dotGitHub.RepoClient.Close()
-		onFile = func(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
+		defer dotGitHubClient.Close()
+		onFile = func(name string, data fileparser.FileCbData) (bool, error) {
 			pfiles, ok := data.(*[]checker.File)
 			if !ok {
 				// This never happens.
@@ -106,7 +100,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			}
 			return true, nil
 		}
-		err = fileparser.CheckIfFileExists(dotGitHub, onFile, &files)
+		err = fileparser.CheckIfFileExistsV6(dotGitHubClient, onFile, &files)
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
 		}

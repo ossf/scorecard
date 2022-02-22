@@ -379,54 +379,6 @@ func Test_isTestdataFile(t *testing.T) {
 	}
 }
 
-// TestFileGetCbDataAsBoolPointer tests the FileGetCbDataAsBoolPointer function.
-func TestFileGetCbDataAsBoolPointer(t *testing.T) {
-	t.Parallel()
-	type args struct {
-		data FileCbData
-	}
-	b := true
-	//nolint
-	tests := []struct {
-		name      string
-		args      args
-		want      *bool
-		wantPanic bool
-	}{
-		{
-			name: "true",
-			args: args{
-				data: &b,
-			},
-			want: &b,
-		},
-		{
-			name:      "nil",
-			args:      args{},
-			want:      &b,
-			wantPanic: true,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			if tt.wantPanic {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Errorf("FileGetCbDataAsBoolPointer() did not panic")
-					}
-				}()
-				FileGetCbDataAsBoolPointer(tt.args.data)
-				return
-			}
-			if got := FileGetCbDataAsBoolPointer(tt.args.data); got != tt.want {
-				t.Errorf("FileGetCbDataAsBoolPointer() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 // TestCheckFilesContentV6 tests the CheckFilesContentV6 function.
 func TestCheckFilesContentV6(t *testing.T) {
 	t.Parallel()
@@ -694,71 +646,6 @@ func TestCheckIfFileExistsV6(t *testing.T) {
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CheckIfFileExistsV6() error = %v, wantErr %v for %v", err, tt.wantErr, tt.name)
-				return
-			}
-		})
-	}
-}
-
-// TestCheckIfFileExists tests the CheckIfFileExists function.
-func TestCheckIfFileExists(t *testing.T) {
-	t.Parallel()
-	//nolint
-	type args struct {
-		cbReturn bool
-		cbErr    error
-	}
-	//nolint
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "cb true and no error",
-			args: args{
-				cbReturn: true,
-				cbErr:    nil,
-			},
-			wantErr: false,
-		},
-		{
-			name: "cb false and no error",
-			args: args{
-				cbReturn: false,
-				cbErr:    nil,
-			},
-			wantErr: false,
-		},
-		{
-			name: "cb error",
-			args: args{
-				cbReturn: true,
-				cbErr:    errors.New("test error"),
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			ctrl := gomock.NewController(t)
-			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListFiles(gomock.Any()).Return([]string{"foo"}, nil).AnyTimes()
-			c := checker.CheckRequest{
-				RepoClient: mockRepo,
-			}
-			x := func(path string,
-				dl checker.DetailLogger, data FileCbData) (bool, error) {
-				return tt.args.cbReturn, tt.args.cbErr
-			}
-
-			err := CheckIfFileExists(&c, x, x)
-
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CheckIfFileExists() error = %v, wantErr %v for %v", err, tt.wantErr, tt.name)
 				return
 			}
 		})
