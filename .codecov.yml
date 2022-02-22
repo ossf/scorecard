@@ -4,6 +4,8 @@ codecov:
     after_n_builds: 1
     require_ci_to_pass: yes
 
+ignore:
+  - "cron/**/*"
 coverage:
   precision: 2
   round: down
