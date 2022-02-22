@@ -168,22 +168,19 @@ func CheckFilesContentV6(shellPathFnPattern string,
 	return nil
 }
 
-// FileCbV6 is the callback.
-// The bool returned indicates whether the FileCbData
-// should continue iterating over files or not.
-type FileCbV6 func(path string, data FileCbData) (bool, error)
+// DoWhileTrueOnFilename takes a filename and optional variadic args and returns
+// true if the next filename should continue to be processed.
+type DoWhileTrueOnFilename func(path string, args ...interface{}) (bool, error)
 
-// CheckIfFileExistsV6 downloads the tar of the repository and calls the onFile() to check
-// for the occurrence.
-func CheckIfFileExistsV6(repoClient clients.RepoClient,
-	onFile FileCbV6, data FileCbData) error {
+// OnAllFilesDo iterates through all files returned by `repoClient` and
+// calls `onFile` fn on them until `onFile` returns error or a false value.
+func OnAllFilesDo(repoClient clients.RepoClient, onFile DoWhileTrueOnFilename, args ...interface{}) error {
 	matchedFiles, err := repoClient.ListFiles(func(string) (bool, error) { return true, nil })
 	if err != nil {
-		// nolint: wrapcheck
-		return err
+		return fmt.Errorf("error during ListFiles: %w", err)
 	}
 	for _, filename := range matchedFiles {
-		continueIter, err := onFile(filename, data)
+		continueIter, err := onFile(filename, args...)
 		if err != nil {
 			return err
 		}
@@ -192,7 +189,6 @@ func CheckIfFileExistsV6(repoClient clients.RepoClient,
 			break
 		}
 	}
-
 	return nil
 }
 

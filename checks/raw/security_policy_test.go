@@ -24,44 +24,35 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func Test_isSecurityRstFound(t *testing.T) {
+func Test_isSecurityPolicyFilename(t *testing.T) {
 	t.Parallel()
-	type args struct {
-		name string
-	}
 	tests := []struct {
-		name string
-		args args
-		want bool
+		name     string
+		filename string
+		expected bool
 	}{
 		{
-			name: "test1",
-			args: args{
-				name: "test1",
-			},
-			want: false,
+			name:     "test1",
+			filename: "test1",
+			expected: false,
 		},
 		{
-			name: "docs/security.rst",
-			args: args{
-				name: "docs/security.rst",
-			},
-			want: true,
+			name:     "docs/security.rst",
+			filename: "docs/security.rst",
+			expected: true,
 		},
 		{
-			name: "doc/security.rst",
-			args: args{
-				name: "doc/security.rst",
-			},
-			want: true,
+			name:     "doc/security.rst",
+			filename: "doc/security.rst",
+			expected: true,
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := isSecurityRstFound(tt.args.name); got != tt.want {
-				t.Errorf("isSecurityRstFound() = %v, want %v for %v", got, tt.want, tt.name)
+			if got := isSecurityPolicyFilename(tt.filename); got != tt.expected {
+				t.Errorf("isSecurityPolicyFilename() = %v, want %v for %v", got, tt.expected, tt.name)
 			}
 		})
 	}
