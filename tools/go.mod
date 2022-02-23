@@ -344,3 +344,6 @@ replace github.com/containerd/containerd => github.com/containerd/containerd v1.
 
 //https://github.com/opencontainers/distribution-spec/security/advisories/GHSA-mc8v-mgrf-8f4m
 replace github.com/opencontainers/image-spec v1.0.1 => github.com/opencontainers/image-spec v1.0.2
+
+// This replace is for GHSA-qq97-vm5h-rrhg
+replace github.com/docker/distribution => github.com/docker/distribution v2.8.0+incompatible
