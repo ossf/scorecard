@@ -42,6 +42,7 @@ var (
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
 	errEmptyScorecardBin          = errors.New("scorecard_bin variable is empty")
 	enabledChecks                 = ""
+	scorecardPrivateRepository    = ""
 )
 
 type repositoryInformation struct {
@@ -59,19 +60,18 @@ const (
 	githubRef               = "GITHUB_REF"
 	githubWorkspace         = "GITHUB_WORKSPACE"
 	//nolint:gosec
-	githubAuthToken            = "GITHUB_AUTH_TOKEN"
-	inputresultsfile           = "INPUT_RESULTS_FILE"
-	inputresultsformat         = "INPUT_RESULTS_FORMAT"
-	inputpublishresults        = "INPUT_PUBLISH_RESULTS"
-	scorecardBin               = "/scorecard"
-	scorecardResultsFormat     = "SCORECARD_RESULTS_FORMAT"
-	scorecardPublishResults    = "SCORECARD_PUBLISH_RESULTS"
-	scorecardPolicyFile        = "./policy.yml"
-	scorecardResultsFile       = "SCORECARD_RESULTS_FILE"
-	scorecardFork              = "SCORECARD_IS_FORK"
-	scorecardDefaultBranch     = "SCORECARD_DEFAULT_BRANCH"
-	scorecardPrivateRepository = "SCORECARD_PRIVATE_REPOSITORY"
-	sarif                      = "sarif"
+	githubAuthToken         = "GITHUB_AUTH_TOKEN"
+	inputresultsfile        = "INPUT_RESULTS_FILE"
+	inputresultsformat      = "INPUT_RESULTS_FORMAT"
+	inputpublishresults     = "INPUT_PUBLISH_RESULTS"
+	scorecardBin            = "/scorecard"
+	scorecardResultsFormat  = "SCORECARD_RESULTS_FORMAT"
+	scorecardPublishResults = "SCORECARD_PUBLISH_RESULTS"
+	scorecardPolicyFile     = "./policy.yml"
+	scorecardResultsFile    = "SCORECARD_RESULTS_FILE"
+	scorecardFork           = "SCORECARD_IS_FORK"
+	scorecardDefaultBranch  = "SCORECARD_DEFAULT_BRANCH"
+	sarif                   = "sarif"
 )
 
 // main is the entrypoint for the action.
@@ -293,9 +293,7 @@ func updateRepositoryInformation(privateRepo bool, defaultBranch string) error {
 		return errEmptyDefaultBranch
 	}
 
-	if err := os.Setenv(scorecardPrivateRepository, strconv.FormatBool(privateRepo)); err != nil {
-		return fmt.Errorf("error setting %s: %w", scorecardPrivateRepository, err)
-	}
+	scorecardPrivateRepository = strconv.FormatBool(privateRepo)
 	if err := os.Setenv(scorecardDefaultBranch, fmt.Sprintf("refs/heads/%s", defaultBranch)); err != nil {
 		return fmt.Errorf("error setting %s: %w", scorecardDefaultBranch, err)
 	}
@@ -304,7 +302,7 @@ func updateRepositoryInformation(privateRepo bool, defaultBranch string) error {
 
 // updateEnvVariables is a function to update the ENV variables based on results format and private repository.
 func updateEnvVariables() error {
-	isPrivateRepo := os.Getenv(scorecardPrivateRepository)
+	isPrivateRepo := scorecardPrivateRepository
 	if isPrivateRepo != "true" {
 		if err := os.Setenv(scorecardPublishResults, "false"); err != nil {
 			return fmt.Errorf("error setting %s: %w", scorecardPublishResults, err)
@@ -320,7 +318,6 @@ func printEnvVariables(writer io.Writer) {
 	fmt.Fprintf(writer, "GITHUB_REPOSITORY=%s\n", os.Getenv(githubRepository))
 	fmt.Fprintf(writer, "SCORECARD_IS_FORK=%s\n", os.Getenv(scorecardFork))
 	fmt.Fprintf(writer, "Ref=%s\n", os.Getenv(githubRef))
-	fmt.Fprintf(writer, "SCORECARD_PRIVATE_REPOSITORY=%s\n", os.Getenv(scorecardPrivateRepository))
 	fmt.Fprintf(writer, "SCORECARD_PUBLISH_RESULTS=%s\n", os.Getenv(scorecardPublishResults))
 	fmt.Fprintf(writer, "Format=%s\n", os.Getenv(scorecardResultsFormat))
 	fmt.Fprintf(writer, "Default branch=%s\n", os.Getenv(scorecardDefaultBranch))
