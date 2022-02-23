@@ -46,6 +46,7 @@ var (
 	scorecardDefaultBranch        = ""
 	scorecardPublishResults       = ""
 	scorecardResultsFormat        = ""
+	scorecardResultsFile          = ""
 )
 
 type repositoryInformation struct {
@@ -63,15 +64,14 @@ const (
 	githubRef               = "GITHUB_REF"
 	githubWorkspace         = "GITHUB_WORKSPACE"
 	//nolint:gosec
-	githubAuthToken      = "GITHUB_AUTH_TOKEN"
-	inputresultsfile     = "INPUT_RESULTS_FILE"
-	inputresultsformat   = "INPUT_RESULTS_FORMAT"
-	inputpublishresults  = "INPUT_PUBLISH_RESULTS"
-	scorecardBin         = "/scorecard"
-	scorecardPolicyFile  = "./policy.yml"
-	scorecardResultsFile = "SCORECARD_RESULTS_FILE"
-	scorecardFork        = "SCORECARD_IS_FORK"
-	sarif                = "sarif"
+	githubAuthToken     = "GITHUB_AUTH_TOKEN"
+	inputresultsfile    = "INPUT_RESULTS_FILE"
+	inputresultsformat  = "INPUT_RESULTS_FORMAT"
+	inputpublishresults = "INPUT_PUBLISH_RESULTS"
+	scorecardBin        = "/scorecard"
+	scorecardPolicyFile = "./policy.yml"
+	scorecardFork       = "SCORECARD_IS_FORK"
+	sarif               = "sarif"
 )
 
 // main is the entrypoint for the action.
@@ -110,7 +110,7 @@ func main() {
 	// gets the cmd run settings
 	cmd, err := runScorecardSettings(os.Getenv(githubEventName),
 		scorecardPolicyFile, scorecardResultsFormat,
-		scorecardBin, os.Getenv(scorecardResultsFile), os.Getenv(githubRepository))
+		scorecardBin, scorecardResultsFile, os.Getenv(githubRepository))
 	if err != nil {
 		panic(err)
 	}
@@ -119,7 +119,7 @@ func main() {
 		panic(err)
 	}
 
-	results, err := ioutil.ReadFile(os.Getenv(scorecardResultsFile))
+	results, err := ioutil.ReadFile(scorecardResultsFile)
 	if err != nil {
 		panic(err)
 	}
@@ -156,9 +156,7 @@ func initalizeENVVariables() error {
 		if result == "" {
 			return errInputResultFileEmpty
 		}
-		if err := os.Setenv(scorecardResultsFile, result); err != nil {
-			return fmt.Errorf("error setting %s: %w", scorecardResultsFile, err)
-		}
+		scorecardResultsFile = result
 	}
 
 	if result, exists := os.LookupEnv(inputresultsformat); !exists {
