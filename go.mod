@@ -113,6 +113,8 @@ replace (
 	// https://deps.dev/advisory/OSV/GO-2020-0017?from=%2Fgo%2Fk8s.io%252Fclient-go%2Fv0.0.0-20200207030105-473926661c44
 	github.com/dgrijalva/jwt-go v0.0.0-20170104182250-a601269ab70c => github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt v3.2.1+incompatible
+	// This replace is for GHSA-qq97-vm5h-rrhg
+	github.com/docker/distribution => github.com/docker/distribution v2.8.0+incompatible
 	// https://go.googlesource.com/vulndb/+/refs/heads/master/reports/GO-2020-0020.yaml
 	github.com/gorilla/handlers => github.com/gorilla/handlers v1.3.0
 	// https://github.com/miekg/dns/issues/1037
@@ -123,4 +125,5 @@ replace (
 	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.1-0.20181016170032-d91630c85102
 	// This replace is for https://github.com/advisories/GHSA-25xm-hr59-7c27
 	github.com/ulikunitz/xz => github.com/ulikunitz/xz v0.5.8
+
 )
