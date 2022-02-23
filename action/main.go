@@ -45,6 +45,7 @@ var (
 	scorecardPrivateRepository    = ""
 	scorecardDefaultBranch        = ""
 	scorecardPublishResults       = ""
+	scorecardResultsFormat        = ""
 )
 
 type repositoryInformation struct {
@@ -62,16 +63,15 @@ const (
 	githubRef               = "GITHUB_REF"
 	githubWorkspace         = "GITHUB_WORKSPACE"
 	//nolint:gosec
-	githubAuthToken        = "GITHUB_AUTH_TOKEN"
-	inputresultsfile       = "INPUT_RESULTS_FILE"
-	inputresultsformat     = "INPUT_RESULTS_FORMAT"
-	inputpublishresults    = "INPUT_PUBLISH_RESULTS"
-	scorecardBin           = "/scorecard"
-	scorecardResultsFormat = "SCORECARD_RESULTS_FORMAT"
-	scorecardPolicyFile    = "./policy.yml"
-	scorecardResultsFile   = "SCORECARD_RESULTS_FILE"
-	scorecardFork          = "SCORECARD_IS_FORK"
-	sarif                  = "sarif"
+	githubAuthToken      = "GITHUB_AUTH_TOKEN"
+	inputresultsfile     = "INPUT_RESULTS_FILE"
+	inputresultsformat   = "INPUT_RESULTS_FORMAT"
+	inputpublishresults  = "INPUT_PUBLISH_RESULTS"
+	scorecardBin         = "/scorecard"
+	scorecardPolicyFile  = "./policy.yml"
+	scorecardResultsFile = "SCORECARD_RESULTS_FILE"
+	scorecardFork        = "SCORECARD_IS_FORK"
+	sarif                = "sarif"
 )
 
 // main is the entrypoint for the action.
@@ -109,7 +109,7 @@ func main() {
 
 	// gets the cmd run settings
 	cmd, err := runScorecardSettings(os.Getenv(githubEventName),
-		scorecardPolicyFile, os.Getenv(scorecardResultsFormat),
+		scorecardPolicyFile, scorecardResultsFormat,
 		scorecardBin, os.Getenv(scorecardResultsFile), os.Getenv(githubRepository))
 	if err != nil {
 		panic(err)
@@ -167,9 +167,7 @@ func initalizeENVVariables() error {
 		if result == "" {
 			return errInputResultFormatEmtpy
 		}
-		if err := os.Setenv(scorecardResultsFormat, result); err != nil {
-			return fmt.Errorf("error setting %s: %w", scorecardResultsFormat, err)
-		}
+		scorecardResultsFormat = result
 	}
 
 	if result, exists := os.LookupEnv(inputpublishresults); !exists {
@@ -313,7 +311,6 @@ func printEnvVariables(writer io.Writer) {
 	fmt.Fprintf(writer, "GITHUB_REPOSITORY=%s\n", os.Getenv(githubRepository))
 	fmt.Fprintf(writer, "SCORECARD_IS_FORK=%s\n", os.Getenv(scorecardFork))
 	fmt.Fprintf(writer, "Ref=%s\n", os.Getenv(githubRef))
-	fmt.Fprintf(writer, "Format=%s\n", os.Getenv(scorecardResultsFormat))
 }
 
 // validate is a function to validate the scorecard configuration based on the environment variables.
