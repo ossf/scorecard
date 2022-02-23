@@ -45,18 +45,18 @@ func NewRunner(checkName, repo string, checkReq *CheckRequest) *Runner {
 	}
 }
 
-// WithCheckName sets the check name.
-func (r *Runner) WithCheckName(check string) {
+// SetCheckName sets the check name.
+func (r *Runner) SetCheckName(check string) {
 	r.CheckName = check
 }
 
-// WithRepo sets the repository.
-func (r *Runner) WithRepo(repo string) {
+// SetRepo sets the repository.
+func (r *Runner) SetRepo(repo string) {
 	r.Repo = repo
 }
 
-// WithCheckRequest sets the check request.
-func (r *Runner) WithCheckRequest(checkReq *CheckRequest) {
+// SetCheckRequest sets the check request.
+func (r *Runner) SetCheckRequest(checkReq *CheckRequest) {
 	r.CheckRequest = *checkReq
 }
 
