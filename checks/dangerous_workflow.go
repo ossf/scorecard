@@ -98,23 +98,37 @@ func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 	data := patternCbData{
 		workflowPattern: make(map[dangerousResults]bool),
 	}
-	err := fileparser.CheckFilesContent(".github/workflows/*", false,
-		c, validateGitHubActionWorkflowPatterns, &data)
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       ".github/workflows/*",
+		CaseSensitive: false,
+	},
+		validateGitHubActionWorkflowPatterns, c.Dlogger, &data)
 	return createResultForDangerousWorkflowPatterns(data, err)
 }
 
 // Check file content.
-func validateGitHubActionWorkflowPatterns(path string, content []byte, dl checker.DetailLogger,
-	data fileparser.FileCbData) (bool, error) {
+var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = func(path string,
+	content []byte,
+	args ...interface{}) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
 
+	if len(args) != 2 {
+		return false, fmt.Errorf(
+			"validateGitHubActionWorkflowPatterns requires exactly 2 arguments: %w", errInvalidArgLength)
+	}
+
 	// Verify the type of the data.
-	pdata, ok := data.(*patternCbData)
+	pdata, ok := args[1].(*patternCbData)
 	if !ok {
-		// This never happens.
-		panic("invalid type")
+		return false, fmt.Errorf(
+			"validateGitHubActionWorkflowPatterns expects arg[0] of type *patternCbData: %w", errInvalidArgType)
+	}
+	dl, ok := args[0].(checker.DetailLogger)
+	if !ok {
+		return false, fmt.Errorf(
+			"validateGitHubActionWorkflowPatterns expects arg[1] of type checker.DetailLogger: %w", errInvalidArgType)
 	}
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {

@@ -36,11 +36,13 @@ func init() {
 
 func checkCFLite(c *checker.CheckRequest) (bool, error) {
 	result := false
-	e := fileparser.CheckFilesContent(".clusterfuzzlite/Dockerfile", true, c,
-		func(path string, content []byte, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
-			result = fileparser.CheckFileContainsCommands(content, "#")
-			return false, nil
-		}, nil)
+	e := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       ".clusterfuzzlite/Dockerfile",
+		CaseSensitive: true,
+	}, func(path string, content []byte, args ...interface{}) (bool, error) {
+		result = fileparser.CheckFileContainsCommands(content, "#")
+		return false, nil
+	}, nil)
 	if e != nil {
 		return result, fmt.Errorf("%w", e)
 	}

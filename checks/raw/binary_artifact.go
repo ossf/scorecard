@@ -31,7 +31,10 @@ import (
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
 func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
 	files := []checker.File{}
-	err := fileparser.CheckFilesContentV6("*", false, c, checkBinaryFileContent, &files)
+	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
+		Pattern:       "*",
+		CaseSensitive: false,
+	}, checkBinaryFileContent, &files)
 	if err != nil {
 		return checker.BinaryArtifactData{}, fmt.Errorf("%w", err)
 	}
@@ -40,12 +43,16 @@ func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
 	return checker.BinaryArtifactData{Files: files}, nil
 }
 
-func checkBinaryFileContent(path string, content []byte,
-	data fileparser.FileCbData) (bool, error) {
-	pfiles, ok := data.(*[]checker.File)
+var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path string, content []byte,
+	args ...interface{}) (bool, error) {
+	if len(args) != 1 {
+		return false, fmt.Errorf(
+			"checkBinaryFileContent requires exactly one argument: %w", errInvalidArgLength)
+	}
+	pfiles, ok := args[0].(*[]checker.File)
 	if !ok {
-		// This never happens.
-		panic("invalid type")
+		return false, fmt.Errorf(
+			"checkBinaryFileContent requires argument of type *[]checker.File: %w", errInvalidArgType)
 	}
 
 	binaryFileTypes := map[string]bool{

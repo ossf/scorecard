@@ -20,7 +20,6 @@ import (
 	"log"
 
 	"gocloud.dev/pubsub"
-
 	// Needed to link in GCP drivers.
 	_ "gocloud.dev/pubsub/gcppubsub"
 

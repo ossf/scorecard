@@ -82,9 +82,66 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	data := permissionCbData{
 		workflows: make(map[string]permissions),
 	}
-	err := fileparser.CheckFilesContent(".github/workflows/*", false,
-		c, validateGitHubActionTokenPermissions, &data)
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       ".github/workflows/*",
+		CaseSensitive: false,
+	}, validateGitHubActionTokenPermissions, c.Dlogger, &data)
 	return createResultForLeastPrivilegeTokens(data, err)
+}
+
+// Check file content.
+var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = func(path string,
+	content []byte,
+	args ...interface{}) (bool, error) {
+	if !fileparser.IsWorkflowFile(path) {
+		return true, nil
+	}
+	// Verify the type of the data.
+	if len(args) != 2 {
+		return false, fmt.Errorf(
+			"validateGitHubActionTokenPermissions requires exactly 2 arguments: %w", errInvalidArgLength)
+	}
+	pdata, ok := args[1].(*permissionCbData)
+	if !ok {
+		return false, fmt.Errorf(
+			"validateGitHubActionTokenPermissions requires arg[0] of type *permissionCbData: %w", errInvalidArgType)
+	}
+	dl, ok := args[0].(checker.DetailLogger)
+	if !ok {
+		return false, fmt.Errorf(
+			"validateGitHubActionTokenPermissions requires arg[1] of type checker.DetailLogger: %w", errInvalidArgType)
+	}
+
+	if !fileparser.CheckFileContainsCommands(content, "#") {
+		return true, nil
+	}
+
+	workflow, errs := actionlint.Parse(content)
+	if len(errs) > 0 && workflow == nil {
+		return false, fileparser.FormatActionlintError(errs)
+	}
+
+	// 1. Top-level permission definitions.
+	//nolint
+	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#example-1-passing-the-github_token-as-an-input,
+	// https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/,
+	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token.
+	if err := validateTopLevelPermissions(workflow, path, dl, pdata); err != nil {
+		return false, err
+	}
+
+	// 2. Run-level permission definitions,
+	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
+	ignoredPermissions := createIgnoredPermissions(workflow, path, dl)
+	if err := validatejobLevelPermissions(workflow, path, dl, pdata, ignoredPermissions); err != nil {
+		return false, err
+	}
+
+	// TODO(laurent): 2. Identify github actions that require write and add checks.
+
+	// TODO(laurent): 3. Read a few runs and ensures they have the same permissions.
+
+	return true, nil
 }
 
 func validatePermission(permissionKey permission, permissionValue *actionlint.PermissionScope,
@@ -376,51 +433,6 @@ func createResultForLeastPrivilegeTokens(result permissionCbData, err error) che
 
 	return checker.CreateMaxScoreResult(CheckTokenPermissions,
 		"tokens are read-only in GitHub workflows")
-}
-
-// Check file content.
-func validateGitHubActionTokenPermissions(path string, content []byte,
-	dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
-	if !fileparser.IsWorkflowFile(path) {
-		return true, nil
-	}
-	// Verify the type of the data.
-	pdata, ok := data.(*permissionCbData)
-	if !ok {
-		// This never happens.
-		panic("invalid type")
-	}
-
-	if !fileparser.CheckFileContainsCommands(content, "#") {
-		return true, nil
-	}
-
-	workflow, errs := actionlint.Parse(content)
-	if len(errs) > 0 && workflow == nil {
-		return false, fileparser.FormatActionlintError(errs)
-	}
-
-	// 1. Top-level permission definitions.
-	//nolint
-	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#example-1-passing-the-github_token-as-an-input,
-	// https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/,
-	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token.
-	if err := validateTopLevelPermissions(workflow, path, dl, pdata); err != nil {
-		return false, err
-	}
-
-	// 2. Run-level permission definitions,
-	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
-	ignoredPermissions := createIgnoredPermissions(workflow, path, dl)
-	if err := validatejobLevelPermissions(workflow, path, dl, pdata, ignoredPermissions); err != nil {
-		return false, err
-	}
-
-	// TODO(laurent): 2. Identify github actions that require write and add checks.
-
-	// TODO(laurent): 3. Read a few runs and ensures they have the same permissions.
-
-	return true, nil
 }
 
 func createIgnoredPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) map[permission]bool {
