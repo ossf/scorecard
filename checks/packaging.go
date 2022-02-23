@@ -187,7 +187,7 @@ func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 					Uses: "relekang/python-semantic-release",
 				},
 			},
-			LogText: "candidate python publishing workflow using pypi",
+			LogText: "candidate python publishing workflow using python-semantic-release",
 		},
 		{
 			// Go packages.
@@ -212,27 +212,5 @@ func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 		},
 	}
 
-	for _, job := range workflow.Jobs {
-		for _, matcher := range jobMatchers {
-			if !matcher.Matches(job) {
-				continue
-			}
-
-			dl.Info(&checker.LogMessage{
-				Path:   fp,
-				Type:   checker.FileTypeSource,
-				Offset: fileparser.GetLineNumber(job.Pos),
-				Text:   matcher.LogText,
-			})
-			return true
-		}
-	}
-
-	dl.Debug(&checker.LogMessage{
-		Path:   fp,
-		Type:   checker.FileTypeSource,
-		Offset: checker.OffsetDefault,
-		Text:   "not a publishing workflow",
-	})
-	return false
+	return fileparser.AnyJobsMatch(workflow, jobMatchers, fp, dl, "not a publishing workflow")
 }
