@@ -43,6 +43,7 @@ var (
 	errEmptyScorecardBin          = errors.New("scorecard_bin variable is empty")
 	enabledChecks                 = ""
 	scorecardPrivateRepository    = ""
+	scorecardDefaultBranch        = ""
 )
 
 type repositoryInformation struct {
@@ -70,7 +71,6 @@ const (
 	scorecardPolicyFile     = "./policy.yml"
 	scorecardResultsFile    = "SCORECARD_RESULTS_FILE"
 	scorecardFork           = "SCORECARD_IS_FORK"
-	scorecardDefaultBranch  = "SCORECARD_DEFAULT_BRANCH"
 	sarif                   = "sarif"
 )
 
@@ -294,9 +294,8 @@ func updateRepositoryInformation(privateRepo bool, defaultBranch string) error {
 	}
 
 	scorecardPrivateRepository = strconv.FormatBool(privateRepo)
-	if err := os.Setenv(scorecardDefaultBranch, fmt.Sprintf("refs/heads/%s", defaultBranch)); err != nil {
-		return fmt.Errorf("error setting %s: %w", scorecardDefaultBranch, err)
-	}
+	scorecardDefaultBranch = fmt.Sprintf("refs/heads/%s", defaultBranch)
+
 	return nil
 }
 
@@ -320,7 +319,6 @@ func printEnvVariables(writer io.Writer) {
 	fmt.Fprintf(writer, "Ref=%s\n", os.Getenv(githubRef))
 	fmt.Fprintf(writer, "SCORECARD_PUBLISH_RESULTS=%s\n", os.Getenv(scorecardPublishResults))
 	fmt.Fprintf(writer, "Format=%s\n", os.Getenv(scorecardResultsFormat))
-	fmt.Fprintf(writer, "Default branch=%s\n", os.Getenv(scorecardDefaultBranch))
 }
 
 // validate is a function to validate the scorecard configuration based on the environment variables.
@@ -336,9 +334,9 @@ func validate(writer io.Writer) error {
 		return errEmptyGitHubAuthToken
 	}
 	if strings.Contains(os.Getenv(githubEventName), "pull_request") &&
-		os.Getenv(githubRef) == os.Getenv(scorecardDefaultBranch) {
+		os.Getenv(githubRef) == scorecardDefaultBranch {
 		fmt.Fprintf(writer, "%s not supported with %s event.\n", os.Getenv(githubRef), os.Getenv(githubEventName))
-		fmt.Fprintf(writer, "Only the default branch %s is supported.\n", os.Getenv(scorecardDefaultBranch))
+		fmt.Fprintf(writer, "Only the default branch %s is supported.\n", scorecardDefaultBranch)
 		return errOnlyDefaultBranchSupported
 	}
 	return nil
