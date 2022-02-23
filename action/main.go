@@ -41,6 +41,7 @@ var (
 	errEmptyGitHubAuthToken       = errors.New("repo_token variable is empty")
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
 	errEmptyScorecardBin          = errors.New("scorecard_bin variable is empty")
+	enabledChecks                 = ""
 )
 
 type repositoryInformation struct {
@@ -52,7 +53,6 @@ const (
 	enableSarif             = "ENABLE_SARIF"
 	enableLicense           = "ENABLE_LICENSE"
 	enableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
-	enabledChecks           = "ENABLED_CHECKS"
 	githubEventPath         = "GITHUB_EVENT_PATH"
 	githubEventName         = "GITHUB_EVENT_NAME"
 	githubRepository        = "GITHUB_REPOSITORY"
@@ -143,7 +143,6 @@ func initalizeENVVariables() error {
 	envvars[enableSarif] = "1"
 	envvars[enableLicense] = "1"
 	envvars[enableDangerousWorkflow] = "1"
-	envvars[enabledChecks] = ""
 
 	for key, val := range envvars {
 		if err := os.Setenv(key, val); err != nil {
@@ -384,7 +383,7 @@ func runScorecardSettings(githubEventName, scorecardPolicyFile, scorecardResults
 		return &result, nil
 	}
 
-	enabledChecks := ""
+	enabledChecks = ""
 	if githubEventName == "branch_protection_rule" {
 		enabledChecks = "--checks Branch-Protection"
 	}
