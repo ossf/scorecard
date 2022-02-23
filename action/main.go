@@ -66,7 +66,7 @@ const (
 	scorecardBin               = "SCORECARD_BIN"
 	scorecardResultsFormat     = "SCORECARD_RESULTS_FORMAT"
 	scorecardPublishResults    = "SCORECARD_PUBLISH_RESULTS"
-	scorecardPolicyFile        = "SCORECARD_POLICY_FILE"
+	scorecardPolicyFile        = "./policy.yml"
 	scorecardResultsFile       = "SCORECARD_RESULTS_FILE"
 	scorecardFork              = "SCORECARD_IS_FORK"
 	scorecardDefaultBranch     = "SCORECARD_DEFAULT_BRANCH"
@@ -109,7 +109,7 @@ func main() {
 
 	// gets the cmd run settings
 	cmd, err := runScorecardSettings(os.Getenv(githubEventName),
-		os.Getenv(scorecardPolicyFile), os.Getenv(scorecardResultsFormat),
+		scorecardPolicyFile, os.Getenv(scorecardResultsFormat),
 		os.Getenv(scorecardBin), os.Getenv(scorecardResultsFile), os.Getenv(githubRepository))
 	if err != nil {
 		panic(err)
@@ -143,7 +143,6 @@ func initalizeENVVariables() error {
 	envvars[enableSarif] = "1"
 	envvars[enableLicense] = "1"
 	envvars[enableDangerousWorkflow] = "1"
-	envvars[scorecardPolicyFile] = "./policy.yml"
 	envvars[scorecardBin] = "/scorecard"
 	envvars[enabledChecks] = ""
 
@@ -307,12 +306,6 @@ func updateRepositoryInformation(privateRepo bool, defaultBranch string) error {
 
 // updateEnvVariables is a function to update the ENV variables based on results format and private repository.
 func updateEnvVariables() error {
-	resultsFileFormat := os.Getenv(scorecardResultsFormat)
-	if resultsFileFormat != sarif {
-		if err := os.Unsetenv(scorecardPolicyFile); err != nil {
-			return fmt.Errorf("error unsetting %s: %w", scorecardPolicyFile, err)
-		}
-	}
 	isPrivateRepo := os.Getenv(scorecardPrivateRepository)
 	if isPrivateRepo != "true" {
 		if err := os.Setenv(scorecardPublishResults, "false"); err != nil {
@@ -332,7 +325,6 @@ func printEnvVariables(writer io.Writer) {
 	fmt.Fprintf(writer, "SCORECARD_PRIVATE_REPOSITORY=%s\n", os.Getenv(scorecardPrivateRepository))
 	fmt.Fprintf(writer, "SCORECARD_PUBLISH_RESULTS=%s\n", os.Getenv(scorecardPublishResults))
 	fmt.Fprintf(writer, "Format=%s\n", os.Getenv(scorecardResultsFormat))
-	fmt.Fprintf(writer, "Policy file=%s\n", os.Getenv(scorecardPolicyFile))
 	fmt.Fprintf(writer, "Default branch=%s\n", os.Getenv(scorecardDefaultBranch))
 }
 
