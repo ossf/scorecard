@@ -63,7 +63,7 @@ const (
 	inputresultsfile           = "INPUT_RESULTS_FILE"
 	inputresultsformat         = "INPUT_RESULTS_FORMAT"
 	inputpublishresults        = "INPUT_PUBLISH_RESULTS"
-	scorecardBin               = "SCORECARD_BIN"
+	scorecardBin               = "/scorecard"
 	scorecardResultsFormat     = "SCORECARD_RESULTS_FORMAT"
 	scorecardPublishResults    = "SCORECARD_PUBLISH_RESULTS"
 	scorecardPolicyFile        = "./policy.yml"
@@ -110,7 +110,7 @@ func main() {
 	// gets the cmd run settings
 	cmd, err := runScorecardSettings(os.Getenv(githubEventName),
 		scorecardPolicyFile, os.Getenv(scorecardResultsFormat),
-		os.Getenv(scorecardBin), os.Getenv(scorecardResultsFile), os.Getenv(githubRepository))
+		scorecardBin, os.Getenv(scorecardResultsFile), os.Getenv(githubRepository))
 	if err != nil {
 		panic(err)
 	}
@@ -143,7 +143,6 @@ func initalizeENVVariables() error {
 	envvars[enableSarif] = "1"
 	envvars[enableLicense] = "1"
 	envvars[enableDangerousWorkflow] = "1"
-	envvars[scorecardBin] = "/scorecard"
 	envvars[enabledChecks] = ""
 
 	for key, val := range envvars {
