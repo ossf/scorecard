@@ -601,3 +601,15 @@ possible.
 **Remediation steps**
 - Fix the vulnerabilities. The details of each vulnerability can be found on <https://osv.dev>.
 
+## Webhooks 
+
+Risk: `High`  (possible service can be accessed by third-party)
+
+This check validates if the webhook defined in the repository have a token configured to authenticate the origin of the request to make sure that is a trusted request.
+ 
+
+**Remediation steps**
+- Check if your service supports the token authentication.
+- If that supports set the secret in the Webhook configuration.
+- If does not support, consider implementing this support, more information can be found on <https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks>.
+

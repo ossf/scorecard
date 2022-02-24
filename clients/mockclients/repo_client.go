@@ -20,7 +20,6 @@
 package mockrepo
 
 import (
-	"fmt"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -155,11 +154,8 @@ func (mr *MockRepoClientMockRecorder) ListCheckRunsForRef(ref interface{}) *gomo
 
 // ListCommits mocks base method.
 func (m *MockRepoClient) ListCommits() ([]clients.Commit, error) {
-	fmt.Println("mock.ListCommits")
 	m.ctrl.T.Helper()
-	fmt.Println("call mock.ListCommits")
 	ret := m.ctrl.Call(m, "ListCommits")
-	fmt.Println("ret mock.ListCommits")
 	ret0, _ := ret[0].([]clients.Commit)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -167,7 +163,6 @@ func (m *MockRepoClient) ListCommits() ([]clients.Commit, error) {
 
 // ListCommits indicates an expected call of ListCommits.
 func (mr *MockRepoClientMockRecorder) ListCommits() *gomock.Call {
-	fmt.Println("recorder.ListCommits")
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommits", reflect.TypeOf((*MockRepoClient)(nil).ListCommits))
 }
@@ -260,6 +255,21 @@ func (m *MockRepoClient) ListSuccessfulWorkflowRuns(filename string) ([]clients.
 func (mr *MockRepoClientMockRecorder) ListSuccessfulWorkflowRuns(filename interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSuccessfulWorkflowRuns", reflect.TypeOf((*MockRepoClient)(nil).ListSuccessfulWorkflowRuns), filename)
+}
+
+// ListWebhooks mocks base method.
+func (m *MockRepoClient) ListWebhooks() ([]*clients.Webhook, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListWebhooks")
+	ret0, _ := ret[0].([]*clients.Webhook)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListWebhooks indicates an expected call of ListWebhooks.
+func (mr *MockRepoClientMockRecorder) ListWebhooks() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWebhooks", reflect.TypeOf((*MockRepoClient)(nil).ListWebhooks))
 }
 
 // Search mocks base method.

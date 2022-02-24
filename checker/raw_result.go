@@ -70,6 +70,19 @@ type DependencyUpdateToolData struct {
 	Tools []Tool
 }
 
+// WebhooksData contains the raw results
+// for the Webhook check.
+type WebhooksData struct {
+	Webhook []WebhookData
+}
+
+// WebhookData contains the raw results
+// for webhook check.
+type WebhookData struct {
+	ID        *int64
+	HasSecret *bool
+}
+
 // BranchProtectionsData contains the raw results
 // for the Branch-Protection check.
 type BranchProtectionsData struct {
