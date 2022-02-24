@@ -137,13 +137,6 @@ func parseFromYAML(b []byte) (*ScorecardPolicy, error) {
 	return &retPolicy, nil
 }
 
-// GetAll returns the full list of checks, given any environment variable
-// constraints.
-func GetAll() checker.CheckNameToFnMap {
-	possibleChecks := checks.AllChecks
-	return possibleChecks
-}
-
 // GetEnabled returns the list of enabled checks.
 func GetEnabled(
 	sp *ScorecardPolicy,
@@ -184,7 +177,7 @@ func GetEnabled(
 		}
 	default:
 		// Enable all checks that are supported.
-		for checkName := range GetAll() {
+		for checkName := range checks.GetAll() {
 			if !isSupportedCheck(checkName, requiredRequestTypes) {
 				continue
 			}
@@ -225,7 +218,7 @@ func isSupportedCheck(checkName string, requiredRequestTypes []checker.RequestTy
 // Enables checks by name.
 func enableCheck(checkName string, enabledChecks *checker.CheckNameToFnMap) bool {
 	if enabledChecks != nil {
-		for key, checkFn := range GetAll() {
+		for key, checkFn := range checks.GetAll() {
 			if strings.EqualFold(key, checkName) {
 				(*enabledChecks)[key] = checkFn
 				return true

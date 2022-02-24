@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sclog "github.com/ossf/scorecard/v4/log"
@@ -75,7 +76,7 @@ func init() {
 		&opts.Metadata, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
 	rootCmd.Flags().BoolVar(&opts.ShowDetails, "show-details", false, "show extra details about each check")
 	checkNames := []string{}
-	for checkName := range policy.GetAll() {
+	for checkName := range checks.GetAll() {
 		checkNames = append(checkNames, checkName)
 	}
 	rootCmd.Flags().StringSliceVar(&opts.ChecksToRun, "checks", []string{},
