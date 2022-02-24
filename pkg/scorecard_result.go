@@ -23,9 +23,12 @@ import (
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/docs/checks"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
+	spol "github.com/ossf/scorecard/v4/policy"
 )
 
 // ScorecardInfo contains information about the scorecard code that was run.
@@ -95,6 +98,42 @@ func (r *ScorecardResult) GetAggregateScore(checkDocs docs.Doc) (float64, error)
 	}
 
 	return score / total, nil
+}
+
+// FormatResults formats scorecard results.
+func FormatResults(
+	opts *options.Options,
+	results *ScorecardResult,
+	docs checks.Doc,
+	policy *spol.ScorecardPolicy,
+) error {
+	var err error
+
+	switch opts.Format {
+	case options.FormatDefault:
+		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), docs, os.Stdout)
+	case options.FormatSarif:
+		// TODO: support config files and update checker.MaxResultScore.
+		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), os.Stdout, docs, policy)
+	case options.FormatJSON:
+		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), docs, os.Stdout)
+	case options.FormatRaw:
+		err = results.AsRawJSON(os.Stdout)
+	default:
+		err = sce.WithMessage(
+			sce.ErrScorecardInternal,
+			fmt.Sprintf(
+				"invalid format flag: %v. Expected [default, json]",
+				opts.Format,
+			),
+		)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to output results: %w", err)
+	}
+
+	return nil
 }
 
 // AsString returns ScorecardResult in string format.

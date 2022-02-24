@@ -28,7 +28,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
-	"github.com/ossf/scorecard/v4/format"
 	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
@@ -195,7 +194,7 @@ func RunScorecard(args []string) {
 		fmt.Println("\nRESULTS\n-------")
 	}
 
-	resultsErr := format.Results(
+	resultsErr := pkg.FormatResults(
 		opts,
 		&repoResult,
 		checkDocs,
