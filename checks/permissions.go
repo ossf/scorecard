@@ -399,7 +399,7 @@ func calculateScore(result permissionCbData) int {
 		}
 
 		// actions.
-		// May allow an attacker to steal GitHub secrets by adding a malicious workflow/action.
+		// May allow an attacker to steal GitHub secrets by approving to run an action that needs approval.
 		// High risk: -10
 		if permissionIsPresent(perms, permissionActions) {
 			score -= checker.MaxResultScore
