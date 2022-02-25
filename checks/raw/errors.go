@@ -18,8 +18,9 @@ import (
 	"errors"
 )
 
-//nolint
 var (
 	errInternalCommitishNil   = errors.New("commitish is nil")
 	errInternalBranchNotFound = errors.New("branch not found")
+	errInvalidArgType         = errors.New("invalid arg type")
+	errInvalidArgLength       = errors.New("invalid arg length")
 )

@@ -16,6 +16,7 @@ package raw
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -30,39 +31,8 @@ import (
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
 	// TODO: not supported for local clients.
 
-	// Check repository for repository-specific policy.
-	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
-	onFile := func(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
-		pfiles, ok := data.(*[]checker.File)
-		if !ok {
-			// This never happens.
-			panic("invalid type")
-		}
-		if strings.EqualFold(name, "security.md") ||
-			strings.EqualFold(name, ".github/security.md") ||
-			strings.EqualFold(name, "docs/security.md") ||
-			strings.EqualFold(name, "security.adoc") ||
-			strings.EqualFold(name, ".github/security.adoc") ||
-			strings.EqualFold(name, "docs/security.adoc") {
-			*pfiles = append(*pfiles, checker.File{
-				Path:   name,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
-			})
-			return false, nil
-		} else if isSecurityRstFound(name) {
-			*pfiles = append(*pfiles, checker.File{
-				Path:   name,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
-			})
-			return false, nil
-		}
-		return true, nil
-	}
-
 	files := make([]checker.File, 0)
-	err := fileparser.CheckIfFileExists(c, onFile, &files)
+	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &files)
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
 	}
@@ -74,39 +44,13 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 
 	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
 	logger := log.NewLogger(log.InfoLevel)
-	dotGitHub := &checker.CheckRequest{
-		Ctx:        c.Ctx,
-		Dlogger:    c.Dlogger,
-		RepoClient: githubrepo.CreateGithubRepoClient(c.Ctx, logger),
-		Repo:       c.Repo.Org(),
-	}
-
-	err = dotGitHub.RepoClient.InitRepo(dotGitHub.Repo, clients.HeadSHA)
+	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
+	err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA)
 	switch {
 	case err == nil:
-		defer dotGitHub.RepoClient.Close()
-		onFile = func(name string, dl checker.DetailLogger, data fileparser.FileCbData) (bool, error) {
-			pfiles, ok := data.(*[]checker.File)
-			if !ok {
-				// This never happens.
-				panic("invalid type")
-			}
-			if strings.EqualFold(name, "security.md") ||
-				strings.EqualFold(name, ".github/security.md") ||
-				strings.EqualFold(name, "docs/security.md") ||
-				strings.EqualFold(name, "security.adoc") ||
-				strings.EqualFold(name, ".github/security.adoc") ||
-				strings.EqualFold(name, "docs/security.adoc") {
-				*pfiles = append(*pfiles, checker.File{
-					Path:   name,
-					Type:   checker.FileTypeURL,
-					Offset: checker.OffsetDefault,
-				})
-				return false, nil
-			}
-			return true, nil
-		}
-		err = fileparser.CheckIfFileExists(dotGitHub, onFile, &files)
+		defer dotGitHubClient.Close()
+
+		err = fileparser.OnAllFilesDo(dotGitHubClient, isSecurityPolicyFile, &files)
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
 		}
@@ -121,11 +65,34 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	return checker.SecurityPolicyData{Files: files}, nil
 }
 
-func isSecurityRstFound(name string) bool {
-	if strings.EqualFold(name, "doc/security.rst") {
-		return true
-	} else if strings.EqualFold(name, "docs/security.rst") {
-		return true
+// Check repository for repository-specific policy.
+// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
+var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, args ...interface{}) (bool, error) {
+	if len(args) != 1 {
+		return false, fmt.Errorf("isSecurityPolicyFile requires exactly one argument: %w", errInvalidArgLength)
 	}
-	return false
+	pfiles, ok := args[0].(*[]checker.File)
+	if !ok {
+		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: *[]checker.File: %w", errInvalidArgType)
+	}
+	if isSecurityPolicyFilename(name) {
+		*pfiles = append(*pfiles, checker.File{
+			Path:   name,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+		})
+		return false, nil
+	}
+	return true, nil
+}
+
+func isSecurityPolicyFilename(name string) bool {
+	return strings.EqualFold(name, "security.md") ||
+		strings.EqualFold(name, ".github/security.md") ||
+		strings.EqualFold(name, "docs/security.md") ||
+		strings.EqualFold(name, "security.adoc") ||
+		strings.EqualFold(name, ".github/security.adoc") ||
+		strings.EqualFold(name, "docs/security.adoc") ||
+		strings.EqualFold(name, "doc/security.rst") ||
+		strings.EqualFold(name, "docs/security.rst")
 }

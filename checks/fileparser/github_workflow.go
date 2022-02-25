@@ -330,8 +330,36 @@ type JobMatcherStep struct {
 	Run string
 }
 
-// Matches returns true if the job matches the job matcher.
-func (m *JobMatcher) Matches(job *actionlint.Job) bool {
+// AnyJobsMatch returns true if any of the jobs have a match in the given workflow.
+func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp string, dl checker.DetailLogger,
+	logMsgNoMatch string) bool {
+	for _, job := range workflow.Jobs {
+		for _, matcher := range jobMatchers {
+			if !matcher.matches(job) {
+				continue
+			}
+
+			dl.Info(&checker.LogMessage{
+				Path:   fp,
+				Type:   checker.FileTypeSource,
+				Offset: GetLineNumber(job.Pos),
+				Text:   matcher.LogText,
+			})
+			return true
+		}
+	}
+
+	dl.Debug(&checker.LogMessage{
+		Path:   fp,
+		Type:   checker.FileTypeSource,
+		Offset: checker.OffsetDefault,
+		Text:   logMsgNoMatch,
+	})
+	return false
+}
+
+// matches returns true if the job matches the job matcher.
+func (m *JobMatcher) matches(job *actionlint.Job) bool {
 	for _, stepToMatch := range m.Steps {
 		hasMatch := false
 		for _, step := range job.Steps {

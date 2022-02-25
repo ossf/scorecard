@@ -94,8 +94,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  3,
-				NumberOfDebug: 3,
+				NumberOfInfo:  2,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -264,8 +264,19 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:      "release workflow write",
-			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-release-writes.yaml"},
+			name:      "package workflow contents write",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-no-release.yaml"},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  2,
+				NumberOfDebug: 3,
+			},
+		},
+		{
+			name:      "release workflow contents write",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-release.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -281,8 +292,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  3,
-				NumberOfDebug: 3,
+				NumberOfInfo:  2,
+				NumberOfDebug: 4,
 			},
 		},
 		{
