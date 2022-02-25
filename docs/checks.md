@@ -581,7 +581,7 @@ Additionally, points are reduced if certain write permissions are defined for a 
 ### Write permissions causing a large reduction
 * `contents` - Allows an attacker to commit unreviewed code. However, points are not reduced if the job utilizes a recognized packaging action or command.
 * `packages` - Allows an attacker to publish packages. However, points are not reduced if the job utilizes a recognized packaging action or command.
-* `actions` - May allow an attacker to steal GitHub secrets by adding a malicious workflow or action.
+* `actions` - May allow an attacker to steal GitHub secrets by approving to run an action that needs approval.
  
 
 **Remediation steps**
