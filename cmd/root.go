@@ -121,14 +121,14 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	policy, err := readPolicy()
+	policy, err := ReadPolicy()
 	if err != nil {
 		log.Panicf("readPolicy: %v", err)
 	}
 
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.ParseLevel(flagLogLevel))
-	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := getRepoAccessors(
+	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := GetRepoAccessors(
 		ctx, flagRepo, flagLocal, logger)
 	if err != nil {
 		log.Panic(err)
@@ -151,7 +151,7 @@ func scorecardCmd(cmd *cobra.Command, args []string) {
 	if !strings.EqualFold(flagCommit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
-	enabledChecks, err := getEnabledChecks(policy, flagChecksToRun, requiredRequestTypes)
+	enabledChecks, err := GetEnabledChecks(policy, flagChecksToRun, requiredRequestTypes)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -273,7 +273,8 @@ func validateFormat(format string) bool {
 	}
 }
 
-func readPolicy() (*spol.ScorecardPolicy, error) {
+// ReadPolicy reads the policy file.
+func ReadPolicy() (*spol.ScorecardPolicy, error) {
 	if flagPolicyFile != "" {
 		data, err := os.ReadFile(flagPolicyFile)
 		if err != nil {
@@ -314,7 +315,8 @@ func getAllChecks() checker.CheckNameToFnMap {
 	return possibleChecks
 }
 
-func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
+// GetEnabledChecks returns the list of enabled checks.
+func GetEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 	requiredRequestTypes []checker.RequestType) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
 
@@ -370,7 +372,8 @@ func getEnabledChecks(sp *spol.ScorecardPolicy, argsChecks []string,
 	return enabledChecks, nil
 }
 
-func getRepoAccessors(ctx context.Context, repoURI, localURI string, logger *sclog.Logger) (
+// GetRepoAccessors gets the repository accessors.
+func GetRepoAccessors(ctx context.Context, repoURI, localURI string, logger *sclog.Logger) (
 	clients.Repo, // repo
 	clients.RepoClient, // repoClient
 	clients.RepoClient, // ossFuzzClient
