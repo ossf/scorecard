@@ -72,7 +72,8 @@ func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
 }
 
 //nolint:govet
-type jsonScorecardResultV2 struct {
+// JSONScorecardResultV2 exports results as JSON for new detail format.
+type JSONScorecardResultV2 struct {
 	Date           string              `json:"date"`
 	Repo           jsonRepoV2          `json:"repo"`
 	Scorecard      jsonScorecardV2     `json:"scorecard"`
@@ -125,7 +126,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 	}
 
 	encoder := json.NewEncoder(writer)
-	out := jsonScorecardResultV2{
+	out := JSONScorecardResultV2{
 		Repo: jsonRepoV2{
 			Name:   r.Repo.Name,
 			Commit: r.Repo.CommitSHA,

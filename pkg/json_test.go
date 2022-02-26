@@ -453,7 +453,7 @@ func TestJSONOutput(t *testing.T) {
 			// the calls to Unmarshall() and Marshall() below.
 
 			// Unmarshall expected output.
-			var js jsonScorecardResultV2
+			var js JSONScorecardResultV2
 			if err := json.Unmarshal(expected.Bytes(), &js); err != nil {
 				t.Fatalf("%s: json.Unmarshal: %s", tt.name, err)
 			}
