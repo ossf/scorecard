@@ -14,10 +14,17 @@
 
 package checker
 
+// Logger is an implementation of the `DetailLogger` interface.
 type logger struct {
 	logs []CheckDetail
 }
 
+// NewLogger creates a new instance of `DetailLogger`.
+func NewLogger() DetailLogger {
+	return &logger{}
+}
+
+// Info emits info level logs.
 func (l *logger) Info(msg *LogMessage) {
 	cd := CheckDetail{
 		Type: DetailInfo,
@@ -26,6 +33,7 @@ func (l *logger) Info(msg *LogMessage) {
 	l.logs = append(l.logs, cd)
 }
 
+// Warn emits warn level logs.
 func (l *logger) Warn(msg *LogMessage) {
 	cd := CheckDetail{
 		Type: DetailWarn,
@@ -34,6 +42,7 @@ func (l *logger) Warn(msg *LogMessage) {
 	l.logs = append(l.logs, cd)
 }
 
+// Debug emits debug level logs.
 func (l *logger) Debug(msg *LogMessage) {
 	cd := CheckDetail{
 		Type: DetailDebug,
@@ -42,8 +51,14 @@ func (l *logger) Debug(msg *LogMessage) {
 	l.logs = append(l.logs, cd)
 }
 
+// Flush returns existing logs and resets the logger instance.
 func (l *logger) Flush() []CheckDetail {
-	ret := l.logs
+	ret := l.Logs()
 	l.logs = nil
 	return ret
+}
+
+// Logs returns existing logs.
+func (l *logger) Logs() []CheckDetail {
+	return l.logs
 }

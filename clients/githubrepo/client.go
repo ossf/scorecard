@@ -228,7 +228,7 @@ func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.Rep
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	ossFuzzRepo, err := MakeGithubRepo("google/oss-fuzz")
 	if err != nil {
-		return nil, fmt.Errorf("error during githubrepo.MakeGithubRepo: %w", err)
+		return nil, fmt.Errorf("error during MakeGithubRepo: %w", err)
 	}
 
 	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger)

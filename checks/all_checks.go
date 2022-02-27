@@ -22,6 +22,14 @@ import (
 // AllChecks is the list of all security checks that will be run.
 var AllChecks = checker.CheckNameToFnMap{}
 
+// GetAll returns the full list of checks, given any environment variable
+// constraints.
+// TODO(checks): Is this actually necessary given `AllChecks` exists?
+func GetAll() checker.CheckNameToFnMap {
+	possibleChecks := AllChecks
+	return possibleChecks
+}
+
 func registerCheck(name string, fn checker.CheckFn, supportedRequestTypes []checker.RequestType) error {
 	if name == "" {
 		return errInternalNameCannotBeEmpty
