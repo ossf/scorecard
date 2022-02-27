@@ -114,7 +114,7 @@ func TestPolicyRead(t *testing.T) {
 				t.Fatalf("cannot read file: %v", err)
 			}
 
-			p, err := ParseFromYAML(content)
+			p, err := parseFromYAML(content)
 
 			if !errors.Is(err, tt.err) {
 				t.Fatalf("%s: expected %v, got %v", tt.name, tt.err, err)

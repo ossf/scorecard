@@ -36,6 +36,30 @@ type Runner struct {
 	CheckRequest CheckRequest
 }
 
+// NewRunner creates a new instance of `Runner`.
+func NewRunner(checkName, repo string, checkReq *CheckRequest) *Runner {
+	return &Runner{
+		CheckName:    checkName,
+		Repo:         repo,
+		CheckRequest: *checkReq,
+	}
+}
+
+// SetCheckName sets the check name.
+func (r *Runner) SetCheckName(check string) {
+	r.CheckName = check
+}
+
+// SetRepo sets the repository.
+func (r *Runner) SetRepo(repo string) {
+	r.Repo = repo
+}
+
+// SetCheckRequest sets the check request.
+func (r *Runner) SetCheckRequest(checkReq *CheckRequest) {
+	r.CheckRequest = *checkReq
+}
+
 // CheckFn defined for convenience.
 type CheckFn func(*CheckRequest) CheckResult
 
@@ -79,12 +103,11 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 	startTime := time.Now()
 
 	var res CheckResult
-	var l logger
+	l := NewLogger()
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx
-		l = logger{}
-		checkRequest.Dlogger = &l
+		checkRequest.Dlogger = l
 		res = c.Fn(&checkRequest)
 		if res.Error2 != nil && errors.Is(res.Error2, sce.ErrRepoUnreachable) {
 			checkRequest.Dlogger.Warn(&LogMessage{
