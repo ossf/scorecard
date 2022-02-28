@@ -71,6 +71,7 @@ func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("%.1f", s)), nil
 }
 
+//nolint:govet
 // JSONScorecardResultV2 exports results as JSON for new detail format.
 type JSONScorecardResultV2 struct {
 	Date           string              `json:"date"`
