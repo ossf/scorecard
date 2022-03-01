@@ -36,12 +36,16 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 	var githubRepo clients.Repo
 	if localURI != "" {
 		localRepo, errLocal := localdir.MakeLocalDirRepo(localURI)
+		var retErr error
+		if errLocal != nil {
+			retErr = fmt.Errorf("getting local directory client: %w", errLocal)
+		}
 		return localRepo, /*repo*/
 			localdir.CreateLocalDirClient(ctx, logger), /*repoClient*/
 			nil, /*ossFuzzClient*/
 			nil, /*ciiClient*/
 			nil, /*vulnClient*/
-			fmt.Errorf("getting local directory client: %w", errLocal)
+			retErr
 	}
 
 	githubRepo, errGitHub := ghrepo.MakeGithubRepo(repoURI)
@@ -55,12 +59,15 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 	}
 
 	ossFuzzRepoClient, errOssFuzz := ghrepo.CreateOssFuzzRepoClient(ctx, logger)
-
+	var retErr error
+	if errOssFuzz != nil {
+		retErr = fmt.Errorf("getting OSS-Fuzz repo client: %w", errOssFuzz)
+	}
 	// TODO(repo): Should we be handling the OSS-Fuzz client error like this?
 	return githubRepo, /*repo*/
 		ghrepo.CreateGithubRepoClient(ctx, logger), /*repoClient*/
 		ossFuzzRepoClient, /*ossFuzzClient*/
 		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
 		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
-		fmt.Errorf("getting OSS-Fuzz repo client: %w", errOssFuzz)
+		retErr
 }
