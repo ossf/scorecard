@@ -104,7 +104,7 @@
                "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
-                  "text": "warn message\nClick Remediation section below to solve this issue"
+                  "text": "score is 0: warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
@@ -128,7 +128,7 @@
                "ruleId": "CheckName2ID",
                "ruleIndex": 1,
                "message": {
-                  "text": "warn message\nClick Remediation section below to solve this issue"
+                  "text": "score is 0: warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {

@@ -76,7 +76,7 @@
                "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
-                  "text": "warn message\nClick Remediation section below to solve this issue"
+                  "text": "score is 5: warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
@@ -103,7 +103,7 @@
                "ruleId": "CheckNameID",
                "ruleIndex": 0,
                "message": {
-                  "text": "warn message\nClick Remediation section below to solve this issue"
+                  "text": "score is 5: warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
@@ -130,7 +130,7 @@
                "ruleId": "CheckName5ID",
                "ruleIndex": 1,
                "message": {
-                  "text": "warn message\nClick Remediation section below to solve this issue"
+                  "text": "score is 8: warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
@@ -157,7 +157,7 @@
                "ruleId": "CheckName5ID",
                "ruleIndex": 1,
                "message": {
-                  "text": "warn message\nClick Remediation section below to solve this issue"
+                  "text": "score is 8: warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
@@ -229,7 +229,7 @@
                "ruleId": "CheckName6ID",
                "ruleIndex": 0,
                "message": {
-                  "text": "warn message\nClick Remediation section below to solve this issue"
+                  "text": "score is 9: warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
@@ -301,7 +301,7 @@
                "ruleId": "CheckName4ID",
                "ruleIndex": 0,
                "message": {
-                  "text": "warn message\nClick Remediation section below to solve this issue"
+                  "text": "score is 5: warn message\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {
