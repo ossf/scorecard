@@ -16,6 +16,7 @@ package fileparser
 
 import (
 	stdos "os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -364,6 +365,24 @@ func TestIsStepExecKind(t *testing.T) {
 			args: args{},
 			want: false,
 		},
+		{
+			name: "step is not nil",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "step is not nil, but kind is not equal",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecRun{},
+				},
+			},
+			want: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -459,6 +478,243 @@ func TestFormatActionlintError(t *testing.T) {
 			t.Parallel()
 			if err := FormatActionlintError(tt.args.errs); (err != nil) != tt.wantErr {
 				t.Errorf("FormatActionlintError() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestGetUses(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		step *actionlint.Step
+	}
+	//nolint
+	tests := []struct {
+		name string
+		args args
+		want *actionlint.String
+	}{
+		{
+			name: "uses",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Uses: &actionlint.String{
+							Value: "foo",
+						},
+					},
+				},
+			},
+			want: &actionlint.String{
+				Value: "foo",
+			},
+		},
+		{
+			name: "uses is empty",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Uses: &actionlint.String{
+							Value: "",
+						},
+					},
+				},
+			},
+			want: &actionlint.String{
+				Value: "",
+			},
+		},
+		{
+			name: "step is nil",
+			args: args{},
+			want: nil,
+		},
+		{
+			name: "step is not nil, but uses is nil",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{},
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "step is not nil, but uses is not nil",
+			args: args{
+				step: &actionlint.Step{},
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := GetUses(tt.args.step); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetUses() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_getWith(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		step *actionlint.Step
+	}
+	//nolint
+	tests := []struct {
+		name string
+		args args
+		want map[string]*actionlint.Input
+	}{
+		{
+			name: "with",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Inputs: map[string]*actionlint.Input{
+							"foo": {
+								Name:  &actionlint.String{Value: "foo"},
+								Value: &actionlint.String{Value: "bar"},
+							},
+						},
+					},
+				},
+			},
+			want: map[string]*actionlint.Input{
+				"foo": {
+					Name:  &actionlint.String{Value: "foo"},
+					Value: &actionlint.String{Value: "bar"},
+				},
+			},
+		},
+		{
+			name: "with is empty",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Inputs: map[string]*actionlint.Input{
+							"foo": {
+								Name:  &actionlint.String{Value: "foo"},
+								Value: &actionlint.String{Value: ""},
+							},
+						},
+					},
+				},
+			},
+			want: map[string]*actionlint.Input{
+				"foo": {
+					Name:  &actionlint.String{Value: "foo"},
+					Value: &actionlint.String{Value: ""},
+				},
+			},
+		},
+		{
+			name: "step is nil",
+			args: args{},
+			want: nil,
+		},
+		{
+			name: "step is not nil, but with is nil",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{},
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "step is not nil, but with is not nil",
+			args: args{
+				step: &actionlint.Step{},
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := getWith(tt.args.step); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("getWith() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_getRun(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		step *actionlint.Step
+	}
+	//nolint
+	tests := []struct {
+		name string
+		args args
+		want *actionlint.String
+	}{
+		{
+			name: "run",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Inputs: map[string]*actionlint.Input{
+							"foo": {
+								Name:  &actionlint.String{Value: "foo"},
+								Value: &actionlint.String{Value: "bar"},
+							},
+						},
+					},
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "run is empty",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Inputs: map[string]*actionlint.Input{
+							"foo": {
+								Name:  &actionlint.String{Value: "foo"},
+								Value: &actionlint.String{Value: ""},
+							},
+						},
+					},
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "step is nil",
+			args: args{},
+			want: nil,
+		},
+		{
+			name: "step is not nil, but run is nil",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{},
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "step is not nil, but run is not nil",
+			args: args{
+				step: &actionlint.Step{},
+			},
+			want: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := getRun(tt.args.step); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("getRun() = %v, want %v for test case %v", got, tt.want, tt.name)
 			}
 		})
 	}
