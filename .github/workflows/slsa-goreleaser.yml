@@ -8,6 +8,7 @@ on:
 permissions: read-all
       
 jobs:
+  # Generate ldflags dynamically.
   args:
     runs-on: ubuntu-latest
     outputs:
@@ -21,16 +22,18 @@ jobs:
         run: |
           echo "::set-output name=value::$(./scripts/version-ldflags)"
 
+  # Trusted builder.
   build:
     permissions:
       id-token: write
       contents: read
     needs: args
-    uses: gossts/slsa-go/.github/workflows/builder.yml@main # TODO: use has upon release.
+    uses: gossts/slsa-go/.github/workflows/builder.yml@main # TODO: use hash upon release.
     with:
       go-version: 1.17
       env: "VERSION_LDFLAGS:${{needs.args.outputs.ldflags}}"
 
+  # Upload to GitHub release.
   upload:
     permissions:
       contents: write
@@ -40,6 +43,9 @@ jobs:
       - uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
         with:
           name: ${{ needs.build.outputs.go-binary-name }}
+       - uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
+        with:
+          name: ${{ needs.build.outputs.go-binary-name }}.intoto.sig
       - name: Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         if: startsWith(github.ref, 'refs/tags/')
