@@ -17,7 +17,10 @@ package options
 
 import (
 	"errors"
+	"fmt"
 	"os"
+
+	"github.com/caarlos0/env/v6"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
@@ -25,23 +28,32 @@ import (
 
 // Options define common options for configuring scorecard.
 type Options struct {
-	Repo        string
-	Local       string
-	Commit      string
-	LogLevel    string
-	Format      string
-	NPM         string
-	PyPI        string
-	RubyGems    string
-	PolicyFile  string
-	ChecksToRun []string
+	Repo       string `env:"GITHUB_REPOSITORY"`
+	Local      string
+	Commit     string `env:"GITHUB_REF"`
+	LogLevel   string
+	Format     string `env:"SCORECARD_RESULTS_FORMAT"`
+	NPM        string
+	PyPI       string
+	RubyGems   string
+	PolicyFile string `env:"SCORECARD_POLICY_FILE"`
+	// TODO(action): Add logic for writing results to file
+	ResultsFile string   `env:"SCORECARD_RESULTS_FILE"`
+	ChecksToRun []string `env:"SCORECARD_ENABLED_CHECKS"`
 	Metadata    []string
 	ShowDetails bool
+	// TODO(action): Add logic for determining if results should be published.
+	PublishResults bool `env:"SCORECARD_PUBLISH_RESULTS"`
 }
 
 // New creates a new instance of `Options`.
 func New() *Options {
-	return &Options{}
+	opts := &Options{}
+	if err := env.Parse(opts); err != nil {
+		fmt.Printf("could not parse env vars, using default options: %v", err)
+	}
+
+	return opts
 }
 
 const (
@@ -161,6 +173,8 @@ func boolSum(bools ...bool) int {
 	}
 	return sum
 }
+
+// Feature flags.
 
 // IsSarifEnabled returns true if `EnvVarEnableSarif` is specified.
 // TODO(options): This probably doesn't need to be exported.
