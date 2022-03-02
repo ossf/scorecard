@@ -42,7 +42,7 @@ jobs:
       -
         name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@cb4264d3319acaa2bea23d51ef67f80b4f775013 # v3.1.0
+        uses: crazy-max/ghaction-import-gpg@b7c9a01276e14c606a92f6cbeb4dd439bea001b5 # v3.1.0
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
