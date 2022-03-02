@@ -26,7 +26,7 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/stale@7fb802b3079a276cf3c7e6ba9aa003c665b3f838 # v3.0.18
+    - uses: actions/stale@3cc123766321e9f15a6676375c154ccffb12a358 # v3.0.18
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         stale-issue-message: 'Stale issue message'
