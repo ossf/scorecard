@@ -44,6 +44,11 @@ type Options struct {
 	ShowDetails bool
 	// TODO(action): Add logic for determining if results should be published.
 	PublishResults bool `env:"SCORECARD_PUBLISH_RESULTS"`
+
+	// Feature flags.
+	EnableSarif       bool `env:"ENABLE_SARIF"`
+	EnableScorecardV5 bool `env:"SCORECARD_V5"`
+	EnableScorecardV6 bool `env:"SCORECARD_V6"`
 }
 
 // New creates a new instance of `Options`.
@@ -76,6 +81,9 @@ const (
 	// EnvVarEnableSarif is the environment variable which controls enabling
 	// SARIF logging.
 	EnvVarEnableSarif = "ENABLE_SARIF"
+	// EnvVarScorecardV5 is the environment variable which enables scorecard v5
+	// options.
+	EnvVarScorecardV5 = "SCORECARD_V5"
 	// EnvVarScorecardV6 is the environment variable which enables scorecard v6
 	// options.
 	EnvVarScorecardV6 = "SCORECARD_V6"
@@ -114,7 +122,7 @@ func (o *Options) Validate() []error {
 	}
 
 	// Validate SARIF features are flag-guarded.
-	if !IsSarifEnabled() {
+	if !o.isSarifEnabled() {
 		if o.Format == FormatSarif {
 			errs = append(
 				errs,
@@ -129,8 +137,13 @@ func (o *Options) Validate() []error {
 		}
 	}
 
+	// Validate V5 features are flag-guarded.
+	if !o.isV5Enabled() { //nolint:staticcheck
+		// TODO(v5): Populate v5 feature flags.
+	}
+
 	// Validate V6 features are flag-guarded.
-	if !isV6Enabled() {
+	if !o.isV6Enabled() {
 		if o.Format == FormatRaw {
 			errs = append(
 				errs,
@@ -176,19 +189,26 @@ func boolSum(bools ...bool) int {
 
 // Feature flags.
 
-// IsSarifEnabled returns true if `EnvVarEnableSarif` is specified.
-// TODO(options): This probably doesn't need to be exported.
-func IsSarifEnabled() bool {
+// isSarifEnabled returns true if SARIF format was specified in options or via
+// environment variable.
+func (o *Options) isSarifEnabled() bool {
 	// UPGRADEv4: remove.
-	var sarifEnabled bool
-	_, sarifEnabled = os.LookupEnv(EnvVarEnableSarif)
-	return sarifEnabled
+	_, enabled := os.LookupEnv(EnvVarEnableSarif)
+	return o.EnableSarif || enabled
 }
 
-func isV6Enabled() bool {
-	var v6 bool
-	_, v6 = os.LookupEnv(EnvVarScorecardV6)
-	return v6
+// isV5Enabled returns true if v5 functionality was specified in options or via
+// environment variable.
+func (o *Options) isV5Enabled() bool {
+	_, enabled := os.LookupEnv(EnvVarScorecardV5)
+	return o.EnableScorecardV5 || enabled
+}
+
+// isV6Enabled returns true if v6 functionality was specified in options or via
+// environment variable.
+func (o *Options) isV6Enabled() bool {
+	_, enabled := os.LookupEnv(EnvVarScorecardV6)
+	return o.EnableScorecardV6 || enabled
 }
 
 func validateFormat(format string) bool {

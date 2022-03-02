@@ -45,6 +45,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		"local folder to check",
 	)
 
+	// TODO(v5): Should this be behind a feature flag?
 	cmd.Flags().StringVar(
 		&o.Commit,
 		"commit",
@@ -106,7 +107,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	)
 
 	// TODO(options): Extract logic
-	if IsSarifEnabled() {
+	if o.isSarifEnabled() {
 		cmd.Flags().StringVar(
 			&o.PolicyFile,
 			"policy",
