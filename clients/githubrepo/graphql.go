@@ -208,7 +208,7 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 			committer = *commit.Committer.User.Login
 		} else if commit.Committer.Name != nil &&
 			// Username "GitHub" may indicate the commit was committed by GitHub.
-			// We verify the signature on the commit, because the name can be spoofed.
+			// We verify that the commit is signed by GitHub, because the name can be spoofed.
 			*commit.Committer.Name == "GitHub" &&
 			commit.Signature.IsValid &&
 			commit.Signature.WasSignedByGitHub {
