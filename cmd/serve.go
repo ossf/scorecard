@@ -27,17 +27,18 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
 // TODO(cmd): Determine if this should be exported.
-func serveCmd() *cobra.Command {
+func serveCmd(o *options.Options) *cobra.Command {
 	return &cobra.Command{
 		Use:   "serve",
 		Short: "Serve the scorecard program over http",
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
-			logger := log.NewLogger(log.ParseLevel(opts.LogLevel))
+			logger := log.NewLogger(log.ParseLevel(o.LogLevel))
 
 			t, err := template.New("webpage").Parse(tpl)
 			if err != nil {
@@ -76,7 +77,7 @@ func serveCmd() *cobra.Command {
 				}
 
 				if r.Header.Get("Content-Type") == "application/json" {
-					if err := repoResult.AsJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), rw); err != nil {
+					if err := repoResult.AsJSON(o.ShowDetails, log.ParseLevel(o.LogLevel), rw); err != nil {
 						// TODO(log): Improve error message
 						logger.Error(err, "")
 						rw.WriteHeader(http.StatusInternalServerError)

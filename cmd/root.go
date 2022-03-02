@@ -35,8 +35,6 @@ import (
 	"github.com/ossf/scorecard/v4/policy"
 )
 
-var opts = options.New()
-
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
 	scorecardUse  = `./scorecard [--repo=<repo_url>] [--local=folder] [--checks=check1,...]
@@ -46,13 +44,13 @@ const (
 )
 
 // New creates a new instance of the scorecard command.
-func New() *cobra.Command {
+func New(o *options.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   scorecardUse,
 		Short: scorecardShort,
 		Long:  scorecardLong,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			err := opts.Validate()
+			err := o.Validate()
 			if err != nil {
 				return fmt.Errorf("validating options: %w", err)
 			}
@@ -61,38 +59,38 @@ func New() *cobra.Command {
 		},
 		// TODO(cmd): Consider using RunE here
 		Run: func(cmd *cobra.Command, args []string) {
-			rootCmd(opts)
+			rootCmd(o)
 		},
 	}
 
-	opts.AddFlags(cmd)
+	o.AddFlags(cmd)
 
 	// Add sub-commands.
-	cmd.AddCommand(serveCmd())
+	cmd.AddCommand(serveCmd(o))
 	cmd.AddCommand(version.Version())
 	return cmd
 }
 
 // rootCmd runs scorecard checks given a set of arguments.
-func rootCmd(opts *options.Options) {
+func rootCmd(o *options.Options) {
 	// Set `repo` from package managers.
-	pkgResp, err := fetchGitRepositoryFromPackageManagers(opts.NPM, opts.PyPI, opts.RubyGems)
+	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems)
 	if err != nil {
 		log.Panic(err)
 	}
 	if pkgResp.exists {
-		opts.Repo = pkgResp.associatedRepo
+		o.Repo = pkgResp.associatedRepo
 	}
 
-	pol, err := policy.ParseFromFile(opts.PolicyFile)
+	pol, err := policy.ParseFromFile(o.PolicyFile)
 	if err != nil {
 		log.Panicf("readPolicy: %v", err)
 	}
 
 	ctx := context.Background()
-	logger := sclog.NewLogger(sclog.ParseLevel(opts.LogLevel))
+	logger := sclog.NewLogger(sclog.ParseLevel(o.LogLevel))
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
-		ctx, opts.Repo, opts.Local, logger)
+		ctx, o.Repo, o.Local, logger)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -108,18 +106,18 @@ func rootCmd(opts *options.Options) {
 	}
 
 	var requiredRequestTypes []checker.RequestType
-	if opts.Local != "" {
+	if o.Local != "" {
 		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
 	}
-	if !strings.EqualFold(opts.Commit, clients.HeadSHA) {
+	if !strings.EqualFold(o.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
-	enabledChecks, err := policy.GetEnabled(pol, opts.ChecksToRun, requiredRequestTypes)
+	enabledChecks, err := policy.GetEnabled(pol, o.ChecksToRun, requiredRequestTypes)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	if opts.Format == options.FormatDefault {
+	if o.Format == options.FormatDefault {
 		for checkName := range enabledChecks {
 			fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 		}
@@ -128,8 +126,8 @@ func rootCmd(opts *options.Options) {
 	repoResult, err := pkg.RunScorecards(
 		ctx,
 		repoURI,
-		opts.Commit,
-		opts.Format == options.FormatRaw,
+		o.Commit,
+		o.Format == options.FormatRaw,
 		enabledChecks,
 		repoClient,
 		ossFuzzRepoClient,
@@ -139,14 +137,14 @@ func rootCmd(opts *options.Options) {
 	if err != nil {
 		log.Panic(err)
 	}
-	repoResult.Metadata = append(repoResult.Metadata, opts.Metadata...)
+	repoResult.Metadata = append(repoResult.Metadata, o.Metadata...)
 
 	// Sort them by name
 	sort.Slice(repoResult.Checks, func(i, j int) bool {
 		return repoResult.Checks[i].Name < repoResult.Checks[j].Name
 	})
 
-	if opts.Format == options.FormatDefault {
+	if o.Format == options.FormatDefault {
 		for checkName := range enabledChecks {
 			fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
 		}
@@ -154,7 +152,7 @@ func rootCmd(opts *options.Options) {
 	}
 
 	resultsErr := pkg.FormatResults(
-		opts,
+		o,
 		&repoResult,
 		checkDocs,
 		pol,
