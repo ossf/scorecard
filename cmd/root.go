@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
@@ -60,7 +61,7 @@ func New() *cobra.Command {
 
 	// Add sub-commands.
 	cmd.AddCommand(serveCmd())
-	cmd.AddCommand(versionCmd())
+	cmd.AddCommand(version.Version())
 	return cmd
 }
 
