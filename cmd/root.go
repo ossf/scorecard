@@ -24,9 +24,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sclog "github.com/ossf/scorecard/v4/log"
@@ -34,6 +34,8 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 	"github.com/ossf/scorecard/v4/policy"
 )
+
+var opts = options.New()
 
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
@@ -43,80 +45,36 @@ const (
 	scorecardShort = "Security Scorecards"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   scorecardUse,
-	Short: scorecardShort,
-	Long:  scorecardLong,
-	Run:   scorecardCmd,
-}
+// New creates a new instance of the scorecard command.
+func New() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   scorecardUse,
+		Short: scorecardShort,
+		Long:  scorecardLong,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			err := opts.Validate()
+			if err != nil {
+				return fmt.Errorf("validating options: %w", err)
+			}
 
-var opts = options.New()
-
-//nolint:gochecknoinits
-func init() {
-	rootCmd.Flags().StringVar(&opts.Repo, "repo", "", "repository to check")
-	rootCmd.Flags().StringVar(&opts.Local, "local", "", "local folder to check")
-	rootCmd.Flags().StringVar(&opts.Commit, "commit", options.DefaultCommit, "commit to analyze")
-	rootCmd.Flags().StringVar(
-		&opts.LogLevel,
-		"verbosity",
-		options.DefaultLogLevel,
-		"set the log level",
-	)
-	rootCmd.Flags().StringVar(
-		&opts.NPM, "npm", "",
-		"npm package to check, given that the npm package has a GitHub repository")
-	rootCmd.Flags().StringVar(
-		&opts.PyPI, "pypi", "",
-		"pypi package to check, given that the pypi package has a GitHub repository")
-	rootCmd.Flags().StringVar(
-		&opts.RubyGems, "rubygems", "",
-		"rubygems package to check, given that the rubygems package has a GitHub repository")
-	rootCmd.Flags().StringSliceVar(
-		&opts.Metadata, "metadata", []string{}, "metadata for the project. It can be multiple separated by commas")
-	rootCmd.Flags().BoolVar(&opts.ShowDetails, "show-details", false, "show extra details about each check")
-	checkNames := []string{}
-	for checkName := range checks.GetAll() {
-		checkNames = append(checkNames, checkName)
-	}
-	rootCmd.Flags().StringSliceVar(&opts.ChecksToRun, "checks", []string{},
-		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")))
-
-	// TODO(cmd): Extract logic
-	if options.IsSarifEnabled() {
-		rootCmd.Flags().StringVar(&opts.PolicyFile, "policy", "", "policy to enforce")
-		rootCmd.Flags().StringVar(&opts.Format, "format", options.FormatDefault,
-			"output format allowed values are [default, sarif, json]")
-	} else {
-		rootCmd.Flags().StringVar(&opts.Format, "format", options.FormatDefault,
-			"output format allowed values are [default, json]")
-	}
-}
-
-// Execute runs the Scorecard commandline.
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func scorecardCmd(cmd *cobra.Command, args []string) {
-	RunScorecard(args)
-}
-
-// RunScorecard runs scorecard checks given a set of arguments.
-// TODO(cmd): Is `args` required?
-func RunScorecard(args []string) {
-	// TODO(cmd): Catch validation errors
-	valErrs := opts.Validate()
-	if len(valErrs) != 0 {
-		log.Panicf(
-			"the following validation errors occurred: %+v",
-			valErrs,
-		)
+			return nil
+		},
+		// TODO(cmd): Consider using RunE here
+		Run: func(cmd *cobra.Command, args []string) {
+			rootCmd(opts)
+		},
 	}
 
+	opts.AddFlags(cmd)
+
+	// Add sub-commands.
+	cmd.AddCommand(serveCmd())
+	cmd.AddCommand(version.Version())
+	return cmd
+}
+
+// rootCmd runs scorecard checks given a set of arguments.
+func rootCmd(opts *options.Options) {
 	// Set `repo` from package managers.
 	pkgResp, err := fetchGitRepositoryFromPackageManagers(opts.NPM, opts.PyPI, opts.RubyGems)
 	if err != nil {

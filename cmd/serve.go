@@ -30,79 +30,77 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-//nolint:gochecknoinits
-func init() {
-	rootCmd.AddCommand(serveCmd)
-}
+// TODO(cmd): Determine if this should be exported.
+func serveCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "serve",
+		Short: "Serve the scorecard program over http",
+		Long:  ``,
+		Run: func(cmd *cobra.Command, args []string) {
+			logger := log.NewLogger(log.ParseLevel(opts.LogLevel))
 
-var serveCmd = &cobra.Command{
-	Use:   "serve",
-	Short: "Serve the scorecard program over http",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		logger := log.NewLogger(log.ParseLevel(opts.LogLevel))
-
-		t, err := template.New("webpage").Parse(tpl)
-		if err != nil {
-			// TODO(log): Should this actually panic?
-			logger.Error(err, "parsing webpage template")
-			panic(err)
-		}
-
-		http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-			repoParam := r.URL.Query().Get("repo")
-			const length = 3
-			s := strings.SplitN(repoParam, "/", length)
-			if len(s) != length {
-				rw.WriteHeader(http.StatusBadRequest)
-			}
-			repo, err := githubrepo.MakeGithubRepo(repoParam)
+			t, err := template.New("webpage").Parse(tpl)
 			if err != nil {
-				rw.WriteHeader(http.StatusBadRequest)
-			}
-			ctx := r.Context()
-			repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
-			vulnsClient := clients.DefaultVulnerabilitiesClient()
-			if err != nil {
-				logger.Error(err, "initializing clients")
-				rw.WriteHeader(http.StatusInternalServerError)
-			}
-			defer ossFuzzRepoClient.Close()
-			ciiClient := clients.DefaultCIIBestPracticesClient()
-			repoResult, err := pkg.RunScorecards(
-				ctx, repo, clients.HeadSHA /*commitSHA*/, false /*raw*/, checks.AllChecks, repoClient,
-				ossFuzzRepoClient, ciiClient, vulnsClient)
-			if err != nil {
-				logger.Error(err, "running enabled scorecard checks on repo")
-				rw.WriteHeader(http.StatusInternalServerError)
+				// TODO(log): Should this actually panic?
+				logger.Error(err, "parsing webpage template")
+				panic(err)
 			}
 
-			if r.Header.Get("Content-Type") == "application/json" {
-				if err := repoResult.AsJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), rw); err != nil {
-					// TODO(log): Improve error message
-					logger.Error(err, "")
+			http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+				repoParam := r.URL.Query().Get("repo")
+				const length = 3
+				s := strings.SplitN(repoParam, "/", length)
+				if len(s) != length {
+					rw.WriteHeader(http.StatusBadRequest)
+				}
+				repo, err := githubrepo.MakeGithubRepo(repoParam)
+				if err != nil {
+					rw.WriteHeader(http.StatusBadRequest)
+				}
+				ctx := r.Context()
+				repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
+				ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+				vulnsClient := clients.DefaultVulnerabilitiesClient()
+				if err != nil {
+					logger.Error(err, "initializing clients")
 					rw.WriteHeader(http.StatusInternalServerError)
 				}
-				return
+				defer ossFuzzRepoClient.Close()
+				ciiClient := clients.DefaultCIIBestPracticesClient()
+				repoResult, err := pkg.RunScorecards(
+					ctx, repo, clients.HeadSHA /*commitSHA*/, false /*raw*/, checks.AllChecks, repoClient,
+					ossFuzzRepoClient, ciiClient, vulnsClient)
+				if err != nil {
+					logger.Error(err, "running enabled scorecard checks on repo")
+					rw.WriteHeader(http.StatusInternalServerError)
+				}
+
+				if r.Header.Get("Content-Type") == "application/json" {
+					if err := repoResult.AsJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), rw); err != nil {
+						// TODO(log): Improve error message
+						logger.Error(err, "")
+						rw.WriteHeader(http.StatusInternalServerError)
+					}
+					return
+				}
+				if err := t.Execute(rw, repoResult); err != nil {
+					// TODO(log): Improve error message
+					logger.Error(err, "")
+				}
+			})
+			port := os.Getenv("PORT")
+			if port == "" {
+				port = "8080"
 			}
-			if err := t.Execute(rw, repoResult); err != nil {
-				// TODO(log): Improve error message
-				logger.Error(err, "")
+			fmt.Printf("Listening on localhost:%s\n", port)
+			err = http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil)
+			if err != nil {
+				// TODO(log): Should this actually panic?
+				logger.Error(err, "listening and serving")
+				panic(err)
 			}
-		})
-		port := os.Getenv("PORT")
-		if port == "" {
-			port = "8080"
-		}
-		fmt.Printf("Listening on localhost:%s\n", port)
-		err = http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil)
-		if err != nil {
-			// TODO(log): Should this actually panic?
-			logger.Error(err, "listening and serving")
-			panic(err)
-		}
-	},
+		},
+	}
 }
 
 const tpl = `
