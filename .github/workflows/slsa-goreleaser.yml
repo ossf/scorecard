@@ -1,0 +1,49 @@
+name: Test SLSA
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "*" 
+
+permissions: read-all
+      
+jobs:
+  args:
+    runs-on: ubuntu-latest
+    outputs:
+      ldflags: ${{ steps.ldflags.outputs.value }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.3.4
+        with:
+          fetch-depth: 0
+      - id: ldflags
+        run: |
+          echo "::set-output name=value::$(./scripts/version-ldflags)"
+
+  build:
+    permissions:
+      id-token: write
+      contents: read
+    needs: args
+    uses: gossts/slsa-go/.github/workflows/builder.yml@main # TODO: use has upon release.
+    with:
+      go-version: 1.17
+      env: "VERSION_LDFLAGS:${{needs.args.outputs.ldflags}}"
+
+  upload:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
+        with:
+          name: ${{ needs.build.outputs.go-binary-name }}
+      - name: Release
+        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ${{ needs.build.outputs.go-binary-name }}
+            ${{ needs.build.outputs.go-binary-name }}.intoto.sig
