@@ -34,14 +34,14 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(
 		&o.Repo,
 		"repo",
-		"",
+		o.Repo,
 		"repository to check",
 	)
 
 	cmd.Flags().StringVar(
 		&o.Local,
 		"local",
-		"",
+		o.Local,
 		"local folder to check",
 	)
 
@@ -49,49 +49,49 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(
 		&o.Commit,
 		"commit",
-		DefaultCommit,
+		o.Commit,
 		"commit to analyze",
 	)
 
 	cmd.Flags().StringVar(
 		&o.LogLevel,
 		"verbosity",
-		DefaultLogLevel,
+		o.LogLevel,
 		"set the log level",
 	)
 
 	cmd.Flags().StringVar(
 		&o.NPM,
 		"npm",
-		"",
+		o.NPM,
 		"npm package to check, given that the npm package has a GitHub repository",
 	)
 
 	cmd.Flags().StringVar(
 		&o.PyPI,
 		"pypi",
-		"",
+		o.PyPI,
 		"pypi package to check, given that the pypi package has a GitHub repository",
 	)
 
 	cmd.Flags().StringVar(
 		&o.RubyGems,
 		"rubygems",
-		"",
+		o.RubyGems,
 		"rubygems package to check, given that the rubygems package has a GitHub repository",
 	)
 
 	cmd.Flags().StringSliceVar(
 		&o.Metadata,
 		"metadata",
-		[]string{},
+		o.Metadata,
 		"metadata for the project. It can be multiple separated by commas",
 	)
 
 	cmd.Flags().BoolVar(
 		&o.ShowDetails,
 		"show-details",
-		false,
+		o.ShowDetails,
 		"show extra details about each check",
 	)
 
@@ -102,7 +102,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(
 		&o.ChecksToRun,
 		"checks",
-		[]string{},
+		o.ChecksToRun,
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")),
 	)
 
@@ -111,21 +111,21 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		cmd.Flags().StringVar(
 			&o.PolicyFile,
 			"policy",
-			"",
+			o.PolicyFile,
 			"policy to enforce",
 		)
 
 		cmd.Flags().StringVar(
 			&o.Format,
 			"format",
-			FormatDefault,
+			o.Format,
 			"output format allowed values are [default, sarif, json]",
 		)
 	} else {
 		cmd.Flags().StringVar(
 			&o.Format,
 			"format",
-			FormatDefault,
+			o.Format,
 			"output format allowed values are [default, json]",
 		)
 	}
