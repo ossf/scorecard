@@ -51,6 +51,14 @@ func New() *cobra.Command {
 		Use:   scorecardUse,
 		Short: scorecardShort,
 		Long:  scorecardLong,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			err := opts.Validate()
+			if err != nil {
+				return fmt.Errorf("validating options: %w", err)
+			}
+
+			return nil
+		},
 		// TODO(cmd): Consider using RunE here
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd(opts)

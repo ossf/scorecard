@@ -102,11 +102,12 @@ var (
 		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
+	errValidate          = errors.New("some options could not be validated")
 )
 
 // Validate validates scorecard configuration options.
 // TODO(options): Cleanup error messages.
-func (o *Options) Validate() []error {
+func (o *Options) Validate() error {
 	var errs []error
 
 	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--local` is enabled.
@@ -174,7 +175,15 @@ func (o *Options) Validate() []error {
 		)
 	}
 
-	return errs
+	if len(errs) != 0 {
+		return fmt.Errorf(
+			"%w: %+v",
+			errValidate,
+			errs,
+		)
+	}
+
+	return nil
 }
 
 func boolSum(bools ...bool) int {
