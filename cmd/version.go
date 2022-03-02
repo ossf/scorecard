@@ -22,23 +22,21 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-//nolint:gochecknoinits
-func init() {
-	rootCmd.AddCommand(versionCmd)
-}
-
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print version information",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		// not using logger, since it prints timing info, etc
-		fmt.Printf("GitVersion:\t%s\n", pkg.GetTagVersion())
-		fmt.Printf("GitCommit:\t%s\n", pkg.GetCommit())
-		fmt.Printf("GitTreeState:\t%s\n", pkg.GetTreeState())
-		fmt.Printf("BuildDate:\t%s\n", pkg.GetBuildDate())
-		fmt.Printf("GoVersion:\t%s\n", pkg.GetGoVersion())
-		fmt.Printf("Compiler:\t%s\n", pkg.GetCompiler())
-		fmt.Printf("Platform:\t%s/%s\n", pkg.GetOS(), pkg.GetArch())
-	},
+// TODO(cmd): Determine if this should be exported.
+func versionCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "version",
+		Short: "Print version information",
+		Long:  ``,
+		Run: func(cmd *cobra.Command, args []string) {
+			// not using logger, since it prints timing info, etc
+			fmt.Printf("GitVersion:\t%s\n", pkg.GetTagVersion())
+			fmt.Printf("GitCommit:\t%s\n", pkg.GetCommit())
+			fmt.Printf("GitTreeState:\t%s\n", pkg.GetTreeState())
+			fmt.Printf("BuildDate:\t%s\n", pkg.GetBuildDate())
+			fmt.Printf("GoVersion:\t%s\n", pkg.GetGoVersion())
+			fmt.Printf("Compiler:\t%s\n", pkg.GetCompiler())
+			fmt.Printf("Platform:\t%s/%s\n", pkg.GetOS(), pkg.GetArch())
+		},
+	}
 }
