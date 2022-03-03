@@ -242,12 +242,11 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 				})
 			}
 			for _, review := range pr.Reviews.Nodes {
-				author := clients.User{
-					Login: string(review.Author.Login),
-				}
 				associatedPR.Reviews = append(associatedPR.Reviews, clients.Review{
-					State:  string(review.State),
-					Author: &author,
+					State: string(review.State),
+					Author: &clients.User{
+						Login: string(review.Author.Login),
+					},
 				})
 			}
 			break
