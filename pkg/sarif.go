@@ -510,14 +510,18 @@ func filterOutDetailType(details []checker.CheckDetail, t checker.DetailType) []
 	return ret
 }
 
+func messageWithScore(msg string, score int) string {
+	return fmt.Sprintf("score is %d: %s", score, msg)
+}
+
 func createDefaultLocationMessage(check *checker.CheckResult, score int) string {
 	details := filterOutDetailType(check.Details2, checker.DetailInfo)
 	s, b := detailsToString(details, log.WarnLevel)
 	if b {
 		// Warning: GitHub UX needs a single `\n` to turn it into a `<br>`.
-		return fmt.Sprintf("score is %d: %s:\n%s", score, check.Reason, s)
+		return messageWithScore(fmt.Sprintf("%s:\n%s", check.Reason, s), score)
 	}
-	return fmt.Sprintf("score is %d: %s", score, check.Reason)
+	return messageWithScore(check.Reason, score)
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
@@ -603,7 +607,8 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 		} else {
 			for _, loc := range locs {
 				// Use the location's message (check's detail's message) as message.
-				cr := createSARIFCheckResult(RuleIndex, sarifCheckID, loc.Message.Text, &loc)
+				msg := messageWithScore(loc.Message.Text, check.Score)
+				cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &loc)
 				run.Results = append(run.Results, cr)
 			}
 		}
