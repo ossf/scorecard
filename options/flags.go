@@ -145,6 +145,11 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	)
 
 	// TODO(options): Extract logic
+	allowedFormats := []string{
+		FormatDefault,
+		FormatJSON,
+	}
+
 	if o.isSarifEnabled() {
 		cmd.Flags().StringVar(
 			&o.PolicyFile,
@@ -153,18 +158,16 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 			"policy to enforce",
 		)
 
-		cmd.Flags().StringVar(
-			&o.Format,
-			FlagFormat,
-			o.Format,
-			"output format allowed values are [default, sarif, json]",
-		)
-	} else {
-		cmd.Flags().StringVar(
-			&o.Format,
-			FlagFormat,
-			o.Format,
-			"output format allowed values are [default, json]",
-		)
+		allowedFormats = append(allowedFormats, FormatSarif)
 	}
+
+	cmd.Flags().StringVar(
+		&o.Format,
+		FlagFormat,
+		o.Format,
+		fmt.Sprintf(
+			"output format. Possible values are: %s",
+			strings.Join(allowedFormats, ", "),
+		),
+	)
 }
