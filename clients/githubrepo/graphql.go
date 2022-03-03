@@ -16,6 +16,7 @@ package githubrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -35,6 +36,8 @@ const (
 	labelsToAnalyze        = 30
 	commitsToAnalyze       = 30
 )
+
+var errorInvalidCommitterLogin = errors.New("cannot retrieve committer login")
 
 // nolint: govet
 type graphqlData struct {
@@ -57,6 +60,10 @@ type graphqlData struct {
 							User struct {
 								Login *string
 							}
+						}
+						Signature struct {
+							IsValid           bool
+							WasSignedByGitHub bool
 						}
 						AssociatedPullRequests struct {
 							Nodes []struct {
@@ -191,15 +198,26 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-// nolint: unparam
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
 		var committer string
-		if commit.Committer.User.Login != nil {
+		// Find the commit's committer.
+		if commit.Committer.User.Login != nil && *commit.Committer.User.Login != "" {
 			committer = *commit.Committer.User.Login
+		} else if commit.Committer.Name != nil &&
+			// Username "GitHub" may indicate the commit was committed by GitHub.
+			// We verify that the commit is signed by GitHub, because the name can be spoofed.
+			*commit.Committer.Name == "GitHub" &&
+			commit.Signature.IsValid &&
+			commit.Signature.WasSignedByGitHub {
+			committer = "github"
 		}
-		// TODO(#1543): Figure out a way to safely get committer if `User.Login` is `nil`.
+
+		if committer == "" {
+			return ret, fmt.Errorf("commit %s: %w", commit.Oid, errorInvalidCommitterLogin)
+		}
+
 		var associatedPR clients.PullRequest
 		for i := range commit.AssociatedPullRequests.Nodes {
 			pr := commit.AssociatedPullRequests.Nodes[i]
@@ -226,6 +244,9 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 			for _, review := range pr.Reviews.Nodes {
 				associatedPR.Reviews = append(associatedPR.Reviews, clients.Review{
 					State: string(review.State),
+					Author: &clients.User{
+						Login: string(review.Author.Login),
+					},
 				})
 			}
 			break
