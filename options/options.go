@@ -58,6 +58,18 @@ func New() *Options {
 		fmt.Printf("could not parse env vars, using default options: %v", err)
 	}
 
+	// Defaulting.
+	// TODO(options): Consider moving this to a separate function/method.
+	if opts.Commit == "" {
+		opts.Commit = DefaultCommit
+	}
+	if opts.Format == "" {
+		opts.Format = FormatDefault
+	}
+	if opts.LogLevel == "" {
+		opts.LogLevel = DefaultLogLevel
+	}
+
 	return opts
 }
 
