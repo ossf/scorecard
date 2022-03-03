@@ -707,6 +707,26 @@ func Test_getRun(t *testing.T) {
 			},
 			want: nil,
 		},
+		{
+			name: "run is not empty",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecRun{
+						Run: &actionlint.String{Value: "foo"},
+					},
+				},
+			},
+			want: &actionlint.String{Value: "foo"},
+		},
+		{
+			name: "run is not empty",
+			args: args{
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecRun{},
+				},
+			},
+			want: nil,
+		},
 	}
 
 	for _, tt := range tests {
@@ -715,6 +735,181 @@ func Test_getRun(t *testing.T) {
 			t.Parallel()
 			if got := getRun(tt.args.step); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getRun() = %v, want %v for test case %v", got, tt.want, tt.name)
+			}
+		})
+	}
+}
+
+func Test_stepsMatch(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		stepToMatch *JobMatcherStep
+		step        *actionlint.Step
+	}
+	//nolint
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "match",
+			args: args{
+				stepToMatch: &JobMatcherStep{
+					Uses: "foo",
+					With: map[string]string{
+						"foo": "bar",
+					},
+				},
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Uses: &actionlint.String{
+							Value: "foo@",
+						},
+						Inputs: map[string]*actionlint.Input{
+							"foo": {
+								Name:  &actionlint.String{Value: "foo"},
+								Value: &actionlint.String{Value: "bar"},
+							},
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "match with empty",
+			args: args{
+				stepToMatch: &JobMatcherStep{
+					Uses: "foo",
+					With: map[string]string{
+						"foo": "bar",
+					},
+				},
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Uses: &actionlint.String{
+							Value: "foo@",
+						},
+						Inputs: map[string]*actionlint.Input{
+							"foo": {
+								Name:  &actionlint.String{Value: "foo"},
+								Value: &actionlint.String{Value: ""},
+							},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "match with empty",
+			args: args{
+				stepToMatch: &JobMatcherStep{
+					Uses: "foo",
+					With: map[string]string{
+						"foo": "bar",
+					},
+				},
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Uses: &actionlint.String{
+							Value: "foo@",
+						},
+						Inputs: map[string]*actionlint.Input{
+							"foo": {
+								Name:  &actionlint.String{Value: "foo"},
+								Value: &actionlint.String{Value: ""},
+							},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "match with empty",
+			args: args{
+				stepToMatch: &JobMatcherStep{
+					Uses: "foo",
+					With: map[string]string{
+						"foo": "bar",
+					},
+				},
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Uses: &actionlint.String{
+							Value: "foo@",
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "match with empty",
+			args: args{
+				stepToMatch: &JobMatcherStep{
+					Uses: "foo",
+					With: map[string]string{
+						"foo": "bar",
+					},
+				},
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Uses: &actionlint.String{
+							Value: "foo",
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "match with empty",
+			args: args{
+				stepToMatch: &JobMatcherStep{
+					Uses: "foo",
+					With: map[string]string{
+						"foo": "bar",
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "match",
+			args: args{
+				stepToMatch: &JobMatcherStep{
+					Uses: "foo",
+					With: map[string]string{
+						"foo": "bar",
+					},
+					Run: "foo",
+				},
+				step: &actionlint.Step{
+					Exec: &actionlint.ExecAction{
+						Uses: &actionlint.String{
+							Value: "foo@",
+						},
+						Inputs: map[string]*actionlint.Input{
+							"foo": {
+								Name:  &actionlint.String{Value: "foo"},
+								Value: &actionlint.String{Value: "bar"},
+							},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := stepsMatch(tt.args.stepToMatch, tt.args.step); got != tt.want {
+				t.Errorf("stepsMatch() = %v, want %v", got, tt.want)
 			}
 		})
 	}
