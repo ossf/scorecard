@@ -19,10 +19,12 @@ import (
 	"log"
 
 	"github.com/ossf/scorecard/v4/cmd"
+	"github.com/ossf/scorecard/v4/options"
 )
 
 func main() {
-	if err := cmd.New().Execute(); err != nil {
+	opts := options.New()
+	if err := cmd.New(opts).Execute(); err != nil {
 		log.Fatalf("error during command execution: %v", err)
 	}
 }
