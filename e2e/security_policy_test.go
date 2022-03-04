@@ -58,12 +58,72 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
+		It("Should return valid security policy at commitSHA", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "e0cb70344e46276b37d65824f95eca478080de4a")
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			}
+			result := checks.SecurityPolicy(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
 		It("Should return valid security policy for rust repositories", func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("randombit/botan")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			}
+			result := checks.SecurityPolicy(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return valid security policy for rust repositories at commitSHA", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("randombit/botan")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "bab40cdd29d19e0638cf1301dfd355c52b94d1c0")
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
