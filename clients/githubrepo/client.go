@@ -71,9 +71,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	}
 
 	// Init tarballHandler.
-	if err := client.tarball.init(client.ctx, client.repo, commitSHA); err != nil {
-		return fmt.Errorf("error during tarballHandler.init: %w", err)
-	}
+	client.tarball.init(client.ctx, client.repo, commitSHA)
 
 	// Setup GraphQL.
 	client.graphClient.init(client.ctx, client.repourl)
