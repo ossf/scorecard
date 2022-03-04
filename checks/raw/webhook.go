@@ -33,9 +33,10 @@ func WebHook(c *checker.CheckRequest) (checker.WebhooksData, error) {
 
 	hooks := []checker.WebhookData{}
 	for _, hook := range hooksResp {
+
 		v := checker.WebhookData{
-			ID:        &hook.ID,
-			HasSecret: &hook.HasSecret,
+			ID:             hook.ID,
+			UsesAuthSecret: hook.UsesAuthSecret,
 			// Note: add fields if needed.
 		}
 		hooks = append(hooks, v)

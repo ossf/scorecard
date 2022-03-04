@@ -16,8 +16,13 @@ package checks
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/olekukonko/tablewriter"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -34,33 +39,58 @@ func init() {
 	}
 }
 
-// WebHooks run Contributors check.
+// WebHooks run Webhooks check.
 func WebHooks(c *checker.CheckRequest) checker.CheckResult {
-	hooks, err := c.RepoClient.ListWebhooks()
+	rawData, err := raw.WebHook(c)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListWebhooks: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckWebHooks, e)
 	}
 
-	if len(hooks) < 1 {
+	if len(rawData.Webhook) < 1 {
 		return checker.CreateMaxScoreResult(CheckWebHooks, "no webhooks defined")
 	}
 
-	hasSecretToCount := 0
-	for _, hook := range hooks {
-		if !hook.HasSecret {
-			hasSecretToCount++
+	hasNoSecretCount := 0
+	for _, hook := range rawData.Webhook {
+		if !hook.UsesAuthSecret {
+			c.Dlogger.Warn(&checker.LogMessage{
+				Path: fmt.Sprintf("https://%s/settings/hooks/%d", c.RepoClient.URI(), hook.ID),
+				Type: checker.FileTypeURL,
+				Text: "Webhook with no secret configured",
+			})
+			hasNoSecretCount++
 		}
 	}
 
-	if hasSecretToCount == 0 {
-		return checker.CreateMaxScoreResult(CheckWebHooks, "all webhooks have secrets defined")
+	generateWebhookTable(c.RepoClient.URI(), rawData.Webhook)
+
+	if hasNoSecretCount == 0 {
+		return checker.CreateMaxScoreResult(CheckWebHooks, fmt.Sprintf("all %d hook(s) have a secret configured", len(rawData.Webhook)))
 	}
 
-	if len(hooks) == hasSecretToCount {
-		return checker.CreateMinScoreResult(CheckWebHooks, "webhooks with no secrets configured detected")
+	if len(rawData.Webhook) == hasNoSecretCount {
+		return checker.CreateMinScoreResult(CheckWebHooks, fmt.Sprintf("%d hook(s) do not have a secret configured", len(rawData.Webhook)))
 	}
 
 	return checker.CreateProportionalScoreResult(CheckWebHooks,
-		"webhooks with no secrets configured detected", hasSecretToCount, len(hooks))
+		fmt.Sprintf("%d out of %d hook(s) with no secrets configured detected", hasNoSecretCount, len(rawData.Webhook)), hasNoSecretCount, len(rawData.Webhook))
+}
+
+func generateWebhookTable(repo string, data []checker.WebhookData) {
+	tableString := &strings.Builder{}
+	table := tablewriter.NewWriter(tableString)
+	table.SetAutoWrapText(false)
+	table.SetHeader([]string{"GitHub Webhook", "Uses Auth Secret"})
+
+	for _, hook := range data {
+		table.Append([]string{fmt.Sprintf("https://%s/settings/hooks/%d", repo, hook.ID), strconv.FormatBool(hook.UsesAuthSecret)})
+		// https: //github.com/cpanato/testing-ci-providers/settings/hooks/289347313
+	}
+
+	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
+	table.SetCenterSeparator("|")
+	table.Render()
+
+	fmt.Println(tableString.String())
 }

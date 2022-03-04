@@ -31,12 +31,12 @@ func TestWebhooks(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name              string
-		err               error
-		wantErr           bool
-		expectedHasSecret int
-		expected          scut.TestReturn
-		webhookResponse   []*clients.Webhook
+		name                   string
+		err                    error
+		wantErr                bool
+		expectedUsesAuthSecret int
+		expected               scut.TestReturn
+		webhookResponse        []*clients.Webhook
 	}{
 		{
 			name:            "No Webhooks",
@@ -49,41 +49,41 @@ func TestWebhooks(t *testing.T) {
 			err:     sce.ErrScorecardInternal,
 		},
 		{
-			name:              "Webhook with no secret",
-			wantErr:           false,
-			expectedHasSecret: 0,
+			name:                   "Webhook with no secret",
+			wantErr:                false,
+			expectedUsesAuthSecret: 0,
 			webhookResponse: []*clients.Webhook{
 				{
-					HasSecret: false,
+					UsesAuthSecret: false,
 				},
 			},
 		},
 		{
-			name:              "Webhook with secrets",
-			wantErr:           false,
-			expectedHasSecret: 2,
+			name:                   "Webhook with secrets",
+			wantErr:                false,
+			expectedUsesAuthSecret: 2,
 			webhookResponse: []*clients.Webhook{
 				{
-					HasSecret: true,
+					UsesAuthSecret: true,
 				},
 				{
-					HasSecret: true,
+					UsesAuthSecret: true,
 				},
 			},
 		},
 		{
-			name:              "Webhook with secrets and some without defined secrets",
-			wantErr:           false,
-			expectedHasSecret: 1,
+			name:                   "Webhook with secrets and some without defined secrets",
+			wantErr:                false,
+			expectedUsesAuthSecret: 1,
 			webhookResponse: []*clients.Webhook{
 				{
-					HasSecret: true,
+					UsesAuthSecret: true,
 				},
 				{
-					HasSecret: false,
+					UsesAuthSecret: false,
 				},
 				{
-					HasSecret: false,
+					UsesAuthSecret: false,
 				},
 			},
 		},
@@ -117,13 +117,13 @@ func TestWebhooks(t *testing.T) {
 			if !tt.wantErr {
 				gotHasSecret := 0
 				for _, gotHook := range got.Webhook {
-					if *gotHook.HasSecret {
+					if gotHook.UsesAuthSecret {
 						gotHasSecret++
 					}
 				}
 
-				if gotHasSecret != tt.expectedHasSecret {
-					t.Errorf("Webhooks() got = %v, want %v", gotHasSecret, tt.expectedHasSecret)
+				if gotHasSecret != tt.expectedUsesAuthSecret {
+					t.Errorf("Webhooks() got = %v, want %v", gotHasSecret, tt.expectedUsesAuthSecret)
 				}
 			}
 

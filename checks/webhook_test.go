@@ -23,18 +23,21 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestWebhooks(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		expected checker.CheckResult
+		uri      string
 		err      error
 		name     string
 		webhooks []*clients.Webhook
 	}{
 		{
 			name: "No Webhooks",
+			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
 				Pass:  true,
 				Score: 10,
@@ -44,6 +47,7 @@ func TestWebhooks(t *testing.T) {
 		},
 		{
 			name: "With Webhooks and secret set",
+			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
 				Pass:  true,
 				Score: 10,
@@ -51,12 +55,14 @@ func TestWebhooks(t *testing.T) {
 			err: nil,
 			webhooks: []*clients.Webhook{
 				{
-					HasSecret: true,
+					ID:             12345,
+					UsesAuthSecret: true,
 				},
 			},
 		},
 		{
 			name: "With Webhooks and no secret set",
+			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
 				Pass:  false,
 				Score: 0,
@@ -64,12 +70,14 @@ func TestWebhooks(t *testing.T) {
 			err: nil,
 			webhooks: []*clients.Webhook{
 				{
-					HasSecret: false,
+					ID:             12345,
+					UsesAuthSecret: false,
 				},
 			},
 		},
 		{
 			name: "With 2 Webhooks with and whitout secrets configured",
+			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
 				Pass:  false,
 				Score: 5,
@@ -77,10 +85,12 @@ func TestWebhooks(t *testing.T) {
 			err: nil,
 			webhooks: []*clients.Webhook{
 				{
-					HasSecret: false,
+					ID:             12345,
+					UsesAuthSecret: false,
 				},
 				{
-					HasSecret: true,
+					ID:             54321,
+					UsesAuthSecret: true,
 				},
 			},
 		},
@@ -101,9 +111,13 @@ func TestWebhooks(t *testing.T) {
 				return tt.webhooks, tt.err
 			}).MaxTimes(1)
 
+			mockRepo.EXPECT().URI().Return(tt.uri).AnyTimes()
+
+			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
 				Ctx:        context.TODO(),
+				Dlogger:    &dl,
 			}
 			res := WebHooks(&req)
 			if tt.err != nil {

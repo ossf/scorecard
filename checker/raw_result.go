@@ -79,8 +79,8 @@ type WebhooksData struct {
 // WebhookData contains the raw results
 // for webhook check.
 type WebhookData struct {
-	ID        *int64
-	HasSecret *bool
+	ID             int64
+	UsesAuthSecret bool
 }
 
 // BranchProtectionsData contains the raw results

@@ -55,9 +55,10 @@ func (handler *webhookHandler) setup() error {
 		}
 
 		for _, hook := range hooks {
+
 			repoHook := &clients.Webhook{
-				ID:        hook.GetID(),
-				HasSecret: hasSecret(hook.Config),
+				ID:             hook.GetID(),
+				UsesAuthSecret: getAuthSecret(hook.Config),
 			}
 			handler.webhook = append(handler.webhook, repoHook)
 		}
@@ -66,7 +67,7 @@ func (handler *webhookHandler) setup() error {
 	return handler.errSetup
 }
 
-func hasSecret(config map[string]interface{}) bool {
+func getAuthSecret(config map[string]interface{}) bool {
 	if val, ok := config["secret"]; ok {
 		if val != nil {
 			return true

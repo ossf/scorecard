@@ -603,13 +603,11 @@ possible.
 
 ## Webhooks 
 
-Risk: `High`  (possible service can be accessed by third-party)
+Risk: `High`  (service possibly accessible to third parties)
 
-This check validates if the webhook defined in the repository have a token configured to authenticate the origin of the request to make sure that is a trusted request.
- 
+This check determines whether the webhook defined in the repository has a token configured to authenticate the origins of requests.
 
 **Remediation steps**
-- Check if your service supports the token authentication.
-- If that supports set the secret in the Webhook configuration.
-- If does not support, consider implementing this support, more information can be found on <https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks>.
-
+- Check whether your service supports token authentication.
+- If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook)
+- If there is no support for token authentication, consider implementing it by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
