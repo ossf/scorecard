@@ -26,6 +26,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/google/go-github/v38/github"
 
@@ -64,45 +65,60 @@ func extractAndValidateArchivePath(path, dest string) (string, error) {
 }
 
 type tarballHandler struct {
+	errSetup    error
+	once        *sync.Once
+	ctx         context.Context
+	repo        *github.Repository
+	commitSHA   string
 	tempDir     string
 	tempTarFile string
 	files       []string
 }
 
-func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository, commitSHA string) error {
-	// Cleanup any previous state.
-	if err := handler.cleanup(); err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-	}
-
-	// Setup temp dir/files and download repo tarball.
-	if err := handler.getTarball(ctx, repo, commitSHA); errors.Is(err, errTarballNotFound) {
-		log.Printf("unable to get tarball %v. Skipping...", err)
-		return nil
-	} else if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-	}
-
-	// Extract file names and content from tarball.
-	if err := handler.extractTarball(); errors.Is(err, errTarballCorrupted) {
-		log.Printf("unable to extract tarball %v. Skipping...", err)
-		return nil
-	} else if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-	}
-
-	return nil
+func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository, commitSHA string) {
+	handler.errSetup = nil
+	handler.once = new(sync.Once)
+	handler.ctx = ctx
+	handler.repo = repo
+	handler.commitSHA = commitSHA
 }
 
-func (handler *tarballHandler) getTarball(ctx context.Context, repo *github.Repository, commitSHA string) error {
-	url := repo.GetArchiveURL()
+func (handler *tarballHandler) setup() error {
+	handler.once.Do(func() {
+		// Cleanup any previous state.
+		if err := handler.cleanup(); err != nil {
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+			return
+		}
+
+		// Setup temp dir/files and download repo tarball.
+		if err := handler.getTarball(); errors.Is(err, errTarballNotFound) {
+			log.Printf("unable to get tarball %v. Skipping...", err)
+			return
+		} else if err != nil {
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+			return
+		}
+
+		// Extract file names and content from tarball.
+		if err := handler.extractTarball(); errors.Is(err, errTarballCorrupted) {
+			log.Printf("unable to extract tarball %v. Skipping...", err)
+		} else if err != nil {
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+	})
+	return handler.errSetup
+}
+
+func (handler *tarballHandler) getTarball() error {
+	url := handler.repo.GetArchiveURL()
 	url = strings.Replace(url, "{archive_format}", "tarball/", 1)
-	if strings.EqualFold(commitSHA, clients.HeadSHA) {
+	if strings.EqualFold(handler.commitSHA, clients.HeadSHA) {
 		url = strings.Replace(url, "{/ref}", "", 1)
 	} else {
-		url = strings.Replace(url, "{/ref}", commitSHA, 1)
+		url = strings.Replace(url, "{/ref}", handler.commitSHA, 1)
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(handler.ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
@@ -210,6 +226,9 @@ func (handler *tarballHandler) extractTarball() error {
 }
 
 func (handler *tarballHandler) listFiles(predicate func(string) (bool, error)) ([]string, error) {
+	if err := handler.setup(); err != nil {
+		return nil, fmt.Errorf("error during tarballHandler.setup: %w", err)
+	}
 	ret := make([]string, 0)
 	for _, file := range handler.files {
 		matches, err := predicate(file)
@@ -224,6 +243,9 @@ func (handler *tarballHandler) listFiles(predicate func(string) (bool, error)) (
 }
 
 func (handler *tarballHandler) getFileContent(filename string) ([]byte, error) {
+	if err := handler.setup(); err != nil {
+		return nil, fmt.Errorf("error during tarballHandler.setup: %w", err)
+	}
 	content, err := os.ReadFile(filepath.Join(handler.tempDir, filename))
 	if err != nil {
 		return content, fmt.Errorf("os.ReadFile: %w", err)

@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -58,10 +59,16 @@ func setup(inputFile string) (tarballHandler, error) {
 	if _, err := io.Copy(tempFile, testFile); err != nil {
 		return tarballHandler{}, fmt.Errorf("unable to do io.Copy: %w", err)
 	}
-	return tarballHandler{
+	tarballHandler := tarballHandler{
 		tempDir:     tempDir,
 		tempTarFile: tempFile.Name(),
-	}, nil
+		once:        new(sync.Once),
+	}
+	tarballHandler.once.Do(func() {
+		// We don't want to run the code in tarballHandler.setup(), so if we execute tarballHandler.once.Do() right
+		// here, it won't get executed later when setup() is called.
+	})
+	return tarballHandler, nil
 }
 
 // nolint: gocognit
