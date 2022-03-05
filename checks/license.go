@@ -38,6 +38,7 @@ const CheckLicense = "License"
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.FileBased,
+		checker.CommitBased,
 	}
 	if err := registerCheck(CheckLicense, LicenseCheck, supportedRequestTypes); err != nil {
 		// this should never happen

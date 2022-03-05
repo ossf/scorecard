@@ -56,5 +56,33 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
+		It("Should return license check works at commitSHA", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-license-e2e")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "c3a8778e73ea95f937c228a34ee57d5e006f7304")
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			}
+			result := checks.LicenseCheck(&req)
+
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeTrue())
+
+			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
+				&dl)).Should(BeTrue())
+		})
 	})
 })
