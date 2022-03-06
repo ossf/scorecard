@@ -339,8 +339,8 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-// https://github.com/advisories/GHSA-c2h3-6mxw-7mvq
-replace github.com/containerd/containerd => github.com/containerd/containerd v1.5.9
+// https://github.com/advisories/GHSA-crp2-qrr5-8pq7
+replace github.com/containerd/containerd => github.com/containerd/containerd v1.5.10
 
 //https://github.com/opencontainers/distribution-spec/security/advisories/GHSA-mc8v-mgrf-8f4m
 replace github.com/opencontainers/image-spec v1.0.1 => github.com/opencontainers/image-spec v1.0.2
