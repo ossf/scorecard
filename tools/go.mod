@@ -7,7 +7,7 @@ require (
 	github.com/golangci/golangci-lint v1.44.2
 	github.com/google/addlicense v1.0.0
 	github.com/google/ko v0.10.1-0.20220221173235-a36ea50a9eca
-	github.com/goreleaser/goreleaser v1.5.0
+	github.com/goreleaser/goreleaser v1.6.1
 	github.com/naveensrinivasan/stunning-tribble v0.4.2
 	github.com/onsi/ginkgo/v2 v2.1.3
 	google.golang.org/protobuf v1.27.1
@@ -59,7 +59,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/ashanbrown/forbidigo v1.3.0 // indirect
 	github.com/ashanbrown/makezero v1.1.0 // indirect
-	github.com/atc0005/go-teams-notify/v2 v2.6.0 // indirect
+	github.com/atc0005/go-teams-notify/v2 v2.6.1 // indirect
 	github.com/aws/aws-sdk-go v1.42.43 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.13.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.0.0 // indirect
@@ -169,7 +169,7 @@ require (
 	github.com/golangci/unconvert v0.0.0-20180507085042-28b1c447d1f4 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/go-containerregistry v0.8.1-0.20220222150506-0527e427a86e // indirect
-	github.com/google/go-github/v42 v42.0.0 // indirect
+	github.com/google/go-github/v43 v43.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
 	github.com/google/rpmpack v0.0.0-20211125064518-d0ed9b1b61b9 // indirect
@@ -179,7 +179,7 @@ require (
 	github.com/gordonklaus/ineffassign v0.0.0-20210914165742-4cc7213b9bc8 // indirect
 	github.com/goreleaser/chglog v0.1.2 // indirect
 	github.com/goreleaser/fileglob v1.3.0 // indirect
-	github.com/goreleaser/nfpm/v2 v2.13.0 // indirect
+	github.com/goreleaser/nfpm/v2 v2.14.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
@@ -207,6 +207,7 @@ require (
 	github.com/kisielk/errcheck v1.6.0 // indirect
 	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/klauspost/compress v1.14.4 // indirect
+	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/kulti/thelper v0.5.1 // indirect
 	github.com/kunwardeep/paralleltest v1.0.3 // indirect
 	github.com/kyoh86/exportloopref v0.1.8 // indirect
@@ -271,7 +272,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/sivchari/containedctx v1.0.1 // indirect
 	github.com/sivchari/tenv v1.4.7 // indirect
-	github.com/slack-go/slack v0.10.1 // indirect
+	github.com/slack-go/slack v0.10.2 // indirect
 	github.com/sonatard/noctx v0.0.1 // indirect
 	github.com/sourcegraph/go-diff v0.6.1 // indirect
 	github.com/spf13/afero v1.8.1 // indirect
@@ -298,7 +299,7 @@ require (
 	github.com/ultraware/whitespace v0.0.5 // indirect
 	github.com/uudashr/gocognit v1.0.5 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
-	github.com/xanzy/go-gitlab v0.55.1 // indirect
+	github.com/xanzy/go-gitlab v0.56.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.1.1-0.20210918184747-d757024714a1 // indirect
