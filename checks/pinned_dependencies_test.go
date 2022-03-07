@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -1410,6 +1411,195 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
 					t.Errorf("test failed: log message not present: %+v", tt.expected)
 				}
+			}
+		})
+	}
+}
+
+func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
+	t.Parallel()
+	//nolint
+	type args struct {
+		r       worklowPinningResult
+		infoMsg string
+		dl      checker.DetailLogger
+		err     error
+	}
+	//nolint
+	tests := []struct {
+		name    string
+		args    args
+		want    int
+		wantErr bool
+	}{
+		{
+			name: "both actions workflow pinned",
+			args: args{
+				r: worklowPinningResult{
+					thirdParties: 1,
+					gitHubOwned:  1,
+				},
+				infoMsg: "",
+				dl:      &scut.TestDetailLogger{},
+				err:     nil,
+			},
+			want:    10,
+			wantErr: false,
+		},
+		{
+			name: "github actions workflow pinned",
+			args: args{
+				r: worklowPinningResult{
+					thirdParties: 2,
+					gitHubOwned:  2,
+				},
+				infoMsg: "",
+				dl:      &scut.TestDetailLogger{},
+				err:     nil,
+			},
+			want:    0,
+			wantErr: false,
+		},
+		{
+			name: "error in github actions workflow pinned",
+			args: args{
+				r: worklowPinningResult{
+					thirdParties: 2,
+					gitHubOwned:  2,
+				},
+				infoMsg: "",
+				dl:      &scut.TestDetailLogger{},
+				err:     errors.New("error"),
+			},
+			want:    -1,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := createReturnValuesForGitHubActionsWorkflowPinned(tt.args.r, tt.args.infoMsg, tt.args.dl, tt.args.err)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("createReturnValuesForGitHubActionsWorkflowPinned() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("createReturnValuesForGitHubActionsWorkflowPinned() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_createReturnValues(t *testing.T) {
+	t.Parallel()
+	//nolint
+	type args struct {
+		r       pinnedResult
+		infoMsg string
+		dl      checker.DetailLogger
+		err     error
+	}
+	//nolint
+	tests := []struct {
+		name    string
+		args    args
+		want    int
+		wantErr bool
+	}{
+		{
+			name: "returns 10 if no error",
+			args: args{
+				r:       1,
+				infoMsg: "",
+				dl:      &scut.TestDetailLogger{},
+				err:     nil,
+			},
+			want:    10,
+			wantErr: false,
+		},
+		{
+			name: "returns 0 if unpinned ",
+			args: args{
+				r:       2,
+				infoMsg: "",
+				dl:      &scut.TestDetailLogger{},
+				err:     nil,
+			},
+			want:    0,
+			wantErr: false,
+		},
+		{
+			name: "if err is not nil, returns 0",
+			args: args{
+				r:       2,
+				infoMsg: "",
+				dl:      &scut.TestDetailLogger{},
+				//nolint
+				err: errors.New("error"),
+			},
+			want:    -1,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := createReturnValues(tt.args.r, tt.args.infoMsg, tt.args.dl, tt.args.err)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("createReturnValues() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("createReturnValues() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_maxScore(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		s1 int
+		s2 int
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "returns s1 if s1 is greater than s2",
+			args: args{
+				s1: 10,
+				s2: 5,
+			},
+			want: 10,
+		},
+		{
+			name: "returns s2 if s2 is greater than s1",
+			args: args{
+				s1: 5,
+				s2: 10,
+			},
+			want: 10,
+		},
+		{
+			name: "returns s1 if s1 is equal to s2",
+			args: args{
+				s1: 10,
+				s2: 10,
+			},
+			want: 10,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := maxScore(tt.args.s1, tt.args.s2); got != tt.want {
+				t.Errorf("maxScore() = %v, want %v", got, tt.want)
 			}
 		})
 	}
