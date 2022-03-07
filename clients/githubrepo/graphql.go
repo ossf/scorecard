@@ -214,10 +214,6 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 			committer = "github"
 		}
 
-		if committer == "" {
-			return ret, fmt.Errorf("commit %s: %w", commit.Oid, errorInvalidCommitterLogin)
-		}
-
 		var associatedPR clients.PullRequest
 		for i := range commit.AssociatedPullRequests.Nodes {
 			pr := commit.AssociatedPullRequests.Nodes[i]
