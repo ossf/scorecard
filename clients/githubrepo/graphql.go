@@ -16,7 +16,6 @@ package githubrepo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -36,8 +35,6 @@ const (
 	labelsToAnalyze        = 30
 	commitsToAnalyze       = 30
 )
-
-var errorInvalidCommitterLogin = errors.New("cannot retrieve committer login")
 
 // nolint: govet
 type graphqlData struct {
@@ -198,6 +195,7 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
+//nolint
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
