@@ -19,9 +19,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/release-utils/version"
@@ -71,10 +73,23 @@ func New(o *options.Options) *cobra.Command {
 	return cmd
 }
 
+type packageManager struct{}
+
+// nolint: noctx
+func (c *packageManager) Get(url, packageName string) (*http.Response, error) {
+	const timeout = 10
+	client := &http.Client{
+		Timeout: timeout * time.Second,
+	}
+	//nolint
+	return client.Get(fmt.Sprintf(url, packageName))
+}
+
 // rootCmd runs scorecard checks given a set of arguments.
 func rootCmd(o *options.Options) {
+	p := &packageManager{}
 	// Set `repo` from package managers.
-	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems)
+	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, p)
 	if err != nil {
 		log.Panic(err)
 	}

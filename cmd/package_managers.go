@@ -18,8 +18,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
 
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -29,24 +27,24 @@ type packageMangerResponse struct {
 	exists         bool
 }
 
-// TODO(#1568): Add unit tests for this.
-func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems string) (packageMangerResponse, error) {
+func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems string,
+	manager packageManagerClient) (packageMangerResponse, error) {
 	if npm != "" {
-		gitRepo, err := fetchGitRepositoryFromNPM(npm)
+		gitRepo, err := fetchGitRepositoryFromNPM(npm, manager)
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
 		}, err
 	}
 	if pypi != "" {
-		gitRepo, err := fetchGitRepositoryFromPYPI(pypi)
+		gitRepo, err := fetchGitRepositoryFromPYPI(pypi, manager)
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
 		}, err
 	}
 	if rubygems != "" {
-		gitRepo, err := fetchGitRepositoryFromRubyGems(rubygems)
+		gitRepo, err := fetchGitRepositoryFromRubyGems(rubygems, manager)
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
@@ -79,14 +77,9 @@ type rubyGemsSearchResults struct {
 }
 
 // Gets the GitHub repository URL for the npm package.
-// nolint: noctx
-func fetchGitRepositoryFromNPM(packageName string) (string, error) {
+func fetchGitRepositoryFromNPM(packageName string, packageManager packageManagerClient) (string, error) {
 	npmSearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
-	const timeout = 10
-	client := &http.Client{
-		Timeout: timeout * time.Second,
-	}
-	resp, err := client.Get(fmt.Sprintf(npmSearchURL, packageName))
+	resp, err := packageManager.Get(npmSearchURL, packageName)
 	if err != nil {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get npm package json: %v", err))
 	}
@@ -105,14 +98,9 @@ func fetchGitRepositoryFromNPM(packageName string) (string, error) {
 }
 
 // Gets the GitHub repository URL for the pypi package.
-// nolint: noctx
-func fetchGitRepositoryFromPYPI(packageName string) (string, error) {
+func fetchGitRepositoryFromPYPI(packageName string, manager packageManagerClient) (string, error) {
 	pypiSearchURL := "https://pypi.org/pypi/%s/json"
-	const timeout = 10
-	client := &http.Client{
-		Timeout: timeout * time.Second,
-	}
-	resp, err := client.Get(fmt.Sprintf(pypiSearchURL, packageName))
+	resp, err := manager.Get(pypiSearchURL, packageName)
 	if err != nil {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get pypi package json: %v", err))
 	}
@@ -131,14 +119,9 @@ func fetchGitRepositoryFromPYPI(packageName string) (string, error) {
 }
 
 // Gets the GitHub repository URL for the rubygems package.
-// nolint: noctx
-func fetchGitRepositoryFromRubyGems(packageName string) (string, error) {
+func fetchGitRepositoryFromRubyGems(packageName string, manager packageManagerClient) (string, error) {
 	rubyGemsSearchURL := "https://rubygems.org/api/v1/gems/%s.json"
-	const timeout = 10
-	client := &http.Client{
-		Timeout: timeout * time.Second,
-	}
-	resp, err := client.Get(fmt.Sprintf(rubyGemsSearchURL, packageName))
+	resp, err := manager.Get(rubyGemsSearchURL, packageName)
 	if err != nil {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get ruby gem json: %v", err))
 	}

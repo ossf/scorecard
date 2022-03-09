@@ -15,7 +15,9 @@
 // Package clients defines the interface for RepoClient and related structs.
 package clients
 
-import "errors"
+import (
+	"errors"
+)
 
 // ErrUnsupportedFeature indicates an API that is not supported by the client.
 var ErrUnsupportedFeature = errors.New("unsupported feature")
