@@ -15,9 +15,23 @@
 package cmd
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 )
 
 type packageManagerClient interface {
 	Get(URI string, packagename string) (*http.Response, error)
+}
+
+type packageManager struct{}
+
+// nolint: noctx
+func (c *packageManager) Get(url, packageName string) (*http.Response, error) {
+	const timeout = 10
+	client := &http.Client{
+		Timeout: timeout * time.Second,
+	}
+	//nolint
+	return client.Get(fmt.Sprintf(url, packageName))
 }
