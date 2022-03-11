@@ -19,11 +19,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/release-utils/version"
@@ -71,18 +69,6 @@ func New(o *options.Options) *cobra.Command {
 	cmd.AddCommand(serveCmd(o))
 	cmd.AddCommand(version.Version())
 	return cmd
-}
-
-type packageManager struct{}
-
-// nolint: noctx
-func (c *packageManager) Get(url, packageName string) (*http.Response, error) {
-	const timeout = 10
-	client := &http.Client{
-		Timeout: timeout * time.Second,
-	}
-	//nolint
-	return client.Get(fmt.Sprintf(url, packageName))
 }
 
 // rootCmd runs scorecard checks given a set of arguments.

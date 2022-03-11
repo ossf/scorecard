@@ -110,7 +110,7 @@ cron/data/metadata.pb.go: cron/data/metadata.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/metadata.proto
 
 generate-mocks: ## Compiles and generates all mocks using mockgen.
-generate-mocks: clients/mockclients/repo_client.go clients/mockclients/repo.go clients/mockclients/cii_client.go checks/mockclients/vulnerabilities.go checks/mockclients/packagemanager.go
+generate-mocks: clients/mockclients/repo_client.go clients/mockclients/repo.go clients/mockclients/cii_client.go checks/mockclients/vulnerabilities.go cmd/packagemanager_mockclient.go
 clients/mockclients/repo_client.go: clients/repo_client.go
 	# Generating MockRepoClient
 	$(MOCKGEN) -source=clients/repo_client.go -destination=clients/mockclients/repo_client.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
@@ -123,9 +123,9 @@ clients/mockclients/cii_client.go: clients/cii_client.go
 checks/mockclients/vulnerabilities.go: clients/vulnerabilities.go
 	# Generating MockCIIClient
 	$(MOCKGEN) -source=clients/vulnerabilities.go -destination=clients/mockclients/vulnerabilities.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
-checks/mockclients/packagemanager.go: cmd/packagemanager_client.go
+cmd/packagemanager_mockclient.go: cmd/packagemanager_client.go
 	# Generating MockPackageManagerClient
-	$(MOCKGEN) -source=cmd/packagemanager_client.go -destination=clients/mockclients/packagemanager.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
+	$(MOCKGEN) -source=cmd/packagemanager_client.go -destination=cmd/packagemanager_mockclient.go -package=cmd -copyright_file=clients/mockclients/license.txt
 generate-docs: ## Generates docs
 generate-docs: validate-docs docs/checks.md
 docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
