@@ -29,6 +29,11 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
@@ -66,6 +71,11 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
@@ -103,6 +113,11 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
@@ -140,6 +155,11 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
@@ -177,6 +197,11 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
@@ -214,6 +239,11 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
@@ -251,6 +281,11 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
