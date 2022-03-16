@@ -45,15 +45,16 @@ func TestNew(t *testing.T) {
 		LogLevel    string
 	}
 	tests := []struct {
-		name            string
-		githubEventPath string
-		repo            string
-		resultsFile     string
-		resultsFormat   string
-		publishResults  string
-		want            fields
-		unsetToken      bool
-		wantErr         bool
+		name             string
+		githubEventPath  string
+		repo             string
+		resultsFile      string
+		resultsFormat    string
+		publishResults   string
+		want             fields
+		unsetResultsPath bool
+		unsetToken       bool
+		wantErr          bool
 	}{
 		{
 			name:            "SuccessFormatSARIF",
@@ -103,12 +104,40 @@ func TestNew(t *testing.T) {
 			unsetToken: true,
 			wantErr:    true,
 		},
+		{
+			name:            "FailureResultsPathNotSet",
+			githubEventPath: githubEventPathNonFork,
+			want: fields{
+				EnableSarif: true,
+				Format:      formatSarif,
+				PolicyFile:  defaultScorecardPolicyFile,
+				Commit:      options.DefaultCommit,
+				LogLevel:    options.DefaultLogLevel,
+			},
+			unsetResultsPath: true,
+			wantErr:          true,
+		},
+		{
+			name:            "FailureResultsPathEmpty",
+			githubEventPath: githubEventPathNonFork,
+			resultsFile:     "",
+			want: fields{
+				EnableSarif: true,
+				Format:      formatSarif,
+				PolicyFile:  defaultScorecardPolicyFile,
+				ResultsFile: "",
+				Commit:      options.DefaultCommit,
+				LogLevel:    options.DefaultLogLevel,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, tokenEnvExists := os.LookupEnv(EnvGithubAuthToken)
 			if !tokenEnvExists {
 				os.Setenv(EnvGithubAuthToken, testToken)
+				defer os.Unsetenv(EnvGithubAuthToken)
 			}
 			if tt.unsetToken {
 				os.Unsetenv(EnvGithubAuthToken)
@@ -118,6 +147,7 @@ func TestNew(t *testing.T) {
 			if !pathEnvExists {
 				if tt.githubEventPath != "" {
 					os.Setenv(EnvGithubEventPath, tt.githubEventPath)
+					defer os.Unsetenv(EnvGithubEventPath)
 				}
 			}
 
@@ -125,14 +155,18 @@ func TestNew(t *testing.T) {
 			if !repoEnvExists {
 				if tt.repo != "" {
 					os.Setenv(EnvGithubRepository, tt.repo)
+					defer os.Unsetenv(EnvGithubRepository)
 				}
 			}
 
-			if tt.resultsFile != "" {
-				os.Setenv("SCORECARD_RESULTS_FILE", tt.resultsFile)
-			}
-			if tt.resultsFormat != "" {
-				os.Setenv("SCORECARD_RESULTS_FORMAT", tt.resultsFormat)
+			os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
+			defer os.Unsetenv(EnvInputResultsFormat)
+
+			if tt.unsetResultsPath {
+				os.Unsetenv(EnvInputResultsFile)
+			} else {
+				os.Setenv(EnvInputResultsFile, tt.resultsFile)
+				defer os.Unsetenv(EnvInputResultsFile)
 			}
 
 			opts, err := New()
