@@ -24,11 +24,14 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/cron/config"
 	"github.com/ossf/scorecard/v4/cron/data"
 	"github.com/ossf/scorecard/v4/cron/pubsub"
 	"github.com/ossf/scorecard/v4/pkg"
 )
+
+var headSHA = clients.HeadSHA
 
 func publishToRepoRequestTopic(iter data.Iterator, topicPublisher pubsub.Publisher,
 	shardSize int, datetime time.Time) (int32, error) {
@@ -48,7 +51,9 @@ func publishToRepoRequestTopic(iter data.Iterator, topicPublisher pubsub.Publish
 			return shardNum, fmt.Errorf("error reading repoURL: %w", err)
 		}
 		request.Repos = append(request.GetRepos(), &data.Repo{
-			Url:      &repoURL.Repo,
+			Url: &repoURL.Repo,
+			// TODO(controller): pass in non-HEAD commitSHA here.
+			Commit:   &headSHA,
 			Metadata: repoURL.Metadata.ToString(),
 		})
 		if len(request.GetRepos()) < shardSize {

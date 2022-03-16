@@ -22,6 +22,7 @@ option go_package = "github.com/ossf/scorecard/cron/data";
 
 message Repo {
   optional string url = 1;
+  optional string commit = 3;
   repeated string metadata = 2;
 }
 
