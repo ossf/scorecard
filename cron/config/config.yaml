@@ -28,7 +28,7 @@ blacklisted-checks: SAST,CI-Tests,Contributors
 metric-exporter: stackdriver
 # UPGRADEv2: to remove.
 result-data-bucket-url-v2: gs://ossf-scorecard-data2
-bigquery-table-v2: scorecard-v2
+bigquery-table-v2: scorecard-v2ƒ
 # Raw results.
 raw-result-data-bucket-url-v0: gs://ossf-scorecard-rawdata-v0
 raw-bigquery-table-v0: scorecard-rawdata-v0

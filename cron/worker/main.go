@@ -82,6 +82,7 @@ func processRequest(ctx context.Context,
 
 	var buffer bytes.Buffer
 	var buffer2 bytes.Buffer
+	var rawBufferV0 bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoReq := range batchRequest.GetRepos() {
 		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", *repoReq.Url))
@@ -137,7 +138,11 @@ func processRequest(ctx context.Context,
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
 
-		// TODO: raw result v0.
+		// Raw result v0.
+		if err := format.AsRawJSON(&result, &rawBufferV0); err != nil {
+			return fmt.Errorf("error during result.AsRawJSON: %w", err)
+		}
+
 	}
 	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore: %w", err)
@@ -147,7 +152,10 @@ func processRequest(ctx context.Context,
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
 
-	// TODO: raw result v0.
+	// Raw result v0.
+	if err := data.WriteToBlobStore(ctx, rawBucketURLV0, filename, rawBufferV0.Bytes()); err != nil {
+		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
+	}
 
 	logger.Info(fmt.Sprintf("Write to shard file successful: %s", filename))
 
