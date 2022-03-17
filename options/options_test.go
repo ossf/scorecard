@@ -88,6 +88,14 @@ func TestOptions_Validate(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid for local repo",
+			fields: fields{
+				Local:       "testdata/repo",
+				ChecksToRun: []string{"Branch-Protection"},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -118,6 +126,77 @@ func TestOptions_Validate(t *testing.T) {
 
 			if err := o.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Options.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestOptions_isCheckValidForLocalRepo(t *testing.T) {
+	t.Parallel()
+	type fields struct {
+		Local       string
+		ChecksToRun []string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name:    "no checks to run",
+			fields:  fields{},
+			wantErr: false,
+		},
+		{
+			name: "no local repo with branch protection",
+			fields: fields{
+				ChecksToRun: []string{"Branch-Protection"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "local repo with branch protection",
+			fields: fields{
+				Local:       "testdata/repo",
+				ChecksToRun: []string{"Branch-Protection"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "local repo with no branch protection",
+			fields: fields{
+				Local:       "testdata/repo",
+				ChecksToRun: []string{"No-Branch-Protection"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "local repo with CII Best Practices",
+			fields: fields{
+				Local:       "testdata/repo",
+				ChecksToRun: []string{"CII-Best-Practices"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "local repo with Signed release",
+			fields: fields{
+				Local:       "testdata/repo",
+				ChecksToRun: []string{"Signed-Releases"},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			o := &Options{
+				Local:       tt.fields.Local,
+				ChecksToRun: tt.fields.ChecksToRun,
+			}
+			if err := o.isValidForLocalRepo(); (err != nil) != tt.wantErr {
+				t.Errorf("error = %v, wantErr %v for %v", err, tt.wantErr, tt.name)
 			}
 		})
 	}

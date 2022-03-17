@@ -149,7 +149,7 @@ func GetEnabled(
 	case len(argsChecks) != 0:
 		// Populate checks to run with the `--repo` CLI argument.
 		for _, checkName := range argsChecks {
-			if !isSupportedCheck(checkName, requiredRequestTypes) {
+			if !IsSupportedCheck(checkName, requiredRequestTypes) {
 				return enabledChecks,
 					sce.WithMessage(sce.ErrScorecardInternal,
 						fmt.Sprintf("Unsupported RequestType %s by check: %s",
@@ -163,7 +163,7 @@ func GetEnabled(
 	case sp != nil:
 		// Populate checks to run with policy file.
 		for checkName := range sp.GetPolicies() {
-			if !isSupportedCheck(checkName, requiredRequestTypes) {
+			if !IsSupportedCheck(checkName, requiredRequestTypes) {
 				// We silently ignore the check, like we do
 				// for the default case when no argsChecks
 				// or policy are present.
@@ -178,7 +178,7 @@ func GetEnabled(
 	default:
 		// Enable all checks that are supported.
 		for checkName := range checks.GetAll() {
-			if !isSupportedCheck(checkName, requiredRequestTypes) {
+			if !IsSupportedCheck(checkName, requiredRequestTypes) {
 				continue
 			}
 			if !enableCheck(checkName, &enabledChecks) {
@@ -208,7 +208,8 @@ func checksHavePolicies(sp *ScorecardPolicy, enabledChecks checker.CheckNameToFn
 	return true
 }
 
-func isSupportedCheck(checkName string, requiredRequestTypes []checker.RequestType) bool {
+// IsSupportedCheck returns true if the check is supported by the given request type.
+func IsSupportedCheck(checkName string, requiredRequestTypes []checker.RequestType) bool {
 	unsupported := checker.ListUnsupported(
 		requiredRequestTypes,
 		checks.AllChecks[checkName].SupportedRequestTypes)
