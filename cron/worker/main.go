@@ -106,7 +106,7 @@ func processRequest(ctx context.Context,
 		for _, check := range blacklistedChecks {
 			delete(checksToRun, check)
 		}
-		result, err := pkg.RunScorecards(ctx, repo, commitSHA, false /*raw*/, checksToRun,
+		result, err := pkg.RunScorecards(ctx, repo, commitSHA, checksToRun,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.

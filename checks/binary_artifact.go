@@ -26,7 +26,7 @@ const CheckBinaryArtifacts string = "Binary-Artifacts"
 
 //nolint
 func init() {
-	var supportedRequestTypes = []checker.RequestType{
+	supportedRequestTypes := []checker.RequestType{
 		checker.FileBased,
 		checker.CommitBased,
 	}
@@ -47,7 +47,6 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	// Return raw results.
 	if c.RawResults != nil {
 		c.RawResults.BinaryArtifactResults = rawData
-		return checker.CheckResult{}
 	}
 
 	// Return the score evaluation.

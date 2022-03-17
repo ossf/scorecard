@@ -46,7 +46,6 @@ func CodeReview(c *checker.CheckRequest) checker.CheckResult {
 	// Return raw results.
 	if c.RawResults != nil {
 		c.RawResults.CodeReviewResults = rawData
-		return checker.CheckResult{}
 	}
 
 	// Return the score evaluation.

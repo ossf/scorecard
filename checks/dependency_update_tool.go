@@ -26,7 +26,7 @@ const CheckDependencyUpdateTool = "Dependency-Update-Tool"
 
 //nolint
 func init() {
-	var supportedRequestTypes = []checker.RequestType{
+	supportedRequestTypes := []checker.RequestType{
 		checker.FileBased,
 	}
 	if err := registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool, supportedRequestTypes); err != nil {
@@ -46,7 +46,6 @@ func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	// Return raw results.
 	if c.RawResults != nil {
 		c.RawResults.DependencyUpdateToolResults = rawData
-		return checker.CheckResult{}
 	}
 
 	// Return the score evaluation.

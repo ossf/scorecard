@@ -128,7 +128,6 @@ func rootCmd(o *options.Options) {
 		ctx,
 		repoURI,
 		o.Commit,
-		o.Format == options.FormatRaw,
 		enabledChecks,
 		repoClient,
 		ossFuzzRepoClient,
