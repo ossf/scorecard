@@ -50,7 +50,7 @@ const (
 	// v2 results.
 	bigqueryTableV2       string = "SCORECARD_BIGQUERY_TABLEV2"
 	resultDataBucketURLV2 string = "SCORECARD_DATA_BUCKET_URLV2"
-	// v0 raw results.
+	// Raw results.
 	rawBigqueryTable       string = "RAW_SCORECARD_BIGQUERY_TABLE"
 	rawResultDataBucketURL string = "RAW_SCORECARD_DATA_BUCKET_URL"
 )
@@ -81,7 +81,7 @@ type config struct {
 	// UPGRADEv2: to remove.
 	ResultDataBucketURLV2 string `yaml:"result-data-bucket-url-v2"`
 	BigQueryTableV2       string `yaml:"bigquery-table-v2"`
-	// Raw results v0.
+	// Raw results.
 	RawResultDataBucketURL string `yaml:"raw-result-data-bucket-url"`
 	RawBigQueryTable       string `yaml:"raw-bigquery-table"`
 }
