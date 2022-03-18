@@ -161,7 +161,7 @@ func main() {
 		panic(fmt.Errorf("error writing to BlobStore2: %w", err))
 	}
 
-	// Raw data v0.
+	// Raw data.
 	*metadata.ShardLoc = rawBucket + "/" + data.GetBlobFilename("", t)
 	metadataJSON, err = protojson.Marshal(&metadata)
 	if err != nil {
@@ -169,6 +169,6 @@ func main() {
 	}
 	err = data.WriteToBlobStore(ctx, rawBucket, data.GetShardMetadataFilename(t), metadataJSON)
 	if err != nil {
-		panic(fmt.Errorf("error writing to BlobStore raw v0: %w", err))
+		panic(fmt.Errorf("error writing to BlobStore raw: %w", err))
 	}
 }
