@@ -15,7 +15,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: scorecard-bq-transfer-raw-releasetest-v0
+  name: scorecard-bq-transfer-raw-releasetest
 spec:
   # Daily at 9am and 6pm PST.
   schedule: "0 1,16 * * *"
@@ -26,14 +26,14 @@ spec:
         spec:
           restartPolicy: OnFailure
           containers:
-          - name: bq-transfer-raw-releasetest-v0
+          - name: bq-transfer-raw-releasetest
             image: gcr.io/openssf/scorecard-bq-transfer:latest
             imagePullPolicy: Always
             env:
             - name: RAW_SCORECARD_DATA_BUCKET_URL
-              value: "gs://ossf-scorecard-rawdata-releasetest-v0"
+              value: "gs://ossf-scorecard-rawdata-releasetest"
             - name: RAW_SCORECARD_BIGQUERY_TABLE
-              value: "scorecard_raw-releasetest-v0"
+              value: "scorecard_raw-releasetest"
             - name: SCORECARD_COMPLETION_THRESHOLD
               value: "0.9"
             resources:

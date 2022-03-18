@@ -138,7 +138,7 @@ func processRequest(ctx context.Context,
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
 
-		// Raw result v0.
+		// Raw result.
 		if err := format.AsRawJSON(&result, &rawBuffer); err != nil {
 			return fmt.Errorf("error during result.AsRawJSON: %w", err)
 		}
@@ -151,7 +151,7 @@ func processRequest(ctx context.Context,
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
 
-	// Raw result v0.
+	// Raw result.
 	if err := data.WriteToBlobStore(ctx, rawBucketURL, filename, rawBuffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
