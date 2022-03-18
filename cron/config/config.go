@@ -51,8 +51,8 @@ const (
 	bigqueryTableV2       string = "SCORECARD_BIGQUERY_TABLEV2"
 	resultDataBucketURLV2 string = "SCORECARD_DATA_BUCKET_URLV2"
 	// v0 raw results.
-	rawBigqueryTableV0       string = "RAW_SCORECARD_BIGQUERY_TABLEV0"
-	rawResultDataBucketURLV0 string = "RAW_SCORECARD_DATA_BUCKET_URLV0"
+	rawBigqueryTable       string = "RAW_SCORECARD_BIGQUERY_TABLE"
+	rawResultDataBucketURL string = "RAW_SCORECARD_DATA_BUCKET_URL"
 )
 
 var (
@@ -82,8 +82,8 @@ type config struct {
 	ResultDataBucketURLV2 string `yaml:"result-data-bucket-url-v2"`
 	BigQueryTableV2       string `yaml:"bigquery-table-v2"`
 	// Raw results v0.
-	RawResultDataBucketURLV0 string `yaml:"raw-result-data-bucket-url-v0"`
-	RawBigQueryTableV0       string `yaml:"raw-bigquery-table-v0"`
+	RawResultDataBucketURL string `yaml:"raw-result-data-bucket-url"`
+	RawBigQueryTable       string `yaml:"raw-bigquery-table"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -202,16 +202,16 @@ func GetResultDataBucketURLV2() (string, error) {
 	return getStringConfigValue(resultDataBucketURLV2, configYAML, "ResultDataBucketURLV2", "result-data-bucket-url-v2")
 }
 
-// GetRawBigQueryTableV0 returns the table name to transfer cron job results.
-func GetRawBigQueryTableV0() (string, error) {
-	return getStringConfigValue(rawBigqueryTableV0, configYAML,
-		"RawBigQueryTableV0", "raw-bigquery-table-v0")
+// GetRawBigQueryTable returns the table name to transfer cron job results.
+func GetRawBigQueryTable() (string, error) {
+	return getStringConfigValue(rawBigqueryTable, configYAML,
+		"RawBigQueryTable", "raw-bigquery-table")
 }
 
-// GetRawResultDataBucketURLV0 returns the bucketURL for storing cron job's raw results.
-func GetRawResultDataBucketURLV0() (string, error) {
-	return getStringConfigValue(rawResultDataBucketURLV0, configYAML,
-		"RawResultDataBucketURLV0", "raw-result-data-bucket-url-v0")
+// GetRawResultDataBucketURL returns the bucketURL for storing cron job's raw results.
+func GetRawResultDataBucketURL() (string, error) {
+	return getStringConfigValue(rawResultDataBucketURL, configYAML,
+		"RawResultDataBucketURL", "raw-result-data-bucket-url")
 }
 
 // GetShardSize returns the shard_size for the cron job.

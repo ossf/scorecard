@@ -123,7 +123,7 @@ func main() {
 		panic(err)
 	}
 
-	rawBucketV0, err := config.GetRawResultDataBucketURLV0()
+	rawBucket, err := config.GetRawResultDataBucketURL()
 	if err != nil {
 		panic(err)
 	}
@@ -162,12 +162,12 @@ func main() {
 	}
 
 	// Raw data v0.
-	*metadata.ShardLoc = rawBucketV0 + "/" + data.GetBlobFilename("", t)
+	*metadata.ShardLoc = rawBucket + "/" + data.GetBlobFilename("", t)
 	metadataJSON, err = protojson.Marshal(&metadata)
 	if err != nil {
-		panic(fmt.Errorf("error during protojson.Marshal raw-v0: %w", err))
+		panic(fmt.Errorf("error during protojson.Marshal raw: %w", err))
 	}
-	err = data.WriteToBlobStore(ctx, rawBucketV0, data.GetShardMetadataFilename(t), metadataJSON)
+	err = data.WriteToBlobStore(ctx, rawBucket, data.GetShardMetadataFilename(t), metadataJSON)
 	if err != nil {
 		panic(fmt.Errorf("error writing to BlobStore raw v0: %w", err))
 	}

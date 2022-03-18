@@ -48,7 +48,7 @@ var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to tru
 // nolint: gocognit
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest,
-	blacklistedChecks []string, bucketURL, bucketURL2, rawBucketURLV0 string,
+	blacklistedChecks []string, bucketURL, bucketURL2, rawBucketURL string,
 	checkDocs docs.Doc,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
@@ -69,7 +69,7 @@ func processRequest(ctx context.Context,
 		return fmt.Errorf("error during BlobExists: %w", err)
 	}
 
-	exists3, err := data.BlobExists(ctx, rawBucketURLV0, filename)
+	exists3, err := data.BlobExists(ctx, rawBucketURL, filename)
 	if err != nil {
 		return fmt.Errorf("error during BlobExists: %w", err)
 	}
@@ -82,7 +82,7 @@ func processRequest(ctx context.Context,
 
 	var buffer bytes.Buffer
 	var buffer2 bytes.Buffer
-	var rawBufferV0 bytes.Buffer
+	var rawBuffer bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoReq := range batchRequest.GetRepos() {
 		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", *repoReq.Url))
@@ -139,10 +139,9 @@ func processRequest(ctx context.Context,
 		}
 
 		// Raw result v0.
-		if err := format.AsRawJSON(&result, &rawBufferV0); err != nil {
+		if err := format.AsRawJSON(&result, &rawBuffer); err != nil {
 			return fmt.Errorf("error during result.AsRawJSON: %w", err)
 		}
-
 	}
 	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore: %w", err)
@@ -153,7 +152,7 @@ func processRequest(ctx context.Context,
 	}
 
 	// Raw result v0.
-	if err := data.WriteToBlobStore(ctx, rawBucketURLV0, filename, rawBufferV0.Bytes()); err != nil {
+	if err := data.WriteToBlobStore(ctx, rawBucketURL, filename, rawBuffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
 
@@ -210,7 +209,7 @@ func main() {
 		panic(err)
 	}
 
-	rawBucketURLV0, err := config.GetRawResultDataBucketURLV0()
+	rawBucketURL, err := config.GetRawResultDataBucketURL()
 	if err != nil {
 		panic(err)
 	}
@@ -260,7 +259,7 @@ func main() {
 			break
 		}
 		if err := processRequest(ctx, req, blacklistedChecks,
-			bucketURL, bucketURL2, rawBucketURLV0, checkDocs,
+			bucketURL, bucketURL2, rawBucketURL, checkDocs,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, logger); err != nil {
 			// TODO(log): Previously Warn. Consider logging an error here.
 			logger.Info(fmt.Sprintf("error processing request: %v", err))
