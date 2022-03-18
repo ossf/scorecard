@@ -57,7 +57,8 @@ policies:
       score: 10
       mode: enforced
   CII-Best-Practices:
-      score: 10
+      # passing score
+      score: 5
       mode: enforced
   Vulnerabilities:
       score: 10
