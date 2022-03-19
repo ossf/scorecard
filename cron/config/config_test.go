@@ -39,6 +39,9 @@ const (
 	// UPGRADEv2: to remove.
 	prodBucketV2        = "gs://ossf-scorecard-data2"
 	prodBigQueryTableV2 = "scorecard-v2"
+	// Raw results.
+	prodRawBucket        = "gs://ossf-scorecard-rawdata"
+	prodRawBigQueryTable = "scorecard-rawdata"
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -73,8 +76,10 @@ func TestYAMLParsing(t *testing.T) {
 				ShardSize:              prodShardSize,
 				MetricExporter:         prodMetricExporter,
 				// UPGRADEv2: to remove.
-				ResultDataBucketURLV2: prodBucketV2,
-				BigQueryTableV2:       prodBigQueryTableV2,
+				ResultDataBucketURLV2:  prodBucketV2,
+				BigQueryTableV2:        prodBigQueryTableV2,
+				RawResultDataBucketURL: prodRawBucket,
+				RawBigQueryTable:       prodRawBigQueryTable,
 			},
 		},
 

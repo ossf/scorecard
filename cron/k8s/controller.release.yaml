@@ -62,6 +62,9 @@ spec:
             # UPGRADEv2: to remove.
             - name: SCORECARD_DATA_BUCKET_URLV2
               value: "gs://ossf-scorecard-data-releasetest2"
+            # Raw results.
+            - name: RAW_SCORECARD_DATA_BUCKET_URL
+              value: "gs://ossf-scorecard-rawdata-releasetest"
             - name: SCORECARD_SHARD_SIZE
               value: "5"
             resources:
