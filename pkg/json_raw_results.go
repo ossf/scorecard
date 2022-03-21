@@ -91,6 +91,13 @@ type jsonDefaultBranchCommit struct {
 	// TODO: check runs, etc.
 }
 
+type jsonDatabaseVulnerability struct {
+	// For OSV: OSV-2020-484
+	// For CVE: CVE-2022-23945
+	ID string `json:"id"`
+	// TODO: additional information
+}
+
 type jsonRawResults struct {
 	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"database-vulnerabilities"`
 	// List of binaries found in the repo.
@@ -149,13 +156,6 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 		r.Results.DefaultBranchCommits = append(r.Results.DefaultBranchCommits, com)
 	}
 	return nil
-}
-
-type jsonDatabaseVulnerability struct {
-	// For OSV: OSV-2020-484
-	// For CVE: CVE-2022-23945
-	ID string
-	// TODO: additional information
 }
 
 //nolint:unparam
