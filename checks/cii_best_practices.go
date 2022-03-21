@@ -26,10 +26,8 @@ const (
 	// CheckCIIBestPractices is the registered name for CIIBestPractices.
 	CheckCIIBestPractices = "CII-Best-Practices"
 	silverScore           = 7
-	// Note: if this value is changed, please update the action's threshold score
-	// https://github.com/ossf/scorecard-action/blob/main/policies/template.yml#L61.
-	passingScore    = 5
-	inProgressScore = 2
+	passingScore          = 5
+	inProgressScore       = 2
 )
 
 //nolint:gochecknoinits
