@@ -30,7 +30,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-controller
 
-FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
+FROM gcr.io/distroless/base:nonroot@sha256:792dfe78a236dfb6fb180a250d105e0a03585dcbc73f8fce033fe62d4fd59bcb
 COPY ./cron/data/projects*csv cron/data/
 COPY --from=shuffle /src/cron/data/projects.release.csv cron/data/projects.release.csv
 COPY --from=controller /src/cron/controller/controller cron/controller/controller
