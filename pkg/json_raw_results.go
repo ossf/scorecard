@@ -20,7 +20,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/mcuadros/go-jsonschema-generator"
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -460,10 +459,6 @@ func (r *ScorecardResult) AsRawJSON(writer io.Writer) error {
 	if err := encoder.Encode(out); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
-
-	s := &jsonschema.Document{}
-	s.Read(&jsonScorecardRawResult{})
-	fmt.Println(s)
 
 	return nil
 }
