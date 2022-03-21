@@ -332,7 +332,8 @@ type JobMatcherStep struct {
 
 // AnyJobsMatch returns true if any of the jobs have a match in the given workflow.
 func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp string, dl checker.DetailLogger,
-	logMsgNoMatch string) bool {
+	logMsgNoMatch string,
+) bool {
 	for _, job := range workflow.Jobs {
 		for _, matcher := range jobMatchers {
 			if !matcher.matches(job) {

@@ -92,7 +92,8 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 // Check file content.
 var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = func(path string,
 	content []byte,
-	args ...interface{}) (bool, error) {
+	args ...interface{},
+) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
@@ -146,7 +147,8 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 
 func validatePermission(permissionKey permission, permissionValue *actionlint.PermissionScope,
 	permLevel, path string, dl checker.DetailLogger, pPermissions map[permission]bool,
-	ignoredPermissions map[permission]bool) error {
+	ignoredPermissions map[permission]bool,
+) error {
 	if permissionValue.Value == nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 	}
@@ -188,7 +190,8 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 
 func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, permLevel, path string,
 	dl checker.DetailLogger, pPermissions map[permission]bool,
-	ignoredPermissions map[permission]bool) error {
+	ignoredPermissions map[permission]bool,
+) error {
 	for key, v := range scopes {
 		if err := validatePermission(permission(key), v, permLevel, path, dl, pPermissions, ignoredPermissions); err != nil {
 			return err
@@ -223,7 +226,8 @@ func recordAllPermissionsWrite(p *permissionCbData, permLevel, path string) {
 
 func validatePermissions(permissions *actionlint.Permissions, permLevel, path string,
 	dl checker.DetailLogger, pdata *permissionCbData,
-	ignoredPermissions map[permission]bool) error {
+	ignoredPermissions map[permission]bool,
+) error {
 	allIsSet := permissions != nil && permissions.All != nil && permissions.All.Value != ""
 	scopeIsSet := permissions != nil && len(permissions.Scopes) > 0
 	if permissions == nil || (!allIsSet && !scopeIsSet) {
@@ -264,7 +268,8 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 }
 
 func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
-	dl checker.DetailLogger, pdata *permissionCbData) error {
+	dl checker.DetailLogger, pdata *permissionCbData,
+) error {
 	// Check if permissions are set explicitly.
 	if workflow.Permissions == nil {
 		dl.Warn(&checker.LogMessage{
@@ -283,7 +288,8 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 
 func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 	dl checker.DetailLogger, pdata *permissionCbData,
-	ignoredPermissions map[permission]bool) error {
+	ignoredPermissions map[permission]bool,
+) error {
 	for _, job := range workflow.Jobs {
 		// Run-level permissions may be left undefined.
 		// For most workflows, no write permissions are needed,

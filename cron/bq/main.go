@@ -96,7 +96,8 @@ func isCompleted(expected, created int, completionThreshold float64) bool {
 
 func transferDataToBq(ctx context.Context,
 	bucketURL, projectID, datasetName, tableName string, completionThreshold float64, webhookURL string,
-	summary *bucketSummary) error {
+	summary *bucketSummary,
+) error {
 	for creationTime, shards := range summary.shards {
 		if shards.isTransferred || !isCompleted(shards.shardsExpected, shards.shardsCreated, completionThreshold) {
 			continue

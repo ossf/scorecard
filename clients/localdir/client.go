@@ -109,8 +109,11 @@ func listFiles(clientPath string) ([]string, error) {
 	return files, nil
 }
 
-func applyPredicate(clientFiles []string,
-	errFiles error, predicate func(string) (bool, error)) ([]string, error) {
+func applyPredicate(
+	clientFiles []string,
+	errFiles error,
+	predicate func(string) (bool, error),
+) ([]string, error) {
 	if errFiles != nil {
 		return nil, errFiles
 	}

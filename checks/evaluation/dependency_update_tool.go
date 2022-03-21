@@ -23,7 +23,8 @@ import (
 
 // DependencyUpdateTool applies the score policy for the Dependency-Update-Tool check.
 func DependencyUpdateTool(name string, dl checker.DetailLogger,
-	r *checker.DependencyUpdateToolData) checker.CheckResult {
+	r *checker.DependencyUpdateToolData,
+) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)
