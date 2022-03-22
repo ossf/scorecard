@@ -19,93 +19,102 @@ import (
 	"fmt"
 	"io"
 
+	"cloud.google.com/go/bigquery"
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-// Flat JSON structure to hold raw results.
 type jsonScorecardRawResult struct {
-	Date      string          `json:"date"`
-	Repo      jsonRepoV2      `json:"repo"`
-	Scorecard jsonScorecardV2 `json:"scorecard"`
-	Metadata  []string        `json:"metadata"`
-	Results   jsonRawResults  `json:"results"`
+	// TODO: update Date type to generate type of `DATE` rather then `STRING`.
+	Date      string          `json:"date" bigquery:"date"`
+	Repo      jsonRepoV2      `json:"repo" bigquery:"repo"`
+	Scorecard jsonScorecardV2 `json:"scorecard" bigquery:"scorecard"`
+	Metadata  []string        `json:"metadata" bigquery:"metadata"`
+	Results   jsonRawResults  `json:"results" bigquery:"results"`
 }
 
 // TODO: separate each check extraction into its own file.
 type jsonFile struct {
-	Path   string `json:"path"`
-	Offset int    `json:"offset,omitempty"`
+	Path   string `json:"path" bigquery:"path"`
+	Offset int    `json:"offset" bigquery:"offset"`
 }
 
 type jsonTool struct {
-	Name        string     `json:"name"`
-	URL         string     `json:"url"`
-	Desc        string     `json:"desc"`
-	ConfigFiles []jsonFile `json:"files"`
+	Name        string     `json:"name" bigquery:"name"`
+	URL         string     `json:"url" bigquery:"url"`
+	Desc        string     `json:"desc" bigquery:"desc"`
+	ConfigFiles []jsonFile `json:"files" bigquery:"files"`
 	// TODO: Runs, Issues, Merge requests.
 }
 
 type jsonBranchProtectionSettings struct {
-	RequiredApprovingReviewCount        *int     `json:"required-reviewer-count"`
-	AllowsDeletions                     *bool    `json:"allows-deletions"`
-	AllowsForcePushes                   *bool    `json:"allows-force-pushes"`
-	RequiresCodeOwnerReviews            *bool    `json:"requires-code-owner-review"`
-	RequiresLinearHistory               *bool    `json:"required-linear-history"`
-	DismissesStaleReviews               *bool    `json:"dismisses-stale-reviews"`
-	EnforcesAdmins                      *bool    `json:"enforces-admin"`
-	RequiresStatusChecks                *bool    `json:"requires-status-checks"`
-	RequiresUpToDateBranchBeforeMerging *bool    `json:"requires-updated-branches-to-merge"`
-	StatusCheckContexts                 []string `json:"status-checks-contexts"`
+	RequiredApprovingReviewCount int  `json:"requiredReviewerCount" bigquery:"requiredReviewerCount"`
+	AllowsDeletions              bool `json:"allowsDeletions" bigquery:"allowsDeletions"`
+	AllowsForcePushes            bool `json:"allowsForcePushes" bigquery:"allowsForcePushes"`
+	RequiresCodeOwnerReviews     bool `json:"requiresCodeOwnerReview" bigquery:"requiresCodeOwnerReview"`
+	RequiresLinearHistory        bool `json:"requiredLinearHistory" bigquery:"requiredLinearHistory"`
+	DismissesStaleReviews        bool `json:"dismissesStaleReviews" bigquery:"dismissesStaleReviews"`
+	EnforcesAdmins               bool `json:"enforcesAdmin" bigquery:"enforcesAdmin"`
+	RequiresStatusChecks         bool `json:"requiresStatusChecks" bigquery:"requiresStatusChecks"`
+	//nolint
+	RequiresUpToDateBranchBeforeMerging bool     `json:"requiresUpdatedBranchesToMerge" bigquery:"requiresUpdatedBranchesToMerge"`
+	StatusCheckContexts                 []string `json:"statusChecksContexts" bigquery:"statusChecksContexts"`
 }
 
 type jsonBranchProtection struct {
-	Protection *jsonBranchProtectionSettings `json:"protection"`
-	Name       string                        `json:"name"`
+	Protection *jsonBranchProtectionSettings `json:"protection" bigquery:"protection"`
+	Name       string                        `json:"name" bigquery:"name"`
 }
 
 type jsonReview struct {
-	Reviewer jsonUser `json:"reviewer"`
-	State    string   `json:"state"`
+	Reviewer jsonUser `json:"reviewer" bigquery:"reviewer"`
+	State    string   `json:"state" bigquery:"state"`
 }
 
 type jsonUser struct {
-	Login string `json:"login"`
+	Login string `json:"login" bigquery:"login"`
 }
 
 //nolint:govet
 type jsonMergeRequest struct {
-	Number  int          `json:"number"`
-	Labels  []string     `json:"labels"`
-	Reviews []jsonReview `json:"reviews"`
-	Author  jsonUser     `json:"author"`
+	Number  int          `json:"number" bigquery:"number"`
+	Labels  []string     `json:"labels" bigquery:"labels"`
+	Reviews []jsonReview `json:"reviews" bigquery:"reviews"`
+	Author  jsonUser     `json:"author" bigquery:"author"`
 }
 
 type jsonDefaultBranchCommit struct {
-	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
-	Committer     jsonUser          `json:"committer"`
-	MergeRequest  *jsonMergeRequest `json:"merge-request"`
-	CommitMessage string            `json:"commit-message"`
-	SHA           string            `json:"sha"`
+	// ApprovedReviews *jsonApprovedReviews `bigquery:"approved-reviews"`
+	Committer     jsonUser          `json:"committer" bigquery:"committer"`
+	MergeRequest  *jsonMergeRequest `json:"mergeRequest" bigquery:"mergeRequest"`
+	CommitMessage string            `json:"commitMessage" bigquery:"commitMessage"`
+	SHA           string            `json:"sha" bigquery:"sha"`
 
 	// TODO: check runs, etc.
 }
 
+type jsonDatabaseVulnerability struct {
+	// For OSV: OSV-2020-484
+	// For CVE: CVE-2022-23945
+	ID string `json:"id" bigquery:"id"`
+	// TODO: additional information
+}
+
 type jsonRawResults struct {
-	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"database-vulnerabilities"`
+	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"databaseVulnerabilities" bigquery:"databaseVulnerabilities"`
 	// List of binaries found in the repo.
-	Binaries []jsonFile `json:"binaries"`
+	Binaries []jsonFile `json:"binaries" bigquery:"binaries"`
 	// List of security policy files found in the repo.
 	// Note: we return one at most.
-	SecurityPolicies []jsonFile `json:"security-policies"`
+	SecurityPolicies []jsonFile `json:"securityPolicies" bigquery:"securityPolicies"`
 	// List of update tools.
 	// Note: we return one at most.
-	DependencyUpdateTools []jsonTool `json:"dependency-update-tools"`
+	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools" bigquery:"dependencyUpdateTools"`
 	// Branch protection settings for development and release branches.
-	BranchProtections []jsonBranchProtection `json:"branch-protections"`
+	BranchProtections []jsonBranchProtection `json:"branchProtections" bigquery:"branchProtections"`
 	// Commits.
-	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
+	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBranchCommits" bigquery:"defaultBranchCommits"`
 }
 
 //nolint:unparam
@@ -150,13 +159,6 @@ func addCodeReviewRawResults(r *jsonScorecardRawResult, cr *checker.CodeReviewDa
 		r.Results.DefaultBranchCommits = append(r.Results.DefaultBranchCommits, com)
 	}
 	return nil
-}
-
-type jsonDatabaseVulnerability struct {
-	// For OSV: OSV-2020-484
-	// For CVE: CVE-2022-23945
-	ID string
-	// TODO: additional information
 }
 
 //nolint:unparam
@@ -218,23 +220,42 @@ func addDependencyUpdateToolRawResults(r *jsonScorecardRawResult,
 	return nil
 }
 
-//nolint:unparam
+//nolint
 func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.BranchProtectionsData) error {
 	r.Results.BranchProtections = []jsonBranchProtection{}
 	for _, v := range bp.Branches {
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {
 			bp = &jsonBranchProtectionSettings{
-				AllowsDeletions:                     v.AllowsDeletions,
-				AllowsForcePushes:                   v.AllowsForcePushes,
-				RequiresCodeOwnerReviews:            v.RequiresCodeOwnerReviews,
-				RequiresLinearHistory:               v.RequiresLinearHistory,
-				DismissesStaleReviews:               v.DismissesStaleReviews,
-				EnforcesAdmins:                      v.EnforcesAdmins,
-				RequiresStatusChecks:                v.RequiresStatusChecks,
-				RequiresUpToDateBranchBeforeMerging: v.RequiresUpToDateBranchBeforeMerging,
-				RequiredApprovingReviewCount:        v.RequiredApprovingReviewCount,
-				StatusCheckContexts:                 v.StatusCheckContexts,
+				StatusCheckContexts: v.StatusCheckContexts,
+			}
+
+			if v.AllowsDeletions != nil {
+				bp.AllowsDeletions = *v.AllowsDeletions
+			}
+			if v.AllowsForcePushes != nil {
+				bp.AllowsForcePushes = *v.AllowsForcePushes
+			}
+			if v.RequiresCodeOwnerReviews != nil {
+				bp.RequiresCodeOwnerReviews = *v.RequiresCodeOwnerReviews
+			}
+			if v.RequiresLinearHistory != nil {
+				bp.RequiresLinearHistory = *v.RequiresLinearHistory
+			}
+			if v.DismissesStaleReviews != nil {
+				bp.DismissesStaleReviews = *v.DismissesStaleReviews
+			}
+			if v.EnforcesAdmins != nil {
+				bp.EnforcesAdmins = *v.EnforcesAdmins
+			}
+			if v.RequiresStatusChecks != nil {
+				bp.RequiresStatusChecks = *v.RequiresStatusChecks
+			}
+			if v.RequiresUpToDateBranchBeforeMerging != nil {
+				bp.RequiresUpToDateBranchBeforeMerging = *v.RequiresUpToDateBranchBeforeMerging
+			}
+			if v.RequiresStatusChecks != nil {
+				bp.RequiredApprovingReviewCount = *v.RequiredApprovingReviewCount
 			}
 		}
 		r.Results.BranchProtections = append(r.Results.BranchProtections, jsonBranchProtection{
@@ -302,6 +323,62 @@ func AsRawJSON(r *pkg.ScorecardResult, writer io.Writer) error {
 
 	if err := encoder.Encode(out); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+	}
+
+	return nil
+}
+
+// https://github.com/googleapis/google-cloud-go/blob/bigquery/v1.30.0/bigquery/schema.go#L544
+type bigQueryJSONField struct {
+	Description string              `json:"description"`
+	Fields      []bigQueryJSONField `json:"fields,omitempty"`
+	Mode        string              `json:"mode"`
+	Name        string              `json:"name"`
+	Type        string              `json:"type"`
+}
+
+func generateSchema(schema bigquery.Schema) []bigQueryJSONField {
+	var bqs []bigQueryJSONField
+	for _, fs := range schema {
+		bq := bigQueryJSONField{
+			Description: fs.Description,
+			Name:        fs.Name,
+			Type:        string(fs.Type),
+			Fields:      generateSchema(fs.Schema),
+		}
+		// https://github.com/googleapis/google-cloud-go/blob/bigquery/v1.30.0/bigquery/schema.go#L125
+
+		switch {
+		// Make all fields optional to give us flexibility:
+		// discard `fs.Required`.
+		case fs.Repeated:
+			bq.Mode = "REPEATED"
+		default:
+			bq.Mode = "NULLABLE"
+		}
+
+		bqs = append(bqs, bq)
+	}
+
+	return bqs
+}
+
+// GenerateBqSchema generates the BQ schema in JSON format.
+func GenerateBqSchema(r *pkg.ScorecardResult, writer io.Writer) error {
+	schema, err := bigquery.InferSchema(jsonScorecardRawResult{})
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+	jsonFields := generateSchema(schema)
+
+	jsonData, err := json.Marshal(jsonFields)
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("json.Marshal: %v", err.Error()))
+	}
+
+	_, err = writer.Write(jsonData)
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf(" writer.Write: %v", err.Error()))
 	}
 
 	return nil
