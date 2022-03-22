@@ -364,6 +364,12 @@ func generateSchema(schema bigquery.Schema) []bigQueryJSONField {
 }
 
 // GenerateBqSchema generates the BQ schema in JSON format.
+// Can be used to generate the BQ table:
+// `bq mk --table    --time_partitioning_type DAY \
+// --require_partition_filter=TRUE \
+// --time_partitioning_field date \
+// openssf:scorecardcron.scorecard-rawdata-releasetest \
+// cron/format/bq.raw.schema`.
 func GenerateBqSchema(r *pkg.ScorecardResult, writer io.Writer) error {
 	schema, err := bigquery.InferSchema(jsonScorecardRawResult{})
 	if err != nil {
