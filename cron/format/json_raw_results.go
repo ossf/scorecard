@@ -24,71 +24,70 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
+// Flat JSON structure to hold raw results.
 type jsonScorecardRawResult struct {
-	// TODO: update Date type to generate type of `DATE` rather then `STRING`.
-	Date      string          `json:"date" bigquery:"date"`
-	Repo      jsonRepoV2      `json:"repo" bigquery:"repo"`
-	Scorecard jsonScorecardV2 `json:"scorecard" bigquery:"scorecard"`
-	Metadata  []string        `json:"metadata" bigquery:"metadata"`
-	Results   jsonRawResults  `json:"results" bigquery:"results"`
+	Date      string          `json:"date"`
+	Repo      jsonRepoV2      `json:"repo"`
+	Scorecard jsonScorecardV2 `json:"scorecard"`
+	Metadata  []string        `json:"metadata"`
+	Results   jsonRawResults  `json:"results"`
 }
 
 // TODO: separate each check extraction into its own file.
 type jsonFile struct {
-	Path   string `json:"path" bigquery:"path"`
-	Offset int    `json:"offset" bigquery:"offset"`
+	Path   string `json:"path"`
+	Offset int    `json:"offset,omitempty"`
 }
 
 type jsonTool struct {
-	Name        string     `json:"name" bigquery:"name"`
-	URL         string     `json:"url" bigquery:"url"`
-	Desc        string     `json:"desc" bigquery:"desc"`
-	ConfigFiles []jsonFile `json:"files" bigquery:"files"`
+	Name        string     `json:"name"`
+	URL         string     `json:"url"`
+	Desc        string     `json:"desc"`
+	ConfigFiles []jsonFile `json:"files"`
 	// TODO: Runs, Issues, Merge requests.
 }
 
 type jsonBranchProtectionSettings struct {
-	RequiredApprovingReviewCount int  `json:"requiredReviewerCount" bigquery:"requiredReviewerCount"`
-	AllowsDeletions              bool `json:"allowsDeletions" bigquery:"allowsDeletions"`
-	AllowsForcePushes            bool `json:"allowsForcePushes" bigquery:"allowsForcePushes"`
-	RequiresCodeOwnerReviews     bool `json:"requiresCodeOwnerReview" bigquery:"requiresCodeOwnerReview"`
-	RequiresLinearHistory        bool `json:"requiredLinearHistory" bigquery:"requiredLinearHistory"`
-	DismissesStaleReviews        bool `json:"dismissesStaleReviews" bigquery:"dismissesStaleReviews"`
-	EnforcesAdmins               bool `json:"enforcesAdmin" bigquery:"enforcesAdmin"`
-	RequiresStatusChecks         bool `json:"requiresStatusChecks" bigquery:"requiresStatusChecks"`
-	//nolint
-	RequiresUpToDateBranchBeforeMerging bool     `json:"requiresUpdatedBranchesToMerge" bigquery:"requiresUpdatedBranchesToMerge"`
-	StatusCheckContexts                 []string `json:"statusChecksContexts" bigquery:"statusChecksContexts"`
+	RequiredApprovingReviewCount        *int     `json:"required-reviewer-count"`
+	AllowsDeletions                     *bool    `json:"allows-deletions"`
+	AllowsForcePushes                   *bool    `json:"allows-force-pushes"`
+	RequiresCodeOwnerReviews            *bool    `json:"requires-code-owner-review"`
+	RequiresLinearHistory               *bool    `json:"required-linear-history"`
+	DismissesStaleReviews               *bool    `json:"dismisses-stale-reviews"`
+	EnforcesAdmins                      *bool    `json:"enforces-admin"`
+	RequiresStatusChecks                *bool    `json:"requires-status-checks"`
+	RequiresUpToDateBranchBeforeMerging *bool    `json:"requires-updated-branches-to-merge"`
+	StatusCheckContexts                 []string `json:"status-checks-contexts"`
 }
 
 type jsonBranchProtection struct {
-	Protection *jsonBranchProtectionSettings `json:"protection" bigquery:"protection"`
-	Name       string                        `json:"name" bigquery:"name"`
+	Protection *jsonBranchProtectionSettings `json:"protection"`
+	Name       string                        `json:"name"`
 }
 
 type jsonReview struct {
-	Reviewer jsonUser `json:"reviewer" bigquery:"reviewer"`
-	State    string   `json:"state" bigquery:"state"`
+	Reviewer jsonUser `json:"reviewer"`
+	State    string   `json:"state"`
 }
 
 type jsonUser struct {
-	Login string `json:"login" bigquery:"login"`
+	Login string `json:"login"`
 }
 
 //nolint:govet
 type jsonMergeRequest struct {
-	Number  int          `json:"number" bigquery:"number"`
-	Labels  []string     `json:"labels" bigquery:"labels"`
-	Reviews []jsonReview `json:"reviews" bigquery:"reviews"`
-	Author  jsonUser     `json:"author" bigquery:"author"`
+	Number  int          `json:"number"`
+	Labels  []string     `json:"labels"`
+	Reviews []jsonReview `json:"reviews"`
+	Author  jsonUser     `json:"author"`
 }
 
 type jsonDefaultBranchCommit struct {
-	// ApprovedReviews *jsonApprovedReviews `bigquery:"approved-reviews"`
-	Committer     jsonUser          `json:"committer" bigquery:"committer"`
-	MergeRequest  *jsonMergeRequest `json:"mergeRequest" bigquery:"mergeRequest"`
-	CommitMessage string            `json:"commitMessage" bigquery:"commitMessage"`
-	SHA           string            `json:"sha" bigquery:"sha"`
+	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
+	Committer     jsonUser          `json:"committer"`
+	MergeRequest  *jsonMergeRequest `json:"merge-request"`
+	CommitMessage string            `json:"commit-message"`
+	SHA           string            `json:"sha"`
 
 	// TODO: check runs, etc.
 }
@@ -96,24 +95,24 @@ type jsonDefaultBranchCommit struct {
 type jsonDatabaseVulnerability struct {
 	// For OSV: OSV-2020-484
 	// For CVE: CVE-2022-23945
-	ID string `json:"id" bigquery:"id"`
+	ID string `json:"id"`
 	// TODO: additional information
 }
 
 type jsonRawResults struct {
-	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"databaseVulnerabilities" bigquery:"databaseVulnerabilities"`
+	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"database-vulnerabilities"`
 	// List of binaries found in the repo.
-	Binaries []jsonFile `json:"binaries" bigquery:"binaries"`
+	Binaries []jsonFile `json:"binaries"`
 	// List of security policy files found in the repo.
 	// Note: we return one at most.
-	SecurityPolicies []jsonFile `json:"securityPolicies" bigquery:"securityPolicies"`
+	SecurityPolicies []jsonFile `json:"security-policies"`
 	// List of update tools.
 	// Note: we return one at most.
-	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools" bigquery:"dependencyUpdateTools"`
+	DependencyUpdateTools []jsonTool `json:"dependency-update-tools"`
 	// Branch protection settings for development and release branches.
-	BranchProtections []jsonBranchProtection `json:"branchProtections" bigquery:"branchProtections"`
+	BranchProtections []jsonBranchProtection `json:"branch-protections"`
 	// Commits.
-	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBranchCommits" bigquery:"defaultBranchCommits"`
+	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
 }
 
 //nolint:unparam
@@ -226,35 +225,16 @@ func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.Branch
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {
 			bp = &jsonBranchProtectionSettings{
-				StatusCheckContexts: v.StatusCheckContexts,
-			}
-
-			if v.AllowsDeletions != nil {
-				bp.AllowsDeletions = *v.AllowsDeletions
-			}
-			if v.AllowsForcePushes != nil {
-				bp.AllowsForcePushes = *v.AllowsForcePushes
-			}
-			if v.RequiresCodeOwnerReviews != nil {
-				bp.RequiresCodeOwnerReviews = *v.RequiresCodeOwnerReviews
-			}
-			if v.RequiresLinearHistory != nil {
-				bp.RequiresLinearHistory = *v.RequiresLinearHistory
-			}
-			if v.DismissesStaleReviews != nil {
-				bp.DismissesStaleReviews = *v.DismissesStaleReviews
-			}
-			if v.EnforcesAdmins != nil {
-				bp.EnforcesAdmins = *v.EnforcesAdmins
-			}
-			if v.RequiresStatusChecks != nil {
-				bp.RequiresStatusChecks = *v.RequiresStatusChecks
-			}
-			if v.RequiresUpToDateBranchBeforeMerging != nil {
-				bp.RequiresUpToDateBranchBeforeMerging = *v.RequiresUpToDateBranchBeforeMerging
-			}
-			if v.RequiresStatusChecks != nil {
-				bp.RequiredApprovingReviewCount = *v.RequiredApprovingReviewCount
+				AllowsDeletions:                     v.AllowsDeletions,
+				AllowsForcePushes:                   v.AllowsForcePushes,
+				RequiresCodeOwnerReviews:            v.RequiresCodeOwnerReviews,
+				RequiresLinearHistory:               v.RequiresLinearHistory,
+				DismissesStaleReviews:               v.DismissesStaleReviews,
+				EnforcesAdmins:                      v.EnforcesAdmins,
+				RequiresStatusChecks:                v.RequiresStatusChecks,
+				RequiresUpToDateBranchBeforeMerging: v.RequiresUpToDateBranchBeforeMerging,
+				RequiredApprovingReviewCount:        v.RequiredApprovingReviewCount,
+				StatusCheckContexts:                 v.StatusCheckContexts,
 			}
 		}
 		r.Results.BranchProtections = append(r.Results.BranchProtections, jsonBranchProtection{
