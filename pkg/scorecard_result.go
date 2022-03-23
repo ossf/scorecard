@@ -137,7 +137,8 @@ func FormatResults(
 
 // AsString returns ScorecardResult in string format.
 func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
-	checkDocs checks.Doc, writer io.Writer) error {
+	checkDocs checks.Doc, writer io.Writer,
+) error {
 	data := make([][]string, len(r.Checks))
 	//nolint
 	for i, row := range r.Checks {

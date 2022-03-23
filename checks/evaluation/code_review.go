@@ -30,7 +30,8 @@ var (
 
 // CodeReview applies the score policy for the Code-Review check.
 func CodeReview(name string, dl checker.DetailLogger,
-	r *checker.CodeReviewData) checker.CheckResult {
+	r *checker.CodeReviewData,
+) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)

@@ -120,7 +120,8 @@ func AsJSON(r *pkg.ScorecardResult, showDetails bool, logLevel log.Level, writer
 
 // AsJSON2 exports results as JSON for the cron job and in the new detail format.
 func AsJSON2(r *pkg.ScorecardResult, showDetails bool,
-	logLevel log.Level, checkDocs docs.Doc, writer io.Writer) error {
+	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
+) error {
 	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
 		//nolint:wrapcheck

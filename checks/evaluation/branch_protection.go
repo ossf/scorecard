@@ -49,7 +49,8 @@ type levelScore struct {
 
 // BranchProtection runs Branch-Protection check.
 func BranchProtection(name string, dl checker.DetailLogger,
-	r *checker.BranchProtectionsData) checker.CheckResult {
+	r *checker.BranchProtectionsData,
+) checker.CheckResult {
 	var scores []levelScore
 
 	// Check protections on all the branches.
