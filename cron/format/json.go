@@ -57,13 +57,13 @@ type jsonCheckResultV2 struct {
 }
 
 type jsonRepoV2 struct {
-	Name   string `json:"name" bigquery:"name"`
-	Commit string `json:"commit" bigquery:"commit"`
+	Name   string `json:"name"`
+	Commit string `json:"commit"`
 }
 
 type jsonScorecardV2 struct {
-	Version string `json:"version" bigquery:"version"`
-	Commit  string `json:"commit" bigquery:"commit"`
+	Version string `json:"version"`
+	Commit  string `json:"commit"`
 }
 
 type jsonFloatScore float64
