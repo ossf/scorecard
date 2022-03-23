@@ -15,6 +15,8 @@
 package raw
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -33,10 +35,10 @@ func WebHook(c *checker.CheckRequest) (checker.WebhooksData, error) {
 
 	hooks := []checker.WebhookData{}
 	for _, hook := range hooksResp {
-
 		v := checker.WebhookData{
 			ID:             hook.ID,
 			UsesAuthSecret: hook.UsesAuthSecret,
+			Path:           fmt.Sprintf("https://%s/settings/hooks/%d", c.RepoClient.URI(), hook.ID),
 			// Note: add fields if needed.
 		}
 		hooks = append(hooks, v)

@@ -26,6 +26,7 @@ type RawResults struct {
 	BranchProtectionResults     BranchProtectionsData
 	CodeReviewResults           CodeReviewData
 	MaintainedResults           MaintainedData
+	WebhookResults              WebhooksData
 }
 
 // MaintainedData contains the raw results
@@ -79,6 +80,7 @@ type WebhooksData struct {
 // WebhookData contains the raw results
 // for webhook check.
 type WebhookData struct {
+	Path           string
 	ID             int64
 	UsesAuthSecret bool
 }

@@ -15,13 +15,8 @@
 package checks
 
 import (
-	"fmt"
-	"strconv"
-	"strings"
-
-	"github.com/olekukonko/tablewriter"
-
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -47,50 +42,11 @@ func WebHooks(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckWebHooks, e)
 	}
 
-	if len(rawData.Webhook) < 1 {
-		return checker.CreateMaxScoreResult(CheckWebHooks, "no webhooks defined")
+	// Set the raw results.
+	if c.RawResults != nil {
+		c.RawResults.WebhookResults = rawData
 	}
 
-	hasNoSecretCount := 0
-	for _, hook := range rawData.Webhook {
-		if !hook.UsesAuthSecret {
-			c.Dlogger.Warn(&checker.LogMessage{
-				Path: fmt.Sprintf("https://%s/settings/hooks/%d", c.RepoClient.URI(), hook.ID),
-				Type: checker.FileTypeURL,
-				Text: "Webhook with no secret configured",
-			})
-			hasNoSecretCount++
-		}
-	}
-
-	generateWebhookTable(c.RepoClient.URI(), rawData.Webhook)
-
-	if hasNoSecretCount == 0 {
-		return checker.CreateMaxScoreResult(CheckWebHooks, fmt.Sprintf("all %d hook(s) have a secret configured", len(rawData.Webhook)))
-	}
-
-	if len(rawData.Webhook) == hasNoSecretCount {
-		return checker.CreateMinScoreResult(CheckWebHooks, fmt.Sprintf("%d hook(s) do not have a secret configured", len(rawData.Webhook)))
-	}
-
-	return checker.CreateProportionalScoreResult(CheckWebHooks,
-		fmt.Sprintf("%d out of %d hook(s) with no secrets configured detected", hasNoSecretCount, len(rawData.Webhook)), hasNoSecretCount, len(rawData.Webhook))
-}
-
-func generateWebhookTable(repo string, data []checker.WebhookData) {
-	tableString := &strings.Builder{}
-	table := tablewriter.NewWriter(tableString)
-	table.SetAutoWrapText(false)
-	table.SetHeader([]string{"GitHub Webhook", "Uses Auth Secret"})
-
-	for _, hook := range data {
-		table.Append([]string{fmt.Sprintf("https://%s/settings/hooks/%d", repo, hook.ID), strconv.FormatBool(hook.UsesAuthSecret)})
-		// https: //github.com/cpanato/testing-ci-providers/settings/hooks/289347313
-	}
-
-	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
-	table.SetCenterSeparator("|")
-	table.Render()
-
-	fmt.Println(tableString.String())
+	// Return the score evaluation.
+	return evaluation.Webhooks(CheckWebHooks, c.Dlogger, &rawData)
 }

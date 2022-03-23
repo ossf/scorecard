@@ -603,7 +603,7 @@ possible.
 
 ## Webhooks 
 
-Risk: `High`  (service possibly accessible to third parties)
+Risk: `Critical` (service possibly accessible to third parties)
 
 This check determines whether the webhook defined in the repository has a token configured to authenticate the origins of requests.
 

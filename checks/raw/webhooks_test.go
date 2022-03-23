@@ -33,6 +33,7 @@ func TestWebhooks(t *testing.T) {
 	tests := []struct {
 		name                   string
 		err                    error
+		uri                    string
 		wantErr                bool
 		expectedUsesAuthSecret int
 		expected               scut.TestReturn
@@ -95,6 +96,8 @@ func TestWebhooks(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+
+			mockRepo.EXPECT().URI().Return(tt.uri).AnyTimes()
 
 			mockRepo.EXPECT().ListWebhooks().DoAndReturn(func() ([]*clients.Webhook, error) {
 				if tt.err != nil {

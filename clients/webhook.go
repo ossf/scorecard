@@ -16,6 +16,7 @@ package clients
 
 // Webhook represents VCS Webhook.
 type Webhook struct {
+	Path           string
 	ID             int64
 	UsesAuthSecret bool
 }

@@ -55,7 +55,6 @@ func (handler *webhookHandler) setup() error {
 		}
 
 		for _, hook := range hooks {
-
 			repoHook := &clients.Webhook{
 				ID:             hook.GetID(),
 				UsesAuthSecret: getAuthSecret(hook.Config),
