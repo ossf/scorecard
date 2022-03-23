@@ -242,6 +242,28 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			},
 		},
 		{
+			name:     "default secret in pull request",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-default-secret-pr.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultConfidence,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "default secret in pull request target",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-default-secret-prt.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultConfidence,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
 			name:     "secret in top env no checkout pull request target",
 			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-no-checkout-prt.yml",
 			expected: scut.TestReturn{

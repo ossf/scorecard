@@ -466,8 +466,13 @@ func checkSecretInScript(script string, pos *actionlint.Pos, path string,
 			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 		}
 
+		// Note: The default GitHub token is allowed, as it has
+		// only read permission for `pull_request`.
+		// For `pull_request_event`, we use other signals such as
+		// whether checkout action is used.
 		variable := strings.Trim(script[s:s+e+2], " ")
-		if strings.Contains(variable, "secrets.") {
+		if !strings.Contains(variable, "secrets.GITHUB_TOKEN") &&
+			strings.Contains(variable, "secrets.") {
 			line := fileparser.GetLineNumber(pos)
 			dl.Warn(&checker.LogMessage{
 				Path:   path,
