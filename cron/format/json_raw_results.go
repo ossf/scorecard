@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"io"
 
-	"cloud.google.com/go/bigquery"
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/pkg"
@@ -323,68 +322,6 @@ func AsRawJSON(r *pkg.ScorecardResult, writer io.Writer) error {
 
 	if err := encoder.Encode(out); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-	}
-
-	return nil
-}
-
-// https://github.com/googleapis/google-cloud-go/blob/bigquery/v1.30.0/bigquery/schema.go#L544
-type bigQueryJSONField struct {
-	Description string              `json:"description"`
-	Fields      []bigQueryJSONField `json:"fields,omitempty"`
-	Mode        string              `json:"mode"`
-	Name        string              `json:"name"`
-	Type        string              `json:"type"`
-}
-
-func generateSchema(schema bigquery.Schema) []bigQueryJSONField {
-	var bqs []bigQueryJSONField
-	for _, fs := range schema {
-		bq := bigQueryJSONField{
-			Description: fs.Description,
-			Name:        fs.Name,
-			Type:        string(fs.Type),
-			Fields:      generateSchema(fs.Schema),
-		}
-		// https://github.com/googleapis/google-cloud-go/blob/bigquery/v1.30.0/bigquery/schema.go#L125
-
-		switch {
-		// Make all fields optional to give us flexibility:
-		// discard `fs.Required`.
-		case fs.Repeated:
-			bq.Mode = "REPEATED"
-		default:
-			bq.Mode = "NULLABLE"
-		}
-
-		bqs = append(bqs, bq)
-	}
-
-	return bqs
-}
-
-// GenerateBqSchema generates the BQ schema in JSON format.
-// Can be used to generate the BQ table:
-// `bq mk --table    --time_partitioning_type DAY \
-// --require_partition_filter=TRUE \
-// --time_partitioning_field date \
-// openssf:scorecardcron.scorecard-rawdata-releasetest \
-// cron/format/bq.raw.schema`.
-func GenerateBqSchema(r *pkg.ScorecardResult, writer io.Writer) error {
-	schema, err := bigquery.InferSchema(jsonScorecardRawResult{})
-	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-	}
-	jsonFields := generateSchema(schema)
-
-	jsonData, err := json.Marshal(jsonFields)
-	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("json.Marshal: %v", err.Error()))
-	}
-
-	_, err = writer.Write(jsonData)
-	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf(" writer.Write: %v", err.Error()))
 	}
 
 	return nil
