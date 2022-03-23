@@ -28,7 +28,8 @@ type packageMangerResponse struct {
 }
 
 func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems string,
-	manager packageManagerClient) (packageMangerResponse, error) {
+	manager packageManagerClient,
+) (packageMangerResponse, error) {
 	if npm != "" {
 		gitRepo, err := fetchGitRepositoryFromNPM(npm, manager)
 		return packageMangerResponse{

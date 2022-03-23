@@ -252,7 +252,8 @@ func detailToRegion(details *checker.CheckDetail) region {
 }
 
 func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
-	minScore, score int) bool {
+	minScore, score int,
+) bool {
 	switch {
 	default:
 		return false
@@ -269,7 +270,8 @@ func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 }
 
 func detailsToLocations(details []checker.CheckDetail,
-	showDetails bool, minScore, score int) []location {
+	showDetails bool, minScore, score int,
+) []location {
 	locs := []location{}
 
 	//nolint
@@ -355,7 +357,8 @@ func createSARIFTool(url, name, version string) tool {
 }
 
 func createSARIFRun(uri, toolName, version, commit string, t time.Time,
-	category, runName string) run {
+	category, runName string,
+) run {
 	return run{
 		Tool:    createSARIFTool(uri, toolName, version),
 		Results: []result{},
@@ -370,7 +373,8 @@ func createSARIFRun(uri, toolName, version, commit string, t time.Time,
 
 func getOrCreateSARIFRun(runs map[string]*run, runName string,
 	uri, toolName, version, commit string, t time.Time,
-	category string) *run {
+	category string,
+) *run {
 	if prun, exists := runs[runName]; exists {
 		return prun
 	}
@@ -399,7 +403,8 @@ func generateMarkdownText(longDesc, risk string, remediation []string) string {
 
 func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc, risk string,
 	remediation []string,
-	tags []string) rule {
+	tags []string,
+) rule {
 	return rule{
 		ID:        checkID,
 		Name:      checkName,
@@ -526,7 +531,8 @@ func createDefaultLocationMessage(check *checker.CheckResult, score int) string 
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
-	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy) error {
+	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
+) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
 	// We only support GitHub-supported properties:

@@ -109,7 +109,8 @@ func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 // Check file content.
 var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = func(path string,
 	content []byte,
-	args ...interface{}) (bool, error) {
+	args ...interface{},
+) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
@@ -160,7 +161,8 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 }
 
 func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	triggers := make(map[triggerName]bool)
 
 	// We need pull request trigger.
@@ -194,7 +196,8 @@ func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
 }
 
 func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if !usesEventTrigger(workflow, triggerPullRequestTarget) {
 		return nil
 	}
@@ -229,7 +232,8 @@ func jobUsesEnvironment(job *actionlint.Job) bool {
 }
 
 func checkJobForUsedSecrets(job *actionlint.Job, triggers map[triggerName]bool,
-	path string, dl checker.DetailLogger, pdata *patternCbData) error {
+	path string, dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if job == nil {
 		return nil
 	}
@@ -271,7 +275,8 @@ func checkJobForUsedSecrets(job *actionlint.Job, triggers map[triggerName]bool,
 }
 
 func workflowUsesCodeCheckoutAndNoEnvironment(workflow *actionlint.Workflow,
-	triggers map[triggerName]bool) bool {
+	triggers map[triggerName]bool,
+) bool {
 	if workflow == nil {
 		return false
 	}
@@ -318,7 +323,8 @@ func jobUsesCodeCheckout(job *actionlint.Job) (bool, string) {
 }
 
 func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if job == nil {
 		return nil
 	}
@@ -359,7 +365,8 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 }
 
 func validateScriptInjection(workflow *actionlint.Workflow, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	for _, job := range workflow.Jobs {
 		if job == nil {
 			continue
@@ -382,7 +389,8 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 }
 
 func checkWorkflowSecretInEnv(workflow *actionlint.Workflow, triggers map[triggerName]bool,
-	path string, dl checker.DetailLogger, pdata *patternCbData) error {
+	path string, dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	// We need code checkout and not environment rule protection.
 	if !workflowUsesCodeCheckoutAndNoEnvironment(workflow, triggers) {
 		return nil
@@ -392,7 +400,8 @@ func checkWorkflowSecretInEnv(workflow *actionlint.Workflow, triggers map[trigge
 }
 
 func checkSecretInEnv(env *actionlint.Env, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if env == nil {
 		return nil
 	}
@@ -406,7 +415,8 @@ func checkSecretInEnv(env *actionlint.Env, path string,
 }
 
 func checkSecretInRun(step *actionlint.Step, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if step == nil || step.Exec == nil {
 		return nil
 	}
@@ -421,7 +431,8 @@ func checkSecretInRun(step *actionlint.Step, path string,
 }
 
 func checkSecretInActionArgs(step *actionlint.Step, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if step == nil || step.Exec == nil {
 		return nil
 	}
@@ -442,7 +453,8 @@ func checkSecretInActionArgs(step *actionlint.Step, path string,
 }
 
 func checkSecretInScript(script string, pos *actionlint.Pos, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	for {
 		s := strings.Index(script, "${{")
 		if s == -1 {
@@ -472,7 +484,8 @@ func checkSecretInScript(script string, pos *actionlint.Pos, path string,
 }
 
 func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	for {
 		s := strings.Index(script, "${{")
 		if s == -1 {
@@ -548,7 +561,8 @@ func createResultForDangerousWorkflowPatterns(result patternCbData, err error) c
 }
 
 func testValidateGitHubActionDangerousWorkflow(pathfn string,
-	content []byte, dl checker.DetailLogger) checker.CheckResult {
+	content []byte, dl checker.DetailLogger,
+) checker.CheckResult {
 	data := patternCbData{
 		workflowPattern: make(map[dangerousResults]bool),
 	}

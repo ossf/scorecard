@@ -32,7 +32,8 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 	clients.RepoClient, // ossFuzzClient
 	clients.CIIBestPracticesClient, // ciiClient
 	clients.VulnerabilitiesClient, // vulnClient
-	error) {
+	error,
+) {
 	var githubRepo clients.Repo
 	if localURI != "" {
 		localRepo, errLocal := localdir.MakeLocalDirRepo(localURI)

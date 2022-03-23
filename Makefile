@@ -3,7 +3,7 @@ GINKGO := ginkgo
 GIT_HASH := $(shell git rev-parse HEAD)
 GIT_VERSION ?= $(shell git describe --tags --always --dirty)
 SOURCE_DATE_EPOCH=$(shell git log --date=iso8601-strict -1 --pretty=%ct)
-GOLANGGCI_LINT := golangci-lint
+GOLANGCI_LINT := golangci-lint
 PROTOC_GEN_GO := protoc-gen-go
 MOCKGEN := mockgen
 PROTOC := $(shell which protoc)
@@ -58,9 +58,9 @@ update-dependencies: ## Update go dependencies for all modules
 	cd tools
 	go mod tidy && go mod verify
 
-$(GOLANGGCI_LINT): install
+$(GOLANGCI_LINT): install
 check-linter: ## Install and run golang linter
-check-linter: $(GOLANGGCI_LINT)
+check-linter: $(GOLANGCI_LINT)
 	# Run golangci-lint linter
 	golangci-lint run -c .golangci.yml
 

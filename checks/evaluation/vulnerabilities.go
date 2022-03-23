@@ -24,7 +24,8 @@ import (
 
 // Vulnerabilities applies the score policy for the Vulnerabilities check.
 func Vulnerabilities(name string, dl checker.DetailLogger,
-	r *checker.VulnerabilitiesData) checker.CheckResult {
+	r *checker.VulnerabilitiesData,
+) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)
