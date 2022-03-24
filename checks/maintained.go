@@ -39,6 +39,22 @@ func init() {
 	}
 }
 
+// Maintained runs Maintained check.
+func Maintained(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.Maintained(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
+	}
+
+	// Set the raw results.
+	if c.RawResults != nil {
+		c.RawResults.MaintainedResults = rawData
+	}
+
+	return evaluation.Maintained(CheckMaintained, c.Dlogger, &rawData)
+}
+
 // IsMaintained runs Maintained check.
 func IsMaintained(c *checker.CheckRequest) checker.CheckResult {
 	archived, err := c.RepoClient.IsArchived()

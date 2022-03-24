@@ -25,6 +25,22 @@ type RawResults struct {
 	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
 	CodeReviewResults           CodeReviewData
+	MaintainedResults           MaintainedData
+}
+
+// MaintainedData contains the raw results
+// for the Maintained check.
+type MaintainedData struct {
+	Issues               []Issue
+	DefaultBranchCommits []DefaultBranchCommit
+	Archived             bool
+}
+
+// Comment represents a comment for a pull request or an issue.
+type Comment struct {
+	CreatedAt *time.Time
+	Author    User
+	Text      string
 }
 
 // CodeReviewData contains the raw results
@@ -109,7 +125,10 @@ type Run struct {
 
 // Issue represents an issue.
 type Issue struct {
-	URL string
+	AuthorAssociation *string
+	CreatedAt         *time.Time
+	URL               string
+	Comments          []Comment
 	// TODO: add fields, e.g., state=[opened|closed]
 }
 
@@ -121,6 +140,7 @@ type DefaultBranchCommit struct {
 	SHA           string
 	CommitMessage string
 	MergeRequest  *MergeRequest
+	PushedAt      *time.Time
 	Committer     User
 }
 
