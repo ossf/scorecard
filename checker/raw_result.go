@@ -33,14 +33,7 @@ type RawResults struct {
 type MaintainedData struct {
 	Issues               []Issue
 	DefaultBranchCommits []DefaultBranchCommit
-	Archived             bool
-}
-
-// Comment represents a comment for a pull request or an issue.
-type Comment struct {
-	CreatedAt *time.Time
-	Author    User
-	Text      string
+	ArchivedStatus       ArchivedStatus
 }
 
 // CodeReviewData contains the raw results
@@ -123,12 +116,25 @@ type Run struct {
 	// TODO: add fields, e.g., Result=["success", "failure"]
 }
 
+// Comment represents a comment for a pull request or an issue.
+type Comment struct {
+	CreatedAt *time.Time
+	Author    *User
+	// TODO: add ields if needed, e.g., content.
+}
+
+// ArchivedStatus definess the archived status.
+type ArchivedStatus struct {
+	Status bool
+	// TODO: add fields, e.g., date of archival.
+}
+
 // Issue represents an issue.
 type Issue struct {
-	AuthorAssociation *string
-	CreatedAt         *time.Time
-	URL               string
-	Comments          []Comment
+	CreatedAt *time.Time
+	Author    *User
+	URL       string
+	Comments  []Comment
 	// TODO: add fields, e.g., state=[opened|closed]
 }
 
@@ -140,7 +146,7 @@ type DefaultBranchCommit struct {
 	SHA           string
 	CommitMessage string
 	MergeRequest  *MergeRequest
-	PushedAt      *time.Time
+	CommitDate    *time.Time
 	Committer     User
 }
 
@@ -163,8 +169,29 @@ type Review struct {
 
 // User represent a user.
 type User struct {
-	Login string
+	RepoAssociation *RepoAssociation
+	Login           string
 }
+
+// RepoAssociation represents a user relationship with a repo.
+type RepoAssociation string
+
+const (
+	// RepoAssociationCollaborator has been invited to collaborate on the repository.
+	RepoAssociationCollaborator RepoAssociation = RepoAssociation("collaborator")
+	// RepoAssociationContributor is an contributor to the repository.
+	RepoAssociationContributor RepoAssociation = RepoAssociation("contributor")
+	// RepoAssociationOwner is an owner of the repository.
+	RepoAssociationOwner RepoAssociation = RepoAssociation("owner")
+	// RepoAssociationMember is a member of the organization that owns the repository.
+	RepoAssociationMember RepoAssociation = RepoAssociation("member")
+	// RepoAssociationFirstTimer has previously committed to the repository.
+	RepoAssociationFirstTimer RepoAssociation = RepoAssociation("first-timer")
+	// RepoAssociationMannequin is a placeholder for an unclaimed user.
+	RepoAssociationMannequin RepoAssociation = RepoAssociation("unknown")
+	// RepoAssociationNone has no association with the repository.
+	RepoAssociationNone RepoAssociation = RepoAssociation("none")
+)
 
 // File represents a file.
 type File struct {

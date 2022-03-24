@@ -122,7 +122,8 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 
 // ListIssues implements RepoClient.ListIssues.
 func (client *Client) ListIssues() ([]clients.Issue, error) {
-	return client.graphClient.getIssues()
+	r, err := client.graphClient.getIssues()
+	return r, err
 }
 
 // ListReleases implements RepoClient.ListReleases.

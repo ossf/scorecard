@@ -20,6 +20,7 @@ import "time"
 type Issue struct {
 	URI               *string
 	CreatedAt         *time.Time
+	Author            *User
 	AuthorAssociation *RepoAssociation
 	Comments          []IssueComment
 }
@@ -27,5 +28,6 @@ type Issue struct {
 // IssueComment represents a comment on an issue.
 type IssueComment struct {
 	CreatedAt         *time.Time
+	Author            *User
 	AuthorAssociation *RepoAssociation
 }
