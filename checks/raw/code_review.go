@@ -32,13 +32,13 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 	}
 
 	for i := range commits {
-		results = append(results, getRawDataFrom(&commits[i], true))
+		results = append(results, getRawDataFromCommit(&commits[i]))
 	}
 
 	return checker.CodeReviewData{DefaultBranchCommits: results}, nil
 }
 
-func getRawDataFrom(c *clients.Commit, includeMergeRequest bool) checker.DefaultBranchCommit {
+func getRawDataFromCommit(c *clients.Commit) checker.DefaultBranchCommit {
 	r := checker.DefaultBranchCommit{
 		Committer: checker.User{
 			Login: c.Committer.Login,
@@ -46,10 +46,7 @@ func getRawDataFrom(c *clients.Commit, includeMergeRequest bool) checker.Default
 		SHA:           c.SHA,
 		CommitMessage: c.Message,
 		CommitDate:    &c.CommittedDate,
-	}
-
-	if includeMergeRequest {
-		r.MergeRequest = mergeRequest(&c.AssociatedMergeRequest)
+		MergeRequest:  mergeRequest(&c.AssociatedMergeRequest),
 	}
 
 	return r
