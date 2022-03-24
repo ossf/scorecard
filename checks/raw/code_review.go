@@ -45,7 +45,7 @@ func getRawDataFrom(c *clients.Commit, includeMergeRequest bool) checker.Default
 		},
 		SHA:           c.SHA,
 		CommitMessage: c.Message,
-		PushedAt:      c.PushedAt,
+		PushedAt:      &c.CommittedDate,
 	}
 
 	if includeMergeRequest {
