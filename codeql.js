@@ -15,3 +15,4 @@
 // This file is required for codeql https://github.com/ossf/scorecard/issues/987
 // do not delete this file.
 console.log("codeql")
+w
