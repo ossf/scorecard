@@ -16,6 +16,7 @@ package format
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"testing"
 
