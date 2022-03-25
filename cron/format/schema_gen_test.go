@@ -23,7 +23,7 @@ import (
 )
 
 //nolint
-func Test_GenerateBqSchema(t *testing.T) {
+func Test_GenerateBQSchema(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -68,9 +68,9 @@ func Test_GenerateBqSchema(t *testing.T) {
 				t.Fatalf("%s: write %d bytes but expected %d", tt.name, n, len(content))
 			}
 
-			result, err := GenerateBqSchema(tt.structure)
+			result, err := GenerateBQSchema(tt.structure)
 			if err != nil {
-				t.Fatalf("%s: GenerateBqSchema: %v", tt.name, err)
+				t.Fatalf("%s: GenerateBQSchema: %v", tt.name, err)
 			}
 
 			if !cmp.Equal(result, expected.String()) {
@@ -81,7 +81,7 @@ func Test_GenerateBqSchema(t *testing.T) {
 }
 
 //nolint
-func Test_GenerateJsonSchema(t *testing.T) {
+func Test_GenerateJSONSchema(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -126,7 +126,7 @@ func Test_GenerateJsonSchema(t *testing.T) {
 				t.Fatalf("%s: write %d bytes but expected %d", tt.name, n, len(content))
 			}
 
-			result := GenerateJsonSchema(tt.structure)
+			result := GenerateJSONSchema(tt.structure)
 
 			if !cmp.Equal(result, expected.String()) {
 				t.Errorf(cmp.Diff(result, expected.String()))

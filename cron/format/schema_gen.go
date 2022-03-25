@@ -25,8 +25,8 @@ import (
 
 // https://github.com/googleapis/google-cloud-go/blob/bigquery/v1.30.0/bigquery/schema.go#L544
 type bigQueryJSONField struct {
-	Description string              `json:"description"`
 	Fields      []bigQueryJSONField `json:"fields,omitempty"`
+	Description string              `json:"description"`
 	Mode        string              `json:"mode"`
 	Name        string              `json:"name"`
 	Type        string              `json:"type"`
@@ -67,7 +67,7 @@ func generateSchema(schema bigquery.Schema) []bigQueryJSONField {
 // cron/format/bq.raw.schema`.
 // The structure `t` must be annotated using BQ fields:
 // a string `bigquery:"name"`.
-func GenerateBqSchema(t interface{}) (string, error) {
+func GenerateBQSchema(t interface{}) (string, error) {
 	schema, err := bigquery.InferSchema(t)
 	if err != nil {
 		return "", fmt.Errorf("bigquery.InferSchema: %w", err)
@@ -75,11 +75,14 @@ func GenerateBqSchema(t interface{}) (string, error) {
 	jsonFields := generateSchema(schema)
 
 	jsonData, err := json.Marshal(jsonFields)
+	if err != nil {
+		return "", fmt.Errorf("json.Marshal: %w", err)
+	}
 	return string(jsonData), nil
 }
 
-// GenerateJsonSchema generates the schema for a JSON structure.
-func GenerateJsonSchema(t interface{}) string {
+// GenerateJSONSchema generates the schema for a JSON structure.
+func GenerateJSONSchema(t interface{}) string {
 	s := &jsonschema.Document{}
 	s.Read(t)
 
