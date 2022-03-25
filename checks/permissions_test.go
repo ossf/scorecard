@@ -30,7 +30,8 @@ type file struct {
 }
 
 func testValidateGitHubActionTokenPermissions(files []file,
-	dl checker.DetailLogger) checker.CheckResult {
+	dl checker.DetailLogger,
+) checker.CheckResult {
 	data := permissionCbData{
 		workflows: make(map[string]permissions),
 	}

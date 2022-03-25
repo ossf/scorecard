@@ -294,7 +294,8 @@ func getLine(startLine, endLine uint, node syntax.Node) (uint, uint) {
 }
 
 func isFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
-	dl checker.DetailLogger) bool {
+	dl checker.DetailLogger,
+) bool {
 	// BinaryCmd {Op=|, X=CallExpr{Args={curl, -s, url}}, Y=CallExpr{Args={bash,}}}.
 	bc, ok := node.(*syntax.BinaryCmd)
 	if !ok {
@@ -357,7 +358,8 @@ func getRedirectFile(red []*syntax.Redirect) (string, bool) {
 }
 
 func isExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn string, files map[string]bool,
-	dl checker.DetailLogger) bool {
+	dl checker.DetailLogger,
+) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
 		return false
@@ -574,7 +576,8 @@ func isPipUnpinnedDownload(cmd []string) bool {
 }
 
 func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
-	cmd, pathfn string, dl checker.DetailLogger) bool {
+	cmd, pathfn string, dl checker.DetailLogger,
+) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
 		return false
@@ -655,7 +658,8 @@ func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err erro
 }
 
 func isFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
-	dl checker.DetailLogger) bool {
+	dl checker.DetailLogger,
+) bool {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
 		return false
@@ -792,7 +796,8 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 }
 
 func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content []byte, files map[string]bool,
-	dl checker.DetailLogger) (bool, error) {
+	dl checker.DetailLogger,
+) (bool, error) {
 	in := strings.NewReader(string(content))
 	f, err := syntax.NewParser().Parse(in, pathfn)
 	if err != nil {
@@ -942,7 +947,8 @@ func isMatchingShellScriptFile(pathfn string, content []byte, shellsToMatch []st
 }
 
 func validateShellFile(pathfn string, startLine, endLine uint,
-	content []byte, taintedFiles map[string]bool, dl checker.DetailLogger) (bool, error) {
+	content []byte, taintedFiles map[string]bool, dl checker.DetailLogger,
+) (bool, error) {
 	r, err := validateShellFileAndRecord(pathfn, startLine, endLine, content, taintedFiles, dl)
 	if err != nil && errors.Is(err, sce.ErrorShellParsing) {
 		// Discard and print this particular error for now.

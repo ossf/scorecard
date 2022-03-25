@@ -119,7 +119,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 
 // AsJSON2 exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON2(showDetails bool,
-	logLevel log.Level, checkDocs docs.Doc, writer io.Writer) error {
+	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
+) error {
 	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
 		return err
