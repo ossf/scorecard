@@ -30,7 +30,7 @@ import (
 // nolint: gocognit
 // ignoring the linter for cyclomatic complexity because it is a test func
 // TestMaintained tests the maintained check.
-func TestMaintained(t *testing.T) {
+func Test_Maintained(t *testing.T) {
 	t.Parallel()
 	threeHundredDaysAgo := time.Now().AddDate(0, 0, -300)
 	twoHundredDaysAgo := time.Now().AddDate(0, 0, -200)
@@ -304,7 +304,7 @@ func TestMaintained(t *testing.T) {
 				RepoClient: mockRepo,
 			}
 			req.Dlogger = &scut.TestDetailLogger{}
-			res := IsMaintained(&req)
+			res := Maintained(&req)
 
 			if tt.err != nil {
 				if res.Error2 == nil {
