@@ -54,7 +54,7 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 		issue := checker.Issue{
 			CreatedAt: issues[i].CreatedAt,
 		}
-		// Add author is non nil.
+		// Add author if not nil.
 		if issues[i].Author != nil {
 			issue.Author = &checker.User{
 				Login:           issues[i].Author.Login,

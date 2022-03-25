@@ -84,7 +84,7 @@ func hasActivityByCollaboratorOrHigher(issue *checker.Issue, threshold time.Time
 
 // isCollaboratorOrHigher returns true if the user is a collaborator or higher.
 func isCollaboratorOrHigher(user *checker.User) bool {
-	if user == nil {
+	if user == nil || user.RepoAssociation == nil {
 		return false
 	}
 	priviledgedRoles := []checker.RepoAssociation{
@@ -94,9 +94,6 @@ func isCollaboratorOrHigher(user *checker.User) bool {
 		checker.RepoAssociationMember,
 	}
 	for _, role := range priviledgedRoles {
-		if user.RepoAssociation == nil {
-			continue
-		}
 		if role == *user.RepoAssociation {
 			return true
 		}

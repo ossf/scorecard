@@ -102,7 +102,7 @@ type jsonDatabaseVulnerability struct {
 
 type jsonArchivedStatus struct {
 	Status bool `json:"status"`
-	// TODO: ad fields, e.g. date of archival, etc.
+	// TODO: add fields, e.g. date of archival, etc.
 }
 
 type jsonComment struct {
@@ -136,7 +136,7 @@ type jsonRawResults struct {
 	BranchProtections []jsonBranchProtection `json:"branch-protections"`
 	// Commits.
 	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
-	// Archive status of the repo.
+	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
 }
 
@@ -154,7 +154,7 @@ func getRepoAssociation(author *checker.User) *string {
 }
 
 func (r *jsonScorecardRawResult) addMaintainedRawResults(mr *checker.MaintainedData) error {
-	// Set archive status.
+	// Set archived status.
 	r.Results.ArchivedStatus = jsonArchivedStatus{Status: mr.ArchivedStatus.Status}
 
 	// Issues.
