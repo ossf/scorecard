@@ -32,7 +32,8 @@ func createGCSRef(bucketURL, fileURI string) *bigquery.GCSReference {
 }
 
 func createBQLoader(ctx context.Context, projectID, datasetName, tableName string,
-	partitionDate time.Time, gcsRef *bigquery.GCSReference) (*bigquery.Client, *bigquery.Loader, error) {
+	partitionDate time.Time, gcsRef *bigquery.GCSReference,
+) (*bigquery.Client, *bigquery.Loader, error) {
 	bqClient, err := bigquery.NewClient(ctx, projectID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create bigquery client: %w", err)
@@ -46,7 +47,8 @@ func createBQLoader(ctx context.Context, projectID, datasetName, tableName strin
 
 func startDataTransferJob(ctx context.Context,
 	bucketURL, fileURI, projectID, datasetName, tableName string,
-	partitionDate time.Time) error {
+	partitionDate time.Time,
+) error {
 	gcsRef := createGCSRef(bucketURL, fileURI)
 	bqClient, loader, err := createBQLoader(ctx, projectID, datasetName, tableName, partitionDate, gcsRef)
 	if err != nil {

@@ -44,7 +44,8 @@ func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
 }
 
 var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path string, content []byte,
-	args ...interface{}) (bool, error) {
+	args ...interface{},
+) (bool, error) {
 	if len(args) != 1 {
 		return false, fmt.Errorf(
 			"checkBinaryFileContent requires exactly one argument: %w", errInvalidArgLength)
