@@ -71,8 +71,8 @@ type jsonReview struct {
 }
 
 type jsonUser struct {
-	Login           string  `json:"login"`
 	RepoAssociation *string `json:"repo-association"`
+	Login           string  `json:"login"`
 }
 
 //nolint:govet

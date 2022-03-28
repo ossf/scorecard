@@ -19,7 +19,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
-// Maintained checks for maintainance.
+// Maintained checks for maintenance.
 func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	var result checker.MaintainedData
 
@@ -37,7 +37,7 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	}
 
 	for i := range commits {
-		// Note: getRawDataFrom() is defined in Code-Review check.
+		// Note: getRawDataFromCommit() is defined in Code-Review check.
 		result.DefaultBranchCommits = append(result.DefaultBranchCommits,
 			getRawDataFromCommit(&commits[i]))
 	}
@@ -49,7 +49,6 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	}
 
 	for i := range issues {
-
 		// Create issue.
 		issue := checker.Issue{
 			CreatedAt: issues[i].CreatedAt,

@@ -43,6 +43,7 @@ type RepoInfo struct {
 }
 
 // ScorecardResult struct is returned on a successful Scorecard run.
+//nolint
 type ScorecardResult struct {
 	Repo       RepoInfo
 	Date       time.Time
