@@ -19,11 +19,14 @@ on:
     tags:
       - "*" # triggers only if push new tag version, like `0.8.4` or else
 
+permissions:
+  contents: read
+
 jobs:
   goreleaser:
-    runs-on: ubuntu-latest
     permissions:
-     contents: write
+      contents: write  # for goreleaser/goreleaser-action to create a GitHub release
+    runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
