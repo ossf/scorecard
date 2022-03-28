@@ -13,6 +13,10 @@
 # limitations under the License.
 
 name: build
+
+permissions:
+  contents: read
+  
 on:
   push:
     branches:
