@@ -15,6 +15,8 @@
 package raw
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 )
@@ -26,14 +28,14 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	// Archived status.
 	archived, err := c.RepoClient.IsArchived()
 	if err != nil {
-		return result, err
+		return result, fmt.Errorf("%w", err)
 	}
 	result.ArchivedStatus.Status = archived
 
 	// Recent commits.
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		return result, err
+		return result, fmt.Errorf("%w", err)
 	}
 
 	for i := range commits {
@@ -45,7 +47,7 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	// Recent issues.
 	issues, err := c.RepoClient.ListIssues()
 	if err != nil {
-		return result, err
+		return result, fmt.Errorf("%w", err)
 	}
 
 	for i := range issues {
@@ -112,6 +114,9 @@ func getAssociation(a *clients.RepoAssociation) *checker.RepoAssociation {
 		return &v
 	case clients.RepoAssociationNone:
 		v := checker.RepoAssociationNone
+		return &v
+	case clients.RepoAssociationFirstTimeContributor:
+		v := checker.RepoAssociationFirstTimeContributor
 		return &v
 	default:
 		return nil

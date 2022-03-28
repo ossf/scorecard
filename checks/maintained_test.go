@@ -16,6 +16,7 @@ package checks
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -27,9 +28,9 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-// nolint: gocognit
 // ignoring the linter for cyclomatic complexity because it is a test func
 // TestMaintained tests the maintained check.
+//nolint
 func Test_Maintained(t *testing.T) {
 	t.Parallel()
 	threeHundredDaysAgo := time.Now().AddDate(0, 0, -300)
@@ -38,7 +39,13 @@ func Test_Maintained(t *testing.T) {
 	oneDayAgo := time.Now().AddDate(0, 0, -1)
 	ownerAssociation := clients.RepoAssociationOwner
 	noneAssociation := clients.RepoAssociationNone
-	//fieldalignment lint issue. Ignoring it as it is not important for this test.
+	// fieldalignment lint issue. Ignoring it as it is not important for this test.
+	someone := clients.User{
+		Login: "someone",
+	}
+	otheruser := clients.User{
+		Login: "someone-else",
+	}
 	//nolint
 	tests := []struct {
 		err        error
@@ -85,7 +92,6 @@ func Test_Maintained(t *testing.T) {
 				Score: -1,
 			},
 		},
-
 		{
 			name:       "repo with no commits or issues",
 			isarchived: false,
@@ -125,10 +131,12 @@ func Test_Maintained(t *testing.T) {
 				{
 					CreatedAt:         &threeHundredDaysAgo,
 					AuthorAssociation: &ownerAssociation,
+					Author:            &someone,
 				},
 				{
 					CreatedAt:         &twoHundredDaysAgo,
 					AuthorAssociation: &noneAssociation,
+					Author:            &someone,
 				},
 			},
 			expected: checker.CheckResult{
@@ -143,10 +151,12 @@ func Test_Maintained(t *testing.T) {
 				{
 					CreatedAt:         &fiveDaysAgo,
 					AuthorAssociation: &noneAssociation,
+					Author:            &someone,
 				},
 				{
 					CreatedAt:         &oneDayAgo,
 					AuthorAssociation: &noneAssociation,
+					Author:            &someone,
 				},
 			},
 			expected: checker.CheckResult{
@@ -165,6 +175,7 @@ func Test_Maintained(t *testing.T) {
 						{
 							CreatedAt:         &oneDayAgo,
 							AuthorAssociation: &noneAssociation,
+							Author:            &someone,
 						},
 					},
 				},
@@ -175,6 +186,7 @@ func Test_Maintained(t *testing.T) {
 						{
 							CreatedAt:         &oneDayAgo,
 							AuthorAssociation: &noneAssociation,
+							Author:            &someone,
 						},
 					},
 				},
@@ -195,6 +207,7 @@ func Test_Maintained(t *testing.T) {
 						{
 							CreatedAt:         &twoHundredDaysAgo,
 							AuthorAssociation: &ownerAssociation,
+							Author:            &someone,
 						},
 					},
 				},
@@ -205,6 +218,7 @@ func Test_Maintained(t *testing.T) {
 						{
 							CreatedAt:         &twoHundredDaysAgo,
 							AuthorAssociation: &ownerAssociation,
+							Author:            &someone,
 						},
 					},
 				},
@@ -225,6 +239,7 @@ func Test_Maintained(t *testing.T) {
 						{
 							CreatedAt:         &fiveDaysAgo,
 							AuthorAssociation: &ownerAssociation,
+							Author:            &someone,
 						},
 					},
 				},
@@ -235,6 +250,7 @@ func Test_Maintained(t *testing.T) {
 						{
 							CreatedAt:         &oneDayAgo,
 							AuthorAssociation: &ownerAssociation,
+							Author:            &someone,
 						},
 					},
 				},
@@ -251,14 +267,36 @@ func Test_Maintained(t *testing.T) {
 				{
 					CreatedAt:         &fiveDaysAgo,
 					AuthorAssociation: &ownerAssociation,
+					Author:            &someone,
 				},
 				{
 					CreatedAt:         &oneDayAgo,
 					AuthorAssociation: &ownerAssociation,
+					Author:            &someone,
 				},
 			},
 			expected: checker.CheckResult{
 				Score: 1,
+			},
+		},
+		{
+			name:       "new issues by non-owner",
+			isarchived: false,
+			commits:    []clients.Commit{},
+			issues: []clients.Issue{
+				{
+					CreatedAt:         &fiveDaysAgo,
+					AuthorAssociation: &noneAssociation,
+					Author:            &otheruser,
+				},
+				{
+					CreatedAt:         &oneDayAgo,
+					AuthorAssociation: &noneAssociation,
+					Author:            &otheruser,
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
 			},
 		},
 	}
@@ -279,7 +317,7 @@ func Test_Maintained(t *testing.T) {
 				return tt.isarchived, nil
 			})
 
-			if !tt.isarchived {
+			if tt.archiveerr == nil {
 				mockRepo.EXPECT().ListCommits().DoAndReturn(
 					func() ([]clients.Commit, error) {
 						if tt.commiterr != nil {
@@ -288,6 +326,7 @@ func Test_Maintained(t *testing.T) {
 						return tt.commits, tt.err
 					},
 				).MinTimes(1)
+
 				if tt.commiterr == nil {
 					mockRepo.EXPECT().ListIssues().DoAndReturn(
 						func() ([]clients.Issue, error) {

@@ -68,6 +68,7 @@ func hasActivityByCollaboratorOrHigher(issue *checker.Issue, threshold time.Time
 	if issue == nil {
 		return false
 	}
+
 	if isCollaboratorOrHigher(issue.Author) && issue.CreatedAt != nil && issue.CreatedAt.After(threshold) {
 		// The creator of the issue is a collaborator or higher.
 		return true
@@ -87,6 +88,7 @@ func isCollaboratorOrHigher(user *checker.User) bool {
 	if user == nil || user.RepoAssociation == nil {
 		return false
 	}
+
 	priviledgedRoles := []checker.RepoAssociation{
 		checker.RepoAssociationOwner,
 		checker.RepoAssociationCollaborator,

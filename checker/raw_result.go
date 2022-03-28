@@ -187,6 +187,8 @@ const (
 	RepoAssociationMember RepoAssociation = RepoAssociation("member")
 	// RepoAssociationFirstTimer has previously committed to the repository.
 	RepoAssociationFirstTimer RepoAssociation = RepoAssociation("first-timer")
+	// RepoAssociationFirstTimeContributor has not previously committed to the repository.
+	RepoAssociationFirstTimeContributor RepoAssociation = RepoAssociation("first-timer-contributor")
 	// RepoAssociationMannequin is a placeholder for an unclaimed user.
 	RepoAssociationMannequin RepoAssociation = RepoAssociation("unknown")
 	// RepoAssociationNone has no association with the repository.

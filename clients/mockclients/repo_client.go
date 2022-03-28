@@ -20,6 +20,7 @@
 package mockrepo
 
 import (
+	"fmt"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -154,8 +155,11 @@ func (mr *MockRepoClientMockRecorder) ListCheckRunsForRef(ref interface{}) *gomo
 
 // ListCommits mocks base method.
 func (m *MockRepoClient) ListCommits() ([]clients.Commit, error) {
+	fmt.Println("mock.ListCommits")
 	m.ctrl.T.Helper()
+	fmt.Println("call mock.ListCommits")
 	ret := m.ctrl.Call(m, "ListCommits")
+	fmt.Println("ret mock.ListCommits")
 	ret0, _ := ret[0].([]clients.Commit)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -163,6 +167,7 @@ func (m *MockRepoClient) ListCommits() ([]clients.Commit, error) {
 
 // ListCommits indicates an expected call of ListCommits.
 func (mr *MockRepoClientMockRecorder) ListCommits() *gomock.Call {
+	fmt.Println("recorder.ListCommits")
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommits", reflect.TypeOf((*MockRepoClient)(nil).ListCommits))
 }
