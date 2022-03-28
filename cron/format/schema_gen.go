@@ -25,11 +25,11 @@ import (
 
 // https://github.com/googleapis/google-cloud-go/blob/bigquery/v1.30.0/bigquery/schema.go#L544
 type bigQueryJSONField struct {
-	Fields      []bigQueryJSONField `json:"fields,omitempty"`
 	Description string              `json:"description"`
 	Mode        string              `json:"mode"`
 	Name        string              `json:"name"`
 	Type        string              `json:"type"`
+	Fields      []bigQueryJSONField `json:"fields,omitempty"`
 }
 
 func generateSchema(schema bigquery.Schema) []bigQueryJSONField {
@@ -58,7 +58,7 @@ func generateSchema(schema bigquery.Schema) []bigQueryJSONField {
 	return bqs
 }
 
-// GenerateBqSchema generates the BQ schema in JSON format.
+// GenerateBQSchema generates the BQ schema in JSON format.
 // Can be used to generate a BQ table:
 // `bq mk --table    --time_partitioning_type DAY \
 // --require_partition_filter=TRUE \
