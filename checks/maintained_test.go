@@ -16,7 +16,6 @@ package checks
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
