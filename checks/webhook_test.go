@@ -16,6 +16,7 @@ package checks
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -101,6 +102,7 @@ func TestWebhooks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			os.Setenv("SCORECARD_V6", "true")
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 

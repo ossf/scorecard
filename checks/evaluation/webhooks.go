@@ -55,5 +55,6 @@ func Webhooks(name string, dl checker.DetailLogger,
 	}
 
 	return checker.CreateProportionalScoreResult(name,
-		fmt.Sprintf("%d/%d hook(s) with no secrets configured detected", hasNoSecretCount, len(r.Webhook)), hasNoSecretCount, len(r.Webhook))
+		fmt.Sprintf("%d/%d hook(s) with no secrets configured detected",
+			hasNoSecretCount, len(r.Webhook)), hasNoSecretCount, len(r.Webhook))
 }
