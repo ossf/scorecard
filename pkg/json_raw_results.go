@@ -132,7 +132,14 @@ type jsonReleaseAsset struct {
 }
 
 //nolint
+type jsonLicense struct {
+	File jsonFile `json:"file"`
+	// TODO: add fields, like type of license, etc.
+}
+
 type jsonRawResults struct {
+	// License.
+	Licenses []jsonLicense `json:"licenses"`
 	// List of recent issues.
 	RecentIssues []jsonIssue `json:"issues"`
 	// List of vulnerabilities.
@@ -280,6 +287,21 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 }
 
 //nolint:unparam
+func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) error {
+	r.Results.Licenses = []jsonLicense{}
+	for _, file := range ld.Files {
+		r.Results.Licenses = append(r.Results.Licenses,
+			jsonLicense{
+				File: jsonFile{
+					Path: file.Path,
+				},
+			},
+		)
+	}
+	return nil
+}
+
+//nolint:unparam
 func (r *jsonScorecardRawResult) addVulnerbilitiesRawResults(vd *checker.VulnerabilitiesData) error {
 	r.Results.DatabaseVulnerabilities = []jsonDatabaseVulnerability{}
 	for _, v := range vd.Vulnerabilities {
@@ -364,7 +386,12 @@ func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.Branc
 }
 
 func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) error {
-	// Vulnerabiliries.
+	// Licenses.
+	if err := r.addLicenseRawResults(&raw.LicenseResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Vulnerabilities.
 	if err := r.addVulnerbilitiesRawResults(&raw.VulnerabilitiesResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
