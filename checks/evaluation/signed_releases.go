@@ -52,7 +52,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 			for _, suffix := range artifactExtensions {
 				if strings.HasSuffix(asset.Name, suffix) {
 					dl.Info(&checker.LogMessage{
-						Path: asset.URL.Path,
+						Path: asset.URL,
 						Type: checker.FileTypeURL,
 						Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
 					})
@@ -68,7 +68,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 
 		if !signed {
 			dl.Warn(&checker.LogMessage{
-				Path: release.URL.Path,
+				Path: release.URL,
 				Type: checker.FileTypeURL,
 				Text: fmt.Sprintf("release artifact %s not signed", release.Tag),
 			})

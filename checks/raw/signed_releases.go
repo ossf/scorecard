@@ -32,17 +32,12 @@ func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error)
 		results.Releases = append(results.Releases,
 			checker.Release{
 				Tag: r.TagName,
-				URL: checker.File{
-					Path: r.URL,
-				},
+				URL: r.URL,
 			})
 
 		for _, asset := range r.Assets {
 			a := checker.ReleaseAsset{
-				URL: checker.File{
-					Path: asset.URL,
-					Type: checker.FileTypeURL,
-				},
+				URL:  asset.URL,
 				Name: asset.Name,
 			}
 			results.Releases[i].Assets = append(results.Releases[i].Assets, a)

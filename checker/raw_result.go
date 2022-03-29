@@ -239,12 +239,12 @@ type Vulnerability struct {
 type Release struct {
 	Tag    string
 	Assets []ReleaseAsset
-	URL    File
+	URL    string
 	// TODO: add needed fields, e.g. Path.
 }
 
 // ReleaseAsset represents a release asset.
 type ReleaseAsset struct {
 	Name string
-	URL  File
+	URL  string
 }

@@ -127,7 +127,7 @@ type jsonRelease struct {
 }
 
 type jsonReleaseAsset struct {
-	Name string `json:"name"`
+	Path string `json:"path"`
 	URL  string `json:"url"`
 }
 
@@ -161,13 +161,13 @@ func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedR
 		r.Results.Releases = append(r.Results.Releases,
 			jsonRelease{
 				Tag: release.Tag,
-				URL: release.URL.Path,
+				URL: release.URL,
 			})
 		for _, asset := range release.Assets {
 			r.Results.Releases[i].Assets = append(r.Results.Releases[i].Assets,
 				jsonReleaseAsset{
-					Name: asset.Name,
-					URL:  asset.URL.Path,
+					Path: asset.Name,
+					URL:  asset.URL,
 				},
 			)
 		}
