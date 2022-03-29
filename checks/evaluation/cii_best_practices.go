@@ -56,6 +56,5 @@ func CIIBestPractices(name string, dl checker.DetailLogger, r *checker.CIIBestPr
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported badge: %v", r.Badge))
 		results = checker.CreateRuntimeErrorResult(name, e)
 	}
-
 	return results
 }
