@@ -21,6 +21,7 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
+// Note: exported for unit tests.
 const (
 	silverScore = 7
 	// Note: if this value is changed, please update the action's threshold score
