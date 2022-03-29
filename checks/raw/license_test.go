@@ -15,17 +15,7 @@
 package raw
 
 import (
-	"context"
-	"errors"
 	"testing"
-
-	"github.com/golang/mock/gomock"
-
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/localdir"
-	"github.com/ossf/scorecard/v4/log"
-	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestLicenseFileCheck(t *testing.T) {

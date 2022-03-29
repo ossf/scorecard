@@ -15,16 +15,10 @@
 package evaluation
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
-)
-
-var (
-	errInvalidArgType   = errors.New("invalid arg type")
-	errInvalidArgLength = errors.New("invalid arg length")
 )
 
 // License applies the score policy for the License check.

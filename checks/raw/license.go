@@ -66,16 +66,19 @@ var (
 func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 	var results checker.LicenseData
 	var path string
+
 	err := fileparser.OnAllFilesDo(c.RepoClient, isLicenseFile, &path)
 	if err != nil {
 		return results, fmt.Errorf("fileparser.OnAllFilesDo: %w", err)
 	}
 
-	results.Files = append(results.Files,
-		checker.File{
-			Path: path,
-			Type: checker.FileTypeSource,
-		})
+	if path != "" {
+		results.Files = append(results.Files,
+			checker.File{
+				Path: path,
+				Type: checker.FileTypeSource,
+			})
+	}
 
 	return results, nil
 }
