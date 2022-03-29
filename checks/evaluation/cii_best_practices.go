@@ -41,13 +41,17 @@ func CIIBestPractices(name string, dl checker.DetailLogger, r *checker.CIIBestPr
 	case checker.CIIBadgeNotFound:
 		results = checker.CreateMinScoreResult(name, "no badge detected")
 	case checker.CIIBadgeInProgress:
-		results = checker.CreateResultWithScore(name, "badge detected: in_progress", inProgressScore)
+		msg := fmt.Sprintf("badge detected: %v", r.Badge)
+		results = checker.CreateResultWithScore(name, msg, inProgressScore)
 	case checker.CIIBadgePassing:
-		results = checker.CreateResultWithScore(name, "badge detected: passing", passingScore)
+		msg := fmt.Sprintf("badge detected: %v", r.Badge)
+		results = checker.CreateResultWithScore(name, msg, passingScore)
 	case checker.CIIBadgeSilver:
-		results = checker.CreateResultWithScore(name, "badge detected: silver", silverScore)
+		msg := fmt.Sprintf("badge detected: %v", r.Badge)
+		results = checker.CreateResultWithScore(name, msg, silverScore)
 	case checker.CIIBadgeGold:
-		results = checker.CreateMaxScoreResult(name, "badge detected: gold")
+		msg := fmt.Sprintf("badge detected: %v", r.Badge)
+		results = checker.CreateMaxScoreResult(name, msg)
 	case checker.CIIBadgeUnknown:
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported badge: %v", r.Badge))
 		results = checker.CreateRuntimeErrorResult(name, e)
