@@ -237,8 +237,8 @@ type Vulnerability struct {
 
 // Release represents a project release.
 type Release struct {
-	Tag    string
 	Assets []ReleaseAsset
+	Tag    string
 	URL    string
 	// TODO: add needed fields, e.g. Path.
 }
