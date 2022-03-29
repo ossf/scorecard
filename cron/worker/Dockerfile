@@ -24,6 +24,6 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-worker
 
-FROM gcr.io/distroless/base:nonroot@sha256:792dfe78a236dfb6fb180a250d105e0a03585dcbc73f8fce033fe62d4fd59bcb
+FROM gcr.io/distroless/base:nonroot@sha256:764b74b1789b4ec9044e6f20bb938d077fe8c7bcf9e4d3767eebb440c5d76f11
 COPY --from=worker /src/cron/worker/worker cron/worker/worker
 ENTRYPOINT ["cron/worker/worker"]
