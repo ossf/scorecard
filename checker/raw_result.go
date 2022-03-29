@@ -27,6 +27,7 @@ type RawResults struct {
 	CodeReviewResults           CodeReviewData
 	WebhookResults              WebhooksData
 	MaintainedResults           MaintainedData
+	SignedReleasesResults       SignedReleasesData
 }
 
 // MaintainedData contains the raw results
@@ -61,6 +62,12 @@ type SecurityPolicyData struct {
 type BinaryArtifactData struct {
 	// Files contains a list of files.
 	Files []File
+}
+
+// SignedReleasesData contains the raw results
+// for the Signed-Releases check.
+type SignedReleasesData struct {
+	Releases []Release
 }
 
 // DependencyUpdateToolData contains the raw results
@@ -226,4 +233,18 @@ type Vulnerability struct {
 	// For CVE: CVE-2022-23945
 	ID string
 	// TODO(vuln): Add additional fields, if needed.
+}
+
+// Release represents a project release.
+type Release struct {
+	Tag    string
+	Assets []ReleaseAsset
+	URL    File
+	// TODO: add needed fields, e.g. Path.
+}
+
+// ReleaseAsset represents a release asset.
+type ReleaseAsset struct {
+	Name string
+	URL  File
 }

@@ -15,28 +15,29 @@
 package raw
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
-	sce "github.com/ossf/scorecard/v4/errors"
 )
+
+var errNoCommitFound = errors.New("no commit found")
 
 // Vulnerabilities retrieves the raw data for the Vulnerabilities check.
 func Vulnerabilities(c *checker.CheckRequest) (checker.VulnerabilitiesData, error) {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		return checker.VulnerabilitiesData{},
-			sce.WithMessage(sce.ErrScorecardInternal, "Client.Repositories.ListCommits")
+		return checker.VulnerabilitiesData{}, fmt.Errorf("repoClient.ListCommits: %w", err)
 	}
 
 	if len(commits) < 1 || commits[0].SHA == "" {
-		return checker.VulnerabilitiesData{},
-			sce.WithMessage(sce.ErrScorecardInternal, "no commits found")
+		return checker.VulnerabilitiesData{}, fmt.Errorf("%w", errNoCommitFound)
 	}
 
 	resp, err := c.VulnerabilitiesClient.HasUnfixedVulnerabilities(c.Ctx, commits[0].SHA)
 	if err != nil {
-		return checker.VulnerabilitiesData{},
-			sce.WithMessage(sce.ErrScorecardInternal, "VulnerabilitiesClient.HasUnfixedVulnerabilities")
+		return checker.VulnerabilitiesData{}, fmt.Errorf("vulnerabilitiesClient.HasUnfixedVulnerabilities: %w", err)
 	}
 
 	vulnIDs := getVulnerabilities(&resp)
