@@ -90,7 +90,7 @@ func TestLicenseFileCheck(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			s := testLicenseCheck(tt.filename)
+			s := TestLicense(tt.filename)
 			if !s {
 				t.Fail()
 			}
