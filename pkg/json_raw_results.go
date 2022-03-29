@@ -136,6 +136,16 @@ type jsonRawResults struct {
 	// List of recent issues.
 	RecentIssues []jsonIssue `json:"issues"`
 	// List of vulnerabilities.
+}
+
+type jsonOssfBestPractices struct {
+	Badge string `json:"badge"`
+}
+
+type jsonRawResults struct {
+	// OSSF best practices badge.
+	OssfBestPractices jsonOssfBestPractices `json:"openssf-best-practices-badge"`
+	// Vulnerabilities.
 	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"database-vulnerabilities"`
 	// List of binaries found in the repo.
 	Binaries []jsonFile `json:"binaries"`
@@ -230,6 +240,15 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(commits []checker.DefaultB
 		return nil
 	}
 
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addOssfBestPracticesRawResults(cbp *checker.CIIBestPracticesData) error {
+	r.Results.OssfBestPractices.Badge = string(cbp.Badge)
+	return nil
+}
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewData) error {
 	r.Results.DefaultBranchCommits = []jsonDefaultBranchCommit{}
 	for _, commit := range commits {
 		com := jsonDefaultBranchCommit{
@@ -401,6 +420,11 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Signed-Releases.
 	if err := r.addSignedReleasesRawResults(&raw.SignedReleasesResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+	
+	// CII-Best-Practices.
+	if err := r.addOssfBestPracticesRawResults(&raw.CIIBestPracticesResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

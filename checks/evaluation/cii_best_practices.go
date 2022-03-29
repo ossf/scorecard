@@ -1,0 +1,57 @@
+// Copyright Security Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package evaluation
+
+import (
+	"fmt"
+
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
+)
+
+const (
+	silverScore = 7
+	// Note: if this value is changed, please update the action's threshold score
+	// https://github.com/ossf/scorecard-action/blob/main/policies/template.yml#L61.
+	passingScore    = 5
+	inProgressScore = 2
+)
+
+// CIIBestPractices applies the score policy for the CIIBestPractices check.
+func CIIBestPractices(name string, dl checker.DetailLogger, r *checker.CIIBestPracticesData) checker.CheckResult {
+	if r == nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+		return checker.CreateRuntimeErrorResult(name, e)
+	}
+
+	var results checker.CheckResult
+	switch r.Badge {
+	case checker.CIIBadgeNotFound:
+		results = checker.CreateMinScoreResult(name, "no badge detected")
+	case checker.CIIBadgeInProgress:
+		results = checker.CreateResultWithScore(name, "badge detected: in_progress", inProgressScore)
+	case checker.CIIBadgePassing:
+		results = checker.CreateResultWithScore(name, "badge detected: passing", passingScore)
+	case checker.CIIBadgeSilver:
+		results = checker.CreateResultWithScore(name, "badge detected: silver", silverScore)
+	case checker.CIIBadgeGold:
+		results = checker.CreateMaxScoreResult(name, "badge detected: gold")
+	case checker.CIIBadgeUnknown:
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported badge: %v", r.Badge))
+		results = checker.CreateRuntimeErrorResult(name, e)
+	}
+
+	return results
+}
