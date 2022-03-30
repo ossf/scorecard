@@ -16,7 +16,7 @@ name: build
 
 permissions:
   contents: read
-  
+
 on:
   push:
     branches:
@@ -24,6 +24,7 @@ on:
   pull_request:
     branches:
     - main
+
 jobs:
   unit-test:
     name: unit-test
