@@ -25,8 +25,8 @@ type RawResults struct {
 	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
 	CodeReviewResults           CodeReviewData
-	MaintainedResults           MaintainedData
 	WebhookResults              WebhooksData
+	MaintainedResults           MaintainedData
 }
 
 // MaintainedData contains the raw results
