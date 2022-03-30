@@ -2,7 +2,8 @@ name: Scorecard analysis workflow
 on:
   push:
     # Only the default branch is supported.
-    branches: [main, master]
+    branches:
+    - main
   schedule:
     # Weekly on Saturdays.
     - cron:  '30 1 * * 6'

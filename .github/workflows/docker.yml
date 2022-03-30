@@ -16,15 +16,19 @@ permissions:
   contents: read
 
 name: docker-build
-on: 
+
+on:
  push:
-   branches: main
-   paths-ignore:
-     - "*.md"
+  branches:
+  - main
+  paths-ignore:
+  - "*.md"
  pull_request:
-   branches: main
-   paths-ignore:
-     - "*.md"
+  branches:
+  - main
+  paths-ignore:
+  - "*.md"
+
 jobs:
   scorecard:
     name: scorecard-docker
