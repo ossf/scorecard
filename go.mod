@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/bigquery v1.30.1
+	cloud.google.com/go/bigquery v1.30.2
 	cloud.google.com/go/monitoring v0.1.0 // indirect
 	cloud.google.com/go/pubsub v1.19.0
 	cloud.google.com/go/trace v0.1.0 // indirect

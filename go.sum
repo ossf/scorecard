@@ -51,8 +51,8 @@ cloud.google.com/go/bigquery v1.4.0/go.mod h1:S8dzgnTigyfTmLBfrtrhyYhwRxG72rYxvf
 cloud.google.com/go/bigquery v1.5.0/go.mod h1:snEHRnqQbz117VIFhE8bmtwIDY80NLUZUMb4Nv6dBIg=
 cloud.google.com/go/bigquery v1.7.0/go.mod h1://okPTzCYNXSlb24MZs83e2Do+h+VXtc4gLoIoXIAPc=
 cloud.google.com/go/bigquery v1.8.0/go.mod h1:J5hqkt3O0uAFnINi6JXValWIb1v0goeZM77hZzJN/fQ=
-cloud.google.com/go/bigquery v1.30.1 h1:VkBLUS6peN1sIUkLmuJbpFkd+LTFp9tdOkQs32RY+fk=
-cloud.google.com/go/bigquery v1.30.1/go.mod h1:XLudePiY9J9Gp+5N3BvWpxQr1pyf1o0GzATyTYDoJgM=
+cloud.google.com/go/bigquery v1.30.2 h1:tGRYwjx+NsHyxqsif8xykBkkpS7BJsdstks2qOvCBpY=
+cloud.google.com/go/bigquery v1.30.2/go.mod h1:XLudePiY9J9Gp+5N3BvWpxQr1pyf1o0GzATyTYDoJgM=
 cloud.google.com/go/compute v0.1.0/go.mod h1:GAesmwr110a34z04OlxYkATPBEfVhkymfTBXtfbBFow=
 cloud.google.com/go/compute v1.2.0/go.mod h1:xlogom/6gr8RJGBe7nT2eGsQYAFUbbv8dbC29qE3Xmw=
 cloud.google.com/go/compute v1.3.0/go.mod h1:cCZiE1NHEtai4wiufUhW8I8S1JKkAnhnQJWM7YD99wM=
