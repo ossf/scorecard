@@ -104,7 +104,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: generate mocks
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make install
             make generate-mocks
@@ -144,7 +149,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: generate docs
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make generate-docs
   build-proto:
@@ -183,7 +193,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build-proto
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-proto
   build-scorecard:
@@ -223,7 +238,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: Run build
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-scorecard
   build-controller:
@@ -263,7 +283,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build cron
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-controller
   build-worker:
@@ -303,7 +328,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build worker
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-worker
   build-cii-worker:
@@ -343,7 +373,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build cii-worker
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-cii-worker
   build-shuffler:
@@ -383,7 +418,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build shuffler
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-shuffler
   build-bq-transfer:
@@ -423,7 +463,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build bq transfer
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-bq-transfer
   build-github-server:
@@ -463,7 +508,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build bq transfer
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-github-server
   build-webhook:
@@ -503,7 +553,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build webhook
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-webhook
   build-add-script:
@@ -543,7 +598,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build-add-script
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-add-script
   build-validate-script:
@@ -583,7 +643,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build-validate-script
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-validate-script
   build-update-script:
@@ -623,7 +688,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: build-validate-script
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make build-update-script
   check-linter:
@@ -697,7 +767,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: Run build
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make validate-docs
   add-projects:
@@ -736,7 +811,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: Run build
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make add-projects
   validate-projects:
@@ -771,7 +851,12 @@ jobs:
        with:
          go-version: '^1.17'
      - name: Run build
-       run: |
+       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
             go env -w GOFLAGS=-mod=mod
             make validate-projects
   license-check:
