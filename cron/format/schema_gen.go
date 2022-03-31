@@ -15,7 +15,6 @@
 package format
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 
@@ -46,6 +45,8 @@ func generateSchema(schema bigquery.Schema) []bigQueryJSONField {
 		switch {
 		// Make all fields optional to give us flexibility:
 		// discard `fs.Required`.
+		// An alternative would be to let the caller
+		// use https://pkg.go.dev/cloud.google.com/go/bigquery#Schema.Relax.
 		case fs.Repeated:
 			bq.Mode = "REPEATED"
 		default:
@@ -86,7 +87,5 @@ func GenerateJSONSchema(t interface{}) string {
 	s := &jsonschema.Document{}
 	s.Read(t)
 
-	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "%+v", s)
-	return buf.String()
+	return s.String()
 }
