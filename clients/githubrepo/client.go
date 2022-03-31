@@ -45,6 +45,7 @@ type Client struct {
 	checkruns    *checkrunsHandler
 	statuses     *statusesHandler
 	search       *searchHandler
+	webhook      *webhookHandler
 	ctx          context.Context
 	tarball      tarballHandler
 }
@@ -97,6 +98,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	// Setup searchHandler.
 	client.search.init(client.ctx, client.repourl)
 
+	// Setup webhookHandler.
+	client.webhook.init(client.ctx, client.repourl)
+
 	return nil
 }
 
@@ -148,6 +152,11 @@ func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 // ListBranches implements RepoClient.ListBranches.
 func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
 	return client.branches.listBranches()
+}
+
+// ListWebhooks implements RepoClient.ListWebhooks.
+func (client *Client) ListWebhooks() ([]*clients.Webhook, error) {
+	return client.webhook.listWebhooks()
 }
 
 // ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
@@ -209,6 +218,9 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 			client: client,
 		},
 		search: &searchHandler{
+			ghClient: client,
+		},
+		webhook: &webhookHandler{
 			ghClient: client,
 		},
 	}

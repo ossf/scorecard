@@ -201,6 +201,11 @@ func (client *localDirClient) ListStatuses(ref string) ([]clients.Status, error)
 	return nil, fmt.Errorf("ListStatuses: %w", clients.ErrUnsupportedFeature)
 }
 
+// ListWebhooks implements RepoClient.ListWebhooks.
+func (client *localDirClient) ListWebhooks() ([]*clients.Webhook, error) {
+	return nil, fmt.Errorf("ListWebhooks: %w", clients.ErrUnsupportedFeature)
+}
+
 // Search implements RepoClient.Search.
 func (client *localDirClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return clients.SearchResponse{}, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)

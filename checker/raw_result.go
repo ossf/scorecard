@@ -25,6 +25,7 @@ type RawResults struct {
 	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
 	CodeReviewResults           CodeReviewData
+	WebhookResults              WebhooksData
 	MaintainedResults           MaintainedData
 }
 
@@ -68,6 +69,20 @@ type DependencyUpdateToolData struct {
 	// Tools contains a list of tools.
 	// Note: we only populate one entry at most.
 	Tools []Tool
+}
+
+// WebhooksData contains the raw results
+// for the Webhook check.
+type WebhooksData struct {
+	Webhook []WebhookData
+}
+
+// WebhookData contains the raw results
+// for webhook check.
+type WebhookData struct {
+	Path           string
+	ID             int64
+	UsesAuthSecret bool
 }
 
 // BranchProtectionsData contains the raw results

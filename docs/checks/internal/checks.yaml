@@ -731,3 +731,20 @@ checks:
       - >-
         Alternately, create a `LICENSE` directory and add license files with a name
         that matches your [SPDX license identifier](https://spdx.dev/ids/).
+
+  Webhooks:
+    risk: High
+    tags: security, infrastructure
+    repos: GitHub
+    short: This check validate if the webhook defined in the repository have a token configured.
+    description: |
+      Risk: `Critical` (service possibly accessible to third parties)
+
+      This check determines whether the webhook defined in the repository has a token configured to authenticate the origins of requests.
+    remediation:
+    - >-
+      Check whether your service supports token authentication.
+    - >-
+      If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook)
+    - >-
+      If there is no support for token authentication, consider implementing it by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
