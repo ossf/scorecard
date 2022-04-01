@@ -131,6 +131,7 @@ type jsonReleaseAsset struct {
 	URL  string `json:"url"`
 }
 
+//nolint
 type jsonRawResults struct {
 	// List of recent issues.
 	RecentIssues []jsonIssue `json:"issues"`

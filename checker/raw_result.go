@@ -18,6 +18,7 @@ import "time"
 
 // RawResults contains results before a policy
 // is applied.
+//nolint
 type RawResults struct {
 	VulnerabilitiesResults      VulnerabilitiesData
 	BinaryArtifactResults       BinaryArtifactData
@@ -237,9 +238,9 @@ type Vulnerability struct {
 
 // Release represents a project release.
 type Release struct {
-	Assets []ReleaseAsset
 	Tag    string
 	URL    string
+	Assets []ReleaseAsset
 	// TODO: add needed fields, e.g. Path.
 }
 
