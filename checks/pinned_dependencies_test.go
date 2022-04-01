@@ -245,7 +245,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  26,
+				NumberOfWarn:  27,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
