@@ -15,8 +15,6 @@
 package evaluation
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -29,22 +27,19 @@ func License(name string, dl checker.DetailLogger,
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
-	// We expect a single license.
-	if len(r.Files) > 1 {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid number of results: %d",
-			len(r.Files)))
-		return checker.CreateRuntimeErrorResult(name, e)
-	}
 
-	if len(r.Files) == 0 {
+	// Apply the policy evaluation.
+	if r.Files == nil || len(r.Files) == 0 {
 		return checker.CreateMinScoreResult(name, "license file not detected")
 	}
 
-	dl.Info(&checker.LogMessage{
-		Path:   r.Files[0].Path,
-		Type:   checker.FileTypeSource,
-		Offset: 1,
-	})
+	for _, f := range r.Files {
+		dl.Info(&checker.LogMessage{
+			Path:   f.Path,
+			Type:   checker.FileTypeSource,
+			Offset: 1,
+		})
+	}
 
 	return checker.CreateMaxScoreResult(name, "license file detected")
 }
