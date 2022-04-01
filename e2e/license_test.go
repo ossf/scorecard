@@ -120,7 +120,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
-			result := checks.LicenseCheck(&req)
+			result := checks.Maintained(&req)
 
 			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
