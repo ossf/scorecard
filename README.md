@@ -384,8 +384,7 @@ For example, `--checks=CI-Tests,Code-Review`.
 
 ##### Formatting Results
 
-There are three formats currently: `default`, `json`, and `csv`. Others may be
-added in the future.
+The currently supported formats are `default` (text) and `json`.
 
 These may be specified with the `--format` flag. For example, `--format=json`.
 
