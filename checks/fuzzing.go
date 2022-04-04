@@ -86,5 +86,5 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 			"project is fuzzed in OSS-Fuzz")
 	}
 
-	return checker.CreateMinScoreResult(CheckFuzzing, "project is not fuzzed")
+	return checker.CreateInconclusiveResult(CheckFuzzing, "could not determine if project is fuzzed")
 }

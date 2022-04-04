@@ -374,9 +374,9 @@ checks:
       Risk: `Medium` (possible vulnerabilities in code)
 
       This check tries to determine if the project uses
-      [fuzzing](https://owasp.org/www-community/Fuzzing) by checking if the repository
-      name is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project
-      list.
+      [fuzzing](https://owasp.org/www-community/Fuzzing). The current implementation
+      check if the repository name is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project
+      list or if [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) is enabled.
 
       Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
       into a program to expose bugs. Regular fuzzing is important to detect
