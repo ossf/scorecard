@@ -44,6 +44,17 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			},
 		},
 		{
+			name:     "run untrusted code checkout test - workflow_run",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-workflow_run.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  2,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
 			name:     "run untrusted code checkout test",
 			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-checkout.yml",
 			expected: scut.TestReturn{

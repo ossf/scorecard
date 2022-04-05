@@ -264,8 +264,8 @@ logging github context and secrets, or use of potentially untrusted inputs in sc
 The following patterns are checked:
 
 Untrusted Code Checkout: This is the misuse of potentially dangerous triggers. 
-This checks if a `pull_request_target` workflow trigger was used in conjunction 
-with an explicit pull request checkout. Workflows triggered with `pull_request_target`
+This checks if a `pull_request_target` or `workflow_run` workflow trigger was used in conjunction 
+with an explicit pull request checkout. Workflows triggered with `pull_request_target` / `workflow_run`
 have write permission to the target repository and access to target repository 
 secrets. With the PR checkout, PR authors may compromise the repository, for 
 example, by using build scripts controlled by the author of the PR or reading 
@@ -606,8 +606,10 @@ possible.
 Risk: `Critical` (service possibly accessible to third parties)
 
 This check determines whether the webhook defined in the repository has a token configured to authenticate the origins of requests.
+ 
 
 **Remediation steps**
 - Check whether your service supports token authentication.
 - If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook)
 - If there is no support for token authentication, consider implementing it by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
+
