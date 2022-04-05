@@ -29,6 +29,9 @@ on:
   paths-ignore:
   - "*.md"
 
+env:
+  GO_VERSION: 1.17.7
+
 jobs:
   scorecard:
     name: scorecard-docker
@@ -69,7 +72,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make scorecard-docker
   cron-controller:
@@ -111,7 +114,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make cron-controller-docker
   cron-worker:
@@ -153,7 +156,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make cron-worker-docker
   cron-cii-worker:
@@ -195,7 +198,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make cron-cii-worker-docker
   cron-bq-transfer:
@@ -237,7 +240,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make cron-bq-transfer-docker
   cron-webhook:
@@ -279,7 +282,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make cron-webhook-docker
   cron-github-server:
