@@ -15,7 +15,10 @@ package e2e
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
 
+	"github.com/go-git/go-git/v5"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -23,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/localdir"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -67,6 +71,47 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  2,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.DangerousWorkflow(&req)
+			// UPGRADEv2: to remove.
+			// Old version.
+
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Pass).Should(BeFalse())
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
+		})
+		It("Should return dangerous workflow for local repoClient", func() {
+			dl := scut.TestDetailLogger{}
+
+			tmpDir, err := ioutil.TempDir("", "")
+			Expect(err).Should(BeNil())
+			defer os.RemoveAll(tmpDir)
+
+			_, e := git.PlainClone(tmpDir, false, &git.CloneOptions{
+				URL: "http://github.com/ossf-tests/scorecard-check-dangerous-workflow-e2e",
+			})
+			Expect(e).Should(BeNil())
+
+			repo, err := localdir.MakeLocalDirRepo(tmpDir)
+			Expect(err).Should(BeNil())
+
+			x := localdir.CreateLocalDirClient(context.Background(), logger)
+			err = x.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: x,
 				Repo:       repo,
 				Dlogger:    &dl,
 			}

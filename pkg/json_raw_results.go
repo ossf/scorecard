@@ -119,6 +119,19 @@ type jsonIssue struct {
 	// TODO: add fields, e.g., state=[opened|closed]
 }
 
+type jsonRelease struct {
+	Tag    string             `json:"tag"`
+	URL    string             `json:"url"`
+	Assets []jsonReleaseAsset `json:"assets"`
+	// TODO: add needed fields, e.g. Path.
+}
+
+type jsonReleaseAsset struct {
+	Path string `json:"path"`
+	URL  string `json:"url"`
+}
+
+//nolint
 type jsonRawResults struct {
 	// List of recent issues.
 	RecentIssues []jsonIssue `json:"issues"`
@@ -138,14 +151,33 @@ type jsonRawResults struct {
 	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
+	// Releases.
+	Releases []jsonRelease `json:"releases"`
+}
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedReleasesData) error {
+	r.Results.Releases = []jsonRelease{}
+	for i, release := range sr.Releases {
+		r.Results.Releases = append(r.Results.Releases,
+			jsonRelease{
+				Tag: release.Tag,
+				URL: release.URL,
+			})
+		for _, asset := range release.Assets {
+			r.Results.Releases[i].Assets = append(r.Results.Releases[i].Assets,
+				jsonReleaseAsset{
+					Path: asset.Name,
+					URL:  asset.URL,
+				},
+			)
+		}
+	}
+	return nil
 }
 
 func getRepoAssociation(author *checker.User) *string {
-	if author == nil {
-		return nil
-	}
-
-	if author.RepoAssociation == nil {
+	if author == nil || author.RepoAssociation == nil {
 		return nil
 	}
 
@@ -364,6 +396,11 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Maintained.
 	if err := r.addMaintainedRawResults(&raw.MaintainedResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Signed-Releases.
+	if err := r.addSignedReleasesRawResults(&raw.SignedReleasesResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

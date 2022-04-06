@@ -27,6 +27,7 @@ on:
 
 env:
   PROTOC_VERSION: 3.17.3
+  GO_VERSION: 1.17.7
 
 jobs:
   unit-test:
@@ -59,7 +60,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: Run unit-tests
        run: make unit-test
      - name: Upload codecoverage
@@ -102,7 +103,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: generate mocks
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -147,7 +148,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }} 
      - name: generate docs
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -191,7 +192,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build-proto
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -236,7 +237,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: Run build
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -281,7 +282,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build cron
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -326,7 +327,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build worker
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -371,7 +372,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build cii-worker
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -416,7 +417,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build shuffler
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -461,7 +462,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build bq transfer
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -506,7 +507,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build bq transfer
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -551,7 +552,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build webhook
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -596,7 +597,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build-add-script
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -641,7 +642,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build-validate-script
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -686,7 +687,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: build-validate-script
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -730,7 +731,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: Run build
        run: |
             go env -w GOFLAGS=-mod=mod
@@ -765,7 +766,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: Run build
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -809,7 +810,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: Run build
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -849,7 +850,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: Run build
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
