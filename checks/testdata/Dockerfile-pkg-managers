@@ -82,3 +82,9 @@ RUN npm i
 RUN npm ci
 RUN npm install-test
 RUN npm install-ci-test
+
+RUN choco install 'some-package'
+RUN choco install 'some-other-package'
+RUN choco install --requirechecksum 'some-package'
+RUN choco install --requirechecksums 'some-package'
+RUN choco install --require-checksums 'some-package'

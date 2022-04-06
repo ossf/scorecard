@@ -101,6 +101,8 @@ jobs:
       - name:
         run: choco install 'some-package'
       - name:
+        run: choco install 'some-other-package'
+      - name:
         run: choco install --requirechecksum 'some-package'
       - name:
         run: choco install --requirechecksums 'some-package'
