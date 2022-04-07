@@ -41,11 +41,6 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	}
 
 	// Check if present in parent org.
-	parentOrg := c.Repo.Org()
-	if parentOrg == nil {
-		return checker.SecurityPolicyData{}, nil
-	}
-
 	// https#://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
 	// TODO(1491): Make this non-GitHub specific.
 	logger := log.NewLogger(log.InfoLevel)
