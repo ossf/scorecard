@@ -14,7 +14,7 @@ require (
 	cloud.google.com/go/monitoring v1.4.0 // indirect
 	cloud.google.com/go/pubsub v1.19.0
 	cloud.google.com/go/trace v1.2.0 // indirect
-	contrib.go.opencensus.io/exporter/stackdriver v0.13.10
+	contrib.go.opencensus.io/exporter/stackdriver v0.13.11
 	github.com/bombsimon/logrusr/v2 v2.0.1
 	github.com/bradleyfalzon/ghinstallation/v2 v2.0.4
 	github.com/go-git/go-git/v5 v5.4.2
