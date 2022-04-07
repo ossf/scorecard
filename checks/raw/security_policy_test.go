@@ -99,18 +99,25 @@ func TestSecurityPolicy(t *testing.T) {
 				"doc/security.rst",
 			},
 		},
+		{
+			name:  "early return if org is null",
+			files: []string{},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo := mockrepo.NewMockRepo(ctrl)
 
-			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			mockRepo.EXPECT().Org().Return(nil).AnyTimes()
 			dl := scut.TestDetailLogger{}
 			c := checker.CheckRequest{
-				RepoClient: mockRepo,
+				RepoClient: mockRepoClient,
+				Repo:       mockRepo,
 				Dlogger:    &dl,
 			}
 
