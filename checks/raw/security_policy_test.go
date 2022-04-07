@@ -99,10 +99,6 @@ func TestSecurityPolicy(t *testing.T) {
 				"doc/security.rst",
 			},
 		},
-		{
-			name:  "early return if org is null",
-			files: []string{},
-		},
 	}
 	for _, tt := range tests {
 		tt := tt
