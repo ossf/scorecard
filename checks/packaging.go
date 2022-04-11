@@ -67,7 +67,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 		}
 		if len(runs) > 0 {
-			c.Dlogger.Info3(&checker.LogMessage{
+			c.Dlogger.Info(&checker.LogMessage{
 				Path:   fn,
 				Type:   checker.FileTypeSource,
 				Offset: checker.OffsetDefault,
@@ -76,7 +76,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateMaxScoreResult(CheckPackaging,
 				"publishing workflow detected")
 		}
-		c.Dlogger.Debug3(&checker.LogMessage{
+		c.Dlogger.Debug(&checker.LogMessage{
 			Path:   fn,
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,

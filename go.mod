@@ -5,12 +5,7 @@ go 1.17
 // TODO(go.mod): Is there a reason these deps are kept separately from the
 //               other `require`s?
 require (
-<<<<<<< HEAD
 	github.com/rhysd/actionlint v1.6.11
-=======
-	github.com/google/go-querystring v1.1.0
-	github.com/rhysd/actionlint v1.6.8
->>>>>>> adbef21 (use check suite ID)
 	gotest.tools v2.2.0+incompatible
 )
 
@@ -51,11 +46,10 @@ require (
 
 require (
 	github.com/caarlos0/env/v6 v6.9.1
+	github.com/google/go-querystring v1.1.0
 	github.com/onsi/ginkgo/v2 v2.1.3
 	sigs.k8s.io/release-utils v0.6.0
 )
-
-require github.com/ossf/scorecard/v3 v3.2.1
 
 require (
 	cloud.google.com/go v0.100.2 // indirect

@@ -75,38 +75,12 @@ type tarballHandler struct {
 	files       []string
 }
 
-<<<<<<< HEAD
 func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository, commitSHA string) {
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
 	handler.ctx = ctx
 	handler.repo = repo
 	handler.commitSHA = commitSHA
-=======
-func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository) error {
-	// Cleanup any previous state.
-	if err := handler.cleanup(); err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-	}
-
-	// Setup temp dir/files and download repo tarball.
-	if err := handler.getTarball(ctx, repo); errors.Is(err, errTarballNotFound) {
-		log.Printf("unable to get tarball: %v. Skipping...", err)
-		return nil
-	} else if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-	}
-
-	// Extract file names and content from tarball.
-	if err := handler.extractTarball(); errors.Is(err, errTarballCorrupted) {
-		log.Printf("unable to extract tarball: %v. Skipping...", err)
-		return nil
-	} else if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-	}
-
-	return nil
->>>>>>> 8d875e4 (draft)
 }
 
 func (handler *tarballHandler) setup() error {

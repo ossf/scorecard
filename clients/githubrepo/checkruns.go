@@ -73,7 +73,6 @@ func checkRunsFrom(data *github.ListCheckRunsResults) []clients.CheckRun {
 			}
 		*/
 		checkRuns = append(checkRuns, cr)
-
 	}
 	return checkRuns
 }

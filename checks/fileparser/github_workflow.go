@@ -299,21 +299,10 @@ func IsWorkflowFile(pathfn string) bool {
 	}
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 3cd962d (e2e tests)
 // IsGithubWorkflowFileCb determines if a file is a workflow
 // as a callback to use for repo client's ListFiles() API.
 func IsGithubWorkflowFileCb(pathfn string) (bool, error) {
 	return IsWorkflowFile(pathfn), nil
-<<<<<<< HEAD
-=======
-func IsWorkflowFileCb(filename string) (bool, error) {
-	return strings.HasPrefix(strings.ToLower(filename), ".github/workflows"), nil
->>>>>>> 8d875e4 (draft)
-=======
->>>>>>> 3cd962d (e2e tests)
 }
 
 // IsGitHubOwnedAction checks if this is a github specific action.
@@ -347,7 +336,7 @@ func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp st
 ) bool {
 	for _, job := range workflow.Jobs {
 		for _, matcher := range jobMatchers {
-			if !matcher.matches(job) {
+			if !matcher.Matches(job) {
 				continue
 			}
 
@@ -370,8 +359,8 @@ func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp st
 	return false
 }
 
-// matches returns true if the job matches the job matcher.
-func (m *JobMatcher) matches(job *actionlint.Job) bool {
+// Matches returns true if the job matches the job matcher.
+func (m *JobMatcher) Matches(job *actionlint.Job) bool {
 	for _, stepToMatch := range m.Steps {
 		hasMatch := false
 		for _, step := range job.Steps {

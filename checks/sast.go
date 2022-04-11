@@ -97,6 +97,10 @@ var sastTools = map[sastCategory][]sastMatcher{
 			slug:    "github-actions",
 			action:  "github/codeql-action/analyze",
 		},
+		{
+			display: "CodeQL",
+			slug:    "github-code-scanning",
+		},
 	},
 }
 
@@ -113,7 +117,7 @@ type (
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckSAST, SAST); err != nil {
+	if err := registerCheck(CheckSAST, SAST, nil); err != nil {
 		// This should never happen.
 		panic(err)
 	}
@@ -192,7 +196,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 			int(score))
 	default:
 		return checker.CreateResultWithScore(CheckSAST,
-			fmt.Sprintf("SAST category of tools are not used",
+			fmt.Sprintf("SAST tools of categories %s and/or %s are not used",
 				categoryToString(sastCategoryCodeAnalysis), categoryToString(sastCategorySupplyChain)),
 			int(score))
 	}
@@ -255,7 +259,7 @@ func readDefinedWorkflowCategories(c *checker.CheckRequest) (workflowCategories,
 			cats := readActionCategories(act)
 			wcat[ghWorkflow.ID] = cats
 			for k, v := range cats {
-				c.Dlogger.Info3(&checker.LogMessage{
+				c.Dlogger.Info(&checker.LogMessage{
 					Path: fn,
 					Type: checker.FileTypeSource,
 					Text: fmt.Sprintf("%s tool '%s' detected in workflow", categoryToString(k), v.display),
@@ -273,10 +277,10 @@ func readAppCategories(c *checker.CheckRequest) (appCategories, error) {
 	a := make(map[string]map[sastCategory]sastMatcher, 0)
 	for k, v := range sastTools {
 		for _, m := range v {
-			if m.slug == "github-code-scanning" {
-				return a,
-					sce.WithMessage(sce.ErrScorecardInternal, "unexpected slug 'github-code-scanning'")
-			}
+			// if m.slug == "github-code-scanning" {
+			// 	return a,
+			// 		sce.WithMessage(sce.ErrScorecardInternal, "unexpected slug 'github-code-scanning'")
+			// }
 			if m.slug == "github-actions" {
 				continue
 			}
@@ -341,7 +345,7 @@ func listDefinedSastActions(workflow *actionlint.Workflow, acts map[string]bool,
 				continue
 			}
 
-			dl.Debug3(&checker.LogMessage{
+			dl.Debug(&checker.LogMessage{
 				Path:   fp,
 				Type:   checker.FileTypeSource,
 				Offset: fileparser.GetLineNumber(job.Pos),
@@ -353,7 +357,7 @@ func listDefinedSastActions(workflow *actionlint.Workflow, acts map[string]bool,
 		}
 	}
 
-	dl.Debug3(&checker.LogMessage{
+	dl.Debug(&checker.LogMessage{
 		Path:   fp,
 		Type:   checker.FileTypeSource,
 		Offset: checker.OffsetDefault,
@@ -376,6 +380,7 @@ func readSuccessfulSastRunsInPRs(c *checker.CheckRequest,
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
 	}
 
+	// fmt.Println("# commits:", len(commits))
 	for _, commit := range commits {
 		pr := commit.AssociatedMergeRequest
 		if pr.MergedAt.IsZero() {
@@ -390,7 +395,7 @@ func readSuccessfulSastRunsInPRs(c *checker.CheckRequest,
 		}
 		// Note: crs may be `nil`: in this case
 		// the loop below will be skipped.
-		// fmt.Println(pr.Number)
+		// fmt.Println("PR number:", pr.Number)
 		for _, cr := range crs {
 			// fmt.Println()
 			// fmt.Println(" ", cr.Status, cr.Conclusion, cr.App.Slug, cr.Name)
@@ -400,11 +405,12 @@ func readSuccessfulSastRunsInPRs(c *checker.CheckRequest,
 			if !allowedConclusions[cr.Conclusion] {
 				continue
 			}
-			// fmt.Println("", cr.App.Slug, cr.Name, *cr.CheckSuiteID)
+			// fmt.Println(" ", cr.App.Slug, cr.Name, *cr.CheckSuiteID)
 			category, name, err := getSastCategory(c, &cr, wcats, acats)
 			if err != nil {
 				return totalMerged, results, err
 			}
+			// fmt.Println("  category:", categoryToString(category))
 			if category != sastCategoryNone {
 				if _, exists := results[pr.Number]; !exists {
 					results[pr.Number] = categoryResults{
@@ -414,7 +420,9 @@ func readSuccessfulSastRunsInPRs(c *checker.CheckRequest,
 					}
 				}
 				results[pr.Number][category] = sastMatcher{display: name}
-				c.Dlogger.Debug3(&checker.LogMessage{
+				// fmt.Println("  PR checked with category", categoryToString(category))
+				// panic("bla")
+				c.Dlogger.Debug(&checker.LogMessage{
 					Path: cr.URL,
 					Type: checker.FileTypeURL,
 					Text: fmt.Sprintf("%s detected on PR#%d", name, pr.Number),
@@ -423,7 +431,7 @@ func readSuccessfulSastRunsInPRs(c *checker.CheckRequest,
 		}
 	}
 	if totalMerged == 0 {
-		c.Dlogger.Warn3(&checker.LogMessage{
+		c.Dlogger.Warn(&checker.LogMessage{
 			Text: "no pull requests merged into dev branch",
 		})
 		return totalMerged, results, nil
@@ -461,12 +469,12 @@ func computeScore(t prResults, c sastCategory, merged float64,
 	}
 	// fmt.Println("score / merged /", c, ":", score, merged)
 	if score != merged {
-		dl.Warn3(&checker.LogMessage{
+		dl.Warn(&checker.LogMessage{
 			Text: fmt.Sprintf("%s tool run on %d commits out of %d commits", categoryToString(c),
 				int(score), int(merged)),
 		})
 	} else {
-		dl.Info3(&checker.LogMessage{
+		dl.Info(&checker.LogMessage{
 			Text: fmt.Sprintf("%s tool run on the last %d commits", categoryToString(c), int(merged)),
 		})
 	}
@@ -572,7 +580,7 @@ func toolUsedInWorkflows(c *checker.CheckRequest, name, action, category string)
 			continue
 		}
 
-		c.Dlogger.Info3(&checker.LogMessage{
+		c.Dlogger.Info(&checker.LogMessage{
 			Text: fmt.Sprintf("%s tool '%s' detected in workflow", category, name),
 			Path: fn,
 			// TODO: add line number.
@@ -580,7 +588,7 @@ func toolUsedInWorkflows(c *checker.CheckRequest, name, action, category string)
 		return checker.MaxResultScore, nil
 	}
 
-	c.Dlogger.Debug3(&checker.LogMessage{
+	c.Dlogger.Debug(&checker.LogMessage{
 		Text: fmt.Sprintf("%s tool %s not detected as workflow", category, name),
 	})
 	return checker.MinResultScore, nil

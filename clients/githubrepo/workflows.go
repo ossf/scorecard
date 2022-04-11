@@ -18,12 +18,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-<<<<<<< HEAD
-	"strings"
-=======
 	"net/url"
 	"reflect"
->>>>>>> adbef21 (use check suite ID)
+	"strings"
+	"sync"
 
 	"github.com/google/go-github/v38/github"
 	"github.com/google/go-querystring/query"
@@ -32,37 +30,96 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-type workflowsHandler struct {
-	client  *github.Client
-	ctx     context.Context
-	repourl *repoURL
-}
-
 var (
 	errWorkflowEmptyID   = errors.New("workflow ID is empty")
 	errWorkflowEmptyName = errors.New("workflow Name is empty")
 	errWorkflowEmptyPath = errors.New("workflow Path is empty")
 )
 
+type workflowsHandler struct {
+	client                      *github.Client
+	ctx                         context.Context
+	repourl                     *repoURL
+	mutexWorkflowByFileName     *sync.Mutex
+	workflowByFilename          map[string]clients.Workflow
+	mutexSuccessfulWorkflowRuns *sync.Mutex
+	successfulWorkflowRuns      map[string][]clients.WorkflowRun
+	mutexWorkflowRuns           *sync.Mutex
+	workflowRuns                map[clients.ListWorkflowRunOptions][]clients.WorkflowRun
+}
+
 func (handler *workflowsHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.ctx = ctx
 	handler.repourl = repourl
+	handler.mutexWorkflowByFileName = new(sync.Mutex)
+	handler.mutexSuccessfulWorkflowRuns = new(sync.Mutex)
+	handler.mutexWorkflowRuns = new(sync.Mutex)
+	handler.workflowByFilename = make(map[string]clients.Workflow)
+	handler.successfulWorkflowRuns = make(map[string][]clients.WorkflowRun)
+	handler.workflowRuns = make(map[clients.ListWorkflowRunOptions][]clients.WorkflowRun)
 }
 
-func (handler *workflowsHandler) GetWorkflowByFileName(filename string) (clients.Workflow, error) {
-	workflow, _, err := handler.client.Actions.GetWorkflowByFileName(
-		handler.ctx, handler.owner, handler.repo, filename)
+func (handler *workflowsHandler) apiListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+		return nil, fmt.Errorf(
+			"%w: ListWorkflowRunsByFileName only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	}
+	workflowRuns, _, err := handler.client.Actions.ListWorkflowRunsByFileName(
+		handler.ctx, handler.repourl.owner, handler.repourl.repo, filename, &github.ListWorkflowRunsOptions{
+			Status: "success",
+		})
 	if err != nil {
-		return clients.Workflow{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", err))
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListWorkflowRunsByFileName: %v", err))
+	}
+	return workflowsRunsFrom(workflowRuns), nil
+}
+
+func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+		return nil, fmt.Errorf(
+			"%w: ListWorkflowRunsByFileName only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	}
+
+	// Lock mutex.
+	handler.mutexSuccessfulWorkflowRuns.Lock()
+
+	// Check the hash map.
+	if val, ok := handler.successfulWorkflowRuns[filename]; ok {
+		// Unlock Mutex.
+		handler.mutexSuccessfulWorkflowRuns.Unlock()
+		return val, nil
+	}
+
+	// Use API.
+	runs, err := handler.apiListSuccessfulWorkflowRuns(filename)
+	if err != nil {
+		handler.successfulWorkflowRuns[filename] = runs
+	}
+
+	// Unlock mutex.
+	handler.mutexSuccessfulWorkflowRuns.Unlock()
+
+	return runs, err
+}
+
+func (handler *workflowsHandler) apiGetWorkflowByFileName(filename string) (clients.Workflow, error) {
+	workflow, _, err := handler.client.Actions.GetWorkflowByFileName(
+		handler.ctx, handler.repourl.owner, handler.repourl.repo, filename)
+	if err != nil {
+		return clients.Workflow{},
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", err))
 	}
 	if workflow.ID == nil {
-		return clients.Workflow{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyID))
+		return clients.Workflow{},
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyID))
 	}
 	if workflow.Name == nil {
-		return clients.Workflow{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyName))
+		return clients.Workflow{},
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyName))
 	}
 	if workflow.Path == nil {
-		return clients.Workflow{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyPath))
+		return clients.Workflow{},
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyPath))
 	}
 
 	return clients.Workflow{
@@ -70,6 +127,29 @@ func (handler *workflowsHandler) GetWorkflowByFileName(filename string) (clients
 		Path: *workflow.Path,
 		Name: *workflow.Name,
 	}, nil
+}
+
+func (handler *workflowsHandler) GetWorkflowByFileName(filename string) (clients.Workflow, error) {
+	// Lock mutex.
+	handler.mutexWorkflowByFileName.Lock()
+
+	// Check the hash map.
+	if val, ok := handler.workflowByFilename[filename]; ok {
+		// Unlock Mutex.
+		handler.mutexWorkflowByFileName.Unlock()
+		return val, nil
+	}
+
+	// Use API.
+	workflow, err := handler.apiGetWorkflowByFileName(filename)
+	if err != nil {
+		handler.workflowByFilename[filename] = workflow
+	}
+
+	// Unlock mutex.
+	handler.mutexWorkflowByFileName.Unlock()
+
+	return workflow, err
 }
 
 func addOptions(s string, opts interface{}) (string, error) {
@@ -92,8 +172,10 @@ func addOptions(s string, opts interface{}) (string, error) {
 	return u.String(), nil
 }
 
-func (handler *workflowsHandler) listWorkflowRuns(opts *clients.ListWorkflowRunOptions) ([]clients.WorkflowRun, error) {
-	endpoint := fmt.Sprintf("repos/%s/%s/actions/runs", handler.owner, handler.repo)
+//nolint
+func (handler *workflowsHandler) apiListWorkflowRuns(opts *clients.ListWorkflowRunOptions) ([]clients.WorkflowRun, error) {
+	endpoint := fmt.Sprintf("repos/%s/%s/actions/runs",
+		handler.repourl.owner, handler.repourl.repo)
 	u, err := addOptions(endpoint, opts)
 	if err != nil {
 		return nil, err
@@ -113,19 +195,32 @@ func (handler *workflowsHandler) listWorkflowRuns(opts *clients.ListWorkflowRunO
 	return workflowsRunsFrom(workflowRuns), nil
 }
 
-func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
-	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-		return nil, fmt.Errorf(
-			"%w: ListWorkflowRunsByFileName only supported for HEAD queries", clients.ErrUnsupportedFeature)
+func (handler *workflowsHandler) listWorkflowRuns(opts *clients.ListWorkflowRunOptions) ([]clients.WorkflowRun, error) {
+	// Lock mutex.
+	handler.mutexWorkflowRuns.Lock()
+
+	var o clients.ListWorkflowRunOptions
+	if opts != nil {
+		o = *opts
 	}
-	workflowRuns, _, err := handler.client.Actions.ListWorkflowRunsByFileName(
-		handler.ctx, handler.repourl.owner, handler.repourl.repo, filename, &github.ListWorkflowRunsOptions{
-			Status: "success",
-		})
+
+	// Check the hash map.
+	if val, ok := handler.workflowRuns[o]; ok {
+		// Unlock Mutex.
+		handler.mutexWorkflowRuns.Unlock()
+		return val, nil
+	}
+
+	// Use API.
+	runs, err := handler.apiListWorkflowRuns(opts)
 	if err != nil {
-		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListWorkflowRunsByFileName: %v", err))
+		handler.workflowRuns[o] = runs
 	}
-	return workflowsRunsFrom(workflowRuns), nil
+
+	// Unlock mutex.
+	handler.mutexWorkflowRuns.Unlock()
+
+	return runs, err
 }
 
 func workflowsRunsFrom(data *github.WorkflowRuns) []clients.WorkflowRun {
