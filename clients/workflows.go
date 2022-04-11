@@ -16,18 +16,20 @@ package clients
 
 // WorkflowRun represents VCS WorkflowRun.
 type WorkflowRun struct {
+	WorkflowID   *int64
 	URL          string
 	PullRequests []PullRequest
-	WorkflowID   *int64
 }
 
 // Workflow represents a workflow.
 type Workflow struct {
-	ID   int64
 	Path string
 	Name string
+	ID   int64
 }
 
+// ListWorkflowRunOptions represents an option
+// for listing workflows.
 type ListWorkflowRunOptions struct {
 	Status       *string `url:"status,omitempty"`
 	CheckSuiteID *int64  `url:"check_suite_id,omitempty"`

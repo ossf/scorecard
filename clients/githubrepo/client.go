@@ -171,7 +171,7 @@ func (client *Client) ListWorkflowRuns(opts *clients.ListWorkflowRunOptions) ([]
 
 // GetWorkflowByFileName implements RepoClient.GetWorkflowByFileName.
 func (client *Client) GetWorkflowByFileName(filename string) (clients.Workflow, error) {
-	return client.workflows.GetWorkflowByFileName(filename)
+	return client.workflows.getWorkflowByFileName(filename)
 }
 
 // ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.

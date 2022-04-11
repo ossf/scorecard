@@ -152,6 +152,22 @@ func (mr *MockRepoClientMockRecorder) ListCheckRunsForRef(ref interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCheckRunsForRef", reflect.TypeOf((*MockRepoClient)(nil).ListCheckRunsForRef), ref)
 }
 
+// GetWorkflowByFileName mocks base method.
+func (m *MockRepoClient) GetWorkflowByFileName(filename string) (clients.Workflow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWorkflowByFileName", filename)
+	ret0, _ := ret[0].(clients.Workflow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWorkflowByFileName indicates an expected call of GetWorkflowByFileName.
+func (mr *MockRepoClientMockRecorder) GetWorkflowByFileName(filename interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkflowByFileName", 
+		reflect.TypeOf((*MockRepoClient)(nil).GetWorkflowByFileName), filename)
+}
+
 // ListCommits mocks base method.
 func (m *MockRepoClient) ListCommits() ([]clients.Commit, error) {
 	m.ctrl.T.Helper()

@@ -107,19 +107,19 @@ func (handler *workflowsHandler) apiGetWorkflowByFileName(filename string) (clie
 		handler.ctx, handler.repourl.owner, handler.repourl.repo, filename)
 	if err != nil {
 		return clients.Workflow{},
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", err))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("getWorkflowByFileName: %v", err))
 	}
 	if workflow.ID == nil {
 		return clients.Workflow{},
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyID))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("getWorkflowByFileName: %v", errWorkflowEmptyID))
 	}
 	if workflow.Name == nil {
 		return clients.Workflow{},
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyName))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("getWorkflowByFileName: %v", errWorkflowEmptyName))
 	}
 	if workflow.Path == nil {
 		return clients.Workflow{},
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetWorkflowByFileName: %v", errWorkflowEmptyPath))
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("getWorkflowByFileName: %v", errWorkflowEmptyPath))
 	}
 
 	return clients.Workflow{
@@ -129,7 +129,7 @@ func (handler *workflowsHandler) apiGetWorkflowByFileName(filename string) (clie
 	}, nil
 }
 
-func (handler *workflowsHandler) GetWorkflowByFileName(filename string) (clients.Workflow, error) {
+func (handler *workflowsHandler) getWorkflowByFileName(filename string) (clients.Workflow, error) {
 	// Lock mutex.
 	handler.mutexWorkflowByFileName.Lock()
 
