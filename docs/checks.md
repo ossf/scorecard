@@ -488,11 +488,18 @@ SAST is testing run on source code before the application is run. Using SAST
 tools can prevent known classes of bugs from being inadvertently introduced in the
 codebase.
 
-The checks currently looks for known Github apps such as
-[CodeQL](https://codeql.github.com/) (github-code-scanning),
-[LGTM](https://lgtm.com/) and
-[SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-of "github/codeql-action" in a GitHub workflow.
+The checks currently looks for known the following tools in the recent (~30) merged PRs:
+- Linters: "super-linter" and "megalinter" actions;
+- Supply-chain: "Scorecard" action;
+- Code analysis: Github apps such as [CodeQL](https://codeql.github.com/) (github-code-scanning),
+  [LGTM](https://lgtm.com/) and [SonarCloud](https://sonarcloud.io/).
+
+The score is calculated as follows:
+- If a linter tool are used on each merged pull requests, 1 point is awarded
+- If a supply-chain tool is used, 1 point is awarded. If the tool is used on all
+  merged pull requests, 1 aditional point is awarded
+- If a static analysis tool is used, 5 points are awarded. If a tool is used on all merged
+  pull requests, 2 additional points are awarded.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to implement SAST, and it is
