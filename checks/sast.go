@@ -205,7 +205,7 @@ func isToolUsed(cats workflowCategories, c sastCategory, mrScore float64) bool {
 
 func isToolUsedInWorkflows(cats workflowCategories, c sastCategory) bool {
 	for _, cats := range cats {
-		if _, exists := cats[sastCategoryCodeAnalysis]; exists {
+		if _, exists := cats[c]; exists {
 			return true
 		}
 	}
