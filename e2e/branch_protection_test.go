@@ -143,6 +143,8 @@ var _ = Describe("E2E TEST GITHUB_TOKEN:"+checks.CheckBranchProtection, func() {
 			}
 
 			result := checks.BranchProtection(&req)
+			// There should be an error with the GITHUB_TOKEN, until it's supported
+			// byt GitHub.
 			Expect(result.Error).ShouldNot(BeNil())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
