@@ -137,6 +137,7 @@ type jsonLicense struct {
 	// TODO: add fields, like type of license, etc.
 }
 
+//nolint
 type jsonRawResults struct {
 	// License.
 	Licenses []jsonLicense `json:"licenses"`
