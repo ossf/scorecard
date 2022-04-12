@@ -45,12 +45,6 @@ const (
 
 var tokType tokenType
 
-func skipIfTokenIs(t tokenType, msg string) {
-	if tokType == t {
-		Skip(msg)
-	}
-}
-
 func skipIfTokenIsNot(t tokenType, msg string) {
 	if tokType != t {
 		Skip(msg)
