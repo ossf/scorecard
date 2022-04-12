@@ -27,8 +27,10 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
+var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 	Context("E2E TEST:Validating branch protection", func() {
+		skipIfTokenIs(githubWorkflowDefaultTokenType, checks.CheckBranchProtection+" does not support GITHUB_TOKEN")
+
 		It("Should get non-admin branch protection on other repositories", func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")

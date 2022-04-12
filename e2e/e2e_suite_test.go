@@ -15,6 +15,7 @@
 package e2e
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -35,6 +36,36 @@ func TestE2e(t *testing.T) {
 
 var logger *log.Logger
 
+type tokenType int
+
+const (
+	patTokenType tokenType = iota
+	githubWorkflowDefaultTokenType
+)
+
+var tokType tokenType
+
+func skipIfTokenIs(t tokenType, msg string) {
+	if tokType == t {
+		Skip(msg)
+	}
+}
+
+func skipIfTokenIsNot(t tokenType, msg string) {
+	if tokType != t {
+		Skip(msg)
+	}
+}
+
 var _ = BeforeSuite(func() {
 	logger = log.NewLogger(log.DebugLevel)
+	tt := os.Getenv("TOKEN_TYPE")
+	switch tt {
+	case "PAT":
+		tokType = patTokenType
+	case "GITHUB_TOKEN":
+		tokType = githubWorkflowDefaultTokenType
+	default:
+		panic(fmt.Sprintf("invald TOKEN_TYPE: %s", tt))
+	}
 })
