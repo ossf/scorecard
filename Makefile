@@ -277,7 +277,7 @@ cron-github-server-docker:
 
 ##@ Tests
 ################################# make test ###################################
-test-targets = unit-test e2e ci-e2e
+test-targets = unit-test e2e-pat e2e-gh-token ci-e2e
 .PHONY: test $(test-targets)
 test: $(test-targets)
 
@@ -293,8 +293,13 @@ ifndef GITHUB_AUTH_TOKEN
 	$(error GITHUB_AUTH_TOKEN is undefined)
 endif
 
-e2e: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
-e2e: build-scorecard check-env | $(GINKGO)
+e2e-pat: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
+e2e-pat: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
-	$(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out ./...
+	TOKEN_TYPE="PAT" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out ./...
+
+e2e-gh-token: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to default GITHUB_TOKEN
+e2e-gh-token: build-scorecard check-env | $(GINKGO)
+	# Run e2e tests. GITHUB_AUTH_TOKEN set to secrets.GITHUB_TOKEN must be used to run this.
+	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out ./...
 ###############################################################################

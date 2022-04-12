@@ -74,7 +74,7 @@ jobs:
         run: |
             go mod download
 
-      - name: Run E2E  #using retry because the GitHub token is being throttled. 
+      - name: Run PAT E2E  #using retry because the GitHub token is being throttled. 
         uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
@@ -82,7 +82,81 @@ jobs:
           max_attempts: 3
           retry_on: error
           timeout_minutes: 30
-          command: make e2e
+          command: make e2e-pat
+
+      - name: codecov
+        uses: codecov/codecov-action@e3c560433a6cc60aec8812599b7844a7b4fa0d71 # 2.1.0
+        with:
+         files: ./e2e-coverage.out
+         verbose: true
+
+      - name: find comment
+        uses: peter-evans/find-comment@1769778a0c5bd330272d749d12c036d65e70d39d # v1.2.0
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: Integration tests ran for
+
+      - name: create or update comment
+        uses: peter-evans/create-or-update-comment@c9fcb64660bc90ec1cc535646af190c992007c32 # v1.4.5
+        with:
+          issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          body: |
+            Integration tests ${{ job.status }} for
+            [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}]
+            (https://github.com/ossf/scorecard/actions/runs/${{ github.run_id }})
+
+  integration-gh-token:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+        with:
+          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
+      - name: pull_request actions/checkout
+        uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # v2.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: setup-go
+        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
+        with:
+          go-version: '1.17'
+
+      - name: Cache builds
+        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
+        uses: actions/cache@48af2dc4a9e8278b89d7fa154b955c30c6aaab09 #v2.1.7
+        with:
+          # In order:
+          # * Module download cache
+          # * Build cache (Linux)
+          # * Build cache (Mac)
+          # * Build cache (Windows)
+         path: |
+           ~/go/pkg/mod
+           ~/.cache/go-build
+           ~/Library/Caches/go-build
+           %LocalAppData%\go-build
+         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+         restore-keys: |
+           ${{ runner.os }}-go-
+
+      - name: Prepare test env
+        run: |
+            go mod download
+
+      - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled. 
+        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: make e2e-gh-token
 
       - name: codecov
         uses: codecov/codecov-action@e3c560433a6cc60aec8812599b7844a7b4fa0d71 # 2.1.0
