@@ -33,6 +33,8 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 	})
 
 	Context("E2E TEST: Validate query cost", func() {
+		skipIfTokenIsNot(githubWorkflowDefaultTokenType, "GITHUB_TOKEN only")
+
 		It("Should not have increased for HEAD query", func() {
 			repourl := &repoURL{
 				owner:     "ossf",
