@@ -34,7 +34,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 
 	Context("E2E TEST: Validate query cost", func() {
 		It("Should not have increased for HEAD query", func() {
-			skipIfTokenIsNot(githubWorkflowDefaultTokenType, "GITHUB_TOKEN only")
+			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
 
 			repourl := &repoURL{
 				owner:     "ossf",
@@ -48,7 +48,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 			Expect(*brancheshandler.data.RateLimit.Cost).Should(BeNumerically("<=", 1))
 		})
 		It("Should fail for non-HEAD query", func() {
-			skipIfTokenIsNot(githubWorkflowDefaultTokenType, "GITHUB_TOKEN only")
+			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
 
 			repourl := &repoURL{
 				owner:     "ossf",
