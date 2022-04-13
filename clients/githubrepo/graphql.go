@@ -100,11 +100,17 @@ type graphqlData struct {
 				// nolint: revive,stylecheck // naming according to githubv4 convention.
 				Url               *string
 				AuthorAssociation *string
-				CreatedAt         *time.Time
-				Comments          struct {
+				Author            struct {
+					Login githubv4.String
+				}
+				CreatedAt *time.Time
+				Comments  struct {
 					Nodes []struct {
 						AuthorAssociation *string
 						CreatedAt         *time.Time
+						Author            struct {
+							Login githubv4.String
+						}
 					}
 				} `graphql:"comments(last: $issueCommentsToAnalyze)"`
 			}
@@ -265,10 +271,20 @@ func issuesFrom(data *graphqlData) []clients.Issue {
 		copyStringPtr(issue.Url, &tmpIssue.URI)
 		copyRepoAssociationPtr(getRepoAssociation(issue.AuthorAssociation), &tmpIssue.AuthorAssociation)
 		copyTimePtr(issue.CreatedAt, &tmpIssue.CreatedAt)
+		if issue.Author.Login != "" {
+			tmpIssue.Author = &clients.User{
+				Login: string(issue.Author.Login),
+			}
+		}
 		for _, comment := range issue.Comments.Nodes {
 			var tmpComment clients.IssueComment
 			copyRepoAssociationPtr(getRepoAssociation(comment.AuthorAssociation), &tmpComment.AuthorAssociation)
 			copyTimePtr(comment.CreatedAt, &tmpComment.CreatedAt)
+			if comment.Author.Login != "" {
+				tmpComment.Author = &clients.User{
+					Login: string(comment.Author.Login),
+				}
+			}
 			tmpIssue.Comments = append(tmpIssue.Comments, tmpComment)
 		}
 		ret = append(ret, tmpIssue)

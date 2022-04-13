@@ -46,7 +46,6 @@ func Vulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	// Set the raw results.
 	if c.RawResults != nil {
 		c.RawResults.VulnerabilitiesResults = rawData
-		return checker.CheckResult{}
 	}
 
 	return evaluation.Vulnerabilities(CheckVulnerabilities, c.Dlogger, &rawData)

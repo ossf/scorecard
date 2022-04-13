@@ -3,7 +3,7 @@ GINKGO := ginkgo
 GIT_HASH := $(shell git rev-parse HEAD)
 GIT_VERSION ?= $(shell git describe --tags --always --dirty)
 SOURCE_DATE_EPOCH=$(shell git log --date=iso8601-strict -1 --pretty=%ct)
-GOLANGGCI_LINT := golangci-lint
+GOLANGCI_LINT := golangci-lint
 PROTOC_GEN_GO := protoc-gen-go
 MOCKGEN := mockgen
 PROTOC := $(shell which protoc)
@@ -58,9 +58,9 @@ update-dependencies: ## Update go dependencies for all modules
 	cd tools
 	go mod tidy && go mod verify
 
-$(GOLANGGCI_LINT): install
+$(GOLANGCI_LINT): install
 check-linter: ## Install and run golang linter
-check-linter: $(GOLANGGCI_LINT)
+check-linter: $(GOLANGCI_LINT)
 	# Run golangci-lint linter
 	golangci-lint run -c .golangci.yml
 
@@ -110,7 +110,7 @@ cron/data/metadata.pb.go: cron/data/metadata.proto |  $(PROTOC)
 	protoc --go_out=../../../ cron/data/metadata.proto
 
 generate-mocks: ## Compiles and generates all mocks using mockgen.
-generate-mocks: clients/mockclients/repo_client.go clients/mockclients/repo.go clients/mockclients/cii_client.go checks/mockclients/vulnerabilities.go
+generate-mocks: clients/mockclients/repo_client.go clients/mockclients/repo.go clients/mockclients/cii_client.go checks/mockclients/vulnerabilities.go cmd/packagemanager_mockclient.go
 clients/mockclients/repo_client.go: clients/repo_client.go
 	# Generating MockRepoClient
 	$(MOCKGEN) -source=clients/repo_client.go -destination=clients/mockclients/repo_client.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
@@ -123,7 +123,9 @@ clients/mockclients/cii_client.go: clients/cii_client.go
 checks/mockclients/vulnerabilities.go: clients/vulnerabilities.go
 	# Generating MockCIIClient
 	$(MOCKGEN) -source=clients/vulnerabilities.go -destination=clients/mockclients/vulnerabilities.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
-
+cmd/packagemanager_mockclient.go: cmd/packagemanager_client.go
+	# Generating MockPackageManagerClient
+	$(MOCKGEN) -source=cmd/packagemanager_client.go -destination=cmd/packagemanager_mockclient.go -package=cmd -copyright_file=clients/mockclients/license.txt
 generate-docs: ## Generates docs
 generate-docs: validate-docs docs/checks.md
 docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
@@ -275,7 +277,7 @@ cron-github-server-docker:
 
 ##@ Tests
 ################################# make test ###################################
-test-targets = unit-test e2e ci-e2e
+test-targets = unit-test e2e-pat e2e-gh-token ci-e2e
 .PHONY: test $(test-targets)
 test: $(test-targets)
 
@@ -291,8 +293,13 @@ ifndef GITHUB_AUTH_TOKEN
 	$(error GITHUB_AUTH_TOKEN is undefined)
 endif
 
-e2e: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
-e2e: build-scorecard check-env | $(GINKGO)
+e2e-pat: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
+e2e-pat: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
-	$(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out ./...
+	TOKEN_TYPE="PAT" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out ./...
+
+e2e-gh-token: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to default GITHUB_TOKEN
+e2e-gh-token: build-scorecard check-env | $(GINKGO)
+	# Run e2e tests. GITHUB_AUTH_TOKEN set to secrets.GITHUB_TOKEN must be used to run this.
+	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out ./...
 ###############################################################################

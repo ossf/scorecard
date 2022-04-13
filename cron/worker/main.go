@@ -27,7 +27,6 @@ import (
 	"go.opencensus.io/stats/view"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
@@ -40,18 +39,22 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v4/policy"
 	"github.com/ossf/scorecard/v4/stats"
 )
 
 var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
 
+// nolint: gocognit
 func processRequest(ctx context.Context,
-	batchRequest *data.ScorecardBatchRequest, checksToRun checker.CheckNameToFnMap,
-	bucketURL, bucketURL2 string, checkDocs docs.Doc,
+	batchRequest *data.ScorecardBatchRequest,
+	blacklistedChecks []string, bucketURL, bucketURL2, rawBucketURL string,
+	checkDocs docs.Doc,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
-	logger *log.Logger) error {
+	logger *log.Logger,
+) error {
 	filename := data.GetBlobFilename(
 		fmt.Sprintf("shard-%07d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
@@ -65,7 +68,13 @@ func processRequest(ctx context.Context,
 	if err != nil {
 		return fmt.Errorf("error during BlobExists: %w", err)
 	}
-	if exists1 && exists2 {
+
+	exists3, err := data.BlobExists(ctx, rawBucketURL, filename)
+	if err != nil {
+		return fmt.Errorf("error during BlobExists: %w", err)
+	}
+
+	if exists1 && exists2 && exists3 {
 		logger.Info(fmt.Sprintf("Already processed shard %s. Nothing to do.", filename))
 		// We have already processed this request, nothing to do.
 		return nil
@@ -73,17 +82,32 @@ func processRequest(ctx context.Context,
 
 	var buffer bytes.Buffer
 	var buffer2 bytes.Buffer
+	var rawBuffer bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
-	for _, repo := range batchRequest.GetRepos() {
-		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", *repo.Url))
-		repo, err := githubrepo.MakeGithubRepo(*repo.Url)
+	for _, repoReq := range batchRequest.GetRepos() {
+		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", *repoReq.Url))
+		repo, err := githubrepo.MakeGithubRepo(*repoReq.Url)
 		if err != nil {
 			// TODO(log): Previously Warn. Consider logging an error here.
 			logger.Info(fmt.Sprintf("invalid GitHub URL: %v", err))
 			continue
 		}
 		repo.AppendMetadata(repo.Metadata()...)
-		result, err := pkg.RunScorecards(ctx, repo, clients.HeadSHA /*commitSHA*/, false /*raw*/, checksToRun,
+
+		commitSHA := clients.HeadSHA
+		requiredRequestType := []checker.RequestType{}
+		if repoReq.Commit != nil && *repoReq.Commit != clients.HeadSHA {
+			commitSHA = *repoReq.Commit
+			requiredRequestType = append(requiredRequestType, checker.CommitBased)
+		}
+		checksToRun, err := policy.GetEnabled(nil /*policy*/, nil /*checks*/, requiredRequestType)
+		if err != nil {
+			return fmt.Errorf("error during policy.GetEnabled: %w", err)
+		}
+		for _, check := range blacklistedChecks {
+			delete(checksToRun, check)
+		}
+		result, err := pkg.RunScorecards(ctx, repo, commitSHA, checksToRun,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
@@ -113,12 +137,22 @@ func processRequest(ctx context.Context,
 		if err := format.AsJSON2(&result, true /*showDetails*/, log.InfoLevel, checkDocs, &buffer2); err != nil {
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
+
+		// Raw result.
+		if err := format.AsRawJSON(&result, &rawBuffer); err != nil {
+			return fmt.Errorf("error during result.AsRawJSON: %w", err)
+		}
 	}
 	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore: %w", err)
 	}
 
 	if err := data.WriteToBlobStore(ctx, bucketURL2, filename, buffer2.Bytes()); err != nil {
+		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
+	}
+
+	// Raw result.
+	if err := data.WriteToBlobStore(ctx, rawBucketURL, filename, rawBuffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
 
@@ -175,6 +209,11 @@ func main() {
 		panic(err)
 	}
 
+	rawBucketURL, err := config.GetRawResultDataBucketURL()
+	if err != nil {
+		panic(err)
+	}
+
 	blacklistedChecks, err := config.GetBlacklistedChecks()
 	if err != nil {
 		panic(err)
@@ -207,10 +246,6 @@ func main() {
 		logger.Info(fmt.Sprintf("%v", http.ListenAndServe(":8080", nil)))
 	}()
 
-	checksToRun := checks.AllChecks
-	for _, check := range blacklistedChecks {
-		delete(checksToRun, check)
-	}
 	for {
 		req, err := subscriber.SynchronousPull()
 		if err != nil {
@@ -223,8 +258,8 @@ func main() {
 			logger.Info("subscription returned nil message during Receive, exiting")
 			break
 		}
-		if err := processRequest(ctx, req, checksToRun,
-			bucketURL, bucketURL2, checkDocs,
+		if err := processRequest(ctx, req, blacklistedChecks,
+			bucketURL, bucketURL2, rawBucketURL, checkDocs,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, logger); err != nil {
 			// TODO(log): Previously Warn. Consider logging an error here.
 			logger.Info(fmt.Sprintf("error processing request: %v", err))

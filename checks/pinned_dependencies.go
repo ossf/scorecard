@@ -170,7 +170,8 @@ func dataAsDetailLogger(data interface{}) checker.DetailLogger {
 }
 
 func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, infoMsg string,
-	dl checker.DetailLogger, err error) (int, error) {
+	dl checker.DetailLogger, err error,
+) (int, error) {
 	if err != nil {
 		return checker.InconclusiveResultScore, err
 	}
@@ -227,14 +228,16 @@ func isShellScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) 
 }
 
 func createReturnForIsShellScriptFreeOfInsecureDownloads(r pinnedResult,
-	dl checker.DetailLogger, err error) (int, error) {
+	dl checker.DetailLogger, err error,
+) (int, error) {
 	return createReturnValues(r,
 		"no insecure (not pinned by hash) dependency downloads found in shell scripts",
 		dl, err)
 }
 
 func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger) (int, error) {
+	content []byte, dl checker.DetailLogger,
+) (int, error) {
 	var r pinnedResult
 	_, err := validateShellScriptIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
 	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, dl, err)
@@ -243,7 +246,8 @@ func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
 var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
-	args ...interface{}) (bool, error) {
+	args ...interface{},
+) (bool, error) {
 	if len(args) != 2 {
 		return false, fmt.Errorf(
 			"validateShellScriptIsFreeOfInsecureDownloads requires exactly 2 arguments: %w", errInvalidArgLength)
@@ -277,14 +281,16 @@ func isDockerfileFreeOfInsecureDownloads(c *checker.CheckRequest) (int, error) {
 
 // Create the result.
 func createReturnForIsDockerfileFreeOfInsecureDownloads(r pinnedResult,
-	dl checker.DetailLogger, err error) (int, error) {
+	dl checker.DetailLogger, err error,
+) (int, error) {
 	return createReturnValues(r,
 		"no insecure (not pinned by hash) dependency downloads found in Dockerfiles",
 		dl, err)
 }
 
 func testValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger) (int, error) {
+	content []byte, dl checker.DetailLogger,
+) (int, error) {
 	var r pinnedResult
 	_, err := validateDockerfileIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
 	return createReturnForIsDockerfileFreeOfInsecureDownloads(r, dl, err)
@@ -308,7 +314,8 @@ func isDockerfile(pathfn string, content []byte) bool {
 var validateDockerfileIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
-	args ...interface{}) (bool, error) {
+	args ...interface{},
+) (bool, error) {
 	if len(args) != 2 {
 		return false, fmt.Errorf(
 			"validateDockerfileIsFreeOfInsecureDownloads requires exactly 2 arguments: %w", errInvalidArgLength)
@@ -394,7 +401,8 @@ func testValidateDockerfileIsPinned(pathfn string, content []byte, dl checker.De
 var validateDockerfileIsPinned fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
-	args ...interface{}) (bool, error) {
+	args ...interface{},
+) (bool, error) {
 	// Users may use various names, e.g.,
 	// Dockerfile.aarch64, Dockerfile.template, Dockerfile_template, dockerfile, Dockerfile-name.template
 
@@ -517,14 +525,16 @@ func isGitHubWorkflowScriptFreeOfInsecureDownloads(c *checker.CheckRequest) (int
 
 // Create the result.
 func createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r pinnedResult,
-	dl checker.DetailLogger, err error) (int, error) {
+	dl checker.DetailLogger, err error,
+) (int, error) {
 	return createReturnValues(r,
 		"no insecure (not pinned by hash) dependency downloads found in GitHub workflows",
 		dl, err)
 }
 
 func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger) (int, error) {
+	content []byte, dl checker.DetailLogger,
+) (int, error) {
 	var r pinnedResult
 	_, err := validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
 	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, dl, err)
@@ -535,7 +545,8 @@ func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
 var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
-	args ...interface{}) (bool, error) {
+	args ...interface{},
+) (bool, error) {
 	if !fileparser.IsWorkflowFile(pathfn) {
 		return true, nil
 	}
@@ -622,7 +633,8 @@ func isGitHubActionsWorkflowPinned(c *checker.CheckRequest) (int, error) {
 
 // Create the result.
 func createReturnForIsGitHubActionsWorkflowPinned(r worklowPinningResult, dl checker.DetailLogger,
-	err error) (int, error) {
+	err error,
+) (int, error) {
 	return createReturnValuesForGitHubActionsWorkflowPinned(r,
 		"actions are pinned",
 		dl, err)
@@ -646,7 +658,8 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
-	args ...interface{}) (bool, error) {
+	args ...interface{},
+) (bool, error) {
 	if !fileparser.IsWorkflowFile(pathfn) {
 		return true, nil
 	}

@@ -191,8 +191,8 @@ func Test_mergeRequest(t *testing.T) {
 	}
 }
 
-// Test_getRawDataFrom tests the getRawDataFrom function.
-func Test_getRawDataFrom(t *testing.T) {
+// Test_getRawDataFromCommit tests the getRawDataFromCommit function.
+func Test_getRawDataFromCommit(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		c *clients.Commit
@@ -203,7 +203,7 @@ func Test_getRawDataFrom(t *testing.T) {
 		want checker.DefaultBranchCommit
 	}{
 		{
-			name: "Test_getRawDataFrom",
+			name: "Test_getRawDataFromCommit",
 			args: args{
 				c: &clients.Commit{
 					CommittedDate: time.Time{},
@@ -214,6 +214,7 @@ func Test_getRawDataFrom(t *testing.T) {
 			want: checker.DefaultBranchCommit{
 				SHA:           "sha",
 				CommitMessage: "message",
+				CommitDate:    &time.Time{},
 				MergeRequest: &checker.MergeRequest{
 					Labels:  []string{},
 					Reviews: []checker.Review{},
@@ -226,7 +227,7 @@ func Test_getRawDataFrom(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := getRawDataFrom(tt.args.c); !cmp.Equal(got, tt.want) {
+			if got := getRawDataFromCommit(tt.args.c); !cmp.Equal(got, tt.want) {
 				t.Errorf(cmp.Diff(got, tt.want))
 			}
 		})

@@ -12,16 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+permissions:
+  contents: read
+
 name: docker-build
-on: 
+
+on:
  push:
-   branches: main
-   paths-ignore:
-     - "*.md"
+  branches:
+  - main
+  paths-ignore:
+  - "*.md"
  pull_request:
-   branches: main
-   paths-ignore:
-     - "*.md"
+  branches:
+  - main
+  paths-ignore:
+  - "*.md"
+
+env:
+  GO_VERSION: 1.17.7
+
 jobs:
   scorecard:
     name: scorecard-docker
@@ -29,13 +39,18 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: 3.17.3
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed #v2.1.7
+       uses: actions/cache@48af2dc4a9e8278b89d7fa154b955c30c6aaab09 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -57,7 +72,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make scorecard-docker
   cron-controller:
@@ -66,13 +81,18 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: 3.17.3
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed #v2.1.7
+       uses: actions/cache@48af2dc4a9e8278b89d7fa154b955c30c6aaab09 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -94,7 +114,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make cron-controller-docker
   cron-worker:
@@ -103,13 +123,18 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: 3.17.3
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed #v2.1.7
+       uses: actions/cache@48af2dc4a9e8278b89d7fa154b955c30c6aaab09 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -131,7 +156,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make cron-worker-docker
   cron-cii-worker:
@@ -140,13 +165,18 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: 3.17.3
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed #v2.1.7
+       uses: actions/cache@48af2dc4a9e8278b89d7fa154b955c30c6aaab09 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -168,7 +198,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make cron-cii-worker-docker
   cron-bq-transfer:
@@ -177,13 +207,18 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: 3.17.3
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed #v2.1.7
+       uses: actions/cache@48af2dc4a9e8278b89d7fa154b955c30c6aaab09 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -205,7 +240,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make cron-bq-transfer-docker
   cron-webhook:
@@ -214,13 +249,18 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: 3.17.3
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed #v2.1.7
+       uses: actions/cache@48af2dc4a9e8278b89d7fa154b955c30c6aaab09 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -242,7 +282,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
        with:
-         go-version: '^1.17'
+         go-version: ${{ env.GO_VERSION }}
      - name: docker build
        run: make cron-webhook-docker
   cron-github-server:
@@ -251,13 +291,18 @@ jobs:
     permissions:
       contents: read
     steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: 3.17.3
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed #v2.1.7
+       uses: actions/cache@48af2dc4a9e8278b89d7fa154b955c30c6aaab09 #v2.1.7
        with:
           # In order:
           # * Module download cache

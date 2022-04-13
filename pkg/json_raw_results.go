@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -70,7 +71,8 @@ type jsonReview struct {
 }
 
 type jsonUser struct {
-	Login string `json:"login"`
+	RepoAssociation *string `json:"repo-association"`
+	Login           string  `json:"login"`
 }
 
 //nolint:govet
@@ -91,7 +93,49 @@ type jsonDefaultBranchCommit struct {
 	// TODO: check runs, etc.
 }
 
+type jsonDatabaseVulnerability struct {
+	// For OSV: OSV-2020-484
+	// For CVE: CVE-2022-23945
+	ID string `json:"id"`
+	// TODO: additional information
+}
+
+type jsonArchivedStatus struct {
+	Status bool `json:"status"`
+	// TODO: add fields, e.g. date of archival, etc.
+}
+
+type jsonComment struct {
+	CreatedAt *time.Time `json:"created-at"`
+	Author    *jsonUser  `json:"author"`
+	// TODO: add ields if needed, e.g., content.
+}
+
+type jsonIssue struct {
+	CreatedAt *time.Time    `json:"created-at"`
+	Author    *jsonUser     `json:"author"`
+	URL       string        `json:"URL"`
+	Comments  []jsonComment `json:"comments"`
+	// TODO: add fields, e.g., state=[opened|closed]
+}
+
+type jsonRelease struct {
+	Tag    string             `json:"tag"`
+	URL    string             `json:"url"`
+	Assets []jsonReleaseAsset `json:"assets"`
+	// TODO: add needed fields, e.g. Path.
+}
+
+type jsonReleaseAsset struct {
+	Path string `json:"path"`
+	URL  string `json:"url"`
+}
+
+//nolint
 type jsonRawResults struct {
+	// List of recent issues.
+	RecentIssues []jsonIssue `json:"issues"`
+	// List of vulnerabilities.
 	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"database-vulnerabilities"`
 	// List of binaries found in the repo.
 	Binaries []jsonFile `json:"binaries"`
@@ -105,15 +149,95 @@ type jsonRawResults struct {
 	BranchProtections []jsonBranchProtection `json:"branch-protections"`
 	// Commits.
 	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
+	// Archived status of the repo.
+	ArchivedStatus jsonArchivedStatus `json:"archived"`
+	// Releases.
+	Releases []jsonRelease `json:"releases"`
 }
 
 //nolint:unparam
-func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewData) error {
+func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedReleasesData) error {
+	r.Results.Releases = []jsonRelease{}
+	for i, release := range sr.Releases {
+		r.Results.Releases = append(r.Results.Releases,
+			jsonRelease{
+				Tag: release.Tag,
+				URL: release.URL,
+			})
+		for _, asset := range release.Assets {
+			r.Results.Releases[i].Assets = append(r.Results.Releases[i].Assets,
+				jsonReleaseAsset{
+					Path: asset.Name,
+					URL:  asset.URL,
+				},
+			)
+		}
+	}
+	return nil
+}
+
+func getRepoAssociation(author *checker.User) *string {
+	if author == nil || author.RepoAssociation == nil {
+		return nil
+	}
+
+	s := string(*author.RepoAssociation)
+	return &s
+}
+
+func (r *jsonScorecardRawResult) addMaintainedRawResults(mr *checker.MaintainedData) error {
+	// Set archived status.
+	r.Results.ArchivedStatus = jsonArchivedStatus{Status: mr.ArchivedStatus.Status}
+
+	// Issues.
+	for i := range mr.Issues {
+		issue := jsonIssue{
+			CreatedAt: mr.Issues[i].CreatedAt,
+			URL:       mr.Issues[i].URL,
+		}
+
+		if mr.Issues[i].Author != nil {
+			issue.Author = &jsonUser{
+				Login:           mr.Issues[i].Author.Login,
+				RepoAssociation: getRepoAssociation(mr.Issues[i].Author),
+			}
+		}
+
+		for j := range mr.Issues[i].Comments {
+			comment := jsonComment{
+				CreatedAt: mr.Issues[i].Comments[j].CreatedAt,
+			}
+
+			if mr.Issues[i].Comments[j].Author != nil {
+				comment.Author = &jsonUser{
+					Login:           mr.Issues[i].Comments[j].Author.Login,
+					RepoAssociation: getRepoAssociation(mr.Issues[i].Comments[j].Author),
+				}
+			}
+
+			issue.Comments = append(issue.Comments, comment)
+		}
+
+		r.Results.RecentIssues = append(r.Results.RecentIssues, issue)
+	}
+
+	return r.setDefaultCommitData(mr.DefaultBranchCommits)
+}
+
+// Function shared between addMaintainedRawResults() and addCodeReviewRawResults().
+func (r *jsonScorecardRawResult) setDefaultCommitData(commits []checker.DefaultBranchCommit) error {
+	if len(r.Results.DefaultBranchCommits) > 0 {
+		return nil
+	}
+
 	r.Results.DefaultBranchCommits = []jsonDefaultBranchCommit{}
-	for _, commit := range cr.DefaultBranchCommits {
+	for _, commit := range commits {
 		com := jsonDefaultBranchCommit{
 			Committer: jsonUser{
 				Login: commit.Committer.Login,
+				// Note: repo association is not available. We could
+				// try to use issue information to set it, but we're likely to miss
+				// many anyway.
 			},
 			CommitMessage: commit.CommitMessage,
 			SHA:           commit.SHA,
@@ -151,11 +275,8 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 	return nil
 }
 
-type jsonDatabaseVulnerability struct {
-	// For OSV: OSV-2020-484
-	// For CVE: CVE-2022-23945
-	ID string
-	// TODO: additional information
+func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewData) error {
+	return r.setDefaultCommitData(cr.DefaultBranchCommits)
 }
 
 //nolint:unparam
@@ -270,6 +391,16 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Code-Review.
 	if err := r.addCodeReviewRawResults(&raw.CodeReviewResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Maintained.
+	if err := r.addMaintainedRawResults(&raw.MaintainedResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Signed-Releases.
+	if err := r.addSignedReleasesRawResults(&raw.SignedReleasesResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

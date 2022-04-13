@@ -18,6 +18,7 @@ import "time"
 
 // RawResults contains results before a policy
 // is applied.
+//nolint
 type RawResults struct {
 	VulnerabilitiesResults      VulnerabilitiesData
 	BinaryArtifactResults       BinaryArtifactData
@@ -25,6 +26,17 @@ type RawResults struct {
 	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
 	CodeReviewResults           CodeReviewData
+	WebhookResults              WebhooksData
+	MaintainedResults           MaintainedData
+	SignedReleasesResults       SignedReleasesData
+}
+
+// MaintainedData contains the raw results
+// for the Maintained check.
+type MaintainedData struct {
+	Issues               []Issue
+	DefaultBranchCommits []DefaultBranchCommit
+	ArchivedStatus       ArchivedStatus
 }
 
 // CodeReviewData contains the raw results
@@ -53,12 +65,32 @@ type BinaryArtifactData struct {
 	Files []File
 }
 
+// SignedReleasesData contains the raw results
+// for the Signed-Releases check.
+type SignedReleasesData struct {
+	Releases []Release
+}
+
 // DependencyUpdateToolData contains the raw results
 // for the Dependency-Update-Tool check.
 type DependencyUpdateToolData struct {
 	// Tools contains a list of tools.
 	// Note: we only populate one entry at most.
 	Tools []Tool
+}
+
+// WebhooksData contains the raw results
+// for the Webhook check.
+type WebhooksData struct {
+	Webhook []WebhookData
+}
+
+// WebhookData contains the raw results
+// for webhook check.
+type WebhookData struct {
+	Path           string
+	ID             int64
+	UsesAuthSecret bool
 }
 
 // BranchProtectionsData contains the raw results
@@ -107,9 +139,25 @@ type Run struct {
 	// TODO: add fields, e.g., Result=["success", "failure"]
 }
 
+// Comment represents a comment for a pull request or an issue.
+type Comment struct {
+	CreatedAt *time.Time
+	Author    *User
+	// TODO: add ields if needed, e.g., content.
+}
+
+// ArchivedStatus definess the archived status.
+type ArchivedStatus struct {
+	Status bool
+	// TODO: add fields, e.g., date of archival.
+}
+
 // Issue represents an issue.
 type Issue struct {
-	URL string
+	CreatedAt *time.Time
+	Author    *User
+	URL       string
+	Comments  []Comment
 	// TODO: add fields, e.g., state=[opened|closed]
 }
 
@@ -121,6 +169,7 @@ type DefaultBranchCommit struct {
 	SHA           string
 	CommitMessage string
 	MergeRequest  *MergeRequest
+	CommitDate    *time.Time
 	Committer     User
 }
 
@@ -143,8 +192,31 @@ type Review struct {
 
 // User represent a user.
 type User struct {
-	Login string
+	RepoAssociation *RepoAssociation
+	Login           string
 }
+
+// RepoAssociation represents a user relationship with a repo.
+type RepoAssociation string
+
+const (
+	// RepoAssociationCollaborator has been invited to collaborate on the repository.
+	RepoAssociationCollaborator RepoAssociation = RepoAssociation("collaborator")
+	// RepoAssociationContributor is an contributor to the repository.
+	RepoAssociationContributor RepoAssociation = RepoAssociation("contributor")
+	// RepoAssociationOwner is an owner of the repository.
+	RepoAssociationOwner RepoAssociation = RepoAssociation("owner")
+	// RepoAssociationMember is a member of the organization that owns the repository.
+	RepoAssociationMember RepoAssociation = RepoAssociation("member")
+	// RepoAssociationFirstTimer has previously committed to the repository.
+	RepoAssociationFirstTimer RepoAssociation = RepoAssociation("first-timer")
+	// RepoAssociationFirstTimeContributor has not previously committed to the repository.
+	RepoAssociationFirstTimeContributor RepoAssociation = RepoAssociation("first-timer-contributor")
+	// RepoAssociationMannequin is a placeholder for an unclaimed user.
+	RepoAssociationMannequin RepoAssociation = RepoAssociation("unknown")
+	// RepoAssociationNone has no association with the repository.
+	RepoAssociationNone RepoAssociation = RepoAssociation("none")
+)
 
 // File represents a file.
 type File struct {
@@ -162,4 +234,18 @@ type Vulnerability struct {
 	// For CVE: CVE-2022-23945
 	ID string
 	// TODO(vuln): Add additional fields, if needed.
+}
+
+// Release represents a project release.
+type Release struct {
+	Tag    string
+	URL    string
+	Assets []ReleaseAsset
+	// TODO: add needed fields, e.g. Path.
+}
+
+// ReleaseAsset represents a release asset.
+type ReleaseAsset struct {
+	Name string
+	URL  string
 }

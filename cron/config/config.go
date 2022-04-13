@@ -47,9 +47,12 @@ const (
 	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
 	ciiDataBucketURL       string = "SCORECARD_CII_DATA_BUCKET_URL"
 	blacklistedChecks      string = "SCORECARD_BLACKLISTED_CHECKS"
-
+	// v2 results.
 	bigqueryTableV2       string = "SCORECARD_BIGQUERY_TABLEV2"
 	resultDataBucketURLV2 string = "SCORECARD_DATA_BUCKET_URLV2"
+	// Raw results.
+	rawBigqueryTable       string = "RAW_SCORECARD_BIGQUERY_TABLE"
+	rawResultDataBucketURL string = "RAW_SCORECARD_DATA_BUCKET_URL"
 )
 
 var (
@@ -78,6 +81,9 @@ type config struct {
 	// UPGRADEv2: to remove.
 	ResultDataBucketURLV2 string `yaml:"result-data-bucket-url-v2"`
 	BigQueryTableV2       string `yaml:"bigquery-table-v2"`
+	// Raw results.
+	RawResultDataBucketURL string `yaml:"raw-result-data-bucket-url"`
+	RawBigQueryTable       string `yaml:"raw-bigquery-table"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -194,6 +200,18 @@ func GetBigQueryTableV2() (string, error) {
 // UPGRADEv2: to remove.
 func GetResultDataBucketURLV2() (string, error) {
 	return getStringConfigValue(resultDataBucketURLV2, configYAML, "ResultDataBucketURLV2", "result-data-bucket-url-v2")
+}
+
+// GetRawBigQueryTable returns the table name to transfer cron job results.
+func GetRawBigQueryTable() (string, error) {
+	return getStringConfigValue(rawBigqueryTable, configYAML,
+		"RawBigQueryTable", "raw-bigquery-table")
+}
+
+// GetRawResultDataBucketURL returns the bucketURL for storing cron job's raw results.
+func GetRawResultDataBucketURL() (string, error) {
+	return getStringConfigValue(rawResultDataBucketURL, configYAML,
+		"RawResultDataBucketURL", "raw-result-data-bucket-url")
 }
 
 // GetShardSize returns the shard_size for the cron job.

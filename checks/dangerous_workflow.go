@@ -80,9 +80,11 @@ const (
 type triggerName string
 
 var (
-	triggerPullRequestTarget = triggerName("pull_request_target")
-	triggerPullRequest       = triggerName("pull_request")
-	checkoutUntrustedRef     = "github.event.pull_request"
+	triggerPullRequestTarget        = triggerName("pull_request_target")
+	triggerWorkflowRun              = triggerName("workflow_run")
+	triggerPullRequest              = triggerName("pull_request")
+	checkoutUntrustedPullRequestRef = "github.event.pull_request"
+	checkoutUntrustedWorkflowRunRef = "github.event.workflow_run"
 )
 
 // Holds stateful data to pass thru callbacks.
@@ -109,7 +111,8 @@ func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 // Check file content.
 var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = func(path string,
 	content []byte,
-	args ...interface{}) (bool, error) {
+	args ...interface{},
+) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
@@ -160,13 +163,16 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 }
 
 func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	triggers := make(map[triggerName]bool)
 
 	// We need pull request trigger.
 	usesPullRequest := usesEventTrigger(workflow, triggerPullRequest)
 	usesPullRequestTarget := usesEventTrigger(workflow, triggerPullRequestTarget)
-	if !usesPullRequest && !usesPullRequestTarget {
+	usesWorkflowRun := usesEventTrigger(workflow, triggerWorkflowRun)
+
+	if !usesPullRequest && !usesPullRequestTarget && !usesWorkflowRun {
 		return nil
 	}
 
@@ -176,6 +182,9 @@ func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
 	}
 	if usesPullRequestTarget {
 		triggers[triggerPullRequestTarget] = usesPullRequestTarget
+	}
+	if usesWorkflowRun {
+		triggers[triggerWorkflowRun] = usesWorkflowRun
 	}
 
 	// Secrets used in env at the top of the wokflow.
@@ -194,8 +203,9 @@ func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
 }
 
 func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
-	if !usesEventTrigger(workflow, triggerPullRequestTarget) {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
+	if !usesEventTrigger(workflow, triggerPullRequestTarget) && !usesEventTrigger(workflow, triggerWorkflowRun) {
 		return nil
 	}
 
@@ -229,23 +239,15 @@ func jobUsesEnvironment(job *actionlint.Job) bool {
 }
 
 func checkJobForUsedSecrets(job *actionlint.Job, triggers map[triggerName]bool,
-	path string, dl checker.DetailLogger, pdata *patternCbData) error {
+	path string, dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if job == nil {
 		return nil
 	}
 
 	// If the job has an environment, assume it's an env secret gated by
 	// some approval and don't alert.
-	if jobUsesEnvironment(job) {
-		return nil
-	}
-
-	// For pull request target, we need a ref to the pull request.
-	_, usesPullRequest := triggers[triggerPullRequest]
-	_, usesPullRequestTarget := triggers[triggerPullRequestTarget]
-	chk, ref := jobUsesCodeCheckout(job)
-	if !((chk && usesPullRequest) ||
-		(chk && usesPullRequestTarget && strings.Contains(ref, checkoutUntrustedRef))) {
+	if !jobUsesCodeCheckoutAndNoEnvironment(job, triggers) {
 		return nil
 	}
 
@@ -271,22 +273,38 @@ func checkJobForUsedSecrets(job *actionlint.Job, triggers map[triggerName]bool,
 }
 
 func workflowUsesCodeCheckoutAndNoEnvironment(workflow *actionlint.Workflow,
-	triggers map[triggerName]bool) bool {
+	triggers map[triggerName]bool,
+) bool {
 	if workflow == nil {
 		return false
 	}
 
-	_, usesPullRequest := triggers[triggerPullRequest]
-	_, usesPullRequestTarget := triggers[triggerPullRequestTarget]
-
 	for _, job := range workflow.Jobs {
-		chk, ref := jobUsesCodeCheckout(job)
-		if ((chk && usesPullRequest) ||
-			(chk && usesPullRequestTarget && strings.Contains(ref, checkoutUntrustedRef))) &&
-			!jobUsesEnvironment(job) {
+		if jobUsesCodeCheckoutAndNoEnvironment(job, triggers) {
 			return true
 		}
 	}
+	return false
+}
+
+func jobUsesCodeCheckoutAndNoEnvironment(job *actionlint.Job, triggers map[triggerName]bool,
+) bool {
+	if job == nil {
+		return false
+	}
+	_, usesPullRequest := triggers[triggerPullRequest]
+	_, usesPullRequestTarget := triggers[triggerPullRequestTarget]
+	_, usesWorkflowRun := triggers[triggerWorkflowRun]
+
+	chk, ref := jobUsesCodeCheckout(job)
+	if !jobUsesEnvironment(job) {
+		if (chk && usesPullRequest) ||
+			(chk && usesPullRequestTarget && strings.Contains(ref, checkoutUntrustedPullRequestRef)) ||
+			(chk && usesWorkflowRun && strings.Contains(ref, checkoutUntrustedWorkflowRunRef)) {
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -318,7 +336,8 @@ func jobUsesCodeCheckout(job *actionlint.Job) (bool, string) {
 }
 
 func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if job == nil {
 		return nil
 	}
@@ -342,7 +361,9 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 		if !ok || ref.Value == nil {
 			continue
 		}
-		if strings.Contains(ref.Value.Value, checkoutUntrustedRef) {
+
+		if strings.Contains(ref.Value.Value, checkoutUntrustedPullRequestRef) ||
+			strings.Contains(ref.Value.Value, checkoutUntrustedWorkflowRunRef) {
 			line := fileparser.GetLineNumber(step.Pos)
 			dl.Warn(&checker.LogMessage{
 				Path:   path,
@@ -359,7 +380,8 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 }
 
 func validateScriptInjection(workflow *actionlint.Workflow, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	for _, job := range workflow.Jobs {
 		if job == nil {
 			continue
@@ -382,7 +404,8 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 }
 
 func checkWorkflowSecretInEnv(workflow *actionlint.Workflow, triggers map[triggerName]bool,
-	path string, dl checker.DetailLogger, pdata *patternCbData) error {
+	path string, dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	// We need code checkout and not environment rule protection.
 	if !workflowUsesCodeCheckoutAndNoEnvironment(workflow, triggers) {
 		return nil
@@ -392,7 +415,8 @@ func checkWorkflowSecretInEnv(workflow *actionlint.Workflow, triggers map[trigge
 }
 
 func checkSecretInEnv(env *actionlint.Env, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if env == nil {
 		return nil
 	}
@@ -406,7 +430,8 @@ func checkSecretInEnv(env *actionlint.Env, path string,
 }
 
 func checkSecretInRun(step *actionlint.Step, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if step == nil || step.Exec == nil {
 		return nil
 	}
@@ -421,7 +446,8 @@ func checkSecretInRun(step *actionlint.Step, path string,
 }
 
 func checkSecretInActionArgs(step *actionlint.Step, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	if step == nil || step.Exec == nil {
 		return nil
 	}
@@ -442,7 +468,8 @@ func checkSecretInActionArgs(step *actionlint.Step, path string,
 }
 
 func checkSecretInScript(script string, pos *actionlint.Pos, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	for {
 		s := strings.Index(script, "${{")
 		if s == -1 {
@@ -454,8 +481,13 @@ func checkSecretInScript(script string, pos *actionlint.Pos, path string,
 			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
 		}
 
+		// Note: The default GitHub token is allowed, as it has
+		// only read permission for `pull_request`.
+		// For `pull_request_event`, we use other signals such as
+		// whether checkout action is used.
 		variable := strings.Trim(script[s:s+e+2], " ")
-		if strings.Contains(variable, "secrets.") {
+		if !strings.Contains(variable, "secrets.GITHUB_TOKEN") &&
+			strings.Contains(variable, "secrets.") {
 			line := fileparser.GetLineNumber(pos)
 			dl.Warn(&checker.LogMessage{
 				Path:   path,
@@ -472,7 +504,8 @@ func checkSecretInScript(script string, pos *actionlint.Pos, path string,
 }
 
 func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
-	dl checker.DetailLogger, pdata *patternCbData) error {
+	dl checker.DetailLogger, pdata *patternCbData,
+) error {
 	for {
 		s := strings.Index(script, "${{")
 		if s == -1 {
@@ -548,7 +581,8 @@ func createResultForDangerousWorkflowPatterns(result patternCbData, err error) c
 }
 
 func testValidateGitHubActionDangerousWorkflow(pathfn string,
-	content []byte, dl checker.DetailLogger) checker.CheckResult {
+	content []byte, dl checker.DetailLogger,
+) checker.CheckResult {
 	data := patternCbData{
 		workflowPattern: make(map[dangerousResults]bool),
 	}

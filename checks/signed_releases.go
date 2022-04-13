@@ -15,20 +15,14 @@
 package checks
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-const (
-	// CheckSignedReleases is the registered name for SignedReleases.
-	CheckSignedReleases = "Signed-Releases"
-	releaseLookBack     = 5
-)
-
-var artifactExtensions = []string{".asc", ".minisig", ".sig", ".sign"}
+// CheckSignedReleases is the registered name for SignedReleases.
+const CheckSignedReleases = "Signed-Releases"
 
 //nolint:gochecknoinits
 func init() {
@@ -40,60 +34,17 @@ func init() {
 
 // SignedReleases runs Signed-Releases check.
 func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
-	releases, err := c.RepoClient.ListReleases()
+	rawData, err := raw.SignedReleases(c)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListReleases: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckSignedReleases, e)
 	}
 
-	totalReleases := 0
-	totalSigned := 0
-	for _, r := range releases {
-		if len(r.Assets) == 0 {
-			continue
-		}
-		c.Dlogger.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("GitHub release found: %s", r.TagName),
-		})
-		totalReleases++
-		signed := false
-		for _, asset := range r.Assets {
-			for _, suffix := range artifactExtensions {
-				if strings.HasSuffix(asset.Name, suffix) {
-					c.Dlogger.Info(&checker.LogMessage{
-						Path: asset.URL,
-						Type: checker.FileTypeURL,
-						Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
-					})
-					signed = true
-					break
-				}
-			}
-			if signed {
-				totalSigned++
-				break
-			}
-		}
-		if !signed {
-			c.Dlogger.Warn(&checker.LogMessage{
-				Path: r.URL,
-				Type: checker.FileTypeURL,
-				Text: fmt.Sprintf("release artifact %s not signed", r.TagName),
-			})
-		}
-		if totalReleases >= releaseLookBack {
-			break
-		}
+	// Return raw results.
+	if c.RawResults != nil {
+		c.RawResults.SignedReleasesResults = rawData
 	}
 
-	if totalReleases == 0 {
-		c.Dlogger.Warn(&checker.LogMessage{
-			Text: "no GitHub releases found",
-		})
-		// Generic summary.
-		return checker.CreateInconclusiveResult(CheckSignedReleases, "no releases found")
-	}
-
-	reason := fmt.Sprintf("%d out of %d artifacts are signed", totalSigned, totalReleases)
-	return checker.CreateProportionalScoreResult(CheckSignedReleases, reason, totalSigned, totalReleases)
+	// Return the score evaluation.
+	return evaluation.SignedReleases(CheckSignedReleases, c.Dlogger, &rawData)
 }

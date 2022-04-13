@@ -32,19 +32,20 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 	}
 
 	for i := range commits {
-		results = append(results, getRawDataFrom(&commits[i]))
+		results = append(results, getRawDataFromCommit(&commits[i]))
 	}
 
 	return checker.CodeReviewData{DefaultBranchCommits: results}, nil
 }
 
-func getRawDataFrom(c *clients.Commit) checker.DefaultBranchCommit {
+func getRawDataFromCommit(c *clients.Commit) checker.DefaultBranchCommit {
 	r := checker.DefaultBranchCommit{
 		Committer: checker.User{
 			Login: c.Committer.Login,
 		},
 		SHA:           c.SHA,
 		CommitMessage: c.Message,
+		CommitDate:    &c.CommittedDate,
 		MergeRequest:  mergeRequest(&c.AssociatedMergeRequest),
 	}
 

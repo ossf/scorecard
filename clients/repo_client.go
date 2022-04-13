@@ -15,7 +15,9 @@
 // Package clients defines the interface for RepoClient and related structs.
 package clients
 
-import "errors"
+import (
+	"errors"
+)
 
 // ErrUnsupportedFeature indicates an API that is not supported by the client.
 var ErrUnsupportedFeature = errors.New("unsupported feature")
@@ -39,6 +41,7 @@ type RepoClient interface {
 	ListSuccessfulWorkflowRuns(filename string) ([]WorkflowRun, error)
 	ListCheckRunsForRef(ref string) ([]CheckRun, error)
 	ListStatuses(ref string) ([]Status, error)
+	ListWebhooks() ([]*Webhook, error)
 	Search(request SearchRequest) (SearchResponse, error)
 	Close() error
 }

@@ -24,14 +24,18 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/cron/config"
 	"github.com/ossf/scorecard/v4/cron/data"
 	"github.com/ossf/scorecard/v4/cron/pubsub"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
+var headSHA = clients.HeadSHA
+
 func publishToRepoRequestTopic(iter data.Iterator, topicPublisher pubsub.Publisher,
-	shardSize int, datetime time.Time) (int32, error) {
+	shardSize int, datetime time.Time,
+) (int32, error) {
 	var shardNum int32
 	request := data.ScorecardBatchRequest{
 		JobTime:  timestamppb.New(datetime),
@@ -48,7 +52,9 @@ func publishToRepoRequestTopic(iter data.Iterator, topicPublisher pubsub.Publish
 			return shardNum, fmt.Errorf("error reading repoURL: %w", err)
 		}
 		request.Repos = append(request.GetRepos(), &data.Repo{
-			Url:      &repoURL.Repo,
+			Url: &repoURL.Repo,
+			// TODO(controller): pass in non-HEAD commitSHA here.
+			Commit:   &headSHA,
 			Metadata: repoURL.Metadata.ToString(),
 		})
 		if len(request.GetRepos()) < shardSize {
@@ -117,6 +123,11 @@ func main() {
 		panic(err)
 	}
 
+	rawBucket, err := config.GetRawResultDataBucketURL()
+	if err != nil {
+		panic(err)
+	}
+
 	shardNum, err := publishToRepoRequestTopic(reader, topicPublisher, shardSize, t)
 	if err != nil {
 		panic(err)
@@ -148,5 +159,16 @@ func main() {
 	err = data.WriteToBlobStore(ctx, bucket2, data.GetShardMetadataFilename(t), metadataJSON)
 	if err != nil {
 		panic(fmt.Errorf("error writing to BlobStore2: %w", err))
+	}
+
+	// Raw data.
+	*metadata.ShardLoc = rawBucket + "/" + data.GetBlobFilename("", t)
+	metadataJSON, err = protojson.Marshal(&metadata)
+	if err != nil {
+		panic(fmt.Errorf("error during protojson.Marshal raw: %w", err))
+	}
+	err = data.WriteToBlobStore(ctx, rawBucket, data.GetShardMetadataFilename(t), metadataJSON)
+	if err != nil {
+		panic(fmt.Errorf("error writing to BlobStore raw: %w", err))
 	}
 }

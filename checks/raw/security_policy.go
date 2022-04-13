@@ -29,8 +29,6 @@ import (
 
 // SecurityPolicy checks for presence of security policy.
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
-	// TODO: not supported for local clients.
-
 	files := make([]checker.File, 0)
 	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &files)
 	if err != nil {
@@ -42,7 +40,9 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		return checker.SecurityPolicyData{Files: files}, nil
 	}
 
-	// https://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
+	// Check if present in parent org.
+	// https#://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
+	// TODO(1491): Make this non-GitHub specific.
 	logger := log.NewLogger(log.InfoLevel)
 	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
 	err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA)

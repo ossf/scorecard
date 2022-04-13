@@ -44,6 +44,17 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			},
 		},
 		{
+			name:     "run untrusted code checkout test - workflow_run",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-workflow_run.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  2,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
 			name:     "run untrusted code checkout test",
 			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-checkout.yml",
 			expected: scut.TestReturn{
@@ -237,6 +248,28 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultConfidence,
 				NumberOfWarn:  4,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "default secret in pull request",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-default-secret-pr.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultConfidence,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:     "default secret in pull request target",
+			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-default-secret-prt.yml",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultConfidence,
+				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},

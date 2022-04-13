@@ -109,8 +109,11 @@ func listFiles(clientPath string) ([]string, error) {
 	return files, nil
 }
 
-func applyPredicate(clientFiles []string,
-	errFiles error, predicate func(string) (bool, error)) ([]string, error) {
+func applyPredicate(
+	clientFiles []string,
+	errFiles error,
+	predicate func(string) (bool, error),
+) ([]string, error) {
 	if errFiles != nil {
 		return nil, errFiles
 	}
@@ -196,6 +199,11 @@ func (client *localDirClient) ListCheckRunsForRef(ref string) ([]clients.CheckRu
 // ListStatuses implements RepoClient.ListStatuses.
 func (client *localDirClient) ListStatuses(ref string) ([]clients.Status, error) {
 	return nil, fmt.Errorf("ListStatuses: %w", clients.ErrUnsupportedFeature)
+}
+
+// ListWebhooks implements RepoClient.ListWebhooks.
+func (client *localDirClient) ListWebhooks() ([]*clients.Webhook, error) {
+	return nil, fmt.Errorf("ListWebhooks: %w", clients.ErrUnsupportedFeature)
 }
 
 // Search implements RepoClient.Search.

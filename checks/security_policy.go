@@ -27,7 +27,6 @@ const CheckSecurityPolicy = "Security-Policy"
 //nolint:gochecknoinits
 func init() {
 	supportedRequestTypes := []checker.RequestType{
-		checker.FileBased,
 		checker.CommitBased,
 	}
 	if err := registerCheck(CheckSecurityPolicy, SecurityPolicy, supportedRequestTypes); err != nil {
@@ -47,7 +46,6 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	// Set the raw results.
 	if c.RawResults != nil {
 		c.RawResults.SecurityPolicyResults = rawData
-		return checker.CheckResult{}
 	}
 
 	return evaluation.SecurityPolicy(CheckSecurityPolicy, c.Dlogger, &rawData)

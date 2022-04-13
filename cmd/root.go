@@ -73,8 +73,9 @@ func New(o *options.Options) *cobra.Command {
 
 // rootCmd runs scorecard checks given a set of arguments.
 func rootCmd(o *options.Options) {
+	p := &packageManager{}
 	// Set `repo` from package managers.
-	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems)
+	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, p)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -127,7 +128,6 @@ func rootCmd(o *options.Options) {
 		ctx,
 		repoURI,
 		o.Commit,
-		o.Format == options.FormatRaw,
 		enabledChecks,
 		repoClient,
 		ossFuzzRepoClient,
