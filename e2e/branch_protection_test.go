@@ -29,9 +29,9 @@ import (
 
 var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 	Context("E2E TEST:Validating branch protection", func() {
-		skipIfTokenIsNot(patTokenType, "PAT only")
-
 		It("Should get non-admin branch protection on other repositories", func() {
+			skipIfTokenIsNot(patTokenType, "PAT only")
+
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
 			Expect(err).Should(BeNil())
@@ -62,6 +62,8 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should fail to return branch protection on other repositories", func() {
+			skipIfTokenIsNot(patTokenType, "PAT only")
+
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e-none")
 			Expect(err).Should(BeNil())
@@ -92,6 +94,8 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should fail to return branch protection on other repositories", func() {
+			skipIfTokenIsNot(patTokenType, "PAT only")
+
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e-patch-1")
 			Expect(err).Should(BeNil())
@@ -126,9 +130,8 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 
 var _ = Describe("E2E TEST GITHUB_TOKEN:"+checks.CheckBranchProtection, func() {
 	Context("E2E TEST:Validating branch protection", func() {
-		skipIfTokenIsNot(githubWorkflowDefaultTokenType, "GITHUB_TOKEN only")
-
 		It("Should get errors with GITHUB_TOKEN", func() {
+			skipIfTokenIsNot(githubWorkflowDefaultTokenType, "GITHUB_TOKEN only")
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
 			Expect(err).Should(BeNil())
