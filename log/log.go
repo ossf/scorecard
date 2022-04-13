@@ -38,11 +38,16 @@ func NewLogger(logLevel Level) *Logger {
 	logrusLevel := parseLogrusLevel(logLevel)
 	logrusLog.SetLevel(logrusLevel)
 
+	return NewLogrusLogger(logrusLog)
+}
+
+// NewLogrusLogger creates an instance of *Logger backed by the supplied
+// logrusLog instance.
+func NewLogrusLogger(logrusLog *logrus.Logger) *Logger {
 	logrLogger := logrusr.New(logrusLog)
 	logger := &Logger{
 		&logrLogger,
 	}
-
 	return logger
 }
 
