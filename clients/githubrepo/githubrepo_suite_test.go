@@ -16,6 +16,7 @@ package githubrepo
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -39,6 +40,21 @@ func TestGithubrepo(t *testing.T) {
 
 var graphClient *githubv4.Client
 
+type tokenType int
+
+const (
+	patTokenType tokenType = iota
+	githubWorkflowDefaultTokenType
+)
+
+var tokType tokenType
+
+func skipIfTokenIsNot(t tokenType, msg string) {
+	if tokType != t {
+		Skip(msg)
+	}
+}
+
 var _ = BeforeSuite(func() {
 	ctx := context.Background()
 	logger := log.NewLogger(log.DebugLevel)
@@ -47,4 +63,14 @@ var _ = BeforeSuite(func() {
 		Transport: rt,
 	}
 	graphClient = githubv4.NewClient(httpClient)
+
+	tt := os.Getenv("TOKEN_TYPE")
+	switch tt {
+	case "PAT":
+		tokType = patTokenType
+	case "GITHUB_TOKEN":
+		tokType = githubWorkflowDefaultTokenType
+	default:
+		panic(fmt.Sprintf("invald TOKEN_TYPE: %s", tt))
+	}
 })

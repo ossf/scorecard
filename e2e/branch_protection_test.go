@@ -27,8 +27,10 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
+var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 	Context("E2E TEST:Validating branch protection", func() {
+		skipIfTokenIsNot(patTokenType, "PAT only")
+
 		It("Should get non-admin branch protection on other repositories", func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
@@ -117,6 +119,33 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection, func() {
 
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+	})
+})
+
+var _ = Describe("E2E TEST GITHUB_TOKEN:"+checks.CheckBranchProtection, func() {
+	Context("E2E TEST:Validating branch protection", func() {
+		skipIfTokenIsNot(githubWorkflowDefaultTokenType, "GITHUB_TOKEN only")
+
+		It("Should get errors with GITHUB_TOKEN", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+
+			result := checks.BranchProtection(&req)
+			// There should be an error with the GITHUB_TOKEN, until it's supported
+			// byt GitHub.
+			Expect(result.Error).ShouldNot(BeNil())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
