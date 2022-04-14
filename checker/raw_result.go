@@ -30,6 +30,7 @@ type RawResults struct {
 	WebhookResults              WebhooksData
 	MaintainedResults           MaintainedData
 	SignedReleasesResults       SignedReleasesData
+	LicenseResults              LicenseData
 }
 
 // MaintainedData contains the raw results
@@ -38,6 +39,12 @@ type MaintainedData struct {
 	Issues               []Issue
 	DefaultBranchCommits []DefaultBranchCommit
 	ArchivedStatus       ArchivedStatus
+}
+
+// LicenseData contains the raw results
+// for the License check.
+type LicenseData struct {
+	Files []File
 }
 
 // CodeReviewData contains the raw results

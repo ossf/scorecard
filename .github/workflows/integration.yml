@@ -74,7 +74,17 @@ jobs:
         run: |
             go mod download
 
-      - name: Run E2E  #using retry because the GitHub token is being throttled. 
+      - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled. 
+        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: make e2e-gh-token
+
+      - name: Run PAT E2E  #using retry because the GitHub token is being throttled. 
         uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
@@ -82,7 +92,7 @@ jobs:
           max_attempts: 3
           retry_on: error
           timeout_minutes: 30
-          command: make e2e
+          command: make e2e-pat
 
       - name: codecov
         uses: codecov/codecov-action@e3c560433a6cc60aec8812599b7844a7b4fa0d71 # 2.1.0
