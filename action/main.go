@@ -15,9 +15,13 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/ossf/scorecard-action/entrypoint"
+	"github.com/ossf/scorecard-action/options"
+	"github.com/ossf/scorecard-action/signing"
 )
 
 func main() {
@@ -28,5 +32,37 @@ func main() {
 
 	if err := action.Execute(); err != nil {
 		log.Fatalf("error during command execution: %v", err)
+	}
+
+	if os.Getenv(options.EnvInputPublishResults) == "true" { //nolint
+		sarifOutputFile := os.Getenv(options.EnvInputResultsFile)
+		// Get sarif results from file.
+		sarifPayload, err := ioutil.ReadFile(sarifOutputFile)
+		if err != nil {
+			log.Fatalf("error reading from sarif output file: %v", err)
+		}
+
+		// Sign sarif results.
+		if err = signing.SignScorecardResult(sarifOutputFile); err != nil {
+			log.Fatalf("error signing scorecard sarif results: %v", err)
+		}
+
+		// Get json results by re-running scorecard.
+		jsonPayload, err := signing.GetJSONScorecardResults()
+		if err != nil {
+			log.Fatalf("error generating json scorecard results: %v", err)
+		}
+
+		// Sign json results.
+		if err = signing.SignScorecardResult("results.json"); err != nil {
+			log.Fatalf("error signing scorecard json results: %v", err)
+		}
+
+		// Processes sarif & json results.
+		repoName := os.Getenv(options.EnvGithubRepository)
+		repoRef := os.Getenv(options.EnvGithubRef)
+		if err := signing.ProcessSignature(sarifPayload, jsonPayload, repoName, repoRef); err != nil {
+			log.Fatalf("error processing signature: %v", err)
+		}
 	}
 }

@@ -1,0 +1,734 @@
+{
+   "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+   "version": "2.1.0",
+   "runs": [
+      {
+         "automationDetails": {
+            "id": "supply-chain/branch-protection/unknown-21 Mar 22 18:35 +0000"
+         },
+         "tool": {
+            "driver": {
+               "name": "Scorecard",
+               "informationUri": "https://github.com/ossf/scorecard",
+               "semanticVersion": "unknown",
+               "rules": [
+                  {
+                     "id": "BranchProtectionID",
+                     "name": "Branch-Protection",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection",
+                     "shortDescription": {
+                        "text": "Branch-Protection"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the default and release branches are protected with GitHub's branch protection settings."
+                     },
+                     "help": {
+                        "text": "Determines if the default and release branches are protected with GitHub's branch protection settings.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Enable branch protection settings in your source hosting provider to avoid force pushes or deletion of your important branches.\n\n- For GitHub, check out the steps [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nRisk: `High` (vulnerable to intentional malicious code injection)  \n\n\n\nThis check determines whether a project's default and release branches are\n\nprotected with GitHub's [branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) settings. \n\nBranch protection allows maintainers to define rules that enforce\n\ncertain workflows for branches, such as requiring review or passing certain\n\nstatus checks before acceptance into a main branch, or preventing rewriting of\n\npublic history.\n\n\n\nNote: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmin`, and `StrictStatusCheck`. If\n\nthe provided token does not have admin access, the check will query the branch\n\nsettings accessible to non-admins and provide results based only on these settings.\n\nEven so, we recommend using a non-admin token, which provides a thorough enough\n\nresult to meet most user needs. \n\n\n\nDifferent types of branch protection protect against different risks:\n\n\n\n  - Require code review: requires at least one reviewer, which greatly\n\n    reduces the risk that a compromised contributor can inject malicious code.\n\n    Review also increases the likelihood that an unintentional vulnerability in\n\n    a contribution will be detected and fixed before the change is accepted.\n\n\n\n  - Prevent force push: prevents use of the `--force` command on public\n\n    branches, which overwrites code irrevocably. This protection prevents the\n\n    rewriting of public history without external notice.\n\n\n\n  - Require [status checks](https://docs.github.com/en/github/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/about-status-checks):\n\n    ensures that all required CI tests are met before a change is accepted. \n\n\n\nAlthough requiring code review can greatly reduce the chance that\n\nunintentional or malicious code enters the \"main\" branch, it is not feasible for\n\nall projects, such as those that don't have many active participants. For more\n\ndiscussion, see [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews).\n\n\n\nAdditionally, in some cases these rules will need to be suspended. For example,\n\nif a past commit includes illegal content such as child pornography, it may be\n\nnecessary to use a force push to rewrite the history rather than simply hide the\n\ncommit. \n\n\n\nThis test has tiered scoring. Each tier must be fully satisfied to achieve points at the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.\n\n\n\nNote: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” are ignored.\n\n\n\nTier 1 Requirements (3/10 points):\n\n  - Prevent force push\n\n  - Prevent branch deletion\n\n  - For administrators: Include administrator for review\n\n\n\nTier 2 Requirements (6/10 points):\n\n  - Required reviewers \u003e=1 ​\n\n  - For administrators: Strict status checks (require branches to be up-to-date before merging)\n\n\n\nTier 3 Requirements (8/10 points):\n\n  - Status checks defined\n\n\n\nTier 4 Requirements (9/10 points):\n\n  - Required reviewers \u003e= 2\n\n\n\nTier 5 Requirements (10/10 points):\n\n  - For administrators: Dismiss stale reviews\n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "error",
+                        "security-severity": "7.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "source-code",
+                           "code-reviews"
+                        ]
+                     }
+                  }
+               ]
+            }
+         },
+         "results": [
+            {
+               "ruleId": "BranchProtectionID",
+               "ruleIndex": 0,
+               "message": {
+                  "text": "score is 0: branch protection not enabled on development/release branches:\nWarn: branch protection not enabled for branch 'main'\nClick Remediation section below to solve this issue"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "startLine": 1
+                        },
+                        "artifactLocation": {
+                           "uri": "no file associated with this alert",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      },
+      {
+         "automationDetails": {
+            "id": "supply-chain/local/unknown-21 Mar 22 18:35 +0000"
+         },
+         "tool": {
+            "driver": {
+               "name": "Scorecard",
+               "informationUri": "https://github.com/ossf/scorecard",
+               "semanticVersion": "unknown",
+               "rules": [
+                  {
+                     "id": "BinaryArtifactsID",
+                     "name": "Binary-Artifacts",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#binary-artifacts",
+                     "shortDescription": {
+                        "text": "Binary-Artifacts"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project has generated executable (binary) artifacts in the source repository."
+                     },
+                     "help": {
+                        "text": "Determines if the project has generated executable (binary) artifacts in the source repository.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Remove the generated executable artifacts from the repository.\n\n- Build from source.\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nRisk: `High` (non-reviewable code)\n\n\n\nThis check determines whether the project has generated executable (binary)\n\nartifacts in the source repository.\n\n\n\nIncluding generated executables in the source repository increases user risk.\n\nMany programming language systems can generate executables from source code\n\n(e.g., C/C++ generated machine code, Java `.class` files, Python `.pyc` files,\n\nand minified JavaScript). Users will often directly use executables if they are\n\nincluded in the source repository, leading to many dangerous behaviors.\n\n\n\nProblems with generated executable (binary) artifacts:\n\n\n\n  - Binary artifacts cannot be reviewed, allowing possible obsolete or\n\n    maliciously subverted executables. Reviews generally review source code, not\n\n    executables, since it's difficult to audit executables to ensure that they\n\n    correspond to the source code. Over time the included executables might not\n\n    correspond to the source code. \n\n  - Generated executables allow the executable generation process to atrophy,\n\n    which can lead to an inability to create working executables. These problems\n\n    can be countered with verified reproducible builds, but it's easier to\n\n    implement verified reproducible builds when executables are not included in\n\n    the source repository (since the executable generation process is less\n\n    likely to have atrophied). \n\n\n\nAllowed by Scorecards:\n\n\n\n  - Files in the source repository that are simultaneously reviewable source\n\n    code and executables, since these are reviewable. (Some interpretive\n\n    systems, such as many operating system shells, don't have a mechanism for\n\n    storing generated executables that are different from the source file.) \n\n  - Source code in the source repository generated by other tools (e.g., by\n\n    bison, yacc, flex, and lex). There are potential downsides to generated\n\n    source code, but generated source code tends to be much easier to review and\n\n    thus presents a lower risk. Generated source code is also often difficult\n\n    for external tools to detect. \n\n  - Generated documentation in source repositories. Generated documentation is\n\n    intended for use by humans (not computers) who can evaluate the context.\n\n    Thus, generated documentation doesn't pose the same level of risk.  \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "error",
+                        "security-severity": "7.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "dependencies"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "DangerousWorkflowID",
+                     "name": "Dangerous-Workflow",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#dangerous-workflow",
+                     "shortDescription": {
+                        "text": "Dangerous-Workflow"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project's GitHub Action workflows avoid dangerous patterns."
+                     },
+                     "help": {
+                        "text": "Determines if the project's GitHub Action workflows avoid dangerous patterns.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Avoid the dangerous workflow patterns.  See this [post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/) for information on avoiding untrusted code checkouts. See this [document](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections) for information on avoiding and mitigating the risk of script injections.\n\n\n\n**Severity**: Critical\n\n\n\n**Details**:\n\nRisk: `Critical`  (vulnerable to repository compromise)\n\n  \n\nThis check determines whether the project's GitHub Action workflows has dangerous \n\ncode patterns. Some examples of these patterns are untrusted code checkouts, \n\nlogging github context and secrets, or use of potentially untrusted inputs in scripts.\n\nThe following patterns are checked:\n\n\n\nUntrusted Code Checkout: This is the misuse of potentially dangerous triggers. \n\nThis checks if a `pull_request_target` workflow trigger was used in conjunction \n\nwith an explicit pull request checkout. Workflows triggered with `pull_request_target`\n\nhave write permission to the target repository and access to target repository \n\nsecrets. With the PR checkout, PR authors may compromise the repository, for \n\nexample, by using build scripts controlled by the author of the PR or reading \n\ntoken in memory. This check does not detect whether untrusted code checkouts are \n\nused safely, for example, only on pull request that have been assigned a label.\n\n\n\nScript Injection with Untrusted Context Variables: This pattern detects whether a \n\nworkflow's inline script may execute untrusted input from attackers. This occurs when \n\nan attacker adds malicious commands and scripts to a context. When a workflow runs, \n\nthese strings may be interpreted as code that is executed on the runner. Attackers \n\ncan add their own content to certain github context variables that are considered \n\nuntrusted, for example, `github.event.issue.title`. These values should not flow \n\ndirectly into executable code.\n\n\n\nThe highest score is awarded when all workflows avoid the dangerous code patterns.\n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "error",
+                        "security-severity": "9.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "infrastructure"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "DependencyUpdateToolID",
+                     "name": "Dependency-Update-Tool",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#dependency-update-tool",
+                     "shortDescription": {
+                        "text": "Dependency-Update-Tool"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project uses a dependency update tool."
+                     },
+                     "help": {
+                        "text": "Determines if the project uses a dependency update tool.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Signup for automatic dependency updates with [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.\n\n- Unlike dependabot, renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning  via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nRisk: `High` (possibly vulnerable to attacks on known flaws)  \n\n\n\nThis check tries to determine if the project uses a dependency update tool,\n\nspecifically [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or\n\n[renovatebot](https://docs.renovatebot.com/configuration-options/). Out-of-date\n\ndependencies make a project vulnerable to known flaws and prone to attacks.\n\nThese tools automate the process of updating dependencies by scanning for\n\noutdated or insecure requirements, and opening a pull request to update them if\n\nfound.   \n\n\n\nThis check can determine only whether the dependency update tool is enabled; it\n\ndoes not ensure that the tool is run or that the tool's pull requests are\n\nmerged.   \n\n\n\nNote: A project that fulfills this criterion with other tools may still receive\n\na low score on this test. There are many ways to implement dependency updates,\n\nand it is challenging for an automated tool like Scorecard to detect them all. A\n\nlow score is therefore not a definitive indication that the project is at risk.  \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "error",
+                        "security-severity": "7.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "dependencies"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "LicenseID",
+                     "name": "License",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#license",
+                     "shortDescription": {
+                        "text": "License"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project has defined a license."
+                     },
+                     "help": {
+                        "text": "Determines if the project has defined a license.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to apply to your project.\n\n- Create the license in a .txt, .html, or .md file named LICENSE or COPYING, and place it in the top-level directory.\n\n- Alternately, create a `LICENSE` directory and add license files with a name that matches your [SPDX license identifier](https://spdx.dev/ids/).\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nRisk: `Low` (possible impediment to security review)\n\n\n\nThis check tries to determine if the project has published a license. It\n\nworks by checking standard locations for a file named according to common\n\nconventions for licenses.\n\n\n\nA license can give users information about how the source code may or may\n\nnot be used. The lack of a license will impede any kind of security review\n\nor audit and creates a legal risk for potential users.\n\n\n\nThis check will detect files in the top-level directory with any combination\n\nof the following names and extensions:`LICENSE`, `LICENCE`, `COPYING`,\n\n`COPYRIGHT` and .html, .txt, .md. It will also detect these files in a\n\ndirectory named `LICENSES`. (Files in a `LICENSES` directory are typically\n\nnamed as their [SPDX](https://spdx.org/licenses/) license identifier followed\n\nby an appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)\n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "recommendation",
+                        "security-severity": "1.0",
+                        "tags": [
+                           "license"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "PinnedDependenciesID",
+                     "name": "Pinned-Dependencies",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#pinned-dependencies",
+                     "shortDescription": {
+                        "text": "Pinned-Dependencies"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project has declared and pinned its dependencies."
+                     },
+                     "help": {
+                        "text": "Determines if the project has declared and pinned its dependencies.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- First determine if your project is producing a library or application. If it is a library, you generally don't want to pin dependencies of library users, and should not follow any remediation steps.\n\n- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).\n\n- If the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.\n\n- For Dockerfiles, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) for example. \n\n- For GitHub workflows, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the \"Pin actions to a full length commit SHA\". You may also tick the \"Restrict permissions for GITHUB_TOKEN\" to fix issues found by the Token-Permissions check.\n\n- To help update your dependencies after pinning them, use tools such as\n\n Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)\n\nor [renovate bot](https://github.com/renovatebot/renovate).\n\n\n\n**Severity**: Medium\n\n\n\n**Details**:\n\nRisk: `Medium` (possible compromised dependencies)\n\n\n\nThis check tries to determine if the project pins its dependencies. \n\nA \"pinned dependency\" is a dependency that is explicitly set to a specific hash instead of \n\nallowing a mutable version or range of versions. It\n\nis currently limited to repositories hosted on GitHub, and does not support\n\nother source hosting repositories (i.e., Forges). \n\n\n\nThe check works by looking for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows.\n\n\n\nPinned dependencies reduce several security risks:\n\n\n\n  - They ensure that checking and deployment are all done with the same\n\n    software, reducing deployment risks, simplifying debugging, and enabling\n\n    reproducibility. \n\n  - They can help mitigate compromised dependencies from undermining the\n\n    security of the project (in the case where you've evaluated the pinned\n\n    dependency, you are confident it's not compromised, and a later version is\n\n    released that is compromised). \n\n  - They are one way to [counter dependency confusion (aka substitution) attacks](https://azure.microsoft.com/en-us/resources/3-ways-to-mitigate-risk-using-private-package-feeds/),\n\n    in which an application uses multiple feeds to acquire software packages (a\n\n    \"hybrid configuration\"), and attackers fool the user into using a malicious\n\n    package via a feed that was not expected for that package.\n\n\n\nHowever, pinning dependencies can inhibit software updates, either because of a\n\nsecurity vulnerability or because the pinned version is compromised. Mitigate\n\nthis risk by:\n\n\n\n  - [having applications and _not_ libraries pin to specific hashes](https://jbeckwith.com/2019/12/18/package-lock/);\n\n  - using automated tools to notify applications when their dependencies are\n\n    outdated;\n\n  - quickly updating applications that do pin dependencies.\n\n\n\nFor projects hosted on GitHub, you can learn more about\n\ndependencies using the [GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph).\n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "warning",
+                        "security-severity": "4.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "dependencies"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "TokenPermissionsID",
+                     "name": "Token-Permissions",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions",
+                     "shortDescription": {
+                        "text": "Token-Permissions"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project's workflows follow the principle of least privilege."
+                     },
+                     "help": {
+                        "text": "Determines if the project's workflows follow the principle of least privilege.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Set permissions as `read-all` or `contents: read` as described in GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).\n\n- To help determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the \"Restrict permissions for GITHUB_TOKEN\". You may also tick the \"Pin actions to a full length commit SHA\" to fix issues found by the Pinned-dependencies check.\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nRisk: `High` (vulnerable to malicious code additions)\n\n\n\nThis check determines whether the project's automated workflows tokens are set\n\nto read-only by default. It is currently limited to repositories hosted on\n\nGitHub, and does not support other source hosting repositories (i.e., Forges).\n\n\n\nSetting token permissions to read-only follows the principle of least privilege.\n\nThis is important because attackers may use a compromised token with write\n\naccess to push malicious code into the project.\n\n\n\nThe highest score is awarded when the permissions definitions in each workflow's\n\nyaml file are set as read-only at the\n\n[top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions)\n\nand the required write permissions are declared at the\n\n[run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions).\n\nOne point is reduced from the score if all jobs have their permissions defined but the top level permissions are not defined. \n\nThis configuration is secure, but there is a chance that when a new job is added to the workflow, its job permissions could be \n\nleft undefined because of human error.\n\n\n\nThe check cannot detect if the \"read-only\" GitHub permission setting is\n\nenabled, as there is no API available.\n\n\n\nAdditionally, points are reduced if certain write permissions are defined for a job. \n\n\n\n### Write permissions causing a small reduction\n\n* `statuses` - May allow an attacker to change the result of pre-submit checks and get a PR merged.\n\n* `checks` - May allow an attacker to remove pre-submit checks and introduce a bug.\n\n* `security-events` - May allow an attacker to read vulnerability reports before a patch is available. However, points are not reduced if the job utilizes a recognized action for uploading SARIF results.\n\n* `deployments` - May allow an attacker to charge repo owner by triggering VM runs, and tiny chance an attacker can trigger a remote service with code they own if server accepts code/location variables unsanitized.\n\n\n\n### Write permissions causing a large reduction\n\n* `contents` - Allows an attacker to commit unreviewed code. However, points are not reduced if the job utilizes a recognized packaging action or command.\n\n* `packages` - Allows an attacker to publish packages. However, points are not reduced if the job utilizes a recognized packaging action or command.\n\n* `actions` - May allow an attacker to steal GitHub secrets by approving to run an action that needs approval.\n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "error",
+                        "security-severity": "7.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "infrastructure"
+                        ]
+                     }
+                  }
+               ]
+            }
+         },
+         "results": [
+            {
+               "ruleId": "DependencyUpdateToolID",
+               "ruleIndex": 2,
+               "message": {
+                  "text": "score is 0: no update tool detected:\nWarn: dependabot config file not detected in source location.\n\t\t\tWe recommend setting this configuration in code so it can be easily verified by others.\nWarn: renovatebot config file not detected in source location.\n\t\t\tWe recommend setting this configuration in code so it can be easily verified by others.\nClick Remediation section below to solve this issue"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "startLine": 1
+                        },
+                        "artifactLocation": {
+                           "uri": "no file associated with this alert",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     }
+                  }
+               ]
+            },
+            {
+               "ruleId": "LicenseID",
+               "ruleIndex": 3,
+               "message": {
+                  "text": "score is 0: license file not detected\nClick Remediation section below to solve this issue"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "startLine": 1
+                        },
+                        "artifactLocation": {
+                           "uri": "no file associated with this alert",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     }
+                  }
+               ]
+            },
+            {
+               "ruleId": "PinnedDependenciesID",
+               "ruleIndex": 4,
+               "message": {
+                  "text": "score is 8: dependency not pinned by hash detected -- score normalized to 8:\nWarn: third-party action not pinned by hash: .github/workflows/scorecards.yml:32\nClick Remediation section below to solve this issue"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "startLine": 1
+                        },
+                        "artifactLocation": {
+                           "uri": "no file associated with this alert",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      },
+      {
+         "automationDetails": {
+            "id": "supply-chain/online-scm/unknown-21 Mar 22 18:35 +0000"
+         },
+         "tool": {
+            "driver": {
+               "name": "Scorecard",
+               "informationUri": "https://github.com/ossf/scorecard",
+               "semanticVersion": "unknown",
+               "rules": [
+                  {
+                     "id": "CITestsID",
+                     "name": "CI-Tests",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#ci-tests",
+                     "shortDescription": {
+                        "text": "CI-Tests"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project runs tests before pull requests are merged."
+                     },
+                     "help": {
+                        "text": "Determines if the project runs tests before pull requests are merged.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Check-in scripts that run all the tests in your repository.\n\n- Integrate those scripts with a CI/CD platform that runs it on every pull request (e.g. if hosted on GitHub, [GitHub Actions](https://docs.github.com/en/actions/learn-github-actions/introduction-to-github-actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nRisk: `Low` (possible unknown vulnerabilities)\n\n\n\nThis check tries to determine if the project runs tests before pull requests are\n\nmerged. It is currently limited to repositories hosted on GitHub, and does not\n\nsupport other source hosting repositories (i.e., Forges).\n\n\n\nRunning tests helps developers catch mistakes early on, which can reduce the\n\nnumber of vulnerabilities that find their way into a project.\n\n\n\nThe check works by looking for a set of CI-system names in GitHub `CheckRuns`\n\nand `Statuses` among the recent commits (~30). A CI-system is considered\n\nwell-known if its name contains any of the following: appveyor, buildkite,\n\ncircleci, e2e, github-actions, jenkins, mergeable, test, travis-ci.\n\n\n\nNote: A project that fulfills this criterion with other tools may still receive\n\na low score on this test. There are many ways to implement CI testing, and it is\n\nchallenging for an automated tool like Scorecard to detect them all. A low score\n\nis therefore not a definitive indication that the project is at risk.\n\n\n\nIf a project's system was not detected and you think it should be, please\n\n[open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose). \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "recommendation",
+                        "security-severity": "1.0",
+                        "tags": [
+                           "supply-chain",
+                           "testing"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "CIIBestPracticesID",
+                     "name": "CII-Best-Practices",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#cii-best-practices",
+                     "shortDescription": {
+                        "text": "CII-Best-Practices"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project has a CII Best Practices Badge."
+                     },
+                     "help": {
+                        "text": "Determines if the project has a CII Best Practices Badge.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Sign up for the [CII Best Practices program](https://bestpractices.coreinfrastructure.org/en).\n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nRisk: `Low` (possibly not following security best practices)\n\n\n\nThis check determines whether the project has earned a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/), \n\nwhich indicates that the project uses a set of security-focused best development practices for open\n\nsource software. The check uses the URL for the Git repo and the CII API.\n\n\n\nThe CII Best Practices badge has 3 tiers: passing, silver, and gold. We give\n\nfull credit to projects that meet the [passing criteria](https://bestpractices.coreinfrastructure.org/criteria/0), which is a\n\nsignificant achievement for many projects. Lower scores represent a project that\n\nis at least working to achieve a badge, with increasingly more points awarded as\n\nmore criteria are met.\n\n\n\nTo earn the passing badge, the project MUST: \n\n\n\n  - publish the process for reporting vulnerabilities on the project site\n\n  - provide a working build system that can automatically rebuild the software\n\n    from source code (where applicable)\n\n  - have a general policy that tests will be added to an automated test suite\n\n    when major new functionality is added\n\n  - meet various cryptography criteria where applicable\n\n  - have at least one primary developer who knows how to design secure software\n\n  - have at least one primary developer who knows of common kinds of errors\n\n    that lead to vulnerabilities in this kind of software (and at least one\n\n    method to counter or mitigate each of them) \n\n  - apply at least one static code analysis tool (beyond compiler warnings and\n\n    \"safe\" language modes) to any proposed major production release. \n\n\n\nSome of these criteria overlap with other Scorecards checks.\n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "recommendation",
+                        "security-severity": "1.0",
+                        "tags": [
+                           "security-awareness",
+                           "security-training",
+                           "security"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "CodeReviewID",
+                     "name": "Code-Review",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-review",
+                     "shortDescription": {
+                        "text": "Code-Review"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project requires code review before pull requests (aka merge requests) are merged."
+                     },
+                     "help": {
+                        "text": "Determines if the project requires code review before pull requests (aka merge requests) are merged.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- If the project has only one contributor, or does not have enough reviewers to practically require that all contributions be reviewed, try to recruit more maintainers to the project who will be willing to review others' work. Ideally at least some of these people will be from different organizations (see [Contributors](checks.md#contributors)). If the project has very limited utility, consider expanding its intended utility so more people will be interested in improving it, and make that larger scope clear to potential contributors.\n\n- Follow security best practices by performing strict code reviews for every new pull request / merge request.\n\n- Make \"code reviews\" mandatory in your repository configuration. ([Instructions for GitHub.](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-pull-request-reviews-before-merging))\n\n- Enforce the rule for administrators / code owners as well. ([Instructions for GitHub.](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators))\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nRisk: `High` (unintentional vulnerabilities or possible injection of malicious\n\ncode)\n\n\n\nThis check determines whether the project requires code review before pull\n\nrequests (merge requests) are merged.\n\n\n\nReviews detect various unintentional problems, including vulnerabilities that\n\ncan be fixed immediately before they are merged, which improves the quality of\n\nthe code. Reviews may also detect or deter an attacker trying to insert\n\nmalicious code (either as a malicious contributor or as an attacker who has\n\nsubverted a contributor's account), because a reviewer might detect the\n\nsubversion.\n\n\n\nThe check first tries to detect whether [Branch-Protection](checks.md#branch-protection) is enabled on the\n\ndefault branch with at least one required reviewer. If this fails, the check\n\ndetermines whether the most recent (~30) commits have a Github-approved review\n\nor if the merger is different from the committer (implicit review). It also\n\nperforms a similar check for reviews using\n\n[Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels\n\n\"lgtm\" or \"approved\") and [Gerrit](https://www.gerritcodereview.com/) (\"Reviewed-on\" and \"Reviewed-by\").\n\n\n\nNote: Requiring reviews for all changes is infeasible for some projects, such as\n\nthose with only one active participant. Even a project with multiple active\n\ncontributors may not have enough active participation to be able to require\n\nreview of all proposed changes. Projects with a small number of active\n\nparticipants instead sometimes aim for a review of a\n\npercentage of proposals (e.g., \"at least half of all proposed changes are\n\nreviewed\").\n\n\n\nRequiring review does not eliminate all risks. The other reviewers might fail to\n\nnotice unintentional vulnerabilities or malicious code, be colluding with a\n\nmalicious developer, or even be the same person (using a \"[sock\n\npuppet](https://en.wikipedia.org/wiki/Sock_puppet_account)\" account).  \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "error",
+                        "security-severity": "7.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "source-code",
+                           "code-reviews"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "ContributorsID",
+                     "name": "Contributors",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#contributors",
+                     "shortDescription": {
+                        "text": "Contributors"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project has a set of contributors from multiple organizations (e.g., companies)."
+                     },
+                     "help": {
+                        "text": "Determines if the project has a set of contributors from multiple organizations (e.g., companies).",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Ask contributors to [join their respective organizations](https://docs.github.com/en/organizations/managing-membership-in-your-organization/inviting-users-to-join-your-organization), if they have not already. Otherwise, there is no remediation for this check; it simply provides insight into which organizations have contributed so that you can make a trust-based decision based on that information.  \n\n\n\n**Severity**: Low\n\n\n\n**Details**:\n\nRisk: `Low` (lower number of trusted code reviewers)\n\n\n\nThis check tries to determine if the project has recent contributors from\n\nmultiple organizations (e.g., companies). It is currently limited to\n\nrepositories hosted on GitHub, and does not support other source hosting\n\nrepositories (i.e., Forges).\n\n\n\nThe check looks at the `Company` field on the GitHub user profile for authors of\n\nrecent commits. To receive the highest score, the project must have had\n\ncontributors from at least 3 different companies in the last 30 commits; each of\n\nthose contributors must have had at least 5 commits in the last 30 commits.\n\n\n\nNote: Some projects cannot meet this requirement, such as small projects with\n\nonly one active participant, or projects with a narrow scope that cannot attract\n\nthe interest of multiple organizations. See\n\n[Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews)\n\nfor more information about evaluating projects with a small number of\n\nparticipants.   \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "recommendation",
+                        "security-severity": "1.0",
+                        "tags": [
+                           "source-code"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "FuzzingID",
+                     "name": "Fuzzing",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#fuzzing",
+                     "shortDescription": {
+                        "text": "Fuzzing"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project uses fuzzing."
+                     },
+                     "help": {
+                        "text": "Determines if the project uses fuzzing.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).\n\n\n\n**Severity**: Medium\n\n\n\n**Details**:\n\nRisk: `Medium` (possible vulnerabilities in code)\n\n\n\nThis check tries to determine if the project uses\n\n[fuzzing](https://owasp.org/www-community/Fuzzing) by checking if the repository\n\nname is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project\n\nlist.\n\n\n\nFuzzing, or fuzz testing, is the practice of feeding unexpected or random data\n\ninto a program to expose bugs. Regular fuzzing is important to detect\n\nvulnerabilities that may be exploited by others, especially since attackers can\n\nalso use fuzzing to find the same flaws.\n\n\n\nNote: A project that fulfills this criterion with other tools may still receive\n\na low score on this test. There are many ways to implement fuzzing, and it is\n\nchallenging for an automated tool like Scorecard to detect them all. A low score\n\nis therefore not a definitive indication that the project is at risk.   \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "warning",
+                        "security-severity": "4.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "testing"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "MaintainedID",
+                     "name": "Maintained",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#maintained",
+                     "shortDescription": {
+                        "text": "Maintained"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project is \"actively maintained\"."
+                     },
+                     "help": {
+                        "text": "Determines if the project is \"actively maintained\".",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- There is no remediation work needed from projects with a low score; this check simply provides insight into the project activity and maintenance commitment. External users should determine whether the software is the type that would not normally need active maintenance.\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nRisk: `High` (possibly unpatched vulnerabilities)\n\n   \n\nThis check determines whether the project is actively maintained. If the project\n\nis archived, it receives the lowest score. If there is at least one commit per\n\nweek during the previous 90 days, the project receives the highest score.  If there\n\nis activity on issues from users who are collaborators, members, or owners of the\n\nproject, the project receives a partial score.\n\n\n\nA project which is not active might not be patched, have its\n\ndependencies patched, or be actively tested and used. However, a lack\n\nof active maintenance is not necessarily always a problem. Some software,\n\nespecially smaller utility functions, does not normally need to be maintained.\n\nFor example, a library that determines if an integer is even would not normally\n\nneed maintenance unless an underlying implementation language definition\n\nchanged. A lack of active maintenance should signal that potential users should\n\ninvestigate further to judge the situation.   \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "error",
+                        "security-severity": "7.0",
+                        "tags": [
+                           "supply-chain",
+                           "security"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "PackagingID",
+                     "name": "Packaging",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#packaging",
+                     "shortDescription": {
+                        "text": "Packaging"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project is published as a package that others can easily download, install, easily update, and uninstall."
+                     },
+                     "help": {
+                        "text": "Determines if the project is published as a package that others can easily download, install, easily update, and uninstall.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Publish your project as a downloadable package, e.g., if hosted on GitHub, use [GitHub's mechanisms for publishing a package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).\n\n- If hosted on GitHub, use a GitHub action to release your package to language-specific hubs.\n\n\n\n**Severity**: Medium\n\n\n\n**Details**:\n\nRisk: `Medium` (users possibly missing security updates)\n\n\n\nThis check tries to determine if the project is published as a package. It is\n\ncurrently limited to repositories hosted on GitHub, and does not support other\n\nsource hosting repositories (i.e., Forges).\n\n\n\nPackages give users of a project an easy way to download, install, update, and\n\nuninstall the software by a package manager. In particular, they make it easy\n\nfor users to receive security patches as updates.\n\n\n\nThe check currently looks for\n\n[GitHub packaging workflows](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package)\n\nand language-specific GitHub Actions that upload the package to a corresponding\n\nhub, e.g., [Npm](https://www.npmjs.com/). We plan to add better support to query\n\npackage manager hubs directly in the future, e.g., for\n\n[Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).\n\n\n\nYou can create a package in several ways:\n\n\n\n  - Many program language ecosystems have a generally-used packaging format\n\n    supported by a language-level package manager tool and public package\n\n    repository. \n\n  - Many operating system platforms also have at least one package format,\n\n    tool, and public repository (in some cases the source repository generates\n\n    system-independent source packages, which are then used by others to\n\n    generate system executable packages). \n\n  - Using container images.\n\n\n\nNote: A project that fulfills this criterion with other tools may still receive\n\na low score on this test. There are many ways to package software, and it is\n\nchallenging for an automated tool like Scorecards to detect them all. A low\n\nscore is therefore not a definitive indication that the project is at risk. If\n\nScorecards fails to detect the way you publish a package and you think we should\n\nsupport your use case, please let us know by [opening an\n\nissue](https://github.com/ossf/scorecard/issues/new/choose). \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "warning",
+                        "security-severity": "4.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "releases"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "SASTID",
+                     "name": "SAST",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#sast",
+                     "shortDescription": {
+                        "text": "SAST"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project uses static code analysis."
+                     },
+                     "help": {
+                        "text": "Determines if the project uses static code analysis.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Run CodeQL checks in your CI/CD by following the instructions [here](https://github.com/github/codeql-action#usage).\n\n\n\n**Severity**: Medium\n\n\n\n**Details**:\n\nRisk: `Medium` (possible unknown bugs)\n\n\n\nThis check tries to determine if the project uses Static Application Security\n\nTesting (SAST), also known as [static code analysis](https://owasp.org/www-community/controls/Static_Code_Analysis).\n\nIt is currently limited to repositories hosted on GitHub, and does not support\n\nother source hosting repositories (i.e., Forges).\n\n\n\nSAST is testing run on source code before the application is run. Using SAST\n\ntools can prevent known classes of bugs from being inadvertently introduced in the\n\ncodebase.\n\n\n\nThe checks currently looks for known Github apps such as\n\n[CodeQL](https://codeql.github.com/) (github-code-scanning),\n\n[LGTM](https://lgtm.com/) and\n\n[SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use\n\nof \"github/codeql-action\" in a GitHub workflow.\n\n\n\nNote: A project that fulfills this criterion with other tools may still receive\n\na low score on this test. There are many ways to implement SAST, and it is\n\nchallenging for an automated tool like Scorecard to detect them all. A low score\n\nis therefore not a definitive indication that the project is at risk.   \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "warning",
+                        "security-severity": "4.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "testing"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "SecurityPolicyID",
+                     "name": "Security-Policy",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#security-policy",
+                     "shortDescription": {
+                        "text": "Security-Policy"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project has published a security policy."
+                     },
+                     "help": {
+                        "text": "Determines if the project has published a security policy.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.\n\n- The file should contain information on what constitutes a vulnerability and a way to report it securely (e.g. issue tracker with private issue support, encrypted email with a published public key). Follow the  [coordinated vulnerability disclosure guidelines](https://github.com/ossf/oss-vulnerability-guide/blob/main/guide.md) to respond to vulnerability disclosures.\n\n- For GitHub, see more information [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository).\n\n\n\n**Severity**: Medium\n\n\n\n**Details**:\n\nRisk: `Medium` (possible insecure reporting of vulnerabilities)\n\n\n\nThis check tries to determine if the project has published a security policy. It\n\nworks by looking for a file named `SECURITY.md` (case-insensitive) in a few\n\nwell-known directories.\n\n\n\nA security policy (typically a `SECURITY.md` file) can give users information\n\nabout what constitutes a vulnerability and how to report one securely so that\n\ninformation about a bug is not publicly visible.   \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "warning",
+                        "security-severity": "4.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "policy"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "SignedReleasesID",
+                     "name": "Signed-Releases",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#signed-releases",
+                     "shortDescription": {
+                        "text": "Signed-Releases"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project cryptographically signs release artifacts."
+                     },
+                     "help": {
+                        "text": "Determines if the project cryptographically signs release artifacts.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Publish the release.\n\n- Generate a signing key.\n\n- Download the release as an archive locally.\n\n- Sign the release archive with this key (should output a signature file).\n\n- Attach the signature file next to the release archive.\n\n- If the source is hosted on GitHub, check out the steps [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nRisk: `High` (possibility of installing malicious releases)\n\n\n\nThis check tries to determine if the project cryptographically signs release\n\nartifacts. It is currently limited to repositories hosted on GitHub, and does\n\nnot support other source hosting repositories (i.e., Forges).\n\n\n\nSigned releases attest to the provenance of the artifact.\n\n\n\nThis check looks for the following filenames in the project's last five\n\nreleases: [*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),\n\n*.sig, *.sign.\n\n\n\nNote: The check does not verify the signatures. \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "error",
+                        "security-severity": "7.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "releases"
+                        ]
+                     }
+                  },
+                  {
+                     "id": "VulnerabilitiesID",
+                     "name": "Vulnerabilities",
+                     "helpUri": "https://github.com/ossf/scorecard/blob/main/docs/checks.md#vulnerabilities",
+                     "shortDescription": {
+                        "text": "Vulnerabilities"
+                     },
+                     "fullDescription": {
+                        "text": "Determines if the project has open, known unfixed vulnerabilities."
+                     },
+                     "help": {
+                        "text": "Determines if the project has open, known unfixed vulnerabilities.",
+                        "markdown": "**Remediation (click \"Show more\" below)**:\n\n- Fix the vulnerabilities. The details of each vulnerability can be found on \u003chttps://osv.dev\u003e.\n\n\n\n**Severity**: High\n\n\n\n**Details**:\n\nRisk: `High`  (known vulnerabilities)\n\n  \n\nThis check determines whether the project has open, unfixed vulnerabilities\n\nusing the [OSV (Open Source Vulnerabilities)](https://osv.dev/) service. An open\n\nvulnerability is readily exploited by attackers and should be fixed as soon as\n\npossible.     \n\n"
+                     },
+                     "defaultConfiguration": {
+                        "level": "error"
+                     },
+                     "properties": {
+                        "precision": "high",
+                        "problem.severity": "error",
+                        "security-severity": "7.0",
+                        "tags": [
+                           "supply-chain",
+                           "security",
+                           "vulnerabilities"
+                        ]
+                     }
+                  }
+               ]
+            }
+         },
+         "results": [
+            {
+               "ruleId": "CIIBestPracticesID",
+               "ruleIndex": 1,
+               "message": {
+                  "text": "score is 0: no badge detected\nClick Remediation section below to solve this issue"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "startLine": 1
+                        },
+                        "artifactLocation": {
+                           "uri": "no file associated with this alert",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     }
+                  }
+               ]
+            },
+            {
+               "ruleId": "CodeReviewID",
+               "ruleIndex": 2,
+               "message": {
+                  "text": "score is 0: no reviews found:\nWarn: no reviews found for commit: 80ec5079f66133cb6cefb09aad9b4565456b7f70\nWarn: no reviews found for commit: 6f242f91747b2db5eff455d291b99e4476666a27\nWarn: no reviews found for commit: 93b22e8e2e8980be498bd35d44e511b11c0716ea\nWarn: no reviews found for commit: 21f2a2dd2f4250aef4f27f4cad13c600d2b4026c\nWarn: no reviews found for commit: 8cd6350eeb246ef169ff4483c243a4e1f1f92592\nWarn: no reviews found for commit: 78b7a094947b93cd25adb90c9640c4f66017f74f\nWarn: no reviews found for commit: 88c11612d4f7b86506e4bce2cafd90699425adbd\nWarn: no reviews found for commit: 84feb19250ed6eede3621e6d6d84a633f305e766\nWarn: no reviews found for commit: 90424686a90cfbbd23448fafd5e9de6a97c29c06\nWarn: no reviews found for commit: 590c7ad6d4e228a729d90efce25b00b4235d6fa4\nWarn: no reviews found for commit: d682f30752af1e4ddfc9def4a985671bc915544c\nWarn: no reviews found for commit: 56bf8157e7c794db048c08d72c771277d3f7b385\nWarn: no reviews found for commit: 46797e04dbee278cb0b79de0ef18b2a43a90e4c2\nWarn: no reviews found for commit: ab79b44d701c2abe206a611410765bf9049da50e\nWarn: no reviews found for commit: 1225df606f407d9edb3dc401f041d1897898c673\nWarn: no reviews found for commit: 838d335af45bfcab6698df8a23fffe5190f5bdd3\nWarn: no reviews found for commit: de7dc23dee37ede20642d91a9b482d38e3d3c25b\nWarn: no reviews found for commit: 117c490a7eae739f2657198a7757a5a07280cea5\nWarn: no reviews found for commit: 5c199386c657291adbb06324341cca7418cb6c21\nWarn: no reviews found for commit: 042a7580f944f7cacacd9c7aa8eb369e9d082601\nWarn: no reviews found for commit: 0c79d2acbc18e3bf1bbca0acb668684f1c6d36f9\nWarn: no reviews found for commit: 25c181ce3e30c211c3b8e7112c4be7bf0a2846d0\nWarn: no reviews found for commit: b83cd0030e006b406dd010f3bd2968b5b50e1b97\nWarn: no reviews found for commit: 8e6dd5656a2c17c1357634ebf414dd1c0895b5c0\nWarn: no reviews found for commit: 74f988637e8d218a02e2913c1f77133a70d44f56\nWarn: no reviews found for commit: 24161380a692583bdb1d4d406116d17da20c8931\nWarn: no reviews found for commit: 1b0020300a04025232b486ed39712847e68bff52\nWarn: no reviews found for commit: a26edaf789bbb2350b1658d1fdf1675c6cb262e4\nWarn: no reviews found for commit: e248756ffa03989d93c215b860e408ab5144a3f9\nWarn: no reviews found for commit: d0b2965f9ccc8d30bd72734d753c96669692eeec\nClick Remediation section below to solve this issue"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "startLine": 1
+                        },
+                        "artifactLocation": {
+                           "uri": "no file associated with this alert",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     }
+                  }
+               ]
+            },
+            {
+               "ruleId": "FuzzingID",
+               "ruleIndex": 4,
+               "message": {
+                  "text": "score is 0: project is not fuzzed\nClick Remediation section below to solve this issue"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "startLine": 1
+                        },
+                        "artifactLocation": {
+                           "uri": "no file associated with this alert",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     }
+                  }
+               ]
+            },
+            {
+               "ruleId": "SASTID",
+               "ruleIndex": 7,
+               "message": {
+                  "text": "score is 0: no SAST tool detected:\nWarn: no pull requests merged into dev branch\nWarn: CodeQL tool not detected\nClick Remediation section below to solve this issue"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "startLine": 1
+                        },
+                        "artifactLocation": {
+                           "uri": "no file associated with this alert",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     }
+                  }
+               ]
+            },
+            {
+               "ruleId": "SecurityPolicyID",
+               "ruleIndex": 8,
+               "message": {
+                  "text": "score is 0: security policy file not detected\nClick Remediation section below to solve this issue"
+               },
+               "locations": [
+                  {
+                     "physicalLocation": {
+                        "region": {
+                           "startLine": 1
+                        },
+                        "artifactLocation": {
+                           "uri": "no file associated with this alert",
+                           "uriBaseId": "%SRCROOT%"
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   ]
+}
