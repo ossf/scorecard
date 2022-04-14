@@ -54,7 +54,7 @@ jobs:
 
       - name: Cache builds
         # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-        uses: actions/cache@136d96b4aee02b1f0de3ba493b1d47135042d9c0 #v2.1.7
+        uses: actions/cache@48af2dc4a9e8278b89d7fa154b955c30c6aaab09 #v2.1.7
         with:
           # In order:
           # * Module download cache
@@ -74,7 +74,17 @@ jobs:
         run: |
             go mod download
 
-      - name: Run E2E  #using retry because the GitHub token is being throttled. 
+      - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled. 
+        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: make e2e-gh-token
+
+      - name: Run PAT E2E  #using retry because the GitHub token is being throttled. 
         uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
@@ -82,10 +92,10 @@ jobs:
           max_attempts: 3
           retry_on: error
           timeout_minutes: 30
-          command: make e2e
+          command: make e2e-pat
 
       - name: codecov
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # 2.1.0
+        uses: codecov/codecov-action@e3c560433a6cc60aec8812599b7844a7b4fa0d71 # 2.1.0
         with:
          files: ./e2e-coverage.out
          verbose: true
