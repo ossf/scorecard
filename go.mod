@@ -5,7 +5,7 @@ go 1.17
 // TODO(go.mod): Is there a reason these deps are kept separately from the
 //               other `require`s?
 require (
-	github.com/rhysd/actionlint v1.6.11
+	github.com/rhysd/actionlint v1.6.12
 	gotest.tools v2.2.0+incompatible
 )
 
