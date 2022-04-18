@@ -35,6 +35,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 
 	totalReleases := 0
 	totalSigned := 0
+	totalSigstoreSigned := 0
 
 	for _, release := range r.Releases {
 		if len(release.Assets) == 0 {
@@ -47,21 +48,34 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 
 		totalReleases++
 		signed := false
+		sigstoreSigned := false
 
 		for _, asset := range release.Assets {
-			for _, suffix := range artifactExtensions {
-				if strings.HasSuffix(asset.Name, suffix) {
-					dl.Info(&checker.LogMessage{
-						Path: asset.URL,
-						Type: checker.FileTypeURL,
-						Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
-					})
-					signed = true
-					break
+			// Check if signed with extension
+			if !signed {
+				for _, suffix := range artifactExtensions {
+					if strings.HasSuffix(asset.Name, suffix) {
+						dl.Info(&checker.LogMessage{
+							Path: asset.URL,
+							Type: checker.FileTypeURL,
+							Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
+						})
+						signed = true
+						totalSigned++
+						break
+					}
 				}
 			}
-			if signed {
-				totalSigned++
+			// Check if signed with rekor
+			if !sigstoreSigned {
+				if len(asset.RekorEntries) != 0 {
+					// TODO: Do we want to check for a keyless signature? Check if the entry
+					// contains a Fulcio-issued code-signing certificate.
+					sigstoreSigned = true
+					totalSigstoreSigned++
+				}
+			}
+			if sigstoreSigned && signed {
 				break
 			}
 		}
@@ -86,6 +100,6 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 		return checker.CreateInconclusiveResult(name, "no releases found")
 	}
 
-	reason := fmt.Sprintf("%d out of %d artifacts are signed", totalSigned, totalReleases)
+	reason := fmt.Sprintf("%d out of %d artifacts are signed, %d artifacts are sigstore signed", totalSigned, totalReleases, totalSigstoreSigned)
 	return checker.CreateProportionalScoreResult(name, reason, totalSigned, totalReleases)
 }

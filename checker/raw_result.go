@@ -14,7 +14,11 @@
 
 package checker
 
-import "time"
+import (
+	"time"
+
+	"github.com/sigstore/rekor/pkg/generated/models"
+)
 
 // RawResults contains results before a policy
 // is applied.
@@ -253,6 +257,7 @@ type Release struct {
 
 // ReleaseAsset represents a release asset.
 type ReleaseAsset struct {
-	Name string
-	URL  string
+	Name         string
+	URL          string
+	RekorEntries []models.LogEntryAnon
 }

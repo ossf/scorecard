@@ -24,6 +24,7 @@ type Release struct {
 
 // ReleaseAsset is part of the Release bundle.
 type ReleaseAsset struct {
-	Name string
-	URL  string
+	Name               string
+	URL                string
+	BrowserDownloadURL string
 }
