@@ -20,6 +20,7 @@ import "time"
 // is applied.
 //nolint
 type RawResults struct {
+	DangerousWorkflowResults    DangerousWorkflowData
 	VulnerabilitiesResults      VulnerabilitiesData
 	BinaryArtifactResults       BinaryArtifactData
 	SecurityPolicyResults       SecurityPolicyData
@@ -255,4 +256,29 @@ type Release struct {
 type ReleaseAsset struct {
 	Name string
 	URL  string
+}
+
+// DangerousWorkflowData contains raw results
+// for dnagerous workflow check.
+type DangerousWorkflowData struct {
+	// These contain more actionable results.
+	ScriptInjections     []ScriptInjection
+	SecretInPullRequests []EncryptedSecret
+	UntrustedCheckouts   []UntrustedCheckout
+	// TODO: other
+}
+
+// UntrustedCheckout represents an untrusted checkout.
+type UntrustedCheckout struct {
+	File File
+}
+
+// ScriptInjection represents a script injection.
+type ScriptInjection struct {
+	File File
+}
+
+// EncryptedSecret represents an encrypted secret.
+type EncryptedSecret struct {
+	File File
 }
