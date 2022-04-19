@@ -15,14 +15,21 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
-	"io/ioutil"
-	"strings"
+	"os"
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/golang/mock/gomock"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
+
+func errCmp(e1, e2 error) bool {
+	return errors.Is(e1, e2) || errors.Is(e2, e1)
+}
 
 func TestUntrustedContextVariables(t *testing.T) {
 	t.Parallel()
@@ -82,295 +89,165 @@ func TestUntrustedContextVariables(t *testing.T) {
 func TestGithubDangerousWorkflow(t *testing.T) {
 	t.Parallel()
 
+	type ret struct {
+		err error
+		nb  int
+	}
 	tests := []struct {
 		name     string
 		filename string
-		expected scut.TestReturn
+		expected ret
 	}{
 		{
 			name:     "Non-yaml file",
-			filename: "./testdata/script.sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: "script.sh",
+			expected: ret{nb: 0},
 		},
 		{
 			name:     "run untrusted code checkout test - workflow_run",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-workflow_run.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-workflow_run.yml",
+			expected: ret{nb: 2},
 		},
 		{
 			name:     "run untrusted code checkout test",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-checkout.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout.yml",
+			expected: ret{nb: 2},
 		},
 		{
 			name:     "run trusted code checkout test",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-trusted-checkout.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-trusted-checkout.yml",
+			expected: ret{nb: 0},
 		},
 		{
 			name:     "run default code checkout test",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-default-checkout.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-default-checkout.yml",
+			expected: ret{nb: 0},
 		},
 		{
 			name:     "run script injection",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection.yml",
+			expected: ret{nb: 1},
 		},
 		{
 			name:     "run safe script injection",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-trusted-script-injection.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-trusted-script-injection.yml",
+			expected: ret{nb: 0},
 		},
 		{
 			name:     "run multiple script injection",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-multiple-script-injection.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  2,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-multiple-script-injection.yml",
+			expected: ret{nb: 2},
 		},
 		{
 			name:     "run inline script injection",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-inline-script-injection.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-inline-script-injection.yml",
+			expected: ret{nb: 1},
 		},
 		{
 			name:     "run wildcard script injection",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-wildcard.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-wildcard.yml",
+			expected: ret{nb: 1},
 		},
 		{
 			name:     "secret in top env no checkout",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-no-checkout.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultConfidence,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-no-checkout.yml",
+			expected: ret{nb: 0},
 		},
 		{
 			name:     "secret in action args",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-action-args.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-action-args.yml",
+			expected: ret{nb: 1},
 		},
 		{
 			name:     "secret in all places",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-all-checkout.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  7,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-all-checkout.yml",
+			expected: ret{nb: 7},
 		},
 		{
 			name:     "secret in env",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  2,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env.yml",
+			expected: ret{nb: 2},
 		},
 		{
 			name:     "secret in env",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-no-pull-request.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultConfidence,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-no-pull-request.yml",
+			expected: ret{nb: 0},
 		},
 		{
 			name:     "secret in env",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-run.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-run.yml",
+			expected: ret{nb: 1},
 		},
 		{
 			name:     "secret with environment protection",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-environment.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultConfidence,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-environment.yml",
+			expected: ret{nb: 0},
 		},
 		{
 			name:     "secret with environment protection pull request target",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-environment-prt.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-environment-prt.yml",
+			expected: ret{nb: 1},
 		},
 		{
 			name:     "secret in env pull request target",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-run-prt.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  2,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-run-prt.yml",
+			expected: ret{nb: 2},
 		},
 		{
 			name:     "secret in env pull request target",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-prt.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  4,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-prt.yml",
+			expected: ret{nb: 4},
 		},
 		{
 			name:     "default secret in pull request",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-default-secret-pr.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultConfidence,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-default-secret-pr.yml",
+			expected: ret{nb: 0},
 		},
 		{
 			name:     "default secret in pull request target",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-default-secret-prt.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultConfidence,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-default-secret-prt.yml",
+			expected: ret{nb: 1},
 		},
 		{
 			name:     "secret in top env no checkout pull request target",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-no-checkout-prt.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultConfidence,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-no-checkout-prt.yml",
+			expected: ret{nb: 0},
 		},
 		{
 			name:     "secret in top env checkout no ref pull request target",
-			filename: "./testdata/.github/workflows/github-workflow-dangerous-pattern-secret-env-checkout-noref-prt.yml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultConfidence,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-checkout-noref-prt.yml",
+			expected: ret{nb: 0},
 		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			var content []byte
-			var err error
-			if tt.filename == "" {
-				content = make([]byte, 0)
-			} else {
-				content, err = ioutil.ReadFile(tt.filename)
+
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{tt.filename}, nil)
+			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
+				// This will read the file and return the content
+				content, err := os.ReadFile("../testdata/" + file)
 				if err != nil {
-					panic(fmt.Errorf("cannot read file: %w", err))
+					return content, fmt.Errorf("%w", err)
 				}
+				return content, nil
+			})
+
+			dw, err := DangerousWorkflow(mockRepoClient)
+
+			if !errCmp(err, tt.expected.err) {
+				t.Errorf(cmp.Diff(err, tt.expected.err, cmpopts.EquateErrors()))
 			}
-			dl := scut.TestDetailLogger{}
-			p := strings.Replace(tt.filename, "./testdata/", "", 1)
-			r := testValidateGitHubActionDangerousWorkflow(p, content, &dl)
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
-				t.Fail()
+			if tt.expected.err != nil {
+				return
+			}
+
+			nb := len(dw.ScriptInjections) + len(dw.SecretInPullRequests) + len(dw.UntrustedCheckouts)
+			if nb != tt.expected.nb {
+				t.Errorf(cmp.Diff(nb, tt.expected.nb))
 			}
 		})
 	}

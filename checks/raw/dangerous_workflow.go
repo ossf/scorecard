@@ -83,6 +83,7 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 	args ...interface{},
 ) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
+		fmt.Println("here", path)
 		return true, nil
 	}
 
@@ -502,11 +503,4 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 		script = script[s+e:]
 	}
 	return nil
-}
-
-func testValidateGitHubActionDangerousWorkflow(pathfn string,
-	content []byte, dl checker.DetailLogger,
-) checker.CheckResult {
-	var data checker.DangerousWorkflowData
-	return validateGitHubActionWorkflowPatterns(pathfn, content, &data)
 }
