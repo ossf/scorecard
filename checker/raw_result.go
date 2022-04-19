@@ -259,9 +259,8 @@ type ReleaseAsset struct {
 }
 
 // DangerousWorkflowData contains raw results
-// for dnagerous workflow check.
+// for dangerous workflow check.
 type DangerousWorkflowData struct {
-	// These contain more actionable results.
 	ScriptInjections     []ScriptInjection
 	SecretInPullRequests []EncryptedSecret
 	UntrustedCheckouts   []UntrustedCheckout

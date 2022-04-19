@@ -504,12 +504,9 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 	return nil
 }
 
-/*
 func testValidateGitHubActionDangerousWorkflow(pathfn string,
 	content []byte, dl checker.DetailLogger,
 ) checker.CheckResult {
 	var data checker.DangerousWorkflowData
-	_, err := raw.validateGitHubActionWorkflowPatterns(pathfn, content, &data)
-	return createResultForDangerousWorkflowPatterns(data, err)
+	return validateGitHubActionWorkflowPatterns(pathfn, content, &data)
 }
-*/

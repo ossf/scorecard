@@ -35,8 +35,9 @@ type jsonScorecardRawResult struct {
 
 // TODO: separate each check extraction into its own file.
 type jsonFile struct {
-	Path   string `json:"path"`
-	Offset int    `json:"offset,omitempty"`
+	Snippet *string `json:"snippet,omitempty"`
+	Path    string  `json:"path"`
+	Offset  int     `json:"offset,omitempty"`
 }
 
 type jsonTool struct {
@@ -137,8 +138,28 @@ type jsonLicense struct {
 	// TODO: add fields, like type of license, etc.
 }
 
+type jsonWorkflows struct {
+	UntrustedCheckouts   []jsonUntrustedCheckout `json:"untrustedCheckouts"`
+	ScriptInjections     []jsonScriptInjection   `json:"scriptInjections"`
+	SecretInPullRequests []jsonEncryptedSecret   `json:"secretInPullRequests"`
+}
+
+type jsonUntrustedCheckout struct {
+	File jsonFile `json:"file"`
+}
+
+type jsonScriptInjection struct {
+	File jsonFile `json:"file"`
+}
+
+type jsonEncryptedSecret struct {
+	File jsonFile `json:"file"`
+}
+
 //nolint
 type jsonRawResults struct {
+	// Workflow results.
+	Workflows jsonWorkflows `json:"ciWorkflows"`
 	// License.
 	Licenses []jsonLicense `json:"licenses"`
 	// List of recent issues.
@@ -161,6 +182,54 @@ type jsonRawResults struct {
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
 	// Releases.
 	Releases []jsonRelease `json:"releases"`
+}
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.DangerousWorkflowData) error {
+	r.Results.Workflows = jsonWorkflows{}
+	// Untrusted checkouts.
+	for _, e := range df.UntrustedCheckouts {
+		v := jsonUntrustedCheckout{
+			jsonFile{
+				Path:   e.File.Path,
+				Offset: int(e.File.Offset),
+			},
+		}
+		if e.File.Snippet != "" {
+			v.File.Snippet = &e.File.Snippet
+		}
+		r.Results.Workflows.UntrustedCheckouts = append(r.Results.Workflows.UntrustedCheckouts, v)
+	}
+
+	// Script injections
+	for _, e := range df.ScriptInjections {
+		v := jsonScriptInjection{
+			jsonFile{
+				Path:   e.File.Path,
+				Offset: int(e.File.Offset),
+			},
+		}
+		if e.File.Snippet != "" {
+			v.File.Snippet = &e.File.Snippet
+		}
+
+		r.Results.Workflows.ScriptInjections = append(r.Results.Workflows.ScriptInjections, v)
+	}
+
+	// Secrets in pull requests.
+	for _, e := range df.SecretInPullRequests {
+		v := jsonEncryptedSecret{
+			jsonFile{
+				Path:   e.File.Path,
+				Offset: int(e.File.Offset),
+			},
+		}
+		if e.File.Snippet != "" {
+			v.File.Snippet = &e.File.Snippet
+		}
+		r.Results.Workflows.SecretInPullRequests = append(r.Results.Workflows.SecretInPullRequests, v)
+	}
+	return nil
 }
 
 //nolint:unparam
@@ -429,6 +498,11 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Signed-Releases.
 	if err := r.addSignedReleasesRawResults(&raw.SignedReleasesResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Dangerous workflow.
+	if err := r.addDangerousWorkflowRawResults(&raw.DangerousWorkflowResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

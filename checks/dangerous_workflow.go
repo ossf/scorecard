@@ -15,11 +15,8 @@
 package checks
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
-
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -52,14 +49,6 @@ func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 		c.RawResults.DangerousWorkflowResults = rawData
 	}
 
-	j, _ := json.Marshal(rawData)
-	fmt.Println(string(j))
-	os.Exit(0)
-	// TODO: use the helper API to populate c.RawResults.DangerousWorkflowData.*
-	// X := helper.SecretsInPullRequests(&rawData)
-
 	// Return the score evaluation.
-	// return evaluation.DangerousWorkflow(CheckDangerousWorkflow, c.Dlogger,
-	//&c.RawResults.DangerousWorkflowResults)
-	return checker.CheckResult{}
+	return evaluation.DangerousWorkflow(CheckDangerousWorkflow, c.Dlogger, &rawData)
 }
