@@ -30,8 +30,6 @@ func DangerousWorkflow(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	score := checker.MaxResultScore
-
 	// Script injections.
 	for _, e := range r.ScriptInjections {
 		dl.Warn(&checker.LogMessage{
@@ -41,8 +39,6 @@ func DangerousWorkflow(name string, dl checker.DetailLogger,
 			Text:    fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet),
 			Snippet: e.File.Snippet,
 		})
-
-		score -= checker.MaxResultScore
 	}
 
 	// Untrusted checkouts.
@@ -54,8 +50,6 @@ func DangerousWorkflow(name string, dl checker.DetailLogger,
 			Text:    fmt.Sprintf("untrusted code checkout '%v'", e.File.Snippet),
 			Snippet: e.File.Snippet,
 		})
-
-		score -= checker.MaxResultScore
 	}
 
 	// Secrets in pull requests.
@@ -67,15 +61,14 @@ func DangerousWorkflow(name string, dl checker.DetailLogger,
 			Text:    fmt.Sprintf("secret accessible to pull requests '%v'", e.File.Snippet),
 			Snippet: e.File.Snippet,
 		})
-
-		score -= checker.MaxResultScore
 	}
 
-	if score < checker.MinResultScore {
-		score = checker.MinResultScore
+	if len(r.ScriptInjections) > 0 ||
+		len(r.UntrustedCheckouts) > 0 ||
+		len(r.SecretInPullRequests) > 0 {
+		return createResult(name, checker.MinResultScore)
 	}
-
-	return createResult(name, score)
+	return createResult(name, checker.MaxResultScore)
 }
 
 // Create the result.
