@@ -83,7 +83,6 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 	args ...interface{},
 ) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
-		fmt.Println("here", path)
 		return true, nil
 	}
 
