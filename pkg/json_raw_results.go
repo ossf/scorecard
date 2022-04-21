@@ -145,18 +145,18 @@ type jsonWorkflows struct {
 }
 
 type jsonUntrustedCheckout struct {
-	File jsonFile         `json:"file"`
 	Job  *jsonWorkflowJob `json:"job"`
+	File jsonFile         `json:"file"`
 }
 
 type jsonScriptInjection struct {
-	File jsonFile         `json:"file"`
 	Job  *jsonWorkflowJob `json:"job"`
+	File jsonFile         `json:"file"`
 }
 
 type jsonEncryptedSecret struct {
-	File jsonFile         `json:"file"`
 	Job  *jsonWorkflowJob `json:"job"`
+	File jsonFile         `json:"file"`
 }
 
 type jsonWorkflowJob struct {
@@ -167,7 +167,7 @@ type jsonWorkflowJob struct {
 //nolint
 type jsonRawResults struct {
 	// Workflow results.
-	Workflows jsonWorkflows `json:"ciWorkflows"`
+	Workflows jsonWorkflows `json:"workflows"`
 	// License.
 	Licenses []jsonLicense `json:"licenses"`
 	// List of recent issues.
