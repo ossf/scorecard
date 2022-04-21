@@ -174,7 +174,7 @@ func (o *Options) Validate() error {
 	}
 
 	if strings.Contains(o.GithubEventName, "pull_request") &&
-		o.GithubRef == o.DefaultBranch {
+		o.GithubRef != o.DefaultBranch {
 		fmt.Printf("%s not supported with %s event.\n", o.GithubRef, o.GithubEventName)
 		fmt.Printf("Only the default branch %s is supported.\n", o.DefaultBranch)
 

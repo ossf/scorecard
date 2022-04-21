@@ -47,6 +47,8 @@ func TestNew(t *testing.T) {
 	tests := []struct {
 		name             string
 		githubEventPath  string
+		githubEventName  string
+		githubRef        string
 		repo             string
 		resultsFile      string
 		resultsFormat    string
@@ -59,6 +61,8 @@ func TestNew(t *testing.T) {
 		{
 			name:            "SuccessFormatSARIF",
 			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
+			githubRef:       "main",
 			repo:            testRepo,
 			resultsFormat:   "sarif",
 			resultsFile:     testResultsFile,
@@ -75,6 +79,8 @@ func TestNew(t *testing.T) {
 		{
 			name:            "SuccessFormatJSON",
 			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
+			githubRef:       "main",
 			repo:            testRepo,
 			resultsFormat:   "json",
 			resultsFile:     testResultsFile,
@@ -90,6 +96,8 @@ func TestNew(t *testing.T) {
 		{
 			name:            "FailureTokenIsNotSet",
 			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
+			githubRef:       "main",
 			repo:            testRepo,
 			resultsFormat:   "sarif",
 			resultsFile:     testResultsFile,
@@ -107,6 +115,8 @@ func TestNew(t *testing.T) {
 		{
 			name:            "FailureResultsPathNotSet",
 			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
+			githubRef:       "main",
 			want: fields{
 				EnableSarif: true,
 				Format:      formatSarif,
@@ -120,6 +130,8 @@ func TestNew(t *testing.T) {
 		{
 			name:            "FailureResultsPathEmpty",
 			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
+			githubRef:       "main",
 			resultsFile:     "",
 			want: fields{
 				EnableSarif: true,
@@ -131,33 +143,46 @@ func TestNew(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name:            "FailureBranchIsntMain",
+			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
+			githubRef:       "other-branch",
+			repo:            testRepo,
+			resultsFormat:   "sarif",
+			resultsFile:     testResultsFile,
+			want: fields{
+				EnableSarif: true,
+				Format:      formatSarif,
+				PolicyFile:  defaultScorecardPolicyFile,
+				ResultsFile: testResultsFile,
+				Commit:      options.DefaultCommit,
+				LogLevel:    options.DefaultLogLevel,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, tokenEnvExists := os.LookupEnv(EnvGithubAuthToken)
-			if !tokenEnvExists {
-				os.Setenv(EnvGithubAuthToken, testToken)
-				defer os.Unsetenv(EnvGithubAuthToken)
-			}
+
+			os.Setenv(EnvGithubAuthToken, testToken)
+			defer os.Unsetenv(EnvGithubAuthToken)
+
 			if tt.unsetToken {
 				os.Unsetenv(EnvGithubAuthToken)
 			}
 
-			_, pathEnvExists := os.LookupEnv(EnvGithubEventPath)
-			if !pathEnvExists {
-				if tt.githubEventPath != "" {
-					os.Setenv(EnvGithubEventPath, tt.githubEventPath)
-					defer os.Unsetenv(EnvGithubEventPath)
-				}
-			}
+			os.Setenv(EnvGithubEventPath, tt.githubEventPath)
+			defer os.Unsetenv(EnvGithubEventPath)
 
-			_, repoEnvExists := os.LookupEnv(EnvGithubRepository)
-			if !repoEnvExists {
-				if tt.repo != "" {
-					os.Setenv(EnvGithubRepository, tt.repo)
-					defer os.Unsetenv(EnvGithubRepository)
-				}
-			}
+			os.Setenv(EnvGithubEventName, tt.githubEventName)
+			defer os.Unsetenv(EnvGithubEventName)
+
+			os.Setenv(EnvGithubRef, tt.githubRef)
+			defer os.Unsetenv(EnvGithubRef)
+
+			os.Setenv(EnvGithubRepository, tt.repo)
+			defer os.Unsetenv(EnvGithubRepository)
 
 			os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
 			defer os.Unsetenv(EnvInputResultsFormat)
