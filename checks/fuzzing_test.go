@@ -295,8 +295,8 @@ func TestFuzzing(t *testing.T) {
 			}
 
 			result := Fuzzing(&req)
-			if (result.Error2 != nil) != tt.wantErr {
-				t.Errorf("Fuzzing() error = %v, wantErr %v", result.Error2, tt.wantErr)
+			if (result.Error != nil) != tt.wantErr {
+				t.Errorf("Fuzzing() error = %v, wantErr %v", result.Error, tt.wantErr)
 				return
 			}
 

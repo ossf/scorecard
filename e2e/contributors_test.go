@@ -52,7 +52,6 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 			result := checks.Contributors(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "several contributors", &expected, &result, &dl)).Should(BeTrue())

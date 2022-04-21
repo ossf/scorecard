@@ -118,10 +118,10 @@ func processRequest(ctx context.Context,
 		}
 		for checkIndex := range result.Checks {
 			check := &result.Checks[checkIndex]
-			if !errors.Is(check.Error2, sce.ErrScorecardInternal) {
+			if !errors.Is(check.Error, sce.ErrScorecardInternal) {
 				continue
 			}
-			errorMsg := fmt.Sprintf("check %s has a runtime error: %v", check.Name, check.Error2)
+			errorMsg := fmt.Sprintf("check %s has a runtime error: %v", check.Name, check.Error)
 			if !(*ignoreRuntimeErrors) {
 				// nolint: goerr113
 				return errors.New(errorMsg)

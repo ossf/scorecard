@@ -207,7 +207,7 @@ func TestCodereview(t *testing.T) {
 			res := CodeReview(&req)
 
 			if tt.err != nil {
-				if res.Error2 == nil {
+				if res.Error == nil {
 					t.Errorf("Expected error %v, got nil", tt.err)
 				}
 				// return as we don't need to check the rest of the fields.

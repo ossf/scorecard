@@ -55,7 +55,6 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			result := checks.Vulnerabilities(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "no osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
@@ -87,7 +86,6 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			result := checks.Vulnerabilities(&checkRequest)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
@@ -118,7 +116,6 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			result := checks.Vulnerabilities(&checkRequest)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
