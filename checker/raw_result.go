@@ -269,15 +269,24 @@ type DangerousWorkflowData struct {
 
 // UntrustedCheckout represents an untrusted checkout.
 type UntrustedCheckout struct {
+	Job  *WorkflowJob
 	File File
 }
 
 // ScriptInjection represents a script injection.
 type ScriptInjection struct {
+	Job  *WorkflowJob
 	File File
 }
 
 // EncryptedSecret represents an encrypted secret.
 type EncryptedSecret struct {
+	Job  *WorkflowJob
 	File File
+}
+
+// WorkflowJob reprresents a workflow job.
+type WorkflowJob struct {
+	Name *string
+	ID   *string
 }

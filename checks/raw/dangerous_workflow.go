@@ -222,15 +222,15 @@ func checkJobForUsedSecrets(job *actionlint.Job, triggers map[triggerName]bool,
 			continue
 		}
 
-		if err := checkSecretInActionArgs(step, path, pdata); err != nil {
+		if err := checkSecretInActionArgs(step, job, path, pdata); err != nil {
 			return err
 		}
 
-		if err := checkSecretInRun(step, path, pdata); err != nil {
+		if err := checkSecretInRun(step, job, path, pdata); err != nil {
 			return err
 		}
 
-		if err := checkSecretInEnv(step.Env, path, pdata); err != nil {
+		if err := checkSecretInEnv(step.Env, job, path, pdata); err != nil {
 			return err
 		}
 	}
@@ -300,6 +300,20 @@ func jobUsesCodeCheckout(job *actionlint.Job) (bool, string) {
 	return hasCheckout, ""
 }
 
+func createJob(job *actionlint.Job) *checker.WorkflowJob {
+	if job == nil {
+		return nil
+	}
+	var r checker.WorkflowJob
+	if job.Name != nil {
+		r.Name = &job.Name.Value
+	}
+	if job.ID != nil {
+		r.ID = &job.ID.Value
+	}
+	return &r
+}
+
 func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
@@ -338,6 +352,7 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 						Offset:  line,
 						Snippet: ref.Value.Value,
 					},
+					Job: createJob(job),
 				},
 			)
 		}
@@ -361,7 +376,7 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 				continue
 			}
 			// Check Run *String for user-controllable (untrustworthy) properties.
-			if err := checkVariablesInScript(run.Run.Value, run.Run.Pos, path, pdata); err != nil {
+			if err := checkVariablesInScript(run.Run.Value, run.Run.Pos, job, path, pdata); err != nil {
 				return err
 			}
 		}
@@ -377,10 +392,10 @@ func checkWorkflowSecretInEnv(workflow *actionlint.Workflow, triggers map[trigge
 		return nil
 	}
 
-	return checkSecretInEnv(workflow.Env, path, pdata)
+	return checkSecretInEnv(workflow.Env, nil, path, pdata)
 }
 
-func checkSecretInEnv(env *actionlint.Env, path string,
+func checkSecretInEnv(env *actionlint.Env, job *actionlint.Job, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	if env == nil {
@@ -388,14 +403,14 @@ func checkSecretInEnv(env *actionlint.Env, path string,
 	}
 
 	for _, v := range env.Vars {
-		if err := checkSecretInScript(v.Value.Value, v.Value.Pos, path, pdata); err != nil {
+		if err := checkSecretInScript(v.Value.Value, v.Value.Pos, job, path, pdata); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func checkSecretInRun(step *actionlint.Step, path string,
+func checkSecretInRun(step *actionlint.Step, job *actionlint.Job, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	if step == nil || step.Exec == nil {
@@ -404,14 +419,14 @@ func checkSecretInRun(step *actionlint.Step, path string,
 
 	run, ok := step.Exec.(*actionlint.ExecRun)
 	if ok && run.Run != nil {
-		if err := checkSecretInScript(run.Run.Value, run.Run.Pos, path, pdata); err != nil {
+		if err := checkSecretInScript(run.Run.Value, run.Run.Pos, job, path, pdata); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func checkSecretInActionArgs(step *actionlint.Step, path string,
+func checkSecretInActionArgs(step *actionlint.Step, job *actionlint.Job, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	if step == nil || step.Exec == nil {
@@ -424,7 +439,7 @@ func checkSecretInActionArgs(step *actionlint.Step, path string,
 		// the base branch of the pull request.
 		for _, v := range e.Inputs {
 			if v.Value != nil {
-				if err := checkSecretInScript(v.Value.Value, v.Value.Pos, path, pdata); err != nil {
+				if err := checkSecretInScript(v.Value.Value, v.Value.Pos, job, path, pdata); err != nil {
 					return err
 				}
 			}
@@ -433,7 +448,8 @@ func checkSecretInActionArgs(step *actionlint.Step, path string,
 	return nil
 }
 
-func checkSecretInScript(script string, pos *actionlint.Pos, path string,
+func checkSecretInScript(script string, pos *actionlint.Pos,
+	job *actionlint.Job, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	for {
@@ -463,6 +479,7 @@ func checkSecretInScript(script string, pos *actionlint.Pos, path string,
 						Offset:  line,
 						Snippet: variable,
 					},
+					Job: createJob(job),
 				},
 			)
 		}
@@ -471,7 +488,8 @@ func checkSecretInScript(script string, pos *actionlint.Pos, path string,
 	return nil
 }
 
-func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
+func checkVariablesInScript(script string, pos *actionlint.Pos,
+	job *actionlint.Job, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	for {
@@ -497,6 +515,7 @@ func checkVariablesInScript(script string, pos *actionlint.Pos, path string,
 						Offset:  line,
 						Snippet: variable,
 					},
+					Job: createJob(job),
 				},
 			)
 		}

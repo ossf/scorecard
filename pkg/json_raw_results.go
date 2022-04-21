@@ -145,15 +145,23 @@ type jsonWorkflows struct {
 }
 
 type jsonUntrustedCheckout struct {
-	File jsonFile `json:"file"`
+	File jsonFile         `json:"file"`
+	Job  *jsonWorkflowJob `json:"job"`
 }
 
 type jsonScriptInjection struct {
-	File jsonFile `json:"file"`
+	File jsonFile         `json:"file"`
+	Job  *jsonWorkflowJob `json:"job"`
 }
 
 type jsonEncryptedSecret struct {
-	File jsonFile `json:"file"`
+	File jsonFile         `json:"file"`
+	Job  *jsonWorkflowJob `json:"job"`
+}
+
+type jsonWorkflowJob struct {
+	Name *string `json:"name"`
+	ID   *string `json:"id"`
 }
 
 //nolint
@@ -190,13 +198,19 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 	// Untrusted checkouts.
 	for _, e := range df.UntrustedCheckouts {
 		v := jsonUntrustedCheckout{
-			jsonFile{
+			File: jsonFile{
 				Path:   e.File.Path,
 				Offset: int(e.File.Offset),
 			},
 		}
 		if e.File.Snippet != "" {
 			v.File.Snippet = &e.File.Snippet
+		}
+		if e.Job != nil {
+			v.Job = &jsonWorkflowJob{
+				Name: e.Job.Name,
+				ID:   e.Job.ID,
+			}
 		}
 		r.Results.Workflows.UntrustedCheckouts = append(r.Results.Workflows.UntrustedCheckouts, v)
 	}
@@ -204,7 +218,7 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 	// Script injections
 	for _, e := range df.ScriptInjections {
 		v := jsonScriptInjection{
-			jsonFile{
+			File: jsonFile{
 				Path:   e.File.Path,
 				Offset: int(e.File.Offset),
 			},
@@ -212,20 +226,31 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 		if e.File.Snippet != "" {
 			v.File.Snippet = &e.File.Snippet
 		}
-
+		if e.Job != nil {
+			v.Job = &jsonWorkflowJob{
+				Name: e.Job.Name,
+				ID:   e.Job.ID,
+			}
+		}
 		r.Results.Workflows.ScriptInjections = append(r.Results.Workflows.ScriptInjections, v)
 	}
 
 	// Secrets in pull requests.
 	for _, e := range df.SecretInPullRequests {
 		v := jsonEncryptedSecret{
-			jsonFile{
+			File: jsonFile{
 				Path:   e.File.Path,
 				Offset: int(e.File.Offset),
 			},
 		}
 		if e.File.Snippet != "" {
 			v.File.Snippet = &e.File.Snippet
+		}
+		if e.Job != nil {
+			v.Job = &jsonWorkflowJob{
+				Name: e.Job.Name,
+				ID:   e.Job.ID,
+			}
 		}
 		r.Results.Workflows.SecretInPullRequests = append(r.Results.Workflows.SecretInPullRequests, v)
 	}
