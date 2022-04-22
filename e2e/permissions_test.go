@@ -56,7 +56,6 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			// UPGRADEv2: to remove.
 			// Old version.
 
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
@@ -86,7 +85,6 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			// UPGRADEv2: to remove.
 			// Old version.
 
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
@@ -128,7 +126,6 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			// UPGRADEv2: to remove.
 			// Old version.
 
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())

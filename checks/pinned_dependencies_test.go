@@ -128,8 +128,8 @@ func TestGithubWorkflowPinning(t *testing.T) {
 
 			s, e := testIsGitHubActionsWorkflowPinned(p, content, &dl)
 			actual := checker.CheckResult{
-				Score:  s,
-				Error2: e,
+				Score: s,
+				Error: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()
@@ -221,8 +221,8 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 
 			s, e := testIsGitHubActionsWorkflowPinned(p, content, &dl)
 			actual := checker.CheckResult{
-				Score:  s,
-				Error2: e,
+				Score: s,
+				Error: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()
@@ -268,8 +268,8 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 
 			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(p, content, &dl)
 			actual := checker.CheckResult{
-				Score:  s,
-				Error2: e,
+				Score: s,
+				Error: e,
 			}
 
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
@@ -392,8 +392,8 @@ func TestDockerfilePinning(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			s, e := testValidateDockerfileIsPinned(tt.filename, content, &dl)
 			actual := checker.CheckResult{
-				Score:  s,
-				Error2: e,
+				Score: s,
+				Error: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()
@@ -781,8 +781,8 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			s, e := testValidateDockerfileIsPinned(tt.filename, content, &dl)
 			actual := checker.CheckResult{
-				Score:  s,
-				Error2: e,
+				Score: s,
+				Error: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()
@@ -970,8 +970,8 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			s, e := testValidateDockerfileIsFreeOfInsecureDownloads(tt.filename, content, &dl)
 			actual := checker.CheckResult{
-				Score:  s,
-				Error2: e,
+				Score: s,
+				Error: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()
@@ -1013,8 +1013,8 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			s, e := testValidateDockerfileIsFreeOfInsecureDownloads(tt.filename, content, &dl)
 			actual := checker.CheckResult{
-				Score:  s,
-				Error2: e,
+				Score: s,
+				Error: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()
@@ -1123,8 +1123,8 @@ func TestShellScriptDownload(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			s, e := testValidateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &dl)
 			actual := checker.CheckResult{
-				Score:  s,
-				Error2: e,
+				Score: s,
+				Error: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()
@@ -1178,8 +1178,8 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			s, e := testValidateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &dl)
 			actual := checker.CheckResult{
-				Score:  s,
-				Error2: e,
+				Score: s,
+				Error: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()
@@ -1257,8 +1257,8 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 
 			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(p, content, &dl)
 			actual := checker.CheckResult{
-				Score:  s,
-				Error2: e,
+				Score: s,
+				Error: e,
 			}
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()

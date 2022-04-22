@@ -70,8 +70,8 @@ func TestDependencyUpdateTool(t *testing.T) {
 				},
 			},
 			want: checker.CheckResult{
-				Score:  0,
-				Error2: nil,
+				Score: 0,
+				Error: nil,
 			},
 			err: false,
 			expected: scut.TestReturn{
@@ -104,8 +104,8 @@ func TestDependencyUpdateTool(t *testing.T) {
 				},
 			},
 			want: checker.CheckResult{
-				Score:  10,
-				Error2: nil,
+				Score: 10,
+				Error: nil,
 			},
 			expected: scut.TestReturn{
 				Error:        nil,
@@ -131,8 +131,8 @@ func TestDependencyUpdateTool(t *testing.T) {
 				},
 			},
 			want: checker.CheckResult{
-				Score:  -1,
-				Error2: nil,
+				Score: -1,
+				Error: nil,
 			},
 			expected: scut.TestReturn{
 				Error: sce.ErrScorecardInternal,
@@ -147,8 +147,8 @@ func TestDependencyUpdateTool(t *testing.T) {
 				dl:   &scut.TestDetailLogger{},
 			},
 			want: checker.CheckResult{
-				Score:  -1,
-				Error2: nil,
+				Score: -1,
+				Error: nil,
 			},
 			expected: scut.TestReturn{
 				Error: sce.ErrScorecardInternal,
@@ -167,8 +167,8 @@ func TestDependencyUpdateTool(t *testing.T) {
 			if tt.want.Score != got.Score {
 				t.Errorf("DependencyUpdateTool() got Score = %v, want %v for %v", got.Score, tt.want.Score, tt.name)
 			}
-			if tt.err && got.Error2 == nil {
-				t.Errorf("DependencyUpdateTool() error = %v, want %v for %v", got.Error2, tt.want.Error2, tt.name)
+			if tt.err && got.Error == nil {
+				t.Errorf("DependencyUpdateTool() error = %v, want %v for %v", got.Error, tt.want.Error, tt.name)
 				return
 			}
 

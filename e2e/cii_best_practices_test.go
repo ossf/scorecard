@@ -52,7 +52,6 @@ var _ = Describe("E2E TEST:"+checks.CheckCIIBestPractices, func() {
 			result := checks.CIIBestPractices(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "passing badge", &expected, &result, &dl)).Should(BeTrue())

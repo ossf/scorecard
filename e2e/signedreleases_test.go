@@ -52,7 +52,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSignedReleases, func() {
 			result := checks.SignedReleases(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "verified release", &expected, &result, &dl)).Should(BeTrue())
