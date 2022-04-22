@@ -54,9 +54,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -83,9 +80,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -112,9 +106,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -141,9 +132,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -181,9 +169,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())

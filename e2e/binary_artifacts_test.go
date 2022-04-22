@@ -79,14 +79,13 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  24,
+				NumberOfWarn:  25,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
 			result := checks.BinaryArtifacts(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -114,9 +113,6 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.BinaryArtifacts(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
