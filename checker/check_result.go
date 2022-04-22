@@ -82,7 +82,6 @@ type CheckResult struct {
 	Name       string
 	Details    []string
 	Confidence int
-	Pass       bool
 
 	// UPGRADEv2: New structure. Omitting unchanged Name field
 	// for simplicity.
@@ -145,23 +144,18 @@ func AggregateScoresWithWeight(scores map[int]int) int {
 }
 
 // NormalizeReason - placeholder function if we want to update range of scores.
-func NormalizeReason(reason string, score int) string {
-	return fmt.Sprintf("%v -- score normalized to %d", reason, score)
+func NormalizeReason(reason string) string {
+	return fmt.Sprintf("%v -- score normalized", reason)
 }
 
 // CreateResultWithScore is used when
 // the check runs without runtime errors and we want to assign a
 // specific score.
 func CreateResultWithScore(name, reason string, score int) CheckResult {
-	pass := true
-	if score < migrationThresholdPassValue {
-		pass = false
-	}
 	return CheckResult{
 		Name: name,
 		// Old structure.
 		Confidence: MaxResultScore,
-		Pass:       pass,
 		// New structure.
 		Version: 2,
 		Error:   nil,
@@ -176,21 +170,14 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 // multiple tests and we want to assign a score proportional
 // the the number of tests that succeeded.
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
-	pass := true
-	score := CreateProportionalScore(b, t)
-	if score < migrationThresholdPassValue {
-		pass = false
-	}
 	return CheckResult{
 		Name: name,
 		// Old structure.
 		Confidence: MaxResultConfidence,
-		Pass:       pass,
 		// New structure.
 		Version: 2,
 		Error:   nil,
-		Score:   score,
-		Reason:  NormalizeReason(reason, score),
+		Reason:  NormalizeReason(reason),
 	}
 }
 
@@ -216,7 +203,6 @@ func CreateInconclusiveResult(name, reason string) CheckResult {
 		Name: name,
 		// Old structure.
 		Confidence: 0,
-		Pass:       false,
 		// New structure.
 		Version: 2,
 		Score:   InconclusiveResultScore,
@@ -230,7 +216,6 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Name: name,
 		// Old structure.
 		Confidence: 0,
-		Pass:       false,
 		// New structure.
 		Version: 2,
 		Error:   e,

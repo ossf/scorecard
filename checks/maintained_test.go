@@ -355,9 +355,6 @@ func Test_Maintained(t *testing.T) {
 			if res.Score != tt.expected.Score {
 				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
 			}
-			if res.Pass != tt.expected.Pass {
-				t.Errorf("Expected pass %t, got %t for %v", tt.expected.Pass, res.Pass, tt.name)
-			}
 			ctrl.Finish()
 		})
 	}

@@ -71,7 +71,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool is run on all commits")
 		case codeQlScore == checker.MinResultScore:
 			return checker.CreateResultWithScore(CheckSAST,
-				checker.NormalizeReason("SAST tool is not run on all commits", sastScore), sastScore)
+				checker.NormalizeReason("SAST tool is not run on all commits"), sastScore)
 
 		// codeQl is enabled and sast has 0+ (but not all) PRs checks.
 		case codeQlScore == checker.MaxResultScore:
@@ -99,7 +99,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		}
 
 		return checker.CreateResultWithScore(CheckSAST,
-			checker.NormalizeReason("SAST tool is not run on all commits", sastScore), sastScore)
+			checker.NormalizeReason("SAST tool is not run on all commits"), sastScore)
 	}
 
 	// Should never happen.
