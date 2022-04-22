@@ -70,19 +70,17 @@ func GetJSONScorecardResults() ([]byte, error) {
 }
 
 // ProcessSignature calls scorecard-api to process & upload signed scorecard results.
-func ProcessSignature(sarifPayload, jsonPayload []byte, repoName, repoRef string) error {
+func ProcessSignature(jsonPayload []byte, repoName, repoRef string) error {
 	// Prepare HTTP request body for scorecard-webapp-api call.
 	resultsPayload := struct {
-		SarifOutput string
-		JSONOutput  string
+		JSONOutput string
 	}{
-		SarifOutput: string(sarifPayload),
-		JSONOutput:  string(jsonPayload),
+		JSONOutput: string(jsonPayload),
 	}
 
 	payloadBytes, err := json.Marshal(resultsPayload)
 	if err != nil {
-		return fmt.Errorf("reading scorecard json results from file: %w", err)
+		return fmt.Errorf("marshalling json results: %w", err)
 	}
 
 	// Call scorecard-webapp-api to process and upload signature.

@@ -60,16 +60,15 @@ import (
 func Test_ProcessSignature(t *testing.T) {
 	t.Parallel()
 
-	sarifPayload, serr := ioutil.ReadFile("testdata/results.sarif")
-	jsonPayload, jerr := ioutil.ReadFile("testdata/results.json")
+	jsonPayload, err := ioutil.ReadFile("testdata/results.json")
 	repoName := "rohankh532/scorecard-OIDC-test"
 	repoRef := "refs/heads/main"
 
-	if serr != nil || jerr != nil {
-		t.Errorf("Error reading testdata:, %v, %v", serr, jerr)
+	if err != nil {
+		t.Errorf("Error reading testdata:, %v", err)
 	}
 
-	if err := ProcessSignature(sarifPayload, jsonPayload, repoName, repoRef); err != nil {
+	if err := ProcessSignature(jsonPayload, repoName, repoRef); err != nil {
 		t.Errorf("ProcessSignature() error:, %v", err)
 		return
 	}
