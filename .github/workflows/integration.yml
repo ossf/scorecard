@@ -95,7 +95,7 @@ jobs:
           command: make e2e-pat
 
       - name: codecov
-        uses: codecov/codecov-action@e3c560433a6cc60aec8812599b7844a7b4fa0d71 # 2.1.0
+        uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
         with:
          files: ./e2e-coverage.out
          verbose: true
