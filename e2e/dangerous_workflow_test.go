@@ -53,10 +53,6 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.DangerousWorkflow(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})
@@ -81,10 +77,6 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.DangerousWorkflow(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})
@@ -121,10 +113,6 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.DangerousWorkflow(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})

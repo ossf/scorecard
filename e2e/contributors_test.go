@@ -50,9 +50,6 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.Contributors(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "several contributors", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())

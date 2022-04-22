@@ -53,10 +53,6 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				NumberOfDebug: 5,
 			}
 			result := checks.TokenPermissions(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -82,10 +78,6 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				NumberOfDebug: 5,
 			}
 			result := checks.TokenPermissions(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -123,10 +115,6 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				NumberOfDebug: 5,
 			}
 			result := checks.TokenPermissions(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())

@@ -54,7 +54,6 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Pass).Should(BeFalse())
 
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
@@ -83,9 +82,6 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.BranchProtection(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Pass).Should(BeFalse())
 
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
@@ -114,9 +110,6 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 				NumberOfDebug: 3,
 			}
 			result := checks.BranchProtection(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Pass).Should(BeFalse())
 
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
