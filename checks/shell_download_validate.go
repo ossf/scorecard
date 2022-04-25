@@ -598,12 +598,9 @@ func isChocoUnpinnedDownload(cmd []string) bool {
 
 		str := parts[0]
 
-		switch {
-		case strings.EqualFold(str, "--requirechecksum"):
-			return false
-		case strings.EqualFold(str, "--requirechecksums"):
-			return false
-		case strings.EqualFold(str, "--require-checksums"):
+		if strings.EqualFold(str, "--requirechecksum") ||
+		  strings.EqualFold(str, "--requirechecksums") ||
+		  strings.EqualFold(str, "--require-checksums") {
 			return false
 		}
 	}
