@@ -283,24 +283,27 @@ type CIIBestPracticesData struct {
 	Badge CIIBadge
 }
 
+// DangerousWorkflowType represents a type of dangerous workflow.
+type DangerousWorkflowType int
+
+const (
+	// DangerousWorkflowScriptInjection represents a script injection.
+	DangerousWorkflowScriptInjection DangerousWorkflowType = iota
+	// DangerousWorkflowUntrustedCheckout represents an untrusted checkout.
+	DangerousWorkflowUntrustedCheckout
+)
+
 // DangerousWorkflowData contains raw results
 // for dangerous workflow check.
 type DangerousWorkflowData struct {
-	ScriptInjections   []ScriptInjection
-	UntrustedCheckouts []UntrustedCheckout
-	// TODO: other
+	Workflows []Workflow
 }
 
-// UntrustedCheckout represents an untrusted checkout.
-type UntrustedCheckout struct {
+// Workflow represents a result for a workflow.
+type Workflow struct {
 	Job  *WorkflowJob
 	File File
-}
-
-// ScriptInjection represents a script injection.
-type ScriptInjection struct {
-	Job  *WorkflowJob
-	File File
+	Type DangerousWorkflowType
 }
 
 // WorkflowJob reprresents a workflow job.

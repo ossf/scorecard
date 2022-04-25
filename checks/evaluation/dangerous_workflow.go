@@ -30,30 +30,28 @@ func DangerousWorkflow(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// Script injections.
-	for _, e := range r.ScriptInjections {
+	for _, e := range r.Workflows {
+		var text string
+		switch e.Type {
+		case checker.DangerousWorkflowUntrustedCheckout:
+			text = fmt.Sprintf("untrusted code checkout '%v'", e.File.Snippet)
+		case checker.DangerousWorkflowScriptInjection:
+			text = fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet)
+		default:
+			err := sce.WithMessage(sce.ErrScorecardInternal, "invalid type")
+			return checker.CreateRuntimeErrorResult(name, err)
+		}
+
 		dl.Warn(&checker.LogMessage{
 			Path:    e.File.Path,
 			Type:    e.File.Type,
 			Offset:  e.File.Offset,
-			Text:    fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet),
+			Text:    text,
 			Snippet: e.File.Snippet,
 		})
 	}
 
-	// Untrusted checkouts.
-	for _, e := range r.UntrustedCheckouts {
-		dl.Warn(&checker.LogMessage{
-			Path:    e.File.Path,
-			Type:    e.File.Type,
-			Offset:  e.File.Offset,
-			Text:    fmt.Sprintf("untrusted code checkout '%v'", e.File.Snippet),
-			Snippet: e.File.Snippet,
-		})
-	}
-
-	if len(r.ScriptInjections) > 0 ||
-		len(r.UntrustedCheckouts) > 0 {
+	if len(r.Workflows) > 0 {
 		return createResult(name, checker.MinResultScore)
 	}
 	return createResult(name, checker.MaxResultScore)
