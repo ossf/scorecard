@@ -84,3 +84,9 @@ npm i
 npm ci
 npm install-test
 npm install-ci-test
+
+choco install 'some-package'
+choco install 'some-other-package'
+choco install --requirechecksum 'some-package'
+choco install --requirechecksums 'some-package'
+choco install --require-checksums 'some-package'

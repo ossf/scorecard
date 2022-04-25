@@ -26,3 +26,9 @@ bla && \
         pip install -r requirements.txt
 
 bla && curl bla | bash
+
+choco install 'some-package'
+choco install 'some-other-package'
+choco install --requirechecksum 'some-package'
+choco install --requirechecksums 'some-package'
+choco install --require-checksums 'some-package'
