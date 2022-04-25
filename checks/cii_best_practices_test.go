@@ -66,21 +66,21 @@ func TestCIIBestPractices(t *testing.T) {
 			name:       "InProgressBadge",
 			badgeLevel: clients.InProgress,
 			expected: scut.TestReturn{
-				Score: inProgressScore,
+				Score: 2,
 			},
 		},
 		{
 			name:       "PassingBadge",
 			badgeLevel: clients.Passing,
 			expected: scut.TestReturn{
-				Score: passingScore,
+				Score: 5,
 			},
 		},
 		{
 			name:       "SilverBadge",
 			badgeLevel: clients.Silver,
 			expected: scut.TestReturn{
-				Score: silverScore,
+				Score: 7,
 			},
 		},
 		{
