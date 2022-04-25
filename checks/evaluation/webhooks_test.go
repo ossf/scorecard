@@ -139,8 +139,8 @@ func TestWebhooks(t *testing.T) {
 			t.Parallel()
 			got := Webhooks(tt.args.name, tt.args.dl, tt.args.r)
 			if tt.wantErr {
-				if got.Error2 == nil {
-					t.Errorf("Webhooks() error = %v, wantErr %v", got.Error2, tt.wantErr)
+				if got.Error == nil {
+					t.Errorf("Webhooks() error = %v, wantErr %v", got.Error, tt.wantErr)
 				}
 			} else {
 				if got.Score != tt.want.Score {

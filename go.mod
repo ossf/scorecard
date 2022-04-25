@@ -5,7 +5,7 @@ go 1.17
 // TODO(go.mod): Is there a reason these deps are kept separately from the
 //               other `require`s?
 require (
-	github.com/rhysd/actionlint v1.6.11
+	github.com/rhysd/actionlint v1.6.12
 	gotest.tools v2.2.0+incompatible
 )
 
@@ -14,7 +14,7 @@ require (
 	cloud.google.com/go/monitoring v1.4.0 // indirect
 	cloud.google.com/go/pubsub v1.20.0
 	cloud.google.com/go/trace v1.2.0 // indirect
-	contrib.go.opencensus.io/exporter/stackdriver v0.13.11
+	contrib.go.opencensus.io/exporter/stackdriver v0.13.12
 	github.com/bombsimon/logrusr/v2 v2.0.1
 	github.com/bradleyfalzon/ghinstallation/v2 v2.0.4
 	github.com/go-git/go-git/v5 v5.4.2
@@ -46,6 +46,7 @@ require (
 
 require (
 	github.com/caarlos0/env/v6 v6.9.1
+	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.1.3
 	sigs.k8s.io/release-utils v0.6.0
 )
@@ -93,6 +94,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2-0.20211117181255-693428a734f5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/prometheus/prometheus v2.5.0+incompatible // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect

@@ -277,8 +277,8 @@ func TestBinaryArtifacts(t *testing.T) {
 			t.Parallel()
 			got := BinaryArtifacts(tt.args.name, tt.args.dl, tt.args.r)
 			if tt.wantErr {
-				if got.Error2 == nil {
-					t.Errorf("BinaryArtifacts() error = %v, wantErr %v", got.Error2, tt.wantErr)
+				if got.Error == nil {
+					t.Errorf("BinaryArtifacts() error = %v, wantErr %v", got.Error, tt.wantErr)
 				}
 			} else {
 				if got.Score != tt.want.Score {

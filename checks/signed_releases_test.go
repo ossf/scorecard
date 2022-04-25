@@ -359,9 +359,9 @@ func TestSignedRelease(t *testing.T) {
 			name: "Error getting releases",
 			err:  errors.New("Error getting releases"),
 			expected: checker.CheckResult{
-				Pass:   false,
-				Score:  -1,
-				Error2: errors.New("Error getting releases"),
+				Pass:  false,
+				Score: -1,
+				Error: errors.New("Error getting releases"),
 			},
 		},
 	}
@@ -390,7 +390,7 @@ func TestSignedRelease(t *testing.T) {
 			res := SignedReleases(&req)
 
 			if tt.err != nil {
-				if res.Error2 == nil {
+				if res.Error == nil {
 					t.Errorf("Expected error %v, got nil", tt.err)
 				}
 				// return as we don't need to check the rest of the fields.

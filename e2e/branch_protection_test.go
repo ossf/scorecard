@@ -54,7 +54,6 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 
 			// New version.
@@ -86,7 +85,6 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 
 			// New version.
@@ -118,7 +116,6 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 
 			// New version.
@@ -146,9 +143,9 @@ var _ = Describe("E2E TEST GITHUB_TOKEN:"+checks.CheckBranchProtection, func() {
 			}
 
 			result := checks.BranchProtection(&req)
+			Expect(result.Error).ShouldNot(BeNil())
 			// There should be an error with the GITHUB_TOKEN, until it's supported
 			// byt GitHub.
-			Expect(result.Error).ShouldNot(BeNil())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

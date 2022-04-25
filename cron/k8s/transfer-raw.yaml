@@ -34,8 +34,8 @@ spec:
               requests:
                 memory: 1Gi
             env:
-              - name: RAW_SCORECARD_BIGQUERY_TABLE
+              - name: SCORECARD_BIGQUERY_TABLE
                 value: "scorecard-rawdata"
-              - name: RAW_SCORECARD_DATA_BUCKET_URL
+              - name: SCORECARD_DATA_BUCKET_URL
                 value: "gs://ossf-scorecard-rawdata"
           restartPolicy: OnFailure
