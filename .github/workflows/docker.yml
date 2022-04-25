@@ -40,7 +40,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       uses: step-security/harden-runner@34cbc43f0b10c9dda284e663cf43c2ebaf83e956 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -82,7 +82,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       uses: step-security/harden-runner@34cbc43f0b10c9dda284e663cf43c2ebaf83e956 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -124,7 +124,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       uses: step-security/harden-runner@34cbc43f0b10c9dda284e663cf43c2ebaf83e956 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -166,7 +166,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       uses: step-security/harden-runner@34cbc43f0b10c9dda284e663cf43c2ebaf83e956 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -208,7 +208,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       uses: step-security/harden-runner@34cbc43f0b10c9dda284e663cf43c2ebaf83e956 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -250,7 +250,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       uses: step-security/harden-runner@34cbc43f0b10c9dda284e663cf43c2ebaf83e956 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -292,7 +292,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+       uses: step-security/harden-runner@34cbc43f0b10c9dda284e663cf43c2ebaf83e956 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
