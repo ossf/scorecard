@@ -42,11 +42,12 @@
               }
             },
             "required": [
-              "path"
+              "path",
+              "offset"
             ]
           }
         },
-        "branch-protections": {
+        "branchProtections": {
           "type": "array",
           "items": {
             "type": "object",
@@ -57,34 +58,34 @@
               "protection": {
                 "type": "object",
                 "properties": {
-                  "allows-deletions": {
+                  "allowsDeletions": {
                     "type": "boolean"
                   },
-                  "allows-force-pushes": {
+                  "allowsForcePushes": {
                     "type": "boolean"
                   },
-                  "dismisses-stale-reviews": {
+                  "dismissesStaleReviews": {
                     "type": "boolean"
                   },
-                  "enforces-admin": {
+                  "enforcesAdmin": {
                     "type": "boolean"
                   },
-                  "required-linear-history": {
+                  "requiredLinearHistory": {
                     "type": "boolean"
                   },
-                  "required-reviewer-count": {
+                  "requiredReviewerCount": {
                     "type": "integer"
                   },
-                  "requires-code-owner-review": {
+                  "requiresCodeOwnerReview": {
                     "type": "boolean"
                   },
-                  "requires-status-checks": {
+                  "requiresStatusChecks": {
                     "type": "boolean"
                   },
-                  "requires-updated-branches-to-merge": {
+                  "requiresUpdatedBranchesToMerge": {
                     "type": "boolean"
                   },
-                  "status-checks-contexts": {
+                  "statusChecksContexts": {
                     "type": "array",
                     "items": {
                       "type": "string"
@@ -92,16 +93,16 @@
                   }
                 },
                 "required": [
-                  "required-reviewer-count",
-                  "allows-deletions",
-                  "allows-force-pushes",
-                  "requires-code-owner-review",
-                  "required-linear-history",
-                  "dismisses-stale-reviews",
-                  "enforces-admin",
-                  "requires-status-checks",
-                  "requires-updated-branches-to-merge",
-                  "status-checks-contexts"
+                  "requiredReviewerCount",
+                  "allowsDeletions",
+                  "allowsForcePushes",
+                  "requiresCodeOwnerReview",
+                  "requiredLinearHistory",
+                  "dismissesStaleReviews",
+                  "enforcesAdmin",
+                  "requiresStatusChecks",
+                  "requiresUpdatedBranchesToMerge",
+                  "statusChecksContexts"
                 ]
               }
             },
@@ -111,7 +112,7 @@
             ]
           }
         },
-        "database-vulnerabilities": {
+        "databaseVulnerabilities": {
           "type": "array",
           "items": {
             "type": "object",
@@ -125,12 +126,12 @@
             ]
           }
         },
-        "default-branch-commits": {
+        "defaultBranchCommits": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
-              "commit-message": {
+              "commitMessage": {
                 "type": "string"
               },
               "committer": {
@@ -144,7 +145,7 @@
                   "login"
                 ]
               },
-              "merge-request": {
+              "mergeRequest": {
                 "type": "object",
                 "properties": {
                   "author": {
@@ -207,13 +208,13 @@
             },
             "required": [
               "committer",
-              "merge-request",
-              "commit-message",
+              "mergeRequest",
+              "commitMessage",
               "sha"
             ]
           }
         },
-        "dependency-update-tools": {
+        "dependencyUpdateTools": {
           "type": "array",
           "items": {
             "type": "object",
@@ -234,7 +235,8 @@
                     }
                   },
                   "required": [
-                    "path"
+                    "path",
+                    "offset"
                   ]
                 }
               },
@@ -253,7 +255,7 @@
             ]
           }
         },
-        "security-policies": {
+        "securityPolicies": {
           "type": "array",
           "items": {
             "type": "object",
@@ -266,18 +268,19 @@
               }
             },
             "required": [
-              "path"
+              "path",
+              "offset"
             ]
           }
         }
       },
       "required": [
-        "database-vulnerabilities",
+        "databaseVulnerabilities",
         "binaries",
-        "security-policies",
-        "dependency-update-tools",
-        "branch-protections",
-        "default-branch-commits"
+        "securityPolicies",
+        "dependencyUpdateTools",
+        "branchProtections",
+        "defaultBranchCommits"
       ]
     },
     "scorecard": {

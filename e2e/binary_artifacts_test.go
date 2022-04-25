@@ -86,7 +86,6 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			result := checks.BinaryArtifacts(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
@@ -117,7 +116,6 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			result := checks.BinaryArtifacts(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
-			Expect(result.Error).Should(BeNil())
 			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())

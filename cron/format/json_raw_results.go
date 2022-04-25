@@ -48,16 +48,16 @@ type jsonTool struct {
 }
 
 type jsonBranchProtectionSettings struct {
-	RequiredApprovingReviewCount        *int     `json:"required-reviewer-count"`
-	AllowsDeletions                     *bool    `json:"allows-deletions"`
-	AllowsForcePushes                   *bool    `json:"allows-force-pushes"`
-	RequiresCodeOwnerReviews            *bool    `json:"requires-code-owner-review"`
-	RequiresLinearHistory               *bool    `json:"required-linear-history"`
-	DismissesStaleReviews               *bool    `json:"dismisses-stale-reviews"`
-	EnforcesAdmins                      *bool    `json:"enforces-admin"`
-	RequiresStatusChecks                *bool    `json:"requires-status-checks"`
-	RequiresUpToDateBranchBeforeMerging *bool    `json:"requires-updated-branches-to-merge"`
-	StatusCheckContexts                 []string `json:"status-checks-contexts"`
+	RequiredApprovingReviewCount        *int     `json:"requiredReviewerCount"`
+	AllowsDeletions                     *bool    `json:"allowsDeletions"`
+	AllowsForcePushes                   *bool    `json:"allowsForcePushes"`
+	RequiresCodeOwnerReviews            *bool    `json:"requiresCodeOwnerReview"`
+	RequiresLinearHistory               *bool    `json:"requiredLinearHistory"`
+	DismissesStaleReviews               *bool    `json:"dismissesStaleReviews"`
+	EnforcesAdmins                      *bool    `json:"enforcesAdmin"`
+	RequiresStatusChecks                *bool    `json:"requiresStatusChecks"`
+	RequiresUpToDateBranchBeforeMerging *bool    `json:"requiresUpdatedBranchesToMerge"`
+	StatusCheckContexts                 []string `json:"statusChecksContexts"`
 }
 
 type jsonBranchProtection struct {
@@ -85,27 +85,34 @@ type jsonMergeRequest struct {
 type jsonDefaultBranchCommit struct {
 	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
 	Committer     jsonUser          `json:"committer"`
-	MergeRequest  *jsonMergeRequest `json:"merge-request"`
-	CommitMessage string            `json:"commit-message"`
+	MergeRequest  *jsonMergeRequest `json:"mergeRequest"`
+	CommitMessage string            `json:"commitMessage"`
 	SHA           string            `json:"sha"`
 
 	// TODO: check runs, etc.
 }
 
+type jsonDatabaseVulnerability struct {
+	// For OSV: OSV-2020-484
+	// For CVE: CVE-2022-23945
+	ID string `json:"id"`
+	// TODO: additional information
+}
+
 type jsonRawResults struct {
-	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"database-vulnerabilities"`
+	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"databaseVulnerabilities"`
 	// List of binaries found in the repo.
 	Binaries []jsonFile `json:"binaries"`
 	// List of security policy files found in the repo.
 	// Note: we return one at most.
-	SecurityPolicies []jsonFile `json:"security-policies"`
+	SecurityPolicies []jsonFile `json:"securityPolicies"`
 	// List of update tools.
 	// Note: we return one at most.
-	DependencyUpdateTools []jsonTool `json:"dependency-update-tools"`
+	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools"`
 	// Branch protection settings for development and release branches.
-	BranchProtections []jsonBranchProtection `json:"branch-protections"`
+	BranchProtections []jsonBranchProtection `json:"branchProtections"`
 	// Commits.
-	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
+	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBranchCommits"`
 }
 
 //nolint:unparam
@@ -150,13 +157,6 @@ func addCodeReviewRawResults(r *jsonScorecardRawResult, cr *checker.CodeReviewDa
 		r.Results.DefaultBranchCommits = append(r.Results.DefaultBranchCommits, com)
 	}
 	return nil
-}
-
-type jsonDatabaseVulnerability struct {
-	// For OSV: OSV-2020-484
-	// For CVE: CVE-2022-23945
-	ID string
-	// TODO: additional information
 }
 
 //nolint:unparam
@@ -218,7 +218,7 @@ func addDependencyUpdateToolRawResults(r *jsonScorecardRawResult,
 	return nil
 }
 
-//nolint:unparam
+//nolint
 func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.BranchProtectionsData) error {
 	r.Results.BranchProtections = []jsonBranchProtection{}
 	for _, v := range bp.Branches {

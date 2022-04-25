@@ -575,6 +575,39 @@ func isPipUnpinnedDownload(cmd []string) bool {
 	return false
 }
 
+func isChocoUnpinnedDownload(cmd []string) bool {
+	// Install command is in the form 'choco install ...'
+	if len(cmd) < 2 {
+		return false
+	}
+
+	if !isBinaryName("choco", cmd[0]) && !isBinaryName("choco.exe", cmd[0]) {
+		return false
+	}
+
+	if !strings.EqualFold(cmd[1], "install") {
+		return false
+	}
+
+	// If this is an install command, then some variant of requirechecksum must be present.
+	for i := 1; i < len(cmd); i++ {
+		parts := strings.Split(cmd[i], "=")
+		if len(parts) == 0 {
+			continue
+		}
+
+		str := parts[0]
+
+		if strings.EqualFold(str, "--requirechecksum") ||
+		  strings.EqualFold(str, "--requirechecksums") ||
+		  strings.EqualFold(str, "--require-checksums") {
+			return false
+		}
+	}
+
+	return true
+}
+
 func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 	cmd, pathfn string, dl checker.DetailLogger,
 ) bool {
@@ -629,6 +662,18 @@ func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 		return true
 	}
 
+	// Choco install.
+	if isChocoUnpinnedDownload(c) {
+		dl.Warn(&checker.LogMessage{
+			Path:      pathfn,
+			Type:      checker.FileTypeSource,
+			Offset:    startLine,
+			EndOffset: endLine,
+			Snippet:   cmd,
+			Text:      "choco installation not pinned by hash",
+		})
+		return true
+	}
 	// TODO(laurent): add other package managers.
 
 	return false

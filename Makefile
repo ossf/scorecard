@@ -200,9 +200,8 @@ ko-build-everything: $(ko-targets)
 
 scorecard-ko:
 	$(call create_kocache_path)
-	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/scorecard LDFLAGS="$(LDFLAGS)" \
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) LDFLAGS="$(LDFLAGS)" \
 	KO_CACHE=$(KOCACHE_PATH) ko build -B \
-			   --push=false \
 			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4

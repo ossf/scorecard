@@ -79,7 +79,6 @@ const (
 // nolint:govet
 type CheckResult struct {
 	// TODO(#1393): Remove old structure after deprecation.
-	Error      error `json:"-"`
 	Name       string
 	Details    []string
 	Confidence int
@@ -88,7 +87,7 @@ type CheckResult struct {
 	// UPGRADEv2: New structure. Omitting unchanged Name field
 	// for simplicity.
 	Version  int           `json:"-"` // Default value of 0 indicates old structure.
-	Error2   error         `json:"-"` // Runtime error indicate a filure to run the check.
+	Error    error         `json:"-"` // Runtime error indicate a filure to run the check.
 	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
 	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
@@ -161,12 +160,11 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:      nil,
 		Confidence: MaxResultScore,
 		Pass:       pass,
 		// New structure.
 		Version: 2,
-		Error2:  nil,
+		Error:   nil,
 		Score:   score,
 		Reason:  reason,
 	}
@@ -186,12 +184,11 @@ func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:      nil,
 		Confidence: MaxResultConfidence,
 		Pass:       pass,
 		// New structure.
 		Version: 2,
-		Error2:  nil,
+		Error:   nil,
 		Score:   score,
 		Reason:  NormalizeReason(reason, score),
 	}
@@ -232,12 +229,11 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:      e,
 		Confidence: 0,
 		Pass:       false,
 		// New structure.
 		Version: 2,
-		Error2:  e,
+		Error:   e,
 		Score:   InconclusiveResultScore,
 		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
 	}
