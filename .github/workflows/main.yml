@@ -105,7 +105,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: generate mocks
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -150,7 +150,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }} 
      - name: generate docs
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -194,7 +194,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build-proto
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -239,7 +239,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: Run build
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -284,7 +284,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build cron
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -329,7 +329,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build worker
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -374,7 +374,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build cii-worker
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -419,7 +419,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build shuffler
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -464,7 +464,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build bq transfer
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -509,7 +509,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build bq transfer
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -554,7 +554,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build webhook
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -599,7 +599,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build-add-script
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -644,7 +644,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build-validate-script
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -689,7 +689,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build-validate-script
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -768,7 +768,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: Run build
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -812,7 +812,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: Run build
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
@@ -852,7 +852,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: Run build
-       uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
+       uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5
        with:
           max_attempts: 3
           retry_on: error
