@@ -52,20 +52,8 @@ func DangerousWorkflow(name string, dl checker.DetailLogger,
 		})
 	}
 
-	// Secrets in pull requests.
-	for _, e := range r.SecretInPullRequests {
-		dl.Warn(&checker.LogMessage{
-			Path:    e.File.Path,
-			Type:    e.File.Type,
-			Offset:  e.File.Offset,
-			Text:    fmt.Sprintf("secret accessible to pull requests '%v'", e.File.Snippet),
-			Snippet: e.File.Snippet,
-		})
-	}
-
 	if len(r.ScriptInjections) > 0 ||
-		len(r.UntrustedCheckouts) > 0 ||
-		len(r.SecretInPullRequests) > 0 {
+		len(r.UntrustedCheckouts) > 0 {
 		return createResult(name, checker.MinResultScore)
 	}
 	return createResult(name, checker.MaxResultScore)
