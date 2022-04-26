@@ -402,7 +402,7 @@ covered.
 
 The following checks are all run against the target project by default:
 
-Name        | Description                               | Risk Level | Token supported | Note
+Name        | Description                               | Risk Level | Token Required | Note
 ----------- | ----------------------------------------- | ---------- | --------------- | -----------------
 [Binary-Artifacts](docs/checks.md#binary-artifacts)             | Is the project free of checked-in binaries?                                                                                                                                                                                                                                                                                  | High               | PAT, GITHUB_TOKEN   |
 [Branch-Protection](docs/checks.md#branch-protection)           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                                                       | High | PAT (`repo` or `repo> public_repo`), GITHUB_TOKEN    | certain settings are only supported with a maintainer PAT
