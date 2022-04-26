@@ -164,7 +164,6 @@ func TestNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			os.Setenv(EnvGithubAuthToken, testToken)
 			defer os.Unsetenv(EnvGithubAuthToken)
 
