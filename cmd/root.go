@@ -158,6 +158,6 @@ func rootCmd(o *options.Options) {
 		pol,
 	)
 	if resultsErr != nil {
-		log.Panicf("Failed to output results: %v", err)
+		log.Panicf("Failed to format results: %v", resultsErr)
 	}
 }
