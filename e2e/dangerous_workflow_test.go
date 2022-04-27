@@ -48,7 +48,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
+				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
@@ -76,7 +76,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
+				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
@@ -116,7 +116,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
+				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}

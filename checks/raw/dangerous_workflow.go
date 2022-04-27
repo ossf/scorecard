@@ -60,7 +60,6 @@ type triggerName string
 var (
 	triggerPullRequestTarget        = triggerName("pull_request_target")
 	triggerWorkflowRun              = triggerName("workflow_run")
-	triggerPullRequest              = triggerName("pull_request")
 	checkoutUntrustedPullRequestRef = "github.event.pull_request"
 	checkoutUntrustedWorkflowRunRef = "github.event.workflow_run"
 )
@@ -117,53 +116,8 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 		return false, err
 	}
 
-	// 3. Check for secrets used in workflows triggered by pull requests.
-	if err := validateSecretsInPullRequests(workflow, path, pdata); err != nil {
-		return false, err
-	}
-
 	// TODO: Check other dangerous patterns.
 	return true, nil
-}
-
-func validateSecretsInPullRequests(workflow *actionlint.Workflow, path string,
-	pdata *checker.DangerousWorkflowData,
-) error {
-	triggers := make(map[triggerName]bool)
-
-	// We need pull request trigger.
-	usesPullRequest := usesEventTrigger(workflow, triggerPullRequest)
-	usesPullRequestTarget := usesEventTrigger(workflow, triggerPullRequestTarget)
-	usesWorkflowRun := usesEventTrigger(workflow, triggerWorkflowRun)
-
-	if !usesPullRequest && !usesPullRequestTarget && !usesWorkflowRun {
-		return nil
-	}
-
-	// Record the triggers.
-	if usesPullRequest {
-		triggers[triggerPullRequest] = usesPullRequest
-	}
-	if usesPullRequestTarget {
-		triggers[triggerPullRequestTarget] = usesPullRequestTarget
-	}
-	if usesWorkflowRun {
-		triggers[triggerWorkflowRun] = usesWorkflowRun
-	}
-
-	// Secrets used in env at the top of the wokflow.
-	if err := checkWorkflowSecretInEnv(workflow, triggers, path, pdata); err != nil {
-		return err
-	}
-
-	// Secrets used on jobs.
-	for _, job := range workflow.Jobs {
-		if err := checkJobForUsedSecrets(job, triggers, path, pdata); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
@@ -191,112 +145,6 @@ func usesEventTrigger(workflow *actionlint.Workflow, name triggerName) bool {
 	}
 
 	return false
-}
-
-func jobUsesEnvironment(job *actionlint.Job) bool {
-	if job.Environment == nil {
-		return false
-	}
-
-	return job.Environment.Name != nil &&
-		job.Environment.Name.Value != ""
-}
-
-func checkJobForUsedSecrets(job *actionlint.Job, triggers map[triggerName]bool,
-	path string, pdata *checker.DangerousWorkflowData,
-) error {
-	if job == nil {
-		return nil
-	}
-
-	// If the job has an environment, assume it's an env secret gated by
-	// some approval and don't alert.
-	if !jobUsesCodeCheckoutAndNoEnvironment(job, triggers) {
-		return nil
-	}
-
-	// https://docs.github.com/en/actions/security-guides/encrypted-secrets#naming-your-secrets
-	for _, step := range job.Steps {
-		if step == nil {
-			continue
-		}
-
-		if err := checkSecretInActionArgs(step, job, path, pdata); err != nil {
-			return err
-		}
-
-		if err := checkSecretInRun(step, job, path, pdata); err != nil {
-			return err
-		}
-
-		if err := checkSecretInEnv(step.Env, job, path, pdata); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func workflowUsesCodeCheckoutAndNoEnvironment(workflow *actionlint.Workflow,
-	triggers map[triggerName]bool,
-) bool {
-	if workflow == nil {
-		return false
-	}
-
-	for _, job := range workflow.Jobs {
-		if jobUsesCodeCheckoutAndNoEnvironment(job, triggers) {
-			return true
-		}
-	}
-	return false
-}
-
-func jobUsesCodeCheckoutAndNoEnvironment(job *actionlint.Job, triggers map[triggerName]bool,
-) bool {
-	if job == nil {
-		return false
-	}
-	_, usesPullRequest := triggers[triggerPullRequest]
-	_, usesPullRequestTarget := triggers[triggerPullRequestTarget]
-	_, usesWorkflowRun := triggers[triggerWorkflowRun]
-
-	chk, ref := jobUsesCodeCheckout(job)
-	if !jobUsesEnvironment(job) {
-		if (chk && usesPullRequest) ||
-			(chk && usesPullRequestTarget && strings.Contains(ref, checkoutUntrustedPullRequestRef)) ||
-			(chk && usesWorkflowRun && strings.Contains(ref, checkoutUntrustedWorkflowRunRef)) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func jobUsesCodeCheckout(job *actionlint.Job) (bool, string) {
-	if job == nil {
-		return false, ""
-	}
-
-	hasCheckout := false
-	for _, step := range job.Steps {
-		if step == nil || step.Exec == nil {
-			continue
-		}
-		// Check for a step that uses actions/checkout
-		e, ok := step.Exec.(*actionlint.ExecAction)
-		if !ok || e.Uses == nil {
-			continue
-		}
-		if strings.Contains(e.Uses.Value, "actions/checkout") {
-			hasCheckout = true
-			ref, ok := e.Inputs["ref"]
-			if !ok || ref.Value == nil {
-				continue
-			}
-			return true, ref.Value.Value
-		}
-	}
-	return hasCheckout, ""
 }
 
 func createJob(job *actionlint.Job) *checker.WorkflowJob {
@@ -379,110 +227,6 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 				return err
 			}
 		}
-	}
-	return nil
-}
-
-func checkWorkflowSecretInEnv(workflow *actionlint.Workflow, triggers map[triggerName]bool,
-	path string, pdata *checker.DangerousWorkflowData,
-) error {
-	// We need code checkout and not environment rule protection.
-	if !workflowUsesCodeCheckoutAndNoEnvironment(workflow, triggers) {
-		return nil
-	}
-
-	return checkSecretInEnv(workflow.Env, nil, path, pdata)
-}
-
-func checkSecretInEnv(env *actionlint.Env, job *actionlint.Job, path string,
-	pdata *checker.DangerousWorkflowData,
-) error {
-	if env == nil {
-		return nil
-	}
-
-	for _, v := range env.Vars {
-		if err := checkSecretInScript(v.Value.Value, v.Value.Pos, job, path, pdata); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func checkSecretInRun(step *actionlint.Step, job *actionlint.Job, path string,
-	pdata *checker.DangerousWorkflowData,
-) error {
-	if step == nil || step.Exec == nil {
-		return nil
-	}
-
-	run, ok := step.Exec.(*actionlint.ExecRun)
-	if ok && run.Run != nil {
-		if err := checkSecretInScript(run.Run.Value, run.Run.Pos, job, path, pdata); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func checkSecretInActionArgs(step *actionlint.Step, job *actionlint.Job, path string,
-	pdata *checker.DangerousWorkflowData,
-) error {
-	if step == nil || step.Exec == nil {
-		return nil
-	}
-
-	e, ok := step.Exec.(*actionlint.ExecAction)
-	if ok && e.Uses != nil {
-		// Check for reference. If not defined for a pull_request_target event, this defaults to
-		// the base branch of the pull request.
-		for _, v := range e.Inputs {
-			if v.Value != nil {
-				if err := checkSecretInScript(v.Value.Value, v.Value.Pos, job, path, pdata); err != nil {
-					return err
-				}
-			}
-		}
-	}
-	return nil
-}
-
-func checkSecretInScript(script string, pos *actionlint.Pos,
-	job *actionlint.Job, path string,
-	pdata *checker.DangerousWorkflowData,
-) error {
-	for {
-		s := strings.Index(script, "${{")
-		if s == -1 {
-			break
-		}
-
-		e := strings.Index(script[s:], "}}")
-		if e == -1 {
-			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
-		}
-
-		// Note: The default GitHub token is allowed, as it has
-		// only read permission for `pull_request`.
-		// For `pull_request_event`, we use other signals such as
-		// whether checkout action is used.
-		variable := strings.Trim(script[s:s+e+2], " ")
-		if !strings.Contains(variable, "secrets.GITHUB_TOKEN") &&
-			strings.Contains(variable, "secrets.") {
-			line := fileparser.GetLineNumber(pos)
-			pdata.SecretInPullRequests = append(pdata.SecretInPullRequests,
-				checker.EncryptedSecret{
-					File: checker.File{
-						Path:    path,
-						Type:    checker.FileTypeSource,
-						Offset:  line,
-						Snippet: variable,
-					},
-					Job: createJob(job),
-				},
-			)
-		}
-		script = script[s+e:]
 	}
 	return nil
 }

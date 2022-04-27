@@ -286,9 +286,8 @@ type CIIBestPracticesData struct {
 // DangerousWorkflowData contains raw results
 // for dangerous workflow check.
 type DangerousWorkflowData struct {
-	ScriptInjections     []ScriptInjection
-	SecretInPullRequests []EncryptedSecret
-	UntrustedCheckouts   []UntrustedCheckout
+	ScriptInjections   []ScriptInjection
+	UntrustedCheckouts []UntrustedCheckout
 	// TODO: other
 }
 
@@ -300,12 +299,6 @@ type UntrustedCheckout struct {
 
 // ScriptInjection represents a script injection.
 type ScriptInjection struct {
-	Job  *WorkflowJob
-	File File
-}
-
-// EncryptedSecret represents an encrypted secret.
-type EncryptedSecret struct {
 	Job  *WorkflowJob
 	File File
 }

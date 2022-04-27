@@ -106,12 +106,12 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		{
 			name:     "run untrusted code checkout test - workflow_run",
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-workflow_run.yml",
-			expected: ret{nb: 2},
+			expected: ret{nb: 1},
 		},
 		{
 			name:     "run untrusted code checkout test",
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout.yml",
-			expected: ret{nb: 2},
+			expected: ret{nb: 1},
 		},
 		{
 			name:     "run trusted code checkout test",
@@ -148,76 +148,6 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-wildcard.yml",
 			expected: ret{nb: 1},
 		},
-		{
-			name:     "secret in top env no checkout",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-no-checkout.yml",
-			expected: ret{nb: 0},
-		},
-		{
-			name:     "secret in action args",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-action-args.yml",
-			expected: ret{nb: 1},
-		},
-		{
-			name:     "secret in all places",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-all-checkout.yml",
-			expected: ret{nb: 7},
-		},
-		{
-			name:     "secret in env",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env.yml",
-			expected: ret{nb: 2},
-		},
-		{
-			name:     "secret in env",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-no-pull-request.yml",
-			expected: ret{nb: 0},
-		},
-		{
-			name:     "secret in env",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-run.yml",
-			expected: ret{nb: 1},
-		},
-		{
-			name:     "secret with environment protection",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-environment.yml",
-			expected: ret{nb: 0},
-		},
-		{
-			name:     "secret with environment protection pull request target",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-environment-prt.yml",
-			expected: ret{nb: 1},
-		},
-		{
-			name:     "secret in env pull request target",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-run-prt.yml",
-			expected: ret{nb: 2},
-		},
-		{
-			name:     "secret in env pull request target",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-prt.yml",
-			expected: ret{nb: 4},
-		},
-		{
-			name:     "default secret in pull request",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-default-secret-pr.yml",
-			expected: ret{nb: 0},
-		},
-		{
-			name:     "default secret in pull request target",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-default-secret-prt.yml",
-			expected: ret{nb: 1},
-		},
-		{
-			name:     "secret in top env no checkout pull request target",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-no-checkout-prt.yml",
-			expected: ret{nb: 0},
-		},
-		{
-			name:     "secret in top env checkout no ref pull request target",
-			filename: ".github/workflows/github-workflow-dangerous-pattern-secret-env-checkout-noref-prt.yml",
-			expected: ret{nb: 0},
-		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -245,7 +175,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				return
 			}
 
-			nb := len(dw.ScriptInjections) + len(dw.SecretInPullRequests) + len(dw.UntrustedCheckouts)
+			nb := len(dw.ScriptInjections) + len(dw.UntrustedCheckouts)
 			if nb != tt.expected.nb {
 				t.Errorf(cmp.Diff(nb, tt.expected.nb))
 			}

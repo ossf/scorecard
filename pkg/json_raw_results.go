@@ -143,9 +143,8 @@ type jsonLicense struct {
 }
 
 type jsonWorkflows struct {
-	UntrustedCheckouts   []jsonUntrustedCheckout `json:"untrustedCheckouts"`
-	ScriptInjections     []jsonScriptInjection   `json:"scriptInjections"`
-	SecretInPullRequests []jsonEncryptedSecret   `json:"secretInPullRequests"`
+	UntrustedCheckouts []jsonUntrustedCheckout `json:"untrustedCheckouts"`
+	ScriptInjections   []jsonScriptInjection   `json:"scriptInjections"`
 }
 
 type jsonUntrustedCheckout struct {
@@ -154,11 +153,6 @@ type jsonUntrustedCheckout struct {
 }
 
 type jsonScriptInjection struct {
-	Job  *jsonWorkflowJob `json:"job"`
-	File jsonFile         `json:"file"`
-}
-
-type jsonEncryptedSecret struct {
 	Job  *jsonWorkflowJob `json:"job"`
 	File jsonFile         `json:"file"`
 }
@@ -241,25 +235,6 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 		r.Results.Workflows.ScriptInjections = append(r.Results.Workflows.ScriptInjections, v)
 	}
 
-	// Secrets in pull requests.
-	for _, e := range df.SecretInPullRequests {
-		v := jsonEncryptedSecret{
-			File: jsonFile{
-				Path:   e.File.Path,
-				Offset: int(e.File.Offset),
-			},
-		}
-		if e.File.Snippet != "" {
-			v.File.Snippet = &e.File.Snippet
-		}
-		if e.Job != nil {
-			v.Job = &jsonWorkflowJob{
-				Name: e.Job.Name,
-				ID:   e.Job.ID,
-			}
-		}
-		r.Results.Workflows.SecretInPullRequests = append(r.Results.Workflows.SecretInPullRequests, v)
-	}
 	return nil
 }
 
@@ -540,10 +515,10 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// CII-Best-Practices.
 	if err := r.addOssfBestPracticesRawResults(&raw.CIIBestPracticesResults); err != nil {
-    return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
-	
-  // Dangerous workflow.
+
+	// Dangerous workflow.
 	if err := r.addDangerousWorkflowRawResults(&raw.DangerousWorkflowResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
