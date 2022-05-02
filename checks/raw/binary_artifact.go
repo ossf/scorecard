@@ -107,6 +107,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 		})
 	}
 
+	fmt.Println(*pfiles)
 	return true, nil
 }
 

@@ -56,10 +56,10 @@ func TestBinaryArtifacts(t *testing.T) {
 			},
 		},
 		{
-			name: "printable character.lib",
+			name: "printable character .lib",
 			err:  nil,
 			files: []string{
-				"../testdata/printable.lib",
+				"../testdata/binaryartifacts/printable.lib",
 			},
 		},
 	}
