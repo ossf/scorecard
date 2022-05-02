@@ -236,14 +236,6 @@ func createReturnForIsShellScriptFreeOfInsecureDownloads(r pinnedResult,
 		dl, err)
 }
 
-func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger,
-) (int, error) {
-	var r pinnedResult
-	_, err := validateShellScriptIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
-	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, dl, err)
-}
-
 var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
@@ -292,14 +284,6 @@ func createReturnForIsDockerfileFreeOfInsecureDownloads(r pinnedResult,
 	return createReturnValues(r,
 		"no insecure (not pinned by hash) dependency downloads found in Dockerfiles",
 		dl, err)
-}
-
-func testValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger,
-) (int, error) {
-	var r pinnedResult
-	_, err := validateDockerfileIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
-	return createReturnForIsDockerfileFreeOfInsecureDownloads(r, dl, err)
 }
 
 func isDockerfile(pathfn string, content []byte) bool {
@@ -400,12 +384,6 @@ func createReturnForIsDockerfilePinned(r pinnedResult, dl checker.DetailLogger, 
 	return createReturnValues(r,
 		"Dockerfile dependencies are pinned",
 		dl, err)
-}
-
-func testValidateDockerfileIsPinned(pathfn string, content []byte, dl checker.DetailLogger) (int, error) {
-	var r pinnedResult
-	_, err := validateDockerfileIsPinned(pathfn, content, dl, &r)
-	return createReturnForIsDockerfilePinned(r, dl, err)
 }
 
 var validateDockerfileIsPinned fileparser.DoWhileTrueOnFileContent = func(
@@ -542,14 +520,6 @@ func createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r pinnedResult
 		dl, err)
 }
 
-func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger,
-) (int, error) {
-	var r pinnedResult
-	_, err := validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
-	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, dl, err)
-}
-
 // validateGitHubWorkflowIsFreeOfInsecureDownloads checks if the workflow file downloads dependencies that are unpinned.
 // Returns true if the check should continue executing after this file.
 var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
@@ -652,12 +622,6 @@ func createReturnForIsGitHubActionsWorkflowPinned(r worklowPinningResult, dl che
 	return createReturnValuesForGitHubActionsWorkflowPinned(r,
 		"actions are pinned",
 		dl, err)
-}
-
-func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker.DetailLogger) (int, error) {
-	var r worklowPinningResult
-	_, err := validateGitHubActionWorkflow(pathfn, content, dl, &r)
-	return createReturnForIsGitHubActionsWorkflowPinned(r, dl, err)
 }
 
 func generateOwnerToDisplay(gitHubOwned bool) string {

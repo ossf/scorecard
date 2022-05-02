@@ -101,7 +101,7 @@ func TestValidateShellFile(t *testing.T) {
 	}
 	dl := scut.TestDetailLogger{}
 	_, err = validateShellFile(filename, 0, 0, content, map[string]bool{}, &dl)
-	if err != nil {
-		t.Errorf("failed to discard shell parsing error: %v", err)
+	if err == nil {
+		t.Errorf("failed to detect shell parsing error: %v", err)
 	}
 }
