@@ -1115,6 +1115,17 @@ func TestShellScriptDownload(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name:     "invalid shell script",
+			filename: "./testdata/script-invalid.sh",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 1,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -1613,4 +1624,40 @@ func Test_maxScore(t *testing.T) {
 			}
 		})
 	}
+}
+
+func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
+	content []byte, dl checker.DetailLogger,
+) (int, error) {
+	var r pinnedResult
+	_, err := validateShellScriptIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
+	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, dl, err)
+}
+
+func testValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
+	content []byte, dl checker.DetailLogger,
+) (int, error) {
+	var r pinnedResult
+	_, err := validateDockerfileIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
+	return createReturnForIsDockerfileFreeOfInsecureDownloads(r, dl, err)
+}
+
+func testValidateDockerfileIsPinned(pathfn string, content []byte, dl checker.DetailLogger) (int, error) {
+	var r pinnedResult
+	_, err := validateDockerfileIsPinned(pathfn, content, dl, &r)
+	return createReturnForIsDockerfilePinned(r, dl, err)
+}
+
+func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
+	content []byte, dl checker.DetailLogger,
+) (int, error) {
+	var r pinnedResult
+	_, err := validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
+	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, dl, err)
+}
+
+func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker.DetailLogger) (int, error) {
+	var r worklowPinningResult
+	_, err := validateGitHubActionWorkflow(pathfn, content, dl, &r)
+	return createReturnForIsGitHubActionsWorkflowPinned(r, dl, err)
 }

@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -235,14 +236,6 @@ func createReturnForIsShellScriptFreeOfInsecureDownloads(r pinnedResult,
 		dl, err)
 }
 
-func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger,
-) (int, error) {
-	var r pinnedResult
-	_, err := validateShellScriptIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
-	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, dl, err)
-}
-
 var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
@@ -252,6 +245,7 @@ var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileCon
 		return false, fmt.Errorf(
 			"validateShellScriptIsFreeOfInsecureDownloads requires exactly 2 arguments: %w", errInvalidArgLength)
 	}
+
 	pdata := dataAsResultPointer(args[1])
 	dl := dataAsDetailLogger(args[0])
 
@@ -260,10 +254,14 @@ var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileCon
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
-
 	r, err := validateShellFile(pathfn, 0, 0 /*unknown*/, content, map[string]bool{}, dl)
 	if err != nil {
-		return false, err
+		// Ignore parsing errors.
+		if errors.Is(err, sce.ErrorShellParsing) {
+			addPinnedResult(pdata, true)
+		}
+
+		return false, nil
 	}
 
 	addPinnedResult(pdata, r)
@@ -286,14 +284,6 @@ func createReturnForIsDockerfileFreeOfInsecureDownloads(r pinnedResult,
 	return createReturnValues(r,
 		"no insecure (not pinned by hash) dependency downloads found in Dockerfiles",
 		dl, err)
-}
-
-func testValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger,
-) (int, error) {
-	var r pinnedResult
-	_, err := validateDockerfileIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
-	return createReturnForIsDockerfileFreeOfInsecureDownloads(r, dl, err)
 }
 
 func isDockerfile(pathfn string, content []byte) bool {
@@ -368,6 +358,10 @@ var validateDockerfileIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileCont
 		r, err := validateShellFile(pathfn, uint(child.StartLine)-1, uint(child.EndLine)-1,
 			bytes, taintedFiles, dl)
 		if err != nil {
+			// Ignore parsing errors.
+			if errors.Is(err, sce.ErrorShellParsing) {
+				addPinnedResult(pdata, true)
+			}
 			return false, err
 		}
 		addPinnedResult(pdata, r)
@@ -390,12 +384,6 @@ func createReturnForIsDockerfilePinned(r pinnedResult, dl checker.DetailLogger, 
 	return createReturnValues(r,
 		"Dockerfile dependencies are pinned",
 		dl, err)
-}
-
-func testValidateDockerfileIsPinned(pathfn string, content []byte, dl checker.DetailLogger) (int, error) {
-	var r pinnedResult
-	_, err := validateDockerfileIsPinned(pathfn, content, dl, &r)
-	return createReturnForIsDockerfilePinned(r, dl, err)
 }
 
 var validateDockerfileIsPinned fileparser.DoWhileTrueOnFileContent = func(
@@ -532,14 +520,6 @@ func createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r pinnedResult
 		dl, err)
 }
 
-func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger,
-) (int, error) {
-	var r pinnedResult
-	_, err := validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
-	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, dl, err)
-}
-
 // validateGitHubWorkflowIsFreeOfInsecureDownloads checks if the workflow file downloads dependencies that are unpinned.
 // Returns true if the check should continue executing after this file.
 var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
@@ -612,6 +592,10 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			validated, err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line), uint(execRun.Run.Pos.Line),
 				script, taintedFiles, dl)
 			if err != nil {
+				// Ignore parsing errors.
+				if errors.Is(err, sce.ErrorShellParsing) {
+					addPinnedResult(pdata, true)
+				}
 				return false, err
 			}
 			addPinnedResult(pdata, validated)
@@ -638,12 +622,6 @@ func createReturnForIsGitHubActionsWorkflowPinned(r worklowPinningResult, dl che
 	return createReturnValuesForGitHubActionsWorkflowPinned(r,
 		"actions are pinned",
 		dl, err)
-}
-
-func testIsGitHubActionsWorkflowPinned(pathfn string, content []byte, dl checker.DetailLogger) (int, error) {
-	var r worklowPinningResult
-	_, err := validateGitHubActionWorkflow(pathfn, content, dl, &r)
-	return createReturnForIsGitHubActionsWorkflowPinned(r, dl, err)
 }
 
 func generateOwnerToDisplay(gitHubOwned bool) string {
