@@ -17,7 +17,6 @@ package checks
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"net/url"
 	"path"
@@ -599,8 +598,8 @@ func isChocoUnpinnedDownload(cmd []string) bool {
 		str := parts[0]
 
 		if strings.EqualFold(str, "--requirechecksum") ||
-		  strings.EqualFold(str, "--requirechecksums") ||
-		  strings.EqualFold(str, "--require-checksums") {
+			strings.EqualFold(str, "--requirechecksums") ||
+			strings.EqualFold(str, "--require-checksums") {
 			return false
 		}
 	}
@@ -995,12 +994,11 @@ func validateShellFile(pathfn string, startLine, endLine uint,
 	content []byte, taintedFiles map[string]bool, dl checker.DetailLogger,
 ) (bool, error) {
 	r, err := validateShellFileAndRecord(pathfn, startLine, endLine, content, taintedFiles, dl)
-	if err != nil && errors.Is(err, sce.ErrorShellParsing) {
-		// Discard and print this particular error for now.
+	if err != nil {
+		// Print this particular error.
 		dl.Debug(&checker.LogMessage{
 			Text: err.Error(),
 		})
-		err = nil
 	}
 	return r, err
 }

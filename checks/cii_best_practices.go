@@ -24,7 +24,6 @@ import (
 // CheckCIIBestPractices is the registered name for CIIBestPractices.
 const CheckCIIBestPractices = "CII-Best-Practices"
 
-
 //nolint:gochecknoinits
 func init() {
 	if err := registerCheck(CheckCIIBestPractices, CIIBestPractices, nil); err != nil {

@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -252,6 +253,7 @@ var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileCon
 		return false, fmt.Errorf(
 			"validateShellScriptIsFreeOfInsecureDownloads requires exactly 2 arguments: %w", errInvalidArgLength)
 	}
+
 	pdata := dataAsResultPointer(args[1])
 	dl := dataAsDetailLogger(args[0])
 
@@ -260,10 +262,14 @@ var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileCon
 		addPinnedResult(pdata, true)
 		return true, nil
 	}
-
 	r, err := validateShellFile(pathfn, 0, 0 /*unknown*/, content, map[string]bool{}, dl)
 	if err != nil {
-		return false, err
+		// Ignore parsing errors.
+		if errors.Is(err, sce.ErrorShellParsing) {
+			addPinnedResult(pdata, true)
+		}
+
+		return false, nil
 	}
 
 	addPinnedResult(pdata, r)
@@ -368,6 +374,10 @@ var validateDockerfileIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileCont
 		r, err := validateShellFile(pathfn, uint(child.StartLine)-1, uint(child.EndLine)-1,
 			bytes, taintedFiles, dl)
 		if err != nil {
+			// Ignore parsing errors.
+			if errors.Is(err, sce.ErrorShellParsing) {
+				addPinnedResult(pdata, true)
+			}
 			return false, err
 		}
 		addPinnedResult(pdata, r)
@@ -612,6 +622,10 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			validated, err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line), uint(execRun.Run.Pos.Line),
 				script, taintedFiles, dl)
 			if err != nil {
+				// Ignore parsing errors.
+				if errors.Is(err, sce.ErrorShellParsing) {
+					addPinnedResult(pdata, true)
+				}
 				return false, err
 			}
 			addPinnedResult(pdata, validated)
