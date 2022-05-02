@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
@@ -91,6 +92,11 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("filetype.Get:%v", err))
 	}
 
+	// Sanity check the file contains non-readable characters.
+	if isText(content) {
+		return true, nil
+	}
+
 	exists1 := binaryFileTypes[t.Extension]
 	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
 	if exists1 || exists2 {
@@ -102,4 +108,17 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	}
 
 	return true, nil
+}
+
+// TODO: refine this function.
+func isText(content []byte) bool {
+	for _, c := range string(content) {
+		if c == '\t' || c == '\n' || c == '\r' {
+			continue
+		}
+		if !unicode.IsPrint(c) {
+			return false
+		}
+	}
+	return true
 }
