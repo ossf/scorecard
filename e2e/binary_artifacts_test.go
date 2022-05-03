@@ -85,9 +85,6 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.BinaryArtifacts(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -115,7 +112,6 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.BinaryArtifacts(&req)
-			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -161,11 +157,12 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
-			// TODO: upload real binaries to the repo as well.
+			// TODO: upload real binaries to the repo.
+			// Existing binaries only contain SCII characters and are ignored.
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore - 4,
-				NumberOfWarn:  4,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
@@ -199,11 +196,12 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
-			// TODO: upload real binaries to the repo as well.
+			// TODO: upload real binaries to the repo.
+			// Existing binaries only contain SCII characters and are ignored.
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore - 4,
-				NumberOfWarn:  4,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
