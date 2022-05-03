@@ -92,14 +92,18 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("filetype.Get:%v", err))
 	}
 
-	// Sanity check the file contains non-readable characters.
-	if isText(content) {
+	exists1 := binaryFileTypes[t.Extension]
+	if exists1 {
+		*pfiles = append(*pfiles, checker.File{
+                        Path:   path,
+                        Type:   checker.FileTypeBinary,
+                        Offset: checker.OffsetDefault,
+                })
 		return true, nil
 	}
 
-	exists1 := binaryFileTypes[t.Extension]
 	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
-	if exists1 || exists2 {
+	if !isText(content) && exists2 {
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
 			Type:   checker.FileTypeBinary,
