@@ -113,13 +113,13 @@ type CheckDetail struct {
 // This allows updating the definition easily.
 // nolint:govet
 type LogMessage struct {
-	Text         string       // A short string explaining why the detail was recorded/logged.
-	Path         string       // Fullpath to the file.
-	Type         FileType     // Type of file.
-	Offset       uint         // Offset in the file of Path (line for source/text files).
-	EndOffset    uint         // End of offset in the file, e.g. if the command spans multiple lines.
-	Snippet      string       // Snippet of code
-	Remediations *Remediation // Remediation information, if any.
+	Text        string       // A short string explaining why the detail was recorded/logged.
+	Path        string       // Fullpath to the file.
+	Type        FileType     // Type of file.
+	Offset      uint         // Offset in the file of Path (line for source/text files).
+	EndOffset   uint         // End of offset in the file, e.g. if the command spans multiple lines.
+	Snippet     string       // Snippet of code
+	Remediation *Remediation // Remediation information, if any.
 }
 
 // CreateProportionalScore creates a proportional score.

@@ -74,8 +74,6 @@ type permissions struct {
 type permissionCbData struct {
 	// map of filename to write permissions used.
 	workflows map[string]permissions
-	branch    string
-	repo      string
 }
 
 // TokenPermissions runs Token-Permissions check.
@@ -83,18 +81,13 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	// data is shared across all GitHub workflows.
 	data := permissionCbData{
 		workflows: make(map[string]permissions),
-		repo:      c.RepoClient.Repo(),
-	}
-	// Get the branch for remediation.
-	branch, err := c.RepoClient.GetDefaultBranch()
-	if err != nil {
-		return createResultForLeastPrivilegeTokens(data, err)
-	}
-	if branch.Name != nil {
-		data.branch = *branch.Name
 	}
 
-	err = fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	if err := remdiationSetup(c); err != nil {
+		createResultForLeastPrivilegeTokens(data, err)
+	}
+
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
 	}, validateGitHubActionTokenPermissions, c.Dlogger, &data)
@@ -157,23 +150,6 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 	return true, nil
 }
 
-func createRemediation(filepath string) *checker.Remediation {
-	if branch != "" && repo != "" {
-		// TODO cleanup filepath
-		text := fmt.Sprintf("update your workflow using https://app.stepsecurity.io/secureworkflow/%s/%s/main?enable=%s",
-			repo, branch, "pin")
-		markdown := fmt.Sprintf("update your workflow using [https://app.stepsecurity.io](https://app.stepsecurity.io/secureworkflow/%s/%s/main?enable=%s",
-			repo, branch, "pin")
-
-		return &checker.Remediation{
-			HelpText:     text,
-			HelpMarkdown: markdown,
-		}
-
-	}
-	return nil
-}
-
 func validatePermission(permissionKey permission, permissionValue *actionlint.PermissionScope,
 	permLevel, path string, dl checker.DetailLogger, pPermissions map[permission]bool,
 	ignoredPermissions map[permission]bool,
@@ -185,29 +161,25 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 	lineNumber := fileparser.GetLineNumber(permissionValue.Value.Pos)
 	if strings.EqualFold(val, "write") {
 		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
-			lm := &checker.LogMessage{
-				Path:    path,
-				Type:    checker.FileTypeSource,
-				Offset:  lineNumber,
-				Text:    fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
-				Snippet: val,
-			}
-			rem, err := createRemediation(path)
-			if err != nil {
-				return err
-			}
-			lm.Remediation = rem
-			dl.Warn(&lm)
+			dl.Warn(&checker.LogMessage{
+				Path:        path,
+				Type:        checker.FileTypeSource,
+				Offset:      lineNumber,
+				Text:        fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
+				Snippet:     val,
+				Remediation: createWorkflowPermissionRemediation(path),
+			})
 			recordPermissionWrite(pPermissions, permissionKey)
 		} else {
 			// Only log for debugging, otherwise
 			// it may confuse users.
 			dl.Debug(&checker.LogMessage{
-				Path:    path,
-				Type:    checker.FileTypeSource,
-				Offset:  lineNumber,
-				Text:    fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
-				Snippet: val,
+				Path:        path,
+				Type:        checker.FileTypeSource,
+				Offset:      lineNumber,
+				Text:        fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
+				Snippet:     val,
+				Remediation: createWorkflowPermissionRemediation(path),
 			})
 		}
 		return nil
@@ -278,22 +250,24 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 		lineNumber := fileparser.GetLineNumber(permissions.All.Pos)
 		if !strings.EqualFold(val, "read-all") && val != "" {
 			dl.Warn(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: lineNumber,
-				Text:   fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
-				// TODO: set Snippet.
+				Path:        path,
+				Type:        checker.FileTypeSource,
+				Offset:      lineNumber,
+				Text:        fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
+				Snippet:     val,
+				Remediation: createWorkflowPermissionRemediation(path),
 			})
 			recordAllPermissionsWrite(pdata, permLevel, path)
 			return nil
 		}
 
 		dl.Info(&checker.LogMessage{
-			Path:   path,
-			Type:   checker.FileTypeSource,
-			Offset: lineNumber,
-			Text:   fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
-			// TODO: set Snippet.
+			Path:        path,
+			Type:        checker.FileTypeSource,
+			Offset:      lineNumber,
+			Text:        fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
+			Snippet:     val,
+			Remediation: createWorkflowPermissionRemediation(path),
 		})
 	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes,
 		permLevel, path, dl, getWritePermissionsMap(pdata, path, permLevel), ignoredPermissions); err != nil {
@@ -308,10 +282,11 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 	// Check if permissions are set explicitly.
 	if workflow.Permissions == nil {
 		dl.Warn(&checker.LogMessage{
-			Path:   path,
-			Type:   checker.FileTypeSource,
-			Offset: checker.OffsetDefault,
-			Text:   fmt.Sprintf("no %s permission defined", topLevelPermission),
+			Path:        path,
+			Type:        checker.FileTypeSource,
+			Offset:      checker.OffsetDefault,
+			Text:        fmt.Sprintf("no %s permission defined", topLevelPermission),
+			Remediation: createWorkflowPermissionRemediation(path),
 		})
 		recordAllPermissionsWrite(pdata, topLevelPermission, path)
 		return nil
@@ -331,10 +306,11 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 		// so only top-level read-only permissions need to be declared.
 		if job.Permissions == nil {
 			dl.Debug(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: fileparser.GetLineNumber(job.Pos),
-				Text:   fmt.Sprintf("no %s permission defined", jobLevelPermission),
+				Path:        path,
+				Type:        checker.FileTypeSource,
+				Offset:      fileparser.GetLineNumber(job.Pos),
+				Text:        fmt.Sprintf("no %s permission defined", jobLevelPermission),
+				Remediation: createWorkflowPermissionRemediation(path),
 			})
 			recordAllPermissionsWrite(pdata, jobLevelPermission, path)
 			continue

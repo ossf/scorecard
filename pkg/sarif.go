@@ -64,7 +64,8 @@ type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
 	//nolint
 	// This is optional https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#location-object.
-	Message *text `json:"message,omitempty"`
+	Message        *text `json:"message,omitempty"`
+	HasRemediation bool  `json:"-"`
 }
 
 //nolint
@@ -300,6 +301,12 @@ func detailsToLocations(details []checker.CheckDetail,
 			Message: &text{Text: d.Msg.Text},
 		}
 
+		// Add remediaiton information
+		if d.Msg.Remediation != nil {
+			loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, d.Msg.Remediation.HelpMarkdown)
+			loc.HasRemediation = true
+		}
+
 		// Set the region depending on the file type.
 		loc.PhysicalLocation.Region = detailToRegion(&d)
 		locs = append(locs, loc)
@@ -428,12 +435,17 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc, risk stri
 }
 
 func createSARIFCheckResult(pos int, checkID, message string, loc *location) result {
+	t := fmt.Sprintf("%s\nClick Remediation section below to solve this issue", message)
+	if loc.HasRemediation {
+		t = fmt.Sprintf("%s\nClick Remediation section below for further remediation help", message)
+	}
+
 	return result{
 		RuleID: checkID,
 		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
 		// Level:     scoreToLevel(minScore, score),
 		RuleIndex: pos,
-		Message:   text{Text: fmt.Sprintf("%s\nClick Remediation section below to solve this issue", message)},
+		Message:   text{Text: t},
 		Locations: []location{*loc},
 	}
 }
