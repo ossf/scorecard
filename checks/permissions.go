@@ -74,6 +74,8 @@ type permissions struct {
 type permissionCbData struct {
 	// map of filename to write permissions used.
 	workflows map[string]permissions
+	branch    string
+	repo      string
 }
 
 // TokenPermissions runs Token-Permissions check.
@@ -81,8 +83,18 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	// data is shared across all GitHub workflows.
 	data := permissionCbData{
 		workflows: make(map[string]permissions),
+		repo:      c.RepoClient.Repo(),
 	}
-	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	// Get the branch for remediation.
+	branch, err := c.RepoClient.GetDefaultBranch()
+	if err != nil {
+		return createResultForLeastPrivilegeTokens(data, err)
+	}
+	if branch.Name != nil {
+		data.branch = *branch.Name
+	}
+
+	err = fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
 	}, validateGitHubActionTokenPermissions, c.Dlogger, &data)
@@ -145,6 +157,23 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 	return true, nil
 }
 
+func createRemediation(filepath string) *checker.Remediation {
+	if branch != "" && repo != "" {
+		// TODO cleanup filepath
+		text := fmt.Sprintf("update your workflow using https://app.stepsecurity.io/secureworkflow/%s/%s/main?enable=%s",
+			repo, branch, "pin")
+		markdown := fmt.Sprintf("update your workflow using [https://app.stepsecurity.io](https://app.stepsecurity.io/secureworkflow/%s/%s/main?enable=%s",
+			repo, branch, "pin")
+
+		return &checker.Remediation{
+			HelpText:     text,
+			HelpMarkdown: markdown,
+		}
+
+	}
+	return nil
+}
+
 func validatePermission(permissionKey permission, permissionValue *actionlint.PermissionScope,
 	permLevel, path string, dl checker.DetailLogger, pPermissions map[permission]bool,
 	ignoredPermissions map[permission]bool,
@@ -156,23 +185,29 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 	lineNumber := fileparser.GetLineNumber(permissionValue.Value.Pos)
 	if strings.EqualFold(val, "write") {
 		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
-			dl.Warn(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: lineNumber,
-				Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
-				// TODO: set Snippet.
-			})
+			lm := &checker.LogMessage{
+				Path:    path,
+				Type:    checker.FileTypeSource,
+				Offset:  lineNumber,
+				Text:    fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
+				Snippet: val,
+			}
+			rem, err := createRemediation(path)
+			if err != nil {
+				return err
+			}
+			lm.Remediation = rem
+			dl.Warn(&lm)
 			recordPermissionWrite(pPermissions, permissionKey)
 		} else {
 			// Only log for debugging, otherwise
 			// it may confuse users.
 			dl.Debug(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: lineNumber,
-				Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
-				// TODO: set Snippet.
+				Path:    path,
+				Type:    checker.FileTypeSource,
+				Offset:  lineNumber,
+				Text:    fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
+				Snippet: val,
 			})
 		}
 		return nil

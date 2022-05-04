@@ -95,10 +95,10 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	exists1 := binaryFileTypes[t.Extension]
 	if exists1 {
 		*pfiles = append(*pfiles, checker.File{
-                        Path:   path,
-                        Type:   checker.FileTypeBinary,
-                        Offset: checker.OffsetDefault,
-                })
+			Path:   path,
+			Type:   checker.FileTypeBinary,
+			Offset: checker.OffsetDefault,
+		})
 		return true, nil
 	}
 
