@@ -31,6 +31,12 @@ var (
 	remediationSetupErr error
 )
 
+var (
+	workflowText = "update your workflow using https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s"
+	//nolint
+	workflowMarkdown = "update your workflow using [https://app.stepsecurity.io](https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s)"
+)
+
 //nolint:gochecknoinits
 func init() {
 	remediationOnce = new(sync.Once)
@@ -73,11 +79,8 @@ func createWorkflowRemediation(path, t string) *checker.Remediation {
 		return nil
 	}
 
-	text := fmt.Sprintf("update your workflow using https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s",
-		remediationRepo, p, remediationBranch, t)
-	//nolint
-	markdown := fmt.Sprintf("update your workflow using [https://app.stepsecurity.io](https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s)",
-		remediationRepo, p, remediationBranch, t)
+	text := fmt.Sprintf(workflowText, remediationRepo, p, remediationBranch, t)
+	markdown := fmt.Sprintf(workflowMarkdown, remediationRepo, p, remediationBranch, t)
 
 	return &checker.Remediation{
 		HelpText:     text,
