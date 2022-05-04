@@ -187,6 +187,51 @@ func TestCodereview(t *testing.T) {
 				Score: 5,
 			},
 		},
+		{
+			name: "Valid Phabricator commit",
+			commits: []clients.Commit{
+				{
+					SHA: "sha",
+					Committer: clients.User{
+						Login: "bob",
+					},
+					Message: "Title\nReviewed By: alice\nDifferential Revision: PHAB234",
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 10,
+			},
+		},
+		{
+			name: "Phabricator like, missing differential",
+			commits: []clients.Commit{
+				{
+					SHA: "sha",
+					Committer: clients.User{
+						Login: "bob",
+					},
+					Message: "Title\nReviewed By: alice",
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name: "Phabricator like, missing reviewed by",
+			commits: []clients.Commit{
+				{
+					SHA: "sha",
+					Committer: clients.User{
+						Login: "bob",
+					},
+					Message: "Title\nDifferential Revision: PHAB234",
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
 	}
 
 	for _, tt := range tests {
