@@ -95,9 +95,13 @@ type CheckResult struct {
 
 // Remediation represents a remediation.
 type Remediation struct {
-	Snippet      string
-	Diff         string
-	HelpText     string
+	// Code snippet for humans.
+	Snippet string
+	// Diff for machines.
+	Diff string
+	// Help text for humans.
+	HelpText string
+	// Help text in markdown format for humans.
 	HelpMarkdown string
 }
 
