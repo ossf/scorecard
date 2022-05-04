@@ -25,9 +25,10 @@ import (
 )
 
 var (
-	remediationBranch string
-	remediationRepo   string
-	remediationOnce   *sync.Once
+	remediationBranch   string
+	remediationRepo     string
+	remediationOnce     *sync.Once
+	remediationSetupErr error
 )
 
 //nolint:gochecknoinits
@@ -36,12 +37,11 @@ func init() {
 }
 
 func remdiationSetup(c *checker.CheckRequest) error {
-	var setupErr error
 	remediationOnce.Do(func() {
 		// Get the branch for remediation.
 		b, err := c.RepoClient.GetDefaultBranch()
 		if err != nil && !errors.Is(err, clients.ErrUnsupportedFeature) {
-			setupErr = err
+			remediationSetupErr = err
 			return
 		}
 		if b.Name != nil {
@@ -49,13 +49,14 @@ func remdiationSetup(c *checker.CheckRequest) error {
 			uri := c.Repo.URI()
 			parts := strings.Split(uri, "/")
 			if len(parts) != 3 {
-				setupErr = fmt.Errorf("%w: %s", errInvalidArgLength, uri)
+				remediationSetupErr = fmt.Errorf("%w: %s", errInvalidArgLength, uri)
 				return
 			}
 			remediationRepo = fmt.Sprintf("%s/%s", parts[1], parts[2])
 		}
 	})
-	return setupErr
+
+	return remediationSetupErr
 }
 
 func createWorkflowPermissionRemediation(filepath string) *checker.Remediation {
