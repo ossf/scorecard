@@ -203,7 +203,8 @@ func isReviewedOnPhabricator(c *checker.DefaultBranchCommit, dl checker.DetailLo
 	}
 
 	m := c.CommitMessage
-	if strings.Contains(m, "\nReviewed By: ") {
+	if strings.Contains(m, "\nDifferential Revision: ") &&
+		strings.Contains(m, "\nReviewed By: ") {
 		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, reviewPlatformPhabricator),
 		})
