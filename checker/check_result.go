@@ -25,8 +25,6 @@ type (
 	DetailType int
 	// FileType is the type of a file.
 	FileType int
-	// RemdiationType is the type of remediation.
-	RemdiationType int
 )
 
 const (
