@@ -23,9 +23,10 @@ import (
 )
 
 var (
-	reviewPlatformGitHub = "GitHub"
-	reviewPlatformProw   = "Prow"
-	reviewPlatformGerrit = "Gerrit"
+	reviewPlatformGitHub      = "GitHub"
+	reviewPlatformProw        = "Prow"
+	reviewPlatformGerrit      = "Gerrit"
+	reviewPlatformPhabricator = "Phabricator"
 )
 
 // CodeReview applies the score policy for the Code-Review check.
@@ -42,10 +43,11 @@ func CodeReview(name string, dl checker.DetailLogger,
 	}
 
 	totalReviewed := map[string]int{
-		// The 3 platforms we support.
-		reviewPlatformGitHub: 0,
-		reviewPlatformProw:   0,
-		reviewPlatformGerrit: 0,
+		// The 4 platforms we support.
+		reviewPlatformGitHub:      0,
+		reviewPlatformProw:        0,
+		reviewPlatformGerrit:      0,
+		reviewPlatformPhabricator: 0,
 	}
 
 	for i := range r.DefaultBranchCommits {
@@ -64,7 +66,8 @@ func CodeReview(name string, dl checker.DetailLogger,
 
 	if totalReviewed[reviewPlatformGitHub] == 0 &&
 		totalReviewed[reviewPlatformGerrit] == 0 &&
-		totalReviewed[reviewPlatformProw] == 0 {
+		totalReviewed[reviewPlatformProw] == 0 &&
+		totalReviewed[reviewPlatformPhabricator] == 0 {
 		return checker.CreateMinScoreResult(name, "no reviews found")
 	}
 
@@ -111,6 +114,9 @@ func getApprovedReviewSystem(c *checker.DefaultBranchCommit, dl checker.DetailLo
 
 	case isReviewedOnGerrit(c, dl):
 		return reviewPlatformGerrit
+
+	case isReviewedOnPhabricator(c, dl):
+		return reviewPlatformPhabricator
 	}
 
 	return ""
@@ -182,6 +188,25 @@ func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 		strings.Contains(m, "\nReviewed-by: ") {
 		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, reviewPlatformGerrit),
+		})
+		return true
+	}
+	return false
+}
+
+func isReviewedOnPhabricator(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
+	if isBot(c.Committer.Login) {
+		dl.Debug(&checker.LogMessage{
+			Text: fmt.Sprintf("skip commit %s from bot account: %s", c.SHA, c.Committer.Login),
+		})
+		return true
+	}
+
+	m := c.CommitMessage
+	if strings.Contains(m, "\nDifferential Revision: ") &&
+		strings.Contains(m, "\nReviewed By: ") {
+		dl.Debug(&checker.LogMessage{
+			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, reviewPlatformPhabricator),
 		})
 		return true
 	}
