@@ -128,6 +128,60 @@ func TestSARIFOutput(t *testing.T) {
 		policy      spol.ScorecardPolicy
 	}{
 		{
+			name:        "check with detail remediation",
+			showDetails: true,
+			expected:    "./testdata/check-remediation.sarif",
+			logLevel:    log.DebugLevel,
+			policy: spol.ScorecardPolicy{
+				Version: 1,
+				Policies: map[string]*spol.CheckPolicy{
+					"Check-Name": {
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_ENFORCED,
+					},
+					"Check-Name2": {
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_DISABLED,
+					},
+				},
+			},
+			result: ScorecardResult{
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
+				Checks: []checker.CheckResult{
+					{
+						Details2: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    checker.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+									Remediation: &checker.Remediation{
+										HelpMarkdown: "this is the custom markdown help",
+										HelpText:     "this is the custom text help",
+									},
+								},
+							},
+						},
+						Score:  5,
+						Reason: "half score reason",
+						Name:   "Check-Name",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
 			name:        "check-1",
 			showDetails: true,
 			expected:    "./testdata/check1.sarif",
@@ -135,11 +189,11 @@ func TestSARIFOutput(t *testing.T) {
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
-					"Check-Name": &spol.CheckPolicy{
+					"Check-Name": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
-					"Check-Name2": &spol.CheckPolicy{
+					"Check-Name2": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_DISABLED,
 					},
@@ -185,11 +239,11 @@ func TestSARIFOutput(t *testing.T) {
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
-					"Check-Name": &spol.CheckPolicy{
+					"Check-Name": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
-					"Check-Name2": &spol.CheckPolicy{
+					"Check-Name2": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_DISABLED,
 					},
@@ -234,15 +288,15 @@ func TestSARIFOutput(t *testing.T) {
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
-					"Check-Name": &spol.CheckPolicy{
+					"Check-Name": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
-					"Check-Name2": &spol.CheckPolicy{
+					"Check-Name2": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
-					"Check-Name3": &spol.CheckPolicy{
+					"Check-Name3": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
@@ -341,15 +395,15 @@ func TestSARIFOutput(t *testing.T) {
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
-					"Check-Name": &spol.CheckPolicy{
+					"Check-Name": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
-					"Check-Name2": &spol.CheckPolicy{
+					"Check-Name2": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
-					"Check-Name3": &spol.CheckPolicy{
+					"Check-Name3": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
@@ -448,7 +502,7 @@ func TestSARIFOutput(t *testing.T) {
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
-					"Check-Name": &spol.CheckPolicy{
+					"Check-Name": {
 						Score: 5,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
@@ -496,7 +550,7 @@ func TestSARIFOutput(t *testing.T) {
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
-					"Check-Name": &spol.CheckPolicy{
+					"Check-Name": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
@@ -540,15 +594,15 @@ func TestSARIFOutput(t *testing.T) {
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
-					"Check-Name": &spol.CheckPolicy{
+					"Check-Name": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
-					"Check-Name2": &spol.CheckPolicy{
+					"Check-Name2": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_DISABLED,
 					},
-					"Check-Name3": &spol.CheckPolicy{
+					"Check-Name3": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_DISABLED,
 					},
@@ -647,19 +701,19 @@ func TestSARIFOutput(t *testing.T) {
 			policy: spol.ScorecardPolicy{
 				Version: 1,
 				Policies: map[string]*spol.CheckPolicy{
-					"Check-Name4": &spol.CheckPolicy{
+					"Check-Name4": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
-					"Check-Name": &spol.CheckPolicy{
+					"Check-Name": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
-					"Check-Name5": &spol.CheckPolicy{
+					"Check-Name5": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
-					"Check-Name6": &spol.CheckPolicy{
+					"Check-Name6": {
 						Score: checker.MaxResultScore,
 						Mode:  spol.CheckPolicy_ENFORCED,
 					},
