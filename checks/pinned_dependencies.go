@@ -63,6 +63,10 @@ func PinnedDependencies(c *checker.CheckRequest) checker.CheckResult {
 	}
 	*/
 
+	if remErr := remdiationSetup(c); remErr != nil {
+		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, remErr)
+	}
+
 	// GitHub actions.
 	actionScore, actionErr := isGitHubActionsWorkflowPinned(c)
 	if actionErr != nil {
@@ -702,10 +706,11 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			if !match {
 				dl.Warn(&checker.LogMessage{
 					Path: pathfn, Type: checker.FileTypeSource,
-					Offset:    uint(execAction.Uses.Pos.Line),
-					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
-					Snippet:   execAction.Uses.Value,
-					Text:      fmt.Sprintf("%s action not pinned by hash", owner),
+					Offset:      uint(execAction.Uses.Pos.Line),
+					EndOffset:   uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
+					Snippet:     execAction.Uses.Value,
+					Text:        fmt.Sprintf("%s action not pinned by hash", owner),
+					Remediation: createWorkflowPinningRemediation(pathfn),
 				})
 			}
 

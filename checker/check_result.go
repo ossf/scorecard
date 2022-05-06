@@ -93,6 +93,18 @@ type CheckResult struct {
 	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
 }
 
+// Remediation represents a remediation.
+type Remediation struct {
+	// Code snippet for humans.
+	Snippet string
+	// Diff for machines.
+	Diff string
+	// Help text for humans.
+	HelpText string
+	// Help text in markdown format for humans.
+	HelpMarkdown string
+}
+
 // CheckDetail contains information for each detail.
 type CheckDetail struct {
 	Msg  LogMessage
@@ -103,12 +115,13 @@ type CheckDetail struct {
 // This allows updating the definition easily.
 // nolint:govet
 type LogMessage struct {
-	Text      string   // A short string explaining why the detail was recorded/logged.
-	Path      string   // Fullpath to the file.
-	Type      FileType // Type of file.
-	Offset    uint     // Offset in the file of Path (line for source/text files).
-	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
-	Snippet   string   // Snippet of code
+	Text        string       // A short string explaining why the detail was recorded/logged.
+	Path        string       // Fullpath to the file.
+	Type        FileType     // Type of file.
+	Offset      uint         // Offset in the file of Path (line for source/text files).
+	EndOffset   uint         // End of offset in the file, e.g. if the command spans multiple lines.
+	Snippet     string       // Snippet of code
+	Remediation *Remediation // Remediation information, if any.
 }
 
 // CreateProportionalScore creates a proportional score.
