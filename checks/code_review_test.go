@@ -232,6 +232,21 @@ func TestCodereview(t *testing.T) {
 				Score: 0,
 			},
 		},
+		{
+			name: "Valid piper commit",
+			commits: []clients.Commit{
+				{
+					SHA: "sha",
+					Committer: clients.User{
+						Login: "",
+					},
+					Message: "Title\nPiperOrigin-RevId: 444529962",
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 10,
+			},
+		},
 	}
 
 	for _, tt := range tests {
