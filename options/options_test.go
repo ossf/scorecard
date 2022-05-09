@@ -37,7 +37,6 @@ func TestOptions_Validate(t *testing.T) {
 		ChecksToRun       []string
 		Metadata          []string
 		ShowDetails       bool
-		PublishResults    bool
 		EnableSarif       bool
 		EnableScorecardV5 bool
 		EnableScorecardV6 bool
@@ -106,7 +105,6 @@ func TestOptions_Validate(t *testing.T) {
 				ChecksToRun:       tt.fields.ChecksToRun,
 				Metadata:          tt.fields.Metadata,
 				ShowDetails:       tt.fields.ShowDetails,
-				PublishResults:    tt.fields.PublishResults,
 				EnableSarif:       tt.fields.EnableSarif,
 				EnableScorecardV5: tt.fields.EnableScorecardV5,
 				EnableScorecardV6: tt.fields.EnableScorecardV6,
