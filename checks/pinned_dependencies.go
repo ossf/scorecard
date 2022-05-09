@@ -343,7 +343,7 @@ var validateDockerfileIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileCont
 		cmdType := child.Value
 
 		// Only look for the 'RUN' command.
-		if cmdType != "run" {
+		if cmdType != "RUN" {
 			continue
 		}
 
@@ -437,7 +437,7 @@ var validateDockerfileIsPinned fileparser.DoWhileTrueOnFileContent = func(
 
 	for _, child := range res.AST.Children {
 		cmdType := child.Value
-		if cmdType != "from" {
+		if cmdType != "FROM" {
 			continue
 		}
 

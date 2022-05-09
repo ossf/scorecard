@@ -20,7 +20,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-scorecard
 
-from build as build2
+FROM build as build2
 RUN /hello-world
 
 FROM scratch as build3
