@@ -79,10 +79,9 @@ const (
 // nolint:govet
 type CheckResult struct {
 	// TODO(#1393): Remove old structure after deprecation.
-	Name       string
-	Details    []string
-	Confidence int
-	Pass       bool
+	Name    string
+	Details []string
+	Pass    bool
 
 	// UPGRADEv2: New structure. Omitting unchanged Name field
 	// for simplicity.
@@ -173,8 +172,7 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Confidence: MaxResultScore,
-		Pass:       pass,
+		Pass: pass,
 		// New structure.
 		Version: 2,
 		Error:   nil,
@@ -197,8 +195,7 @@ func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Confidence: MaxResultConfidence,
-		Pass:       pass,
+		Pass: pass,
 		// New structure.
 		Version: 2,
 		Error:   nil,
@@ -228,8 +225,7 @@ func CreateInconclusiveResult(name, reason string) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Confidence: 0,
-		Pass:       false,
+		Pass: false,
 		// New structure.
 		Version: 2,
 		Score:   InconclusiveResultScore,
@@ -242,8 +238,7 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Confidence: 0,
-		Pass:       false,
+		Pass: false,
 		// New structure.
 		Version: 2,
 		Error:   e,

@@ -95,8 +95,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 	//nolint
 	for _, checkResult := range r.Checks {
 		tmpResult := jsonCheckResult{
-			Name:       checkResult.Name,
-			Confidence: checkResult.Confidence,
+			Name: checkResult.Name,
 		}
 		if showDetails {
 			for i := range checkResult.Details2 {
