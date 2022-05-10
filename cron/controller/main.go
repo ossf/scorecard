@@ -23,12 +23,12 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/cron/config"
 	"github.com/ossf/scorecard/v4/cron/data"
 	"github.com/ossf/scorecard/v4/cron/pubsub"
-	"github.com/ossf/scorecard/v4/pkg"
 )
 
 var headSHA = clients.HeadSHA
@@ -140,7 +140,7 @@ func main() {
 	}
 	*metadata.NumShard = (shardNum + 1)
 	*metadata.ShardLoc = bucket + "/" + data.GetBlobFilename("", t)
-	*metadata.CommitSha = pkg.GetCommit()
+	*metadata.CommitSha = version.GetVersionInfo().GitCommit
 	metadataJSON, err := protojson.Marshal(&metadata)
 	if err != nil {
 		panic(fmt.Errorf("error during protojson.Marshal: %w", err))

@@ -23,5 +23,5 @@ GIT_HASH=$(git rev-parse HEAD)
 # https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git-log.html
 SOURCE_DATE_EPOCH=$(git log --date=iso8601-strict -1 --pretty=%ct)
 GIT_TREESTATE=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)
-PKG=$(go list -m | head -n1)/pkg
+PKG=sigs.k8s.io/release-utils/version
 echo "-X $PKG.gitVersion=$GIT_VERSION -X $PKG.gitCommit=$GIT_HASH -X $PKG.gitTreeState=$GIT_TREESTATE -X $PKG.buildDate=$SOURCE_DATE_EPOCH -w -extldflags \"-static\""
