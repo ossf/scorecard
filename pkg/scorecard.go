@@ -22,6 +22,8 @@ import (
 	"sync"
 	"time"
 
+	"sigs.k8s.io/release-utils/version"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -96,15 +98,15 @@ func RunScorecards(ctx context.Context,
 	if err != nil {
 		return ScorecardResult{}, err
 	}
-
+	versionInfo := version.GetVersionInfo()
 	ret := ScorecardResult{
 		Repo: RepoInfo{
 			Name:      repo.URI(),
 			CommitSHA: commitSHA,
 		},
 		Scorecard: ScorecardInfo{
-			Version:   GetSemanticVersion(),
-			CommitSHA: GetCommit(),
+			Version:   versionInfo.GitVersion,
+			CommitSHA: versionInfo.GitCommit,
 		},
 		Date: time.Now(),
 	}
