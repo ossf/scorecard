@@ -98,8 +98,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 			Name: checkResult.Name,
 		}
 		if showDetails {
-			for i := range checkResult.Details2 {
-				d := checkResult.Details2[i]
+			for i := range checkResult.Details {
+				d := checkResult.Details[i]
 				m := DetailToString(&d, logLevel)
 				if m == "" {
 					continue
@@ -156,8 +156,8 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 			Score:  checkResult.Score,
 		}
 		if showDetails {
-			for i := range checkResult.Details2 {
-				d := checkResult.Details2[i]
+			for i := range checkResult.Details {
+				d := checkResult.Details[i]
 				m := DetailToString(&d, logLevel)
 				if m == "" {
 					continue
