@@ -169,7 +169,7 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 		x[1] = row.Name
 		x[2] = row.Reason
 		if showDetails {
-			details, show := detailsToString(row.Details2, logLevel)
+			details, show := detailsToString(row.Details, logLevel)
 			if show {
 				x[3] = details
 			}

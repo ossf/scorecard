@@ -99,8 +99,8 @@ func AsJSON(r *pkg.ScorecardResult, showDetails bool, logLevel log.Level, writer
 			Name: checkResult.Name,
 		}
 		if showDetails {
-			for i := range checkResult.Details2 {
-				d := checkResult.Details2[i]
+			for i := range checkResult.Details {
+				d := checkResult.Details[i]
 				m := pkg.DetailToString(&d, logLevel)
 				if m == "" {
 					continue
@@ -159,8 +159,8 @@ func AsJSON2(r *pkg.ScorecardResult, showDetails bool,
 			Score:  checkResult.Score,
 		}
 		if showDetails {
-			for i := range checkResult.Details2 {
-				d := checkResult.Details2[i]
+			for i := range checkResult.Details {
+				d := checkResult.Details[i]
 				m := pkg.DetailToString(&d, logLevel)
 				if m == "" {
 					continue

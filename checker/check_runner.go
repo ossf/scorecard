@@ -120,10 +120,7 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 
 	// Set details.
 	// TODO(#1393): Remove.
-	res.Details2 = l.Flush()
-	for _, d := range res.Details2 {
-		res.Details = append(res.Details, d.Msg.Text)
-	}
+	res.Details = l.Flush()
 
 	if err := logStats(ctx, startTime, &res); err != nil {
 		panic(err)

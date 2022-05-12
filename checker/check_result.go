@@ -66,17 +66,12 @@ const (
 // CheckResult captures result from a check run.
 // nolint:govet
 type CheckResult struct {
-	// TODO(#1393): Remove old structure after deprecation.
 	Name    string
-	Details []string
-
-	// UPGRADEv2: New structure. Omitting unchanged Name field
-	// for simplicity.
-	Version  int           `json:"-"` // Default value of 0 indicates old structure.
-	Error    error         `json:"-"` // Runtime error indicate a filure to run the check.
-	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
-	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
-	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
+	Version int
+	Error   error
+	Details []CheckDetail
+	Score   int
+	Reason  string
 }
 
 // Remediation represents a remediation.

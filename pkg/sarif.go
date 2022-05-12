@@ -532,7 +532,7 @@ func messageWithScore(msg string, score int) string {
 }
 
 func createDefaultLocationMessage(check *checker.CheckResult, score int) string {
-	details := filterOutDetailType(check.Details2, checker.DetailInfo)
+	details := filterOutDetailType(check.Details, checker.DetailInfo)
 	s, b := detailsToString(details, log.WarnLevel)
 	if b {
 		// Warning: GitHub UX needs a single `\n` to turn it into a `<br>`.
@@ -608,7 +608,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 		// would change, and the result management system would erroneously report it as a new result."
 
 		// Create locations.
-		locs := detailsToLocations(check.Details2, showDetails, minScore, check.Score)
+		locs := detailsToLocations(check.Details, showDetails, minScore, check.Score)
 
 		// Add default location if no locations are present.
 		// Note: GitHub needs at least one location to show the results.
