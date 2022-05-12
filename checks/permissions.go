@@ -566,7 +566,22 @@ func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, dl ch
 
 // requiresContentsPermissions returns true if the workflow requires the `contents: write` permission.
 func requiresContentsPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
-	return isReleasingWorkflow(workflow, fp, dl)
+	return isReleasingWorkflow(workflow, fp, dl) || isGitHubPagesDeploymentWorkflow(workflow, fp, dl)
+}
+
+// isGitHubPagesDeploymentWorkflow returns true if the workflow involves pushing static pages to GitHub pages.
+func isGitHubPagesDeploymentWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	jobMatchers := []fileparser.JobMatcher{
+		{
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "peaceiris/actions-gh-pages",
+				},
+			},
+			LogText: "candidate GitHub page deployment workflow using peaceiris/actions-gh-pages",
+		},
+	}
+	return fileparser.AnyJobsMatch(workflow, jobMatchers, fp, dl, "not a GitHub Pages deployment workflow")
 }
 
 // isReleasingWorkflow returns true if the workflow involves creating a release on GitHub.
