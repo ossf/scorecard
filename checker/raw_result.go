@@ -359,8 +359,3 @@ func DetailToRawLog(d *CheckDetail) Log {
 		}
 	}
 }
-
-// AsPointer returns a pointer to the original value.
-func AsPointer(v interface{}) interface{} {
-	return &v
-}
