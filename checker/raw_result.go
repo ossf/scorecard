@@ -22,6 +22,7 @@ import (
 // is applied.
 //nolint
 type RawResults struct {
+	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
 	DangerousWorkflowResults    DangerousWorkflowData
 	VulnerabilitiesResults      VulnerabilitiesData
