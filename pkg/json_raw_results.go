@@ -156,10 +156,10 @@ const (
 )
 
 type jsonWorkflow struct {
-	Job *jsonWorkflowJob `json:"job"`
+	Job  *jsonWorkflowJob `json:"job"`
+	File *jsonFile        `json:"file"`
 	// Type is a string to allow different types for permissions, unpinned dependencies, etc.
-	Type string   `json:"type"`
-	File jsonFile `json:"file"`
+	Type string `json:"type"`
 }
 
 type jsonWorkflowJob struct {
@@ -201,18 +201,18 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 	r.Results.Workflows = []jsonWorkflow{}
 	for _, e := range df.Workflows {
 		v := jsonWorkflow{
-			File: jsonFile{
-				Path:   e.Workflow.File.Path,
-				Offset: int(e.Workflow.File.Offset),
+			File: &jsonFile{
+				Path:   e.File.Path,
+				Offset: int(e.File.Offset),
 			},
 		}
-		if e.Workflow.File.Snippet != "" {
-			v.File.Snippet = &e.Workflow.File.Snippet
+		if e.File.Snippet != "" {
+			v.File.Snippet = &e.File.Snippet
 		}
-		if e.Workflow.Job != nil {
+		if e.Job != nil {
 			v.Job = &jsonWorkflowJob{
-				Name: e.Workflow.Job.Name,
-				ID:   e.Workflow.Job.ID,
+				Name: e.Job.Name,
+				ID:   e.Job.ID,
 			}
 		}
 

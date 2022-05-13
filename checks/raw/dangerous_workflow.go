@@ -194,15 +194,13 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 			pdata.Workflows = append(pdata.Workflows,
 				checker.DangerousWorkflow{
 					Type: checker.DangerousWorkflowUntrustedCheckout,
-					Workflow: checker.Workflow{
-						File: checker.File{
-							Path:    path,
-							Type:    checker.FileTypeSource,
-							Offset:  line,
-							Snippet: ref.Value.Value,
-						},
-						Job: createJob(job),
+					File: checker.File{
+						Path:    path,
+						Type:    checker.FileTypeSource,
+						Offset:  line,
+						Snippet: ref.Value.Value,
 					},
+					Job: createJob(job),
 				},
 			)
 		}
@@ -255,15 +253,13 @@ func checkVariablesInScript(script string, pos *actionlint.Pos,
 			line := fileparser.GetLineNumber(pos)
 			pdata.Workflows = append(pdata.Workflows,
 				checker.DangerousWorkflow{
-					Workflow: checker.Workflow{
-						File: checker.File{
-							Path:    path,
-							Type:    checker.FileTypeSource,
-							Offset:  line,
-							Snippet: variable,
-						},
-						Job: createJob(job),
+					File: checker.File{
+						Path:    path,
+						Type:    checker.FileTypeSource,
+						Offset:  line,
+						Snippet: variable,
 					},
+					Job:  createJob(job),
 					Type: checker.DangerousWorkflowScriptInjection,
 				},
 			)

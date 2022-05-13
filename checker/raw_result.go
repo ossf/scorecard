@@ -301,14 +301,9 @@ type DangerousWorkflowData struct {
 
 // DangerousWorkflow represents a dangerous workflow.
 type DangerousWorkflow struct {
-	Workflow Workflow
-	Type     DangerousWorkflowType
-}
-
-// Workflow represents a workflow.
-type Workflow struct {
 	Job  *WorkflowJob
 	File File
+	Type DangerousWorkflowType
 }
 
 // WorkflowJob reprresents a workflow job.
