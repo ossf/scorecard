@@ -145,10 +145,6 @@ type jsonLicense struct {
 	// TODO: add fields, like type of license, etc.
 }
 
-type jsonWorkflows struct {
-	DangerousPatterns []jsonDangerousPattern `json:"dangerousPatterns"`
-}
-
 type dangerousPatternType string
 
 const (
@@ -156,10 +152,11 @@ const (
 	patternScriptInjection   dangerousPatternType = "scriptInjection"
 )
 
-type jsonDangerousPattern struct {
-	Job  *jsonWorkflowJob     `json:"job"`
-	File jsonFile             `json:"file"`
-	Type dangerousPatternType `json:"type"`
+type jsonWorkflow struct {
+	Job *jsonWorkflowJob `json:"job"`
+	// Type is a string to allow different types for permissions, unpinned dependencies, etc.
+	Type string   `json:"type"`
+	File jsonFile `json:"file"`
 }
 
 type jsonWorkflowJob struct {
@@ -170,7 +167,7 @@ type jsonWorkflowJob struct {
 //nolint
 type jsonRawResults struct {
 	// Workflow results.
-	Workflows jsonWorkflows `json:"workflows"`
+	Workflows []jsonWorkflow `json:"workflows"`
 	// License.
 	Licenses []jsonLicense `json:"licenses"`
 	// List of recent issues.
@@ -198,34 +195,34 @@ type jsonRawResults struct {
 }
 
 func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.DangerousWorkflowData) error {
-	r.Results.Workflows = jsonWorkflows{}
+	r.Results.Workflows = []jsonWorkflow{}
 	for _, e := range df.Workflows {
-		v := jsonDangerousPattern{
+		v := jsonWorkflow{
 			File: jsonFile{
-				Path:   e.File.Path,
-				Offset: int(e.File.Offset),
+				Path:   e.Workflow.File.Path,
+				Offset: int(e.Workflow.File.Offset),
 			},
 		}
-		if e.File.Snippet != "" {
-			v.File.Snippet = &e.File.Snippet
+		if e.Workflow.File.Snippet != "" {
+			v.File.Snippet = &e.Workflow.File.Snippet
 		}
-		if e.Job != nil {
+		if e.Workflow.Job != nil {
 			v.Job = &jsonWorkflowJob{
-				Name: e.Job.Name,
-				ID:   e.Job.ID,
+				Name: e.Workflow.Job.Name,
+				ID:   e.Workflow.Job.ID,
 			}
 		}
 
 		switch e.Type {
 		case checker.DangerousWorkflowUntrustedCheckout:
-			v.Type = patternUntrustedCheckout
+			v.Type = string(patternUntrustedCheckout)
 		case checker.DangerousWorkflowScriptInjection:
-			v.Type = patternScriptInjection
+			v.Type = string(patternScriptInjection)
 		default:
 			return fmt.Errorf("%w: %d", errorInvalidType, e.Type)
 		}
 
-		r.Results.Workflows.DangerousPatterns = append(r.Results.Workflows.DangerousPatterns, v)
+		r.Results.Workflows = append(r.Results.Workflows, v)
 	}
 
 	return nil

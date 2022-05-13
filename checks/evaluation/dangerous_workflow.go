@@ -34,20 +34,20 @@ func DangerousWorkflow(name string, dl checker.DetailLogger,
 		var text string
 		switch e.Type {
 		case checker.DangerousWorkflowUntrustedCheckout:
-			text = fmt.Sprintf("untrusted code checkout '%v'", e.File.Snippet)
+			text = fmt.Sprintf("untrusted code checkout '%v'", e.Workflow.File.Snippet)
 		case checker.DangerousWorkflowScriptInjection:
-			text = fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet)
+			text = fmt.Sprintf("script injection with untrusted input '%v'", e.Workflow.File.Snippet)
 		default:
 			err := sce.WithMessage(sce.ErrScorecardInternal, "invalid type")
 			return checker.CreateRuntimeErrorResult(name, err)
 		}
 
 		dl.Warn(&checker.LogMessage{
-			Path:    e.File.Path,
-			Type:    e.File.Type,
-			Offset:  e.File.Offset,
+			Path:    e.Workflow.File.Path,
+			Type:    e.Workflow.File.Type,
+			Offset:  e.Workflow.File.Offset,
 			Text:    text,
-			Snippet: e.File.Snippet,
+			Snippet: e.Workflow.File.Snippet,
 		})
 	}
 

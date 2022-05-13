@@ -296,14 +296,19 @@ const (
 // DangerousWorkflowData contains raw results
 // for dangerous workflow check.
 type DangerousWorkflowData struct {
-	Workflows []Workflow
+	Workflows []DangerousWorkflow
 }
 
-// Workflow represents a result for a workflow.
+// DangerousWorkflow represents a dangerous workflow.
+type DangerousWorkflow struct {
+	Workflow Workflow
+	Type     DangerousWorkflowType
+}
+
+// Workflow represents a workflow.
 type Workflow struct {
 	Job  *WorkflowJob
 	File File
-	Type DangerousWorkflowType
 }
 
 // WorkflowJob reprresents a workflow job.

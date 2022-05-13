@@ -141,7 +141,7 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 	checkDocs checks.Doc, writer io.Writer,
 ) error {
 	data := make([][]string, len(r.Checks))
-	//nolint
+
 	for i, row := range r.Checks {
 		const withdetails = 5
 		const withoutdetails = 4
