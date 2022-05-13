@@ -38,6 +38,7 @@ type RawResults struct {
 	SignedReleasesResults       SignedReleasesData
 	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
+	TokenPermissionsResults     TokenPermissionsData
 }
 
 // FuzzingData represents different fuzzing done.
@@ -242,4 +243,124 @@ type DangerousWorkflow struct {
 type WorkflowJob struct {
 	Name *string
 	ID   *string
+}
+
+// TokenPermissionsData represents data about a permission failure.
+type TokenPermissionsData struct {
+	TokenPermissions []TokenPermission
+}
+
+// PermissionLocation represents a declaration type.
+type PermissionLocation int
+
+const (
+	// PermissionLocationTop is top-level workflow permission.
+	PermissionLocationTop = iota
+	// PermissionLocationJob is job-level workflow permission.
+	PermissionLocationJob
+)
+
+// PermissionLocationToString stringifies a PermissionLocation.
+func PermissionLocationToString(l PermissionLocation) string {
+	switch l {
+	case PermissionLocationTop:
+		return "top-level"
+
+	case PermissionLocationJob:
+		return "job-level"
+
+	default:
+		return ""
+	}
+}
+
+// PermissionAlertType represents a permission type.
+type PermissionAlertType int
+
+const (
+	// PermissionAlertTypeUndeclared an undecleared permission.
+	PermissionAlertTypeUndeclared = iota
+	// PermissionAlertTypeWrite is a permission set to `write`.
+	PermissionAlertTypeWrite
+)
+
+// PermissionAlertTypeToString stringifies a PermissionAlertType.
+func PermissionAlertTypeToString(t PermissionAlertType) string {
+	switch t {
+	case PermissionAlertTypeUndeclared:
+		return "undeclared"
+
+	case PermissionAlertTypeWrite:
+		return "write"
+
+	default:
+		return ""
+	}
+}
+
+// TokenPermission defines a token permission alert.
+//nolint
+type TokenPermission struct {
+	Job          *WorkflowJob
+	Remediation  *Remediation
+	LocationType *PermissionLocation
+	AlertType    *PermissionAlertType
+	Name         *string
+	Value        *string
+	File         *File
+	Log          Log
+}
+
+// LogLevel represents a log level.
+// Note: may be removed once all checks are migrated.
+type LogLevel int
+
+const (
+	// LogLevelUnknown is unknown level.
+	// TODO: remove after migrating all checks.
+	LogLevelUnknown = iota
+	// LogLevelDebug is debug log.
+	LogLevelDebug
+	// LogLevelInfo is info log.
+	LogLevelInfo
+	// LogLevelWarn is warn log.
+	LogLevelWarn
+)
+
+// Log represent a log message.
+type Log struct {
+	Msg   string
+	Level LogLevel
+}
+
+// DetailToRawLog converts a CheckDetail to a raw log.
+// Note: may be removed once all checks are migrated.
+func DetailToRawLog(d *CheckDetail) Log {
+	switch d.Type {
+	case DetailDebug:
+		return Log{
+			Msg:   d.Msg.Text,
+			Level: LogLevelDebug,
+		}
+	case DetailInfo:
+		return Log{
+			Msg:   d.Msg.Text,
+			Level: LogLevelInfo,
+		}
+	case DetailWarn:
+		return Log{
+			Msg:   d.Msg.Text,
+			Level: LogLevelWarn,
+		}
+	default:
+		return Log{
+			Msg:   d.Msg.Text,
+			Level: LogLevelUnknown,
+		}
+	}
+}
+
+// AsPointer returns a pointer to the original value.
+func AsPointer(v interface{}) interface{} {
+	return &v
 }
