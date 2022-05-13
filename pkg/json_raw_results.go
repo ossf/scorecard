@@ -246,25 +246,30 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 	r.Results.Packages = []jsonPackage{}
 
 	for _, p := range pk.Packages {
-		if !reportResult(p.Outcome, logLevel) {
-			continue
-		}
-
-		jpk := jsonPackage{
-			Msg: p.Msg,
-		}
+		var jpk jsonPackage
 
 		if p.File == nil && p.Msg == nil {
 			//nolint
 			return errors.New("File and Msg fields are nil")
 		}
 
-		if p.File != nil {
-			jpk.File = &jsonFile{
-				Path:   p.File.Path,
-				Offset: int(p.File.Offset),
-				// TODO: Snippet
-			}
+		// We ignore debug messages.
+		if p.File == nil {
+			continue
+		}
+
+		jpk.File = &jsonFile{
+			Path:   p.File.Path,
+			Offset: int(p.File.Offset),
+			// TODO: Snippet
+		}
+
+		for _, run := range p.Runs {
+			jpk.Runs = append(jpk.Runs,
+				jsonRun{
+					URL: run.URL,
+				},
+			)
 		}
 
 		r.Results.Packages = append(r.Results.Packages, jpk)
