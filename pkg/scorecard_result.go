@@ -118,7 +118,7 @@ func FormatResults(
 	case options.FormatJSON:
 		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
 	case options.FormatRaw:
-		err = results.AsRawJSON(os.Stdout)
+		err = results.AsRawJSON(os.Stdout, log.ParseLevel(opts.LogLevel))
 	default:
 		err = sce.WithMessage(
 			sce.ErrScorecardInternal,
