@@ -25,6 +25,9 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
+// TODO: add a "check" field to all results so that they can be linked to a check.
+// TODO(#1874): Add a severity field in all results.
+
 var errorInvalidType = errors.New("invalid type")
 
 // Flat JSON structure to hold raw results.
