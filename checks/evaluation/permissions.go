@@ -15,6 +15,8 @@
 package evaluation
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -26,7 +28,10 @@ func TokenPermissions(name string, dl checker.DetailLogger, r *checker.TokenPerm
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	score, details := calculateScore(r)
+	score, err := calculateScore(r, dl)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(name, err)
+	}
 
 	if score != checker.MaxResultScore {
 		return checker.CreateResultWithScore(name,
@@ -37,7 +42,7 @@ func TokenPermissions(name string, dl checker.DetailLogger, r *checker.TokenPerm
 		"tokens are read-only in GitHub workflows")
 }
 
-func calculateScore(results *checker.TokenPermissionsData, dl checker.DetailLogger) int {
+func calculateScore(results *checker.TokenPermissionsData, dl checker.DetailLogger) (int, error) {
 	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
 	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
 	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
@@ -53,25 +58,57 @@ func calculateScore(results *checker.TokenPermissionsData, dl checker.DetailLogg
 			msg.Type = r.File.Type
 			msg.Snippet = r.File.Snippet
 		}
-		if r.Log.Msg != "" {
-			msg.Text = r.Log.Msg
+		text, err := createMessage(r)
+		if err != nil {
+			return checker.MinResultScore, err
 		}
+		msg.Text = text
 
-		switch r.Log.Level {
-		case checker.LogLevelDebug:
+		switch r.Type {
+		case checker.PermissionTypeOther:
 			dl.Debug(&msg)
 
-		case checker.LogLevelInfo:
+		case checker.PermissionTypeNone, checker.PermissionTypeRead:
 			dl.Info(&msg)
 
-		case checker.LogLevelWarn:
-
+		case checker.PermissionTypeWrite:
+			dl.Warn(&msg)
 			// TODO: construct a hash map indexed by workflow file.
 		}
 	}
 
 	// TODO: use the hash map to compute the score.
-	return 10
+	return int(score) - 1, nil
+}
+
+func createMessage(t checker.TokenPermission) (string, error) {
+	// By default, use the message already present.
+	if t.Msg != nil {
+		return *t.Msg, nil
+	}
+
+	// Ensure there's no implementation bug.
+	if t.LocationType == nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, "locationType is nil")
+	}
+
+	// Use a different message depending on the type.
+	switch t.Type {
+	case checker.PermissionTypeUndefined:
+		return fmt.Sprintf("no %s permission defined",
+			checker.PermissionLocationToString(*t.LocationType)), nil
+
+	default:
+		if t.Name == nil || t.Value == nil {
+			return "", sce.WithMessage(sce.ErrScorecardInternal,
+				fmt.Sprintf("nil fields: %v, %v",
+					t.Name, t.Value))
+		}
+
+		return fmt.Sprintf("%s '%v' permission set to '%v'",
+			checker.PermissionLocationToString(*t.LocationType),
+			*t.Name, *t.Value), nil
+	}
 }
 
 /*

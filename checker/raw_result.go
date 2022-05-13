@@ -274,88 +274,50 @@ func PermissionLocationToString(l PermissionLocation) string {
 	}
 }
 
-// PermissionAlertType represents a permission type.
-type PermissionAlertType int
+// PermissionType represents a permission type.
+type PermissionType int
 
 const (
-	// PermissionAlertTypeUndeclared an undecleared permission.
-	PermissionAlertTypeUndeclared = iota
-	// PermissionAlertTypeWrite is a permission set to `write`.
-	PermissionAlertTypeWrite
+	// PermissionTypeUndefined an undecleared permission.
+	PermissionTypeUndefined = iota
+	// PermissionTypeWrite is a permission set to `write` for a permission we consider potentially dangerous.
+	PermissionTypeWrite
+	// PermissionTypeRead is a permission set to `read`.
+	PermissionTypeRead
+	// PermissionTypeNone is a permission set to `none`.
+	PermissionTypeNone
+	// PermissionTypeOther is for other kinds of alerts, mostly to support debug messages.
+	// TODO: remove it once we have implemented severity (#1874).
+	PermissionTypeOther
 )
 
-// PermissionAlertTypeToString stringifies a PermissionAlertType.
-func PermissionAlertTypeToString(t PermissionAlertType) string {
+// PermissionTypeToString stringifies a PermissionType.
+func PermissionTypeToString(t PermissionType) string {
 	switch t {
-	case PermissionAlertTypeUndeclared:
-		return "undeclared"
+	case PermissionTypeUndefined:
+		return "undefined"
 
-	case PermissionAlertTypeWrite:
+	case PermissionTypeWrite:
 		return "write"
+	case PermissionTypeRead:
+		return "read"
+	case PermissionTypeNone:
+		return "none"
 
 	default:
-		return ""
+		return "unknown"
 	}
 }
 
 // TokenPermission defines a token permission alert.
 //nolint
 type TokenPermission struct {
+	Type         PermissionType
 	Job          *WorkflowJob
 	Remediation  *Remediation
 	LocationType *PermissionLocation
-	AlertType    *PermissionAlertType
 	Name         *string
 	Value        *string
 	File         *File
-	Log          Log
-}
-
-// LogLevel represents a log level.
-// Note: may be removed once all checks are migrated.
-type LogLevel int
-
-const (
-	// LogLevelUnknown is unknown level.
-	// TODO: remove after migrating all checks.
-	LogLevelUnknown = iota
-	// LogLevelDebug is debug log.
-	LogLevelDebug
-	// LogLevelInfo is info log.
-	LogLevelInfo
-	// LogLevelWarn is warn log.
-	LogLevelWarn
-)
-
-// Log represent a log message.
-type Log struct {
-	Msg   string
-	Level LogLevel
-}
-
-// DetailToRawLog converts a CheckDetail to a raw log.
-// Note: may be removed once all checks are migrated.
-func DetailToRawLog(d *CheckDetail) Log {
-	switch d.Type {
-	case DetailDebug:
-		return Log{
-			Msg:   d.Msg.Text,
-			Level: LogLevelDebug,
-		}
-	case DetailInfo:
-		return Log{
-			Msg:   d.Msg.Text,
-			Level: LogLevelInfo,
-		}
-	case DetailWarn:
-		return Log{
-			Msg:   d.Msg.Text,
-			Level: LogLevelWarn,
-		}
-	default:
-		return Log{
-			Msg:   d.Msg.Text,
-			Level: LogLevelUnknown,
-		}
-	}
+	Msg          *string
 }

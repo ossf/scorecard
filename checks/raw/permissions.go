@@ -130,15 +130,6 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 		return false, err
 	}
 
-	// Extract the logs.
-	logs := dl.Flush()
-	for _, l := range logs {
-		pdata.results.TokenPermissions = append(pdata.results.TokenPermissions,
-			checker.TokenPermission{
-				Log: checker.DetailToRawLog(&l),
-			})
-	}
-
 	// TODO(laurent): 2. Identify github actions that require write and add checks.
 
 	// TODO(laurent): 3. Read a few runs and ensures they have the same permissions.
@@ -170,11 +161,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 					Name:         &key,
 					Value:        &val,
 					Remediation:  createWorkflowPermissionRemediation(path),
-					Log: checker.Log{
-						Level: checker.LogLevelWarn,
-						Msg: fmt.Sprintf("%s '%v' permission set to '%v'",
-							checker.PermissionLocationToString(permLoc), key, val),
-					},
+					Type:         checker.PermissionTypeWrite,
 					// TODO: Job
 				})
 			recordPermissionWrite(pPermissions, permissionKey)
@@ -192,11 +179,8 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 					LocationType: &permLoc,
 					Name:         &key,
 					Value:        &val,
-					Log: checker.Log{
-						Level: checker.LogLevelDebug,
-						Msg: fmt.Sprintf("%s '%v' permission set to '%v'",
-							checker.PermissionLocationToString(permLoc), key, val),
-					},
+					// It's a write but not considered dangerous.
+					Type: checker.PermissionTypeOther,
 					// TODO: Job
 				})
 		}
@@ -214,14 +198,20 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 			LocationType: &permLoc,
 			Name:         &key,
 			Value:        &val,
-			Log: checker.Log{
-				Level: checker.LogLevelInfo,
-				Msg: fmt.Sprintf("%s '%v' permission set to '%v'",
-					checker.PermissionLocationToString(permLoc), key, val),
-			},
+			Type:         typeOfPermission(val),
 			// TODO: Job
 		})
 	return nil
+}
+
+func typeOfPermission(val string) checker.PermissionType {
+	switch val {
+	case "read", "read-all":
+		return checker.PermissionTypeRead
+	case "none":
+		return checker.PermissionTypeNone
+	}
+	return checker.PermissionTypeOther
 }
 
 func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, permLoc checker.PermissionLocation,
@@ -276,12 +266,8 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 					Offset: checker.OffsetDefault,
 				},
 				LocationType: &permLoc,
-				Log: checker.Log{
-					Level: checker.LogLevelInfo,
-					Msg: fmt.Sprintf("%s permissions set to 'none'",
-						checker.PermissionLocationToString(permLoc)),
-				},
-				Value: &none,
+				Type:         checker.PermissionTypeNone,
+				Value:        &none,
 				// TODO: Job, etc.
 			})
 	}
@@ -300,11 +286,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 					LocationType: &permLoc,
 					Value:        &val,
 					Remediation:  createWorkflowPermissionRemediation(path),
-					Log: checker.Log{
-						Level: checker.LogLevelWarn,
-						Msg: fmt.Sprintf("%s permissions set to '%v'",
-							checker.PermissionLocationToString(permLoc), val),
-					},
+					Type:         checker.PermissionTypeWrite,
 					// TODO: Job
 				})
 
@@ -322,11 +304,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 				},
 				LocationType: &permLoc,
 				Value:        &val,
-				Log: checker.Log{
-					Level: checker.LogLevelInfo,
-					Msg: fmt.Sprintf("%s permissions set to '%v'",
-						checker.PermissionLocationToString(permLoc), val),
-				},
+				Type:         typeOfPermission(val),
 				// TODO: Job
 			})
 	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes,
@@ -342,7 +320,6 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 	// Check if permissions are set explicitly.
 	if workflow.Permissions == nil {
 		var permLoc checker.PermissionLocation = checker.PermissionLocationTop
-		var alertType checker.PermissionAlertType = checker.PermissionAlertTypeUndeclared
 		pdata.results.TokenPermissions = append(pdata.results.TokenPermissions,
 			checker.TokenPermission{
 				File: &checker.File{
@@ -351,12 +328,8 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 					Offset: checker.OffsetDefault,
 				},
 				LocationType: &permLoc,
-				AlertType:    &alertType,
+				Type:         checker.PermissionTypeUndefined,
 				Remediation:  createWorkflowPermissionRemediation(path),
-				Log: checker.Log{
-					Level: checker.LogLevelWarn,
-					Msg:   fmt.Sprintf("no %s permission defined", checker.PermissionLocationToString(permLoc)),
-				},
 				// TODO: Job
 			})
 
@@ -378,7 +351,6 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 		// so only top-level read-only permissions need to be declared.
 		if job.Permissions == nil {
 			var permLoc checker.PermissionLocation = checker.PermissionLocationJob
-			var alertType checker.PermissionAlertType = checker.PermissionAlertTypeUndeclared
 			pdata.results.TokenPermissions = append(pdata.results.TokenPermissions,
 				checker.TokenPermission{
 					File: &checker.File{
@@ -387,11 +359,8 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 						Offset: fileparser.GetLineNumber(job.Pos),
 					},
 					LocationType: &permLoc,
-					AlertType:    &alertType,
-					Log: checker.Log{
-						Level: checker.LogLevelDebug,
-						Msg:   fmt.Sprintf("no %s permission defined", checker.PermissionLocationToString(permLoc)),
-					},
+					Type:         checker.PermissionTypeOther,
+					Msg:          stringPointer(fmt.Sprintf("no %s permission defined", jobLevelPermission)),
 					// TODO: Job
 				})
 
@@ -476,10 +445,8 @@ func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, pdata *permis
 							Offset: fileparser.GetLineNumber(uses.Pos),
 							// TODO: set Snippet.
 						},
-						Log: checker.Log{
-							Level: checker.LogLevelDebug,
-							Msg:   "codeql SARIF upload workflow detected",
-						},
+						Type: checker.PermissionTypeOther,
+						Msg:  stringPointer("codeql SARIF upload workflow detected"),
 						// TODO: Job
 					})
 
@@ -494,10 +461,9 @@ func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, pdata *permis
 				Type:   checker.FileTypeSource,
 				Offset: checker.OffsetDefault,
 			},
-			Log: checker.Log{
-				Level: checker.LogLevelDebug,
-				Msg:   "not a codeql upload SARIF workflow",
-			},
+			Type: checker.PermissionTypeOther,
+			Msg:  stringPointer("not a codeql upload SARIF workflow"),
+
 			// TODO: Job
 		})
 
@@ -523,10 +489,8 @@ func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, pdata *p
 							Type:   checker.FileTypeSource,
 							Offset: fileparser.GetLineNumber(uses.Pos),
 						},
-						Log: checker.Log{
-							Level: checker.LogLevelDebug,
-							Msg:   "codeql workflow detected",
-						},
+						Type: checker.PermissionTypeOther,
+						Msg:  stringPointer("codeql workflow detected"),
 						// TODO: Job
 					})
 
@@ -542,13 +506,15 @@ func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, pdata *p
 				Type:   checker.FileTypeSource,
 				Offset: checker.OffsetDefault,
 			},
-			Log: checker.Log{
-				Level: checker.LogLevelDebug,
-				Msg:   "not a codeql workflow",
-			},
+			Type: checker.PermissionTypeOther,
+			Msg:  stringPointer("not a codeql workflow"),
 		})
 
 	return false
+}
+
+func stringPointer(s string) *string {
+	return &s
 }
 
 // A packaging workflow using GitHub's supported packages:
