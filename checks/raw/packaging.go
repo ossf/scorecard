@@ -46,23 +46,10 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 			return data, e
 		}
 
-		log, ok := isPackagingWorkflow(workflow, fp)
-		l := checker.Package{
-			Outcome: checker.OutcomeTypeDebug,
-			File: &checker.File{
-				Path:   log.File.Path,
-				Type:   log.File.Type,
-				Offset: log.File.Offset,
-			},
-			Msg: &log.Msg,
-		}
+		_, ok := isPackagingWorkflow(workflow, fp)
 		if !ok {
-			data.Packages = append(data.Packages, l)
 			continue
 		}
-
-		l.Outcome = checker.OutcomeTypePositiveMedium
-		data.Packages = append(data.Packages, l)
 
 		runs, err := c.RepoClient.ListSuccessfulWorkflowRuns(filepath.Base(fp))
 		if err != nil {
