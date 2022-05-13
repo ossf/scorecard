@@ -16,6 +16,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -41,7 +42,8 @@ type jsonScorecardRawResult struct {
 type jsonFile struct {
 	Snippet *string `json:"snippet,omitempty"`
 	Path    string  `json:"path"`
-	Offset  int     `json:"offset,omitempty"`
+	// TODO: change to an uint.
+	Offset int `json:"offset,omitempty"`
 }
 
 type jsonTool struct {
@@ -54,16 +56,16 @@ type jsonTool struct {
 }
 
 type jsonBranchProtectionSettings struct {
-	RequiredApprovingReviewCount        *int32   `json:"required-reviewer-count"`
-	AllowsDeletions                     *bool    `json:"allows-deletions"`
-	AllowsForcePushes                   *bool    `json:"allows-force-pushes"`
-	RequiresCodeOwnerReviews            *bool    `json:"requires-code-owner-review"`
-	RequiresLinearHistory               *bool    `json:"required-linear-history"`
-	DismissesStaleReviews               *bool    `json:"dismisses-stale-reviews"`
-	EnforcesAdmins                      *bool    `json:"enforces-admin"`
-	RequiresStatusChecks                *bool    `json:"requires-status-checks"`
-	RequiresUpToDateBranchBeforeMerging *bool    `json:"requires-updated-branches-to-merge"`
-	StatusCheckContexts                 []string `json:"status-checks-contexts"`
+	RequiredApprovingReviewCount        *int     `json:"requiredReviewerCount"`
+	AllowsDeletions                     *bool    `json:"allowsDeletions"`
+	AllowsForcePushes                   *bool    `json:"allowsForcePushes"`
+	RequiresCodeOwnerReviews            *bool    `json:"requiresCodeOwnerReview"`
+	RequiresLinearHistory               *bool    `json:"requiredLinearHistory"`
+	DismissesStaleReviews               *bool    `json:"dismissesStaleReviews"`
+	EnforcesAdmins                      *bool    `json:"enforcesAdmin"`
+	RequiresStatusChecks                *bool    `json:"requiresStatuChecks"`
+	RequiresUpToDateBranchBeforeMerging *bool    `json:"requiresUpdatedBranchesToMerge"`
+	StatusCheckContexts                 []string `json:"statusChecksContexts"`
 }
 
 type jsonBranchProtection struct {
@@ -77,7 +79,7 @@ type jsonReview struct {
 }
 
 type jsonUser struct {
-	RepoAssociation *string `json:"repo-association,omitempty"`
+	RepoAssociation *string `json:"repoAssociation,omitempty"`
 	Login           string  `json:"login"`
 	// Orgnization refers to a GitHub org.
 	Organizations []jsonOrganization `json:"organization,omitempty"`
@@ -111,10 +113,10 @@ type jsonMergeRequest struct {
 
 type jsonDefaultBranchCommit struct {
 	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
-	MergeRequest  *jsonMergeRequest `json:"merge-request"`
-	CommitMessage string            `json:"commit-message"`
-	SHA           string            `json:"sha"`
 	Committer     jsonUser          `json:"committer"`
+	MergeRequest  *jsonMergeRequest `json:"mergeRequest"`
+	CommitMessage string            `json:"commitMessage"`
+	SHA           string            `json:"sha"`
 	// TODO: check runs, etc.
 }
 
@@ -131,13 +133,13 @@ type jsonArchivedStatus struct {
 }
 
 type jsonComment struct {
-	CreatedAt *time.Time `json:"created-at"`
+	CreatedAt *time.Time `json:"createdAt"`
 	Author    *jsonUser  `json:"author"`
 	// TODO: add ields if needed, e.g., content.
 }
 
 type jsonIssue struct {
-	CreatedAt *time.Time    `json:"created-at"`
+	CreatedAt *time.Time    `json:"createdAt"`
 	Author    *jsonUser     `json:"author"`
 	URL       string        `json:"URL"`
 	Comments  []jsonComment `json:"comments"`
@@ -178,6 +180,29 @@ type jsonWorkflowJob struct {
 	ID   *string `json:"id"`
 }
 
+type jsonFuzzer struct {
+	Job  *jsonWorkflowJob `json:"job,omitempty"`
+	File *jsonFile        `json:"file,omitempty"`
+	Name string           `json:"name"`
+	// TODO: (#1933)
+}
+
+// nolint
+type jsonPackage struct {
+	Name *string          `json:"name,omitempty"`
+	Job  *jsonWorkflowJob `json:"job,omitempty"`
+	File *jsonFile        `json:"file,omitempty"`
+	Msg  *string          `json:"message,omitempty"`
+	Runs []jsonRun        `json:"runs,omitempty"`
+	// TODO: not supported yet. This needs to be unique across
+	// ecosystems: purl, OSV, CPE, etc.
+}
+
+type jsonRun struct {
+	URL string `json:"url"`
+	// TODO: add fields, e.g., Result=["success", "failure"]
+}
+
 //nolint
 type jsonRawResults struct {
 	// Workflow results.
@@ -187,31 +212,58 @@ type jsonRawResults struct {
 	// List of recent issues.
 	RecentIssues []jsonIssue `json:"issues"`
 	// OSSF best practices badge.
-	OssfBestPractices jsonOssfBestPractices `json:"openssf-best-practices-badge"`
+	OssfBestPractices jsonOssfBestPractices `json:"openssfBestPracticesBadge"`
 	// Vulnerabilities.
-	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"database-vulnerabilities"`
+	DatabaseVulnerabilities []jsonDatabaseVulnerability `json:"databaseVulnerabilities"`
 	// List of binaries found in the repo.
 	Binaries []jsonFile `json:"binaries"`
 	// List of security policy files found in the repo.
 	// Note: we return one at most.
-	SecurityPolicies []jsonFile `json:"security-policies"`
+	SecurityPolicies []jsonFile `json:"securityPolicies"`
 	// List of update tools.
 	// Note: we return one at most.
-	DependencyUpdateTools []jsonTool `json:"dependency-update-tools"`
+	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools"`
 	// Branch protection settings for development and release branches.
-	BranchProtections []jsonBranchProtection `json:"branch-protections"`
+	BranchProtections []jsonBranchProtection `json:"json:"branchProtections"`
 	// Contributors. Note: we could use the list of commits instead to store this data.
 	// However, it's harder to get statistics using commit list, so we have a dedicated
 	// structure for it.
 	Contributors jsonContributors `json:"Contributors"`
 	// Commits.
-	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
+	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBrancCommits"`
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
 	// Fuzzers.
 	Fuzzers []jsonTool `json:"fuzzers"`
 	// Releases.
 	Releases []jsonRelease `json:"releases"`
+	// Packages.
+	Packages []jsonPackage `json:"packages"`
+}
+
+func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingData) error {
+	r.Results.Packages = []jsonPackage{}
+
+	for _, p := range pk.Packages {
+		jpk := jsonPackage{
+			Msg: p.Msg,
+		}
+
+		if p.File == nil && p.Msg == nil {
+			return errors.New("File and Msg fields are nil")
+		}
+
+		if p.File != nil {
+			jpk.File = &jsonFile{
+				Path:   p.File.Path,
+				Offset: int(p.File.Offset),
+				// TODO: Snippet
+			}
+		}
+
+		r.Results.Packages = append(r.Results.Packages, jpk)
+	}
+	return nil
 }
 
 //nolint:unparam
@@ -577,6 +629,11 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Fuzzers.
 	if err := r.addFuzzingRawResults(&raw.FuzzingResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Packaging.
+	if err := r.addPackagingRawResults(&raw.PackagingResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

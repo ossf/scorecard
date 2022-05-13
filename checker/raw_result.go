@@ -44,6 +44,26 @@ type FuzzingData struct {
 	Fuzzers []Tool
 }
 
+// TODO: Add Msg to all results.
+
+// PackagingData contains results for the Packaging check.
+type PackagingData struct {
+	Packages []Package
+}
+
+// Package represents a package.
+// nolint
+type Package struct {
+	Name    *string
+	Job     *WorkflowJob
+	File    *File
+	Msg     *string
+	Outcome OutcomeType
+	Runs    []Run
+	// TODO: not supported yet. This needs to be unique across
+	// ecosystems: purl, OSV, CPE, etc.
+}
+
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {

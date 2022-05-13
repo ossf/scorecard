@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package raw
 
 import (
 	"fmt"
@@ -109,9 +109,9 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 
-			result := isPackagingWorkflow(workflow, p, &dl)
-			if result != tt.expected {
-				t.Errorf("isPackagingWorkflow() = %v, expected %v", result, tt.expected)
+			_, ok := isPackagingWorkflow(workflow, p)
+			if ok != tt.expected {
+				t.Errorf("isPackagingWorkflow() = %v, expected %v", ok, tt.expected)
 			}
 		})
 	}
