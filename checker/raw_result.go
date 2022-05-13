@@ -54,14 +54,14 @@ type PackagingData struct {
 // Package represents a package.
 // nolint
 type Package struct {
+	// TODO: not supported yet. This needs to be unique across
+	// ecosystems: purl, OSV, CPE, etc.
 	Name    *string
 	Job     *WorkflowJob
 	File    *File
 	Msg     *string
 	Outcome OutcomeType
 	Runs    []Run
-	// TODO: not supported yet. This needs to be unique across
-	// ecosystems: purl, OSV, CPE, etc.
 }
 
 // MaintainedData contains the raw results
