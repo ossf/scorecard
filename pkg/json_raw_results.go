@@ -16,6 +16,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -23,6 +24,11 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
+
+// TODO: add a "check" field to all results so that they can be linked to a check.
+// TODO(#1874): Add a severity field in all results.
+
+var errorInvalidType = errors.New("invalid type")
 
 // Flat JSON structure to hold raw results.
 type jsonScorecardRawResult struct {
@@ -142,19 +148,18 @@ type jsonLicense struct {
 	// TODO: add fields, like type of license, etc.
 }
 
-type jsonWorkflows struct {
-	UntrustedCheckouts []jsonUntrustedCheckout `json:"untrustedCheckouts"`
-	ScriptInjections   []jsonScriptInjection   `json:"scriptInjections"`
-}
+type dangerousPatternType string
 
-type jsonUntrustedCheckout struct {
-	Job  *jsonWorkflowJob `json:"job"`
-	File jsonFile         `json:"file"`
-}
+const (
+	patternUntrustedCheckout dangerousPatternType = "untrustedCheckout"
+	patternScriptInjection   dangerousPatternType = "scriptInjection"
+)
 
-type jsonScriptInjection struct {
+type jsonWorkflow struct {
 	Job  *jsonWorkflowJob `json:"job"`
-	File jsonFile         `json:"file"`
+	File *jsonFile        `json:"file"`
+	// Type is a string to allow different types for permissions, unpinned dependencies, etc.
+	Type string `json:"type"`
 }
 
 type jsonWorkflowJob struct {
@@ -165,7 +170,7 @@ type jsonWorkflowJob struct {
 //nolint
 type jsonRawResults struct {
 	// Workflow results.
-	Workflows jsonWorkflows `json:"workflows"`
+	Workflows []jsonWorkflow `json:"workflows"`
 	// License.
 	Licenses []jsonLicense `json:"licenses"`
 	// List of recent issues.
@@ -192,13 +197,11 @@ type jsonRawResults struct {
 	Releases []jsonRelease `json:"releases"`
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.DangerousWorkflowData) error {
-	r.Results.Workflows = jsonWorkflows{}
-	// Untrusted checkouts.
-	for _, e := range df.UntrustedCheckouts {
-		v := jsonUntrustedCheckout{
-			File: jsonFile{
+	r.Results.Workflows = []jsonWorkflow{}
+	for _, e := range df.Workflows {
+		v := jsonWorkflow{
+			File: &jsonFile{
 				Path:   e.File.Path,
 				Offset: int(e.File.Offset),
 			},
@@ -212,27 +215,17 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 				ID:   e.Job.ID,
 			}
 		}
-		r.Results.Workflows.UntrustedCheckouts = append(r.Results.Workflows.UntrustedCheckouts, v)
-	}
 
-	// Script injections
-	for _, e := range df.ScriptInjections {
-		v := jsonScriptInjection{
-			File: jsonFile{
-				Path:   e.File.Path,
-				Offset: int(e.File.Offset),
-			},
+		switch e.Type {
+		case checker.DangerousWorkflowUntrustedCheckout:
+			v.Type = string(patternUntrustedCheckout)
+		case checker.DangerousWorkflowScriptInjection:
+			v.Type = string(patternScriptInjection)
+		default:
+			return fmt.Errorf("%w: %d", errorInvalidType, e.Type)
 		}
-		if e.File.Snippet != "" {
-			v.File.Snippet = &e.File.Snippet
-		}
-		if e.Job != nil {
-			v.Job = &jsonWorkflowJob{
-				Name: e.Job.Name,
-				ID:   e.Job.ID,
-			}
-		}
-		r.Results.Workflows.ScriptInjections = append(r.Results.Workflows.ScriptInjections, v)
+
+		r.Results.Workflows = append(r.Results.Workflows, v)
 	}
 
 	return nil

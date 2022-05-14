@@ -175,7 +175,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				return
 			}
 
-			nb := len(dw.ScriptInjections) + len(dw.UntrustedCheckouts)
+			nb := len(dw.Workflows)
 			if nb != tt.expected.nb {
 				t.Errorf(cmp.Diff(nb, tt.expected.nb))
 			}
