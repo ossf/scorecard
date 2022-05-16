@@ -23,7 +23,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
-	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 // Test_checkOSSFuzz is a test function for checkOSSFuzz.
