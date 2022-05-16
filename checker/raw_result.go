@@ -57,8 +57,8 @@ type FuzzingData struct {
 type Fuzzer struct {
 	Job      *WorkflowJob
 	File     *File
-	Name     FuzzerName
 	Coverage *CodeCoverage
+	Name     FuzzerName
 	// TODO: runs, etc
 }
 

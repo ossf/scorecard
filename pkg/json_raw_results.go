@@ -200,8 +200,8 @@ const (
 type jsonFuzzer struct {
 	Job      *jsonWorkflowJob  `json:"job,omitempty"`
 	File     *jsonFile         `json:"file,omitempty"`
-	Name     jsonFuzzerName    `json:"name"`
 	Coverage *jsonCodeCoverage `json:"coverage,omitempty"`
+	Name     jsonFuzzerName    `json:"name"`
 	// TODO: runs, etc
 }
 
