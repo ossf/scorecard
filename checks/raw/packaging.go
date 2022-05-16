@@ -18,9 +18,10 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/rhysd/actionlint"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
-	"github.com/rhysd/actionlint"
 )
 
 // Packaging checks for packages.

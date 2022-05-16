@@ -78,7 +78,7 @@ func TestIsPackagingWorkflow(t *testing.T) {
 		},
 		{
 			name:     "python semantic release publish",
-			filename: "./testdata/github-workflow-packaging-python-semantic-release.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-python-semantic-release.yaml",
 			expected: true,
 		},
 		{
