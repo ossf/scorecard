@@ -93,7 +93,7 @@ func AsJSON(r *pkg.ScorecardResult, showDetails bool, logLevel log.Level, writer
 		Metadata: r.Metadata,
 	}
 
-	//nolint
+	
 	for _, checkResult := range r.Checks {
 		tmpResult := jsonCheckResult{
 			Name: checkResult.Name,
@@ -142,7 +142,7 @@ func AsJSON2(r *pkg.ScorecardResult, showDetails bool,
 		AggregateScore: jsonFloatScore(score),
 	}
 
-	//nolint
+	
 	for _, checkResult := range r.Checks {
 		doc, e := checkDocs.GetCheck(checkResult.Name)
 		if e != nil {
