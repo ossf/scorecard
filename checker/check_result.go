@@ -79,13 +79,13 @@ const (
 	OutcomeTypeNegativeHigh
 	// OutcomeTypeNegativeCritical is a critical risk result.
 	OutcomeTypeNegativeCritical
-	// OutcomeTypePositiveLow is a positive outcome against a low risk.
+	// OutcomeTypePositiveLow is a positive mitigation to a low risk.
 	OutcomeTypePositiveLow
-	// OutcomeTypePositiveMedium is a positive outcome against a medium risk.
+	// OutcomeTypePositiveMedium is a positive mitigation to a medium risk.
 	OutcomeTypePositiveMedium
-	// OutcomeTypePositiveHigh is a positive outcome against a high risk.
+	// OutcomeTypePositiveHigh is a positive mitigation to a high risk.
 	OutcomeTypePositiveHigh
-	// OutcomeTypePositiveCritical is a positive outcome against a critical risk.
+	// OutcomeTypePositiveCritical is a positive mitigation to a critical risk.
 	OutcomeTypePositiveCritical
 )
 
