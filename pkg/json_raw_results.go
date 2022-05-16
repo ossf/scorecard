@@ -28,7 +28,10 @@ import (
 // TODO: add a "check" field to all results so that they can be linked to a check.
 // TODO(#1874): Add a severity field in all results.
 
-var errorInvalidType = errors.New("invalid type")
+var (
+	errorInvalidType   = errors.New("invalid type")
+	errorInvalidFuzzer = errors.New("invalid fuzzer")
+)
 
 // Flat JSON structure to hold raw results.
 type jsonScorecardRawResult struct {
@@ -186,6 +189,31 @@ type jsonWorkflowJob struct {
 	ID   *string `json:"id"`
 }
 
+type jsonFuzzerName string
+
+const (
+	fuzzerNameCIFuzz    jsonFuzzerName = "CIFuzz"
+	fuzzerNameOSSFuzz   jsonFuzzerName = "OSSFuzz"
+	fuzzerNameGoBuiltin jsonFuzzerName = "GolangInternal"
+)
+
+type jsonFuzzer struct {
+	Job      *jsonWorkflowJob  `json:"job,omitempty"`
+	File     *jsonFile         `json:"file,omitempty"`
+	Name     jsonFuzzerName    `json:"name"`
+	Coverage *jsonCodeCoverage `json:"coverage,omitempty"`
+	// TODO: runs, etc
+}
+
+type jsonCodeCoverage struct {
+	FilesCoverage jsonFileCoverage `json:"files"`
+}
+
+type jsonFileCoverage struct {
+	Lines []uint   `json:"lines"`
+	File  jsonFile `json:"file"`
+}
+
 //nolint
 type jsonRawResults struct {
 	// Workflow results.
@@ -216,8 +244,31 @@ type jsonRawResults struct {
 	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
+	// Fuzzers.
+	Fuzzers []jsonFuzzer `json:"fuzzers"`
 	// Releases.
 	Releases []jsonRelease `json:"releases"`
+}
+
+func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) error {
+	r.Results.Fuzzers = []jsonFuzzer{}
+	for _, f := range fd.Fuzzers {
+		fuzzer := jsonFuzzer{
+			// TODO: Job, File, etc.
+		}
+		switch f.Name {
+		case checker.FuzzerNameCIFuzz:
+			fuzzer.Name = fuzzerNameCIFuzz
+		case checker.FuzzerNameOSSFuzz:
+			fuzzer.Name = fuzzerNameOSSFuzz
+		case checker.FuzzerNameGoBuiltin:
+			fuzzer.Name = fuzzerNameGoBuiltin
+		default:
+			return fmt.Errorf("%w: %d", errorInvalidFuzzer, f.Name)
+		}
+		r.Results.Fuzzers = append(r.Results.Fuzzers, fuzzer)
+	}
+	return nil
 }
 
 func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.DangerousWorkflowData) error {
@@ -574,6 +625,11 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Dangerous workflow.
 	if err := r.addDangerousWorkflowRawResults(&raw.DangerousWorkflowResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Fuzzers.
+	if err := r.addFuzzingRawResults(&raw.FuzzingResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

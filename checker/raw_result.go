@@ -32,7 +32,46 @@ type RawResults struct {
 	ContributorsResults         ContributorsData
 	MaintainedResults           MaintainedData
 	SignedReleasesResults       SignedReleasesData
+	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
+}
+
+// FuzzerName represents a fuzzing service.
+type FuzzerName int
+
+const (
+	// FuzzerNameCIFuzz is CIFuzz.
+	FuzzerNameCIFuzz FuzzerName = iota
+	// FuzzerNameOSSFuzz is OSSFuzz.
+	FuzzerNameOSSFuzz
+	// FuzzerNameGoBuiltin is the built-in Go fuzzer.
+	FuzzerNameGoBuiltin
+)
+
+// FuzzingData represents different fuzzing done.
+type FuzzingData struct {
+	Fuzzers []Fuzzer
+}
+
+// Fuzzer represent the use of a fuzzer.
+type Fuzzer struct {
+	Job      *WorkflowJob
+	File     *File
+	Name     FuzzerName
+	Coverage *CodeCoverage
+	// TODO: runs, etc
+}
+
+// CodeCoverage represents code coverage.
+type CodeCoverage struct {
+	FilesCoverage []FileCoverage
+	// TODO: aggregate coverage, etc
+}
+
+// FileCoverage represent the coverage of a file.
+type FileCoverage struct {
+	Lines []uint
+	File  File
 }
 
 // MaintainedData contains the raw results
