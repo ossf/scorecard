@@ -63,7 +63,7 @@ const (
 	FileTypeURL
 )
 
-// OutcomeType represents the type of the raw result.
+// OutcomeType represents the outcome of a result.
 type OutcomeType int
 
 const (
