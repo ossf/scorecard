@@ -21,8 +21,6 @@ import (
 	"testing"
 
 	"github.com/rhysd/actionlint"
-
-	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestIsPackagingWorkflow(t *testing.T) {
@@ -106,7 +104,6 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			if len(errs) > 0 && workflow == nil {
 				panic(fmt.Errorf("cannot parse file: %w", err))
 			}
-			dl := scut.TestDetailLogger{}
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 
 			_, ok := isPackagingWorkflow(workflow, p)
