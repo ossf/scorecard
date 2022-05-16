@@ -15,14 +15,11 @@
 package raw
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 )
-
-var errNoCommitFound = errors.New("no commit found")
 
 // Vulnerabilities retrieves the raw data for the Vulnerabilities check.
 func Vulnerabilities(c *checker.CheckRequest) (checker.VulnerabilitiesData, error) {
@@ -31,8 +28,8 @@ func Vulnerabilities(c *checker.CheckRequest) (checker.VulnerabilitiesData, erro
 		return checker.VulnerabilitiesData{}, fmt.Errorf("repoClient.ListCommits: %w", err)
 	}
 
-	if len(commits) < 1 || commits[0].SHA == "" {
-		return checker.VulnerabilitiesData{}, fmt.Errorf("%w", errNoCommitFound)
+	if len(commits) < 1 || allOf(commits, hasEmptySHA) {
+		return checker.VulnerabilitiesData{}, nil
 	}
 
 	resp, err := c.VulnerabilitiesClient.HasUnfixedVulnerabilities(c.Ctx, commits[0].SHA)
@@ -50,6 +47,21 @@ func Vulnerabilities(c *checker.CheckRequest) (checker.VulnerabilitiesData, erro
 		vulns = append(vulns, v)
 	}
 	return checker.VulnerabilitiesData{Vulnerabilities: vulns}, nil
+}
+
+type predicateOnCommitFn func(clients.Commit) bool
+
+var hasEmptySHA predicateOnCommitFn = func(c clients.Commit) bool {
+	return c.SHA == ""
+}
+
+func allOf(commits []clients.Commit, predicate func(clients.Commit) bool) bool {
+	for i := range commits {
+		if !predicate(commits[i]) {
+			return false
+		}
+	}
+	return true
 }
 
 func getVulnerabilities(resp *clients.VulnerabilitiesResponse) []string {

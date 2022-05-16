@@ -54,8 +54,8 @@ func TestVulnerabilities(t *testing.T) {
 			vulnsResponse: clients.VulnerabilitiesResponse{},
 		},
 		{
-			name:            "err response",
-			wantErr:         true,
+			name:            "no commits",
+			wantErr:         false,
 			numberofCommits: 0,
 			vulnsResponse:   clients.VulnerabilitiesResponse{},
 		},
