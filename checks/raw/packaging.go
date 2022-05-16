@@ -46,7 +46,19 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 			return data, e
 		}
 
+		// Check if it's a packaging workflow.
 		match, ok := isPackagingWorkflow(workflow, fp)
+		// Always print debug messages.
+		data.Packages = append(data.Packages,
+			checker.Package{
+				Msg: &match.Msg,
+				File: &checker.File{
+					Path:   fp,
+					Type:   checker.FileTypeSource,
+					Offset: checker.OffsetDefault,
+				},
+			},
+		)
 		if !ok {
 			continue
 		}
@@ -86,18 +98,13 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 		data.Packages = append(data.Packages,
 			checker.Package{
 				// Debug message.
-				Msg: stringPointer("GitHub publishing workflow not used in runs"),
+				Msg: stringPointer(fmt.Sprintf("GitHub publishing workflow not used in runs: %v", fp)),
 				File: &checker.File{
 					Path:   fp,
 					Type:   checker.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 				// TODO: Job
-				Runs: []checker.Run{
-					{
-						URL: runs[0].URL,
-					},
-				},
 			},
 		)
 	}

@@ -54,8 +54,12 @@ func Packaging(name string, dl checker.DetailLogger, r *checker.PackagingData) c
 			"publishing workflow detected")
 	}
 
+	dl.Warn(&checker.LogMessage{
+		Text: "no GitHub publishing workflow detected",
+	})
+
 	return checker.CreateInconclusiveResult(name,
-		"no published workflow detected")
+		"no published package detected")
 }
 
 func createLogMessage(p checker.Package) (checker.LogMessage, error) {

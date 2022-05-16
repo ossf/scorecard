@@ -353,7 +353,7 @@ func RawAnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp
 					Type:   checker.FileTypeSource,
 					Offset: GetLineNumber(job.Pos),
 				},
-				Msg: matcher.LogText,
+				Msg: fmt.Sprintf("%v: %v", matcher.LogText, fp),
 			}, true
 		}
 	}
@@ -364,7 +364,7 @@ func RawAnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp
 			Type:   checker.FileTypeSource,
 			Offset: checker.OffsetDefault,
 		},
-		Msg: logMsgNoMatch,
+		Msg: fmt.Sprintf("%v: %v", logMsgNoMatch, fp),
 	}, false
 }
 
