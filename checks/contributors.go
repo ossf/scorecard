@@ -15,19 +15,14 @@
 package checks
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-const (
-	minContributionsPerUser    = 5
-	numberCompaniesForTopScore = 3
-	// CheckContributors is the registered name for Contributors.
-	CheckContributors = "Contributors"
-)
+// CheckContributors is the registered name for Contributors.
+const CheckContributors = "Contributors"
 
 //nolint:gochecknoinits
 func init() {
@@ -39,44 +34,17 @@ func init() {
 
 // Contributors run Contributors check.
 func Contributors(c *checker.CheckRequest) checker.CheckResult {
-	contribs, err := c.RepoClient.ListContributors()
+	rawData, err := raw.Contributors(c.RepoClient)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListContributors: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckContributors, e)
 	}
 
-	companies := map[string]struct{}{}
-	for _, contrib := range contribs {
-		if contrib.NumContributions < minContributionsPerUser {
-			continue
-		}
-
-		for _, org := range contrib.Organizations {
-			if org.Login != "" {
-				companies[org.Login] = struct{}{}
-			}
-		}
-
-		company := contrib.Company
-		if company != "" {
-			company = strings.ToLower(company)
-			company = strings.ReplaceAll(company, "inc.", "")
-			company = strings.ReplaceAll(company, "llc", "")
-			company = strings.ReplaceAll(company, ",", "")
-			company = strings.TrimLeft(company, "@")
-			company = strings.Trim(company, " ")
-			companies[company] = struct{}{}
-		}
-	}
-	names := []string{}
-	for c := range companies {
-		names = append(names, c)
+	// Return raw results.
+	if c.RawResults != nil {
+		c.RawResults.ContributorsResults = rawData
 	}
 
-	c.Dlogger.Info(&checker.LogMessage{
-		Text: fmt.Sprintf("contributors work for: %v", strings.Join(names, ",")),
-	})
-
-	reason := fmt.Sprintf("%d different companies found", len(companies))
-	return checker.CreateProportionalScoreResult(CheckContributors, reason, len(companies), numberCompaniesForTopScore)
+	// Return the score evaluation.
+	return evaluation.Contributors(CheckContributors, c.Dlogger, &rawData)
 }

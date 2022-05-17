@@ -73,13 +73,33 @@ type jsonBranchProtection struct {
 }
 
 type jsonReview struct {
-	Reviewer jsonUser `json:"reviewer"`
 	State    string   `json:"state"`
+	Reviewer jsonUser `json:"reviewer"`
 }
 
 type jsonUser struct {
-	RepoAssociation *string `json:"repo-association"`
+	RepoAssociation *string `json:"repo-association,omitempty"`
 	Login           string  `json:"login"`
+	// Orgnization refers to a GitHub org.
+	Organizations []jsonOrganization `json:"organization,omitempty"`
+	// Companies refer to a claim by a user in their profile.
+	Companies        []jsonCompany `json:"company,omitempty"`
+	NumContributions uint          `json:"NumContributions"`
+}
+
+type jsonContributors struct {
+	Users []jsonUser `json:"users"`
+	// TODO: high-level statistics, etc
+}
+
+type jsonOrganization struct {
+	Login string `json:"login"`
+	// TODO: other info.
+}
+
+type jsonCompany struct {
+	Name string `json:"name"`
+	// TODO: other info.
 }
 
 //nolint:govet
@@ -92,11 +112,10 @@ type jsonMergeRequest struct {
 
 type jsonDefaultBranchCommit struct {
 	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
-	Committer     jsonUser          `json:"committer"`
 	MergeRequest  *jsonMergeRequest `json:"merge-request"`
 	CommitMessage string            `json:"commit-message"`
 	SHA           string            `json:"sha"`
-
+	Committer     jsonUser          `json:"committer"`
 	// TODO: check runs, etc.
 }
 
@@ -189,6 +208,10 @@ type jsonRawResults struct {
 	DependencyUpdateTools []jsonTool `json:"dependency-update-tools"`
 	// Branch protection settings for development and release branches.
 	BranchProtections []jsonBranchProtection `json:"branch-protections"`
+	// Contributors. Note: we could use thelist of commits instead to store this data.
+	// However, it's harder to get statistics using commit list, so we have a dedicated
+	// structure for it.
+	Contributors jsonContributors `json:"Contributors"`
 	// Commits.
 	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
 	// Archived status of the repo.
@@ -226,6 +249,38 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 		}
 
 		r.Results.Workflows = append(r.Results.Workflows, v)
+	}
+
+	return nil
+}
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addContributorsRawResults(cr *checker.ContributorsData) error {
+	r.Results.Contributors = jsonContributors{}
+
+	for _, user := range cr.Users {
+		u := jsonUser{
+			Login:            user.Login,
+			NumContributions: user.NumContributions,
+		}
+
+		for _, org := range user.Organizations {
+			u.Organizations = append(u.Organizations,
+				jsonOrganization{
+					Login: org.Login,
+				},
+			)
+		}
+
+		for _, comp := range user.Companies {
+			u.Companies = append(u.Companies,
+				jsonCompany{
+					Name: comp.Name,
+				},
+			)
+		}
+
+		r.Results.Contributors.Users = append(r.Results.Contributors.Users, u)
 	}
 
 	return nil
@@ -503,6 +558,11 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Signed-Releases.
 	if err := r.addSignedReleasesRawResults(&raw.SignedReleasesResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Contributors.
+	if err := r.addContributorsRawResults(&raw.ContributorsResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
