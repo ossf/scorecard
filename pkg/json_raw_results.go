@@ -362,7 +362,8 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(commits []checker.DefaultB
 	}
 
 	r.Results.DefaultBranchCommits = []jsonDefaultBranchCommit{}
-	for _, commit := range commits {
+	for i := range commits {
+		commit := commits[i]
 		com := jsonDefaultBranchCommit{
 			Committer: jsonUser{
 				Login: commit.Committer.Login,
