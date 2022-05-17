@@ -80,7 +80,6 @@ func processRequest(ctx context.Context,
 		return nil
 	}
 
-	var buffer bytes.Buffer
 	var buffer2 bytes.Buffer
 	var rawBuffer bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
@@ -130,9 +129,6 @@ func processRequest(ctx context.Context,
 			logger.Info(errorMsg)
 		}
 		result.Date = batchRequest.GetJobTime().AsTime()
-		if err := format.AsJSON(&result, true /*showDetails*/, log.InfoLevel, &buffer); err != nil {
-			return fmt.Errorf("error during result.AsJSON: %w", err)
-		}
 
 		if err := format.AsJSON2(&result, true /*showDetails*/, log.InfoLevel, checkDocs, &buffer2); err != nil {
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
@@ -142,9 +138,6 @@ func processRequest(ctx context.Context,
 		if err := format.AsRawJSON(&result, &rawBuffer); err != nil {
 			return fmt.Errorf("error during result.AsRawJSON: %w", err)
 		}
-	}
-	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer.Bytes()); err != nil {
-		return fmt.Errorf("error during WriteToBlobStore: %w", err)
 	}
 
 	if err := data.WriteToBlobStore(ctx, bucketURL2, filename, buffer2.Bytes()); err != nil {
