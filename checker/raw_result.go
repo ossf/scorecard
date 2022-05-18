@@ -31,6 +31,7 @@ type RawResults struct {
 	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
 	CodeReviewResults           CodeReviewData
+	PinningDependenciesResults  PinningDependenciesData
 	WebhookResults              WebhooksData
 	ContributorsResults         ContributorsData
 	MaintainedResults           MaintainedData
@@ -62,6 +63,29 @@ type Package struct {
 	// Note: Msg is populated only for debug messages.
 	Msg  *string
 	Runs []Run
+}
+
+// DependencyUseType reprensets a type of dependency use.
+type DependencyUseType string
+
+const (
+	// DependencyUseTypeAction is an action.
+	DependencyUseTypeAction DependencyUseType = "unknown"
+)
+
+// PinningDependenciesData represents pinned dependency data.
+type PinningDependenciesData struct {
+	Dependencies []Dependency
+}
+
+// Dependency represents a dependency.
+type Dependency struct {
+	// TODO: unique dependency name.
+	Job         *WorkflowJob
+	File        *File
+	Use         *string
+	Remediation *Remediation
+	Type        DependencyUseType
 }
 
 // MaintainedData contains the raw results
@@ -165,10 +189,11 @@ type ArchivedStatus struct {
 
 // File represents a file.
 type File struct {
-	Path    string
-	Snippet string   // Snippet of code
-	Offset  uint     // Offset in the file of Path (line for source/text files).
-	Type    FileType // Type of file.
+	Path      string
+	Snippet   string   // Snippet of code
+	Offset    uint     // Offset in the file of Path (line for source/text files).
+	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
+	Type      FileType // Type of file.
 	// TODO: add hash.
 }
 
