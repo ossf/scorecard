@@ -36,6 +36,8 @@ spec:
               value: "scorecard_releasetest2"
             - name: SCORECARD_COMPLETION_THRESHOLD
               value: "0.9"
+            - name: SCORECARD_WEBHOOK_URL
+              value: "http://10.4.8.246/"
             resources:
               limits:
                 memory: 1Gi

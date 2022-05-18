@@ -48,7 +48,7 @@ var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to tru
 // nolint: gocognit
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest,
-	blacklistedChecks []string, bucketURL, bucketURL2, rawBucketURL string,
+	blacklistedChecks []string, bucketURL, rawBucketURL string,
 	checkDocs docs.Doc,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
@@ -59,22 +59,17 @@ func processRequest(ctx context.Context,
 		fmt.Sprintf("shard-%07d", batchRequest.GetShardNum()),
 		batchRequest.GetJobTime().AsTime())
 	// Sanity check - make sure we are not re-processing an already processed request.
-	exists1, err := data.BlobExists(ctx, bucketURL, filename)
+	existsScore, err := data.BlobExists(ctx, bucketURL, filename)
 	if err != nil {
 		return fmt.Errorf("error during BlobExists: %w", err)
 	}
 
-	exists2, err := data.BlobExists(ctx, bucketURL2, filename)
+	existsRaw, err := data.BlobExists(ctx, rawBucketURL, filename)
 	if err != nil {
 		return fmt.Errorf("error during BlobExists: %w", err)
 	}
 
-	exists3, err := data.BlobExists(ctx, rawBucketURL, filename)
-	if err != nil {
-		return fmt.Errorf("error during BlobExists: %w", err)
-	}
-
-	if exists1 && exists2 && exists3 {
+	if existsScore && existsRaw {
 		logger.Info(fmt.Sprintf("Already processed shard %s. Nothing to do.", filename))
 		// We have already processed this request, nothing to do.
 		return nil
@@ -140,7 +135,7 @@ func processRequest(ctx context.Context,
 		}
 	}
 
-	if err := data.WriteToBlobStore(ctx, bucketURL2, filename, buffer2.Bytes()); err != nil {
+	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer2.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
 
@@ -197,11 +192,6 @@ func main() {
 		panic(err)
 	}
 
-	bucketURL2, err := config.GetResultDataBucketURLV2()
-	if err != nil {
-		panic(err)
-	}
-
 	rawBucketURL, err := config.GetRawResultDataBucketURL()
 	if err != nil {
 		panic(err)
@@ -252,7 +242,7 @@ func main() {
 			break
 		}
 		if err := processRequest(ctx, req, blacklistedChecks,
-			bucketURL, bucketURL2, rawBucketURL, checkDocs,
+			bucketURL, rawBucketURL, checkDocs,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, logger); err != nil {
 			// TODO(log): Previously Warn. Consider logging an error here.
 			logger.Info(fmt.Sprintf("error processing request: %v", err))
