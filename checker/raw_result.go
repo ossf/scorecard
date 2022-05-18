@@ -29,6 +29,7 @@ type RawResults struct {
 	BranchProtectionResults     BranchProtectionsData
 	CodeReviewResults           CodeReviewData
 	WebhookResults              WebhooksData
+	ContributorsResults         ContributorsData
 	MaintainedResults           MaintainedData
 	SignedReleasesResults       SignedReleasesData
 	LicenseResults              LicenseData
@@ -52,6 +53,11 @@ type LicenseData struct {
 // for the Code-Review check.
 type CodeReviewData struct {
 	DefaultBranchCommits []DefaultBranchCommit
+}
+
+// ContributorsData represents contributor information.
+type ContributorsData struct {
+	Users []User
 }
 
 // VulnerabilitiesData contains the raw results
@@ -194,8 +200,8 @@ type MergeRequest struct {
 
 // Review represent a review using the built-in review system.
 type Review struct {
-	Reviewer User
 	State    string
+	Reviewer User
 	// TODO(Review): add fields here if needed.
 }
 
@@ -203,6 +209,23 @@ type Review struct {
 type User struct {
 	RepoAssociation *RepoAssociation
 	Login           string
+	// Orgnization refers to a GitHub org.
+	Organizations []Organization
+	// Companies refer to a claim by a user in their profile.
+	Companies        []Company
+	NumContributions uint
+}
+
+// Organization represents a GitHub organization.
+type Organization struct {
+	Login string
+	// TODO: other info.
+}
+
+// Company represents a company in a user's profile.
+type Company struct {
+	Name string
+	// TODO: other info.
 }
 
 // RepoAssociation represents a user relationship with a repo.

@@ -118,7 +118,8 @@ type jsonRawResults struct {
 //nolint:unparam
 func addCodeReviewRawResults(r *jsonScorecardRawResult, cr *checker.CodeReviewData) error {
 	r.Results.DefaultBranchCommits = []jsonDefaultBranchCommit{}
-	for _, commit := range cr.DefaultBranchCommits {
+	for i := range cr.DefaultBranchCommits {
+		commit := cr.DefaultBranchCommits[i]
 		com := jsonDefaultBranchCommit{
 			Committer: jsonUser{
 				Login: commit.Committer.Login,
