@@ -63,32 +63,6 @@ const (
 	FileTypeURL
 )
 
-// OutcomeType represents the outcome of a result.
-type OutcomeType int
-
-const (
-	// OutcomeTypeUnknown is for unknown type. Used for debugging and catching unset types.
-	OutcomeTypeUnknown OutcomeType = iota
-	// OutcomeTypeDebug is debug result.
-	OutcomeTypeDebug
-	// OutcomeTypeNegativeLow is a low risk result.
-	OutcomeTypeNegativeLow
-	// OutcomeTypeNegativeMedium is a medium risk result.
-	OutcomeTypeNegativeMedium
-	// OutcomeTypeNegativeHigh is a high risk result.
-	OutcomeTypeNegativeHigh
-	// OutcomeTypeNegativeCritical is a critical risk result.
-	OutcomeTypeNegativeCritical
-	// OutcomeTypePositiveLow is a positive mitigation to a low risk.
-	OutcomeTypePositiveLow
-	// OutcomeTypePositiveMedium is a positive mitigation to a medium risk.
-	OutcomeTypePositiveMedium
-	// OutcomeTypePositiveHigh is a positive mitigation to a high risk.
-	OutcomeTypePositiveHigh
-	// OutcomeTypePositiveCritical is a positive mitigation to a critical risk.
-	OutcomeTypePositiveCritical
-)
-
 // CheckResult captures result from a check run.
 // nolint:govet
 type CheckResult struct {
