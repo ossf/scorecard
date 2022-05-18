@@ -13,11 +13,10 @@
 # limitations under the License.
 
 project-id: openssf
-result-data-bucket-url: gs://ossf-scorecard-data
 request-topic-url: gcppubsub://projects/openssf/topics/scorecard-batch-requests
 request-subscription-url: gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker
 bigquery-dataset: scorecardcron
-bigquery-table: scorecard
+bigquery-table: scorecard-v2
 completion-threshold: 0.99
 shard-size: 10
 webhook-url: 
@@ -26,9 +25,7 @@ cii-data-bucket-url: gs://ossf-scorecard-cii-data
 # TODO(#859): Re-add Contributors after fixing inconsistencies.
 blacklisted-checks: SAST,CI-Tests,Contributors
 metric-exporter: stackdriver
-# UPGRADEv2: to remove.
-result-data-bucket-url-v2: gs://ossf-scorecard-data2
-bigquery-table-v2: scorecard-v2
+result-data-bucket-url: gs://ossf-scorecard-data2
 # Raw results.
 raw-result-data-bucket-url: gs://ossf-scorecard-rawdata
 raw-bigquery-table: scorecard-rawdata

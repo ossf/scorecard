@@ -25,20 +25,17 @@ import (
 const (
 	testEnvVar              string = "TEST_ENV_VAR"
 	prodProjectID                  = "openssf"
-	prodBucket                     = "gs://ossf-scorecard-data"
+	prodBucket                     = "gs://ossf-scorecard-data2"
 	prodTopic                      = "gcppubsub://projects/openssf/topics/scorecard-batch-requests"
 	prodSubscription               = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
 	prodBigQueryDataset            = "scorecardcron"
-	prodBigQueryTable              = "scorecard"
+	prodBigQueryTable              = "scorecard-v2"
 	prodCompletionThreshold        = 0.99
 	prodWebhookURL                 = ""
 	prodCIIDataBucket              = "gs://ossf-scorecard-cii-data"
 	prodBlacklistedChecks          = "SAST,CI-Tests,Contributors"
 	prodShardSize           int    = 10
 	prodMetricExporter      string = "stackdriver"
-	// UPGRADEv2: to remove.
-	prodBucketV2        = "gs://ossf-scorecard-data2"
-	prodBigQueryTableV2 = "scorecard-v2"
 	// Raw results.
 	prodRawBucket        = "gs://ossf-scorecard-rawdata"
 	prodRawBigQueryTable = "scorecard-rawdata"
@@ -75,9 +72,6 @@ func TestYAMLParsing(t *testing.T) {
 				BlacklistedChecks:      prodBlacklistedChecks,
 				ShardSize:              prodShardSize,
 				MetricExporter:         prodMetricExporter,
-				// UPGRADEv2: to remove.
-				ResultDataBucketURLV2:  prodBucketV2,
-				BigQueryTableV2:        prodBigQueryTableV2,
 				RawResultDataBucketURL: prodRawBucket,
 				RawBigQueryTable:       prodRawBigQueryTable,
 			},

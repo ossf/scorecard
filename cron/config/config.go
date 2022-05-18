@@ -36,20 +36,17 @@ const (
 	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.
 	TransferStatusFilename string = ".transfer_complete"
 	projectID              string = "SCORECARD_PROJECT_ID"
-	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
 	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
 	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
 	bigqueryDataset        string = "SCORECARD_BIGQUERY_DATASET"
-	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
 	completionThreshold    string = "SCORECARD_COMPLETION_THRESHOLD"
 	shardSize              string = "SCORECARD_SHARD_SIZE"
 	webhookURL             string = "SCORECARD_WEBHOOK_URL"
 	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
 	ciiDataBucketURL       string = "SCORECARD_CII_DATA_BUCKET_URL"
 	blacklistedChecks      string = "SCORECARD_BLACKLISTED_CHECKS"
-	// v2 results.
-	bigqueryTableV2       string = "SCORECARD_BIGQUERY_TABLEV2"
-	resultDataBucketURLV2 string = "SCORECARD_DATA_BUCKET_URLV2"
+	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
+	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
 	// Raw results.
 	rawBigqueryTable       string = "RAW_SCORECARD_BIGQUERY_TABLE"
 	rawResultDataBucketURL string = "RAW_SCORECARD_DATA_BUCKET_URL"
@@ -64,7 +61,7 @@ var (
 	configYAML []byte
 )
 
-//nolint
+// nolint
 type config struct {
 	ProjectID              string  `yaml:"project-id"`
 	ResultDataBucketURL    string  `yaml:"result-data-bucket-url"`
@@ -78,9 +75,6 @@ type config struct {
 	BlacklistedChecks      string  `yaml:"blacklisted-checks"`
 	MetricExporter         string  `yaml:"metric-exporter"`
 	ShardSize              int     `yaml:"shard-size"`
-	// UPGRADEv2: to remove.
-	ResultDataBucketURLV2 string `yaml:"result-data-bucket-url-v2"`
-	BigQueryTableV2       string `yaml:"bigquery-table-v2"`
 	// Raw results.
 	RawResultDataBucketURL string `yaml:"raw-result-data-bucket-url"`
 	RawBigQueryTable       string `yaml:"raw-bigquery-table"`
@@ -188,18 +182,6 @@ func GetBigQueryTable() (string, error) {
 // GetCompletionThreshold returns fraction of shards to be populated before transferring cron job results.
 func GetCompletionThreshold() (float64, error) {
 	return getFloat64ConfigValue(completionThreshold, configYAML, "CompletionThreshold", "completion-threshold")
-}
-
-// GetBigQueryTableV2 returns the table name to transfer cron job results.
-// UPGRADEv2: to remove.
-func GetBigQueryTableV2() (string, error) {
-	return getStringConfigValue(bigqueryTableV2, configYAML, "BigQueryTableV2", "bigquery-table-v2")
-}
-
-// GetResultDataBucketURLV2 returns the bucketURL for storing cron job results.
-// UPGRADEv2: to remove.
-func GetResultDataBucketURLV2() (string, error) {
-	return getStringConfigValue(resultDataBucketURLV2, configYAML, "ResultDataBucketURLV2", "result-data-bucket-url-v2")
 }
 
 // GetRawBigQueryTable returns the table name to transfer cron job results.
