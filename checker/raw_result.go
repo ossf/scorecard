@@ -69,8 +69,20 @@ type Package struct {
 type DependencyUseType string
 
 const (
-	// DependencyUseTypeAction is an action.
-	DependencyUseTypeAction DependencyUseType = "unknown"
+	// DependencyUseTypeGHAction is an action.
+	DependencyUseTypeGHAction DependencyUseType = "GitHub action"
+	// DependencyUseTypeDockerfileContainerImage a container image used via FROM.
+	DependencyUseTypeDockerfileContainerImage DependencyUseType = "container image"
+	// DependencyUseTypeDownloadThenRun is a download followed by a run.
+	DependencyUseTypeDownloadThenRun DependencyUseType = "download-then-run"
+	// DependencyUseTypeGoCommand is a go command.
+	DependencyUseTypeGoCommand DependencyUseType = "go command"
+	// DependencyUseTypeChocoCommand is a choco command.
+	DependencyUseTypeChocoCommand DependencyUseType = "choco command"
+	// DependencyUseTypeNpmCommand is an npm command.
+	DependencyUseTypeNpmCommand DependencyUseType = "npm command"
+	// DependencyUseTypePipCommand is a pipp command.
+	DependencyUseTypePipCommand DependencyUseType = "pip command"
 )
 
 // PinningDependenciesData represents pinned dependency data.
@@ -86,6 +98,7 @@ type Dependency struct {
 	Use         *string
 	Remediation *Remediation
 	Type        DependencyUseType
+	Msg         *string // Only for debug messages.
 }
 
 // MaintainedData contains the raw results
