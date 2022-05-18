@@ -37,15 +37,15 @@ type RawResults struct {
 }
 
 // FuzzerName represents a fuzzing service.
-type FuzzerName int
+type FuzzerName string
 
 const (
 	// FuzzerNameCIFuzz is CIFuzz.
-	FuzzerNameCIFuzz FuzzerName = iota
+	FuzzerNameCIFuzz FuzzerName = "CIFuzz"
 	// FuzzerNameOSSFuzz is OSSFuzz.
-	FuzzerNameOSSFuzz
+	FuzzerNameOSSFuzz FuzzerName = "OSSFuzz"
 	// FuzzerNameGoBuiltin is the built-in Go fuzzer.
-	FuzzerNameGoBuiltin
+	FuzzerNameGoBuiltin FuzzerName = "GoFuzzer"
 )
 
 // FuzzingData represents different fuzzing done.
@@ -55,11 +55,8 @@ type FuzzingData struct {
 
 // Fuzzer represent the use of a fuzzer.
 type Fuzzer struct {
-	Job      *WorkflowJob
-	File     *File
-	Coverage *CodeCoverage
-	Name     FuzzerName
-	// TODO: runs, etc
+	Name FuzzerName
+	// TODO: WorkflowJob, File, CodeCoverage.
 }
 
 // CodeCoverage represents code coverage.
@@ -272,21 +269,21 @@ type RepoAssociation string
 
 const (
 	// RepoAssociationCollaborator has been invited to collaborate on the repository.
-	RepoAssociationCollaborator RepoAssociation = RepoAssociation("collaborator")
+	RepoAssociationCollaborator RepoAssociation = "collaborator"
 	// RepoAssociationContributor is an contributor to the repository.
-	RepoAssociationContributor RepoAssociation = RepoAssociation("contributor")
+	RepoAssociationContributor RepoAssociation = "contributor"
 	// RepoAssociationOwner is an owner of the repository.
-	RepoAssociationOwner RepoAssociation = RepoAssociation("owner")
+	RepoAssociationOwner RepoAssociation = "owner"
 	// RepoAssociationMember is a member of the organization that owns the repository.
-	RepoAssociationMember RepoAssociation = RepoAssociation("member")
+	RepoAssociationMember RepoAssociation = "member"
 	// RepoAssociationFirstTimer has previously committed to the repository.
-	RepoAssociationFirstTimer RepoAssociation = RepoAssociation("first-timer")
+	RepoAssociationFirstTimer RepoAssociation = "first-timer"
 	// RepoAssociationFirstTimeContributor has not previously committed to the repository.
-	RepoAssociationFirstTimeContributor RepoAssociation = RepoAssociation("first-timer-contributor")
+	RepoAssociationFirstTimeContributor RepoAssociation = "first-timer-contributor"
 	// RepoAssociationMannequin is a placeholder for an unclaimed user.
-	RepoAssociationMannequin RepoAssociation = RepoAssociation("unknown")
+	RepoAssociationMannequin RepoAssociation = "unknown"
 	// RepoAssociationNone has no association with the repository.
-	RepoAssociationNone RepoAssociation = RepoAssociation("none")
+	RepoAssociationNone RepoAssociation = "none"
 )
 
 // File represents a file.

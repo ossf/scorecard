@@ -191,12 +191,6 @@ type jsonWorkflowJob struct {
 
 type jsonFuzzerName string
 
-const (
-	fuzzerNameCIFuzz    jsonFuzzerName = "CIFuzz"
-	fuzzerNameOSSFuzz   jsonFuzzerName = "OSSFuzz"
-	fuzzerNameGoBuiltin jsonFuzzerName = "GolangInternal"
-)
-
 type jsonFuzzer struct {
 	Job      *jsonWorkflowJob  `json:"job,omitempty"`
 	File     *jsonFile         `json:"file,omitempty"`
@@ -254,17 +248,8 @@ func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) e
 	r.Results.Fuzzers = []jsonFuzzer{}
 	for _, f := range fd.Fuzzers {
 		fuzzer := jsonFuzzer{
-			// TODO: Job, File, etc.
-		}
-		switch f.Name {
-		case checker.FuzzerNameCIFuzz:
-			fuzzer.Name = fuzzerNameCIFuzz
-		case checker.FuzzerNameOSSFuzz:
-			fuzzer.Name = fuzzerNameOSSFuzz
-		case checker.FuzzerNameGoBuiltin:
-			fuzzer.Name = fuzzerNameGoBuiltin
-		default:
-			return fmt.Errorf("%w: %d", errorInvalidFuzzer, f.Name)
+			// TODO: Job, File, Coverage.
+			Name: jsonFuzzerName(f.Name),
 		}
 		r.Results.Fuzzers = append(r.Results.Fuzzers, fuzzer)
 	}
