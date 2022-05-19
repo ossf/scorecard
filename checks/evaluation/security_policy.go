@@ -28,9 +28,11 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 
 	// Apply the policy evaluation.
 	if r.Files == nil || len(r.Files) == 0 {
+		// if file is null or file has zero lengths, directly return not detected
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
 
+	orgFlag := false
 	for _, f := range r.Files {
 		msg := checker.LogMessage{
 			Path:   f.Path,
@@ -39,11 +41,22 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 		}
 		if msg.Type == checker.FileTypeURL {
 			msg.Text = "security policy detected in org repo"
+			if orgFlag == false {
+				// in case there are multiple security policies in the org repo
+				// so that we don't need to set the flag to true everytime
+				orgFlag = true
+			}
 		} else {
+			// security policy detected in repo, return earlier since it has higher priority
 			msg.Text = "security policy detected"
+			return checker.CreateMaxScoreResult(name, "security policy file detected")
 		}
 		dl.Info(&msg)
 	}
 
-	return checker.CreateMaxScoreResult(name, "security policy file detected")
+	if orgFlag == true {
+		return checker.CreateMaxScoreResult(name, "security policy file detected in org repo")
+	} else {
+		return checker.CreateMinScoreResult(name, "security policy file not detected")
+	}
 }
