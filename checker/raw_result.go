@@ -95,8 +95,8 @@ type Dependency struct {
 	// TODO: unique dependency name.
 	// TODO: Job         *WorkflowJob
 	File *File
-	Type DependencyUseType
 	Msg  *string // Only for debug messages.
+	Type DependencyUseType
 }
 
 // MaintainedData contains the raw results

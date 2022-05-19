@@ -15,10 +15,13 @@
 package checks
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 // CheckPinnedDependencies is the registered name for FrozenDeps.
@@ -36,8 +39,13 @@ func init() {
 	}
 }
 
-// PinningDependencies will check the repository for its use of dependecies.
+// PinningDependencies will check the repository for its use of dependencies.
 func PinningDependencies(c *checker.CheckRequest) checker.CheckResult {
+	if err := remediation.Setup(c); err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("remdiationSetup: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, e)
+	}
+
 	rawData, err := raw.PinningDependencies(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())

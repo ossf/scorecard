@@ -21,6 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 var errInvalidValue = errors.New("invalid value")
@@ -61,13 +62,12 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 
 		if rr.Msg != nil {
 			dl.Debug(&checker.LogMessage{
-				Path:        rr.File.Path,
-				Type:        rr.File.Type,
-				Offset:      rr.File.Offset,
-				EndOffset:   rr.File.EndOffset,
-				Text:        *rr.Msg,
-				Snippet:     rr.File.Snippet,
-				Remediation: rr.Remediation,
+				Path:      rr.File.Path,
+				Type:      rr.File.Type,
+				Offset:    rr.File.Offset,
+				EndOffset: rr.File.EndOffset,
+				Text:      *rr.Msg,
+				Snippet:   rr.File.Snippet,
 			})
 		} else {
 			// Warn for inpinned dependency.
@@ -82,7 +82,7 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 				EndOffset:   rr.File.EndOffset,
 				Text:        text,
 				Snippet:     rr.File.Snippet,
-				Remediation: rr.Remediation,
+				Remediation: generateRemediation(&rr),
 			})
 
 			// Update the pinning status.
@@ -137,6 +137,14 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 
 	return checker.CreateProportionalScoreResult(name,
 		"dependency not pinned by hash detected", score, checker.MaxResultScore)
+}
+
+func generateRemediation(rr *checker.Dependency) *checker.Remediation {
+	switch rr.Type {
+	case checker.DependencyUseTypeGHAction:
+		return remediation.CreateWorkflowPinningRemediation(rr.File.Path)
+	}
+	return nil
 }
 
 func updatePinningResults(rr *checker.Dependency,

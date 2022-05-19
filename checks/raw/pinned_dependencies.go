@@ -30,10 +30,6 @@ import (
 
 // PinningDependencies checks for (un)pinned dependencies.
 func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesData, error) {
-	if err := remdiationSetup(c); err != nil {
-		return checker.PinningDependenciesData{}, fmt.Errorf("remdiationSetup: %w", err)
-	}
-
 	var results checker.PinningDependenciesData
 	// GitHub actions.
 	if err := collectGitHubActionsWorkflowPinning(c, &results); err != nil {
@@ -476,8 +472,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 							EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
 							Snippet:   execAction.Uses.Value,
 						},
-						Type:        checker.DependencyUseTypeGHAction,
-						Remediation: createWorkflowPinningRemediation(pathfn),
+						Type: checker.DependencyUseTypeGHAction,
 					},
 				)
 			}
