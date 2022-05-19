@@ -189,9 +189,8 @@ type jsonWorkflowJob struct {
 	ID   *string `json:"id"`
 }
 
-type jsonFuzzerName string
-
 type jsonFuzzer struct {
+	Name string           `json:"name"`
 	Job  *jsonWorkflowJob `json:"job,omitempty"`
 	File *jsonFile        `json:"file,omitempty"`
 	// TODO: (#1933)
@@ -247,7 +246,7 @@ func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) e
 	for _, f := range fd.Fuzzers {
 		fuzzer := jsonFuzzer{
 			// TODO: Job, File, Coverage.
-			Name: jsonFuzzerName(f.Name),
+			Name: string(f.Name),
 		}
 		r.Results.Fuzzers = append(r.Results.Fuzzers, fuzzer)
 	}
