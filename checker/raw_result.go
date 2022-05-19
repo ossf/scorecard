@@ -94,10 +94,9 @@ type PinningDependenciesData struct {
 type Dependency struct {
 	// TODO: unique dependency name.
 	// TODO: Job         *WorkflowJob
-	File        *File
-	Remediation *Remediation
-	Type        DependencyUseType
-	Msg         *string // Only for debug messages.
+	File *File
+	Type DependencyUseType
+	Msg  *string // Only for debug messages.
 }
 
 // MaintainedData contains the raw results
