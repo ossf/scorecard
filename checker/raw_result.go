@@ -93,9 +93,8 @@ type PinningDependenciesData struct {
 // Dependency represents a dependency.
 type Dependency struct {
 	// TODO: unique dependency name.
-	Job         *WorkflowJob
+	// TODO: Job         *WorkflowJob
 	File        *File
-	Use         *string
 	Remediation *Remediation
 	Type        DependencyUseType
 	Msg         *string // Only for debug messages.

@@ -192,10 +192,10 @@ func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDepende
 	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*Dockerfile*",
 		CaseSensitive: false,
-	}, validateDockerfiles, r)
+	}, validateDockerfilesPinning, r)
 }
 
-var validateDockerfiles fileparser.DoWhileTrueOnFileContent = func(
+var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
 	args ...interface{},
@@ -205,7 +205,7 @@ var validateDockerfiles fileparser.DoWhileTrueOnFileContent = func(
 
 	if len(args) != 1 {
 		return false, fmt.Errorf(
-			"validateDockerfiles requires exactly 2 arguments: got %v: %w", len(args), errInvalidArgLength)
+			"validateDockerfilesPinning requires exactly 2 arguments: got %v: %w", len(args), errInvalidArgLength)
 	}
 	pdata := dataAsPinnedDependenciesPointer(args[0])
 
@@ -275,6 +275,7 @@ var validateDockerfiles fileparser.DoWhileTrueOnFileContent = func(
 						EndOffset: uint(child.EndLine),
 						Snippet:   child.Original,
 					},
+					Type: checker.DependencyUseTypeDockerfileContainerImage,
 				},
 			)
 
@@ -292,6 +293,7 @@ var validateDockerfiles fileparser.DoWhileTrueOnFileContent = func(
 							EndOffset: uint(child.EndLine),
 							Snippet:   child.Original,
 						},
+						Type: checker.DependencyUseTypeDockerfileContainerImage,
 					},
 				)
 			}
@@ -473,6 +475,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 							EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
 							Snippet:   execAction.Uses.Value,
 						},
+						Type:        checker.DependencyUseTypeGHAction,
 						Remediation: createWorkflowPinningRemediation(pathfn),
 					},
 				)

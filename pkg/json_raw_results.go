@@ -29,6 +29,11 @@ import (
 // TODO: add a "check" field to all results so that they can be linked to a check.
 // TODO(#1874): Add a severity field in all results.
 
+<<<<<<< HEAD
+=======
+var errorInvalidValue = errors.New("invalid value")
+
+>>>>>>> 0b4643bb (draft)
 // Flat JSON structure to hold raw results.
 type jsonScorecardRawResult struct {
 	Date      string          `json:"date"`
@@ -40,10 +45,17 @@ type jsonScorecardRawResult struct {
 
 // TODO: separate each check extraction into its own file.
 type jsonFile struct {
+<<<<<<< HEAD
 	Snippet *string `json:"snippet,omitempty"`
 	Path    string  `json:"path"`
 	// TODO: change to an uint.
 	Offset int `json:"offset,omitempty"`
+=======
+	Snippet   *string `json:"snippet,omitempty"`
+	Path      string  `json:"path"`
+	Offset    uint    `json:"offset,omitempty"`
+	EndOffset uint    `json:"endOffset,omitempty"`
+>>>>>>> 531d1d38 (draft)
 }
 
 type jsonTool struct {
@@ -271,8 +283,9 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 	for _, e := range df.Workflows {
 		v := jsonWorkflow{
 			File: &jsonFile{
-				Path:   e.File.Path,
-				Offset: int(e.File.Offset),
+				Path:      e.File.Path,
+				Offset:    e.File.Offset,
+				EndOffset: e.File.EndOffset,
 			},
 			Type: string(e.Type),
 		}
@@ -613,6 +626,11 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Contributors.
 	if err := r.addContributorsRawResults(&raw.ContributorsResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// DependencyPinning.
+	if err := r.addDependencyPinningRawResults(&raw.PinningDependenciesResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
