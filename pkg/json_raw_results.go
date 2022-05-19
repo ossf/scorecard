@@ -192,11 +192,9 @@ type jsonWorkflowJob struct {
 type jsonFuzzerName string
 
 type jsonFuzzer struct {
-	Job      *jsonWorkflowJob  `json:"job,omitempty"`
-	File     *jsonFile         `json:"file,omitempty"`
-	Coverage *jsonCodeCoverage `json:"coverage,omitempty"`
-	Name     jsonFuzzerName    `json:"name"`
-	// TODO: runs, etc
+	Job  *jsonWorkflowJob `json:"job,omitempty"`
+	File *jsonFile        `json:"file,omitempty"`
+	// TODO: (#1933)
 }
 
 type jsonCodeCoverage struct {

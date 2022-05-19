@@ -56,7 +56,8 @@ type FuzzingData struct {
 // Fuzzer represent the use of a fuzzer.
 type Fuzzer struct {
 	Name FuzzerName
-	// TODO: WorkflowJob, File, CodeCoverage.
+	// TODO: CodeCoverage.
+	// TODO: (#1933)
 }
 
 // MaintainedData contains the raw results
