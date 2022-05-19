@@ -15,12 +15,15 @@
 package evaluation
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
+
+var errInvalidValue = errors.New("invalid value")
 
 type pinnedResult int
 
@@ -56,24 +59,35 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 			return checker.CreateRuntimeErrorResult(name, e)
 		}
 
-		// Warn for inpinned dependency.
-		text, err := generateText(&rr)
-		if err != nil {
-			return checker.CreateRuntimeErrorResult(name, err)
+		if rr.Msg != nil {
+			dl.Debug(&checker.LogMessage{
+				Path:        rr.File.Path,
+				Type:        rr.File.Type,
+				Offset:      rr.File.Offset,
+				EndOffset:   rr.File.EndOffset,
+				Text:        *rr.Msg,
+				Snippet:     rr.File.Snippet,
+				Remediation: rr.Remediation,
+			})
+		} else {
+			// Warn for inpinned dependency.
+			text, err := generateText(&rr)
+			if err != nil {
+				return checker.CreateRuntimeErrorResult(name, err)
+			}
+			dl.Warn(&checker.LogMessage{
+				Path:        rr.File.Path,
+				Type:        rr.File.Type,
+				Offset:      rr.File.Offset,
+				EndOffset:   rr.File.EndOffset,
+				Text:        text,
+				Snippet:     rr.File.Snippet,
+				Remediation: rr.Remediation,
+			})
+
+			// Update the pinning status.
+			updatePinningResults(&rr, &wp, pr)
 		}
-
-		dl.Warn(&checker.LogMessage{
-			Path:        rr.File.Path,
-			Type:        rr.File.Type,
-			Offset:      rr.File.Offset,
-			EndOffset:   rr.File.EndOffset,
-			Text:        text,
-			Snippet:     rr.File.Snippet,
-			Remediation: rr.Remediation,
-		})
-
-		// Update the pinning status.
-		updatePinningResults(&rr, &wp, pr)
 	}
 
 	// Generate scores and Info results.
@@ -249,10 +263,11 @@ func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
 ) (int, error) {
 	// Note: we don't check if the entry exists,
 	// as it will have the default value which is handled in the switch statement.
+	//nolint
 	r, _ := pr[t]
 	switch r {
 	default:
-		panic("invalid value")
+		return checker.InconclusiveResultScore, fmt.Errorf("%w: %v", errInvalidValue, r)
 	case pinned, pinnedUndefined:
 		dl.Info(&checker.LogMessage{
 			Text: infoMsg,

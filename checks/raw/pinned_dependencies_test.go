@@ -15,8 +15,6 @@
 package raw
 
 import (
-	// "errors"
-	// "fmt".
 	"os"
 	"strings"
 	"testing"
@@ -25,7 +23,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/checker"
-	// scut "github.com/ossf/scorecard/v4/utests".
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestGithubWorkflowPinning(t *testing.T) {
@@ -352,23 +350,24 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 			if err != nil {
 				t.Errorf("error during validateDockerfilesPinning: %v", err)
 			}
-			// for _, expectedLog := range tt.expected {
-			// 	isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-			// 		return logMessage.Offset == expectedLog.startLine &&
-			// 			logMessage.EndOffset == expectedLog.endLine &&
-			// 			logMessage.Path == tt.filename &&
-			// 			logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn &&
-			// 			strings.Contains(logMessage.Text, "image not pinned by hash")
-			// 	}
-			// 	if !scut.ValidateLogMessage(isExpectedLog, &dl) {
-			// 		t.Errorf("test failed: log message not present: %+v", tt.expected)
-			// 	}
-			// }
+
+			for _, expectedDep := range tt.expected {
+				isExpectedDep := func(dep checker.Dependency) bool {
+					return dep.File.Offset == expectedDep.startLine &&
+						dep.File.EndOffset == expectedDep.endLine &&
+						dep.File.Path == tt.filename &&
+						dep.File.Snippet == expectedDep.snippet &&
+						dep.Type == checker.DependencyUseTypeDockerfileContainerImage
+				}
+
+				if !scut.ValidatePinningDependencies(isExpectedDep, &r) {
+					t.Errorf("test failed: dependency not present: %+v", tt.expected)
+				}
+			}
 		})
 	}
 }
 
-/*
 func TestDockerfileInvalidFiles(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -442,6 +441,7 @@ func TestDockerfileInvalidFiles(t *testing.T) {
 
 func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
+	//nolint
 	tests := []struct {
 		name     string
 		filename string
@@ -449,55 +449,66 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 			snippet   string
 			startLine uint
 			endLine   uint
+			t         checker.DependencyUseType
 		}
 	}{
 		{
 			name:     "dockerfile downloads",
 			filename: "./testdata/Dockerfile-download-lines",
+			//nolint
 			expected: []struct {
 				snippet   string
 				startLine uint
 				endLine   uint
+				t         checker.DependencyUseType
 			}{
 				{
 					snippet:   "curl bla | bash",
 					startLine: 35,
 					endLine:   36,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
 					snippet:   "pip install -r requirements.txt",
 					startLine: 41,
 					endLine:   42,
+					t:         checker.DependencyUseTypePipCommand,
 				},
 			},
 		},
 		{
 			name:     "dockerfile downloads multi-run",
 			filename: "./testdata/Dockerfile-download-multi-runs",
+			//nolint
 			expected: []struct {
 				snippet   string
 				startLine uint
 				endLine   uint
+				t         checker.DependencyUseType
 			}{
 				{
 					snippet:   "/tmp/file3",
 					startLine: 28,
 					endLine:   28,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
 					snippet:   "/tmp/file1",
 					startLine: 30,
 					endLine:   30,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
 					snippet:   "bash /tmp/file3",
 					startLine: 32,
 					endLine:   34,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
 					snippet:   "bash /tmp/file1",
 					startLine: 37,
 					endLine:   38,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 			},
 		},
@@ -510,23 +521,24 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
-			dl := scut.TestDetailLogger{}
-			var pinned pinnedResult
-			_, err = validateDockerfileIsFreeOfInsecureDownloads(tt.filename, content, &dl, &pinned)
+
+			var r checker.PinningDependenciesData
+			_, err = validateDockerfileInsecureDownloads(tt.filename, content, &r)
 			if err != nil {
-				t.Errorf("error during validateDockerfileIsPinned: %v", err)
+				t.Errorf("error during validateDockerfileInsecureDownloads: %v", err)
 			}
 
-			for _, expectedLog := range tt.expected {
-				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					fmt.Println(logMessage)
-					return logMessage.Offset == expectedLog.startLine &&
-						logMessage.EndOffset == expectedLog.endLine &&
-						logMessage.Path == tt.filename &&
-						logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn
+			for _, expectedDep := range tt.expected {
+				isExpectedDep := func(dep checker.Dependency) bool {
+					return dep.File.Offset == expectedDep.startLine &&
+						dep.File.EndOffset == expectedDep.endLine &&
+						dep.File.Path == tt.filename &&
+						dep.File.Snippet == expectedDep.snippet &&
+						dep.Type == expectedDep.t
 				}
-				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
-					t.Errorf("test failed: log message not present: %+v", tt.expected)
+
+				if !scut.ValidatePinningDependencies(isExpectedDep, &r) {
+					t.Errorf("test failed: dependency not present: %+v", tt.expected)
 				}
 			}
 		})
@@ -535,6 +547,7 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 
 func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
+	//nolint
 	tests := []struct {
 		name     string
 		filename string
@@ -542,55 +555,66 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 			snippet   string
 			startLine uint
 			endLine   uint
+			t         checker.DependencyUseType
 		}
 	}{
 		{
 			name:     "shell downloads",
 			filename: "./testdata/shell-download-lines.sh",
+			//nolint
 			expected: []struct {
 				snippet   string
 				startLine uint
 				endLine   uint
+				t         checker.DependencyUseType
 			}{
 				{
 					snippet:   "bash /tmp/file",
 					startLine: 6,
 					endLine:   6,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
 					snippet:   "curl bla | bash",
 					startLine: 11,
 					endLine:   11,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
 					snippet:   "bash <(wget -qO- http://website.com/my-script.sh)",
 					startLine: 18,
 					endLine:   18,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
 					snippet:   "bash <(wget -qO- http://website.com/my-script.sh)",
 					startLine: 20,
 					endLine:   20,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
 					snippet:   "pip install -r requirements.txt",
 					startLine: 26,
 					endLine:   26,
+					t:         checker.DependencyUseTypePipCommand,
 				},
 				{
 					snippet:   "curl bla | bash",
 					startLine: 28,
 					endLine:   28,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
 					snippet:   "choco install 'some-package'",
 					startLine: 30,
 					endLine:   30,
+					t:         checker.DependencyUseTypeChocoCommand,
 				},
 				{
 					snippet:   "choco install 'some-other-package'",
 					startLine: 31,
 					endLine:   31,
+					t:         checker.DependencyUseTypeChocoCommand,
 				},
 			},
 		},
@@ -604,22 +628,24 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
-			dl := scut.TestDetailLogger{}
-			var pinned pinnedResult
-			_, err = validateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &dl, &pinned)
+
+			var r checker.PinningDependenciesData
+			_, err = validateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &r)
 			if err != nil {
-				t.Errorf("error during validateDockerfileIsPinned: %v", err)
+				t.Errorf("error during validateShellScriptIsFreeOfInsecureDownloads: %v", err)
 			}
 
-			for _, expectedLog := range tt.expected {
-				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Offset == expectedLog.startLine &&
-						logMessage.EndOffset == expectedLog.endLine &&
-						logMessage.Path == tt.filename &&
-						logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn
+			for _, expectedDep := range tt.expected {
+				isExpectedDep := func(dep checker.Dependency) bool {
+					return dep.File.Offset == expectedDep.startLine &&
+						dep.File.EndOffset == expectedDep.endLine &&
+						dep.File.Path == tt.filename &&
+						dep.Type == expectedDep.t &&
+						dep.File.Snippet == expectedDep.snippet
 				}
-				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
-					t.Errorf("test failed: log message not present: %+v", tt.expected)
+
+				if !scut.ValidatePinningDependencies(isExpectedDep, &r) {
+					t.Errorf("test failed: dependency not present: %+v", tt.expected)
 				}
 			}
 		})
@@ -628,43 +654,26 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 
 func TestDockerfilePinningWihoutHash(t *testing.T) {
 	t.Parallel()
+	//nolint
 	tests := []struct {
+		warns    int
+		err      error
 		name     string
 		filename string
-		expected scut.TestReturn
 	}{
 		{
 			name:     "Pinned dockerfile as no hash",
 			filename: "./testdata/Dockerfile-pinned-as-without-hash",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  4,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    4,
 		},
 		{
 			name:     "Dockerfile with args",
 			filename: "./testdata/Dockerfile-args",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    2,
 		},
 		{
 			name:     "Dockerfile with base",
 			filename: "./testdata/Dockerfile-base",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
 		},
 	}
 	for _, tt := range tests {
@@ -678,25 +687,19 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
-			dl := scut.TestDetailLogger{}
-			s, e := testValidateDockerfileIsPinned(tt.filename, content, &dl)
-			actual := checker.CheckResult{
-				Score: s,
-				Error: e,
-			}
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
-				t.Fail()
+
+			var r checker.PinningDependenciesData
+			_, err = validateDockerfilesPinning(tt.filename, content, &r)
+			if !errCmp(err, tt.err) {
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
-			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-				if tt.expected.NumberOfWarn > 0 {
-					return strings.Contains(logMessage.Text, "image not pinned by hash")
-				}
-				return true
+			if err != nil {
+				return
 			}
 
-			if !scut.ValidateLogMessage(isExpectedLog, &dl) {
-				t.Errorf("test failed: log message not present: %+v", tt.expected)
+			if tt.warns != len(r.Dependencies) {
+				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
 			}
 		})
 	}
@@ -704,153 +707,73 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 
 func TestDockerfileScriptDownload(t *testing.T) {
 	t.Parallel()
+	//nolint
 	tests := []struct {
+		warns    int
+		err      error
 		name     string
 		filename string
-		expected scut.TestReturn
 	}{
 		{
 			name:     "curl | sh",
 			filename: "./testdata/Dockerfile-curl-sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  4,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    4,
 		},
 		{
 			name:     "empty file",
 			filename: "./testdata/Dockerfile-empty",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
 		},
 		{
 			name:     "invalid file sh",
-			filename: "./testdata/script.sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
+			filename: "../testdata/script.sh",
 		},
 		{
 			name:     "comments only",
 			filename: "./testdata/Dockerfile-comments",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
 		},
 		{
 			name:     "wget | /bin/sh",
 			filename: "./testdata/Dockerfile-wget-bin-sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  3,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    3,
 		},
 		{
 			name:     "wget no exec",
 			filename: "./testdata/Dockerfile-script-ok",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
 		},
 		{
 			name:     "curl file sh",
 			filename: "./testdata/Dockerfile-curl-file-sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  12,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    12,
 		},
 		{
 			name:     "proc substitution",
 			filename: "./testdata/Dockerfile-proc-subs",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  6,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    6,
 		},
 		{
 			name:     "wget file",
 			filename: "./testdata/Dockerfile-wget-file",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  10,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    10,
 		},
 		{
 			name:     "gsutil file",
 			filename: "./testdata/Dockerfile-gsutil-file",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  17,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    17,
 		},
 		{
 			name:     "aws file",
 			filename: "./testdata/Dockerfile-aws-file",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  15,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    15,
 		},
 		{
 			name:     "pkg managers",
 			filename: "./testdata/Dockerfile-pkg-managers",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  39,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    39,
 		},
 		{
 			name:     "download with some python",
 			filename: "./testdata/Dockerfile-some-python",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    1,
 		},
 	}
 	for _, tt := range tests {
@@ -867,14 +790,19 @@ func TestDockerfileScriptDownload(t *testing.T) {
 					t.Errorf("cannot read file: %v", err)
 				}
 			}
-			dl := scut.TestDetailLogger{}
-			s, e := testValidateDockerfileIsFreeOfInsecureDownloads(tt.filename, content, &dl)
-			actual := checker.CheckResult{
-				Score: s,
-				Error: e,
+
+			var r checker.PinningDependenciesData
+			_, err = validateDockerfileInsecureDownloads(tt.filename, content, &r)
+			if !errCmp(err, tt.err) {
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
-				t.Fail()
+
+			if err != nil {
+				return
+			}
+
+			if tt.warns != len(r.Dependencies) {
+				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
 			}
 		})
 	}
@@ -882,21 +810,16 @@ func TestDockerfileScriptDownload(t *testing.T) {
 
 func TestDockerfileScriptDownloadInfo(t *testing.T) {
 	t.Parallel()
+	//nolint
 	tests := []struct {
 		name     string
 		filename string
-		expected scut.TestReturn
+		warns    int
+		err      error
 	}{
 		{
 			name:     "curl | sh",
 			filename: "./testdata/Dockerfile-no-curl-sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
 		},
 	}
 	for _, tt := range tests {
@@ -910,23 +833,18 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
-			dl := scut.TestDetailLogger{}
-			s, e := testValidateDockerfileIsFreeOfInsecureDownloads(tt.filename, content, &dl)
-			actual := checker.CheckResult{
-				Score: s,
-				Error: e,
-			}
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
-				t.Fail()
+			var r checker.PinningDependenciesData
+			_, err = validateDockerfileInsecureDownloads(tt.filename, content, &r)
+			if !errCmp(err, tt.err) {
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
-			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-				return strings.Contains(logMessage.Text,
-					"no insecure (not pinned by hash) dependency downloads found in Dockerfiles")
+			if err != nil {
+				return
 			}
 
-			if !scut.ValidateLogMessage(isExpectedLog, &dl) {
-				t.Fail()
+			if tt.warns != len(r.Dependencies) {
+				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
 			}
 		})
 	}
@@ -934,87 +852,46 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 
 func TestShellScriptDownload(t *testing.T) {
 	t.Parallel()
+	//nolint
 	tests := []struct {
 		name     string
 		filename string
-		expected scut.TestReturn
+		warns    int
+		debugs   int
+		err      error
 	}{
 		{
 			name:     "sh script",
-			filename: "./testdata/script-sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  7,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: "../testdata/script-sh",
+			warns:    7,
 		},
 		{
 			name:     "empty file",
 			filename: "./testdata/script-empty.sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
 		},
 		{
 			name:     "comments",
 			filename: "./testdata/script-comments.sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
 		},
 		{
 			name:     "bash script",
 			filename: "./testdata/script-bash",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  7,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    7,
 		},
 		{
 			name:     "sh script 2",
-			filename: "./testdata/script.sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  7,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			filename: "../testdata/script.sh",
+			warns:    7,
 		},
 		{
 			name:     "pkg managers",
 			filename: "./testdata/script-pkg-managers",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  36,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    36,
 		},
 		{
 			name:     "invalid shell script",
 			filename: "./testdata/script-invalid.sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 1,
-			},
+			debugs:   1,
 		},
 	}
 	for _, tt := range tests {
@@ -1031,14 +908,24 @@ func TestShellScriptDownload(t *testing.T) {
 					t.Errorf("cannot read file: %v", err)
 				}
 			}
-			dl := scut.TestDetailLogger{}
-			s, e := testValidateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &dl)
-			actual := checker.CheckResult{
-				Score: s,
-				Error: e,
+
+			var r checker.PinningDependenciesData
+			_, err = validateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &r)
+
+			if !errCmp(err, tt.err) {
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
-				t.Fail()
+
+			if err != nil {
+				return
+			}
+
+			// Note: this works because all our examples
+			// either have warns or debugs.
+			ws := (tt.warns == len(r.Dependencies)) && (tt.debugs == 0)
+			ds := (tt.debugs == len(r.Dependencies)) && (tt.warns == 0)
+			if !ws && !ds {
+				t.Errorf("expected %v or %v. Got %v", tt.warns, tt.debugs, len(r.Dependencies))
 			}
 		})
 	}
@@ -1046,32 +933,20 @@ func TestShellScriptDownload(t *testing.T) {
 
 func TestShellScriptDownloadPinned(t *testing.T) {
 	t.Parallel()
+	//nolint
 	tests := []struct {
 		name     string
 		filename string
-		expected scut.TestReturn
+		warns    int
+		err      error
 	}{
 		{
 			name:     "sh script",
 			filename: "./testdata/script-comments.sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
 		},
 		{
 			name:     "script free of download",
 			filename: "./testdata/script-free-from-download.sh",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			},
 		},
 	}
 	for _, tt := range tests {
@@ -1086,23 +961,19 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 				t.Errorf("cannot read file: %v", err)
 			}
 
-			dl := scut.TestDetailLogger{}
-			s, e := testValidateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &dl)
-			actual := checker.CheckResult{
-				Score: s,
-				Error: e,
-			}
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
-				t.Fail()
+			var r checker.PinningDependenciesData
+			_, err = validateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &r)
+
+			if !errCmp(err, tt.err) {
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
-			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-				return strings.Contains(logMessage.Text,
-					"no insecure (not pinned by hash) dependency downloads found in shell scripts")
+			if err != nil {
+				return
 			}
 
-			if !scut.ValidateLogMessage(isExpectedLog, &dl) {
-				t.Fail()
+			if tt.warns != len(r.Dependencies) {
+				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
 			}
 		})
 	}
@@ -1110,43 +981,27 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 
 func TestGitHubWorflowRunDownload(t *testing.T) {
 	t.Parallel()
+	//nolint
 	tests := []struct {
 		name     string
 		filename string
-		expected scut.TestReturn
+		warns    int
+		err      error
 	}{
 		{
 			name:     "workflow curl default",
 			filename: "./testdata/.github/workflows/github-workflow-curl-default.yaml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    1,
 		},
 		{
 			name:     "workflow curl no default",
 			filename: "./testdata/.github/workflows/github-workflow-curl-no-default.yaml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    1,
 		},
 		{
 			name:     "wget across steps",
 			filename: "./testdata/.github/workflows/github-workflow-wget-across-steps.yaml",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			},
+			warns:    2,
 		},
 	}
 	for _, tt := range tests {
@@ -1163,16 +1018,21 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 					t.Errorf("cannot read file: %v", err)
 				}
 			}
-			dl := scut.TestDetailLogger{}
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 
-			s, e := testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(p, content, &dl)
-			actual := checker.CheckResult{
-				Score: s,
-				Error: e,
+			var r checker.PinningDependenciesData
+
+			_, err = validateGitHubWorkflowIsFreeOfInsecureDownloads(p, content, &r)
+			if !errCmp(err, tt.err) {
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
-				t.Fail()
+
+			if err != nil {
+				return
+			}
+
+			if tt.warns != len(r.Dependencies) {
+				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
 			}
 		})
 	}
@@ -1191,7 +1051,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 	}{
 		{
 			name:     "unpinned dependency in uses",
-			filename: "./testdata/.github/workflows/github-workflow-permissions-run-codeql-write.yaml",
+			filename: "../testdata/.github/workflows/github-workflow-permissions-run-codeql-write.yaml",
 			expected: []struct {
 				dependency string
 				startLine  uint
@@ -1233,25 +1093,23 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
-			dl := scut.TestDetailLogger{}
-			var pinned worklowPinningResult
-			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 
-			_, err = validateGitHubActionWorkflow(p, content, &dl, &pinned)
-			if err != nil {
-				t.Errorf("error during validateGitHubActionWorkflow: %v", err)
-			}
-			for _, expectedLog := range tt.expected {
-				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Offset == expectedLog.startLine &&
-						logMessage.EndOffset == expectedLog.endLine &&
-						logMessage.Path == p &&
-						logMessage.Snippet == expectedLog.dependency && logType == checker.DetailWarn &&
-						strings.Contains(logMessage.Text, "action not pinned by hash")
+			p := strings.Replace(tt.filename, "../testdata/", "", 1)
+			p = strings.Replace(p, "./testdata/", "", 1)
+			var r checker.PinningDependenciesData
+
+			_, err = validateGitHubActionWorkflow(p, content, &r)
+			for _, expectedDep := range tt.expected {
+				isExpectedDep := func(dep checker.Dependency) bool {
+					return dep.File.Offset == expectedDep.startLine &&
+						dep.File.EndOffset == expectedDep.endLine &&
+						dep.File.Path == p &&
+						dep.File.Snippet == expectedDep.dependency &&
+						dep.Type == checker.DependencyUseTypeGHAction
 				}
 
-				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
-					t.Errorf("test failed: log message not present: %+v", tt.expected)
+				if !scut.ValidatePinningDependencies(isExpectedDep, &r) {
+					t.Errorf("test failed: dependency not present: %+v", tt.expected)
 				}
 			}
 		})
@@ -1303,248 +1161,28 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
-			dl := scut.TestDetailLogger{}
-			var pinned pinnedResult
-			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 
-			_, err = validateGitHubWorkflowIsFreeOfInsecureDownloads(p, content, &dl, &pinned)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+			var r checker.PinningDependenciesData
+
+			_, err = validateGitHubWorkflowIsFreeOfInsecureDownloads(p, content, &r)
 			if err != nil {
 				t.Errorf("error during validateGitHubWorkflowIsFreeOfInsecureDownloads: %v", err)
 			}
-			for _, expectedLog := range tt.expected {
-				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Offset == expectedLog.startLine &&
-						logMessage.EndOffset == expectedLog.endLine &&
-						logMessage.Path == p &&
-						logMessage.Snippet == expectedLog.snippet && logType == checker.DetailWarn
+
+			for _, expectedDep := range tt.expected {
+				isExpectedDep := func(dep checker.Dependency) bool {
+					return dep.File.Offset == expectedDep.startLine &&
+						dep.File.EndOffset == expectedDep.endLine &&
+						dep.File.Path == p &&
+						dep.File.Snippet == expectedDep.snippet &&
+						dep.Type == checker.DependencyUseTypeDownloadThenRun
 				}
 
-				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
-					t.Errorf("test failed: log message not present: %+v", tt.expected)
+				if !scut.ValidatePinningDependencies(isExpectedDep, &r) {
+					t.Errorf("test failed: dependency not present: %+v", tt.expected)
 				}
 			}
 		})
 	}
 }
-
-func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
-	t.Parallel()
-	//nolint
-	type args struct {
-		r       worklowPinningResult
-		infoMsg string
-		dl      checker.DetailLogger
-		err     error
-	}
-	//nolint
-	tests := []struct {
-		name    string
-		args    args
-		want    int
-		wantErr bool
-	}{
-		{
-			name: "both actions workflow pinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: 1,
-					gitHubOwned:  1,
-				},
-				infoMsg: "",
-				dl:      &scut.TestDetailLogger{},
-				err:     nil,
-			},
-			want:    10,
-			wantErr: false,
-		},
-		{
-			name: "github actions workflow pinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: 2,
-					gitHubOwned:  2,
-				},
-				infoMsg: "",
-				dl:      &scut.TestDetailLogger{},
-				err:     nil,
-			},
-			want:    0,
-			wantErr: false,
-		},
-		{
-			name: "error in github actions workflow pinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: 2,
-					gitHubOwned:  2,
-				},
-				infoMsg: "",
-				dl:      &scut.TestDetailLogger{},
-				err:     errors.New("error"),
-			},
-			want:    -1,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			got, err := createReturnValuesForGitHubActionsWorkflowPinned(tt.args.r, tt.args.infoMsg, tt.args.dl, tt.args.err)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("createReturnValuesForGitHubActionsWorkflowPinned() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("createReturnValuesForGitHubActionsWorkflowPinned() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_createReturnValues(t *testing.T) {
-	t.Parallel()
-	//nolint
-	type args struct {
-		r       pinnedResult
-		infoMsg string
-		dl      checker.DetailLogger
-		err     error
-	}
-	//nolint
-	tests := []struct {
-		name    string
-		args    args
-		want    int
-		wantErr bool
-	}{
-		{
-			name: "returns 10 if no error",
-			args: args{
-				r:       1,
-				infoMsg: "",
-				dl:      &scut.TestDetailLogger{},
-				err:     nil,
-			},
-			want:    10,
-			wantErr: false,
-		},
-		{
-			name: "returns 0 if unpinned ",
-			args: args{
-				r:       2,
-				infoMsg: "",
-				dl:      &scut.TestDetailLogger{},
-				err:     nil,
-			},
-			want:    0,
-			wantErr: false,
-		},
-		{
-			name: "if err is not nil, returns 0",
-			args: args{
-				r:       2,
-				infoMsg: "",
-				dl:      &scut.TestDetailLogger{},
-				//nolint
-				err: errors.New("error"),
-			},
-			want:    -1,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			got, err := createReturnValues(tt.args.r, tt.args.infoMsg, tt.args.dl, tt.args.err)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("createReturnValues() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("createReturnValues() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_maxScore(t *testing.T) {
-	t.Parallel()
-	type args struct {
-		s1 int
-		s2 int
-	}
-	tests := []struct {
-		name string
-		args args
-		want int
-	}{
-		{
-			name: "returns s1 if s1 is greater than s2",
-			args: args{
-				s1: 10,
-				s2: 5,
-			},
-			want: 10,
-		},
-		{
-			name: "returns s2 if s2 is greater than s1",
-			args: args{
-				s1: 5,
-				s2: 10,
-			},
-			want: 10,
-		},
-		{
-			name: "returns s1 if s1 is equal to s2",
-			args: args{
-				s1: 10,
-				s2: 10,
-			},
-			want: 10,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			if got := maxScore(tt.args.s1, tt.args.s2); got != tt.want {
-				t.Errorf("maxScore() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func testValidateShellScriptIsFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger,
-) (int, error) {
-	var r pinnedResult
-	_, err := validateShellScriptIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
-	return createReturnForIsShellScriptFreeOfInsecureDownloads(r, dl, err)
-}
-
-func testValidateDockerfileIsFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger,
-) (int, error) {
-	var r pinnedResult
-	_, err := validateDockerfileIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
-	return createReturnForIsDockerfileFreeOfInsecureDownloads(r, dl, err)
-}
-
-func testValidateDockerfileIsPinned(pathfn string, content []byte, dl checker.DetailLogger) (int, error) {
-	var r pinnedResult
-	_, err := validateDockerfileIsPinned(pathfn, content, dl, &r)
-	return createReturnForIsDockerfilePinned(r, dl, err)
-}
-
-func testValidateGitHubWorkflowScriptFreeOfInsecureDownloads(pathfn string,
-	content []byte, dl checker.DetailLogger,
-) (int, error) {
-	var r pinnedResult
-	_, err := validateGitHubWorkflowIsFreeOfInsecureDownloads(pathfn, content, dl, &r)
-	return createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(r, dl, err)
-}
-
-
-*/

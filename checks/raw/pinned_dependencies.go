@@ -118,7 +118,7 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 ) (bool, error) {
 	if len(args) != 1 {
 		return false, fmt.Errorf(
-			"validateDockerfileIsFreeOfInsecureDownloads requires exactly 1 arguments: got %v: %w",
+			"validateDockerfileInsecureDownloads requires exactly 1 arguments: got %v: %w",
 			len(args), errInvalidArgLength)
 	}
 
@@ -443,6 +443,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindAction) {
 				continue
 			}
+
 			execAction, ok := step.Exec.(*actionlint.ExecAction)
 			if !ok {
 				stepName := fileparser.GetStepName(step)
