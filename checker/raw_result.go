@@ -59,18 +59,6 @@ type Fuzzer struct {
 	// TODO: WorkflowJob, File, CodeCoverage.
 }
 
-// CodeCoverage represents code coverage.
-type CodeCoverage struct {
-	FilesCoverage []FileCoverage
-	// TODO: aggregate coverage, etc
-}
-
-// FileCoverage represent the coverage of a file.
-type FileCoverage struct {
-	Lines []uint
-	File  File
-}
-
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {
