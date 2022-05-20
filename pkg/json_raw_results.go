@@ -28,10 +28,7 @@ import (
 // TODO: add a "check" field to all results so that they can be linked to a check.
 // TODO(#1874): Add a severity field in all results.
 
-var (
-	errorInvalidType   = errors.New("invalid type")
-	errorInvalidFuzzer = errors.New("invalid fuzzer")
-)
+var errorInvalidType = errors.New("invalid type")
 
 // Flat JSON structure to hold raw results.
 type jsonScorecardRawResult struct {
@@ -190,19 +187,10 @@ type jsonWorkflowJob struct {
 }
 
 type jsonFuzzer struct {
-	Name string           `json:"name"`
 	Job  *jsonWorkflowJob `json:"job,omitempty"`
 	File *jsonFile        `json:"file,omitempty"`
+	Name string           `json:"name"`
 	// TODO: (#1933)
-}
-
-type jsonCodeCoverage struct {
-	FilesCoverage jsonFileCoverage `json:"files"`
-}
-
-type jsonFileCoverage struct {
-	Lines []uint   `json:"lines"`
-	File  jsonFile `json:"file"`
 }
 
 //nolint
@@ -241,6 +229,7 @@ type jsonRawResults struct {
 	Releases []jsonRelease `json:"releases"`
 }
 
+//nolint:unparam
 func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) error {
 	r.Results.Fuzzers = []jsonFuzzer{}
 	for _, f := range fd.Fuzzers {
