@@ -186,6 +186,13 @@ type jsonWorkflowJob struct {
 	ID   *string `json:"id"`
 }
 
+type jsonFuzzer struct {
+	Job  *jsonWorkflowJob `json:"job,omitempty"`
+	File *jsonFile        `json:"file,omitempty"`
+	Name string           `json:"name"`
+	// TODO: (#1933)
+}
+
 //nolint
 type jsonRawResults struct {
 	// Workflow results.
@@ -216,8 +223,23 @@ type jsonRawResults struct {
 	DefaultBranchCommits []jsonDefaultBranchCommit `json:"default-branch-commits"`
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
+	// Fuzzers.
+	Fuzzers []jsonFuzzer `json:"fuzzers"`
 	// Releases.
 	Releases []jsonRelease `json:"releases"`
+}
+
+//nolint:unparam
+func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) error {
+	r.Results.Fuzzers = []jsonFuzzer{}
+	for _, f := range fd.Fuzzers {
+		fuzzer := jsonFuzzer{
+			// TODO: Job, File, Coverage.
+			Name: string(f.Name),
+		}
+		r.Results.Fuzzers = append(r.Results.Fuzzers, fuzzer)
+	}
+	return nil
 }
 
 func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.DangerousWorkflowData) error {
@@ -574,6 +596,11 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Dangerous workflow.
 	if err := r.addDangerousWorkflowRawResults(&raw.DangerousWorkflowResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// Fuzzers.
+	if err := r.addFuzzingRawResults(&raw.FuzzingResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
