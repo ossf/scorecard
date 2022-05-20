@@ -101,9 +101,6 @@ func Test_PinningDependencies(t *testing.T) {
 			dependencies: []checker.Dependency{
 				{
 					File: &checker.File{},
-					Remediation: &checker.Remediation{
-						Snippet: "snippet",
-					},
 					Msg:  asPointer("some message"),
 					Type: checker.DependencyUseTypeDownloadThenRun,
 				},
@@ -121,17 +118,11 @@ func Test_PinningDependencies(t *testing.T) {
 			dependencies: []checker.Dependency{
 				{
 					File: &checker.File{},
-					Remediation: &checker.Remediation{
-						Snippet: "snippet",
-					},
 					Msg:  asPointer("some message"),
 					Type: checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
 					File: &checker.File{},
-					Remediation: &checker.Remediation{
-						Snippet: "snippet",
-					},
 					Type: checker.DependencyUseTypeDownloadThenRun,
 				},
 			},
