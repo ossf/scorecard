@@ -16,7 +16,6 @@ package pkg
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -27,8 +26,6 @@ import (
 
 // TODO: add a "check" field to all results so that they can be linked to a check.
 // TODO(#1874): Add a severity field in all results.
-
-var errorInvalidType = errors.New("invalid type")
 
 // Flat JSON structure to hold raw results.
 type jsonScorecardRawResult struct {
@@ -167,13 +164,6 @@ type jsonLicense struct {
 	// TODO: add fields, like type of license, etc.
 }
 
-type dangerousPatternType string
-
-const (
-	patternUntrustedCheckout dangerousPatternType = "untrustedCheckout"
-	patternScriptInjection   dangerousPatternType = "scriptInjection"
-)
-
 type jsonWorkflow struct {
 	Job  *jsonWorkflowJob `json:"job"`
 	File *jsonFile        `json:"file"`
@@ -242,6 +232,7 @@ func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) e
 	return nil
 }
 
+//nolint:unparam
 func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.DangerousWorkflowData) error {
 	r.Results.Workflows = []jsonWorkflow{}
 	for _, e := range df.Workflows {
@@ -250,6 +241,7 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 				Path:   e.File.Path,
 				Offset: int(e.File.Offset),
 			},
+			Type: string(e.Type),
 		}
 		if e.File.Snippet != "" {
 			v.File.Snippet = &e.File.Snippet
@@ -259,15 +251,6 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 				Name: e.Job.Name,
 				ID:   e.Job.ID,
 			}
-		}
-
-		switch e.Type {
-		case checker.DangerousWorkflowUntrustedCheckout:
-			v.Type = string(patternUntrustedCheckout)
-		case checker.DangerousWorkflowScriptInjection:
-			v.Type = string(patternScriptInjection)
-		default:
-			return fmt.Errorf("%w: %d", errorInvalidType, e.Type)
 		}
 
 		r.Results.Workflows = append(r.Results.Workflows, v)

@@ -332,13 +332,13 @@ type CIIBestPracticesData struct {
 }
 
 // DangerousWorkflowType represents a type of dangerous workflow.
-type DangerousWorkflowType int
+type DangerousWorkflowType string
 
 const (
 	// DangerousWorkflowScriptInjection represents a script injection.
-	DangerousWorkflowScriptInjection DangerousWorkflowType = iota
+	DangerousWorkflowScriptInjection DangerousWorkflowType = "scriptInjection"
 	// DangerousWorkflowUntrustedCheckout represents an untrusted checkout.
-	DangerousWorkflowUntrustedCheckout
+	DangerousWorkflowUntrustedCheckout DangerousWorkflowType = "untrustedCheckout"
 )
 
 // DangerousWorkflowData contains raw results
@@ -350,8 +350,8 @@ type DangerousWorkflowData struct {
 // DangerousWorkflow represents a dangerous workflow.
 type DangerousWorkflow struct {
 	Job  *WorkflowJob
-	File File
 	Type DangerousWorkflowType
+	File File
 }
 
 // WorkflowJob reprresents a workflow job.
