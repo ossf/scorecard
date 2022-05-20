@@ -16,7 +16,6 @@ package pkg
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -27,8 +26,6 @@ import (
 
 // TODO: add a "check" field to all results so that they can be linked to a check.
 // TODO(#1874): Add a severity field in all results.
-
-var errorInvalidType = errors.New("invalid type")
 
 // Flat JSON structure to hold raw results.
 type jsonScorecardRawResult struct {
@@ -213,6 +210,7 @@ type jsonRawResults struct {
 	Releases []jsonRelease `json:"releases"`
 }
 
+//nolint:unparam
 func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.DangerousWorkflowData) error {
 	r.Results.Workflows = []jsonWorkflow{}
 	for _, e := range df.Workflows {
