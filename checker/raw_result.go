@@ -36,28 +36,9 @@ type RawResults struct {
 	LicenseResults              LicenseData
 }
 
-// FuzzerName represents a fuzzing service.
-type FuzzerName string
-
-const (
-	// FuzzerNameCIFuzz is CIFuzz.
-	FuzzerNameCIFuzz FuzzerName = "CIFuzz"
-	// FuzzerNameOSSFuzz is OSSFuzz.
-	FuzzerNameOSSFuzz FuzzerName = "OSSFuzz"
-	// FuzzerNameGoBuiltin is the built-in Go fuzzer.
-	FuzzerNameGoBuiltin FuzzerName = "GoFuzzer"
-)
-
 // FuzzingData represents different fuzzing done.
 type FuzzingData struct {
-	Fuzzers []Fuzzer
-}
-
-// Fuzzer represent the use of a fuzzer.
-type Fuzzer struct {
-	Name FuzzerName
-	// TODO: CodeCoverage.
-	// TODO: (#1933)
+	Fuzzers []Tool
 }
 
 // MaintainedData contains the raw results
@@ -168,9 +149,10 @@ type Tool struct {
 	// Merge requests created by the tool.
 	MergeRequests []MergeRequest
 	Name          string
-	URL           string
-	Desc          string
-	ConfigFiles   []File
+	URL           *string
+	Desc          *string
+	File          *File
+	// TODO: CodeCoverage.
 }
 
 // Run represents a run.
