@@ -15,11 +15,9 @@
 package checks
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/fileparser"
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -34,57 +32,18 @@ func init() {
 	}
 }
 
-func checkCFLite(c *checker.CheckRequest) (bool, error) {
-	result := false
-	e := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
-		Pattern:       ".clusterfuzzlite/Dockerfile",
-		CaseSensitive: true,
-	}, func(path string, content []byte, args ...interface{}) (bool, error) {
-		result = fileparser.CheckFileContainsCommands(content, "#")
-		return false, nil
-	}, nil)
-	if e != nil {
-		return result, fmt.Errorf("%w", e)
-	}
-	return result, nil
-}
-
-func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
-	if c.OssFuzzRepo == nil {
-		return false, nil
-	}
-
-	req := clients.SearchRequest{
-		Query:    c.RepoClient.URI(),
-		Filename: "project.yaml",
-	}
-	result, err := c.OssFuzzRepo.Search(req)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
-		return false, e
-	}
-	return result.Hits > 0, nil
-}
-
 // Fuzzing runs Fuzzing check.
 func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
-	usingCFLite, e := checkCFLite(c)
-	if e != nil {
+	rawData, err := raw.Fuzzing(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
 	}
-	if usingCFLite {
-		return checker.CreateMaxScoreResult(CheckFuzzing,
-			"project uses ClusterFuzzLite")
+
+	// Set the raw results.
+	if c.RawResults != nil {
+		c.RawResults.FuzzingResults = rawData
 	}
 
-	usingOSSFuzz, e := checkOSSFuzz(c)
-	if e != nil {
-		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
-	}
-	if usingOSSFuzz {
-		return checker.CreateMaxScoreResult(CheckFuzzing,
-			"project is fuzzed in OSS-Fuzz")
-	}
-
-	return checker.CreateMinScoreResult(CheckFuzzing, "project is not fuzzed")
+	return evaluation.Fuzzing(CheckFuzzing, c.Dlogger, &rawData)
 }
