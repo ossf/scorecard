@@ -142,17 +142,18 @@ type BranchProtectionData struct {
 
 // Tool represents a tool.
 type Tool struct {
+	URL  *string
+	Desc *string
+	File *File
+	Name string
 	// Runs of the tool.
 	Runs []Run
 	// Issues created by the tool.
 	Issues []Issue
 	// Merge requests created by the tool.
 	MergeRequests []MergeRequest
-	Name          string
-	URL           *string
-	Desc          *string
-	File          *File
-	// TODO: CodeCoverage.
+
+	// TODO: CodeCoverage, jsonWorkflowJob.
 }
 
 // Run represents a run.
