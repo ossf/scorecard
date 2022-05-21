@@ -15,6 +15,8 @@
 package evaluation
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -28,15 +30,10 @@ func Fuzzing(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	for _, fuzzer := range r.Fuzzers {
-		switch fuzzer.Name {
-		case checker.FuzzerNameCIFuzz:
-			return checker.CreateMaxScoreResult(name, "project uses ClusterFuzzLite")
-		case checker.FuzzerNameOSSFuzz:
-			return checker.CreateMaxScoreResult(name, "project is fuzzed in OSS-Fuzz")
-		case checker.FuzzerNameGoBuiltin:
-			return checker.CreateMaxScoreResult(name, "project is fuzzed using Golang's fuzzing")
-		}
+	for i := range r.Fuzzers {
+		fuzzer := r.Fuzzers[i]
+		return checker.CreateMaxScoreResult(name,
+			fmt.Sprintf("project is fuzzed with %s", fuzzer.Name))
 	}
 
 	return checker.CreateMinScoreResult(name, "project is not fuzzed")

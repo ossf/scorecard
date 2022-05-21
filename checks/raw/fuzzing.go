@@ -25,13 +25,20 @@ import (
 
 // Fuzzing runs Fuzzing check.
 func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
-	var fuzzers []checker.Fuzzer
+	var fuzzers []checker.Tool
 	usingCFLite, e := checkCFLite(c)
 	if e != nil {
 		return checker.FuzzingData{}, fmt.Errorf("%w", e)
 	}
 	if usingCFLite {
-		fuzzers = append(fuzzers, checker.Fuzzer{Name: checker.FuzzerNameCIFuzz})
+		fuzzers = append(fuzzers,
+			checker.Tool{
+				Name: "ClusterFuzzLite",
+				URL:  asPointer("https://github.com/google/clusterfuzzlite"),
+				Desc: asPointer("continuous fuzzing solution that runs as part of Continuous Integration (CI) workflows"),
+				// TODO: File.
+			},
+		)
 	}
 
 	usingOSSFuzz, e := checkOSSFuzz(c)
@@ -39,7 +46,14 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		return checker.FuzzingData{}, fmt.Errorf("%w", e)
 	}
 	if usingOSSFuzz {
-		fuzzers = append(fuzzers, checker.Fuzzer{Name: checker.FuzzerNameOSSFuzz})
+		fuzzers = append(fuzzers,
+			checker.Tool{
+				Name: "OSS-Fuzz",
+				URL:  asPointer("https://github.com/google/oss-fuzz"),
+				Desc: asPointer("Continuous Fuzzing for Open Source Software"),
+				// TODO: File.
+			},
+		)
 	}
 
 	return checker.FuzzingData{Fuzzers: fuzzers}, nil

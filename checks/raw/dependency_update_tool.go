@@ -49,14 +49,12 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 	case ".github/dependabot.yml", ".github/dependabot.yaml":
 		*ptools = append(*ptools, checker.Tool{
 			Name: "Dependabot",
-			URL:  "https://github.com/dependabot",
-			Desc: "Automated dependency updates built into GitHub",
-			ConfigFiles: []checker.File{
-				{
-					Path:   name,
-					Type:   checker.FileTypeSource,
-					Offset: checker.OffsetDefault,
-				},
+			URL:  asPointer("https://github.com/dependabot"),
+			Desc: asPointer("Automated dependency updates built into GitHub"),
+			File: &checker.File{
+				Path:   name,
+				Type:   checker.FileTypeSource,
+				Offset: checker.OffsetDefault,
 			},
 		})
 
@@ -65,14 +63,12 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 		"renovate.json5", ".renovaterc":
 		*ptools = append(*ptools, checker.Tool{
 			Name: "Renovabot",
-			URL:  "https://github.com/renovatebot/renovate",
-			Desc: "Automated dependency updates. Multi-platform and multi-language.",
-			ConfigFiles: []checker.File{
-				{
-					Path:   name,
-					Type:   checker.FileTypeSource,
-					Offset: checker.OffsetDefault,
-				},
+			URL:  asPointer("https://github.com/renovatebot/renovate"),
+			Desc: asPointer("Automated dependency updates. Multi-platform and multi-language."),
+			File: &checker.File{
+				Path:   name,
+				Type:   checker.FileTypeSource,
+				Offset: checker.OffsetDefault,
 			},
 		})
 	default:
@@ -82,4 +78,8 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 
 	// We found a file, no need to continue iterating.
 	return false, nil
+}
+
+func asPointer(s string) *string {
+	return &s
 }
