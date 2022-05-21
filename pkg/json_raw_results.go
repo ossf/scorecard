@@ -44,10 +44,11 @@ type jsonFile struct {
 }
 
 type jsonTool struct {
-	Name        string     `json:"name"`
-	URL         string     `json:"url"`
-	Desc        string     `json:"desc"`
-	ConfigFiles []jsonFile `json:"files"`
+	URL  *string          `json:"url"`
+	Desc *string          `json:"desc"`
+	Job  *jsonWorkflowJob `json:"job,omitempty"`
+	File *jsonFile        `json:"file,omitempty"`
+	Name string           `json:"name"`
 	// TODO: Runs, Issues, Merge requests.
 }
 
@@ -176,13 +177,6 @@ type jsonWorkflowJob struct {
 	ID   *string `json:"id"`
 }
 
-type jsonFuzzer struct {
-	Job  *jsonWorkflowJob `json:"job,omitempty"`
-	File *jsonFile        `json:"file,omitempty"`
-	Name string           `json:"name"`
-	// TODO: (#1933)
-}
-
 //nolint
 type jsonRawResults struct {
 	// Workflow results.
@@ -214,22 +208,9 @@ type jsonRawResults struct {
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
 	// Fuzzers.
-	Fuzzers []jsonFuzzer `json:"fuzzers"`
+	Fuzzers []jsonTool `json:"fuzzers"`
 	// Releases.
 	Releases []jsonRelease `json:"releases"`
-}
-
-//nolint:unparam
-func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) error {
-	r.Results.Fuzzers = []jsonFuzzer{}
-	for _, f := range fd.Fuzzers {
-		fuzzer := jsonFuzzer{
-			// TODO: Job, File, Coverage.
-			Name: string(f.Name),
-		}
-		r.Results.Fuzzers = append(r.Results.Fuzzers, fuzzer)
-	}
-	return nil
 }
 
 //nolint:unparam
@@ -472,24 +453,41 @@ func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.Securit
 }
 
 //nolint:unparam
+func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) error {
+	r.Results.Fuzzers = []jsonTool{}
+	for i := range fd.Fuzzers {
+		f := fd.Fuzzers[i]
+		jt := jsonTool{
+			Name: f.Name,
+			URL:  f.URL,
+			Desc: f.Desc,
+		}
+		if f.File != nil {
+			jt.File = &jsonFile{
+				Path: f.File.Path,
+			}
+		}
+		r.Results.Fuzzers = append(r.Results.Fuzzers, jt)
+	}
+	return nil
+}
+
+//nolint:unparam
 func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.DependencyUpdateToolData) error {
 	r.Results.DependencyUpdateTools = []jsonTool{}
 	for i := range dut.Tools {
 		t := dut.Tools[i]
-		offset := len(r.Results.DependencyUpdateTools)
-		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jsonTool{
+		jt := jsonTool{
 			Name: t.Name,
 			URL:  t.URL,
 			Desc: t.Desc,
-		})
-		for _, f := range t.ConfigFiles {
-			r.Results.DependencyUpdateTools[offset].ConfigFiles = append(
-				r.Results.DependencyUpdateTools[offset].ConfigFiles,
-				jsonFile{
-					Path: f.Path,
-				},
-			)
 		}
+		if t.File != nil {
+			jt.File = &jsonFile{
+				Path: t.File.Path,
+			}
+		}
+		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jt)
 	}
 	return nil
 }
