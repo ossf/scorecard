@@ -49,18 +49,17 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if len(r.Tools[0].ConfigFiles) != 1 {
-		e := sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("found %d config files, expected 1", len(r.Tools[0].ConfigFiles)))
+	if r.Tools[0].File == nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "File is nil")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
 	// Note: only one file per tool is present,
 	// so we do not iterate thru all entries.
 	dl.Info(&checker.LogMessage{
-		Path:   r.Tools[0].ConfigFiles[0].Path,
-		Type:   r.Tools[0].ConfigFiles[0].Type,
-		Offset: r.Tools[0].ConfigFiles[0].Offset,
+		Path:   r.Tools[0].File.Path,
+		Type:   r.Tools[0].File.Type,
+		Offset: r.Tools[0].File.Offset,
 		Text:   fmt.Sprintf("%s detected", r.Tools[0].Name),
 	})
 
