@@ -33,14 +33,15 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 	}
 
 	orgFlag := false
+	msg := checker.LogMessage{}
 	for _, f := range r.Files {
-		msg := checker.LogMessage{
+		msg = checker.LogMessage{
 			Path:   f.Path,
 			Type:   f.Type,
 			Offset: f.Offset,
 		}
 		if msg.Type == checker.FileTypeURL {
-			msg.Text = "security policy detected in org repo"
+			msg.Text = "security policy detected in org global repo"
 			if orgFlag == false {
 				// in case there are multiple security policies in the org repo
 				// so that we don't need to set the flag to true everytime
@@ -48,14 +49,15 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 			}
 		} else {
 			// security policy detected in repo, return earlier since it has higher priority
-			msg.Text = "security policy detected"
-			return checker.CreateMaxScoreResult(name, "security policy file detected")
+			msg.Text = "security policy file detected in current repo"
+			dl.Info(&msg)
+			return checker.CreateMaxScoreResult(name, "security policy file detected in current repo")
 		}
-		dl.Info(&msg)
 	}
 
 	if orgFlag == true {
-		return checker.CreateMaxScoreResult(name, "security policy file detected in org repo")
+		dl.Info(&msg)
+		return checker.CreateMaxScoreResult(name, "security policy file detected in org global repo")
 	} else {
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}

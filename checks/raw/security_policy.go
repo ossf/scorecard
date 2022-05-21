@@ -61,7 +61,13 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		return checker.SecurityPolicyData{}, err
 	}
 
-	// Return raw results.
+	// Modify the path to include org name and return raw results.
+	for i := range files {
+		// Add the client URI before the path
+		files[i].Path = dotGitHubClient.URI() + "/" + files[i].Path
+		// Modify the file type to 4 (meaning it's an URL)
+		files[i].Type = 4
+	}
 	return checker.SecurityPolicyData{Files: files}, nil
 }
 
