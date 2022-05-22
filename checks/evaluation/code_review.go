@@ -216,7 +216,7 @@ func isReviewedOnPiper(c *checker.DefaultBranchCommit, dl checker.DetailLogger) 
 	m := c.CommitMessage
 	if strings.Contains(m, "\nPiperOrigin-RevId: ") {
 		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, reviewPlatformPhabricator),
+			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, reviewPlatformPiper),
 		})
 		return true
 	}
