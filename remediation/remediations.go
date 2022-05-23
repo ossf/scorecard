@@ -44,12 +44,15 @@ func init() {
 	once = new(sync.Once)
 }
 
+// etup sets up remediation code.
 func Setup(c *checker.CheckRequest) error {
 	once.Do(func() {
 		// Get the branch for remediation.
 		b, err := c.RepoClient.GetDefaultBranch()
-		if err != nil && !errors.Is(err, clients.ErrUnsupportedFeature) {
-			setupErr = err
+		if err != nil {
+			if !errors.Is(err, clients.ErrUnsupportedFeature) {
+				setupErr = err
+			}
 			return
 		}
 		if b.Name != nil {
