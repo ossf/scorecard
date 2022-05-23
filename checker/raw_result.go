@@ -285,28 +285,9 @@ type ReleaseAsset struct {
 	URL  string
 }
 
-// CIIBadge corresponds to CII-Best-Practices badges.
-// https://bestpractices.coreinfrastructure.org/en
-type CIIBadge string
-
-const (
-	// CIIBadgeUnknown or non-parsable CII Best Practices badge.
-	CIIBadgeUnknown CIIBadge = "unknown"
-	// CIIBadgeNotFound represents when CII Best Practices returns an empty response for a project.
-	CIIBadgeNotFound CIIBadge = "not_found"
-	// CIIBadgeInProgress state of CII Best Practices badge.
-	CIIBadgeInProgress CIIBadge = "in_progress"
-	// CIIBadgePassing  for CII Best Practices badge.
-	CIIBadgePassing CIIBadge = "passing"
-	// CIIBadgeSilver  for CII Best Practices badge.
-	CIIBadgeSilver CIIBadge = "silver"
-	// CIIBadgeGold  for CII Best Practices badge.
-	CIIBadgeGold CIIBadge = "gold"
-)
-
 // CIIBestPracticesData contains data foor CIIBestPractices check.
 type CIIBestPracticesData struct {
-	Badge CIIBadge
+	Badge clients.BadgeLevel
 }
 
 // DangerousWorkflowType represents a type of dangerous workflow.
