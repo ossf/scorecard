@@ -214,7 +214,6 @@ type jsonRawResults struct {
 	Releases []jsonRelease `json:"releases"`
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.DangerousWorkflowData) error {
 	r.Results.Workflows = []jsonWorkflow{}
 	for _, e := range df.Workflows {
@@ -241,7 +240,6 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addContributorsRawResults(cr *checker.ContributorsData) error {
 	r.Results.Contributors = jsonContributors{}
 
@@ -273,7 +271,6 @@ func (r *jsonScorecardRawResult) addContributorsRawResults(cr *checker.Contribut
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedReleasesData) error {
 	r.Results.Releases = []jsonRelease{}
 	for i, release := range sr.Releases {
@@ -388,7 +385,6 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(commits []clients.Commit) 
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addOssfBestPracticesRawResults(cbp *checker.CIIBestPracticesData) error {
 	r.Results.OssfBestPractices.Badge = cbp.Badge.String()
 	return nil
@@ -398,7 +394,6 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 	return r.setDefaultCommitData(cr.DefaultBranchCommits)
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) error {
 	r.Results.Licenses = []jsonLicense{}
 	for _, file := range ld.Files {
@@ -413,7 +408,6 @@ func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) e
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addVulnerbilitiesRawResults(vd *checker.VulnerabilitiesData) error {
 	r.Results.DatabaseVulnerabilities = []jsonDatabaseVulnerability{}
 	for _, v := range vd.Vulnerabilities {
@@ -425,7 +419,6 @@ func (r *jsonScorecardRawResult) addVulnerbilitiesRawResults(vd *checker.Vulnera
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryArtifactData) error {
 	r.Results.Binaries = []jsonFile{}
 	for _, v := range ba.Files {
@@ -436,7 +429,6 @@ func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryA
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.SecurityPolicyData) error {
 	r.Results.SecurityPolicies = []jsonFile{}
 	for _, v := range sp.Files {
@@ -447,7 +439,6 @@ func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.Securit
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) error {
 	r.Results.Fuzzers = []jsonTool{}
 	for i := range fd.Fuzzers {
@@ -467,7 +458,6 @@ func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) e
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.DependencyUpdateToolData) error {
 	r.Results.DependencyUpdateTools = []jsonTool{}
 	for i := range dut.Tools {
@@ -487,7 +477,6 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.BranchProtectionsData) error {
 	r.Results.BranchProtections = []jsonBranchProtection{}
 	for _, v := range bp.Branches {

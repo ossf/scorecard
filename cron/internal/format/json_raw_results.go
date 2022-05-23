@@ -115,7 +115,6 @@ type jsonRawResults struct {
 	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBranchCommits"`
 }
 
-//nolint:unparam
 func addCodeReviewRawResults(r *jsonScorecardRawResult, cr *checker.CodeReviewData) error {
 	r.Results.DefaultBranchCommits = []jsonDefaultBranchCommit{}
 	for i := range cr.DefaultBranchCommits {
@@ -158,7 +157,6 @@ func addCodeReviewRawResults(r *jsonScorecardRawResult, cr *checker.CodeReviewDa
 	return nil
 }
 
-//nolint:unparam
 func addVulnerbilitiesRawResults(r *jsonScorecardRawResult, vd *checker.VulnerabilitiesData) error {
 	r.Results.DatabaseVulnerabilities = []jsonDatabaseVulnerability{}
 	for _, v := range vd.Vulnerabilities {
@@ -170,7 +168,6 @@ func addVulnerbilitiesRawResults(r *jsonScorecardRawResult, vd *checker.Vulnerab
 	return nil
 }
 
-//nolint:unparam
 func addBinaryArtifactRawResults(r *jsonScorecardRawResult, ba *checker.BinaryArtifactData) error {
 	r.Results.Binaries = []jsonFile{}
 	for _, v := range ba.Files {
@@ -181,7 +178,6 @@ func addBinaryArtifactRawResults(r *jsonScorecardRawResult, ba *checker.BinaryAr
 	return nil
 }
 
-//nolint:unparam
 func addSecurityPolicyRawResults(r *jsonScorecardRawResult, sp *checker.SecurityPolicyData) error {
 	r.Results.SecurityPolicies = []jsonFile{}
 	for _, v := range sp.Files {
@@ -192,7 +188,6 @@ func addSecurityPolicyRawResults(r *jsonScorecardRawResult, sp *checker.Security
 	return nil
 }
 
-//nolint:unparam
 func addDependencyUpdateToolRawResults(r *jsonScorecardRawResult,
 	dut *checker.DependencyUpdateToolData,
 ) error {

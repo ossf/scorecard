@@ -50,7 +50,7 @@ jobs:
       - name: setup-go
         uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
         with:
-          go-version: '1.17'
+          go-version: '1.18'
 
       - name: Cache builds
         # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
