@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -39,21 +40,21 @@ func CIIBestPractices(name string, dl checker.DetailLogger, r *checker.CIIBestPr
 
 	var results checker.CheckResult
 	switch r.Badge {
-	case checker.CIIBadgeNotFound:
+	case clients.NotFound:
 		results = checker.CreateMinScoreResult(name, "no badge detected")
-	case checker.CIIBadgeInProgress:
+	case clients.InProgress:
 		msg := fmt.Sprintf("badge detected: %v", r.Badge)
 		results = checker.CreateResultWithScore(name, msg, inProgressScore)
-	case checker.CIIBadgePassing:
+	case clients.Passing:
 		msg := fmt.Sprintf("badge detected: %v", r.Badge)
 		results = checker.CreateResultWithScore(name, msg, passingScore)
-	case checker.CIIBadgeSilver:
+	case clients.Silver:
 		msg := fmt.Sprintf("badge detected: %v", r.Badge)
 		results = checker.CreateResultWithScore(name, msg, silverScore)
-	case checker.CIIBadgeGold:
+	case clients.Gold:
 		msg := fmt.Sprintf("badge detected: %v", r.Badge)
 		results = checker.CreateMaxScoreResult(name, msg)
-	case checker.CIIBadgeUnknown:
+	case clients.Unknown:
 		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("unsupported badge: %v", r.Badge))
 		results = checker.CreateRuntimeErrorResult(name, e)
 	}

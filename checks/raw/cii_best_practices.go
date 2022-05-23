@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
 )
 
 var errEmptyClient = errors.New("CII client is nil")
@@ -35,21 +34,7 @@ func CIIBestPractices(c *checker.CheckRequest) (checker.CIIBestPracticesData, er
 	if err != nil {
 		return results, fmt.Errorf("%w", err)
 	}
-
-	switch badge {
-	case clients.NotFound:
-		results.Badge = checker.CIIBadgeNotFound
-	case clients.InProgress:
-		results.Badge = checker.CIIBadgeInProgress
-	case clients.Passing:
-		results.Badge = checker.CIIBadgePassing
-	case clients.Silver:
-		results.Badge = checker.CIIBadgeSilver
-	case clients.Gold:
-		results.Badge = checker.CIIBadgeGold
-	case clients.Unknown:
-		results.Badge = checker.CIIBadgeUnknown
-	}
+	results.Badge = badge
 
 	return results, nil
 }
