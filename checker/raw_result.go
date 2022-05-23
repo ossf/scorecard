@@ -14,7 +14,11 @@
 
 package checker
 
-import "time"
+import (
+	"time"
+
+	"github.com/ossf/scorecard/v4/clients"
+)
 
 // RawResults contains results before a policy
 // is applied.
@@ -89,7 +93,7 @@ type BinaryArtifactData struct {
 // SignedReleasesData contains the raw results
 // for the Signed-Releases check.
 type SignedReleasesData struct {
-	Releases []Release
+	Releases []clients.Release
 }
 
 // DependencyUpdateToolData contains the raw results
@@ -274,20 +278,6 @@ type Vulnerability struct {
 	// For CVE: CVE-2022-23945
 	ID string
 	// TODO(vuln): Add additional fields, if needed.
-}
-
-// Release represents a project release.
-type Release struct {
-	Tag    string
-	URL    string
-	Assets []ReleaseAsset
-	// TODO: add needed fields, e.g. Path.
-}
-
-// ReleaseAsset represents a release asset.
-type ReleaseAsset struct {
-	Name string
-	URL  string
 }
 
 // CIIBadge corresponds to CII-Best-Practices badges.
