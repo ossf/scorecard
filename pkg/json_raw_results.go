@@ -395,7 +395,7 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(commits []checker.DefaultB
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addOssfBestPracticesRawResults(cbp *checker.CIIBestPracticesData) error {
-	r.Results.OssfBestPractices.Badge = string(cbp.Badge)
+	r.Results.OssfBestPractices.Badge = cbp.Badge.String()
 	return nil
 }
 
