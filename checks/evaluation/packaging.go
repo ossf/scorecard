@@ -28,56 +28,45 @@ func Packaging(name string, dl checker.DetailLogger, r *checker.PackagingData) c
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	passed := false
+	pass := false
 	for _, p := range r.Packages {
-		switch p.Outcome {
-		case checker.OutcomeTypeDebug:
-			msg, err := createLogMessage(p)
-			if err != nil {
-				return checker.CreateRuntimeErrorResult(name, err)
-			}
-			dl.Debug(&msg)
-
-		case checker.OutcomeTypeNegativeLow, checker.OutcomeTypeNegativeMedium,
-			checker.OutcomeTypeNegativeHigh, checker.OutcomeTypeNegativeCritical:
-
-			msg, err := createLogMessage(p)
-			if err != nil {
-				return checker.CreateRuntimeErrorResult(name, err)
-			}
-			dl.Warn(&msg)
-
-		case checker.OutcomeTypePositiveLow, checker.OutcomeTypePositiveMedium,
-			checker.OutcomeTypePositiveHigh, checker.OutcomeTypePositiveCritical:
-
-			msg, err := createLogMessage(p)
-			if err != nil {
-				return checker.CreateRuntimeErrorResult(name, err)
-			}
-
-			passed = true
-			dl.Info(&msg)
-		default:
-			e := sce.WithMessage(sce.ErrScorecardInternal,
-				fmt.Sprintf("outcome type not expected: %v", p.Outcome))
-			return checker.CreateRuntimeErrorResult(name, e)
+		if p.Msg != nil {
+			// This is a debug message. Let's just replay the message.
+			dl.Debug(&checker.LogMessage{
+				Text: *p.Msg,
+			})
+			continue
 		}
+
+		// Presence of a single non-debug message means the
+		// check passes.
+		pass = true
+
+		msg, err := createLogMessage(p)
+		if err != nil {
+			return checker.CreateRuntimeErrorResult(name, err)
+		}
+		dl.Info(&msg)
 	}
 
-	if passed {
+	if pass {
 		return checker.CreateMaxScoreResult(name,
 			"publishing workflow detected")
 	}
 
 	return checker.CreateInconclusiveResult(name,
-		"no published package detected")
+		"no published workflow detected")
 }
 
 func createLogMessage(p checker.Package) (checker.LogMessage, error) {
 	var msg checker.LogMessage
 
-	if p.File == nil && p.Msg == nil {
-		return msg, sce.WithMessage(sce.ErrScorecardInternal, "File and Msg fields are nil")
+	if p.Msg != nil {
+		return msg, sce.WithMessage(sce.ErrScorecardInternal, "Msg should be nil")
+	}
+
+	if p.File == nil {
+		return msg, sce.WithMessage(sce.ErrScorecardInternal, "File field is nil")
 	}
 
 	if p.File != nil {
@@ -86,9 +75,11 @@ func createLogMessage(p checker.Package) (checker.LogMessage, error) {
 		msg.Offset = p.File.Offset
 	}
 
-	if p.Msg != nil {
-		msg.Text = *p.Msg
+	if len(p.Runs) == 0 {
+		return msg, sce.WithMessage(sce.ErrScorecardInternal, "no run data")
 	}
+
+	msg.Text = fmt.Sprintf("GitHub publishing workflow used in run %s", p.Runs[0].URL)
 
 	return msg, nil
 }

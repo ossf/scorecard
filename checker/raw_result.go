@@ -56,12 +56,12 @@ type PackagingData struct {
 type Package struct {
 	// TODO: not supported yet. This needs to be unique across
 	// ecosystems: purl, OSV, CPE, etc.
-	Name    *string
-	Job     *WorkflowJob
-	File    *File
-	Msg     *string
-	Outcome OutcomeType
-	Runs    []Run
+	Name *string
+	Job  *WorkflowJob
+	File *File
+	// Note: Msg is populated only for debug messages.
+	Msg  *string
+	Runs []Run
 }
 
 // MaintainedData contains the raw results

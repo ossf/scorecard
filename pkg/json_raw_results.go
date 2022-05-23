@@ -24,7 +24,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
 )
 
 // TODO: add a "check" field to all results so that they can be linked to a check.
@@ -193,10 +192,7 @@ type jsonPackage struct {
 	Name *string          `json:"name,omitempty"`
 	Job  *jsonWorkflowJob `json:"job,omitempty"`
 	File *jsonFile        `json:"file,omitempty"`
-	Msg  *string          `json:"message,omitempty"`
 	Runs []jsonRun        `json:"runs,omitempty"`
-	// TODO: not supported yet. This needs to be unique across
-	// ecosystems: purl, OSV, CPE, etc.
 }
 
 type jsonRun struct {
@@ -248,14 +244,13 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 	for _, p := range pk.Packages {
 		var jpk jsonPackage
 
-		if p.File == nil && p.Msg == nil {
-			//nolint
-			return errors.New("File and Msg fields are nil")
-		}
-
-		// We ignore debug messages.
-		if p.File == nil {
+		// Ignore debug messages.
+		if p.Msg != nil {
 			continue
+		}
+		if p.File == nil {
+			//nolint
+			return errors.New("File field is nil")
 		}
 
 		jpk.File = &jsonFile{
@@ -577,7 +572,7 @@ func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.Branc
 	return nil
 }
 
-func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults, logLevel log.Level) error {
+func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) error {
 	// Licenses.
 	if err := r.addLicenseRawResults(&raw.LicenseResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
@@ -644,7 +639,7 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults, log
 	}
 
 	// Packaging.
-	if err := r.addPackagingRawResults(&raw.PackagingResults, logLevel); err != nil {
+	if err := r.addPackagingRawResults(&raw.PackagingResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
@@ -652,7 +647,7 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults, log
 }
 
 // AsRawJSON exports results as JSON for raw results.
-func (r *ScorecardResult) AsRawJSON(writer io.Writer, logLevel log.Level) error {
+func (r *ScorecardResult) AsRawJSON(writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	out := jsonScorecardRawResult{
 		Repo: jsonRepoV2{
@@ -667,7 +662,7 @@ func (r *ScorecardResult) AsRawJSON(writer io.Writer, logLevel log.Level) error 
 		Metadata: r.Metadata,
 	}
 
-	if err := out.fillJSONRawResults(&r.RawResults, logLevel); err != nil {
+	if err := out.fillJSONRawResults(&r.RawResults); err != nil {
 		return err
 	}
 

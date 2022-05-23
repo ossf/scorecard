@@ -46,7 +46,7 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 			return data, e
 		}
 
-		_, ok := isPackagingWorkflow(workflow, fp)
+		match, ok := isPackagingWorkflow(workflow, fp)
 		if !ok {
 			continue
 		}
@@ -57,30 +57,36 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 		}
 
 		if len(runs) > 0 {
-			data.Packages = append(data.Packages,
-				checker.Package{
-					Outcome: checker.OutcomeTypePositiveMedium,
-					File: &checker.File{
-						Path:   fp,
-						Type:   checker.FileTypeSource,
-						Offset: checker.OffsetDefault,
-					},
-					Runs: []checker.Run{
-						{
-							URL: runs[0].URL,
-						},
-					},
-					Msg: stringPointer(fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL)),
+			// Create package.
+			pkg := checker.Package{
+				File: &checker.File{
+					Path:   fp,
+					Type:   checker.FileTypeSource,
+					Offset: match.File.Offset,
 				},
-			)
+				Runs: []checker.Run{
+					{
+						URL: runs[0].URL,
+					},
+				},
+			}
+			// Create runs.
+			for _, run := range runs {
+				pkg.Runs = append(pkg.Runs,
+					checker.Run{
+						URL: run.URL,
+					},
+				)
+			}
+			data.Packages = append(data.Packages, pkg)
 
 			return data, nil
 		}
 
 		data.Packages = append(data.Packages,
 			checker.Package{
-				Outcome: checker.OutcomeTypeDebug,
-				Msg:     stringPointer("GitHub publishing workflow not used in runs"),
+				// Debug message.
+				Msg: stringPointer("GitHub publishing workflow not used in runs"),
 				File: &checker.File{
 					Path:   fp,
 					Type:   checker.FileTypeSource,
@@ -95,13 +101,6 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 			},
 		)
 	}
-
-	data.Packages = append(data.Packages,
-		checker.Package{
-			Outcome: checker.OutcomeTypeNegativeMedium,
-			Msg:     stringPointer("no GitHub publishing workflow detected"),
-		},
-	)
 
 	// Return raw results.
 	return data, nil
