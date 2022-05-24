@@ -114,7 +114,7 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 		},
 		{
-			name: "pass_case_testing_case_insensitive",
+			name: "Pass case: Case-insensitive testing",
 			files: []string{
 				"dOCs/SeCuRIty.rsT",
 			},
@@ -123,19 +123,6 @@ func TestSecurityPolicy(t *testing.T) {
 				NumberOfInfo: 1,
 			},
 		},
-		// {
-		// 	// this case is expected to get a zero score since it's not a security policy file
-		// 	// however, it triggers a segmentation violation error
-		// 	// TODO: to be reported in future issues
-		// 	name: "fail_case_not_a_security_policy",
-		// 	files: []string{
-		// 		"not_a_security_policy.go",
-		// 	},
-		// 	want: scut.TestReturn{
-		// 		Score:        0,
-		// 		NumberOfInfo: 0,
-		// 	},
-		// },
 	}
 	for _, tt := range tests {
 		tt := tt

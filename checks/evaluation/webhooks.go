@@ -30,12 +30,12 @@ func Webhooks(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if len(r.Webhook) < 1 {
+	if len(r.Webhooks) < 1 {
 		return checker.CreateMaxScoreResult(name, "no webhooks defined")
 	}
 
 	hasNoSecretCount := 0
-	for _, hook := range r.Webhook {
+	for _, hook := range r.Webhooks {
 		if !hook.UsesAuthSecret {
 			dl.Warn(&checker.LogMessage{
 				Path: hook.Path,
@@ -47,14 +47,14 @@ func Webhooks(name string, dl checker.DetailLogger,
 	}
 
 	if hasNoSecretCount == 0 {
-		return checker.CreateMaxScoreResult(name, fmt.Sprintf("all %d hook(s) have a secret configured", len(r.Webhook)))
+		return checker.CreateMaxScoreResult(name, fmt.Sprintf("all %d hook(s) have a secret configured", len(r.Webhooks)))
 	}
 
-	if len(r.Webhook) == hasNoSecretCount {
-		return checker.CreateMinScoreResult(name, fmt.Sprintf("%d hook(s) do not have a secret configured", len(r.Webhook)))
+	if len(r.Webhooks) == hasNoSecretCount {
+		return checker.CreateMinScoreResult(name, fmt.Sprintf("%d hook(s) do not have a secret configured", len(r.Webhooks)))
 	}
 
 	return checker.CreateProportionalScoreResult(name,
 		fmt.Sprintf("%d/%d hook(s) with no secrets configured detected",
-			hasNoSecretCount, len(r.Webhook)), hasNoSecretCount, len(r.Webhook))
+			hasNoSecretCount, len(r.Webhooks)), hasNoSecretCount, len(r.Webhooks))
 }
