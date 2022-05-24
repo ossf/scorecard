@@ -17,6 +17,7 @@ package raw
 import (
 	"errors"
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -63,10 +64,10 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 
 	// Modify the path to include org name and return raw results.
 	for i := range files {
-		// Add the client URI before the path
-		files[i].Path = dotGitHubClient.URI() + "/" + files[i].Path
-		// Modify the file type to 4 (meaning it's an URL)
-		files[i].Type = 4
+		// Add the client URI before the path.
+		files[i].Path = path.Join(dotGitHubClient.URI(), "/", files[i].Path)
+		// Modify the file type to FileTypeURL (meaning it's an URL).
+		files[i].Type = checker.FileTypeURL
 	}
 	return checker.SecurityPolicyData{Files: files}, nil
 }
