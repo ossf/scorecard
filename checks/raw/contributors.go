@@ -24,7 +24,7 @@ import (
 
 // Contributors retrieves the raw data for the Contributors check.
 func Contributors(c clients.RepoClient) (checker.ContributorsData, error) {
-	var users []checker.User
+	var users []clients.Contributor
 
 	contribs, err := c.ListContributors()
 	if err != nil {
@@ -32,35 +32,28 @@ func Contributors(c clients.RepoClient) (checker.ContributorsData, error) {
 	}
 
 	for _, contrib := range contribs {
-		user := checker.User{
-			Login:            contrib.User.Login,
-			NumContributions: uint(contrib.NumContributions),
+		user := clients.Contributor{
+			User:             contrib.User,
+			NumContributions: contrib.NumContributions,
 		}
 
 		for _, org := range contrib.Organizations {
 			if org.Login != "" && !orgContains(user.Organizations, org.Login) {
-				user.Organizations = append(user.Organizations,
-					checker.Organization{
-						Login: org.Login,
-					},
-				)
+				user.Organizations = append(user.Organizations, org)
 			}
 		}
 
-		company := contrib.Company
-		if company != "" {
-			company = strings.ToLower(company)
-			company = strings.ReplaceAll(company, "inc.", "")
-			company = strings.ReplaceAll(company, "llc", "")
-			company = strings.ReplaceAll(company, ",", "")
-			company = strings.TrimLeft(company, "@")
-			company = strings.Trim(company, " ")
-			if company != "" && !companyContains(user.Companies, company) {
-				user.Companies = append(user.Companies,
-					checker.Company{
-						Name: company,
-					},
-				)
+		for _, company := range contrib.Companies {
+			if company != "" {
+				company = strings.ToLower(company)
+				company = strings.ReplaceAll(company, "inc.", "")
+				company = strings.ReplaceAll(company, "llc", "")
+				company = strings.ReplaceAll(company, ",", "")
+				company = strings.TrimLeft(company, "@")
+				company = strings.Trim(company, " ")
+				if company != "" && !companyContains(user.Companies, company) {
+					user.Companies = append(user.Companies, company)
+				}
 			}
 		}
 
@@ -70,16 +63,16 @@ func Contributors(c clients.RepoClient) (checker.ContributorsData, error) {
 	return checker.ContributorsData{Users: users}, nil
 }
 
-func companyContains(cs []checker.Company, name string) bool {
+func companyContains(cs []string, name string) bool {
 	for _, a := range cs {
-		if a.Name == name {
+		if a == name {
 			return true
 		}
 	}
 	return false
 }
 
-func orgContains(os []checker.Organization, login string) bool {
+func orgContains(os []clients.User, login string) bool {
 	for _, a := range os {
 		if a.Login == login {
 			return true

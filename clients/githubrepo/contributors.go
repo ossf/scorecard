@@ -77,7 +77,7 @@ func (handler *contributorsHandler) setup() error {
 			if err != nil {
 				handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
 			}
-			contributor.Company = user.GetCompany()
+			contributor.Companies = append(contributor.Companies, user.GetCompany())
 			handler.contributors = append(handler.contributors, contributor)
 		}
 		handler.errSetup = nil

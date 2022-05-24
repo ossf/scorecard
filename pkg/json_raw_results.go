@@ -83,7 +83,7 @@ type jsonUser struct {
 	Organizations []jsonOrganization `json:"organization,omitempty"`
 	// Companies refer to a claim by a user in their profile.
 	Companies        []jsonCompany `json:"company,omitempty"`
-	NumContributions uint          `json:"NumContributions"`
+	NumContributions int           `json:"NumContributions"`
 }
 
 type jsonContributors struct {
@@ -247,7 +247,7 @@ func (r *jsonScorecardRawResult) addContributorsRawResults(cr *checker.Contribut
 
 	for _, user := range cr.Users {
 		u := jsonUser{
-			Login:            user.Login,
+			Login:            user.User.Login,
 			NumContributions: user.NumContributions,
 		}
 
@@ -262,7 +262,7 @@ func (r *jsonScorecardRawResult) addContributorsRawResults(cr *checker.Contribut
 		for _, comp := range user.Companies {
 			u.Companies = append(u.Companies,
 				jsonCompany{
-					Name: comp.Name,
+					Name: comp,
 				},
 			)
 		}

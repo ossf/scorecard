@@ -61,7 +61,8 @@ func TestContributors(t *testing.T) {
 			name: "Valid contributors with enough contributors and companies",
 			contrib: []clients.Contributor{
 				{
-					Company:          "company1",
+
+					Companies:        []string{"company1"},
 					NumContributions: 10,
 					Organizations: []clients.User{
 						{
@@ -73,7 +74,7 @@ func TestContributors(t *testing.T) {
 					},
 				},
 				{
-					Company:          "company2",
+					Companies:        []string{"company2"},
 					NumContributions: 10,
 					Organizations: []clients.User{
 						{
@@ -85,7 +86,7 @@ func TestContributors(t *testing.T) {
 					},
 				},
 				{
-					Company:          "company3",
+					Companies:        []string{"company3"},
 					NumContributions: 10,
 					Organizations: []clients.User{
 						{
@@ -97,7 +98,7 @@ func TestContributors(t *testing.T) {
 					},
 				},
 				{
-					Company:          "company4",
+					Companies:        []string{"company4"},
 					NumContributions: 10,
 					Organizations: []clients.User{
 						{
@@ -109,7 +110,7 @@ func TestContributors(t *testing.T) {
 					},
 				},
 				{
-					Company:          "company5",
+					Companies:        []string{"company5"},
 					NumContributions: 10,
 					Organizations: []clients.User{
 						{
@@ -121,7 +122,7 @@ func TestContributors(t *testing.T) {
 					},
 				},
 				{
-					Company: "company6",
+					Companies: []string{"company6"},
 					Organizations: []clients.User{
 						{
 							Login: "org1",
