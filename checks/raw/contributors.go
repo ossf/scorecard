@@ -44,16 +44,17 @@ func Contributors(c clients.RepoClient) (checker.ContributorsData, error) {
 		}
 
 		for _, company := range contrib.Companies {
-			if company != "" {
-				company = strings.ToLower(company)
-				company = strings.ReplaceAll(company, "inc.", "")
-				company = strings.ReplaceAll(company, "llc", "")
-				company = strings.ReplaceAll(company, ",", "")
-				company = strings.TrimLeft(company, "@")
-				company = strings.Trim(company, " ")
-				if company != "" && !companyContains(user.Companies, company) {
-					user.Companies = append(user.Companies, company)
-				}
+			if company == "" {
+				continue
+			}
+			company = strings.ToLower(company)
+			company = strings.ReplaceAll(company, "inc.", "")
+			company = strings.ReplaceAll(company, "llc", "")
+			company = strings.ReplaceAll(company, ",", "")
+			company = strings.TrimLeft(company, "@")
+			company = strings.Trim(company, " ")
+			if company != "" && !companyContains(user.Companies, company) {
+				user.Companies = append(user.Companies, company)
 			}
 		}
 
