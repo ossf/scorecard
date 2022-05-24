@@ -34,7 +34,7 @@ func TestWebhooks(t *testing.T) {
 		uri      string
 		err      error
 		name     string
-		webhooks []*clients.Webhook
+		webhooks []clients.Webhook
 	}{
 		{
 			name: "No Webhooks",
@@ -43,7 +43,7 @@ func TestWebhooks(t *testing.T) {
 				Score: 10,
 			},
 			err:      nil,
-			webhooks: []*clients.Webhook{},
+			webhooks: []clients.Webhook{},
 		},
 		{
 			name: "With Webhooks and secret set",
@@ -52,7 +52,7 @@ func TestWebhooks(t *testing.T) {
 				Score: 10,
 			},
 			err: nil,
-			webhooks: []*clients.Webhook{
+			webhooks: []clients.Webhook{
 				{
 					ID:             12345,
 					UsesAuthSecret: true,
@@ -66,7 +66,7 @@ func TestWebhooks(t *testing.T) {
 				Score: 0,
 			},
 			err: nil,
-			webhooks: []*clients.Webhook{
+			webhooks: []clients.Webhook{
 				{
 					ID:             12345,
 					UsesAuthSecret: false,
@@ -80,7 +80,7 @@ func TestWebhooks(t *testing.T) {
 				Score: 5,
 			},
 			err: nil,
-			webhooks: []*clients.Webhook{
+			webhooks: []clients.Webhook{
 				{
 					ID:             12345,
 					UsesAuthSecret: false,
@@ -102,7 +102,7 @@ func TestWebhooks(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 
-			mockRepo.EXPECT().ListWebhooks().DoAndReturn(func() ([]*clients.Webhook, error) {
+			mockRepo.EXPECT().ListWebhooks().DoAndReturn(func() ([]clients.Webhook, error) {
 				if tt.err != nil {
 					return nil, tt.err
 				}

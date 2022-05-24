@@ -278,7 +278,7 @@ func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedR
 	for i, release := range sr.Releases {
 		r.Results.Releases = append(r.Results.Releases,
 			jsonRelease{
-				Tag: release.Tag,
+				Tag: release.TagName,
 				URL: release.URL,
 			})
 		for _, asset := range release.Assets {
@@ -293,15 +293,6 @@ func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedR
 	return nil
 }
 
-func getRepoAssociation(author *checker.User) *string {
-	if author == nil || author.RepoAssociation == nil {
-		return nil
-	}
-
-	s := string(*author.RepoAssociation)
-	return &s
-}
-
 func (r *jsonScorecardRawResult) addMaintainedRawResults(mr *checker.MaintainedData) error {
 	// Set archived status.
 	r.Results.ArchivedStatus = jsonArchivedStatus{Status: mr.ArchivedStatus.Status}
@@ -310,13 +301,13 @@ func (r *jsonScorecardRawResult) addMaintainedRawResults(mr *checker.MaintainedD
 	for i := range mr.Issues {
 		issue := jsonIssue{
 			CreatedAt: mr.Issues[i].CreatedAt,
-			URL:       mr.Issues[i].URL,
+			URL:       *mr.Issues[i].URI,
 		}
 
 		if mr.Issues[i].Author != nil {
 			issue.Author = &jsonUser{
 				Login:           mr.Issues[i].Author.Login,
-				RepoAssociation: getRepoAssociation(mr.Issues[i].Author),
+				RepoAssociation: getStrPtr(mr.Issues[i].AuthorAssociation.String()),
 			}
 		}
 
@@ -328,7 +319,7 @@ func (r *jsonScorecardRawResult) addMaintainedRawResults(mr *checker.MaintainedD
 			if mr.Issues[i].Comments[j].Author != nil {
 				comment.Author = &jsonUser{
 					Login:           mr.Issues[i].Comments[j].Author.Login,
-					RepoAssociation: getRepoAssociation(mr.Issues[i].Comments[j].Author),
+					RepoAssociation: getStrPtr(mr.Issues[i].Comments[j].AuthorAssociation.String()),
 				}
 			}
 
@@ -339,6 +330,11 @@ func (r *jsonScorecardRawResult) addMaintainedRawResults(mr *checker.MaintainedD
 	}
 
 	return r.setDefaultCommitData(mr.DefaultBranchCommits)
+}
+
+func getStrPtr(s string) *string {
+	ret := s
+	return &ret
 }
 
 // Function shared between addMaintainedRawResults() and addCodeReviewRawResults().
@@ -395,7 +391,7 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(commits []checker.DefaultB
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addOssfBestPracticesRawResults(cbp *checker.CIIBestPracticesData) error {
-	r.Results.OssfBestPractices.Badge = string(cbp.Badge)
+	r.Results.OssfBestPractices.Badge = cbp.Badge.String()
 	return nil
 }
 

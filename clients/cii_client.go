@@ -37,6 +37,26 @@ const (
 // https://bestpractices.coreinfrastructure.org/en
 type BadgeLevel uint
 
+// String returns a string value for BadgeLevel enum.
+func (badge BadgeLevel) String() string {
+	switch badge {
+	case Unknown:
+		return "Unknown"
+	case NotFound:
+		return "not_found"
+	case InProgress:
+		return "in_progress"
+	case Passing:
+		return "passing"
+	case Silver:
+		return "silver"
+	case Gold:
+		return "gold"
+	default:
+		return ""
+	}
+}
+
 // CIIBestPracticesClient interface returns the BadgeLevel for a repo URL.
 type CIIBestPracticesClient interface {
 	GetBadgeLevel(ctx context.Context, uri string) (BadgeLevel, error)

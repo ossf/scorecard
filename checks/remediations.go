@@ -46,10 +46,13 @@ func remdiationSetup(c *checker.CheckRequest) error {
 	remediationOnce.Do(func() {
 		// Get the branch for remediation.
 		b, err := c.RepoClient.GetDefaultBranch()
-		if err != nil && !errors.Is(err, clients.ErrUnsupportedFeature) {
-			remediationSetupErr = err
+		if err != nil {
+			if !errors.Is(err, clients.ErrUnsupportedFeature) {
+				remediationSetupErr = err
+			}
 			return
 		}
+
 		if b.Name != nil {
 			remediationBranch = *b.Name
 			uri := c.Repo.URI()
