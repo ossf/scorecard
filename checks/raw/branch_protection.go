@@ -89,27 +89,7 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 			return checker.BranchProtectionsData{}, err
 		}
 
-		// Protected field only indates that the branch matches
-		// one `Branch protection rules`. All settings may be disabled,
-		// so it does not provide any guarantees.
-		protected := !(branch.Protected != nil && !*branch.Protected)
-		bpData := checker.BranchProtectionData{Name: b}
-		bp := branch.BranchProtectionRule
-		bpData.Protected = &protected
-		bpData.RequiresLinearHistory = bp.RequireLinearHistory
-		bpData.AllowsForcePushes = bp.AllowForcePushes
-		bpData.AllowsDeletions = bp.AllowDeletions
-		bpData.EnforcesAdmins = bp.EnforceAdmins
-		bpData.RequiresCodeOwnerReviews = bp.RequiredPullRequestReviews.RequireCodeOwnerReviews
-		bpData.DismissesStaleReviews = bp.RequiredPullRequestReviews.DismissStaleReviews
-		bpData.RequiresUpToDateBranchBeforeMerging = bp.CheckRules.UpToDateBeforeMerge
-		if bp.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
-			v := int(*bp.RequiredPullRequestReviews.RequiredApprovingReviewCount)
-			bpData.RequiredApprovingReviewCount = &v
-		}
-		bpData.StatusCheckContexts = bp.CheckRules.Contexts
-
-		rawData.Branches = append(rawData.Branches, bpData)
+		rawData.Branches = append(rawData.Branches, *branch)
 	}
 
 	// No error, return the data.

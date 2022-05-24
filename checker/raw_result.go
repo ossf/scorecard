@@ -113,27 +113,7 @@ type WebhooksData struct {
 // BranchProtectionsData contains the raw results
 // for the Branch-Protection check.
 type BranchProtectionsData struct {
-	Branches []BranchProtectionData
-}
-
-// BranchProtectionData contains the raw results
-// for one branch.
-//nolint:govet
-type BranchProtectionData struct {
-	Protected                           *bool
-	AllowsDeletions                     *bool
-	AllowsForcePushes                   *bool
-	RequiresCodeOwnerReviews            *bool
-	RequiresLinearHistory               *bool
-	DismissesStaleReviews               *bool
-	EnforcesAdmins                      *bool
-	RequiresStatusChecks                *bool
-	RequiresUpToDateBranchBeforeMerging *bool
-	RequiredApprovingReviewCount        *int
-	// StatusCheckContexts is always available, so
-	// we don't use a pointer.
-	StatusCheckContexts []string
-	Name                string
+	Branches []clients.BranchRef
 }
 
 // Tool represents a tool.
