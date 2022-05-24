@@ -33,10 +33,10 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	files := make([]checker.File, 0)
 	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, struct {
 		FilePointer *[]checker.File
-		CliCtx      clients.RepoClient
+		ClientURI   string
 	}{
 		&files,
-		nil,
+		"",
 	})
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
@@ -59,10 +59,10 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 
 		err = fileparser.OnAllFilesDo(dotGitHubClient, isSecurityPolicyFile, struct {
 			FilePointer *[]checker.File
-			CliCtx      clients.RepoClient
+			ClientURI   string
 		}{
 			&files,
-			dotGitHubClient,
+			dotGitHubClient.URI(),
 		})
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
@@ -86,18 +86,18 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 	}
 	contexts, ok := args[0].(struct {
 		FilePointer *[]checker.File
-		CliCtx      clients.RepoClient
+		ClientURI   string
 	})
 	if !ok {
 		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: struct {*[]checker.File clients.RepoClient}: %w", errInvalidArgType)
 	}
 	pfiles := contexts.FilePointer
-	clientContext := contexts.CliCtx
+	clientURI := contexts.ClientURI
 	if isSecurityPolicyFilename(name) {
 		tempPath := name
 		tempType := checker.FileTypeSource
-		if clientContext != nil {
-			tempPath = path.Join(clientContext.URI(), "/", tempPath)
+		if clientURI != "" {
+			tempPath = path.Join(clientURI, "/", tempPath)
 			tempType = checker.FileTypeURL
 		}
 		*pfiles = append(*pfiles, checker.File{
