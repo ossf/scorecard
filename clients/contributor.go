@@ -16,7 +16,7 @@ package clients
 
 // Contributor represents a contributor to a repo.
 type Contributor struct {
-	Company          string
+	Companies        []string
 	User             User
 	Organizations    []User
 	NumContributions int
