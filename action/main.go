@@ -33,7 +33,7 @@ func main() {
 		log.Fatalf("error during command execution: %v", err)
 	}
 
-	if os.Getenv(options.EnvInputPublishResults) == "true" { //nolint
+	if os.Getenv(options.EnvInputPublishResults) == "true" {
 		// Get json results by re-running scorecard.
 		jsonPayload, err := signing.GetJSONScorecardResults()
 		if err != nil {

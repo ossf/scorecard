@@ -1,10 +1,25 @@
+# Copyright 2022 OpenSSF Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 name: Scorecards supply-chain security
-on: 
+on:
   # Only the default branch is supported.
   branch_protection_rule:
   schedule:
-    # Weekly on Saturdays.
-    - cron: '30 1 * * 6'
+    - cron: $cron-weekly
   push:
     branches: [ $default-branch ]
 
@@ -18,57 +33,39 @@ jobs:
     permissions:
       # Needed to upload the results to code-scanning dashboard.
       security-events: write
-    
+      actions: read
+      contents: read
+
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v1
+        uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # v3.0.0
+        with:
+          persist-credentials: false
 
       - name: "Run analysis"
-        # TODO: update with a hash once we have a release.
-        uses: ossf/scorecard-action@feat/rempol
+        uses: ossf/scorecard-action@c1aec4ac820532bab364f02a81873c555a0ba3a1 # v1.0.4
         with:
           results_file: results.sarif
           results_format: sarif
-          # For the token, 
-          # 1. Create a PAT token at https://github.com/settings/tokens/new
-          #    with the following read permissions:
-          #     - Note: OSSF Scorecard read-only token
-          #     - Expiration: No expiration
-          #     - Scopes: 
-          #       * repo > public_repo
-          #       * admin:org > read:org
-          #       * admin:repo_hook > read:repo_hook
-          #       * write:discussion > read:discussion
-          #
-          # Create and copy the token.
-          #
-          # 2. Create a new repository secret at https://github.com/<org>/<repo>/settings/secrets/actions
-          #    with the following settings:
-          #     - Name: SCORECARD_TOKEN
-          #     - Value: the value of the token created in step 1 above.
-          repo_token: ${{ secrets.SCORECARD_TOKEN }}
-          # The Scorecard team runs a weekly scan of public GitHub repositories in order to track 
-          # the overall security health of the open source ecosystem.
-          # Setting `publish_results: true` replaces the results of the team's weelky scans, 
-          # helping us scale by cutting down on repeated workflows and GitHub API requests.
-          # This option is needed to enable badges on the repo.
+          # Read-only PAT token. To create it,
+          # follow the steps in https://github.com/ossf/scorecard-action#pat-token-creation.
+          repo_token: ${{ secrets.SCORECARD_READ_TOKEN }}
+          # Publish the results to enable scorecard badges. For more details, see
+          # https://github.com/ossf/scorecard-action#publishing-results.
+          # For private repositories, `publish_results` will automatically be set to `false`,
+          # regardless of the value entered here.
           publish_results: true
 
-      # Upload the results as artifacts.
-      # https://docs.github.com/en/actions/advanced-guides/storing-workflow-data-as-artifacts
-      # This is optional.
+      # Upload the results as artifacts (optional).
       - name: "Upload artifact"
-        # Note: scorecard will flag this line if not pinned by hash.
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535 # v3.0.0
         with:
           name: SARIF file
           path: results.sarif
           retention-days: 5
-      
+
       # Upload the results to GitHub's code scanning dashboard.
-      # This is required to visualize the results on GitHub website.
       - name: "Upload to code-scanning"
-        # Note: scorecard will flag this line if not pinned by hash.
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@5f532563584d71fdef14ee64d17bafb34f751ce5 # v1.0.26
         with:
           sarif_file: results.sarif
