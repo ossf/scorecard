@@ -48,7 +48,7 @@ type FuzzingData struct {
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {
-	Issues               []Issue
+	Issues               []clients.Issue
 	DefaultBranchCommits []DefaultBranchCommit
 	ArchivedStatus       ArchivedStatus
 }
@@ -153,7 +153,7 @@ type Tool struct {
 	// Runs of the tool.
 	Runs []Run
 	// Issues created by the tool.
-	Issues []Issue
+	Issues []clients.Issue
 	// Merge requests created by the tool.
 	MergeRequests []MergeRequest
 
@@ -177,15 +177,6 @@ type Comment struct {
 type ArchivedStatus struct {
 	Status bool
 	// TODO: add fields, e.g., date of archival.
-}
-
-// Issue represents an issue.
-type Issue struct {
-	CreatedAt *time.Time
-	Author    *User
-	URL       string
-	Comments  []Comment
-	// TODO: add fields, e.g., state=[opened|closed]
 }
 
 // DefaultBranchCommit represents a commit
