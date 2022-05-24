@@ -114,7 +114,7 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 		},
 		{
-			name: "Pass case: Case-insensitive testing",
+			name: "Pass Case: Case-insensitive testing",
 			files: []string{
 				"dOCs/SeCuRIty.rsT",
 			},
