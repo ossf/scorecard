@@ -107,15 +107,7 @@ type DependencyUpdateToolData struct {
 // WebhooksData contains the raw results
 // for the Webhook check.
 type WebhooksData struct {
-	Webhook []WebhookData
-}
-
-// WebhookData contains the raw results
-// for webhook check.
-type WebhookData struct {
-	Path           string
-	ID             int64
-	UsesAuthSecret bool
+	Webhooks []clients.Webhook
 }
 
 // BranchProtectionsData contains the raw results
