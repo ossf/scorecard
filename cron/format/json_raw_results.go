@@ -48,7 +48,7 @@ type jsonTool struct {
 }
 
 type jsonBranchProtectionSettings struct {
-	RequiredApprovingReviewCount        *int     `json:"requiredReviewerCount"`
+	RequiredApprovingReviewCount        *int32   `json:"requiredReviewerCount"`
 	AllowsDeletions                     *bool    `json:"allowsDeletions"`
 	AllowsForcePushes                   *bool    `json:"allowsForcePushes"`
 	RequiresCodeOwnerReviews            *bool    `json:"requiresCodeOwnerReview"`
@@ -223,20 +223,20 @@ func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.Branch
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {
 			bp = &jsonBranchProtectionSettings{
-				AllowsDeletions:                     v.AllowsDeletions,
-				AllowsForcePushes:                   v.AllowsForcePushes,
-				RequiresCodeOwnerReviews:            v.RequiresCodeOwnerReviews,
-				RequiresLinearHistory:               v.RequiresLinearHistory,
-				DismissesStaleReviews:               v.DismissesStaleReviews,
-				EnforcesAdmins:                      v.EnforcesAdmins,
-				RequiresStatusChecks:                v.RequiresStatusChecks,
-				RequiresUpToDateBranchBeforeMerging: v.RequiresUpToDateBranchBeforeMerging,
-				RequiredApprovingReviewCount:        v.RequiredApprovingReviewCount,
-				StatusCheckContexts:                 v.StatusCheckContexts,
+				AllowsDeletions:                     v.BranchProtectionRule.AllowDeletions,
+				AllowsForcePushes:                   v.BranchProtectionRule.AllowForcePushes,
+				RequiresCodeOwnerReviews:            v.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews,
+				RequiresLinearHistory:               v.BranchProtectionRule.RequireLinearHistory,
+				DismissesStaleReviews:               v.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews,
+				EnforcesAdmins:                      v.BranchProtectionRule.EnforceAdmins,
+				RequiresStatusChecks:                v.BranchProtectionRule.CheckRules.RequiresStatusChecks,
+				RequiresUpToDateBranchBeforeMerging: v.BranchProtectionRule.CheckRules.UpToDateBeforeMerge,
+				RequiredApprovingReviewCount:        v.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount,
+				StatusCheckContexts:                 v.BranchProtectionRule.CheckRules.Contexts,
 			}
 		}
 		r.Results.BranchProtections = append(r.Results.BranchProtections, jsonBranchProtection{
-			Name:       v.Name,
+			Name:       *v.Name,
 			Protection: bp,
 		})
 	}
