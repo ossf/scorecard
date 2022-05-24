@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -338,7 +339,7 @@ func getStrPtr(s string) *string {
 }
 
 // Function shared between addMaintainedRawResults() and addCodeReviewRawResults().
-func (r *jsonScorecardRawResult) setDefaultCommitData(commits []checker.DefaultBranchCommit) error {
+func (r *jsonScorecardRawResult) setDefaultCommitData(commits []clients.Commit) error {
 	if len(r.Results.DefaultBranchCommits) > 0 {
 		return nil
 	}
@@ -353,36 +354,34 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(commits []checker.DefaultB
 				// try to use issue information to set it, but we're likely to miss
 				// many anyway.
 			},
-			CommitMessage: commit.CommitMessage,
+			CommitMessage: commit.Message,
 			SHA:           commit.SHA,
 		}
 
 		// Merge request field.
-		if commit.MergeRequest != nil {
-			mr := jsonMergeRequest{
-				Number: commit.MergeRequest.Number,
-				Author: jsonUser{
-					Login: commit.MergeRequest.Author.Login,
-				},
-			}
-
-			if len(commit.MergeRequest.Labels) > 0 {
-				mr.Labels = commit.MergeRequest.Labels
-			}
-
-			for _, r := range commit.MergeRequest.Reviews {
-				mr.Reviews = append(mr.Reviews, jsonReview{
-					State: r.State,
-					Reviewer: jsonUser{
-						Login: r.Reviewer.Login,
-					},
-				})
-			}
-
-			com.MergeRequest = &mr
+		mr := jsonMergeRequest{
+			Number: commit.AssociatedMergeRequest.Number,
+			Author: jsonUser{
+				Login: commit.AssociatedMergeRequest.Author.Login,
+			},
 		}
 
-		com.CommitMessage = commit.CommitMessage
+		for _, l := range commit.AssociatedMergeRequest.Labels {
+			mr.Labels = append(mr.Labels, l.Name)
+		}
+
+		for _, r := range commit.AssociatedMergeRequest.Reviews {
+			mr.Reviews = append(mr.Reviews, jsonReview{
+				State: r.State,
+				Reviewer: jsonUser{
+					Login: r.Author.Login,
+				},
+			})
+		}
+
+		com.MergeRequest = &mr
+
+		com.CommitMessage = commit.Message
 
 		r.Results.DefaultBranchCommits = append(r.Results.DefaultBranchCommits, com)
 	}

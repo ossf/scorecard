@@ -44,7 +44,7 @@ func Maintained(name string, dl checker.DetailLogger, r *checker.MaintainedData)
 	threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 	commitsWithinThreshold := 0
 	for i := range r.DefaultBranchCommits {
-		if r.DefaultBranchCommits[i].CommitDate.After(threshold) {
+		if r.DefaultBranchCommits[i].CommittedDate.After(threshold) {
 			commitsWithinThreshold++
 		}
 	}

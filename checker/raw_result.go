@@ -15,8 +15,6 @@
 package checker
 
 import (
-	"time"
-
 	"github.com/ossf/scorecard/v4/clients"
 )
 
@@ -49,7 +47,7 @@ type FuzzingData struct {
 // for the Maintained check.
 type MaintainedData struct {
 	Issues               []clients.Issue
-	DefaultBranchCommits []DefaultBranchCommit
+	DefaultBranchCommits []clients.Commit
 	ArchivedStatus       ArchivedStatus
 }
 
@@ -62,7 +60,7 @@ type LicenseData struct {
 // CodeReviewData contains the raw results
 // for the Code-Review check.
 type CodeReviewData struct {
-	DefaultBranchCommits []DefaultBranchCommit
+	DefaultBranchCommits []clients.Commit
 }
 
 // ContributorsData represents contributor information.
@@ -127,7 +125,7 @@ type Tool struct {
 	// Issues created by the tool.
 	Issues []clients.Issue
 	// Merge requests created by the tool.
-	MergeRequests []MergeRequest
+	MergeRequests []clients.PullRequest
 
 	// TODO: CodeCoverage, jsonWorkflowJob.
 }
@@ -138,46 +136,10 @@ type Run struct {
 	// TODO: add fields, e.g., Result=["success", "failure"]
 }
 
-// Comment represents a comment for a pull request or an issue.
-type Comment struct {
-	CreatedAt *time.Time
-	Author    *User
-	// TODO: add ields if needed, e.g., content.
-}
-
 // ArchivedStatus definess the archived status.
 type ArchivedStatus struct {
 	Status bool
 	// TODO: add fields, e.g., date of archival.
-}
-
-// DefaultBranchCommit represents a commit
-// to the default branch.
-type DefaultBranchCommit struct {
-	// Fields below are taken directly from cloud
-	// version control systems, e.g. GitHub.
-	SHA           string
-	CommitMessage string
-	MergeRequest  *MergeRequest
-	CommitDate    *time.Time
-	Committer     User
-}
-
-// MergeRequest represents a merge request.
-// nolint:govet
-type MergeRequest struct {
-	Number   int
-	Labels   []string
-	Reviews  []Review
-	Author   User
-	MergedAt time.Time
-}
-
-// Review represent a review using the built-in review system.
-type Review struct {
-	State    string
-	Reviewer User
-	// TODO(Review): add fields here if needed.
 }
 
 // User represent a user.

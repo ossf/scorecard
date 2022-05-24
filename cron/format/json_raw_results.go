@@ -124,36 +124,34 @@ func addCodeReviewRawResults(r *jsonScorecardRawResult, cr *checker.CodeReviewDa
 			Committer: jsonUser{
 				Login: commit.Committer.Login,
 			},
-			CommitMessage: commit.CommitMessage,
+			CommitMessage: commit.Message,
 			SHA:           commit.SHA,
 		}
 
 		// Merge request field.
-		if commit.MergeRequest != nil {
-			mr := jsonMergeRequest{
-				Number: commit.MergeRequest.Number,
-				Author: jsonUser{
-					Login: commit.MergeRequest.Author.Login,
-				},
-			}
-
-			if len(commit.MergeRequest.Labels) > 0 {
-				mr.Labels = commit.MergeRequest.Labels
-			}
-
-			for _, r := range commit.MergeRequest.Reviews {
-				mr.Reviews = append(mr.Reviews, jsonReview{
-					State: r.State,
-					Reviewer: jsonUser{
-						Login: r.Reviewer.Login,
-					},
-				})
-			}
-
-			com.MergeRequest = &mr
+		mr := jsonMergeRequest{
+			Number: commit.AssociatedMergeRequest.Number,
+			Author: jsonUser{
+				Login: commit.AssociatedMergeRequest.Author.Login,
+			},
 		}
 
-		com.CommitMessage = commit.CommitMessage
+		for _, l := range commit.AssociatedMergeRequest.Labels {
+			mr.Labels = append(mr.Labels, l.Name)
+		}
+
+		for _, r := range commit.AssociatedMergeRequest.Reviews {
+			mr.Reviews = append(mr.Reviews, jsonReview{
+				State: r.State,
+				Reviewer: jsonUser{
+					Login: r.Author.Login,
+				},
+			})
+		}
+
+		com.MergeRequest = &mr
+
+		com.CommitMessage = commit.Message
 
 		r.Results.DefaultBranchCommits = append(r.Results.DefaultBranchCommits, com)
 	}

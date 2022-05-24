@@ -36,12 +36,7 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	if err != nil {
 		return result, fmt.Errorf("%w", err)
 	}
-
-	for i := range commits {
-		// Note: getRawDataFromCommit() is defined in Code-Review check.
-		result.DefaultBranchCommits = append(result.DefaultBranchCommits,
-			getRawDataFromCommit(&commits[i]))
-	}
+	result.DefaultBranchCommits = commits
 
 	// Recent issues.
 	issues, err := c.RepoClient.ListIssues()
