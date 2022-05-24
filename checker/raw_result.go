@@ -14,7 +14,11 @@
 
 package checker
 
-import "time"
+import (
+	"time"
+
+	"github.com/ossf/scorecard/v4/clients"
+)
 
 // RawResults contains results before a policy
 // is applied.
@@ -44,7 +48,7 @@ type FuzzingData struct {
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {
-	Issues               []Issue
+	Issues               []clients.Issue
 	DefaultBranchCommits []DefaultBranchCommit
 	ArchivedStatus       ArchivedStatus
 }
@@ -89,7 +93,7 @@ type BinaryArtifactData struct {
 // SignedReleasesData contains the raw results
 // for the Signed-Releases check.
 type SignedReleasesData struct {
-	Releases []Release
+	Releases []clients.Release
 }
 
 // DependencyUpdateToolData contains the raw results
@@ -103,15 +107,7 @@ type DependencyUpdateToolData struct {
 // WebhooksData contains the raw results
 // for the Webhook check.
 type WebhooksData struct {
-	Webhook []WebhookData
-}
-
-// WebhookData contains the raw results
-// for webhook check.
-type WebhookData struct {
-	Path           string
-	ID             int64
-	UsesAuthSecret bool
+	Webhooks []clients.Webhook
 }
 
 // BranchProtectionsData contains the raw results
@@ -149,7 +145,7 @@ type Tool struct {
 	// Runs of the tool.
 	Runs []Run
 	// Issues created by the tool.
-	Issues []Issue
+	Issues []clients.Issue
 	// Merge requests created by the tool.
 	MergeRequests []MergeRequest
 
@@ -173,15 +169,6 @@ type Comment struct {
 type ArchivedStatus struct {
 	Status bool
 	// TODO: add fields, e.g., date of archival.
-}
-
-// Issue represents an issue.
-type Issue struct {
-	CreatedAt *time.Time
-	Author    *User
-	URL       string
-	Comments  []Comment
-	// TODO: add fields, e.g., state=[opened|closed]
 }
 
 // DefaultBranchCommit represents a commit
@@ -276,42 +263,9 @@ type Vulnerability struct {
 	// TODO(vuln): Add additional fields, if needed.
 }
 
-// Release represents a project release.
-type Release struct {
-	Tag    string
-	URL    string
-	Assets []ReleaseAsset
-	// TODO: add needed fields, e.g. Path.
-}
-
-// ReleaseAsset represents a release asset.
-type ReleaseAsset struct {
-	Name string
-	URL  string
-}
-
-// CIIBadge corresponds to CII-Best-Practices badges.
-// https://bestpractices.coreinfrastructure.org/en
-type CIIBadge string
-
-const (
-	// CIIBadgeUnknown or non-parsable CII Best Practices badge.
-	CIIBadgeUnknown CIIBadge = "unknown"
-	// CIIBadgeNotFound represents when CII Best Practices returns an empty response for a project.
-	CIIBadgeNotFound CIIBadge = "not_found"
-	// CIIBadgeInProgress state of CII Best Practices badge.
-	CIIBadgeInProgress CIIBadge = "in_progress"
-	// CIIBadgePassing  for CII Best Practices badge.
-	CIIBadgePassing CIIBadge = "passing"
-	// CIIBadgeSilver  for CII Best Practices badge.
-	CIIBadgeSilver CIIBadge = "silver"
-	// CIIBadgeGold  for CII Best Practices badge.
-	CIIBadgeGold CIIBadge = "gold"
-)
-
 // CIIBestPracticesData contains data foor CIIBestPractices check.
 type CIIBestPracticesData struct {
-	Badge CIIBadge
+	Badge clients.BadgeLevel
 }
 
 // DangerousWorkflowType represents a type of dangerous workflow.

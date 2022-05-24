@@ -258,10 +258,10 @@ func (mr *MockRepoClientMockRecorder) ListSuccessfulWorkflowRuns(filename interf
 }
 
 // ListWebhooks mocks base method.
-func (m *MockRepoClient) ListWebhooks() ([]*clients.Webhook, error) {
+func (m *MockRepoClient) ListWebhooks() ([]clients.Webhook, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListWebhooks")
-	ret0, _ := ret[0].([]*clients.Webhook)
+	ret0, _ := ret[0].([]clients.Webhook)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -202,7 +202,7 @@ func (client *localDirClient) ListStatuses(ref string) ([]clients.Status, error)
 }
 
 // ListWebhooks implements RepoClient.ListWebhooks.
-func (client *localDirClient) ListWebhooks() ([]*clients.Webhook, error) {
+func (client *localDirClient) ListWebhooks() ([]clients.Webhook, error) {
 	return nil, fmt.Errorf("ListWebhooks: %w", clients.ErrUnsupportedFeature)
 }
 

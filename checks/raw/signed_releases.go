@@ -27,23 +27,7 @@ func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error)
 		return checker.SignedReleasesData{}, fmt.Errorf("%w", err)
 	}
 
-	var results checker.SignedReleasesData
-	for i, r := range releases {
-		results.Releases = append(results.Releases,
-			checker.Release{
-				Tag: r.TagName,
-				URL: r.URL,
-			})
-
-		for _, asset := range r.Assets {
-			a := checker.ReleaseAsset{
-				URL:  asset.URL,
-				Name: asset.Name,
-			}
-			results.Releases[i].Assets = append(results.Releases[i].Assets, a)
-		}
-	}
-
-	// Return raw results.
-	return results, nil
+	return checker.SignedReleasesData{
+		Releases: releases,
+	}, nil
 }
