@@ -31,7 +31,13 @@ import (
 // SecurityPolicy checks for presence of security policy.
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
 	files := make([]checker.File, 0)
-	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &files)
+	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, struct {
+		FilePointer *[]checker.File
+		ClientURI   string
+	}{
+		&files,
+		"",
+	})
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
 	}
@@ -51,7 +57,13 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	case err == nil:
 		defer dotGitHubClient.Close()
 
-		err = fileparser.OnAllFilesDo(dotGitHubClient, isSecurityPolicyFile, &files)
+		err = fileparser.OnAllFilesDo(dotGitHubClient, isSecurityPolicyFile, struct {
+			FilePointer *[]checker.File
+			ClientURI   string
+		}{
+			&files,
+			dotGitHubClient.URI(),
+		})
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
 		}
@@ -62,13 +74,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		return checker.SecurityPolicyData{}, err
 	}
 
-	// Modify the path to include org name and return raw results.
-	for i := range files {
-		// Add the client URI before the path.
-		files[i].Path = path.Join(dotGitHubClient.URI(), "/", files[i].Path)
-		// Modify the file type to FileTypeURL (meaning it's an URL).
-		files[i].Type = checker.FileTypeURL
-	}
+	// Return raw results.
 	return checker.SecurityPolicyData{Files: files}, nil
 }
 
@@ -78,14 +84,25 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 	if len(args) != 1 {
 		return false, fmt.Errorf("isSecurityPolicyFile requires exactly one argument: %w", errInvalidArgLength)
 	}
-	pfiles, ok := args[0].(*[]checker.File)
+	contexts, ok := args[0].(struct {
+		FilePointer *[]checker.File
+		ClientURI   string
+	})
 	if !ok {
-		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: *[]checker.File: %w", errInvalidArgType)
+		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: struct {*[]checker.File clients.RepoClient}: %w", errInvalidArgType)
 	}
+	pfiles := contexts.FilePointer
+	clientURI := contexts.ClientURI
 	if isSecurityPolicyFilename(name) {
+		tempPath := name
+		tempType := checker.FileTypeSource
+		if clientURI != "" {
+			tempPath = path.Join(clientURI, "/", tempPath)
+			tempType = checker.FileTypeURL
+		}
 		*pfiles = append(*pfiles, checker.File{
-			Path:   name,
-			Type:   checker.FileTypeSource,
+			Path:   tempPath,
+			Type:   tempType,
 			Offset: checker.OffsetDefault,
 		})
 		return false, nil
