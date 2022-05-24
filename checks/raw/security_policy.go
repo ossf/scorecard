@@ -89,7 +89,7 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 		ClientURI   string
 	})
 	if !ok {
-		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: struct {*[]checker.File clients.RepoClient}: %w", errInvalidArgType)
+		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: struct {*[]checker.File  string}: %w", errInvalidArgType)
 	}
 	pfiles := contexts.FilePointer
 	clientURI := contexts.ClientURI
