@@ -40,14 +40,11 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 		}
 		if msg.Type == checker.FileTypeURL {
 			msg.Text = "security policy detected in org repo"
-			dl.Info(&msg)
+
 		} else {
-			// Security policy detected in current repo, return immediately since it has higher priority.
 			msg.Text = "security policy file detected in current repo"
-			dl.Info(&msg)
-			return checker.CreateMaxScoreResult(name, "security policy file detected in current repo")
 		}
+		dl.Info(&msg)
 	}
-	// If not returned yet - indicating there is only an org repo policy.
-	return checker.CreateMaxScoreResult(name, "security policy file detected in org repo")
+	return checker.CreateMaxScoreResult(name, "security policy file detected")
 }
