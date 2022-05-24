@@ -155,7 +155,7 @@ func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
 }
 
 // ListWebhooks implements RepoClient.ListWebhooks.
-func (client *Client) ListWebhooks() ([]*clients.Webhook, error) {
+func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return client.webhook.listWebhooks()
 }
 
