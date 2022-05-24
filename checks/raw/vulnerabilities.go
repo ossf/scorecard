@@ -36,17 +36,9 @@ func Vulnerabilities(c *checker.CheckRequest) (checker.VulnerabilitiesData, erro
 	if err != nil {
 		return checker.VulnerabilitiesData{}, fmt.Errorf("vulnerabilitiesClient.HasUnfixedVulnerabilities: %w", err)
 	}
-
-	vulnIDs := getVulnerabilities(&resp)
-	vulns := []checker.Vulnerability{}
-	for _, id := range vulnIDs {
-		v := checker.Vulnerability{
-			ID: id,
-			// Note: add fields if needed.
-		}
-		vulns = append(vulns, v)
-	}
-	return checker.VulnerabilitiesData{Vulnerabilities: vulns}, nil
+	return checker.VulnerabilitiesData{
+		Vulnerabilities: resp.Vulnerabilities,
+	}, nil
 }
 
 type predicateOnCommitFn func(clients.Commit) bool
@@ -62,12 +54,4 @@ func allOf(commits []clients.Commit, predicate func(clients.Commit) bool) bool {
 		}
 	}
 	return true
-}
-
-func getVulnerabilities(resp *clients.VulnerabilitiesResponse) []string {
-	ids := make([]string, 0, len(resp.Vulns))
-	for _, vuln := range resp.Vulns {
-		ids = append(ids, vuln.ID)
-	}
-	return ids
 }

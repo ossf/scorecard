@@ -71,7 +71,7 @@ type ContributorsData struct {
 // VulnerabilitiesData contains the raw results
 // for the Vulnerabilities check.
 type VulnerabilitiesData struct {
-	Vulnerabilities []Vulnerability
+	Vulnerabilities []clients.Vulnerability
 }
 
 // SecurityPolicyData contains the raw results
@@ -149,15 +149,6 @@ type File struct {
 	Offset  uint     // Offset in the file of Path (line for source/text files).
 	Type    FileType // Type of file.
 	// TODO: add hash.
-}
-
-// Vulnerability defines a vulnerability
-// from a database.
-type Vulnerability struct {
-	// For OSV: OSV-2020-484
-	// For CVE: CVE-2022-23945
-	ID string
-	// TODO(vuln): Add additional fields, if needed.
 }
 
 // CIIBestPracticesData contains data foor CIIBestPractices check.
