@@ -48,7 +48,7 @@ type FuzzingData struct {
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {
-	Issues               []Issue
+	Issues               []clients.Issue
 	DefaultBranchCommits []DefaultBranchCommit
 	ArchivedStatus       ArchivedStatus
 }
@@ -93,7 +93,7 @@ type BinaryArtifactData struct {
 // SignedReleasesData contains the raw results
 // for the Signed-Releases check.
 type SignedReleasesData struct {
-	Releases []Release
+	Releases []clients.Release
 }
 
 // DependencyUpdateToolData contains the raw results
@@ -145,7 +145,7 @@ type Tool struct {
 	// Runs of the tool.
 	Runs []Run
 	// Issues created by the tool.
-	Issues []Issue
+	Issues []clients.Issue
 	// Merge requests created by the tool.
 	MergeRequests []MergeRequest
 
@@ -169,15 +169,6 @@ type Comment struct {
 type ArchivedStatus struct {
 	Status bool
 	// TODO: add fields, e.g., date of archival.
-}
-
-// Issue represents an issue.
-type Issue struct {
-	CreatedAt *time.Time
-	Author    *User
-	URL       string
-	Comments  []Comment
-	// TODO: add fields, e.g., state=[opened|closed]
 }
 
 // DefaultBranchCommit represents a commit
@@ -270,20 +261,6 @@ type Vulnerability struct {
 	// For CVE: CVE-2022-23945
 	ID string
 	// TODO(vuln): Add additional fields, if needed.
-}
-
-// Release represents a project release.
-type Release struct {
-	Tag    string
-	URL    string
-	Assets []ReleaseAsset
-	// TODO: add needed fields, e.g. Path.
-}
-
-// ReleaseAsset represents a release asset.
-type ReleaseAsset struct {
-	Name string
-	URL  string
 }
 
 // CIIBestPracticesData contains data foor CIIBestPractices check.
