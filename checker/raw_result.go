@@ -73,7 +73,7 @@ type ContributorsData struct {
 // VulnerabilitiesData contains the raw results
 // for the Vulnerabilities check.
 type VulnerabilitiesData struct {
-	Vulnerabilities []Vulnerability
+	Vulnerabilities []clients.Vulnerability
 }
 
 // SecurityPolicyData contains the raw results
@@ -113,27 +113,7 @@ type WebhooksData struct {
 // BranchProtectionsData contains the raw results
 // for the Branch-Protection check.
 type BranchProtectionsData struct {
-	Branches []BranchProtectionData
-}
-
-// BranchProtectionData contains the raw results
-// for one branch.
-//nolint:govet
-type BranchProtectionData struct {
-	Protected                           *bool
-	AllowsDeletions                     *bool
-	AllowsForcePushes                   *bool
-	RequiresCodeOwnerReviews            *bool
-	RequiresLinearHistory               *bool
-	DismissesStaleReviews               *bool
-	EnforcesAdmins                      *bool
-	RequiresStatusChecks                *bool
-	RequiresUpToDateBranchBeforeMerging *bool
-	RequiredApprovingReviewCount        *int
-	// StatusCheckContexts is always available, so
-	// we don't use a pointer.
-	StatusCheckContexts []string
-	Name                string
+	Branches []clients.BranchRef
 }
 
 // Tool represents a tool.
@@ -252,15 +232,6 @@ type File struct {
 	Offset  uint     // Offset in the file of Path (line for source/text files).
 	Type    FileType // Type of file.
 	// TODO: add hash.
-}
-
-// Vulnerability defines a vulnerability
-// from a database.
-type Vulnerability struct {
-	// For OSV: OSV-2020-484
-	// For CVE: CVE-2022-23945
-	ID string
-	// TODO(vuln): Add additional fields, if needed.
 }
 
 // CIIBestPracticesData contains data foor CIIBestPractices check.
