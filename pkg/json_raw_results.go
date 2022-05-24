@@ -278,7 +278,7 @@ func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedR
 	for i, release := range sr.Releases {
 		r.Results.Releases = append(r.Results.Releases,
 			jsonRelease{
-				Tag: release.Tag,
+				Tag: release.TagName,
 				URL: release.URL,
 			})
 		for _, asset := range release.Assets {
