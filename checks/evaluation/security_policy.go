@@ -42,7 +42,7 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 			msg.Text = "security policy detected in org repo"
 
 		} else {
-			msg.Text = "security policy file detected in current repo"
+			msg.Text = "security policy detected in current repo"
 		}
 		dl.Info(&msg)
 	}
