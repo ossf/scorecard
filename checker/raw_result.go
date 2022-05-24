@@ -65,7 +65,7 @@ type CodeReviewData struct {
 
 // ContributorsData represents contributor information.
 type ContributorsData struct {
-	Users []User
+	Users []clients.Contributor
 }
 
 // VulnerabilitiesData contains the raw results
@@ -141,51 +141,6 @@ type ArchivedStatus struct {
 	Status bool
 	// TODO: add fields, e.g., date of archival.
 }
-
-// User represent a user.
-type User struct {
-	RepoAssociation *RepoAssociation
-	Login           string
-	// Orgnization refers to a GitHub org.
-	Organizations []Organization
-	// Companies refer to a claim by a user in their profile.
-	Companies        []Company
-	NumContributions uint
-}
-
-// Organization represents a GitHub organization.
-type Organization struct {
-	Login string
-	// TODO: other info.
-}
-
-// Company represents a company in a user's profile.
-type Company struct {
-	Name string
-	// TODO: other info.
-}
-
-// RepoAssociation represents a user relationship with a repo.
-type RepoAssociation string
-
-const (
-	// RepoAssociationCollaborator has been invited to collaborate on the repository.
-	RepoAssociationCollaborator RepoAssociation = "collaborator"
-	// RepoAssociationContributor is an contributor to the repository.
-	RepoAssociationContributor RepoAssociation = "contributor"
-	// RepoAssociationOwner is an owner of the repository.
-	RepoAssociationOwner RepoAssociation = "owner"
-	// RepoAssociationMember is a member of the organization that owns the repository.
-	RepoAssociationMember RepoAssociation = "member"
-	// RepoAssociationFirstTimer has previously committed to the repository.
-	RepoAssociationFirstTimer RepoAssociation = "first-timer"
-	// RepoAssociationFirstTimeContributor has not previously committed to the repository.
-	RepoAssociationFirstTimeContributor RepoAssociation = "first-timer-contributor"
-	// RepoAssociationMannequin is a placeholder for an unclaimed user.
-	RepoAssociationMannequin RepoAssociation = "unknown"
-	// RepoAssociationNone has no association with the repository.
-	RepoAssociationNone RepoAssociation = "none"
-)
 
 // File represents a file.
 type File struct {
