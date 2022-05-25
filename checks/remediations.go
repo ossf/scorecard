@@ -72,10 +72,6 @@ func createWorkflowPermissionRemediation(filepath string) *checker.Remediation {
 	return createWorkflowRemediation(filepath, "permissions")
 }
 
-func createWorkflowPinningRemediation(filepath string) *checker.Remediation {
-	return createWorkflowRemediation(filepath, "pin")
-}
-
 func createWorkflowRemediation(path, t string) *checker.Remediation {
 	p := strings.TrimPrefix(path, ".github/workflows/")
 	if remediationBranch == "" || remediationRepo == "" {
