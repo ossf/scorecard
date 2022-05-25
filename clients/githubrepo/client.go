@@ -135,7 +135,7 @@ func (client *Client) ListReleases() ([]clients.Release, error) {
 }
 
 // ListContributors implements RepoClient.ListContributors.
-func (client *Client) ListContributors() ([]clients.Contributor, error) {
+func (client *Client) ListContributors() ([]clients.User, error) {
 	return client.contributors.getContributors()
 }
 

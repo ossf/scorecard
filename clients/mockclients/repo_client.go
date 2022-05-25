@@ -168,10 +168,10 @@ func (mr *MockRepoClientMockRecorder) ListCommits() *gomock.Call {
 }
 
 // ListContributors mocks base method.
-func (m *MockRepoClient) ListContributors() ([]clients.Contributor, error) {
+func (m *MockRepoClient) ListContributors() ([]clients.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListContributors")
-	ret0, _ := ret[0].([]clients.Contributor)
+	ret0, _ := ret[0].([]clients.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

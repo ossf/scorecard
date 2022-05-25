@@ -65,7 +65,7 @@ type CodeReviewData struct {
 
 // ContributorsData represents contributor information.
 type ContributorsData struct {
-	Users []clients.Contributor
+	Users []clients.User
 }
 
 // VulnerabilitiesData contains the raw results

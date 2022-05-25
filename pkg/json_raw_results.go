@@ -247,7 +247,7 @@ func (r *jsonScorecardRawResult) addContributorsRawResults(cr *checker.Contribut
 
 	for _, user := range cr.Users {
 		u := jsonUser{
-			Login:            user.User.Login,
+			Login:            user.Login,
 			NumContributions: user.NumContributions,
 		}
 
