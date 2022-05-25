@@ -35,7 +35,6 @@ type SecurityPolicyFilesWithURI struct {
 
 // SecurityPolicy checks for presence of security policy.
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
-	// files := make([]checker.File, 0)
 	data := SecurityPolicyFilesWithURI{
 		files: make([]checker.File, 0),
 		uri:   "",
@@ -81,7 +80,6 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 		return false, fmt.Errorf("isSecurityPolicyFile requires exactly one argument: %w", errInvalidArgLength)
 	}
 	pdata, ok := args[0].(*SecurityPolicyFilesWithURI)
-	// fmt.Println(pdata)
 	if !ok {
 		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: *SecurityPolicyFilesWithURI (struct {[]checker.File string}): %w", errInvalidArgType)
 	}
