@@ -12,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '.',
-  '-t', 'gcr.io/openssf/scorecard-webhook-releasetest:$COMMIT_SHA',
-  '-t', 'gcr.io/openssf/scorecard-webhook-releasetest:latest',
-  '-f', 'cron/internal/webhook/Dockerfile']
-images: ['gcr.io/openssf/scorecard-webhook-releasetest']
+FROM golang@sha256:3c4de86eec9cbc619cdd72424abd88326ffcf5d813a8338a7743c55e5898734f AS base
+WORKDIR /src
+ENV CGO_ENABLED=0
+COPY go.* ./
+RUN go mod download
+COPY . ./
+
+FROM base AS cii
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 make build-cii-worker
+
+FROM gcr.io/distroless/base:nonroot@sha256:46d4514c17aca7a68559ee03975983339fc548e6d1014e2d7633f9123f2d3c59
+COPY --from=cii /src/cron/internal/cii/cii-worker cron/internal/cii/cii-worker
+ENTRYPOINT ["cron/internal/cii/cii-worker"]

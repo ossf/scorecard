@@ -18,5 +18,5 @@ steps:
   '--build-arg', 'COMMIT_SHA=$COMMIT_SHA',
   '-t', 'gcr.io/openssf/scorecard-batch-controller:$COMMIT_SHA',
   '-t', 'gcr.io/openssf/scorecard-batch-controller:latest',
-  '-f', 'cron/controller/Dockerfile']
+  '-f', 'cron/internal/controller/Dockerfile']
 images: ['gcr.io/openssf/scorecard-batch-controller']
