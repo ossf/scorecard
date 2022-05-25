@@ -49,7 +49,7 @@ func Contributors(name string, dl checker.DetailLogger,
 		}
 
 		for _, comp := range user.Companies {
-			entities[comp.Name] = true
+			entities[comp] = true
 		}
 	}
 

@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -105,7 +106,7 @@ func isBot(name string) bool {
 	return false
 }
 
-func getApprovedReviewSystem(c *checker.DefaultBranchCommit, dl checker.DetailLogger) string {
+func getApprovedReviewSystem(c *clients.Commit, dl checker.DetailLogger) string {
 	switch {
 	case isReviewedOnGitHub(c, dl):
 		return reviewPlatformGitHub
@@ -121,9 +122,9 @@ func getApprovedReviewSystem(c *checker.DefaultBranchCommit, dl checker.DetailLo
 	return ""
 }
 
-func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
-	mr := c.MergeRequest
-	if mr == nil || mr.MergedAt.IsZero() {
+func isReviewedOnGitHub(c *clients.Commit, dl checker.DetailLogger) bool {
+	mr := c.AssociatedMergeRequest
+	if mr.MergedAt.IsZero() {
 		return false
 	}
 
@@ -152,7 +153,7 @@ func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 	return false
 }
 
-func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
+func isReviewedOnProw(c *clients.Commit, dl checker.DetailLogger) bool {
 	if isBot(c.Committer.Login) {
 		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("skip commit %s from bot account: %s", c.SHA, c.Committer.Login),
@@ -160,12 +161,12 @@ func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) b
 		return true
 	}
 
-	if c.MergeRequest != nil && !c.MergeRequest.MergedAt.IsZero() {
-		for _, l := range c.MergeRequest.Labels {
-			if l == "lgtm" || l == "approved" {
+	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
+		for _, l := range c.AssociatedMergeRequest.Labels {
+			if l.Name == "lgtm" || l.Name == "approved" {
 				dl.Debug(&checker.LogMessage{
 					Text: fmt.Sprintf("commit %s review was through %s #%d approved merge request",
-						c.SHA, reviewPlatformProw, c.MergeRequest.Number),
+						c.SHA, reviewPlatformProw, c.AssociatedMergeRequest.Number),
 				})
 				return true
 			}
@@ -174,7 +175,7 @@ func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) b
 	return false
 }
 
-func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
+func isReviewedOnGerrit(c *clients.Commit, dl checker.DetailLogger) bool {
 	if isBot(c.Committer.Login) {
 		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("skip commit %s from bot account: %s", c.SHA, c.Committer.Login),
@@ -182,7 +183,7 @@ func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 		return true
 	}
 
-	m := c.CommitMessage
+	m := c.Message
 	if strings.Contains(m, "\nReviewed-on: ") &&
 		strings.Contains(m, "\nReviewed-by: ") {
 		dl.Debug(&checker.LogMessage{
@@ -193,7 +194,7 @@ func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 	return false
 }
 
-func isReviewedOnPhabricator(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
+func isReviewedOnPhabricator(c *clients.Commit, dl checker.DetailLogger) bool {
 	if isBot(c.Committer.Login) {
 		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("skip commit %s from bot account: %s", c.SHA, c.Committer.Login),
@@ -201,7 +202,7 @@ func isReviewedOnPhabricator(c *checker.DefaultBranchCommit, dl checker.DetailLo
 		return true
 	}
 
-	m := c.CommitMessage
+	m := c.Message
 	if strings.Contains(m, "\nDifferential Revision: ") &&
 		strings.Contains(m, "\nReviewed By: ") {
 		dl.Debug(&checker.LogMessage{
@@ -212,8 +213,8 @@ func isReviewedOnPhabricator(c *checker.DefaultBranchCommit, dl checker.DetailLo
 	return false
 }
 
-func isReviewedOnPiper(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
-	m := c.CommitMessage
+func isReviewedOnPiper(c *clients.Commit, dl checker.DetailLogger) bool {
+	m := c.Message
 	if strings.Contains(m, "\nPiperOrigin-RevId: ") {
 		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, reviewPlatformPiper),
