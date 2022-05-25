@@ -29,11 +29,8 @@ import (
 // TODO: add a "check" field to all results so that they can be linked to a check.
 // TODO(#1874): Add a severity field in all results.
 
-<<<<<<< HEAD
-=======
 var errorInvalidValue = errors.New("invalid value")
 
->>>>>>> 0b4643bb (draft)
 // Flat JSON structure to hold raw results.
 type jsonScorecardRawResult struct {
 	Date      string          `json:"date"`
@@ -203,6 +200,17 @@ type jsonPackage struct {
 type jsonRun struct {
 	URL string `json:"url"`
 	// TODO: add fields, e.g., Result=["success", "failure"]
+}
+
+type jsonPinningDependenciesData struct {
+	Dependencies []jsonDependency `json:"name"`
+}
+
+type jsonDependency struct {
+	// TODO: unique dependency name.
+	// TODO: Job         *WorkflowJob
+	File *jsonFile `json:"file"`
+	Type string    `json:"type"`
 }
 
 //nolint
