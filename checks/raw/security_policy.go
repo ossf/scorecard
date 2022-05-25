@@ -28,14 +28,14 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-type SecurityPolicyFilesWithURI struct {
+type securityPolicyFilesWithURI struct {
 	files []checker.File
 	uri   string
 }
 
 // SecurityPolicy checks for presence of security policy.
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
-	data := SecurityPolicyFilesWithURI{
+	data := securityPolicyFilesWithURI{
 		files: make([]checker.File, 0),
 		uri:   "",
 	}
@@ -79,9 +79,9 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 	if len(args) != 1 {
 		return false, fmt.Errorf("isSecurityPolicyFile requires exactly one argument: %w", errInvalidArgLength)
 	}
-	pdata, ok := args[0].(*SecurityPolicyFilesWithURI)
+	pdata, ok := args[0].(*securityPolicyFilesWithURI)
 	if !ok {
-		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: *SecurityPolicyFilesWithURI (struct {[]checker.File string}): %w", errInvalidArgType)
+		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: *securityPolicyFilesWithURI (struct {[]checker.File string}): %w", errInvalidArgType)
 	}
 	if isSecurityPolicyFilename(name) {
 		tempPath := name
