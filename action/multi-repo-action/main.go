@@ -19,8 +19,8 @@ package main
 import (
 	"log"
 
-	"github.com/ossf/scorecard-action/install/cli"
-	"github.com/ossf/scorecard-action/install/options"
+	"github.com/ossf/scorecard/v4/action/internal/install/cli"
+	"github.com/ossf/scorecard/v4/action/internal/install/options"
 )
 
 func main() {

@@ -27,8 +27,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ossf/scorecard-action/entrypoint" //nolint
-	"github.com/ossf/scorecard-action/options"
+	"github.com/ossf/scorecard/v4/action/internal/entrypoint" //nolint
+	"github.com/ossf/scorecard/v4/action/internal/options"
 	sigOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 )

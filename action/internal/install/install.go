@@ -24,8 +24,8 @@ import (
 
 	"github.com/google/go-github/v42/github"
 
-	scagh "github.com/ossf/scorecard-action/install/github"
-	"github.com/ossf/scorecard-action/install/options"
+	scagh "github.com/ossf/scorecard/v4/action/internal/install/github"
+	"github.com/ossf/scorecard/v4/action/internal/install/options"
 )
 
 const (

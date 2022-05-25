@@ -21,7 +21,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ossf/scorecard-action/options"
+	"github.com/ossf/scorecard/v4/action/internal/options"
 	"github.com/ossf/scorecard/v4/cmd"
 	scopts "github.com/ossf/scorecard/v4/options"
 )

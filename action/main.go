@@ -18,9 +18,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/ossf/scorecard-action/entrypoint"
-	"github.com/ossf/scorecard-action/options"
-	"github.com/ossf/scorecard-action/signing"
+	"github.com/ossf/scorecard/v4/action/internal/entrypoint"
+	"github.com/ossf/scorecard/v4/action/internal/options"
+	"github.com/ossf/scorecard/v4/action/internal/signing"
 )
 
 func main() {

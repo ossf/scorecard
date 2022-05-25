@@ -25,7 +25,7 @@ import (
 
 	"github.com/caarlos0/env/v6"
 
-	"github.com/ossf/scorecard-action/github"
+	"github.com/ossf/scorecard/v4/action/internal/github"
 	"github.com/ossf/scorecard/v4/options"
 )
 

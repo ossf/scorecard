@@ -21,8 +21,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ossf/scorecard-action/install"
-	"github.com/ossf/scorecard-action/install/options"
+	"github.com/ossf/scorecard/v4/action/internal/install"
+	"github.com/ossf/scorecard/v4/action/internal/install/options"
 )
 
 const (
