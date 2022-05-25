@@ -81,7 +81,7 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 	}
 	pdata, ok := args[0].(*securityPolicyFilesWithURI)
 	if !ok {
-		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: *securityPolicyFilesWithURI (struct {[]checker.File string}): %w", errInvalidArgType)
+		return false, fmt.Errorf("Invalid arg type: %w", errInvalidArgType)
 	}
 	if isSecurityPolicyFilename(name) {
 		tempPath := name
