@@ -89,7 +89,7 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 		tempPath := name
 		tempType := checker.FileTypeSource
 		if pdata.uri != "" {
-			tempPath = path.Join(pdata.uri, "/", tempPath)
+			tempPath = path.Join(pdata.uri, tempPath)
 			tempType = checker.FileTypeURL
 		}
 		pdata.files = append(pdata.files, checker.File{
