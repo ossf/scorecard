@@ -12,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '.',
-  '-t', 'gcr.io/openssf/scorecard-webhook-releasetest:$COMMIT_SHA',
-  '-t', 'gcr.io/openssf/scorecard-webhook-releasetest:latest',
-  '-f', 'cron/internal/webhook/Dockerfile']
-images: ['gcr.io/openssf/scorecard-webhook-releasetest']
+FROM golang@sha256:3c4de86eec9cbc619cdd72424abd88326ffcf5d813a8338a7743c55e5898734f AS base
+WORKDIR /src
+ENV CGO_ENABLED=0
+COPY go.* ./
+RUN go mod download
+COPY . ./
+
+FROM base AS webhook
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 make build-webhook
+
+FROM gcr.io/distroless/base:nonroot@sha256:d65ac1a65a4d82a48ebd0a22aea2acdd95d7abeeda245dfee932ec0018c781f4
+COPY --from=webhook /src/cron/internal/webhook/webhook cron/internal/webhook/webhook
+ENTRYPOINT ["cron/internal/webhook/webhook"]

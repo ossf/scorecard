@@ -12,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '.',
-  '-t', 'gcr.io/openssf/scorecard-webhook-releasetest:$COMMIT_SHA',
-  '-t', 'gcr.io/openssf/scorecard-webhook-releasetest:latest',
-  '-f', 'cron/internal/webhook/Dockerfile']
-images: ['gcr.io/openssf/scorecard-webhook-releasetest']
+FROM golang@sha256:3c4de86eec9cbc619cdd72424abd88326ffcf5d813a8338a7743c55e5898734f as base
+WORKDIR /src
+ENV CGO_ENABLED=0
+COPY go.* ./
+RUN go mod download
+COPY . ./
+
+FROM base AS transfer
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 make build-bq-transfer
+
+FROM gcr.io/distroless/base:nonroot@sha256:19d927c16ddb5415d5f6f529dbbeb13c460b84b304b97af886998d3fcf18ac81
+COPY --from=transfer /src/cron/internal/bq/data-transfer cron/internal/bq/data-transfer
+ENTRYPOINT ["cron/internal/bq/data-transfer"]
