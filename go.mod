@@ -42,6 +42,15 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99
 	mvdan.cc/sh/v3 v3.5.1
+	github.com/caarlos0/env/v6 v6.9.2
+	github.com/google/go-cmp v0.5.8
+	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
+	github.com/ossf/scorecard/v4 v4.2.0
+	github.com/sigstore/cosign v1.8.0
+	github.com/sirupsen/logrus v1.8.1
+	github.com/spf13/cobra v1.4.0
+	sigs.k8s.io/release-sdk v0.8.0
+	sigs.k8s.io/release-utils v0.6.1-0.20220405215325-d4a2a2f0e8fd
 )
 
 require (
