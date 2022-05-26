@@ -57,6 +57,8 @@ update-dependencies: ## Update go dependencies for all modules
 	go mod tidy && go mod verify
 	cd tools
 	go mod tidy && go mod verify
+	cd action
+	go mod tidy && go mod verify
 
 $(GOLANGCI_LINT): install
 check-linter: ## Install and run golang linter
