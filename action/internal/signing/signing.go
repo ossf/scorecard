@@ -29,7 +29,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/action/internal/entrypoint" //nolint
 	"github.com/ossf/scorecard/v4/action/internal/options"
-	sigOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
+	cosignopts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 )
 
@@ -40,15 +40,15 @@ func SignScorecardResult(scorecardResultsFile string) error {
 	}
 
 	// Prepare settings for SignBlobCmd.
-	rootOpts := &sigOpts.RootOptions{Timeout: sigOpts.DefaultTimeout} // Just the timeout.
+	rootOpts := &cosignopts.RootOptions{Timeout: cosignopts.DefaultTimeout} // Just the timeout.
 
-	keyOpts := sigOpts.KeyOpts{
-		FulcioURL:    sigOpts.DefaultFulcioURL,     // Signing certificate provider.
-		RekorURL:     sigOpts.DefaultRekorURL,      // Transparency log.
-		OIDCIssuer:   sigOpts.DefaultOIDCIssuerURL, // OIDC provider to get ID token to auth for Fulcio.
+	keyOpts := cosignopts.KeyOpts{
+		FulcioURL:    cosignopts.DefaultFulcioURL,     // Signing certificate provider.
+		RekorURL:     cosignopts.DefaultRekorURL,      // Transparency log.
+		OIDCIssuer:   cosignopts.DefaultOIDCIssuerURL, // OIDC provider to get ID token to auth for Fulcio.
 		OIDCClientID: "sigstore",
 	}
-	regOpts := sigOpts.RegistryOptions{} // Not necessary so we leave blank.
+	regOpts := cosignopts.RegistryOptions{} // Not necessary so we leave blank.
 
 	// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
 	// signing certificate on the scorecard result. This attestation is then uploaded to the Rekor transparency log.
