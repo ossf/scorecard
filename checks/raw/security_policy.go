@@ -29,15 +29,15 @@ import (
 )
 
 type securityPolicyFilesWithURI struct {
-	files []checker.File
 	uri   string
+	files []checker.File
 }
 
 // SecurityPolicy checks for presence of security policy.
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
 	data := securityPolicyFilesWithURI{
-		files: make([]checker.File, 0),
 		uri:   "",
+		files: make([]checker.File, 0),
 	}
 	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &data)
 	if err != nil {
@@ -81,7 +81,7 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 	}
 	pdata, ok := args[0].(*securityPolicyFilesWithURI)
 	if !ok {
-		return false, fmt.Errorf("Invalid arg type: %w", errInvalidArgType)
+		return false, fmt.Errorf("invalid arg type: %w", errInvalidArgType)
 	}
 	if isSecurityPolicyFilename(name) {
 		tempPath := name
