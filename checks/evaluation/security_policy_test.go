@@ -74,7 +74,7 @@ func TestSecurityPolicy(t *testing.T) {
 		{
 			name: "test_security_policy_4",
 			args: args{
-				name: "test_security_policy_3",
+				name: "test_security_policy_4",
 				r: &checker.SecurityPolicyData{
 					Files: []checker.File{
 						{

@@ -113,6 +113,16 @@ func TestSecurityPolicy(t *testing.T) {
 				NumberOfInfo: 1,
 			},
 		},
+		{
+			name: "Pass Case: Case-insensitive testing",
+			files: []string{
+				"dOCs/SeCuRIty.rsT",
+			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
