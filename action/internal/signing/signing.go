@@ -42,7 +42,7 @@ func SignScorecardResult(scorecardResultsFile string) error {
 	// Prepare settings for SignBlobCmd.
 	rootOpts := &sigOpts.RootOptions{Timeout: sigOpts.DefaultTimeout} // Just the timeout.
 
-	keyOpts := sign.KeyOpts{
+	keyOpts := sigOpts.KeyOpts{
 		FulcioURL:    sigOpts.DefaultFulcioURL,     // Signing certificate provider.
 		RekorURL:     sigOpts.DefaultRekorURL,      // Transparency log.
 		OIDCIssuer:   sigOpts.DefaultOIDCIssuerURL, // OIDC provider to get ID token to auth for Fulcio.
