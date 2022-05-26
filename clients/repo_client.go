@@ -42,6 +42,7 @@ type RepoClient interface {
 	ListCheckRunsForRef(ref string) ([]CheckRun, error)
 	ListStatuses(ref string) ([]Status, error)
 	ListWebhooks() ([]Webhook, error)
+	ListProgrammingLanguages() ([]string, error)
 	Search(request SearchRequest) (SearchResponse, error)
 	Close() error
 }

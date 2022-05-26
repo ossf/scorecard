@@ -174,6 +174,12 @@ func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 	return client.statuses.listStatuses(ref)
 }
 
+// ListProgrammingLanguages implments RepoClient.ListProgrammingLanguages.
+// TODO: Aiden needs to finish this implementation soon
+func (client *Client) ListProgrammingLanguages(ref string) ([]clients.Status, error) {
+	return nil, nil
+}
+
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return client.search.search(request)
