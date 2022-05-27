@@ -266,7 +266,7 @@ require (
 	github.com/ryancurrah/gomodguard v1.2.3 // indirect
 	github.com/ryanrolds/sqlclosecheck v0.3.0 // indirect
 	github.com/sanposhiho/wastedassign/v2 v2.0.6 // indirect
-	github.com/secure-systems-lab/go-securesystemslib v0.3.0 // indirect
+	github.com/secure-systems-lab/go-securesystemslib v0.3.1 // indirect
 	github.com/securego/gosec/v2 v2.11.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
@@ -354,3 +354,6 @@ replace github.com/opencontainers/image-spec v1.0.1 => github.com/opencontainers
 
 // This replace is for GHSA-qq97-vm5h-rrhg
 replace github.com/docker/distribution => github.com/docker/distribution v2.8.0+incompatible
+
+// This replace is for https://github.com/advisories/GHSA-66x3-6cw3-v5gj
+replace github.com/theupdateframework/go-tuf => github.com/theupdateframework/go-tuf v0.3.0
