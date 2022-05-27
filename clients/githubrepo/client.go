@@ -22,12 +22,11 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/v38/github"
-	"github.com/shurcooL/githubv4"
-
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/shurcooL/githubv4"
 )
 
 var errInputRepoType = errors.New("input repo should be of type repoURL")
@@ -176,9 +175,10 @@ func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 
 // ListProgrammingLanguages implments RepoClient.ListProgrammingLanguages.
 // TODO: Aiden needs to finish this implementation soon
-func (client *Client) ListProgrammingLanguages(ref string) ([]clients.Status, error) {
-	return nil, nil
-}
+// func (client *Client) ListProgrammingLanguages(ref string) ([]string, error) {
+
+// 	return nil, nil
+// }
 
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {

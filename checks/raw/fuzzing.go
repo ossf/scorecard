@@ -16,6 +16,8 @@ package raw
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
@@ -23,24 +25,26 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
+type filesWithPatternStr struct {
+	files   []checker.File
+	pattern string
+}
 type languageFuzzConfig struct {
-	fuzzFileRegexPat    string
-	fuzzFuncRegexPat    string
-	langFuzzDocumentURL string
-	langFuzzDesc        string
+	fuzzFileMatchPattern, fuzzFuncRegexPattern, langFuzzDocumentURL, langFuzzDesc string
+	//TODO: more language fuzzing-related fields
 }
 
 // Contains fuzzing speficications for programming languages.
 // Use lowercases as the key, such as go, python, javascript, c++, etc.
 var languageFuzzSpecsMap = map[string]languageFuzzConfig{
 	// Default fuzz patterns for Go.
-	"go": languageFuzzConfig{
-		fuzzFileRegexPat:    "**/*test.go",
-		fuzzFuncRegexPat:    "func Fuzz* (* /*testing.F)",
-		langFuzzDocumentURL: "https://go.dev/doc/fuzz/",
-		langFuzzDesc:        "Go fuzzing intelligently walks through the code to find and report failures",
+	"go": {
+		fuzzFileMatchPattern: "*_test.go",
+		fuzzFuncRegexPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
+		langFuzzDocumentURL:  "https://go.dev/doc/fuzz/",
+		langFuzzDesc:         "Go fuzzing intelligently walks through the code to find and report failures",
 	},
-	// TODO: add more language-speficic fuzz patterns.
+	// TODO: add more language-speficic fuzz patterns & configs.
 }
 
 // Fuzzing runs Fuzzing check.
@@ -76,17 +80,17 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		)
 	}
 
-	usingFuzzFunc, e := checkFuzzFunc(c)
+	usingFuzzFunc, files, e := checkFuzzFunc(c)
 	if e != nil {
 		return checker.FuzzingData{}, fmt.Errorf("%w", e)
 	}
 	if usingFuzzFunc {
 		fuzzers = append(fuzzers,
 			checker.Tool{
-				Name: "User-defined Fuzz Func",
-				URL:  asPointer("URL to be determined"),
-				Desc: asPointer("Description to be determined"),
-				// TODO: File.
+				Name: "user-defined fuzz functions",
+				URL:  asPointer(languageFuzzSpecsMap["go"].langFuzzDocumentURL),
+				Desc: asPointer(languageFuzzSpecsMap["go"].langFuzzDesc),
+				File: &files[0],
 			},
 		)
 	}
@@ -127,35 +131,38 @@ func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 	return result.Hits > 0, nil
 }
 
-func checkFuzzFunc(c *checker.CheckRequest) (bool, error) {
+func checkFuzzFunc(c *checker.CheckRequest) (bool, []checker.File, error) {
 	if c.RepoClient == nil {
-		return false, nil
+		return false, nil, nil
 	}
 	// Use GitHub API to decide the primary programming language to be checked for the repo.
 	// Currently, we only perform the fuzzing check for a single language per repo.
 	// TODO: maybe add multi-language fuzzing check for each repo.
-	languageToBeChecked := ""
-	languagePat, found := languageFuzzSpecsMap["languageToBeChecked"]
+	// languageToBeChecked := c.Repo.Languages()
+	languageToBeChecked := "go"
+	languagePat, found := languageFuzzSpecsMap[languageToBeChecked]
 	if !found {
-		fmt.Errorf("language fuzz patterns not found for %s", languageToBeChecked)
-		return false, nil
+		return false, nil, fmt.Errorf("current repo language %s not supported", languageToBeChecked)
 	}
-	filePattern, funcPattern := languagePat.fuzzFileRegexPat, languagePat.fuzzFuncRegexPat
+	filePattern, funcPattern := languagePat.fuzzFileMatchPattern, languagePat.fuzzFuncRegexPattern
 	if filePattern == "" || funcPattern == "" {
-		fmt.Errorf("file/func fuzz patterns not found for %s", languageToBeChecked)
-		return false, nil
+		return false, nil, fmt.Errorf("file/func fuzz patterns not found for %s", languageToBeChecked)
 	}
 
 	matcher := fileparser.PathMatcher{
 		Pattern:       filePattern,
 		CaseSensitive: false,
 	}
-	err := fileparser.OnMatchingFileContentDo(c.RepoClient, matcher, getFuzzFunc, funcPattern)
-	if err != nil {
-		fmt.Errorf("error when OnMatchingFileContentDo")
-		return false, err
+
+	data := filesWithPatternStr{
+		files:   make([]checker.File, 0),
+		pattern: funcPattern,
 	}
-	return false, nil
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, matcher, getFuzzFunc, &data)
+	if err != nil {
+		return false, nil, fmt.Errorf("error when OnMatchingFileContentDo: %w", err)
+	}
+	return true, data.files, nil
 }
 
 // This is the callback func for interface OnMatchingFileContentDo,
@@ -165,9 +172,23 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(path string, content 
 	if len(args) != 1 {
 		return false, fmt.Errorf("getFuzzFunc requires exactly one argument: %w", errInvalidArgLength)
 	}
-	fuzzFuncPat, ok := args[0].(string)
+	pdata, ok := args[0].(*filesWithPatternStr)
 	if !ok {
 		return false, fmt.Errorf("invalid arg type: %w", errInvalidArgType)
 	}
-	return false, nil
+	r, _ := regexp.Compile(pdata.pattern)
+	lines := strings.Split(string(content), `\n`)
+
+	for i, line := range lines {
+		found := r.FindString(line)
+		if found != "" {
+			pdata.files = append(pdata.files, checker.File{
+				Path:    path,
+				Type:    checker.FileTypeSource,
+				Snippet: found,
+				Offset:  uint(i + 1),
+			})
+		}
+	}
+	return true, nil
 }
