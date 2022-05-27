@@ -33,11 +33,14 @@ func getBranchName(branch *clients.BranchRef) string {
 	return *branch.Name
 }
 
-func getBranch(branches []*clients.BranchRef, name string) *clients.BranchRef {
+func getBranch(branches []*clients.BranchRef, name string, isNonAdmin bool) *clients.BranchRef {
 	for _, branch := range branches {
 		branchName := getBranchName(branch)
 		if branchName == name {
-			return branch
+			if !isNonAdmin {
+				return branch
+			}
+			return scrubBranch(branch)
 		}
 	}
 	return nil
@@ -46,14 +49,6 @@ func getBranch(branches []*clients.BranchRef, name string) *clients.BranchRef {
 func scrubBranch(branch *clients.BranchRef) *clients.BranchRef {
 	ret := branch
 	ret.BranchProtectionRule = clients.BranchProtectionRule{}
-	return ret
-}
-
-func scrubBranches(branches []*clients.BranchRef) []*clients.BranchRef {
-	ret := make([]*clients.BranchRef, len(branches))
-	for i, branch := range branches {
-		ret[i] = scrubBranch(branch)
-	}
 	return ret
 }
 
@@ -399,10 +394,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			mockRepoClient.EXPECT().GetDefaultBranch().
 				DoAndReturn(func() (*clients.BranchRef, error) {
-					defaultBranch := getBranch(tt.branches, tt.defaultBranch)
-					if defaultBranch != nil && tt.nonadmin {
-						return scrubBranch(defaultBranch), nil
-					}
+					defaultBranch := getBranch(tt.branches, tt.defaultBranch, tt.nonadmin)
 					return defaultBranch, nil
 				}).AnyTimes()
 			mockRepoClient.EXPECT().ListReleases().
@@ -415,12 +407,9 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					}
 					return ret, nil
 				}).AnyTimes()
-			mockRepoClient.EXPECT().ListBranches().
-				DoAndReturn(func() ([]*clients.BranchRef, error) {
-					if tt.nonadmin {
-						return scrubBranches(tt.branches), nil
-					}
-					return tt.branches, nil
+			mockRepoClient.EXPECT().GetBranch(gomock.Any()).
+				DoAndReturn(func(b string) (*clients.BranchRef, error) {
+					return getBranch(tt.branches, b, tt.nonadmin), nil
 				}).AnyTimes()
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
