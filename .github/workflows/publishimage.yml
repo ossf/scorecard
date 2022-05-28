@@ -22,11 +22,13 @@ permissions:
 on:
   push:
     branches:
-    - main
+      - main
 env:
   GO_VERSION: 1.17.7
 
 jobs:
+  env:
+    COSIGN_EXPERIMENTAL: "true"
   unit-test:
     name: publishimage
     runs-on: ubuntu-latest
@@ -56,3 +58,8 @@ jobs:
             go env -w GOFLAGS=-mod=mod
             make install
             make scorecard-ko
+     - name: Install Cosign
+       uses: sigstore/cosign-installer@f700e6fbbab82f6897758a3af7a8dede4e308656 # v1.2.1
+     - name: Sign image
+        run: |
+          cosign sign ghcr.io/${{github.repository_owner}}/stunning-tribble:${{ github.sha }}
