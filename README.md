@@ -43,6 +43,10 @@
 ________________________________________________________________________________
 ________________________________________________________________________________
 
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/ossf/scorecard.svg)](https://starchart.cc/ossf/scorecard)
+
 ## Overview
 
 ### What is Scorecards?
