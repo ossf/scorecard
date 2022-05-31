@@ -40,7 +40,6 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 		}
 		if msg.Type == checker.FileTypeURL {
 			msg.Text = "security policy detected in org repo"
-
 		} else {
 			msg.Text = "security policy detected in current repo"
 		}

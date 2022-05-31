@@ -31,7 +31,10 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-var errInputRepoType = errors.New("input repo should be of type repoLocal")
+var (
+	_                clients.RepoClient = &localDirClient{}
+	errInputRepoType                    = errors.New("input repo should be of type repoLocal")
+)
 
 //nolint:govet
 type localDirClient struct {
@@ -156,8 +159,8 @@ func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
 	return getFileContent(client.path, filename)
 }
 
-// ListBranches implements RepoClient.ListBranches.
-func (client *localDirClient) ListBranches() ([]*clients.BranchRef, error) {
+// GetBranch implements RepoClient.GetBranch.
+func (client *localDirClient) GetBranch(branch string) (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
 }
 
