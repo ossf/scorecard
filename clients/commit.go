@@ -21,6 +21,6 @@ type Commit struct {
 	CommittedDate          time.Time
 	Message                string
 	SHA                    string
-	Committer              User
 	AssociatedMergeRequest PullRequest
+	Committer              User
 }
