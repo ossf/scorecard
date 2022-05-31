@@ -43,6 +43,8 @@
 ________________________________________________________________________________
 ________________________________________________________________________________
 
+
+
 ## Overview
 
 ### What is Scorecards?
@@ -470,3 +472,7 @@ Slack Channel                 | [#security_scorecards](https://slack.openssf.org
 ### Report a Security Issue
 
 To report a security issue, please follow instructions [here](SECURITY.md).
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/ossf/scorecard.svg)](https://starchart.cc/ossf/scorecard)
