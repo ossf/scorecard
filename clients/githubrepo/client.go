@@ -30,7 +30,10 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-var errInputRepoType = errors.New("input repo should be of type repoURL")
+var (
+	_                clients.RepoClient = &Client{}
+	errInputRepoType                    = errors.New("input repo should be of type repoURL")
+)
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
@@ -149,9 +152,9 @@ func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return client.branches.getDefaultBranch()
 }
 
-// ListBranches implements RepoClient.ListBranches.
-func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
-	return client.branches.listBranches()
+// GetBranch implements RepoClient.GetBranch.
+func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
+	return client.branches.getBranch(branch)
 }
 
 // ListWebhooks implements RepoClient.ListWebhooks.

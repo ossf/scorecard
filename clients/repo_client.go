@@ -32,7 +32,7 @@ type RepoClient interface {
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)
 	GetFileContent(filename string) ([]byte, error)
-	ListBranches() ([]*BranchRef, error)
+	GetBranch(branch string) (*BranchRef, error)
 	GetDefaultBranch() (*BranchRef, error)
 	ListCommits() ([]Commit, error)
 	ListIssues() ([]Issue, error)

@@ -17,6 +17,7 @@ package raw
 import (
 	"errors"
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -27,17 +28,24 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
+type securityPolicyFilesWithURI struct {
+	uri   string
+	files []checker.File
+}
+
 // SecurityPolicy checks for presence of security policy.
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
-	files := make([]checker.File, 0)
-	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &files)
+	data := securityPolicyFilesWithURI{
+		uri:   "",
+		files: make([]checker.File, 0),
+	}
+	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &data)
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
 	}
-
 	// If we found files in the repo, return immediately.
-	if len(files) > 0 {
-		return checker.SecurityPolicyData{Files: files}, nil
+	if len(data.files) > 0 {
+		return checker.SecurityPolicyData{Files: data.files}, nil
 	}
 
 	// Check if present in parent org.
@@ -49,8 +57,8 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	switch {
 	case err == nil:
 		defer dotGitHubClient.Close()
-
-		err = fileparser.OnAllFilesDo(dotGitHubClient, isSecurityPolicyFile, &files)
+		data.uri = dotGitHubClient.URI()
+		err = fileparser.OnAllFilesDo(dotGitHubClient, isSecurityPolicyFile, &data)
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
 		}
@@ -62,7 +70,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	}
 
 	// Return raw results.
-	return checker.SecurityPolicyData{Files: files}, nil
+	return checker.SecurityPolicyData{Files: data.files}, nil
 }
 
 // Check repository for repository-specific policy.
@@ -71,14 +79,20 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 	if len(args) != 1 {
 		return false, fmt.Errorf("isSecurityPolicyFile requires exactly one argument: %w", errInvalidArgLength)
 	}
-	pfiles, ok := args[0].(*[]checker.File)
+	pdata, ok := args[0].(*securityPolicyFilesWithURI)
 	if !ok {
-		return false, fmt.Errorf("isSecurityPolicyFile expects arg of type: *[]checker.File: %w", errInvalidArgType)
+		return false, fmt.Errorf("invalid arg type: %w", errInvalidArgType)
 	}
 	if isSecurityPolicyFilename(name) {
-		*pfiles = append(*pfiles, checker.File{
-			Path:   name,
-			Type:   checker.FileTypeSource,
+		tempPath := name
+		tempType := checker.FileTypeSource
+		if pdata.uri != "" {
+			tempPath = path.Join(pdata.uri, tempPath)
+			tempType = checker.FileTypeURL
+		}
+		pdata.files = append(pdata.files, checker.File{
+			Path:   tempPath,
+			Type:   tempType,
 			Offset: checker.OffsetDefault,
 		})
 		return false, nil

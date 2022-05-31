@@ -17,5 +17,5 @@ steps:
   args: ['build', '.',
   '-t', 'gcr.io/openssf/scorecard-webhook-releasetest:$COMMIT_SHA',
   '-t', 'gcr.io/openssf/scorecard-webhook-releasetest:latest',
-  '-f', 'cron/webhook/Dockerfile']
+  '-f', 'cron/internal/webhook/Dockerfile']
 images: ['gcr.io/openssf/scorecard-webhook-releasetest']
