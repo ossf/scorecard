@@ -457,9 +457,9 @@ func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) e
 			URL:  f.URL,
 			Desc: f.Desc,
 		}
-		if f.File != nil {
+		if f.File != nil && len(f.File) == 1 {
 			jt.File = &jsonFile{
-				Path: f.File.Path,
+				Path: f.File[0].Path,
 			}
 		}
 		r.Results.Fuzzers = append(r.Results.Fuzzers, jt)
@@ -477,9 +477,9 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 			URL:  t.URL,
 			Desc: t.Desc,
 		}
-		if t.File != nil {
+		if t.File != nil && len(t.File) == 1 {
 			jt.File = &jsonFile{
-				Path: t.File.Path,
+				Path: t.File[0].Path,
 			}
 		}
 		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jt)

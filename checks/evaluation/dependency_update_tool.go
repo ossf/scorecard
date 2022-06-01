@@ -56,12 +56,16 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 
 	// Note: only one file per tool is present,
 	// so we do not iterate thru all entries.
-	dl.Info(&checker.LogMessage{
-		Path:   r.Tools[0].File.Path,
-		Type:   r.Tools[0].File.Type,
-		Offset: r.Tools[0].File.Offset,
-		Text:   fmt.Sprintf("%s detected", r.Tools[0].Name),
-	})
+	// Modified by AidenW on 05/31/2022: now Tool.File is a type of []File,
+	// so we need to do iterations on the files.
+	for _, file := range r.Tools[0].File {
+		dl.Info(&checker.LogMessage{
+			Path:   file.Path,
+			Type:   file.Type,
+			Offset: file.Offset,
+			Text:   fmt.Sprintf("%s detected", r.Tools[0].Name),
+		})
+	}
 
 	// High score result.
 	return checker.CreateMaxScoreResult(name, "update tool detected")

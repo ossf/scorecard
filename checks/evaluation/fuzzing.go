@@ -16,8 +16,10 @@ package evaluation
 
 import (
 	"fmt"
+	"path"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -32,6 +34,17 @@ func Fuzzing(name string, dl checker.DetailLogger,
 
 	for i := range r.Fuzzers {
 		fuzzer := r.Fuzzers[i]
+		if fuzzer.Name == raw.FuzzNameUserDefinedFunc {
+			for _, f := range fuzzer.File {
+				msg := checker.LogMessage{
+					Path:   path.Join(f.Path, f.Snippet),
+					Type:   f.Type,
+					Offset: f.Offset,
+				}
+				dl.Info(&msg)
+			}
+		}
+		// Otherwise, the fuzzer is either OSS-Fuzz or CFL
 		return checker.CreateMaxScoreResult(name,
 			fmt.Sprintf("project is fuzzed with %s", fuzzer.Name))
 	}

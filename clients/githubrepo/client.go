@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path"
 
 	"github.com/google/go-github/v38/github"
 	"github.com/ossf/scorecard/v4/clients"
@@ -176,12 +177,21 @@ func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 	return client.statuses.listStatuses(ref)
 }
 
-// ListProgrammingLanguages implments RepoClient.ListProgrammingLanguages.
-// TODO: Aiden needs to finish this implementation soon
-// func (client *Client) ListProgrammingLanguages(ref string) ([]string, error) {
-
-// 	return nil, nil
-// }
+//ListProgrammingLanguages implments RepoClient.ListProgrammingLanguages.
+func (client *Client) ListProgrammingLanguages() (map[string]int, error) {
+	reqURL := path.Join("https://api.github.com/repos", *client.repo.Owner.Login, *client.repo.Name, "languages")
+	req, err := client.repoClient.NewRequest("GET", reqURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("http request for repo languages failed with %w", err)
+	}
+	fmt.Println(req)
+	resp, err := client.repoClient.Do(client.ctx, req, nil)
+	if err != nil {
+		return nil, fmt.Errorf("http response for repo languages failed with %w", err)
+	}
+	fmt.Println(resp)
+	return nil, nil
+}
 
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {

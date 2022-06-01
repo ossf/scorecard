@@ -118,7 +118,7 @@ type BranchProtectionsData struct {
 type Tool struct {
 	URL  *string
 	Desc *string
-	File *File
+	File []File
 	Name string
 	// Runs of the tool.
 	Runs []Run
