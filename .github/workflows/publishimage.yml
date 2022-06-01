@@ -14,10 +14,7 @@
 
 name: publishimage
 
-permissions:
-  contents: read
-  id-token: write
-  packages: write
+permissions: read-all
 
 on:
   push:
@@ -30,6 +27,10 @@ jobs:
   unit-test:
     name: publishimage
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     env:
       COSIGN_EXPERIMENTAL: "true"
     steps:
