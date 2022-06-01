@@ -113,10 +113,10 @@ type jsonMergeRequest struct {
 
 type jsonDefaultBranchCommit struct {
 	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
-	Committer     jsonUser          `json:"committer"`
 	MergeRequest  *jsonMergeRequest `json:"mergeRequest"`
 	CommitMessage string            `json:"commitMessage"`
 	SHA           string            `json:"sha"`
+	Committer     jsonUser          `json:"committer"`
 	// TODO: check runs, etc.
 }
 
@@ -178,13 +178,6 @@ type jsonWorkflow struct {
 type jsonWorkflowJob struct {
 	Name *string `json:"name"`
 	ID   *string `json:"id"`
-}
-
-type jsonFuzzer struct {
-	Job  *jsonWorkflowJob `json:"job,omitempty"`
-	File *jsonFile        `json:"file,omitempty"`
-	Name string           `json:"name"`
-	// TODO: (#1933)
 }
 
 // nolint
