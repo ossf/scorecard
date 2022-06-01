@@ -100,9 +100,9 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "download then run pinned debug",
 			dependencies: []checker.Dependency{
 				{
-					File: &checker.File{},
-					Msg:  asPointer("some message"),
-					Type: checker.DependencyUseTypeDownloadThenRun,
+					Location: &checker.File{},
+					Msg:      asPointer("some message"),
+					Type:     checker.DependencyUseTypeDownloadThenRun,
 				},
 			},
 			expected: scut.TestReturn{
@@ -117,13 +117,13 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "download then run pinned debug and warn",
 			dependencies: []checker.Dependency{
 				{
-					File: &checker.File{},
-					Msg:  asPointer("some message"),
-					Type: checker.DependencyUseTypeDownloadThenRun,
+					Location: &checker.File{},
+					Msg:      asPointer("some message"),
+					Type:     checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
-					File: &checker.File{},
-					Type: checker.DependencyUseTypeDownloadThenRun,
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeDownloadThenRun,
 				},
 			},
 			expected: scut.TestReturn{
@@ -138,20 +138,20 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "various wanrings",
 			dependencies: []checker.Dependency{
 				{
-					File: &checker.File{},
-					Type: checker.DependencyUseTypePipCommand,
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
 				},
 				{
-					File: &checker.File{},
-					Type: checker.DependencyUseTypeDownloadThenRun,
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
-					File: &checker.File{},
-					Type: checker.DependencyUseTypeDockerfileContainerImage,
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeDockerfileContainerImage,
 				},
 				{
-					File: &checker.File{},
-					Msg:  asPointer("debug message"),
+					Location: &checker.File{},
+					Msg:      asPointer("debug message"),
 				},
 			},
 			expected: scut.TestReturn{

@@ -353,10 +353,10 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 
 			for _, expectedDep := range tt.expected {
 				isExpectedDep := func(dep checker.Dependency) bool {
-					return dep.File.Offset == expectedDep.startLine &&
-						dep.File.EndOffset == expectedDep.endLine &&
-						dep.File.Path == tt.filename &&
-						dep.File.Snippet == expectedDep.snippet &&
+					return dep.Location.Offset == expectedDep.startLine &&
+						dep.Location.EndOffset == expectedDep.endLine &&
+						dep.Location.Path == tt.filename &&
+						dep.Location.Snippet == expectedDep.snippet &&
 						dep.Type == checker.DependencyUseTypeDockerfileContainerImage
 				}
 
@@ -530,10 +530,10 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 
 			for _, expectedDep := range tt.expected {
 				isExpectedDep := func(dep checker.Dependency) bool {
-					return dep.File.Offset == expectedDep.startLine &&
-						dep.File.EndOffset == expectedDep.endLine &&
-						dep.File.Path == tt.filename &&
-						dep.File.Snippet == expectedDep.snippet &&
+					return dep.Location.Offset == expectedDep.startLine &&
+						dep.Location.EndOffset == expectedDep.endLine &&
+						dep.Location.Path == tt.filename &&
+						dep.Location.Snippet == expectedDep.snippet &&
 						dep.Type == expectedDep.t
 				}
 
@@ -637,11 +637,11 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 
 			for _, expectedDep := range tt.expected {
 				isExpectedDep := func(dep checker.Dependency) bool {
-					return dep.File.Offset == expectedDep.startLine &&
-						dep.File.EndOffset == expectedDep.endLine &&
-						dep.File.Path == tt.filename &&
+					return dep.Location.Offset == expectedDep.startLine &&
+						dep.Location.EndOffset == expectedDep.endLine &&
+						dep.Location.Path == tt.filename &&
 						dep.Type == expectedDep.t &&
-						dep.File.Snippet == expectedDep.snippet
+						dep.Location.Snippet == expectedDep.snippet
 				}
 
 				if !scut.ValidatePinningDependencies(isExpectedDep, &r) {
@@ -1101,10 +1101,10 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			_, err = validateGitHubActionWorkflow(p, content, &r)
 			for _, expectedDep := range tt.expected {
 				isExpectedDep := func(dep checker.Dependency) bool {
-					return dep.File.Offset == expectedDep.startLine &&
-						dep.File.EndOffset == expectedDep.endLine &&
-						dep.File.Path == p &&
-						dep.File.Snippet == expectedDep.dependency &&
+					return dep.Location.Offset == expectedDep.startLine &&
+						dep.Location.EndOffset == expectedDep.endLine &&
+						dep.Location.Path == p &&
+						dep.Location.Snippet == expectedDep.dependency &&
 						dep.Type == checker.DependencyUseTypeGHAction
 				}
 
@@ -1172,10 +1172,10 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 
 			for _, expectedDep := range tt.expected {
 				isExpectedDep := func(dep checker.Dependency) bool {
-					return dep.File.Offset == expectedDep.startLine &&
-						dep.File.EndOffset == expectedDep.endLine &&
-						dep.File.Path == p &&
-						dep.File.Snippet == expectedDep.snippet &&
+					return dep.Location.Offset == expectedDep.startLine &&
+						dep.Location.EndOffset == expectedDep.endLine &&
+						dep.Location.Path == p &&
+						dep.Location.Snippet == expectedDep.snippet &&
 						dep.Type == checker.DependencyUseTypeDownloadThenRun
 				}
 
