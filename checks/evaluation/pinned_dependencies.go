@@ -121,21 +121,14 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
-	// Action script downloads.
-	actionScriptScore, err := createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(pr, dl)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
-	}
-
 	// Scores may be inconclusive.
 	actionScore = maxScore(0, actionScore)
 	dockerFromScore = maxScore(0, dockerFromScore)
 	dockerDownloadScore = maxScore(0, dockerDownloadScore)
 	scriptScore = maxScore(0, scriptScore)
-	actionScriptScore = maxScore(0, actionScriptScore)
 
 	score := checker.AggregateScores(actionScore, dockerFromScore,
-		dockerDownloadScore, scriptScore, actionScriptScore)
+		dockerDownloadScore, scriptScore)
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "all dependencies are pinned")
@@ -232,15 +225,6 @@ func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
 	} else {
 		addPinnedResult(&w.thirdParties, to)
 	}
-}
-
-// Create the result for scripts in GH workflows.
-func createReturnForIsGitHubWorkflowScriptFreeOfInsecureDownloads(pr map[checker.DependencyUseType]pinnedResult,
-	dl checker.DetailLogger,
-) (int, error) {
-	return createReturnValues(pr, checker.DependencyUseTypeDownloadThenRun,
-		"no insecure (not pinned by hash) dependency downloads found in GitHub workflows",
-		dl)
 }
 
 // Create the result for scripts.
