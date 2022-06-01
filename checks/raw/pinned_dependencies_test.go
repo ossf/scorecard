@@ -891,7 +891,6 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "invalid shell script",
 			filename: "./testdata/script-invalid.sh",
-			debugs:   1,
 		},
 	}
 	for _, tt := range tests {
