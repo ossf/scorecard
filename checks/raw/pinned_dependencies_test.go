@@ -82,7 +82,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			p = strings.Replace(p, "../testdata/", "", 1)
 
 			var r checker.PinningDependenciesData
-			
+			//nolint:ineffassign
 			_, err = validateGitHubActionWorkflow(p, content, &r)
 			if !errCmp(err, tt.err) {
 				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
