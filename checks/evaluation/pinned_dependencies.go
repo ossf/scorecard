@@ -56,8 +56,14 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]
 		if rr.Location == nil {
-			e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
-			return checker.CreateRuntimeErrorResult(name, e)
+			if rr.Msg == nil {
+				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
+				return checker.CreateRuntimeErrorResult(name, e)
+			}
+			dl.Debug(&checker.LogMessage{
+				Text: *rr.Msg,
+			})
+			continue
 		}
 
 		if rr.Msg != nil {

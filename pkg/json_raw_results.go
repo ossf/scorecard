@@ -289,7 +289,7 @@ func (r *jsonScorecardRawResult) addDependencyPinningRawResults(pd *checker.Pinn
 	for i := range pd.Dependencies {
 		rr := pd.Dependencies[i]
 		if rr.Location == nil {
-			return fmt.Errorf("%w: empty Location", errorInvalidValue)
+			continue
 		}
 
 		v := jsonDependency{

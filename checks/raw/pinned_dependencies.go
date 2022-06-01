@@ -32,24 +32,24 @@ import (
 func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesData, error) {
 	var results checker.PinningDependenciesData
 	// GitHub actions.
-	if err := collectGitHubActionsWorkflowPinning(c, &results); err != nil {
-		return checker.PinningDependenciesData{}, err
-	}
+	// if err := collectGitHubActionsWorkflowPinning(c, &results); err != nil {
+	// 	return checker.PinningDependenciesData{}, err
+	// }
 
-	// Docker files.
-	if err := collectDockerfilePinning(c, &results); err != nil {
-		return checker.PinningDependenciesData{}, err
-	}
+	// // Docker files.
+	// if err := collectDockerfilePinning(c, &results); err != nil {
+	// 	return checker.PinningDependenciesData{}, err
+	// }
 
-	// Docker downloads.
-	if err := collectDockerfileInsecureDownloads(c, &results); err != nil {
-		return checker.PinningDependenciesData{}, err
-	}
+	// // Docker downloads.
+	// if err := collectDockerfileInsecureDownloads(c, &results); err != nil {
+	// 	return checker.PinningDependenciesData{}, err
+	// }
 
 	// Script downloads.
-	if err := collectShellScriptInsecureDownloads(c, &results); err != nil {
-		return checker.PinningDependenciesData{}, err
-	}
+	// if err := collectShellScriptInsecureDownloads(c, &results); err != nil {
+	// 	return checker.PinningDependenciesData{}, err
+	// }
 
 	// Action script downloads.
 	if err := collectGitHubWorkflowScriptInsecureDownloads(c, &results); err != nil {
@@ -392,7 +392,9 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
 			if err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line), uint(execRun.Run.Pos.Line),
 				script, taintedFiles, pdata); err != nil {
-				return false, err
+				pdata.Dependencies = append(pdata.Dependencies, checker.Dependency{
+					Msg: asPointer(err.Error()),
+				})
 			}
 		}
 	}

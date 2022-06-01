@@ -1009,15 +1009,5 @@ func isMatchingShellScriptFile(pathfn string, content []byte, shellsToMatch []st
 func validateShellFile(pathfn string, startLine, endLine uint,
 	content []byte, taintedFiles map[string]bool, r *checker.PinningDependenciesData,
 ) error {
-	err := validateShellFileAndRecord(pathfn, startLine, endLine, content, taintedFiles, r)
-	if err != nil {
-		// Print this particular error.
-		msg := err.Error()
-		r.Dependencies = append(r.Dependencies,
-			checker.Dependency{
-				Msg: &msg,
-			},
-		)
-	}
-	return err
+	return validateShellFileAndRecord(pathfn, startLine, endLine, content, taintedFiles, r)
 }
