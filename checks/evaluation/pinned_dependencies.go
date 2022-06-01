@@ -146,8 +146,7 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 }
 
 func generateRemediation(rr *checker.Dependency) *checker.Remediation {
-	switch rr.Type {
-	case checker.DependencyUseTypeGHAction:
+	if rr.Type == checker.DependencyUseTypeGHAction {
 		return remediation.CreateWorkflowPinningRemediation(rr.Location.Path)
 	}
 	return nil

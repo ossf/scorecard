@@ -283,6 +283,7 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 	}
 }
 
+//nolint:unparam
 func (r *jsonScorecardRawResult) addDependencyPinningRawResults(pd *checker.PinningDependenciesData) error {
 	r.Results.DependencyPinning = jsonPinningDependenciesData{}
 	for i := range pd.Dependencies {
