@@ -56,7 +56,7 @@ type jsonTool struct {
 }
 
 type jsonBranchProtectionSettings struct {
-	RequiredApprovingReviewCount        *int     `json:"requiredReviewerCount"`
+	RequiredApprovingReviewCount        *int32   `json:"requiredReviewerCount"`
 	AllowsDeletions                     *bool    `json:"allowsDeletions"`
 	AllowsForcePushes                   *bool    `json:"allowsForcePushes"`
 	RequiresCodeOwnerReviews            *bool    `json:"requiresCodeOwnerReview"`
