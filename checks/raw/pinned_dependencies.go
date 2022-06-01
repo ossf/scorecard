@@ -271,7 +271,9 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 						EndOffset: uint(child.EndLine),
 						Snippet:   child.Original,
 					},
-					Type: checker.DependencyUseTypeDockerfileContainerImage,
+					Name:     asPointer(name),
+					PinnedAt: asPointer(asName),
+					Type:     checker.DependencyUseTypeDockerfileContainerImage,
 				},
 			)
 
@@ -280,18 +282,24 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			name := valueList[0]
 			pinned := pinnedAsNames[name]
 			if !pinned && !regex.MatchString(name) {
-				pdata.Dependencies = append(pdata.Dependencies,
-					checker.Dependency{
-						File: &checker.File{
-							Path:      pathfn,
-							Type:      checker.FileTypeSource,
-							Offset:    uint(child.StartLine),
-							EndOffset: uint(child.EndLine),
-							Snippet:   child.Original,
-						},
-						Type: checker.DependencyUseTypeDockerfileContainerImage,
+				dep := checker.Dependency{
+					File: &checker.File{
+						Path:      pathfn,
+						Type:      checker.FileTypeSource,
+						Offset:    uint(child.StartLine),
+						EndOffset: uint(child.EndLine),
+						Snippet:   child.Original,
 					},
-				)
+					Type: checker.DependencyUseTypeDockerfileContainerImage,
+				}
+				parts := strings.SplitN(name, ":", 2)
+				if len(parts) > 0 {
+					dep.Name = asPointer(parts[0])
+					if len(parts) > 1 {
+						dep.PinnedAt = asPointer(parts[1])
+					}
+				}
+				pdata.Dependencies = append(pdata.Dependencies, dep)
 			}
 
 		default:
@@ -463,18 +471,24 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			// Example: action-name@hash
 			match := hashRegex.MatchString(execAction.Uses.Value)
 			if !match {
-				pdata.Dependencies = append(pdata.Dependencies,
-					checker.Dependency{
-						File: &checker.File{
-							Path:      pathfn,
-							Type:      checker.FileTypeSource,
-							Offset:    uint(execAction.Uses.Pos.Line),
-							EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
-							Snippet:   execAction.Uses.Value,
-						},
-						Type: checker.DependencyUseTypeGHAction,
+				dep := checker.Dependency{
+					File: &checker.File{
+						Path:      pathfn,
+						Type:      checker.FileTypeSource,
+						Offset:    uint(execAction.Uses.Pos.Line),
+						EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
+						Snippet:   execAction.Uses.Value,
 					},
-				)
+					Type: checker.DependencyUseTypeGHAction,
+				}
+				parts := strings.SplitN(execAction.Uses.Value, "@", 2)
+				if len(parts) > 0 {
+					dep.Name = asPointer(parts[0])
+					if len(parts) > 1 {
+						dep.PinnedAt = asPointer(parts[1])
+					}
+				}
+				pdata.Dependencies = append(pdata.Dependencies, dep)
 			}
 		}
 	}

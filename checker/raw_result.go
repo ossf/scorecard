@@ -70,19 +70,19 @@ type DependencyUseType string
 
 const (
 	// DependencyUseTypeGHAction is an action.
-	DependencyUseTypeGHAction DependencyUseType = "GitHub action"
+	DependencyUseTypeGHAction DependencyUseType = "GitHubAction"
 	// DependencyUseTypeDockerfileContainerImage a container image used via FROM.
-	DependencyUseTypeDockerfileContainerImage DependencyUseType = "container image"
+	DependencyUseTypeDockerfileContainerImage DependencyUseType = "containerImage"
 	// DependencyUseTypeDownloadThenRun is a download followed by a run.
-	DependencyUseTypeDownloadThenRun DependencyUseType = "download-then-run"
+	DependencyUseTypeDownloadThenRun DependencyUseType = "downloadThenRun"
 	// DependencyUseTypeGoCommand is a go command.
-	DependencyUseTypeGoCommand DependencyUseType = "go command"
+	DependencyUseTypeGoCommand DependencyUseType = "goCommand"
 	// DependencyUseTypeChocoCommand is a choco command.
-	DependencyUseTypeChocoCommand DependencyUseType = "choco command"
+	DependencyUseTypeChocoCommand DependencyUseType = "chocoCommand"
 	// DependencyUseTypeNpmCommand is an npm command.
-	DependencyUseTypeNpmCommand DependencyUseType = "npm command"
+	DependencyUseTypeNpmCommand DependencyUseType = "npmCommand"
 	// DependencyUseTypePipCommand is a pipp command.
-	DependencyUseTypePipCommand DependencyUseType = "pip command"
+	DependencyUseTypePipCommand DependencyUseType = "pipCommand"
 )
 
 // PinningDependenciesData represents pinned dependency data.
@@ -94,9 +94,11 @@ type PinningDependenciesData struct {
 type Dependency struct {
 	// TODO: unique dependency name.
 	// TODO: Job         *WorkflowJob
-	File *File
-	Msg  *string // Only for debug messages.
-	Type DependencyUseType
+	Name     *string
+	PinnedAt *string
+	File     *File
+	Msg      *string // Only for debug messages.
+	Type     DependencyUseType
 }
 
 // MaintainedData contains the raw results
