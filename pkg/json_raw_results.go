@@ -16,6 +16,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -39,17 +40,10 @@ type jsonScorecardRawResult struct {
 
 // TODO: separate each check extraction into its own file.
 type jsonFile struct {
-<<<<<<< HEAD
-	Snippet *string `json:"snippet,omitempty"`
-	Path    string  `json:"path"`
-	// TODO: change to an uint.
-	Offset int `json:"offset,omitempty"`
-=======
 	Snippet   *string `json:"snippet,omitempty"`
 	Path      string  `json:"path"`
 	Offset    uint    `json:"offset,omitempty"`
 	EndOffset uint    `json:"endOffset,omitempty"`
->>>>>>> 531d1d38 (draft)
 }
 
 type jsonTool struct {
@@ -200,7 +194,7 @@ type jsonRun struct {
 }
 
 type jsonPinningDependenciesData struct {
-	Dependencies []jsonDependency `json:"name"`
+	Dependencies []jsonDependency `json:"dependencies"`
 }
 
 type jsonDependency struct {
@@ -239,7 +233,7 @@ type jsonRawResults struct {
 	// structure for it.
 	Contributors jsonContributors `json:"Contributors"`
 	// Commits.
-	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBrancCommits"`
+	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBranchCommits"`
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
 	// Fuzzers.
@@ -248,6 +242,8 @@ type jsonRawResults struct {
 	Releases []jsonRelease `json:"releases"`
 	// Packages.
 	Packages []jsonPackage `json:"packages"`
+	// Dependency pinning.
+	DependencyPinning jsonPinningDependenciesData `json:"dependencyPinning"`
 }
 
 func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingData) error {
@@ -267,7 +263,7 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 
 		jpk.File = &jsonFile{
 			Path:   p.File.Path,
-			Offset: int(p.File.Offset),
+			Offset: p.File.Offset,
 			// TODO: Snippet
 		}
 
@@ -281,6 +277,7 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 
 		r.Results.Packages = append(r.Results.Packages, jpk)
 	}
+	return nil
 }
 
 //nolint:unparam
@@ -307,7 +304,7 @@ func (r *jsonScorecardRawResult) addDependencyPinningRawResults(pd *checker.Pinn
 			v.Location.Snippet = &rr.Location.Snippet
 		}
 
-		r.Results.DependencyPinning = append(r.Results.DependencyPinning, v)
+		r.Results.DependencyPinning.Dependencies = append(r.Results.DependencyPinning.Dependencies, v)
 	}
 	return nil
 }
