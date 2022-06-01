@@ -336,9 +336,8 @@ type JobMatchResult struct {
 	File checker.File
 }
 
-// RawAnyJobsMatch returns true if any of the jobs have a match in the given workflow.
-// TODO: Rename after migraiton is complete.
-func RawAnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp string,
+// AnyJobsMatch returns true if any of the jobs have a match in the given workflow.
+func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp string,
 	logMsgNoMatch string,
 ) (JobMatchResult, bool) {
 	for _, job := range workflow.Jobs {
@@ -366,35 +365,6 @@ func RawAnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp
 		},
 		Msg: fmt.Sprintf("%v: %v", logMsgNoMatch, fp),
 	}, false
-}
-
-// AnyJobsMatch returns true if any of the jobs have a match in the given workflow.
-func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp string, dl checker.DetailLogger,
-	logMsgNoMatch string,
-) bool {
-	for _, job := range workflow.Jobs {
-		for _, matcher := range jobMatchers {
-			if !matcher.matches(job) {
-				continue
-			}
-
-			dl.Info(&checker.LogMessage{
-				Path:   fp,
-				Type:   checker.FileTypeSource,
-				Offset: GetLineNumber(job.Pos),
-				Text:   matcher.LogText,
-			})
-			return true
-		}
-	}
-
-	dl.Debug(&checker.LogMessage{
-		Path:   fp,
-		Type:   checker.FileTypeSource,
-		Offset: checker.OffsetDefault,
-		Text:   logMsgNoMatch,
-	})
-	return false
 }
 
 // matches returns true if the job matches the job matcher.
@@ -454,4 +424,128 @@ func stepsMatch(stepToMatch *JobMatcherStep, step *actionlint.Step) bool {
 	}
 
 	return true
+}
+
+// IsPackagingWorkflow checks for a packaging workflow.
+func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResult, bool) {
+	jobMatchers := []JobMatcher{
+		{
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "actions/setup-node",
+					With: map[string]string{"registry-url": "https://registry.npmjs.org"},
+				},
+				{
+					Run: "npm.*publish",
+				},
+			},
+			LogText: "candidate node publishing workflow using npm",
+		},
+		{
+			// Java packages with maven.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "actions/setup-java",
+				},
+				{
+					Run: "mvn.*deploy",
+				},
+			},
+			LogText: "candidate java publishing workflow using maven",
+		},
+		{
+			// Java packages with gradle.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "actions/setup-java",
+				},
+				{
+					Run: "gradle.*publish",
+				},
+			},
+			LogText: "candidate java publishing workflow using gradle",
+		},
+		{
+			// Ruby packages.
+			Steps: []*JobMatcherStep{
+				{
+					Run: "gem.*push",
+				},
+			},
+			LogText: "candidate ruby publishing workflow using gem",
+		},
+		{
+			// NuGet packages.
+			Steps: []*JobMatcherStep{
+				{
+					Run: "nuget.*push",
+				},
+			},
+			LogText: "candidate nuget publishing workflow",
+		},
+		{
+			// Docker packages.
+			Steps: []*JobMatcherStep{
+				{
+					Run: "docker.*push",
+				},
+			},
+			LogText: "candidate docker publishing workflow",
+		},
+		{
+			// Docker packages.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "docker/build-push-action",
+				},
+			},
+			LogText: "candidate docker publishing workflow",
+		},
+		{
+			// Python packages.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "actions/setup-python",
+				},
+				{
+					Uses: "pypa/gh-action-pypi-publish",
+				},
+			},
+			LogText: "candidate python publishing workflow using pypi",
+		},
+		{
+			// Python packages.
+			// This is a custom Python packaging workflow based on semantic versioning.
+			// TODO(#1642): accept custom workflows through a separate configuration.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "relekang/python-semantic-release",
+				},
+			},
+			LogText: "candidate python publishing workflow using python-semantic-release",
+		},
+		{
+			// Go packages.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "actions/setup-go",
+				},
+				{
+					Uses: "goreleaser/goreleaser-action",
+				},
+			},
+			LogText: "candidate golang publishing workflow",
+		},
+		{
+			// Rust packages. https://doc.rust-lang.org/cargo/reference/publishing.html
+			Steps: []*JobMatcherStep{
+				{
+					Run: "cargo.*publish",
+				},
+			},
+			LogText: "candidate rust publishing workflow using cargo",
+		},
+	}
+
+	return AnyJobsMatch(workflow, jobMatchers, fp, "not a publishing workflow")
 }

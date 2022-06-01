@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 // CheckTokenPermissions is the exported name for Token-Permissions check.
@@ -71,7 +72,7 @@ func TokenPermissions(c *checker.CheckRequest) (checker.TokenPermissionsData, er
 		workflows: make(map[string]permissions),
 	}
 
-	if err := remdiationSetup(c); err != nil {
+	if err := remediation.Setup(c); err != nil {
 		return data.results, err
 	}
 
@@ -111,9 +112,6 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 		return false, fileparser.FormatActionlintError(errs)
 	}
 
-	// Temporary fix to have a DetailLogger necessary for calls to Packaging check.
-	dl := checker.NewLogger()
-
 	// 1. Top-level permission definitions.
 	//nolint
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#example-1-passing-the-github_token-as-an-input,
@@ -125,7 +123,7 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 
 	// 2. Run-level permission definitions,
 	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
-	ignoredPermissions := createIgnoredPermissions(workflow, path, dl, pdata)
+	ignoredPermissions := createIgnoredPermissions(workflow, path, pdata)
 	if err := validatejobLevelPermissions(workflow, path, pdata, ignoredPermissions); err != nil {
 		return false, err
 	}
@@ -160,7 +158,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 					LocationType: &permLoc,
 					Name:         &key,
 					Value:        &val,
-					Remediation:  createWorkflowPermissionRemediation(path),
+					Remediation:  remediation.CreateWorkflowPermissionRemediation(path),
 					Type:         checker.PermissionTypeWrite,
 					// TODO: Job
 				})
@@ -285,7 +283,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 					},
 					LocationType: &permLoc,
 					Value:        &val,
-					Remediation:  createWorkflowPermissionRemediation(path),
+					Remediation:  remediation.CreateWorkflowPermissionRemediation(path),
 					Type:         checker.PermissionTypeWrite,
 					// TODO: Job
 				})
@@ -329,7 +327,7 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 				},
 				LocationType: &permLoc,
 				Type:         checker.PermissionTypeUndeclared,
-				Remediation:  createWorkflowPermissionRemediation(path),
+				Remediation:  remediation.CreateWorkflowPermissionRemediation(path),
 				// TODO: Job
 			})
 
@@ -386,14 +384,14 @@ func isPermissionOfInterest(name permission, ignoredPermissions map[permission]b
 	return false
 }
 
-func createIgnoredPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger,
+func createIgnoredPermissions(workflow *actionlint.Workflow, fp string,
 	pdata *permissionCbData,
 ) map[permission]bool {
 	ignoredPermissions := make(map[permission]bool)
-	if requiresPackagesPermissions(workflow, fp, dl) {
+	if requiresPackagesPermissions(workflow, fp, pdata) {
 		ignoredPermissions[permissionPackages] = true
 	}
-	if requiresContentsPermissions(workflow, fp, dl) {
+	if requiresContentsPermissions(workflow, fp, pdata) {
 		ignoredPermissions[permissionContents] = true
 	}
 	if isSARIFUploadWorkflow(workflow, fp, pdata) {
@@ -513,29 +511,34 @@ func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, pdata *p
 	return false
 }
 
-func stringPointer(s string) *string {
-	return &s
-}
-
 // A packaging workflow using GitHub's supported packages:
 // https://docs.github.com/en/packages.
-func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
 	// TODO: add support for GitHub registries.
 	// Example: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry.
-	// This feature requires parsing actions properly.
-	// For now, we just re-use the Packaging check to verify that the
-	// workflow is a packaging workflow.
-	return false
-	// TODO: isPackagingWorkflow(workflow, fp, dl)
+	match, ok := fileparser.IsPackagingWorkflow(workflow, fp)
+	// Print debug messages.
+	pdata.results.TokenPermissions = append(pdata.results.TokenPermissions,
+		checker.TokenPermission{
+			File: &checker.File{
+				Path:   fp,
+				Type:   checker.FileTypeSource,
+				Offset: checker.OffsetDefault,
+			},
+			Msg:  &match.Msg,
+			Type: checker.PermissionTypeUnknown,
+		})
+
+	return ok
 }
 
 // requiresContentsPermissions returns true if the workflow requires the `contents: write` permission.
-func requiresContentsPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
-	return isReleasingWorkflow(workflow, fp, dl) || isGitHubPagesDeploymentWorkflow(workflow, fp, dl)
+func requiresContentsPermissions(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
+	return isReleasingWorkflow(workflow, fp, pdata) || isGitHubPagesDeploymentWorkflow(workflow, fp, pdata)
 }
 
 // isGitHubPagesDeploymentWorkflow returns true if the workflow involves pushing static pages to GitHub pages.
-func isGitHubPagesDeploymentWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+func isGitHubPagesDeploymentWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
 	jobMatchers := []fileparser.JobMatcher{
 		{
 			Steps: []*fileparser.JobMatcherStep{
@@ -546,11 +549,13 @@ func isGitHubPagesDeploymentWorkflow(workflow *actionlint.Workflow, fp string, d
 			LogText: "candidate GitHub page deployment workflow using peaceiris/actions-gh-pages",
 		},
 	}
-	return fileparser.AnyJobsMatch(workflow, jobMatchers, fp, dl, "not a GitHub Pages deployment workflow")
+
+	return isWorkflowOf(workflow, fp, jobMatchers,
+		"not a GitHub Pages deployment workflow", pdata)
 }
 
 // isReleasingWorkflow returns true if the workflow involves creating a release on GitHub.
-func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
 	jobMatchers := []fileparser.JobMatcher{
 		{
 			// Python packages.
@@ -576,5 +581,26 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 		},
 	}
 
-	return fileparser.AnyJobsMatch(workflow, jobMatchers, fp, dl, "not a releasing workflow")
+	return isWorkflowOf(workflow, fp, jobMatchers, "not a releasing workflow", pdata)
+}
+
+func isWorkflowOf(workflow *actionlint.Workflow, fp string,
+	jobMatchers []fileparser.JobMatcher, msg string,
+	pdata *permissionCbData,
+) bool {
+	match, ok := fileparser.AnyJobsMatch(workflow, jobMatchers, fp, msg)
+
+	// Print debug messages.
+	pdata.results.TokenPermissions = append(pdata.results.TokenPermissions,
+		checker.TokenPermission{
+			File: &checker.File{
+				Path:   fp,
+				Type:   checker.FileTypeSource,
+				Offset: checker.OffsetDefault,
+			},
+			Msg:  &match.Msg,
+			Type: checker.PermissionTypeUnknown,
+		})
+
+	return ok
 }

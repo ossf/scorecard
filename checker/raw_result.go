@@ -278,9 +278,7 @@ const (
 )
 
 // TokenPermission defines a token permission alert.
-//nolint
 type TokenPermission struct {
-	Type         PermissionType
 	Job          *WorkflowJob
 	Remediation  *Remediation
 	LocationType *PermissionLocation
@@ -288,4 +286,5 @@ type TokenPermission struct {
 	Value        *string
 	File         *File
 	Msg          *string
+	Type         PermissionType
 }

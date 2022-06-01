@@ -65,13 +65,11 @@ func calculateScore(results *checker.TokenPermissionsData, dl checker.DetailLogg
 		msg.Text = text
 
 		switch r.Type {
-		case checker.PermissionTypeOther:
+		case checker.PermissionTypeUnknown, checker.PermissionTypeNone,
+			checker.PermissionTypeRead:
 			dl.Debug(&msg)
 
-		case checker.PermissionTypeNone, checker.PermissionTypeRead:
-			dl.Info(&msg)
-
-		case checker.PermissionTypeWrite:
+		case checker.PermissionTypeWrite, checker.PermissionTypeUndeclared:
 			dl.Warn(&msg)
 			// TODO: construct a hash map indexed by workflow file.
 		}
@@ -93,22 +91,21 @@ func createMessage(t checker.TokenPermission) (string, error) {
 	}
 
 	// Use a different message depending on the type.
-	switch t.Type {
-	case checker.PermissionTypeUndefined:
-		return fmt.Sprintf("no %s permission defined",
-			checker.PermissionLocationToString(*t.LocationType)), nil
-
-	default:
-		if t.Name == nil || t.Value == nil {
-			return "", sce.WithMessage(sce.ErrScorecardInternal,
-				fmt.Sprintf("nil fields: %v, %v",
-					t.Name, t.Value))
-		}
-
-		return fmt.Sprintf("%s '%v' permission set to '%v'",
-			checker.PermissionLocationToString(*t.LocationType),
-			*t.Name, *t.Value), nil
+	if t.Type == checker.PermissionTypeUndeclared {
+		return fmt.Sprintf("no %s permission defined", *t.LocationType), nil
 	}
+
+	if t.Value == nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, "Value fields is nil")
+	}
+
+	if t.Name == nil {
+		return fmt.Sprintf("%s permissions set to '%v'", *t.LocationType,
+			*t.Value), nil
+	}
+
+	return fmt.Sprintf("%s '%v' permission set to '%v'", *t.LocationType,
+		*t.Name, *t.Value), nil
 }
 
 /*
