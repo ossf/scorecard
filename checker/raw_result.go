@@ -251,63 +251,31 @@ type TokenPermissionsData struct {
 }
 
 // PermissionLocation represents a declaration type.
-type PermissionLocation int
+type PermissionLocation string
 
 const (
 	// PermissionLocationTop is top-level workflow permission.
-	PermissionLocationTop = iota
+	PermissionLocationTop PermissionLocation = "topLevel"
 	// PermissionLocationJob is job-level workflow permission.
-	PermissionLocationJob
+	PermissionLocationJob PermissionLocation = "jobLevel"
 )
-
-// PermissionLocationToString stringifies a PermissionLocation.
-func PermissionLocationToString(l PermissionLocation) string {
-	switch l {
-	case PermissionLocationTop:
-		return "top-level"
-
-	case PermissionLocationJob:
-		return "job-level"
-
-	default:
-		return ""
-	}
-}
 
 // PermissionType represents a permission type.
-type PermissionType int
+type PermissionType string
 
 const (
-	// PermissionTypeUndefined an undecleared permission.
-	PermissionTypeUndefined = iota
+	// PermissionTypeUndeclared an undecleared permission.
+	PermissionTypeUndeclared PermissionType = "undeclared"
 	// PermissionTypeWrite is a permission set to `write` for a permission we consider potentially dangerous.
-	PermissionTypeWrite
+	PermissionTypeWrite PermissionType = "write"
 	// PermissionTypeRead is a permission set to `read`.
-	PermissionTypeRead
+	PermissionTypeRead PermissionType = "read"
 	// PermissionTypeNone is a permission set to `none`.
-	PermissionTypeNone
-	// PermissionTypeOther is for other kinds of alerts, mostly to support debug messages.
+	PermissionTypeNone PermissionType = "none"
+	// PermissionTypeUnknown is for other kinds of alerts, mostly to support debug messages.
 	// TODO: remove it once we have implemented severity (#1874).
-	PermissionTypeOther
+	PermissionTypeUnknown PermissionType = "unknown"
 )
-
-// PermissionTypeToString stringifies a PermissionType.
-func PermissionTypeToString(t PermissionType) string {
-	switch t {
-	case PermissionTypeUndefined:
-		return "undefined"
-
-	case PermissionTypeWrite:
-		return "write"
-	case PermissionTypeRead:
-		return "read"
-	case PermissionTypeNone:
-		return "none"
-
-	default:
-		return "unknown"
-	}
-}
 
 // TokenPermission defines a token permission alert.
 //nolint
