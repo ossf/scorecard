@@ -96,7 +96,7 @@ type Dependency struct {
 	// TODO: Job         *WorkflowJob
 	Name     *string
 	PinnedAt *string
-	File     *File
+	Location *File
 	Msg      *string // Only for debug messages.
 	Type     DependencyUseType
 }

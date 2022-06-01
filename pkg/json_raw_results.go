@@ -282,6 +282,31 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 
 		r.Results.Packages = append(r.Results.Packages, jpk)
 	}
+}
+
+func (r *jsonScorecardRawResult) addDependencyPinningRawResults(pd *checker.PinningDependenciesData) error {
+	r.Results.DependencyPinning = jsonPinningDependenciesData{}
+	for i := range pd.Dependencies {
+		rr := pd.Dependencies[i]
+		if rr.Location == nil {
+			return fmt.Errorf("%w: empty Location", errorInvalidValue)
+		}
+
+		v := jsonDependency{
+			File: &jsonFile{
+				Path:      rr.Location.Path,
+				Offset:    rr.Location.Offset,
+				EndOffset: rr.Location.EndOffset,
+			},
+			Type: string(rr.Type),
+		}
+
+		if rr.Location.Snippet != "" {
+			v.File.Snippet = &rr.Location.Snippet
+		}
+
+		r.Results.DependencyPinning = append(r.Results.DependencyPinning, v)
+	}
 	return nil
 }
 

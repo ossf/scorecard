@@ -264,7 +264,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 
 			pdata.Dependencies = append(pdata.Dependencies,
 				checker.Dependency{
-					File: &checker.File{
+					Location: &checker.File{
 						Path:      pathfn,
 						Type:      checker.FileTypeSource,
 						Offset:    uint(child.StartLine),
@@ -283,7 +283,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			pinned := pinnedAsNames[name]
 			if !pinned && !regex.MatchString(name) {
 				dep := checker.Dependency{
-					File: &checker.File{
+					Location: &checker.File{
 						Path:      pathfn,
 						Type:      checker.FileTypeSource,
 						Offset:    uint(child.StartLine),
@@ -472,7 +472,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			match := hashRegex.MatchString(execAction.Uses.Value)
 			if !match {
 				dep := checker.Dependency{
-					File: &checker.File{
+					Location: &checker.File{
 						Path:      pathfn,
 						Type:      checker.FileTypeSource,
 						Offset:    uint(execAction.Uses.Pos.Line),

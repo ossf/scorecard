@@ -55,19 +55,19 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]
-		if rr.File == nil {
+		if rr.Location == nil {
 			e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
 			return checker.CreateRuntimeErrorResult(name, e)
 		}
 
 		if rr.Msg != nil {
 			dl.Debug(&checker.LogMessage{
-				Path:      rr.File.Path,
-				Type:      rr.File.Type,
-				Offset:    rr.File.Offset,
-				EndOffset: rr.File.EndOffset,
+				Path:      rr.Location.Path,
+				Type:      rr.Location.Type,
+				Offset:    rr.Location.Offset,
+				EndOffset: rr.Location.EndOffset,
 				Text:      *rr.Msg,
-				Snippet:   rr.File.Snippet,
+				Snippet:   rr.Location.Snippet,
 			})
 		} else {
 			// Warn for inpinned dependency.
@@ -76,12 +76,12 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 				return checker.CreateRuntimeErrorResult(name, err)
 			}
 			dl.Warn(&checker.LogMessage{
-				Path:        rr.File.Path,
-				Type:        rr.File.Type,
-				Offset:      rr.File.Offset,
-				EndOffset:   rr.File.EndOffset,
+				Path:        rr.Location.Path,
+				Type:        rr.Location.Type,
+				Offset:      rr.Location.Offset,
+				EndOffset:   rr.Location.EndOffset,
 				Text:        text,
-				Snippet:     rr.File.Snippet,
+				Snippet:     rr.Location.Snippet,
 				Remediation: generateRemediation(&rr),
 			})
 
@@ -142,7 +142,7 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 func generateRemediation(rr *checker.Dependency) *checker.Remediation {
 	switch rr.Type {
 	case checker.DependencyUseTypeGHAction:
-		return remediation.CreateWorkflowPinningRemediation(rr.File.Path)
+		return remediation.CreateWorkflowPinningRemediation(rr.Location.Path)
 	}
 	return nil
 }
@@ -151,7 +151,7 @@ func updatePinningResults(rr *checker.Dependency,
 	wp *worklowPinningResult, pr map[checker.DependencyUseType]pinnedResult,
 ) {
 	if rr.Type == checker.DependencyUseTypeGHAction {
-		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.File.Snippet)
+		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
 		addWorkflowPinnedResult(wp, false, gitHubOwned)
 		return
 	}
@@ -168,7 +168,7 @@ func generateText(rr *checker.Dependency) (string, error) {
 	}
 	if rr.Type == checker.DependencyUseTypeGHAction {
 		// Check if we are dealing with a GitHub action or a third-party one.
-		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.File.Snippet)
+		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
 		owner := generateOwnerToDisplay(gitHubOwned)
 		return fmt.Sprintf("%s %s not pinned by hash", owner, rr.Type), nil
 	}
