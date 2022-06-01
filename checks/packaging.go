@@ -15,13 +15,9 @@
 package checks
 
 import (
-	"fmt"
-	"path/filepath"
-
-	"github.com/rhysd/actionlint"
-
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/fileparser"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -38,179 +34,16 @@ func init() {
 
 // Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
-	matchedFiles, err := c.RepoClient.ListFiles(fileparser.IsGithubWorkflowFileCb)
+	rawData, err := raw.Packaging(c)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListFiles: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
-	for _, fp := range matchedFiles {
-		fc, err := c.RepoClient.GetFileContent(fp)
-		if err != nil {
-			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.GetFileContent: %v", err))
-			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
-		}
-
-		workflow, errs := actionlint.Parse(fc)
-		if len(errs) > 0 && workflow == nil {
-			e := fileparser.FormatActionlintError(errs)
-			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
-		}
-		if !isPackagingWorkflow(workflow, fp, c.Dlogger) {
-			continue
-		}
-
-		runs, err := c.RepoClient.ListSuccessfulWorkflowRuns(filepath.Base(fp))
-		if err != nil {
-			e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Actions.ListWorkflowRunsByFileName: %v", err))
-			return checker.CreateRuntimeErrorResult(CheckPackaging, e)
-		}
-		if len(runs) > 0 {
-			c.Dlogger.Info(&checker.LogMessage{
-				Path:   fp,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
-				Text:   fmt.Sprintf("GitHub publishing workflow used in run %s", runs[0].URL),
-			})
-			return checker.CreateMaxScoreResult(CheckPackaging,
-				"publishing workflow detected")
-		}
-		c.Dlogger.Debug(&checker.LogMessage{
-			Path:   fp,
-			Type:   checker.FileTypeSource,
-			Offset: checker.OffsetDefault,
-			Text:   "GitHub publishing workflow not used in runs",
-		})
+	// Set the raw results.
+	if c.RawResults != nil {
+		c.RawResults.PackagingResults = rawData
 	}
 
-	c.Dlogger.Warn(&checker.LogMessage{
-		Text: "no GitHub publishing workflow detected",
-	})
-
-	return checker.CreateInconclusiveResult(CheckPackaging,
-		"no published package detected")
-}
-
-// A packaging workflow.
-func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
-	jobMatchers := []fileparser.JobMatcher{
-		{
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Uses: "actions/setup-node",
-					With: map[string]string{"registry-url": "https://registry.npmjs.org"},
-				},
-				{
-					Run: "npm.*publish",
-				},
-			},
-			LogText: "candidate node publishing workflow using npm",
-		},
-		{
-			// Java packages with maven.
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Uses: "actions/setup-java",
-				},
-				{
-					Run: "mvn.*deploy",
-				},
-			},
-			LogText: "candidate java publishing workflow using maven",
-		},
-		{
-			// Java packages with gradle.
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Uses: "actions/setup-java",
-				},
-				{
-					Run: "gradle.*publish",
-				},
-			},
-			LogText: "candidate java publishing workflow using gradle",
-		},
-		{
-			// Ruby packages.
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Run: "gem.*push",
-				},
-			},
-			LogText: "candidate ruby publishing workflow using gem",
-		},
-		{
-			// NuGet packages.
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Run: "nuget.*push",
-				},
-			},
-			LogText: "candidate nuget publishing workflow",
-		},
-		{
-			// Docker packages.
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Run: "docker.*push",
-				},
-			},
-			LogText: "candidate docker publishing workflow",
-		},
-		{
-			// Docker packages.
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Uses: "docker/build-push-action",
-				},
-			},
-			LogText: "candidate docker publishing workflow",
-		},
-		{
-			// Python packages.
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Uses: "actions/setup-python",
-				},
-				{
-					Uses: "pypa/gh-action-pypi-publish",
-				},
-			},
-			LogText: "candidate python publishing workflow using pypi",
-		},
-		{
-			// Python packages.
-			// This is a custom Python packaging workflow based on semantic versioning.
-			// TODO(#1642): accept custom workflows through a separate configuration.
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Uses: "relekang/python-semantic-release",
-				},
-			},
-			LogText: "candidate python publishing workflow using python-semantic-release",
-		},
-		{
-			// Go packages.
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Uses: "actions/setup-go",
-				},
-				{
-					Uses: "goreleaser/goreleaser-action",
-				},
-			},
-			LogText: "candidate golang publishing workflow",
-		},
-		{
-			// Rust packages. https://doc.rust-lang.org/cargo/reference/publishing.html
-			Steps: []*fileparser.JobMatcherStep{
-				{
-					Run: "cargo.*publish",
-				},
-			},
-			LogText: "candidate rust publishing workflow using cargo",
-		},
-	}
-
-	return fileparser.AnyJobsMatch(workflow, jobMatchers, fp, dl, "not a publishing workflow")
+	return evaluation.Packaging(CheckPackaging, c.Dlogger, &rawData)
 }

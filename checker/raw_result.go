@@ -22,6 +22,7 @@ import (
 // is applied.
 //nolint
 type RawResults struct {
+	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
 	DangerousWorkflowResults    DangerousWorkflowData
 	VulnerabilitiesResults      VulnerabilitiesData
@@ -41,6 +42,26 @@ type RawResults struct {
 // FuzzingData represents different fuzzing done.
 type FuzzingData struct {
 	Fuzzers []Tool
+}
+
+// TODO: Add Msg to all results.
+
+// PackagingData contains results for the Packaging check.
+type PackagingData struct {
+	Packages []Package
+}
+
+// Package represents a package.
+// nolint
+type Package struct {
+	// TODO: not supported yet. This needs to be unique across
+	// ecosystems: purl, OSV, CPE, etc.
+	Name *string
+	Job  *WorkflowJob
+	File *File
+	// Note: Msg is populated only for debug messages.
+	Msg  *string
+	Runs []Run
 }
 
 // MaintainedData contains the raw results
