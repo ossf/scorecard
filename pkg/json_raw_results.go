@@ -206,8 +206,10 @@ type jsonPinningDependenciesData struct {
 type jsonDependency struct {
 	// TODO: unique dependency name.
 	// TODO: Job         *WorkflowJob
-	File *jsonFile `json:"file"`
-	Type string    `json:"type"`
+	Location *jsonFile `json:"location"`
+	Name     *string   `json:"name"`
+	PinnedAt *string   `json:"pinnedAt"`
+	Type     string    `json:"type"`
 }
 
 //nolint
@@ -290,16 +292,18 @@ func (r *jsonScorecardRawResult) addDependencyPinningRawResults(pd *checker.Pinn
 		}
 
 		v := jsonDependency{
-			File: &jsonFile{
+			Location: &jsonFile{
 				Path:      rr.Location.Path,
 				Offset:    rr.Location.Offset,
 				EndOffset: rr.Location.EndOffset,
 			},
-			Type: string(rr.Type),
+			Name:     rr.Name,
+			PinnedAt: rr.PinnedAt,
+			Type:     string(rr.Type),
 		}
 
 		if rr.Location.Snippet != "" {
-			v.File.Snippet = &rr.Location.Snippet
+			v.Location.Snippet = &rr.Location.Snippet
 		}
 
 		r.Results.DependencyPinning = append(r.Results.DependencyPinning, v)
