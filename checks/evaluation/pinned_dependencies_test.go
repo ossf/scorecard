@@ -109,7 +109,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  6,
+				NumberOfInfo:  5,
 				NumberOfDebug: 1,
 			},
 		},
@@ -128,7 +128,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         4,
+				Score:         5,
 				NumberOfWarn:  1,
 				NumberOfInfo:  3,
 				NumberOfDebug: 1,
