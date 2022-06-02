@@ -185,7 +185,7 @@ func (client *localDirClient) ListReleases() ([]clients.Release, error) {
 }
 
 // ListContributors implements RepoClient.ListContributors.
-func (client *localDirClient) ListContributors() ([]clients.Contributor, error) {
+func (client *localDirClient) ListContributors() ([]clients.User, error) {
 	return nil, fmt.Errorf("ListContributors: %w", clients.ErrUnsupportedFeature)
 }
 

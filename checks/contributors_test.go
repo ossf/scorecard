@@ -34,13 +34,13 @@ func TestContributors(t *testing.T) {
 	tests := []struct {
 		err      error
 		name     string
-		contrib  []clients.Contributor
+		contrib  []clients.User
 		expected checker.CheckResult
 	}{
 		{
 			err:  nil,
 			name: "Two contributors without company",
-			contrib: []clients.Contributor{
+			contrib: []clients.User{
 				{
 					Organizations: []clients.User{
 						{
@@ -59,7 +59,7 @@ func TestContributors(t *testing.T) {
 		{
 			err:  nil,
 			name: "Valid contributors with enough contributors and companies",
-			contrib: []clients.Contributor{
+			contrib: []clients.User{
 				{
 
 					Companies:        []string{"company1"},
@@ -140,7 +140,7 @@ func TestContributors(t *testing.T) {
 		{
 			err:     nil,
 			name:    "No contributors",
-			contrib: []clients.Contributor{},
+			contrib: []clients.User{},
 			expected: checker.CheckResult{
 				Score: 0,
 			},
@@ -148,7 +148,7 @@ func TestContributors(t *testing.T) {
 		{
 			err:     errors.New("error"),
 			name:    "Error getting contributors",
-			contrib: []clients.Contributor{},
+			contrib: []clients.User{},
 			expected: checker.CheckResult{
 				Score: -1,
 			},
@@ -161,7 +161,7 @@ func TestContributors(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListContributors().DoAndReturn(func() ([]clients.Contributor, error) {
+			mockRepo.EXPECT().ListContributors().DoAndReturn(func() ([]clients.User, error) {
 				if tt.err != nil {
 					return nil, tt.err
 				}
