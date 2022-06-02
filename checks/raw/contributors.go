@@ -24,7 +24,7 @@ import (
 
 // Contributors retrieves the raw data for the Contributors check.
 func Contributors(c clients.RepoClient) (checker.ContributorsData, error) {
-	var users []clients.Contributor
+	var users []clients.User
 
 	contribs, err := c.ListContributors()
 	if err != nil {
@@ -32,8 +32,8 @@ func Contributors(c clients.RepoClient) (checker.ContributorsData, error) {
 	}
 
 	for _, contrib := range contribs {
-		user := clients.Contributor{
-			User:             contrib.User,
+		user := clients.User{
+			Login:            contrib.Login,
 			NumContributions: contrib.NumContributions,
 		}
 

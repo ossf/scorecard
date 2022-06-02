@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package raw
 
 import (
 	"fmt"
@@ -21,8 +21,6 @@ import (
 	"testing"
 
 	"github.com/rhysd/actionlint"
-
-	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestIsPackagingWorkflow(t *testing.T) {
@@ -80,7 +78,7 @@ func TestIsPackagingWorkflow(t *testing.T) {
 		},
 		{
 			name:     "python semantic release publish",
-			filename: "./testdata/github-workflow-packaging-python-semantic-release.yaml",
+			filename: "./testdata/.github/workflows/github-workflow-packaging-python-semantic-release.yaml",
 			expected: true,
 		},
 		{
@@ -106,12 +104,11 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			if len(errs) > 0 && workflow == nil {
 				panic(fmt.Errorf("cannot parse file: %w", err))
 			}
-			dl := scut.TestDetailLogger{}
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 
-			result := isPackagingWorkflow(workflow, p, &dl)
-			if result != tt.expected {
-				t.Errorf("isPackagingWorkflow() = %v, expected %v", result, tt.expected)
+			_, ok := isPackagingWorkflow(workflow, p)
+			if ok != tt.expected {
+				t.Errorf("isPackagingWorkflow() = %v, expected %v", ok, tt.expected)
 			}
 		})
 	}
