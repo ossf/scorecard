@@ -174,7 +174,7 @@ func checkFuzzFunc(c *checker.CheckRequest) (bool, []checker.File, error) {
 			return false, nil, fmt.Errorf("error when OnMatchingFileContentDo: %w", err)
 		}
 	}
-	if data.files == nil {
+	if len(data.files) == 0 {
 		return false, nil, nil
 	}
 	return true, data.files, nil

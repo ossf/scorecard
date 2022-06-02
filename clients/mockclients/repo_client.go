@@ -281,9 +281,9 @@ func (m *MockRepoClient) ListProgrammingLanguages() (map[string]int, error) {
 }
 
 // ListProgrammingLanguages indicates an expected call of ListProgrammingLanguages.
-func (mr *MockRepoClientMockRecorder) ListProgrammingLanguages(predicate interface{}) *gomock.Call {
+func (mr *MockRepoClientMockRecorder) ListProgrammingLanguages() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProgrammingLanguages", reflect.TypeOf((*MockRepoClient)(nil).ListProgrammingLanguages), predicate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProgrammingLanguages", reflect.TypeOf((*MockRepoClient)(nil).ListProgrammingLanguages))
 }
 
 // Search mocks base method.

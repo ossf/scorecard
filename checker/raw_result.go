@@ -147,6 +147,8 @@ type Tool struct {
 	Issues []clients.Issue
 	// Merge requests created by the tool.
 	MergeRequests []clients.PullRequest
+
+	// TODO: CodeCoverage, jsonWorkflowJob.
 }
 
 // Run represents a run.
