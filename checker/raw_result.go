@@ -147,10 +147,6 @@ type Tool struct {
 	Issues []clients.Issue
 	// Merge requests created by the tool.
 	MergeRequests []clients.PullRequest
-	// The ratio of language-specified fuzz coverage for
-	// prominent progrmaming languages in repo.
-	LanguageCoverage float32
-	// TODO: CodeCoverage, jsonWorkflowJob.
 }
 
 // Run represents a run.

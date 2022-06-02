@@ -43,18 +43,9 @@ func Fuzzing(name string, dl checker.DetailLogger,
 				}
 				dl.Info(&msg)
 			}
-			score := int(checker.MaxResultScore * fuzzer.LanguageCoverage)
-			return checker.CreateResultWithScore(
-				name,
-				fmt.Sprintf("project is fuzzed by %s, with a language coverage of %.2f", fuzzer.Name, fuzzer.LanguageCoverage),
-				score,
-			)
-		} else {
-			// Otherwise, the fuzzer is either OSS-Fuzz or CFL
-			return checker.CreateMaxScoreResult(name,
-				fmt.Sprintf("project is fuzzed with %s", fuzzer.Name))
 		}
+		return checker.CreateMaxScoreResult(name,
+			fmt.Sprintf("project is fuzzed with %s", fuzzer.Name))
 	}
-
 	return checker.CreateMinScoreResult(name, "project is not fuzzed")
 }

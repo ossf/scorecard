@@ -274,8 +274,16 @@ func (mr *MockRepoClientMockRecorder) ListWebhooks() *gomock.Call {
 
 func (m *MockRepoClient) ListProgrammingLanguages() (map[string]int, error) {
 	m.ctrl.T.Helper()
-	// TODO: Aiden: how do I implement this func for mockClient?
-	return nil, nil
+	ret := m.ctrl.Call(m, "ListProgrammingLanguages")
+	ret0, _ := ret[0].(map[string]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListProgrammingLanguages indicates an expected call of ListProgrammingLanguages.
+func (mr *MockRepoClientMockRecorder) ListProgrammingLanguages(predicate interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProgrammingLanguages", reflect.TypeOf((*MockRepoClient)(nil).ListProgrammingLanguages), predicate)
 }
 
 // Search mocks base method.
