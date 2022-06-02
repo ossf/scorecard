@@ -272,6 +272,12 @@ func (mr *MockRepoClientMockRecorder) ListWebhooks() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWebhooks", reflect.TypeOf((*MockRepoClient)(nil).ListWebhooks))
 }
 
+func (m *MockRepoClient) ListProgrammingLanguages() (map[string]int, error) {
+	m.ctrl.T.Helper()
+	// TODO: Aiden: how do I implement this func for mockClient?
+	return nil, nil
+}
+
 // Search mocks base method.
 func (m *MockRepoClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	m.ctrl.T.Helper()

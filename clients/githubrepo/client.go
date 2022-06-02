@@ -177,20 +177,19 @@ func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 	return client.statuses.listStatuses(ref)
 }
 
-//ListProgrammingLanguages implments RepoClient.ListProgrammingLanguages.
+//ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
 func (client *Client) ListProgrammingLanguages() (map[string]int, error) {
-	reqURL := path.Join("https://api.github.com/repos", *client.repo.Owner.Login, *client.repo.Name, "languages")
+	reqURL := path.Join("repos", *client.repo.Owner.Login, *client.repo.Name, "languages")
 	req, err := client.repoClient.NewRequest("GET", reqURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("http request for repo languages failed with %w", err)
+		return nil, fmt.Errorf("request for repo languages failed with %w", err)
 	}
-	fmt.Println(req)
-	resp, err := client.repoClient.Do(client.ctx, req, nil)
-	if err != nil {
-		return nil, fmt.Errorf("http response for repo languages failed with %w", err)
+	bodyJSON := map[string]int{}
+	_, errResp := client.repoClient.Do(client.ctx, req, &bodyJSON)
+	if errResp != nil {
+		return nil, fmt.Errorf("response for repo languages failed with %w", err)
 	}
-	fmt.Println(resp)
-	return nil, nil
+	return bodyJSON, nil
 }
 
 // Search implements RepoClient.Search.
