@@ -24,5 +24,4 @@ var (
 	errInvalidArgLength      = errors.New("invalid arg length")
 	errInvalidGitHubWorkflow = errors.New("invalid GitHub workflow")
 	errEmptyRepoClient       = errors.New("empty RepoClient")
-	errFuncParamIsNil        = errors.New("function parameter is nil")
 )
