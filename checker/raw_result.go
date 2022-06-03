@@ -137,10 +137,10 @@ type BranchProtectionsData struct {
 
 // Tool represents a tool.
 type Tool struct {
-	URL  *string
-	Desc *string
-	File []File
-	Name string
+	URL   *string
+	Desc  *string
+	Files []File
+	Name  string
 	// Runs of the tool.
 	Runs []Run
 	// Issues created by the tool.

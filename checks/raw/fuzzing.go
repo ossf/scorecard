@@ -27,10 +27,10 @@ import (
 )
 
 const (
-	FuzzNameOSSFuzz         = "OSS-Fuzz"
-	FuzzNameClusterFuzzLite = "ClusterFuzzLite"
-	FuzzNameUserDefinedFunc = "user-defined fuzz functions"
-	// TODO: add more fuzz check support.
+	fuzzNameOSSFuzz         = "OSSFuzz"
+	fuzzNameClusterFuzzLite = "ClusterFuzzLite"
+	fuzzNameBuiltInGo       = "GoBuiltInFuzzer"
+	// TODO: add more fuzzing check supports.
 )
 
 type filesWithPatternStr struct {
@@ -38,17 +38,21 @@ type filesWithPatternStr struct {
 	files   []checker.File
 }
 type languageFuzzConfig struct {
-	fuzzFileMatchPattern, fuzzFuncRegexPattern, langFuzzDocumentURL, langFuzzDesc string
+	fuzzFileMatchPattern, fuzzFuncRegexPattern, langFuzzName string
+	langFuzzDocumentURL, langFuzzDesc                        *string
 	//TODO: add more language fuzzing-related fields.
 }
 
 // Contains fuzzing speficications for programming languages.
 // Use lowercases as the key, such as go, python, javascript, c++, etc.
-var languageFuzzSpecsMap = map[string]languageFuzzConfig{
+var languageFuzzSpecs = map[string]languageFuzzConfig{
 	// Default fuzz patterns for Go.
 	"go": {
 		fuzzFileMatchPattern: "*_test.go",
 		fuzzFuncRegexPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
+		langFuzzName:         fuzzNameBuiltInGo,
+		langFuzzDocumentURL:  asPointer("https://go.dev/doc/fuzz/"),
+		langFuzzDesc:         asPointer("Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
@@ -63,7 +67,7 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 	if usingCFLite {
 		fuzzers = append(fuzzers,
 			checker.Tool{
-				Name: FuzzNameClusterFuzzLite,
+				Name: fuzzNameClusterFuzzLite,
 				URL:  asPointer("https://github.com/google/clusterfuzzlite"),
 				Desc: asPointer("continuous fuzzing solution that runs as part of Continuous Integration (CI) workflows"),
 				// TODO: File.
@@ -78,7 +82,7 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 	if usingOSSFuzz {
 		fuzzers = append(fuzzers,
 			checker.Tool{
-				Name: FuzzNameOSSFuzz,
+				Name: fuzzNameOSSFuzz,
 				URL:  asPointer("https://github.com/google/oss-fuzz"),
 				Desc: asPointer("Continuous Fuzzing for Open Source Software"),
 				// TODO: File.
@@ -86,19 +90,29 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		)
 	}
 
-	usingFuzzFunc, files, e := checkFuzzFunc(c)
-	if e != nil {
-		return checker.FuzzingData{}, fmt.Errorf("%w", e)
+	langMap, err := c.RepoClient.ListProgrammingLanguages()
+	if err != nil {
+		return checker.FuzzingData{}, fmt.Errorf("cannot get langs of repo: %w", err)
 	}
-	if usingFuzzFunc {
-		fuzzers = append(fuzzers,
-			checker.Tool{
-				Name: FuzzNameUserDefinedFunc,
-				URL:  asPointer("https://en.wikipedia.org/wiki/Fuzzing"),
-				Desc: asPointer("The function-level fuzzing walks through the source code to report failures and find vulnerabilities."),
-				File: files,
-			},
-		)
+	prominentLangs, err := getProminentLanguages(langMap)
+	if err != nil {
+		return checker.FuzzingData{}, fmt.Errorf("cannot get the prominent langs: %w", err)
+	}
+	for _, lang := range prominentLangs {
+		usingFuzzFunc, files, e := checkFuzzFunc(c, lang)
+		if e != nil {
+			return checker.FuzzingData{}, fmt.Errorf("%w", e)
+		}
+		if usingFuzzFunc {
+			fuzzers = append(fuzzers,
+				checker.Tool{
+					Name:  languageFuzzSpecs[lang].langFuzzName,
+					URL:   languageFuzzSpecs[lang].langFuzzDocumentURL,
+					Desc:  languageFuzzSpecs[lang].langFuzzDesc,
+					Files: files,
+				},
+			)
+		}
 	}
 	return checker.FuzzingData{Fuzzers: fuzzers}, nil
 }
@@ -136,45 +150,36 @@ func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 	return result.Hits > 0, nil
 }
 
-func checkFuzzFunc(c *checker.CheckRequest) (bool, []checker.File, error) {
+func checkFuzzFunc(c *checker.CheckRequest, lang string) (bool, []checker.File, error) {
 	if c.RepoClient == nil {
-		return false, nil, errEmptyRepoClient
+		return false, nil, errEmptyClient
 	}
-	// To get the prominent programming language(s) to be checked.
-	langMap, err := c.RepoClient.ListProgrammingLanguages()
-	if err != nil {
-		return false, nil, errGetRepoProgrammingLang
-	}
-	prominentLangs, err := getProminentLanguages(langMap)
-	if err != nil {
-		return false, nil, errGetRepoProminentLang
-	}
-
 	data := filesWithPatternStr{
 		files: make([]checker.File, 0),
 	}
-
-	// Iterate the prominent language list and check for fuzz funcs per language.
-	for _, lang := range *prominentLangs {
-		// Search language fuzz patterns in the hashmap.
-		pattern, found := languageFuzzSpecsMap[lang]
-		if !found {
-			// Fuzz patterns for the current language not supported yet.
-			continue
-		}
-		// Get patterns for file and func.
-		filePattern, funcPattern := pattern.fuzzFileMatchPattern, pattern.fuzzFuncRegexPattern
-		matcher := fileparser.PathMatcher{
-			Pattern:       filePattern,
-			CaseSensitive: false,
-		}
-		data.pattern = funcPattern
-		err = fileparser.OnMatchingFileContentDo(c.RepoClient, matcher, getFuzzFunc, &data)
-		if err != nil {
-			return false, nil, fmt.Errorf("error when OnMatchingFileContentDo: %w", err)
-		}
+	// Search language-specified fuzz func patterns in the hashmap.
+	pattern, found := languageFuzzSpecs[lang]
+	if !found {
+		// If the fuzz patterns for the current language not supported yet,
+		// we return it as false (not found), nil (no files), and nil (no errors).
+		return false, nil, nil
 	}
+	// Get patterns for file and func.
+	// We use the file pattern in the matcher to match the test files,
+	// and put the func pattern in var data to match file contents (func names).
+	filePattern, funcPattern := pattern.fuzzFileMatchPattern, pattern.fuzzFuncRegexPattern
+	matcher := fileparser.PathMatcher{
+		Pattern:       filePattern,
+		CaseSensitive: false,
+	}
+	data.pattern = funcPattern
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, matcher, getFuzzFunc, &data)
+	if err != nil {
+		return false, nil, fmt.Errorf("error when OnMatchingFileContentDo: %w", err)
+	}
+
 	if len(data.files) == 0 {
+		// This means no fuzz funcs matched for this language.
 		return false, nil, nil
 	}
 	return true, data.files, nil
@@ -189,7 +194,7 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(path string, content 
 	}
 	pdata, ok := args[0].(*filesWithPatternStr)
 	if !ok {
-		return false, fmt.Errorf("invalid arg type: %w", errInvalidArgType)
+		return false, errInvalidArgType
 	}
 	r := regexp.MustCompile(pdata.pattern)
 	lines := bytes.Split(content, []byte("\n"))
@@ -210,25 +215,24 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(path string, content 
 	return true, nil
 }
 
-func getProminentLanguages(langs map[string]int) (*[]string, error) {
+func getProminentLanguages(langs map[string]int) ([]string, error) {
 	if langs == nil {
-		return nil, errFuncParamIsNil
+		return nil, nil
 	}
 	numLangs := len(langs)
 	totalLoC := 0
 	for _, LoC := range langs {
 		totalLoC += LoC
-		numLangs++
 	}
 	// Var avgLoC calculates the average lines of code in the current repo,
 	// and it can stay as an int, no need for a float value.
 	avgLoC := totalLoC / numLangs
 
 	// Languages that have lines of code above average will be considered prominent.
-	ret := &[]string{}
+	ret := []string{}
 	for lang, LoC := range langs {
 		if LoC >= avgLoC {
-			*ret = append(*ret, strings.ToLower(lang))
+			ret = append(ret, strings.ToLower(lang))
 		}
 	}
 	return ret, nil

@@ -211,19 +211,19 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			langSpecs, ok := languageFuzzSpecsMap[tt.lang]
+			langSpecs, ok := languageFuzzSpecs[tt.lang]
 			if !ok && !tt.wantErr {
 				t.Errorf("retrieve supported language error")
 			}
 			fileMatchPattern := langSpecs.fuzzFileMatchPattern
 			fileMatch, err := path.Match(fileMatchPattern, tt.fileName)
-			if fileMatch != tt.expectedFileMatch || err != nil && !tt.wantErr {
+			if (fileMatch != tt.expectedFileMatch || err != nil) && !tt.wantErr {
 				t.Errorf("fileMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
 			}
 			funcRegexPattern := langSpecs.fuzzFuncRegexPattern
 			r, _ := regexp.Compile(funcRegexPattern)
 			found := r.MatchString(tt.fileContent)
-			if found != tt.expectedFuncMatch && !tt.wantErr {
+			if (found != tt.expectedFuncMatch) && !tt.wantErr {
 				t.Errorf("funcMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
 			}
 		})
@@ -263,7 +263,6 @@ func Test_checkFuzzFunc(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			mockClient := mockrepo.NewMockRepoClient(ctrl)
-			mockClient.EXPECT().ListProgrammingLanguages().Return(tt.langs, nil).AnyTimes()
 			mockClient.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
 			mockClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
 				if tt.wantErr {
@@ -275,9 +274,11 @@ func Test_checkFuzzFunc(t *testing.T) {
 			req := checker.CheckRequest{
 				RepoClient: mockClient,
 			}
-			got, _, err := checkFuzzFunc(&req)
-			if got != tt.want || err != nil && !tt.wantErr {
-				t.Errorf("checkFuzzFunc() = %v, want %v for %v", got, tt.want, tt.name)
+			for l := range tt.langs {
+				got, _, err := checkFuzzFunc(&req, l)
+				if (got != tt.want || err != nil) && !tt.wantErr {
+					t.Errorf("checkFuzzFunc() = %v, want %v for %v", got, tt.want, tt.name)
+				}
 			}
 		})
 	}

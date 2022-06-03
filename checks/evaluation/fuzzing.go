@@ -16,10 +16,8 @@ package evaluation
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -35,21 +33,22 @@ func Fuzzing(name string, dl checker.DetailLogger,
 	if len(r.Fuzzers) == 0 {
 		return checker.CreateMinScoreResult(name, "project is not fuzzed")
 	}
-	fuzzers := &[]string{}
+	fuzzers := []string{}
 	for i := range r.Fuzzers {
 		fuzzer := r.Fuzzers[i]
-		if fuzzer.Name == raw.FuzzNameUserDefinedFunc {
-			for _, f := range fuzzer.File {
-				msg := checker.LogMessage{
-					Path:   path.Join(f.Path, f.Snippet),
-					Type:   f.Type,
-					Offset: f.Offset,
-				}
-				dl.Info(&msg)
+		for _, f := range fuzzer.Files {
+			msg := checker.LogMessage{
+				Path:   f.Path,
+				Type:   f.Type,
+				Offset: f.Offset,
 			}
+			if f.Snippet != "" {
+				msg.Text = f.Snippet
+			}
+			dl.Info(&msg)
 		}
-		*fuzzers = append(*fuzzers, fuzzer.Name)
+		fuzzers = append(fuzzers, fuzzer.Name)
 	}
 	return checker.CreateMaxScoreResult(name,
-		fmt.Sprintf("project is fuzzed with %v", *fuzzers))
+		fmt.Sprintf("project is fuzzed with %v", fuzzers))
 }

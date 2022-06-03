@@ -88,7 +88,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Tools: []checker.Tool{
 						{
 							Name: "DependencyUpdateTool",
-							File: []checker.File{
+							Files: []checker.File{
 								{
 									Path: "/etc/dependency-update-tool.conf",
 									Snippet: `
@@ -96,7 +96,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 										enabled = true
 										`,
 									Offset: 0,
-									Type:   checker.FileTypeNone,
+									Type:   checker.FileTypeSource,
 								},
 							},
 						},
