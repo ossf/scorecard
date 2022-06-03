@@ -34,8 +34,8 @@ const (
 )
 
 type filesWithPatternStr struct {
-	files   []checker.File
 	pattern string
+	files   []checker.File
 }
 type languageFuzzConfig struct {
 	fuzzFileMatchPattern, fuzzFuncRegexPattern, langFuzzDocumentURL, langFuzzDesc string
@@ -138,24 +138,24 @@ func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 
 func checkFuzzFunc(c *checker.CheckRequest) (bool, []checker.File, error) {
 	if c.RepoClient == nil {
-		return false, nil, fmt.Errorf("empty RepoClient")
+		return false, nil, errEmptyRepoClient
 	}
 	// To get the prominent programming language(s) to be checked.
 	langMap, err := c.RepoClient.ListProgrammingLanguages()
 	if err != nil {
-		return false, nil, fmt.Errorf("get programming languages of repo failed %w", err)
+		return false, nil, errGetRepoProgrammingLang
 	}
-	langsProminent, err := getProminentLanguages(langMap)
+	prominentLangs, err := getProminentLanguages(langMap)
 	if err != nil {
-		return false, nil, fmt.Errorf("error when getting promiment languages: %w", err)
+		return false, nil, errGetRepoProminentLang
 	}
 
 	data := filesWithPatternStr{
 		files: make([]checker.File, 0),
 	}
 
-	// Iterate the prominant language list and check for fuzz funcs per language.
-	for _, lang := range *langsProminent {
+	// Iterate the prominent language list and check for fuzz funcs per language.
+	for _, lang := range *prominentLangs {
 		// Search language fuzz patterns in the hashmap.
 		pattern, found := languageFuzzSpecsMap[lang]
 		if !found {
@@ -191,7 +191,7 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(path string, content 
 	if !ok {
 		return false, fmt.Errorf("invalid arg type: %w", errInvalidArgType)
 	}
-	r, _ := regexp.Compile(pdata.pattern)
+	r := regexp.MustCompile(pdata.pattern)
 	lines := bytes.Split(content, []byte("\n"))
 	for i, line := range lines {
 		found := r.FindString(string(line))
@@ -212,7 +212,7 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(path string, content 
 
 func getProminentLanguages(langs map[string]int) (*[]string, error) {
 	if langs == nil {
-		return nil, fmt.Errorf("no languages found in map")
+		return nil, errFuncParamIsNil
 	}
 	numLangs := len(langs)
 	totalLoC := 0
@@ -224,7 +224,7 @@ func getProminentLanguages(langs map[string]int) (*[]string, error) {
 	// and it can stay as an int, no need for a float value.
 	avgLoC := totalLoC / numLangs
 
-	// Languages that has lines of code above average will be considered prominent.
+	// Languages that have lines of code above average will be considered prominent.
 	ret := &[]string{}
 	for lang, LoC := range langs {
 		if LoC >= avgLoC {

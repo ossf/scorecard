@@ -19,8 +19,12 @@ import (
 )
 
 var (
-	errInternalCommitishNil  = errors.New("commitish is nil")
-	errInvalidArgType        = errors.New("invalid arg type")
-	errInvalidArgLength      = errors.New("invalid arg length")
-	errInvalidGitHubWorkflow = errors.New("invalid GitHub workflow")
+	errInternalCommitishNil   = errors.New("commitish is nil")
+	errInvalidArgType         = errors.New("invalid arg type")
+	errInvalidArgLength       = errors.New("invalid arg length")
+	errInvalidGitHubWorkflow  = errors.New("invalid GitHub workflow")
+	errEmptyRepoClient        = errors.New("empty RepoClient")
+	errGetRepoProgrammingLang = errors.New("cannot get repo programming languages")
+	errGetRepoProminentLang   = errors.New("cannot get repo prominent languages")
+	errFuncParamIsNil         = errors.New("function parameter is nil")
 )

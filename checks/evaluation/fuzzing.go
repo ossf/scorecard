@@ -32,6 +32,10 @@ func Fuzzing(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	if len(r.Fuzzers) == 0 {
+		return checker.CreateMinScoreResult(name, "project is not fuzzed")
+	}
+	fuzzers := &[]string{}
 	for i := range r.Fuzzers {
 		fuzzer := r.Fuzzers[i]
 		if fuzzer.Name == raw.FuzzNameUserDefinedFunc {
@@ -44,8 +48,8 @@ func Fuzzing(name string, dl checker.DetailLogger,
 				dl.Info(&msg)
 			}
 		}
-		return checker.CreateMaxScoreResult(name,
-			fmt.Sprintf("project is fuzzed with %s", fuzzer.Name))
+		*fuzzers = append(*fuzzers, fuzzer.Name)
 	}
-	return checker.CreateMinScoreResult(name, "project is not fuzzed")
+	return checker.CreateMaxScoreResult(name,
+		fmt.Sprintf("project is fuzzed with %v", *fuzzers))
 }

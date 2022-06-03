@@ -50,7 +50,7 @@ type jsonTool struct {
 	URL  *string          `json:"url"`
 	Desc *string          `json:"desc"`
 	Job  *jsonWorkflowJob `json:"job,omitempty"`
-	File *jsonFile        `json:"file,omitempty"`
+	File []jsonFile       `json:"file,omitempty"`
 	Name string           `json:"name"`
 	// TODO: Runs, Issues, Merge requests.
 }
@@ -508,9 +508,11 @@ func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) e
 			URL:  f.URL,
 			Desc: f.Desc,
 		}
-		if f.File != nil && len(f.File) == 1 {
-			jt.File = &jsonFile{
-				Path: f.File[0].Path,
+		if f.File != nil {
+			for _, f := range f.File {
+				jt.File = append(jt.File, jsonFile{
+					Path: f.Path,
+				})
 			}
 		}
 		r.Results.Fuzzers = append(r.Results.Fuzzers, jt)
@@ -528,9 +530,11 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 			URL:  t.URL,
 			Desc: t.Desc,
 		}
-		if t.File != nil && len(t.File) == 1 {
-			jt.File = &jsonFile{
-				Path: t.File[0].Path,
+		if t.File != nil {
+			for _, f := range t.File {
+				jt.File = append(jt.File, jsonFile{
+					Path: f.Path,
+				})
 			}
 		}
 		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jt)

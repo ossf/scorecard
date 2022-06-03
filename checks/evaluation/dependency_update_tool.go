@@ -54,10 +54,7 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// Note: only one file per tool is present,
-	// so we do not iterate thru all entries.
-	// Modified by AidenW on 05/31/2022: now Tool.File is a type of []File,
-	// so we need to do iterations on the files.
+	// Iterate over all the files, since a Tool can contain multiple files.
 	for _, file := range r.Tools[0].File {
 		dl.Info(&checker.LogMessage{
 			Path:   file.Path,

@@ -216,14 +216,14 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 				t.Errorf("retrieve supported language error")
 			}
 			fileMatchPattern := langSpecs.fuzzFileMatchPattern
-			fileMatch, _ := path.Match(fileMatchPattern, tt.fileName)
-			if (fileMatch != tt.expectedFileMatch) && !tt.wantErr {
+			fileMatch, err := path.Match(fileMatchPattern, tt.fileName)
+			if fileMatch != tt.expectedFileMatch || err != nil && !tt.wantErr {
 				t.Errorf("fileMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
 			}
 			funcRegexPattern := langSpecs.fuzzFuncRegexPattern
 			r, _ := regexp.Compile(funcRegexPattern)
 			found := r.MatchString(tt.fileContent)
-			if (found != tt.expectedFuncMatch) && !tt.wantErr {
+			if found != tt.expectedFuncMatch && !tt.wantErr {
 				t.Errorf("funcMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
 			}
 		})
@@ -275,8 +275,8 @@ func Test_checkFuzzFunc(t *testing.T) {
 			req := checker.CheckRequest{
 				RepoClient: mockClient,
 			}
-			got, _, _ := checkFuzzFunc(&req)
-			if got != tt.want && !tt.wantErr {
+			got, _, err := checkFuzzFunc(&req)
+			if got != tt.want || err != nil && !tt.wantErr {
 				t.Errorf("checkFuzzFunc() = %v, want %v for %v", got, tt.want, tt.name)
 			}
 		})

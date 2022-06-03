@@ -185,6 +185,9 @@ func (client *Client) ListProgrammingLanguages() (map[string]int, error) {
 		return nil, fmt.Errorf("request for repo languages failed with %w", err)
 	}
 	bodyJSON := map[string]int{}
+	// The client.repoClient.Do API writes the reponse body to var bodyJSON,
+	// so we can ignore the first returned variable (the http response object)
+	// since we only need the response body here.
 	_, errResp := client.repoClient.Do(client.ctx, req, &bodyJSON)
 	if errResp != nil {
 		return nil, fmt.Errorf("response for repo languages failed with %w", err)

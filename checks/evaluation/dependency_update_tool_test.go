@@ -96,7 +96,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 										enabled = true
 										`,
 									Offset: 0,
-									Type:   0,
+									Type:   checker.FileTypeNone,
 								},
 							},
 						},

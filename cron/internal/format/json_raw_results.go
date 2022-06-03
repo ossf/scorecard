@@ -206,7 +206,7 @@ func addDependencyUpdateToolRawResults(r *jsonScorecardRawResult,
 		}
 		if t.File != nil {
 			jt.File = &jsonFile{
-				Path: t.File.Path,
+				Path: t.File[0].Path,
 			}
 		}
 		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jt)
