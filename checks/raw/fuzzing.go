@@ -38,8 +38,8 @@ type filesWithPatternStr struct {
 	files   []checker.File
 }
 type languageFuzzConfig struct {
-	fuzzFileMatchPattern, fuzzFuncRegexPattern, langFuzzName string
 	langFuzzDocumentURL, langFuzzDesc                        *string
+	fuzzFileMatchPattern, fuzzFuncRegexPattern, langFuzzName string
 	//TODO: add more language fuzzing-related fields.
 }
 
@@ -94,10 +94,8 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 	if err != nil {
 		return checker.FuzzingData{}, fmt.Errorf("cannot get langs of repo: %w", err)
 	}
-	prominentLangs, err := getProminentLanguages(langMap)
-	if err != nil {
-		return checker.FuzzingData{}, fmt.Errorf("cannot get the prominent langs: %w", err)
-	}
+	prominentLangs := getProminentLanguages(langMap)
+
 	for _, lang := range prominentLangs {
 		usingFuzzFunc, files, e := checkFuzzFunc(c, lang)
 		if e != nil {
@@ -152,7 +150,7 @@ func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 
 func checkFuzzFunc(c *checker.CheckRequest, lang string) (bool, []checker.File, error) {
 	if c.RepoClient == nil {
-		return false, nil, errEmptyClient
+		return false, nil, nil
 	}
 	data := filesWithPatternStr{
 		files: make([]checker.File, 0),
@@ -215,9 +213,9 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(path string, content 
 	return true, nil
 }
 
-func getProminentLanguages(langs map[string]int) ([]string, error) {
+func getProminentLanguages(langs map[string]int) []string {
 	if langs == nil {
-		return nil, nil
+		return nil
 	}
 	numLangs := len(langs)
 	totalLoC := 0
@@ -235,5 +233,5 @@ func getProminentLanguages(langs map[string]int) ([]string, error) {
 			ret = append(ret, strings.ToLower(lang))
 		}
 	}
-	return ret, nil
+	return ret
 }

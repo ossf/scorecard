@@ -221,7 +221,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 				t.Errorf("fileMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
 			}
 			funcRegexPattern := langSpecs.fuzzFuncRegexPattern
-			r, _ := regexp.Compile(funcRegexPattern)
+			r := regexp.MustCompile(funcRegexPattern)
 			found := r.MatchString(tt.fileContent)
 			if (found != tt.expectedFuncMatch) && !tt.wantErr {
 				t.Errorf("funcMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)

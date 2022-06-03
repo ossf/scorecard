@@ -42,8 +42,8 @@ type jsonFile struct {
 type jsonTool struct {
 	URL   *string    `json:"url"`
 	Desc  *string    `json:"desc"`
-	Files []jsonFile `json:"file"`
 	Name  string     `json:"name"`
+	Files []jsonFile `json:"file"`
 	// TODO: Runs, Issues, Merge requests.
 }
 
