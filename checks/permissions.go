@@ -615,7 +615,7 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 }
 
 // TODO: remove when migrated to raw results.
-// Should be using the definition in raw/packaging.go
+// Should be using the definition in raw/packaging.go.
 func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
 	jobMatchers := []fileparser.JobMatcher{
 		{

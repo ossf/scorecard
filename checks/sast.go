@@ -25,7 +25,7 @@ import (
 // CheckSAST is the registered name for SAST.
 const CheckSAST = "SAST"
 
-var sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
+var sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true, "tfsec": true}
 
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}
 
@@ -49,10 +49,16 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckSAST, codeQlErr)
 	}
 
+	tfsecScore, tfsecErr := tfsecCheckDefinitions(c)
+	if tfsecErr != nil {
+		return checker.CreateRuntimeErrorResult(CheckSAST, tfsecErr)
+	}
+
 	// Both results are inconclusive.
 	// Can never happen.
 	if sastScore == checker.InconclusiveResultScore &&
-		codeQlScore == checker.InconclusiveResultScore {
+		codeQlScore == checker.InconclusiveResultScore &&
+		tfsecScore == checker.InconclusiveResultScore {
 		// That can never happen since sastToolInCheckRuns can never
 		// retun checker.InconclusiveResultScore.
 		return checker.CreateInconclusiveResult(CheckSAST, "internal error")
@@ -65,7 +71,8 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	// than as cron jobs thru the score computation below.
 	// Warning: there is a hidden assumption that *any* sast tool is equally good.
 	if sastScore != checker.InconclusiveResultScore &&
-		codeQlScore != checker.InconclusiveResultScore {
+		codeQlScore != checker.InconclusiveResultScore &&
+		tfsecScore != checker.InconclusiveResultScore {
 		switch {
 		case sastScore == checker.MaxResultScore:
 			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool is run on all commits")
@@ -73,11 +80,17 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateResultWithScore(CheckSAST,
 				checker.NormalizeReason("SAST tool is not run on all commits", sastScore), sastScore)
 
+		// tfSec is enabled and sast has
+		case tfsecScore == checker.MaxResultScore:
+			const sastWeight = 3
+			const tfSec = 7
+			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, codeQlScore: tfSec})
+			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not run on all commmits", score)
 		// codeQl is enabled and sast has 0+ (but not all) PRs checks.
 		case codeQlScore == checker.MaxResultScore:
 			const sastWeight = 3
 			const codeQlWeight = 7
-			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, codeQlScore: codeQlWeight})
+			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, tfsecScore: codeQlWeight})
 			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not run on all commmits", score)
 		default:
 			return checker.CreateRuntimeErrorResult(CheckSAST, sce.WithMessage(sce.ErrScorecardInternal, "contact team"))
@@ -87,6 +100,13 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	// Sast inconclusive.
 	if codeQlScore != checker.InconclusiveResultScore {
 		if codeQlScore == checker.MaxResultScore {
+			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool detected")
+		}
+		return checker.CreateMinScoreResult(CheckSAST, "no SAST tool detected")
+	}
+
+	if tfsecScore != checker.InconclusiveResultScore {
+		if tfsecScore == checker.MaxResultScore {
 			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool detected")
 		}
 		return checker.CreateMinScoreResult(CheckSAST, "no SAST tool detected")
@@ -202,6 +222,39 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 
 	c.Dlogger.Warn(&checker.LogMessage{
 		Text: "CodeQL tool not detected",
+	})
+	return checker.MinResultScore, nil
+}
+
+func tfsecCheckDefinitions(c *checker.CheckRequest) (int, error) {
+	searchRequest := clients.SearchRequest{
+		Query: "aquasecurity/tfsec-sarif-action",
+		Path:  "/.github/workflows",
+	}
+	resp, err := c.RepoClient.Search(searchRequest)
+	if err != nil {
+		return checker.InconclusiveResultScore,
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
+	}
+
+	for _, result := range resp.Results {
+		c.Dlogger.Debug(&checker.LogMessage{
+			Path:   result.Path,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			Text:   "tfsec detected",
+		})
+	}
+
+	if resp.Hits > 0 {
+		c.Dlogger.Info(&checker.LogMessage{
+			Text: "SAST tool detected: tfsec",
+		})
+		return checker.MaxResultScore, nil
+	}
+
+	c.Dlogger.Warn(&checker.LogMessage{
+		Text: "tfsec tool not detected",
 	})
 	return checker.MinResultScore, nil
 }

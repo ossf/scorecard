@@ -199,10 +199,6 @@ func TestSAST(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		searchRequest := clients.SearchRequest{
-			Query: "github/codeql-action/analyze",
-			Path:  "/.github/workflows",
-		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -214,7 +210,7 @@ func TestSAST(t *testing.T) {
 				return tt.commits, tt.err
 			})
 			mockRepoClient.EXPECT().ListCheckRunsForRef("").Return(tt.checkRuns, nil).AnyTimes()
-			mockRepoClient.EXPECT().Search(searchRequest).Return(tt.searchresult, nil).AnyTimes()
+			mockRepoClient.EXPECT().Search(gomock.Any()).Return(tt.searchresult, nil).AnyTimes()
 
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
