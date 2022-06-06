@@ -84,6 +84,14 @@ func TestFuzzing(t *testing.T) {
 			},
 		},
 		{
+			name: "min score since lang not supported",
+			langs: map[string]int{
+				"not_supported_lang": 1490,
+			},
+			wantFuzzErr: false,
+			want:        checker.CheckResult{Score: 0},
+		},
+		{
 			name:        "error",
 			wantFuzzErr: true,
 			want:        checker.CheckResult{},
