@@ -76,17 +76,12 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 				Snippet:   rr.Location.Snippet,
 			})
 		} else {
-			// Warn for unpinned dependency.
-			text, err := generateText(&rr)
-			if err != nil {
-				return checker.CreateRuntimeErrorResult(name, err)
-			}
 			dl.Warn(&checker.LogMessage{
 				Path:        rr.Location.Path,
 				Type:        rr.Location.Type,
 				Offset:      rr.Location.Offset,
 				EndOffset:   rr.Location.EndOffset,
-				Text:        text,
+				Text:        generateText(&rr),
 				Snippet:     rr.Location.Snippet,
 				Remediation: generateRemediation(&rr),
 			})
@@ -162,15 +157,15 @@ func updatePinningResults(rr *checker.Dependency,
 	pr[rr.Type] = p
 }
 
-func generateText(rr *checker.Dependency) (string, error) {
+func generateText(rr *checker.Dependency) string {
 	if rr.Type == checker.DependencyUseTypeGHAction {
 		// Check if we are dealing with a GitHub action or a third-party one.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
 		owner := generateOwnerToDisplay(gitHubOwned)
-		return fmt.Sprintf("%s %s not pinned by hash", owner, rr.Type), nil
+		return fmt.Sprintf("%s %s not pinned by hash", owner, rr.Type)
 	}
 
-	return fmt.Sprintf("%s not pinned by hash", rr.Type), nil
+	return fmt.Sprintf("%s not pinned by hash", rr.Type)
 }
 
 func generateOwnerToDisplay(gitHubOwned bool) string {
