@@ -317,9 +317,11 @@ low score is therefore not a definitive indication that the project is at risk.
 Risk: `Medium` (possible vulnerabilities in code)
 
 This check tries to determine if the project uses
-[fuzzing](https://owasp.org/www-community/Fuzzing) by checking if the repository
-name is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project
-list.
+[fuzzing](https://owasp.org/www-community/Fuzzing). Currently, scorecard checks:
+1. if the repository name is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project
+list;
+2. if [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) is deployed in the repository;
+3. if there are user-defined language-specified fuzzing fuctions (now supports [Go fuzzing](https://go.dev/doc/fuzz/)) in the repository.
 
 Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
 into a program to expose bugs. Regular fuzzing is important to detect
