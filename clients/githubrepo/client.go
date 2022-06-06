@@ -20,7 +20,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"path"
 
 	"github.com/google/go-github/v38/github"
 	"github.com/ossf/scorecard/v4/clients"
@@ -51,6 +50,7 @@ type Client struct {
 	webhook      *webhookHandler
 	ctx          context.Context
 	tarball      tarballHandler
+	languages    *languagesHandler
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
@@ -104,6 +104,8 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	// Setup webhookHandler.
 	client.webhook.init(client.ctx, client.repourl)
 
+	// Setup languagesHandler.
+	client.languages.init(client.ctx, client.repourl)
 	return nil
 }
 
@@ -179,20 +181,7 @@ func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 
 //ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
 func (client *Client) ListProgrammingLanguages() (map[string]int, error) {
-	reqURL := path.Join("repos", *client.repo.Owner.Login, *client.repo.Name, "languages")
-	req, err := client.repoClient.NewRequest("GET", reqURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("request for repo languages failed with %w", err)
-	}
-	bodyJSON := map[string]int{}
-	// The client.repoClient.Do API writes the reponse body to var bodyJSON,
-	// so we can ignore the first returned variable (the http response object)
-	// since we only need the response body here.
-	_, errResp := client.repoClient.Do(client.ctx, req, &bodyJSON)
-	if errResp != nil {
-		return nil, fmt.Errorf("response for repo languages failed with %w", err)
-	}
-	return bodyJSON, nil
+	return client.languages.listProgrammingLanguages()
 }
 
 // Search implements RepoClient.Search.
@@ -243,6 +232,9 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 		},
 		webhook: &webhookHandler{
 			ghClient: client,
+		},
+		languages: &languagesHandler{
+			ghclient: client,
 		},
 	}
 }

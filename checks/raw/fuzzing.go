@@ -27,9 +27,9 @@ import (
 )
 
 const (
-	fuzzNameOSSFuzz         = "OSSFuzz"
-	fuzzNameClusterFuzzLite = "ClusterFuzzLite"
-	fuzzNameBuiltInGo       = "GoBuiltInFuzzer"
+	fuzzerOSSFuzz         = "OSSFuzz"
+	fuzzerClusterFuzzLite = "ClusterFuzzLite"
+	fuzzerBuiltInGo       = "GoBuiltInFuzzer"
 	// TODO: add more fuzzing check supports.
 )
 
@@ -37,9 +37,11 @@ type filesWithPatternStr struct {
 	pattern string
 	files   []checker.File
 }
+
+// Configurations for language-specified fuzzers.
 type languageFuzzConfig struct {
-	langFuzzDocumentURL, langFuzzDesc                        *string
-	fuzzFileMatchPattern, fuzzFuncRegexPattern, langFuzzName string
+	URL, Desc                      *string
+	filePattern, funcPattern, Name string
 	//TODO: add more language fuzzing-related fields.
 }
 
@@ -48,11 +50,11 @@ type languageFuzzConfig struct {
 var languageFuzzSpecs = map[string]languageFuzzConfig{
 	// Default fuzz patterns for Go.
 	"go": {
-		fuzzFileMatchPattern: "*_test.go",
-		fuzzFuncRegexPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
-		langFuzzName:         fuzzNameBuiltInGo,
-		langFuzzDocumentURL:  asPointer("https://go.dev/doc/fuzz/"),
-		langFuzzDesc:         asPointer("Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
+		filePattern: "*_test.go",
+		funcPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
+		Name:        fuzzerBuiltInGo,
+		URL:         asPointer("https://go.dev/doc/fuzz/"),
+		Desc:        asPointer("Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
@@ -67,7 +69,7 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 	if usingCFLite {
 		fuzzers = append(fuzzers,
 			checker.Tool{
-				Name: fuzzNameClusterFuzzLite,
+				Name: fuzzerClusterFuzzLite,
 				URL:  asPointer("https://github.com/google/clusterfuzzlite"),
 				Desc: asPointer("continuous fuzzing solution that runs as part of Continuous Integration (CI) workflows"),
 				// TODO: File.
@@ -82,7 +84,7 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 	if usingOSSFuzz {
 		fuzzers = append(fuzzers,
 			checker.Tool{
-				Name: fuzzNameOSSFuzz,
+				Name: fuzzerOSSFuzz,
 				URL:  asPointer("https://github.com/google/oss-fuzz"),
 				Desc: asPointer("Continuous Fuzzing for Open Source Software"),
 				// TODO: File.
@@ -104,9 +106,9 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		if usingFuzzFunc {
 			fuzzers = append(fuzzers,
 				checker.Tool{
-					Name:  languageFuzzSpecs[lang].langFuzzName,
-					URL:   languageFuzzSpecs[lang].langFuzzDocumentURL,
-					Desc:  languageFuzzSpecs[lang].langFuzzDesc,
+					Name:  languageFuzzSpecs[lang].Name,
+					URL:   languageFuzzSpecs[lang].URL,
+					Desc:  languageFuzzSpecs[lang].Desc,
 					Files: files,
 				},
 			)
@@ -165,7 +167,7 @@ func checkFuzzFunc(c *checker.CheckRequest, lang string) (bool, []checker.File, 
 	// Get patterns for file and func.
 	// We use the file pattern in the matcher to match the test files,
 	// and put the func pattern in var data to match file contents (func names).
-	filePattern, funcPattern := pattern.fuzzFileMatchPattern, pattern.fuzzFuncRegexPattern
+	filePattern, funcPattern := pattern.filePattern, pattern.funcPattern
 	matcher := fileparser.PathMatcher{
 		Pattern:       filePattern,
 		CaseSensitive: false,

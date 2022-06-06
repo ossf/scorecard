@@ -50,7 +50,7 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 	}
 
 	if r.Tools[0].Files == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "File is nil")
+		e := sce.WithMessage(sce.ErrScorecardInternal, "Files are nil")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 

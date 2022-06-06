@@ -215,12 +215,12 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			if !ok && !tt.wantErr {
 				t.Errorf("retrieve supported language error")
 			}
-			fileMatchPattern := langSpecs.fuzzFileMatchPattern
+			fileMatchPattern := langSpecs.filePattern
 			fileMatch, err := path.Match(fileMatchPattern, tt.fileName)
 			if (fileMatch != tt.expectedFileMatch || err != nil) && !tt.wantErr {
 				t.Errorf("fileMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
 			}
-			funcRegexPattern := langSpecs.fuzzFuncRegexPattern
+			funcRegexPattern := langSpecs.funcPattern
 			r := regexp.MustCompile(funcRegexPattern)
 			found := r.MatchString(tt.fileContent)
 			if (found != tt.expectedFuncMatch) && !tt.wantErr {
