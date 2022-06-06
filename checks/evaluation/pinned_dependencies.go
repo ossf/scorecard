@@ -76,7 +76,7 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 				Snippet:   rr.Location.Snippet,
 			})
 		} else {
-			// Warn for inpinned dependency.
+			// Warn for unpinned dependency.
 			text, err := generateText(&rr)
 			if err != nil {
 				return checker.CreateRuntimeErrorResult(name, err)
@@ -149,6 +149,8 @@ func updatePinningResults(rr *checker.Dependency,
 	wp *worklowPinningResult, pr map[checker.DependencyUseType]pinnedResult,
 ) {
 	if rr.Type == checker.DependencyUseTypeGHAction {
+		// Note: `Snippet` contains `action/name@xxx`, so we cna use it to infer
+		// if it's a GitHub-owned action or not.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
 		addWorkflowPinnedResult(wp, false, gitHubOwned)
 		return
@@ -161,9 +163,6 @@ func updatePinningResults(rr *checker.Dependency,
 }
 
 func generateText(rr *checker.Dependency) (string, error) {
-	if err := validateType(rr.Type); err != nil {
-		return "", err
-	}
 	if rr.Type == checker.DependencyUseTypeGHAction {
 		// Check if we are dealing with a GitHub action or a third-party one.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
@@ -179,18 +178,6 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 		return "GitHub-owned"
 	}
 	return "third-party"
-}
-
-func validateType(t checker.DependencyUseType) error {
-	switch t {
-	case checker.DependencyUseTypeGHAction, checker.DependencyUseTypeDockerfileContainerImage,
-		checker.DependencyUseTypeDownloadThenRun, checker.DependencyUseTypeGoCommand,
-		checker.DependencyUseTypeChocoCommand, checker.DependencyUseTypeNpmCommand,
-		checker.DependencyUseTypePipCommand:
-		return nil
-	}
-	return sce.WithMessage(sce.ErrScorecardInternal,
-		fmt.Sprintf("invalid type: '%v'", t))
 }
 
 // TODO(laurent): need to support GCB pinning.
