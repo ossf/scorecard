@@ -118,6 +118,18 @@ func ValidateTestReturn(
 	return true
 }
 
+// ValidatePinningDependencies tests that at least one entry returns true for isExpectedMessage.
+func ValidatePinningDependencies(isExpectedDependency func(checker.Dependency) bool,
+	r *checker.PinningDependenciesData,
+) bool {
+	for _, dep := range r.Dependencies {
+		if isExpectedDependency(dep) {
+			return true
+		}
+	}
+	return false
+}
+
 // ValidateLogMessage tests that at least one log message returns true for isExpectedMessage.
 func ValidateLogMessage(isExpectedMessage func(checker.LogMessage, checker.DetailType) bool,
 	dl *TestDetailLogger,

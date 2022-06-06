@@ -50,12 +50,12 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         3,
+				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  2,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
-			result := checks.PinnedDependencies(&req)
+			result := checks.PinningDependencies(&req)
 			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -75,12 +75,12 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         3,
+				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  2,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
-			result := checks.PinnedDependencies(&req)
+			result := checks.PinningDependencies(&req)
 			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -111,12 +111,12 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         3,
+				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  2,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
-			result := checks.PinnedDependencies(&req)
+			result := checks.PinningDependencies(&req)
 			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())
 		})

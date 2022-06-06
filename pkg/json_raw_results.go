@@ -40,10 +40,10 @@ type jsonScorecardRawResult struct {
 
 // TODO: separate each check extraction into its own file.
 type jsonFile struct {
-	Snippet *string `json:"snippet,omitempty"`
-	Path    string  `json:"path"`
-	// TODO: change to an uint.
-	Offset int `json:"offset,omitempty"`
+	Snippet   *string `json:"snippet,omitempty"`
+	Path      string  `json:"path"`
+	Offset    uint    `json:"offset,omitempty"`
+	EndOffset uint    `json:"endOffset,omitempty"`
 }
 
 type jsonTool struct {
@@ -193,6 +193,19 @@ type jsonRun struct {
 	// TODO: add fields, e.g., Result=["success", "failure"]
 }
 
+type jsonPinningDependenciesData struct {
+	Dependencies []jsonDependency `json:"dependencies"`
+}
+
+type jsonDependency struct {
+	// TODO: unique dependency name.
+	// TODO: Job         *WorkflowJob
+	Location *jsonFile `json:"location"`
+	Name     *string   `json:"name"`
+	PinnedAt *string   `json:"pinnedAt"`
+	Type     string    `json:"type"`
+}
+
 //nolint
 type jsonRawResults struct {
 	// Workflow results.
@@ -220,7 +233,7 @@ type jsonRawResults struct {
 	// structure for it.
 	Contributors jsonContributors `json:"Contributors"`
 	// Commits.
-	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBrancCommits"`
+	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBranchCommits"`
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
 	// Fuzzers.
@@ -229,6 +242,8 @@ type jsonRawResults struct {
 	Releases []jsonRelease `json:"releases"`
 	// Packages.
 	Packages []jsonPackage `json:"packages"`
+	// Dependency pinning.
+	DependencyPinning jsonPinningDependenciesData `json:"dependencyPinning"`
 }
 
 func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingData) error {
@@ -248,7 +263,7 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 
 		jpk.File = &jsonFile{
 			Path:   p.File.Path,
-			Offset: int(p.File.Offset),
+			Offset: p.File.Offset,
 			// TODO: Snippet
 		}
 
@@ -266,13 +281,43 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 }
 
 //nolint:unparam
+func (r *jsonScorecardRawResult) addDependencyPinningRawResults(pd *checker.PinningDependenciesData) error {
+	r.Results.DependencyPinning = jsonPinningDependenciesData{}
+	for i := range pd.Dependencies {
+		rr := pd.Dependencies[i]
+		if rr.Location == nil {
+			continue
+		}
+
+		v := jsonDependency{
+			Location: &jsonFile{
+				Path:      rr.Location.Path,
+				Offset:    rr.Location.Offset,
+				EndOffset: rr.Location.EndOffset,
+			},
+			Name:     rr.Name,
+			PinnedAt: rr.PinnedAt,
+			Type:     string(rr.Type),
+		}
+
+		if rr.Location.Snippet != "" {
+			v.Location.Snippet = &rr.Location.Snippet
+		}
+
+		r.Results.DependencyPinning.Dependencies = append(r.Results.DependencyPinning.Dependencies, v)
+	}
+	return nil
+}
+
+//nolint:unparam
 func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.DangerousWorkflowData) error {
 	r.Results.Workflows = []jsonWorkflow{}
 	for _, e := range df.Workflows {
 		v := jsonWorkflow{
 			File: &jsonFile{
-				Path:   e.File.Path,
-				Offset: int(e.File.Offset),
+				Path:      e.File.Path,
+				Offset:    e.File.Offset,
+				EndOffset: e.File.EndOffset,
 			},
 			Type: string(e.Type),
 		}
@@ -617,6 +662,11 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Contributors.
 	if err := r.addContributorsRawResults(&raw.ContributorsResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	// DependencyPinning.
+	if err := r.addDependencyPinningRawResults(&raw.PinningDependenciesResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

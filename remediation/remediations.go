@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package remediation
 
 import (
 	"errors"
@@ -25,11 +25,13 @@ import (
 )
 
 var (
-	remediationBranch   string
-	remediationRepo     string
-	remediationOnce     *sync.Once
-	remediationSetupErr error
+	branch   string
+	repo     string
+	once     *sync.Once
+	setupErr error
 )
+
+var errInvalidArg = errors.New("invalid argument")
 
 var (
 	workflowText = "update your workflow using https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s"
@@ -39,47 +41,53 @@ var (
 
 //nolint:gochecknoinits
 func init() {
-	remediationOnce = new(sync.Once)
+	once = new(sync.Once)
 }
 
-func remdiationSetup(c *checker.CheckRequest) error {
-	remediationOnce.Do(func() {
+// Setup sets up remediation code.
+func Setup(c *checker.CheckRequest) error {
+	once.Do(func() {
 		// Get the branch for remediation.
 		b, err := c.RepoClient.GetDefaultBranch()
 		if err != nil {
 			if !errors.Is(err, clients.ErrUnsupportedFeature) {
-				remediationSetupErr = err
+				setupErr = err
 			}
 			return
 		}
-
 		if b.Name != nil {
-			remediationBranch = *b.Name
+			branch = *b.Name
 			uri := c.Repo.URI()
 			parts := strings.Split(uri, "/")
 			if len(parts) != 3 {
-				remediationSetupErr = fmt.Errorf("%w: %s", errInvalidArgLength, uri)
+				setupErr = fmt.Errorf("%w: enpty: %s", errInvalidArg, uri)
 				return
 			}
-			remediationRepo = fmt.Sprintf("%s/%s", parts[1], parts[2])
+			repo = fmt.Sprintf("%s/%s", parts[1], parts[2])
 		}
 	})
 
-	return remediationSetupErr
+	return setupErr
 }
 
-func createWorkflowPermissionRemediation(filepath string) *checker.Remediation {
+// CreateWorkflowPermissionRemediation create remediation for workflow permissions.
+func CreateWorkflowPermissionRemediation(filepath string) *checker.Remediation {
 	return createWorkflowRemediation(filepath, "permissions")
+}
+
+// CreateWorkflowPinningRemediation create remediaiton for pinninn GH Actions.
+func CreateWorkflowPinningRemediation(filepath string) *checker.Remediation {
+	return createWorkflowRemediation(filepath, "pin")
 }
 
 func createWorkflowRemediation(path, t string) *checker.Remediation {
 	p := strings.TrimPrefix(path, ".github/workflows/")
-	if remediationBranch == "" || remediationRepo == "" {
+	if branch == "" || repo == "" {
 		return nil
 	}
 
-	text := fmt.Sprintf(workflowText, remediationRepo, p, remediationBranch, t)
-	markdown := fmt.Sprintf(workflowMarkdown, remediationRepo, p, remediationBranch, t)
+	text := fmt.Sprintf(workflowText, repo, p, branch, t)
+	markdown := fmt.Sprintf(workflowMarkdown, repo, p, branch, t)
 
 	return &checker.Remediation{
 		HelpText:     text,
