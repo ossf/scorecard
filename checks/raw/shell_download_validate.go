@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package raw
 
 import (
 	"bufio"
@@ -292,47 +292,51 @@ func getLine(startLine, endLine uint, node syntax.Node) (uint, uint) {
 		startLine + node.Pos().Line()
 }
 
-func isFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
-	dl checker.DetailLogger,
-) bool {
+func collectFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
+	r *checker.PinningDependenciesData,
+) {
 	// BinaryCmd {Op=|, X=CallExpr{Args={curl, -s, url}}, Y=CallExpr{Args={bash,}}}.
 	bc, ok := node.(*syntax.BinaryCmd)
 	if !ok {
-		return false
+		return
 	}
 
 	// Look for the pipe operator.
 	if !strings.EqualFold(bc.Op.String(), "|") {
-		return false
+		return
 	}
 
 	leftStmt, ok := extractCommand(bc.X.Cmd)
 	if !ok {
-		return false
+		return
 	}
 	rightStmt, ok := extractCommand(bc.Y.Cmd)
 	if !ok {
-		return false
+		return
 	}
 
 	if !isDownloadUtility(leftStmt) {
-		return false
+		return
 	}
 
 	if !isInterpreter(rightStmt) {
-		return false
+		return
 	}
 
 	startLine, endLine = getLine(startLine, endLine, node)
-	dl.Warn(&checker.LogMessage{
-		Path:      pathfn,
-		Type:      checker.FileTypeSource,
-		Offset:    startLine,
-		EndOffset: endLine,
-		Snippet:   cmd,
-		Text:      "insecure (not pinned by hash) download detected",
-	})
-	return true
+
+	r.Dependencies = append(r.Dependencies,
+		checker.Dependency{
+			Location: &checker.File{
+				Path:      pathfn,
+				Type:      checker.FileTypeSource,
+				Offset:    startLine,
+				EndOffset: endLine,
+				Snippet:   cmd,
+			},
+			Type: checker.DependencyUseTypeDownloadThenRun,
+		},
+	)
 }
 
 func getRedirectFile(red []*syntax.Redirect) (string, bool) {
@@ -356,36 +360,36 @@ func getRedirectFile(red []*syntax.Redirect) (string, bool) {
 	return "", false
 }
 
-func isExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn string, files map[string]bool,
-	dl checker.DetailLogger,
-) bool {
+func collectExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn string, files map[string]bool,
+	r *checker.PinningDependenciesData,
+) {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
-		return false
+		return
 	}
 
 	c, ok := extractCommand(ce)
 	if !ok {
-		return false
+		return
 	}
 
-	ok = false
 	startLine, endLine = getLine(startLine, endLine, node)
 	for fn := range files {
 		if isInterpreterWithFile(c, fn) || isExecuteFile(c, fn) {
-			dl.Warn(&checker.LogMessage{
-				Path:      pathfn,
-				Type:      checker.FileTypeSource,
-				Offset:    startLine,
-				EndOffset: endLine,
-				Snippet:   cmd,
-				Text:      "insecure (not pinned by hash) download-then-run",
-			})
-			ok = true
+			r.Dependencies = append(r.Dependencies,
+				checker.Dependency{
+					Location: &checker.File{
+						Path:      pathfn,
+						Type:      checker.FileTypeSource,
+						Offset:    startLine,
+						EndOffset: endLine,
+						Snippet:   cmd,
+					},
+					Type: checker.DependencyUseTypeDownloadThenRun,
+				},
+			)
 		}
 	}
-
-	return ok
 }
 
 // Npm install docs are here.
@@ -607,75 +611,93 @@ func isChocoUnpinnedDownload(cmd []string) bool {
 	return true
 }
 
-func isUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
-	cmd, pathfn string, dl checker.DetailLogger,
-) bool {
+func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
+	cmd, pathfn string, r *checker.PinningDependenciesData,
+) {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
-		return false
+		return
 	}
 
 	c, ok := extractCommand(ce)
 	if !ok {
-		return false
+		return
 	}
 
 	startLine, endLine = getLine(startLine, endLine, node)
 
 	// Go get/install.
 	if isGoUnpinnedDownload(c) {
-		dl.Warn(&checker.LogMessage{
-			Path:      pathfn,
-			Type:      checker.FileTypeSource,
-			Offset:    startLine,
-			EndOffset: endLine,
-			Snippet:   cmd,
-			Text:      "go installation not pinned by hash",
-		})
-		return true
+		r.Dependencies = append(r.Dependencies,
+			checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      checker.FileTypeSource,
+					Offset:    startLine,
+					EndOffset: endLine,
+					Snippet:   cmd,
+				},
+				Type: checker.DependencyUseTypeGoCommand,
+			},
+		)
+
+		return
 	}
 
 	// Pip install.
 	if isPipUnpinnedDownload(c) {
-		dl.Warn(&checker.LogMessage{
-			Path:      pathfn,
-			Type:      checker.FileTypeSource,
-			Offset:    startLine,
-			EndOffset: endLine,
-			Snippet:   cmd,
-			Text:      "pip installation not pinned by hash",
-		})
-		return true
+		r.Dependencies = append(r.Dependencies,
+			checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      checker.FileTypeSource,
+					Offset:    startLine,
+					EndOffset: endLine,
+					Snippet:   cmd,
+				},
+				Type: checker.DependencyUseTypePipCommand,
+			},
+		)
+
+		return
 	}
 
 	// Npm install.
 	if isNpmUnpinnedDownload(c) {
-		dl.Warn(&checker.LogMessage{
-			Path:      pathfn,
-			Type:      checker.FileTypeSource,
-			Offset:    startLine,
-			EndOffset: endLine,
-			Snippet:   cmd,
-			Text:      "npm installation not pinned by hash",
-		})
-		return true
+		r.Dependencies = append(r.Dependencies,
+			checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      checker.FileTypeSource,
+					Offset:    startLine,
+					EndOffset: endLine,
+					Snippet:   cmd,
+				},
+				Type: checker.DependencyUseTypeNpmCommand,
+			},
+		)
+
+		return
 	}
 
 	// Choco install.
 	if isChocoUnpinnedDownload(c) {
-		dl.Warn(&checker.LogMessage{
-			Path:      pathfn,
-			Type:      checker.FileTypeSource,
-			Offset:    startLine,
-			EndOffset: endLine,
-			Snippet:   cmd,
-			Text:      "choco installation not pinned by hash",
-		})
-		return true
+		r.Dependencies = append(r.Dependencies,
+			checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      checker.FileTypeSource,
+					Offset:    startLine,
+					EndOffset: endLine,
+					Snippet:   cmd,
+				},
+				Type: checker.DependencyUseTypeChocoCommand,
+			},
+		)
+
+		return
 	}
 	// TODO(laurent): add other package managers.
-
-	return false
 }
 
 func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err error) {
@@ -701,69 +723,72 @@ func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err erro
 	return fn, true, nil
 }
 
-func isFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
-	dl checker.DetailLogger,
-) bool {
+func collectFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd, pathfn string,
+	r *checker.PinningDependenciesData,
+) {
 	ce, ok := node.(*syntax.CallExpr)
 	if !ok {
-		return false
+		return
 	}
 
 	c, ok := extractCommand(ce)
 	if !ok {
-		return false
+		return
 	}
 
 	if !isInterpreter(c) {
-		return false
+		return
 	}
 
 	// Now parse the process substitution part.
 	// Example: `bash <(wget -qO- http://website.com/my-script.sh)`.
 	l := 2
 	if len(ce.Args) < l {
-		return false
+		return
 	}
 
 	parts := ce.Args[1].Parts
 	if len(parts) != 1 {
-		return false
+		return
 	}
 
 	part := parts[0]
 	p, ok := part.(*syntax.ProcSubst)
 	if !ok {
-		return false
+		return
 	}
 
 	if !strings.EqualFold(p.Op.String(), "<(") {
-		return false
+		return
 	}
 
 	if len(p.Stmts) == 0 {
-		return false
+		return
 	}
 
 	c, ok = extractCommand(p.Stmts[0].Cmd)
 	if !ok {
-		return false
+		return
 	}
 
 	if !isDownloadUtility(c) {
-		return false
+		return
 	}
 
 	startLine, endLine = getLine(startLine, endLine, node)
 
-	dl.Warn(&checker.LogMessage{
-		Path:      pathfn,
-		Type:      checker.FileTypeSource,
-		Offset:    startLine,
-		EndOffset: endLine,
-		Snippet:   cmd,
-		Text:      "insecure (not pinned by hash) download-then-run",
-	})
-	return true
+	r.Dependencies = append(r.Dependencies,
+		checker.Dependency{
+			Location: &checker.File{
+				Path:      pathfn,
+				Type:      checker.FileTypeSource,
+				Offset:    startLine,
+				EndOffset: endLine,
+				Snippet:   cmd,
+			},
+			Type: checker.DependencyUseTypeDownloadThenRun,
+		},
+	)
 }
 
 func isCommand(cmd []string, b string) bool {
@@ -840,19 +865,18 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 }
 
 func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content []byte, files map[string]bool,
-	dl checker.DetailLogger,
-) (bool, error) {
+	r *checker.PinningDependenciesData,
+) error {
 	in := strings.NewReader(string(content))
 	f, err := syntax.NewParser().Parse(in, pathfn)
 	if err != nil {
 		// Note: this is caught by internal caller and only printed
 		// to avoid failing on shell scripts that our parser does not understand.
 		// Example: https://github.com/openssl/openssl/blob/master/util/shlib_wrap.sh.in
-		return false, sce.WithMessage(sce.ErrorShellParsing, err.Error())
+		return sce.WithMessage(sce.ErrorShellParsing, err.Error())
 	}
 
 	printer := syntax.NewPrinter()
-	validated := true
 
 	syntax.Walk(f, func(node syntax.Node) bool {
 		cmdStr, e := nodeToString(printer, node)
@@ -869,9 +893,8 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 		// nolinter
 		if ok && isShellInterpreterOrCommand([]string{i}) {
 			start, end := getLine(startLine, endLine, node)
-			ok, e := validateShellFileAndRecord(pathfn, start, end,
-				[]byte(c), files, dl)
-			validated = ok
+			e := validateShellFileAndRecord(pathfn, start, end,
+				[]byte(c), files, r)
 			if e != nil {
 				err = e
 				return true
@@ -879,25 +902,18 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 		}
 
 		// `curl | bash` (supports `sudo`).
-		if isFetchPipeExecute(startLine, endLine, node, cmdStr, pathfn, dl) {
-			validated = false
-		}
+		collectFetchPipeExecute(startLine, endLine, node, cmdStr, pathfn, r)
 
 		// Check if we're calling a file we previously downloaded.
 		// Includes `curl > /tmp/file [&&|;] [bash] /tmp/file`
-		if isExecuteFiles(startLine, endLine, node, cmdStr, pathfn, files, dl) {
-			validated = false
-		}
+		collectExecuteFiles(startLine, endLine, node, cmdStr, pathfn, files, r)
 
 		// `bash <(wget -qO- http://website.com/my-script.sh)`. (supports `sudo`).
-		if isFetchProcSubsExecute(startLine, endLine, node, cmdStr, pathfn, dl) {
-			validated = false
-		}
+		collectFetchProcSubsExecute(startLine, endLine, node, cmdStr, pathfn, r)
 
 		// Package manager's unpinned installs.
-		if isUnpinnedPakageManagerDownload(startLine, endLine, node, cmdStr, pathfn, dl) {
-			validated = false
-		}
+		collectUnpinnedPakageManagerDownload(startLine, endLine, node, cmdStr, pathfn, r)
+
 		// TODO(laurent): add check for cat file | bash.
 		// TODO(laurent): detect downloads of zip/tar files containing scripts.
 		// TODO(laurent): detect command being an env variable.
@@ -916,7 +932,7 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 		return true
 	})
 
-	return validated, err
+	return err
 }
 
 // The functions below are the only ones that should be called by other files.
@@ -991,14 +1007,7 @@ func isMatchingShellScriptFile(pathfn string, content []byte, shellsToMatch []st
 }
 
 func validateShellFile(pathfn string, startLine, endLine uint,
-	content []byte, taintedFiles map[string]bool, dl checker.DetailLogger,
-) (bool, error) {
-	r, err := validateShellFileAndRecord(pathfn, startLine, endLine, content, taintedFiles, dl)
-	if err != nil {
-		// Print this particular error.
-		dl.Debug(&checker.LogMessage{
-			Text: err.Error(),
-		})
-	}
-	return r, err
+	content []byte, taintedFiles map[string]bool, r *checker.PinningDependenciesData,
+) error {
+	return validateShellFileAndRecord(pathfn, startLine, endLine, content, taintedFiles, r)
 }
