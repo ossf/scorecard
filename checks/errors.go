@@ -19,7 +19,6 @@ import (
 )
 
 var (
-	errInternalInvalidDockerFile    = errors.New("invalid Dockerfile")
 	errInvalidGitHubWorkflow        = errors.New("invalid GitHub workflow")
 	errInternalNameCannotBeEmpty    = errors.New("name cannot be empty")
 	errInternalCheckFuncCannotBeNil = errors.New("checkFunc cannot be nil")

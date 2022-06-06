@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package raw
 
 import (
 	"os"
 	"testing"
 
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v4/checker"
 )
 
 func TestIsSupportedShellScriptFile(t *testing.T) {
@@ -99,8 +99,9 @@ func TestValidateShellFile(t *testing.T) {
 	if err != nil {
 		t.Errorf("cannot read file: %v", err)
 	}
-	dl := scut.TestDetailLogger{}
-	_, err = validateShellFile(filename, 0, 0, content, map[string]bool{}, &dl)
+
+	var r checker.PinningDependenciesData
+	err = validateShellFile(filename, 0, 0, content, map[string]bool{}, &r)
 	if err == nil {
 		t.Errorf("failed to detect shell parsing error: %v", err)
 	}

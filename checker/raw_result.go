@@ -31,6 +31,7 @@ type RawResults struct {
 	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
 	CodeReviewResults           CodeReviewData
+	PinningDependenciesResults  PinningDependenciesData
 	WebhookResults              WebhooksData
 	ContributorsResults         ContributorsData
 	MaintainedResults           MaintainedData
@@ -62,6 +63,42 @@ type Package struct {
 	// Note: Msg is populated only for debug messages.
 	Msg  *string
 	Runs []Run
+}
+
+// DependencyUseType reprensets a type of dependency use.
+type DependencyUseType string
+
+const (
+	// DependencyUseTypeGHAction is an action.
+	DependencyUseTypeGHAction DependencyUseType = "GitHubAction"
+	// DependencyUseTypeDockerfileContainerImage a container image used via FROM.
+	DependencyUseTypeDockerfileContainerImage DependencyUseType = "containerImage"
+	// DependencyUseTypeDownloadThenRun is a download followed by a run.
+	DependencyUseTypeDownloadThenRun DependencyUseType = "downloadThenRun"
+	// DependencyUseTypeGoCommand is a go command.
+	DependencyUseTypeGoCommand DependencyUseType = "goCommand"
+	// DependencyUseTypeChocoCommand is a choco command.
+	DependencyUseTypeChocoCommand DependencyUseType = "chocoCommand"
+	// DependencyUseTypeNpmCommand is an npm command.
+	DependencyUseTypeNpmCommand DependencyUseType = "npmCommand"
+	// DependencyUseTypePipCommand is a pipp command.
+	DependencyUseTypePipCommand DependencyUseType = "pipCommand"
+)
+
+// PinningDependenciesData represents pinned dependency data.
+type PinningDependenciesData struct {
+	Dependencies []Dependency
+}
+
+// Dependency represents a dependency.
+type Dependency struct {
+	// TODO: unique dependency name.
+	// TODO: Job         *WorkflowJob
+	Name     *string
+	PinnedAt *string
+	Location *File
+	Msg      *string // Only for debug messages.
+	Type     DependencyUseType
 }
 
 // MaintainedData contains the raw results
@@ -165,10 +202,11 @@ type ArchivedStatus struct {
 
 // File represents a file.
 type File struct {
-	Path    string
-	Snippet string   // Snippet of code
-	Offset  uint     // Offset in the file of Path (line for source/text files).
-	Type    FileType // Type of file.
+	Path      string
+	Snippet   string   // Snippet of code
+	Offset    uint     // Offset in the file of Path (line for source/text files).
+	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
+	Type      FileType // Type of file.
 	// TODO: add hash.
 }
 
