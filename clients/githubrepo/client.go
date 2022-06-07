@@ -48,9 +48,9 @@ type Client struct {
 	statuses     *statusesHandler
 	search       *searchHandler
 	webhook      *webhookHandler
+	language     *languagesHandler
 	ctx          context.Context
 	tarball      tarballHandler
-	languages    *languagesHandler
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
