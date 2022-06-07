@@ -148,8 +148,13 @@ To install Scorecards as a standalone:
 
 1.  Visit our latest
     [release page](https://github.com/ossf/scorecard/releases/latest) and
-    download the correct binary for your operating system
+    download the correct binary for your operating system 
 2.  Extract the binary file
+3.  We are proud to be one of the the first repositories to generate non-forgeable SLSA3 provenance natively using the OSSF [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier) project for our linux amd64 binary. If you use this binary, you can verify it by installing the [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier#download-the-binary) and running:
+```
+$ ./slsa-verifier-linux-amd64 --artifact-path scorecard-linux-amd64 --provenance scorecard-linux-amd64.intoto.jsonl --source github.com/ossf/scorecard
+```
+This guarantees that the binary you downloaded was generated using the source code of this repository. If you're interested in reading more about SLSA, visit [slsa.dev](slsa.dev).
 3.  Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to
     identify your directory if necessary)
 
