@@ -150,7 +150,7 @@ To install Scorecards as a standalone:
     [release page](https://github.com/ossf/scorecard/releases/latest) and
     download the correct binary for your operating system 
 2.  Extract the binary file
-3.  We are proud to be one of the the first repositories to generate non-forgeable SLSA3 provenance natively using the OSSF [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier) project for our linux amd64 binary. If you use this binary, you can verify it by installing the [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier#download-the-binary) and running:
+3.  We are proud to be one of the the first repositories to generate non-forgeable SLSA3 provenance using the OSSF [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier) project for the scorecard-linux-amd64 binary. If you use this binary, download the file scorecard-linux-amd64.intoto.jsonl as well. Then verify the binary by installing the [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier#download-the-binary) and running:
 ```
 $ ./slsa-verifier-linux-amd64 --artifact-path scorecard-linux-amd64 --provenance scorecard-linux-amd64.intoto.jsonl --source github.com/ossf/scorecard
 ```
