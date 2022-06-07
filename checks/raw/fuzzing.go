@@ -218,10 +218,10 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(
 }
 
 func getProminentLanguages(langs map[string]int) []string {
-	if langs == nil {
+	numLangs := len(langs)
+	if numLangs == 0 {
 		return nil
 	}
-	numLangs := len(langs)
 	totalLoC := 0
 	for _, LoC := range langs {
 		totalLoC += LoC
