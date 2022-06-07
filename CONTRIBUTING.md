@@ -117,30 +117,10 @@ The personal access token need the following scopes:
 1.  See the [action files](.github/workflows) to check its tests, and the
     scripts used on it.
 
-## dailyscore-cronjob
-
-scorecard scans https://github.com/ossf/scorecard/blob/main/cron/projects.txt
-repositories in GCP k8s and publishes the results in GCS bucket
-`ossf-scorecards`.
-
-The `cron` definition ./scorecard/cron/cron.sh and the `k8s` for the `cron` is
-in ./scorecard/cron/k8s/cron.yaml
-
-The logs for the cron are available at
-https://console.cloud.google.com/kubernetes/cronjob/us-central1-c/openssf/default/daily-score/logs?project=openssf
-
-### Deploying the cron job
-
-The cronjob can be deployed into k8s by running `kubectl apply -f
-./scorecard/cron/k8s/cron.yaml`. This will deploy a k8s cron job.
-
-Any updates to the ./scorecard/cron/cron.sh will be deployed by the docker
-container ./scorecard/Dockerfile.gsutil
-
-## How do I add additional GitHub repositories to be scanned by scorecard dailyscore?
+## How do I add additional GitHub repositories to be scanned by scorecard weekly?
 
 Scorecard maintains the list of repositories in a file
-https://github.com/ossf/scorecard/blob/main/cron/projects.txt
+https://github.com/ossf/scorecard/blob/main/cron/internal/data/projects.csv
 
 Submit a PR for this file and scorecard would start scanning in subsequent runs.
 
@@ -153,14 +133,14 @@ When you add new checks, you need to also update the docs.
 
 A summary for each check needs to be included in the `README.md`.
 In most cases, to update the documentation simply edit the corresponding
-`.md` file, which the notable exception of the auto-generated file `checks.md`.
+`.md` file, with the notable exception of the auto-generated file `checks.md`.
 
-Details about each check need to provided in
-`docs/checks/internal/checks.yaml`.
-If you want to update its documentation, updates that `checks.yaml` file.
+Details about each check need to be  provided in
+[docs/checks/internal/checks.yaml](docs/checks/internal/checks.yaml).
+If you want to update its documentation, update that `checks.yaml` file.
 
 Whenever you modify the `checks.yaml` file, run the following to
-generate `checks/checks.md`:
+generate `docs/checks.md`:
 
 ~~~~
 make generate-docs
