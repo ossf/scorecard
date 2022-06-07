@@ -48,7 +48,7 @@ type Client struct {
 	statuses     *statusesHandler
 	search       *searchHandler
 	webhook      *webhookHandler
-	language     *languagesHandler
+	languages    *languagesHandler
 	ctx          context.Context
 	tarball      tarballHandler
 }
