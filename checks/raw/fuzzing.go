@@ -54,7 +54,8 @@ var languageFuzzSpecs = map[string]languageFuzzConfig{
 		funcPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
 		Name:        fuzzerBuiltInGo,
 		URL:         asPointer("https://go.dev/doc/fuzz/"),
-		Desc:        asPointer("Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
+		Desc: asPointer(
+			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
@@ -188,7 +189,8 @@ func checkFuzzFunc(c *checker.CheckRequest, lang string) (bool, []checker.File, 
 // This is the callback func for interface OnMatchingFileContentDo
 // used for matching fuzz functions in the file content,
 // and return a list of files (or nil for not found).
-var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(path string, content []byte, args ...interface{}) (bool, error) {
+var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(
+	path string, content []byte, args ...interface{}) (bool, error) {
 	if len(args) != 1 {
 		return false, fmt.Errorf("getFuzzFunc requires exactly one argument: %w", errInvalidArgLength)
 	}
