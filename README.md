@@ -109,7 +109,7 @@ bq extract --destination_format=NEWLINE_DELIMITED_JSON
 ```
 
 The list of projects that are checked is available in the
-[`cron/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/data/projects.csv)
+[`cron/internal/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/internal/data/projects.csv)
 file in this repository. If you would like us to track more, please feel free to
 send a Pull Request with others. Currently, this list is derived from **projects
 hosted on GitHub ONLY**. We do plan to expand them in near future to account for
