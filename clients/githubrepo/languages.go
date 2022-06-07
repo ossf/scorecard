@@ -18,35 +18,53 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"sync"
 
 	"github.com/google/go-github/v38/github"
 )
 
 type languagesHandler struct {
-	ghclient *github.Client
-	ctx      context.Context
-	repourl  *repoURL
+	ghclient  *github.Client
+	once      *sync.Once
+	ctx       context.Context
+	errSetup  error
+	repourl   *repoURL
+	languages map[string]int
 }
 
 func (handler *languagesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.ctx = ctx
 	handler.repourl = repourl
+	handler.errSetup = nil
+	handler.once = new(sync.Once)
+}
+
+func (handler *languagesHandler) setup() error {
+	handler.once.Do(func() {
+		client := handler.ghclient
+		reqURL := path.Join("repos", handler.repourl.owner, handler.repourl.repo, "languages")
+		req, err := client.NewRequest("GET", reqURL, nil)
+		if err != nil {
+			handler.errSetup = fmt.Errorf("request for repo languages failed with %w", err)
+			return
+		}
+		handler.languages = map[string]int{}
+		// The client.repoClient.Do API writes the reponse body to var bodyJSON,
+		// so we can ignore the first returned variable (the http response object)
+		// since we only need the response body here.
+		_, err = client.Do(handler.ctx, req, &handler.languages)
+		if err != nil {
+			handler.errSetup = fmt.Errorf("response for repo languages failed with %w", err)
+			return
+		}
+		handler.errSetup = nil
+	})
+	return handler.errSetup
 }
 
 func (handler *languagesHandler) listProgrammingLanguages() (map[string]int, error) {
-	client := handler.ghclient
-	reqURL := path.Join("repos", handler.repourl.owner, handler.repourl.repo, "languages")
-	req, err := client.NewRequest("GET", reqURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("request for repo languages failed with %w", err)
+	if err := handler.setup(); err != nil {
+		return nil, fmt.Errorf("error during languagesHandler.setup: %w", err)
 	}
-	bodyJSON := map[string]int{}
-	// The client.repoClient.Do API writes the reponse body to var bodyJSON,
-	// so we can ignore the first returned variable (the http response object)
-	// since we only need the response body here.
-	_, errResp := client.Do(handler.ctx, req, &bodyJSON)
-	if errResp != nil {
-		return nil, fmt.Errorf("response for repo languages failed with %w", err)
-	}
-	return bodyJSON, nil
+	return handler.languages, nil
 }
