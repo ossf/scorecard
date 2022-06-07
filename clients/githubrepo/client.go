@@ -22,11 +22,12 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/v38/github"
+	"github.com/shurcooL/githubv4"
+
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
-	"github.com/shurcooL/githubv4"
 )
 
 var (
