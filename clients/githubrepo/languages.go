@@ -21,6 +21,7 @@ import (
 	"sync"
 
 	"github.com/google/go-github/v38/github"
+
 	"github.com/ossf/scorecard/v4/clients"
 )
 

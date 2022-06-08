@@ -14,7 +14,7 @@
 
 package clients
 
-// A customized string type `Language` for languages used by clients.
+// Language represents a customized string for languages used by clients.
 // A language could be a programming language, or more general,
 // such as Dockerfile, CMake, HTML, YAML, etc.
 type Language string

@@ -46,10 +46,9 @@ type languageFuzzConfig struct {
 }
 
 // Contains fuzzing speficications for programming languages.
-// Use lowercases as the key, such as go, python, javascript, c++, etc.
+// Please use the type Language defined in clients/languages.go rather than a raw string.
 var languageFuzzSpecs = map[clients.Language]languageFuzzConfig{
 	// Default fuzz patterns for Go.
-	// Please use the type Language defined in clients/languages.go rather than a raw string.
 	clients.Go: {
 		filePattern: "*_test.go",
 		funcPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,

@@ -38,13 +38,12 @@ var (
 
 //nolint:govet
 type localDirClient struct {
-	logger    *log.Logger
-	ctx       context.Context
-	path      string
-	once      sync.Once
-	errFiles  error
-	files     []string
-	languages map[clients.Language]int
+	logger   *log.Logger
+	ctx      context.Context
+	path     string
+	once     sync.Once
+	errFiles error
+	files    []string
 }
 
 // InitRepo sets up the local repo.

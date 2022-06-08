@@ -251,7 +251,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 				"main.go",
 			},
 			langs: map[clients.Language]int{
-				"go": 100,
+				clients.Go: 100,
 			},
 			fileContent: "func TestFoo (t *testing.T)",
 		},

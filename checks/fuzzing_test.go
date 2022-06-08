@@ -34,7 +34,7 @@ func TestFuzzing(t *testing.T) {
 	tests := []struct {
 		name        string
 		want        checker.CheckResult
-		langs       map[string]int
+		langs       map[clients.Language]int
 		response    clients.SearchResponse
 		wantErr     bool
 		wantFuzzErr bool
@@ -45,8 +45,8 @@ func TestFuzzing(t *testing.T) {
 		{
 			name:     "empty response",
 			response: clients.SearchResponse{},
-			langs: map[string]int{
-				"go": 300,
+			langs: map[clients.Language]int{
+				clients.Go: 300,
 			},
 			wantErr: false,
 		},
@@ -55,9 +55,9 @@ func TestFuzzing(t *testing.T) {
 			response: clients.SearchResponse{
 				Hits: 1,
 			},
-			langs: map[string]int{
-				"go":   100,
-				"java": 70,
+			langs: map[clients.Language]int{
+				clients.Go:   100,
+				clients.Java: 70,
 			},
 			wantErr: false,
 			want:    checker.CheckResult{Score: 10},
@@ -70,8 +70,8 @@ func TestFuzzing(t *testing.T) {
 		},
 		{
 			name: "nil response",
-			langs: map[string]int{
-				"python": 256,
+			langs: map[clients.Language]int{
+				clients.Python: 256,
 			},
 			wantErr: true,
 			want:    checker.CheckResult{Score: -1},
@@ -85,8 +85,8 @@ func TestFuzzing(t *testing.T) {
 		},
 		{
 			name: "min score since lang not supported",
-			langs: map[string]int{
-				"not_supported_lang": 1490,
+			langs: map[clients.Language]int{
+				clients.Language("not_supported_lang"): 1490,
 			},
 			wantFuzzErr: false,
 			want:        checker.CheckResult{Score: 0},
