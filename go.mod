@@ -40,7 +40,7 @@ require (
 	google.golang.org/genproto v0.0.0-20220426171045-31bebdecfb46
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99
+	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/sh/v3 v3.5.1
 )
 
@@ -48,7 +48,7 @@ require (
 	github.com/caarlos0/env/v6 v6.9.3
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.1.4
-	sigs.k8s.io/release-utils v0.6.0
+	sigs.k8s.io/release-utils v0.7.0
 )
 
 require (
