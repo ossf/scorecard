@@ -47,9 +47,10 @@ type languageFuzzConfig struct {
 
 // Contains fuzzing speficications for programming languages.
 // Use lowercases as the key, such as go, python, javascript, c++, etc.
-var languageFuzzSpecs = map[string]languageFuzzConfig{
+var languageFuzzSpecs = map[clients.Language]languageFuzzConfig{
 	// Default fuzz patterns for Go.
-	"go": {
+	// Please use the type Language defined in clients/languages.go rather than a raw string.
+	clients.Go: {
 		filePattern: "*_test.go",
 		funcPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
 		Name:        fuzzerBuiltInGo,
@@ -151,7 +152,7 @@ func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 	return result.Hits > 0, nil
 }
 
-func checkFuzzFunc(c *checker.CheckRequest, lang string) (bool, []checker.File, error) {
+func checkFuzzFunc(c *checker.CheckRequest, lang clients.Language) (bool, []checker.File, error) {
 	if c.RepoClient == nil {
 		return false, nil, nil
 	}
@@ -217,7 +218,7 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(
 	return true, nil
 }
 
-func getProminentLanguages(langs map[string]int) []string {
+func getProminentLanguages(langs map[clients.Language]int) []clients.Language {
 	numLangs := len(langs)
 	if numLangs == 0 {
 		return nil
@@ -231,10 +232,11 @@ func getProminentLanguages(langs map[string]int) []string {
 	avgLoC := totalLoC / numLangs
 
 	// Languages that have lines of code above average will be considered prominent.
-	ret := []string{}
+	ret := []clients.Language{}
 	for lang, LoC := range langs {
 		if LoC >= avgLoC {
-			ret = append(ret, strings.ToLower(lang))
+			lang = clients.Language(strings.ToLower(string(lang)))
+			ret = append(ret, lang)
 		}
 	}
 	return ret

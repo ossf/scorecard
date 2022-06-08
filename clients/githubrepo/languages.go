@@ -21,6 +21,7 @@ import (
 	"sync"
 
 	"github.com/google/go-github/v38/github"
+	"github.com/ossf/scorecard/v4/clients"
 )
 
 type languagesHandler struct {
@@ -29,7 +30,7 @@ type languagesHandler struct {
 	ctx       context.Context
 	errSetup  error
 	repourl   *repoURL
-	languages map[string]int
+	languages map[clients.Language]int
 }
 
 func (handler *languagesHandler) init(ctx context.Context, repourl *repoURL) {
@@ -39,6 +40,8 @@ func (handler *languagesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.once = new(sync.Once)
 }
 
+// TODO: Can add support to parse the raw reponse JSON and mark languages that are not in
+// our defined Language consts in clients/languages.go as "not supported languages".
 func (handler *languagesHandler) setup() error {
 	handler.once.Do(func() {
 		client := handler.ghclient
@@ -48,9 +51,9 @@ func (handler *languagesHandler) setup() error {
 			handler.errSetup = fmt.Errorf("request for repo languages failed with %w", err)
 			return
 		}
-		handler.languages = map[string]int{}
-		// The client.repoClient.Do API writes the reponse body to var bodyJSON,
-		// so we can ignore the first returned variable (the http response object)
+		handler.languages = map[clients.Language]int{}
+		// The client.repoClient.Do API writes the reponse body to the handler.languages,
+		// so we can ignore the first returned variable (the entire http response object)
 		// since we only need the response body here.
 		_, err = client.Do(handler.ctx, req, &handler.languages)
 		if err != nil {
@@ -62,7 +65,7 @@ func (handler *languagesHandler) setup() error {
 	return handler.errSetup
 }
 
-func (handler *languagesHandler) listProgrammingLanguages() (map[string]int, error) {
+func (handler *languagesHandler) listProgrammingLanguages() (map[clients.Language]int, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during languagesHandler.setup: %w", err)
 	}

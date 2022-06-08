@@ -165,7 +165,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 		name              string
 		expectedFileMatch bool
 		expectedFuncMatch bool
-		lang              string
+		lang              clients.Language
 		fileName          string
 		fileContent       string
 		wantErr           bool
@@ -237,7 +237,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 		name        string
 		want        bool
 		wantErr     bool
-		langs       map[string]int
+		langs       map[clients.Language]int
 		fileName    []string
 		fileContent string
 	}{
@@ -250,7 +250,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 				"foo_test.go",
 				"main.go",
 			},
-			langs: map[string]int{
+			langs: map[clients.Language]int{
 				"go": 100,
 			},
 			fileContent: "func TestFoo (t *testing.T)",

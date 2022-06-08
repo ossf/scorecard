@@ -38,12 +38,13 @@ var (
 
 //nolint:govet
 type localDirClient struct {
-	logger   *log.Logger
-	ctx      context.Context
-	path     string
-	once     sync.Once
-	errFiles error
-	files    []string
+	logger    *log.Logger
+	ctx       context.Context
+	path      string
+	once      sync.Once
+	errFiles  error
+	files     []string
+	languages map[clients.Language]int
 }
 
 // InitRepo sets up the local repo.
@@ -219,7 +220,8 @@ func (client *localDirClient) Close() error {
 }
 
 // ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
-func (client *localDirClient) ListProgrammingLanguages() (map[string]int, error) {
+// TODO: add ListProgrammingLanguages support for local directories
+func (client *localDirClient) ListProgrammingLanguages() (map[clients.Language]int, error) {
 	return nil, fmt.Errorf("ListProgrammingLanguages: %w", clients.ErrUnsupportedFeature)
 }
 
