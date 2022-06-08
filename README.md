@@ -150,11 +150,18 @@ To install Scorecards as a standalone:
     [release page](https://github.com/ossf/scorecard/releases/latest) and
     download the correct binary for your operating system 
 1.  Extract the binary file
-1.  We are proud to be one of the the first repositories to generate non-forgeable SLSA3 provenance using the OSSF [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier) project for the scorecard-linux-amd64 binary. If you use this binary, download the file scorecard-linux-amd64.intoto.jsonl as well. Then verify the binary by installing the [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier#download-the-binary) and running:
+1.  We are excited to be an early adopter of one of the the OSSF [slsa-framework/slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator)
+to generate non-forgeable SLSA3 provenance for the scorecard-linux-amd64 binary. If you use this binary, download the companiion provenance file 
+scorecard-linux-amd64.intoto.jsonl as well. Then verify the scorecard binary with [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier#download-the-binary):
 ```
-$ ./slsa-verifier-linux-amd64 --artifact-path scorecard-linux-amd64 --provenance scorecard-linux-amd64.intoto.jsonl --source github.com/ossf/scorecard
+$ ./slsa-verifier-linux-amd64 \
+    --artifact-path scorecard-linux-amd64 \
+    --provenance scorecard-linux-amd64.intoto.jsonl \
+    --source github.com/ossf/scorecard
+    --tag vX.Y.Z
 ```
-This guarantees that the binary you downloaded was generated using the source code of this repository. If you're interested in reading more about SLSA, visit [slsa.dev](slsa.dev).
+When verification passes, it guarantees that the binary you downloaded was generated using the source code of this repository. 
+If you're interested in reading more about SLSA, visit the official [slsa.dev](slsa.dev).
 
 1.  Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to
     identify your directory if necessary)
