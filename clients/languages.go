@@ -82,11 +82,11 @@ const (
 // A language could be a programming language, or more general,
 // such as Dockerfile, CMake, HTML, YAML, etc.
 type Language struct {
-	// Name of the language
+	// Name is the name of this language.
 	Name LanguageName
 
-	// Total lines of code of this language in the repository.
-	LoC int
+	// NumLines is the total number of code lines of this language in the repo.
+	NumLines int
 
-	// TODO: more properties for Language.
+	// TODO: add more properties for Language.
 }

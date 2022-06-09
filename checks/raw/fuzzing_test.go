@@ -252,8 +252,8 @@ func Test_checkFuzzFunc(t *testing.T) {
 			},
 			langs: []clients.Language{
 				{
-					Name: clients.Go,
-					LoC:  100,
+					Name:     clients.Go,
+					NumLines: 100,
 				},
 			},
 			fileContent: "func TestFoo (t *testing.T)",

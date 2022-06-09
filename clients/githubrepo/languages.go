@@ -68,8 +68,8 @@ func (handler *languagesHandler) setup() error {
 			// Currently, we are parsing all the JSON-returned langs into the result since the const is incomplete.
 			handler.languages = append(handler.languages,
 				clients.Language{
-					Name: k,
-					LoC:  v,
+					Name:     k,
+					NumLines: v,
 				},
 			)
 		}

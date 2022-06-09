@@ -47,8 +47,8 @@ func TestFuzzing(t *testing.T) {
 			response: clients.SearchResponse{},
 			langs: []clients.Language{
 				{
-					Name: clients.Go,
-					LoC:  300,
+					Name:     clients.Go,
+					NumLines: 300,
 				},
 			},
 			wantErr: false,
@@ -60,12 +60,12 @@ func TestFuzzing(t *testing.T) {
 			},
 			langs: []clients.Language{
 				{
-					Name: clients.Go,
-					LoC:  100,
+					Name:     clients.Go,
+					NumLines: 100,
 				},
 				{
-					Name: clients.Java,
-					LoC:  70,
+					Name:     clients.Java,
+					NumLines: 70,
 				},
 			},
 			wantErr: false,
@@ -81,8 +81,8 @@ func TestFuzzing(t *testing.T) {
 			name: "nil response",
 			langs: []clients.Language{
 				{
-					Name: clients.Python,
-					LoC:  256,
+					Name:     clients.Python,
+					NumLines: 256,
 				},
 			},
 			wantErr: true,
@@ -99,8 +99,8 @@ func TestFuzzing(t *testing.T) {
 			name: "min score since lang not supported",
 			langs: []clients.Language{
 				{
-					Name: clients.LanguageName("a_not_supported_lang"),
-					LoC:  500,
+					Name:     clients.LanguageName("a_not_supported_lang"),
+					NumLines: 500,
 				},
 			},
 			wantFuzzErr: false,

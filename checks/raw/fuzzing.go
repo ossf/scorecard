@@ -224,7 +224,7 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 	}
 	totalLoC := 0
 	for _, l := range langs {
-		totalLoC += l.LoC
+		totalLoC += l.NumLines
 	}
 	// Var avgLoC calculates the average lines of code in the current repo,
 	// and it can stay as an int, no need for a float value.
@@ -233,7 +233,7 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 	// Languages that have lines of code above average will be considered prominent.
 	ret := []clients.LanguageName{}
 	for _, l := range langs {
-		if l.LoC >= avgLoC {
+		if l.NumLines >= avgLoC {
 			lang := clients.LanguageName(strings.ToLower(string(l.Name)))
 			ret = append(ret, lang)
 		}
