@@ -34,6 +34,7 @@ func TestFuzzing(t *testing.T) {
 	tests := []struct {
 		name        string
 		want        checker.CheckResult
+		langs       map[clients.Language]int
 		response    clients.SearchResponse
 		wantErr     bool
 		wantFuzzErr bool
@@ -44,12 +45,19 @@ func TestFuzzing(t *testing.T) {
 		{
 			name:     "empty response",
 			response: clients.SearchResponse{},
-			wantErr:  false,
+			langs: map[clients.Language]int{
+				clients.Go: 300,
+			},
+			wantErr: false,
 		},
 		{
 			name: "hits 1",
 			response: clients.SearchResponse{
 				Hits: 1,
+			},
+			langs: map[clients.Language]int{
+				clients.Go:   100,
+				clients.Java: 70,
 			},
 			wantErr: false,
 			want:    checker.CheckResult{Score: 10},
@@ -61,7 +69,10 @@ func TestFuzzing(t *testing.T) {
 			},
 		},
 		{
-			name:    "nil response",
+			name: "nil response",
+			langs: map[clients.Language]int{
+				clients.Python: 256,
+			},
 			wantErr: true,
 			want:    checker.CheckResult{Score: -1},
 			expected: scut.TestReturn{
@@ -73,7 +84,15 @@ func TestFuzzing(t *testing.T) {
 			},
 		},
 		{
-			name:        " error",
+			name: "min score since lang not supported",
+			langs: map[clients.Language]int{
+				clients.Language("not_supported_lang"): 1490,
+			},
+			wantFuzzErr: false,
+			want:        checker.CheckResult{Score: 0},
+		},
+		{
+			name:        "error",
 			wantFuzzErr: true,
 			want:        checker.CheckResult{},
 		},
@@ -94,7 +113,7 @@ func TestFuzzing(t *testing.T) {
 					}
 					return tt.response, nil
 				}).AnyTimes()
-
+			mockFuzz.EXPECT().ListProgrammingLanguages().Return(tt.langs, nil).AnyTimes()
 			mockFuzz.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
 			mockFuzz.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
 				if tt.wantErr {

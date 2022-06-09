@@ -16,6 +16,8 @@ package raw
 
 import (
 	"errors"
+	"path"
+	"regexp"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -151,6 +153,132 @@ func Test_checkCFLite(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("checkCFLite() = %v, want %v for test %v", got, tt.want, tt.name)
+			}
+		})
+	}
+}
+
+func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
+	t.Parallel()
+	//nolint
+	tests := []struct {
+		name              string
+		expectedFileMatch bool
+		expectedFuncMatch bool
+		lang              clients.Language
+		fileName          string
+		fileContent       string
+		wantErr           bool
+	}{
+		{
+			name:              "Test_fuzzFuncRegex file success & func success",
+			expectedFileMatch: true,
+			expectedFuncMatch: true,
+			lang:              "go",
+			fileName:          "FOOoo_fOOff_BaRRR_test.go",
+			fileContent:       `func FuzzSomething (fOo_bAR_1234 *testing.F)`,
+			wantErr:           false,
+		},
+		{
+			name:              "Test_fuzzFuncRegex file success & func failure",
+			expectedFileMatch: true,
+			expectedFuncMatch: false,
+			lang:              "go",
+			fileName:          "a_unit_test.go",
+			fileContent:       `func TestSomethingUnitTest (t *testing.T)`,
+			wantErr:           true,
+		},
+		{
+			name:              "Test_fuzzFuncRegex file failure & func failure",
+			expectedFileMatch: false,
+			expectedFuncMatch: false,
+			lang:              "go",
+			fileName:          "not_a_fuzz_test_file.go",
+			fileContent:       `func main (t *testing.T)`,
+			wantErr:           true,
+		},
+		{
+			name:              "Test_fuzzFuncRegex not a support language",
+			expectedFileMatch: false,
+			expectedFuncMatch: false,
+			lang:              "not_a_supported_one",
+			fileName:          "a_fuzz_test.py",
+			fileContent:       `def NotSupported (foo)`,
+			wantErr:           true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			langSpecs, ok := languageFuzzSpecs[tt.lang]
+			if !ok && !tt.wantErr {
+				t.Errorf("retrieve supported language error")
+			}
+			fileMatchPattern := langSpecs.filePattern
+			fileMatch, err := path.Match(fileMatchPattern, tt.fileName)
+			if (fileMatch != tt.expectedFileMatch || err != nil) && !tt.wantErr {
+				t.Errorf("fileMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
+			}
+			funcRegexPattern := langSpecs.funcPattern
+			r := regexp.MustCompile(funcRegexPattern)
+			found := r.MatchString(tt.fileContent)
+			if (found != tt.expectedFuncMatch) && !tt.wantErr {
+				t.Errorf("funcMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
+			}
+		})
+	}
+}
+
+func Test_checkFuzzFunc(t *testing.T) {
+	t.Parallel()
+	//nolint
+	tests := []struct {
+		name        string
+		want        bool
+		wantErr     bool
+		langs       map[clients.Language]int
+		fileName    []string
+		fileContent string
+	}{
+		{
+			// TODO: more test cases needed. @aidenwang9867
+			name:    "Test_checkFuzzFunc failure",
+			want:    false,
+			wantErr: false,
+			fileName: []string{
+				"foo_test.go",
+				"main.go",
+			},
+			langs: map[clients.Language]int{
+				clients.Go: 100,
+			},
+			fileContent: "func TestFoo (t *testing.T)",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			mockClient := mockrepo.NewMockRepoClient(ctrl)
+			mockClient.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
+			mockClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
+				if tt.wantErr {
+					//nolint
+					return "", errors.New("error")
+				}
+				return tt.fileContent, nil
+			}).AnyTimes()
+			req := checker.CheckRequest{
+				RepoClient: mockClient,
+			}
+			for l := range tt.langs {
+				got, _, err := checkFuzzFunc(&req, l)
+				if (got != tt.want || err != nil) && !tt.wantErr {
+					t.Errorf("checkFuzzFunc() = %v, want %v for %v", got, tt.want, tt.name)
+				}
 			}
 		})
 	}

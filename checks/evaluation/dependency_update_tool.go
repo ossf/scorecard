@@ -49,19 +49,20 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if r.Tools[0].File == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "File is nil")
+	if r.Tools[0].Files == nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "Files are nil")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// Note: only one file per tool is present,
-	// so we do not iterate thru all entries.
-	dl.Info(&checker.LogMessage{
-		Path:   r.Tools[0].File.Path,
-		Type:   r.Tools[0].File.Type,
-		Offset: r.Tools[0].File.Offset,
-		Text:   fmt.Sprintf("%s detected", r.Tools[0].Name),
-	})
+	// Iterate over all the files, since a Tool can contain multiple files.
+	for _, file := range r.Tools[0].Files {
+		dl.Info(&checker.LogMessage{
+			Path:   file.Path,
+			Type:   file.Type,
+			Offset: file.Offset,
+			Text:   fmt.Sprintf("%s detected", r.Tools[0].Name),
+		})
+	}
 
 	// High score result.
 	return checker.CreateMaxScoreResult(name, "update tool detected")

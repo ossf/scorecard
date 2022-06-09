@@ -47,11 +47,11 @@ type jsonFile struct {
 }
 
 type jsonTool struct {
-	URL  *string          `json:"url"`
-	Desc *string          `json:"desc"`
-	Job  *jsonWorkflowJob `json:"job,omitempty"`
-	File *jsonFile        `json:"file,omitempty"`
-	Name string           `json:"name"`
+	URL   *string          `json:"url"`
+	Desc  *string          `json:"desc"`
+	Job   *jsonWorkflowJob `json:"job,omitempty"`
+	Name  string           `json:"name"`
+	Files []jsonFile       `json:"files,omitempty"`
 	// TODO: Runs, Issues, Merge requests.
 }
 
@@ -553,9 +553,11 @@ func (r *jsonScorecardRawResult) addFuzzingRawResults(fd *checker.FuzzingData) e
 			URL:  f.URL,
 			Desc: f.Desc,
 		}
-		if f.File != nil {
-			jt.File = &jsonFile{
-				Path: f.File.Path,
+		if f.Files != nil {
+			for _, f := range f.Files {
+				jt.Files = append(jt.Files, jsonFile{
+					Path: f.Path,
+				})
 			}
 		}
 		r.Results.Fuzzers = append(r.Results.Fuzzers, jt)
@@ -573,9 +575,11 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 			URL:  t.URL,
 			Desc: t.Desc,
 		}
-		if t.File != nil {
-			jt.File = &jsonFile{
-				Path: t.File.Path,
+		if t.Files != nil {
+			for _, f := range t.Files {
+				jt.Files = append(jt.Files, jsonFile{
+					Path: f.Path,
+				})
 			}
 		}
 		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jt)

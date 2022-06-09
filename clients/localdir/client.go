@@ -218,6 +218,12 @@ func (client *localDirClient) Close() error {
 	return nil
 }
 
+// ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
+// TODO: add ListProgrammingLanguages support for local directories
+func (client *localDirClient) ListProgrammingLanguages() (map[clients.Language]int, error) {
+	return nil, fmt.Errorf("ListProgrammingLanguages: %w", clients.ErrUnsupportedFeature)
+}
+
 // CreateLocalDirClient returns a client which implements RepoClient interface.
 func CreateLocalDirClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
 	return &localDirClient{

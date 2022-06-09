@@ -272,6 +272,20 @@ func (mr *MockRepoClientMockRecorder) ListWebhooks() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWebhooks", reflect.TypeOf((*MockRepoClient)(nil).ListWebhooks))
 }
 
+func (m *MockRepoClient) ListProgrammingLanguages() (map[clients.Language]int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListProgrammingLanguages")
+	ret0, _ := ret[0].(map[clients.Language]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListProgrammingLanguages indicates an expected call of ListProgrammingLanguages.
+func (mr *MockRepoClientMockRecorder) ListProgrammingLanguages() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProgrammingLanguages", reflect.TypeOf((*MockRepoClient)(nil).ListProgrammingLanguages))
+}
+
 // Search mocks base method.
 func (m *MockRepoClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	m.ctrl.T.Helper()

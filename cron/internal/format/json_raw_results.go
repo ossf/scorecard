@@ -40,10 +40,10 @@ type jsonFile struct {
 }
 
 type jsonTool struct {
-	URL  *string   `json:"url"`
-	Desc *string   `json:"desc"`
-	File *jsonFile `json:"file"`
-	Name string    `json:"name"`
+	URL   *string    `json:"url"`
+	Desc  *string    `json:"desc"`
+	Name  string     `json:"name"`
+	Files []jsonFile `json:"file"`
 	// TODO: Runs, Issues, Merge requests.
 }
 
@@ -204,9 +204,11 @@ func addDependencyUpdateToolRawResults(r *jsonScorecardRawResult,
 			URL:  t.URL,
 			Desc: t.Desc,
 		}
-		if t.File != nil {
-			jt.File = &jsonFile{
-				Path: t.File.Path,
+		if t.Files != nil && len(t.Files) > 0 {
+			for _, f := range t.Files {
+				jt.Files = append(jt.Files, jsonFile{
+					Path: f.Path,
+				})
 			}
 		}
 		r.Results.DependencyUpdateTools = append(r.Results.DependencyUpdateTools, jt)

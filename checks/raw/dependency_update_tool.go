@@ -51,10 +51,12 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 			Name: "Dependabot",
 			URL:  asPointer("https://github.com/dependabot"),
 			Desc: asPointer("Automated dependency updates built into GitHub"),
-			File: &checker.File{
-				Path:   name,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
+			Files: []checker.File{
+				{
+					Path:   name,
+					Type:   checker.FileTypeSource,
+					Offset: checker.OffsetDefault,
+				},
 			},
 		})
 
@@ -65,10 +67,12 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 			Name: "Renovabot",
 			URL:  asPointer("https://github.com/renovatebot/renovate"),
 			Desc: asPointer("Automated dependency updates. Multi-platform and multi-language."),
-			File: &checker.File{
-				Path:   name,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
+			Files: []checker.File{
+				{
+					Path:   name,
+					Type:   checker.FileTypeSource,
+					Offset: checker.OffsetDefault,
+				},
 			},
 		})
 	default:
