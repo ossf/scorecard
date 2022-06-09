@@ -181,7 +181,7 @@ func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 }
 
 //ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
-func (client *Client) ListProgrammingLanguages() (map[clients.Language]int, error) {
+func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 	return client.languages.listProgrammingLanguages()
 }
 
