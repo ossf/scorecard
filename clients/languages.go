@@ -65,6 +65,12 @@ const (
 	// Rust: https://github.com/rust-lang/rust
 	Rust LanguageName = "rust"
 
+	// CMake: https://cmake.org/
+	CMake LanguageName = "cmake"
+
+	// Dockerfile: https://docs.docker.com/engine/reference/builder/
+	Dockerfile LanguageName = "dockerfile"
+
 	// Other indicates other languages not listed by the GitHub API.
 	Other LanguageName = "other"
 
