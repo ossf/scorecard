@@ -165,7 +165,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 		name              string
 		expectedFileMatch bool
 		expectedFuncMatch bool
-		lang              clients.Language
+		lang              clients.LanguageName
 		fileName          string
 		fileContent       string
 		wantErr           bool
@@ -174,7 +174,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			name:              "Test_fuzzFuncRegex file success & func success",
 			expectedFileMatch: true,
 			expectedFuncMatch: true,
-			lang:              "go",
+			lang:              clients.LanguageName("go"),
 			fileName:          "FOOoo_fOOff_BaRRR_test.go",
 			fileContent:       `func FuzzSomething (fOo_bAR_1234 *testing.F)`,
 			wantErr:           false,
@@ -183,7 +183,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			name:              "Test_fuzzFuncRegex file success & func failure",
 			expectedFileMatch: true,
 			expectedFuncMatch: false,
-			lang:              "go",
+			lang:              clients.LanguageName("go"),
 			fileName:          "a_unit_test.go",
 			fileContent:       `func TestSomethingUnitTest (t *testing.T)`,
 			wantErr:           true,
@@ -192,7 +192,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			name:              "Test_fuzzFuncRegex file failure & func failure",
 			expectedFileMatch: false,
 			expectedFuncMatch: false,
-			lang:              "go",
+			lang:              clients.LanguageName("go"),
 			fileName:          "not_a_fuzz_test_file.go",
 			fileContent:       `func main (t *testing.T)`,
 			wantErr:           true,
@@ -201,7 +201,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			name:              "Test_fuzzFuncRegex not a support language",
 			expectedFileMatch: false,
 			expectedFuncMatch: false,
-			lang:              "not_a_supported_one",
+			lang:              clients.LanguageName("not_a_supported_one"),
 			fileName:          "a_fuzz_test.py",
 			fileContent:       `def NotSupported (foo)`,
 			wantErr:           true,
@@ -237,7 +237,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 		name        string
 		want        bool
 		wantErr     bool
-		langs       map[clients.Language]int
+		langs       []clients.Language
 		fileName    []string
 		fileContent string
 	}{
@@ -250,8 +250,11 @@ func Test_checkFuzzFunc(t *testing.T) {
 				"foo_test.go",
 				"main.go",
 			},
-			langs: map[clients.Language]int{
-				clients.Go: 100,
+			langs: []clients.Language{
+				{
+					Name: clients.Go,
+					LoC:  100,
+				},
 			},
 			fileContent: "func TestFoo (t *testing.T)",
 		},
@@ -274,8 +277,8 @@ func Test_checkFuzzFunc(t *testing.T) {
 			req := checker.CheckRequest{
 				RepoClient: mockClient,
 			}
-			for l := range tt.langs {
-				got, _, err := checkFuzzFunc(&req, l)
+			for _, l := range tt.langs {
+				got, _, err := checkFuzzFunc(&req, l.Name)
 				if (got != tt.want || err != nil) && !tt.wantErr {
 					t.Errorf("checkFuzzFunc() = %v, want %v for %v", got, tt.want, tt.name)
 				}
