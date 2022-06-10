@@ -31,7 +31,7 @@ type languagesHandler struct {
 	ctx       context.Context
 	errSetup  error
 	repourl   *repoURL
-	languages map[clients.Language]int
+	languages []clients.Language
 }
 
 func (handler *languagesHandler) init(ctx context.Context, repourl *repoURL) {
@@ -52,21 +52,34 @@ func (handler *languagesHandler) setup() error {
 			handler.errSetup = fmt.Errorf("request for repo languages failed with %w", err)
 			return
 		}
-		handler.languages = map[clients.Language]int{}
-		// The client.repoClient.Do API writes the reponse body to the handler.languages,
+		bodyJSON := map[clients.LanguageName]int{}
+		// The client.repoClient.Do API writes the reponse body to var bodyJSON,
 		// so we can ignore the first returned variable (the entire http response object)
 		// since we only need the response body here.
-		_, err = client.Do(handler.ctx, req, &handler.languages)
+		_, err = client.Do(handler.ctx, req, &bodyJSON)
 		if err != nil {
 			handler.errSetup = fmt.Errorf("response for repo languages failed with %w", err)
 			return
 		}
+		// Parse the raw JSON to an array of languages.
+		for k, v := range bodyJSON {
+			// TODO: once the const defined in clients/languages.go becomes a complete list of langs supported,
+			// add support here so that for not supported langs, it emits an "not-supported" error and break the parse.
+			// Currently, we are parsing all the JSON-returned langs into the result since the const is incomplete.
+			handler.languages = append(handler.languages,
+				clients.Language{
+					Name:     k,
+					NumLines: v,
+				},
+			)
+		}
 		handler.errSetup = nil
 	})
+
 	return handler.errSetup
 }
 
-func (handler *languagesHandler) listProgrammingLanguages() (map[clients.Language]int, error) {
+func (handler *languagesHandler) listProgrammingLanguages() ([]clients.Language, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during languagesHandler.setup: %w", err)
 	}

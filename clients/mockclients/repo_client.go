@@ -272,10 +272,10 @@ func (mr *MockRepoClientMockRecorder) ListWebhooks() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWebhooks", reflect.TypeOf((*MockRepoClient)(nil).ListWebhooks))
 }
 
-func (m *MockRepoClient) ListProgrammingLanguages() (map[clients.Language]int, error) {
+func (m *MockRepoClient) ListProgrammingLanguages() ([]clients.Language, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListProgrammingLanguages")
-	ret0, _ := ret[0].(map[clients.Language]int)
+	ret0, _ := ret[0].([]clients.Language)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

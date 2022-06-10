@@ -14,60 +14,79 @@
 
 package clients
 
-// Language represents a customized string for languages used by clients.
-// A language could be a programming language, or more general,
-// such as Dockerfile, CMake, HTML, YAML, etc.
-type Language string
+// LanguageName is the name of a language, a customized type of string.
+type LanguageName string
 
-// TODO: retrieve all languages supported by GitHub.
+// TODO: retrieve all languages supported by GitHub, or add one manually if needed.
+// Currently, this is still an incomplete list of languages.
 const (
 	// Go: https://go.dev/
-	Go Language = "go"
+	Go LanguageName = "go"
 
 	// Python: https://www.python.org/
-	Python Language = "python"
+	Python LanguageName = "python"
 
 	// JavaScript: https://www.javascript.com/
-	JavaScript Language = "javascript"
+	JavaScript LanguageName = "javascript"
 
 	// C++: https://cplusplus.com/
-	Cpp Language = "c++"
+	Cpp LanguageName = "c++"
 
 	// C: https://www.open-std.org/jtc1/sc22/wg14/
-	C Language = "c"
+	C LanguageName = "c"
 
 	// TypeScript: https://www.typescriptlang.org/
-	TypeScript Language = "typescript"
+	TypeScript LanguageName = "typescript"
 
 	// Java: https://www.java.com/en/
-	Java Language = "java"
+	Java LanguageName = "java"
 
 	// C#: https://docs.microsoft.com/en-us/dotnet/csharp/
-	CSharp Language = "c#"
+	CSharp LanguageName = "c#"
 
 	// Ruby: https://www.ruby-lang.org/
-	Ruby Language = "ruby"
+	Ruby LanguageName = "ruby"
 
 	// PHP: https://www.php.net/
-	PHP Language = "php"
+	PHP LanguageName = "php"
 
 	// Starlark: https://github.com/bazelbuild/starlark
-	StarLark Language = "starlark"
+	StarLark LanguageName = "starlark"
 
 	// Scala: https://www.scala-lang.org/
-	Scala Language = "scala"
+	Scala LanguageName = "scala"
 
 	// Kotlin: https://kotlinlang.org/
-	Kotlin Language = "kotlin"
+	Kotlin LanguageName = "kotlin"
 
 	// Swift: https://github.com/apple/swift
-	Swift Language = "swift"
+	Swift LanguageName = "swift"
 
 	// Rust: https://github.com/rust-lang/rust
-	Rust Language = "rust"
+	Rust LanguageName = "rust"
 
-	// Other indicates other programming languages not listed by the GitHub API.
-	Other Language = "other"
+	// CMake: https://cmake.org/
+	CMake LanguageName = "cmake"
 
-	// Add more programming languages here if needed, please use lower cases.
+	// Dockerfile: https://docs.docker.com/engine/reference/builder/
+	Dockerfile LanguageName = "dockerfile"
+
+	// Other indicates other languages not listed by the GitHub API.
+	Other LanguageName = "other"
+
+	// Add more languages here if needed,
+	// please use lowercases for the LanguageName value.
 )
+
+// Language represents a customized struct for languages used by clients.
+// A language could be a programming language, or more general,
+// such as Dockerfile, CMake, HTML, YAML, etc.
+type Language struct {
+	// Name is the name of this language.
+	Name LanguageName
+
+	// NumLines is the total number of code lines of this language in the repo.
+	NumLines int
+
+	// TODO: add more properties for Language.
+}
