@@ -42,6 +42,14 @@ func TestBinaryArtifacts(t *testing.T) {
 			expect: 1,
 		},
 		{
+			name: "Mach-O ARM64 executable",
+			err:  nil,
+			files: []string{
+				"../testdata/binaryartifacts/executables/darwin-arm64-bt",
+			},
+			expect: 1,
+		},
+		{
 			name: "non binary file",
 			err:  nil,
 			files: []string{
