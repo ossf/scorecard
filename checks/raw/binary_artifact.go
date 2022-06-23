@@ -65,6 +65,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 		"elf":    true,
 		"o":      true,
 		"so":     true,
+		"macho":  true,
 		"iso":    true,
 		"class":  true,
 		"jar":    true,
