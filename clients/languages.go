@@ -19,6 +19,8 @@ type LanguageName string
 
 // TODO: retrieve all languages supported by GitHub, or add one manually if needed.
 // Currently, this is still an incomplete list of languages.
+// For the complete language list, see:
+// https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
 const (
 	// Go: https://go.dev/
 	Go LanguageName = "go"
@@ -70,6 +72,33 @@ const (
 
 	// Dockerfile: https://docs.docker.com/engine/reference/builder/
 	Dockerfile LanguageName = "dockerfile"
+
+	// HTML: https://www.w3schools.com/html/
+	HTML LanguageName = "html"
+
+	// Shell: https://www.shellscript.sh/
+	Shell LanguageName = "shell"
+
+	// Nix: https://nixos.wiki/wiki/Nix_Expression_Language
+	Nix LanguageName = "nix"
+
+	// Dart: https://dart.dev/
+	Dart LanguageName = "dart"
+
+	// Groovy: https://groovy-lang.org/
+	Groovy LanguageName = "groovy"
+
+	// Perl: https://www.perl.org/
+	Perk LanguageName = "perl"
+
+	// Objective-C: https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC
+	ObjectiveC LanguageName = "objective-c"
+
+	// R: https://www.r-project.org/
+	R LanguageName = "r"
+
+	// MATLAB: https://www.mathworks.com/
+	MATLAB LanguageName = "matlab"
 
 	// Other indicates other languages not listed by the GitHub API.
 	Other LanguageName = "other"
