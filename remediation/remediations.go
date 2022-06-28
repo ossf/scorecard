@@ -55,7 +55,6 @@ func Setup(c *checker.CheckRequest) error {
 			}
 			return
 		}
-
 		if b != nil && b.Name != nil {
 			branch = *b.Name
 			uri := c.Repo.URI()
