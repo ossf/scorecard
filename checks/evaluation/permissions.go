@@ -75,6 +75,9 @@ func applyScorePolicy(results *checker.TokenPermissionsData, dl checker.DetailLo
 
 		case checker.PermissionTypeWrite, checker.PermissionTypeUndeclared:
 			dl.Warn(&msg)
+
+			// The raw results contain a list of results which are not grouped by workflow,
+			// so we create a hash map to help with score computation.
 			if err := updateWorkflowHashMap(hm, r); err != nil {
 				return checker.InconclusiveResultScore, err
 			}
