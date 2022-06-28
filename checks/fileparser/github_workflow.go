@@ -371,6 +371,15 @@ func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp st
 func (m *JobMatcher) matches(job *actionlint.Job) bool {
 	for _, stepToMatch := range m.Steps {
 		hasMatch := false
+
+		// First look for re-usable workflow calls.
+		if job.WorkflowCall != nil &&
+			job.WorkflowCall.Uses != nil &&
+			strings.HasPrefix(job.WorkflowCall.Uses.Value, stepToMatch.Uses+"@") {
+			return true
+		}
+
+		// Second looks for steps in the job.
 		for _, step := range job.Steps {
 			if stepsMatch(stepToMatch, step) {
 				hasMatch = true
@@ -544,6 +553,15 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 				},
 			},
 			LogText: "candidate rust publishing workflow using cargo",
+		},
+		{
+			// Ko container action. https://github.com/google/ko
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "imjasonh/setup-ko",
+				},
+			},
+			LogText: "candidate container publishing workflow using ko",
 		},
 	}
 

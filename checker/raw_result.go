@@ -264,7 +264,7 @@ const (
 type PermissionType string
 
 const (
-	// PermissionTypeUndeclared an undecleared permission.
+	// PermissionTypeUndeclared is an undecleared permission.
 	PermissionTypeUndeclared PermissionType = "undeclared"
 	// PermissionTypeWrite is a permission set to `write` for a permission we consider potentially dangerous.
 	PermissionTypeWrite PermissionType = "write"
@@ -277,7 +277,7 @@ const (
 	PermissionTypeUnknown PermissionType = "unknown"
 )
 
-// TokenPermission defines a token permission alert.
+// TokenPermission defines a token permission result.
 type TokenPermission struct {
 	Job          *WorkflowJob
 	Remediation  *Remediation

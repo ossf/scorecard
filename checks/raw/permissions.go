@@ -26,12 +26,6 @@ import (
 	"github.com/ossf/scorecard/v4/remediation"
 )
 
-// CheckTokenPermissions is the exported name for Token-Permissions check.
-const (
-	jobLevelPermission = "job level"
-	topLevelPermission = "top level"
-)
-
 type permission string
 
 const (
@@ -51,26 +45,14 @@ var permissionsOfInterest = []permission{
 	permissionContents, permissionPackages, permissionActions,
 }
 
-// Holds stateful data to pass thru callbacks.
-// Each field correpsonds to a GitHub permission type, and
-// will hold true if declared non-write, false otherwise.
-type permissions struct {
-	topLevelWritePermissions map[permission]bool
-	jobLevelWritePermissions map[permission]bool
-}
-
 type permissionCbData struct {
-	// map of filename to write permissions used.
-	workflows map[string]permissions
-	results   checker.TokenPermissionsData
+	results checker.TokenPermissionsData
 }
 
 // TokenPermissions runs Token-Permissions check.
 func TokenPermissions(c *checker.CheckRequest) (checker.TokenPermissionsData, error) {
 	// data is shared across all GitHub workflows.
-	data := permissionCbData{
-		workflows: make(map[string]permissions),
-	}
+	var data permissionCbData
 
 	if err := remediation.Setup(c); err != nil {
 		return data.results, err
@@ -136,7 +118,7 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 }
 
 func validatePermission(permissionKey permission, permissionValue *actionlint.PermissionScope,
-	permLoc checker.PermissionLocation, path string, p *permissionCbData, pPermissions map[permission]bool,
+	permLoc checker.PermissionLocation, path string, p *permissionCbData,
 	ignoredPermissions map[permission]bool,
 ) error {
 	if permissionValue.Value == nil {
@@ -162,7 +144,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 					Type:         checker.PermissionTypeWrite,
 					// TODO: Job
 				})
-			recordPermissionWrite(pPermissions, permissionKey)
+			// recordPermissionWrite(pPermissions, permissionKey)
 		} else {
 			// Only log for debugging, otherwise
 			// it may confuse users.
@@ -213,39 +195,15 @@ func typeOfPermission(val string) checker.PermissionType {
 }
 
 func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, permLoc checker.PermissionLocation,
-	path string, pdata *permissionCbData, pPermissions map[permission]bool,
+	path string, pdata *permissionCbData,
 	ignoredPermissions map[permission]bool,
 ) error {
 	for key, v := range scopes {
-		if err := validatePermission(permission(key), v, permLoc, path, pdata, pPermissions, ignoredPermissions); err != nil {
+		if err := validatePermission(permission(key), v, permLoc, path, pdata, ignoredPermissions); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func recordPermissionWrite(pPermissions map[permission]bool, perm permission) {
-	pPermissions[perm] = true
-}
-
-func getWritePermissionsMap(p *permissionCbData, path string, permLoc checker.PermissionLocation) map[permission]bool {
-	if _, exists := p.workflows[path]; !exists {
-		p.workflows[path] = permissions{
-			topLevelWritePermissions: make(map[permission]bool),
-			jobLevelWritePermissions: make(map[permission]bool),
-		}
-	}
-	if permLoc == checker.PermissionLocationJob {
-		return p.workflows[path].jobLevelWritePermissions
-	}
-	return p.workflows[path].topLevelWritePermissions
-}
-
-func recordAllPermissionsWrite(p *permissionCbData, permLoc checker.PermissionLocation, path string) {
-	// Special case: `all` does not correspond
-	// to a GitHub permission.
-	m := getWritePermissionsMap(p, path, permLoc)
-	m[permissionAll] = true
 }
 
 func validatePermissions(permissions *actionlint.Permissions, permLoc checker.PermissionLocation,
@@ -288,7 +246,6 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 					// TODO: Job
 				})
 
-			recordAllPermissionsWrite(pdata, permLoc, path)
 			return nil
 		}
 
@@ -306,7 +263,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 				// TODO: Job
 			})
 	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes,
-		permLoc, path, pdata, getWritePermissionsMap(pdata, path, permLoc), ignoredPermissions); err != nil {
+		permLoc, path, pdata, ignoredPermissions); err != nil {
 		return err
 	}
 	return nil
@@ -331,7 +288,6 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 				// TODO: Job
 			})
 
-		recordAllPermissionsWrite(pdata, checker.PermissionLocationTop, path)
 		return nil
 	}
 
@@ -358,11 +314,10 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 					},
 					LocationType: &permLoc,
 					Type:         checker.PermissionTypeUnknown,
-					Msg:          stringPointer(fmt.Sprintf("no %s permission defined", jobLevelPermission)),
+					Msg:          stringPointer(fmt.Sprintf("no %s permission defined", permLoc)),
 					// TODO: Job
 				})
 
-			recordAllPermissionsWrite(pdata, permLoc, path)
 			continue
 		}
 		err := validatePermissions(job.Permissions, checker.PermissionLocationJob,
@@ -568,7 +523,7 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permis
 			LogText: "candidate python publishing workflow using python-semantic-release",
 		},
 		{
-			// Go packages.
+			// Go binaries.
 			Steps: []*fileparser.JobMatcherStep{
 				{
 					Uses: "actions/setup-go",
@@ -578,6 +533,15 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permis
 				},
 			},
 			LogText: "candidate golang publishing workflow",
+		},
+		{
+			// SLSA builder. https://github.com/slsa-framework/slsa-github-generator
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml",
+				},
+			},
+			LogText: "candidate SLSA publishing workflow using slsa-github-generator",
 		},
 	}
 

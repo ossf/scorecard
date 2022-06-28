@@ -21,6 +21,11 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
+type permissions struct {
+	topLevelWritePermissions map[string]bool
+	jobLevelWritePermissions map[string]bool
+}
+
 // TokenPermissions applies the score policy for the Token-Permissions check.
 func TokenPermissions(name string, dl checker.DetailLogger, r *checker.TokenPermissionsData) checker.CheckResult {
 	if r == nil {
@@ -28,7 +33,7 @@ func TokenPermissions(name string, dl checker.DetailLogger, r *checker.TokenPerm
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	score, err := calculateScore(r, dl)
+	score, err := applyScorePolicy(r, dl)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
@@ -42,13 +47,12 @@ func TokenPermissions(name string, dl checker.DetailLogger, r *checker.TokenPerm
 		"tokens are read-only in GitHub workflows")
 }
 
-func calculateScore(results *checker.TokenPermissionsData, dl checker.DetailLogger) (int, error) {
+func applyScorePolicy(results *checker.TokenPermissionsData, dl checker.DetailLogger) (int, error) {
 	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
 	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
 	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
 
-	// Start with a perfect score.
-	score := float32(checker.MaxResultScore)
+	hm := make(map[string]permissions)
 
 	for _, r := range results.TokenPermissions {
 		msg := checker.LogMessage{Remediation: r.Remediation}
@@ -71,12 +75,56 @@ func calculateScore(results *checker.TokenPermissionsData, dl checker.DetailLogg
 
 		case checker.PermissionTypeWrite, checker.PermissionTypeUndeclared:
 			dl.Warn(&msg)
-			// TODO: construct a hash map indexed by workflow file.
+			if err := updateWorkflowHashMap(hm, r); err != nil {
+				return checker.InconclusiveResultScore, err
+			}
 		}
 	}
 
-	// TODO: use the hash map to compute the score.
-	return int(score) - 1, nil
+	return calculateScore(hm), nil
+}
+
+func recordPermissionWrite(hm map[string]permissions, path string,
+	locType checker.PermissionLocation, permName *string,
+) {
+	if _, exists := hm[path]; !exists {
+		hm[path] = permissions{
+			topLevelWritePermissions: make(map[string]bool),
+			jobLevelWritePermissions: make(map[string]bool),
+		}
+	}
+
+	// Select the hash map to update.
+	m := hm[path].jobLevelWritePermissions
+	if locType == checker.PermissionLocationTop {
+		m = hm[path].topLevelWritePermissions
+	}
+
+	// Set the permission name to record.
+	name := "all"
+	if permName != nil && *permName != "" {
+		name = *permName
+	}
+	m[name] = true
+}
+
+func updateWorkflowHashMap(hm map[string]permissions, t checker.TokenPermission) error {
+	if t.LocationType == nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, "locationType is nil")
+	}
+
+	if t.File == nil || t.File.Path == "" {
+		return sce.WithMessage(sce.ErrScorecardInternal, "path is not set")
+	}
+
+	if t.Type != checker.PermissionTypeWrite &&
+		t.Type != checker.PermissionTypeUndeclared {
+		return nil
+	}
+
+	recordPermissionWrite(hm, t.File.Path, *t.LocationType, t.Name)
+
+	return nil
 }
 
 func createMessage(t checker.TokenPermission) (string, error) {
@@ -108,9 +156,8 @@ func createMessage(t checker.TokenPermission) (string, error) {
 		*t.Name, *t.Value), nil
 }
 
-/*
 // Calculate the score.
-func calculateScore(result permissionCbData) int {
+func calculateScore(result map[string]permissions) int {
 	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
 	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
 	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
@@ -119,11 +166,11 @@ func calculateScore(result permissionCbData) int {
 	score := float32(checker.MaxResultScore)
 
 	// Retrieve the overall results.
-	for _, perms := range result.workflows {
+	for _, perms := range result {
 		// If no top level permissions are defined, all the permissions
-		// are enabled by default, hence permissionAll. In this case,
-		if permissionIsPresentInTopLevel(perms, permissionAll) {
-			if permissionIsPresentInRunLevel(perms, permissionAll) {
+		// are enabled by default. In this case,
+		if permissionIsPresentInTopLevel(perms, "all") {
+			if permissionIsPresentInRunLevel(perms, "all") {
 				// ... give lowest score if no run level permissions are defined either.
 				return checker.MinResultScore
 			}
@@ -134,21 +181,21 @@ func calculateScore(result permissionCbData) int {
 		// status: https://docs.github.com/en/rest/reference/repos#statuses.
 		// May allow an attacker to change the result of pre-submit and get a PR merged.
 		// Low risk: -0.5.
-		if permissionIsPresent(perms, permissionStatuses) {
+		if permissionIsPresent(perms, "statuses") {
 			score -= 0.5
 		}
 
 		// checks.
 		// May allow an attacker to edit checks to remove pre-submit and introduce a bug.
 		// Low risk: -0.5.
-		if permissionIsPresent(perms, permissionChecks) {
+		if permissionIsPresent(perms, "checks") {
 			score -= 0.5
 		}
 
 		// secEvents.
 		// May allow attacker to read vuln reports before patch available.
 		// Low risk: -1
-		if permissionIsPresent(perms, permissionSecurityEvents) {
+		if permissionIsPresent(perms, "security-events") {
 			score--
 		}
 
@@ -157,28 +204,28 @@ func calculateScore(result permissionCbData) int {
 		// and tiny chance an attacker can trigger a remote
 		// service with code they own if server accepts code/location var unsanitized.
 		// Low risk: -1
-		if permissionIsPresent(perms, permissionDeployments) {
+		if permissionIsPresent(perms, "deployments") {
 			score--
 		}
 
 		// contents.
 		// Allows attacker to commit unreviewed code.
 		// High risk: -10
-		if permissionIsPresent(perms, permissionContents) {
+		if permissionIsPresent(perms, "contents") {
 			score -= checker.MaxResultScore
 		}
 
 		// packages: https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages.
 		// Allows attacker to publish packages.
 		// High risk: -10
-		if permissionIsPresent(perms, permissionPackages) {
+		if permissionIsPresent(perms, "packages") {
 			score -= checker.MaxResultScore
 		}
 
 		// actions.
 		// May allow an attacker to steal GitHub secrets by approving to run an action that needs approval.
 		// High risk: -10
-		if permissionIsPresent(perms, permissionActions) {
+		if permissionIsPresent(perms, "actions") {
 			score -= checker.MaxResultScore
 		}
 
@@ -195,18 +242,17 @@ func calculateScore(result permissionCbData) int {
 	return int(score)
 }
 
-func permissionIsPresent(perms permissions, name permission) bool {
+func permissionIsPresent(perms permissions, name string) bool {
 	return permissionIsPresentInTopLevel(perms, name) ||
 		permissionIsPresentInRunLevel(perms, name)
 }
 
-func permissionIsPresentInTopLevel(perms permissions, name permission) bool {
+func permissionIsPresentInTopLevel(perms permissions, name string) bool {
 	_, ok := perms.topLevelWritePermissions[name]
 	return ok
 }
 
-func permissionIsPresentInRunLevel(perms permissions, name permission) bool {
+func permissionIsPresentInRunLevel(perms permissions, name string) bool {
 	_, ok := perms.jobLevelWritePermissions[name]
 	return ok
 }
-*/
