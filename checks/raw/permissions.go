@@ -527,10 +527,19 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permis
 			LogText: "candidate golang publishing workflow",
 		},
 		{
-			// SLSA builder. https://github.com/slsa-framework/slsa-github-generator
+			// SLSA Go builder. https://github.com/slsa-framework/slsa-github-generator
 			Steps: []*fileparser.JobMatcherStep{
 				{
 					Uses: "slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml",
+				},
+			},
+			LogText: "candidate SLSA publishing workflow using slsa-github-generator",
+		},
+		{
+			// SLSA generic generator. https://github.com/slsa-framework/slsa-github-generator
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml",
 				},
 			},
 			LogText: "candidate SLSA publishing workflow using slsa-github-generator",
