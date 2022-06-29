@@ -269,7 +269,7 @@ func (r *jsonScorecardRawResult) addTokenPermissionsRawResults(tp *checker.Token
 	r.Results.Permissions = jsonPermissionsData{}
 
 	for _, t := range tp.TokenPermissions {
-		// We ignore debug messages.
+		// We ignore debug messages for read/none permissions.
 		if t.Type != checker.PermissionTypeUndeclared &&
 			t.Type != checker.PermissionTypeWrite {
 			continue
