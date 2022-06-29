@@ -19,6 +19,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 // CheckTokenPermissions is the exported name for Token-Permissions check.
@@ -38,6 +39,10 @@ func init() {
 
 // TokenPermissions will run the Token-Permissions check.
 func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
+	if err := remediation.Setup(c); err != nil {
+		return checker.CreateRuntimeErrorResult(CheckTokenPermissions, err)
+	}
+
 	rawData, err := raw.TokenPermissions(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())

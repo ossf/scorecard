@@ -40,17 +40,10 @@ type jsonScorecardRawResult struct {
 
 // TODO: separate each check extraction into its own file.
 type jsonFile struct {
-<<<<<<< HEAD
 	Snippet   *string `json:"snippet,omitempty"`
 	Path      string  `json:"path"`
 	Offset    uint    `json:"offset,omitempty"`
 	EndOffset uint    `json:"endOffset,omitempty"`
-=======
-	Snippet *string `json:"snippet,omitempty"`
-	Path    string  `json:"path"`
-	// TODO: change to an uint.
-	Offset uint `json:"offset,omitempty"`
->>>>>>> 465fc76a (updates)
 }
 
 type jsonTool struct {

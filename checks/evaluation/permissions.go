@@ -19,6 +19,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 type permissions struct {
@@ -55,13 +56,19 @@ func applyScorePolicy(results *checker.TokenPermissionsData, dl checker.DetailLo
 	hm := make(map[string]permissions)
 
 	for _, r := range results.TokenPermissions {
-		msg := checker.LogMessage{Remediation: r.Remediation}
+		var msg checker.LogMessage
+
 		if r.File != nil {
 			msg.Path = r.File.Path
 			msg.Offset = r.File.Offset
 			msg.Type = r.File.Type
 			msg.Snippet = r.File.Snippet
+
+			if msg.Path != "" {
+				msg.Remediation = remediation.CreateWorkflowPermissionRemediation(r.File.Path)
+			}
 		}
+
 		text, err := createMessage(r)
 		if err != nil {
 			return checker.MinResultScore, err

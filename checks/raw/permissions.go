@@ -23,7 +23,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/remediation"
 )
 
 type permission string
@@ -53,10 +52,6 @@ type permissionCbData struct {
 func TokenPermissions(c *checker.CheckRequest) (checker.TokenPermissionsData, error) {
 	// data is shared across all GitHub workflows.
 	var data permissionCbData
-
-	if err := remediation.Setup(c); err != nil {
-		return data.results, err
-	}
 
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
@@ -140,7 +135,6 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 					LocationType: &permLoc,
 					Name:         &key,
 					Value:        &val,
-					Remediation:  remediation.CreateWorkflowPermissionRemediation(path),
 					Type:         checker.PermissionTypeWrite,
 					// TODO: Job
 				})
@@ -241,7 +235,6 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 					},
 					LocationType: &permLoc,
 					Value:        &val,
-					Remediation:  remediation.CreateWorkflowPermissionRemediation(path),
 					Type:         checker.PermissionTypeWrite,
 					// TODO: Job
 				})
@@ -284,7 +277,6 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 				},
 				LocationType: &permLoc,
 				Type:         checker.PermissionTypeUndeclared,
-				Remediation:  remediation.CreateWorkflowPermissionRemediation(path),
 				// TODO: Job
 			})
 

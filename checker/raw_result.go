@@ -280,7 +280,6 @@ const (
 // TokenPermission defines a token permission result.
 type TokenPermission struct {
 	Job          *WorkflowJob
-	Remediation  *Remediation
 	LocationType *PermissionLocation
 	Name         *string
 	Value        *string
