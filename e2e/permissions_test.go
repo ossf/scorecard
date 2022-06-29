@@ -72,7 +72,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MinResultScore,
+				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
