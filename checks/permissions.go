@@ -40,7 +40,8 @@ func init() {
 // TokenPermissions will run the Token-Permissions check.
 func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	if err := remediation.Setup(c); err != nil {
-		return checker.CreateRuntimeErrorResult(CheckTokenPermissions, err)
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckTokenPermissions, e)
 	}
 
 	rawData, err := raw.TokenPermissions(c)

@@ -40,7 +40,8 @@ func init() {
 // PinningDependencies will check the repository for its use of dependencies.
 func PinningDependencies(c *checker.CheckRequest) checker.CheckResult {
 	if err := remediation.Setup(c); err != nil {
-		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, err)
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, e)
 	}
 
 	rawData, err := raw.PinningDependencies(c)
