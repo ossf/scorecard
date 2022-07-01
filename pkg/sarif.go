@@ -565,7 +565,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 		// We need to create a run entry even if the check is disabled or the policy is satisfied.
 		// The reason is the following: if a check has findings and is later fixed by a user,
 		// the absence of run for the check will indicate that the check was *not* run,
-		// so GitHub would keep the findings in the dahsboard. We don't want that.
+		// so GitHub would keep the findings in the dashboard. We don't want that.
 		category, err := computeCategory(sarifCheckName, doc.GetSupportedRepoTypes())
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("computeCategory: %v: %s", err, check.Name))
