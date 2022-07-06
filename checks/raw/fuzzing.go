@@ -43,7 +43,7 @@ type filesWithPatternStr struct {
 type languageFuzzConfig struct {
 	URL, Desc                      *string
 	filePattern, funcPattern, Name string
-	//TODO: add more language fuzzing-related fields.
+	// TODO: add more language fuzzing-related fields.
 }
 
 // Contains fuzzing speficications for programming languages.
@@ -200,7 +200,8 @@ func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []
 // used for matching fuzz functions in the file content,
 // and return a list of files (or nil for not found).
 var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(
-	path string, content []byte, args ...interface{}) (bool, error) {
+	path string, content []byte, args ...interface{},
+) (bool, error) {
 	if len(args) != 1 {
 		return false, fmt.Errorf("getFuzzFunc requires exactly one argument: %w", errInvalidArgLength)
 	}
