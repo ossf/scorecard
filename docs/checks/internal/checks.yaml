@@ -493,7 +493,7 @@ checks:
         maintain signatures for the entire dependency tree and saves from future
         exploitation in case the package is compromised.
       - >-
-        For Dockerfiles, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) for example. If you are using a manifest list to support builds
+        For Dockerfiles, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds
         across multiple architectures, you can pin to the manifest list hash instead
         of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) 
         to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
