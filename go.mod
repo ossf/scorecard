@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/bigquery v1.32.0
+	cloud.google.com/go/bigquery v1.34.1
 	cloud.google.com/go/monitoring v1.4.0 // indirect
 	cloud.google.com/go/pubsub v1.23.1
 	cloud.google.com/go/trace v1.2.0 // indirect
@@ -37,7 +37,7 @@ require (
 	gocloud.dev v0.25.0
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.10
-	google.golang.org/genproto v0.0.0-20220617124728-180714bec0ad
+	google.golang.org/genproto v0.0.0-20220622131801-db39fadba55f
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99
