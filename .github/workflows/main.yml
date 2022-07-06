@@ -169,6 +169,10 @@ jobs:
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
+     - name: Sleep
+       run: sleep 10m  # This is workaround to avoid the action failures for installing the protoc
+       shell: bash
+
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
