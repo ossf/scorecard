@@ -41,7 +41,7 @@ func (handler *languagesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.once = new(sync.Once)
 }
 
-// TODO: Can add support to parse the raw reponse JSON and mark languages that are not in
+// TODO: Can add support to parse the raw response JSON and mark languages that are not in
 // our defined Language consts in clients/languages.go as "not supported languages".
 func (handler *languagesHandler) setup() error {
 	handler.once.Do(func() {
@@ -53,7 +53,7 @@ func (handler *languagesHandler) setup() error {
 			return
 		}
 		bodyJSON := map[clients.LanguageName]int{}
-		// The client.repoClient.Do API writes the reponse body to var bodyJSON,
+		// The client.repoClient.Do API writes the response body to var bodyJSON,
 		// so we can ignore the first returned variable (the entire http response object)
 		// since we only need the response body here.
 		_, err = client.Do(handler.ctx, req, &bodyJSON)

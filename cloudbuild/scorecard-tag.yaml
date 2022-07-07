@@ -15,26 +15,13 @@
 steps:
   - id: Get Git history
     name: gcr.io/cloud-builders/git
-    args:
-      - fetch
-      - '--unshallow'
-      - '--tags'
-      - origin
-      - $COMMIT_SHA
+    args: ['fetch', '--unshallow', '--tags', 'origin', '$COMMIT_SHA']
   - id: Get tag commit
     name: gcr.io/cloud-builders/git
-    entrypoint: bash
-    args:
-      - '-c'
-      - >-
-        git rev-list -n 1 tags/$TAG_NAME > /workspace/commit-sha.txt
-  - id: Push docker tag
-    name: gcr.io/cloud-builders/docker
-    entrypoint: bash
-    args:
-      - '-c'
-      - >-
-        docker pull gcr.io/openssf/scorecard:$(cat /workspace/commit-sha.txt) &&
-        docker tag gcr.io/openssf/scorecard:$(cat /workspace/commit-sha.txt) gcr.io/openssf/scorecard:$TAG_NAME &&
-        docker push gcr.io/openssf/scorecard:$TAG_NAME
+    args: ['checkout', '$TAG_NAME']
+  - name: gcr.io/cloud-builders/docker
+    args: [ 'build', '.',
+      '-t', 'gcr.io/openssf/scorecard:$COMMIT_SHA',
+      '-t', 'gcr.io/openssf/scorecard:$TAG_NAME',
+      '-f', 'Dockerfile']
 images: ['gcr.io/openssf/scorecard']

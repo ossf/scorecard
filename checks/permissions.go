@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 // CheckTokenPermissions is the exported name for Token-Permissions check.
@@ -83,7 +84,7 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 		workflows: make(map[string]permissions),
 	}
 
-	if err := remdiationSetup(c); err != nil {
+	if err := remediation.Setup(c); err != nil {
 		createResultForLeastPrivilegeTokens(data, err)
 	}
 
@@ -167,7 +168,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 				Offset:      lineNumber,
 				Text:        fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 				Snippet:     val,
-				Remediation: createWorkflowPermissionRemediation(path),
+				Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 			})
 			recordPermissionWrite(pPermissions, permissionKey)
 		} else {
@@ -179,7 +180,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 				Offset:      lineNumber,
 				Text:        fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
 				Snippet:     val,
-				Remediation: createWorkflowPermissionRemediation(path),
+				Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 			})
 		}
 		return nil
@@ -255,7 +256,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 				Offset:      lineNumber,
 				Text:        fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
 				Snippet:     val,
-				Remediation: createWorkflowPermissionRemediation(path),
+				Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 			})
 			recordAllPermissionsWrite(pdata, permLevel, path)
 			return nil
@@ -267,7 +268,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 			Offset:      lineNumber,
 			Text:        fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
 			Snippet:     val,
-			Remediation: createWorkflowPermissionRemediation(path),
+			Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 		})
 	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes,
 		permLevel, path, dl, getWritePermissionsMap(pdata, path, permLevel), ignoredPermissions); err != nil {
@@ -286,7 +287,7 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 			Type:        checker.FileTypeSource,
 			Offset:      checker.OffsetDefault,
 			Text:        fmt.Sprintf("no %s permission defined", topLevelPermission),
-			Remediation: createWorkflowPermissionRemediation(path),
+			Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 		})
 		recordAllPermissionsWrite(pdata, topLevelPermission, path)
 		return nil
@@ -310,7 +311,7 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 				Type:        checker.FileTypeSource,
 				Offset:      fileparser.GetLineNumber(job.Pos),
 				Text:        fmt.Sprintf("no %s permission defined", jobLevelPermission),
-				Remediation: createWorkflowPermissionRemediation(path),
+				Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 			})
 			recordAllPermissionsWrite(pdata, jobLevelPermission, path)
 			continue
@@ -615,7 +616,7 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 }
 
 // TODO: remove when migrated to raw results.
-// Should be using the definition in raw/packaging.go
+// Should be using the definition in raw/packaging.go.
 func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
 	jobMatchers := []fileparser.JobMatcher{
 		{
