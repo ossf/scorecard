@@ -62,7 +62,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		filePattern: "fuzz_*.cpp",
 		Name:        fuzzerBuiltInCpp,
 		funcPattern: `extern\s+[("C")\s]*[\w\*]+\s+(\w*((?i)fuzz)+\w*)+\s*\([\w* ,]*\)`,
-		URL:         asPointer("https://help.code-intelligence.com/create-a-c-fuzz-test"),
+		URL:         asPointer("https://github.com/google/fuzzing/blob/master/docs/good-fuzz-target.md"),
 		Desc: asPointer(
 			"C++ Fuzz This Function.",
 		),
