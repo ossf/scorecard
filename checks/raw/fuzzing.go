@@ -59,9 +59,9 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
 	},
 	clients.Cpp: {
-		filePattern: "fuzz_*.cpp",
+		filePattern: "fuzz_*.c*",
 		Name:        fuzzerBuiltInCpp,
-		funcPattern: `extern\s+[("C")\s]*[\w\*]+\s+(\w*((?i)fuzz)+\w*)+\s*\([\w* ,]*\)`,
+		funcPattern: `extern\s+[("C")\s]*[\w\*]+\s+LLVMFuzzerTestOneInput\s*\([\w* ,]*\)`,
 		URL:         asPointer("https://github.com/google/fuzzing/blob/master/docs/good-fuzz-target.md"),
 		Desc: asPointer(
 			"C++ Fuzz This Function.",

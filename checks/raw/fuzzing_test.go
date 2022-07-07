@@ -203,8 +203,11 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			expectedFuncMatch: true,
 			lang:              clients.LanguageName("c++"),
 			fileName:          "fuzz_test1.cpp",
-			fileContent: `extern "C" int LLVMFuzzerTestOneInputProperty 
-							(const uint8_t * data, size_t size)`,
+			fileContent: `extern "C" int LLVMFuzzerTestOneInput
+				(const uint8_t *Data, size_t Size) {
+				DoSomethingInterestingWithMyAPI(Data, Size);
+				return 0;  // Non-zero return values are reserved for future use.
+			  }`,
 			wantErr: false,
 		},
 		{
@@ -212,10 +215,9 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			expectedFileMatch: true,
 			expectedFuncMatch: true,
 			lang:              clients.LanguageName("c++"),
-			fileName:          "fuzz_test2_foo.cpp",
+			fileName:          "fuzz_test2_foo.cc",
 			fileContent: `
-								extern void realloc_fuzz_test(void);
-								extern  int MemcmpFuzzTest(void);
+				extern void LLVMFuzzerTestOneInput (const uint8_t *Data, size_t Size)
 			`,
 			wantErr: false,
 		},
@@ -225,7 +227,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			expectedFuncMatch: false,
 			lang:              clients.LanguageName("c++"),
 			fileName:          "notAFuzzFile_1.cpp",
-			fileContent:       `extern char* TestProperty1 (void);`,
+			fileContent:       `extern "C" int FuzzerTestSomethingElse`,
 			wantErr:           true,
 		},
 		{
