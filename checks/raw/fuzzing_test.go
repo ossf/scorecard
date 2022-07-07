@@ -217,7 +217,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			lang:              clients.LanguageName("c++"),
 			fileName:          "fuzz_test2_foo.cc",
 			fileContent: `
-				extern void LLVMFuzzerTestOneInput (const uint8_t *Data, size_t Size)
+				  LLVMFuzzerTestOneInput (const uint8_t *Data, size_t Size)
 			`,
 			wantErr: false,
 		},
