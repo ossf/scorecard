@@ -40,39 +40,24 @@ type Dependency struct {
 	// mixes up direct and indirect dependencies in manifest files of different ecosystems.
 	IsDirect bool
 
-	// ChangeType indicates whether the dependency is added or removed.
+	// ChangeType indicates whether the dependency is added, updated, or removed.
 	ChangeType ChangeType `json:"change_type"`
 
 	// ManifestFileName is the name of the manifest file of the dependency, such as go.mod for Go.
 	ManifestFileName string `json:"manifest"`
 
 	// Ecosystem is the name of the package management system, such as NPM, GO, PYPI.
-	Ecosystem string `json:"ecosystem" bigquery:"System"`
+	Ecosystem string `json:"ecosystem"`
 
 	// Name is the name of the dependency.
-	Name string `json:"name" bigquery:"Name"`
+	Name string `json:"name"`
 
 	// Version is the package version of the dependency.
-	Version string `json:"version" bigquery:"Version"`
+	Version string `json:"version"`
 
 	// Package URL is a short link for a package.
-	PackageURL string `json:"package_url"`
-
-	// License is the license of the dependency.
-	License string `json:"license"`
+	PackageURL *string `json:"package_url"`
 
 	// SrcRepoURL is the source repository URL of the dependency.
-	SrcRepoURL string `json:"source_repository_url"`
-
-	// ScResults is the Scorecard scanning result of the dependency package repository.
-	ScResults ScorecardResult `json:"scorecard_results"`
-
-	// Vulnerabilities is a list of Vulnerability.
-	Vulnerabilities []Vulnerability `json:"vulnerabilities"`
-
-	// Dependencies is the list of dependencies of the current dependency,
-	// e.g. indirect (transitive) dependencies.
-	// TODO: this is not a version-zero feature, and will be used to analyze transitive
-	// dependencies in future versions.
-	Dependencies []Dependency `json:"dependencies"`
+	SrcRepoURL *string `json:"source_repository_url"`
 }
