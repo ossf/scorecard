@@ -5,7 +5,7 @@ go 1.17
 // TODO(go.mod): Is there a reason these deps are kept separately from the
 //               other `require`s?
 require (
-	github.com/rhysd/actionlint v1.6.13
+	github.com/rhysd/actionlint v1.6.15
 	gotest.tools v2.2.0+incompatible
 )
 
@@ -40,7 +40,7 @@ require (
 	google.golang.org/genproto v0.0.0-20220622131801-db39fadba55f
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99
+	gopkg.in/yaml.v3 v3.0.0
 	mvdan.cc/sh/v3 v3.5.1
 )
 
