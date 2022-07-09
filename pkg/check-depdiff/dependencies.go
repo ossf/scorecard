@@ -18,8 +18,11 @@ package depdiff
 type ChangeType string
 
 const (
-	Added   ChangeType = "added"
+	// Added suggests the dependency is a new one.
+	Added ChangeType = "added"
+	// Updated suggests the dependency is bumped from an old version.
 	Updated ChangeType = "updated"
+	// Removed suggests the dependency is removed.
 	Removed ChangeType = "removed"
 )
 
@@ -35,6 +38,12 @@ func (ct *ChangeType) IsValid() bool {
 
 // Dependency is a dependency.
 type Dependency struct {
+	// Package URL is a short link for a package.
+	PackageURL *string `json:"package_url"`
+
+	// SrcRepoURL is the source repository URL of the dependency.
+	SrcRepoURL *string `json:"source_repository_url"`
+
 	// ChangeType indicates whether the dependency is added, updated, or removed.
 	ChangeType ChangeType `json:"change_type"`
 
@@ -49,10 +58,4 @@ type Dependency struct {
 
 	// Version is the package version of the dependency.
 	Version string `json:"version"`
-
-	// Package URL is a short link for a package.
-	PackageURL *string `json:"package_url"`
-
-	// SrcRepoURL is the source repository URL of the dependency.
-	SrcRepoURL *string `json:"source_repository_url"`
 }
