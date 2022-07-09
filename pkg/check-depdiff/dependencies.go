@@ -35,11 +35,6 @@ func (ct *ChangeType) IsValid() bool {
 
 // Dependency is a dependency.
 type Dependency struct {
-	// // IsDirect suggests if the dependency is a direct dependency of a code commit.
-	// TODO: IsDirect remains a future feature since the current GitHub Dependency Review API
-	// mixes up direct and indirect dependencies in manifest files of different ecosystems.
-	IsDirect bool
-
 	// ChangeType indicates whether the dependency is added, updated, or removed.
 	ChangeType ChangeType `json:"change_type"`
 
