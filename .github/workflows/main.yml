@@ -43,7 +43,7 @@ jobs:
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -86,7 +86,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -131,7 +131,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -169,17 +169,13 @@ jobs:
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-     - name: Sleep
-       run: sleep 10m  # This is workaround to avoid the action failures for installing the protoc
-       shell: bash
-
      - name: Install Protoc
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -224,7 +220,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -269,7 +265,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -314,7 +310,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -359,7 +355,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -404,7 +400,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -449,7 +445,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -494,7 +490,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -539,7 +535,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -584,7 +580,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -629,7 +625,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -674,7 +670,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -718,7 +714,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -753,7 +749,7 @@ jobs:
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -797,7 +793,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -835,9 +831,13 @@ jobs:
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
+     - name: Install Protoc
+       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       with:
+        version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd #v2.1.7
+       uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
