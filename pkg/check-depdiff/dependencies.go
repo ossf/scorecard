@@ -38,31 +38,6 @@ func (ct *ChangeType) IsValid() bool {
 	}
 }
 
-// rawDependency is the Dependency structure that is used to receive
-// the raw results from the GitHub Dependency Review API.
-type rawDependency struct {
-	// Package URL is a short link for a package.
-	PackageURL *string `json:"package_url"`
-
-	// SrcRepoURL is the source repository URL of the dependency.
-	SrcRepoURL *string `json:"source_repository_url"`
-
-	// ChangeType indicates whether the dependency is added, updated, or removed.
-	ChangeType *ChangeType `json:"change_type"`
-
-	// ManifestFileName is the name of the manifest file of the dependency, such as go.mod for Go.
-	ManifestPath *string `json:"manifest"`
-
-	// Ecosystem is the name of the package management system, such as NPM, GO, PYPI.
-	Ecosystem *string `json:"ecosystem"`
-
-	// Name is the name of the dependency.
-	Name string `json:"name"`
-
-	// Version is the package version of the dependency.
-	Version *string `json:"version"`
-}
-
 // DependencyCheckResult is the dependency structure used in the returned results.
 type DependencyCheckResult struct {
 	// Package URL is a short link for a package.
