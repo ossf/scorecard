@@ -87,5 +87,5 @@ type DependencyCheckResult struct {
 	Version *string `json:"version"`
 
 	// ScReresults is the scorecard result for the dependency repo.
-	ScReresults pkg.ScorecardResult `json:"scorecardResults"`
+	ScReresults *pkg.ScorecardResult `json:"scorecardResults"`
 }
