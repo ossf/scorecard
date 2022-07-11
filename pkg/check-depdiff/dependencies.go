@@ -45,17 +45,17 @@ type Dependency struct {
 	SrcRepoURL *string `json:"source_repository_url"`
 
 	// ChangeType indicates whether the dependency is added, updated, or removed.
-	ChangeType ChangeType `json:"change_type"`
+	ChangeType *ChangeType `json:"change_type"`
 
 	// ManifestFileName is the name of the manifest file of the dependency, such as go.mod for Go.
-	ManifestFileName string `json:"manifest"`
+	ManifestFileName *string `json:"manifest"`
 
 	// Ecosystem is the name of the package management system, such as NPM, GO, PYPI.
-	Ecosystem string `json:"ecosystem"`
+	Ecosystem *string `json:"ecosystem"`
 
 	// Name is the name of the dependency.
-	Name string `json:"name"`
+	Name *string `json:"name"`
 
 	// Version is the package version of the dependency.
-	Version string `json:"version"`
+	Version *string `json:"version"`
 }
