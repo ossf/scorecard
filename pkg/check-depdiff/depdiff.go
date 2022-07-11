@@ -51,7 +51,7 @@ func GetDependencyDiff(ownerName, repoName, baseSHA, headSHA, accessToken string
 }
 
 // Get the depednency-diffs between two specified code commits.
-func FetchDependencyDiffData(ctx DepDiffContext) ([]Dependency, error) {
+func FetchDependencyDiffData(ctx DepDiffContext) ([]rawDependency, error) {
 	// Currently, the GitHub Dependency Review
 	// (https://docs.github.com/en/rest/dependency-graph/dependency-review) API is used.
 	// Set a ten-seconds timeout to make sure the client can be created correctly.
@@ -68,7 +68,7 @@ func FetchDependencyDiffData(ctx DepDiffContext) ([]Dependency, error) {
 	// An access token is required in the request header to be able to use this API.
 	req.Header.Set("Authorization", "token "+ctx.AccessToken)
 
-	depDiff := []Dependency{}
+	depDiff := []rawDependency{}
 	_, err = client.Do(req.Context(), req, &depDiff)
 	if err != nil {
 		return nil, fmt.Errorf("get response error: %w", err)
@@ -76,6 +76,6 @@ func FetchDependencyDiffData(ctx DepDiffContext) ([]Dependency, error) {
 	return depDiff, nil
 }
 
-func GetAggregateScore(d Dependency) (float32, error) {
+func GetAggregateScore(d rawDependency) (float32, error) {
 	return 0, nil
 }
