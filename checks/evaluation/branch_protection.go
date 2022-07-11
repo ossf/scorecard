@@ -30,6 +30,8 @@ const (
 	nonAdminContextLevel        = 2 // Level 3.
 	nonAdminThoroughReviewLevel = 1 // Level 4.
 	adminThoroughReviewLevel    = 1 // Level 5.
+	codeownerReviewLevel        = 1 // Level 5.
+
 )
 
 type scoresInfo struct {
@@ -40,6 +42,7 @@ type scoresInfo struct {
 	context             int
 	thoroughReview      int
 	adminThoroughReview int
+	codeownerReview     int
 }
 
 // Maximum score depending on whether admin token is used.
@@ -76,6 +79,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		score.scores.thoroughReview, score.maxes.thoroughReview = nonAdminThoroughReviewProtection(&b, dl)
 		// Do we want this?
 		score.scores.adminThoroughReview, score.maxes.adminThoroughReview = adminThoroughReviewProtection(&b, dl)
+		score.scores.codeownerReview, score.maxes.codeownerReview = codeownersBranchProtection(&b, dl)
 
 		scores = append(scores, score)
 	}
@@ -158,6 +162,14 @@ func computeNonAdminContextScore(scores []levelScore) int {
 	return score
 }
 
+func computeCodeownerThoroughReviewScore(scores []levelScore) int {
+	score := 0
+	for _, s := range scores {
+		score += s.scores.codeownerReview
+	}
+	return score
+}
+
 func noarmalizeScore(score, max, level int) float64 {
 	if max == 0 {
 		return float64(level)
@@ -211,13 +223,21 @@ func computeScore(scores []levelScore) (int, error) {
 		return int(score), nil
 	}
 
-	// Last, check the thorough admin review config.
+	// Fifth, check the thorough admin review config.
 	// This one is controversial and has usability issues
 	// https://github.com/ossf/scorecard/issues/1027, so we may remove it.
 	maxAdminThoroughReviewScore := maxScore.adminThoroughReview * len(scores)
 	adminThoroughReviewScore := computeAdminThoroughReviewScore(scores)
 	score += noarmalizeScore(adminThoroughReviewScore, maxAdminThoroughReviewScore, adminThoroughReviewLevel)
 	if adminThoroughReviewScore != maxAdminThoroughReviewScore {
+		return int(score), nil
+	}
+
+	// Lastly, check that a codeowner's approving review is required for merge
+	maxCodeownerReviewScore := maxScore.codeownerReview * len(scores)
+	codeownerReviewScore := computeCodeownerThoroughReviewScore(scores)
+	score += noarmalizeScore(codeownerReviewScore, maxCodeownerReviewScore, codeownerReviewLevel)
+	if codeownerReviewScore != maxCodeownerReviewScore {
 		return int(score), nil
 	}
 
@@ -411,4 +431,23 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 		warn(dl, log, "number of required reviewers is 0 on branch '%s'", *branch.Name)
 	}
 	return score, max
+}
+
+func codeownersBranchProtection(branch *clients.BranchRef, dl checker.DetailLogger) (int, int) {
+	score := 0
+	max := 0
+
+	log := branch.Protected != nil && *branch.Protected
+
+	if branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews != nil {
+		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews {
+		case true:
+			info(dl, log, "codeowner review is required on branch '%s'", *branch.Name)
+			score++
+		default:
+			warn(dl, log, "codeowner review is not required on branch '%s'", *branch.Name)
+		}
+	}
+
+	return score, max // Don't deduct points - leave this as 'extra credit'
 }
