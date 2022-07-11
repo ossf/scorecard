@@ -44,13 +44,13 @@ type DependencyCheckResult struct {
 	PackageURL *string `json:"packageUrl"`
 
 	// SrcRepoURL is the source repository URL of the dependency.
-	SrcRepoURL *string `json:"srcRepoUrl"`
+	SrcRepoURL *string `json:"sourceRepositoryURL"`
 
 	// ChangeType indicates whether the dependency is added, updated, or removed.
 	ChangeType *ChangeType `json:"changeType"`
 
 	// ManifestFileName is the name of the manifest file of the dependency, such as go.mod for Go.
-	ManifestPath *string `json:"manifest"`
+	ManifestPath *string `json:"manifestPath"`
 
 	// Ecosystem is the name of the package management system, such as NPM, GO, PYPI.
 	Ecosystem *string `json:"ecosystem"`
