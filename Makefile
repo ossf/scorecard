@@ -104,9 +104,9 @@ build: $(build-targets)
 
 build-proto: ## Compiles and generates all required protobufs
 build-proto: cron/internal/data/request.pb.go cron/internal/data/metadata.pb.go
-cron/internal/data/request.pb.go: cron/internal/data/request.proto |  $(PROTOC)
+cron/internal/data/request.pb.go: cron/internal/data/request.proto |  $(PROTOC) install
 	protoc --go_out=../../../ cron/internal/data/request.proto
-cron/internal/data/metadata.pb.go: cron/internal/data/metadata.proto |  $(PROTOC)
+cron/internal/data/metadata.pb.go: cron/internal/data/metadata.proto |  $(PROTOC) install
 	protoc --go_out=../../../ cron/internal/data/metadata.proto
 
 generate-mocks: ## Compiles and generates all mocks using mockgen.
