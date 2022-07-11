@@ -41,7 +41,7 @@ func GetDependencyDiff(ownerName, repoName, baseSHA, headSHA, accessToken string
 	}
 
 	// Fetch dependency diffs using the GitHub Dependency Review API.
-	deps, err := FetchDepDiffDataFromGitHub(ctx)
+	deps, err := FetchDependencyDiffData(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -50,9 +50,10 @@ func GetDependencyDiff(ownerName, repoName, baseSHA, headSHA, accessToken string
 	return "", nil
 }
 
-// Get the depednency-diff using the GitHub Dependency Review
-// (https://docs.github.com/en/rest/dependency-graph/dependency-review) API
-func FetchDepDiffDataFromGitHub(ctx DepDiffContext) ([]Dependency, error) {
+// Get the depednency-diffs between two specified code commits.
+func FetchDependencyDiffData(ctx DepDiffContext) ([]Dependency, error) {
+	// Currently, the GitHub Dependency Review
+	// (https://docs.github.com/en/rest/dependency-graph/dependency-review) API is used.
 	// Set a ten-seconds timeout to make sure the client can be created correctly.
 	client := gogh.NewClient(&http.Client{Timeout: 10 * time.Second})
 	reqURL := path.Join(
@@ -63,7 +64,6 @@ func FetchDepDiffDataFromGitHub(ctx DepDiffContext) ([]Dependency, error) {
 	if err != nil {
 		return nil, fmt.Errorf("request for dependency-diff failed with %w", err)
 	}
-	// To specify the return type to be JSON.
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	// An access token is required in the request header to be able to use this API.
 	req.Header.Set("Authorization", "token "+ctx.AccessToken)
