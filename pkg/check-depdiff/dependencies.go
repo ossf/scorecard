@@ -64,7 +64,7 @@ type rawDependency struct {
 }
 
 // Dependency is the dependency structure used in the returned results.
-type Dependency struct {
+type DependencyCheckResult struct {
 	// Package URL is a short link for a package.
 	PackageURL *string `json:"packageUrl"`
 
