@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -163,6 +164,11 @@ func generateText(rr *checker.Dependency) string {
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
 		owner := generateOwnerToDisplay(gitHubOwned)
 		return fmt.Sprintf("%s %s not pinned by hash", owner, rr.Type)
+	} else if rr.Type == checker.DependencyUseTypeDockerfileContainerImage {
+		hash, err := crane.Digest(*rr.Name)
+		if err == nil {
+			return fmt.Sprintf("%s not pinned by hash. Fix by updating %[2]s to %[2]s@%s", rr.Type, *rr.Name, hash)
+		}
 	}
 
 	return fmt.Sprintf("%s not pinned by hash", rr.Type)
