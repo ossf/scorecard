@@ -43,24 +43,24 @@ type DependencyCheckResult struct {
 	// Package URL is a short link for a package.
 	PackageURL *string `json:"packageUrl"`
 
-	// SrcRepoURL is the source repository URL of the dependency.
-	SrcRepoURL *string `json:"sourceRepositoryURL"`
+	// SourceRepository is the source repository URL of the dependency.
+	SourceRepository *string `json:"sourceRepository"`
 
 	// ChangeType indicates whether the dependency is added, updated, or removed.
 	ChangeType *ChangeType `json:"changeType"`
 
-	// ManifestFileName is the name of the manifest file of the dependency, such as go.mod for Go.
+	// ManifestPath is the name of the manifest file of the dependency, such as go.mod for Go.
 	ManifestPath *string `json:"manifestPath"`
 
 	// Ecosystem is the name of the package management system, such as NPM, GO, PYPI.
 	Ecosystem *string `json:"ecosystem"`
 
-	// Name is the name of the dependency.
-	Name string `json:"name"`
-
 	// Version is the package version of the dependency.
 	Version *string `json:"version"`
 
-	// ScReresults is the scorecard result for the dependency repo.
+	// ScorecardResults is the scorecard result for the dependency repo.
 	ScorecardResults *pkg.ScorecardResult `json:"scorecardResults"`
+
+	// Name is the name of the dependency.
+	Name string `json:"name"`
 }
