@@ -159,18 +159,20 @@ func updatePinningResults(rr *checker.Dependency,
 }
 
 func generateText(rr *checker.Dependency) string {
-	if rr.Type == checker.DependencyUseTypeGHAction {
+	switch rr.Type {
+	case checker.DependencyUseTypeGHAction:
 		// Check if we are dealing with a GitHub action or a third-party one.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
 		owner := generateOwnerToDisplay(gitHubOwned)
 		return fmt.Sprintf("%s %s not pinned by hash", owner, rr.Type)
-	} else if rr.Type == checker.DependencyUseTypeDockerfileContainerImage {
-		hash, err := crane.Digest(*rr.Name)
-		if err == nil {
+	case checker.DependencyUseTypeDockerfileContainerImage:
+		if rr.Name == nil {
+			break
+		}
+		if hash, err := crane.Digest(*rr.Name); err == nil { // if NO error
 			return fmt.Sprintf("%s not pinned by hash. Fix by updating %[2]s to %[2]s@%s", rr.Type, *rr.Name, hash)
 		}
 	}
-
 	return fmt.Sprintf("%s not pinned by hash", rr.Type)
 }
 
