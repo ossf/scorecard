@@ -15,19 +15,24 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"unicode"
 
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
+	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
+
+var gradleWrapperValidationActionRegex = regexp.MustCompile(`^gradle\/wrapper-validation-action(?:@.+)?$`)
 
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
 func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
@@ -40,6 +45,27 @@ func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
 		return checker.BinaryArtifactData{}, fmt.Errorf("%w", err)
 	}
 
+	// Indices of any gradle-wrapper.jar files
+	var gradleWrappers []int
+	if len(files) > 0 {
+		for i, f := range files {
+			if filepath.Base(f.Path) == "gradle-wrapper.jar" {
+				gradleWrappers = append(gradleWrappers, i)
+			}
+		}
+	}
+	if len(gradleWrappers) > 0 {
+		// Gradle wrapper JARs present, so check that they are validated
+		if ok, err := gradleWrapperValidationOK(c); ok && err == nil {
+			// It has been confirmed that latest commit has validated JARs!
+			// Remove Gradle wrapper JARs from files.
+			offset := 0
+			for _, ji := range gradleWrappers {
+				files = append(files[:ji-offset], files[ji+1-offset:]...)
+				offset++
+			}
+		}
+	}
 	// No error, return the files.
 	return checker.BinaryArtifactData{Files: files}, nil
 }
@@ -126,4 +152,61 @@ func isText(content []byte) bool {
 		}
 	}
 	return true
+}
+
+// gradleWrapperValidationOK checks for the gradle-wrapper-verify action being
+// used in a non-failing workflow on the latest commit.
+func gradleWrapperValidationOK(c clients.RepoClient) (bool, error) {
+	gradleWrapperValidatingWorkflowFile := ""
+	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
+		Pattern:       ".github/workflows/*",
+		CaseSensitive: false,
+	}, checkWorkflowValidatesGradleWrapper, &gradleWrapperValidatingWorkflowFile)
+	if err != nil {
+		return false, fmt.Errorf("%w", err)
+	}
+	if gradleWrapperValidatingWorkflowFile != "" {
+		// If validated, check that latest commit has a relevant successful run
+		runs, err := c.ListSuccessfulWorkflowRuns(gradleWrapperValidatingWorkflowFile)
+		if err != nil {
+			return false, err
+		}
+		commits, err := c.ListCommits()
+		if err != nil {
+			return false, err
+		}
+		if len(commits) < 1 || len(runs) < 1 {
+			return false, nil
+		}
+		for _, r := range runs {
+			if *r.HeadSHA == commits[0].SHA {
+				// Commit has corresponding successful run!
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
+// checkWorkflowValidatesGradleWrapper checks that the current workflow file
+// is indeed using the gradle/wrapper-validation-action action, else continues
+func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...interface{}) (bool, error) {
+	vwID := args[0].(*string)
+
+	action, errs := actionlint.Parse(content)
+	if errs != nil || len(errs) > 0 {
+		return true, errors.New("failed to parse action")
+	}
+
+	for _, j := range action.Jobs {
+		for _, s := range j.Steps {
+			if ea, ok := s.Exec.(*actionlint.ExecAction); ok {
+				if ea.Uses != nil && gradleWrapperValidationActionRegex.MatchString(ea.Uses.Value) {
+					*vwID = filepath.Base(path)
+					return true, nil
+				}
+			}
+		}
+	}
+	return true, nil
 }

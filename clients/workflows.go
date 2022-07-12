@@ -16,5 +16,6 @@ package clients
 
 // WorkflowRun represents VCS WorkflowRun.
 type WorkflowRun struct {
-	URL string
+	URL     string
+	HeadSHA *string `json:"head_sha"`
 }
