@@ -227,7 +227,7 @@ type jsonRawResults struct {
 	// Note: we return one at most.
 	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools"`
 	// Branch protection settings for development and release branches.
-	BranchProtections []jsonBranchProtection `json:"json:"branchProtections"`
+	BranchProtections []jsonBranchProtection `json:"branchProtections"`
 	// Contributors. Note: we could use the list of commits instead to store this data.
 	// However, it's harder to get statistics using commit list, so we have a dedicated
 	// structure for it.
