@@ -15,7 +15,6 @@
 package raw
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -169,11 +168,11 @@ func gradleWrapperValidationOK(c clients.RepoClient) (bool, error) {
 		// If validated, check that latest commit has a relevant successful run
 		runs, err := c.ListSuccessfulWorkflowRuns(gradleWrapperValidatingWorkflowFile)
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("failure listing workflow runs: %w", err)
 		}
 		commits, err := c.ListCommits()
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("failure listing commits: %w", err)
 		}
 		if len(commits) < 1 || len(runs) < 1 {
 			return false, nil
@@ -189,13 +188,16 @@ func gradleWrapperValidationOK(c clients.RepoClient) (bool, error) {
 }
 
 // checkWorkflowValidatesGradleWrapper checks that the current workflow file
-// is indeed using the gradle/wrapper-validation-action action, else continues
+// is indeed using the gradle/wrapper-validation-action action, else continues.
 func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...interface{}) (bool, error) {
-	vwID := args[0].(*string)
+	vwID, ok := args[0].(*string)
+	if !ok {
+		return false, fmt.Errorf("checkWorkflowValidatesGradleWrapper expects arg[0] of type *string: %w", errInvalidArgType)
+	}
 
 	action, errs := actionlint.Parse(content)
-	if errs != nil || len(errs) > 0 {
-		return true, errors.New("failed to parse action")
+	if len(errs) > 0 {
+		return true, errs[0]
 	}
 
 	for _, j := range action.Jobs {

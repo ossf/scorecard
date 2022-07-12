@@ -29,10 +29,6 @@ func strptr(s string) *string {
 	return &s
 }
 
-func intptr(k int) *int {
-	return &k
-}
-
 // TestBinaryArtifact tests the BinaryArtifact checker.
 func TestBinaryArtifacts(t *testing.T) {
 	t.Parallel()
@@ -42,7 +38,7 @@ func TestBinaryArtifacts(t *testing.T) {
 		files                  [][]string
 		successfulWorkflowRuns []clients.WorkflowRun
 		commits                []clients.Commit
-		getFileContentCount    *int
+		getFileContentCount    int
 		expect                 int
 	}{
 		{
@@ -51,7 +47,8 @@ func TestBinaryArtifacts(t *testing.T) {
 			files: [][]string{
 				{"../testdata/binaryartifacts/jars/aws-java-sdk-core-1.11.571.jar"},
 			},
-			expect: 1,
+			getFileContentCount: 1,
+			expect:              1,
 		},
 		{
 			name: "Mach-O ARM64 executable",
@@ -59,7 +56,8 @@ func TestBinaryArtifacts(t *testing.T) {
 			files: [][]string{
 				{"../testdata/binaryartifacts/executables/darwin-arm64-bt"},
 			},
-			expect: 1,
+			getFileContentCount: 1,
+			expect:              1,
 		},
 		{
 			name: "non binary file",
@@ -67,6 +65,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			files: [][]string{
 				{"../testdata/licensedir/withlicense/LICENSE"},
 			},
+			getFileContentCount: 1,
 		},
 		{
 			name: "non binary file",
@@ -74,6 +73,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			files: [][]string{
 				{"../doesnotexist"},
 			},
+			getFileContentCount: 1,
 		},
 		{
 			name: "printable character .lib",
@@ -81,6 +81,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			files: [][]string{
 				{"../testdata/binaryartifacts/printable.lib"},
 			},
+			getFileContentCount: 1,
 		},
 		{
 			name: "gradle-wrapper.jar without verification action",
@@ -89,7 +90,8 @@ func TestBinaryArtifacts(t *testing.T) {
 				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
 				{},
 			},
-			expect: 1,
+			getFileContentCount: 1,
+			expect:              1,
 		},
 		{
 			name: "gradle-wrapper.jar with verification action",
@@ -114,7 +116,7 @@ func TestBinaryArtifacts(t *testing.T) {
 					SHA: "sha-old",
 				},
 			},
-			getFileContentCount: intptr(3),
+			getFileContentCount: 3,
 			expect:              0,
 		},
 		{
@@ -124,7 +126,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
 				{"../testdata/binaryartifacts/workflows/nonverify.yml"},
 			},
-			getFileContentCount: intptr(2),
+			getFileContentCount: 2,
 			expect:              1,
 		},
 		{
@@ -147,7 +149,7 @@ func TestBinaryArtifacts(t *testing.T) {
 					SHA: "sha-old",
 				},
 			},
-			getFileContentCount: intptr(2),
+			getFileContentCount: 2,
 			expect:              1,
 		},
 	}
@@ -161,11 +163,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			for _, files := range tt.files {
 				mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(files, nil)
 			}
-			getFileContentCount := 1
-			if tt.getFileContentCount != nil {
-				getFileContentCount = *tt.getFileContentCount
-			}
-			for i := 0; i < getFileContentCount; i++ {
+			for i := 0; i < tt.getFileContentCount; i++ {
 				mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
 					// This will read the file and return the content
 					content, err := os.ReadFile(file)
