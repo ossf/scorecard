@@ -14,13 +14,21 @@
 
 package pkg
 
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+
+	sce "github.com/ossf/scorecard/v4/errors"
+)
+
 // ChangeType is the change type (added, updated, removed) of a dependency.
 type ChangeType string
 
 const (
-	// Added suggests the dependency is a new one.
+	// Added suggests the dependency is a newly added one.
 	Added ChangeType = "added"
-	// Updated suggests the dependency is bumped from an old version.
+	// Updated suggests the dependency is updated from an old version.
 	Updated ChangeType = "updated"
 	// Removed suggests the dependency is removed.
 	Removed ChangeType = "removed"
@@ -61,4 +69,12 @@ type DependencyCheckResult struct {
 
 	// Name is the name of the dependency.
 	Name string `json:"name"`
+}
+
+func (dr *DependencyCheckResult) AsJSON(writer io.Writer) error {
+	encoder := json.NewEncoder(writer)
+	if err := encoder.Encode(*dr); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+	}
+	return nil
 }

@@ -29,32 +29,36 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-func GetDependencyDiff(owner, repo, base, head string) ([]pkg.DependencyCheckResult, error) {
-	// Fetch dependency diffs using the GitHub Dependency Review API.
-	deps, err := FetchDependencyDiffData(owner, repo, base, head)
-	if err != nil {
-		return nil, err
-	}
-	// PrintDependencies(deps)
-
+// GetDependencyDiffResults gets dependency changes between two given code commits BASE and HEAD
+// along with the Scorecard check results of the dependencies, and returns a slice of DependencyCheckResult.
+func GetDependencyDiffResults(ownerName, repoName, baseSHA, headSHA string) ([]pkg.DependencyCheckResult, error) {
 	ctx := context.Background()
-	ghRepo, err := githubrepo.MakeGithubRepo(path.Join(owner, repo))
+	// Fetch dependency diffs using the GitHub Dependency Review API.
+	deps, err := FetchDependencyDiffData(ctx, ownerName, repoName, baseSHA, headSHA)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error fetching dependency changes: %w", err)
+	}
+
+	ghRepo, err := githubrepo.MakeGithubRepo(path.Join(ownerName, repoName))
+	if err != nil {
+		return nil, fmt.Errorf("error creating the github repo: %w", err)
 	}
 	ghRepoClient := githubrepo.CreateGithubRepoClient(ctx, nil)
 	ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, nil)
-	vulnsClient := clients.DefaultVulnerabilitiesClient()
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("error creating the oss fuzz repo client: %w", err)
 	}
+	vulnsClient := clients.DefaultVulnerabilitiesClient()
+
 	results := []pkg.DependencyCheckResult{}
-	count := 0
 	for _, d := range deps {
 		if d.SourceRepository != nil {
-			// Running scorecard on this dependency and fetch the result
-			fmt.Printf("Running Scorecard checks for %s\n", d.Name)
-			scResult, err := pkg.RunScorecards(
+			if *d.SourceRepository == "" {
+				continue
+			}
+			// Running scorecard on this dependency and fetch the result.
+			// TODO: use the Scorecare REST API to retrieve the Scorecard result statelessly.
+			scorecardResult, err := pkg.RunScorecards(
 				ctx,
 				ghRepo,
 				clients.HeadSHA,
@@ -65,59 +69,51 @@ func GetDependencyDiff(owner, repo, base, head string) ([]pkg.DependencyCheckRes
 				vulnsClient,
 			)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("error fetching the scorecard result: %w", err)
 			}
-			dd := pkg.DependencyCheckResult{
+			depCheckResult := pkg.DependencyCheckResult{
 				PackageURL:       d.PackageURL,
 				SourceRepository: d.SourceRepository,
 				ChangeType:       d.ChangeType,
 				ManifestPath:     d.ManifestPath,
 				Ecosystem:        d.Ecosystem,
 				Version:          d.Version,
-				ScorecardResults: &scResult,
+				ScorecardResults: &scorecardResult,
 				Name:             d.Name,
 			}
-			results = append(results, dd)
-			count += 1
-			if count == 3 {
-				break
-			}
-		} else {
-			fmt.Printf("Skipping %s, no source repo found\n", d.Name)
+			results = append(results, depCheckResult)
 		}
 		// Skip those without source repo urls.
-		// TODO: use BigQuery to supplement null source repo URLs and fetch the Scorecard results for them.
+		// TODO: use the BigQuery dataset to supplement null source repo URLs
+		// so that we can fetch the Scorecard results for them.
 	}
 	return results, nil
 }
 
-// Get the depednency-diffs between two specified code commits.
-func FetchDependencyDiffData(owner, repo, base, head string) ([]Dependency, error) {
-	reqURL, err := url.Parse(
-		path.Join(
-			"api.github.com",
-			"repos", owner, repo, "dependency-graph", "compare", base+"..."+head,
-		),
-	)
+// FetchDependencyDiffData fetches the depednency-diffs between the two code commits
+// using the GitHub Dependency Review API, and returns a slice of Dependency.
+func FetchDependencyDiffData(ctx context.Context, owner, repo, base, head string) ([]Dependency, error) {
+	reqURL, err := url.Parse("https://api.github.com")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error parsing the url: %w", err)
 	}
-	reqURL.Scheme = "https"
+	reqURL.Path = path.Join(
+		"repos", owner, repo, "dependency-graph", "compare", base+"..."+head,
+	)
 	req, err := http.NewRequest("GET", reqURL.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("request for dependency-diff failed with %w", err)
 	}
-	ctx := context.Background()
 	ghrt := roundtripper.NewTransport(ctx, nil)
 	resp, err := ghrt.RoundTrip(req)
-	if err != nil {
-		return nil, err
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error receiving the http reponse: %w with resp status code %v", err, resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	depDiff := []Dependency{}
 	err = json.NewDecoder(resp.Body).Decode(&depDiff)
 	if err != nil {
-		return nil, fmt.Errorf("parse response error: %w", err)
+		return nil, fmt.Errorf("error parsing the http response: %w", err)
 	}
 	return depDiff, nil
 }
