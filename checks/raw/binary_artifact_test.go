@@ -21,54 +21,134 @@ import (
 
 	"github.com/golang/mock/gomock"
 
+	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
+
+func strptr(s string) *string {
+	return &s
+}
+
+func intptr(k int) *int {
+	return &k
+}
 
 // TestBinaryArtifact tests the BinaryArtifact checker.
 func TestBinaryArtifacts(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name   string
-		err    error
-		files  []string
-		expect int
+		name                   string
+		err                    error
+		files                  [][]string
+		successfulWorkflowRuns []clients.WorkflowRun
+		commits                []clients.Commit
+		getFileContentCount    *int
+		expect                 int
 	}{
 		{
 			name: "Jar file",
 			err:  nil,
-			files: []string{
-				"../testdata/binaryartifacts/jars/aws-java-sdk-core-1.11.571.jar",
+			files: [][]string{
+				{"../testdata/binaryartifacts/jars/aws-java-sdk-core-1.11.571.jar"},
 			},
 			expect: 1,
 		},
 		{
 			name: "Mach-O ARM64 executable",
 			err:  nil,
-			files: []string{
-				"../testdata/binaryartifacts/executables/darwin-arm64-bt",
+			files: [][]string{
+				{"../testdata/binaryartifacts/executables/darwin-arm64-bt"},
 			},
 			expect: 1,
 		},
 		{
 			name: "non binary file",
 			err:  nil,
-			files: []string{
-				"../testdata/licensedir/withlicense/LICENSE",
+			files: [][]string{
+				{"../testdata/licensedir/withlicense/LICENSE"},
 			},
 		},
 		{
 			name: "non binary file",
 			err:  nil,
-			files: []string{
-				"../doesnotexist",
+			files: [][]string{
+				{"../doesnotexist"},
 			},
 		},
 		{
 			name: "printable character .lib",
 			err:  nil,
-			files: []string{
-				"../testdata/binaryartifacts/printable.lib",
+			files: [][]string{
+				{"../testdata/binaryartifacts/printable.lib"},
 			},
+		},
+		{
+			name: "gradle-wrapper.jar without verification action",
+			err:  nil,
+			files: [][]string{
+				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
+				{},
+			},
+			expect: 1,
+		},
+		{
+			name: "gradle-wrapper.jar with verification action",
+			err:  nil,
+			files: [][]string{
+				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
+				{
+					"../testdata/binaryartifacts/workflows/nonverify.yml",
+					"../testdata/binaryartifacts/workflows/verify.yml",
+				},
+			},
+			successfulWorkflowRuns: []clients.WorkflowRun{
+				{
+					HeadSHA: strptr("sha-a"),
+				},
+			},
+			commits: []clients.Commit{
+				{
+					SHA: "sha-a",
+				},
+				{
+					SHA: "sha-old",
+				},
+			},
+			getFileContentCount: intptr(3),
+			expect:              0,
+		},
+		{
+			name: "gradle-wrapper.jar with non-verification action",
+			err:  nil,
+			files: [][]string{
+				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
+				{"../testdata/binaryartifacts/workflows/nonverify.yml"},
+			},
+			getFileContentCount: intptr(2),
+			expect:              1,
+		},
+		{
+			name: "gradle-wrapper.jar with verification-failing commit",
+			err:  nil,
+			files: [][]string{
+				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
+				{"../testdata/binaryartifacts/workflows/verify.yml"},
+			},
+			successfulWorkflowRuns: []clients.WorkflowRun{
+				{
+					HeadSHA: strptr("sha-old"),
+				},
+			},
+			commits: []clients.Commit{
+				{
+					SHA: "sha-a",
+				},
+				{
+					SHA: "sha-old",
+				},
+			},
+			getFileContentCount: intptr(2),
+			expect:              1,
 		},
 	}
 	for _, tt := range tests {
@@ -78,15 +158,29 @@ func TestBinaryArtifacts(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
-			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
-			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
-				// This will read the file and return the content
-				content, err := os.ReadFile(file)
-				if err != nil {
-					return content, fmt.Errorf("%w", err)
-				}
-				return content, nil
-			})
+			for _, files := range tt.files {
+				mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(files, nil)
+			}
+			getFileContentCount := 1
+			if tt.getFileContentCount != nil {
+				getFileContentCount = *tt.getFileContentCount
+			}
+			for i := 0; i < getFileContentCount; i++ {
+				mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
+					// This will read the file and return the content
+					content, err := os.ReadFile(file)
+					if err != nil {
+						return content, fmt.Errorf("%w", err)
+					}
+					return content, nil
+				})
+			}
+			if tt.successfulWorkflowRuns != nil {
+				mockRepoClient.EXPECT().ListSuccessfulWorkflowRuns(gomock.Any()).Return(tt.successfulWorkflowRuns, nil)
+			}
+			if tt.commits != nil {
+				mockRepoClient.EXPECT().ListCommits().Return(tt.commits, nil)
+			}
 
 			f, err := BinaryArtifacts(mockRepoClient)
 
