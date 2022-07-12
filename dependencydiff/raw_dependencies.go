@@ -12,35 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package depdiff
+package dependencydiff
 
-import (
-	"github.com/ossf/scorecard/v4/pkg"
-	"github.com/ossf/scorecard/v4/pkg/check-depdiff/raw"
-)
+import "github.com/ossf/scorecard/v4/pkg"
 
-// DependencyCheckResult is the dependency structure used in the returned results.
-type DependencyCheckResult struct {
+// Dependency is a raw dependency fetched from the GitHub Dependency Review API.
+type Dependency struct {
 	// Package URL is a short link for a package.
-	PackageURL *string `json:"packageUrl"`
+	PackageURL *string `json:"package_url"`
 
 	// SourceRepository is the source repository URL of the dependency.
-	SourceRepository *string `json:"sourceRepository"`
+	SourceRepository *string `json:"source_repository_url"`
 
 	// ChangeType indicates whether the dependency is added, updated, or removed.
-	ChangeType *raw.ChangeType `json:"changeType"`
+	ChangeType *pkg.ChangeType `json:"change_type"`
 
 	// ManifestPath is the path of the manifest file of the dependency, such as go.mod for Go.
-	ManifestPath *string `json:"manifestPath"`
+	ManifestPath *string `json:"manifest"`
 
 	// Ecosystem is the name of the package management system, such as NPM, GO, PYPI.
 	Ecosystem *string `json:"ecosystem"`
 
 	// Version is the package version of the dependency.
 	Version *string `json:"version"`
-
-	// ScorecardResults is the scorecard result for the dependency repo.
-	ScorecardResults *pkg.ScorecardResult `json:"scorecardResults"`
 
 	// Name is the name of the dependency.
 	Name string `json:"name"`

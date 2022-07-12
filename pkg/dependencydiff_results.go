@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package raw
+package pkg
 
 // ChangeType is the change type (added, updated, removed) of a dependency.
 type ChangeType string
@@ -36,25 +36,28 @@ func (ct *ChangeType) IsValid() bool {
 	}
 }
 
-// Dependency is a raw dependency fetched from the GitHub Dependency Review API.
-type Dependency struct {
+// DependencyCheckResult is the dependency structure used in the returned results.
+type DependencyCheckResult struct {
 	// Package URL is a short link for a package.
-	PackageURL *string `json:"package_url"`
+	PackageURL *string `json:"packageUrl"`
 
 	// SourceRepository is the source repository URL of the dependency.
-	SourceRepository *string `json:"source_repository_url"`
+	SourceRepository *string `json:"sourceRepository"`
 
 	// ChangeType indicates whether the dependency is added, updated, or removed.
-	ChangeType *ChangeType `json:"change_type"`
+	ChangeType *ChangeType `json:"changeType"`
 
 	// ManifestPath is the path of the manifest file of the dependency, such as go.mod for Go.
-	ManifestPath *string `json:"manifest"`
+	ManifestPath *string `json:"manifestPath"`
 
 	// Ecosystem is the name of the package management system, such as NPM, GO, PYPI.
 	Ecosystem *string `json:"ecosystem"`
 
 	// Version is the package version of the dependency.
 	Version *string `json:"version"`
+
+	// ScorecardResults is the scorecard result for the dependency repo.
+	ScorecardResults *ScorecardResult `json:"scorecardResults"`
 
 	// Name is the name of the dependency.
 	Name string `json:"name"`
