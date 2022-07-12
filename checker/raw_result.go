@@ -20,7 +20,7 @@ import (
 
 // RawResults contains results before a policy
 // is applied.
-//nolint
+// nolint
 type RawResults struct {
 	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
@@ -260,21 +260,21 @@ const (
 	PermissionLocationJob PermissionLocation = "jobLevel"
 )
 
-// PermissionType represents a permission type.
-type PermissionType string
+// PermissionLevel represents a permission type.
+type PermissionLevel string
 
 const (
-	// PermissionTypeUndeclared is an undecleared permission.
-	PermissionTypeUndeclared PermissionType = "undeclared"
-	// PermissionTypeWrite is a permission set to `write` for a permission we consider potentially dangerous.
-	PermissionTypeWrite PermissionType = "write"
-	// PermissionTypeRead is a permission set to `read`.
-	PermissionTypeRead PermissionType = "read"
-	// PermissionTypeNone is a permission set to `none`.
-	PermissionTypeNone PermissionType = "none"
-	// PermissionTypeUnknown is for other kinds of alerts, mostly to support debug messages.
+	// PermissionLevelUndeclared is an undecleared permission.
+	PermissionLevelUndeclared PermissionLevel = "undeclared"
+	// PermissionLevelWrite is a permission set to `write` for a permission we consider potentially dangerous.
+	PermissionLevelWrite PermissionLevel = "write"
+	// PermissionLevelRead is a permission set to `read`.
+	PermissionLevelRead PermissionLevel = "read"
+	// PermissionLevelNone is a permission set to `none`.
+	PermissionLevelNone PermissionLevel = "none"
+	// PermissionLevelUnknown is for other kinds of alerts, mostly to support debug messages.
 	// TODO: remove it once we have implemented severity (#1874).
-	PermissionTypeUnknown PermissionType = "unknown"
+	PermissionLevelUnknown PermissionLevel = "unknown"
 )
 
 // TokenPermission defines a token permission result.
@@ -285,5 +285,5 @@ type TokenPermission struct {
 	Value        *string
 	File         *File
 	Msg          *string
-	Type         PermissionType
+	Type         PermissionLevel
 }

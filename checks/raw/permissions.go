@@ -135,7 +135,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 					LocationType: &permLoc,
 					Name:         &key,
 					Value:        &val,
-					Type:         checker.PermissionTypeWrite,
+					Type:         checker.PermissionLevelWrite,
 					// TODO: Job
 				})
 			// recordPermissionWrite(pPermissions, permissionKey)
@@ -154,7 +154,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 					Name:         &key,
 					Value:        &val,
 					// It's a write but not considered dangerous.
-					Type: checker.PermissionTypeUnknown,
+					Type: checker.PermissionLevelUnknown,
 					// TODO: Job
 				})
 		}
@@ -178,14 +178,14 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 	return nil
 }
 
-func typeOfPermission(val string) checker.PermissionType {
+func typeOfPermission(val string) checker.PermissionLevel {
 	switch val {
 	case "read", "read-all":
-		return checker.PermissionTypeRead
+		return checker.PermissionLevelRead
 	case "none":
-		return checker.PermissionTypeNone
+		return checker.PermissionLevelNone
 	}
-	return checker.PermissionTypeUnknown
+	return checker.PermissionLevelUnknown
 }
 
 func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, permLoc checker.PermissionLocation,
@@ -216,7 +216,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 					Offset: checker.OffsetDefault,
 				},
 				LocationType: &permLoc,
-				Type:         checker.PermissionTypeNone,
+				Type:         checker.PermissionLevelNone,
 				Value:        &none,
 				// TODO: Job, etc.
 			})
@@ -235,7 +235,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 					},
 					LocationType: &permLoc,
 					Value:        &val,
-					Type:         checker.PermissionTypeWrite,
+					Type:         checker.PermissionLevelWrite,
 					// TODO: Job
 				})
 
@@ -276,7 +276,7 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 					Offset: checker.OffsetDefault,
 				},
 				LocationType: &permLoc,
-				Type:         checker.PermissionTypeUndeclared,
+				Type:         checker.PermissionLevelUndeclared,
 				// TODO: Job
 			})
 
@@ -305,7 +305,7 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 						Offset: fileparser.GetLineNumber(job.Pos),
 					},
 					LocationType: &permLoc,
-					Type:         checker.PermissionTypeUnknown,
+					Type:         checker.PermissionLevelUnknown,
 					Msg:          stringPointer(fmt.Sprintf("no %s permission defined", permLoc)),
 					// TODO: Job
 				})
@@ -390,7 +390,7 @@ func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, pdata *permis
 							Offset: fileparser.GetLineNumber(uses.Pos),
 							// TODO: set Snippet.
 						},
-						Type: checker.PermissionTypeUnknown,
+						Type: checker.PermissionLevelUnknown,
 						Msg:  stringPointer("codeql SARIF upload workflow detected"),
 						// TODO: Job
 					})
@@ -406,7 +406,7 @@ func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, pdata *permis
 				Type:   checker.FileTypeSource,
 				Offset: checker.OffsetDefault,
 			},
-			Type: checker.PermissionTypeUnknown,
+			Type: checker.PermissionLevelUnknown,
 			Msg:  stringPointer("not a codeql upload SARIF workflow"),
 
 			// TODO: Job
@@ -415,7 +415,7 @@ func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, pdata *permis
 	return false
 }
 
-//nolint
+// nolint
 // CodeQl run within GitHub worklow automatically bubbled up to
 // security events, see
 // https://docs.github.com/en/code-security/secure-coding/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning.
@@ -434,7 +434,7 @@ func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, pdata *p
 							Type:   checker.FileTypeSource,
 							Offset: fileparser.GetLineNumber(uses.Pos),
 						},
-						Type: checker.PermissionTypeUnknown,
+						Type: checker.PermissionLevelUnknown,
 						Msg:  stringPointer("codeql workflow detected"),
 						// TODO: Job
 					})
@@ -451,7 +451,7 @@ func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, pdata *p
 				Type:   checker.FileTypeSource,
 				Offset: checker.OffsetDefault,
 			},
-			Type: checker.PermissionTypeUnknown,
+			Type: checker.PermissionLevelUnknown,
 			Msg:  stringPointer("not a codeql workflow"),
 		})
 
@@ -473,7 +473,7 @@ func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, pdata
 				Offset: checker.OffsetDefault,
 			},
 			Msg:  &match.Msg,
-			Type: checker.PermissionTypeUnknown,
+			Type: checker.PermissionLevelUnknown,
 		})
 
 	return ok
@@ -564,7 +564,7 @@ func isWorkflowOf(workflow *actionlint.Workflow, fp string,
 				Offset: checker.OffsetDefault,
 			},
 			Msg:  &match.Msg,
-			Type: checker.PermissionTypeUnknown,
+			Type: checker.PermissionLevelUnknown,
 		})
 
 	return ok

@@ -162,7 +162,7 @@ type jsonOssfBestPractices struct {
 	Badge string `json:"badge"`
 }
 
-//nolint
+// nolint
 type jsonLicense struct {
 	File jsonFile `json:"file"`
 	// TODO: add fields, like type of license, etc.
@@ -219,7 +219,7 @@ type jsonTokenPermission struct {
 	Type         string           `json:"type"`
 }
 
-//nolint
+// nolint
 type jsonRawResults struct {
 	// Workflow results.
 	Workflows []jsonWorkflow `json:"workflows"`
@@ -270,8 +270,8 @@ func (r *jsonScorecardRawResult) addTokenPermissionsRawResults(tp *checker.Token
 
 	for _, t := range tp.TokenPermissions {
 		// We ignore debug messages for read/none permissions.
-		if t.Type != checker.PermissionTypeUndeclared &&
-			t.Type != checker.PermissionTypeWrite {
+		if t.Type != checker.PermissionLevelUndeclared &&
+			t.Type != checker.PermissionLevelWrite {
 			continue
 		}
 

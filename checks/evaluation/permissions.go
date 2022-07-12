@@ -76,11 +76,11 @@ func applyScorePolicy(results *checker.TokenPermissionsData, dl checker.DetailLo
 		msg.Text = text
 
 		switch r.Type {
-		case checker.PermissionTypeUnknown, checker.PermissionTypeNone,
-			checker.PermissionTypeRead:
+		case checker.PermissionLevelUnknown, checker.PermissionLevelNone,
+			checker.PermissionLevelRead:
 			dl.Debug(&msg)
 
-		case checker.PermissionTypeWrite, checker.PermissionTypeUndeclared:
+		case checker.PermissionLevelWrite, checker.PermissionLevelUndeclared:
 			dl.Warn(&msg)
 
 			// Group results by workflow name for score computation.
@@ -126,8 +126,8 @@ func updateWorkflowHashMap(hm map[string]permissions, t checker.TokenPermission)
 		return sce.WithMessage(sce.ErrScorecardInternal, "path is not set")
 	}
 
-	if t.Type != checker.PermissionTypeWrite &&
-		t.Type != checker.PermissionTypeUndeclared {
+	if t.Type != checker.PermissionLevelWrite &&
+		t.Type != checker.PermissionLevelUndeclared {
 		return nil
 	}
 
@@ -148,7 +148,7 @@ func createMessage(t checker.TokenPermission) (string, error) {
 	}
 
 	// Use a different message depending on the type.
-	if t.Type == checker.PermissionTypeUndeclared {
+	if t.Type == checker.PermissionLevelUndeclared {
 		return fmt.Sprintf("no %s permission defined", *t.LocationType), nil
 	}
 
