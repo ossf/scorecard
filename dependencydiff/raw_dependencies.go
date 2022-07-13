@@ -22,11 +22,13 @@ import (
 	"time"
 
 	"github.com/google/go-github/v38/github"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
@@ -66,10 +68,13 @@ type dependency struct {
 
 // fetchRawDependencyDiffData fetches the dependency-diffs between the two code commits
 // using the GitHub Dependency Review API, and returns a slice of Dependency.
-func fetchRawDependencyDiffData(ctx context.Context, owner, repo, base, head string) ([]pkg.DependencyCheckResult, error) {
+func fetchRawDependencyDiffData(
+	ctx context.Context, owner, repo, base, head string,
+) ([]pkg.DependencyCheckResult, error) {
+	ghrt := roundtripper.NewTransport(ctx, log.NewLogger(log.InfoLevel))
 	ghClient := github.NewClient(
 		&http.Client{
-			Transport: roundtripper.NewTransport(ctx, nil),
+			Transport: ghrt,
 			Timeout:   10 * time.Second,
 		},
 	)
@@ -119,7 +124,9 @@ func fetchRawDependencyDiffData(ctx context.Context, owner, repo, base, head str
 			scorecardResult, err := pkg.RunScorecards(
 				ctx,
 				ghRepo,
-				clients.HeadSHA, /* TODO: In future versions, ideally, this should be commitSHA corresponding to d.Version instead of HEAD. */
+				// TODO: In future versions, ideally, this should be
+				// the commitSHA corresponding to d.Version instead of HEAD.
+				clients.HeadSHA,
 				checksToRun,
 				ghRepoClient,
 				nil,
