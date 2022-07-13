@@ -152,6 +152,19 @@ func TestBinaryArtifacts(t *testing.T) {
 			getFileContentCount: 2,
 			expect:              1,
 		},
+		{
+			name: "gradle-wrapper.jar with outdated verification action",
+			err:  nil,
+			files: [][]string{
+				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
+				{
+					"../testdata/binaryartifacts/workflows/nonverify.yml",
+					"../testdata/binaryartifacts/workflows/verify-outdated-action.yml",
+				},
+			},
+			getFileContentCount: 3,
+			expect:              1,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below

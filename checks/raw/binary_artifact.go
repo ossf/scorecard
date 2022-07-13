@@ -21,6 +21,7 @@ import (
 	"strings"
 	"unicode"
 
+	semver "github.com/Masterminds/semver/v3"
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
 	"github.com/rhysd/actionlint"
@@ -31,7 +32,19 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-var gradleWrapperValidationActionRegex = regexp.MustCompile(`^gradle\/wrapper-validation-action(?:@.+)?$`)
+var (
+	gradleWrapperValidationActionRegex             = regexp.MustCompile(`^gradle\/wrapper-validation-action@v?(.+)$`)
+	gradleWrapperValidationActionVersionConstraint = mustParseConstraint(`>= 1.0.0`)
+)
+
+// mustParseConstraint attempts parse of semver constraint, panics if fail.
+func mustParseConstraint(c string) *semver.Constraints {
+	if c, err := semver.NewConstraint(c); err != nil {
+		panic(fmt.Errorf("failed to parse constraint: %w", err))
+	} else {
+		return c
+	}
+}
 
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
 func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
@@ -208,11 +221,28 @@ func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...in
 
 	for _, j := range action.Jobs {
 		for _, s := range j.Steps {
-			if ea, ok := s.Exec.(*actionlint.ExecAction); ok {
-				if ea.Uses != nil && gradleWrapperValidationActionRegex.MatchString(ea.Uses.Value) {
-					*validatingWorkflowFile = filepath.Base(path)
-					return true, nil
+			ea, ok := s.Exec.(*actionlint.ExecAction)
+			if !ok {
+				continue
+			}
+			if ea.Uses == nil {
+				continue
+			}
+			sms := gradleWrapperValidationActionRegex.FindStringSubmatch(ea.Uses.Value)
+			if len(sms) > 1 {
+				v, err := semver.NewVersion(sms[1])
+				if err != nil {
+					// Couldn't parse version, hopefully another step has
+					// a correct one.
+					continue
 				}
+				if !gradleWrapperValidationActionVersionConstraint.Check(v) {
+					// Version out of acceptable range.
+					continue
+				}
+				// OK! This is it.
+				*validatingWorkflowFile = filepath.Base(path)
+				return true, nil
 			}
 		}
 	}

@@ -45,6 +45,7 @@ require (
 )
 
 require (
+	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/caarlos0/env/v6 v6.9.3
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.1.4

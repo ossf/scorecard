@@ -1,0 +1,12 @@
+name: "GW Validate Workflow"
+on: [push, pull_request]
+
+jobs:
+  gw_validat3:
+    name: "GW Validate Job"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: GW Validate Step
+        # this is a made-up outdated version of the action:
+        uses: gradle/wrapper-validation-action@v0.1.0
