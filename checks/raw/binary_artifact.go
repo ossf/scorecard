@@ -44,25 +44,31 @@ func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
 		return checker.BinaryArtifactData{}, fmt.Errorf("%w", err)
 	}
 
-	// Indices of any gradle-wrapper.jar files
-	var gradleWrappers []int
+	// Check if gradle-wrapper.jar present
+	hasGradleWrappers := false
 	if len(files) > 0 {
-		for i, f := range files {
+		for _, f := range files {
 			if filepath.Base(f.Path) == "gradle-wrapper.jar" {
-				gradleWrappers = append(gradleWrappers, i)
+				hasGradleWrappers = true
+				break
 			}
 		}
 	}
-	if len(gradleWrappers) > 0 {
+	if hasGradleWrappers {
 		// Gradle wrapper JARs present, so check that they are validated
-		if ok, err := gradleWrapperValidationOK(c); ok && err == nil {
+		if ok, err := gradleWrapperValidated(c); ok && err == nil {
 			// It has been confirmed that latest commit has validated JARs!
 			// Remove Gradle wrapper JARs from files.
-			offset := 0
-			for _, ji := range gradleWrappers {
-				files = append(files[:ji-offset], files[ji+1-offset:]...)
-				offset++
+			filterFiles := []checker.File{}
+			for _, f := range files {
+				if filepath.Base(f.Path) != "gradle-wrapper.jar" {
+					filterFiles = append(filterFiles, f)
+				}
 			}
+			files = filterFiles
+		} else if err != nil {
+			return checker.BinaryArtifactData{Files: files}, fmt.Errorf(
+				"failure checking for Gradle wrapper validating Action: %w", err)
 		}
 	}
 	// No error, return the files.
@@ -153,9 +159,9 @@ func isText(content []byte) bool {
 	return true
 }
 
-// gradleWrapperValidationOK checks for the gradle-wrapper-verify action being
+// gradleWrapperValidated checks for the gradle-wrapper-verify action being
 // used in a non-failing workflow on the latest commit.
-func gradleWrapperValidationOK(c clients.RepoClient) (bool, error) {
+func gradleWrapperValidated(c clients.RepoClient) (bool, error) {
 	gradleWrapperValidatingWorkflowFile := ""
 	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
@@ -190,7 +196,7 @@ func gradleWrapperValidationOK(c clients.RepoClient) (bool, error) {
 // checkWorkflowValidatesGradleWrapper checks that the current workflow file
 // is indeed using the gradle/wrapper-validation-action action, else continues.
 func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...interface{}) (bool, error) {
-	vwID, ok := args[0].(*string)
+	validatingWorkflowFile, ok := args[0].(*string)
 	if !ok {
 		return false, fmt.Errorf("checkWorkflowValidatesGradleWrapper expects arg[0] of type *string: %w", errInvalidArgType)
 	}
@@ -204,7 +210,7 @@ func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...in
 		for _, s := range j.Steps {
 			if ea, ok := s.Exec.(*actionlint.ExecAction); ok {
 				if ea.Uses != nil && gradleWrapperValidationActionRegex.MatchString(ea.Uses.Value) {
-					*vwID = filepath.Base(path)
+					*validatingWorkflowFile = filepath.Base(path)
 					return true, nil
 				}
 			}
