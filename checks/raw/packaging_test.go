@@ -108,7 +108,7 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			}
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 
-			_, ok := fileparser.IsPackagingWorkflow(workflow, fp)
+			_, ok := fileparser.IsPackagingWorkflow(workflow, p)
 			if ok != tt.expected {
 				t.Errorf("isPackagingWorkflow() = %v, expected %v", ok, tt.expected)
 			}
