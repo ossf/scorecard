@@ -136,10 +136,17 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 }
 
 func generateRemediation(rr *checker.Dependency) *checker.Remediation {
-	if rr.Type == checker.DependencyUseTypeGHAction {
+	switch rr.Type {
+	case checker.DependencyUseTypeGHAction:
 		return remediation.CreateWorkflowPinningRemediation(rr.Location.Path)
+	case checker.DependencyUseTypeDockerfileContainerImage:
+		if rr.Name == nil {
+			return nil
+		}
+		return remediation.CreateDockerfilePinningRemediation(*rr.Name)
+	default:
+		return nil
 	}
-	return nil
 }
 
 func updatePinningResults(rr *checker.Dependency,
