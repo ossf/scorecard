@@ -49,5 +49,5 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.BinaryArtifacts(CheckBinaryArtifacts, c.Dlogger, &rawData, c.RepoClient)
+	return evaluation.BinaryArtifacts(CheckBinaryArtifacts, c.Dlogger, &rawData)
 }
