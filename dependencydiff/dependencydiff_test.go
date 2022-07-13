@@ -40,7 +40,7 @@ func TestGetDependencyDiffResults(t *testing.T) {
 			name:      "error response",
 			owner:     "no_such_owner",
 			repo:      "repo_not_exist",
-			base:      clients.HeadSHA,
+			base:      "",
 			head:      clients.HeadSHA,
 			wantEmpty: true,
 			wantErr:   true,
@@ -55,10 +55,8 @@ func TestGetDependencyDiffResults(t *testing.T) {
 				t.Errorf("GetDependencyDiffResults() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != nil {
-				if (len(got) == 0) != tt.wantEmpty {
-					t.Errorf("GetDependencyDiffResults() = %v, want empty %v for %v", got, tt.wantEmpty, tt.name)
-				}
+			if (len(got) == 0) != tt.wantEmpty {
+				t.Errorf("GetDependencyDiffResults() = %v, want empty %v for %v", got, tt.wantEmpty, tt.name)
 			}
 		})
 	}
@@ -85,7 +83,7 @@ func TestFetchDependencyDiffData(t *testing.T) {
 			ctx:       context.Background(),
 			owner:     "no_such_owner",
 			repo:      "repo_not_exist",
-			base:      clients.HeadSHA,
+			base:      "",
 			head:      clients.HeadSHA,
 			wantEmpty: true,
 			wantErr:   true,
@@ -100,10 +98,8 @@ func TestFetchDependencyDiffData(t *testing.T) {
 				t.Errorf("FetchDependencyDiffData() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != nil {
-				if (len(got) == 0) != tt.wantEmpty {
-					t.Errorf("FetchDependencyDiffData() = %v, want empty %v for %v", got, tt.wantEmpty, tt.name)
-				}
+			if (len(got) == 0) != tt.wantEmpty {
+				t.Errorf("FetchDependencyDiffData() = %v, want empty %v for %v", got, tt.wantEmpty, tt.name)
 			}
 		})
 	}

@@ -16,7 +16,6 @@ package dependencydiff
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ossf/scorecard/v4/pkg"
 )
@@ -27,9 +26,5 @@ import (
 func GetDependencyDiffResults(ownerName, repoName, baseSHA, headSHA string) ([]pkg.DependencyCheckResult, error) {
 	ctx := context.Background()
 	// Fetch dependency diffs using the GitHub Dependency Review API.
-	deps, err := fetchRawDependencyDiffData(ctx, ownerName, repoName, baseSHA, headSHA)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching dependency changes: %w", err)
-	}
-	return deps, nil
+	return fetchRawDependencyDiffData(ctx, ownerName, repoName, baseSHA, headSHA)
 }
