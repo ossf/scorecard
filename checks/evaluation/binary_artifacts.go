@@ -66,46 +66,10 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 		return checker.CreateMaxScoreResult(name, "no binaries found in the repo")
 	}
 
-	// Check if gradle-wrapper.jar present
-	hasGradleWrappers := false
-	removeGradleWrappers := false
-	for _, f := range r.Files {
-		if filepath.Base(f.Path) == "gradle-wrapper.jar" {
-			hasGradleWrappers = true
-			break
-		}
-	}
-	if hasGradleWrappers {
-		// Gradle wrapper JARs present, so check that they are validated
-		ok, msg, err := gradleWrapperValidated(c)
-		if err != nil {
-			e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-			return checker.CreateRuntimeErrorResult(name, e)
-		}
-		if ok {
-			// It has been confirmed that latest commit has validated JARs!
-			// Remove Gradle wrapper JARs from files.
-			removeGradleWrappers = true
-			dl.Info(&checker.LogMessage{
-				Type: checker.FileTypeNone,
-				Text: "Successfully validated use of wrapper-validation-action Action.",
-			})
-		} else {
-			dl.Warn(&checker.LogMessage{
-				Type: checker.FileTypeNone,
-				Text: "Couldn't locate a valid workflow using the wrapper-validation-action Action. " + msg,
-			})
-		}
-	}
-
-	if removeGradleWrappers {
-		filterFiles := []checker.File{}
-		for _, f := range r.Files {
-			if filepath.Base(f.Path) != "gradle-wrapper.jar" {
-				filterFiles = append(filterFiles, f)
-			}
-		}
-		r.Files = filterFiles
+	// Apply Gradle Wrapper exception if relevant
+	cr := applyValidatedGradleWrappersException(name, c, r, dl)
+	if cr != nil {
+		return *cr
 	}
 
 	score := checker.MaxResultScore
@@ -124,6 +88,55 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 	}
 
 	return checker.CreateResultWithScore(name, "binaries present in source code", score)
+}
+
+// applyValidatedGradleWrappersException applies the exception to validated
+// gradle-wrapper.jar files, returning an error CheckResult if error.
+func applyValidatedGradleWrappersException(name string, c clients.RepoClient, r *checker.BinaryArtifactData,
+	dl checker.DetailLogger,
+) *checker.CheckResult {
+	// Check if gradle-wrapper.jar present
+	hasGradleWrappers := false
+	for _, f := range r.Files {
+		if filepath.Base(f.Path) == "gradle-wrapper.jar" {
+			hasGradleWrappers = true
+			break
+		}
+	}
+	if !hasGradleWrappers {
+		return nil
+	}
+	// Gradle wrapper JARs present, so check that they are validated
+	ok, msg, err := gradleWrapperValidated(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		result := checker.CreateRuntimeErrorResult(name, e)
+		return &result
+	}
+	if !ok {
+		dl.Warn(&checker.LogMessage{
+			Type: checker.FileTypeNone,
+			Text: "Couldn't locate a valid workflow using the wrapper-validation-action Action. " + msg,
+		})
+		return nil
+	}
+
+	// It has been confirmed that latest commit has validated JARs!
+	// Remove Gradle wrapper JARs from files.
+	dl.Info(&checker.LogMessage{
+		Type: checker.FileTypeNone,
+		Text: "Successfully validated use of wrapper-validation-action Action.",
+	})
+
+	filterFiles := []checker.File{}
+	for _, f := range r.Files {
+		if filepath.Base(f.Path) != "gradle-wrapper.jar" {
+			filterFiles = append(filterFiles, f)
+		}
+	}
+	r.Files = filterFiles
+
+	return nil
 }
 
 // gradleWrapperValidated checks for the gradle-wrapper-verify Action being
