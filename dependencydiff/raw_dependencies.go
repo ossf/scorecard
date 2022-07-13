@@ -18,24 +18,24 @@ import "github.com/ossf/scorecard/v4/pkg"
 
 // Dependency is a raw dependency fetched from the GitHub Dependency Review API.
 type Dependency struct {
-	// package URL is a short link for a package.
+	// Package URL is a short link for a package.
 	PackageURL *string `json:"package_url"`
 
-	// sourceRepository is the source repository URL of the dependency.
+	// SourceRepository is the source repository URL of the dependency.
 	SourceRepository *string `json:"source_repository_url"`
 
-	// changeType indicates whether the dependency is added, updated, or removed.
+	// ChangeType indicates whether the dependency is added, updated, or removed.
 	ChangeType *pkg.ChangeType `json:"change_type"`
 
-	// manifestPath is the path of the manifest file of the dependency, such as go.mod for Go.
+	// ManifestPath is the path of the manifest file of the dependency, such as go.mod for Go.
 	ManifestPath *string `json:"manifest"`
 
-	// ecosystem is the name of the package management system, such as NPM, GO, PYPI.
+	// Ecosystem is the name of the package management system, such as NPM, GO, PYPI.
 	Ecosystem *string `json:"ecosystem"`
 
-	// version is the package version of the dependency.
+	// Version is the package version of the dependency.
 	Version *string `json:"version"`
 
-	// name is the name of the dependency.
+	// Name is the name of the dependency.
 	Name string `json:"name"`
 }
