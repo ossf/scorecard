@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/google/go-containerregistry/pkg/crane"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -172,6 +173,7 @@ func generateText(rr *checker.Dependency) string {
 		if hash, err := crane.Digest(*rr.Name); err == nil { // if NO error
 			return fmt.Sprintf("%s not pinned by hash. Fix by updating %[2]s to %[2]s@%s", rr.Type, *rr.Name, hash)
 		}
+	default:
 	}
 	return fmt.Sprintf("%s not pinned by hash", rr.Type)
 }
