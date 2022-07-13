@@ -138,7 +138,6 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 					Type:         checker.PermissionLevelWrite,
 					// TODO: Job
 				})
-			// recordPermissionWrite(pPermissions, permissionKey)
 		} else {
 			// Only log for debugging, otherwise
 			// it may confuse users.
@@ -305,7 +304,7 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 						Offset: fileparser.GetLineNumber(job.Pos),
 					},
 					LocationType: &permLoc,
-					Type:         checker.PermissionLevelUnknown,
+					Type:         checker.PermissionLevelUndeclared,
 					Msg:          stringPointer(fmt.Sprintf("no %s permission defined", permLoc)),
 					// TODO: Job
 				})

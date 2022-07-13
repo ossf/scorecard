@@ -20,33 +20,36 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-type file struct {
-	pathfn  string
-	content []byte
-}
+// type file struct {
+// 	pathfn  string
+// 	content []byte
+// }
 
-func testValidateGitHubActionTokenPermissions(files []file,
-	dl checker.DetailLogger,
-) checker.CheckResult {
-	data := permissionCbData{
-		workflows: make(map[string]permissions),
-	}
-	var err error
-	for _, f := range files {
-		_, err = validateGitHubActionTokenPermissions(f.pathfn, f.content, dl, &data)
-		if err != nil {
-			break
-		}
-	}
+// func testValidateGitHubActionTokenPermissions(files []file,
+// 	dl checker.DetailLogger,
+// ) checker.CheckResult {
+// 	data := permissionCbData{
+// 		workflows: make(map[string]permissions),
+// 	}
+// 	var err error
+// 	for _, f := range files {
+// 		_, err = validateGitHubActionTokenPermissions(f.pathfn, f.content, dl, &data)
+// 		if err != nil {
+// 			break
+// 		}
+// 	}
 
-	return createResultForLeastPrivilegeTokens(data, err)
-}
+// 	return createResultForLeastPrivilegeTokens(data, err)
+// }
 
-//nolint
+// nolint
 func TestGithubTokenPermissions(t *testing.T) {
 	t.Parallel()
 
@@ -95,8 +98,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  2,
-				NumberOfDebug: 5,
+				NumberOfInfo:  1,
+				NumberOfDebug: 6,
 			},
 		},
 		{
@@ -271,8 +274,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  2,
-				NumberOfDebug: 4,
+				NumberOfInfo:  1,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -282,8 +285,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  3,
-				NumberOfDebug: 3,
+				NumberOfInfo:  1,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -293,8 +296,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  2,
-				NumberOfDebug: 5,
+				NumberOfInfo:  1,
+				NumberOfDebug: 6,
 			},
 		},
 		{
@@ -370,8 +373,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  2,
-				NumberOfDebug: 5,
+				NumberOfInfo:  1,
+				NumberOfDebug: 6,
 			},
 		},
 	}
@@ -379,22 +382,37 @@ func TestGithubTokenPermissions(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			var files []file
-			var content []byte
-			var err error
-			for _, fn := range tt.filenames {
-				content, err = os.ReadFile(fn)
-				if err != nil {
-					panic(fmt.Errorf("cannot read file: %w", err))
-				}
 
-				files = append(files, file{pathfn: strings.Replace(fn, "./testdata/", "", 1), content: content})
+			ctrl := gomock.NewController(t)
+			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+
+			main := "main"
+			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+			mockRepo.EXPECT().GetDefaultBranch().Return(&clients.BranchRef{Name: &main}, nil).AnyTimes()
+			mockRepo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
+				files := []string{}
+				for _, fn := range tt.filenames {
+					files = append(files, strings.TrimPrefix(fn, "./testdata/"))
+				}
+				return files, nil
+			}).AnyTimes()
+			mockRepo.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
+				content, err := os.ReadFile("./testdata/" + fn)
+				if err != nil {
+					return content, fmt.Errorf("%w", err)
+				}
+				return content, nil
+			}).AnyTimes()
+			dl := scut.TestDetailLogger{}
+			c := checker.CheckRequest{
+				RepoClient: mockRepo,
+				Dlogger:    &dl,
 			}
 
-			dl := scut.TestDetailLogger{}
-			r := testValidateGitHubActionTokenPermissions(files, &dl)
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
-				t.Fail()
+			res := TokenPermissions(&c)
+
+			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl) {
+				t.Errorf("test failed: log message not present: %+v\n%+v", tt.expected, dl)
 			}
 		})
 	}
@@ -440,11 +458,28 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
-			dl := scut.TestDetailLogger{}
-			p := strings.Replace(tt.filename, "./testdata/", "", 1)
-			files := []file{{pathfn: p, content: content}}
 
-			testValidateGitHubActionTokenPermissions(files, &dl)
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+			ctrl := gomock.NewController(t)
+			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+
+			main := "main"
+			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+			mockRepo.EXPECT().GetDefaultBranch().Return(&clients.BranchRef{Name: &main}, nil).AnyTimes()
+			mockRepo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
+				return []string{p}, nil
+			}).AnyTimes()
+			mockRepo.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
+				return content, nil
+			}).AnyTimes()
+			dl := scut.TestDetailLogger{}
+			c := checker.CheckRequest{
+				RepoClient: mockRepo,
+				Dlogger:    &dl,
+			}
+
+			_ = TokenPermissions(&c)
+
 			for _, expectedLog := range tt.expected {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
 					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == p &&

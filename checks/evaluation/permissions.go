@@ -76,11 +76,30 @@ func applyScorePolicy(results *checker.TokenPermissionsData, dl checker.DetailLo
 		msg.Text = text
 
 		switch r.Type {
-		case checker.PermissionLevelUnknown, checker.PermissionLevelNone,
-			checker.PermissionLevelRead:
+		case checker.PermissionLevelNone, checker.PermissionLevelRead:
+			dl.Info(&msg)
+		case checker.PermissionLevelUnknown:
 			dl.Debug(&msg)
 
-		case checker.PermissionLevelWrite, checker.PermissionLevelUndeclared:
+		case checker.PermissionLevelUndeclared:
+			if r.LocationType == nil {
+				return checker.InconclusiveResultScore,
+					sce.WithMessage(sce.ErrScorecardInternal, "locationType is nil")
+			}
+
+			// We warn only for top-level.
+			if *r.LocationType == checker.PermissionLocationTop {
+				dl.Warn(&msg)
+			} else {
+				dl.Debug(&msg)
+			}
+
+			// Group results by workflow name for score computation.
+			if err := updateWorkflowHashMap(hm, r); err != nil {
+				return checker.InconclusiveResultScore, err
+			}
+
+		case checker.PermissionLevelWrite:
 			dl.Warn(&msg)
 
 			// Group results by workflow name for score computation.
