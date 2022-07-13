@@ -21,33 +21,12 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
-
-// type file struct {
-// 	pathfn  string
-// 	content []byte
-// }
-
-// func testValidateGitHubActionTokenPermissions(files []file,
-// 	dl checker.DetailLogger,
-// ) checker.CheckResult {
-// 	data := permissionCbData{
-// 		workflows: make(map[string]permissions),
-// 	}
-// 	var err error
-// 	for _, f := range files {
-// 		_, err = validateGitHubActionTokenPermissions(f.pathfn, f.content, dl, &data)
-// 		if err != nil {
-// 			break
-// 		}
-// 	}
-
-// 	return createResultForLeastPrivilegeTokens(data, err)
-// }
 
 // nolint
 func TestGithubTokenPermissions(t *testing.T) {

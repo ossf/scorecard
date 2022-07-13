@@ -28,7 +28,6 @@ import (
 type permission string
 
 const (
-	permissionAll            = permission("all")
 	permissionStatuses       = permission("statuses")
 	permissionChecks         = permission("checks")
 	permissionSecurityEvents = permission("security-events")
