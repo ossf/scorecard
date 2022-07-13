@@ -69,12 +69,10 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 	// Check if gradle-wrapper.jar present
 	hasGradleWrappers := false
 	removeGradleWrappers := false
-	if len(r.Files) > 0 {
-		for _, f := range r.Files {
-			if filepath.Base(f.Path) == "gradle-wrapper.jar" {
-				hasGradleWrappers = true
-				break
-			}
+	for _, f := range r.Files {
+		if filepath.Base(f.Path) == "gradle-wrapper.jar" {
+			hasGradleWrappers = true
+			break
 		}
 	}
 	if hasGradleWrappers {
