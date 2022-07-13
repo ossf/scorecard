@@ -58,7 +58,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: Run unit-tests
@@ -101,7 +101,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: generate mocks
@@ -146,7 +146,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }} 
      - name: generate docs
@@ -190,7 +190,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build-proto
@@ -235,7 +235,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: Run build
@@ -280,7 +280,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build cron
@@ -325,7 +325,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build worker
@@ -370,7 +370,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build cii-worker
@@ -415,7 +415,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build shuffler
@@ -460,7 +460,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build bq transfer
@@ -505,7 +505,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build bq transfer
@@ -550,7 +550,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build webhook
@@ -595,7 +595,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build-add-script
@@ -640,7 +640,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build-validate-script
@@ -685,7 +685,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: build-validate-script
@@ -729,7 +729,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: Run build
@@ -764,7 +764,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: Run build
@@ -808,7 +808,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: Run build
@@ -852,7 +852,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+       uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: Run build
@@ -876,7 +876,7 @@ jobs:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
-      - uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # v2.2.0
+      - uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
         with:
           go-version: '1.17'
       - name: Check license headers
