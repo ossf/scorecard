@@ -55,8 +55,10 @@ func TestGetDependencyDiffResults(t *testing.T) {
 				t.Errorf("GetDependencyDiffResults() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if (len(got) == 0) != tt.wantEmpty {
-				t.Errorf("FetchDependencyDiffData() = %v, want empty %v for %v", got, tt.wantEmpty, tt.name)
+			if got != nil {
+				if (len(got) == 0) != tt.wantEmpty {
+					t.Errorf("GetDependencyDiffResults() = %v, want empty %v for %v", got, tt.wantEmpty, tt.name)
+				}
 			}
 		})
 	}
@@ -93,13 +95,15 @@ func TestFetchDependencyDiffData(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := FetchDependencyDiffData(tt.ctx, tt.owner, tt.repo, tt.base, tt.head)
+			got, err := fetchRawDependencyDiffData(tt.ctx, tt.owner, tt.repo, tt.base, tt.head)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FetchDependencyDiffData() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if (len(got) == 0) != tt.wantEmpty {
-				t.Errorf("FetchDependencyDiffData() = %v, want empty %v for %v", got, tt.wantEmpty, tt.name)
+			if got != nil {
+				if (len(got) == 0) != tt.wantEmpty {
+					t.Errorf("FetchDependencyDiffData() = %v, want empty %v for %v", got, tt.wantEmpty, tt.name)
+				}
 			}
 		})
 	}
