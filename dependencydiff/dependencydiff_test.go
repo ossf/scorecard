@@ -22,7 +22,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-// TestGetDependencyDiffResults is a test function for GetDependencyDiffResults
+// TestGetDependencyDiffResults is a test function for GetDependencyDiffResults.
 func TestGetDependencyDiffResults(t *testing.T) {
 	t.Parallel()
 	//nolint
@@ -64,7 +64,7 @@ func TestGetDependencyDiffResults(t *testing.T) {
 	}
 }
 
-// TestTestFetchDependencyDiffData is a test function for TestFetchDependencyDiffData
+// TestTestFetchDependencyDiffData is a test function for TestFetchDependencyDiffData.
 func TestFetchDependencyDiffData(t *testing.T) {
 	t.Parallel()
 	//nolint
