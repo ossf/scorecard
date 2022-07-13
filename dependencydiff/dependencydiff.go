@@ -106,7 +106,7 @@ func FetchDependencyDiffData(ctx context.Context, owner, repo, base, head string
 	}
 	ghrt := roundtripper.NewTransport(ctx, nil)
 	resp, err := ghrt.RoundTrip(req)
-	if err != nil || resp.StatusCode != http.StatusOK {
+	if err != nil {
 		return nil, fmt.Errorf("error receiving the http reponse: %w with resp status code %v", err, resp.StatusCode)
 	}
 	defer resp.Body.Close()
