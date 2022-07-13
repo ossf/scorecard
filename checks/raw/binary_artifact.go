@@ -56,36 +56,50 @@ func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
 	if err != nil {
 		return checker.BinaryArtifactData{}, fmt.Errorf("%w", err)
 	}
+	// Ignore validated gradle-wrapper.jar files if present
+	files, err = excludeValidatedGradleWrappers(c, files)
+	if err != nil {
+		return checker.BinaryArtifactData{}, fmt.Errorf("%w", err)
+	}
 
-	// Check if gradle-wrapper.jar present
-	hasGradleWrappers := false
-	if len(files) > 0 {
-		for _, f := range files {
-			if filepath.Base(f.Path) == "gradle-wrapper.jar" {
-				hasGradleWrappers = true
-				break
-			}
-		}
-	}
-	if hasGradleWrappers {
-		// Gradle wrapper JARs present, so check that they are validated
-		if ok, err := gradleWrapperValidated(c); ok && err == nil {
-			// It has been confirmed that latest commit has validated JARs!
-			// Remove Gradle wrapper JARs from files.
-			filterFiles := []checker.File{}
-			for _, f := range files {
-				if filepath.Base(f.Path) != "gradle-wrapper.jar" {
-					filterFiles = append(filterFiles, f)
-				}
-			}
-			files = filterFiles
-		} else if err != nil {
-			return checker.BinaryArtifactData{Files: files}, fmt.Errorf(
-				"failure checking for Gradle wrapper validating Action: %w", err)
-		}
-	}
 	// No error, return the files.
 	return checker.BinaryArtifactData{Files: files}, nil
+}
+
+// excludeValidatedGradleWrappers returns the subset of files not confirmed
+// to be Action-validated gradle-wrapper.jar files.
+func excludeValidatedGradleWrappers(c clients.RepoClient, files []checker.File) ([]checker.File, error) {
+	// Check if gradle-wrapper.jar present
+	hasGradleWrappers := false
+	for _, f := range files {
+		if filepath.Base(f.Path) == "gradle-wrapper.jar" {
+			hasGradleWrappers = true
+			break
+		}
+	}
+	if !hasGradleWrappers {
+		return files, nil
+	}
+	// Gradle wrapper JARs present, so check that they are validated
+	ok, err := gradleWrapperValidated(c)
+	if err != nil {
+		return files, fmt.Errorf(
+			"failure checking for Gradle wrapper validating Action: %w", err)
+	}
+	if !ok {
+		// Gradle Wrappers not validated
+		return files, nil
+	}
+	// It has been confirmed that latest commit has validated JARs!
+	// Remove Gradle wrapper JARs from files.
+	filterFiles := []checker.File{}
+	for _, f := range files {
+		if filepath.Base(f.Path) != "gradle-wrapper.jar" {
+			filterFiles = append(filterFiles, f)
+		}
+	}
+	files = filterFiles
+	return files, nil
 }
 
 var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path string, content []byte,
