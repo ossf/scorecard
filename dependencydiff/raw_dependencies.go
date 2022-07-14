@@ -60,7 +60,9 @@ type dependency struct {
 // fetchRawDependencyDiffData fetches the dependency-diffs between the two code commits
 // using the GitHub Dependency Review API, and returns a slice of DependencyCheckResult.
 func fetchRawDependencyDiffData(
-	ctx context.Context, owner, repo, base, head string, checkNamesToRun []string, logger *log.Logger,
+	ctx context.Context,
+	owner, repo, base, head string, checkNamesToRun []string,
+	logger *log.Logger,
 ) ([]pkg.DependencyCheckResult, error) {
 	ghrt := roundtripper.NewTransport(ctx, logger)
 	ghClient := github.NewClient(
@@ -117,7 +119,7 @@ func fetchRawDependencyDiffData(
 		case checks.CheckFuzzing:
 			ossFuzzClient, err = githubrepo.CreateOssFuzzRepoClient(ctx, logger)
 			if err != nil {
-				wrapped := fmt.Errorf("error initializing the oss fuzz repo client: %v", err)
+				wrapped := fmt.Errorf("error initializing the oss fuzz repo client: %w", err)
 				logger.Error(wrapped, "")
 				return nil, wrapped
 			}
@@ -163,7 +165,7 @@ func fetchRawDependencyDiffData(
 				// rather than letting the entire API return nil since we still expect results for other dependencies.
 				if err != nil {
 					logger.Error(
-						fmt.Errorf("error running scorecard checks: %v", err),
+						fmt.Errorf("error running scorecard checks: %w", err),
 						fmt.Sprintf("The scorecard checks running for dependency %s failed.", d.Name),
 					)
 				} else {
