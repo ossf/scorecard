@@ -26,8 +26,15 @@ import (
 // TO use this API, an access token must be set following https://github.com/ossf/scorecard#authentication.
 func GetDependencyDiffResults(
 	ctx context.Context,
-	ownerName, repoName, baseSHA, headSHA string, scorecardChecksNames []string, logger *log.Logger,
+	ownerName, repoName, baseSHA, headSHA string,
+	scorecardChecksNames []string,
+	logger *log.Logger,
 ) ([]pkg.DependencyCheckResult, error) {
 	// Fetch dependency diffs and get the dependency check results.
-	return fetchRawDependencyDiffData(ctx, ownerName, repoName, baseSHA, headSHA, scorecardChecksNames, logger)
+	return fetchRawDependencyDiffData(
+		ctx,
+		ownerName, repoName, baseSHA, headSHA,
+		scorecardChecksNames,
+		logger,
+	)
 }

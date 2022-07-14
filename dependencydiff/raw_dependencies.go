@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"time"
 
 	"github.com/google/go-github/v38/github"
 
@@ -61,14 +60,14 @@ type dependency struct {
 // using the GitHub Dependency Review API, and returns a slice of DependencyCheckResult.
 func fetchRawDependencyDiffData(
 	ctx context.Context,
-	owner, repo, base, head string, checkNamesToRun []string,
-	logger *log.Logger,
-) ([]pkg.DependencyCheckResult, error) {
+	owner, repo, base, head string,
+	checkNamesToRun []string,
+	logger *log.Logger) ([]pkg.DependencyCheckResult, error) {
+
 	ghrt := roundtripper.NewTransport(ctx, logger)
 	ghClient := github.NewClient(
 		&http.Client{
 			Transport: ghrt,
-			Timeout:   10 * time.Second,
 		},
 	)
 	req, err := ghClient.NewRequest(
@@ -77,25 +76,13 @@ func fetchRawDependencyDiffData(
 		nil,
 	)
 	if err != nil {
-		wrapped := fmt.Errorf("request for dependency-diff failed with %w", err)
-		logger.Error(wrapped, "")
-		return nil, wrapped
+		return nil, fmt.Errorf("request for dependency-diff failed with %w", err)
 	}
 	deps := []dependency{}
 	_, err = ghClient.Do(ctx, req, &deps)
 	if err != nil {
-		wrapped := fmt.Errorf("error receiving the http reponse: %w", err)
-		logger.Error(wrapped, "")
-		return nil, wrapped
+		return nil, fmt.Errorf("error receiving the http reponse: %w", err)
 	}
-
-	ghRepo, err := githubrepo.MakeGithubRepo(path.Join(owner, repo))
-	if err != nil {
-		wrapped := fmt.Errorf("error creating the github repo: %w", err)
-		logger.Error(wrapped, "")
-		return nil, wrapped
-	}
-
 	// Initialize the checks to run from the caller's input.
 	checksToRun := checker.CheckNameToFnMap{}
 	if checkNamesToRun == nil && len(checkNamesToRun) == 0 {
@@ -106,22 +93,24 @@ func fetchRawDependencyDiffData(
 			checksToRun[cn] = checks.AllChecks[cn]
 		}
 	}
-
-	// Initialize the client(s) corresponding to the checks to run.
+	// Initialize the repo and client(s) corresponding to the checks to run.
+	ghRepo, err := githubrepo.MakeGithubRepo(path.Join(owner, repo))
+	if err != nil {
+		return nil, fmt.Errorf("error creating the github repo: %w", err)
+	}
 	ghRepoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 	// Initialize these three clients as nil at first.
 	var ossFuzzClient clients.RepoClient
 	var vulnsClient clients.VulnerabilitiesClient
 	var ciiClient clients.CIIBestPracticesClient
+
 	// Create the corresponding client if the check needs to run.
 	for cn := range checksToRun {
 		switch cn {
 		case checks.CheckFuzzing:
 			ossFuzzClient, err = githubrepo.CreateOssFuzzRepoClient(ctx, logger)
 			if err != nil {
-				wrapped := fmt.Errorf("error initializing the oss fuzz repo client: %w", err)
-				logger.Error(wrapped, "")
-				return nil, wrapped
+				return nil, fmt.Errorf("error initializing the oss fuzz repo client: %w", err)
 			}
 		case checks.CheckVulnerabilities:
 			vulnsClient = clients.DefaultVulnerabilitiesClient()
@@ -129,7 +118,6 @@ func fetchRawDependencyDiffData(
 			ciiClient = clients.DefaultCIIBestPracticesClient()
 		}
 	}
-
 	results := []pkg.DependencyCheckResult{}
 	for _, d := range deps {
 		depCheckResult := pkg.DependencyCheckResult{
@@ -160,15 +148,14 @@ func fetchRawDependencyDiffData(
 					ciiClient,
 					vulnsClient,
 				)
-				// "err==nil" suggests the run succeeds, so that we record the scorecard check results for this dependency.
-				// Otherwise, it indicates the run fails and we leave the current dependency scorecard result empty
+				// If the run fails, we leave the current dependency scorecard result empty
 				// rather than letting the entire API return nil since we still expect results for other dependencies.
 				if err != nil {
 					logger.Error(
 						fmt.Errorf("error running scorecard checks: %w", err),
 						fmt.Sprintf("The scorecard checks running for dependency %s failed.", d.Name),
 					)
-				} else {
+				} else { // Otherwise, we record the scorecard check results for this dependency.
 					depCheckResult.ScorecardResults = &scorecardResult
 				}
 			}
