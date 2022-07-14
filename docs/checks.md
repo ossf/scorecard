@@ -203,7 +203,7 @@ subversion.
 
 The check first tries to detect whether [Branch-Protection](checks.md#branch-protection) is enabled on the
 default branch with at least one required reviewer. If this fails, the check
-determines whether the most recent (~30) commits have a Github-approved review
+determines whether the most recent (~30) commits have a GitHub-approved review
 or if the merger is different from the committer (implicit review). It also
 performs a similar check for reviews using
 [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels
@@ -260,7 +260,7 @@ Risk: `Critical`  (vulnerable to repository compromise)
   
 This check determines whether the project's GitHub Action workflows has dangerous 
 code patterns. Some examples of these patterns are untrusted code checkouts, 
-logging github context and secrets, or use of potentially untrusted inputs in scripts.
+logging GitHub context and secrets, or use of potentially untrusted inputs in scripts.
 The following patterns are checked:
 
 Untrusted Code Checkout: This is the misuse of potentially dangerous triggers. 
@@ -276,7 +276,7 @@ Script Injection with Untrusted Context Variables: This pattern detects whether 
 workflow's inline script may execute untrusted input from attackers. This occurs when 
 an attacker adds malicious commands and scripts to a context. When a workflow runs, 
 these strings may be interpreted as code that is executed on the runner. Attackers 
-can add their own content to certain github context variables that are considered 
+can add their own content to certain GitHub context variables that are considered 
 untrusted, for example, `github.event.issue.title`. These values should not flow 
 directly into executable code.
 
@@ -291,8 +291,8 @@ The highest score is awarded when all workflows avoid the dangerous code pattern
 Risk: `High` (possibly vulnerable to attacks on known flaws)  
 
 This check tries to determine if the project uses a dependency update tool,
-specifically [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or
-[renovatebot](https://docs.renovatebot.com/configuration-options/). Out-of-date
+specifically [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or
+[Renovatebot](https://docs.renovatebot.com/configuration-options/). Out-of-date
 dependencies make a project vulnerable to known flaws and prone to attacks.
 These tools automate the process of updating dependencies by scanning for
 outdated or insecure requirements, and opening a pull request to update them if
@@ -309,8 +309,8 @@ low score is therefore not a definitive indication that the project is at risk.
  
 
 **Remediation steps**
-- Signup for automatic dependency updates with [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
-- Unlike dependabot, renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning  via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
+- Signup for automatic dependency updates with [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or [Renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
+- Unlike Dependabot, Renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning  via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
 
 ## Fuzzing 
 
@@ -472,8 +472,8 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
 - For Dockerfiles, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/worker/Dockerfile) for example. 
 - For GitHub workflows, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
 - To help update your dependencies after pinning them, use tools such as
- Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
-or [renovate bot](https://github.com/renovatebot/renovate).
+ GitHub's [Dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
+or [Renovate bot](https://github.com/renovatebot/renovate).
 
 ## SAST 
 
@@ -488,7 +488,7 @@ SAST is testing run on source code before the application is run. Using SAST
 tools can prevent known classes of bugs from being inadvertently introduced in the
 codebase.
 
-The checks currently looks for known Github apps such as
+The checks currently looks for known GitHub apps such as
 [CodeQL](https://codeql.github.com/) (github-code-scanning),
 [LGTM](https://lgtm.com/) and
 [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
