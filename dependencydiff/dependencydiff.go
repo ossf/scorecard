@@ -37,7 +37,6 @@ func GetDependencyDiffResults(
 	deps, err := fetchRawDependencyDiffData(
 		ctx,
 		ownerName, repoName, baseSHA, headSHA,
-		scorecardChecksNames,
 		logger,
 	)
 	if err != nil {
