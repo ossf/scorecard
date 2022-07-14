@@ -32,7 +32,7 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-// defaultChecksToRun specifies a list of checks to run on every dependency, which is a subset of all the checks.
+// defaultChecksToRun specifies a list of critical checks to run on every dependency.
 // This helps us reduce the GH token usage and scale the large time consumption of running all the checks.
 // If the caller doesn't specify any checks, this one will be used.
 var defaultChecksToRun = []string{
@@ -43,7 +43,7 @@ var defaultChecksToRun = []string{
 	checks.CheckSAST,
 }
 
-// Dependency is a raw dependency fetched from the GitHub Dependency Review API.
+// dependency is a raw dependency fetched from the GitHub Dependency Review API.
 type dependency struct {
 	// Package URL is a short link for a package.
 	PackageURL *string `json:"package_url"`
@@ -114,7 +114,7 @@ func fetchRawDependencyDiffData(
 	}
 
 	// Initialize the client(s) corresponding to the checks to run.
-	ghRepoClient := githubrepo.CreateGithubRepoClient(ctx, nil)
+	ghRepoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 	// Initialize these three clients as nil at first.
 	var ossFuzzClient clients.RepoClient = nil
 	var vulnsClient clients.VulnerabilitiesClient = nil
