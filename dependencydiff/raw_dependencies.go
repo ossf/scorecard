@@ -69,11 +69,10 @@ type dependency struct {
 // fetchRawDependencyDiffData fetches the dependency-diffs between the two code commits
 // using the GitHub Dependency Review API, and returns a slice of Dependency.
 func fetchRawDependencyDiffData(
-	ctx context.Context,
-	owner, repo, base, head string,
-	checkNamesToRun []string,
+	ctx context.Context, owner, repo, base, head string, checkNamesToRun []string,
 ) ([]pkg.DependencyCheckResult, error) {
-	ghrt := roundtripper.NewTransport(ctx, log.NewLogger(log.InfoLevel))
+	logger := log.NewLogger(log.InfoLevel)
+	ghrt := roundtripper.NewTransport(ctx, logger)
 	ghClient := github.NewClient(
 		&http.Client{
 			Transport: ghrt,
@@ -105,14 +104,34 @@ func fetchRawDependencyDiffData(
 		// If no check names are provided, we run the default checks for the caller.
 		for _, cn := range defaultChecksToRun {
 			checksToRun[cn] = checks.AllChecks[cn]
+			// Use the check name to decide if we need to create the three special clients below.
 		}
 	} else {
 		for _, cn := range checkNamesToRun {
 			checksToRun[cn] = checks.AllChecks[cn]
 		}
 	}
+
 	// Initialize the client(s) corresponding to the checks to run.
 	ghRepoClient := githubrepo.CreateGithubRepoClient(ctx, nil)
+	// Initialize these three clients as nil at first.
+	var ossFuzzClient clients.RepoClient = nil
+	var vulnsClient clients.VulnerabilitiesClient = nil
+	var ciiClient clients.CIIBestPracticesClient = nil
+	// Create the corresponding client if the check needs to run.
+	for cn := range checksToRun {
+		switch cn {
+		case checks.CheckFuzzing:
+			ossFuzzClient, err = githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+			if err != nil {
+				return nil, err
+			}
+		case checks.CheckVulnerabilities:
+			vulnsClient = clients.DefaultVulnerabilitiesClient()
+		case checks.CheckCIIBestPractices:
+			ciiClient = clients.DefaultCIIBestPracticesClient()
+		}
+	}
 
 	results := []pkg.DependencyCheckResult{}
 	for _, d := range deps {
@@ -143,9 +162,9 @@ func fetchRawDependencyDiffData(
 				clients.HeadSHA,
 				checksToRun,
 				ghRepoClient,
-				nil,
-				nil,
-				nil, /* Initialize coresponding clients if checks are needed.*/
+				ossFuzzClient,
+				ciiClient,
+				vulnsClient,
 			)
 			// "err==nil" suggests the run succeeds, so that we record the scorecard check results for this dependency.
 			// Otherwise, it indicates the run fails and we leave the current dependency scorecard result empty
