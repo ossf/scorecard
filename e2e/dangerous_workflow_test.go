@@ -48,16 +48,11 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
+				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
 			result := checks.DangerousWorkflow(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})
@@ -77,16 +72,11 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
+				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
 			result := checks.DangerousWorkflow(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})
@@ -118,16 +108,11 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  2,
+				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
 			result := checks.DangerousWorkflow(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})

@@ -15,66 +15,25 @@
 package clients
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"net/http"
-
-	"github.com/ossf/scorecard/v4/errors"
 )
 
-const osvQueryEndpoint = "https://api.osv.dev/v1/query"
-
-type osvQuery struct {
-	Commit string `json:"commit"`
-}
-
-// VulnerabilitiesClient cheks for vulnerabilities in api.osv.dev.
+// VulnerabilitiesClient checks for vulnerabilities in vuln DB.
 type VulnerabilitiesClient interface {
 	HasUnfixedVulnerabilities(context context.Context, commit string) (VulnerabilitiesResponse, error)
 }
 
-// VulnerabilitiesResponse is the response from the OSV API.
+// VulnerabilitiesResponse is the response from the vuln DB.
 type VulnerabilitiesResponse struct {
-	Vulns []struct {
-		ID string `json:"id"`
-	} `json:"vulns"`
+	Vulnerabilities []Vulnerability
 }
 
-type vulns struct{}
+// Vulnerability uniquely identifies a reported security vuln.
+type Vulnerability struct {
+	ID string
+}
 
-// DefaultVulnerabilitiesClient is a new Vulnerabilities client.
+// DefaultVulnerabilitiesClient returns a new OSV Vulnerabilities client.
 func DefaultVulnerabilitiesClient() VulnerabilitiesClient {
-	return vulns{}
-}
-
-// HasUnfixedVulnerabilities runs Vulnerabilities check.
-func (v vulns) HasUnfixedVulnerabilities(ctx context.Context, commit string) (VulnerabilitiesResponse, error) {
-	query, err := json.Marshal(&osvQuery{
-		Commit: commit,
-	})
-	if err != nil {
-		return VulnerabilitiesResponse{}, errors.WithMessage(err, "failed to marshal query")
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, osvQueryEndpoint, bytes.NewReader(query))
-	if err != nil {
-		return VulnerabilitiesResponse{}, errors.WithMessage(err, "failed to create request")
-	}
-
-	// Use our own http client as the one from CheckRequest adds GitHub tokens to the headers.
-	httpClient := &http.Client{}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return VulnerabilitiesResponse{}, errors.WithMessage(err, "failed to send request")
-	}
-	defer resp.Body.Close()
-
-	var osvResp VulnerabilitiesResponse
-	decoder := json.NewDecoder(resp.Body)
-	if err := decoder.Decode(&osvResp); err != nil {
-		return VulnerabilitiesResponse{}, errors.WithMessage(err, "failed to decode response")
-	}
-
-	return osvResp, nil
+	return osvClient{}
 }

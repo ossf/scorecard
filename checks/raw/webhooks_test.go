@@ -37,12 +37,12 @@ func TestWebhooks(t *testing.T) {
 		wantErr                bool
 		expectedUsesAuthSecret int
 		expected               scut.TestReturn
-		webhookResponse        []*clients.Webhook
+		webhookResponse        []clients.Webhook
 	}{
 		{
 			name:            "No Webhooks",
 			wantErr:         false,
-			webhookResponse: []*clients.Webhook{},
+			webhookResponse: []clients.Webhook{},
 		},
 		{
 			name:    "Error getting webhook",
@@ -53,7 +53,7 @@ func TestWebhooks(t *testing.T) {
 			name:                   "Webhook with no secret",
 			wantErr:                false,
 			expectedUsesAuthSecret: 0,
-			webhookResponse: []*clients.Webhook{
+			webhookResponse: []clients.Webhook{
 				{
 					UsesAuthSecret: false,
 				},
@@ -63,7 +63,7 @@ func TestWebhooks(t *testing.T) {
 			name:                   "Webhook with secrets",
 			wantErr:                false,
 			expectedUsesAuthSecret: 2,
-			webhookResponse: []*clients.Webhook{
+			webhookResponse: []clients.Webhook{
 				{
 					UsesAuthSecret: true,
 				},
@@ -76,7 +76,7 @@ func TestWebhooks(t *testing.T) {
 			name:                   "Webhook with secrets and some without defined secrets",
 			wantErr:                false,
 			expectedUsesAuthSecret: 1,
-			webhookResponse: []*clients.Webhook{
+			webhookResponse: []clients.Webhook{
 				{
 					UsesAuthSecret: true,
 				},
@@ -99,7 +99,7 @@ func TestWebhooks(t *testing.T) {
 
 			mockRepo.EXPECT().URI().Return(tt.uri).AnyTimes()
 
-			mockRepo.EXPECT().ListWebhooks().DoAndReturn(func() ([]*clients.Webhook, error) {
+			mockRepo.EXPECT().ListWebhooks().DoAndReturn(func() ([]clients.Webhook, error) {
 				if tt.err != nil {
 					return nil, tt.err
 				}
@@ -119,7 +119,7 @@ func TestWebhooks(t *testing.T) {
 			}
 			if !tt.wantErr {
 				gotHasSecret := 0
-				for _, gotHook := range got.Webhook {
+				for _, gotHook := range got.Webhooks {
 					if gotHook.UsesAuthSecret {
 						gotHasSecret++
 					}

@@ -2,15 +2,15 @@
 scorecard
 gitblobcache
 clients/githubrepo/roundtripper/tokens/server/github-auth-server
-cron/data/add/add
-cron/data/validate/validate
-cron/data/update/projects-update
-cron/controller/controller
-cron/worker/worker
-cron/cii/cii-worker
-cron/shuffle/shuffle
-cron/webhook/webhook
-cron/bq/data-transfer
+cron/internal/data/add/add
+cron/internal/data/validate/validate
+cron/internal/data/update/projects-update
+cron/internal/controller/controller
+cron/internal/worker/worker
+cron/internal/cii/cii-worker
+cron/internal/shuffle/shuffle
+cron/internal/webhook/webhook
+cron/internal/bq/data-transfer
 
 # Binaries for programs and plugins.
 *.exe

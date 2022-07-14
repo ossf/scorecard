@@ -31,7 +31,7 @@ type contributorsHandler struct {
 	ctx          context.Context
 	errSetup     error
 	repourl      *repoURL
-	contributors []clients.Contributor
+	contributors []clients.User
 }
 
 func (handler *contributorsHandler) init(ctx context.Context, repourl *repoURL) {
@@ -58,11 +58,9 @@ func (handler *contributorsHandler) setup() error {
 			if contrib.GetLogin() == "" {
 				continue
 			}
-			contributor := clients.Contributor{
+			contributor := clients.User{
 				NumContributions: contrib.GetContributions(),
-				User: clients.User{
-					Login: contrib.GetLogin(),
-				},
+				Login:            contrib.GetLogin(),
 			}
 			orgs, _, err := handler.ghClient.Organizations.List(handler.ctx, contrib.GetLogin(), nil)
 			// This call can fail due to token scopes. So ignore error.
@@ -77,7 +75,7 @@ func (handler *contributorsHandler) setup() error {
 			if err != nil {
 				handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
 			}
-			contributor.Company = user.GetCompany()
+			contributor.Companies = append(contributor.Companies, user.GetCompany())
 			handler.contributors = append(handler.contributors, contributor)
 		}
 		handler.errSetup = nil
@@ -85,7 +83,7 @@ func (handler *contributorsHandler) setup() error {
 	return handler.errSetup
 }
 
-func (handler *contributorsHandler) getContributors() ([]clients.Contributor, error) {
+func (handler *contributorsHandler) getContributors() ([]clients.User, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during contributorsHandler.setup: %w", err)
 	}

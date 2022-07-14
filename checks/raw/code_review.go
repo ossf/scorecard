@@ -23,70 +23,13 @@ import (
 
 // CodeReview retrieves the raw data for the Code-Review check.
 func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
-	results := []checker.DefaultBranchCommit{}
-
 	// Look at the latest commits.
 	commits, err := c.ListCommits()
 	if err != nil {
 		return checker.CodeReviewData{}, fmt.Errorf("%w", err)
 	}
 
-	for i := range commits {
-		results = append(results, getRawDataFromCommit(&commits[i]))
-	}
-
-	return checker.CodeReviewData{DefaultBranchCommits: results}, nil
-}
-
-func getRawDataFromCommit(c *clients.Commit) checker.DefaultBranchCommit {
-	r := checker.DefaultBranchCommit{
-		Committer: checker.User{
-			Login: c.Committer.Login,
-		},
-		SHA:           c.SHA,
-		CommitMessage: c.Message,
-		CommitDate:    &c.CommittedDate,
-		MergeRequest:  mergeRequest(&c.AssociatedMergeRequest),
-	}
-
-	return r
-}
-
-func mergeRequest(mr *clients.PullRequest) *checker.MergeRequest {
-	r := checker.MergeRequest{
-		Number: mr.Number,
-		Author: checker.User{
-			Login: mr.Author.Login,
-		},
-		MergedAt: mr.MergedAt,
-		Labels:   labels(mr),
-		Reviews:  reviews(mr),
-	}
-	return &r
-}
-
-func labels(mr *clients.PullRequest) []string {
-	labels := []string{}
-	for _, l := range mr.Labels {
-		labels = append(labels, l.Name)
-	}
-	return labels
-}
-
-func reviews(mr *clients.PullRequest) []checker.Review {
-	reviews := []checker.Review{}
-	for _, m := range mr.Reviews {
-		r := checker.Review{
-			State: m.State,
-		}
-
-		if m.Author != nil &&
-			m.Author.Login != "" {
-			r.Reviewer = checker.User{
-				Login: m.Author.Login,
-			}
-		}
-		reviews = append(reviews, r)
-	}
-	return reviews
+	return checker.CodeReviewData{
+		DefaultBranchCommits: commits,
+	}, nil
 }

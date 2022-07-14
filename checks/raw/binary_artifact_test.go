@@ -16,7 +16,6 @@ package raw
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
@@ -29,35 +28,46 @@ import (
 func TestBinaryArtifacts(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		inputFile string
-		err       error
-		files     []string
-		expect    int
+		name   string
+		err    error
+		files  []string
+		expect int
 	}{
 		{
-			name:      "Jar file",
-			inputFile: "../testdata/binaryartifacts/jars/aws-java-sdk-core-1.11.571.jar",
-			err:       nil,
+			name: "Jar file",
+			err:  nil,
 			files: []string{
 				"../testdata/binaryartifacts/jars/aws-java-sdk-core-1.11.571.jar",
 			},
 			expect: 1,
 		},
 		{
-			name:      "non binary file",
-			inputFile: "../testdata/licensedir/withlicense/LICENSE",
-			err:       nil,
+			name: "Mach-O ARM64 executable",
+			err:  nil,
+			files: []string{
+				"../testdata/binaryartifacts/executables/darwin-arm64-bt",
+			},
+			expect: 1,
+		},
+		{
+			name: "non binary file",
+			err:  nil,
 			files: []string{
 				"../testdata/licensedir/withlicense/LICENSE",
 			},
 		},
 		{
-			name:      "non binary file",
-			inputFile: "../doesnotexist",
-			err:       nil,
+			name: "non binary file",
+			err:  nil,
 			files: []string{
 				"../doesnotexist",
+			},
+		},
+		{
+			name: "printable character .lib",
+			err:  nil,
+			files: []string{
+				"../testdata/binaryartifacts/printable.lib",
 			},
 		},
 	}
@@ -72,7 +82,6 @@ func TestBinaryArtifacts(t *testing.T) {
 			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
 				// This will read the file and return the content
 				content, err := os.ReadFile(file)
-				log.Println(os.Getwd())
 				if err != nil {
 					return content, fmt.Errorf("%w", err)
 				}

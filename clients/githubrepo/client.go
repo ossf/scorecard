@@ -30,7 +30,10 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-var errInputRepoType = errors.New("input repo should be of type repoURL")
+var (
+	_                clients.RepoClient = &Client{}
+	errInputRepoType                    = errors.New("input repo should be of type repoURL")
+)
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
@@ -46,6 +49,7 @@ type Client struct {
 	statuses     *statusesHandler
 	search       *searchHandler
 	webhook      *webhookHandler
+	languages    *languagesHandler
 	ctx          context.Context
 	tarball      tarballHandler
 }
@@ -101,6 +105,8 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	// Setup webhookHandler.
 	client.webhook.init(client.ctx, client.repourl)
 
+	// Setup languagesHandler.
+	client.languages.init(client.ctx, client.repourl)
 	return nil
 }
 
@@ -135,7 +141,7 @@ func (client *Client) ListReleases() ([]clients.Release, error) {
 }
 
 // ListContributors implements RepoClient.ListContributors.
-func (client *Client) ListContributors() ([]clients.Contributor, error) {
+func (client *Client) ListContributors() ([]clients.User, error) {
 	return client.contributors.getContributors()
 }
 
@@ -149,13 +155,13 @@ func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return client.branches.getDefaultBranch()
 }
 
-// ListBranches implements RepoClient.ListBranches.
-func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
-	return client.branches.listBranches()
+// GetBranch implements RepoClient.GetBranch.
+func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
+	return client.branches.getBranch(branch)
 }
 
 // ListWebhooks implements RepoClient.ListWebhooks.
-func (client *Client) ListWebhooks() ([]*clients.Webhook, error) {
+func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return client.webhook.listWebhooks()
 }
 
@@ -172,6 +178,11 @@ func (client *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error
 // ListStatuses implements RepoClient.ListStatuses.
 func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 	return client.statuses.listStatuses(ref)
+}
+
+//ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
+func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
+	return client.languages.listProgrammingLanguages()
 }
 
 // Search implements RepoClient.Search.
@@ -222,6 +233,9 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 		},
 		webhook: &webhookHandler{
 			ghClient: client,
+		},
+		languages: &languagesHandler{
+			ghclient: client,
 		},
 	}
 }

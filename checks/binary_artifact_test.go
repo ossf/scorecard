@@ -42,7 +42,6 @@ func TestBinaryArtifacts(t *testing.T) {
 			err:         nil,
 			expected: checker.CheckResult{
 				Score: 9,
-				Pass:  true,
 			},
 		},
 		{
@@ -51,7 +50,6 @@ func TestBinaryArtifacts(t *testing.T) {
 			err:         nil,
 			expected: checker.CheckResult{
 				Score: 10,
-				Pass:  true,
 			},
 		},
 	}
@@ -88,9 +86,6 @@ func TestBinaryArtifacts(t *testing.T) {
 			result := BinaryArtifacts(&req)
 			if result.Score != tt.expected.Score {
 				t.Errorf("BinaryArtifacts: %v, expected %v for tests %v", result.Score, tt.expected.Score, tt.name)
-			}
-			if result.Pass != tt.expected.Pass {
-				t.Errorf("BinaryArtifacts: %v, expected %v for tests %v", result.Pass, tt.expected.Pass, tt.name)
 			}
 
 			ctrl.Finish()

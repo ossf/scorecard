@@ -18,5 +18,5 @@ steps:
   '--build-arg', 'COMMIT_SHA=$COMMIT_SHA',
   '-t', 'gcr.io/openssf/scorecard-cii-worker:$COMMIT_SHA',
   '-t', 'gcr.io/openssf/scorecard-cii-worker:latest',
-  '-f', 'cron/cii/Dockerfile']
+  '-f', 'cron/internal/cii/Dockerfile']
 images: ['gcr.io/openssf/scorecard-cii-worker']

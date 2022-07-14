@@ -29,18 +29,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@bdb12b622a910dfdc99a31fdfe6f45a16bc287a4 # v1
+        uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
       -
         name: Checkout
-        uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # v2.3.4
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
         with:
           fetch-depth: 0
       -
         name: Set up Go
-        uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab # v2.2.0
+        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
         with:
           go-version: 1.17
       -
@@ -50,7 +50,7 @@ jobs:
       -
         name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@4d58d49bfefed583addec96996588e8bc4b306b8 # v3.1.0
+        uses: crazy-max/ghaction-import-gpg@34ea557550c84ea665cae5c61c3b084feac7e042 # v3.1.0
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}

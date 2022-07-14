@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -43,7 +44,7 @@ func Maintained(name string, dl checker.DetailLogger, r *checker.MaintainedData)
 	threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 	commitsWithinThreshold := 0
 	for i := range r.DefaultBranchCommits {
-		if r.DefaultBranchCommits[i].CommitDate.After(threshold) {
+		if r.DefaultBranchCommits[i].CommittedDate.After(threshold) {
 			commitsWithinThreshold++
 		}
 	}
@@ -63,39 +64,21 @@ func Maintained(name string, dl checker.DetailLogger, r *checker.MaintainedData)
 
 // hasActivityByCollaboratorOrHigher returns true if the issue was created or commented on by an
 // owner/collaborator/member since the threshold.
-func hasActivityByCollaboratorOrHigher(issue *checker.Issue, threshold time.Time) bool {
+func hasActivityByCollaboratorOrHigher(issue *clients.Issue, threshold time.Time) bool {
 	if issue == nil {
 		return false
 	}
 
-	if isCollaboratorOrHigher(issue.Author) && issue.CreatedAt != nil && issue.CreatedAt.After(threshold) {
+	if issue.AuthorAssociation.Gte(clients.RepoAssociationCollaborator) &&
+		issue.CreatedAt != nil && issue.CreatedAt.After(threshold) {
 		// The creator of the issue is a collaborator or higher.
 		return true
 	}
 	for _, comment := range issue.Comments {
-		if isCollaboratorOrHigher(comment.Author) && comment.CreatedAt != nil &&
+		if comment.AuthorAssociation.Gte(clients.RepoAssociationCollaborator) &&
+			comment.CreatedAt != nil &&
 			comment.CreatedAt.After(threshold) {
 			// The author of the comment is a collaborator or higher.
-			return true
-		}
-	}
-	return false
-}
-
-// isCollaboratorOrHigher returns true if the user is a collaborator or higher.
-func isCollaboratorOrHigher(user *checker.User) bool {
-	if user == nil || user.RepoAssociation == nil {
-		return false
-	}
-
-	priviledgedRoles := []checker.RepoAssociation{
-		checker.RepoAssociationOwner,
-		checker.RepoAssociationCollaborator,
-		checker.RepoAssociationContributor,
-		checker.RepoAssociationMember,
-	}
-	for _, role := range priviledgedRoles {
-		if role == *user.RepoAssociation {
 			return true
 		}
 	}

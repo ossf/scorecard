@@ -31,7 +31,10 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-var errInputRepoType = errors.New("input repo should be of type repoLocal")
+var (
+	_                clients.RepoClient = &localDirClient{}
+	errInputRepoType                    = errors.New("input repo should be of type repoLocal")
+)
 
 //nolint:govet
 type localDirClient struct {
@@ -156,8 +159,8 @@ func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
 	return getFileContent(client.path, filename)
 }
 
-// ListBranches implements RepoClient.ListBranches.
-func (client *localDirClient) ListBranches() ([]*clients.BranchRef, error) {
+// GetBranch implements RepoClient.GetBranch.
+func (client *localDirClient) GetBranch(branch string) (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
 }
 
@@ -182,7 +185,7 @@ func (client *localDirClient) ListReleases() ([]clients.Release, error) {
 }
 
 // ListContributors implements RepoClient.ListContributors.
-func (client *localDirClient) ListContributors() ([]clients.Contributor, error) {
+func (client *localDirClient) ListContributors() ([]clients.User, error) {
 	return nil, fmt.Errorf("ListContributors: %w", clients.ErrUnsupportedFeature)
 }
 
@@ -202,7 +205,7 @@ func (client *localDirClient) ListStatuses(ref string) ([]clients.Status, error)
 }
 
 // ListWebhooks implements RepoClient.ListWebhooks.
-func (client *localDirClient) ListWebhooks() ([]*clients.Webhook, error) {
+func (client *localDirClient) ListWebhooks() ([]clients.Webhook, error) {
 	return nil, fmt.Errorf("ListWebhooks: %w", clients.ErrUnsupportedFeature)
 }
 
@@ -213,6 +216,12 @@ func (client *localDirClient) Search(request clients.SearchRequest) (clients.Sea
 
 func (client *localDirClient) Close() error {
 	return nil
+}
+
+// ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
+// TODO: add ListProgrammingLanguages support for local directories
+func (client *localDirClient) ListProgrammingLanguages() ([]clients.Language, error) {
+	return nil, fmt.Errorf("ListProgrammingLanguages: %w", clients.ErrUnsupportedFeature)
 }
 
 // CreateLocalDirClient returns a client which implements RepoClient interface.

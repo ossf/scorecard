@@ -345,7 +345,7 @@ func Test_Maintained(t *testing.T) {
 			res := Maintained(&req)
 
 			if tt.err != nil {
-				if res.Error2 == nil {
+				if res.Error == nil {
 					t.Errorf("Expected error %v, got nil", tt.err)
 				}
 				// return as we don't need to check the rest of the fields.
@@ -354,9 +354,6 @@ func Test_Maintained(t *testing.T) {
 
 			if res.Score != tt.expected.Score {
 				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
-			}
-			if res.Pass != tt.expected.Pass {
-				t.Errorf("Expected pass %t, got %t for %v", tt.expected.Pass, res.Pass, tt.name)
 			}
 			ctrl.Finish()
 		})

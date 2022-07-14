@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 // CheckTokenPermissions is the exported name for Token-Permissions check.
@@ -82,6 +83,11 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	data := permissionCbData{
 		workflows: make(map[string]permissions),
 	}
+
+	if err := remediation.Setup(c); err != nil {
+		createResultForLeastPrivilegeTokens(data, err)
+	}
+
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
@@ -157,22 +163,24 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 	if strings.EqualFold(val, "write") {
 		if isPermissionOfInterest(permissionKey, ignoredPermissions) {
 			dl.Warn(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: lineNumber,
-				Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
-				// TODO: set Snippet.
+				Path:        path,
+				Type:        checker.FileTypeSource,
+				Offset:      lineNumber,
+				Text:        fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
+				Snippet:     val,
+				Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 			})
 			recordPermissionWrite(pPermissions, permissionKey)
 		} else {
 			// Only log for debugging, otherwise
 			// it may confuse users.
 			dl.Debug(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: lineNumber,
-				Text:   fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
-				// TODO: set Snippet.
+				Path:        path,
+				Type:        checker.FileTypeSource,
+				Offset:      lineNumber,
+				Text:        fmt.Sprintf("%s '%v' permission set to '%v'", permLevel, permissionKey, val),
+				Snippet:     val,
+				Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 			})
 		}
 		return nil
@@ -243,22 +251,24 @@ func validatePermissions(permissions *actionlint.Permissions, permLevel, path st
 		lineNumber := fileparser.GetLineNumber(permissions.All.Pos)
 		if !strings.EqualFold(val, "read-all") && val != "" {
 			dl.Warn(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: lineNumber,
-				Text:   fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
-				// TODO: set Snippet.
+				Path:        path,
+				Type:        checker.FileTypeSource,
+				Offset:      lineNumber,
+				Text:        fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
+				Snippet:     val,
+				Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 			})
 			recordAllPermissionsWrite(pdata, permLevel, path)
 			return nil
 		}
 
 		dl.Info(&checker.LogMessage{
-			Path:   path,
-			Type:   checker.FileTypeSource,
-			Offset: lineNumber,
-			Text:   fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
-			// TODO: set Snippet.
+			Path:        path,
+			Type:        checker.FileTypeSource,
+			Offset:      lineNumber,
+			Text:        fmt.Sprintf("%s permissions set to '%v'", permLevel, val),
+			Snippet:     val,
+			Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 		})
 	} else /* scopeIsSet == true */ if err := validateMapPermissions(permissions.Scopes,
 		permLevel, path, dl, getWritePermissionsMap(pdata, path, permLevel), ignoredPermissions); err != nil {
@@ -273,10 +283,11 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 	// Check if permissions are set explicitly.
 	if workflow.Permissions == nil {
 		dl.Warn(&checker.LogMessage{
-			Path:   path,
-			Type:   checker.FileTypeSource,
-			Offset: checker.OffsetDefault,
-			Text:   fmt.Sprintf("no %s permission defined", topLevelPermission),
+			Path:        path,
+			Type:        checker.FileTypeSource,
+			Offset:      checker.OffsetDefault,
+			Text:        fmt.Sprintf("no %s permission defined", topLevelPermission),
+			Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 		})
 		recordAllPermissionsWrite(pdata, topLevelPermission, path)
 		return nil
@@ -296,10 +307,11 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 		// so only top-level read-only permissions need to be declared.
 		if job.Permissions == nil {
 			dl.Debug(&checker.LogMessage{
-				Path:   path,
-				Type:   checker.FileTypeSource,
-				Offset: fileparser.GetLineNumber(job.Pos),
-				Text:   fmt.Sprintf("no %s permission defined", jobLevelPermission),
+				Path:        path,
+				Type:        checker.FileTypeSource,
+				Offset:      fileparser.GetLineNumber(job.Pos),
+				Text:        fmt.Sprintf("no %s permission defined", jobLevelPermission),
+				Remediation: remediation.CreateWorkflowPermissionRemediation(path),
 			})
 			recordAllPermissionsWrite(pdata, jobLevelPermission, path)
 			continue
@@ -555,7 +567,22 @@ func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, dl ch
 
 // requiresContentsPermissions returns true if the workflow requires the `contents: write` permission.
 func requiresContentsPermissions(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
-	return isReleasingWorkflow(workflow, fp, dl)
+	return isReleasingWorkflow(workflow, fp, dl) || isGitHubPagesDeploymentWorkflow(workflow, fp, dl)
+}
+
+// isGitHubPagesDeploymentWorkflow returns true if the workflow involves pushing static pages to GitHub pages.
+func isGitHubPagesDeploymentWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	jobMatchers := []fileparser.JobMatcher{
+		{
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "peaceiris/actions-gh-pages",
+				},
+			},
+			LogText: "candidate GitHub page deployment workflow using peaceiris/actions-gh-pages",
+		},
+	}
+	return fileparser.AnyJobsMatch(workflow, jobMatchers, fp, dl, "not a GitHub Pages deployment workflow")
 }
 
 // isReleasingWorkflow returns true if the workflow involves creating a release on GitHub.
@@ -586,4 +613,129 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.De
 	}
 
 	return fileparser.AnyJobsMatch(workflow, jobMatchers, fp, dl, "not a releasing workflow")
+}
+
+// TODO: remove when migrated to raw results.
+// Should be using the definition in raw/packaging.go.
+func isPackagingWorkflow(workflow *actionlint.Workflow, fp string, dl checker.DetailLogger) bool {
+	jobMatchers := []fileparser.JobMatcher{
+		{
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-node",
+					With: map[string]string{"registry-url": "https://registry.npmjs.org"},
+				},
+				{
+					Run: "npm.*publish",
+				},
+			},
+			LogText: "candidate node publishing workflow using npm",
+		},
+		{
+			// Java packages with maven.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-java",
+				},
+				{
+					Run: "mvn.*deploy",
+				},
+			},
+			LogText: "candidate java publishing workflow using maven",
+		},
+		{
+			// Java packages with gradle.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-java",
+				},
+				{
+					Run: "gradle.*publish",
+				},
+			},
+			LogText: "candidate java publishing workflow using gradle",
+		},
+		{
+			// Ruby packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Run: "gem.*push",
+				},
+			},
+			LogText: "candidate ruby publishing workflow using gem",
+		},
+		{
+			// NuGet packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Run: "nuget.*push",
+				},
+			},
+			LogText: "candidate nuget publishing workflow",
+		},
+		{
+			// Docker packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Run: "docker.*push",
+				},
+			},
+			LogText: "candidate docker publishing workflow",
+		},
+		{
+			// Docker packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "docker/build-push-action",
+				},
+			},
+			LogText: "candidate docker publishing workflow",
+		},
+		{
+			// Python packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-python",
+				},
+				{
+					Uses: "pypa/gh-action-pypi-publish",
+				},
+			},
+			LogText: "candidate python publishing workflow using pypi",
+		},
+		{
+			// Python packages.
+			// This is a custom Python packaging workflow based on semantic versioning.
+			// TODO(#1642): accept custom workflows through a separate configuration.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "relekang/python-semantic-release",
+				},
+			},
+			LogText: "candidate python publishing workflow using python-semantic-release",
+		},
+		{
+			// Go packages.
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "actions/setup-go",
+				},
+				{
+					Uses: "goreleaser/goreleaser-action",
+				},
+			},
+			LogText: "candidate golang publishing workflow",
+		},
+		{
+			// Rust packages. https://doc.rust-lang.org/cargo/reference/publishing.html
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Run: "cargo.*publish",
+				},
+			},
+			LogText: "candidate rust publishing workflow using cargo",
+		},
+	}
+
+	return fileparser.AnyJobsMatch(workflow, jobMatchers, fp, dl, "not a publishing workflow")
 }

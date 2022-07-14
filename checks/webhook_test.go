@@ -34,27 +34,25 @@ func TestWebhooks(t *testing.T) {
 		uri      string
 		err      error
 		name     string
-		webhooks []*clients.Webhook
+		webhooks []clients.Webhook
 	}{
 		{
 			name: "No Webhooks",
 			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
-				Pass:  true,
 				Score: 10,
 			},
 			err:      nil,
-			webhooks: []*clients.Webhook{},
+			webhooks: []clients.Webhook{},
 		},
 		{
 			name: "With Webhooks and secret set",
 			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
-				Pass:  true,
 				Score: 10,
 			},
 			err: nil,
-			webhooks: []*clients.Webhook{
+			webhooks: []clients.Webhook{
 				{
 					ID:             12345,
 					UsesAuthSecret: true,
@@ -65,11 +63,10 @@ func TestWebhooks(t *testing.T) {
 			name: "With Webhooks and no secret set",
 			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
-				Pass:  false,
 				Score: 0,
 			},
 			err: nil,
-			webhooks: []*clients.Webhook{
+			webhooks: []clients.Webhook{
 				{
 					ID:             12345,
 					UsesAuthSecret: false,
@@ -80,11 +77,10 @@ func TestWebhooks(t *testing.T) {
 			name: "With 2 Webhooks with and whitout secrets configured",
 			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
-				Pass:  false,
 				Score: 5,
 			},
 			err: nil,
-			webhooks: []*clients.Webhook{
+			webhooks: []clients.Webhook{
 				{
 					ID:             12345,
 					UsesAuthSecret: false,
@@ -106,7 +102,7 @@ func TestWebhooks(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 
-			mockRepo.EXPECT().ListWebhooks().DoAndReturn(func() ([]*clients.Webhook, error) {
+			mockRepo.EXPECT().ListWebhooks().DoAndReturn(func() ([]clients.Webhook, error) {
 				if tt.err != nil {
 					return nil, tt.err
 				}
@@ -123,7 +119,7 @@ func TestWebhooks(t *testing.T) {
 			}
 			res := WebHooks(&req)
 			if tt.err != nil {
-				if res.Error2 == nil {
+				if res.Error == nil {
 					t.Errorf("Expected error %v, got nil", tt.err)
 				}
 				// return as we don't need to check the rest of the fields.
@@ -132,9 +128,6 @@ func TestWebhooks(t *testing.T) {
 
 			if res.Score != tt.expected.Score {
 				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
-			}
-			if res.Pass != tt.expected.Pass {
-				t.Errorf("Expected pass %t, got %t for %v", tt.expected.Pass, res.Pass, tt.name)
 			}
 			ctrl.Finish()
 		})

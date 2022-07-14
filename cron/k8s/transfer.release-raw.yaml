@@ -30,9 +30,9 @@ spec:
             image: gcr.io/openssf/scorecard-bq-transfer:latest
             imagePullPolicy: Always
             env:
-            - name: RAW_SCORECARD_DATA_BUCKET_URL
+            - name: SCORECARD_DATA_BUCKET_URL
               value: "gs://ossf-scorecard-rawdata-releasetest"
-            - name: RAW_SCORECARD_BIGQUERY_TABLE
+            - name: SCORECARD_BIGQUERY_TABLE
               value: "scorecard-rawdata-releasetest"
             - name: SCORECARD_COMPLETION_THRESHOLD
               value: "0.9"

@@ -85,6 +85,34 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 			Expect(ossFuzzRepoClient.Close()).Should(BeNil())
 		})
+		It("Should return use of GoBuiltInFuzzers", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-fuzzing-golang")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:         context.Background(),
+				RepoClient:  repoClient,
+				OssFuzzRepo: ossFuzzRepoClient,
+				Repo:        repo,
+				Dlogger:     &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			}
+			result := checks.Fuzzing(&req)
+			Expect(scut.ValidateTestReturn(nil, "use fuzzing", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+			Expect(ossFuzzRepoClient.Close()).Should(BeNil())
+		})
 		It("Should return no fuzzing", func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-packaging-e2e")

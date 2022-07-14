@@ -42,7 +42,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 		}
 
 		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("GitHub release found: %s", release.Tag),
+			Text: fmt.Sprintf("GitHub release found: %s", release.TagName),
 		})
 
 		totalReleases++
@@ -70,7 +70,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 			dl.Warn(&checker.LogMessage{
 				Path: release.URL,
 				Type: checker.FileTypeURL,
-				Text: fmt.Sprintf("release artifact %s not signed", release.Tag),
+				Text: fmt.Sprintf("release artifact %s not signed", release.TagName),
 			})
 		}
 		if totalReleases >= releaseLookBack {

@@ -53,7 +53,7 @@ func TestSAST(t *testing.T) {
 			commits:      []clients.Commit{},
 			searchresult: clients.SearchResponse{},
 			checkRuns:    []clients.CheckRun{},
-			expected:     checker.CheckResult{Score: -1, Pass: false},
+			expected:     checker.CheckResult{Score: -1},
 		},
 		{
 			name: "Successful SAST checker should return success status",
@@ -76,7 +76,6 @@ func TestSAST(t *testing.T) {
 			},
 			expected: checker.CheckResult{
 				Score: 10,
-				Pass:  true,
 			},
 		},
 		{
@@ -116,7 +115,6 @@ func TestSAST(t *testing.T) {
 			},
 			expected: checker.CheckResult{
 				Score: 7,
-				Pass:  false,
 			},
 		},
 		{
@@ -153,7 +151,6 @@ func TestSAST(t *testing.T) {
 			},
 			expected: checker.CheckResult{
 				Score: 0,
-				Pass:  false,
 			},
 		},
 		{
@@ -175,7 +172,6 @@ func TestSAST(t *testing.T) {
 			},
 			expected: checker.CheckResult{
 				Score: 0,
-				Pass:  false,
 			},
 		},
 		{
@@ -198,7 +194,6 @@ func TestSAST(t *testing.T) {
 			},
 			expected: checker.CheckResult{
 				Score: 0,
-				Pass:  false,
 			},
 		},
 	}
@@ -231,9 +226,6 @@ func TestSAST(t *testing.T) {
 
 			if res.Score != tt.expected.Score {
 				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
-			}
-			if res.Pass != tt.expected.Pass {
-				t.Errorf("Expected pass %t, got %t for %v", tt.expected.Pass, res.Pass, tt.name)
 			}
 			ctrl.Finish()
 		})

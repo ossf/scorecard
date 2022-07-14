@@ -33,16 +33,11 @@ spec:
         imagePullPolicy: Always
         env:
         - name: SCORECARD_DATA_BUCKET_URL
-          value: "gs://ossf-scorecard-data-releasetest"
-        # UPGRADEv2: to remove.
-        - name: SCORECARD_DATA_BUCKET_URLV2
           value: "gs://ossf-scorecard-data-releasetest2"
         - name: RAW_SCORECARD_DATA_BUCKET_URL
           value: "gs://ossf-scorecard-rawdata-releasetest"
         - name: SCORECARD_REQUEST_SUBSCRIPTION_URL
           value: "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker-releasetest"
-        - name: SCORECARD_BLACKLISTED_CHECKS
-          value: "SAST,CI-Tests,Contributors"
         - name: SCORECARD_METRIC_EXPORTER
           value: "printer"
         - name: GITHUB_AUTH_SERVER

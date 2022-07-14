@@ -37,8 +37,7 @@ import (
 
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
-	scorecardUse  = `./scorecard [--repo=<repo_url>] [--local=folder] [--checks=check1,...]
-	 [--show-details] or ./scorecard --{npm,pypi,rubygems}=<package_name> 
+	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --{npm,pypi,rubygems}=<package_name>)
 	 [--checks=check1,...] [--show-details]`
 	scorecardShort = "Security Scorecards"
 )
@@ -158,6 +157,6 @@ func rootCmd(o *options.Options) {
 		pol,
 	)
 	if resultsErr != nil {
-		log.Panicf("Failed to output results: %v", err)
+		log.Panicf("Failed to format results: %v", resultsErr)
 	}
 }

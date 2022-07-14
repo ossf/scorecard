@@ -103,7 +103,7 @@ func TestJSONOutput(t *testing.T) {
 				Date: date,
 				Checks: []checker.CheckResult{
 					{
-						Details2: []checker.CheckDetail{
+						Details: []checker.CheckDetail{
 							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
@@ -140,7 +140,7 @@ func TestJSONOutput(t *testing.T) {
 				Date: date,
 				Checks: []checker.CheckResult{
 					{
-						Details2: []checker.CheckDetail{
+						Details: []checker.CheckDetail{
 							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
@@ -176,7 +176,7 @@ func TestJSONOutput(t *testing.T) {
 				Date: date,
 				Checks: []checker.CheckResult{
 					{
-						Details2: []checker.CheckDetail{
+						Details: []checker.CheckDetail{
 							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
@@ -192,7 +192,7 @@ func TestJSONOutput(t *testing.T) {
 						Name:   "Check-Name",
 					},
 					{
-						Details2: []checker.CheckDetail{
+						Details: []checker.CheckDetail{
 							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
@@ -209,7 +209,7 @@ func TestJSONOutput(t *testing.T) {
 						Name:   "Check-Name2",
 					},
 					{
-						Details2: []checker.CheckDetail{
+						Details: []checker.CheckDetail{
 							{
 								Type: checker.DetailInfo,
 								Msg: checker.LogMessage{
@@ -266,7 +266,7 @@ func TestJSONOutput(t *testing.T) {
 				Date: date,
 				Checks: []checker.CheckResult{
 					{
-						Details2: []checker.CheckDetail{
+						Details: []checker.CheckDetail{
 							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
@@ -282,7 +282,7 @@ func TestJSONOutput(t *testing.T) {
 						Name:   "Check-Name",
 					},
 					{
-						Details2: []checker.CheckDetail{
+						Details: []checker.CheckDetail{
 							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
@@ -299,7 +299,7 @@ func TestJSONOutput(t *testing.T) {
 						Name:   "Check-Name2",
 					},
 					{
-						Details2: []checker.CheckDetail{
+						Details: []checker.CheckDetail{
 							{
 								Type: checker.DetailInfo,
 								Msg: checker.LogMessage{
@@ -356,7 +356,7 @@ func TestJSONOutput(t *testing.T) {
 				Date: date,
 				Checks: []checker.CheckResult{
 					{
-						Details2: []checker.CheckDetail{
+						Details: []checker.CheckDetail{
 							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
@@ -393,7 +393,7 @@ func TestJSONOutput(t *testing.T) {
 				Date: date,
 				Checks: []checker.CheckResult{
 					{
-						Details2: []checker.CheckDetail{
+						Details: []checker.CheckDetail{
 							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{

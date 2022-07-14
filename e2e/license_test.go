@@ -52,10 +52,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
-			result := checks.LicenseCheck(&req)
-
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
+			result := checks.License(&req)
 
 			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
 				&dl)).Should(BeTrue())
@@ -80,10 +77,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
-			result := checks.LicenseCheck(&req)
-
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
+			result := checks.License(&req)
 
 			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
 				&dl)).Should(BeTrue())
@@ -120,10 +114,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
-			result := checks.LicenseCheck(&req)
-
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
+			result := checks.License(&req)
 
 			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
 				&dl)).Should(BeTrue())

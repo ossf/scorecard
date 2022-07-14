@@ -52,15 +52,12 @@ spec:
           containers:
           - name: controller
             image: gcr.io/openssf/scorecard-batch-controller:latest
-            args: ["cron/data/projects.release.csv"]
+            args: ["cron/internal/data/projects.release.csv"]
             imagePullPolicy: Always
             env:
             - name: SCORECARD_REQUEST_TOPIC_URL
               value: "gcppubsub://projects/openssf/topics/scorecard-batch-requests-releasetest"
             - name: SCORECARD_DATA_BUCKET_URL
-              value: "gs://ossf-scorecard-data-releasetest"
-            # UPGRADEv2: to remove.
-            - name: SCORECARD_DATA_BUCKET_URLV2
               value: "gs://ossf-scorecard-data-releasetest2"
             # Raw results.
             - name: RAW_SCORECARD_DATA_BUCKET_URL

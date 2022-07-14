@@ -39,7 +39,6 @@ func TestSignedRelease(t *testing.T) {
 		{
 			name: "NoReleases",
 			expected: checker.CheckResult{
-				Pass:  false,
 				Score: -1,
 			},
 		},
@@ -54,7 +53,6 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Pass:  false,
 				Score: -1,
 			},
 		},
@@ -74,7 +72,6 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Pass:  false,
 				Score: 0,
 			},
 		},
@@ -94,7 +91,6 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Pass:  true,
 				Score: 10,
 			},
 		},
@@ -114,7 +110,6 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Pass:  true,
 				Score: 10,
 			},
 		},
@@ -134,7 +129,6 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Pass:  true,
 				Score: 10,
 			},
 		},
@@ -154,7 +148,6 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Pass:  true,
 				Score: 10,
 			},
 		},
@@ -178,7 +171,6 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Pass:  true,
 				Score: 10,
 			},
 		},
@@ -217,7 +209,6 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Pass:  true,
 				Score: 10,
 			},
 		},
@@ -252,7 +243,6 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Pass:  false,
 				Score: 5,
 			},
 		},
@@ -351,7 +341,6 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Pass:  true,
 				Score: 10,
 			},
 		},
@@ -359,9 +348,8 @@ func TestSignedRelease(t *testing.T) {
 			name: "Error getting releases",
 			err:  errors.New("Error getting releases"),
 			expected: checker.CheckResult{
-				Pass:   false,
-				Score:  -1,
-				Error2: errors.New("Error getting releases"),
+				Score: -1,
+				Error: errors.New("Error getting releases"),
 			},
 		},
 	}
@@ -390,7 +378,7 @@ func TestSignedRelease(t *testing.T) {
 			res := SignedReleases(&req)
 
 			if tt.err != nil {
-				if res.Error2 == nil {
+				if res.Error == nil {
 					t.Errorf("Expected error %v, got nil", tt.err)
 				}
 				// return as we don't need to check the rest of the fields.
@@ -399,9 +387,6 @@ func TestSignedRelease(t *testing.T) {
 
 			if res.Score != tt.expected.Score {
 				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
-			}
-			if res.Pass != tt.expected.Pass {
-				t.Errorf("Expected pass %t, got %t for %v", tt.expected.Pass, res.Pass, tt.name)
 			}
 			ctrl.Finish()
 		})

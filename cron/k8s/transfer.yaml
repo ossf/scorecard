@@ -15,7 +15,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: scorecard-bq-transfer
+  name: scorecard-bq-transfer-v2
 spec:
   # At 02:00UTC on Monday and Thursday.
   schedule: "0 2 * * 1,4"
@@ -25,8 +25,8 @@ spec:
       template:
         spec:
           containers:
-          - name: bq-transfer
-            image: gcr.io/openssf/scorecard-bq-transfer:stable
+          - name: bq-transfer-v2
+            image: gcr.io/openssf/scorecard-bq-transfer:latest
             imagePullPolicy: Always
             resources:
               limits:

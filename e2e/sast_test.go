@@ -50,10 +50,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSAST, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.SAST(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "sast used", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())

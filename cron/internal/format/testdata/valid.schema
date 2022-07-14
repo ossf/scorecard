@@ -1,0 +1,40 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "Struct": {
+            "type": "object",
+            "properties": {
+                "bool": {
+                    "type": "boolean"
+                },
+                "number": {
+                    "type": "integer"
+                },
+                "string": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "string",
+                "bool",
+                "number"
+            ]
+        },
+        "bool": {
+            "type": "boolean"
+        },
+        "number": {
+            "type": "integer"
+        },
+        "string": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "string",
+        "bool",
+        "number",
+        "Struct"
+    ]
+}

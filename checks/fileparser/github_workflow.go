@@ -330,6 +330,44 @@ type JobMatcherStep struct {
 	Run string
 }
 
+// JobMatchResult represents the result of a matche.
+type JobMatchResult struct {
+	Msg  string
+	File checker.File
+}
+
+// RawAnyJobsMatch returns true if any of the jobs have a match in the given workflow.
+// TODO: Rename after migraiton is complete.
+func RawAnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp string,
+	logMsgNoMatch string,
+) (JobMatchResult, bool) {
+	for _, job := range workflow.Jobs {
+		for _, matcher := range jobMatchers {
+			if !matcher.matches(job) {
+				continue
+			}
+
+			return JobMatchResult{
+				File: checker.File{
+					Path:   fp,
+					Type:   checker.FileTypeSource,
+					Offset: GetLineNumber(job.Pos),
+				},
+				Msg: fmt.Sprintf("%v: %v", matcher.LogText, fp),
+			}, true
+		}
+	}
+
+	return JobMatchResult{
+		File: checker.File{
+			Path:   fp,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+		},
+		Msg: fmt.Sprintf("%v: %v", logMsgNoMatch, fp),
+	}, false
+}
+
 // AnyJobsMatch returns true if any of the jobs have a match in the given workflow.
 func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp string, dl checker.DetailLogger,
 	logMsgNoMatch string,

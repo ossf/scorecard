@@ -50,15 +50,34 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 5,
+				NumberOfDebug: 6,
 			}
 			result := checks.TokenPermissions(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
+			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return token permission works on empty repo", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-empty-repo")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.TokenPermissions(&req)
 			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -80,14 +99,9 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 5,
+				NumberOfDebug: 6,
 			}
 			result := checks.TokenPermissions(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -122,14 +136,9 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 5,
+				NumberOfDebug: 6,
 			}
 			result := checks.TokenPermissions(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeFalse())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())

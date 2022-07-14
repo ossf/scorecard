@@ -74,16 +74,16 @@ check-osv: $(install)
 	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
 			| stunning-tribble 
 
-add-projects: ## Adds new projects to ./cron/data/projects.csv
-add-projects: ./cron/data/projects.csv | build-add-script
-	# Add new projects to ./cron/data/projects.csv
-	./cron/data/add/add ./cron/data/projects.csv ./cron/data/projects.new.csv
-	mv ./cron/data/projects.new.csv ./cron/data/projects.csv
+add-projects: ## Adds new projects to ./cron/internal/data/projects.csv
+add-projects: ./cron/internal/data/projects.csv | build-add-script
+	# Add new projects to ./cron/internal/data/projects.csv
+	./cron/internal/data/add/add ./cron/internal/data/projects.csv ./cron/internal/data/projects.new.csv
+	mv ./cron/internal/data/projects.new.csv ./cron/internal/data/projects.csv
 
-validate-projects: ## Validates ./cron/data/projects.csv
-validate-projects: ./cron/data/projects.csv | build-validate-script
-	# Validate ./cron/data/projects.csv
-	./cron/data/validate/validate ./cron/data/projects.csv
+validate-projects: ## Validates ./cron/internal/data/projects.csv
+validate-projects: ./cron/internal/data/projects.csv | build-validate-script
+	# Validate ./cron/internal/data/projects.csv
+	./cron/internal/data/validate/validate ./cron/internal/data/projects.csv
 
 tree-status: | all-targets-update-dependencies ## Verify tree is clean and all changes are committed
 	# Verify the tree is clean and all changes are commited
@@ -103,11 +103,11 @@ build: ## Build all binaries and images in the repo.
 build: $(build-targets)
 
 build-proto: ## Compiles and generates all required protobufs
-build-proto: cron/data/request.pb.go cron/data/metadata.pb.go
-cron/data/request.pb.go: cron/data/request.proto |  $(PROTOC)
-	protoc --go_out=../../../ cron/data/request.proto
-cron/data/metadata.pb.go: cron/data/metadata.proto |  $(PROTOC)
-	protoc --go_out=../../../ cron/data/metadata.proto
+build-proto: cron/internal/data/request.pb.go cron/internal/data/metadata.pb.go
+cron/internal/data/request.pb.go: cron/internal/data/request.proto |  $(PROTOC) install
+	protoc --go_out=../../../ cron/internal/data/request.proto
+cron/internal/data/metadata.pb.go: cron/internal/data/metadata.proto |  $(PROTOC) install
+	protoc --go_out=../../../ cron/internal/data/metadata.proto
 
 generate-mocks: ## Compiles and generates all mocks using mockgen.
 generate-mocks: clients/mockclients/repo_client.go clients/mockclients/repo.go clients/mockclients/cii_client.go checks/mockclients/vulnerabilities.go cmd/packagemanager_mockclient.go
@@ -147,24 +147,24 @@ build-releaser: ## Runs goreleaser on the repo
 
 build-controller: ## Runs go build on the cron PubSub controller
 	# Run go build on the cron PubSub controller
-	cd cron/controller && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o controller
+	cd cron/internal/controller && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o controller
 
 build-worker: ## Runs go build on the cron PubSub worker
 	# Run go build on the cron PubSub worker
-	cd cron/worker && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o worker
+	cd cron/internal/worker && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o worker
 
 build-cii-worker: ## Runs go build on the CII worker
 	# Run go build on the CII worker
-	cd cron/cii && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o cii-worker
+	cd cron/internal/cii && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o cii-worker
 
 build-shuffler: ## Runs go build on the cron shuffle script
 	# Run go build on the cron shuffle script
-	cd cron/shuffle && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o shuffle
+	cd cron/internal/shuffle && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o shuffle
 
 build-bq-transfer: ## Runs go build on the BQ transfer cron job
-build-bq-transfer: ./cron/bq/*.go
+build-bq-transfer: ./cron/internal/bq/*.go
 	# Run go build on the Copier cron job
-	cd cron/bq && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o data-transfer
+	cd cron/internal/bq && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o data-transfer
 
 build-github-server: ## Runs go build on the GitHub auth server
 build-github-server: ./clients/githubrepo/roundtripper/tokens/*
@@ -174,25 +174,25 @@ build-github-server: ./clients/githubrepo/roundtripper/tokens/*
 
 build-webhook: ## Runs go build on the cron webhook
 	# Run go build on the cron webhook
-	cd cron/webhook && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o webhook
+	cd cron/internal/webhook && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o webhook
 
 build-add-script: ## Runs go build on the add script
-build-add-script: cron/data/add/add
-cron/data/add/add: cron/data/add/*.go cron/data/*.go cron/data/projects.csv
+build-add-script: cron/internal/data/add/add
+cron/internal/data/add/add: cron/internal/data/add/*.go cron/internal/data/*.go cron/internal/data/projects.csv
 	# Run go build on the add script
-	cd cron/data/add && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o add
+	cd cron/internal/data/add && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o add
 
 build-validate-script: ## Runs go build on the validate script
-build-validate-script: cron/data/validate/validate
-cron/data/validate/validate: cron/data/validate/*.go cron/data/*.go cron/data/projects.csv
+build-validate-script: cron/internal/data/validate/validate
+cron/internal/data/validate/validate: cron/internal/data/validate/*.go cron/internal/data/*.go cron/internal/data/projects.csv
 	# Run go build on the validate script
-	cd cron/data/validate && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o validate
+	cd cron/internal/data/validate && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o validate
 
 build-update-script: ## Runs go build on the update script
-build-update-script: cron/data/update/projects-update
-cron/data/update/projects-update:  cron/data/update/*.go cron/data/*.go
+build-update-script: cron/internal/data/update/projects-update
+cron/internal/data/update/projects-update:  cron/internal/data/update/*.go cron/internal/data/*.go
 	# Run go build on the update script
-	cd cron/data/update && CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'  -o projects-update
+	cd cron/internal/data/update && CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'  -o projects-update
 
 ko-targets = scorecard-ko cron-controller-ko cron-worker-ko cron-cii-worker-ko cron-bq-transfer-ko cron-webhook-ko cron-github-server-ko
 .PHONY: ko-build-everything $(ko-targets)
@@ -200,9 +200,8 @@ ko-build-everything: $(ko-targets)
 
 scorecard-ko:
 	$(call create_kocache_path)
-	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/scorecard LDFLAGS="$(LDFLAGS)" \
+	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) LDFLAGS="$(LDFLAGS)" \
 	KO_CACHE=$(KOCACHE_PATH) ko build -B \
-			   --push=false \
 			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4
@@ -213,7 +212,7 @@ cron-controller-ko:
 			   --push=false \
 			   --sbom=none \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/controller
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/internal/controller
 cron-worker-ko:
 	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-worker LDFLAGS="$(LDFLAGS)" \
@@ -221,7 +220,7 @@ cron-worker-ko:
 			   --push=false \
 			   --sbom=none \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/worker
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/internal/worker
 cron-cii-worker-ko:
 	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cii-worker LDFLAGS="$(LDFLAGS)" \
@@ -229,7 +228,7 @@ cron-cii-worker-ko:
 			   --push=false \
 			   --sbom=none \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/cii
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/internal/cii
 cron-bq-transfer-ko:
 	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-bq-transfer LDFLAGS="$(LDFLAGS)" \
@@ -237,7 +236,7 @@ cron-bq-transfer-ko:
 			   --push=false \
 			   --sbom=none \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/bq
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/internal/bq
 cron-webhook-ko:
 	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cron-webhook LDFLAGS="$(LDFLAGS)" \
@@ -245,7 +244,7 @@ cron-webhook-ko:
 			   --push=false \
 			   --sbom=none \
 			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/webhook
+			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/internal/webhook
 cron-github-server-ko:
 	$(call_create_kocache_path)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-github-server LDFLAGS="$(LDFLAGS)" \
@@ -262,15 +261,15 @@ dockerbuild: $(docker-targets)
 scorecard-docker:
 	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
 cron-controller-docker:
-	DOCKER_BUILDKIT=1 docker build . --file cron/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
+	DOCKER_BUILDKIT=1 docker build . --file cron/internal/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 cron-worker-docker:
-	DOCKER_BUILDKIT=1 docker build . --file cron/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
+	DOCKER_BUILDKIT=1 docker build . --file cron/internal/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
 cron-cii-worker-docker:
-	DOCKER_BUILDKIT=1 docker build . --file cron/cii/Dockerfile --tag $(IMAGE_NAME)-cii-worker
+	DOCKER_BUILDKIT=1 docker build . --file cron/internal/cii/Dockerfile --tag $(IMAGE_NAME)-cii-worker
 cron-bq-transfer-docker:
-	DOCKER_BUILDKIT=1 docker build . --file cron/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
+	DOCKER_BUILDKIT=1 docker build . --file cron/internal/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
 cron-webhook-docker:
-	DOCKER_BUILDKIT=1 docker build . --file cron/webhook/Dockerfile --tag ${IMAGE_NAME}-webhook
+	DOCKER_BUILDKIT=1 docker build . --file cron/internal/webhook/Dockerfile --tag ${IMAGE_NAME}-webhook
 cron-github-server-docker:
 	DOCKER_BUILDKIT=1 docker build . --file clients/githubrepo/roundtripper/tokens/server/Dockerfile --tag ${IMAGE_NAME}-github-server
 ###############################################################################

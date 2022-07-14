@@ -15,160 +15,255 @@
 package raw
 
 import (
+	"errors"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
-var branch = "master"
+var (
+	errBPTest         = errors.New("test error")
+	defaultBranchName = "default"
+	releaseBranchName = "release-branch"
+	mainBranchName    = "main"
+)
 
-func Test_getBranchName(t *testing.T) {
-	t.Parallel()
-	type args struct {
-		branch *clients.BranchRef
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "simple",
-			args: args{
-				branch: &clients.BranchRef{
-					Name: &branch,
-				},
-			},
-			want: master,
-		},
-		{
-			name: "empty name",
-			args: args{
-				branch: &clients.BranchRef{},
-			},
-			want: "",
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			if got := getBranchName(tt.args.branch); got != tt.want {
-				t.Errorf("getBranchName() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+// nolint: govet
+type branchArg struct {
+	err           error
+	name          string
+	branchRef     *clients.BranchRef
+	defaultBranch bool
 }
 
-func Test_getBranchMapFrom(t *testing.T) {
-	t.Parallel()
-	type args struct {
-		branches []*clients.BranchRef
+type branchesArg []branchArg
+
+func (ba branchesArg) getDefaultBranch() (*clients.BranchRef, error) {
+	for _, branch := range ba {
+		if branch.defaultBranch {
+			return branch.branchRef, branch.err
+		}
 	}
-	//nolint
+	return nil, nil
+}
+
+func (ba branchesArg) getBranch(b string) (*clients.BranchRef, error) {
+	for _, branch := range ba {
+		if branch.name == b {
+			return branch.branchRef, branch.err
+		}
+	}
+	return nil, nil
+}
+
+func TestBranchProtection(t *testing.T) {
+	t.Parallel()
+	// nolint: govet
 	tests := []struct {
-		name string
-		args args
-		want branchMap
+		name        string
+		branches    branchesArg
+		releases    []clients.Release
+		releasesErr error
+		want        checker.BranchProtectionsData
+		wantErr     error
 	}{
 		{
-			name: "simple",
-			args: args{
-				branches: []*clients.BranchRef{
-					{
-						Name: &branch,
+			name: "default-branch-err",
+			branches: branchesArg{
+				{
+					name: defaultBranchName,
+					err:  errBPTest,
+				},
+			},
+		},
+		{
+			name: "null-default-branch-only",
+			branches: branchesArg{
+				{
+					name:          defaultBranchName,
+					defaultBranch: true,
+					branchRef:     nil,
+				},
+			},
+		},
+		{
+			name: "default-branch-only",
+			branches: branchesArg{
+				{
+					name:          defaultBranchName,
+					defaultBranch: true,
+					branchRef: &clients.BranchRef{
+						Name: &defaultBranchName,
 					},
 				},
 			},
-			want: branchMap{
-				master: &clients.BranchRef{
-					Name: &branch,
+			want: checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name: &defaultBranchName,
+					},
 				},
 			},
 		},
+		{
+			name:        "list-releases-error",
+			releasesErr: errBPTest,
+			wantErr:     errBPTest,
+		},
+		{
+			name: "no-releases",
+		},
+		{
+			name: "empty-targetcommitish",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "",
+				},
+			},
+			wantErr: errInternalCommitishNil,
+		},
+		{
+			name: "release-branch-err",
+			releases: []clients.Release{
+				{
+					TargetCommitish: releaseBranchName,
+				},
+			},
+			branches: branchesArg{
+				{
+					name: releaseBranchName,
+					err:  errBPTest,
+				},
+			},
+			wantErr: errBPTest,
+		},
+		{
+			name: "nil-release-branch",
+			releases: []clients.Release{
+				{
+					TargetCommitish: releaseBranchName,
+				},
+			},
+			branches: branchesArg{
+				{
+					name:      releaseBranchName,
+					branchRef: nil,
+				},
+			},
+		},
+		{
+			name: "add-release-branch",
+			releases: []clients.Release{
+				{
+					TargetCommitish: releaseBranchName,
+				},
+			},
+			branches: branchesArg{
+				{
+					name: releaseBranchName,
+					branchRef: &clients.BranchRef{
+						Name: &releaseBranchName,
+					},
+				},
+			},
+			want: checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name: &releaseBranchName,
+					},
+				},
+			},
+		},
+		{
+			name: "master-to-main-redirect",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "master",
+				},
+			},
+			branches: branchesArg{
+				{
+					name: mainBranchName,
+					branchRef: &clients.BranchRef{
+						Name: &mainBranchName,
+					},
+				},
+			},
+			want: checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name: &mainBranchName,
+					},
+				},
+			},
+		},
+		{
+			name: "default-and-release-branches",
+			releases: []clients.Release{
+				{
+					TargetCommitish: releaseBranchName,
+				},
+			},
+			branches: branchesArg{
+				{
+					name:          defaultBranchName,
+					defaultBranch: true,
+					branchRef: &clients.BranchRef{
+						Name: &defaultBranchName,
+					},
+				},
+				{
+					name: releaseBranchName,
+					branchRef: &clients.BranchRef{
+						Name: &releaseBranchName,
+					},
+				},
+			},
+			want: checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name: &defaultBranchName,
+					},
+					{
+						Name: &releaseBranchName,
+					},
+				},
+			},
+		},
+		// TODO: Add tests for commitSHA regex matching.
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := getBranchMapFrom(tt.args.branches); !cmp.Equal(got, tt.want) {
-				t.Errorf("getBranchMapFrom() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().GetDefaultBranch().
+				AnyTimes().DoAndReturn(func() (*clients.BranchRef, error) {
+				return tt.branches.getDefaultBranch()
+			})
+			mockRepoClient.EXPECT().GetBranch(gomock.Any()).AnyTimes().
+				DoAndReturn(func(branch string) (*clients.BranchRef, error) {
+					return tt.branches.getBranch(branch)
+				})
+			mockRepoClient.EXPECT().ListReleases().AnyTimes().
+				DoAndReturn(func() ([]clients.Release, error) {
+					return tt.releases, tt.releasesErr
+				})
 
-func Test_branchMap_getBranchByName(t *testing.T) {
-	main := "main"
-	t.Parallel()
-	type args struct {
-		name string
-	}
-	//nolint
-	tests := []struct {
-		name    string
-		b       branchMap
-		args    args
-		want    *clients.BranchRef
-		wantErr bool
-	}{
-		{
-			name: "simple",
-			b: branchMap{
-				master: &clients.BranchRef{
-					Name: &branch,
-				},
-			},
-			args: args{
-				name: master,
-			},
-			want: &clients.BranchRef{
-				Name: &branch,
-			},
-		},
-		{
-			name: "main",
-			b: branchMap{
-				master: &clients.BranchRef{
-					Name: &main,
-				},
-				main: &clients.BranchRef{
-					Name: &main,
-				},
-			},
-			args: args{
-				name: "main",
-			},
-			want: &clients.BranchRef{
-				Name: &main,
-			},
-		},
-		{
-			name: "not found",
-			b: branchMap{
-				master: &clients.BranchRef{
-					Name: &branch,
-				},
-			},
-			args: args{
-				name: "not-found",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			got, err := tt.b.getBranchByName(tt.args.name)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("branchMap.getBranchByName() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			rawData, err := BranchProtection(mockRepoClient)
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("failed. expected: %v, got: %v", tt.wantErr, err)
+				t.Fail()
 			}
-			if !cmp.Equal(got, tt.want) {
-				t.Errorf("branchMap.getBranchByName() = %v, want %v", got, tt.want)
+			if !cmp.Equal(rawData, tt.want) {
+				t.Errorf("failed. expected: %v, got: %v", tt.want, rawData)
+				t.Fail()
 			}
 		})
 	}

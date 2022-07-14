@@ -17,5 +17,5 @@ steps:
   args: ['build', '.',
   '-t', 'gcr.io/openssf/scorecard-bq-transfer:$COMMIT_SHA',
   '-t', 'gcr.io/openssf/scorecard-bq-transfer:latest',
-  '-f', 'cron/bq/Dockerfile']
+  '-f', 'cron/internal/bq/Dockerfile']
 images: ['gcr.io/openssf/scorecard-bq-transfer']

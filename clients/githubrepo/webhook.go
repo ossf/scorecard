@@ -31,7 +31,7 @@ type webhookHandler struct {
 	ctx      context.Context
 	errSetup error
 	repourl  *repoURL
-	webhook  []*clients.Webhook
+	webhook  []clients.Webhook
 }
 
 func (handler *webhookHandler) init(ctx context.Context, repourl *repoURL) {
@@ -55,7 +55,7 @@ func (handler *webhookHandler) setup() error {
 		}
 
 		for _, hook := range hooks {
-			repoHook := &clients.Webhook{
+			repoHook := clients.Webhook{
 				ID:             hook.GetID(),
 				UsesAuthSecret: getAuthSecret(hook.Config),
 			}
@@ -76,7 +76,7 @@ func getAuthSecret(config map[string]interface{}) bool {
 	return false
 }
 
-func (handler *webhookHandler) listWebhooks() ([]*clients.Webhook, error) {
+func (handler *webhookHandler) listWebhooks() ([]clients.Webhook, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during webhookHandler.setup: %w", err)
 	}

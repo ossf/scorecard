@@ -28,22 +28,20 @@ import (
 
 // Options define common options for configuring scorecard.
 type Options struct {
-	Repo       string `env:"GITHUB_REPOSITORY"`
+	Repo       string
 	Local      string
-	Commit     string `env:"GITHUB_REF"`
+	Commit     string
 	LogLevel   string
-	Format     string `env:"SCORECARD_RESULTS_FORMAT"`
+	Format     string
 	NPM        string
 	PyPI       string
 	RubyGems   string
-	PolicyFile string `env:"SCORECARD_POLICY_FILE"`
+	PolicyFile string
 	// TODO(action): Add logic for writing results to file
-	ResultsFile string   `env:"SCORECARD_RESULTS_FILE"`
-	ChecksToRun []string `env:"SCORECARD_ENABLED_CHECKS"`
+	ResultsFile string
+	ChecksToRun []string
 	Metadata    []string
 	ShowDetails bool
-	// TODO(action): Add logic for determining if results should be published.
-	PublishResults bool `env:"SCORECARD_PUBLISH_RESULTS"`
 
 	// Feature flags.
 	EnableSarif       bool `env:"ENABLE_SARIF"`

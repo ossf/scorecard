@@ -34,13 +34,13 @@ func TestContributors(t *testing.T) {
 	tests := []struct {
 		err      error
 		name     string
-		contrib  []clients.Contributor
+		contrib  []clients.User
 		expected checker.CheckResult
 	}{
 		{
 			err:  nil,
 			name: "Two contributors without company",
-			contrib: []clients.Contributor{
+			contrib: []clients.User{
 				{
 					Organizations: []clients.User{
 						{
@@ -59,9 +59,10 @@ func TestContributors(t *testing.T) {
 		{
 			err:  nil,
 			name: "Valid contributors with enough contributors and companies",
-			contrib: []clients.Contributor{
+			contrib: []clients.User{
 				{
-					Company:          "company1",
+
+					Companies:        []string{"company1"},
 					NumContributions: 10,
 					Organizations: []clients.User{
 						{
@@ -73,7 +74,7 @@ func TestContributors(t *testing.T) {
 					},
 				},
 				{
-					Company:          "company2",
+					Companies:        []string{"company2"},
 					NumContributions: 10,
 					Organizations: []clients.User{
 						{
@@ -85,7 +86,7 @@ func TestContributors(t *testing.T) {
 					},
 				},
 				{
-					Company:          "company3",
+					Companies:        []string{"company3"},
 					NumContributions: 10,
 					Organizations: []clients.User{
 						{
@@ -97,7 +98,7 @@ func TestContributors(t *testing.T) {
 					},
 				},
 				{
-					Company:          "company4",
+					Companies:        []string{"company4"},
 					NumContributions: 10,
 					Organizations: []clients.User{
 						{
@@ -109,7 +110,7 @@ func TestContributors(t *testing.T) {
 					},
 				},
 				{
-					Company:          "company5",
+					Companies:        []string{"company5"},
 					NumContributions: 10,
 					Organizations: []clients.User{
 						{
@@ -121,7 +122,7 @@ func TestContributors(t *testing.T) {
 					},
 				},
 				{
-					Company: "company6",
+					Companies: []string{"company6"},
 					Organizations: []clients.User{
 						{
 							Login: "org1",
@@ -134,13 +135,12 @@ func TestContributors(t *testing.T) {
 			},
 			expected: checker.CheckResult{
 				Score: 10,
-				Pass:  true,
 			},
 		},
 		{
 			err:     nil,
 			name:    "No contributors",
-			contrib: []clients.Contributor{},
+			contrib: []clients.User{},
 			expected: checker.CheckResult{
 				Score: 0,
 			},
@@ -148,7 +148,7 @@ func TestContributors(t *testing.T) {
 		{
 			err:     errors.New("error"),
 			name:    "Error getting contributors",
-			contrib: []clients.Contributor{},
+			contrib: []clients.User{},
 			expected: checker.CheckResult{
 				Score: -1,
 			},
@@ -161,7 +161,7 @@ func TestContributors(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListContributors().DoAndReturn(func() ([]clients.Contributor, error) {
+			mockRepo.EXPECT().ListContributors().DoAndReturn(func() ([]clients.User, error) {
 				if tt.err != nil {
 					return nil, tt.err
 				}
@@ -175,7 +175,7 @@ func TestContributors(t *testing.T) {
 			res := Contributors(&req)
 
 			if tt.err != nil {
-				if res.Error2 == nil {
+				if res.Error == nil {
 					t.Errorf("Expected error %v, got nil", tt.err)
 				}
 				// return as we don't need to check the rest of the fields.
@@ -184,9 +184,6 @@ func TestContributors(t *testing.T) {
 
 			if res.Score != tt.expected.Score {
 				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
-			}
-			if res.Pass != tt.expected.Pass {
-				t.Errorf("Expected pass %t, got %t for %v", tt.expected.Pass, res.Pass, tt.name)
 			}
 			ctrl.Finish()
 		})

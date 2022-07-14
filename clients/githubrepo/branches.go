@@ -28,8 +28,7 @@ import (
 )
 
 const (
-	refsToAnalyze = 30
-	refPrefix     = "refs/heads/"
+	refPrefix = "refs/heads/"
 )
 
 // See https://github.community/t/graphql-api-protected-branch/14380
@@ -97,30 +96,30 @@ type branch struct {
 	RefUpdateRule        *refUpdateRule
 	BranchProtectionRule *branchProtectionRule
 }
-
-// nolint:govet // internal structure, ignore.
-type branchesData struct {
+type defaultBranchData struct {
 	Repository struct {
-		DefaultBranchRef branch
-		Refs             struct {
-			Nodes []branch
-		} `graphql:"refs(first: $refsToAnalyze, refPrefix: $refPrefix)"`
+		DefaultBranchRef *branch
 	} `graphql:"repository(owner: $owner, name: $name)"`
 	RateLimit struct {
 		Cost *int
 	}
 }
 
+type branchData struct {
+	Repository struct {
+		Ref *branch `graphql:"ref(qualifiedName: $branchRefName)"`
+	} `graphql:"repository(owner: $owner, name: $name)"`
+}
+
 type branchesHandler struct {
 	ghClient         *github.Client
 	graphClient      *githubv4.Client
-	data             *branchesData
+	data             *defaultBranchData
 	once             *sync.Once
 	ctx              context.Context
 	errSetup         error
 	repourl          *repoURL
 	defaultBranchRef *clients.BranchRef
-	branches         []*clients.BranchRef
 }
 
 func (handler *branchesHandler) init(ctx context.Context, repourl *repoURL) {
@@ -137,20 +136,33 @@ func (handler *branchesHandler) setup() error {
 			return
 		}
 		vars := map[string]interface{}{
-			"owner":         githubv4.String(handler.repourl.owner),
-			"name":          githubv4.String(handler.repourl.repo),
-			"refsToAnalyze": githubv4.Int(refsToAnalyze),
-			"refPrefix":     githubv4.String(refPrefix),
+			"owner": githubv4.String(handler.repourl.owner),
+			"name":  githubv4.String(handler.repourl.repo),
 		}
-		handler.data = new(branchesData)
+		handler.data = new(defaultBranchData)
 		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
 		}
 		handler.defaultBranchRef = getBranchRefFrom(handler.data.Repository.DefaultBranchRef)
-		handler.branches = getBranchRefsFrom(handler.data.Repository.Refs.Nodes, handler.defaultBranchRef)
 	})
 	return handler.errSetup
+}
+
+func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, error) {
+	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+		return nil, fmt.Errorf("%w: branches only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	}
+	vars := map[string]interface{}{
+		"owner":         githubv4.String(handler.repourl.owner),
+		"name":          githubv4.String(handler.repourl.repo),
+		"branchRefName": githubv4.String(refPrefix + branchName),
+	}
+	queryData := new(branchData)
+	if err := handler.graphClient.Query(handler.ctx, queryData, vars); err != nil {
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+	}
+	return getBranchRefFrom(queryData.Repository.Ref), nil
 }
 
 func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
@@ -160,11 +172,12 @@ func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
 	return handler.defaultBranchRef, nil
 }
 
-func (handler *branchesHandler) listBranches() ([]*clients.BranchRef, error) {
-	if err := handler.setup(); err != nil {
-		return nil, fmt.Errorf("error during branchesHandler.setup: %w", err)
+func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, error) {
+	branchRef, err := handler.query(branch)
+	if err != nil {
+		return nil, fmt.Errorf("error during branchesHandler.query: %w", err)
 	}
-	return handler.branches, nil
+	return branchRef, nil
 }
 
 func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
@@ -197,7 +210,10 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 	}
 }
 
-func getBranchRefFrom(data branch) *clients.BranchRef {
+func getBranchRefFrom(data *branch) *clients.BranchRef {
+	if data == nil {
+		return nil
+	}
 	branchRef := new(clients.BranchRef)
 	if data.Name != nil {
 		branchRef.Name = data.Name
@@ -237,19 +253,4 @@ func getBranchRefFrom(data branch) *clients.BranchRef {
 	}
 
 	return branchRef
-}
-
-func getBranchRefsFrom(data []branch, defaultBranch *clients.BranchRef) []*clients.BranchRef {
-	var branchRefs []*clients.BranchRef
-	var defaultFound bool
-	for i, b := range data {
-		branchRefs = append(branchRefs, getBranchRefFrom(b))
-		if defaultBranch != nil && branchRefs[i].Name == defaultBranch.Name {
-			defaultFound = true
-		}
-	}
-	if !defaultFound {
-		branchRefs = append(branchRefs, defaultBranch)
-	}
-	return branchRefs
 }

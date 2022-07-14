@@ -14,41 +14,122 @@
 
 package checker
 
-import "time"
+import (
+	"github.com/ossf/scorecard/v4/clients"
+)
 
 // RawResults contains results before a policy
 // is applied.
 //nolint
 type RawResults struct {
+	PackagingResults            PackagingData
+	CIIBestPracticesResults     CIIBestPracticesData
+	DangerousWorkflowResults    DangerousWorkflowData
 	VulnerabilitiesResults      VulnerabilitiesData
 	BinaryArtifactResults       BinaryArtifactData
 	SecurityPolicyResults       SecurityPolicyData
 	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
 	CodeReviewResults           CodeReviewData
+	PinningDependenciesResults  PinningDependenciesData
 	WebhookResults              WebhooksData
+	ContributorsResults         ContributorsData
 	MaintainedResults           MaintainedData
 	SignedReleasesResults       SignedReleasesData
+	FuzzingResults              FuzzingData
+	LicenseResults              LicenseData
+}
+
+// FuzzingData represents different fuzzing done.
+type FuzzingData struct {
+	Fuzzers []Tool
+}
+
+// TODO: Add Msg to all results.
+
+// PackagingData contains results for the Packaging check.
+type PackagingData struct {
+	Packages []Package
+}
+
+// Package represents a package.
+// nolint
+type Package struct {
+	// TODO: not supported yet. This needs to be unique across
+	// ecosystems: purl, OSV, CPE, etc.
+	Name *string
+	Job  *WorkflowJob
+	File *File
+	// Note: Msg is populated only for debug messages.
+	Msg  *string
+	Runs []Run
+}
+
+// DependencyUseType reprensets a type of dependency use.
+type DependencyUseType string
+
+const (
+	// DependencyUseTypeGHAction is an action.
+	DependencyUseTypeGHAction DependencyUseType = "GitHubAction"
+	// DependencyUseTypeDockerfileContainerImage a container image used via FROM.
+	DependencyUseTypeDockerfileContainerImage DependencyUseType = "containerImage"
+	// DependencyUseTypeDownloadThenRun is a download followed by a run.
+	DependencyUseTypeDownloadThenRun DependencyUseType = "downloadThenRun"
+	// DependencyUseTypeGoCommand is a go command.
+	DependencyUseTypeGoCommand DependencyUseType = "goCommand"
+	// DependencyUseTypeChocoCommand is a choco command.
+	DependencyUseTypeChocoCommand DependencyUseType = "chocoCommand"
+	// DependencyUseTypeNpmCommand is an npm command.
+	DependencyUseTypeNpmCommand DependencyUseType = "npmCommand"
+	// DependencyUseTypePipCommand is a pipp command.
+	DependencyUseTypePipCommand DependencyUseType = "pipCommand"
+)
+
+// PinningDependenciesData represents pinned dependency data.
+type PinningDependenciesData struct {
+	Dependencies []Dependency
+}
+
+// Dependency represents a dependency.
+type Dependency struct {
+	// TODO: unique dependency name.
+	// TODO: Job         *WorkflowJob
+	Name     *string
+	PinnedAt *string
+	Location *File
+	Msg      *string // Only for debug messages.
+	Type     DependencyUseType
 }
 
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {
-	Issues               []Issue
-	DefaultBranchCommits []DefaultBranchCommit
+	Issues               []clients.Issue
+	DefaultBranchCommits []clients.Commit
 	ArchivedStatus       ArchivedStatus
+}
+
+// LicenseData contains the raw results
+// for the License check.
+type LicenseData struct {
+	Files []File
 }
 
 // CodeReviewData contains the raw results
 // for the Code-Review check.
 type CodeReviewData struct {
-	DefaultBranchCommits []DefaultBranchCommit
+	DefaultBranchCommits []clients.Commit
+}
+
+// ContributorsData represents contributor information.
+type ContributorsData struct {
+	Users []clients.User
 }
 
 // VulnerabilitiesData contains the raw results
 // for the Vulnerabilities check.
 type VulnerabilitiesData struct {
-	Vulnerabilities []Vulnerability
+	Vulnerabilities []clients.Vulnerability
 }
 
 // SecurityPolicyData contains the raw results
@@ -68,7 +149,7 @@ type BinaryArtifactData struct {
 // SignedReleasesData contains the raw results
 // for the Signed-Releases check.
 type SignedReleasesData struct {
-	Releases []Release
+	Releases []clients.Release
 }
 
 // DependencyUpdateToolData contains the raw results
@@ -82,55 +163,29 @@ type DependencyUpdateToolData struct {
 // WebhooksData contains the raw results
 // for the Webhook check.
 type WebhooksData struct {
-	Webhook []WebhookData
-}
-
-// WebhookData contains the raw results
-// for webhook check.
-type WebhookData struct {
-	Path           string
-	ID             int64
-	UsesAuthSecret bool
+	Webhooks []clients.Webhook
 }
 
 // BranchProtectionsData contains the raw results
 // for the Branch-Protection check.
 type BranchProtectionsData struct {
-	Branches []BranchProtectionData
-}
-
-// BranchProtectionData contains the raw results
-// for one branch.
-//nolint:govet
-type BranchProtectionData struct {
-	Protected                           *bool
-	AllowsDeletions                     *bool
-	AllowsForcePushes                   *bool
-	RequiresCodeOwnerReviews            *bool
-	RequiresLinearHistory               *bool
-	DismissesStaleReviews               *bool
-	EnforcesAdmins                      *bool
-	RequiresStatusChecks                *bool
-	RequiresUpToDateBranchBeforeMerging *bool
-	RequiredApprovingReviewCount        *int
-	// StatusCheckContexts is always available, so
-	// we don't use a pointer.
-	StatusCheckContexts []string
-	Name                string
+	Branches []clients.BranchRef
 }
 
 // Tool represents a tool.
 type Tool struct {
+	URL   *string
+	Desc  *string
+	Files []File
+	Name  string
 	// Runs of the tool.
 	Runs []Run
 	// Issues created by the tool.
-	Issues []Issue
+	Issues []clients.Issue
 	// Merge requests created by the tool.
-	MergeRequests []MergeRequest
-	Name          string
-	URL           string
-	Desc          string
-	ConfigFiles   []File
+	MergeRequests []clients.PullRequest
+
+	// TODO: CodeCoverage, jsonWorkflowJob.
 }
 
 // Run represents a run.
@@ -139,113 +194,52 @@ type Run struct {
 	// TODO: add fields, e.g., Result=["success", "failure"]
 }
 
-// Comment represents a comment for a pull request or an issue.
-type Comment struct {
-	CreatedAt *time.Time
-	Author    *User
-	// TODO: add ields if needed, e.g., content.
-}
-
 // ArchivedStatus definess the archived status.
 type ArchivedStatus struct {
 	Status bool
 	// TODO: add fields, e.g., date of archival.
 }
 
-// Issue represents an issue.
-type Issue struct {
-	CreatedAt *time.Time
-	Author    *User
-	URL       string
-	Comments  []Comment
-	// TODO: add fields, e.g., state=[opened|closed]
-}
-
-// DefaultBranchCommit represents a commit
-// to the default branch.
-type DefaultBranchCommit struct {
-	// Fields below are taken directly from cloud
-	// version control systems, e.g. GitHub.
-	SHA           string
-	CommitMessage string
-	MergeRequest  *MergeRequest
-	CommitDate    *time.Time
-	Committer     User
-}
-
-// MergeRequest represents a merge request.
-// nolint:govet
-type MergeRequest struct {
-	Number   int
-	Labels   []string
-	Reviews  []Review
-	Author   User
-	MergedAt time.Time
-}
-
-// Review represent a review using the built-in review system.
-type Review struct {
-	Reviewer User
-	State    string
-	// TODO(Review): add fields here if needed.
-}
-
-// User represent a user.
-type User struct {
-	RepoAssociation *RepoAssociation
-	Login           string
-}
-
-// RepoAssociation represents a user relationship with a repo.
-type RepoAssociation string
-
-const (
-	// RepoAssociationCollaborator has been invited to collaborate on the repository.
-	RepoAssociationCollaborator RepoAssociation = RepoAssociation("collaborator")
-	// RepoAssociationContributor is an contributor to the repository.
-	RepoAssociationContributor RepoAssociation = RepoAssociation("contributor")
-	// RepoAssociationOwner is an owner of the repository.
-	RepoAssociationOwner RepoAssociation = RepoAssociation("owner")
-	// RepoAssociationMember is a member of the organization that owns the repository.
-	RepoAssociationMember RepoAssociation = RepoAssociation("member")
-	// RepoAssociationFirstTimer has previously committed to the repository.
-	RepoAssociationFirstTimer RepoAssociation = RepoAssociation("first-timer")
-	// RepoAssociationFirstTimeContributor has not previously committed to the repository.
-	RepoAssociationFirstTimeContributor RepoAssociation = RepoAssociation("first-timer-contributor")
-	// RepoAssociationMannequin is a placeholder for an unclaimed user.
-	RepoAssociationMannequin RepoAssociation = RepoAssociation("unknown")
-	// RepoAssociationNone has no association with the repository.
-	RepoAssociationNone RepoAssociation = RepoAssociation("none")
-)
-
 // File represents a file.
 type File struct {
-	Path    string
-	Snippet string   // Snippet of code
-	Offset  uint     // Offset in the file of Path (line for source/text files).
-	Type    FileType // Type of file.
+	Path      string
+	Snippet   string   // Snippet of code
+	Offset    uint     // Offset in the file of Path (line for source/text files).
+	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
+	Type      FileType // Type of file.
 	// TODO: add hash.
 }
 
-// Vulnerability defines a vulnerability
-// from a database.
-type Vulnerability struct {
-	// For OSV: OSV-2020-484
-	// For CVE: CVE-2022-23945
-	ID string
-	// TODO(vuln): Add additional fields, if needed.
+// CIIBestPracticesData contains data foor CIIBestPractices check.
+type CIIBestPracticesData struct {
+	Badge clients.BadgeLevel
 }
 
-// Release represents a project release.
-type Release struct {
-	Tag    string
-	URL    string
-	Assets []ReleaseAsset
-	// TODO: add needed fields, e.g. Path.
+// DangerousWorkflowType represents a type of dangerous workflow.
+type DangerousWorkflowType string
+
+const (
+	// DangerousWorkflowScriptInjection represents a script injection.
+	DangerousWorkflowScriptInjection DangerousWorkflowType = "scriptInjection"
+	// DangerousWorkflowUntrustedCheckout represents an untrusted checkout.
+	DangerousWorkflowUntrustedCheckout DangerousWorkflowType = "untrustedCheckout"
+)
+
+// DangerousWorkflowData contains raw results
+// for dangerous workflow check.
+type DangerousWorkflowData struct {
+	Workflows []DangerousWorkflow
 }
 
-// ReleaseAsset represents a release asset.
-type ReleaseAsset struct {
-	Name string
-	URL  string
+// DangerousWorkflow represents a dangerous workflow.
+type DangerousWorkflow struct {
+	Job  *WorkflowJob
+	Type DangerousWorkflowType
+	File File
+}
+
+// WorkflowJob reprresents a workflow job.
+type WorkflowJob struct {
+	Name *string
+	ID   *string
 }

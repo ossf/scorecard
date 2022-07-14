@@ -13,12 +13,15 @@
 # limitations under the License.
 
 steps:
-- id: 'Get Git history'
-  name: 'gcr.io/cloud-builders/git'
-  args: ['fetch', '--unshallow', '--tags', 'origin', '$COMMIT_SHA']
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '.',
-    '-t', 'gcr.io/openssf/scorecard:stable',
-    '-t', 'gcr.io/openssf/scorecard:$TAG_NAME',
-    '-f', 'Dockerfile']
+  - id: Get Git history
+    name: gcr.io/cloud-builders/git
+    args: ['fetch', '--unshallow', '--tags', 'origin', '$COMMIT_SHA']
+  - id: Get tag commit
+    name: gcr.io/cloud-builders/git
+    args: ['checkout', '$TAG_NAME']
+  - name: gcr.io/cloud-builders/docker
+    args: [ 'build', '.',
+      '-t', 'gcr.io/openssf/scorecard:$COMMIT_SHA',
+      '-t', 'gcr.io/openssf/scorecard:$TAG_NAME',
+      '-f', 'Dockerfile']
 images: ['gcr.io/openssf/scorecard']

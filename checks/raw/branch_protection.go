@@ -15,37 +15,56 @@
 package raw
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
-	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 const master = "master"
 
-type branchMap map[string]*clients.BranchRef
+var commit = regexp.MustCompile("^[a-f0-9]{40}$")
+
+type branchSet struct {
+	exists map[string]bool
+	set    []clients.BranchRef
+}
+
+func (set *branchSet) add(branch *clients.BranchRef) bool {
+	if branch != nil &&
+		branch.Name != nil &&
+		*branch.Name != "" &&
+		!set.exists[*branch.Name] {
+		set.set = append(set.set, *branch)
+		set.exists[*branch.Name] = true
+		return true
+	}
+	return false
+}
+
+func (set branchSet) contains(branch string) bool {
+	_, contains := set.exists[branch]
+	return contains
+}
 
 // BranchProtection retrieves the raw data for the Branch-Protection check.
 func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, error) {
-	// Checks branch protection on both release and development branch.
-	// Get all branches. This will include information on whether they are protected.
-	branches, err := c.ListBranches()
+	branches := branchSet{
+		exists: make(map[string]bool),
+	}
+	// Add default branch.
+	defaultBranch, err := c.GetDefaultBranch()
 	if err != nil {
 		return checker.BranchProtectionsData{}, fmt.Errorf("%w", err)
 	}
-	branchesMap := getBranchMapFrom(branches)
+	branches.add(defaultBranch)
 
 	// Get release branches.
 	releases, err := c.ListReleases()
 	if err != nil {
 		return checker.BranchProtectionsData{}, fmt.Errorf("%w", err)
 	}
-
-	commit := regexp.MustCompile("^[a-f0-9]{40}$")
-	checkBranches := make(map[string]bool)
 	for _, release := range releases {
 		if release.TargetCommitish == "" {
 			// Log with a named error if target_commitish is nil.
@@ -57,98 +76,47 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 			continue
 		}
 
-		// Try to resolve the branch name.
-		b, err := branchesMap.getBranchByName(release.TargetCommitish)
+		if branches.contains(release.TargetCommitish) ||
+			branches.contains(branchRedirect(release.TargetCommitish)) {
+			continue
+		}
+
+		// Get the associated release branch.
+		branchRef, err := c.GetBranch(release.TargetCommitish)
 		if err != nil {
-			// If the commitish branch is still not found, fail.
-			return checker.BranchProtectionsData{}, err
+			return checker.BranchProtectionsData{},
+				fmt.Errorf("error during GetBranch(%s): %w", release.TargetCommitish, err)
+		}
+		if branches.add(branchRef) {
+			continue
 		}
 
-		// Branch is valid, add to list of branches to check.
-		checkBranches[*b.Name] = true
-	}
-
-	// Add default branch.
-	defaultBranch, err := c.GetDefaultBranch()
-	if err != nil {
-		return checker.BranchProtectionsData{}, fmt.Errorf("%w", err)
-	}
-	defaultBranchName := getBranchName(defaultBranch)
-	if defaultBranchName != "" {
-		checkBranches[defaultBranchName] = true
-	}
-
-	rawData := checker.BranchProtectionsData{}
-	// Check protections on all the branches.
-	for b := range checkBranches {
-		branch, err := branchesMap.getBranchByName(b)
+		// Couldn't find the branch check for redirects.
+		redirectBranch := branchRedirect(release.TargetCommitish)
+		if redirectBranch == "" {
+			continue
+		}
+		branchRef, err = c.GetBranch(redirectBranch)
 		if err != nil {
-			if errors.Is(err, errInternalBranchNotFound) {
-				continue
-			}
-			return checker.BranchProtectionsData{}, err
+			return checker.BranchProtectionsData{},
+				fmt.Errorf("error during GetBranch(%s) %w", redirectBranch, err)
 		}
-
-		// Protected field only indates that the branch matches
-		// one `Branch protection rules`. All settings may be disabled,
-		// so it does not provide any guarantees.
-		protected := !(branch.Protected != nil && !*branch.Protected)
-		bpData := checker.BranchProtectionData{Name: b}
-		bp := branch.BranchProtectionRule
-		bpData.Protected = &protected
-		bpData.RequiresLinearHistory = bp.RequireLinearHistory
-		bpData.AllowsForcePushes = bp.AllowForcePushes
-		bpData.AllowsDeletions = bp.AllowDeletions
-		bpData.EnforcesAdmins = bp.EnforceAdmins
-		bpData.RequiresCodeOwnerReviews = bp.RequiredPullRequestReviews.RequireCodeOwnerReviews
-		bpData.DismissesStaleReviews = bp.RequiredPullRequestReviews.DismissStaleReviews
-		bpData.RequiresUpToDateBranchBeforeMerging = bp.CheckRules.UpToDateBeforeMerge
-		if bp.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
-			v := int(*bp.RequiredPullRequestReviews.RequiredApprovingReviewCount)
-			bpData.RequiredApprovingReviewCount = &v
-		}
-		bpData.StatusCheckContexts = bp.CheckRules.Contexts
-
-		rawData.Branches = append(rawData.Branches, bpData)
+		branches.add(branchRef)
+		// Branch doesn't exist or was deleted. Continue.
 	}
 
 	// No error, return the data.
-	return rawData, nil
+	return checker.BranchProtectionsData{
+		Branches: branches.set,
+	}, nil
 }
 
-func (b branchMap) getBranchByName(name string) (*clients.BranchRef, error) {
-	val, exists := b[name]
-	if exists {
-		return val, nil
-	}
-
+func branchRedirect(name string) string {
 	// Ideally, we should check using repositories.GetBranch if there was a branch redirect.
 	// See https://github.com/google/go-github/issues/1895
 	// For now, handle the common master -> main redirect.
 	if name == master {
-		val, exists := b["main"]
-		if exists {
-			return val, nil
-		}
+		return "main"
 	}
-	return nil, sce.WithMessage(sce.ErrScorecardInternal,
-		fmt.Sprintf("could not find branch name %s: %v", name, errInternalBranchNotFound))
-}
-
-func getBranchMapFrom(branches []*clients.BranchRef) branchMap {
-	ret := make(branchMap)
-	for _, branch := range branches {
-		branchName := getBranchName(branch)
-		if branchName != "" {
-			ret[branchName] = branch
-		}
-	}
-	return ret
-}
-
-func getBranchName(branch *clients.BranchRef) string {
-	if branch == nil || branch.Name == nil {
-		return ""
-	}
-	return *branch.Name
+	return ""
 }

@@ -19,13 +19,16 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-var (
-	reviewPlatformGitHub = "GitHub"
-	reviewPlatformProw   = "Prow"
-	reviewPlatformGerrit = "Gerrit"
+const (
+	reviewPlatformGitHub      = "GitHub"
+	reviewPlatformProw        = "Prow"
+	reviewPlatformGerrit      = "Gerrit"
+	reviewPlatformPhabricator = "Phabricator"
+	reviewPlatformPiper       = "Piper"
 )
 
 // CodeReview applies the score policy for the Code-Review check.
@@ -42,10 +45,11 @@ func CodeReview(name string, dl checker.DetailLogger,
 	}
 
 	totalReviewed := map[string]int{
-		// The 3 platforms we support.
-		reviewPlatformGitHub: 0,
-		reviewPlatformProw:   0,
-		reviewPlatformGerrit: 0,
+		reviewPlatformGitHub:      0,
+		reviewPlatformProw:        0,
+		reviewPlatformGerrit:      0,
+		reviewPlatformPhabricator: 0,
+		reviewPlatformPiper:       0,
 	}
 
 	for i := range r.DefaultBranchCommits {
@@ -64,7 +68,8 @@ func CodeReview(name string, dl checker.DetailLogger,
 
 	if totalReviewed[reviewPlatformGitHub] == 0 &&
 		totalReviewed[reviewPlatformGerrit] == 0 &&
-		totalReviewed[reviewPlatformProw] == 0 {
+		totalReviewed[reviewPlatformProw] == 0 &&
+		totalReviewed[reviewPlatformPhabricator] == 0 && totalReviewed[reviewPlatformPiper] == 0 {
 		return checker.CreateMinScoreResult(name, "no reviews found")
 	}
 
@@ -101,24 +106,25 @@ func isBot(name string) bool {
 	return false
 }
 
-func getApprovedReviewSystem(c *checker.DefaultBranchCommit, dl checker.DetailLogger) string {
+func getApprovedReviewSystem(c *clients.Commit, dl checker.DetailLogger) string {
 	switch {
 	case isReviewedOnGitHub(c, dl):
 		return reviewPlatformGitHub
-
 	case isReviewedOnProw(c, dl):
 		return reviewPlatformProw
-
 	case isReviewedOnGerrit(c, dl):
 		return reviewPlatformGerrit
+	case isReviewedOnPhabricator(c, dl):
+		return reviewPlatformPhabricator
+	case isReviewedOnPiper(c, dl):
+		return reviewPlatformPiper
 	}
-
 	return ""
 }
 
-func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
-	mr := c.MergeRequest
-	if mr == nil || mr.MergedAt.IsZero() {
+func isReviewedOnGitHub(c *clients.Commit, dl checker.DetailLogger) bool {
+	mr := c.AssociatedMergeRequest
+	if mr.MergedAt.IsZero() {
 		return false
 	}
 
@@ -147,7 +153,7 @@ func isReviewedOnGitHub(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 	return false
 }
 
-func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
+func isReviewedOnProw(c *clients.Commit, dl checker.DetailLogger) bool {
 	if isBot(c.Committer.Login) {
 		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("skip commit %s from bot account: %s", c.SHA, c.Committer.Login),
@@ -155,12 +161,12 @@ func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) b
 		return true
 	}
 
-	if c.MergeRequest != nil && !c.MergeRequest.MergedAt.IsZero() {
-		for _, l := range c.MergeRequest.Labels {
-			if l == "lgtm" || l == "approved" {
+	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
+		for _, l := range c.AssociatedMergeRequest.Labels {
+			if l.Name == "lgtm" || l.Name == "approved" {
 				dl.Debug(&checker.LogMessage{
 					Text: fmt.Sprintf("commit %s review was through %s #%d approved merge request",
-						c.SHA, reviewPlatformProw, c.MergeRequest.Number),
+						c.SHA, reviewPlatformProw, c.AssociatedMergeRequest.Number),
 				})
 				return true
 			}
@@ -169,7 +175,7 @@ func isReviewedOnProw(c *checker.DefaultBranchCommit, dl checker.DetailLogger) b
 	return false
 }
 
-func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger) bool {
+func isReviewedOnGerrit(c *clients.Commit, dl checker.DetailLogger) bool {
 	if isBot(c.Committer.Login) {
 		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("skip commit %s from bot account: %s", c.SHA, c.Committer.Login),
@@ -177,11 +183,41 @@ func isReviewedOnGerrit(c *checker.DefaultBranchCommit, dl checker.DetailLogger)
 		return true
 	}
 
-	m := c.CommitMessage
+	m := c.Message
 	if strings.Contains(m, "\nReviewed-on: ") &&
 		strings.Contains(m, "\nReviewed-by: ") {
 		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, reviewPlatformGerrit),
+		})
+		return true
+	}
+	return false
+}
+
+func isReviewedOnPhabricator(c *clients.Commit, dl checker.DetailLogger) bool {
+	if isBot(c.Committer.Login) {
+		dl.Debug(&checker.LogMessage{
+			Text: fmt.Sprintf("skip commit %s from bot account: %s", c.SHA, c.Committer.Login),
+		})
+		return true
+	}
+
+	m := c.Message
+	if strings.Contains(m, "\nDifferential Revision: ") &&
+		strings.Contains(m, "\nReviewed By: ") {
+		dl.Debug(&checker.LogMessage{
+			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, reviewPlatformPhabricator),
+		})
+		return true
+	}
+	return false
+}
+
+func isReviewedOnPiper(c *clients.Commit, dl checker.DetailLogger) bool {
+	m := c.Message
+	if strings.Contains(m, "\nPiperOrigin-RevId: ") {
+		dl.Debug(&checker.LogMessage{
+			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, reviewPlatformPiper),
 		})
 		return true
 	}

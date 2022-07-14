@@ -28,6 +28,7 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 
 	// Apply the policy evaluation.
 	if r.Files == nil || len(r.Files) == 0 {
+		// If the file is null or has zero lengths, directly return as not detected.
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
 
@@ -40,10 +41,9 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 		if msg.Type == checker.FileTypeURL {
 			msg.Text = "security policy detected in org repo"
 		} else {
-			msg.Text = "security policy detected"
+			msg.Text = "security policy detected in current repo"
 		}
 		dl.Info(&msg)
 	}
-
 	return checker.CreateMaxScoreResult(name, "security policy file detected")
 }

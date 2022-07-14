@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -42,7 +43,7 @@ func TestVulnerabilities(t *testing.T) {
 			args: args{
 				name: "vulnerabilities_test.go",
 				r: &checker.VulnerabilitiesData{
-					Vulnerabilities: []checker.Vulnerability{},
+					Vulnerabilities: []clients.Vulnerability{},
 				},
 			},
 			want: checker.CheckResult{
@@ -54,7 +55,7 @@ func TestVulnerabilities(t *testing.T) {
 			args: args{
 				name: "vulnerabilities_test.go",
 				r: &checker.VulnerabilitiesData{
-					Vulnerabilities: []checker.Vulnerability{
+					Vulnerabilities: []clients.Vulnerability{
 						{
 							ID: "CVE-2019-1234",
 						},

@@ -63,6 +63,21 @@ func (mr *MockRepoClientMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockRepoClient)(nil).Close))
 }
 
+// GetBranch mocks base method.
+func (m *MockRepoClient) GetBranch(branch string) (*clients.BranchRef, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBranch", branch)
+	ret0, _ := ret[0].(*clients.BranchRef)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBranch indicates an expected call of GetBranch.
+func (mr *MockRepoClientMockRecorder) GetBranch(branch interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBranch", reflect.TypeOf((*MockRepoClient)(nil).GetBranch), branch)
+}
+
 // GetDefaultBranch mocks base method.
 func (m *MockRepoClient) GetDefaultBranch() (*clients.BranchRef, error) {
 	m.ctrl.T.Helper()
@@ -122,21 +137,6 @@ func (mr *MockRepoClientMockRecorder) IsArchived() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsArchived", reflect.TypeOf((*MockRepoClient)(nil).IsArchived))
 }
 
-// ListBranches mocks base method.
-func (m *MockRepoClient) ListBranches() ([]*clients.BranchRef, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListBranches")
-	ret0, _ := ret[0].([]*clients.BranchRef)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListBranches indicates an expected call of ListBranches.
-func (mr *MockRepoClientMockRecorder) ListBranches() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBranches", reflect.TypeOf((*MockRepoClient)(nil).ListBranches))
-}
-
 // ListCheckRunsForRef mocks base method.
 func (m *MockRepoClient) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	m.ctrl.T.Helper()
@@ -168,10 +168,10 @@ func (mr *MockRepoClientMockRecorder) ListCommits() *gomock.Call {
 }
 
 // ListContributors mocks base method.
-func (m *MockRepoClient) ListContributors() ([]clients.Contributor, error) {
+func (m *MockRepoClient) ListContributors() ([]clients.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListContributors")
-	ret0, _ := ret[0].([]clients.Contributor)
+	ret0, _ := ret[0].([]clients.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -258,10 +258,10 @@ func (mr *MockRepoClientMockRecorder) ListSuccessfulWorkflowRuns(filename interf
 }
 
 // ListWebhooks mocks base method.
-func (m *MockRepoClient) ListWebhooks() ([]*clients.Webhook, error) {
+func (m *MockRepoClient) ListWebhooks() ([]clients.Webhook, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListWebhooks")
-	ret0, _ := ret[0].([]*clients.Webhook)
+	ret0, _ := ret[0].([]clients.Webhook)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -270,6 +270,20 @@ func (m *MockRepoClient) ListWebhooks() ([]*clients.Webhook, error) {
 func (mr *MockRepoClientMockRecorder) ListWebhooks() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWebhooks", reflect.TypeOf((*MockRepoClient)(nil).ListWebhooks))
+}
+
+func (m *MockRepoClient) ListProgrammingLanguages() ([]clients.Language, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListProgrammingLanguages")
+	ret0, _ := ret[0].([]clients.Language)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListProgrammingLanguages indicates an expected call of ListProgrammingLanguages.
+func (mr *MockRepoClientMockRecorder) ListProgrammingLanguages() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProgrammingLanguages", reflect.TypeOf((*MockRepoClient)(nil).ListProgrammingLanguages))
 }
 
 // Search mocks base method.

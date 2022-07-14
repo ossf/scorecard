@@ -28,18 +28,6 @@ type (
 )
 
 const (
-	// MaxResultConfidence implies full certainty about a check result.
-	// TODO(#1393): remove after deprecation.
-	MaxResultConfidence = 10
-	// HalfResultConfidence signifies uncertainty about a check's score.
-	// TODO(#1393): remove after deprecation.
-	HalfResultConfidence = 5
-	// MinResultConfidence signifies no confidence in the check result.
-	// TODO(#1393): remove after deprecation.
-	MinResultConfidence = 0
-	// TODO(#1393): remove after deprecation.
-	migrationThresholdPassValue = 8
-
 	// MaxResultScore is the best score that can be given by a check.
 	MaxResultScore = 10
 	// MinResultScore is the worst score that can be given by a check.
@@ -78,20 +66,24 @@ const (
 // CheckResult captures result from a check run.
 // nolint:govet
 type CheckResult struct {
-	// TODO(#1393): Remove old structure after deprecation.
-	Error      error `json:"-"`
-	Name       string
-	Details    []string
-	Confidence int
-	Pass       bool
+	Name    string
+	Version int
+	Error   error
+	Details []CheckDetail
+	Score   int
+	Reason  string
+}
 
-	// UPGRADEv2: New structure. Omitting unchanged Name field
-	// for simplicity.
-	Version  int           `json:"-"` // Default value of 0 indicates old structure.
-	Error2   error         `json:"-"` // Runtime error indicate a filure to run the check.
-	Details2 []CheckDetail `json:"-"` // Details of tests and sub-checks
-	Score    int           `json:"-"` // {[-1,0...10], -1 = Inconclusive}
-	Reason   string        `json:"-"` // A sentence describing the check result (score, etc)
+// Remediation represents a remediation.
+type Remediation struct {
+	// Code snippet for humans.
+	Snippet string
+	// Diff for machines.
+	Diff string
+	// Help text for humans.
+	HelpText string
+	// Help text in markdown format for humans.
+	HelpMarkdown string
 }
 
 // CheckDetail contains information for each detail.
@@ -104,12 +96,13 @@ type CheckDetail struct {
 // This allows updating the definition easily.
 // nolint:govet
 type LogMessage struct {
-	Text      string   // A short string explaining why the detail was recorded/logged.
-	Path      string   // Fullpath to the file.
-	Type      FileType // Type of file.
-	Offset    uint     // Offset in the file of Path (line for source/text files).
-	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
-	Snippet   string   // Snippet of code
+	Text        string       // A short string explaining why the detail was recorded/logged.
+	Path        string       // Fullpath to the file.
+	Type        FileType     // Type of file.
+	Offset      uint         // Offset in the file of Path (line for source/text files).
+	EndOffset   uint         // End of offset in the file, e.g. if the command spans multiple lines.
+	Snippet     string       // Snippet of code
+	Remediation *Remediation // Remediation information, if any.
 }
 
 // CreateProportionalScore creates a proportional score.
@@ -154,19 +147,12 @@ func NormalizeReason(reason string, score int) string {
 // the check runs without runtime errors and we want to assign a
 // specific score.
 func CreateResultWithScore(name, reason string, score int) CheckResult {
-	pass := true
-	if score < migrationThresholdPassValue {
-		pass = false
-	}
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:      nil,
-		Confidence: MaxResultScore,
-		Pass:       pass,
 		// New structure.
 		Version: 2,
-		Error2:  nil,
+		Error:   nil,
 		Score:   score,
 		Reason:  reason,
 	}
@@ -178,20 +164,13 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 // multiple tests and we want to assign a score proportional
 // the the number of tests that succeeded.
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
-	pass := true
 	score := CreateProportionalScore(b, t)
-	if score < migrationThresholdPassValue {
-		pass = false
-	}
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:      nil,
-		Confidence: MaxResultConfidence,
-		Pass:       pass,
 		// New structure.
 		Version: 2,
-		Error2:  nil,
+		Error:   nil,
 		Score:   score,
 		Reason:  NormalizeReason(reason, score),
 	}
@@ -218,8 +197,6 @@ func CreateInconclusiveResult(name, reason string) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Confidence: 0,
-		Pass:       false,
 		// New structure.
 		Version: 2,
 		Score:   InconclusiveResultScore,
@@ -232,12 +209,9 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	return CheckResult{
 		Name: name,
 		// Old structure.
-		Error:      e,
-		Confidence: 0,
-		Pass:       false,
 		// New structure.
 		Version: 2,
-		Error2:  e,
+		Error:   e,
 		Score:   InconclusiveResultScore,
 		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
 	}

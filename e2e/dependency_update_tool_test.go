@@ -54,10 +54,6 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 			}
 
 			result := checks.DependencyUpdateTool(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dependabot", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -84,10 +80,6 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.DependencyUpdateTool(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "renovabot", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())

@@ -20,5 +20,5 @@ steps:
   args: ['build', '.',
   '-t', 'gcr.io/openssf/scorecard-batch-worker:$COMMIT_SHA',
   '-t', 'gcr.io/openssf/scorecard-batch-worker:latest',
-  '-f', 'cron/worker/Dockerfile']
+  '-f', 'cron/internal/worker/Dockerfile']
 images: ['gcr.io/openssf/scorecard-batch-worker']

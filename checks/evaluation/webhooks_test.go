@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -61,7 +62,7 @@ func TestWebhooks(t *testing.T) {
 				name: "1 webhook with secret",
 				dl:   &scut.TestDetailLogger{},
 				r: &checker.WebhooksData{
-					Webhook: []checker.WebhookData{
+					Webhooks: []clients.Webhook{
 						{
 							Path:           "https://github.com/owner/repo/settings/hooks/1234",
 							ID:             1234,
@@ -80,7 +81,7 @@ func TestWebhooks(t *testing.T) {
 				name: "1 webhook with no secret",
 				dl:   &scut.TestDetailLogger{},
 				r: &checker.WebhooksData{
-					Webhook: []checker.WebhookData{
+					Webhooks: []clients.Webhook{
 						{
 							Path:           "https://github.com/owner/repo/settings/hooks/1234",
 							ID:             1234,
@@ -99,7 +100,7 @@ func TestWebhooks(t *testing.T) {
 				name: "many webhooks with no secret and with secret",
 				dl:   &scut.TestDetailLogger{},
 				r: &checker.WebhooksData{
-					Webhook: []checker.WebhookData{
+					Webhooks: []clients.Webhook{
 						{
 							Path:           "https://github.com/owner/repo/settings/hooks/1234",
 							ID:             1234,
@@ -139,8 +140,8 @@ func TestWebhooks(t *testing.T) {
 			t.Parallel()
 			got := Webhooks(tt.args.name, tt.args.dl, tt.args.r)
 			if tt.wantErr {
-				if got.Error2 == nil {
-					t.Errorf("Webhooks() error = %v, wantErr %v", got.Error2, tt.wantErr)
+				if got.Error == nil {
+					t.Errorf("Webhooks() error = %v, wantErr %v", got.Error, tt.wantErr)
 				}
 			} else {
 				if got.Score != tt.want.Score {

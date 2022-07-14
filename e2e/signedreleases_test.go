@@ -50,10 +50,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSignedReleases, func() {
 				NumberOfDebug: 5,
 			}
 			result := checks.SignedReleases(&req)
-			// UPGRADEv2: to remove.
-			// Old version.
-			Expect(result.Error).Should(BeNil())
-			Expect(result.Pass).Should(BeTrue())
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "verified release", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())

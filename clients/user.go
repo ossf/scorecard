@@ -16,29 +16,63 @@ package clients
 
 // User represents a Git user.
 type User struct {
-	Login string
+	Login            string
+	Companies        []string
+	Organizations    []User
+	NumContributions int
 }
 
 // RepoAssociation is how a user is associated with a repository.
-type RepoAssociation int32
+type RepoAssociation uint32
 
-// Values taken from https://docs.github.com/en/graphql/reference/enums#commentauthorassociation. Additional
-// values may be added in the future for non-Github projects.
+// Values taken from https://docs.github.com/en/graphql/reference/enums#commentauthorassociation.
+// Additional values may be added in the future for non-Github projects.
+// NOTE: Values are present in increasing order of privilege. If adding new values
+// maintain the order of privilege to ensure Gte() functionality is preserved.
 const (
-	// Collaborator: Author has been invited to collaborate on the repository.
-	RepoAssociationCollaborator RepoAssociation = iota
-	// Contributor: Author has been a contributor to the repository.
-	RepoAssociationContributor
-	// FirstTimer: Author has previously committed to the repository.
+	// Mannequin: Author is a placeholder for an unclaimed user.
+	RepoAssociationMannequin RepoAssociation = iota
+	// None: Author has no association with the repository.
+	RepoAssociationNone
+	// FirstTimer: Author has not previously committed to the VCS.
 	RepoAssociationFirstTimer
 	// FirstTimeContributor: Author has not previously committed to the repository.
 	RepoAssociationFirstTimeContributor
-	// Mannequin: Author is a placeholder for an unclaimed user.
-	RepoAssociationMannequin
+	// Contributor: Author has been a contributor to the repository.
+	RepoAssociationContributor
+	// Collaborator: Author has been invited to collaborate on the repository.
+	RepoAssociationCollaborator
 	// Member: Author is a member of the organization that owns the repository.
 	RepoAssociationMember
-	// None: Author has no association with the repository.
-	RepoAssociationNone
 	// Owner: Author is the owner of the repository.
 	RepoAssociationOwner
 )
+
+// Gte is >= comparator for RepoAssociation enum.
+func (r RepoAssociation) Gte(val RepoAssociation) bool {
+	return r >= val
+}
+
+// String returns an string value for RepoAssociation enum.
+func (r RepoAssociation) String() string {
+	switch r {
+	case RepoAssociationMannequin:
+		return "unknown"
+	case RepoAssociationNone:
+		return "none"
+	case RepoAssociationFirstTimer:
+		return "first-timer"
+	case RepoAssociationFirstTimeContributor:
+		return "first-time-contributor"
+	case RepoAssociationContributor:
+		return "contributor"
+	case RepoAssociationCollaborator:
+		return "collaborator"
+	case RepoAssociationMember:
+		return "member"
+	case RepoAssociationOwner:
+		return "owner"
+	default:
+		return ""
+	}
+}

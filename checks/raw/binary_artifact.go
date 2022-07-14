@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
@@ -64,6 +65,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 		"elf":    true,
 		"o":      true,
 		"so":     true,
+		"macho":  true,
 		"iso":    true,
 		"class":  true,
 		"jar":    true,
@@ -92,8 +94,17 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	}
 
 	exists1 := binaryFileTypes[t.Extension]
+	if exists1 {
+		*pfiles = append(*pfiles, checker.File{
+			Path:   path,
+			Type:   checker.FileTypeBinary,
+			Offset: checker.OffsetDefault,
+		})
+		return true, nil
+	}
+
 	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
-	if exists1 || exists2 {
+	if !isText(content) && exists2 {
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
 			Type:   checker.FileTypeBinary,
@@ -102,4 +113,17 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	}
 
 	return true, nil
+}
+
+// TODO: refine this function.
+func isText(content []byte) bool {
+	for _, c := range string(content) {
+		if c == '\t' || c == '\n' || c == '\r' {
+			continue
+		}
+		if !unicode.IsPrint(c) {
+			return false
+		}
+	}
+	return true
 }

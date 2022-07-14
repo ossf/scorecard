@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -53,7 +54,7 @@ func TestCodeReview(t *testing.T) {
 				NumberOfWarn: 2,
 			},
 			rawData: &checker.CodeReviewData{
-				DefaultBranchCommits: []checker.DefaultBranchCommit{
+				DefaultBranchCommits: []clients.Commit{
 					{
 						SHA: "1",
 					},
