@@ -435,7 +435,7 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 
 func codeownersBranchProtection(branch *clients.BranchRef, dl checker.DetailLogger) (int, int) {
 	score := 0
-	max := 0
+	max := 1
 
 	log := branch.Protected != nil && *branch.Protected
 
