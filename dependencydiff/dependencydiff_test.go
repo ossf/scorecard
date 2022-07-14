@@ -50,7 +50,7 @@ func TestGetDependencyDiffResults(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := GetDependencyDiffResults(tt.owner, tt.repo, tt.base, tt.head)
+			got, err := GetDependencyDiffResults(tt.owner, tt.repo, tt.base, tt.head, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetDependencyDiffResults() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -93,7 +93,7 @@ func TestFetchDependencyDiffData(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := fetchRawDependencyDiffData(tt.ctx, tt.owner, tt.repo, tt.base, tt.head)
+			got, err := fetchRawDependencyDiffData(tt.ctx, tt.owner, tt.repo, tt.base, tt.head, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FetchDependencyDiffData() error = %v, wantErr %v", err, tt.wantErr)
 				return

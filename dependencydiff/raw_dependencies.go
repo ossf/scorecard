@@ -34,12 +34,12 @@ import (
 
 // checksToRun specifies a list of checks to run on every dependency, which is a subset of all the checks.
 // This helps us reduce the GH token usage and scale the large time consumption of running all the checks.
-var checksToRun = checker.CheckNameToFnMap{
-	checks.CheckMaintained:     checks.AllChecks[checks.CheckMaintained],
-	checks.CheckSecurityPolicy: checks.AllChecks[checks.CheckSecurityPolicy],
-	checks.CheckLicense:        checks.AllChecks[checks.CheckLicense],
-	checks.CheckCodeReview:     checks.AllChecks[checks.CheckCodeReview],
-	checks.CheckSAST:           checks.AllChecks[checks.CheckSAST],
+var defaultChecksToRun = []string{
+	checks.CheckMaintained,
+	checks.CheckSecurityPolicy,
+	checks.CheckLicense,
+	checks.CheckCodeReview,
+	checks.CheckSAST,
 }
 
 // Dependency is a raw dependency fetched from the GitHub Dependency Review API.
@@ -69,7 +69,9 @@ type dependency struct {
 // fetchRawDependencyDiffData fetches the dependency-diffs between the two code commits
 // using the GitHub Dependency Review API, and returns a slice of Dependency.
 func fetchRawDependencyDiffData(
-	ctx context.Context, owner, repo, base, head string,
+	ctx context.Context,
+	owner, repo, base, head string,
+	checkNamesToRun []string,
 ) ([]pkg.DependencyCheckResult, error) {
 	ghrt := roundtripper.NewTransport(ctx, log.NewLogger(log.InfoLevel))
 	ghClient := github.NewClient(
@@ -97,7 +99,19 @@ func fetchRawDependencyDiffData(
 		return nil, fmt.Errorf("error creating the github repo: %w", err)
 	}
 
-	// Initialize the client(s) corresponding to the checks to run above.
+	// Initialize the checks to run from the caller's input.
+	checksToRun := checker.CheckNameToFnMap{}
+	if checkNamesToRun == nil && len(checkNamesToRun) == 0 {
+		// If no check names are provided, we run the default checks for the caller.
+		for _, cn := range defaultChecksToRun {
+			checksToRun[cn] = checks.AllChecks[cn]
+		}
+	} else {
+		for _, cn := range checkNamesToRun {
+			checksToRun[cn] = checks.AllChecks[cn]
+		}
+	}
+	// Initialize the client(s) corresponding to the checks to run.
 	ghRepoClient := githubrepo.CreateGithubRepoClient(ctx, nil)
 
 	results := []pkg.DependencyCheckResult{}

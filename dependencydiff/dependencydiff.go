@@ -23,8 +23,11 @@ import (
 // GetDependencyDiffResults gets dependency changes between two given code commits BASE and HEAD
 // along with the Scorecard check results of the dependencies, and returns a slice of DependencyCheckResult.
 // TO use this API, an access token must be set following https://github.com/ossf/scorecard#authentication.
-func GetDependencyDiffResults(ownerName, repoName, baseSHA, headSHA string) ([]pkg.DependencyCheckResult, error) {
+func GetDependencyDiffResults(
+	ownerName, repoName, baseSHA, headSHA string,
+	scorecardChecksNames []string,
+) ([]pkg.DependencyCheckResult, error) {
 	ctx := context.Background()
 	// Fetch dependency diffs using the GitHub Dependency Review API.
-	return fetchRawDependencyDiffData(ctx, ownerName, repoName, baseSHA, headSHA)
+	return fetchRawDependencyDiffData(ctx, ownerName, repoName, baseSHA, headSHA, scorecardChecksNames)
 }
