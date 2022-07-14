@@ -32,8 +32,9 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-// checksToRun specifies a list of checks to run on every dependency, which is a subset of all the checks.
+// defaultChecksToRun specifies a list of checks to run on every dependency, which is a subset of all the checks.
 // This helps us reduce the GH token usage and scale the large time consumption of running all the checks.
+// If the caller doesn't specify any checks, this one will be used.
 var defaultChecksToRun = []string{
 	checks.CheckMaintained,
 	checks.CheckSecurityPolicy,
