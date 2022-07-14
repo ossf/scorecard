@@ -17,6 +17,7 @@ package dependencydiff
 import (
 	"context"
 
+	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
@@ -24,9 +25,9 @@ import (
 // along with the Scorecard check results of the dependencies, and returns a slice of DependencyCheckResult.
 // TO use this API, an access token must be set following https://github.com/ossf/scorecard#authentication.
 func GetDependencyDiffResults(
-	ownerName, repoName, baseSHA, headSHA string, scorecardChecksNames []string,
+	ctx context.Context,
+	ownerName, repoName, baseSHA, headSHA string, scorecardChecksNames []string, logger *log.Logger,
 ) ([]pkg.DependencyCheckResult, error) {
-	ctx := context.Background()
-	// Fetch dependency diffs using the GitHub Dependency Review API.
-	return fetchRawDependencyDiffData(ctx, ownerName, repoName, baseSHA, headSHA, scorecardChecksNames)
+	// Fetch dependency diffs and get the dependency check results.
+	return fetchRawDependencyDiffData(ctx, ownerName, repoName, baseSHA, headSHA, scorecardChecksNames, logger)
 }

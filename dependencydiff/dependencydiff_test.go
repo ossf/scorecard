@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/clients"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 // TestGetDependencyDiffResults is a test function for GetDependencyDiffResults.
@@ -27,78 +27,39 @@ func TestGetDependencyDiffResults(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name      string
-		owner     string
-		repo      string
-		base      string
-		head      string
-		wantEmpty bool
-		wantErr   bool
+		name             string
+		owner            string
+		repo             string
+		base             string
+		head             string
+		ctx              context.Context
+		logger           *log.Logger
+		wantEmptyResults bool
+		wantErr          bool
 	}{
 		{
-			name:      "error response",
-			owner:     "no_such_owner",
-			repo:      "repo_not_exist",
-			base:      "",
-			head:      clients.HeadSHA,
-			wantEmpty: true,
-			wantErr:   true,
+			name:             "error response",
+			owner:            "no_such_owner",
+			repo:             "repo_not_exist",
+			base:             "",
+			head:             clients.HeadSHA,
+			ctx:              context.Background(),
+			logger:           log.NewLogger(log.InfoLevel),
+			wantEmptyResults: true,
+			wantErr:          true,
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := GetDependencyDiffResults(tt.owner, tt.repo, tt.base, tt.head, nil)
+			got, err := GetDependencyDiffResults(tt.ctx, tt.owner, tt.repo, tt.base, tt.head, nil, tt.logger)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetDependencyDiffResults() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetDependencyDiffResults() error = [%v], errWanted [%v]", err, tt.wantErr)
 				return
 			}
-			if (len(got) == 0) != tt.wantEmpty {
-				t.Errorf("GetDependencyDiffResults() = %v, want empty %v for %v", got, tt.wantEmpty, tt.name)
-			}
-		})
-	}
-}
-
-// TestTestFetchDependencyDiffData is a test function for TestFetchDependencyDiffData.
-func TestFetchDependencyDiffData(t *testing.T) {
-	t.Parallel()
-	//nolint
-	tests := []struct {
-		name      string
-		ctx       context.Context
-		owner     string
-		repo      string
-		base      string
-		head      string
-		wantEmpty bool
-		wantErr   bool
-
-		expected scut.TestReturn
-	}{
-		{
-			name:      "error reponse",
-			ctx:       context.Background(),
-			owner:     "no_such_owner",
-			repo:      "repo_not_exist",
-			base:      "",
-			head:      clients.HeadSHA,
-			wantEmpty: true,
-			wantErr:   true,
-		},
-	} // End of test cases.
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			got, err := fetchRawDependencyDiffData(tt.ctx, tt.owner, tt.repo, tt.base, tt.head, nil)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("FetchDependencyDiffData() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if (len(got) == 0) != tt.wantEmpty {
-				t.Errorf("FetchDependencyDiffData() = %v, want empty %v for %v", got, tt.wantEmpty, tt.name)
+			if (len(got) == 0) != tt.wantEmptyResults {
+				t.Errorf("GetDependencyDiffResults() = %v, want empty [%v] for [%v]", got, tt.wantEmptyResults, tt.name)
 			}
 		})
 	}
