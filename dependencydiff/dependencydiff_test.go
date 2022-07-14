@@ -26,7 +26,6 @@ import (
 func TestGetDependencyDiffResults(t *testing.T) {
 	t.Parallel()
 	//nolint
-	//nolint
 	tests := []struct {
 		name      string
 		owner     string

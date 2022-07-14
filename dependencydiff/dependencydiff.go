@@ -24,8 +24,7 @@ import (
 // along with the Scorecard check results of the dependencies, and returns a slice of DependencyCheckResult.
 // TO use this API, an access token must be set following https://github.com/ossf/scorecard#authentication.
 func GetDependencyDiffResults(
-	ownerName, repoName, baseSHA, headSHA string,
-	scorecardChecksNames []string,
+	ownerName, repoName, baseSHA, headSHA string, scorecardChecksNames []string,
 ) ([]pkg.DependencyCheckResult, error) {
 	ctx := context.Background()
 	// Fetch dependency diffs using the GitHub Dependency Review API.
