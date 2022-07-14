@@ -65,7 +65,7 @@ certain workflows for branches, such as requiring review or passing certain
 status checks before acceptance into a main branch, or preventing rewriting of
 public history.
 
-Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmin`, and `StrictStatusCheck`. If
+Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmin`, `StrictStatusCheck` and `RequireCodeownerReview`. If
 the provided token does not have admin access, the check will query the branch
 settings accessible to non-admins and provide results based only on these settings.
 Even so, we recommend using a non-admin token, which provides a thorough enough
@@ -116,6 +116,9 @@ Tier 4 Requirements (9/10 points):
 
 Tier 5 Requirements (10/10 points):
   - For administrators: Dismiss stale reviews
+
+Extra Credit:
+  - Require CODEOWNER review
  
 
 **Remediation steps**
