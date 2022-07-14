@@ -47,7 +47,7 @@ func GetDependencyDiffResults(
 	checksToRun := initScorecardChecks(scorecardChecksNames)
 	// Initialize the repo and client(s) corresponding to the checks to run.
 	ghRepo, ghRepoClient, ossFuzzClient, vulnsClient, ciiClient, err := initRepoAndClient(
-		ownerName, repoName, ctx, logger, checksToRun,
+		ctx, ownerName, repoName, logger, checksToRun,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing repo and client: %w", err)
@@ -99,7 +99,7 @@ func GetDependencyDiffResults(
 	return results, nil
 }
 
-func initRepoAndClient(owner, repo string, ctx context.Context, logger *log.Logger, c checker.CheckNameToFnMap) (
+func initRepoAndClient(ctx context.Context, owner, repo string, logger *log.Logger, c checker.CheckNameToFnMap) (
 	clients.Repo, clients.RepoClient, clients.RepoClient,
 	clients.VulnerabilitiesClient, clients.CIIBestPracticesClient, error) {
 	// Create the repo and the corresponding client if its check needs to run.

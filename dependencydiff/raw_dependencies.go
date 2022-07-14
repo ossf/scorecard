@@ -57,7 +57,6 @@ type dependency struct {
 func fetchRawDependencyDiffData(
 	ctx context.Context,
 	owner, repo, base, head string,
-	checkNamesToRun []string,
 	logger *log.Logger) ([]dependency, error) {
 
 	ghrt := roundtripper.NewTransport(ctx, logger)
