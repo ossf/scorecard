@@ -22,10 +22,6 @@ import (
 
 	"github.com/google/go-github/v38/github"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
@@ -62,7 +58,7 @@ func fetchRawDependencyDiffData(
 	ctx context.Context,
 	owner, repo, base, head string,
 	checkNamesToRun []string,
-	logger *log.Logger) ([]pkg.DependencyCheckResult, error) {
+	logger *log.Logger) ([]dependency, error) {
 
 	ghrt := roundtripper.NewTransport(ctx, logger)
 	ghClient := github.NewClient(
@@ -81,86 +77,7 @@ func fetchRawDependencyDiffData(
 	deps := []dependency{}
 	_, err = ghClient.Do(ctx, req, &deps)
 	if err != nil {
-		return nil, fmt.Errorf("error receiving the http reponse: %w", err)
+		return nil, fmt.Errorf("error receiving the dependency-diff reponse: %w", err)
 	}
-	// Initialize the checks to run from the caller's input.
-	checksToRun := checker.CheckNameToFnMap{}
-	if checkNamesToRun == nil && len(checkNamesToRun) == 0 {
-		// If no check names are provided, we run all the checks for the caller.
-		checksToRun = checks.AllChecks
-	} else {
-		for _, cn := range checkNamesToRun {
-			checksToRun[cn] = checks.AllChecks[cn]
-		}
-	}
-	// Initialize the repo and client(s) corresponding to the checks to run.
-	ghRepo, err := githubrepo.MakeGithubRepo(path.Join(owner, repo))
-	if err != nil {
-		return nil, fmt.Errorf("error creating the github repo: %w", err)
-	}
-	ghRepoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-	// Initialize these three clients as nil at first.
-	var ossFuzzClient clients.RepoClient
-	var vulnsClient clients.VulnerabilitiesClient
-	var ciiClient clients.CIIBestPracticesClient
-
-	// Create the corresponding client if the check needs to run.
-	for cn := range checksToRun {
-		switch cn {
-		case checks.CheckFuzzing:
-			ossFuzzClient, err = githubrepo.CreateOssFuzzRepoClient(ctx, logger)
-			if err != nil {
-				return nil, fmt.Errorf("error initializing the oss fuzz repo client: %w", err)
-			}
-		case checks.CheckVulnerabilities:
-			vulnsClient = clients.DefaultVulnerabilitiesClient()
-		case checks.CheckCIIBestPractices:
-			ciiClient = clients.DefaultCIIBestPracticesClient()
-		}
-	}
-	results := []pkg.DependencyCheckResult{}
-	for _, d := range deps {
-		depCheckResult := pkg.DependencyCheckResult{
-			PackageURL:       d.PackageURL,
-			SourceRepository: d.SourceRepository,
-			ChangeType:       d.ChangeType,
-			ManifestPath:     d.ManifestPath,
-			Ecosystem:        d.Ecosystem,
-			Version:          d.Version,
-			Name:             d.Name,
-		}
-		// For now we skip those without source repo urls.
-		// TODO: use the BigQuery dataset to supplement null source repo URLs
-		// so that we can fetch the Scorecard results for them.
-		if d.SourceRepository != nil && *d.SourceRepository != "" {
-			if d.ChangeType != nil && *d.ChangeType != pkg.Removed {
-				// Run scorecard on those added/updated dependencies with valid srcRepo URLs and fetch the result.
-				// TODO: use the Scorecare REST API to retrieve the Scorecard result statelessly.
-				scorecardResult, err := pkg.RunScorecards(
-					ctx,
-					ghRepo,
-					// TODO: In future versions, ideally, this should be
-					// the commitSHA corresponding to d.Version instead of HEAD.
-					clients.HeadSHA,
-					checksToRun,
-					ghRepoClient,
-					ossFuzzClient,
-					ciiClient,
-					vulnsClient,
-				)
-				// If the run fails, we leave the current dependency scorecard result empty
-				// rather than letting the entire API return nil since we still expect results for other dependencies.
-				if err != nil {
-					logger.Error(
-						fmt.Errorf("error running scorecard checks: %w", err),
-						fmt.Sprintf("The scorecard checks running for dependency %s failed.", d.Name),
-					)
-				} else { // Otherwise, we record the scorecard check results for this dependency.
-					depCheckResult.ScorecardResults = &scorecardResult
-				}
-			}
-		}
-		results = append(results, depCheckResult)
-	}
-	return results, nil
+	return deps, nil
 }
