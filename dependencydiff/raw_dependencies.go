@@ -68,7 +68,7 @@ type dependency struct {
 }
 
 // fetchRawDependencyDiffData fetches the dependency-diffs between the two code commits
-// using the GitHub Dependency Review API, and returns a slice of Dependency.
+// using the GitHub Dependency Review API, and returns a slice of DependencyCheckResult.
 func fetchRawDependencyDiffData(
 	ctx context.Context, owner, repo, base, head string, checkNamesToRun []string,
 ) ([]pkg.DependencyCheckResult, error) {
@@ -105,7 +105,6 @@ func fetchRawDependencyDiffData(
 		// If no check names are provided, we run the default checks for the caller.
 		for _, cn := range defaultChecksToRun {
 			checksToRun[cn] = checks.AllChecks[cn]
-			// Use the check name to decide if we need to create the three special clients below.
 		}
 	} else {
 		for _, cn := range checkNamesToRun {
