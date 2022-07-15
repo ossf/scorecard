@@ -49,7 +49,7 @@ func Test_fetchRawDependencyDiffData(t *testing.T) {
 			wantErr:   true,
 		},
 		{
-			name: "normal response",
+			name: "normal response with non-empty results",
 			dCtx: dependencydiffContext{
 				logger:    log.NewLogger(log.InfoLevel),
 				ctx:       context.Background(),
