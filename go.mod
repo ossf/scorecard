@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/bigquery v1.34.1
+	cloud.google.com/go/bigquery v1.35.0
 	cloud.google.com/go/monitoring v1.4.0 // indirect
 	cloud.google.com/go/pubsub v1.23.1
 	cloud.google.com/go/trace v1.2.0 // indirect
@@ -24,7 +24,7 @@ require (
 	github.com/google/go-containerregistry v0.9.0
 	github.com/google/go-github/v38 v38.1.0
 	github.com/h2non/filetype v1.1.3
-	github.com/jszwec/csvutil v1.7.0
+	github.com/jszwec/csvutil v1.7.1
 	github.com/moby/buildkit v0.10.3
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.19.0
@@ -37,7 +37,7 @@ require (
 	gocloud.dev v0.25.0
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.11
-	google.golang.org/genproto v0.0.0-20220622131801-db39fadba55f
+	google.golang.org/genproto v0.0.0-20220628213854-d9e0b6570c03
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -56,7 +56,7 @@ require (
 	cloud.google.com/go v0.102.1 // indirect
 	cloud.google.com/go/compute v1.7.0 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
-	cloud.google.com/go/storage v1.22.1 // indirect
+	cloud.google.com/go/storage v1.23.0 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
@@ -107,12 +107,12 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29 // indirect
-	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 // indirect
+	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
 	golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2 // indirect
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
-	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
+	golang.org/x/sys v0.0.0-20220624220833-87e55d714810 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
-	google.golang.org/api v0.85.0 // indirect
+	google.golang.org/api v0.86.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
