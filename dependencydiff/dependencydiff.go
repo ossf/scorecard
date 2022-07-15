@@ -19,12 +19,12 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v4/policy"
 )
 
 // Depdiff is the exported name for dependency-diff.
@@ -72,7 +72,10 @@ func GetDependencyDiffResults(
 	if err != nil {
 		return nil, fmt.Errorf("error in initRepoAndClientByChecks: %w", err)
 	}
-	getScorecardCheckResults(&dCtx)
+	err = getScorecardCheckResults(&dCtx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting scorecard check results")
+	}
 	return dCtx.results, nil
 }
 
@@ -103,22 +106,12 @@ func initRepoAndClientByChecks(dCtx *dependencydiffContext) error {
 	return nil
 }
 
-func initScorecardChecks(checkNames []string) checker.CheckNameToFnMap {
-	checksToRun := checker.CheckNameToFnMap{}
-	if checkNames == nil && len(checkNames) == 0 {
-		// If no check names are provided, we run all the checks for the caller.
-		checksToRun = checks.AllChecks
-	} else {
-		for _, cn := range checkNames {
-			checksToRun[cn] = checks.AllChecks[cn]
-		}
-	}
-	return checksToRun
-}
-
-func getScorecardCheckResults(dCtx *dependencydiffContext) {
+func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 	// Initialize the checks to run from the caller's input.
-	checksToRun := initScorecardChecks(dCtx.checkNamesToRun)
+	checksToRun, err := policy.GetEnabled(nil, dCtx.checkNamesToRun, nil)
+	if err != nil {
+		return fmt.Errorf("error init scorecard checks: %w", err)
+	}
 	for _, d := range dCtx.dependencydiffs {
 		depCheckResult := pkg.DependencyCheckResult{
 			PackageURL:       d.PackageURL,
@@ -130,16 +123,16 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) {
 			Name:             d.Name,
 		}
 		// For now we skip those without source repo urls.
-		// TODO: use the BigQuery dataset to supplement null source repo URLs to fetch the Scorecard results for them.
+		// TODO (#2063): use the BigQuery dataset to supplement null source repo URLs to fetch the Scorecard results for them.
 		if d.SourceRepository != nil && *d.SourceRepository != "" {
 			if d.ChangeType != nil && (dCtx.changeTypesToCheck[*d.ChangeType] || dCtx.changeTypesToCheck == nil) {
 				// Run scorecard on those types of dependencies that the caller would like to check.
 				// If the input map changeTypesToCheck is empty, by default, we run checks for all valid types.
-				// TODO: use the Scorecare REST API to retrieve the Scorecard result statelessly.
+				// TODO (#2064): use the Scorecare REST API to retrieve the Scorecard result statelessly.
 				scorecardResult, err := pkg.RunScorecards(
 					dCtx.ctx,
 					dCtx.ghRepo,
-					// TODO: In future versions, ideally, this should be
+					// TODO (#2065): In future versions, ideally, this should be
 					// the commitSHA corresponding to d.Version instead of HEAD.
 					clients.HeadSHA,
 					checksToRun,
@@ -159,4 +152,5 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) {
 		}
 		dCtx.results = append(dCtx.results, depCheckResult)
 	}
+	return nil
 }

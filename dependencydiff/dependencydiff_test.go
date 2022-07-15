@@ -48,32 +48,7 @@ func Test_fetchRawDependencyDiffData(t *testing.T) {
 			wantEmpty: true,
 			wantErr:   true,
 		},
-		{
-			name: "normal response with non-empty results",
-			dCtx: dependencydiffContext{
-				logger:    log.NewLogger(log.InfoLevel),
-				ctx:       context.Background(),
-				ownerName: "ossf-tests",
-				repoName:  "scorecard-depdiff",
-				baseSHA:   "fd2a82b3b735fffbc2d782ed5f50301b879ecc51",
-				headSHA:   "1989568f93e484f6a86f8b276b170e3d6962ce12",
-			},
-			wantEmpty: false,
-			wantErr:   false,
-		},
-		{
-			name: "normal response with empty results",
-			dCtx: dependencydiffContext{
-				logger:    log.NewLogger(log.InfoLevel),
-				ctx:       context.Background(),
-				ownerName: "ossf-tests",
-				repoName:  "scorecard-depdiff",
-				baseSHA:   "fd2a82b3b735fffbc2d782ed5f50301b879ecc51",
-				headSHA:   "fd2a82b3b735fffbc2d782ed5f50301b879ecc51",
-			},
-			wantEmpty: true,
-			wantErr:   false,
-		},
+		// Considering of the token usage, normal responses are tested in the e2e test.
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -120,42 +95,7 @@ func Test_initRepoAndClientByChecks(t *testing.T) {
 			wantCIIClient:  false,
 			wantErr:        true,
 		},
-		{
-			name: "normal response with all clients",
-			dCtx: dependencydiffContext{
-				logger:    log.NewLogger(log.InfoLevel),
-				ctx:       context.Background(),
-				ownerName: "ossf-tests",
-				repoName:  "scorecard-depdiff",
-				checkNamesToRun: []string{
-					checks.CheckFuzzing,
-					checks.CheckVulnerabilities,
-					checks.CheckCIIBestPractices,
-				},
-			},
-			wantGhRepo:     true,
-			wantRepoClient: true,
-			wantFuzzClient: true,
-			wantVulnClient: true,
-			wantCIIClient:  true,
-		},
-		{
-			name: "normal response with only repo and repo client",
-			dCtx: dependencydiffContext{
-				logger:    log.NewLogger(log.InfoLevel),
-				ctx:       context.Background(),
-				ownerName: "ossf-tests",
-				repoName:  "scorecard-depdiff",
-				checkNamesToRun: []string{
-					checks.CheckSecurityPolicy,
-				},
-			},
-			wantGhRepo:     true,
-			wantRepoClient: true,
-			wantFuzzClient: false,
-			wantVulnClient: false,
-			wantCIIClient:  false,
-		},
+		// Same as the above, putting the normal responses to the e2e test.
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -250,7 +190,11 @@ func Test_getScorecardCheckResults(t *testing.T) {
 				t.Errorf("init repo and client error")
 				return
 			}
-			getScorecardCheckResults(&tt.dCtx)
+			err = getScorecardCheckResults(&tt.dCtx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getScorecardCheckResults() error = {%v}, want error: %v", err, tt.wantErr)
+				return
+			}
 			lenResults := len(tt.dCtx.results)
 			if lenResults != tt.wantResultsLen {
 				t.Errorf("want empty results: %v, got len of results:%d", tt.wantResultsLen, lenResults)
