@@ -15,8 +15,6 @@
 package checks
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
@@ -42,7 +40,7 @@ func init() {
 // PinningDependencies will check the repository for its use of dependencies.
 func PinningDependencies(c *checker.CheckRequest) checker.CheckResult {
 	if err := remediation.Setup(c); err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("remdiationSetup: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, e)
 	}
 
