@@ -24,7 +24,7 @@ require (
 	github.com/google/go-containerregistry v0.11.0
 	github.com/google/go-github/v38 v38.1.0
 	github.com/h2non/filetype v1.1.3
-	github.com/jszwec/csvutil v1.7.1
+	github.com/jszwec/csvutil v1.7.0
 	github.com/moby/buildkit v0.10.3
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.20.0
