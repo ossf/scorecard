@@ -44,6 +44,14 @@ func (ct *ChangeType) IsValid() bool {
 	}
 }
 
+type ScorecardResultsWithError struct {
+	// ScorecardResults is the scorecard result for the dependency repo.
+	ScorecardResults *ScorecardResult `json:"scorecardResults"`
+
+	// Error is an error returned when running the scorecard checks. A nil Error indicates the run succeeded.
+	Error error `json:"scorecardRunTimeError"`
+}
+
 // DependencyCheckResult is the dependency structure used in the returned results.
 type DependencyCheckResult struct {
 	// Package URL is a short link for a package.
@@ -64,11 +72,11 @@ type DependencyCheckResult struct {
 	// Version is the package version of the dependency.
 	Version *string `json:"version"`
 
-	// ScorecardResults is the scorecard result for the dependency repo.
-	ScorecardResults *ScorecardResult `json:"scorecardResults"`
-
 	// Name is the name of the dependency.
 	Name string `json:"name"`
+
+	// ScorecardResultsWithError is the scorecard checking results of the dependency.
+	ScorecardResultsWithError ScorecardResultsWithError `json:"scorecardResultsWithError"`
 }
 
 // AsJSON for DependencyCheckResult exports the DependencyCheckResult as a JSON object.
