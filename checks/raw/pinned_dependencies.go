@@ -31,6 +31,7 @@ import (
 // PinningDependencies checks for (un)pinned dependencies.
 func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesData, error) {
 	var results checker.PinningDependenciesData
+
 	// GitHub actions.
 	if err := collectGitHubActionsWorkflowPinning(c, &results); err != nil {
 		return checker.PinningDependenciesData{}, err

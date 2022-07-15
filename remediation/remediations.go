@@ -58,7 +58,7 @@ func Setup(c *checker.CheckRequest) error {
 
 		if b != nil && b.Name != nil {
 			branch = *b.Name
-			uri := c.Repo.URI()
+			uri := c.RepoClient.URI()
 			parts := strings.Split(uri, "/")
 			if len(parts) != 3 {
 				setupErr = fmt.Errorf("%w: enpty: %s", errInvalidArg, uri)
@@ -67,7 +67,6 @@ func Setup(c *checker.CheckRequest) error {
 			repo = fmt.Sprintf("%s/%s", parts[1], parts[2])
 		}
 	})
-
 	return setupErr
 }
 
