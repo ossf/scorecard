@@ -44,6 +44,7 @@ func (ct *ChangeType) IsValid() bool {
 	}
 }
 
+// ScorecardResultsWithError is used for the dependency-diff module to record scorecard results and their errors.
 type ScorecardResultsWithError struct {
 	// ScorecardResults is the scorecard result for the dependency repo.
 	ScorecardResults *ScorecardResult `json:"scorecardResults"`
@@ -54,14 +55,14 @@ type ScorecardResultsWithError struct {
 
 // DependencyCheckResult is the dependency structure used in the returned results.
 type DependencyCheckResult struct {
+	// ChangeType indicates whether the dependency is added, updated, or removed.
+	ChangeType *ChangeType `json:"changeType"`
+
 	// Package URL is a short link for a package.
 	PackageURL *string `json:"packageUrl"`
 
 	// SourceRepository is the source repository URL of the dependency.
 	SourceRepository *string `json:"sourceRepository"`
-
-	// ChangeType indicates whether the dependency is added, updated, or removed.
-	ChangeType *ChangeType `json:"changeType"`
 
 	// ManifestPath is the path of the manifest file of the dependency, such as go.mod for Go.
 	ManifestPath *string `json:"manifestPath"`
@@ -72,11 +73,11 @@ type DependencyCheckResult struct {
 	// Version is the package version of the dependency.
 	Version *string `json:"version"`
 
-	// Name is the name of the dependency.
-	Name string `json:"name"`
-
 	// ScorecardResultsWithError is the scorecard checking results of the dependency.
 	ScorecardResultsWithError ScorecardResultsWithError `json:"scorecardResultsWithError"`
+
+	// Name is the name of the dependency.
+	Name string `json:"name"`
 }
 
 // AsJSON for DependencyCheckResult exports the DependencyCheckResult as a JSON object.

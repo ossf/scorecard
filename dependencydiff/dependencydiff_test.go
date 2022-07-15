@@ -203,6 +203,7 @@ func Test_getScorecardCheckResults(t *testing.T) {
 			name: "empty response",
 			dCtx: dependencydiffContext{
 				ctx:       context.Background(),
+				logger:    log.NewLogger(log.InfoLevel),
 				ownerName: "ossf-tests",
 				repoName:  "scorecard-depdiff",
 			},
@@ -212,6 +213,7 @@ func Test_getScorecardCheckResults(t *testing.T) {
 			name: "normal response 1",
 			dCtx: dependencydiffContext{
 				ctx:       context.Background(),
+				logger:    log.NewLogger(log.InfoLevel),
 				ownerName: "ossf-tests",
 				repoName:  "scorecard-depdiff",
 				checkNamesToRun: []string{
@@ -248,11 +250,7 @@ func Test_getScorecardCheckResults(t *testing.T) {
 				t.Errorf("init repo and client error")
 				return
 			}
-			err = getScorecardCheckResults(&tt.dCtx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("initRepoAndClientByChecks() error = {%v}, want error: %v", err, tt.wantErr)
-				return
-			}
+			getScorecardCheckResults(&tt.dCtx)
 			lenResults := len(tt.dCtx.results)
 			if lenResults != tt.wantResultsLen {
 				t.Errorf("want empty results: %v, got len of results:%d", tt.wantResultsLen, lenResults)
