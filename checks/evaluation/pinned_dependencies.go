@@ -18,8 +18,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/google/go-containerregistry/pkg/crane"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -140,10 +138,7 @@ func generateRemediation(rr *checker.Dependency) *checker.Remediation {
 	case checker.DependencyUseTypeGHAction:
 		return remediation.CreateWorkflowPinningRemediation(rr.Location.Path)
 	case checker.DependencyUseTypeDockerfileContainerImage:
-		if rr.Name == nil {
-			return nil
-		}
-		return remediation.CreateDockerfilePinningRemediation(*rr.Name)
+		return remediation.CreateDockerfilePinningRemediation(rr.Name)
 	default:
 		return nil
 	}
@@ -167,21 +162,13 @@ func updatePinningResults(rr *checker.Dependency,
 }
 
 func generateText(rr *checker.Dependency) string {
-	switch rr.Type {
-	case checker.DependencyUseTypeGHAction:
+	if rr.Type == checker.DependencyUseTypeGHAction {
 		// Check if we are dealing with a GitHub action or a third-party one.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
 		owner := generateOwnerToDisplay(gitHubOwned)
 		return fmt.Sprintf("%s %s not pinned by hash", owner, rr.Type)
-	case checker.DependencyUseTypeDockerfileContainerImage:
-		if rr.Name == nil {
-			break
-		}
-		if hash, err := crane.Digest(*rr.Name); err == nil { // if NO error
-			return fmt.Sprintf("%s not pinned by hash. Fix by updating %[2]s to %[2]s@%s", rr.Type, *rr.Name, hash)
-		}
-	default:
 	}
+
 	return fmt.Sprintf("%s not pinned by hash", rr.Type)
 }
 

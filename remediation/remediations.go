@@ -99,13 +99,16 @@ func createWorkflowRemediation(path, t string) *checker.Remediation {
 }
 
 // CreateDockerfilePinningRemediation create remediaiton for pinning Dockerfile images.
-func CreateDockerfilePinningRemediation(image string) *checker.Remediation {
-	hash, err := crane.Digest(image)
+func CreateDockerfilePinningRemediation(name *string) *checker.Remediation {
+	if name == nil {
+		return nil
+	}
+	hash, err := crane.Digest(*name)
 	if err != nil {
 		return nil
 	}
 
-	text := fmt.Sprintf(dockerfileText, image, hash)
+	text := fmt.Sprintf(dockerfileText, *name, hash)
 	markdown := text
 
 	return &checker.Remediation{
