@@ -164,7 +164,3 @@ func Test_getScorecardCheckResults(t *testing.T) {
 		})
 	}
 }
-
-func asPointer(s string) *string {
-	return &s
-}
