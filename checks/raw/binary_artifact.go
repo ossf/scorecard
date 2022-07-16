@@ -70,14 +70,7 @@ func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
 // to be Action-validated gradle-wrapper.jar files.
 func excludeValidatedGradleWrappers(c clients.RepoClient, files []checker.File) ([]checker.File, error) {
 	// Check if gradle-wrapper.jar present
-	hasGradleWrappers := false
-	for _, f := range files {
-		if filepath.Base(f.Path) == "gradle-wrapper.jar" {
-			hasGradleWrappers = true
-			break
-		}
-	}
-	if !hasGradleWrappers {
+	if !fileExists(files, "gradle-wrapper.jar") {
 		return files, nil
 	}
 	// Gradle wrapper JARs present, so check that they are validated
@@ -261,4 +254,15 @@ func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...in
 		}
 	}
 	return true, nil
+}
+
+// fileExists checks if a file of name name exists, including within
+// subdirectories.
+func fileExists(files []checker.File, name string) bool {
+	for _, f := range files {
+		if filepath.Base(f.Path) == name {
+			return true
+		}
+	}
+	return false
 }
