@@ -74,7 +74,7 @@ func GetDependencyDiffResults(
 	}
 	err = getScorecardCheckResults(&dCtx)
 	if err != nil {
-		return nil, fmt.Errorf("error getting scorecard check results")
+		return nil, fmt.Errorf("error getting scorecard check results: %w", err)
 	}
 	return dCtx.results, nil
 }

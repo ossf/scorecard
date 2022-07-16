@@ -19,10 +19,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/pkg"
 )
 
 // Test_fetchRawDependencyDiffData is a test function for fetchRawDependencyDiffData.
@@ -134,51 +132,19 @@ func Test_getScorecardCheckResults(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name           string
-		dCtx           dependencydiffContext
-		wantResultsLen int
-		wantErr        bool
+		name    string
+		dCtx    dependencydiffContext
+		wantErr bool
 	}{
 		{
 			name: "empty response",
 			dCtx: dependencydiffContext{
 				ctx:       context.Background(),
 				logger:    log.NewLogger(log.InfoLevel),
-				ownerName: "ossf-tests",
-				repoName:  "scorecard-depdiff",
+				ownerName: "owner_not_exist",
+				repoName:  "repo_not_exist",
 			},
-			wantResultsLen: 0,
-		},
-		{
-			name: "normal response 1",
-			dCtx: dependencydiffContext{
-				ctx:       context.Background(),
-				logger:    log.NewLogger(log.InfoLevel),
-				ownerName: "ossf-tests",
-				repoName:  "scorecard-depdiff",
-				checkNamesToRun: []string{
-					checks.CheckBranchProtection,
-				},
-				dependencydiffs: []dependency{
-					{
-						ChangeType:       (*pkg.ChangeType)(asPointer(string(pkg.Added))),
-						Name:             "tensorflow",
-						SourceRepository: asPointer("https://github.com/tensorflow/tensorflow"),
-					},
-					{
-						ChangeType:       (*pkg.ChangeType)(asPointer(string(pkg.Updated))),
-						Name:             "numpy",
-						SourceRepository: nil, // To make it explicit here, this one doesn't have a valid srcRepo URL.
-					},
-					{
-						ChangeType:       (*pkg.ChangeType)(asPointer(string(pkg.Removed))),
-						Name:             "pytorch",
-						SourceRepository: asPointer("https://github.com/pytorch/pytorch"),
-					},
-				},
-			},
-			wantResultsLen: 3, // we need 3 results since the second one without a srcRepo URL won't break down the entire func.
-			wantErr:        false,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -193,11 +159,6 @@ func Test_getScorecardCheckResults(t *testing.T) {
 			err = getScorecardCheckResults(&tt.dCtx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getScorecardCheckResults() error = {%v}, want error: %v", err, tt.wantErr)
-				return
-			}
-			lenResults := len(tt.dCtx.results)
-			if lenResults != tt.wantResultsLen {
-				t.Errorf("want empty results: %v, got len of results:%d", tt.wantResultsLen, lenResults)
 				return
 			}
 		})
