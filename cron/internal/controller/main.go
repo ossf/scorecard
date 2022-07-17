@@ -133,7 +133,7 @@ func main() {
 		ShardLoc:  new(string),
 		CommitSha: new(string),
 	}
-	*metadata.NumShard = (shardNum + 1)
+	*metadata.NumShard = shardNum + 1
 	*metadata.ShardLoc = bucket + "/" + data.GetBlobFilename("", t)
 	*metadata.CommitSha = version.GetVersionInfo().GitCommit
 	metadataJSON, err := protojson.Marshal(&metadata)

@@ -48,7 +48,7 @@ var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to tru
 // nolint: gocognit
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest,
-	blacklistedChecks []string, bucketURL, rawBucketURL string,
+	blacklistedChecks []string, bucketURL, rawBucketURL, exportBucketURL string,
 	checkDocs docs.Doc,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
@@ -101,6 +101,7 @@ func processRequest(ctx context.Context,
 		for _, check := range blacklistedChecks {
 			delete(checksToRun, check)
 		}
+
 		result, err := pkg.RunScorecards(ctx, repo, commitSHA, checksToRun,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
@@ -128,10 +129,20 @@ func processRequest(ctx context.Context,
 		if err := format.AsJSON2(&result, true /*showDetails*/, log.InfoLevel, checkDocs, &buffer2); err != nil {
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
+		exportPath := fmt.Sprintf("%s/result.json", repo.URI())
+		exportCommitSHAPath := fmt.Sprintf("%s/%s/result.json", repo.URI(), result.Repo.CommitSHA)
 
 		// Raw result.
 		if err := format.AsRawJSON(&result, &rawBuffer); err != nil {
 			return fmt.Errorf("error during result.AsRawJSON: %w", err)
+		}
+
+		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportPath, buffer2.Bytes()); err != nil {
+			return fmt.Errorf("error during WriteToBlobStore2: %w", err)
+		}
+		// Export result based on commitSHA.
+		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportCommitSHAPath, buffer2.Bytes()); err != nil {
+			return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 		}
 	}
 
@@ -207,6 +218,11 @@ func main() {
 		panic(err)
 	}
 
+	exportBucketURL, err := config.GetBQExportResultsBucketURL()
+	if err != nil {
+		panic(err)
+	}
+
 	logger := log.NewLogger(log.InfoLevel)
 	repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 	ciiClient := clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
@@ -242,7 +258,7 @@ func main() {
 			break
 		}
 		if err := processRequest(ctx, req, blacklistedChecks,
-			bucketURL, rawBucketURL, checkDocs,
+			bucketURL, rawBucketURL, exportBucketURL, checkDocs,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, logger); err != nil {
 			// TODO(log): Previously Warn. Consider logging an error here.
 			logger.Info(fmt.Sprintf("error processing request: %v", err))

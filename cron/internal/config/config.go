@@ -34,19 +34,20 @@ const (
 	// ShardNumFilename is the name of the file that stores the number of shards.
 	ShardNumFilename string = ".shard_num"
 	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.
-	TransferStatusFilename string = ".transfer_complete"
-	projectID              string = "SCORECARD_PROJECT_ID"
-	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
-	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
-	bigqueryDataset        string = "SCORECARD_BIGQUERY_DATASET"
-	completionThreshold    string = "SCORECARD_COMPLETION_THRESHOLD"
-	shardSize              string = "SCORECARD_SHARD_SIZE"
-	webhookURL             string = "SCORECARD_WEBHOOK_URL"
-	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
-	ciiDataBucketURL       string = "SCORECARD_CII_DATA_BUCKET_URL"
-	blacklistedChecks      string = "SCORECARD_BLACKLISTED_CHECKS"
-	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
-	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
+	TransferStatusFilename   string = ".transfer_complete"
+	projectID                string = "SCORECARD_PROJECT_ID"
+	requestTopicURL          string = "SCORECARD_REQUEST_TOPIC_URL"
+	requestSubscriptionURL   string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
+	bigqueryDataset          string = "SCORECARD_BIGQUERY_DATASET"
+	completionThreshold      string = "SCORECARD_COMPLETION_THRESHOLD"
+	shardSize                string = "SCORECARD_SHARD_SIZE"
+	webhookURL               string = "SCORECARD_WEBHOOK_URL"
+	metricExporter           string = "SCORECARD_METRIC_EXPORTER"
+	ciiDataBucketURL         string = "SCORECARD_CII_DATA_BUCKET_URL"
+	blacklistedChecks        string = "SCORECARD_BLACKLISTED_CHECKS"
+	bigqueryTable            string = "SCORECARD_BIGQUERY_TABLE"
+	resultDataBucketURL      string = "SCORECARD_DATA_BUCKET_URL"
+	bqExportResultsBucketURL string = "SCORECARD_BQ_EXPORT_RESULTS_BUCKET_URL"
 	// Raw results.
 	rawBigqueryTable       string = "RAW_SCORECARD_BIGQUERY_TABLE"
 	rawResultDataBucketURL string = "RAW_SCORECARD_DATA_BUCKET_URL"
@@ -76,8 +77,9 @@ type config struct {
 	MetricExporter         string  `yaml:"metric-exporter"`
 	ShardSize              int     `yaml:"shard-size"`
 	// Raw results.
-	RawResultDataBucketURL string `yaml:"raw-result-data-bucket-url"`
-	RawBigQueryTable       string `yaml:"raw-bigquery-table"`
+	RawResultDataBucketURL         string `yaml:"raw-result-data-bucket-url"`
+	RawBigQueryTable               string `yaml:"raw-bigquery-table"`
+	BigQueryExportResultsBucketURL string `yaml:"bigquery-export-results-bucket-url"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -120,7 +122,6 @@ func getIntConfigValue(envVar string, byteValue []byte, fieldName, configName st
 		return 0, fmt.Errorf("error getting config value %s: %w", configName, err)
 	}
 
-	// nolint: exhaustive
 	switch value.Kind() {
 	case reflect.String:
 		//nolint:wrapcheck
@@ -137,7 +138,7 @@ func getFloat64ConfigValue(envVar string, byteValue []byte, fieldName, configNam
 	if err != nil {
 		return 0, fmt.Errorf("error getting config value %s: %w", configName, err)
 	}
-	// nolint: exhaustive
+
 	switch value.Kind() {
 	case reflect.String:
 		//nolint: wrapcheck, gomnd
@@ -231,4 +232,10 @@ func GetBlacklistedChecks() ([]string, error) {
 // GetMetricExporter returns the opencensus exporter type.
 func GetMetricExporter() (string, error) {
 	return getStringConfigValue(metricExporter, configYAML, "MetricExporter", "metric-exporter")
+}
+
+// GetBQExportResultsBucketURL returns the bucket URL for storing cron job results.
+func GetBQExportResultsBucketURL() (string, error) {
+	return getStringConfigValue(bqExportResultsBucketURL, configYAML,
+		"BigQueryExportResultsBucketURL", "bq-export-results-bucket-url")
 }

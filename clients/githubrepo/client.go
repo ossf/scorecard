@@ -180,7 +180,7 @@ func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 	return client.statuses.listStatuses(ref)
 }
 
-//ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
+// ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
 func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 	return client.languages.listProgrammingLanguages()
 }
