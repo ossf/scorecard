@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 	"github.com/ossf/scorecard/v4/policy"
@@ -146,7 +147,8 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 				// If the run fails, we leave the current dependency scorecard result empty and record the error
 				// rather than letting the entire API return nil since we still expect results for other dependencies.
 				if err != nil {
-					depCheckResult.ScorecardResultsWithError.Error = fmt.Errorf("error running the scorecard checks: %w", err)
+					depCheckResult.ScorecardResultsWithError.Error = sce.WithMessage(sce.ErrScorecardInternal,
+						fmt.Sprintf("error running the scorecard checks: %v", err))
 				} else { // Otherwise, we record the scorecard check results for this dependency.
 					depCheckResult.ScorecardResultsWithError.ScorecardResults = &scorecardResult
 				}
