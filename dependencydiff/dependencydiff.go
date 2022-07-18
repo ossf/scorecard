@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
@@ -80,27 +81,28 @@ func GetDependencyDiffResults(
 }
 
 func initRepoAndClientByChecks(dCtx *dependencydiffContext) error {
-	// Create the repo and the corresponding client if its check needs to run.
-	ghRepo, err := githubrepo.MakeGithubRepo(path.Join(dCtx.ownerName, dCtx.repoName))
+	repo, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := checker.GetClients(
+		dCtx.ctx, path.Join(dCtx.ownerName, dCtx.repoName), "", dCtx.logger,
+	)
 	if err != nil {
 		return fmt.Errorf("error creating the github repo: %w", err)
 	}
-	dCtx.ghRepo = ghRepo
+	// If the caller doesn't specify the checks to run, run all checks and return all the clients.
+	if dCtx.checkNamesToRun == nil || len(dCtx.checkNamesToRun) == 0 {
+		dCtx.ghRepo, dCtx.ghRepoClient, dCtx.ossFuzzClient, dCtx.ciiClient, dCtx.vulnsClient =
+			repo, repoClient, ossFuzzClient, ciiClient, vulnsClient
+		return nil
+	}
+	dCtx.ghRepo = repo
 	dCtx.ghRepoClient = githubrepo.CreateGithubRepoClient(dCtx.ctx, dCtx.logger)
-	// Initialize these three clients as nil at first.
-	var ossFuzzClient clients.RepoClient
 	for _, cn := range dCtx.checkNamesToRun {
 		switch cn {
 		case checks.CheckFuzzing:
-			ossFuzzClient, err = githubrepo.CreateOssFuzzRepoClient(dCtx.ctx, dCtx.logger)
-			if err != nil {
-				return fmt.Errorf("error initializing the oss fuzz repo client: %w", err)
-			}
 			dCtx.ossFuzzClient = ossFuzzClient
-		case checks.CheckVulnerabilities:
-			dCtx.vulnsClient = clients.DefaultVulnerabilitiesClient()
 		case checks.CheckCIIBestPractices:
-			dCtx.ciiClient = clients.DefaultCIIBestPracticesClient()
+			dCtx.ciiClient = ciiClient
+		case checks.CheckVulnerabilities:
+			dCtx.vulnsClient = vulnsClient
 		}
 	}
 	return nil
