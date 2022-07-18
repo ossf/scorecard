@@ -41,7 +41,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			inputFolder: "testdata/binaryartifacts/jars",
 			err:         nil,
 			expected: checker.CheckResult{
-				Score: 9,
+				Score: 8,
 			},
 		},
 		{
