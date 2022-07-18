@@ -25,13 +25,19 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
+const (
+	OWNER = "ossf-tests"
+	REPO  = "scorecard-depdiff"
+	BASE  = "fd2a82b3b735fffbc2d782ed5f50301b879ecc51"
+	HEAD  = "1989568f93e484f6a86f8b276b170e3d6962ce12"
+)
+
 var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 	Context("E2E TEST:Validating use of the dependency-diff API", func() {
 		It("Should return a slice of dependency-diff checking results", func() {
 			ctx := context.Background()
-			ownerName, repoName := "ossf-tests", "scorecard-depdiff"
-			baseSHA, headSHA := "fd2a82b3b735fffbc2d782ed5f50301b879ecc51", "1989568f93e484f6a86f8b276b170e3d6962ce12"
-
+			ownerName, repoName := OWNER, REPO
+			baseSHA, headSHA := BASE, HEAD
 			scorecardChecksNames := []string{
 				checks.CheckBranchProtection,
 			}
@@ -49,8 +55,8 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 		})
 		It("Should return a valid empty result", func() {
 			ctx := context.Background()
-			ownerName, repoName := "ossf-tests", "scorecard-depdiff"
-			baseSHA, headSHA := "fd2a82b3b735fffbc2d782ed5f50301b879ecc51", "fd2a82b3b735fffbc2d782ed5f50301b879ecc51"
+			ownerName, repoName := OWNER, REPO
+			baseSHA, headSHA := BASE, BASE
 
 			scorecardChecksNames := []string{
 				checks.CheckBranchProtection,
@@ -69,8 +75,8 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 		})
 		It("Should initialize clients corresponding to the checks to run and do not crash", func() {
 			ctx := context.Background()
-			ownerName, repoName := "ossf-tests", "scorecard-depdiff"
-			baseSHA, headSHA := "fd2a82b3b735fffbc2d782ed5f50301b879ecc51", "1989568f93e484f6a86f8b276b170e3d6962ce12"
+			ownerName, repoName := OWNER, REPO
+			baseSHA, headSHA := BASE, HEAD
 
 			scorecardChecksNames := []string{}
 			changeTypesToCheck := map[pkg.ChangeType]bool{
