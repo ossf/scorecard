@@ -17,7 +17,6 @@ package dependencydiff
 import (
 	"context"
 	"fmt"
-	"path"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
@@ -36,7 +35,6 @@ type dependencydiffContext struct {
 	logger                                *log.Logger
 	ownerName, repoName, baseSHA, headSHA string
 	ctx                                   context.Context
-	ghRepo                                clients.Repo
 	ghRepoClient                          clients.RepoClient
 	ossFuzzClient                         clients.RepoClient
 	vulnsClient                           clients.VulnerabilitiesClient
@@ -69,10 +67,8 @@ func GetDependencyDiffResults(
 		return nil, fmt.Errorf("error in fetchRawDependencyDiffData: %w", err)
 	}
 
-	// Initialize the repo and client(s) corresponding to the checks to run.
-	err = initRepoAndClientByChecks(&dCtx)
 	if err != nil {
-		return nil, fmt.Errorf("error in initRepoAndClientByChecks: %w", err)
+		return nil, fmt.Errorf("error in initClientByChecks: %w", err)
 	}
 	err = getScorecardCheckResults(&dCtx)
 	if err != nil {
@@ -81,20 +77,19 @@ func GetDependencyDiffResults(
 	return dCtx.results, nil
 }
 
-func initRepoAndClientByChecks(dCtx *dependencydiffContext) error {
-	repo, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := checker.GetClients(
-		dCtx.ctx, path.Join(dCtx.ownerName, dCtx.repoName), "", dCtx.logger,
+func initClientByChecks(dCtx *dependencydiffContext, dSrcRepo string) error {
+	_, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := checker.GetClients(
+		dCtx.ctx, dSrcRepo, "", dCtx.logger,
 	)
 	if err != nil {
 		return fmt.Errorf("error creating the github repo: %w", err)
 	}
 	// If the caller doesn't specify the checks to run, run all checks and return all the clients.
 	if dCtx.checkNamesToRun == nil || len(dCtx.checkNamesToRun) == 0 {
-		dCtx.ghRepo, dCtx.ghRepoClient, dCtx.ossFuzzClient, dCtx.ciiClient, dCtx.vulnsClient =
-			repo, repoClient, ossFuzzClient, ciiClient, vulnsClient
+		dCtx.ghRepoClient, dCtx.ossFuzzClient, dCtx.ciiClient, dCtx.vulnsClient =
+			repoClient, ossFuzzClient, ciiClient, vulnsClient
 		return nil
 	}
-	dCtx.ghRepo = repo
 	dCtx.ghRepoClient = githubrepo.CreateGithubRepoClient(dCtx.ctx, dCtx.logger)
 	for _, cn := range dCtx.checkNamesToRun {
 		switch cn {
@@ -129,12 +124,18 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 		// TODO (#2063): use the BigQuery dataset to supplement null source repo URLs to fetch the Scorecard results for them.
 		if d.SourceRepository != nil && *d.SourceRepository != "" {
 			if d.ChangeType != nil && (dCtx.changeTypesToCheck[*d.ChangeType] || dCtx.changeTypesToCheck == nil) {
+				ghRepo, errGitHub := githubrepo.MakeGithubRepo(*d.SourceRepository)
+				// Initialize the repo and client(s) corresponding to the checks to run.
+				err = initClientByChecks(dCtx, *d.SourceRepository)
+				if errGitHub != nil {
+					return fmt.Errorf("getting local directory client: %w", errGitHub)
+				}
 				// Run scorecard on those types of dependencies that the caller would like to check.
 				// If the input map changeTypesToCheck is empty, by default, we run checks for all valid types.
 				// TODO (#2064): use the Scorecare REST API to retrieve the Scorecard result statelessly.
 				scorecardResult, err := pkg.RunScorecards(
 					dCtx.ctx,
-					dCtx.ghRepo,
+					ghRepo,
 					// TODO (#2065): In future versions, ideally, this should be
 					// the commitSHA corresponding to d.Version instead of HEAD.
 					clients.HeadSHA,

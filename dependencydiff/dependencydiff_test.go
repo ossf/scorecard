@@ -67,26 +67,29 @@ func Test_fetchRawDependencyDiffData(t *testing.T) {
 	}
 }
 
-func Test_initRepoAndClientByChecks(t *testing.T) {
+func Test_initClientByChecks(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name                                       string
-		dCtx                                       dependencydiffContext
-		wantGhRepo, wantRepoClient, wantFuzzClient bool
-		wantVulnClient, wantCIIClient              bool
-		wantErr                                    bool
+		name                           string
+		dCtx                           dependencydiffContext
+		srcRepo                        string
+		wantRepoClient, wantFuzzClient bool
+		wantVulnClient, wantCIIClient  bool
+		wantErr                        bool
 	}{
 		{
 			name: "error creating repo",
 			dCtx: dependencydiffContext{
 				logger:          log.NewLogger(log.InfoLevel),
 				ctx:             context.Background(),
-				ownerName:       path.Join("host_not_exist.com", "owner_not_exist"),
-				repoName:        "repo_not_exist",
 				checkNamesToRun: []string{},
 			},
-			wantGhRepo:     false,
+			srcRepo: path.Join(
+				"host_not_exist.com",
+				"owner_not_exist",
+				"repo_not_exist",
+			),
 			wantRepoClient: false,
 			wantFuzzClient: false,
 			wantVulnClient: false,
@@ -99,13 +102,9 @@ func Test_initRepoAndClientByChecks(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			err := initRepoAndClientByChecks(&tt.dCtx)
+			err := initClientByChecks(&tt.dCtx, tt.srcRepo)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("initRepoAndClientByChecks() error = {%v}, want error: %v", err, tt.wantErr)
-				return
-			}
-			if (tt.dCtx.ghRepo != nil) != tt.wantGhRepo {
-				t.Errorf("init repo error, wantGhRepo: %v, got %v", tt.wantGhRepo, tt.dCtx.ghRepo)
+				t.Errorf("initClientByChecks() error = {%v}, want error: %v", err, tt.wantErr)
 				return
 			}
 			if (tt.dCtx.ghRepoClient != nil) != tt.wantRepoClient {
@@ -151,12 +150,7 @@ func Test_getScorecardCheckResults(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			err := initRepoAndClientByChecks(&tt.dCtx)
-			if err != nil {
-				t.Errorf("init repo and client error")
-				return
-			}
-			err = getScorecardCheckResults(&tt.dCtx)
+			err := getScorecardCheckResults(&tt.dCtx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getScorecardCheckResults() error = {%v}, want error: %v", err, tt.wantErr)
 				return
