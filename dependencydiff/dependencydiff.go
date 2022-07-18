@@ -124,11 +124,15 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 		// TODO (#2063): use the BigQuery dataset to supplement null source repo URLs to fetch the Scorecard results for them.
 		if d.SourceRepository != nil && *d.SourceRepository != "" {
 			if d.ChangeType != nil && (dCtx.changeTypesToCheck[*d.ChangeType] || dCtx.changeTypesToCheck == nil) {
-				ghRepo, errGitHub := githubrepo.MakeGithubRepo(*d.SourceRepository)
 				// Initialize the repo and client(s) corresponding to the checks to run.
+				ghRepo, err := githubrepo.MakeGithubRepo(*d.SourceRepository)
 				err = initClientByChecks(dCtx, *d.SourceRepository)
-				if errGitHub != nil {
-					return fmt.Errorf("getting local directory client: %w", errGitHub)
+				if err != nil {
+					return fmt.Errorf("error getting github repo: %w", err)
+				}
+				err = initClientByChecks(dCtx, *d.SourceRepository)
+				if err != nil {
+					return fmt.Errorf("error initializing clients: %w", err)
 				}
 				// Run scorecard on those types of dependencies that the caller would like to check.
 				// If the input map changeTypesToCheck is empty, by default, we run checks for all valid types.
