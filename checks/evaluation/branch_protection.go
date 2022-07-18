@@ -30,7 +30,6 @@ const (
 	nonAdminContextLevel        = 2 // Level 3.
 	nonAdminThoroughReviewLevel = 1 // Level 4.
 	adminThoroughReviewLevel    = 1 // Level 5.
-	codeownerReviewLevel        = 1 // Level 5.
 
 )
 
@@ -224,28 +223,23 @@ func computeScore(scores []levelScore) (int, error) {
 	}
 
 	// Fourth, check the thorough non-admin reviews.
+        // Also check whether this repo requires codeowner review
 	maxThoroughReviewScore := maxScore.thoroughReview * len(scores)
+	maxCodeownerReviewScore := maxScore.codeownerReview * len(scores)
 	thoroughReviewScore := computeNonAdminThoroughReviewScore(scores)
-	score += noarmalizeScore(thoroughReviewScore, maxThoroughReviewScore, nonAdminThoroughReviewLevel)
+	codeownerReviewScore := computeCodeownerThoroughReviewScore(scores)
+	score += noarmalizeScore(thoroughReviewScore+codeownerReviewScore, maxThoroughReviewScore+maxCodeownerReviewScore, nonAdminThoroughReviewLevel)
 	if thoroughReviewScore != maxThoroughReviewScore {
 		return int(score), nil
 	}
 
-	// Fifth, check the thorough admin review config.
+	// Lastly, check the thorough admin review config.
 	// This one is controversial and has usability issues
 	// https://github.com/ossf/scorecard/issues/1027, so we may remove it.
 	maxAdminThoroughReviewScore := maxScore.adminThoroughReview * len(scores)
 	adminThoroughReviewScore := computeAdminThoroughReviewScore(scores)
 	score += noarmalizeScore(adminThoroughReviewScore, maxAdminThoroughReviewScore, adminThoroughReviewLevel)
 	if adminThoroughReviewScore != maxAdminThoroughReviewScore {
-		return int(score), nil
-	}
-
-	// Lastly, check that a codeowner's approving review is required for merge
-	maxCodeownerReviewScore := maxScore.codeownerReview * len(scores)
-	codeownerReviewScore := computeCodeownerThoroughReviewScore(scores)
-	score += noarmalizeScore(codeownerReviewScore, maxCodeownerReviewScore, codeownerReviewLevel)
-	if codeownerReviewScore != maxCodeownerReviewScore {
 		return int(score), nil
 	}
 
@@ -457,5 +451,5 @@ func codeownersBranchProtection(branch *clients.BranchRef, dl checker.DetailLogg
 		}
 	}
 
-	return score, max // Don't deduct points - leave this as 'extra credit'
+	return score, max
 }
