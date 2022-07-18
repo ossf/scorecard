@@ -68,7 +68,7 @@ func GetDependencyDiffResults(
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error in initClientByChecks: %w", err)
+		return nil, fmt.Errorf("error in initRepoAndClientByChecks: %w", err)
 	}
 	err = getScorecardCheckResults(&dCtx)
 	if err != nil {
