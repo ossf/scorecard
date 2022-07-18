@@ -205,61 +205,11 @@ scorecard-ko:
 			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4
-cron-controller-ko:
-	$(call_create_kocache_path)
-	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-controller LDFLAGS="$(LDFLAGS)" \
-	KOCACHE=$(KOCACHE_PATH) ko build -B \
-			   --push=false \
-			   --sbom=none \
-			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/internal/controller
-cron-worker-ko:
-	$(call_create_kocache_path)
-	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-batch-worker LDFLAGS="$(LDFLAGS)" \
-	KOCACHE=$(KOCACHE_PATH) ko build -B \
-			   --push=false \
-			   --sbom=none \
-			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/internal/worker
-cron-cii-worker-ko:
-	$(call_create_kocache_path)
-	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cii-worker LDFLAGS="$(LDFLAGS)" \
-	KOCACHE=$(KOCACHE_PATH) ko build -B \
-			   --push=false \
-			   --sbom=none \
-			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/internal/cii
-cron-bq-transfer-ko:
-	$(call_create_kocache_path)
-	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-bq-transfer LDFLAGS="$(LDFLAGS)" \
-	KOCACHE=$(KOCACHE_PATH) ko build -B \
-			   --push=false \
-			   --sbom=none \
-			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/internal/bq
-cron-webhook-ko:
-	$(call_create_kocache_path)
-	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-cron-webhook LDFLAGS="$(LDFLAGS)" \
-	KOCACHE=$(KOCACHE_PATH) ko build -B \
-			   --push=false \
-			   --sbom=none \
-			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/cron/internal/webhook
-cron-github-server-ko:
-	$(call_create_kocache_path)
-	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-github-server LDFLAGS="$(LDFLAGS)" \
-	KOCACHE=$(KOCACHE_PATH) ko build -B \
-			   --push=false \
-			   --sbom=none \
-			   --platform=$(PLATFORM)\
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens/server
 
 docker-targets = scorecard-docker cron-controller-docker cron-worker-docker cron-cii-worker-docker cron-bq-transfer-docker cron-webhook-docker cron-github-server-docker
 .PHONY: dockerbuild $(docker-targets)
 dockerbuild: $(docker-targets)
 
-scorecard-docker:
-	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
 cron-controller-docker:
 	DOCKER_BUILDKIT=1 docker build . --file cron/internal/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 cron-worker-docker:
