@@ -124,7 +124,7 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 		// TODO (#2063): use the BigQuery dataset to supplement null source repo URLs to fetch the Scorecard results for them.
 		if d.SourceRepository != nil && *d.SourceRepository != "" {
 			if d.ChangeType != nil {
-				if dCtx.changeTypesToCheck[*d.ChangeType] || dCtx.changeTypesToCheck == nil {
+				if dCtx.changeTypesToCheck[*d.ChangeType] || dCtx.changeTypesToCheck == nil || len(dCtx.changeTypesToCheck) == 0 {
 					// Initialize the repo and client(s) corresponding to the checks to run.
 					// If no types have been specified, run checks on all types.
 					err = initRepoAndClientByChecks(dCtx, *d.SourceRepository)
