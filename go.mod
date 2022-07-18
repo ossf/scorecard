@@ -16,12 +16,12 @@ require (
 	cloud.google.com/go/trace v1.2.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.12
 	github.com/bombsimon/logrusr/v2 v2.0.1
-	github.com/bradleyfalzon/ghinstallation/v2 v2.0.4
+	github.com/bradleyfalzon/ghinstallation/v2 v2.1.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v1.2.3
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.5.8
-	github.com/google/go-containerregistry v0.9.0
+	github.com/google/go-containerregistry v0.10.0
 	github.com/google/go-github/v38 v38.1.0
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.7.1
@@ -31,7 +31,7 @@ require (
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
 	go.opencensus.io v0.23.0
 	gocloud.dev v0.25.0
@@ -77,7 +77,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-github/v41 v41.0.0 // indirect
+	github.com/google/go-github/v45 v45.2.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
