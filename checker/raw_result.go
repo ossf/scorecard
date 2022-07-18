@@ -20,7 +20,7 @@ import (
 
 // RawResults contains results before a policy
 // is applied.
-//nolint
+// nolint
 type RawResults struct {
 	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
@@ -38,6 +38,7 @@ type RawResults struct {
 	SignedReleasesResults       SignedReleasesData
 	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
+	TokenPermissionsResults     TokenPermissionsData
 }
 
 // FuzzingData represents different fuzzing done.
@@ -242,4 +243,47 @@ type DangerousWorkflow struct {
 type WorkflowJob struct {
 	Name *string
 	ID   *string
+}
+
+// TokenPermissionsData represents data about a permission failure.
+type TokenPermissionsData struct {
+	TokenPermissions []TokenPermission
+}
+
+// PermissionLocation represents a declaration type.
+type PermissionLocation string
+
+const (
+	// PermissionLocationTop is top-level workflow permission.
+	PermissionLocationTop PermissionLocation = "topLevel"
+	// PermissionLocationJob is job-level workflow permission.
+	PermissionLocationJob PermissionLocation = "jobLevel"
+)
+
+// PermissionLevel represents a permission type.
+type PermissionLevel string
+
+const (
+	// PermissionLevelUndeclared is an undecleared permission.
+	PermissionLevelUndeclared PermissionLevel = "undeclared"
+	// PermissionLevelWrite is a permission set to `write` for a permission we consider potentially dangerous.
+	PermissionLevelWrite PermissionLevel = "write"
+	// PermissionLevelRead is a permission set to `read`.
+	PermissionLevelRead PermissionLevel = "read"
+	// PermissionLevelNone is a permission set to `none`.
+	PermissionLevelNone PermissionLevel = "none"
+	// PermissionLevelUnknown is for other kinds of alerts, mostly to support debug messages.
+	// TODO: remove it once we have implemented severity (#1874).
+	PermissionLevelUnknown PermissionLevel = "unknown"
+)
+
+// TokenPermission defines a token permission result.
+type TokenPermission struct {
+	Job          *WorkflowJob
+	LocationType *PermissionLocation
+	Name         *string
+	Value        *string
+	File         *File
+	Msg          *string
+	Type         PermissionLevel
 }
