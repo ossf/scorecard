@@ -47,5 +47,42 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			Expect(err).Should(BeNil())
 			Expect(len(results) > 0).Should(BeTrue())
 		})
+		It("Should return a valid empty result", func() {
+			ctx := context.Background()
+			ownerName, repoName := "ossf-tests", "scorecard-depdiff"
+			baseSHA, headSHA := "fd2a82b3b735fffbc2d782ed5f50301b879ecc51", "fd2a82b3b735fffbc2d782ed5f50301b879ecc51"
+
+			scorecardChecksNames := []string{
+				checks.CheckBranchProtection,
+			}
+			changeTypesToCheck := map[pkg.ChangeType]bool{
+				pkg.Removed: true,
+			}
+			results, err := dependencydiff.GetDependencyDiffResults(
+				ctx,
+				ownerName, repoName, baseSHA, headSHA,
+				scorecardChecksNames,
+				changeTypesToCheck,
+			)
+			Expect(err).Should(BeNil())
+			Expect(len(results) == 0).Should(BeTrue())
+		})
+		It("Should initialize clients corresponding to the checks to run and do not crash", func() {
+			ctx := context.Background()
+			ownerName, repoName := "ossf-tests", "scorecard-depdiff"
+			baseSHA, headSHA := "fd2a82b3b735fffbc2d782ed5f50301b879ecc51", "1989568f93e484f6a86f8b276b170e3d6962ce12"
+
+			scorecardChecksNames := []string{}
+			changeTypesToCheck := map[pkg.ChangeType]bool{
+				pkg.Removed: true,
+			}
+			_, err := dependencydiff.GetDependencyDiffResults(
+				ctx,
+				ownerName, repoName, baseSHA, headSHA,
+				scorecardChecksNames,
+				changeTypesToCheck,
+			)
+			Expect(err).Should(BeNil())
+		})
 	})
 })
