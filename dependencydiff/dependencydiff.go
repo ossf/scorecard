@@ -122,38 +122,36 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 		}
 		// For now we skip those without source repo urls.
 		// TODO (#2063): use the BigQuery dataset to supplement null source repo URLs to fetch the Scorecard results for them.
-		if d.SourceRepository != nil && *d.SourceRepository != "" {
-			if d.ChangeType != nil {
-				if dCtx.changeTypesToCheck[*d.ChangeType] || dCtx.changeTypesToCheck == nil || len(dCtx.changeTypesToCheck) == 0 {
-					// Initialize the repo and client(s) corresponding to the checks to run.
-					// If no types have been specified, run checks on all types.
-					err = initRepoAndClientByChecks(dCtx, *d.SourceRepository)
-					if err != nil {
-						return fmt.Errorf("error initializing repo and clients: %w", err)
-					}
-					// Run scorecard on those types of dependencies that the caller would like to check.
-					// If the input map changeTypesToCheck is empty, by default, we run the checks for all valid types.
-					// TODO (#2064): use the Scorecare REST API to retrieve the Scorecard result statelessly.
-					scorecardResult, err := pkg.RunScorecards(
-						dCtx.ctx,
-						dCtx.ghRepo,
-						// TODO (#2065): In future versions, ideally, this should be
-						// the commitSHA corresponding to d.Version instead of HEAD.
-						clients.HeadSHA,
-						checksToRun,
-						dCtx.ghRepoClient,
-						dCtx.ossFuzzClient,
-						dCtx.ciiClient,
-						dCtx.vulnsClient,
-					)
-					// If the run fails, we leave the current dependency scorecard result empty and record the error
-					// rather than letting the entire API return nil since we still expect results for other dependencies.
-					if err != nil {
-						depCheckResult.ScorecardResultsWithError.Error = sce.WithMessage(sce.ErrScorecardInternal,
-							fmt.Sprintf("error running the scorecard checks: %v", err))
-					} else { // Otherwise, we record the scorecard check results for this dependency.
-						depCheckResult.ScorecardResultsWithError.ScorecardResults = &scorecardResult
-					}
+		if d.SourceRepository != nil && d.ChangeType != nil {
+			// Run the checks on all types if (1) the type is found in changeTypesToCheck or (2) no types are specified.
+			if dCtx.changeTypesToCheck[*d.ChangeType] || (dCtx.changeTypesToCheck == nil || len(dCtx.changeTypesToCheck) == 0) {
+				// Initialize the repo and client(s) corresponding to the checks to run.
+				err = initRepoAndClientByChecks(dCtx, *d.SourceRepository)
+				if err != nil {
+					return fmt.Errorf("error initializing repo and clients: %w", err)
+				}
+				// Run scorecard on those types of dependencies that the caller would like to check.
+				// If the input map changeTypesToCheck is empty, by default, we run the checks for all valid types.
+				// TODO (#2064): use the Scorecare REST API to retrieve the Scorecard result statelessly.
+				scorecardResult, err := pkg.RunScorecards(
+					dCtx.ctx,
+					dCtx.ghRepo,
+					// TODO (#2065): In future versions, ideally, this should be
+					// the commitSHA corresponding to d.Version instead of HEAD.
+					clients.HeadSHA,
+					checksToRun,
+					dCtx.ghRepoClient,
+					dCtx.ossFuzzClient,
+					dCtx.ciiClient,
+					dCtx.vulnsClient,
+				)
+				// If the run fails, we leave the current dependency scorecard result empty and record the error
+				// rather than letting the entire API return nil since we still expect results for other dependencies.
+				if err != nil {
+					depCheckResult.ScorecardResultsWithError.Error = sce.WithMessage(sce.ErrScorecardInternal,
+						fmt.Sprintf("error running the scorecard checks: %v", err))
+				} else { // Otherwise, we record the scorecard check results for this dependency.
+					depCheckResult.ScorecardResultsWithError.ScorecardResults = &scorecardResult
 				}
 			}
 		}
