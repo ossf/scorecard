@@ -69,8 +69,8 @@ The steps to writing a check are as follows:
 
 6.  Dealing with errors: see [errors/errors.md](/errors/errors.md).
 
-7.  Create unit tests for low, high and inconclusive scores. Put them in a
-    file `checks/mycheck_test.go`.
+7.  Create unit tests for low, high and inconclusive scores. Put them in a file
+    `checks/mycheck_test.go`.
 
 8.  Create e2e tests in `e2e/mycheck_test.go`. Use a dedicated repo that will
     not change over time, so that it's reliable for the tests.
