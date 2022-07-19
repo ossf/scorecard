@@ -19,8 +19,8 @@ create a new GitHub Issue to discuss with the team:
     of a given scorecard finding for that repository.
 -   Any criteria in the scorecard must be actionable. It should be possible,
     with help, for any project to "check all the boxes".
--   Any solution to compile a scorecard should be usable by the greater
-    open-source community to monitor upstream security.
+-   Any solution to compile a scorecard should be usable by the greater open
+    source community to monitor upstream security.
 
 # How to write a check
 
@@ -69,7 +69,7 @@ The steps to writing a check are as follows:
 
 6.  Dealing with errors: see [errors/errors.md](/errors/errors.md).
 
-7.  Create unit tests for both low, high and inconclusive scores. Put them in a
+7.  Create unit tests for low, high and inconclusive scores. Put them in a
     file `checks/mycheck_test.go`.
 
 8.  Create e2e tests in `e2e/mycheck_test.go`. Use a dedicated repo that will
