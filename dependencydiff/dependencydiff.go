@@ -122,15 +122,16 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 		}
 		// For now we skip those without source repo urls.
 		// TODO (#2063): use the BigQuery dataset to supplement null source repo URLs to fetch the Scorecard results for them.
-		if d.SourceRepository != nil && d.ChangeType != nil {
+		if d.SourceRepository != nil {
+			// Initialize the repo and client(s) corresponding to the checks to run.
+			err = initRepoAndClientByChecks(dCtx, *d.SourceRepository)
+			if err != nil {
+				return fmt.Errorf("error init repo and clients: %w", err)
+			}
 			// Run the checks on all types if (1) the type is found in changeTypesToCheck or (2) no types are specified.
-			noTypesGiven := dCtx.changeTypesToCheck == nil || len(dCtx.changeTypesToCheck) == 0
-			if dCtx.changeTypesToCheck[*d.ChangeType] || noTypesGiven {
-				// Initialize the repo and client(s) corresponding to the checks to run.
-				err = initRepoAndClientByChecks(dCtx, *d.SourceRepository)
-				if err != nil {
-					return fmt.Errorf("error initializing repo and clients: %w", err)
-				}
+			TypeFoundOrNotGiven := dCtx.changeTypesToCheck[*d.ChangeType] ||
+				(dCtx.changeTypesToCheck == nil || len(dCtx.changeTypesToCheck) == 0)
+			if TypeFoundOrNotGiven {
 				// Run scorecard on those types of dependencies that the caller would like to check.
 				// If the input map changeTypesToCheck is empty, by default, we run the checks for all valid types.
 				// TODO (#2064): use the Scorecare REST API to retrieve the Scorecard result statelessly.
