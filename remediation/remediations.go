@@ -20,6 +20,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/go-containerregistry/pkg/crane"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 )
@@ -36,7 +38,8 @@ var errInvalidArg = errors.New("invalid argument")
 var (
 	workflowText = "update your workflow using https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s"
 	//nolint
-	workflowMarkdown = "update your workflow using [https://app.stepsecurity.io](https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s)"
+	workflowMarkdown  = "update your workflow using [https://app.stepsecurity.io](https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s)"
+	dockerfilePinText = "pin your Docker image by updating %[1]s to %[1]s@%s"
 )
 
 //nolint:gochecknoinits
@@ -88,6 +91,25 @@ func createWorkflowRemediation(path, t string) *checker.Remediation {
 
 	text := fmt.Sprintf(workflowText, repo, p, branch, t)
 	markdown := fmt.Sprintf(workflowMarkdown, repo, p, branch, t)
+
+	return &checker.Remediation{
+		HelpText:     text,
+		HelpMarkdown: markdown,
+	}
+}
+
+// CreateDockerfilePinningRemediation create remediaiton for pinning Dockerfile images.
+func CreateDockerfilePinningRemediation(name *string) *checker.Remediation {
+	if name == nil {
+		return nil
+	}
+	hash, err := crane.Digest(*name)
+	if err != nil {
+		return nil
+	}
+
+	text := fmt.Sprintf(dockerfilePinText, *name, hash)
+	markdown := text
 
 	return &checker.Remediation{
 		HelpText:     text,
