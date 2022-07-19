@@ -38,10 +38,11 @@ type Options struct {
 	RubyGems   string
 	PolicyFile string
 	// TODO(action): Add logic for writing results to file
-	ResultsFile string
-	ChecksToRun []string
-	Metadata    []string
-	ShowDetails bool
+	ResultsFile    string
+	ChecksToRun    []string
+	Metadata       []string
+	ShowDetails    bool
+	Dependencydiff string
 
 	// Feature flags.
 	EnableSarif       bool `env:"ENABLE_SARIF"`

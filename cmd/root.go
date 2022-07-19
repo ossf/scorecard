@@ -38,7 +38,7 @@ import (
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
 	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --{npm,pypi,rubygems}=<package_name>)
-	 [--checks=check1,...] [--show-details]`
+	 [--checks=check1,...] [--show-details] [--dependencydiff=<base>...<head>]`
 	scorecardShort = "Security Scorecards"
 )
 

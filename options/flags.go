@@ -59,6 +59,9 @@ const (
 
 	// FlagFormat is the flag name for specifying output format.
 	FlagFormat = "format"
+
+	// FlagDependencyDiff is the flag name for specifying a base and a head commit for running dependency-diff.
+	FlagDependencyDiff = "dependencydiff"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -131,6 +134,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagShowDetails,
 		o.ShowDetails,
 		"show extra details about each check",
+	)
+
+	cmd.Flags().StringVar(
+		&o.Dependencydiff,
+		FlagRepo,
+		o.Dependencydiff,
+		"base and head commits (branch name, version or SHA) to check (format: \"<base>...<head>\")",
 	)
 
 	checkNames := []string{}
