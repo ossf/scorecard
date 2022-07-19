@@ -45,9 +45,10 @@ type Options struct {
 	Dependencydiff string
 
 	// Feature flags.
-	EnableSarif       bool `env:"ENABLE_SARIF"`
-	EnableScorecardV5 bool `env:"SCORECARD_V5"`
-	EnableScorecardV6 bool `env:"SCORECARD_V6"`
+	EnableSarif          bool `env:"ENABLE_SARIF"`
+	EnableScorecardV5    bool `env:"SCORECARD_V5"`
+	EnableScorecardV6    bool `env:"SCORECARD_V6"`
+	EnableDependencydiff bool `env:"ENABLE_DEPENDENCYDIFF"`
 }
 
 // New creates a new instance of `Options`.
@@ -100,6 +101,9 @@ const (
 	// EnvVarScorecardV6 is the environment variable which enables scorecard v6
 	// options.
 	EnvVarScorecardV6 = "SCORECARD_V6"
+	// EnvVarDependencydiff is the environment variable which controls enabling
+	// the --dependencydiff option.
+	EnvVarDependencydiff = "ENABLE_DEPENDENCYDIFF"
 )
 
 var (
@@ -115,6 +119,7 @@ var (
 		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
+	errDepdiffDisabled   = errors.New("dependencydiff option is disabled")
 	errValidate          = errors.New("some options could not be validated")
 )
 
@@ -168,6 +173,18 @@ func (o *Options) Validate() error {
 			errs = append(
 				errs,
 				errCommitOptionNotSupported,
+			)
+		}
+	}
+
+	if !o.isDepdiffEnabled() {
+		if o.Dependencydiff != "" {
+			errs = append(
+				errs,
+				fmt.Errorf(
+					"%v: cannot use --dependencydiff if feature flag not set in env nor in options",
+					errDepdiffDisabled,
+				),
 			)
 		}
 	}
@@ -242,6 +259,13 @@ func (o *Options) isV5Enabled() bool {
 func (o *Options) isV6Enabled() bool {
 	_, enabled := os.LookupEnv(EnvVarScorecardV6)
 	return o.EnableScorecardV6 || enabled
+}
+
+// isDepdiffEnabled returns true if the dependencydiff option was specified in options or via
+// environment variable.
+func (o *Options) isDepdiffEnabled() bool {
+	_, enabled := os.LookupEnv(EnvVarDependencydiff)
+	return o.EnableDependencydiff || enabled
 }
 
 func validateFormat(format string) bool {

@@ -90,8 +90,8 @@ type JSONDependencydiffResult struct {
 	SourceRepository     *string               `json:"sourceRepository"`
 	ManifestPath         *string               `json:"manifestPath"`
 	Ecosystem            *string               `json:"ecosystem"`
-	Version              *string               `json:"version"`
-	Name                 string                `json:"name"`
+	Version              *string               `json:"packageVersion"`
+	Name                 string                `json:"packageName"`
 	JSONScorecardResults JSONScorecardResultV2 `json:"scorecardResults"`
 }
 

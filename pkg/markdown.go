@@ -113,8 +113,7 @@ func DependencydiffResultsAsMarkdown(depdiffResults []DependencyCheckResult, bas
 	}
 	commits := strings.Split(baseHead, "...")
 	base, head := commits[0], commits[1]
-	out := "# [Scorecards' Github action](https://github.com/ossf/scorecard-action) Dependency-diff Report\n\n"
-	out += fmt.Sprintf(
+	out := fmt.Sprintf(
 		"Dependency-diffs (changes) between the BASE commit `%s` and the HEAD commit `%s`:\n\n",
 		base, head,
 	)
@@ -166,6 +165,6 @@ func scoreTag(score float64) string {
 	case NEG_INIF:
 		return ""
 	default:
-		return fmt.Sprintf("`Scorecard Score: %.1f` ", score)
+		return fmt.Sprintf("`Score: %.1f` ", score)
 	}
 }

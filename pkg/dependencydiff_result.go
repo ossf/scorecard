@@ -163,7 +163,7 @@ func DependencydiffResultsAsString(depdiffResults []DependencyCheckResult, showD
 	}
 	table := tablewriter.NewWriter(writer)
 	header := []string{
-		"Change Type", "Name", "Ecosystem", "Source Repository", "Manifest Path",
+		"Change Type", "Package Name", "Ecosystem", "Source Repository", "Manifest Path",
 		"Package URL", "Aggregate Score",
 	}
 	if showDetails {

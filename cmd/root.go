@@ -97,7 +97,7 @@ func rootCmd(o *options.Options) {
 	}
 
 	switch o.Dependencydiff {
-	case "":
+	case "": /* Run the original scorecard checks on the repo. */
 		repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
 			ctx, o.Repo, o.Local, logger)
 		if err != nil {
@@ -162,7 +162,7 @@ func rootCmd(o *options.Options) {
 		if resultsErr != nil {
 			log.Panicf("Failed to format results: %v", resultsErr)
 		}
-	default:
+	default: /* Run dependencydiff on the two commits of the repo, then give scorecard check results for those dependencies. */
 		commits := strings.Split(o.Dependencydiff, "...")
 		if len(commits) != 2 {
 			log.Panicf("invalid input commits: %v", os.ErrInvalid)
