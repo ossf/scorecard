@@ -23,17 +23,17 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/release-utils/version"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/dependencydiff"
-	docs "github.com/ossf/scorecard/v4/docs/checks"
-	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
 	"github.com/ossf/scorecard/v4/policy"
+	"github.com/spf13/cobra"
+	"sigs.k8s.io/release-utils/version"
+
+	docs "github.com/ossf/scorecard/v4/docs/checks"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 const (
@@ -82,12 +82,10 @@ func rootCmd(o *options.Options) {
 	if pkgResp.exists {
 		o.Repo = pkgResp.associatedRepo
 	}
-
 	pol, err := policy.ParseFromFile(o.PolicyFile)
 	if err != nil {
 		log.Panicf("readPolicy: %v", err)
 	}
-
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.ParseLevel(o.LogLevel))
 	// Read docs.
@@ -95,92 +93,97 @@ func rootCmd(o *options.Options) {
 	if err != nil {
 		log.Panicf("cannot read yaml file: %v", err)
 	}
-
 	switch o.Dependencydiff {
 	case "": /* Run the original scorecard checks on the repo. */
-		repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
-			ctx, o.Repo, o.Local, logger)
-		if err != nil {
-			log.Panic(err)
-		}
-		defer repoClient.Close()
-		if ossFuzzRepoClient != nil {
-			defer ossFuzzRepoClient.Close()
-		}
-
-		var requiredRequestTypes []checker.RequestType
-		if o.Local != "" {
-			requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
-		}
-		if !strings.EqualFold(o.Commit, clients.HeadSHA) {
-			requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
-		}
-		enabledChecks, err := policy.GetEnabled(pol, o.ChecksToRun, requiredRequestTypes)
-		if err != nil {
-			log.Panic(err)
-		}
-
-		if o.Format == options.FormatDefault {
-			for checkName := range enabledChecks {
-				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
-			}
-		}
-
-		repoResult, err := pkg.RunScorecards(
-			ctx,
-			repoURI,
-			o.Commit,
-			enabledChecks,
-			repoClient,
-			ossFuzzRepoClient,
-			ciiClient,
-			vulnsClient,
-		)
-		if err != nil {
-			log.Panic(err)
-		}
-		repoResult.Metadata = append(repoResult.Metadata, o.Metadata...)
-
-		// Sort them by name
-		sort.Slice(repoResult.Checks, func(i, j int) bool {
-			return repoResult.Checks[i].Name < repoResult.Checks[j].Name
-		})
-
-		if o.Format == options.FormatDefault {
-			for checkName := range enabledChecks {
-				fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
-			}
-			fmt.Println("\nRESULTS\n-------")
-		}
-
-		resultsErr := pkg.FormatResults(
-			o,
-			&repoResult,
-			checkDocs,
-			pol,
-		)
-		if resultsErr != nil {
-			log.Panicf("Failed to format results: %v", resultsErr)
-		}
+		doScorecardChecks(ctx, o, logger, checkDocs, pol)
 	default: /* Run dependencydiff on the two commits of the repo, then give scorecard check results for those dependencies. */
-		commits := strings.Split(o.Dependencydiff, "...")
-		if len(commits) != 2 {
-			log.Panicf("invalid input commits: %v", os.ErrInvalid)
+		doDependencydiff(ctx, o, logger, checkDocs)
+	}
+}
+
+func doScorecardChecks(ctx context.Context, o *options.Options,
+	logger *sclog.Logger, checkDocs docs.Doc, pol *policy.ScorecardPolicy,
+) {
+	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
+		ctx, o.Repo, o.Local, logger)
+	if err != nil {
+		log.Panic(err)
+	}
+	defer repoClient.Close()
+	if ossFuzzRepoClient != nil {
+		defer ossFuzzRepoClient.Close()
+	}
+	var requiredRequestTypes []checker.RequestType
+	if o.Local != "" {
+		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
+	}
+	if !strings.EqualFold(o.Commit, clients.HeadSHA) {
+		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
+	}
+	enabledChecks, err := policy.GetEnabled(pol, o.ChecksToRun, requiredRequestTypes)
+	if err != nil {
+		log.Panic(err)
+	}
+	if o.Format == options.FormatDefault {
+		for checkName := range enabledChecks {
+			fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 		}
-		base, head := commits[0], commits[1]
-		ownerRepo := strings.Split(o.Repo, "/")
-		if len(ownerRepo) != 2 {
-			log.Panicf("invalid input repo: %v", os.ErrInvalid)
+	}
+	repoResult, err := pkg.RunScorecards(
+		ctx,
+		repoURI,
+		o.Commit,
+		enabledChecks,
+		repoClient,
+		ossFuzzRepoClient,
+		ciiClient,
+		vulnsClient,
+	)
+	if err != nil {
+		log.Panic(err)
+	}
+	repoResult.Metadata = append(repoResult.Metadata, o.Metadata...)
+	// Sort them by name
+	sort.Slice(repoResult.Checks, func(i, j int) bool {
+		return repoResult.Checks[i].Name < repoResult.Checks[j].Name
+	})
+	if o.Format == options.FormatDefault {
+		for checkName := range enabledChecks {
+			fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
 		}
-		owner, repo := ownerRepo[0], ownerRepo[1]
-		depdiffResults, err := dependencydiff.GetDependencyDiffResults(
-			ctx, owner, repo, base, head, o.ChecksToRun, nil)
-		if err != nil {
-			log.Panicf("error getting dependencydiff results: %v", err)
-		}
-		depdiffErr := pkg.FormatDependencydiffResults(o, depdiffResults, checkDocs)
-		if depdiffErr != nil {
-			log.Panicf("Failed to format dependencydiff results: %v", depdiffErr)
-		}
+		fmt.Println("\nRESULTS\n-------")
+	}
+	resultsErr := pkg.FormatResults(
+		o,
+		&repoResult,
+		checkDocs,
+		pol,
+	)
+	if resultsErr != nil {
+		log.Panicf("Failed to format results: %v", resultsErr)
+	}
+}
+
+func doDependencydiff(ctx context.Context, o *options.Options,
+	logger *sclog.Logger, checkDocs docs.Doc,
+) {
+	commits := strings.Split(o.Dependencydiff, "...")
+	if len(commits) != 2 {
+		log.Panicf("invalid input commits: %v", os.ErrInvalid)
+	}
+	base, head := commits[0], commits[1]
+	ownerRepo := strings.Split(o.Repo, "/")
+	if len(ownerRepo) != 2 {
+		log.Panicf("invalid input repo: %v", os.ErrInvalid)
+	}
+	owner, repo := ownerRepo[0], ownerRepo[1]
+	depdiffResults, err := dependencydiff.GetDependencyDiffResults(
+		ctx, logger, owner, repo, base, head, o.ChecksToRun, nil)
+	if err != nil {
+		log.Panicf("error getting dependencydiff results: %v", err)
+	}
+	depdiffErr := pkg.FormatDependencydiffResults(o, depdiffResults, checkDocs)
+	if depdiffErr != nil {
+		log.Panicf("Failed to format dependencydiff results: %v", depdiffErr)
 	}
 }

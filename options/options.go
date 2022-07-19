@@ -39,10 +39,10 @@ type Options struct {
 	PolicyFile string
 	// TODO(action): Add logic for writing results to file
 	ResultsFile    string
+	Dependencydiff string
 	ChecksToRun    []string
 	Metadata       []string
 	ShowDetails    bool
-	Dependencydiff string
 
 	// Feature flags.
 	EnableSarif          bool `env:"ENABLE_SARIF"`
@@ -87,7 +87,7 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
-	// FormatMarkDown specifies that results should be output in Markdown format.
+	// FormatMarkdown specifies that results should be output in Markdown format.
 	FormatMarkdown = "markdown"
 
 	// Environment variables.
@@ -182,7 +182,7 @@ func (o *Options) Validate() error {
 			errs = append(
 				errs,
 				fmt.Errorf(
-					"%v: cannot use --dependencydiff if feature flag not set in env nor in options",
+					"%w: cannot use --dependencydiff if feature flag not set in env nor in options",
 					errDepdiffDisabled,
 				),
 			)
@@ -202,7 +202,7 @@ func (o *Options) Validate() error {
 		errs = append(
 			errs,
 			fmt.Errorf(
-				"%v: markdown can be only used for the --dependencydiff option",
+				"%w: markdown can be only used for the --dependencydiff option",
 				errFormatNotSupported,
 			),
 		)

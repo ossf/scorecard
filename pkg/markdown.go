@@ -25,18 +25,19 @@ import (
 )
 
 const (
-	NEG_INIF = -math.MaxFloat64
+	// negInif is "negative infinity" used for dependencydiff results ranking.
+	negInf = -math.MaxFloat64
 )
 
 type scoreAndDependencyName struct {
-	aggregateScore float64
 	dependencyName string
+	aggregateScore float64
 }
 
+// DependencydiffResultsAsMarkdown exports the dependencydiff results as markdown.
 func DependencydiffResultsAsMarkdown(depdiffResults []DependencyCheckResult, baseHead string,
 	doc checks.Doc, writer io.Writer,
 ) error {
-	// Use maps to reduce lookup times. Use pointers as values to save space.
 	added := map[string]DependencyCheckResult{}
 	removed := map[string]DependencyCheckResult{}
 	for _, d := range depdiffResults {
@@ -46,9 +47,11 @@ func DependencydiffResultsAsMarkdown(depdiffResults []DependencyCheckResult, bas
 				added[d.Name] = d
 			case Removed:
 				removed[d.Name] = d
+			case Updated:
+				// Do nothing, for now.
+				// The current data source GitHub Dependency Review won't give the updated dependencies,
+				// so we need to find them manually by checking the added/removed maps.
 			}
-			// The current data source GitHub Dependency Review won't give the updated dependencies,
-			// so we need to find them manually by checking the added/removed maps.
 		}
 	}
 	// Sort dependencies by their aggregate scores in descending orders.
@@ -80,15 +83,15 @@ func DependencydiffResultsAsMarkdown(depdiffResults []DependencyCheckResult, bas
 			current += updatedTag()
 		}
 		current += scoreTag(key.aggregateScore)
-		new := added[dName]
+		newResult := added[dName]
 		current += fmt.Sprintf(
 			"%s @ %s (new) ",
-			new.Name, *new.Version,
+			newResult.Name, *newResult.Version,
 		)
-		if old, ok := removed[dName]; ok {
+		if oldResult, ok := removed[dName]; ok {
 			current += fmt.Sprintf(
 				"~~%s @ %s (removed)~~ ",
-				old.Name, *old.Version,
+				oldResult.Name, *oldResult.Version,
 			)
 		}
 		results += current + "\n\n"
@@ -104,10 +107,10 @@ func DependencydiffResultsAsMarkdown(depdiffResults []DependencyCheckResult, bas
 		}
 		current := removedTag()
 		current += scoreTag(key.aggregateScore)
-		old := removed[dName]
+		oldResult := removed[dName]
 		current += fmt.Sprintf(
 			"~~%s @ %s~~ ",
-			old.Name, *old.Version,
+			oldResult.Name, *oldResult.Version,
 		)
 		results += current + "\n\n"
 	}
@@ -122,7 +125,7 @@ func DependencydiffResultsAsMarkdown(depdiffResults []DependencyCheckResult, bas
 	} else {
 		out += fmt.Sprintln(results)
 	}
-	fmt.Fprintf(writer, out)
+	fmt.Fprint(writer, out)
 	return nil
 }
 
@@ -131,7 +134,7 @@ func getDependencySortKeys(dcMap map[string]DependencyCheckResult, doc checks.Do
 	for k := range dcMap {
 		scoreAndName := scoreAndDependencyName{
 			dependencyName: dcMap[k].Name,
-			aggregateScore: NEG_INIF,
+			aggregateScore: negInf,
 			// Since this struct is for sorting, the dependency having a score of negative infinite
 			//will be put to the very last, unless its agregate score is not empty.
 		}
@@ -162,7 +165,7 @@ func removedTag() string {
 
 func scoreTag(score float64) string {
 	switch score {
-	case NEG_INIF:
+	case negInf:
 		return ""
 	default:
 		return fmt.Sprintf("`Score: %.1f` ", score)

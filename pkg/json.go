@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ossf/scorecard/v4/docs/checks"
+	"github.com/ossf/scorecard/v4/log"
+
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
 )
 
 //nolint
@@ -85,12 +85,13 @@ type JSONScorecardResultV2 struct {
 
 // JSONDependencydiffResult exports dependency-diff results as JSON for new detail format.
 type JSONDependencydiffResult struct {
-	ChangeType           *ChangeType           `json:"changeType"`
-	PackageURL           *string               `json:"packageUrl"`
-	SourceRepository     *string               `json:"sourceRepository"`
-	ManifestPath         *string               `json:"manifestPath"`
-	Ecosystem            *string               `json:"ecosystem"`
-	Version              *string               `json:"packageVersion"`
+	ChangeType       *ChangeType `json:"changeType"`
+	PackageURL       *string     `json:"packageUrl"`
+	SourceRepository *string     `json:"sourceRepository"`
+	ManifestPath     *string     `json:"manifestPath"`
+	Ecosystem        *string     `json:"ecosystem"`
+	Version          *string     `json:"packageVersion"`
+	// TODO (issue#2078): map the current naming convention (GitHub) to the OSV naming convention.
 	Name                 string                `json:"packageName"`
 	JSONScorecardResults JSONScorecardResultV2 `json:"scorecardResults"`
 }
@@ -184,8 +185,9 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 	return nil
 }
 
+// DependencydiffResultsAsJSON exports dependencydiff results as JSON.
 func DependencydiffResultsAsJSON(depdiffResults []DependencyCheckResult, showDetails bool,
-	logLevel log.Level, doc checks.Doc, writer io.Writer,
+	logLevel log.Level, doc docs.Doc, writer io.Writer,
 ) error {
 	encoder := json.NewEncoder(writer)
 	out := []JSONDependencydiffResult{}
@@ -223,7 +225,6 @@ func DependencydiffResultsAsJSON(depdiffResults []DependencyCheckResult, showDet
 				if e != nil {
 					return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", c.Name, e))
 				}
-
 				tmpResult := jsonCheckResultV2{
 					Name: c.Name,
 					Doc: jsonCheckDocumentationV2{

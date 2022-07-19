@@ -21,10 +21,12 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
-	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 	"github.com/ossf/scorecard/v4/policy"
+
+	sce "github.com/ossf/scorecard/v4/errors"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 // Depdiff is the exported name for dependency-diff.
@@ -49,11 +51,12 @@ type dependencydiffContext struct {
 // along with the Scorecard check results of the dependencies, and returns a slice of DependencyCheckResult.
 // TO use this API, an access token must be set following https://github.com/ossf/scorecard#authentication.
 func GetDependencyDiffResults(
-	ctx context.Context, ownerName, repoName, baseSHA, headSHA string, scorecardChecksNames []string,
+	ctx context.Context, logger *sclog.Logger,
+	ownerName, repoName, baseSHA, headSHA string, scorecardChecksNames []string,
 	changeTypesToCheck map[pkg.ChangeType]bool) ([]pkg.DependencyCheckResult, error) {
 	// Fetch the raw dependency diffs.
 	dCtx := dependencydiffContext{
-		logger:             log.NewLogger(log.InfoLevel),
+		logger:             logger,
 		ownerName:          ownerName,
 		repoName:           repoName,
 		baseSHA:            baseSHA,

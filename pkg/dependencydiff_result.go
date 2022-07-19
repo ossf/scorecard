@@ -21,9 +21,10 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/ossf/scorecard/v4/docs/checks"
-	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
+
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // ChangeType is the change type (added, updated, removed) of a dependency.
@@ -114,6 +115,7 @@ func FormatDependencydiffResults(
 	return nil
 }
 
+// DependencydiffResultsAsString exports the dependencydiff results as a string.
 func DependencydiffResultsAsString(depdiffResults []DependencyCheckResult, showDetails bool,
 	doc checks.Doc, writer io.Writer,
 ) error {
