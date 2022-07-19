@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/ossf/scorecard/v4/docs/checks"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
@@ -80,6 +81,18 @@ type JSONScorecardResultV2 struct {
 	AggregateScore jsonFloatScore      `json:"score"`
 	Checks         []jsonCheckResultV2 `json:"checks"`
 	Metadata       []string            `json:"metadata"`
+}
+
+// JSONDependencydiffResult exports dependency-diff results as JSON for new detail format.
+type JSONDependencydiffResult struct {
+	ChangeType           *ChangeType           `json:"changeType"`
+	PackageURL           *string               `json:"packageUrl"`
+	SourceRepository     *string               `json:"sourceRepository"`
+	ManifestPath         *string               `json:"manifestPath"`
+	Ecosystem            *string               `json:"ecosystem"`
+	Version              *string               `json:"version"`
+	Name                 string                `json:"name"`
+	JSONScorecardResults JSONScorecardResultV2 `json:"scorecardResults"`
 }
 
 // AsJSON exports results as JSON for new detail format.
@@ -168,6 +181,76 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 	if err := encoder.Encode(out); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
+	return nil
+}
 
+func DependencydiffResultsAsJSON(depdiffResults []DependencyCheckResult, showDetails bool,
+	logLevel log.Level, doc checks.Doc, writer io.Writer,
+) error {
+	encoder := json.NewEncoder(writer)
+	out := []JSONDependencydiffResult{}
+	for _, dr := range depdiffResults {
+		jsonDepdiff := JSONDependencydiffResult{
+			ChangeType:       dr.ChangeType,
+			PackageURL:       dr.PackageURL,
+			SourceRepository: dr.SourceRepository,
+			ManifestPath:     dr.ManifestPath,
+			Ecosystem:        dr.Ecosystem,
+			Version:          dr.Version,
+			Name:             dr.Name,
+		}
+		scResults := dr.ScorecardResultsWithError.ScorecardResults
+		if scResults != nil {
+			score, err := scResults.GetAggregateScore(doc)
+			if err != nil {
+				return err
+			}
+			jsonResults := JSONScorecardResultV2{
+				Repo: jsonRepoV2{
+					Name:   scResults.Repo.Name,
+					Commit: scResults.Repo.CommitSHA,
+				},
+				Scorecard: jsonScorecardV2{
+					Version: scResults.Scorecard.Version,
+					Commit:  scResults.Scorecard.CommitSHA,
+				},
+				Date:           scResults.Date.Format("2006-01-02"),
+				Metadata:       scResults.Metadata,
+				AggregateScore: jsonFloatScore(score),
+			}
+			for _, c := range scResults.Checks {
+				doc, e := doc.GetCheck(c.Name)
+				if e != nil {
+					return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", c.Name, e))
+				}
+
+				tmpResult := jsonCheckResultV2{
+					Name: c.Name,
+					Doc: jsonCheckDocumentationV2{
+						URL:   doc.GetDocumentationURL(scResults.Scorecard.CommitSHA),
+						Short: doc.GetShort(),
+					},
+					Reason: c.Reason,
+					Score:  c.Score,
+				}
+				if showDetails {
+					for i := range c.Details {
+						d := c.Details[i]
+						m := DetailToString(&d, logLevel)
+						if m == "" {
+							continue
+						}
+						tmpResult.Details = append(tmpResult.Details, m)
+					}
+				}
+				jsonResults.Checks = append(jsonResults.Checks, tmpResult)
+				jsonDepdiff.JSONScorecardResults = jsonResults
+			}
+		}
+		out = append(out, jsonDepdiff)
+	}
+	if err := encoder.Encode(out); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+	}
 	return nil
 }

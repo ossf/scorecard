@@ -86,6 +86,8 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
+	// FormatMarkDown specifies that results should be output in Markdown format.
+	FormatMarkdown = "markdown"
 
 	// Environment variables.
 
@@ -178,6 +180,17 @@ func (o *Options) Validate() error {
 		)
 	}
 
+	// Validate the format markdown is used iff. the --dependencydiff option is not empty.
+	if o.Dependencydiff == "" && o.Format == FormatMarkdown {
+		errs = append(
+			errs,
+			fmt.Errorf(
+				"%v: markdown can be only used for the --dependencydiff option",
+				errFormatNotSupported,
+			),
+		)
+	}
+
 	// Validate `commit` is non-empty.
 	if o.Commit == "" {
 		errs = append(
@@ -233,7 +246,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatSarif, FormatDefault, FormatRaw, FormatMarkdown:
 		return true
 	default:
 		return false

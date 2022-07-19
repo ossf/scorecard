@@ -138,7 +138,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringVar(
 		&o.Dependencydiff,
-		FlagRepo,
+		FlagDependencyDiff,
 		o.Dependencydiff,
 		"base and head commits (branch name, version or SHA) to check (format: \"<base>...<head>\")",
 	)
