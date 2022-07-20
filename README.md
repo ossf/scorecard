@@ -478,7 +478,7 @@ Slack Channel                 | [#security_scorecards](https://slack.openssf.org
 ---------------------------------------------------------------- | ----------------- | ------- | -------
 <img width="30px" src="https://github.com/azeemshaikh38.png">    | Azeem Shaikh      | Google  | [azeemshaikh38](https://github.com/azeemshaikh38)
 <img width="30px" src="https://github.com/laurentsimon.png">     | Laurent Simon     | Google  | [laurentsimon](https://github.com/laurentsimon)
-<img width="30px" src="https://github.com/naveensrinivasan.png"> | Naveen Srinivasan |         | [naveensrinivasan](https://github.com/naveensrinivasan)
+<img width="30px" src="https://github.com/naveensrinivasan.png"> | Naveen Srinivasan | Endor Labs | [naveensrinivasan](https://github.com/naveensrinivasan)
 <img width="30px" src="https://github.com/chrismcgehee.png">     | Chris McGehee     | Datto   | [chrismcgehee](https://github.com/chrismcgehee)
 <img width="30px" src="https://github.com/justaugustus.png">     | Stephen Augustus  | Cisco   | [justaugustus](https://github.com/justaugustus)
 
