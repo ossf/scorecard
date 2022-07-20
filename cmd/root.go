@@ -23,16 +23,16 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/options"
-	"github.com/ossf/scorecard/v4/pkg"
-	"github.com/ossf/scorecard/v4/policy"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/release-utils/version"
 
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sclog "github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
+	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v4/policy"
 )
 
 const (

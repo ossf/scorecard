@@ -86,8 +86,6 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
-	// FormatMarkdown specifies that results should be output in Markdown format.
-	FormatMarkdown = "markdown"
 
 	// Environment variables.
 
@@ -122,7 +120,7 @@ var (
 	errExperimentalDisabled = errors.New("scorecard experimental features are disabled")
 )
 
-// Validate validates scorecard configuration options.
+// ValidateRoot validates scorecard configuration options.
 // TODO(options): Cleanup error messages.
 func (o *Options) ValidateRoot() error {
 	var errs []error
@@ -239,7 +237,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatSarif, FormatDefault, FormatRaw, FormatMarkdown:
+	case FormatJSON, FormatSarif, FormatDefault, FormatRaw:
 		return true
 	default:
 		return false
@@ -253,6 +251,7 @@ func (o *Options) isExperimentalEnabled() bool {
 	return o.EnableScorecardExperimental || enabled
 }
 
+// ValidateDepdiff validates dependencydiff configuration options.
 func (o *Options) ValidateDepdiff() error {
 	if !o.isExperimentalEnabled() {
 		return fmt.Errorf(

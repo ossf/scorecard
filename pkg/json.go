@@ -19,10 +19,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ossf/scorecard/v4/log"
-
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 //nolint
