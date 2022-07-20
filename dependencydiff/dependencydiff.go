@@ -31,18 +31,18 @@ import (
 const Depdiff = "Dependency-diff"
 
 type dependencydiffContext struct {
-	logger                                *sclog.Logger
-	ownerName, repoName, baseSHA, headSHA string
-	ctx                                   context.Context
-	ghRepo                                clients.Repo
-	ghRepoClient                          clients.RepoClient
-	ossFuzzClient                         clients.RepoClient
-	vulnsClient                           clients.VulnerabilitiesClient
-	ciiClient                             clients.CIIBestPracticesClient
-	changeTypesToCheck                    map[pkg.ChangeType]bool
-	checkNamesToRun                       []string
-	dependencydiffs                       []dependency
-	results                               []pkg.DependencyCheckResult
+	logger                          *sclog.Logger
+	ownerName, repoName, base, head string
+	ctx                             context.Context
+	ghRepo                          clients.Repo
+	ghRepoClient                    clients.RepoClient
+	ossFuzzClient                   clients.RepoClient
+	vulnsClient                     clients.VulnerabilitiesClient
+	ciiClient                       clients.CIIBestPracticesClient
+	changeTypesToCheck              map[pkg.ChangeType]bool
+	checkNamesToRun                 []string
+	dependencydiffs                 []dependency
+	results                         []pkg.DependencyCheckResult
 }
 
 // GetDependencyDiffResults gets dependency changes between two given code commits BASE and HEAD
@@ -50,18 +50,18 @@ type dependencydiffContext struct {
 // TO use this API, an access token must be set following https://github.com/ossf/scorecard#authentication.
 func GetDependencyDiffResults(
 	ctx context.Context, logger *sclog.Logger,
-	ownerName, repoName, baseSHA, headSHA string, scorecardChecksNames []string,
+	ownerName, repoName, base, head string, checkNames []string,
 	changeTypesToCheck map[pkg.ChangeType]bool) ([]pkg.DependencyCheckResult, error) {
 	// Fetch the raw dependency diffs.
 	dCtx := dependencydiffContext{
 		logger:             logger,
 		ownerName:          ownerName,
 		repoName:           repoName,
-		baseSHA:            baseSHA,
-		headSHA:            headSHA,
+		base:               base,
+		head:               head,
 		ctx:                ctx,
 		changeTypesToCheck: changeTypesToCheck,
-		checkNamesToRun:    scorecardChecksNames,
+		checkNamesToRun:    checkNames,
 	}
 	err := fetchRawDependencyDiffData(&dCtx)
 	if err != nil {
