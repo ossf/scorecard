@@ -25,7 +25,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/dependencydiff"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
 	"github.com/ossf/scorecard/v4/policy"
@@ -39,7 +38,7 @@ import (
 const (
 	scorecardLong = "A program that shows security scorecard for an open source software."
 	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --{npm,pypi,rubygems}=<package_name>)
-	 [--checks=check1,...] [--show-details] [--dependencydiff=<base>...<head>]`
+	 [--checks=check1,...] [--show-details]`
 	scorecardShort = "Security Scorecards"
 )
 
@@ -50,11 +49,10 @@ func New(o *options.Options) *cobra.Command {
 		Short: scorecardShort,
 		Long:  scorecardLong,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			err := o.Validate()
+			err := o.ValidateRoot()
 			if err != nil {
 				return fmt.Errorf("validating options: %w", err)
 			}
-
 			return nil
 		},
 		// TODO(cmd): Consider using RunE here
@@ -63,9 +61,10 @@ func New(o *options.Options) *cobra.Command {
 		},
 	}
 
-	o.AddFlags(cmd)
+	o.AddRootFlags(cmd)
 
 	// Add sub-commands.
+	cmd.AddCommand(dependencydiffCmd(o))
 	cmd.AddCommand(serveCmd(o))
 	cmd.AddCommand(version.Version())
 	return cmd
@@ -93,12 +92,8 @@ func rootCmd(o *options.Options) {
 	if err != nil {
 		log.Panicf("cannot read yaml file: %v", err)
 	}
-	switch o.Dependencydiff {
-	case "": /* Run the original scorecard checks on the repo. */
-		doScorecardChecks(ctx, o, logger, checkDocs, pol)
-	default: /* Run dependencydiff on the two commits of the repo, then give scorecard check results for those dependencies. */
-		doDependencydiff(ctx, o, logger, checkDocs)
-	}
+	// Run the scorecard checks on the repo.
+	doScorecardChecks(ctx, o, logger, checkDocs, pol)
 }
 
 func doScorecardChecks(ctx context.Context, o *options.Options,
@@ -161,29 +156,5 @@ func doScorecardChecks(ctx context.Context, o *options.Options,
 	)
 	if resultsErr != nil {
 		log.Panicf("Failed to format results: %v", resultsErr)
-	}
-}
-
-func doDependencydiff(ctx context.Context, o *options.Options,
-	logger *sclog.Logger, checkDocs docs.Doc,
-) {
-	commits := strings.Split(o.Dependencydiff, "...")
-	if len(commits) != 2 {
-		log.Panicf("invalid input commits: %v", os.ErrInvalid)
-	}
-	base, head := commits[0], commits[1]
-	ownerRepo := strings.Split(o.Repo, "/")
-	if len(ownerRepo) != 2 {
-		log.Panicf("invalid input repo: %v", os.ErrInvalid)
-	}
-	owner, repo := ownerRepo[0], ownerRepo[1]
-	depdiffResults, err := dependencydiff.GetDependencyDiffResults(
-		ctx, logger, owner, repo, base, head, o.ChecksToRun, nil)
-	if err != nil {
-		log.Panicf("error getting dependencydiff results: %v", err)
-	}
-	depdiffErr := pkg.FormatDependencydiffResults(o, depdiffResults, checkDocs)
-	if depdiffErr != nil {
-		log.Panicf("Failed to format dependencydiff results: %v", depdiffErr)
 	}
 }

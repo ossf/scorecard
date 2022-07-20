@@ -16,15 +16,11 @@ package pkg
 
 import (
 	"fmt"
-	"io"
 	"os"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/ossf/scorecard/v4/docs/checks"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
-
-	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // ChangeType is the change type (added, updated, removed) of a dependency.
@@ -91,94 +87,9 @@ func FormatDependencydiffResults(
 	depdiffResults []DependencyCheckResult,
 	doc checks.Doc,
 ) error {
-	var err error
-
-	switch opts.Format {
-	case options.FormatDefault:
-		err = DependencydiffResultsAsString(depdiffResults, opts.ShowDetails, doc, os.Stdout)
-	case options.FormatJSON:
-		err = DependencydiffResultsAsJSON(depdiffResults, opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
-	case options.FormatMarkdown:
-		err = DependencydiffResultsAsMarkdown(depdiffResults, opts.Dependencydiff, doc, os.Stdout)
-	default:
-		err = sce.WithMessage(
-			sce.ErrScorecardInternal,
-			fmt.Sprintf(
-				"invalid format flag: %v. Expected [default, json, markdown]",
-				opts.Format,
-			),
-		)
-	}
+	err := DependencydiffResultsAsJSON(depdiffResults, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
 	if err != nil {
 		return fmt.Errorf("failed to output dependencydiff results: %w", err)
 	}
-	return nil
-}
-
-// DependencydiffResultsAsString exports the dependencydiff results as a string.
-func DependencydiffResultsAsString(depdiffResults []DependencyCheckResult, showDetails bool,
-	doc checks.Doc, writer io.Writer,
-) error {
-	data := make([][]string, len(depdiffResults))
-
-	for i, dr := range depdiffResults {
-		const withdetails = 8
-		const withoutdetails = 7
-		var x []string
-
-		if showDetails {
-			x = make([]string, withdetails)
-		} else {
-			x = make([]string, withoutdetails)
-		}
-
-		if dr.ChangeType.IsValid() {
-			x[0] = string(*dr.ChangeType)
-		}
-		x[1] = dr.Name
-		if dr.Ecosystem != nil {
-			x[2] = *dr.Ecosystem
-		}
-		if dr.SourceRepository != nil {
-			x[3] = *dr.SourceRepository
-		}
-		if dr.ManifestPath != nil {
-			x[4] = *dr.ManifestPath
-		}
-		if dr.PackageURL != nil {
-			x[5] = *dr.PackageURL
-		}
-		scResults := dr.ScorecardResultsWithError.ScorecardResults
-		if scResults != nil {
-			score, err := scResults.GetAggregateScore(doc)
-			if err != nil {
-				return err
-			}
-			x[6] = fmt.Sprintf("%.1f", score)
-			if showDetails {
-				for _, c := range scResults.Checks {
-					x[7] += fmt.Sprintf("%s = %d; ", c.Name, c.Score)
-				}
-			}
-		}
-		data[i] = x
-	}
-	table := tablewriter.NewWriter(writer)
-	header := []string{
-		"Change Type", "Package Name", "Ecosystem", "Source Repository", "Manifest Path",
-		"Package URL", "Aggregate Score",
-	}
-	if showDetails {
-		header = append(header, "Scorecard Check Details")
-	}
-	table.SetHeader(header)
-	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
-	table.SetRowSeparator("-")
-	table.SetRowLine(true)
-	table.SetCenterSeparator("|")
-	table.AppendBulk(data)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetRowLine(true)
-	table.Render()
 	return nil
 }

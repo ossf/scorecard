@@ -38,17 +38,16 @@ type Options struct {
 	RubyGems   string
 	PolicyFile string
 	// TODO(action): Add logic for writing results to file
-	ResultsFile    string
-	Dependencydiff string
-	ChecksToRun    []string
-	Metadata       []string
-	ShowDetails    bool
+	ResultsFile string
+	ChecksToRun []string
+	Metadata    []string
+	ShowDetails bool
 
 	// Feature flags.
-	EnableSarif          bool `env:"ENABLE_SARIF"`
-	EnableScorecardV5    bool `env:"SCORECARD_V5"`
-	EnableScorecardV6    bool `env:"SCORECARD_V6"`
-	EnableDependencydiff bool `env:"ENABLE_DEPENDENCYDIFF"`
+	EnableSarif                 bool `env:"ENABLE_SARIF"`
+	EnableScorecardV5           bool `env:"SCORECARD_V5"`
+	EnableScorecardV6           bool `env:"SCORECARD_V6"`
+	EnableScorecardExperimental bool `env:"SCORECARD_EXPERIMENTAL"`
 }
 
 // New creates a new instance of `Options`.
@@ -101,9 +100,9 @@ const (
 	// EnvVarScorecardV6 is the environment variable which enables scorecard v6
 	// options.
 	EnvVarScorecardV6 = "SCORECARD_V6"
-	// EnvVarDependencydiff is the environment variable which controls enabling
-	// the --dependencydiff option.
-	EnvVarDependencydiff = "ENABLE_DEPENDENCYDIFF"
+	// EnvVarScorecardExperimental is the environment variable which enables
+	// scorecard experimental features.
+	EnvVarScorecardExperimental = "SCORECARD_EXPERIMENTAL"
 )
 
 var (
@@ -118,14 +117,14 @@ var (
 	errRepoOptionMustBeSet      = errors.New(
 		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
 	)
-	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
-	errDepdiffDisabled   = errors.New("dependencydiff option is disabled")
-	errValidate          = errors.New("some options could not be validated")
+	errSARIFNotSupported    = errors.New("SARIF format is not supported yet")
+	errValidate             = errors.New("some options could not be validated")
+	errExperimentalDisabled = errors.New("scorecard experimental features are disabled")
 )
 
 // Validate validates scorecard configuration options.
 // TODO(options): Cleanup error messages.
-func (o *Options) Validate() error {
+func (o *Options) ValidateRoot() error {
 	var errs []error
 
 	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--local` is enabled.
@@ -177,34 +176,11 @@ func (o *Options) Validate() error {
 		}
 	}
 
-	if !o.isDepdiffEnabled() {
-		if o.Dependencydiff != "" {
-			errs = append(
-				errs,
-				fmt.Errorf(
-					"%w: cannot use --dependencydiff if feature flag not set in env nor in options",
-					errDepdiffDisabled,
-				),
-			)
-		}
-	}
-
 	// Validate format.
 	if !validateFormat(o.Format) {
 		errs = append(
 			errs,
 			errFormatNotSupported,
-		)
-	}
-
-	// Validate the format markdown is used iff. the --dependencydiff option is not empty.
-	if o.Dependencydiff == "" && o.Format == FormatMarkdown {
-		errs = append(
-			errs,
-			fmt.Errorf(
-				"%w: markdown can be only used for the --dependencydiff option",
-				errFormatNotSupported,
-			),
 		)
 	}
 
@@ -261,13 +237,6 @@ func (o *Options) isV6Enabled() bool {
 	return o.EnableScorecardV6 || enabled
 }
 
-// isDepdiffEnabled returns true if the dependencydiff option was specified in options or via
-// environment variable.
-func (o *Options) isDepdiffEnabled() bool {
-	_, enabled := os.LookupEnv(EnvVarDependencydiff)
-	return o.EnableDependencydiff || enabled
-}
-
 func validateFormat(format string) bool {
 	switch format {
 	case FormatJSON, FormatSarif, FormatDefault, FormatRaw, FormatMarkdown:
@@ -275,4 +244,21 @@ func validateFormat(format string) bool {
 	default:
 		return false
 	}
+}
+
+// isExperimentalEnabled returns true if SCORECARD_EXPERIMENTAL was specified in options or via
+// environment variable.
+func (o *Options) isExperimentalEnabled() bool {
+	_, enabled := os.LookupEnv(EnvVarScorecardExperimental)
+	return o.EnableScorecardExperimental || enabled
+}
+
+func (o *Options) ValidateDepdiff() error {
+	if !o.isExperimentalEnabled() {
+		return fmt.Errorf(
+			"cannot use this feature: %w",
+			errExperimentalDisabled,
+		)
+	}
+	return nil
 }

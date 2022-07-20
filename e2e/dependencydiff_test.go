@@ -23,6 +23,8 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/dependencydiff"
 	"github.com/ossf/scorecard/v4/pkg"
+
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 const (
@@ -36,6 +38,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 	Context("E2E TEST:Validating use of the dependency-diff API", func() {
 		It("Should return a slice of dependency-diff checking results", func() {
 			ctx := context.Background()
+			logger := sclog.NewLogger(sclog.DefaultLevel)
 			ownerName, repoName := OWNER, REPO
 			baseSHA, headSHA := BASE, HEAD
 			scorecardChecksNames := []string{
@@ -45,7 +48,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 				pkg.Removed: true, // Only checking those removed ones will make this test faster.
 			}
 			results, err := dependencydiff.GetDependencyDiffResults(
-				ctx,
+				ctx, logger,
 				ownerName, repoName, baseSHA, headSHA,
 				scorecardChecksNames,
 				changeTypesToCheck,
@@ -65,7 +68,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 				pkg.Removed: true,
 			}
 			results, err := dependencydiff.GetDependencyDiffResults(
-				ctx,
+				ctx, logger,
 				ownerName, repoName, baseSHA, headSHA,
 				scorecardChecksNames,
 				changeTypesToCheck,
@@ -83,7 +86,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 				pkg.Removed: true,
 			}
 			_, err := dependencydiff.GetDependencyDiffResults(
-				ctx,
+				ctx, logger,
 				ownerName, repoName, baseSHA, headSHA,
 				scorecardChecksNames,
 				changeTypesToCheck,

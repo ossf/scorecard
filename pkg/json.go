@@ -186,7 +186,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 }
 
 // DependencydiffResultsAsJSON exports dependencydiff results as JSON.
-func DependencydiffResultsAsJSON(depdiffResults []DependencyCheckResult, showDetails bool,
+func DependencydiffResultsAsJSON(depdiffResults []DependencyCheckResult,
 	logLevel log.Level, doc docs.Doc, writer io.Writer,
 ) error {
 	encoder := json.NewEncoder(writer)
@@ -234,15 +234,13 @@ func DependencydiffResultsAsJSON(depdiffResults []DependencyCheckResult, showDet
 					Reason: c.Reason,
 					Score:  c.Score,
 				}
-				if showDetails {
-					for i := range c.Details {
-						d := c.Details[i]
-						m := DetailToString(&d, logLevel)
-						if m == "" {
-							continue
-						}
-						tmpResult.Details = append(tmpResult.Details, m)
+				for i := range c.Details {
+					d := c.Details[i]
+					m := DetailToString(&d, logLevel)
+					if m == "" {
+						continue
 					}
+					tmpResult.Details = append(tmpResult.Details, m)
 				}
 				jsonResults.Checks = append(jsonResults.Checks, tmpResult)
 				jsonDepdiff.JSONScorecardResults = jsonResults

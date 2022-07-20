@@ -59,9 +59,6 @@ const (
 
 	// FlagFormat is the flag name for specifying output format.
 	FlagFormat = "format"
-
-	// FlagDependencyDiff is the flag name for specifying a base and a head commit for running dependency-diff.
-	FlagDependencyDiff = "dependencydiff"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -70,9 +67,9 @@ type Command interface {
 	AddFlags(cmd *cobra.Command)
 }
 
-// AddFlags adds this options' flags to the cobra command.
-func (o *Options) AddFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(
+// AddRootFlags adds this options' flags to the cobra command.
+func (o *Options) AddRootFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringVar(
 		&o.Repo,
 		FlagRepo,
 		o.Repo,
@@ -87,11 +84,14 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	)
 
 	// TODO(v5): Should this be behind a feature flag?
-	cmd.Flags().StringVar(
+	cmd.PersistentFlags().StringVar(
 		&o.Commit,
 		FlagCommit,
 		o.Commit,
-		"commit to analyze",
+		"For the default scorecard run, this is the commit to analyze. "+
+			`For dependencydiff, this include the two commits BASE and HEAD, use "..." to separate them. `+
+			`Both commitSHAs (commit_A_SHA...commit_B_SHA) or branch names ("main...dev") or a mix of them `+
+			`(main...commit_A_SHA) are supported. Please don't use the default value for dependencydiff.`,
 	)
 
 	cmd.Flags().StringVar(
@@ -136,18 +136,11 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		"show extra details about each check",
 	)
 
-	cmd.Flags().StringVar(
-		&o.Dependencydiff,
-		FlagDependencyDiff,
-		o.Dependencydiff,
-		"base and head commits (branch name, version or SHA) to check (format: \"<base>...<head>\")",
-	)
-
 	checkNames := []string{}
 	for checkName := range checks.GetAll() {
 		checkNames = append(checkNames, checkName)
 	}
-	cmd.Flags().StringSliceVar(
+	cmd.PersistentFlags().StringSliceVar(
 		&o.ChecksToRun,
 		FlagChecks,
 		o.ChecksToRun,
