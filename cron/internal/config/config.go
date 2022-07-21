@@ -34,20 +34,20 @@ const (
 	// ShardNumFilename is the name of the file that stores the number of shards.
 	ShardNumFilename string = ".shard_num"
 	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.
-	TransferStatusFilename   string = ".transfer_complete"
-	projectID                string = "SCORECARD_PROJECT_ID"
-	requestTopicURL          string = "SCORECARD_REQUEST_TOPIC_URL"
-	requestSubscriptionURL   string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
-	bigqueryDataset          string = "SCORECARD_BIGQUERY_DATASET"
-	completionThreshold      string = "SCORECARD_COMPLETION_THRESHOLD"
-	shardSize                string = "SCORECARD_SHARD_SIZE"
-	webhookURL               string = "SCORECARD_WEBHOOK_URL"
-	metricExporter           string = "SCORECARD_METRIC_EXPORTER"
-	ciiDataBucketURL         string = "SCORECARD_CII_DATA_BUCKET_URL"
-	blacklistedChecks        string = "SCORECARD_BLACKLISTED_CHECKS"
-	bigqueryTable            string = "SCORECARD_BIGQUERY_TABLE"
-	resultDataBucketURL      string = "SCORECARD_DATA_BUCKET_URL"
-	bqExportResultsBucketURL string = "SCORECARD_BQ_EXPORT_RESULTS_BUCKET_URL"
+	TransferStatusFilename string = ".transfer_complete"
+	projectID              string = "SCORECARD_PROJECT_ID"
+	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
+	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
+	bigqueryDataset        string = "SCORECARD_BIGQUERY_DATASET"
+	completionThreshold    string = "SCORECARD_COMPLETION_THRESHOLD"
+	shardSize              string = "SCORECARD_SHARD_SIZE"
+	webhookURL             string = "SCORECARD_WEBHOOK_URL"
+	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
+	ciiDataBucketURL       string = "SCORECARD_CII_DATA_BUCKET_URL"
+	blacklistedChecks      string = "SCORECARD_BLACKLISTED_CHECKS"
+	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
+	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
+	apiResultsBucketURL    string = "SCORECARD_API_RESULTS_BUCKET_URL"
 	// Raw results.
 	rawBigqueryTable       string = "RAW_SCORECARD_BIGQUERY_TABLE"
 	rawResultDataBucketURL string = "RAW_SCORECARD_DATA_BUCKET_URL"
@@ -236,6 +236,6 @@ func GetMetricExporter() (string, error) {
 
 // GetBQExportResultsBucketURL returns the bucket URL for storing cron job results.
 func GetBQExportResultsBucketURL() (string, error) {
-	return getStringConfigValue(bqExportResultsBucketURL, configYAML,
+	return getStringConfigValue(apiResultsBucketURL, configYAML,
 		"BigQueryExportResultsBucketURL", "bq-export-results-bucket-url")
 }

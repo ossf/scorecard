@@ -39,7 +39,7 @@ const (
 	// Raw results.
 	prodRawBucket                = "gs://ossf-scorecard-rawdata"
 	prodRawBigQueryTable         = "scorecard-rawdata"
-	prodBigQueryExportsBucketURL = "gs://ossf-scorecard-bq-export-results"
+	prodBigQueryExportsBucketURL = "gs://ossf-scorecard-cron-results"
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -61,20 +61,21 @@ func TestYAMLParsing(t *testing.T) {
 			name:     "validate",
 			filename: "config.yaml",
 			expectedConfig: config{
-				ProjectID:              prodProjectID,
-				ResultDataBucketURL:    prodBucket,
-				RequestTopicURL:        prodTopic,
-				RequestSubscriptionURL: prodSubscription,
-				BigQueryDataset:        prodBigQueryDataset,
-				BigQueryTable:          prodBigQueryTable,
-				CompletionThreshold:    prodCompletionThreshold,
-				WebhookURL:             prodWebhookURL,
-				CIIDataBucketURL:       prodCIIDataBucket,
-				BlacklistedChecks:      prodBlacklistedChecks,
-				ShardSize:              prodShardSize,
-				MetricExporter:         prodMetricExporter,
-				RawResultDataBucketURL: prodRawBucket,
-				RawBigQueryTable:       prodRawBigQueryTable,
+				ProjectID:                      prodProjectID,
+				ResultDataBucketURL:            prodBucket,
+				RequestTopicURL:                prodTopic,
+				RequestSubscriptionURL:         prodSubscription,
+				BigQueryDataset:                prodBigQueryDataset,
+				BigQueryTable:                  prodBigQueryTable,
+				CompletionThreshold:            prodCompletionThreshold,
+				WebhookURL:                     prodWebhookURL,
+				CIIDataBucketURL:               prodCIIDataBucket,
+				BlacklistedChecks:              prodBlacklistedChecks,
+				ShardSize:                      prodShardSize,
+				MetricExporter:                 prodMetricExporter,
+				RawResultDataBucketURL:         prodRawBucket,
+				RawBigQueryTable:               prodRawBigQueryTable,
+				BigQueryExportResultsBucketURL: prodBigQueryExportsBucketURL,
 			},
 		},
 
@@ -349,7 +350,7 @@ func TestGetMetricExporter(t *testing.T) {
 //nolint:paralleltest // Since os.Setenv is used.
 func TestGetBigQueryExportsBucketURL(t *testing.T) {
 	t.Run("GetBigQueryExportsBucketURL", func(t *testing.T) {
-		bigqueryExportsBucketURL := bqExportResultsBucketURL
+		bigqueryExportsBucketURL := apiResultsBucketURL
 		os.Unsetenv(bigqueryExportsBucketURL)
 		bucket, err := GetBQExportResultsBucketURL()
 		if err != nil {

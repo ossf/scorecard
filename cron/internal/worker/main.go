@@ -129,20 +129,40 @@ func processRequest(ctx context.Context,
 		if err := format.AsJSON2(&result, true /*showDetails*/, log.InfoLevel, checkDocs, &buffer2); err != nil {
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
+		// these are for exporting results to GCS for API consumption
+		var exportBuffer bytes.Buffer
+		var exportRawBuffer bytes.Buffer
+
+		if err := format.AsJSON2(&result, true /*showDetails*/, log.InfoLevel, checkDocs, &exportBuffer); err != nil {
+			return fmt.Errorf("error during result.AsJSON2 for export: %w", err)
+		}
+		if err := format.AsRawJSON(&result, &exportRawBuffer); err != nil {
+			return fmt.Errorf("error during result.AsRawJSON for export: %w", err)
+		}
 		exportPath := fmt.Sprintf("%s/result.json", repo.URI())
 		exportCommitSHAPath := fmt.Sprintf("%s/%s/result.json", repo.URI(), result.Repo.CommitSHA)
+		exportRawPath := fmt.Sprintf("%s/raw.json", repo.URI())
+		exportRawCommitSHAPath := fmt.Sprintf("%s/%s/raw.json", repo.URI(), result.Repo.CommitSHA)
 
 		// Raw result.
 		if err := format.AsRawJSON(&result, &rawBuffer); err != nil {
 			return fmt.Errorf("error during result.AsRawJSON: %w", err)
 		}
 
-		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportPath, buffer2.Bytes()); err != nil {
-			return fmt.Errorf("error during WriteToBlobStore2: %w", err)
+		// These are results without the commit SHA which represents the latest commit.
+		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportPath, exportBuffer.Bytes()); err != nil {
+			return fmt.Errorf("error during writing to exportBucketURL: %w", err)
 		}
 		// Export result based on commitSHA.
-		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportCommitSHAPath, buffer2.Bytes()); err != nil {
-			return fmt.Errorf("error during WriteToBlobStore2: %w", err)
+		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportCommitSHAPath, exportBuffer.Bytes()); err != nil {
+			return fmt.Errorf("error during exportBucketURL with commit SHA: %w", err)
+		}
+		// Export raw result.
+		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportRawPath, exportRawBuffer.Bytes()); err != nil {
+			return fmt.Errorf("error during writing to exportBucketURL for raw results: %w", err)
+		}
+		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportRawCommitSHAPath, exportRawBuffer.Bytes()); err != nil {
+			return fmt.Errorf("error during exportBucketURL for raw results with commit SHA: %w", err)
 		}
 	}
 
