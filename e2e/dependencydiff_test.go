@@ -33,6 +33,7 @@ const (
 	HEAD  = "1989568f93e484f6a86f8b276b170e3d6962ce12"
 )
 
+// TODO (#2087): More e2e tests and a potnetial refactoring needed for the func getScorecardCheckResults.
 var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 	Context("E2E TEST:Validating use of the dependency-diff API", func() {
 		It("Should return a slice of dependency-diff checking results", func() {
