@@ -88,10 +88,10 @@ func (o *Options) AddRootFlags(cmd *cobra.Command) {
 		&o.Commit,
 		FlagCommit,
 		o.Commit,
-		"For the default scorecard run, this is the commit to analyze. "+
-			`For dependencydiff, this include the two commits BASE and HEAD, use "..." to separate them. `+
+		"For the default scorecard run, this specifies a code commit to analyze. "+
+			`For dependencydiff, this includes the two commits BASE and HEAD, use "..." to separate them. `+
 			`Both commitSHAs (commit_A_SHA...commit_B_SHA) or branch names ("main...dev") or a mix of them `+
-			`(main...commit_A_SHA) are supported. Please don't use the default value for dependencydiff.`,
+			`(main...commit_A_SHA) are supported. Please don't use the default value for dependencydiff usage.`,
 	)
 
 	cmd.Flags().StringVar(
