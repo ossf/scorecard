@@ -33,7 +33,8 @@ import (
 
 const (
 	dependencydiffUse   = `dependency-diff --commit=<base>...<head> --repo=<repo> [--checks=check1,...]`
-	dependencydiffShort = "Surface Scorecard checking results for dependency-diffs between commits or branches of a code repository."
+	dependencydiffShort = `Surface Scorecard checking results for dependency-diffs 
+	between commits or branches of a code repository.`
 )
 
 func dependencydiffCmd(o *options.Options) *cobra.Command {
