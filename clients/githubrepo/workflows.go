@@ -55,7 +55,8 @@ func workflowsRunsFrom(data *github.WorkflowRuns) []clients.WorkflowRun {
 	var workflowRuns []clients.WorkflowRun
 	for _, workflowRun := range data.WorkflowRuns {
 		workflowRuns = append(workflowRuns, clients.WorkflowRun{
-			URL: workflowRun.GetURL(),
+			URL:     workflowRun.GetURL(),
+			HeadSHA: workflowRun.HeadSHA,
 		})
 	}
 	return workflowRuns

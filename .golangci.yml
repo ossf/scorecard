@@ -81,6 +81,9 @@ linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
+  exhaustive:
+    # https://golangci-lint.run/usage/linters/#exhaustive
+    default-signifies-exhaustive: true
   govet:
     enable:
       - fieldalignment

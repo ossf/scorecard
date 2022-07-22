@@ -21,6 +21,8 @@ import (
 	"testing"
 
 	"github.com/rhysd/actionlint"
+
+	"github.com/ossf/scorecard/v4/checks/fileparser"
 )
 
 func TestIsPackagingWorkflow(t *testing.T) {
@@ -106,7 +108,7 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			}
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 
-			_, ok := isPackagingWorkflow(workflow, p)
+			_, ok := fileparser.IsPackagingWorkflow(workflow, p)
 			if ok != tt.expected {
 				t.Errorf("isPackagingWorkflow() = %v, expected %v", ok, tt.expected)
 			}

@@ -19,10 +19,6 @@ import (
 )
 
 var (
-	errInvalidGitHubWorkflow        = errors.New("invalid GitHub workflow")
 	errInternalNameCannotBeEmpty    = errors.New("name cannot be empty")
 	errInternalCheckFuncCannotBeNil = errors.New("checkFunc cannot be nil")
-	// TODO(#1245): these should be moved under `raw` package after migration.
-	errInvalidArgType   = errors.New("invalid arg type")
-	errInvalidArgLength = errors.New("invalid arg length")
 )

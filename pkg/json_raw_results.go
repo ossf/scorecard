@@ -162,7 +162,7 @@ type jsonOssfBestPractices struct {
 	Badge string `json:"badge"`
 }
 
-//nolint
+// nolint
 type jsonLicense struct {
 	File jsonFile `json:"file"`
 	// TODO: add fields, like type of license, etc.
@@ -206,10 +206,25 @@ type jsonDependency struct {
 	Type     string    `json:"type"`
 }
 
-//nolint
+type jsonPermissionsData struct {
+	TokenPermissions []jsonTokenPermission `json:"tokens,omitempty"`
+}
+
+type jsonTokenPermission struct {
+	Job          *jsonWorkflowJob `json:"job,omitempty"`
+	LocationType *string          `json:"locationType,omitempty"`
+	Name         *string          `json:"name,omitempty"`
+	Value        *string          `json:"value,omitempty"`
+	File         *jsonFile        `json:"file,omitempty"`
+	Type         string           `json:"type"`
+}
+
+// nolint
 type jsonRawResults struct {
 	// Workflow results.
 	Workflows []jsonWorkflow `json:"workflows"`
+	// Permissions.
+	Permissions jsonPermissionsData `json:"permissions"`
 	// License.
 	Licenses []jsonLicense `json:"licenses"`
 	// List of recent issues.
@@ -227,7 +242,7 @@ type jsonRawResults struct {
 	// Note: we return one at most.
 	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools"`
 	// Branch protection settings for development and release branches.
-	BranchProtections []jsonBranchProtection `json:"json:"branchProtections"`
+	BranchProtections []jsonBranchProtection `json:"branchProtections"`
 	// Contributors. Note: we could use the list of commits instead to store this data.
 	// However, it's harder to get statistics using commit list, so we have a dedicated
 	// structure for it.
@@ -244,6 +259,54 @@ type jsonRawResults struct {
 	Packages []jsonPackage `json:"packages"`
 	// Dependency pinning.
 	DependencyPinning jsonPinningDependenciesData `json:"dependencyPinning"`
+}
+
+func asPointer(s string) *string {
+	return &s
+}
+
+func (r *jsonScorecardRawResult) addTokenPermissionsRawResults(tp *checker.TokenPermissionsData) error {
+	r.Results.Permissions = jsonPermissionsData{}
+
+	for _, t := range tp.TokenPermissions {
+		// We ignore debug messages for read/none permissions.
+		if t.Type != checker.PermissionLevelUndeclared &&
+			t.Type != checker.PermissionLevelWrite {
+			continue
+		}
+
+		if t.LocationType == nil {
+			//nolint
+			return errors.New("locationType is nil")
+		}
+
+		p := jsonTokenPermission{
+			LocationType: asPointer(string(*t.LocationType)),
+			Name:         t.Name,
+			Value:        t.Value,
+			Type:         string(t.Type),
+		}
+
+		if t.Job != nil {
+			p.Job = &jsonWorkflowJob{
+				Name: t.Job.Name,
+				ID:   t.Job.ID,
+			}
+		}
+
+		if t.File != nil {
+			p.File = &jsonFile{
+				Path:   t.File.Path,
+				Offset: t.File.Offset,
+			}
+			if t.File.Snippet != "" {
+				p.File.Snippet = &t.File.Snippet
+			}
+		}
+
+		r.Results.Permissions.TokenPermissions = append(r.Results.Permissions.TokenPermissions, p)
+	}
+	return nil
 }
 
 func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingData) error {
@@ -264,7 +327,10 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 		jpk.File = &jsonFile{
 			Path:   p.File.Path,
 			Offset: p.File.Offset,
-			// TODO: Snippet
+		}
+
+		if p.File.Snippet != "" {
+			jpk.File.Snippet = &p.File.Snippet
 		}
 
 		for _, run := range p.Runs {
@@ -687,6 +753,10 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 
 	// Packaging.
 	if err := r.addPackagingRawResults(&raw.PackagingResults); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+
+	if err := r.addTokenPermissionsRawResults(&raw.TokenPermissionsResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
