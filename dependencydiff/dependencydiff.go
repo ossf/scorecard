@@ -163,7 +163,7 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 				dCtx.logger.Error(wrappedErr, "")
 				depCheckResult.ScorecardResultWithError.Error = wrappedErr
 			} else { // Otherwise, we record the scorecard check results for this dependency.
-				depCheckResult.ScorecardResultsWithError.ScorecardResults = &scorecardResult
+				depCheckResult.ScorecardResultWithError.ScorecardResult = &scorecardResult
 			}
 		}
 		dCtx.results = append(dCtx.results, depCheckResult)
