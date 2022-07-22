@@ -44,7 +44,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			results, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
 				repoURI,
-				base, base,
+				base, head,
 				checksToRun,
 				changeTypesToCheck,
 			)
@@ -62,7 +62,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			results, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
 				repoURI,
-				base, head,
+				base, base,
 				checksToRun,
 				changeTypesToCheck,
 			)
