@@ -35,7 +35,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 	Context("E2E TEST:Validating use of the dependency-diff API", func() {
 		It("Should return a slice of dependency-diff checking results", func() {
 			ctx := context.Background()
-			checks := []string{
+			checksToRun := []string{
 				checks.CheckBranchProtection,
 			}
 			changeTypesToCheck := map[pkg.ChangeType]bool{
@@ -44,8 +44,8 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			results, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
 				repoURI,
-				base, head,
-				checks,
+				base, base,
+				checksToRun,
 				changeTypesToCheck,
 			)
 			Expect(err).Should(BeNil())
@@ -53,7 +53,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 		})
 		It("Should return a valid empty result", func() {
 			ctx := context.Background()
-			scorecardChecksNames := []string{
+			checksToRun := []string{
 				checks.CheckBranchProtection,
 			}
 			changeTypesToCheck := map[pkg.ChangeType]bool{
@@ -63,7 +63,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 				ctx,
 				repoURI,
 				base, head,
-				scorecardChecksNames,
+				checksToRun,
 				changeTypesToCheck,
 			)
 			Expect(err).Should(BeNil())
@@ -71,7 +71,9 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 		})
 		It("Should initialize clients corresponding to the checks to run and do not crash", func() {
 			ctx := context.Background()
-			scorecardChecksNames := []string{}
+			checksToRun := []string{
+				checks.CheckFuzzing,
+			}
 			changeTypesToCheck := map[pkg.ChangeType]bool{
 				pkg.Removed: true,
 			}
@@ -79,7 +81,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 				ctx,
 				repoURI,
 				base, head,
-				scorecardChecksNames,
+				checksToRun,
 				changeTypesToCheck,
 			)
 			Expect(err).Should(BeNil())
