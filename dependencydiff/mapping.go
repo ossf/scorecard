@@ -18,113 +18,70 @@ import (
 	"fmt"
 )
 
-// EcosystemOSV is a package ecosystem supported by OSV.
-type ecosystemOSV string
+// Ecosystem is a package ecosystem supported by OSV, GitHub, etc.
+type ecosystem string
 
-// Data source: https://ossf.github.io/osv-schema/#affectedpackage-field
-const (
-	// The Go ecosystem.
-	goOSV ecosystemOSV = "Go"
-
-	// The NPM ecosystem.
-	npmOSV = "npm"
-
-	// The Android ecosystem
-	androidOSV = "Android" // nolint:unused
-
-	// The crates.io ecosystem for RUST.
-	cratesOSV = "crates.io"
-
-	// For reports from the OSS-Fuzz project that have no more appropriate ecosystem.
-	ossFuzzOSV = "OSS-Fuzz" // nolint:unused
-
-	// The Python PyPI ecosystem. PyPI is the main package source of pip.
-	pyPIOSV = "PyPI"
-
-	// The RubyGems ecosystem.
-	rubyGemsOSV = "RubyGems"
-
-	// The PHP package manager ecosystem. Packagist is the main Composer repository.
-	packagistOSV = "Packagist"
-
-	// The Maven Java package ecosystem.
-	mavenOSV = "Maven"
-
-	// The NuGet package ecosystem.
-	nuGetOSV = "Nuget"
-
-	// The Linux kernel.
-	linuxOSV = "Linux" // nolint:unused
-
-	// The Debian package ecosystem.
-	debianOSV = "Debian" // nolint:unused
-
-	// Hex is the package manager of Erlang.
-	// TODO: GitHub doesn't support hex as the ecosystem for Erlang yet. Add this mapping in the future.
-	hexOSV = "Hex" // nolint:unused
-)
-
-// ecosystemGitHub is a package ecosystem supported by GitHub.
-type ecosystemGitHub string
-
-// Data source: https://docs.github.com/en/code-security/supply-chain-security/understanding-
-// your-software-supply-chain/about-the-dependency-graph#supported-package-ecosystems
+// OSV ecosystem naming data source: https://ossf.github.io/osv-schema/#affectedpackage-field
 // nolint
 const (
-	// The Go ecosystem on GitHub includes go.mod and go.sum, but both use gomod as the ecosystem name.
-	goGitHub ecosystemGitHub = "gomod"
+	// The Go ecosystem.
+	ecosystemGo ecosystem = "Go"
 
-	// Npm is the package manager of JavaScript.
-	// Yarn is another package manager of JavaScript, GitHub also uses "npm" as its ecosys name.
-	npmGitHub ecosystemGitHub = "npm"
+	// The NPM ecosystem.
+	ecosystemNpm ecosystem = "npm"
 
-	// RubyGems is the package manager of Ruby.
-	rubyGemsGitHub ecosystemGitHub = "rubygems"
+	// The Android ecosystem
+	ecosystemAndroid ecosystem = "Android" // nolint:unused
 
-	// Pip is the package manager of Python.
-	// Poetry is another package manager of Python, GitHub also uses "pip" as its ecosys name.
-	pipGitHub ecosystemGitHub = "pip"
+	// The crates.io ecosystem for RUST.
+	ecosystemCrates ecosystem = "crates.io"
 
-	// Action is the GitHub Action.
-	actionGitHub ecosystemGitHub = "actions" // nolint:unused
+	// For reports from the OSS-Fuzz project that have no more appropriate ecosystem.
+	ecosystemOssFuzz ecosystem = "OSS-Fuzz" // nolint:unused
 
-	// Cargo is the package manager of RUST.
-	cargoGitHub ecosystemGitHub = "cargo"
+	// The Python PyPI ecosystem. PyPI is the main package source of pip.
+	ecosystemPyPI ecosystem = "PyPI"
 
-	// Composer is the package manager of PHP, there is currently no mapping to the OSV.
-	composerGitHub ecosystemGitHub = "composer"
+	// The RubyGems ecosystem.
+	ecosystemRubyGems ecosystem = "RubyGems"
 
-	// NuGet is the package manager of .NET languages (C#, F#, VB), C++.
-	nuGetGitHub ecosystemGitHub = "nuget"
+	// The PHP package manager ecosystem. Packagist is the main Composer repository.
+	ecosystemPackagist ecosystem = "Packagist"
 
-	// Maven is the package manager of 	Java and Scala.
-	mavenGitHub ecosystemGitHub = "maven"
+	// The Maven Java package ecosystem.
+	ecosystemMaven ecosystem = "Maven"
+
+	// The NuGet package ecosystem.
+	ecosystemNuGet ecosystem = "Nuget"
+
+	// The Linux kernel.
+	ecosystemLinux ecosystem = "Linux" // nolint:unused
+
+	// The Debian package ecosystem.
+	ecosystemDebian ecosystem = "Debian" // nolint:unused
+
+	// Hex is the package manager of Erlang.
+	// TODO: GitHub doesn't support hex as the ecosystem for Erlang yet. Add this to the map in the future.
+	ecosystemHex ecosystem = "Hex" // nolint:unused
 )
-
-func (e ecosystemGitHub) isValid() bool {
-	switch e {
-	case goGitHub, npmGitHub, rubyGemsGitHub, pipGitHub, actionGitHub,
-		cargoGitHub, composerGitHub, nuGetGitHub, mavenGitHub:
-		return true
-	default:
-		return false
-	}
-}
 
 var (
-	gitHubToOSV = map[ecosystemGitHub]ecosystemOSV{
-		goGitHub:       goOSV, /* go.mod and go.sum */
-		cargoGitHub:    cratesOSV,
-		pipGitHub:      pyPIOSV, /* pip and poetry */
-		npmGitHub:      npmOSV,  /* npm and yarn */
-		mavenGitHub:    mavenOSV,
-		composerGitHub: packagistOSV,
-		rubyGemsGitHub: rubyGemsOSV,
-		nuGetGitHub:    nuGetOSV,
+	//gitHubToOSV defines the ecosystem naming mapping relationship between GitHub and others.
+	gitHubToOSV = map[string]ecosystem{
+		// GitHub ecosystem naming data source: https://docs.github.com/en/code-security/supply-chain-security/
+		// understanding-your-software-supply-chain/about-the-dependency-graph#supported-package-ecosystems
+		"gomod":    ecosystemGo, /* go.mod and go.sum */
+		"cargo":    ecosystemCrates,
+		"pip":      ecosystemPyPI, /* pip and poetry */
+		"npm":      ecosystemNpm,  /* npm and yarn */
+		"maven":    ecosystemMaven,
+		"composer": ecosystemPackagist,
+		"rubygems": ecosystemRubyGems,
+		"nuget":    ecosystemNuGet,
 	}
 )
 
-func (e ecosystemGitHub) toOSV() (ecosystemOSV, error) {
+func toEcosystem(e string) (ecosystem, error) {
 	if ecosystemOSV, found := gitHubToOSV[e]; found {
 		return ecosystemOSV, nil
 	}

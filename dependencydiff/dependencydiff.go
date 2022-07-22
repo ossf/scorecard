@@ -95,16 +95,12 @@ func mapDependencyEcosystemNaming(deps []dependency) error {
 		if deps[i].Ecosystem == nil {
 			continue
 		}
-		ghEcosys := ecosystemGitHub(*deps[i].Ecosystem)
-		if !ghEcosys.isValid() {
-			return fmt.Errorf("%w: github ecosystem", errInvalid)
-		}
-		osvEcosys, err := ghEcosys.toOSV()
+		mappedEcosys, err := toEcosystem(*deps[i].Ecosystem)
 		if err != nil {
 			wrappedErr := fmt.Errorf("error mapping dependency ecosystem: %w", err)
 			return wrappedErr
 		}
-		deps[i].Ecosystem = asPointer(string(osvEcosys))
+		deps[i].Ecosystem = asPointer(string(mappedEcosys))
 
 	}
 	return nil
