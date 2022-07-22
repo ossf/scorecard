@@ -23,7 +23,6 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
 	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 	"github.com/ossf/scorecard/v4/policy"
@@ -58,7 +57,7 @@ func GetDependencyDiffResults(
 	changeTypesToCheck map[pkg.ChangeType]bool, /* A list of change types for which to surface scorecard results. */
 ) ([]pkg.DependencyCheckResult, error) {
 
-	logger := log.NewLogger(log.DefaultLevel)
+	logger := sclog.NewLogger(sclog.DefaultLevel)
 	ownerAndRepo := strings.Split(repoURI, "/")
 	if len(ownerAndRepo) != 2 {
 		return nil, fmt.Errorf("%w: repo uri input", errInvalid)
@@ -93,18 +92,20 @@ func GetDependencyDiffResults(
 
 func mapDependencyEcosystemNaming(deps []dependency) error {
 	for i := range deps {
-		if deps[i].Ecosystem != nil {
-			ghEcosys := ecosystemGitHub(*deps[i].Ecosystem)
-			if !ghEcosys.isValid() {
-				return fmt.Errorf("%w: github ecosystem", errInvalid)
-			}
-			osvEcosys, err := ghEcosys.toOSV()
-			if err != nil {
-				wrappedErr := fmt.Errorf("error mapping dependency ecosystem: %w:", err)
-				return wrappedErr
-			}
-			deps[i].Ecosystem = asPointer(string(osvEcosys))
+		if deps[i].Ecosystem == nil {
+			continue
 		}
+		ghEcosys := ecosystemGitHub(*deps[i].Ecosystem)
+		if !ghEcosys.isValid() {
+			return fmt.Errorf("%w: github ecosystem", errInvalid)
+		}
+		osvEcosys, err := ghEcosys.toOSV()
+		if err != nil {
+			wrappedErr := fmt.Errorf("error mapping dependency ecosystem: %w", err)
+			return wrappedErr
+		}
+		deps[i].Ecosystem = asPointer(string(osvEcosys))
+
 	}
 	return nil
 }

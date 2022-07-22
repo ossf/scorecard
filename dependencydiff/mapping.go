@@ -29,14 +29,14 @@ const (
 	// The NPM ecosystem.
 	npmOSV = "npm"
 
-	// The Android ecosystem.
-	androidOSV = "Android"
+	// The Android ecosystem
+	androidOSV = "Android" // nolint: since this is not used in the map for now.
 
 	// The crates.io ecosystem for RUST.
 	cratesOSV = "crates.io"
 
 	// For reports from the OSS-Fuzz project that have no more appropriate ecosystem.
-	ossFuzzOSV = "OSS-Fuzz"
+	ossFuzzOSV = "OSS-Fuzz" // nolint: since this is not used in the map for now.
 
 	// The Python PyPI ecosystem. PyPI is the main package source of pip.
 	pyPIOSV = "PyPI"
@@ -54,14 +54,14 @@ const (
 	nuGetOSV = "Nuget"
 
 	// The Linux kernel.
-	linuxOSV = "Linux"
+	linuxOSV = "Linux" // nolint: since this is not used in the map for now.
 
 	// The Debian package ecosystem.
-	debianOSV = "Debian"
+	debianOSV = "Debian" // nolint: since this is not used in the map for now.
 
 	// Hex is the package manager of Erlang.
 	// TODO: GitHub doesn't support hex as the ecosystem for Erlang yet. Add this mapping in the future.
-	hexOSV = "Hex"
+	hexOSV = "Hex" // nolint: since this is not used in the map for now.
 )
 
 // ecosystemGitHub is a package ecosystem supported by GitHub.
@@ -85,7 +85,7 @@ const (
 	pipGitHub ecosystemGitHub = "pip"
 
 	// Action is the GitHub Action.
-	actionGitHub ecosystemGitHub = "actions"
+	actionGitHub ecosystemGitHub = "actions" // nolint: since this is not used in the map for now.
 
 	// Cargo is the package manager of RUST.
 	cargoGitHub ecosystemGitHub = "cargo"

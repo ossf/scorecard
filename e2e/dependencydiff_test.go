@@ -19,6 +19,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/dependencydiff"
 	"github.com/ossf/scorecard/v4/pkg"
