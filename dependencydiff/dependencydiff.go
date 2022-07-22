@@ -31,6 +31,7 @@ import (
 // Depdiff is the exported name for dependency-diff.
 const Depdiff = "Dependency-diff"
 
+// A private context struct used for GetDependencyCheckResults.
 type dependencydiffContext struct {
 	logger                          *sclog.Logger
 	ownerName, repoName, base, head string
