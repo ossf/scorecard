@@ -17,12 +17,14 @@ package dependencydiff
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
+	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 	"github.com/ossf/scorecard/v4/policy"
 )
@@ -31,50 +33,80 @@ import (
 const Depdiff = "Dependency-diff"
 
 type dependencydiffContext struct {
-	logger                                *log.Logger
-	ownerName, repoName, baseSHA, headSHA string
-	ctx                                   context.Context
-	ghRepo                                clients.Repo
-	ghRepoClient                          clients.RepoClient
-	ossFuzzClient                         clients.RepoClient
-	vulnsClient                           clients.VulnerabilitiesClient
-	ciiClient                             clients.CIIBestPracticesClient
-	changeTypesToCheck                    map[pkg.ChangeType]bool
-	checkNamesToRun                       []string
-	dependencydiffs                       []dependency
-	results                               []pkg.DependencyCheckResult
+	logger                          *sclog.Logger
+	ownerName, repoName, base, head string
+	ctx                             context.Context
+	ghRepo                          clients.Repo
+	ghRepoClient                    clients.RepoClient
+	ossFuzzClient                   clients.RepoClient
+	vulnsClient                     clients.VulnerabilitiesClient
+	ciiClient                       clients.CIIBestPracticesClient
+	changeTypesToCheck              map[pkg.ChangeType]bool
+	checkNamesToRun                 []string
+	dependencydiffs                 []dependency
+	results                         []pkg.DependencyCheckResult
 }
 
 // GetDependencyDiffResults gets dependency changes between two given code commits BASE and HEAD
 // along with the Scorecard check results of the dependencies, and returns a slice of DependencyCheckResult.
-// TO use this API, an access token must be set following https://github.com/ossf/scorecard#authentication.
+// TO use this API, an access token must be set. See https://github.com/ossf/scorecard#authentication.
 func GetDependencyDiffResults(
-	ctx context.Context, ownerName, repoName, baseSHA, headSHA string, scorecardChecksNames []string,
-	changeTypesToCheck map[pkg.ChangeType]bool) ([]pkg.DependencyCheckResult, error) {
-	// Fetch the raw dependency diffs.
+	ctx context.Context,
+	repoURI string, /* Use the format "ownerName/repoName" as the repo URI, such as "ossf/scorecard". */
+	base, head string, /* Two code commits base and head, can use either SHAs or branch names. */
+	checksToRun []string, /* A list of enabled check names to run. */
+	changeTypesToCheck map[pkg.ChangeType]bool, /* A list of change types for which to surface scorecard results. */
+) ([]pkg.DependencyCheckResult, error) {
+
+	logger := log.NewLogger(log.DefaultLevel)
+	ownerAndRepo := strings.Split(repoURI, "/")
+	if len(ownerAndRepo) != 2 {
+		return nil, fmt.Errorf("%w: repo uri input", errInvalid)
+	}
+	owner, repo := ownerAndRepo[0], ownerAndRepo[1]
 	dCtx := dependencydiffContext{
-		logger:             log.NewLogger(log.InfoLevel),
-		ownerName:          ownerName,
-		repoName:           repoName,
-		baseSHA:            baseSHA,
-		headSHA:            headSHA,
+		logger:             logger,
+		ownerName:          owner,
+		repoName:           repo,
+		base:               base,
+		head:               head,
 		ctx:                ctx,
 		changeTypesToCheck: changeTypesToCheck,
-		checkNamesToRun:    scorecardChecksNames,
+		checkNamesToRun:    checksToRun,
 	}
+	// Fetch the raw dependency diffs. This API will also handle error cases such as invalid base or head.
 	err := fetchRawDependencyDiffData(&dCtx)
+	// Map the ecosystem naming convention from GitHub to OSV.
 	if err != nil {
 		return nil, fmt.Errorf("error in fetchRawDependencyDiffData: %w", err)
 	}
-
+	err = mapDependencyEcosystemNaming(dCtx.dependencydiffs)
 	if err != nil {
-		return nil, fmt.Errorf("error in initRepoAndClientByChecks: %w", err)
+		return nil, fmt.Errorf("error in mapDependencyEcosystemNaming: %w", err)
 	}
 	err = getScorecardCheckResults(&dCtx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting scorecard check results: %w", err)
 	}
 	return dCtx.results, nil
+}
+
+func mapDependencyEcosystemNaming(deps []dependency) error {
+	for i := range deps {
+		if deps[i].Ecosystem != nil {
+			ghEcosys := ecosystemGitHub(*deps[i].Ecosystem)
+			if !ghEcosys.isValid() {
+				return fmt.Errorf("%w: github ecosystem", errInvalid)
+			}
+			osvEcosys, err := ghEcosys.toOSV()
+			if err != nil {
+				wrappedErr := fmt.Errorf("error mapping dependency ecosystem: %w:", err)
+				return wrappedErr
+			}
+			deps[i].Ecosystem = asPointer(string(osvEcosys))
+		}
+	}
+	return nil
 }
 
 func initRepoAndClientByChecks(dCtx *dependencydiffContext, dSrcRepo string) error {
@@ -150,13 +182,20 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 			// If the run fails, we leave the current dependency scorecard result empty and record the error
 			// rather than letting the entire API return nil since we still expect results for other dependencies.
 			if err != nil {
-				depCheckResult.ScorecardResultsWithError.Error = sce.WithMessage(sce.ErrScorecardInternal,
-					fmt.Sprintf("error running the scorecard checks: %v", err))
+				wrappedErr := sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("scorecard running failed for %s: %v", d.Name, err))
+				dCtx.logger.Error(wrappedErr, "")
+				depCheckResult.ScorecardResultWithError.Error = wrappedErr
+
 			} else { // Otherwise, we record the scorecard check results for this dependency.
-				depCheckResult.ScorecardResultsWithError.ScorecardResults = &scorecardResult
+				depCheckResult.ScorecardResultWithError.ScorecardResult = &scorecardResult
 			}
 		}
 		dCtx.results = append(dCtx.results, depCheckResult)
 	}
 	return nil
+}
+
+func asPointer(s string) *string {
+	return &s
 }

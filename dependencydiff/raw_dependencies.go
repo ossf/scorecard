@@ -58,7 +58,7 @@ func fetchRawDependencyDiffData(dCtx *dependencydiffContext) error {
 	req, err := ghClient.NewRequest(
 		"GET",
 		path.Join("repos", dCtx.ownerName, dCtx.repoName,
-			"dependency-graph", "compare", dCtx.baseSHA+"..."+dCtx.headSHA),
+			"dependency-graph", "compare", dCtx.base+"..."+dCtx.head),
 		nil,
 	)
 	if err != nil {
@@ -67,6 +67,11 @@ func fetchRawDependencyDiffData(dCtx *dependencydiffContext) error {
 	_, err = ghClient.Do(dCtx.ctx, req, &dCtx.dependencydiffs)
 	if err != nil {
 		return fmt.Errorf("error parsing the dependency-diff reponse: %w", err)
+	}
+	for _, d := range dCtx.dependencydiffs {
+		if !d.ChangeType.IsValid() {
+			return fmt.Errorf("%w: change type", errInvalid)
+		}
 	}
 	return nil
 }

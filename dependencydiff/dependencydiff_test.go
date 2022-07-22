@@ -16,6 +16,7 @@ package dependencydiff
 
 import (
 	"context"
+	"errors"
 	"path"
 	"testing"
 
@@ -40,8 +41,8 @@ func Test_fetchRawDependencyDiffData(t *testing.T) {
 				ctx:       context.Background(),
 				ownerName: "no_such_owner",
 				repoName:  "repo_not_exist",
-				baseSHA:   "base",
-				headSHA:   clients.HeadSHA,
+				base:      "main",
+				head:      clients.HeadSHA,
 			},
 			wantEmpty: true,
 			wantErr:   true,
@@ -153,6 +154,69 @@ func Test_getScorecardCheckResults(t *testing.T) {
 			err := getScorecardCheckResults(&tt.dCtx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getScorecardCheckResults() error = {%v}, want error: %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func Test_mapDependencyEcosystemNaming(t *testing.T) {
+	t.Parallel()
+	//nolint
+	tests := []struct {
+		name      string
+		deps      []dependency
+		errWanted error
+	}{
+		{
+			name: "error invalid github ecosystem",
+			deps: []dependency{
+				{
+					Name:      "dependency_1",
+					Ecosystem: asPointer("not_supported"),
+				},
+				{
+					Name:      "dependency_2",
+					Ecosystem: asPointer("gomod"),
+				},
+			},
+			errWanted: errInvalid,
+		},
+		{
+			name: "error cannot find mapping",
+			deps: []dependency{
+				{
+					Name:      "dependency_3",
+					Ecosystem: asPointer("actions"),
+				},
+			},
+			errWanted: errInvalid,
+		},
+		{
+			name: "correct mapping",
+			deps: []dependency{
+				{
+					Name:      "dependency_4",
+					Ecosystem: asPointer("gomod"),
+				},
+				{
+					Name:      "dependency_5",
+					Ecosystem: asPointer("pip"),
+				},
+				{
+					Name:      "dependency_6",
+					Ecosystem: asPointer("cargo"),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := mapDependencyEcosystemNaming(tt.deps)
+			if tt.errWanted != nil && errors.Is(tt.errWanted, err) {
+				t.Errorf("not a wanted error, want:%v, got:%v", tt.errWanted, err)
 				return
 			}
 		})
