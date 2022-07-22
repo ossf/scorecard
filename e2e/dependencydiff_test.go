@@ -44,7 +44,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			results, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
 				repoURI,
-				base, head,
+				base, base,
 				checksToRun,
 				changeTypesToCheck,
 			)
@@ -62,7 +62,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			results, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
 				repoURI,
-				base, head,
+				base, base,
 				checksToRun,
 				changeTypesToCheck,
 			)
@@ -71,7 +71,9 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 		})
 		It("Should initialize clients corresponding to the checks to run and do not crash", func() {
 			ctx := context.Background()
-			checksToRun := []string{}
+			checksToRun := []string{
+				checks.CheckFuzzing,
+			}
 			changeTypesToCheck := map[pkg.ChangeType]bool{
 				pkg.Removed: true,
 			}
