@@ -30,13 +30,13 @@ const (
 	npmOSV = "npm"
 
 	// The Android ecosystem
-	androidOSV = "Android" // nolint: since this is not used in the map for now.
+	androidOSV = "Android" // nolint:unused
 
 	// The crates.io ecosystem for RUST.
 	cratesOSV = "crates.io"
 
 	// For reports from the OSS-Fuzz project that have no more appropriate ecosystem.
-	ossFuzzOSV = "OSS-Fuzz" // nolint: since this is not used in the map for now.
+	ossFuzzOSV = "OSS-Fuzz" // nolint:unused
 
 	// The Python PyPI ecosystem. PyPI is the main package source of pip.
 	pyPIOSV = "PyPI"
@@ -54,14 +54,14 @@ const (
 	nuGetOSV = "Nuget"
 
 	// The Linux kernel.
-	linuxOSV = "Linux" // nolint: since this is not used in the map for now.
+	linuxOSV = "Linux" // nolint:unused
 
 	// The Debian package ecosystem.
-	debianOSV = "Debian" // nolint: since this is not used in the map for now.
+	debianOSV = "Debian" // nolint:unused
 
 	// Hex is the package manager of Erlang.
 	// TODO: GitHub doesn't support hex as the ecosystem for Erlang yet. Add this mapping in the future.
-	hexOSV = "Hex" // nolint: since this is not used in the map for now.
+	hexOSV = "Hex" // nolint:unused
 )
 
 // ecosystemGitHub is a package ecosystem supported by GitHub.
@@ -69,6 +69,7 @@ type ecosystemGitHub string
 
 // Data source: https://docs.github.com/en/code-security/supply-chain-security/understanding-
 // your-software-supply-chain/about-the-dependency-graph#supported-package-ecosystems
+// nolint
 const (
 	// The Go ecosystem on GitHub includes go.mod and go.sum, but both use gomod as the ecosystem name.
 	goGitHub ecosystemGitHub = "gomod"
@@ -85,7 +86,7 @@ const (
 	pipGitHub ecosystemGitHub = "pip"
 
 	// Action is the GitHub Action.
-	actionGitHub ecosystemGitHub = "actions" // nolint: since this is not used in the map for now.
+	actionGitHub ecosystemGitHub = "actions" // nolint:unused
 
 	// Cargo is the package manager of RUST.
 	cargoGitHub ecosystemGitHub = "cargo"
