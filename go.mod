@@ -49,7 +49,7 @@ require (
 	github.com/caarlos0/env/v6 v6.9.3
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.1.4
-	sigs.k8s.io/release-utils v0.6.0
+	sigs.k8s.io/release-utils v0.7.2
 )
 
 require (
