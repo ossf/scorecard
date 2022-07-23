@@ -30,4 +30,4 @@ result-data-bucket-url: gs://ossf-scorecard-data2
 raw-result-data-bucket-url: gs://ossf-scorecard-rawdata
 raw-bigquery-table: scorecard-rawdata
 # export-bucket
-bigquery-export-results-bucket-url: gs://ossf-scorecard-cron-results
+export-results-bucket-url: gs://ossf-scorecard-cron-releasetest-results

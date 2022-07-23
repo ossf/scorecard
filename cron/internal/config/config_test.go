@@ -39,7 +39,7 @@ const (
 	// Raw results.
 	prodRawBucket                = "gs://ossf-scorecard-rawdata"
 	prodRawBigQueryTable         = "scorecard-rawdata"
-	prodBigQueryExportsBucketURL = "gs://ossf-scorecard-cron-results"
+	prodBigQueryExportsBucketURL = "gs://ossf-scorecard-cron-releasetest-results"
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -61,21 +61,21 @@ func TestYAMLParsing(t *testing.T) {
 			name:     "validate",
 			filename: "config.yaml",
 			expectedConfig: config{
-				ProjectID:                      prodProjectID,
-				ResultDataBucketURL:            prodBucket,
-				RequestTopicURL:                prodTopic,
-				RequestSubscriptionURL:         prodSubscription,
-				BigQueryDataset:                prodBigQueryDataset,
-				BigQueryTable:                  prodBigQueryTable,
-				CompletionThreshold:            prodCompletionThreshold,
-				WebhookURL:                     prodWebhookURL,
-				CIIDataBucketURL:               prodCIIDataBucket,
-				BlacklistedChecks:              prodBlacklistedChecks,
-				ShardSize:                      prodShardSize,
-				MetricExporter:                 prodMetricExporter,
-				RawResultDataBucketURL:         prodRawBucket,
-				RawBigQueryTable:               prodRawBigQueryTable,
-				BigQueryExportResultsBucketURL: prodBigQueryExportsBucketURL,
+				ProjectID:              prodProjectID,
+				ResultDataBucketURL:    prodBucket,
+				RequestTopicURL:        prodTopic,
+				RequestSubscriptionURL: prodSubscription,
+				BigQueryDataset:        prodBigQueryDataset,
+				BigQueryTable:          prodBigQueryTable,
+				CompletionThreshold:    prodCompletionThreshold,
+				WebhookURL:             prodWebhookURL,
+				CIIDataBucketURL:       prodCIIDataBucket,
+				BlacklistedChecks:      prodBlacklistedChecks,
+				ShardSize:              prodShardSize,
+				MetricExporter:         prodMetricExporter,
+				RawResultDataBucketURL: prodRawBucket,
+				RawBigQueryTable:       prodRawBigQueryTable,
+				ExportResultsBucketURL: prodBigQueryExportsBucketURL,
 			},
 		},
 

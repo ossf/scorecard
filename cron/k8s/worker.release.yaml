@@ -43,7 +43,7 @@ spec:
         - name: GITHUB_AUTH_SERVER
           value: "10.4.4.210:80"
         - name: "SCORECARD_API_RESULTS_BUCKET_URL"
-          value: "gs://ossf-scorecard-cron-results"
+          value: "gs://ossf-scorecard-cron-releasetest-results"
         resources:
           requests:
             memory: 5Gi
