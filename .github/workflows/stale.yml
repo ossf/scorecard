@@ -31,7 +31,7 @@ jobs:
       with:
         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-    - uses: actions/stale@3cc123766321e9f15a6676375c154ccffb12a358 # v3.0.18
+    - uses: actions/stale@532554b8a8498a0e006fbcde824b048728c4178f # v3.0.18
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         stale-issue-message: 'Stale issue message'
