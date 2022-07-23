@@ -44,40 +44,41 @@ func (ct *ChangeType) IsValid() bool {
 	}
 }
 
-// ScorecardResultsWithError is used for the dependency-diff module to record scorecard results and their errors.
-type ScorecardResultsWithError struct {
-	// ScorecardResults is the scorecard result for the dependency repo.
-	ScorecardResults *ScorecardResult `json:"scorecardResults"`
+// ScorecardResultWithError is used for the dependency-diff module to record the scorecard result
+// and a potential error field if the Scorecard run fails.
+type ScorecardResultWithError struct {
+	// ScorecardResult is the scorecard result for the dependency repo.
+	ScorecardResult *ScorecardResult
 
 	// Error is an error returned when running the scorecard checks. A nil Error indicates the run succeeded.
-	Error error `json:"scorecardRunTimeError"`
+	Error error
 }
 
 // DependencyCheckResult is the dependency structure used in the returned results.
 type DependencyCheckResult struct {
 	// ChangeType indicates whether the dependency is added, updated, or removed.
-	ChangeType *ChangeType `json:"changeType"`
+	ChangeType *ChangeType
 
 	// Package URL is a short link for a package.
-	PackageURL *string `json:"packageUrl"`
+	PackageURL *string
 
 	// SourceRepository is the source repository URL of the dependency.
-	SourceRepository *string `json:"sourceRepository"`
+	SourceRepository *string
 
 	// ManifestPath is the path of the manifest file of the dependency, such as go.mod for Go.
-	ManifestPath *string `json:"manifestPath"`
+	ManifestPath *string
 
 	// Ecosystem is the name of the package management system, such as NPM, GO, PYPI.
-	Ecosystem *string `json:"ecosystem"`
+	Ecosystem *string
 
 	// Version is the package version of the dependency.
-	Version *string `json:"version"`
+	Version *string
 
-	// ScorecardResultsWithError is the scorecard checking results of the dependency.
-	ScorecardResultsWithError ScorecardResultsWithError `json:"scorecardResultsWithError"`
+	// ScorecardResultWithError is the scorecard checking results of the dependency.
+	ScorecardResultWithError ScorecardResultWithError
 
 	// Name is the name of the dependency.
-	Name string `json:"name"`
+	Name string
 }
 
 // AsJSON for DependencyCheckResult exports the DependencyCheckResult as a JSON object.

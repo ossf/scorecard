@@ -58,7 +58,7 @@ func fetchRawDependencyDiffData(dCtx *dependencydiffContext) error {
 	req, err := ghClient.NewRequest(
 		"GET",
 		path.Join("repos", dCtx.ownerName, dCtx.repoName,
-			"dependency-graph", "compare", dCtx.baseSHA+"..."+dCtx.headSHA),
+			"dependency-graph", "compare", dCtx.base+"..."+dCtx.head),
 		nil,
 	)
 	if err != nil {
