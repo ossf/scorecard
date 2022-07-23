@@ -44,9 +44,10 @@ func (ct ChangeType) IsValid() bool {
 	}
 }
 
-// ScorecardResultWithError is used for the dependency-diff module to record the scorecard result and the error.
+// ScorecardResultWithError is used for the dependency-diff module to record the scorecard result
+// and a error field to record potential errors when the Scorecard run fails.
 type ScorecardResultWithError struct {
-	// ScorecardResults is the scorecard result for the dependency repo.
+	// ScorecardResult is the scorecard result for the dependency repo.
 	ScorecardResult *ScorecardResult
 
 	// Error is an error returned when running the scorecard checks. A nil Error indicates the run succeeded.
@@ -73,8 +74,7 @@ type DependencyCheckResult struct {
 	// Version is the package version of the dependency.
 	Version *string
 
-	// ScorecardResultWithError contains the scorecard checking result of the dependency
-	// and an error field to record potential failing scorecard runs.
+	// ScorecardResultWithError is the scorecard checking result of the dependency.
 	ScorecardResultWithError ScorecardResultWithError
 
 	// Name is the name of the dependency.

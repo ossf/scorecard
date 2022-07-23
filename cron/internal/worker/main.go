@@ -48,7 +48,7 @@ var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to tru
 // nolint: gocognit
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest,
-	blacklistedChecks []string, bucketURL, rawBucketURL string,
+	blacklistedChecks []string, bucketURL, rawBucketURL, exportBucketURL string,
 	checkDocs docs.Doc,
 	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
@@ -101,6 +101,7 @@ func processRequest(ctx context.Context,
 		for _, check := range blacklistedChecks {
 			delete(checksToRun, check)
 		}
+
 		result, err := pkg.RunScorecards(ctx, repo, commitSHA, checksToRun,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
@@ -128,10 +129,40 @@ func processRequest(ctx context.Context,
 		if err := format.AsJSON2(&result, true /*showDetails*/, log.InfoLevel, checkDocs, &buffer2); err != nil {
 			return fmt.Errorf("error during result.AsJSON2: %w", err)
 		}
+		// these are for exporting results to GCS for API consumption
+		var exportBuffer bytes.Buffer
+		var exportRawBuffer bytes.Buffer
+
+		if err := format.AsJSON2(&result, true /*showDetails*/, log.InfoLevel, checkDocs, &exportBuffer); err != nil {
+			return fmt.Errorf("error during result.AsJSON2 for export: %w", err)
+		}
+		if err := format.AsRawJSON(&result, &exportRawBuffer); err != nil {
+			return fmt.Errorf("error during result.AsRawJSON for export: %w", err)
+		}
+		exportPath := fmt.Sprintf("%s/result.json", repo.URI())
+		exportCommitSHAPath := fmt.Sprintf("%s/%s/result.json", repo.URI(), result.Repo.CommitSHA)
+		exportRawPath := fmt.Sprintf("%s/raw.json", repo.URI())
+		exportRawCommitSHAPath := fmt.Sprintf("%s/%s/raw.json", repo.URI(), result.Repo.CommitSHA)
 
 		// Raw result.
 		if err := format.AsRawJSON(&result, &rawBuffer); err != nil {
 			return fmt.Errorf("error during result.AsRawJSON: %w", err)
+		}
+
+		// These are results without the commit SHA which represents the latest commit.
+		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportPath, exportBuffer.Bytes()); err != nil {
+			return fmt.Errorf("error during writing to exportBucketURL: %w", err)
+		}
+		// Export result based on commitSHA.
+		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportCommitSHAPath, exportBuffer.Bytes()); err != nil {
+			return fmt.Errorf("error during exportBucketURL with commit SHA: %w", err)
+		}
+		// Export raw result.
+		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportRawPath, exportRawBuffer.Bytes()); err != nil {
+			return fmt.Errorf("error during writing to exportBucketURL for raw results: %w", err)
+		}
+		if err := data.WriteToBlobStore(ctx, exportBucketURL, exportRawCommitSHAPath, exportRawBuffer.Bytes()); err != nil {
+			return fmt.Errorf("error during exportBucketURL for raw results with commit SHA: %w", err)
 		}
 	}
 
@@ -207,6 +238,11 @@ func main() {
 		panic(err)
 	}
 
+	exportBucketURL, err := config.GetBQExportResultsBucketURL()
+	if err != nil {
+		panic(err)
+	}
+
 	logger := log.NewLogger(log.InfoLevel)
 	repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
 	ciiClient := clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
@@ -242,7 +278,7 @@ func main() {
 			break
 		}
 		if err := processRequest(ctx, req, blacklistedChecks,
-			bucketURL, rawBucketURL, checkDocs,
+			bucketURL, rawBucketURL, exportBucketURL, checkDocs,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, logger); err != nil {
 			// TODO(log): Previously Warn. Consider logging an error here.
 			logger.Info(fmt.Sprintf("error processing request: %v", err))

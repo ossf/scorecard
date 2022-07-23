@@ -31,6 +31,7 @@ import (
 // Depdiff is the exported name for dependency-diff.
 const Depdiff = "Dependency-diff"
 
+// A private context struct used for GetDependencyCheckResults.
 type dependencydiffContext struct {
 	logger                          *sclog.Logger
 	ownerName, repoName, base, head string
@@ -75,10 +76,10 @@ func GetDependencyDiffResults(
 	}
 	// Fetch the raw dependency diffs. This API will also handle error cases such as invalid base or head.
 	err := fetchRawDependencyDiffData(&dCtx)
-	// Map the ecosystem naming convention from GitHub to OSV.
 	if err != nil {
 		return nil, fmt.Errorf("error in fetchRawDependencyDiffData: %w", err)
 	}
+  // Map the ecosystem naming convention from GitHub to OSV.
 	err = mapDependencyEcosystemNaming(dCtx.dependencydiffs)
 	if err != nil {
 		return nil, fmt.Errorf("error in mapDependencyEcosystemNaming: %w", err)
@@ -183,7 +184,6 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 					fmt.Sprintf("scorecard running failed for %s: %v", d.Name, err))
 				dCtx.logger.Error(wrappedErr, "")
 				depCheckResult.ScorecardResultWithError.Error = wrappedErr
-
 			} else { // Otherwise, we record the scorecard check results for this dependency.
 				depCheckResult.ScorecardResultWithError.ScorecardResult = &scorecardResult
 			}
