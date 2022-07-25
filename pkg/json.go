@@ -84,15 +84,14 @@ type JSONScorecardResultV2 struct {
 
 // JSONDependencydiffResult exports dependency-diff check results as JSON for new detail format.
 type JSONDependencydiffResult struct {
-	ChangeType       *ChangeType `json:"changeType"`
-	PackageURL       *string     `json:"packageUrl"`
-	SourceRepository *string     `json:"sourceRepository"`
-	ManifestPath     *string     `json:"manifestPath"`
-	Ecosystem        *string     `json:"ecosystem"`
-	Version          *string     `json:"packageVersion"`
-	// TODO (issue#2078): map the current naming convention (GitHub) to the OSV naming convention.
-	Name                string                 `json:"packageName"`
+	ChangeType          *ChangeType            `json:"changeType"`
+	PackageURL          *string                `json:"packageUrl"`
+	SourceRepository    *string                `json:"sourceRepository"`
+	ManifestPath        *string                `json:"manifestPath"`
+	Ecosystem           *string                `json:"ecosystem"`
+	Version             *string                `json:"packageVersion"`
 	JSONScorecardResult *JSONScorecardResultV2 `json:"scorecardResult"`
+	Name                string                 `json:"packageName"`
 }
 
 // AsJSON exports results as JSON for new detail format.

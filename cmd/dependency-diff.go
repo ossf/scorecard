@@ -26,7 +26,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/dependencydiff"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
-	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
 )
@@ -51,20 +50,17 @@ func dependencydiffCmd(o *options.Options) *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
-			logger := sclog.NewLogger(sclog.ParseLevel(o.LogLevel))
 			checkDocs, err := docs.Read()
 			if err != nil {
 				log.Panicf("cannot read yaml file: %v", err)
 			}
-			doDependencydiff(ctx, o, logger, checkDocs)
+			doDependencydiff(ctx, o, checkDocs)
 		},
 	}
 	return depdiffCmd
 }
 
-func doDependencydiff(ctx context.Context, o *options.Options,
-	logger *sclog.Logger, checkDocs docs.Doc,
-) {
+func doDependencydiff(ctx context.Context, o *options.Options, checkDocs docs.Doc) {
 	commits := strings.Split(o.Commit, "...")
 	if len(commits) != 2 {
 		log.Panicf("error in commits: %v", os.ErrInvalid)
