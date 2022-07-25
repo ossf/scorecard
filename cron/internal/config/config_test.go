@@ -37,8 +37,9 @@ const (
 	prodShardSize           int    = 10
 	prodMetricExporter      string = "stackdriver"
 	// Raw results.
-	prodRawBucket        = "gs://ossf-scorecard-rawdata"
-	prodRawBigQueryTable = "scorecard-rawdata"
+	prodRawBucket                = "gs://ossf-scorecard-rawdata"
+	prodRawBigQueryTable         = "scorecard-rawdata"
+	prodBigQueryExportsBucketURL = "gs://ossf-scorecard-cron-releasetest-results"
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -74,6 +75,7 @@ func TestYAMLParsing(t *testing.T) {
 				MetricExporter:         prodMetricExporter,
 				RawResultDataBucketURL: prodRawBucket,
 				RawBigQueryTable:       prodRawBigQueryTable,
+				ExportResultsBucketURL: prodBigQueryExportsBucketURL,
 			},
 		},
 
@@ -341,6 +343,21 @@ func TestGetMetricExporter(t *testing.T) {
 		}
 		if exporter != prodMetricExporter {
 			t.Errorf("test failed: expected - %s, got = %s", prodMetricExporter, exporter)
+		}
+	})
+}
+
+//nolint:paralleltest // Since os.Setenv is used.
+func TestGetBigQueryExportsBucketURL(t *testing.T) {
+	t.Run("GetBigQueryExportsBucketURL", func(t *testing.T) {
+		bigqueryExportsBucketURL := apiResultsBucketURL
+		os.Unsetenv(bigqueryExportsBucketURL)
+		bucket, err := GetBQExportResultsBucketURL()
+		if err != nil {
+			t.Errorf("failed to get production bucket URL from config: %v", err)
+		}
+		if bucket != prodBigQueryExportsBucketURL {
+			t.Errorf("test failed: expected - %s, got = %s", prodBigQueryExportsBucketURL, bucket)
 		}
 	})
 }

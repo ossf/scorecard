@@ -40,7 +40,7 @@ func Test_fetchRawDependencyDiffData(t *testing.T) {
 				ctx:       context.Background(),
 				ownerName: "no_such_owner",
 				repoName:  "repo_not_exist",
-				base:      "base",
+				base:      "main",
 				head:      clients.HeadSHA,
 			},
 			wantEmpty: true,

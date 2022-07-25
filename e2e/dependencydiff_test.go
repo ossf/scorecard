@@ -27,10 +27,9 @@ import (
 )
 
 const (
-	OWNER = "ossf-tests"
-	REPO  = "scorecard-depdiff"
-	BASE  = "fd2a82b3b735fffbc2d782ed5f50301b879ecc51"
-	HEAD  = "1989568f93e484f6a86f8b276b170e3d6962ce12"
+	repoURI = "ossf-tests/scorecard-depdiff"
+	base    = "fd2a82b3b735fffbc2d782ed5f50301b879ecc51"
+	head    = "1989568f93e484f6a86f8b276b170e3d6962ce12"
 )
 
 // TODO (#2087): More e2e tests and a potnetial refactoring needed for the func getScorecardCheckResults.
@@ -38,19 +37,17 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 	Context("E2E TEST:Validating use of the dependency-diff API", func() {
 		It("Should return a slice of dependency-diff checking results", func() {
 			ctx := context.Background()
-			logger := sclog.NewLogger(sclog.DefaultLevel)
-			ownerName, repoName := OWNER, REPO
-			baseSHA, headSHA := BASE, HEAD
-			scorecardChecksNames := []string{
+			checksToRun := []string{
 				checks.CheckBranchProtection,
 			}
 			changeTypesToCheck := map[pkg.ChangeType]bool{
 				pkg.Removed: true, // Only checking those removed ones will make this test faster.
 			}
 			results, err := dependencydiff.GetDependencyDiffResults(
-				ctx, logger,
-				ownerName, repoName, baseSHA, headSHA,
-				scorecardChecksNames,
+				ctx,
+				repoURI,
+				base, head,
+				checksToRun,
 				changeTypesToCheck,
 			)
 			Expect(err).Should(BeNil())
@@ -58,19 +55,17 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 		})
 		It("Should return a valid empty result", func() {
 			ctx := context.Background()
-			ownerName, repoName := OWNER, REPO
-			baseSHA, headSHA := BASE, BASE
-
-			scorecardChecksNames := []string{
+			checksToRun := []string{
 				checks.CheckBranchProtection,
 			}
 			changeTypesToCheck := map[pkg.ChangeType]bool{
 				pkg.Removed: true,
 			}
 			results, err := dependencydiff.GetDependencyDiffResults(
-				ctx, logger,
-				ownerName, repoName, baseSHA, headSHA,
-				scorecardChecksNames,
+				ctx,
+				repoURI,
+				base, base,
+				checksToRun,
 				changeTypesToCheck,
 			)
 			Expect(err).Should(BeNil())
@@ -78,17 +73,17 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 		})
 		It("Should initialize clients corresponding to the checks to run and do not crash", func() {
 			ctx := context.Background()
-			ownerName, repoName := OWNER, REPO
-			baseSHA, headSHA := BASE, HEAD
-
-			scorecardChecksNames := []string{}
+			checksToRun := []string{
+				checks.CheckFuzzing,
+			}
 			changeTypesToCheck := map[pkg.ChangeType]bool{
 				pkg.Removed: true,
 			}
 			_, err := dependencydiff.GetDependencyDiffResults(
-				ctx, logger,
-				ownerName, repoName, baseSHA, headSHA,
-				scorecardChecksNames,
+				ctx,
+				repoURI,
+				base, head,
+				checksToRun,
 				changeTypesToCheck,
 			)
 			Expect(err).Should(BeNil())
