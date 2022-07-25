@@ -22,7 +22,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/dependencydiff"
-	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 

@@ -70,13 +70,8 @@ func doDependencydiff(ctx context.Context, o *options.Options,
 		log.Panicf("error in commits: %v", os.ErrInvalid)
 	}
 	base, head := commits[0], commits[1]
-	ownerRepo := strings.Split(o.Repo, "/")
-	if len(ownerRepo) != 2 {
-		log.Panicf("error in repo: %v", os.ErrInvalid)
-	}
-	owner, repo := ownerRepo[0], ownerRepo[1]
 	depdiffResults, err := dependencydiff.GetDependencyDiffResults(
-		ctx, logger, owner, repo, base, head, o.ChecksToRun, nil)
+		ctx, o.Repo, base, head, o.ChecksToRun, nil)
 	if err != nil {
 		log.Panicf("error getting dependencydiff results: %v", err)
 	}
