@@ -68,5 +68,10 @@ func fetchRawDependencyDiffData(dCtx *dependencydiffContext) error {
 	if err != nil {
 		return fmt.Errorf("error parsing the dependency-diff reponse: %w", err)
 	}
+	for _, d := range dCtx.dependencydiffs {
+		if !d.ChangeType.IsValid() {
+			return fmt.Errorf("%w: change type", errInvalid)
+		}
+	}
 	return nil
 }

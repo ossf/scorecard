@@ -36,8 +36,8 @@ const (
 )
 
 // IsValid determines if a ChangeType is valid.
-func (ct *ChangeType) IsValid() bool {
-	switch *ct {
+func (ct ChangeType) IsValid() bool {
+	switch ct {
 	case Added, Updated, Removed:
 		return true
 	default:
@@ -46,7 +46,7 @@ func (ct *ChangeType) IsValid() bool {
 }
 
 // ScorecardResultWithError is used for the dependency-diff module to record the scorecard result
-// and a potential error field if the Scorecard run fails.
+// and a error field to record potential errors when the Scorecard run fails.
 type ScorecardResultWithError struct {
 	// ScorecardResult is the scorecard result for the dependency repo.
 	ScorecardResult *ScorecardResult
@@ -75,7 +75,7 @@ type DependencyCheckResult struct {
 	// Version is the package version of the dependency.
 	Version *string
 
-	// ScorecardResultWithError is the scorecard checking results of the dependency.
+	// ScorecardResultWithError is the scorecard checking result of the dependency.
 	ScorecardResultWithError ScorecardResultWithError
 
 	// Name is the name of the dependency.

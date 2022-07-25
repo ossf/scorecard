@@ -18,5 +18,6 @@ import "errors"
 
 // static Errors for mapping
 var (
-	errInvalid = errors.New("invalid")
+	errMappingNotFound = errors.New("ecosystem mapping not found")
+	errInvalid         = errors.New("invalid")
 )
