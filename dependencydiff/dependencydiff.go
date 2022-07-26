@@ -79,7 +79,7 @@ func GetDependencyDiffResults(
 	if err != nil {
 		return nil, fmt.Errorf("error in fetchRawDependencyDiffData: %w", err)
 	}
-  // Map the ecosystem naming convention from GitHub to OSV.
+	// Map the ecosystem naming convention from GitHub to OSV.
 	err = mapDependencyEcosystemNaming(dCtx.dependencydiffs)
 	if err != nil {
 		return nil, fmt.Errorf("error in mapDependencyEcosystemNaming: %w", err)
