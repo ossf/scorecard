@@ -30,7 +30,6 @@ const (
 	fuzzerOSSFuzz         = "OSSFuzz"
 	fuzzerClusterFuzzLite = "ClusterFuzzLite"
 	fuzzerBuiltInGo       = "GoBuiltInFuzzer"
-	fuzzerBuiltInCpp      = "CppBuiltInFuzzer"
 	// TODO: add more fuzzing check supports.
 )
 
@@ -57,15 +56,6 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		URL:         asPointer("https://go.dev/doc/fuzz/"),
 		Desc: asPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
-	},
-	clients.Cpp: {
-		filePattern: "fuzz_*.cpp",
-		Name:        fuzzerBuiltInCpp,
-		funcPattern: `extern\s+[("C")\s]*[\w\*]+\s+(\w*((?i)fuzz)+\w*)+\s*\([\w* ,]*\)`,
-		URL:         asPointer("https://help.code-intelligence.com/create-a-c-fuzz-test"),
-		Desc: asPointer(
-			"C++ Fuzz This Function.",
-		),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
