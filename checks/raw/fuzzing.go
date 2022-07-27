@@ -30,6 +30,7 @@ const (
 	fuzzerOSSFuzz         = "OSSFuzz"
 	fuzzerClusterFuzzLite = "ClusterFuzzLite"
 	fuzzerBuiltInGo       = "GoBuiltInFuzzer"
+	fuzzerBuiltInCpp      = "CppBuiltInFuzzer"
 	// TODO: add more fuzzing check supports.
 )
 
@@ -56,6 +57,15 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		URL:         asPointer("https://go.dev/doc/fuzz/"),
 		Desc: asPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
+	},
+	clients.Cpp: {
+		filePattern: "fuzz_*.cpp",
+		Name:        fuzzerBuiltInCpp,
+		funcPattern: `extern\s+[("C")\s]*[\w\*]+\s+(\w*((?i)fuzz)+\w*)+\s*\([\w* ,]*\)`,
+		URL:         asPointer("https://help.code-intelligence.com/create-a-c-fuzz-test"),
+		Desc: asPointer(
+			"C++ Fuzz This Function.",
+		),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
@@ -98,7 +108,6 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		return checker.FuzzingData{}, fmt.Errorf("cannot get langs of repo: %w", err)
 	}
 	prominentLangs := getProminentLanguages(langs)
-
 	for _, lang := range prominentLangs {
 		usingFuzzFunc, files, e := checkFuzzFunc(c, lang)
 		if e != nil {
@@ -224,18 +233,20 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 		return nil
 	}
 	totalLoC := 0
+	// Use a map to record languages and their lines of code to drop potential duplicates.
+	langMap := map[clients.LanguageName]int{}
 	for _, l := range langs {
 		totalLoC += l.NumLines
+		langMap[l.Name] += l.NumLines
 	}
-	// Var avgLoC calculates the average lines of code in the current repo,
-	// and it can stay as an int, no need for a float value.
+	// Calculate the average lines of code in the current repo.
+	// This var can stay as an int, no need for a precise float value.
 	avgLoC := totalLoC / numLangs
-
 	// Languages that have lines of code above average will be considered prominent.
 	ret := []clients.LanguageName{}
-	for _, l := range langs {
-		if l.NumLines >= avgLoC {
-			lang := clients.LanguageName(strings.ToLower(string(l.Name)))
+	for lName, loC := range langMap {
+		if loC >= avgLoC {
+			lang := clients.LanguageName(strings.ToLower(string(lName)))
 			ret = append(ret, lang)
 		}
 	}
