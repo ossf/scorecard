@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813 # v1
+        uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
 
       - name: "Run analysis"
-        uses: ossf/scorecard-action@5c8bc69dc88b65c66584e07611df79d3579b0377
+        uses: ossf/scorecard-action@ce330fde6b1a5c9c75b417e7efc510b822a35564
         with:
           results_file: results.sarif
           results_format: sarif
