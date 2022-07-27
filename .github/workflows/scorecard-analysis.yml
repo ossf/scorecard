@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
-      token-id: write
+      id-token: write
 
     steps:
       - name: Harden Runner
