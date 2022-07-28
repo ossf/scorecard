@@ -59,6 +59,12 @@ const (
 
 	// FlagFormat is the flag name for specifying output format.
 	FlagFormat = "format"
+
+	// FlagBase is the flag name for specifying a dependency-diff base.
+	FlagBase = "base"
+
+	// FlagHead is the flag name for specifying a dependency-diff head.
+	FlagHead = "head"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -84,14 +90,11 @@ func (o *Options) AddRootFlags(cmd *cobra.Command) {
 	)
 
 	// TODO(v5): Should this be behind a feature flag?
-	cmd.PersistentFlags().StringVar(
+	cmd.Flags().StringVar(
 		&o.Commit,
 		FlagCommit,
 		o.Commit,
-		"For the default scorecard run, this specifies a code commit to analyze. "+
-			`For dependencydiff, this includes the two commits BASE and HEAD, use "..." to separate them. `+
-			`Both commitSHAs (commit_A_SHA...commit_B_SHA) or branch names ("main...dev") or a mix of them `+
-			`(main...commit_A_SHA) are supported. Please don't use the default value for dependencydiff usage.`,
+		"commit to analyze",
 	)
 
 	cmd.Flags().StringVar(
@@ -172,5 +175,21 @@ func (o *Options) AddRootFlags(cmd *cobra.Command) {
 			"output format. Possible values are: %s",
 			strings.Join(allowedFormats, ", "),
 		),
+	)
+}
+
+// AddDepdiffFlags adds flags to the dependency-diff cobra command.
+func (o *Options) AddDepdiffFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVar(
+		&o.Base,
+		FlagBase,
+		o.Base,
+		"the base branch name or the base commitSHA to check. valid input examples: \"main\" (branch name), \"SHA_VALUE\" (commitSHA)",
+	)
+	cmd.Flags().StringVar(
+		&o.Head,
+		FlagHead,
+		o.Head,
+		"the head branch name or the head commitSHA to check. valid input examples: \"dev\" (branch name), \"SHA_VALUE\" (commitSHA)",
 	)
 }

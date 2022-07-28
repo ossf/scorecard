@@ -19,8 +19,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -31,7 +29,7 @@ import (
 )
 
 const (
-	dependencydiffUse   = `dependency-diff --commit=<base>...<head> --repo=<repo> [--checks=check1,...]`
+	dependencydiffUse   = `dependency-diff --base=<base> --head=<head> --repo=<repo> [--checks=check1,...]`
 	dependencydiffShort = `Surface Scorecard checking results for dependency-diffs 
 	between commits or branches of a code repository.`
 )
@@ -57,15 +55,12 @@ func dependencydiffCmd(o *options.Options) *cobra.Command {
 			doDependencydiff(ctx, o, checkDocs)
 		},
 	}
+	o.AddDepdiffFlags(depdiffCmd)
 	return depdiffCmd
 }
 
 func doDependencydiff(ctx context.Context, o *options.Options, checkDocs docs.Doc) {
-	commits := strings.Split(o.Commit, "...")
-	if len(commits) != 2 {
-		log.Panicf("error in commits: %v", os.ErrInvalid)
-	}
-	base, head := commits[0], commits[1]
+	base, head := o.Base, o.Head
 	depdiffResults, err := dependencydiff.GetDependencyDiffResults(
 		ctx, o.Repo, base, head, o.ChecksToRun, nil)
 	if err != nil {

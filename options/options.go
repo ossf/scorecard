@@ -39,6 +39,8 @@ type Options struct {
 	PolicyFile string
 	// TODO(action): Add logic for writing results to file
 	ResultsFile string
+	Base        string
+	Head        string
 	ChecksToRun []string
 	Metadata    []string
 	ShowDetails bool
