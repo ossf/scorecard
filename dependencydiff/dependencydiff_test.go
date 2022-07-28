@@ -21,7 +21,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
-	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 // Test_fetchRawDependencyDiffData is a test function for fetchRawDependencyDiffData.
@@ -219,7 +218,7 @@ func Test_ecosystemMapping(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			mapDependencyEcosystemNaming(sclog.NewLogger(sclog.DefaultLevel), tt.deps)
+			mapDependencyEcosystemNaming(log.NewLogger(log.DefaultLevel), tt.deps)
 			for i, d := range tt.deps {
 				if d.Ecosystem != nil {
 					if *d.Ecosystem != tt.ecosystemWanted[i] {
