@@ -198,6 +198,37 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			wantErr:           true,
 		},
 		{
+			name:              "cpp fuzz func test1",
+			expectedFileMatch: true,
+			expectedFuncMatch: true,
+			lang:              clients.LanguageName("c++"),
+			fileName:          "fuzz_test1.cpp",
+			fileContent: `extern "C" int LLVMFuzzerTestOneInputProperty 
+							(const uint8_t * data, size_t size)`,
+			wantErr: false,
+		},
+		{
+			name:              "cpp fuzz func test2",
+			expectedFileMatch: true,
+			expectedFuncMatch: true,
+			lang:              clients.LanguageName("c++"),
+			fileName:          "fuzz_test2_foo.cpp",
+			fileContent: `
+								extern void realloc_fuzz_test(void);
+								extern  int MemcmpFuzzTest(void);
+			`,
+			wantErr: false,
+		},
+		{
+			name:              "cpp fuzz func test3",
+			expectedFileMatch: false,
+			expectedFuncMatch: false,
+			lang:              clients.LanguageName("c++"),
+			fileName:          "notAFuzzFile_1.cpp",
+			fileContent:       `extern char* TestProperty1 (void);`,
+			wantErr:           true,
+		},
+		{
 			name:              "Test_fuzzFuncRegex not a support language",
 			expectedFileMatch: false,
 			expectedFuncMatch: false,
@@ -242,7 +273,6 @@ func Test_checkFuzzFunc(t *testing.T) {
 		fileContent string
 	}{
 		{
-			// TODO: more test cases needed. @aidenwang9867
 			name:    "Test_checkFuzzFunc failure",
 			want:    false,
 			wantErr: false,
@@ -281,6 +311,98 @@ func Test_checkFuzzFunc(t *testing.T) {
 				got, _, err := checkFuzzFunc(&req, l.Name)
 				if (got != tt.want || err != nil) && !tt.wantErr {
 					t.Errorf("checkFuzzFunc() = %v, want %v for %v", got, tt.want, tt.name)
+				}
+			}
+		})
+	}
+}
+
+func Test_getProminentLanguages(t *testing.T) {
+	t.Parallel()
+	//nolint
+	tests := []struct {
+		name      string
+		languages []clients.Language
+		expected  []clients.LanguageName
+	}{
+		{
+			name: "case1",
+			languages: []clients.Language{
+				{
+					Name:     clients.Go,
+					NumLines: 1000,
+				},
+				{
+					Name:     clients.Python,
+					NumLines: 40,
+				}, {
+					Name:     clients.JavaScript,
+					NumLines: 800,
+				},
+			},
+			expected: []clients.LanguageName{
+				clients.Go, clients.JavaScript,
+			},
+		},
+		{
+			name: "case2: drop duplicates",
+			languages: []clients.Language{
+				{
+					Name:     clients.Go,
+					NumLines: 1000,
+				},
+				{
+					Name:     clients.Python,
+					NumLines: 40,
+				}, {
+					Name:     clients.JavaScript,
+					NumLines: 800,
+				},
+				{
+					Name:     clients.Go,
+					NumLines: 1000,
+				},
+				{
+					Name:     clients.Python,
+					NumLines: 40,
+				}, {
+					Name:     clients.JavaScript,
+					NumLines: 800,
+				},
+				{
+					Name:     clients.Go,
+					NumLines: 1000,
+				},
+				{
+					Name:     clients.Python,
+					NumLines: 40,
+				}, {
+					Name:     clients.JavaScript,
+					NumLines: 800,
+				},
+			},
+			expected: []clients.LanguageName{
+				clients.Go, clients.JavaScript,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := getProminentLanguages(tt.languages)
+			if len(got) != len(tt.expected) {
+				t.Errorf(
+					"length of got (%d) and length of expected (%d) are not equal",
+					len(got), len(tt.expected),
+				)
+			}
+			for i, l := range got {
+				if l != tt.expected[i] {
+					t.Errorf(
+						"expected %s, got %s",
+						tt.expected[i], l,
+					)
 				}
 			}
 		})
