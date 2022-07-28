@@ -184,12 +184,14 @@ func (o *Options) AddDepdiffFlags(cmd *cobra.Command) {
 		&o.Base,
 		FlagBase,
 		o.Base,
-		"the base branch name or the base commitSHA to check. valid input examples: \"main\" (branch name), \"SHA_VALUE\" (commitSHA)",
+		`the base branch name or the base commitSHA to check. valid input examples: 
+			"main" (branch name), "SHA_VALUE" (commitSHA)`,
 	)
 	cmd.Flags().StringVar(
 		&o.Head,
 		FlagHead,
 		o.Head,
-		"the head branch name or the head commitSHA to check. valid input examples: \"dev\" (branch name), \"SHA_VALUE\" (commitSHA)",
+		`the head branch name or the head commitSHA to check. valid input examples: 
+			"dev" (branch name), "SHA_VALUE" (commitSHA)`,
 	)
 }
