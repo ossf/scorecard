@@ -48,7 +48,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
      - name: install ko
-       uses: imjasonh/setup-ko@2c3450ca27f6e6f2b02e72a40f2163c281a1f675
+       uses: imjasonh/setup-ko@78eea08f10db87a7a23a666a4a6fe2734f2eeb8d
      - name: publishimage
        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c
        with:
@@ -60,7 +60,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@48866aa521d8bf870604709cd43ec2f602d03ff2
+       uses: sigstore/cosign-installer@09a077b27eb1310dcfb21981bee195b30ce09de0
      - name: Sign image
        run: |
           cosign sign ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}
