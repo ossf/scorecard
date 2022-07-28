@@ -198,37 +198,6 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			wantErr:           true,
 		},
 		{
-			name:              "cpp fuzz func test1",
-			expectedFileMatch: true,
-			expectedFuncMatch: true,
-			lang:              clients.LanguageName("c++"),
-			fileName:          "fuzz_test1.cpp",
-			fileContent: `extern "C" int LLVMFuzzerTestOneInputProperty 
-							(const uint8_t * data, size_t size)`,
-			wantErr: false,
-		},
-		{
-			name:              "cpp fuzz func test2",
-			expectedFileMatch: true,
-			expectedFuncMatch: true,
-			lang:              clients.LanguageName("c++"),
-			fileName:          "fuzz_test2_foo.cpp",
-			fileContent: `
-								extern void realloc_fuzz_test(void);
-								extern  int MemcmpFuzzTest(void);
-			`,
-			wantErr: false,
-		},
-		{
-			name:              "cpp fuzz func test3",
-			expectedFileMatch: false,
-			expectedFuncMatch: false,
-			lang:              clients.LanguageName("c++"),
-			fileName:          "notAFuzzFile_1.cpp",
-			fileContent:       `extern char* TestProperty1 (void);`,
-			wantErr:           true,
-		},
-		{
 			name:              "Test_fuzzFuncRegex not a support language",
 			expectedFileMatch: false,
 			expectedFuncMatch: false,
