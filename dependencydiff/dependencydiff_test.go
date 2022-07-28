@@ -16,12 +16,12 @@ package dependencydiff
 
 import (
 	"context"
-	"errors"
 	"path"
 	"testing"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 // Test_fetchRawDependencyDiffData is a test function for fetchRawDependencyDiffData.
@@ -160,44 +160,44 @@ func Test_getScorecardCheckResults(t *testing.T) {
 	}
 }
 
-func Test_mapDependencyEcosystemNaming(t *testing.T) {
+func Test_ecosystemMapping(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name      string
-		deps      []dependency
-		errWanted error
+		name            string
+		deps            []dependency
+		ecosystemWanted []string
 	}{
 		{
-			name: "error invalid github ecosystem",
+			name: "case1",
 			deps: []dependency{
 				{
 					Name:      "dependency_1",
-					Ecosystem: asPointer("not_supported"),
+					Ecosystem: asPointer("nuget"),
 				},
 				{
 					Name:      "dependency_2",
 					Ecosystem: asPointer("gomod"),
 				},
 			},
-			errWanted: errInvalid,
+			ecosystemWanted: []string{"NuGet", "Go"},
 		},
 		{
-			name: "error cannot find mapping",
+			name: "case2",
 			deps: []dependency{
 				{
 					Name:      "dependency_3",
 					Ecosystem: asPointer("actions"),
 				},
 			},
-			errWanted: errInvalid,
+			ecosystemWanted: []string{"actions"},
 		},
 		{
-			name: "correct mapping",
+			name: "case3",
 			deps: []dependency{
 				{
 					Name:      "dependency_4",
-					Ecosystem: asPointer("gomod"),
+					Ecosystem: asPointer("rubygems"),
 				},
 				{
 					Name:      "dependency_5",
@@ -207,17 +207,28 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 					Name:      "dependency_6",
 					Ecosystem: asPointer("cargo"),
 				},
+				{
+					Name:      "dependency_6",
+					Ecosystem: nil,
+				},
 			},
+			ecosystemWanted: []string{"RubyGems", "PyPI", "crates.io"},
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			err := mapDependencyEcosystemNaming(tt.deps)
-			if tt.errWanted != nil && errors.Is(tt.errWanted, err) {
-				t.Errorf("not a wanted error, want:%v, got:%v", tt.errWanted, err)
-				return
+			mapDependencyEcosystemNaming(sclog.NewLogger(sclog.DefaultLevel), tt.deps)
+			for i, d := range tt.deps {
+				if d.Ecosystem != nil {
+					if *d.Ecosystem != tt.ecosystemWanted[i] {
+						t.Errorf(
+							"%v: want: %s, got %s",
+							errMappingNotExpected, tt.ecosystemWanted[i], *d.Ecosystem,
+						)
+					}
+				}
 			}
 		})
 	}

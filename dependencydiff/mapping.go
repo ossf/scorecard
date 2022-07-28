@@ -15,7 +15,7 @@
 package dependencydiff
 
 import (
-	"fmt"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 // Ecosystem is a package ecosystem supported by OSV, GitHub, etc.
@@ -52,7 +52,7 @@ const (
 	ecosystemMaven ecosystem = "Maven"
 
 	// The NuGet package ecosystem.
-	ecosystemNuGet ecosystem = "Nuget"
+	ecosystemNuGet ecosystem = "NuGet"
 
 	// The Linux kernel.
 	ecosystemLinux ecosystem = "Linux" // nolint:unused
@@ -81,9 +81,23 @@ var (
 	}
 )
 
-func toEcosystem(e string) (ecosystem, error) {
-	if ecosystemOSV, found := gitHubToOSV[e]; found {
-		return ecosystemOSV, nil
+func mapDependencyEcosystemNaming(logger *sclog.Logger, deps []dependency) {
+	for i := range deps {
+		if deps[i].Ecosystem == nil {
+			logger.Info("dependency %s has a nil ecosystem", deps[i].Name)
+			continue
+		}
+		mappedEcosys, found := toEcosystem(*deps[i].Ecosystem)
+		if !found {
+			// Log the error into the logger, so the following ecosystem mapping won't be affected.
+			logger.Info("no mapping entry for %s", *deps[i].Ecosystem)
+			continue
+		}
+		deps[i].Ecosystem = asPointer(string(mappedEcosys))
 	}
-	return "", fmt.Errorf("%w for github entry %s", errMappingNotFound, e)
+}
+
+func toEcosystem(sys string) (ecosystem, bool) {
+	ecosystemOSV, found := gitHubToOSV[sys]
+	return ecosystemOSV, found
 }
