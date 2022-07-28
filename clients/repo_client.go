@@ -43,6 +43,7 @@ type RepoClient interface {
 	ListStatuses(ref string) ([]Status, error)
 	ListWebhooks() ([]Webhook, error)
 	ListProgrammingLanguages() ([]Language, error)
+	ListMergedPRs() ([]PullRequest, error)
 	Search(request SearchRequest) (SearchResponse, error)
 	Close() error
 }

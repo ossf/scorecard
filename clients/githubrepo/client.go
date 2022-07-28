@@ -47,6 +47,7 @@ type Client struct {
 	workflows    *workflowsHandler
 	checkruns    *checkrunsHandler
 	statuses     *statusesHandler
+	PRs          *PRsHandler
 	search       *searchHandler
 	webhook      *webhookHandler
 	languages    *languagesHandler
@@ -101,6 +102,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 
 	// Setup searchHandler.
 	client.search.init(client.ctx, client.repourl)
+
+	// Setup PullRequestsHandler
+	client.PRs.init(client.ctx, client.repourl)
 
 	// Setup webhookHandler.
 	client.webhook.init(client.ctx, client.repourl)
@@ -175,6 +179,10 @@ func (client *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error
 	return client.checkruns.listCheckRunsForRef(ref)
 }
 
+func (client *Client) ListMergedPRs() ([]clients.PullRequest, error) {
+	return client.PRs.listPullRequests()
+}
+
 // ListStatuses implements RepoClient.ListStatuses.
 func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 	return client.statuses.listStatuses(ref)
@@ -223,6 +231,9 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 			client: client,
 		},
 		checkruns: &checkrunsHandler{
+			client: client,
+		},
+		PRs: &PRsHandler{
 			client: client,
 		},
 		statuses: &statusesHandler{

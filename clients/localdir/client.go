@@ -209,6 +209,10 @@ func (client *localDirClient) ListWebhooks() ([]clients.Webhook, error) {
 	return nil, fmt.Errorf("ListWebhooks: %w", clients.ErrUnsupportedFeature)
 }
 
+func (client *localDirClient) ListMergedPRs() ([]clients.PullRequest, error) {
+	return nil, fmt.Errorf("ListMergedPRs: %w", clients.ErrUnsupportedFeature)
+}
+
 // Search implements RepoClient.Search.
 func (client *localDirClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return clients.SearchResponse{}, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
