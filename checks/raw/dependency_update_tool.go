@@ -23,6 +23,10 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
+const (
+	dependabotID = 49699333
+)
+
 // DependencyUpdateTool is the exported name for Depdendency-Update-Tool.
 func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolData, error) {
 	var tools []checker.Tool
@@ -30,9 +34,32 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 	if err != nil {
 		return checker.DependencyUpdateToolData{}, fmt.Errorf("%w", err)
 	}
-
 	// No error, return the tools.
+	if len(tools) != 0 {
+		return checker.DependencyUpdateToolData{Tools: tools}, nil
+	}
+
+	PRs, err := c.ListMergedPRs()
+	if err != nil {
+		return checker.DependencyUpdateToolData{}, fmt.Errorf("%w", err)
+	}
+	for _, pr := range PRs {
+		if pr.Author.ID == dependabotID {
+			tools = append(tools, checker.Tool{
+				Name: "Dependabot",
+				URL:  asPointer("https://github.com/dependabot"),
+				Desc: asPointer("Automated dependency updates built into GitHub"),
+				Files: []checker.File{{
+					Path:   "",
+					Type:   checker.FileTypeSource,
+					Offset: checker.OffsetDefault,
+				}},
+			})
+			break
+		}
+	}
 	return checker.DependencyUpdateToolData{Tools: tools}, nil
+
 }
 
 var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name string, args ...interface{}) (bool, error) {
