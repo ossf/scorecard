@@ -314,6 +314,8 @@ func Test_getProminentLanguages(t *testing.T) {
 			},
 		},
 		{
+			// This test case simulates the situation when the GitHub language API returns
+			// duplicated languages, but we can still drop them and get the correct result.
 			name: "case2: drop duplicates",
 			languages: []clients.Language{
 				{
@@ -360,20 +362,35 @@ func Test_getProminentLanguages(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := getProminentLanguages(tt.languages)
-			if len(got) != len(tt.expected) {
+			if !unorderedEqual(got, tt.expected) {
 				t.Errorf(
-					"length of got (%d) and length of expected (%d) are not equal",
-					len(got), len(tt.expected),
+					"got (%s) != expected (%s)",
+					got, tt.expected,
 				)
 			}
-			for i, l := range got {
-				if l != tt.expected[i] {
-					t.Errorf(
-						"expected %s, got %s",
-						tt.expected[i], l,
-					)
-				}
-			}
+
 		})
 	}
+}
+
+func unorderedEqual(l1, l2 []clients.LanguageName) bool {
+	if len(l1) != len(l2) {
+		return false
+	}
+	l1Map, l2Map := map[clients.LanguageName]bool{}, map[clients.LanguageName]bool{}
+	for _, l := range l1 {
+		l1Map[l] = true
+	}
+	for _, l := range l2 {
+		l2Map[l] = true
+		if !l1Map[l] {
+			return false
+		}
+	}
+	for k := range l1Map {
+		if !l2Map[k] {
+			return false
+		}
+	}
+	return true
 }
