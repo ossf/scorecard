@@ -22,6 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 // Test_fetchRawDependencyDiffData is a test function for fetchRawDependencyDiffData.
@@ -187,10 +188,10 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 			deps: []dependency{
 				{
 					Name:      "dependency_3",
-					Ecosystem: asPointer("actions"),
+					Ecosystem: asPointer("foobar"),
 				},
 			},
-			errWanted: errInvalid,
+			errWanted: errMappingNotFound,
 		},
 		{
 			name: "correct mapping",
@@ -207,6 +208,10 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 					Name:      "dependency_6",
 					Ecosystem: asPointer("cargo"),
 				},
+				{
+					Name:      "dependency_7",
+					Ecosystem: asPointer("actions"),
+				},
 			},
 		},
 	}
@@ -214,7 +219,8 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			err := mapDependencyEcosystemNaming(tt.deps)
+			logger := sclog.NewLogger(sclog.DefaultLevel)
+			err := mapDependencyEcosystemNaming(logger, tt.deps)
 			if tt.errWanted != nil && errors.Is(tt.errWanted, err) {
 				t.Errorf("not a wanted error, want:%v, got:%v", tt.errWanted, err)
 				return
