@@ -80,7 +80,7 @@ func GetDependencyDiffResults(
 		return nil, fmt.Errorf("error in fetchRawDependencyDiffData: %w", err)
 	}
 	// Map the ecosystem naming convention from GitHub to OSV.
-	err = mapDependencyEcosystemNaming(dCtx.logger, dCtx.dependencydiffs)
+	err = mapDependencyEcosystemNaming(dCtx.dependencydiffs)
 	if err != nil {
 		return nil, fmt.Errorf("error in mapDependencyEcosystemNaming: %w", err)
 	}
@@ -89,6 +89,22 @@ func GetDependencyDiffResults(
 		return nil, fmt.Errorf("error getting scorecard check results: %w", err)
 	}
 	return dCtx.results, nil
+}
+
+func mapDependencyEcosystemNaming(deps []dependency) error {
+	for i := range deps {
+		if deps[i].Ecosystem == nil {
+			continue
+		}
+		mappedEcosys, err := toEcosystem(*deps[i].Ecosystem)
+		if err != nil {
+			wrappedErr := fmt.Errorf("error mapping dependency ecosystem: %w", err)
+			return wrappedErr
+		}
+		deps[i].Ecosystem = asPointer(string(mappedEcosys))
+
+	}
+	return nil
 }
 
 func initRepoAndClientByChecks(dCtx *dependencydiffContext, dSrcRepo string) error {
@@ -175,4 +191,8 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 		dCtx.results = append(dCtx.results, depCheckResult)
 	}
 	return nil
+}
+
+func asPointer(s string) *string {
+	return &s
 }

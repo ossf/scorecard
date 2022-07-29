@@ -16,8 +16,6 @@ package dependencydiff
 
 import (
 	"fmt"
-
-	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 // Ecosystem is a package ecosystem supported by OSV, GitHub, etc.
@@ -54,7 +52,7 @@ const (
 	ecosystemMaven ecosystem = "Maven"
 
 	// The NuGet package ecosystem.
-	ecosystemNuGet ecosystem = "NuGet"
+	ecosystemNuGet ecosystem = "Nuget"
 
 	// The Linux kernel.
 	ecosystemLinux ecosystem = "Linux" // nolint:unused
@@ -65,9 +63,6 @@ const (
 	// Hex is the package manager of Erlang.
 	// TODO: GitHub doesn't support hex as the ecosystem for Erlang yet. Add this to the map in the future.
 	ecosystemHex ecosystem = "Hex" // nolint:unused
-
-	// Actions is an ecosystem only defined by GitHub - this is not an OSV ecosystem.
-	ecosystemActions ecosystem = "actions"
 )
 
 var (
@@ -83,36 +78,12 @@ var (
 		"composer": ecosystemPackagist,
 		"rubygems": ecosystemRubyGems,
 		"nuget":    ecosystemNuGet,
-		"actions":  ecosystemActions, /* created this entry for the "actions" not to fail in the mapping process. */
 	}
 )
 
-func mapDependencyEcosystemNaming(logger *sclog.Logger, deps []dependency) error {
-	for i := range deps {
-		if deps[i].Ecosystem == nil {
-			continue
-		}
-		mappedEcosys, err := toEcosystem(*deps[i].Ecosystem)
-		if err != nil {
-			wrappedErr := fmt.Errorf("error mapping dependency ecosystem: %w", err)
-			return wrappedErr
-		}
-		deps[i].Ecosystem = asPointer(string(mappedEcosys))
-
-	}
-	return nil
-}
-
-// Note: the current implementation directly returns an error if the mapping entry is not found in the above hashmap.
-// GitHub might update their ecosystem names frequently, so we might also need to update the above map in a timely manner
-// for the dependency-diff feature not to fail because of the "mapping not found" error.
 func toEcosystem(e string) (ecosystem, error) {
 	if ecosystemOSV, found := gitHubToOSV[e]; found {
 		return ecosystemOSV, nil
 	}
 	return "", fmt.Errorf("%w for github entry %s", errMappingNotFound, e)
-}
-
-func asPointer(s string) *string {
-	return &s
 }
