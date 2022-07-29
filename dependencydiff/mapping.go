@@ -16,8 +16,6 @@ package dependencydiff
 
 import (
 	"fmt"
-
-	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 // Ecosystem is a package ecosystem supported by OSV, GitHub, etc.
@@ -87,16 +85,14 @@ var (
 	}
 )
 
-func mapDependencyEcosystemNaming(logger *sclog.Logger, deps []dependency) error {
+func mapDependencyEcosystemNaming(deps []dependency) error {
 	for i := range deps {
 		if deps[i].Ecosystem == nil {
 			continue
 		}
 		mappedEcosys, err := toEcosystem(*deps[i].Ecosystem)
 		if err != nil {
-			wrappedErr := fmt.Errorf("error mapping dependency ecosystem: %w", err)
-			logger.Error(wrappedErr, "")
-			return wrappedErr
+			return fmt.Errorf("error mapping dependency ecosystem: %w", err)
 		}
 		deps[i].Ecosystem = asPointer(string(mappedEcosys))
 

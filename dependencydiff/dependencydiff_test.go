@@ -218,8 +218,7 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			logger := sclog.NewLogger(sclog.DefaultLevel)
-			err := mapDependencyEcosystemNaming(logger, tt.deps)
+			err := mapDependencyEcosystemNaming(tt.deps)
 			if tt.errWanted != nil && errors.Is(tt.errWanted, err) {
 				t.Errorf("not a wanted error, want:%v, got:%v", tt.errWanted, err)
 				return
