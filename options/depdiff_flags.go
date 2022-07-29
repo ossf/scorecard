@@ -16,8 +16,6 @@
 package options
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -28,33 +26,32 @@ const (
 	// FlagHead is the flag name for specifying a dependency-diff head.
 	FlagHead = "head"
 
-	// FlagChangeType is the flag name for specifying the change type for
+	// FlagChangeTypes is the flag name for specifying the change type for
 	// which dependency-diff surfaces the scorecard check results.
-	FlagChangeType = "change-type"
+	FlagChangeTypes = "change-types"
 )
 
 // AddDepdiffFlags adds flags to the dependency-diff cobra command.
-func (o *DependencydiffOptions) AddDepdiffFlags(cmd *cobra.Command) {
+func (depOptions *DependencydiffOptions) AddDepdiffFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(
-		&o.Base,
+		&depOptions.Base,
 		FlagBase,
-		o.Base,
+		depOptions.Base,
 		`The base code branch name or the base commitSHA to check. Valid input examples: 
 		main (using a branch name), SHA_VALUE_1 (using a commitSHA)`,
 	)
 	cmd.Flags().StringVar(
-		&o.Head,
+		&depOptions.Head,
 		FlagHead,
-		o.Head,
+		depOptions.Head,
 		`The head code branch name or the head commitSHA to check. Valid input examples: 
 		dev (using a branch name), SHA_VALUE_2 (using a commitSHA)`,
 	)
 	cmd.Flags().StringSliceVar(
-		&o.ChangeType,
-		FlagChangeType,
-		o.ChangeType,
-		fmt.Sprintf(
-			`Dependency change types for surfacing the scorecard results. This is not a required input and 
-			can be null. Possible values are: added,removed`),
+		&depOptions.ChangeTypes,
+		FlagChangeTypes,
+		depOptions.ChangeTypes,
+		`Dependency change types for surfacing the scorecard results. This is not a required 
+		input and can be null. Possible values are: added,removed`,
 	)
 }

@@ -28,11 +28,11 @@ type DependencydiffOptions struct {
 	// Head is the head branch name reference or the head commitSHA.
 	Head string
 
-	// ChangeType is an array of dependency change types for specifying what change types the dependency-diff
+	// ChangeTypes is an array of dependency change types for specifying what change types the dependency-diff
 	// will surface the scorecard results for.
 	// This is not a required option and can be nullable. If null, we will surface the scorecard results
 	// for all types of dependencies.
-	ChangeType []string
+	ChangeTypes []string
 }
 
 var (
@@ -66,9 +66,9 @@ func (depOptions *DependencydiffOptions) ValidateDepdiff() error {
 			errHeadIsEmpty,
 		)
 	}
-	// ChangeType is nullable, but users must give valid types if this param is specified.
-	if len(depOptions.ChangeType) != 0 {
-		for _, ct := range depOptions.ChangeType {
+	// ChangeTypes can be null, but users must give valid types if this param is specified.
+	if len(depOptions.ChangeTypes) != 0 {
+		for _, ct := range depOptions.ChangeTypes {
 			if !isChangeTypeValid(ct) {
 				errs = append(
 					errs,

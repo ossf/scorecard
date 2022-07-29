@@ -29,9 +29,9 @@ import (
 )
 
 const (
-	dependencydiffUse   = `dependency-diff --repo=<repo> --base=<base> --head=<head> [--checks=check1,...] [--change-type=added,removed]`
+	dependencydiffUse   = `dependency-diff --repo=<repo> --base=<base> --head=<head> [--checks=check1,...] [--change-types=added,removed]`
 	dependencydiffShort = `Surface Scorecard checking results for dependency-diffs 
-	between commits or branches of a code repository.`
+	between commits or branch references of a code repository.`
 )
 
 func dependencydiffCmd(o *options.Options, depOptions *options.DependencydiffOptions) *cobra.Command {
@@ -68,7 +68,7 @@ func doDependencydiff(ctx context.Context, o *options.Options,
 ) {
 	base, head := depOptions.Base, depOptions.Head
 	changeTypeMap := map[pkg.ChangeType]bool{}
-	for _, ct := range depOptions.ChangeType {
+	for _, ct := range depOptions.ChangeTypes {
 		changeTypeMap[pkg.ChangeType(ct)] = true
 	}
 	depdiffResults, err := dependencydiff.GetDependencyDiffResults(
