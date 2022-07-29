@@ -140,10 +140,6 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 	if err != nil {
 		return fmt.Errorf("error init scorecard checks: %w", err)
 	}
-	changeTypeMap := map[pkg.ChangeType]bool{}
-	for _, ct := range dCtx.changeTypesToCheck {
-		changeTypeMap[pkg.ChangeType(ct)] = true
-	}
 	for _, d := range dCtx.dependencydiffs {
 		depCheckResult := pkg.DependencyCheckResult{
 			PackageURL:       d.PackageURL,
@@ -153,13 +149,21 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 			Ecosystem:        d.Ecosystem,
 			Version:          d.Version,
 			Name:             d.Name,
+			/* The scorecard check result is nil now. */
 		}
-		// Run the checks on all types if (1) the type is found in changeTypesToCheck or (2) no types are specified.
-		TypeFoundOrNoneGiven := changeTypeMap[*d.ChangeType] ||
-			(changeTypeMap == nil || len(changeTypeMap) == 0)
+		if d.ChangeType == nil {
+			// Since we allow a dependency having a nil change type, so we also
+			// give such a dependency a nil scorecard result.
+			dCtx.results = append(dCtx.results, depCheckResult)
+			continue
+		}
+		// (1) If no change types are specified, run the checks on all types of dependencies.
+		// (2) If there are change types specified by the user, run the checks on the specified types.
+		noneGivenOrIsSpecified := (dCtx.changeTypesToCheck == nil || len(dCtx.changeTypesToCheck) == 0) || /* None specified.*/
+			isSpecifiedByUser(*d.ChangeType, dCtx.changeTypesToCheck) /* Specified by the user.*/
 		// For now we skip those without source repo urls.
 		// TODO (#2063): use the BigQuery dataset to supplement null source repo URLs to fetch the Scorecard results for them.
-		if d.SourceRepository != nil && TypeFoundOrNoneGiven {
+		if d.SourceRepository != nil && noneGivenOrIsSpecified {
 			// Initialize the repo and client(s) corresponding to the checks to run.
 			err = initRepoAndClientByChecks(dCtx, *d.SourceRepository)
 			if err != nil {
@@ -199,4 +203,16 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 
 func asPointer(s string) *string {
 	return &s
+}
+
+func isSpecifiedByUser(ct pkg.ChangeType, changeTypes []string) bool {
+	if changeTypes == nil || len(changeTypes) == 0 {
+		return false
+	}
+	for _, ctByUser := range changeTypes {
+		if string(ct) == ctByUser {
+			return true
+		}
+	}
+	return false
 }

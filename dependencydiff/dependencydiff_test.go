@@ -22,6 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/pkg"
 )
 
 // Test_fetchRawDependencyDiffData is a test function for fetchRawDependencyDiffData.
@@ -217,6 +218,56 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 			err := mapDependencyEcosystemNaming(tt.deps)
 			if tt.errWanted != nil && errors.Is(tt.errWanted, err) {
 				t.Errorf("not a wanted error, want:%v, got:%v", tt.errWanted, err)
+				return
+			}
+		})
+	}
+}
+
+func Test_isSpecifiedByUser(t *testing.T) {
+	t.Parallel()
+	//nolint
+	tests := []struct {
+		name               string
+		ct                 pkg.ChangeType
+		changeTypesToCheck []string
+		resultWanted       bool
+	}{
+		{
+			name: "error invalid github ecosystem",
+		},
+		{
+			name:               "added",
+			ct:                 pkg.ChangeType("added"),
+			changeTypesToCheck: nil,
+			resultWanted:       false,
+		},
+		{
+			name:               "ct is added but not specified",
+			ct:                 pkg.ChangeType("added"),
+			changeTypesToCheck: []string{"removed"},
+			resultWanted:       false,
+		},
+		{
+			name:               "removed",
+			ct:                 pkg.ChangeType("added"),
+			changeTypesToCheck: []string{"added", "removed"},
+			resultWanted:       true,
+		},
+		{
+			name:               "not_supported",
+			ct:                 pkg.ChangeType("not_supported"),
+			changeTypesToCheck: []string{"added", "removed"},
+			resultWanted:       false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := isSpecifiedByUser(tt.ct, tt.changeTypesToCheck)
+			if result != tt.resultWanted {
+				t.Errorf("result (%v) != result wanted (%v)", result, tt.resultWanted)
 				return
 			}
 		})
