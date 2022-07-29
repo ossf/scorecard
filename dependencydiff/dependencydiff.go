@@ -93,11 +93,14 @@ func GetDependencyDiffResults(
 
 func mapDependencyEcosystemNaming(deps []dependency) error {
 	for i := range deps {
+		// Since we allow a dependency's ecosystem to be nil, so skip those nil ones and only map
+		// those valid ones.
 		if deps[i].Ecosystem == nil {
 			continue
 		}
 		mappedEcosys, err := toEcosystem(*deps[i].Ecosystem)
 		if err != nil {
+			//// Iff. the ecosystem is not empty and the mapping entry is not found, we will return an error.
 			wrappedErr := fmt.Errorf("error mapping dependency ecosystem: %w", err)
 			return wrappedErr
 		}
