@@ -105,8 +105,8 @@ func mapDependencyEcosystemNaming(logger *sclog.Logger, deps []dependency) error
 }
 
 // Note: the current implementation directly returns an error if the mapping entry is not found in the above hashmap.
-// GitHub might update their ecosystem names frequently, so we might also need to update the above map in a timely manner
-// for the dependency-diff feature not to fail because of the "mapping not found" error.
+// GitHub might update their ecosystem names frequently, so we might also need to update the above map in a timely 
+// manner for the dependency-diff feature not to fail because of the "mapping not found" error.
 func toEcosystem(e string) (ecosystem, error) {
 	if ecosystemOSV, found := gitHubToOSV[e]; found {
 		return ecosystemOSV, nil
