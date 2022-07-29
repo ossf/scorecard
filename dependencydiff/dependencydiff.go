@@ -55,7 +55,7 @@ func GetDependencyDiffResults(
 	repoURI string, /* Use the format "ownerName/repoName" as the repo URI, such as "ossf/scorecard". */
 	base, head string, /* Two code commits base and head, can use either SHAs or branch names. */
 	checksToRun []string, /* A list of enabled check names to run. */
-	changeTypesToCheck []string, /* A list of change types for which to surface scorecard results. */
+	changeTypes []string, /* A list of dependency change types for which we surface scorecard results. */
 ) ([]pkg.DependencyCheckResult, error) {
 
 	logger := sclog.NewLogger(sclog.DefaultLevel)
@@ -71,7 +71,7 @@ func GetDependencyDiffResults(
 		base:               base,
 		head:               head,
 		ctx:                ctx,
-		changeTypesToCheck: changeTypesToCheck,
+		changeTypesToCheck: changeTypes,
 		checkNamesToRun:    checksToRun,
 	}
 	// Fetch the raw dependency diffs. This API will also handle error cases such as invalid base or head.
