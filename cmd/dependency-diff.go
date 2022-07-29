@@ -29,7 +29,8 @@ import (
 )
 
 const (
-	dependencydiffUse   = `dependency-diff --repo=<repo> --base=<base> --head=<head> [--checks=check1,...] [--change-types=added,removed]`
+	dependencydiffUse = `dependency-diff --repo=<repo> --base=<base> --head=<head> 
+	[--checks=check1,...] [--change-types=added,removed]`
 	dependencydiffShort = `Surface Scorecard checking results for dependency-diffs 
 	between commits or branch references of a code repository.`
 )
