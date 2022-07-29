@@ -59,12 +59,6 @@ const (
 
 	// FlagFormat is the flag name for specifying output format.
 	FlagFormat = "format"
-
-	// FlagBase is the flag name for specifying a dependency-diff base.
-	FlagBase = "base"
-
-	// FlagHead is the flag name for specifying a dependency-diff head.
-	FlagHead = "head"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -73,7 +67,7 @@ type Command interface {
 	AddFlags(cmd *cobra.Command)
 }
 
-// AddRootFlags adds this options' flags to the cobra command.
+// AddRootFlags adds this options' flags to the root scorecard cobra command.
 func (o *Options) AddRootFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(
 		&o.Repo,
@@ -175,23 +169,5 @@ func (o *Options) AddRootFlags(cmd *cobra.Command) {
 			"output format. Possible values are: %s",
 			strings.Join(allowedFormats, ", "),
 		),
-	)
-}
-
-// AddDepdiffFlags adds flags to the dependency-diff cobra command.
-func (o *Options) AddDepdiffFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(
-		&o.Base,
-		FlagBase,
-		o.Base,
-		`the base branch name or the base commitSHA to check. valid input examples: 
-			"main" (branch name), "SHA_VALUE" (commitSHA)`,
-	)
-	cmd.Flags().StringVar(
-		&o.Head,
-		FlagHead,
-		o.Head,
-		`the head branch name or the head commitSHA to check. valid input examples: 
-			"dev" (branch name), "SHA_VALUE" (commitSHA)`,
 	)
 }

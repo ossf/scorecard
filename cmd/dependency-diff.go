@@ -29,20 +29,24 @@ import (
 )
 
 const (
-	dependencydiffUse   = `dependency-diff --base=<base> --head=<head> --repo=<repo> [--checks=check1,...]`
+	dependencydiffUse   = `dependency-diff --repo=<repo> --base=<base> --head=<head> [--checks=check1,...] [--change-type=added,removed]`
 	dependencydiffShort = `Surface Scorecard checking results for dependency-diffs 
 	between commits or branches of a code repository.`
 )
 
-func dependencydiffCmd(o *options.Options) *cobra.Command {
+func dependencydiffCmd(o *options.Options, depOptions *options.DependencydiffOptions) *cobra.Command {
 	depdiffCmd := &cobra.Command{
 		Use:   dependencydiffUse,
 		Short: dependencydiffShort,
 		Long:  ``,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			err := o.ValidateDepdiff()
+			err := o.ValidateExperimental()
 			if err != nil {
 				return fmt.Errorf("validating options: %w", err)
+			}
+			err = depOptions.ValidateDepdiff()
+			if err != nil {
+				return fmt.Errorf("validating dependency-diff options: %w", err)
 			}
 			return nil
 		},
@@ -52,17 +56,23 @@ func dependencydiffCmd(o *options.Options) *cobra.Command {
 			if err != nil {
 				log.Panicf("cannot read yaml file: %v", err)
 			}
-			doDependencydiff(ctx, o, checkDocs)
+			doDependencydiff(ctx, o, depOptions, checkDocs)
 		},
 	}
-	o.AddDepdiffFlags(depdiffCmd)
+	depOptions.AddDepdiffFlags(depdiffCmd)
 	return depdiffCmd
 }
 
-func doDependencydiff(ctx context.Context, o *options.Options, checkDocs docs.Doc) {
-	base, head := o.Base, o.Head
+func doDependencydiff(ctx context.Context, o *options.Options,
+	depOptions *options.DependencydiffOptions, checkDocs docs.Doc,
+) {
+	base, head := depOptions.Base, depOptions.Head
+	changeTypeMap := map[pkg.ChangeType]bool{}
+	for _, ct := range depOptions.ChangeType {
+		changeTypeMap[pkg.ChangeType(ct)] = true
+	}
 	depdiffResults, err := dependencydiff.GetDependencyDiffResults(
-		ctx, o.Repo, base, head, o.ChecksToRun, nil)
+		ctx, o.Repo, base, head, o.ChecksToRun, changeTypeMap)
 	if err != nil {
 		log.Panicf("error getting dependencydiff results: %v", err)
 	}

@@ -64,7 +64,8 @@ func New(o *options.Options) *cobra.Command {
 	o.AddRootFlags(cmd)
 
 	// Add sub-commands.
-	cmd.AddCommand(dependencydiffCmd(o))
+	depOptions := options.NewDepdiff()
+	cmd.AddCommand(dependencydiffCmd(o, depOptions))
 	cmd.AddCommand(serveCmd(o))
 	cmd.AddCommand(version.Version())
 	return cmd

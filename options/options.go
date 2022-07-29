@@ -39,8 +39,6 @@ type Options struct {
 	PolicyFile string
 	// TODO(action): Add logic for writing results to file
 	ResultsFile string
-	Base        string
-	Head        string
 	ChecksToRun []string
 	Metadata    []string
 	ShowDetails bool
@@ -246,16 +244,11 @@ func validateFormat(format string) bool {
 	}
 }
 
-// isExperimentalEnabled returns true if SCORECARD_EXPERIMENTAL was specified in options or via
+// ValidateExperimental returns true if SCORECARD_EXPERIMENTAL was specified in options or via
 // environment variable.
-func (o *Options) isExperimentalEnabled() bool {
+func (o *Options) ValidateExperimental() error {
 	_, enabled := os.LookupEnv(EnvVarScorecardExperimental)
-	return o.EnableScorecardExperimental || enabled
-}
-
-// ValidateDepdiff validates dependencydiff configuration options.
-func (o *Options) ValidateDepdiff() error {
-	if !o.isExperimentalEnabled() {
+	if !(o.EnableScorecardExperimental || enabled) {
 		return fmt.Errorf(
 			"cannot use this feature: %w",
 			errExperimentalDisabled,
