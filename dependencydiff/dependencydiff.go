@@ -159,7 +159,7 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 		}
 		// (1) If no change types are specified, run the checks on all types of dependencies.
 		// (2) If there are change types specified by the user, run the checks on the specified types.
-		noneGivenOrIsSpecified := (dCtx.changeTypesToCheck == nil || len(dCtx.changeTypesToCheck) == 0) || /* None specified.*/
+		noneGivenOrIsSpecified := len(dCtx.changeTypesToCheck) == 0 || /* None specified.*/
 			isSpecifiedByUser(*d.ChangeType, dCtx.changeTypesToCheck) /* Specified by the user.*/
 		// For now we skip those without source repo urls.
 		// TODO (#2063): use the BigQuery dataset to supplement null source repo URLs to fetch the Scorecard results for them.
@@ -206,7 +206,7 @@ func asPointer(s string) *string {
 }
 
 func isSpecifiedByUser(ct pkg.ChangeType, changeTypes []string) bool {
-	if changeTypes == nil || len(changeTypes) == 0 {
+	if len(changeTypes) == 0 {
 		return false
 	}
 	for _, ctByUser := range changeTypes {
