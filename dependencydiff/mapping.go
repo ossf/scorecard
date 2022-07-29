@@ -64,8 +64,14 @@ const (
 	// TODO: GitHub doesn't support hex as the ecosystem for Erlang yet. Add this to the map in the future.
 	ecosystemHex ecosystem = "Hex" // nolint:unused
 
-	// Actions is an ecosystem only defined by GitHub - this is not an OSV ecosystem.
-	ecosystemActions ecosystem = "actions"
+	// GitHub Actions is an ecosystem for the GitHub Actions.
+	ecosystemActions ecosystem = "GitHub Actions"
+
+	// Pub is the official package repository for Dart and Flutter apps.
+	ecosystemPub ecosystem = "Pub" // nolint:unused
+
+	// Ecosystems with a "nolint" tag suggests GitHub hasn't gotten them supported yet.
+	// We need to add them to the below hashmap in a timely manner once GitHub adds supports.
 )
 
 var (
@@ -81,7 +87,7 @@ var (
 		"composer": ecosystemPackagist,
 		"rubygems": ecosystemRubyGems,
 		"nuget":    ecosystemNuGet,
-		"actions":  ecosystemActions, /* created this entry for the "actions" not to fail in the mapping process. */
+		"actions":  ecosystemActions,
 	}
 )
 
