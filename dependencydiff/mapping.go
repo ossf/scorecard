@@ -87,11 +87,14 @@ var (
 
 func mapDependencyEcosystemNaming(deps []dependency) error {
 	for i := range deps {
+		// Since we allow a dependency's ecosystem to be nil, so skip those nil ones and only map
+		// those valid ones.
 		if deps[i].Ecosystem == nil {
 			continue
 		}
 		mappedEcosys, err := toEcosystem(*deps[i].Ecosystem)
 		if err != nil {
+			// Iff. the ecosystem is not empty and the mapping entry is not found, we will return an error.
 			return fmt.Errorf("error mapping dependency ecosystem: %w", err)
 		}
 		deps[i].Ecosystem = asPointer(string(mappedEcosys))
@@ -101,7 +104,7 @@ func mapDependencyEcosystemNaming(deps []dependency) error {
 }
 
 // Note: the current implementation directly returns an error if the mapping entry is not found in the above hashmap.
-// GitHub might update their ecosystem names frequently, so we might also need to update the above map in a timely 
+// GitHub might update their ecosystem names frequently, so we might also need to update the above map in a timely
 // manner for the dependency-diff feature not to fail because of the "mapping not found" error.
 func toEcosystem(e string) (ecosystem, error) {
 	if ecosystemOSV, found := gitHubToOSV[e]; found {
