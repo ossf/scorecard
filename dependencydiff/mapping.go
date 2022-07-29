@@ -95,6 +95,7 @@ func mapDependencyEcosystemNaming(logger *sclog.Logger, deps []dependency) error
 		mappedEcosys, err := toEcosystem(*deps[i].Ecosystem)
 		if err != nil {
 			wrappedErr := fmt.Errorf("error mapping dependency ecosystem: %w", err)
+			logger.Error(wrappedErr, "")
 			return wrappedErr
 		}
 		deps[i].Ecosystem = asPointer(string(mappedEcosys))
