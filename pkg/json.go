@@ -84,14 +84,14 @@ type JSONScorecardResultV2 struct {
 
 // JSONDependencydiffResult exports dependency-diff check results as JSON for new detail format.
 type JSONDependencydiffResult struct {
-	ChangeType          *ChangeType            `json:"changeType"`
-	PackageURL          *string                `json:"packageUrl"`
-	SourceRepository    *string                `json:"sourceRepository"`
-	ManifestPath        *string                `json:"manifestPath"`
+	ChangeType          *ChangeType            `json:"change_type"`
+	PackageURL          *string                `json:"package_url"`
+	SourceRepository    *string                `json:"source_repository"`
+	ManifestPath        *string                `json:"manifest_path"`
 	Ecosystem           *string                `json:"ecosystem"`
-	Version             *string                `json:"packageVersion"`
-	JSONScorecardResult *JSONScorecardResultV2 `json:"scorecardResult"`
-	Name                string                 `json:"packageName"`
+	Version             *string                `json:"package_version"`
+	JSONScorecardResult *JSONScorecardResultV2 `json:"scorecard_result"`
+	Name                string                 `json:"package_name"`
 }
 
 // AsJSON exports results as JSON for new detail format.
