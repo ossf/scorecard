@@ -79,7 +79,7 @@ type config struct {
 	// Raw results.
 	RawResultDataBucketURL string `yaml:"raw-result-data-bucket-url"`
 	RawBigQueryTable       string `yaml:"raw-bigquery-table"`
-	ExportResultsBucketURL string `yaml:"export-results-bucket-url"`
+	APIResultsBucketURL    string `yaml:"api-results-bucket-url"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -234,8 +234,8 @@ func GetMetricExporter() (string, error) {
 	return getStringConfigValue(metricExporter, configYAML, "MetricExporter", "metric-exporter")
 }
 
-// GetBQExportResultsBucketURL returns the bucket URL for storing cron job results.
-func GetBQExportResultsBucketURL() (string, error) {
+// GetAPIResultsBucketURL returns the bucket URL for storing cron job results.
+func GetAPIResultsBucketURL() (string, error) {
 	return getStringConfigValue(apiResultsBucketURL, configYAML,
-		"ExportResultsBucketURL", "export-results-bucket-url")
+		"APIResultsBucketURL", "api-results-bucket-url")
 }
