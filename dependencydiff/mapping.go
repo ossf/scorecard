@@ -52,7 +52,7 @@ const (
 	ecosystemMaven ecosystem = "Maven"
 
 	// The NuGet package ecosystem.
-	ecosystemNuGet ecosystem = "Nuget"
+	ecosystemNuGet ecosystem = "NuGet"
 
 	// The Linux kernel.
 	ecosystemLinux ecosystem = "Linux" // nolint:unused
@@ -63,6 +63,15 @@ const (
 	// Hex is the package manager of Erlang.
 	// TODO: GitHub doesn't support hex as the ecosystem for Erlang yet. Add this to the map in the future.
 	ecosystemHex ecosystem = "Hex" // nolint:unused
+
+	// GitHub Actions is an ecosystem for the GitHub Actions.
+	ecosystemActions ecosystem = "GitHub Actions"
+
+	// Pub is the official package repository for Dart and Flutter apps.
+	ecosystemPub ecosystem = "Pub" // nolint:unused
+
+	// Ecosystems with a "nolint" tag suggests GitHub hasn't gotten them supported yet.
+	// We need to add them to the below hashmap in a timely manner once GitHub adds supports.
 )
 
 var (
@@ -78,12 +87,38 @@ var (
 		"composer": ecosystemPackagist,
 		"rubygems": ecosystemRubyGems,
 		"nuget":    ecosystemNuGet,
+		"actions":  ecosystemActions,
 	}
 )
 
+func mapDependencyEcosystemNaming(deps []dependency) error {
+	for i := range deps {
+		// Since we allow a dependency's ecosystem to be nil, so skip those nil ones and only map
+		// those valid ones.
+		if deps[i].Ecosystem == nil {
+			continue
+		}
+		mappedEcosys, err := toEcosystem(*deps[i].Ecosystem)
+		if err != nil {
+			// Iff. the ecosystem is not empty and the mapping entry is not found, we will return an error.
+			return fmt.Errorf("error mapping dependency ecosystem: %w", err)
+		}
+		deps[i].Ecosystem = asPointer(string(mappedEcosys))
+
+	}
+	return nil
+}
+
+// Note: the current implementation directly returns an error if the mapping entry is not found in the above hashmap.
+// GitHub might update their ecosystem names frequently, so we might also need to update the above map in a timely
+// manner for the dependency-diff feature not to fail because of the "mapping not found" error.
 func toEcosystem(e string) (ecosystem, error) {
 	if ecosystemOSV, found := gitHubToOSV[e]; found {
 		return ecosystemOSV, nil
 	}
 	return "", fmt.Errorf("%w for github entry %s", errMappingNotFound, e)
+}
+
+func asPointer(s string) *string {
+	return &s
 }
