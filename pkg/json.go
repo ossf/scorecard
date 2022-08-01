@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2020 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,241 +15,198 @@
 package pkg
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
+	"os"
+	"time"
 
-	docs "github.com/ossf/scorecard/v4/docs/checks"
+	"github.com/olekukonko/tablewriter"
+
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
+	spol "github.com/ossf/scorecard/v4/policy"
 )
 
+// ScorecardInfo contains information about the scorecard code that was run.
+type ScorecardInfo struct {
+	Version   string
+	CommitSHA string
+}
+
+// RepoInfo contains information about the repo that was analyzed.
+type RepoInfo struct {
+	Name      string
+	CommitSHA string
+}
+
+// ScorecardResult struct is returned on a successful Scorecard run.
 //nolint
-type jsonCheckResult struct {
-	Name       string
-	Details    []string
-	Confidence int
-	Pass       bool
+type ScorecardResult struct {
+	Repo       RepoInfo
+	Date       time.Time
+	Scorecard  ScorecardInfo
+	Checks     []checker.CheckResult
+	RawResults checker.RawResults
+	Metadata   []string
 }
 
-type jsonScorecardResult struct {
-	Repo     string
-	Date     string
-	Checks   []jsonCheckResult
-	Metadata []string
-}
-
-type jsonCheckDocumentationV2 struct {
-	URL   string `json:"url"`
-	Short string `json:"short"`
-	// Can be extended if needed.
-}
-
-//nolint
-type jsonCheckResultV2 struct {
-	Details []string                 `json:"details"`
-	Score   int                      `json:"score"`
-	Reason  string                   `json:"reason"`
-	Name    string                   `json:"name"`
-	Doc     jsonCheckDocumentationV2 `json:"documentation"`
-}
-
-type jsonRepoV2 struct {
-	Name   string `json:"name"`
-	Commit string `json:"commit"`
-}
-
-type jsonScorecardV2 struct {
-	Version string `json:"version"`
-	Commit  string `json:"commit"`
-}
-
-type jsonFloatScore float64
-
-func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
-	// Note: for integers, this will show as X.0.
-	return []byte(fmt.Sprintf("%.1f", s)), nil
-}
-
-//nolint:govet
-// JSONScorecardResultV2 exports results as JSON for new detail format.
-type JSONScorecardResultV2 struct {
-	Date           string              `json:"date"`
-	Repo           jsonRepoV2          `json:"repo"`
-	Scorecard      jsonScorecardV2     `json:"scorecard"`
-	AggregateScore jsonFloatScore      `json:"score"`
-	Checks         []jsonCheckResultV2 `json:"checks"`
-	Metadata       []string            `json:"metadata"`
-}
-
-// JSONDependencydiffResult exports dependency-diff check results as JSON for new detail format.
-type JSONDependencydiffResult struct {
-	ChangeType          *ChangeType            `json:"changeType"`
-	PackageURL          *string                `json:"packageUrl"`
-	SourceRepository    *string                `json:"sourceRepository"`
-	ManifestPath        *string                `json:"manifestPath"`
-	Ecosystem           *string                `json:"ecosystem"`
-	Version             *string                `json:"packageVersion"`
-	JSONScorecardResult *JSONScorecardResultV2 `json:"scorecardResult"`
-	Name                string                 `json:"packageName"`
-}
-
-// AsJSON exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io.Writer) error {
-	encoder := json.NewEncoder(writer)
-
-	out := jsonScorecardResult{
-		Repo:     r.Repo.Name,
-		Date:     r.Date.Format("2006-01-02"),
-		Metadata: r.Metadata,
+func scoreToString(s float64) string {
+	if s == checker.InconclusiveResultScore {
+		return "?"
 	}
+	return fmt.Sprintf("%.1f", s)
+}
 
-	for _, checkResult := range r.Checks {
-		tmpResult := jsonCheckResult{
-			Name: checkResult.Name,
+// GetAggregateScore returns the aggregate score.
+func (r *ScorecardResult) GetAggregateScore(checkDocs checks.Doc) (float64, error) {
+	// TODO: calculate the score and make it a field
+	// of ScorecardResult
+	weights := map[string]float64{"Critical": 10, "High": 7.5, "Medium": 5, "Low": 2.5}
+	// Note: aggregate score changes depending on which checks are run.
+	total := float64(0)
+	score := float64(0)
+	for i := range r.Checks {
+		check := r.Checks[i]
+		doc, e := checkDocs.GetCheck(check.Name)
+		if e != nil {
+			return checker.InconclusiveResultScore,
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", check.Name, e))
 		}
-		if showDetails {
-			for i := range checkResult.Details {
-				d := checkResult.Details[i]
-				m := DetailToString(&d, logLevel)
-				if m == "" {
-					continue
-				}
-				tmpResult.Details = append(tmpResult.Details, m)
-			}
+
+		risk := doc.GetRisk()
+		rs, exists := weights[risk]
+		if !exists {
+			return checker.InconclusiveResultScore,
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Invalid risk for %s: '%s'", check.Name, risk))
 		}
-		out.Checks = append(out.Checks, tmpResult)
+
+		// This indicates an inconclusive score.
+		if check.Score < checker.MinResultScore {
+			continue
+		}
+
+		total += rs
+		score += rs * float64(check.Score)
 	}
-	if err := encoder.Encode(out); err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+
+	// Inconclusive result.
+	if total == 0 {
+		return checker.InconclusiveResultScore, nil
 	}
+
+	return score / total, nil
+}
+
+// FormatResults formats scorecard results.
+func FormatResults(
+	opts *options.Options,
+	results *ScorecardResult,
+	doc checks.Doc,
+	policy *spol.ScorecardPolicy,
+) error {
+	var err error
+
+	switch opts.Format {
+	case options.FormatDefault:
+		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+	case options.FormatSarif:
+		// TODO: support config files and update checker.MaxResultScore.
+		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), os.Stdout, doc, policy)
+	case options.FormatJSON:
+		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+	case options.FormatRaw:
+		err = results.AsRawJSON(os.Stdout)
+	default:
+		err = sce.WithMessage(
+			sce.ErrScorecardInternal,
+			fmt.Sprintf(
+				"invalid format flag: %v. Expected [default, json]",
+				opts.Format,
+			),
+		)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to output results: %w", err)
+	}
+
 	return nil
 }
 
-// AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(showDetails bool,
-	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
+// AsString returns ScorecardResult in string format.
+func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
+	checkDocs checks.Doc, writer io.Writer,
 ) error {
+	data := make([][]string, len(r.Checks))
+
+	for i, row := range r.Checks {
+		const withdetails = 5
+		const withoutdetails = 4
+		var x []string
+
+		if showDetails {
+			x = make([]string, withdetails)
+		} else {
+			x = make([]string, withoutdetails)
+		}
+
+		// UPGRADEv2: rename variable.
+		if row.Score == checker.InconclusiveResultScore {
+			x[0] = "?"
+		} else {
+			x[0] = fmt.Sprintf("%d / %d", row.Score, checker.MaxResultScore)
+		}
+
+		cdoc, e := checkDocs.GetCheck(row.Name)
+		if e != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", row.Name, e))
+		}
+
+		doc := cdoc.GetDocumentationURL(r.Scorecard.CommitSHA)
+		x[1] = row.Name
+		x[2] = row.Reason
+		if showDetails {
+			details, show := detailsToString(row.Details, logLevel)
+			if show {
+				x[3] = details
+			}
+			x[4] = doc
+		} else {
+			x[3] = doc
+		}
+
+		data[i] = x
+	}
+
 	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
 		return err
 	}
+	s := fmt.Sprintf("Aggregate score: %s / %d\n\n", scoreToString(score), checker.MaxResultScore)
+	if score == checker.InconclusiveResultScore {
+		s = "Aggregate score: ?\n\n"
+	}
+	fmt.Fprint(os.Stdout, s)
+	fmt.Fprintln(os.Stdout, "Check scores:")
 
-	encoder := json.NewEncoder(writer)
-	out := JSONScorecardResultV2{
-		Repo: jsonRepoV2{
-			Name:   r.Repo.Name,
-			Commit: r.Repo.CommitSHA,
-		},
-		Scorecard: jsonScorecardV2{
-			Version: r.Scorecard.Version,
-			Commit:  r.Scorecard.CommitSHA,
-		},
-		Date:           r.Date.Format("2006-01-02"),
-		Metadata:       r.Metadata,
-		AggregateScore: jsonFloatScore(score),
+	table := tablewriter.NewWriter(os.Stdout)
+	header := []string{"Score", "Name", "Reason"}
+	if showDetails {
+		header = append(header, "Details")
 	}
+	header = append(header, "Documentation/Remediation")
+	table.SetHeader(header)
+	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
+	table.SetRowSeparator("-")
+	table.SetRowLine(true)
+	table.SetCenterSeparator("|")
+	table.AppendBulk(data)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetRowLine(true)
+	table.Render()
 
-	for _, checkResult := range r.Checks {
-		doc, e := checkDocs.GetCheck(checkResult.Name)
-		if e != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
-		}
-
-		tmpResult := jsonCheckResultV2{
-			Name: checkResult.Name,
-			Doc: jsonCheckDocumentationV2{
-				URL:   doc.GetDocumentationURL(r.Scorecard.CommitSHA),
-				Short: doc.GetShort(),
-			},
-			Reason: checkResult.Reason,
-			Score:  checkResult.Score,
-		}
-		if showDetails {
-			for i := range checkResult.Details {
-				d := checkResult.Details[i]
-				m := DetailToString(&d, logLevel)
-				if m == "" {
-					continue
-				}
-				tmpResult.Details = append(tmpResult.Details, m)
-			}
-		}
-		out.Checks = append(out.Checks, tmpResult)
-	}
-	if err := encoder.Encode(out); err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-	}
-	return nil
-}
-
-// DependencydiffResultsAsJSON exports dependencydiff results as JSON. This cannot be defined as the OOP-like
-// ScorecardResult.AsJSON since we return a slice of DependencyCheckResult.
-func DependencydiffResultsAsJSON(depdiffResults []DependencyCheckResult,
-	logLevel log.Level, doc docs.Doc, writer io.Writer,
-) error {
-	out := []JSONDependencydiffResult{}
-	for _, dr := range depdiffResults {
-		// Copy every DependencydiffResult struct to a JSONDependencydiffResult for exporting as JSON.
-		jsonDepdiff := JSONDependencydiffResult{
-			ChangeType:       dr.ChangeType,
-			PackageURL:       dr.PackageURL,
-			SourceRepository: dr.SourceRepository,
-			ManifestPath:     dr.ManifestPath,
-			Ecosystem:        dr.Ecosystem,
-			Version:          dr.Version,
-			Name:             dr.Name,
-		}
-		scResult := dr.ScorecardResultWithError.ScorecardResult
-		if scResult != nil {
-			score, err := scResult.GetAggregateScore(doc)
-			if err != nil {
-				return err
-			}
-			jsonResult := JSONScorecardResultV2{
-				Repo: jsonRepoV2{
-					Name:   scResult.Repo.Name,
-					Commit: scResult.Repo.CommitSHA,
-				},
-				Scorecard: jsonScorecardV2{
-					Version: scResult.Scorecard.Version,
-					Commit:  scResult.Scorecard.CommitSHA,
-				},
-				Date:           scResult.Date.Format("2006-01-02"),
-				Metadata:       scResult.Metadata,
-				AggregateScore: jsonFloatScore(score),
-			}
-			for _, c := range scResult.Checks {
-				doc, e := doc.GetCheck(c.Name)
-				if e != nil {
-					return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", c.Name, e))
-				}
-				tmpResult := jsonCheckResultV2{
-					Name: c.Name,
-					Doc: jsonCheckDocumentationV2{
-						URL:   doc.GetDocumentationURL(scResult.Scorecard.CommitSHA),
-						Short: doc.GetShort(),
-					},
-					Reason: c.Reason,
-					Score:  c.Score,
-				}
-				for i := range c.Details {
-					d := c.Details[i]
-					m := DetailToString(&d, logLevel)
-					if m == "" {
-						continue
-					}
-					tmpResult.Details = append(tmpResult.Details, m)
-				}
-				jsonResult.Checks = append(jsonResult.Checks, tmpResult)
-				jsonDepdiff.JSONScorecardResult = &jsonResult
-			}
-		}
-		out = append(out, jsonDepdiff)
-	}
-	encoder := json.NewEncoder(writer)
-	if err := encoder.Encode(out); err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
-	}
 	return nil
 }

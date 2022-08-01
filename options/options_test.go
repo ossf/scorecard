@@ -114,7 +114,7 @@ func TestOptions_Validate(t *testing.T) {
 				defer os.Unsetenv(EnvVarEnableSarif)
 			}
 
-			if err := o.ValidateRoot(); (err != nil) != tt.wantErr {
+			if err := o.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Options.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
