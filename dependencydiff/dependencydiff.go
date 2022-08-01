@@ -185,10 +185,6 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 	return nil
 }
 
-func asPointer(s string) *string {
-	return &s
-}
-
 func isSpecifiedByUser(ct pkg.ChangeType, changeTypes []string) bool {
 	if len(changeTypes) == 0 {
 		return false
