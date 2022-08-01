@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/log"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 // Test_fetchRawDependencyDiffData is a test function for fetchRawDependencyDiffData.
@@ -37,7 +37,7 @@ func Test_fetchRawDependencyDiffData(t *testing.T) {
 		{
 			name: "error response",
 			dCtx: dependencydiffContext{
-				logger:    log.NewLogger(log.InfoLevel),
+				logger:    sclog.NewLogger(sclog.InfoLevel),
 				ctx:       context.Background(),
 				ownerName: "no_such_owner",
 				repoName:  "repo_not_exist",
@@ -82,7 +82,7 @@ func Test_initRepoAndClientByChecks(t *testing.T) {
 		{
 			name: "error creating repo",
 			dCtx: dependencydiffContext{
-				logger:          log.NewLogger(log.InfoLevel),
+				logger:          sclog.NewLogger(sclog.InfoLevel),
 				ctx:             context.Background(),
 				checkNamesToRun: []string{},
 			},
@@ -140,7 +140,7 @@ func Test_getScorecardCheckResults(t *testing.T) {
 			name: "empty response",
 			dCtx: dependencydiffContext{
 				ctx:       context.Background(),
-				logger:    log.NewLogger(log.InfoLevel),
+				logger:    sclog.NewLogger(sclog.InfoLevel),
 				ownerName: "owner_not_exist",
 				repoName:  "repo_not_exist",
 			},
@@ -187,10 +187,10 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 			deps: []dependency{
 				{
 					Name:      "dependency_3",
-					Ecosystem: asPointer("actions"),
+					Ecosystem: asPointer("foobar"),
 				},
 			},
-			errWanted: errInvalid,
+			errWanted: errMappingNotFound,
 		},
 		{
 			name: "correct mapping",
@@ -206,6 +206,10 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 				{
 					Name:      "dependency_6",
 					Ecosystem: asPointer("cargo"),
+				},
+				{
+					Name:      "dependency_7",
+					Ecosystem: asPointer("actions"),
 				},
 			},
 		},
