@@ -47,6 +47,7 @@ const (
 	blacklistedChecks      string = "SCORECARD_BLACKLISTED_CHECKS"
 	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
 	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
+	apiResultsBucketURL    string = "SCORECARD_API_RESULTS_BUCKET_URL"
 	// Raw results.
 	rawBigqueryTable       string = "RAW_SCORECARD_BIGQUERY_TABLE"
 	rawResultDataBucketURL string = "RAW_SCORECARD_DATA_BUCKET_URL"
@@ -78,6 +79,7 @@ type config struct {
 	// Raw results.
 	RawResultDataBucketURL string `yaml:"raw-result-data-bucket-url"`
 	RawBigQueryTable       string `yaml:"raw-bigquery-table"`
+	APIResultsBucketURL    string `yaml:"api-results-bucket-url"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -120,7 +122,6 @@ func getIntConfigValue(envVar string, byteValue []byte, fieldName, configName st
 		return 0, fmt.Errorf("error getting config value %s: %w", configName, err)
 	}
 
-	// nolint: exhaustive
 	switch value.Kind() {
 	case reflect.String:
 		//nolint:wrapcheck
@@ -137,7 +138,7 @@ func getFloat64ConfigValue(envVar string, byteValue []byte, fieldName, configNam
 	if err != nil {
 		return 0, fmt.Errorf("error getting config value %s: %w", configName, err)
 	}
-	// nolint: exhaustive
+
 	switch value.Kind() {
 	case reflect.String:
 		//nolint: wrapcheck, gomnd
@@ -231,4 +232,10 @@ func GetBlacklistedChecks() ([]string, error) {
 // GetMetricExporter returns the opencensus exporter type.
 func GetMetricExporter() (string, error) {
 	return getStringConfigValue(metricExporter, configYAML, "MetricExporter", "metric-exporter")
+}
+
+// GetAPIResultsBucketURL returns the bucket URL for storing cron job results.
+func GetAPIResultsBucketURL() (string, error) {
+	return getStringConfigValue(apiResultsBucketURL, configYAML,
+		"APIResultsBucketURL", "api-results-bucket-url")
 }

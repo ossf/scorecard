@@ -39,6 +39,7 @@ const (
 	// Raw results.
 	prodRawBucket        = "gs://ossf-scorecard-rawdata"
 	prodRawBigQueryTable = "scorecard-rawdata"
+	prodAPIBucketURL     = "gs://ossf-scorecard-cron-results"
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -74,6 +75,7 @@ func TestYAMLParsing(t *testing.T) {
 				MetricExporter:         prodMetricExporter,
 				RawResultDataBucketURL: prodRawBucket,
 				RawBigQueryTable:       prodRawBigQueryTable,
+				APIResultsBucketURL:    prodAPIBucketURL,
 			},
 		},
 
@@ -341,6 +343,21 @@ func TestGetMetricExporter(t *testing.T) {
 		}
 		if exporter != prodMetricExporter {
 			t.Errorf("test failed: expected - %s, got = %s", prodMetricExporter, exporter)
+		}
+	})
+}
+
+//nolint:paralleltest // Since os.Setenv is used.
+func TestGetAPIResultsBucketURL(t *testing.T) {
+	t.Run("GetBigQueryExportsBucketURL", func(t *testing.T) {
+		bigqueryExportsBucketURL := apiResultsBucketURL
+		os.Unsetenv(bigqueryExportsBucketURL)
+		bucket, err := GetAPIResultsBucketURL()
+		if err != nil {
+			t.Errorf("failed to get production bucket URL from config: %v", err)
+		}
+		if bucket != prodAPIBucketURL {
+			t.Errorf("test failed: expected - %s, got = %s", prodAPIBucketURL, bucket)
 		}
 	})
 }

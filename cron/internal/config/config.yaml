@@ -29,3 +29,5 @@ result-data-bucket-url: gs://ossf-scorecard-data2
 # Raw results.
 raw-result-data-bucket-url: gs://ossf-scorecard-rawdata
 raw-bigquery-table: scorecard-rawdata
+# API results bucket
+api-results-bucket-url: gs://ossf-scorecard-cron-results

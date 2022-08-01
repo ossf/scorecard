@@ -275,7 +275,6 @@ func Test_checkFuzzFunc(t *testing.T) {
 		fileContent string
 	}{
 		{
-			// TODO: more test cases needed. @aidenwang9867
 			name:    "Test_checkFuzzFunc failure",
 			want:    false,
 			wantErr: false,
@@ -318,4 +317,113 @@ func Test_checkFuzzFunc(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_getProminentLanguages(t *testing.T) {
+	t.Parallel()
+	//nolint
+	tests := []struct {
+		name      string
+		languages []clients.Language
+		expected  []clients.LanguageName
+	}{
+		{
+			name: "case1",
+			languages: []clients.Language{
+				{
+					Name:     clients.Go,
+					NumLines: 1000,
+				},
+				{
+					Name:     clients.Python,
+					NumLines: 40,
+				}, {
+					Name:     clients.JavaScript,
+					NumLines: 800,
+				},
+			},
+			expected: []clients.LanguageName{
+				clients.Go, clients.JavaScript,
+			},
+		},
+		{
+			// This test case simulates the situation when the GitHub language API returns
+			// duplicated languages, but we can still drop them and get the correct result.
+			name: "case2: drop duplicates",
+			languages: []clients.Language{
+				{
+					Name:     clients.Go,
+					NumLines: 1000,
+				},
+				{
+					Name:     clients.Python,
+					NumLines: 40,
+				}, {
+					Name:     clients.JavaScript,
+					NumLines: 800,
+				},
+				{
+					Name:     clients.Go,
+					NumLines: 1000,
+				},
+				{
+					Name:     clients.Python,
+					NumLines: 40,
+				}, {
+					Name:     clients.JavaScript,
+					NumLines: 800,
+				},
+				{
+					Name:     clients.Go,
+					NumLines: 1000,
+				},
+				{
+					Name:     clients.Python,
+					NumLines: 40,
+				}, {
+					Name:     clients.JavaScript,
+					NumLines: 800,
+				},
+			},
+			expected: []clients.LanguageName{
+				clients.Go, clients.JavaScript,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := getProminentLanguages(tt.languages)
+			if !unorderedEqual(got, tt.expected) {
+				t.Errorf(
+					"got (%s) != expected (%s)",
+					got, tt.expected,
+				)
+			}
+
+		})
+	}
+}
+
+func unorderedEqual(l1, l2 []clients.LanguageName) bool {
+	if len(l1) != len(l2) {
+		return false
+	}
+	l1Map, l2Map := map[clients.LanguageName]bool{}, map[clients.LanguageName]bool{}
+	for _, l := range l1 {
+		l1Map[l] = true
+	}
+	for _, l := range l2 {
+		l2Map[l] = true
+		if !l1Map[l] {
+			return false
+		}
+	}
+	for k := range l1Map {
+		if !l2Map[k] {
+			return false
+		}
+	}
+	return true
 }
