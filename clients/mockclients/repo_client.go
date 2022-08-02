@@ -212,6 +212,36 @@ func (mr *MockRepoClientMockRecorder) ListIssues() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIssues", reflect.TypeOf((*MockRepoClient)(nil).ListIssues))
 }
 
+// ListMergedPRs mocks base method.
+func (m *MockRepoClient) ListMergedPRs() ([]clients.PullRequest, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListMergedPRs")
+	ret0, _ := ret[0].([]clients.PullRequest)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListMergedPRs indicates an expected call of ListMergedPRs.
+func (mr *MockRepoClientMockRecorder) ListMergedPRs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMergedPRs", reflect.TypeOf((*MockRepoClient)(nil).ListMergedPRs))
+}
+
+// ListProgrammingLanguages mocks base method.
+func (m *MockRepoClient) ListProgrammingLanguages() ([]clients.Language, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListProgrammingLanguages")
+	ret0, _ := ret[0].([]clients.Language)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListProgrammingLanguages indicates an expected call of ListProgrammingLanguages.
+func (mr *MockRepoClientMockRecorder) ListProgrammingLanguages() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProgrammingLanguages", reflect.TypeOf((*MockRepoClient)(nil).ListProgrammingLanguages))
+}
+
 // ListReleases mocks base method.
 func (m *MockRepoClient) ListReleases() ([]clients.Release, error) {
 	m.ctrl.T.Helper()
@@ -270,20 +300,6 @@ func (m *MockRepoClient) ListWebhooks() ([]clients.Webhook, error) {
 func (mr *MockRepoClientMockRecorder) ListWebhooks() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWebhooks", reflect.TypeOf((*MockRepoClient)(nil).ListWebhooks))
-}
-
-func (m *MockRepoClient) ListProgrammingLanguages() ([]clients.Language, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListProgrammingLanguages")
-	ret0, _ := ret[0].([]clients.Language)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListProgrammingLanguages indicates an expected call of ListProgrammingLanguages.
-func (mr *MockRepoClientMockRecorder) ListProgrammingLanguages() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProgrammingLanguages", reflect.TypeOf((*MockRepoClient)(nil).ListProgrammingLanguages))
 }
 
 // Search mocks base method.
