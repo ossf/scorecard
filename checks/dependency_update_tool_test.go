@@ -20,8 +20,13 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/ossf/scorecard/v4/checker"
+	clients "github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 	scut "github.com/ossf/scorecard/v4/utests"
+)
+
+const (
+	dependabotID = 49699333
 )
 
 // TestDependencyUpdateTool tests the DependencyUpdateTool checker.
@@ -29,11 +34,12 @@ func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name     string
-		wantErr  bool
-		files    []string
-		want     checker.CheckResult
-		expected scut.TestReturn
+		name      string
+		wantErr   bool
+		mergedPRs []clients.PullRequest
+		files     []string
+		want      checker.CheckResult
+		expected  scut.TestReturn
 	}{
 		{
 			name:    "dependency yml",
@@ -67,6 +73,42 @@ func TestDependencyUpdateTool(t *testing.T) {
 				NumberOfWarn: 2,
 			},
 		},
+		{
+			name:    "dependabot PR",
+			wantErr: false,
+			mergedPRs: []clients.PullRequest{
+				{Author: clients.User{ID: dependabotID}},
+			},
+			expected: scut.TestReturn{
+				NumberOfInfo: 1,
+				Score:        10,
+			},
+		},
+		{
+			name:    "both",
+			wantErr: false,
+			files: []string{
+				".github/dependabot.yml",
+			},
+			mergedPRs: []clients.PullRequest{
+				{Author: clients.User{ID: dependabotID}},
+			},
+			expected: scut.TestReturn{
+				NumberOfInfo: 1,
+				Score:        10,
+			},
+		},
+		{
+			name:    "foo PR",
+			wantErr: false,
+			mergedPRs: []clients.PullRequest{
+				{Author: clients.User{ID: 111111111}},
+			},
+
+			expected: scut.TestReturn{
+				NumberOfWarn: 2,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -75,6 +117,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
+			mockRepo.EXPECT().ListMergedPRs().Return(tt.mergedPRs, nil).AnyTimes()
 			dl := scut.TestDetailLogger{}
 			c := &checker.CheckRequest{
 				RepoClient: mockRepo,
