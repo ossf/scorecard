@@ -20,6 +20,7 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/ossf/scorecard/v4/checker"
+	clients "github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
@@ -131,31 +132,60 @@ func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name    string
-		wantErr bool
-		want    int
-		files   []string
+		name      string
+		wantErr   bool
+		want      int
+		mergedPRs []clients.PullRequest
+		files     []string
 	}{
 		{
-			name:    "dependency update tool",
-			wantErr: false,
-			want:    1,
+			name:      "dependency update tool",
+			wantErr:   false,
+			want:      1,
+			mergedPRs: []clients.PullRequest{},
 			files: []string{
 				".github/dependabot.yml",
 			},
 		},
 		{
-			name:    "dependency update tool",
-			wantErr: false,
-			want:    1,
+			name:      "dependency update tool",
+			wantErr:   false,
+			want:      1,
+			mergedPRs: []clients.PullRequest{},
 			files: []string{
 				".github/dependabot.yaml",
 			},
 		},
 		{
-			name:    "foo bar",
-			wantErr: false,
-			want:    0,
+			name:      "foo bar",
+			wantErr:   false,
+			want:      0,
+			mergedPRs: []clients.PullRequest{},
+			files: []string{
+				".github/foobar.yml",
+			},
+		},
+		{
+			name:      "dependency update tool PRs",
+			wantErr:   false,
+			want:      1,
+			mergedPRs: []clients.PullRequest{{Author: clients.User{ID: dependabotID}}},
+			files:     []string{},
+		},
+		{
+			name:      "dependency update tool mix",
+			wantErr:   false,
+			want:      1,
+			mergedPRs: []clients.PullRequest{{Author: clients.User{ID: dependabotID}}},
+			files: []string{
+				".github/dependabot.yaml",
+			},
+		},
+		{
+			name:      "dependency update tool none on both",
+			wantErr:   false,
+			want:      0,
+			mergedPRs: []clients.PullRequest{{Author: clients.User{ID: 1111111}}},
 			files: []string{
 				".github/foobar.yml",
 			},
@@ -169,7 +199,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
-
+			mockRepo.EXPECT().ListMergedPRs().Return(tt.mergedPRs, nil).AnyTimes()
 			got, err := DependencyUpdateTool(mockRepo)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DependencyUpdateTool() error = %v, wantErr %v", err, tt.wantErr)
