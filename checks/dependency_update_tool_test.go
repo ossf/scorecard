@@ -34,12 +34,13 @@ func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name      string
-		wantErr   bool
-		mergedPRs []clients.PullRequest
-		files     []string
-		want      checker.CheckResult
-		expected  scut.TestReturn
+		name              string
+		wantErr           bool
+		mergedPRs         []clients.PullRequest
+		files             []string
+		want              checker.CheckResult
+		callListMergedPRs int
+		expected          scut.TestReturn
 	}{
 		{
 			name:    "dependency yml",
@@ -47,6 +48,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			files: []string{
 				".github/dependabot.yml",
 			},
+			callListMergedPRs: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
 				Score:        10,
@@ -58,6 +60,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			files: []string{
 				".github/dependabot.yaml",
 			},
+			callListMergedPRs: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
 				Score:        10,
@@ -69,6 +72,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			files: []string{
 				".github/foobar.yml",
 			},
+			callListMergedPRs: 1,
 			expected: scut.TestReturn{
 				NumberOfWarn: 2,
 			},
@@ -79,6 +83,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			mergedPRs: []clients.PullRequest{
 				{Author: clients.User{ID: dependabotID}},
 			},
+			callListMergedPRs: 1,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
 				Score:        10,
@@ -93,6 +98,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			mergedPRs: []clients.PullRequest{
 				{Author: clients.User{ID: dependabotID}},
 			},
+			callListMergedPRs: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
 				Score:        10,
@@ -104,7 +110,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			mergedPRs: []clients.PullRequest{
 				{Author: clients.User{ID: 111111111}},
 			},
-
+			callListMergedPRs: 1,
 			expected: scut.TestReturn{
 				NumberOfWarn: 2,
 			},
@@ -117,7 +123,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
-			mockRepo.EXPECT().ListMergedPRs().Return(tt.mergedPRs, nil).AnyTimes()
+			mockRepo.EXPECT().ListMergedPRs().Return(tt.mergedPRs, nil).Times(tt.callListMergedPRs)
 			dl := scut.TestDetailLogger{}
 			c := &checker.CheckRequest{
 				RepoClient: mockRepo,
