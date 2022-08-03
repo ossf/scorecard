@@ -132,60 +132,67 @@ func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name      string
-		wantErr   bool
-		want      int
-		mergedPRs []clients.PullRequest
-		files     []string
+		name              string
+		wantErr           bool
+		want              int
+		mergedPRs         []clients.PullRequest
+		callListMergedPRs int
+		files             []string
 	}{
 		{
-			name:      "dependency update tool",
-			wantErr:   false,
-			want:      1,
-			mergedPRs: []clients.PullRequest{},
+			name:              "dependency update tool",
+			wantErr:           false,
+			want:              1,
+			mergedPRs:         []clients.PullRequest{},
+			callListMergedPRs: 0,
 			files: []string{
 				".github/dependabot.yml",
 			},
 		},
 		{
-			name:      "dependency update tool",
-			wantErr:   false,
-			want:      1,
-			mergedPRs: []clients.PullRequest{},
+			name:              "dependency update tool",
+			wantErr:           false,
+			want:              1,
+			mergedPRs:         []clients.PullRequest{},
+			callListMergedPRs: 0,
 			files: []string{
 				".github/dependabot.yaml",
 			},
 		},
 		{
-			name:      "foo bar",
-			wantErr:   false,
-			want:      0,
-			mergedPRs: []clients.PullRequest{},
+			name:              "foo bar",
+			wantErr:           false,
+			want:              0,
+			mergedPRs:         []clients.PullRequest{},
+			callListMergedPRs: 1,
 			files: []string{
 				".github/foobar.yml",
 			},
 		},
 		{
-			name:      "dependency update tool PRs",
-			wantErr:   false,
-			want:      1,
-			mergedPRs: []clients.PullRequest{{Author: clients.User{ID: dependabotID}}},
-			files:     []string{},
+			name:              "dependency update tool PRs",
+			wantErr:           false,
+			want:              1,
+			mergedPRs:         []clients.PullRequest{{Author: clients.User{ID: dependabotID}}},
+			callListMergedPRs: 1,
+			files:             []string{},
 		},
 		{
-			name:      "dependency update tool mix",
-			wantErr:   false,
-			want:      1,
-			mergedPRs: []clients.PullRequest{{Author: clients.User{ID: dependabotID}}},
+			name:              "dependency update tool mix",
+			wantErr:           false,
+			want:              1,
+			mergedPRs:         []clients.PullRequest{{Author: clients.User{ID: dependabotID}}},
+			callListMergedPRs: 0,
 			files: []string{
 				".github/dependabot.yaml",
 			},
 		},
 		{
-			name:      "dependency update tool none on both",
-			wantErr:   false,
-			want:      0,
-			mergedPRs: []clients.PullRequest{{Author: clients.User{ID: 1111111}}},
+			name:              "dependency update tool none on both",
+			wantErr:           false,
+			want:              0,
+			mergedPRs:         []clients.PullRequest{{Author: clients.User{ID: 1111111}}},
+			callListMergedPRs: 1,
 			files: []string{
 				".github/foobar.yml",
 			},
@@ -199,7 +206,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
-			mockRepo.EXPECT().ListMergedPRs().Return(tt.mergedPRs, nil).AnyTimes()
+			mockRepo.EXPECT().ListMergedPRs().Return(tt.mergedPRs, nil).Times(tt.callListMergedPRs)
 			got, err := DependencyUpdateTool(mockRepo)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DependencyUpdateTool() error = %v, wantErr %v", err, tt.wantErr)
