@@ -368,7 +368,6 @@ func Test_getProminentLanguages(t *testing.T) {
 					got, tt.expected,
 				)
 			}
-
 		})
 	}
 }
