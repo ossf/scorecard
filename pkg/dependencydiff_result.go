@@ -15,11 +15,12 @@
 package pkg
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
+	"os"
 
-	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/docs/checks"
+	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
 )
 
 // ChangeType is the change type (added, updated, removed) of a dependency.
@@ -81,10 +82,15 @@ type DependencyCheckResult struct {
 	Name string
 }
 
-// AsJSON for DependencyCheckResult exports the DependencyCheckResult as a JSON object.
-func (dr *DependencyCheckResult) AsJSON(writer io.Writer) error {
-	if err := json.NewEncoder(writer).Encode(*dr); err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
+// FormatDependencydiffResults formats dependencydiff results.
+func FormatDependencydiffResults(
+	opts *options.Options,
+	depdiffResults []DependencyCheckResult,
+	doc checks.Doc,
+) error {
+	err := DependencydiffResultsAsJSON(depdiffResults, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+	if err != nil {
+		return fmt.Errorf("failed to output dependencydiff results: %w", err)
 	}
 	return nil
 }
