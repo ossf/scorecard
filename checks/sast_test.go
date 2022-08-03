@@ -17,6 +17,8 @@ package checks
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -28,7 +30,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func TestSAST(t *testing.T) {
+func Test_SAST(t *testing.T) {
 	t.Parallel()
 
 	// nolint: govet, goerr113
@@ -39,6 +41,7 @@ func TestSAST(t *testing.T) {
 		searchresult  clients.SearchResponse
 		checkRuns     []clients.CheckRun
 		searchRequest clients.SearchRequest
+		path          string
 		expected      checker.CheckResult
 	}{
 		{
@@ -196,6 +199,20 @@ func TestSAST(t *testing.T) {
 				Score: 0,
 			},
 		},
+		{
+			name: "sonartype config 1 line",
+			path: "./testdata/pom-1line.xml",
+			expected: checker.CheckResult{
+				Score: 10,
+			},
+		},
+		{
+			name: "sonartype config 2 lines",
+			path: "./testdata/pom-2lines.xml",
+			expected: checker.CheckResult{
+				Score: 10,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -215,6 +232,20 @@ func TestSAST(t *testing.T) {
 			})
 			mockRepoClient.EXPECT().ListCheckRunsForRef("").Return(tt.checkRuns, nil).AnyTimes()
 			mockRepoClient.EXPECT().Search(searchRequest).Return(tt.searchresult, nil).AnyTimes()
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+				func(predicate func(string) (bool, error)) ([]string, error) {
+					return []string{"pom.xml"}, nil
+				}).AnyTimes()
+			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
+				if tt.path == "" {
+					return nil, nil
+				}
+				content, err := os.ReadFile(tt.path)
+				if err != nil {
+					return content, fmt.Errorf("%w", err)
+				}
+				return content, nil
+			}).AnyTimes()
 
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
@@ -228,6 +259,86 @@ func TestSAST(t *testing.T) {
 				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
 			}
 			ctrl.Finish()
+		})
+	}
+}
+
+func Test_validateSonarConfig(t *testing.T) {
+	t.Parallel()
+
+	// nolint: govet
+	tests := []struct {
+		name      string
+		path      string
+		offset    uint
+		endOffset uint
+		url       string
+		score     int
+	}{
+		{
+			name:      "sonartype config 1 line",
+			path:      "./testdata/pom-1line.xml",
+			offset:    2,
+			endOffset: 2,
+			url:       "https://sonarqube.private.domain",
+		},
+		{
+			name:      "sonartype config 2 lines",
+			path:      "./testdata/pom-2lines.xml",
+			offset:    2,
+			endOffset: 4,
+			url:       "https://sonarqube.private.domain",
+		},
+		{
+			name: "wrong filename",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var config []sonarConfig
+			var content []byte
+			var err error
+			var path string
+			if tt.path != "" {
+				content, err = os.ReadFile(tt.path)
+				if err != nil {
+					t.Errorf("ReadFile: %v", err)
+				}
+				path = "pom.xml"
+			}
+			_, err = validateSonarConfig(path, content, &config)
+			if err != nil {
+				t.Errorf("Caught error: %v", err)
+			}
+
+			if path == "" {
+				if len(config) != 0 {
+					t.Errorf("Expected no result, got %d for %v", len(config), tt.name)
+				}
+				return
+			}
+			if len(config) != 1 {
+				t.Errorf("Expected 1 result, got %d for %v", len(config), tt.name)
+			}
+
+			if config[0].file.Offset != tt.offset {
+				t.Errorf("Expected offset %d, got %d for %v", tt.offset,
+					config[0].file.Offset, tt.name)
+			}
+
+			if config[0].file.EndOffset != tt.endOffset {
+				t.Errorf("Expected offset %d, got %d for %v", tt.endOffset,
+					config[0].file.EndOffset, tt.name)
+			}
+
+			if config[0].url != tt.url {
+				t.Errorf("Expected offset %v, got %v for %v", tt.url,
+					config[0].url, tt.name)
+			}
 		})
 	}
 }
