@@ -192,7 +192,7 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 	fmt.Fprint(os.Stdout, s)
 	fmt.Fprintln(os.Stdout, "Check scores:")
 
-	table := tablewriter.NewWriter(writer)
+	table := tablewriter.NewWriter(os.Stdout)
 	header := []string{"Score", "Name", "Reason"}
 	if showDetails {
 		header = append(header, "Details")

@@ -120,9 +120,9 @@ var (
 	errExperimentalDisabled = errors.New("scorecard experimental features are disabled")
 )
 
-// ValidateRoot validates scorecard configuration options.
+// Validate validates scorecard configuration options.
 // TODO(options): Cleanup error messages.
-func (o *Options) ValidateRoot() error {
+func (o *Options) Validate() error {
 	var errs []error
 
 	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--local` is enabled.

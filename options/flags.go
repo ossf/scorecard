@@ -67,8 +67,8 @@ type Command interface {
 	AddFlags(cmd *cobra.Command)
 }
 
-// AddRootFlags adds this options' flags to the root scorecard cobra command.
-func (o *Options) AddRootFlags(cmd *cobra.Command) {
+// AddFlags adds this options' flags to the root scorecard cobra command.
+func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(
 		&o.Repo,
 		FlagRepo,

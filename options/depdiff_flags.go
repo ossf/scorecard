@@ -51,7 +51,7 @@ func (depOptions *DependencydiffOptions) AddDepdiffFlags(cmd *cobra.Command) {
 		&depOptions.ChangeTypes,
 		FlagChangeTypes,
 		depOptions.ChangeTypes,
-		`Dependency change types for surfacing the scorecard results. This is not a required 
-		input and can be null. Possible values are: added,removed`,
+		`A list of dependency change types for surfacing the scorecard results. Possible values include: added,removed.
+		If not specified, by default, it will surface scorecard results for both added and removed dependencies.`,
 	)
 }
