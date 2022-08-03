@@ -15,15 +15,24 @@
 package checks
 
 import (
+	"bufio"
+	"bytes"
+	"errors"
 	"fmt"
+	"path"
+	"regexp"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // CheckSAST is the registered name for SAST.
 const CheckSAST = "SAST"
+
+var errInvalid = errors.New("invalid")
 
 var sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
 
@@ -47,6 +56,14 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	codeQlScore, codeQlErr := codeQLInCheckDefinitions(c)
 	if codeQlErr != nil {
 		return checker.CreateRuntimeErrorResult(CheckSAST, codeQlErr)
+	}
+	sonarScore, sonarErr := sonarEnabled(c)
+	if sonarErr != nil {
+		return checker.CreateRuntimeErrorResult(CheckSAST, sonarErr)
+	}
+
+	if sonarScore == checker.MaxResultScore {
+		return checker.CreateMaxScoreResult(CheckSAST, "SAST tool detected")
 	}
 
 	// Both results are inconclusive.
@@ -143,7 +160,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 				c.Dlogger.Debug(&checker.LogMessage{
 					Path: cr.URL,
 					Type: checker.FileTypeURL,
-					Text: "tool detected",
+					Text: fmt.Sprintf("tool detected: %v", cr.App.Slug),
 				})
 				totalTested++
 				break
@@ -204,4 +221,108 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 		Text: "CodeQL tool not detected",
 	})
 	return checker.MinResultScore, nil
+}
+
+type sonarConfig struct {
+	url  string
+	file checker.File
+}
+
+// nolint
+func sonarEnabled(c *checker.CheckRequest) (int, error) {
+	var config []sonarConfig
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*",
+		CaseSensitive: false,
+	}, validateSonarConfig, &config)
+	if err != nil {
+		return checker.InconclusiveResultScore, err
+	}
+	for _, result := range config {
+		c.Dlogger.Info(&checker.LogMessage{
+			Path:      result.file.Path,
+			Type:      result.file.Type,
+			Offset:    result.file.Offset,
+			EndOffset: result.file.EndOffset,
+			Text:      "Sonar configuration detected",
+			Snippet:   result.url,
+		})
+	}
+
+	if len(config) > 0 {
+		return checker.MaxResultScore, nil
+	}
+
+	return checker.MinResultScore, nil
+}
+
+// Check file content.
+var validateSonarConfig fileparser.DoWhileTrueOnFileContent = func(pathfn string,
+	content []byte,
+	args ...interface{},
+) (bool, error) {
+	if !strings.EqualFold(path.Base(pathfn), "pom.xml") {
+		return true, nil
+	}
+
+	if len(args) != 1 {
+		return false, fmt.Errorf(
+			"validateSonarConfig requires exactly 1 argument: %w", errInvalid)
+	}
+
+	// Verify the type of the data.
+	pdata, ok := args[0].(*[]sonarConfig)
+	if !ok {
+		return false, fmt.Errorf(
+			"validateSonarConfig expects arg[0] of type *[]sonarConfig]: %w", errInvalid)
+	}
+
+	regex := regexp.MustCompile(`<sonar\.host\.url>\s*(\S+)\s*<\/sonar\.host\.url>`)
+	match := regex.FindSubmatch(content)
+
+	if len(match) < 2 {
+		return true, nil
+	}
+
+	offset, err := findLine(content, []byte("<sonar.host.url>"))
+	if err != nil {
+		return false, err
+	}
+
+	endOffset, err := findLine(content, []byte("</sonar.host.url>"))
+	if err != nil {
+		return false, err
+	}
+
+	*pdata = append(*pdata, sonarConfig{
+		url: string(match[1]),
+		file: checker.File{
+			Path:      pathfn,
+			Type:      checker.FileTypeSource,
+			Offset:    offset,
+			EndOffset: endOffset,
+		},
+	})
+
+	return true, nil
+}
+
+func findLine(content, data []byte) (uint, error) {
+	r := bytes.NewReader(content)
+	scanner := bufio.NewScanner(r)
+
+	line := 0
+	// https://golang.org/pkg/bufio/#Scanner.Scan
+	for scanner.Scan() {
+		line++
+		if strings.Contains(scanner.Text(), string(data)) {
+			return uint(line), nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return 0, fmt.Errorf("scanner.Err(): %w", err)
+	}
+
+	return 0, nil
 }
