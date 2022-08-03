@@ -49,8 +49,8 @@ func NewDepdiff() *DependencydiffOptions {
 	return depdiffOpts
 }
 
-// ValidateDepdiff validates scorecard dependency-diff configuration options.
-func (depOptions *DependencydiffOptions) ValidateDepdiff() error {
+// Validate validates scorecard dependency-diff configuration options.
+func (depOptions *DependencydiffOptions) Validate() error {
 	var errs []error
 	// Validate `base` is non-empty.
 	if depOptions.Base == "" {
