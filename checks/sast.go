@@ -245,6 +245,7 @@ func sonarEnabled(c *checker.CheckRequest) (int, error) {
 			Offset:    result.file.Offset,
 			EndOffset: result.file.EndOffset,
 			Text:      "Sonar configuration detected",
+			Snippet:   result.url,
 		})
 	}
 
@@ -260,13 +261,13 @@ var validateSonarConfig fileparser.DoWhileTrueOnFileContent = func(pathfn string
 	content []byte,
 	args ...interface{},
 ) (bool, error) {
-	if path.Base(pathfn) != "pom.xml" {
+	if !strings.EqualFold(path.Base(pathfn), "pom.xml") {
 		return true, nil
 	}
 
 	if len(args) != 1 {
 		return false, fmt.Errorf(
-			"validateSonarConfig requires exactly 1 arguments: %w", errInvalid)
+			"validateSonarConfig requires exactly 1 argument: %w", errInvalid)
 	}
 
 	// Verify the type of the data.
@@ -276,7 +277,7 @@ var validateSonarConfig fileparser.DoWhileTrueOnFileContent = func(pathfn string
 			"validateSonarConfig expects arg[0] of type *[]sonarConfig]: %w", errInvalid)
 	}
 
-	regex := regexp.MustCompile(`<sonar\.host\.url>\s*(https:\/\/.*)\s*<\/sonar\.host\.url>`)
+	regex := regexp.MustCompile(`<sonar\.host\.url>\s*(\S+)\s*<\/sonar\.host\.url>`)
 	match := regex.FindSubmatch(content)
 
 	if len(match) < 2 {
