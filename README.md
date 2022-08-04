@@ -91,7 +91,12 @@ This data is available in the public BigQuery dataset
 `openssf:scorecardcron.scorecard-v2`. The latest results are available in the
 BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
 
-You can query the data using [BigQuery Explorer](http://console.cloud.google.com/bigquery) by navigating to Add Data > Pin a Project > Enter Project Name > 'openssf'
+You can query the data using [BigQuery Explorer](http://console.cloud.google.com/bigquery) by navigating to Add Data > Pin a Project > Enter Project Name > 'openssf'.
+For example, you may be interested in how a project's score has changed over time:
+
+```sql
+SELECT date, score FROM `openssf.scorecardcron.scorecard-v2` WHERE repo.name="github.com/ossf/scorecard" ORDER BY date ASC
+```
 
 You can extract the latest results to Google Cloud storage in JSON format using
 the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
