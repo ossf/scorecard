@@ -33,3 +33,16 @@ type SearchResponse struct {
 type SearchResult struct {
 	Path string
 }
+
+type SearchCommitsOptions struct {
+	Author string
+}
+
+type SearchCommitsResponse struct {
+	Hits    int
+	Results []SearchCommitResult
+}
+
+type SearchCommitResult struct {
+	ID int64
+}

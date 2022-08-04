@@ -214,6 +214,10 @@ func (client *localDirClient) Search(request clients.SearchRequest) (clients.Sea
 	return clients.SearchResponse{}, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
 }
 
+func (client *localDirClient) SearchCommits(request clients.SearchCommitsOptions) (clients.SearchCommitsResponse, error) {
+	return clients.SearchCommitsResponse{}, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
+}
+
 func (client *localDirClient) Close() error {
 	return nil
 }

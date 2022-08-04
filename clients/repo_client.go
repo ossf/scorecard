@@ -44,5 +44,6 @@ type RepoClient interface {
 	ListWebhooks() ([]Webhook, error)
 	ListProgrammingLanguages() ([]Language, error)
 	Search(request SearchRequest) (SearchResponse, error)
+	SearchCommits(request SearchCommitsOptions) (SearchCommitsResponse, error)
 	Close() error
 }
