@@ -75,7 +75,7 @@ jobs:
             go mod download
 
       - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled. 
-        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
+        uses: nick-invision/retry@616fa81820c9b34fd44f4a0cfeda436b4b8338d3 
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -85,7 +85,7 @@ jobs:
           command: make e2e-gh-token
 
       - name: Run PAT E2E  #using retry because the GitHub token is being throttled. 
-        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
+        uses: nick-invision/retry@616fa81820c9b34fd44f4a0cfeda436b4b8338d3 
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
         with:
