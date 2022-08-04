@@ -34,7 +34,7 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
 	go.opencensus.io v0.23.0
-	gocloud.dev v0.25.0
+	gocloud.dev v0.26.0
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.12
 	google.golang.org/genproto v0.0.0-20220714211235-042d03aeabc9
