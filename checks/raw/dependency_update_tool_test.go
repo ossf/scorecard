@@ -20,6 +20,7 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/ossf/scorecard/v4/checker"
+	clients "github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
@@ -131,34 +132,57 @@ func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name    string
-		wantErr bool
-		want    int
-		files   []string
+		name              string
+		wantErr           bool
+		want              int
+		SearchCommits     clients.SearchCommitsResponse
+		CallSearchCommits int
+		files             []string
 	}{
 		{
-			name:    "dependency update tool",
-			wantErr: false,
-			want:    1,
+			name:              "dependency update tool",
+			wantErr:           false,
+			want:              1,
+			CallSearchCommits: 0,
 			files: []string{
 				".github/dependabot.yml",
 			},
 		},
 		{
-			name:    "dependency update tool",
-			wantErr: false,
-			want:    1,
+			name:              "dependency update tool",
+			wantErr:           false,
+			want:              1,
+			CallSearchCommits: 0,
 			files: []string{
 				".github/dependabot.yaml",
 			},
 		},
 		{
-			name:    "foo bar",
-			wantErr: false,
-			want:    0,
+			name:              "foo bar",
+			wantErr:           false,
+			want:              0,
+			CallSearchCommits: 1,
+			SearchCommits:     clients.SearchCommitsResponse{Results: []clients.SearchCommitResult{{ID: 111111111}}},
 			files: []string{
 				".github/foobar.yml",
 			},
+		},
+		{
+			name:              "dependency update tool via commits",
+			wantErr:           false,
+			want:              1,
+			CallSearchCommits: 1,
+			files:             []string{},
+			SearchCommits:     clients.SearchCommitsResponse{Results: []clients.SearchCommitResult{{ID: dependabotID}}},
+		},
+		{
+			name:              "dependency update tool via commits",
+			wantErr:           false,
+			want:              1,
+			CallSearchCommits: 1,
+			files:             []string{},
+			SearchCommits: clients.SearchCommitsResponse{Results: []clients.SearchCommitResult{{ID: 111111111},
+				{ID: dependabotID}}},
 		},
 	}
 	for _, tt := range tests {
@@ -169,6 +193,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
+			mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(tt.SearchCommits, nil).Times(tt.CallSearchCommits)
 
 			got, err := DependencyUpdateTool(mockRepo)
 			if (err != nil) != tt.wantErr {
