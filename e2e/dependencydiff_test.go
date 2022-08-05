@@ -22,7 +22,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/dependencydiff"
-	"github.com/ossf/scorecard/v4/pkg"
 )
 
 const (
@@ -38,8 +37,8 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			checksToRun := []string{
 				checks.CheckBranchProtection,
 			}
-			changeTypesToCheck := map[pkg.ChangeType]bool{
-				pkg.Removed: true, // Only checking those removed ones will make this test faster.
+			changeTypesToCheck := []string{
+				"removed", // Only checking those removed ones will make this test faster.
 			}
 			results, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
@@ -56,8 +55,8 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			checksToRun := []string{
 				checks.CheckBranchProtection,
 			}
-			changeTypesToCheck := map[pkg.ChangeType]bool{
-				pkg.Removed: true,
+			changeTypesToCheck := []string{
+				"removed",
 			}
 			results, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
@@ -74,8 +73,8 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			checksToRun := []string{
 				checks.CheckFuzzing,
 			}
-			changeTypesToCheck := map[pkg.ChangeType]bool{
-				pkg.Removed: true,
+			changeTypesToCheck := []string{
+				"removed",
 			}
 			_, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
