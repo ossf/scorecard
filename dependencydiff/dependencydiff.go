@@ -41,7 +41,7 @@ type dependencydiffContext struct {
 	ossFuzzClient                   clients.RepoClient
 	vulnsClient                     clients.VulnerabilitiesClient
 	ciiClient                       clients.CIIBestPracticesClient
-	changeTypesToCheck              map[pkg.ChangeType]bool
+	changeTypesToCheck              []string
 	checkNamesToRun                 []string
 	dependencydiffs                 []dependency
 	results                         []pkg.DependencyCheckResult
@@ -55,7 +55,7 @@ func GetDependencyDiffResults(
 	repoURI string, /* Use the format "ownerName/repoName" as the repo URI, such as "ossf/scorecard". */
 	base, head string, /* Two code commits base and head, can use either SHAs or branch names. */
 	checksToRun []string, /* A list of enabled check names to run. */
-	changeTypesToCheck map[pkg.ChangeType]bool, /* A list of change types for which to surface scorecard results. */
+	changeTypes []string, /* A list of dependency change types for which we surface scorecard results. */
 ) ([]pkg.DependencyCheckResult, error) {
 
 	logger := sclog.NewLogger(sclog.DefaultLevel)
@@ -71,7 +71,7 @@ func GetDependencyDiffResults(
 		base:               base,
 		head:               head,
 		ctx:                ctx,
-		changeTypesToCheck: changeTypesToCheck,
+		changeTypesToCheck: changeTypes,
 		checkNamesToRun:    checksToRun,
 	}
 	// Fetch the raw dependency diffs. This API will also handle error cases such as invalid base or head.
@@ -79,7 +79,7 @@ func GetDependencyDiffResults(
 	if err != nil {
 		return nil, fmt.Errorf("error in fetchRawDependencyDiffData: %w", err)
 	}
-  // Map the ecosystem naming convention from GitHub to OSV.
+	// Map the ecosystem naming convention from GitHub to OSV.
 	err = mapDependencyEcosystemNaming(dCtx.dependencydiffs)
 	if err != nil {
 		return nil, fmt.Errorf("error in mapDependencyEcosystemNaming: %w", err)
@@ -89,22 +89,6 @@ func GetDependencyDiffResults(
 		return nil, fmt.Errorf("error getting scorecard check results: %w", err)
 	}
 	return dCtx.results, nil
-}
-
-func mapDependencyEcosystemNaming(deps []dependency) error {
-	for i := range deps {
-		if deps[i].Ecosystem == nil {
-			continue
-		}
-		mappedEcosys, err := toEcosystem(*deps[i].Ecosystem)
-		if err != nil {
-			wrappedErr := fmt.Errorf("error mapping dependency ecosystem: %w", err)
-			return wrappedErr
-		}
-		deps[i].Ecosystem = asPointer(string(mappedEcosys))
-
-	}
-	return nil
 }
 
 func initRepoAndClientByChecks(dCtx *dependencydiffContext, dSrcRepo string) error {
@@ -149,13 +133,21 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 			Ecosystem:        d.Ecosystem,
 			Version:          d.Version,
 			Name:             d.Name,
+			/* The scorecard check result is nil now. */
 		}
-		// Run the checks on all types if (1) the type is found in changeTypesToCheck or (2) no types are specified.
-		TypeFoundOrNoneGiven := dCtx.changeTypesToCheck[*d.ChangeType] ||
-			(dCtx.changeTypesToCheck == nil || len(dCtx.changeTypesToCheck) == 0)
+		if d.ChangeType == nil {
+			// Since we allow a dependency having a nil change type, so we also
+			// give such a dependency a nil scorecard result.
+			dCtx.results = append(dCtx.results, depCheckResult)
+			continue
+		}
+		// (1) If no change types are specified, run the checks on all types of dependencies.
+		// (2) If there are change types specified by the user, run the checks on the specified types.
+		noneGivenOrIsSpecified := len(dCtx.changeTypesToCheck) == 0 || /* None specified.*/
+			isSpecifiedByUser(*d.ChangeType, dCtx.changeTypesToCheck) /* Specified by the user.*/
 		// For now we skip those without source repo urls.
 		// TODO (#2063): use the BigQuery dataset to supplement null source repo URLs to fetch the Scorecard results for them.
-		if d.SourceRepository != nil && TypeFoundOrNoneGiven {
+		if d.SourceRepository != nil && noneGivenOrIsSpecified {
 			// Initialize the repo and client(s) corresponding to the checks to run.
 			err = initRepoAndClientByChecks(dCtx, *d.SourceRepository)
 			if err != nil {
@@ -193,6 +185,14 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 	return nil
 }
 
-func asPointer(s string) *string {
-	return &s
+func isSpecifiedByUser(ct pkg.ChangeType, changeTypes []string) bool {
+	if len(changeTypes) == 0 {
+		return false
+	}
+	for _, ctByUser := range changeTypes {
+		if string(ct) == ctByUser {
+			return true
+		}
+	}
+	return false
 }
