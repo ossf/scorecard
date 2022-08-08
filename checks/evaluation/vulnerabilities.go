@@ -38,8 +38,8 @@ func Vulnerabilities(name string, dl checker.DetailLogger,
 		score--
 	}
 
-	if score < 0 {
-		score = 0
+	if score < checker.MinResultScore {
+		score = checker.MinResultScore
 	}
 
 	if len(IDs) > 0 {

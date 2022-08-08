@@ -26,19 +26,19 @@ import (
 
 var errInvalidValue = errors.New("invalid value")
 
-type pinnedResult int
+type PinnedResult int
 
 const (
-	pinnedUndefined pinnedResult = iota
-	pinned
-	notPinned
+	PinnedUndefined PinnedResult = iota
+	Pinned
+	NotPinned
 )
 
 // Structure to host information about pinned github
 // or third party dependencies.
-type worklowPinningResult struct {
-	thirdParties pinnedResult
-	gitHubOwned  pinnedResult
+type WorkflowPinningResult struct {
+	ThirdParties PinnedResult
+	GitHubOwned  PinnedResult
 }
 
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
@@ -50,48 +50,12 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var wp worklowPinningResult
-	pr := make(map[checker.DependencyUseType]pinnedResult)
 	dl := c.Dlogger
 	//nolint:errcheck
-	remediaitonMetadata, _ := remediation.New(c)
-
-	for i := range r.Dependencies {
-		rr := r.Dependencies[i]
-		if rr.Location == nil {
-			if rr.Msg == nil {
-				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
-				return checker.CreateRuntimeErrorResult(name, e)
-			}
-			dl.Debug(&checker.LogMessage{
-				Text: *rr.Msg,
-			})
-			continue
-		}
-
-		if rr.Msg != nil {
-			dl.Debug(&checker.LogMessage{
-				Path:      rr.Location.Path,
-				Type:      rr.Location.Type,
-				Offset:    rr.Location.Offset,
-				EndOffset: rr.Location.EndOffset,
-				Text:      *rr.Msg,
-				Snippet:   rr.Location.Snippet,
-			})
-		} else {
-			dl.Warn(&checker.LogMessage{
-				Path:        rr.Location.Path,
-				Type:        rr.Location.Type,
-				Offset:      rr.Location.Offset,
-				EndOffset:   rr.Location.EndOffset,
-				Text:        generateText(&rr),
-				Snippet:     rr.Location.Snippet,
-				Remediation: generateRemediation(remediaitonMetadata, &rr),
-			})
-
-			// Update the pinning status.
-			updatePinningResults(&rr, &wp, pr)
-		}
+	rem, _ := remediation.New(c)
+	wp, pr, err := GetWorkflowPinningStatus(r, dl, rem)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
 	// Generate scores and Info results.
@@ -136,7 +100,55 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		"dependency not pinned by hash detected", score, checker.MaxResultScore)
 }
 
-func generateRemediation(remediaitonMd remediation.RemediationMetadata, rr *checker.Dependency) *checker.Remediation {
+func GetWorkflowPinningStatus(
+	r *checker.PinningDependenciesData,
+	dl checker.DetailLogger,
+	rem remediation.RemediationMetadata,
+) (WorkflowPinningResult, map[checker.DependencyUseType]PinnedResult, error) {
+	var wp WorkflowPinningResult
+	pr := make(map[checker.DependencyUseType]PinnedResult)
+
+	for i := range r.Dependencies {
+		rr := r.Dependencies[i]
+		if rr.Location == nil {
+			if rr.Msg == nil {
+				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
+				return wp, pr, e
+			}
+			dl.Debug(&checker.LogMessage{
+				Text: *rr.Msg,
+			})
+			continue
+		}
+
+		if rr.Msg != nil {
+			dl.Debug(&checker.LogMessage{
+				Path:      rr.Location.Path,
+				Type:      rr.Location.Type,
+				Offset:    rr.Location.Offset,
+				EndOffset: rr.Location.EndOffset,
+				Text:      *rr.Msg,
+				Snippet:   rr.Location.Snippet,
+			})
+		} else {
+			dl.Warn(&checker.LogMessage{
+				Path:        rr.Location.Path,
+				Type:        rr.Location.Type,
+				Offset:      rr.Location.Offset,
+				EndOffset:   rr.Location.EndOffset,
+				Text:        GenerateText(&rr),
+				Snippet:     rr.Location.Snippet,
+				Remediation: GenerateRemediation(rem, &rr),
+			})
+
+			// Update the pinning status.
+			updatePinningResults(&rr, &wp, pr)
+		}
+	}
+	return wp, pr, nil
+}
+
+func GenerateRemediation(remediaitonMd remediation.RemediationMetadata, rr *checker.Dependency) *checker.Remediation {
 	switch rr.Type {
 	case checker.DependencyUseTypeGHAction:
 		return remediaitonMd.CreateWorkflowPinningRemediation(rr.Location.Path)
@@ -148,7 +160,7 @@ func generateRemediation(remediaitonMd remediation.RemediationMetadata, rr *chec
 }
 
 func updatePinningResults(rr *checker.Dependency,
-	wp *worklowPinningResult, pr map[checker.DependencyUseType]pinnedResult,
+	wp *WorkflowPinningResult, pr map[checker.DependencyUseType]PinnedResult,
 ) {
 	if rr.Type == checker.DependencyUseTypeGHAction {
 		// Note: `Snippet` contains `action/name@xxx`, so we cna use it to infer
@@ -159,12 +171,12 @@ func updatePinningResults(rr *checker.Dependency,
 	}
 
 	// Update other result types.
-	var p pinnedResult
+	var p PinnedResult
 	addPinnedResult(&p, false)
 	pr[rr.Type] = p
 }
 
-func generateText(rr *checker.Dependency) string {
+func GenerateText(rr *checker.Dependency) string {
 	if rr.Type == checker.DependencyUseTypeGHAction {
 		// Check if we are dealing with a GitHub action or a third-party one.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
@@ -183,7 +195,6 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 }
 
 // TODO(laurent): need to support GCB pinning.
-//nolint
 func maxScore(s1, s2 int) int {
 	if s1 > s2 {
 		return s1
@@ -193,31 +204,31 @@ func maxScore(s1, s2 int) int {
 
 // For the 'to' param, true means the file is pinning dependencies (or there are no dependencies),
 // false means there are unpinned dependencies.
-func addPinnedResult(r *pinnedResult, to bool) {
+func addPinnedResult(r *PinnedResult, to bool) {
 	// If the result is `notPinned`, we keep it.
 	// In other cases, we always update the result.
-	if *r == notPinned {
+	if *r == NotPinned {
 		return
 	}
 
 	switch to {
 	case true:
-		*r = pinned
+		*r = Pinned
 	case false:
-		*r = notPinned
+		*r = NotPinned
 	}
 }
 
-func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
+func addWorkflowPinnedResult(w *WorkflowPinningResult, to, isGitHub bool) {
 	if isGitHub {
-		addPinnedResult(&w.gitHubOwned, to)
+		addPinnedResult(&w.GitHubOwned, to)
 	} else {
-		addPinnedResult(&w.thirdParties, to)
+		addPinnedResult(&w.ThirdParties, to)
 	}
 }
 
 // Create the result for scripts.
-func createReturnForIsShellScriptFreeOfInsecureDownloads(pr map[checker.DependencyUseType]pinnedResult,
+func createReturnForIsShellScriptFreeOfInsecureDownloads(pr map[checker.DependencyUseType]PinnedResult,
 	dl checker.DetailLogger,
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypeDownloadThenRun,
@@ -226,7 +237,7 @@ func createReturnForIsShellScriptFreeOfInsecureDownloads(pr map[checker.Dependen
 }
 
 // Create the result for docker containers.
-func createReturnForIsDockerfilePinned(pr map[checker.DependencyUseType]pinnedResult,
+func createReturnForIsDockerfilePinned(pr map[checker.DependencyUseType]PinnedResult,
 	dl checker.DetailLogger,
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypeDockerfileContainerImage,
@@ -235,7 +246,7 @@ func createReturnForIsDockerfilePinned(pr map[checker.DependencyUseType]pinnedRe
 }
 
 // Create the result for docker commands.
-func createReturnForIsDockerfileFreeOfInsecureDownloads(pr map[checker.DependencyUseType]pinnedResult,
+func createReturnForIsDockerfileFreeOfInsecureDownloads(pr map[checker.DependencyUseType]PinnedResult,
 	dl checker.DetailLogger,
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypeDownloadThenRun,
@@ -243,7 +254,7 @@ func createReturnForIsDockerfileFreeOfInsecureDownloads(pr map[checker.Dependenc
 		dl)
 }
 
-func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
+func createReturnValues(pr map[checker.DependencyUseType]PinnedResult,
 	t checker.DependencyUseType, infoMsg string,
 	dl checker.DetailLogger,
 ) (int, error) {
@@ -254,30 +265,30 @@ func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
 	switch r {
 	default:
 		return checker.InconclusiveResultScore, fmt.Errorf("%w: %v", errInvalidValue, r)
-	case pinned, pinnedUndefined:
+	case Pinned, PinnedUndefined:
 		dl.Info(&checker.LogMessage{
 			Text: infoMsg,
 		})
 		return checker.MaxResultScore, nil
-	case notPinned:
+	case NotPinned:
 		// No logging needed as it's done by the checks.
 		return checker.MinResultScore, nil
 	}
 }
 
 // Create the result.
-func createReturnForIsGitHubActionsWorkflowPinned(wp worklowPinningResult, dl checker.DetailLogger) (int, error) {
+func createReturnForIsGitHubActionsWorkflowPinned(wp WorkflowPinningResult, dl checker.DetailLogger) (int, error) {
 	return createReturnValuesForGitHubActionsWorkflowPinned(wp,
 		fmt.Sprintf("%ss are pinned", checker.DependencyUseTypeGHAction),
 		dl)
 }
 
-func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, infoMsg string,
+func createReturnValuesForGitHubActionsWorkflowPinned(r WorkflowPinningResult, infoMsg string,
 	dl checker.DetailLogger,
 ) (int, error) {
 	score := checker.MinResultScore
 
-	if r.gitHubOwned != notPinned {
+	if r.GitHubOwned != NotPinned {
 		score += 2
 		dl.Info(&checker.LogMessage{
 			Type:   checker.FileTypeSource,
@@ -286,7 +297,7 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 		})
 	}
 
-	if r.thirdParties != notPinned {
+	if r.ThirdParties != NotPinned {
 		score += 8
 		dl.Info(&checker.LogMessage{
 			Type:   checker.FileTypeSource,
