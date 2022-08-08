@@ -95,6 +95,25 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
+			name: "Releases with assests with intoto SLSA provenance",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.asc",
+							URL:  "http://foo.com/v1.0.0/foo.intoto.jsonl",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 10,
+			},
+		},
+		{
 			name: "Releases with assests with signed artifacts-sig",
 			releases: []clients.Release{
 				{
