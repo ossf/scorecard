@@ -16,18 +16,43 @@
 package checks
 
 import (
+	"os"
+
 	"github.com/ossf/scorecard/v4/checker"
 )
 
-// AllChecks is the list of all security checks that will be run.
-var AllChecks = checker.CheckNameToFnMap{}
+// allChecks is the list of all registered security checks
+var allChecks = checker.CheckNameToFnMap{}
 
-// GetAll returns the full list of checks, given any environment variable
-// constraints.
-// TODO(checks): Is this actually necessary given `AllChecks` exists?
-func GetAll() checker.CheckNameToFnMap {
-	possibleChecks := AllChecks
+func getAll(overrideExperimental bool) checker.CheckNameToFnMap {
+	// need to make a copy or caller could mutate original map
+	possibleChecks := checker.CheckNameToFnMap{}
+	for k, v := range allChecks {
+		possibleChecks[k] = v
+	}
+
+	if overrideExperimental {
+		return possibleChecks
+	}
+
+	// TODO: remove this check when v6 is released
+	if _, v6 := os.LookupEnv("SCORECARD_V6"); !v6 {
+		delete(possibleChecks, CheckWebHooks)
+	}
+
 	return possibleChecks
+}
+
+// GetAllForEnvironment returns the full list of checks, given any environment variable
+// constraints.
+func GetAllForEnvironment() checker.CheckNameToFnMap {
+	return getAll(false /*overrideExperimental*/)
+}
+
+// GetAll returns the full list of checks, regardless of
+// environment variable constraints.
+func GetAll() checker.CheckNameToFnMap {
+	return getAll(true /*overrideExperimental*/)
 }
 
 func registerCheck(name string, fn checker.CheckFn, supportedRequestTypes []checker.RequestType) error {
@@ -37,7 +62,7 @@ func registerCheck(name string, fn checker.CheckFn, supportedRequestTypes []chec
 	if fn == nil {
 		return errInternalCheckFuncCannotBeNil
 	}
-	AllChecks[name] = checker.Check{
+	allChecks[name] = checker.Check{
 		Fn:                    fn,
 		SupportedRequestTypes: supportedRequestTypes,
 	}
