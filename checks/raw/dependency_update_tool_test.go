@@ -135,7 +135,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 		name              string
 		wantErr           bool
 		want              int
-		SearchCommits     clients.SearchCommitsResponse
+		SearchCommits     []clients.Commit
 		CallSearchCommits int
 		files             []string
 	}{
@@ -162,7 +162,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			wantErr:           false,
 			want:              0,
 			CallSearchCommits: 1,
-			SearchCommits:     clients.SearchCommitsResponse{Results: []clients.SearchCommitResult{{ID: 111111111}}},
+			SearchCommits:     []clients.Commit{{Committer: clients.User{ID: 111111111}}},
 			files: []string{
 				".github/foobar.yml",
 			},
@@ -173,7 +173,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			want:              1,
 			CallSearchCommits: 1,
 			files:             []string{},
-			SearchCommits:     clients.SearchCommitsResponse{Results: []clients.SearchCommitResult{{ID: dependabotID}}},
+			SearchCommits:     []clients.Commit{{Committer: clients.User{ID: dependabotID}}},
 		},
 		{
 			name:              "dependency update tool via commits",
@@ -181,8 +181,9 @@ func TestDependencyUpdateTool(t *testing.T) {
 			want:              1,
 			CallSearchCommits: 1,
 			files:             []string{},
-			SearchCommits: clients.SearchCommitsResponse{Results: []clients.SearchCommitResult{{ID: 111111111},
-				{ID: dependabotID}}},
+			SearchCommits: []clients.Commit{{Committer: clients.User{ID: 111111111}},
+				{Committer: clients.User{ID: dependabotID}},
+			},
 		},
 	}
 	for _, tt := range tests {

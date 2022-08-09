@@ -39,13 +39,13 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 		return checker.DependencyUpdateToolData{Tools: tools}, nil
 	}
 
-	commitsResp, err := c.SearchCommits(clients.SearchCommitsOptions{Author: "dependabot[bot]"})
+	commits, err := c.SearchCommits(clients.SearchCommitsOptions{Author: "dependabot[bot]"})
 	if err != nil {
 		return checker.DependencyUpdateToolData{}, fmt.Errorf("%w", err)
 	}
 
-	for _, commit := range commitsResp.Results {
-		if commit.ID == dependabotID {
+	for _, commit := range commits {
+		if commit.Committer.ID == dependabotID {
 			tools = append(tools, checker.Tool{
 				Name:  "Dependabot",
 				URL:   asPointer("https://github.com/dependabot"),
