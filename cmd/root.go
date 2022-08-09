@@ -52,7 +52,8 @@ func New(o *options.Options) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("validating options: %w", err)
 			}
-
+			// options are good at this point. silence usage so it doesn't print for runtime errors
+			cmd.SilenceUsage = true
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -155,13 +156,13 @@ func rootCmd(o *options.Options) error {
 		pol,
 	)
 	if resultsErr != nil {
-		return fmt.Errorf("failed to format results: %w", err)
+		return fmt.Errorf("failed to format results: %w", resultsErr)
 	}
 
-	// intentionally placed at end of function to preserve behavior of outputting results, even if a check has a runtime error
+	// intentionally placed at end to preserve outputting results, even if a check has a runtime error
 	for _, result := range repoResult.Checks {
 		if result.Error != nil {
-			return fmt.Errorf("one or more checks had a runtime error: %w", err)
+			return fmt.Errorf("one or more checks had a runtime error: %w", result.Error)
 		}
 	}
 	return nil

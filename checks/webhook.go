@@ -46,7 +46,7 @@ func WebHooks(c *checker.CheckRequest) checker.CheckResult {
 		})
 
 		e := sce.WithMessage(sce.ErrorUnsupportedCheck, "SCORECARD_V6 is not set, not running the Webhook check")
-		return checker.CreateRuntimeErrorResult(CheckWebHooks, e)
+		return checker.CreateInconclusiveResult(CheckWebHooks, e.Error())
 	}
 
 	rawData, err := raw.WebHook(c)
