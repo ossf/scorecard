@@ -194,6 +194,7 @@ func (client *Client) Search(request clients.SearchRequest) (clients.SearchRespo
 	return client.search.search(request)
 }
 
+// SearchCommits implements RepoClient.SearchCommits
 func (client *Client) SearchCommits(request clients.SearchCommitsOptions) (clients.SearchCommitsResponse, error) {
 	return client.searchCommits.search(request)
 }
