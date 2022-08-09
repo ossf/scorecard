@@ -21,19 +21,19 @@ func (handler *searchCommitsHandler) init(ctx context.Context, repourl *repoURL)
 	handler.repourl = repourl
 }
 
-func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions) (clients.SearchCommitsResponse, error) {
+func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-		return clients.SearchCommitsResponse{}, fmt.Errorf(
+		return nil, fmt.Errorf(
 			"%w: Search only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
 	query, err := handler.buildQuery(request)
 	if err != nil {
-		return clients.SearchCommitsResponse{}, fmt.Errorf("handler.buildQuery: %w", err)
+		return nil, fmt.Errorf("handler.buildQuery: %w", err)
 	}
 
 	resp, _, err := handler.ghClient.Search.Commits(handler.ctx, query, &github.SearchOptions{ListOptions: github.ListOptions{PerPage: 100}})
 	if err != nil {
-		return clients.SearchCommitsResponse{}, fmt.Errorf("Search.Code: %w", err)
+		return nil, fmt.Errorf("Search.Code: %w", err)
 	}
 
 	return searchCommitsResponseFrom(resp), nil
@@ -54,12 +54,11 @@ func (handler *searchCommitsHandler) buildQuery(request clients.SearchCommitsOpt
 	return queryBuilder.String(), nil
 }
 
-func searchCommitsResponseFrom(resp *github.CommitsSearchResult) clients.SearchCommitsResponse {
-	var ret clients.SearchCommitsResponse
-	ret.Hits = resp.GetTotal()
+func searchCommitsResponseFrom(resp *github.CommitsSearchResult) []clients.Commit {
+	var ret []clients.Commit
 	for _, result := range resp.Commits {
-		ret.Results = append(ret.Results, clients.SearchCommitResult{
-			ID: *result.Author.ID,
+		ret = append(ret, clients.Commit{
+			Committer: clients.User{ID: *result.Author.ID},
 		})
 	}
 	return ret

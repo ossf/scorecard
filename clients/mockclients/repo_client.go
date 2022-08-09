@@ -303,10 +303,10 @@ func (mr *MockRepoClientMockRecorder) Search(request interface{}) *gomock.Call {
 }
 
 // SearchCommits mocks base method.
-func (m *MockRepoClient) SearchCommits(request clients.SearchCommitsOptions) (clients.SearchCommitsResponse, error) {
+func (m *MockRepoClient) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchCommits", request)
-	ret0, _ := ret[0].(clients.SearchCommitsResponse)
+	ret0, _ := ret[0].([]clients.Commit)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
