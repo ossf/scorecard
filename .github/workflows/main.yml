@@ -27,7 +27,7 @@ on:
 
 env:
   PROTOC_VERSION: 3.17.3
-  GO_VERSION: 1.17.7
+  GO_VERSION: 1.17
 
 jobs:
   unit-test:
@@ -61,6 +61,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: Run unit-tests
        run: make unit-test
      - name: Upload codecoverage
@@ -86,7 +87,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -104,6 +105,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: generate mocks
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -131,7 +133,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -148,7 +150,8 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
-         go-version: ${{ env.GO_VERSION }} 
+         go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: generate docs
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -175,7 +178,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -193,6 +196,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build-proto
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -220,7 +224,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -238,6 +242,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: Run build
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -265,7 +270,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -283,6 +288,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build cron
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -310,7 +316,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -328,6 +334,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build worker
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -355,7 +362,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -373,6 +380,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build cii-worker
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -400,7 +408,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -418,6 +426,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build shuffler
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -445,7 +454,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -463,6 +472,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build bq transfer
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -490,7 +500,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -508,6 +518,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build bq transfer
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -535,7 +546,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -553,6 +564,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build webhook
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -580,7 +592,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -598,6 +610,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build-add-script
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -625,7 +638,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -643,6 +656,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build-validate-script
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -670,7 +684,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -688,6 +702,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: build-validate-script
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -714,7 +729,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -732,6 +747,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: Run build
        run: |
             go env -w GOFLAGS=-mod=mod
@@ -749,7 +765,7 @@ jobs:
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -767,6 +783,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: Run build
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -793,7 +810,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -811,6 +828,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: Run build
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -837,7 +855,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -855,6 +873,7 @@ jobs:
        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
+         check-latest: true
      - name: Run build
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -878,7 +897,8 @@ jobs:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
       - uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
         with:
-          go-version: '1.17'
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
       - name: Check license headers
         run: |
           go env -w GOFLAGS=-mod=mod
