@@ -38,6 +38,7 @@ func Contributors(c clients.RepoClient) (checker.ContributorsData, error) {
 		}
 
 		for _, org := range contrib.Organizations {
+			fmt.Println(user.Login, ":", user.Organizations)
 			if org.Login != "" && !orgContains(user.Organizations, org.Login) {
 				user.Organizations = append(user.Organizations, org)
 			}
@@ -53,6 +54,7 @@ func Contributors(c clients.RepoClient) (checker.ContributorsData, error) {
 			company = strings.ReplaceAll(company, ",", "")
 			company = strings.TrimLeft(company, "@")
 			company = strings.Trim(company, " ")
+			fmt.Println(user.Login, ":", user.Companies)
 			if company != "" && !companyContains(user.Companies, company) {
 				user.Companies = append(user.Companies, company)
 			}

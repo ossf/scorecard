@@ -103,7 +103,7 @@ func TestSignedRelease(t *testing.T) {
 					TargetCommitish: "master",
 					Assets: []clients.ReleaseAsset{
 						{
-							Name: "foo.asc",
+							Name: "foo.intoto.jsonl",
 							URL:  "http://foo.com/v1.0.0/foo.intoto.jsonl",
 						},
 					},
