@@ -45,7 +45,9 @@ func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions
 		return nil, fmt.Errorf("handler.buildQuery: %w", err)
 	}
 
-	resp, _, err := handler.ghClient.Search.Commits(handler.ctx, query, &github.SearchOptions{ListOptions: github.ListOptions{PerPage: 100}})
+	resp, _, err := handler.ghClient.Search.Commits(handler.ctx,
+		query,
+		&github.SearchOptions{ListOptions: github.ListOptions{PerPage: 100}})
 	if err != nil {
 		return nil, fmt.Errorf("Search.Code: %w", err)
 	}
