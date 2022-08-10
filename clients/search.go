@@ -34,15 +34,7 @@ type SearchResult struct {
 	Path string
 }
 
+// SearchCommitsOptions represents the parameters in the search commit query
 type SearchCommitsOptions struct {
 	Author string
-}
-
-type SearchCommitsResponse struct {
-	Hits    int
-	Results []SearchCommitResult
-}
-
-type SearchCommitResult struct {
-	ID int64
 }
