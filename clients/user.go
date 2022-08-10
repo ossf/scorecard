@@ -16,11 +16,11 @@ package clients
 
 // User represents a Git user.
 type User struct {
-	ID               int64
 	Login            string
 	Companies        []string
 	Organizations    []User
 	NumContributions int
+	ID               int64
 }
 
 // RepoAssociation is how a user is associated with a repository.
