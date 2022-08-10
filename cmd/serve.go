@@ -68,7 +68,7 @@ func serveCmd(o *options.Options) *cobra.Command {
 				}
 				defer ossFuzzRepoClient.Close()
 				ciiClient := clients.DefaultCIIBestPracticesClient()
-				checksToRun := checks.GetAllForEnvironment()
+				checksToRun := checks.GetAll()
 				repoResult, err := pkg.RunScorecards(
 					ctx, repo, clients.HeadSHA /*commitSHA*/, checksToRun, repoClient,
 					ossFuzzRepoClient, ciiClient, vulnsClient)

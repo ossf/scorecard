@@ -35,23 +35,22 @@ func getAll(overrideExperimental bool) checker.CheckNameToFnMap {
 		return possibleChecks
 	}
 
-	// TODO: remove this check when v6 is released
-	if _, v6 := os.LookupEnv("SCORECARD_V6"); !v6 {
+	if _, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL"); !experimental {
+		// TODO: remove this check when v6 is released
 		delete(possibleChecks, CheckWebHooks)
 	}
 
 	return possibleChecks
 }
 
-// GetAllForEnvironment returns the full list of checks, given any environment variable
-// constraints.
-func GetAllForEnvironment() checker.CheckNameToFnMap {
+// GetAll returns the full list of default checks, excluding any experimental checks
+// unless environment variable constraints are satisfied.
+func GetAll() checker.CheckNameToFnMap {
 	return getAll(false /*overrideExperimental*/)
 }
 
-// GetAll returns the full list of checks, regardless of
-// environment variable constraints.
-func GetAll() checker.CheckNameToFnMap {
+// GetAllWithExperimental returns the full list of checks, including experimental checks.
+func GetAllWithExperimental() checker.CheckNameToFnMap {
 	return getAll(true /*overrideExperimental*/)
 }
 

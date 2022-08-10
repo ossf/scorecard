@@ -29,7 +29,7 @@ func main() {
 		panic(fmt.Sprintf("docs.Read: %v", err))
 	}
 
-	allChecks := checks.GetAll()
+	allChecks := checks.GetAllWithExperimental()
 	for check := range allChecks {
 		c, e := m.GetCheck(check)
 		if e != nil {

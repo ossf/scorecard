@@ -134,7 +134,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	)
 
 	checkNames := []string{}
-	for checkName := range checks.GetAllForEnvironment() {
+	for checkName := range checks.GetAll() {
 		checkNames = append(checkNames, checkName)
 	}
 	cmd.Flags().StringSliceVar(
