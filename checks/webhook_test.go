@@ -98,7 +98,7 @@ func TestWebhooks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			os.Setenv("SCORECARD_V6", "true")
+			os.Setenv("SCORECARD_EXPERIMENTAL", "true")
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 
