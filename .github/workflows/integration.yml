@@ -51,10 +51,11 @@ jobs:
         uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
         with:
           go-version: '1.17'
+          check-latest: true
 
       - name: Cache builds
         # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 #v2.1.7
+        uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
         with:
           # In order:
           # * Module download cache
@@ -74,8 +75,8 @@ jobs:
         run: |
             go mod download
 
-      - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled. 
-        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
+      - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled.
+        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -84,8 +85,8 @@ jobs:
           timeout_minutes: 30
           command: make e2e-gh-token
 
-      - name: Run PAT E2E  #using retry because the GitHub token is being throttled. 
-        uses: nick-invision/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c 
+      - name: Run PAT E2E  #using retry because the GitHub token is being throttled.
+        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
         with:
