@@ -39,14 +39,14 @@ func init() {
 // WebHooks run Webhooks check.
 func WebHooks(c *checker.CheckRequest) checker.CheckResult {
 	// TODO: remove this check when v6 is released
-	_, enabled := os.LookupEnv("SCORECARD_V6")
+	_, enabled := os.LookupEnv("SCORECARD_EXPERIMENTAL")
 	if !enabled {
 		c.Dlogger.Warn(&checker.LogMessage{
-			Text: "SCORECARD_V6 is not set, not running the Webhook check",
+			Text: "SCORECARD_EXPERIMENTAL is not set, not running the Webhook check",
 		})
 
-		e := sce.WithMessage(sce.ErrorUnsupportedCheck, "SCORECARD_V6 is not set, not running the Webhook check")
-		return checker.CreateInconclusiveResult(CheckWebHooks, e.Error())
+		e := sce.WithMessage(sce.ErrorUnsupportedCheck, "SCORECARD_EXPERIMENTAL is not set, not running the Webhook check")
+		return checker.CreateRuntimeErrorResult(CheckWebHooks, e)
 	}
 
 	rawData, err := raw.WebHook(c)
