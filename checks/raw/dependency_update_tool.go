@@ -23,6 +23,10 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
+const (
+	dependabotID = 49699333
+)
+
 // DependencyUpdateTool is the exported name for Depdendency-Update-Tool.
 func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolData, error) {
 	var tools []checker.Tool
@@ -31,7 +35,27 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 		return checker.DependencyUpdateToolData{}, fmt.Errorf("%w", err)
 	}
 
-	// No error, return the tools.
+	if len(tools) != 0 {
+		return checker.DependencyUpdateToolData{Tools: tools}, nil
+	}
+
+	commits, err := c.SearchCommits(clients.SearchCommitsOptions{Author: "dependabot[bot]"})
+	if err != nil {
+		return checker.DependencyUpdateToolData{}, fmt.Errorf("%w", err)
+	}
+
+	for i := range commits {
+		if commits[i].Committer.ID == dependabotID {
+			tools = append(tools, checker.Tool{
+				Name:  "Dependabot",
+				URL:   asPointer("https://github.com/dependabot"),
+				Desc:  asPointer("Automated dependency updates built into GitHub"),
+				Files: []checker.File{{}},
+			})
+			break
+		}
+	}
+
 	return checker.DependencyUpdateToolData{Tools: tools}, nil
 }
 

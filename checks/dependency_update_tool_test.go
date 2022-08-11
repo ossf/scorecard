@@ -20,8 +20,13 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/ossf/scorecard/v4/checker"
+	clients "github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 	scut "github.com/ossf/scorecard/v4/utests"
+)
+
+const (
+	dependabotID = 49699333
 )
 
 // TestDependencyUpdateTool tests the DependencyUpdateTool checker.
@@ -29,11 +34,13 @@ func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name     string
-		wantErr  bool
-		files    []string
-		want     checker.CheckResult
-		expected scut.TestReturn
+		name              string
+		wantErr           bool
+		SearchCommits     []clients.Commit
+		CallSearchCommits int
+		files             []string
+		want              checker.CheckResult
+		expected          scut.TestReturn
 	}{
 		{
 			name:    "dependency yml",
@@ -41,6 +48,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			files: []string{
 				".github/dependabot.yml",
 			},
+			CallSearchCommits: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
 				Score:        10,
@@ -52,6 +60,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			files: []string{
 				".github/dependabot.yaml",
 			},
+			CallSearchCommits: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
 				Score:        10,
@@ -63,8 +72,66 @@ func TestDependencyUpdateTool(t *testing.T) {
 			files: []string{
 				".github/foobar.yml",
 			},
+			SearchCommits:     []clients.Commit{{Committer: clients.User{ID: 111111111}}},
+			CallSearchCommits: 1,
 			expected: scut.TestReturn{
 				NumberOfWarn: 2,
+			},
+		},
+		{
+			name:    "foo bar 2",
+			wantErr: false,
+			files: []string{
+				".github/foobar.yml",
+			},
+			SearchCommits:     []clients.Commit{},
+			CallSearchCommits: 1,
+			expected: scut.TestReturn{
+				NumberOfWarn: 2,
+			},
+		},
+
+		{
+			name:    "found in commits",
+			wantErr: false,
+			files: []string{
+				".github/foobar.yaml",
+			},
+			SearchCommits:     []clients.Commit{{Committer: clients.User{ID: dependabotID}}},
+			CallSearchCommits: 1,
+			expected: scut.TestReturn{
+				NumberOfInfo: 1,
+				Score:        10,
+			},
+		},
+		{
+			name:    "found in commits 2",
+			wantErr: false,
+			files:   []string{},
+			SearchCommits: []clients.Commit{{Committer: clients.User{ID: 111111111}},
+				{Committer: clients.User{ID: dependabotID}},
+			},
+
+			CallSearchCommits: 1,
+			expected: scut.TestReturn{
+				NumberOfInfo: 1,
+				Score:        10,
+			},
+		},
+
+		{
+			name:    "many commits",
+			wantErr: false,
+			files: []string{
+				".github/foobar.yml",
+			},
+			SearchCommits: []clients.Commit{{Committer: clients.User{ID: 111111111}},
+				{Committer: clients.User{ID: dependabotID}},
+			},
+			CallSearchCommits: 1,
+			expected: scut.TestReturn{
+				NumberOfInfo: 1,
+				Score:        10,
 			},
 		},
 	}
@@ -75,6 +142,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
+			mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(tt.SearchCommits, nil).Times(tt.CallSearchCommits)
 			dl := scut.TestDetailLogger{}
 			c := &checker.CheckRequest{
 				RepoClient: mockRepo,
