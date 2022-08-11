@@ -214,6 +214,11 @@ func (client *localDirClient) Search(request clients.SearchRequest) (clients.Sea
 	return clients.SearchResponse{}, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
 }
 
+// SearchCommits implements RepoClient.SearchCommits.
+func (client *localDirClient) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
+	return nil, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
+}
+
 func (client *localDirClient) Close() error {
 	return nil
 }
