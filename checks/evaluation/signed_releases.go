@@ -22,7 +22,7 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-var artifactExtensions = []string{".asc", ".minisig", ".sig", ".sign"}
+var artifactExtensions = []string{".asc", ".minisig", ".sig", ".sign", ".intoto.jsonl"}
 
 const releaseLookBack = 5
 
