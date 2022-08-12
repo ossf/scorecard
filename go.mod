@@ -1,9 +1,7 @@
 module github.com/ossf/scorecard/v4
 
-go 1.17
+go 1.18
 
-// TODO(go.mod): Is there a reason these deps are kept separately from the
-//               other `require`s?
 require (
 	github.com/rhysd/actionlint v1.6.15
 	gotest.tools v2.2.0+incompatible

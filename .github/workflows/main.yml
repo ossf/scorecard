@@ -20,14 +20,14 @@ permissions:
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
     branches:
-    - main
+      - main
 
 env:
   PROTOC_VERSION: 3.17.3
-  GO_VERSION: 1.17
+  GO_VERSION: 1.18
 
 jobs:
   unit-test:
