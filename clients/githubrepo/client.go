@@ -37,21 +37,22 @@ var (
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	repourl      *repoURL
-	repo         *github.Repository
-	repoClient   *github.Client
-	graphClient  *graphqlHandler
-	contributors *contributorsHandler
-	branches     *branchesHandler
-	releases     *releasesHandler
-	workflows    *workflowsHandler
-	checkruns    *checkrunsHandler
-	statuses     *statusesHandler
-	search       *searchHandler
-	webhook      *webhookHandler
-	languages    *languagesHandler
-	ctx          context.Context
-	tarball      tarballHandler
+	repourl       *repoURL
+	repo          *github.Repository
+	repoClient    *github.Client
+	graphClient   *graphqlHandler
+	contributors  *contributorsHandler
+	branches      *branchesHandler
+	releases      *releasesHandler
+	workflows     *workflowsHandler
+	checkruns     *checkrunsHandler
+	statuses      *statusesHandler
+	search        *searchHandler
+	searchCommits *searchCommitsHandler
+	webhook       *webhookHandler
+	languages     *languagesHandler
+	ctx           context.Context
+	tarball       tarballHandler
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
@@ -101,6 +102,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 
 	// Setup searchHandler.
 	client.search.init(client.ctx, client.repourl)
+
+	// Setup searchCommitsHandler
+	client.searchCommits.init(client.ctx, client.repourl)
 
 	// Setup webhookHandler.
 	client.webhook.init(client.ctx, client.repourl)
@@ -190,6 +194,11 @@ func (client *Client) Search(request clients.SearchRequest) (clients.SearchRespo
 	return client.search.search(request)
 }
 
+// SearchCommits implements RepoClient.SearchCommits
+func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
+	return client.searchCommits.search(request)
+}
+
 // Close implements RepoClient.Close.
 func (client *Client) Close() error {
 	return client.tarball.cleanup()
@@ -229,6 +238,9 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 			client: client,
 		},
 		search: &searchHandler{
+			ghClient: client,
+		},
+		searchCommits: &searchCommitsHandler{
 			ghClient: client,
 		},
 		webhook: &webhookHandler{
