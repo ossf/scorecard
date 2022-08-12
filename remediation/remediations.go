@@ -51,7 +51,7 @@ func init() {
 func Setup(c *checker.CheckRequest) error {
 	once.Do(func() {
 		// Get the branch for remediation.
-		b, err := c.RepoClient.GetDefaultBranch()
+		b, err := c.RepoClient.GetDefaultBranchName()
 		if err != nil {
 			if !errors.Is(err, clients.ErrUnsupportedFeature) {
 				setupErr = err
@@ -59,16 +59,15 @@ func Setup(c *checker.CheckRequest) error {
 			return
 		}
 
-		if b != nil && b.Name != nil {
-			branch = *b.Name
-			uri := c.RepoClient.URI()
-			parts := strings.Split(uri, "/")
-			if len(parts) != 3 {
-				setupErr = fmt.Errorf("%w: enpty: %s", errInvalidArg, uri)
-				return
-			}
-			repo = fmt.Sprintf("%s/%s", parts[1], parts[2])
+		branch = b
+		uri := c.RepoClient.URI()
+		parts := strings.Split(uri, "/")
+		if len(parts) != 3 {
+			setupErr = fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
+			return
 		}
+		repo = fmt.Sprintf("%s/%s", parts[1], parts[2])
+
 	})
 	return setupErr
 }
