@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
-
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -31,6 +30,7 @@ var (
 
 const releaseLookBack = 5
 
+// nolint
 // SignedReleases applies the score policy for the Signed-Releases check.
 func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedReleasesData) checker.CheckResult {
 	if r == nil {
@@ -54,6 +54,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 		signed := false
 		hasProvenance := false
 
+		// Check for provenance.
 		for _, asset := range release.Assets {
 			for _, suffix := range provenanceExtensions {
 				if strings.HasSuffix(asset.Name, suffix) {
