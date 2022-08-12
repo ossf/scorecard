@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
+
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
