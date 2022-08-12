@@ -67,7 +67,6 @@ func Setup(c *checker.CheckRequest) error {
 			return
 		}
 		repo = fmt.Sprintf("%s/%s", parts[1], parts[2])
-
 	})
 	return setupErr
 }
