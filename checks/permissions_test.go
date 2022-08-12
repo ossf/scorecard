@@ -444,7 +444,7 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 
 			main := "main"
 			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
-			mockRepo.EXPECT().GetDefaultBranch().Return(&clients.BranchRef{Name: &main}, nil).AnyTimes()
+			mockRepo.EXPECT().GetDefaultBranchName().Return(main, nil).AnyTimes()
 			mockRepo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
 				return []string{p}, nil
 			}).AnyTimes()
