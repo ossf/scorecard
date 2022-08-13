@@ -586,11 +586,12 @@ checks:
       Signed releases attest to the provenance of the artifact.
 
       This check looks for the following filenames in the project's last five
-      releases: [*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),
+      [release assets](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases):
+      [*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),
       *.sig, *.sign, [*.intoto.jsonl](slsa.dev).
 
-      If signatures are found for the releases, a score of 8 is given.
-      If SLSA provenances are found for the releases (*.intoto.jsonl), the maximum score of 10 is given.
+      If a signature is found in the assets for each release, a score of 8 is given.
+      If a SLSA provenances is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
       (For more information about SLSA provenance, see [slsa.dev](slsa.dev)).
 
       Note: The check does not verify the signatures. 
