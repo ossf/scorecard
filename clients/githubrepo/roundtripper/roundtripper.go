@@ -41,7 +41,7 @@ const (
 func NewTransport(ctx context.Context, logger *log.Logger) http.RoundTripper {
 	transport := http.DefaultTransport
 
-	// nolint
+	//nolint
 	if tokenAccessor := tokens.MakeTokenAccessor(); tokenAccessor != nil {
 		// Use GitHub PAT
 		transport = makeGitHubTransport(transport, tokenAccessor)

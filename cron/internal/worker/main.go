@@ -22,7 +22,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	_ "net/http/pprof" // nolint:gosec
+	_ "net/http/pprof" //nolint:gosec
 
 	"go.opencensus.io/stats/view"
 
@@ -50,7 +50,7 @@ const (
 
 var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
 
-// nolint: gocognit
+//nolint: gocognit
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest,
 	blacklistedChecks []string, bucketURL, rawBucketURL, apiBucketURL string,
@@ -123,7 +123,7 @@ func processRequest(ctx context.Context,
 			}
 			errorMsg := fmt.Sprintf("check %s has a runtime error: %v", check.Name, check.Error)
 			if !(*ignoreRuntimeErrors) {
-				// nolint: goerr113
+				//nolint: goerr113
 				return errors.New(errorMsg)
 			}
 			// TODO(log): Previously Warn. Consider logging an error here.

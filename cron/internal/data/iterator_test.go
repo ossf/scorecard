@@ -30,7 +30,7 @@ type outcome struct {
 	hasError    bool
 }
 
-// nolint: gocognit
+//nolint: gocognit
 func TestCsvIterator(t *testing.T) {
 	t.Parallel()
 

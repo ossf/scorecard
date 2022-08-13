@@ -727,18 +727,6 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
-       with:
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
        with:

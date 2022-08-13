@@ -166,7 +166,7 @@ type jsonOssfBestPractices struct {
 	Badge string `json:"badge"`
 }
 
-// nolint
+//nolint
 type jsonLicense struct {
 	File jsonFile `json:"file"`
 	// TODO: add fields, like type of license, etc.
@@ -184,7 +184,7 @@ type jsonWorkflowJob struct {
 	ID   *string `json:"id"`
 }
 
-// nolint
+//nolint
 type jsonPackage struct {
 	Name *string          `json:"name,omitempty"`
 	Job  *jsonWorkflowJob `json:"job,omitempty"`
@@ -223,7 +223,7 @@ type jsonTokenPermission struct {
 	Type         string           `json:"type"`
 }
 
-// nolint
+//nolint
 type jsonRawResults struct {
 	// Workflow results.
 	Workflows []jsonWorkflow `json:"workflows"`

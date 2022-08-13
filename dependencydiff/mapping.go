@@ -22,7 +22,7 @@ import (
 type ecosystem string
 
 // OSV ecosystem naming data source: https://ossf.github.io/osv-schema/#affectedpackage-field
-// nolint
+//nolint
 const (
 	// The Go ecosystem.
 	ecosystemGo ecosystem = "Go"
@@ -31,13 +31,13 @@ const (
 	ecosystemNpm ecosystem = "npm"
 
 	// The Android ecosystem
-	ecosystemAndroid ecosystem = "Android" // nolint:unused
+	ecosystemAndroid ecosystem = "Android" //nolint:unused
 
 	// The crates.io ecosystem for RUST.
 	ecosystemCrates ecosystem = "crates.io"
 
 	// For reports from the OSS-Fuzz project that have no more appropriate ecosystem.
-	ecosystemOssFuzz ecosystem = "OSS-Fuzz" // nolint:unused
+	ecosystemOssFuzz ecosystem = "OSS-Fuzz" //nolint:unused
 
 	// The Python PyPI ecosystem. PyPI is the main package source of pip.
 	ecosystemPyPI ecosystem = "PyPI"
@@ -55,41 +55,39 @@ const (
 	ecosystemNuGet ecosystem = "NuGet"
 
 	// The Linux kernel.
-	ecosystemLinux ecosystem = "Linux" // nolint:unused
+	ecosystemLinux ecosystem = "Linux" //nolint:unused
 
 	// The Debian package ecosystem.
-	ecosystemDebian ecosystem = "Debian" // nolint:unused
+	ecosystemDebian ecosystem = "Debian" //nolint:unused
 
 	// Hex is the package manager of Erlang.
 	// TODO: GitHub doesn't support hex as the ecosystem for Erlang yet. Add this to the map in the future.
-	ecosystemHex ecosystem = "Hex" // nolint:unused
+	ecosystemHex ecosystem = "Hex" //nolint:unused
 
 	// GitHub Actions is an ecosystem for the GitHub Actions.
 	ecosystemActions ecosystem = "GitHub Actions"
 
 	// Pub is the official package repository for Dart and Flutter apps.
-	ecosystemPub ecosystem = "Pub" // nolint:unused
+	ecosystemPub ecosystem = "Pub" //nolint:unused
 
 	// Ecosystems with a "nolint" tag suggests GitHub hasn't gotten them supported yet.
 	// We need to add them to the below hashmap in a timely manner once GitHub adds supports.
 )
 
-var (
-	//gitHubToOSV defines the ecosystem naming mapping relationship between GitHub and others.
-	gitHubToOSV = map[string]ecosystem{
-		// GitHub ecosystem naming data source: https://docs.github.com/en/code-security/supply-chain-security/
-		// understanding-your-software-supply-chain/about-the-dependency-graph#supported-package-ecosystems
-		"gomod":    ecosystemGo, /* go.mod and go.sum */
-		"cargo":    ecosystemCrates,
-		"pip":      ecosystemPyPI, /* pip and poetry */
-		"npm":      ecosystemNpm,  /* npm and yarn */
-		"maven":    ecosystemMaven,
-		"composer": ecosystemPackagist,
-		"rubygems": ecosystemRubyGems,
-		"nuget":    ecosystemNuGet,
-		"actions":  ecosystemActions,
-	}
-)
+// gitHubToOSV defines the ecosystem naming mapping relationship between GitHub and others.
+var gitHubToOSV = map[string]ecosystem{
+	// GitHub ecosystem naming data source: https://docs.github.com/en/code-security/supply-chain-security/
+	// understanding-your-software-supply-chain/about-the-dependency-graph#supported-package-ecosystems
+	"gomod":    ecosystemGo, /* go.mod and go.sum */
+	"cargo":    ecosystemCrates,
+	"pip":      ecosystemPyPI, /* pip and poetry */
+	"npm":      ecosystemNpm,  /* npm and yarn */
+	"maven":    ecosystemMaven,
+	"composer": ecosystemPackagist,
+	"rubygems": ecosystemRubyGems,
+	"nuget":    ecosystemNuGet,
+	"actions":  ecosystemActions,
+}
 
 func mapDependencyEcosystemNaming(deps []dependency) error {
 	for i := range deps {
@@ -104,7 +102,6 @@ func mapDependencyEcosystemNaming(deps []dependency) error {
 			return fmt.Errorf("error mapping dependency ecosystem: %w", err)
 		}
 		deps[i].Ecosystem = asPointer(string(mappedEcosys))
-
 	}
 	return nil
 }
