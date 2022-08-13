@@ -543,7 +543,7 @@ releases: [*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),
 *.sig, *.sign, *.intoto.jsonl.
 
 If signatures are found for the releases, a score of 8 is given.
-If SLSA provenances are found for the releases, a maximum score of 10 is given.
+If SLSA provenances are found for the releases, the maximum score of 10 is given.
 
 Note: The check does not verify the signatures. 
  
