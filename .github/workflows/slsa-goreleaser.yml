@@ -1,9 +1,9 @@
 name: SLSA releaser
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - "*"
+  # push:
+  #   tags:
+  #     - "*"
 
 permissions: read-all
 
