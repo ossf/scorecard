@@ -590,7 +590,8 @@ checks:
       *.sig, *.sign, *.intoto.jsonl.
 
       If signatures are found for the releases, a score of 8 is given.
-      If SLSA provenances are found for the releases, the maximum score of 10 is given.
+      If SLSA provenances are found for the releases (*.intoto.jsonl), the maximum score of 10 is given.
+      (For more information about SLSA provenance, see [slsa.dev](slsa.dev)).
 
       Note: The check does not verify the signatures. 
     remediation:
