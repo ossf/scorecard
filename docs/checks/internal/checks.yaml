@@ -22,7 +22,7 @@ checks:
     short: Determines if the project is "actively maintained".
     description: |
       Risk: `High` (possibly unpatched vulnerabilities)
-         
+
       This check determines whether the project is actively maintained. If the project
       is archived, it receives the lowest score. If there is at least one commit per
       week during the previous 90 days, the project receives the highest score.  If there
@@ -591,10 +591,9 @@ checks:
       *.sig, *.sign, [*.intoto.jsonl](slsa.dev).
 
       If a signature is found in the assets for each release, a score of 8 is given.
-      If a SLSA provenances is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
-      (For more information about SLSA provenance, see [slsa.dev](slsa.dev)).
+      If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
 
-      Note: The check does not verify the signatures. 
+      Note: The check does not verify the signatures.
     remediation:
       - >-
         Publish the release.
