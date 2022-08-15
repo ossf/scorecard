@@ -31,8 +31,9 @@ import (
 )
 
 var (
-	_                clients.RepoClient = &Client{}
-	errInputRepoType                    = errors.New("input repo should be of type repoURL")
+	_                     clients.RepoClient = &Client{}
+	errInputRepoType                         = errors.New("input repo should be of type repoURL")
+	errDefaultBranchEmpty                    = errors.New("default branch name is empty")
 )
 
 // Client is GitHub-specific implementation of RepoClient.
@@ -159,6 +160,15 @@ func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return client.branches.getDefaultBranch()
 }
 
+// GetDefaultBranchName implements RepoClient.GetDefaultBranchName.
+func (client *Client) GetDefaultBranchName() (string, error) {
+	if len(client.repourl.defaultBranch) > 0 {
+		return client.repourl.defaultBranch, nil
+	}
+
+	return "", fmt.Errorf("%w", errDefaultBranchEmpty)
+}
+
 // GetBranch implements RepoClient.GetBranch.
 func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	return client.branches.getBranch(branch)
@@ -194,7 +204,7 @@ func (client *Client) Search(request clients.SearchRequest) (clients.SearchRespo
 	return client.search.search(request)
 }
 
-// SearchCommits implements RepoClient.SearchCommits
+// SearchCommits implements RepoClient.SearchCommits.
 func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
 	return client.searchCommits.search(request)
 }

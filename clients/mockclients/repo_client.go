@@ -93,6 +93,21 @@ func (mr *MockRepoClientMockRecorder) GetDefaultBranch() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDefaultBranch", reflect.TypeOf((*MockRepoClient)(nil).GetDefaultBranch))
 }
 
+// GetDefaultBranchName mocks base method.
+func (m *MockRepoClient) GetDefaultBranchName() (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDefaultBranchName")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDefaultBranchName indicates an expected call of GetDefaultBranchName.
+func (mr *MockRepoClientMockRecorder) GetDefaultBranchName() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDefaultBranchName", reflect.TypeOf((*MockRepoClient)(nil).GetDefaultBranchName))
+}
+
 // GetFileContent mocks base method.
 func (m *MockRepoClient) GetFileContent(filename string) ([]byte, error) {
 	m.ctrl.T.Helper()

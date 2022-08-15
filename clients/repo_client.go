@@ -33,6 +33,7 @@ type RepoClient interface {
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)
 	GetFileContent(filename string) ([]byte, error)
 	GetBranch(branch string) (*BranchRef, error)
+	GetDefaultBranchName() (string, error)
 	GetDefaultBranch() (*BranchRef, error)
 	ListCommits() ([]Commit, error)
 	ListIssues() ([]Issue, error)

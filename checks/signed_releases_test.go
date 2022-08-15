@@ -91,7 +91,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -129,7 +129,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -148,7 +148,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -167,7 +167,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -190,7 +190,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -228,7 +228,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -262,7 +262,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 5,
+				Score: 4,
 			},
 		},
 		{
@@ -360,7 +360,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{

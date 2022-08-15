@@ -44,8 +44,8 @@ var _ = Describe("E2E TEST:"+checks.CheckSignedReleases, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
+				Score:         8,
+				NumberOfWarn:  5,
 				NumberOfInfo:  5,
 				NumberOfDebug: 5,
 			}
