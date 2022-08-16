@@ -368,8 +368,20 @@ func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissi
 		// We only support CodeQl today.
 		"github/codeql-action/upload-sarif": true,
 
-		// allow ourselves
+		// allow our own action, which writes sarif files
+		// https://github.com/ossf/scorecard-action
 		"ossf/scorecard-action": true,
+	}
+
+	tokenPermissions := checker.TokenPermission{
+		File: &checker.File{
+			Path:   fp,
+			Type:   checker.FileTypeSource,
+			Offset: checker.OffsetDefault,
+			// TODO: set Snippet.
+		},
+		Type: checker.PermissionLevelUnknown,
+		// TODO: Job
 	}
 
 	for _, job := range workflow.Jobs {
@@ -381,27 +393,16 @@ func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissi
 			if before, _, found := strings.Cut(uses.Value, "@"); found {
 				uses.Value = before
 			}
-
-			tokenPermissions := checker.TokenPermission{
-				File: &checker.File{
-					Path:   fp,
-					Type:   checker.FileTypeSource,
-					Offset: fileparser.GetLineNumber(uses.Pos),
-					// TODO: set Snippet.
-				},
-				Type: checker.PermissionLevelUnknown,
-				// TODO: Job
-			}
-
 			if allowlist[uses.Value] {
+				tokenPermissions.File.Offset = fileparser.GetLineNumber(uses.Pos)
 				tokenPermissions.Msg = stringPointer("allowed SARIF workflow detected")
 				pdata.results.TokenPermissions = append(pdata.results.TokenPermissions, tokenPermissions)
 				return true
 			}
-			tokenPermissions.Msg = stringPointer("not an allowed SARIF workflow")
-			pdata.results.TokenPermissions = append(pdata.results.TokenPermissions, tokenPermissions)
 		}
 	}
+	tokenPermissions.Msg = stringPointer("not a SARIF workflow, or not an allowed one")
+	pdata.results.TokenPermissions = append(pdata.results.TokenPermissions, tokenPermissions)
 	return false
 }
 

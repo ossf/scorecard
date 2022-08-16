@@ -56,7 +56,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 5,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -67,7 +67,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  3,
 				NumberOfInfo:  2,
-				NumberOfDebug: 5,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -78,7 +78,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -89,7 +89,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 5,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -100,7 +100,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -111,7 +111,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -122,7 +122,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -133,7 +133,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -144,7 +144,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 7,
+				NumberOfDebug: 6,
 			},
 		},
 		{
@@ -155,7 +155,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  10,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -166,7 +166,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  10,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -177,7 +177,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -188,7 +188,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  2,
 				NumberOfInfo:  2,
-				NumberOfDebug: 7,
+				NumberOfDebug: 6,
 			},
 		},
 		{
@@ -199,7 +199,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore - 2,
 				NumberOfWarn:  2,
 				NumberOfInfo:  3,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -210,7 +210,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -221,7 +221,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -232,7 +232,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -254,7 +254,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 5,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -265,7 +265,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 5,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -276,7 +276,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -287,7 +287,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         9,
 				NumberOfWarn:  1,
 				NumberOfInfo:  3,
-				NumberOfDebug: 5,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -298,7 +298,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 5,
+				NumberOfDebug: 4,
 			},
 		},
 		{
@@ -312,7 +312,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  1,
 				NumberOfInfo:  2,
-				NumberOfDebug: 11,
+				NumberOfDebug: 9,
 			},
 		},
 		{
@@ -326,7 +326,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  2,
 				NumberOfInfo:  1,
-				NumberOfDebug: 11,
+				NumberOfDebug: 9,
 			},
 		},
 		{
@@ -340,7 +340,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 12,
+				NumberOfDebug: 10,
 			},
 		},
 		{
@@ -353,7 +353,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 6,
+				NumberOfDebug: 5,
 			},
 		},
 	}
