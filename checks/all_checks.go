@@ -21,7 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 )
 
-// allChecks is the list of all registered security checks
+// allChecks is the list of all registered security checks.
 var allChecks = checker.CheckNameToFnMap{}
 
 func getAll(overrideExperimental bool) checker.CheckNameToFnMap {

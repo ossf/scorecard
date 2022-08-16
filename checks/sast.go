@@ -72,7 +72,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		codeQlScore == checker.InconclusiveResultScore {
 		// That can never happen since sastToolInCheckRuns can never
 		// retun checker.InconclusiveResultScore.
-		return checker.CreateInconclusiveResult(CheckSAST, "internal error")
+		return checker.CreateRuntimeErrorResult(CheckSAST, sce.ErrScorecardInternal)
 	}
 
 	// Both scores are conclusive.

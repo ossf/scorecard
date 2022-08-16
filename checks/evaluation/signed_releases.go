@@ -16,16 +16,21 @@ package evaluation
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-var artifactExtensions = []string{".asc", ".minisig", ".sig", ".sign"}
+var (
+	signatureExtensions  = []string{".asc", ".minisig", ".sig", ".sign"}
+	provenanceExtensions = []string{".intoto.jsonl"}
+)
 
 const releaseLookBack = 5
 
+// nolint
 // SignedReleases applies the score policy for the Signed-Releases check.
 func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedReleasesData) checker.CheckResult {
 	if r == nil {
@@ -34,8 +39,8 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 	}
 
 	totalReleases := 0
-	totalSigned := 0
-
+	total := 0
+	score := 0
 	for _, release := range r.Releases {
 		if len(release.Assets) == 0 {
 			continue
@@ -47,9 +52,42 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 
 		totalReleases++
 		signed := false
+		hasProvenance := false
 
+		// Check for provenance.
 		for _, asset := range release.Assets {
-			for _, suffix := range artifactExtensions {
+			for _, suffix := range provenanceExtensions {
+				if strings.HasSuffix(asset.Name, suffix) {
+					dl.Info(&checker.LogMessage{
+						Path: asset.URL,
+						Type: checker.FileTypeURL,
+						Text: fmt.Sprintf("provenance for release artifact: %s", asset.Name),
+					})
+					hasProvenance = true
+					total++
+					break
+				}
+			}
+			if hasProvenance {
+				// Assign maximum points.
+				score += 10
+				break
+			}
+		}
+
+		if hasProvenance {
+			continue
+		}
+
+		dl.Warn(&checker.LogMessage{
+			Path: release.URL,
+			Type: checker.FileTypeURL,
+			Text: fmt.Sprintf("release artifact %s does not have provenance", release.TagName),
+		})
+
+		// No provenance. Try signatures.
+		for _, asset := range release.Assets {
+			for _, suffix := range signatureExtensions {
 				if strings.HasSuffix(asset.Name, suffix) {
 					dl.Info(&checker.LogMessage{
 						Path: asset.URL,
@@ -57,11 +95,13 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 						Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
 					})
 					signed = true
+					total++
 					break
 				}
 			}
 			if signed {
-				totalSigned++
+				// Assign 8 points.
+				score += 8
 				break
 			}
 		}
@@ -86,6 +126,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 		return checker.CreateInconclusiveResult(name, "no releases found")
 	}
 
-	reason := fmt.Sprintf("%d out of %d artifacts are signed", totalSigned, totalReleases)
-	return checker.CreateProportionalScoreResult(name, reason, totalSigned, totalReleases)
+	score = int(math.Floor(float64(score) / float64(totalReleases)))
+	reason := fmt.Sprintf("%d out of %d artifacts are signed or have provenance", total, totalReleases)
+	return checker.CreateResultWithScore(name, reason, score)
 }

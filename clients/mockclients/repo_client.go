@@ -93,6 +93,21 @@ func (mr *MockRepoClientMockRecorder) GetDefaultBranch() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDefaultBranch", reflect.TypeOf((*MockRepoClient)(nil).GetDefaultBranch))
 }
 
+// GetDefaultBranchName mocks base method.
+func (m *MockRepoClient) GetDefaultBranchName() (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDefaultBranchName")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDefaultBranchName indicates an expected call of GetDefaultBranchName.
+func (mr *MockRepoClientMockRecorder) GetDefaultBranchName() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDefaultBranchName", reflect.TypeOf((*MockRepoClient)(nil).GetDefaultBranchName))
+}
+
 // GetFileContent mocks base method.
 func (m *MockRepoClient) GetFileContent(filename string) ([]byte, error) {
 	m.ctrl.T.Helper()
@@ -212,6 +227,21 @@ func (mr *MockRepoClientMockRecorder) ListIssues() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIssues", reflect.TypeOf((*MockRepoClient)(nil).ListIssues))
 }
 
+// ListProgrammingLanguages mocks base method.
+func (m *MockRepoClient) ListProgrammingLanguages() ([]clients.Language, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListProgrammingLanguages")
+	ret0, _ := ret[0].([]clients.Language)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListProgrammingLanguages indicates an expected call of ListProgrammingLanguages.
+func (mr *MockRepoClientMockRecorder) ListProgrammingLanguages() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProgrammingLanguages", reflect.TypeOf((*MockRepoClient)(nil).ListProgrammingLanguages))
+}
+
 // ListReleases mocks base method.
 func (m *MockRepoClient) ListReleases() ([]clients.Release, error) {
 	m.ctrl.T.Helper()
@@ -272,20 +302,6 @@ func (mr *MockRepoClientMockRecorder) ListWebhooks() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWebhooks", reflect.TypeOf((*MockRepoClient)(nil).ListWebhooks))
 }
 
-func (m *MockRepoClient) ListProgrammingLanguages() ([]clients.Language, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListProgrammingLanguages")
-	ret0, _ := ret[0].([]clients.Language)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListProgrammingLanguages indicates an expected call of ListProgrammingLanguages.
-func (mr *MockRepoClientMockRecorder) ListProgrammingLanguages() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProgrammingLanguages", reflect.TypeOf((*MockRepoClient)(nil).ListProgrammingLanguages))
-}
-
 // Search mocks base method.
 func (m *MockRepoClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	m.ctrl.T.Helper()
@@ -299,6 +315,21 @@ func (m *MockRepoClient) Search(request clients.SearchRequest) (clients.SearchRe
 func (mr *MockRepoClientMockRecorder) Search(request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockRepoClient)(nil).Search), request)
+}
+
+// SearchCommits mocks base method.
+func (m *MockRepoClient) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchCommits", request)
+	ret0, _ := ret[0].([]clients.Commit)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchCommits indicates an expected call of SearchCommits.
+func (mr *MockRepoClientMockRecorder) SearchCommits(request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchCommits", reflect.TypeOf((*MockRepoClient)(nil).SearchCommits), request)
 }
 
 // URI mocks base method.

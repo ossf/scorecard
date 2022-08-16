@@ -37,13 +37,13 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c #v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 #v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -76,7 +76,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -87,7 +87,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -123,7 +123,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -133,7 +133,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -168,7 +168,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -178,7 +178,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -214,7 +214,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -224,7 +224,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -260,7 +260,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -270,7 +270,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -306,7 +306,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -316,7 +316,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -352,7 +352,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -362,7 +362,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -398,7 +398,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -408,7 +408,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -444,7 +444,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -454,7 +454,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -490,7 +490,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -500,7 +500,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -536,7 +536,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -546,7 +546,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -582,7 +582,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -592,7 +592,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -628,7 +628,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -638,7 +638,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -674,7 +674,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -684,7 +684,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -719,7 +719,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -729,7 +729,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -759,13 +759,13 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -801,7 +801,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Install Protoc
@@ -810,7 +810,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -845,7 +845,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -855,7 +855,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@f4278025ab0f432ce369118909e46deec636f50c # v2.1.7
+       uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19 # v2.1.7
        with:
          path: |
            ~/go/pkg/mod
@@ -890,7 +890,7 @@ jobs:
       contents: read
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504 # v1
+        uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
