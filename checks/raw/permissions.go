@@ -348,111 +348,60 @@ func createIgnoredPermissions(workflow *actionlint.Workflow, fp string,
 
 // Scanning tool run externally and SARIF file uploaded.
 func isSARIFUploadWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
-	//nolint
-	// CodeQl analysis workflow automatically sends sarif file to GitHub.
-	// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#about-sarif-file-uploads-for-code-scanning.
-	// `The CodeQL action uploads the SARIF file automatically when it completes analysis`.
-	if isCodeQlAnalysisWorkflow(workflow, fp, pdata) {
-		return true
-	}
-
-	//nolint
-	// Third-party scanning tools use the SARIF-upload action from code-ql.
-	// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#uploading-a-code-scanning-analysis-with-github-actions
-	// We only support CodeQl today.
-	if isSARIFUploadAction(workflow, fp, pdata) {
-		return true
-	}
-
 	// TODO: some third party tools may upload directly thru their actions.
 	// Very unlikely.
 	// See https://github.com/marketplace for tools.
-
-	return false
+	return isAllowedWorkflow(workflow, fp, pdata)
 }
 
-// CodeQl run externally and SARIF file uploaded.
-func isSARIFUploadAction(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
+func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
+	allowlist := map[string]bool{
+		//nolint
+		// CodeQl analysis workflow automatically sends sarif file to GitHub.
+		// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#about-sarif-file-uploads-for-code-scanning.
+		// `The CodeQL action uploads the SARIF file automatically when it completes analysis`.
+		"github/codeql-action/analyze": true,
+
+		//nolint
+		// Third-party scanning tools use the SARIF-upload action from code-ql.
+		// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#uploading-a-code-scanning-analysis-with-github-actions
+		// We only support CodeQl today.
+		"github/codeql-action/upload-sarif": true,
+
+		// allow ourselves
+		"ossf/scorecard-action": true,
+	}
+
 	for _, job := range workflow.Jobs {
 		for _, step := range job.Steps {
 			uses := fileparser.GetUses(step)
 			if uses == nil {
 				continue
 			}
-			if strings.HasPrefix(uses.Value, "github/codeql-action/upload-sarif@") {
-				pdata.results.TokenPermissions = append(pdata.results.TokenPermissions,
-					checker.TokenPermission{
-						File: &checker.File{
-							Path:   fp,
-							Type:   checker.FileTypeSource,
-							Offset: fileparser.GetLineNumber(uses.Pos),
-							// TODO: set Snippet.
-						},
-						Type: checker.PermissionLevelUnknown,
-						Msg:  stringPointer("codeql SARIF upload workflow detected"),
-						// TODO: Job
-					})
+			if before, _, found := strings.Cut(uses.Value, "@"); found {
+				uses.Value = before
+			}
 
+			tokenPermissions := checker.TokenPermission{
+				File: &checker.File{
+					Path:   fp,
+					Type:   checker.FileTypeSource,
+					Offset: fileparser.GetLineNumber(uses.Pos),
+					// TODO: set Snippet.
+				},
+				Type: checker.PermissionLevelUnknown,
+				// TODO: Job
+			}
+
+			if allowlist[uses.Value] {
+				tokenPermissions.Msg = stringPointer("allowed SARIF workflow detected")
+				pdata.results.TokenPermissions = append(pdata.results.TokenPermissions, tokenPermissions)
 				return true
 			}
+			tokenPermissions.Msg = stringPointer("not an allowed SARIF workflow")
+			pdata.results.TokenPermissions = append(pdata.results.TokenPermissions, tokenPermissions)
 		}
 	}
-	pdata.results.TokenPermissions = append(pdata.results.TokenPermissions,
-		checker.TokenPermission{
-			File: &checker.File{
-				Path:   fp,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
-			},
-			Type: checker.PermissionLevelUnknown,
-			Msg:  stringPointer("not a codeql upload SARIF workflow"),
-
-			// TODO: Job
-		})
-
-	return false
-}
-
-// nolint
-// CodeQl run within GitHub worklow automatically bubbled up to
-// security events, see
-// https://docs.github.com/en/code-security/secure-coding/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning.
-func isCodeQlAnalysisWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
-	for _, job := range workflow.Jobs {
-		for _, step := range job.Steps {
-			uses := fileparser.GetUses(step)
-			if uses == nil {
-				continue
-			}
-			if strings.HasPrefix(uses.Value, "github/codeql-action/analyze@") {
-				pdata.results.TokenPermissions = append(pdata.results.TokenPermissions,
-					checker.TokenPermission{
-						File: &checker.File{
-							Path:   fp,
-							Type:   checker.FileTypeSource,
-							Offset: fileparser.GetLineNumber(uses.Pos),
-						},
-						Type: checker.PermissionLevelUnknown,
-						Msg:  stringPointer("codeql workflow detected"),
-						// TODO: Job
-					})
-
-				return true
-			}
-		}
-	}
-
-	pdata.results.TokenPermissions = append(pdata.results.TokenPermissions,
-		checker.TokenPermission{
-			File: &checker.File{
-				Path:   fp,
-				Type:   checker.FileTypeSource,
-				Offset: checker.OffsetDefault,
-			},
-			Type: checker.PermissionLevelUnknown,
-			Msg:  stringPointer("not a codeql workflow"),
-		})
-
 	return false
 }
 
