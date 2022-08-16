@@ -29,7 +29,7 @@ import (
 
 // ignoring the linter for cyclomatic complexity because it is a test func
 // TestMaintained tests the maintained check.
-//nolint
+// nolint
 func Test_Maintained(t *testing.T) {
 	t.Parallel()
 	threeHundredDaysAgo := time.Now().AddDate(0, 0, -300)
@@ -55,6 +55,7 @@ func Test_Maintained(t *testing.T) {
 		commiterr  error
 		issues     []clients.Issue
 		issueerr   error
+		createdat  time.Time
 		expected   checker.CheckResult
 	}{
 		{
@@ -298,6 +299,29 @@ func Test_Maintained(t *testing.T) {
 				Score: 0,
 			},
 		},
+		{
+			name:       "recently created repo",
+			isarchived: false,
+			commits: []clients.Commit{
+				{
+					CommittedDate: time.Now().AddDate(0, 0, -1),
+				},
+				{
+					CommittedDate: time.Now().AddDate(0, 0, -10),
+				},
+				{
+					CommittedDate: time.Now().AddDate(0, 0, -11),
+				},
+				{
+					CommittedDate: time.Now().AddDate(0, 0, -12),
+				},
+			},
+			issues:    []clients.Issue{},
+			createdat: time.Now().AddDate(0, 0, -1),
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -335,6 +359,16 @@ func Test_Maintained(t *testing.T) {
 							return tt.issues, tt.err
 						},
 					).MinTimes(1)
+
+					if tt.issueerr == nil {
+						mockRepo.EXPECT().GetCreatedAt().DoAndReturn(func() (time.Time, error) {
+							if tt.createdat.IsZero() {
+								return time.Now().AddDate(0, 0, -365), nil
+							}
+
+							return tt.createdat, nil
+						})
+					}
 				}
 			}
 

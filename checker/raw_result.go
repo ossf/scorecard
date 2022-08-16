@@ -15,6 +15,8 @@
 package checker
 
 import (
+	"time"
+
 	"github.com/ossf/scorecard/v4/clients"
 )
 
@@ -105,6 +107,7 @@ type Dependency struct {
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {
+	CreatedAt            time.Time
 	Issues               []clients.Issue
 	DefaultBranchCommits []clients.Commit
 	ArchivedStatus       ArchivedStatus

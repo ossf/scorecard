@@ -21,6 +21,7 @@ package mockrepo
 
 import (
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 	clients "github.com/ossf/scorecard/v4/clients"
@@ -76,6 +77,21 @@ func (m *MockRepoClient) GetBranch(branch string) (*clients.BranchRef, error) {
 func (mr *MockRepoClientMockRecorder) GetBranch(branch interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBranch", reflect.TypeOf((*MockRepoClient)(nil).GetBranch), branch)
+}
+
+// GetCreatedAt mocks base method.
+func (m *MockRepoClient) GetCreatedAt() (time.Time, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCreatedAt")
+	ret0, _ := ret[0].(time.Time)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCreatedAt indicates an expected call of GetCreatedAt.
+func (mr *MockRepoClientMockRecorder) GetCreatedAt() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCreatedAt", reflect.TypeOf((*MockRepoClient)(nil).GetCreatedAt))
 }
 
 // GetDefaultBranch mocks base method.

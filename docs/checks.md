@@ -380,6 +380,11 @@ For example, a library that determines if an integer is even would not normally
 need maintenance unless an underlying implementation language definition
 changed. A lack of active maintenance should signal that potential users should
 investigate further to judge the situation.   
+
+This check will only succeed if a Github project is >90 days old. Projects
+that are younger than this are too new to assess whether they are maintained
+or not, and users should inspect the contents of those projects to ensure they
+are as expected.
  
 
 **Remediation steps**

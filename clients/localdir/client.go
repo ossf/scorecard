@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	clients "github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
@@ -232,6 +233,10 @@ func (client *localDirClient) Close() error {
 // TODO: add ListProgrammingLanguages support for local directories.
 func (client *localDirClient) ListProgrammingLanguages() ([]clients.Language, error) {
 	return nil, fmt.Errorf("ListProgrammingLanguages: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *localDirClient) GetCreatedAt() (time.Time, error) {
+	return time.Time{}, fmt.Errorf("GetCreatedAt: %w", clients.ErrUnsupportedFeature)
 }
 
 // CreateLocalDirClient returns a client which implements RepoClient interface.
