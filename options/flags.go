@@ -83,7 +83,6 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		"local folder to check",
 	)
 
-	// TODO(v5): Should this be behind a feature flag?
 	cmd.Flags().StringVar(
 		&o.Commit,
 		FlagCommit,
