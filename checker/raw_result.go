@@ -107,10 +107,10 @@ type Dependency struct {
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {
+	CreatedAt            time.Time
 	Issues               []clients.Issue
 	DefaultBranchCommits []clients.Commit
 	ArchivedStatus       ArchivedStatus
-	CreatedAt            time.Time
 }
 
 // LicenseData contains the raw results

@@ -52,9 +52,14 @@ func Maintained(name string, dl checker.DetailLogger, r *checker.MaintainedData)
 	// Emit a warning if this repo was created recently
 	recencyThreshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 	if r.CreatedAt.After(recencyThreshold) {
-		dl.Warn(&checker.LogMessage{Text: fmt.Sprintf("repo was created in the last %d days (Created at: %s), please review its contents carefully", lookBackDays, r.CreatedAt.Format(time.RFC3339))})
+		dl.Warn(&checker.LogMessage{
+			Text: fmt.Sprintf("repo was created in the last %d days (Created at: %s), please review its contents carefully",
+				lookBackDays, r.CreatedAt.Format(time.RFC3339)),
+		})
 		daysSinceRepoCreated := int(time.Since(r.CreatedAt).Hours() / 24)
-		return checker.CreateMinScoreResult(name, fmt.Sprintf("repo was created %d days ago, not enough maintenance history", daysSinceRepoCreated))
+		return checker.CreateMinScoreResult(name,
+			fmt.Sprintf("repo was created %d days ago, not enough maintenance history", daysSinceRepoCreated),
+		)
 	}
 
 	issuesUpdatedWithinThreshold := 0
