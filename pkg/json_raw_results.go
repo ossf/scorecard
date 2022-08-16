@@ -132,6 +132,10 @@ type jsonArchivedStatus struct {
 	// TODO: add fields, e.g. date of archival, etc.
 }
 
+type jsonCreatedAtTime struct {
+	Time time.Time `json:"timestamp"`
+}
+
 type jsonComment struct {
 	CreatedAt *time.Time `json:"createdAt"`
 	Author    *jsonUser  `json:"author"`
@@ -251,6 +255,8 @@ type jsonRawResults struct {
 	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBranchCommits"`
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
+	// Repo creation time
+	CreatedAtTime jsonCreatedAtTime `json:"createdAt"`
 	// Fuzzers.
 	Fuzzers []jsonTool `json:"fuzzers"`
 	// Releases.
@@ -459,6 +465,8 @@ func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedR
 func (r *jsonScorecardRawResult) addMaintainedRawResults(mr *checker.MaintainedData) error {
 	// Set archived status.
 	r.Results.ArchivedStatus = jsonArchivedStatus{Status: mr.ArchivedStatus.Status}
+
+	r.Results.CreatedAtTime = jsonCreatedAtTime{Time: mr.CreatedAt}
 
 	// Issues.
 	for i := range mr.Issues {

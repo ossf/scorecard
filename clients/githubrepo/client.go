@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
@@ -172,6 +173,11 @@ func (client *Client) GetDefaultBranchName() (string, error) {
 // GetBranch implements RepoClient.GetBranch.
 func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	return client.branches.getBranch(branch)
+}
+
+// GetCreatedAt is a getter for repo.CreatedAt
+func (client *Client) GetCreatedAt() (time.Time, error) {
+	return client.repo.CreatedAt.Time, nil
 }
 
 // ListWebhooks implements RepoClient.ListWebhooks.

@@ -17,6 +17,7 @@ package clients
 
 import (
 	"errors"
+	"time"
 )
 
 // ErrUnsupportedFeature indicates an API that is not supported by the client.
@@ -33,6 +34,7 @@ type RepoClient interface {
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)
 	GetFileContent(filename string) ([]byte, error)
 	GetBranch(branch string) (*BranchRef, error)
+	GetCreatedAt() (time.Time, error)
 	GetDefaultBranchName() (string, error)
 	GetDefaultBranch() (*BranchRef, error)
 	ListCommits() ([]Commit, error)
