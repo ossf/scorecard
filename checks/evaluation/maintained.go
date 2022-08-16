@@ -50,11 +50,11 @@ func Maintained(name string, dl checker.DetailLogger, r *checker.MaintainedData)
 		}
 	}
 
-	// Emit a warning if this repo was created recently and is a fork
+	// Emit a warning if this repo was created recently
 	recencyThreshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 	weight := 0
 	if r.CreatedAt.After(recencyThreshold) {
-		dl.Warn(&checker.LogMessage{Text: fmt.Sprintf("repo was created in the last 90 days (created_at: %s)", r.CreatedAt.Format(time.RFC3339))})
+		dl.Warn(&checker.LogMessage{Text: fmt.Sprintf("repo was created in the last 90 days (Created at: %s)", r.CreatedAt.Format(time.RFC3339))})
 		weight = newProjectWeight
 	}
 
