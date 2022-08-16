@@ -390,9 +390,8 @@ func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissi
 			if uses == nil {
 				continue
 			}
-			if before, _, found := strings.Cut(uses.Value, "@"); found {
-				uses.Value = before
-			}
+			// remove any version pinning for the comparison
+			uses.Value = strings.Split(uses.Value, "@")[0]
 			if allowlist[uses.Value] {
 				tokenPermissions.File.Offset = fileparser.GetLineNumber(uses.Pos)
 				tokenPermissions.Msg = stringPointer("allowed SARIF workflow detected")
