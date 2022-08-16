@@ -300,7 +300,7 @@ func Test_Maintained(t *testing.T) {
 			},
 		},
 		{
-			name:       "recently created fork",
+			name:       "recently created repo",
 			isarchived: false,
 			commits: []clients.Commit{
 				{
