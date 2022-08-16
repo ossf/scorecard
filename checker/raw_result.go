@@ -15,6 +15,8 @@
 package checker
 
 import (
+	"time"
+
 	"github.com/ossf/scorecard/v4/clients"
 )
 
@@ -108,6 +110,7 @@ type MaintainedData struct {
 	Issues               []clients.Issue
 	DefaultBranchCommits []clients.Commit
 	ArchivedStatus       ArchivedStatus
+	CreatedAt            time.Time
 }
 
 // LicenseData contains the raw results

@@ -24,9 +24,10 @@ import (
 )
 
 const (
-	lookBackDays    = 90
-	activityPerWeek = 1
-	daysInOneWeek   = 7
+	lookBackDays     = 90
+	activityPerWeek  = 1
+	daysInOneWeek    = 7
+	newProjectWeight = -3
 )
 
 // Maintained applies the score policy for the Maintained check.
@@ -49,6 +50,14 @@ func Maintained(name string, dl checker.DetailLogger, r *checker.MaintainedData)
 		}
 	}
 
+	// Emit a warning if this repo was created recently and is a fork
+	recencyThreshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+	weight := 0
+	if r.CreatedAt.After(recencyThreshold) {
+		dl.Warn(&checker.LogMessage{Text: fmt.Sprintf("repo was created in the last 90 days (created_at: %s)", r.CreatedAt.Format(time.RFC3339))})
+		weight = newProjectWeight
+	}
+
 	issuesUpdatedWithinThreshold := 0
 	for i := range r.Issues {
 		if hasActivityByCollaboratorOrHigher(&r.Issues[i], threshold) {
@@ -59,7 +68,7 @@ func Maintained(name string, dl checker.DetailLogger, r *checker.MaintainedData)
 	return checker.CreateProportionalScoreResult(name, fmt.Sprintf(
 		"%d commit(s) out of %d and %d issue activity out of %d found in the last %d days",
 		commitsWithinThreshold, len(r.DefaultBranchCommits), issuesUpdatedWithinThreshold, len(r.Issues), lookBackDays),
-		commitsWithinThreshold+issuesUpdatedWithinThreshold, activityPerWeek*lookBackDays/daysInOneWeek)
+		commitsWithinThreshold+issuesUpdatedWithinThreshold+weight, activityPerWeek*lookBackDays/daysInOneWeek)
 }
 
 // hasActivityByCollaboratorOrHigher returns true if the issue was created or commented on by an
