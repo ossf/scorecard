@@ -175,7 +175,7 @@ func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	return client.branches.getBranch(branch)
 }
 
-// GetCreatedAt is a getter for repo.CreatedAt
+// GetCreatedAt is a getter for repo.CreatedAt.
 func (client *Client) GetCreatedAt() (time.Time, error) {
 	return client.repo.CreatedAt.Time, nil
 }

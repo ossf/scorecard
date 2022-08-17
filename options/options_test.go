@@ -21,7 +21,7 @@ import (
 )
 
 // Cannot run parallel tests because of the ENV variables.
-// nolint
+//nolint
 func TestOptions_Validate(t *testing.T) {
 	type fields struct {
 		Repo              string

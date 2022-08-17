@@ -33,7 +33,7 @@ var (
 	mainBranchName    = "main"
 )
 
-// nolint: govet
+//nolint: govet
 type branchArg struct {
 	err           error
 	name          string
@@ -63,7 +63,7 @@ func (ba branchesArg) getBranch(b string) (*clients.BranchRef, error) {
 
 func TestBranchProtection(t *testing.T) {
 	t.Parallel()
-	// nolint: govet
+	//nolint: govet
 	tests := []struct {
 		name        string
 		branches    branchesArg

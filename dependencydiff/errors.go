@@ -16,7 +16,7 @@ package dependencydiff
 
 import "errors"
 
-// static Errors for mapping
+// static Errors for mapping.
 var (
 	errMappingNotFound = errors.New("ecosystem mapping not found")
 	errInvalid         = errors.New("invalid")
