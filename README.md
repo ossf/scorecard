@@ -8,6 +8,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard/v4)](https://goreportcard.com/report/github.com/ossf/scorecard/v4)
 [![codecov](https://codecov.io/gh/ossf/scorecard/branch/main/graph/badge.svg?token=PMJ6NAN9J3)](https://codecov.io/gh/ossf/scorecard)
 [![Slack](https://slack.babeljs.io/badge.svg)](https://slack.openssf.org/#security_scorecards)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 
 <img align="right" src="artwork/openssf_security_compressed.png" width="200" height="400">
 
@@ -152,22 +153,16 @@ Language: You must have GoLang installed to run Scorecards
 
 To install Scorecards as a standalone:
 
-1.  Visit our latest
-    [release page](https://github.com/ossf/scorecard/releases/latest) and
-    download the correct binary for your operating system 
-1.  Extract the binary file
-1.  We are excited to be an early adopter of one of the the OSSF [slsa-framework/slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator)
-to generate non-forgeable SLSA3 provenance for the scorecard-linux-amd64 binary. If you use this binary, download the companiion provenance file 
-scorecard-linux-amd64.intoto.jsonl as well. Then verify the scorecard binary with [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier#download-the-binary):
+Visit our latest [release page](https://github.com/ossf/scorecard/releases/latest) and
+download the correct zip file for your operating system.
+
+We generate [SLSA3 signatures](slsa.dev) using the OpenSSF's [slsa-framework/slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) during the release process. To verify a release binary:
+1. Install the verification tool from [slsa-framework/slsa-verifier#installation](https://github.com/slsa-framework/slsa-verifier#installation).
+2. Download the signature file `attestation.intoto.jsonl` from the [GitHub releases page](https://github.com/GoogleContainerTools/jib/releases/latest).
+3. Run the verifier:
+```shell
+slsa-verifier -artifact-path <the-zip> -provenance attestation.intoto.jsonl -source github.com/ossf/scorecard -tag <the-tag>
 ```
-$ ./slsa-verifier-linux-amd64 \
-    --artifact-path scorecard-linux-amd64 \
-    --provenance scorecard-linux-amd64.intoto.jsonl \
-    --source github.com/ossf/scorecard
-    --tag vX.Y.Z
-```
-When verification passes, it guarantees that the binary you downloaded was generated using the source code of this repository. 
-If you're interested in reading more about SLSA, visit the official [slsa.dev](https://slsa.dev).
 
 1.  Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to
     identify your directory if necessary)
