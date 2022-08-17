@@ -42,7 +42,7 @@ type worklowPinningResult struct {
 }
 
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
-func PinningDependencies(name string, dl checker.DetailLogger,
+func PinningDependencies(name string, c *checker.CheckRequest,
 	r *checker.PinningDependenciesData,
 ) checker.CheckResult {
 	if r == nil {
@@ -52,6 +52,9 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 
 	var wp worklowPinningResult
 	pr := make(map[checker.DependencyUseType]pinnedResult)
+	dl := c.Dlogger
+	//nolint:errcheck
+	remediaitonMetadata, _ := remediation.Setup(c)
 
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]
@@ -83,7 +86,7 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 				EndOffset:   rr.Location.EndOffset,
 				Text:        generateText(&rr),
 				Snippet:     rr.Location.Snippet,
-				Remediation: generateRemediation(&rr),
+				Remediation: generateRemediation(remediaitonMetadata, &rr),
 			})
 
 			// Update the pinning status.
@@ -133,10 +136,10 @@ func PinningDependencies(name string, dl checker.DetailLogger,
 		"dependency not pinned by hash detected", score, checker.MaxResultScore)
 }
 
-func generateRemediation(rr *checker.Dependency) *checker.Remediation {
+func generateRemediation(remediaitonMd remediation.RemediationMetadata, rr *checker.Dependency) *checker.Remediation {
 	switch rr.Type {
 	case checker.DependencyUseTypeGHAction:
-		return remediation.CreateWorkflowPinningRemediation(rr.Location.Path)
+		return remediaitonMd.CreateWorkflowPinningRemediation(rr.Location.Path)
 	case checker.DependencyUseTypeDockerfileContainerImage:
 		return remediation.CreateDockerfilePinningRemediation(rr.Name)
 	default:

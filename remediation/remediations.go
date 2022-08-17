@@ -18,19 +18,10 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/google/go-containerregistry/pkg/crane"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-)
-
-var (
-	branch   string
-	repo     string
-	once     *sync.Once
-	setupErr error
 )
 
 var errInvalidArg = errors.New("invalid argument")
@@ -42,53 +33,51 @@ var (
 	dockerfilePinText = "pin your Docker image by updating %[1]s to %[1]s@%s"
 )
 
-//nolint:gochecknoinits
-func init() {
-	once = new(sync.Once)
+// TODO fix how this info makes it checks/evaluation.
+type RemediationMetadata struct {
+	branch string
+	repo   string
 }
 
 // Setup sets up remediation code.
-func Setup(c *checker.CheckRequest) error {
-	once.Do(func() {
-		// Get the branch for remediation.
-		b, err := c.RepoClient.GetDefaultBranchName()
-		if err != nil {
-			if !errors.Is(err, clients.ErrUnsupportedFeature) {
-				setupErr = err
-			}
-			return
-		}
+func Setup(c *checker.CheckRequest) (RemediationMetadata, error) {
+	if c == nil || c.RepoClient == nil {
+		return RemediationMetadata{}, nil
+	}
 
-		branch = b
-		uri := c.RepoClient.URI()
-		parts := strings.Split(uri, "/")
-		if len(parts) != 3 {
-			setupErr = fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
-			return
-		}
-		repo = fmt.Sprintf("%s/%s", parts[1], parts[2])
-	})
-	return setupErr
+	// Get the branch for remediation.
+	branch, err := c.RepoClient.GetDefaultBranchName()
+	if err != nil {
+		return RemediationMetadata{}, fmt.Errorf("GetDefaultBranchName: %w", err)
+	}
+
+	uri := c.RepoClient.URI()
+	parts := strings.Split(uri, "/")
+	if len(parts) != 3 {
+		return RemediationMetadata{}, fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
+	}
+	repo := fmt.Sprintf("%s/%s", parts[1], parts[2])
+	return RemediationMetadata{branch: branch, repo: repo}, nil
 }
 
 // CreateWorkflowPermissionRemediation create remediation for workflow permissions.
-func CreateWorkflowPermissionRemediation(filepath string) *checker.Remediation {
-	return createWorkflowRemediation(filepath, "permissions")
+func (r *RemediationMetadata) CreateWorkflowPermissionRemediation(filepath string) *checker.Remediation {
+	return r.createWorkflowRemediation(filepath, "permissions")
 }
 
 // CreateWorkflowPinningRemediation create remediaiton for pinninn GH Actions.
-func CreateWorkflowPinningRemediation(filepath string) *checker.Remediation {
-	return createWorkflowRemediation(filepath, "pin")
+func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) *checker.Remediation {
+	return r.createWorkflowRemediation(filepath, "pin")
 }
 
-func createWorkflowRemediation(path, t string) *checker.Remediation {
+func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *checker.Remediation {
 	p := strings.TrimPrefix(path, ".github/workflows/")
-	if branch == "" || repo == "" {
+	if r.branch == "" || r.repo == "" {
 		return nil
 	}
 
-	text := fmt.Sprintf(workflowText, repo, p, branch, t)
-	markdown := fmt.Sprintf(workflowMarkdown, repo, p, branch, t)
+	text := fmt.Sprintf(workflowText, r.repo, p, r.branch, t)
+	markdown := fmt.Sprintf(workflowMarkdown, r.repo, p, r.branch, t)
 
 	return &checker.Remediation{
 		HelpText:     text,

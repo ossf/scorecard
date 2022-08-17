@@ -28,13 +28,13 @@ type permissions struct {
 }
 
 // TokenPermissions applies the score policy for the Token-Permissions check.
-func TokenPermissions(name string, dl checker.DetailLogger, r *checker.TokenPermissionsData) checker.CheckResult {
+func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPermissionsData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	score, err := applyScorePolicy(r, dl)
+	score, err := applyScorePolicy(r, c)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
@@ -48,12 +48,15 @@ func TokenPermissions(name string, dl checker.DetailLogger, r *checker.TokenPerm
 		"tokens are read-only in GitHub workflows")
 }
 
-func applyScorePolicy(results *checker.TokenPermissionsData, dl checker.DetailLogger) (int, error) {
+func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckRequest) (int, error) {
 	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
 	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
 	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
 
 	hm := make(map[string]permissions)
+	dl := c.Dlogger
+	//nolint:errcheck
+	remediaitonMetadata, _ := remediation.Setup(c)
 
 	for _, r := range results.TokenPermissions {
 		var msg checker.LogMessage
@@ -65,7 +68,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, dl checker.DetailLo
 			msg.Snippet = r.File.Snippet
 
 			if msg.Path != "" {
-				msg.Remediation = remediation.CreateWorkflowPermissionRemediation(r.File.Path)
+				msg.Remediation = remediaitonMetadata.CreateWorkflowPermissionRemediation(r.File.Path)
 			}
 		}
 
