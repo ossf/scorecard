@@ -54,7 +54,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	pr := make(map[checker.DependencyUseType]pinnedResult)
 	dl := c.Dlogger
 	//nolint:errcheck
-	remediaitonMetadata, _ := remediation.Setup(c)
+	remediaitonMetadata, _ := remediation.New(c)
 
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]

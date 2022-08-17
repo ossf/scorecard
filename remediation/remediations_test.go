@@ -38,7 +38,7 @@ func TestRepeatedSetup(t *testing.T) {
 		c := checker.CheckRequest{
 			RepoClient: mockRepo,
 		}
-		rmd, err := Setup(&c)
+		rmd, err := New(&c)
 		if err != nil {
 			t.Error(err)
 		}

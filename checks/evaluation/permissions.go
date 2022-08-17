@@ -56,7 +56,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	hm := make(map[string]permissions)
 	dl := c.Dlogger
 	//nolint:errcheck
-	remediaitonMetadata, _ := remediation.Setup(c)
+	remediaitonMetadata, _ := remediation.New(c)
 
 	for _, r := range results.TokenPermissions {
 		var msg checker.LogMessage

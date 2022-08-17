@@ -39,8 +39,8 @@ type RemediationMetadata struct {
 	repo   string
 }
 
-// Setup sets up remediation code.
-func Setup(c *checker.CheckRequest) (RemediationMetadata, error) {
+// New returns remediation relevant metadata from a CheckRequest.
+func New(c *checker.CheckRequest) (RemediationMetadata, error) {
 	if c == nil || c.RepoClient == nil {
 		return RemediationMetadata{}, nil
 	}
