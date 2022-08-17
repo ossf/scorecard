@@ -170,7 +170,8 @@ func Test_PinningDependencies(t *testing.T) {
 			t.Parallel()
 
 			dl := scut.TestDetailLogger{}
-			actual := PinningDependencies("checkname", &dl,
+			c := checker.CheckRequest{Dlogger: &dl}
+			actual := PinningDependencies("checkname", &c,
 				&checker.PinningDependenciesData{
 					Dependencies: tt.dependencies,
 				})

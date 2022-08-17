@@ -364,6 +364,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil)
 
 			main := "main"
 			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
