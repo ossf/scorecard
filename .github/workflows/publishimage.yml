@@ -61,7 +61,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@09a077b27eb1310dcfb21981bee195b30ce09de0
+       uses: sigstore/cosign-installer@b3413d484cc23cf8778c3d2aa361568d4eb54679
      - name: Sign image
        run: |
           cosign sign ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}
