@@ -29,7 +29,7 @@ import (
 
 // ignoring the linter for cyclomatic complexity because it is a test func
 // TestMaintained tests the maintained check.
-// nolint
+//nolint
 func Test_Maintained(t *testing.T) {
 	t.Parallel()
 	threeHundredDaysAgo := time.Now().AddDate(0, 0, -300)
