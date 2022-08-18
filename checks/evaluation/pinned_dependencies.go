@@ -136,12 +136,12 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		"dependency not pinned by hash detected", score, checker.MaxResultScore)
 }
 
-func generateRemediation(remediaitonMd remediation.RemediationMetadata, rr *checker.Dependency) *checker.Remediation {
+func generateRemediation(remediationMd checker.RemediationMetadata, rr *checker.Dependency) *checker.Remediation {
 	switch rr.Type {
 	case checker.DependencyUseTypeGHAction:
-		return remediaitonMd.CreateWorkflowPinningRemediation(rr.Location.Path)
+		return remediation.CreateWorkflowPinningRemediation(remediationMd, rr.Location.Path)
 	case checker.DependencyUseTypeDockerfileContainerImage:
-		return remediation.CreateDockerfilePinningRemediation(rr.Name)
+		return remediation.CreateDockerfilePinningRemediation(remediationMd, rr.Name)
 	default:
 		return nil
 	}
@@ -183,7 +183,6 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 }
 
 // TODO(laurent): need to support GCB pinning.
-//nolint
 func maxScore(s1, s2 int) int {
 	if s1 > s2 {
 		return s1
