@@ -33,51 +33,45 @@ var (
 	dockerfilePinText = "pin your Docker image by updating %[1]s to %[1]s@%s"
 )
 
-// TODO fix how this info makes it checks/evaluation.
-type RemediationMetadata struct {
-	branch string
-	repo   string
-}
-
 // New returns remediation relevant metadata from a CheckRequest.
-func New(c *checker.CheckRequest) (RemediationMetadata, error) {
+func New(c *checker.CheckRequest) (checker.RemediationMetadata, error) {
 	if c == nil || c.RepoClient == nil {
-		return RemediationMetadata{}, nil
+		return checker.RemediationMetadata{}, nil
 	}
 
 	// Get the branch for remediation.
 	branch, err := c.RepoClient.GetDefaultBranchName()
 	if err != nil {
-		return RemediationMetadata{}, fmt.Errorf("GetDefaultBranchName: %w", err)
+		return checker.RemediationMetadata{}, fmt.Errorf("GetDefaultBranchName: %w", err)
 	}
 
 	uri := c.RepoClient.URI()
 	parts := strings.Split(uri, "/")
 	if len(parts) != 3 {
-		return RemediationMetadata{}, fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
+		return checker.RemediationMetadata{}, fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
 	}
 	repo := fmt.Sprintf("%s/%s", parts[1], parts[2])
-	return RemediationMetadata{branch: branch, repo: repo}, nil
+	return checker.RemediationMetadata{Branch: branch, Repo: repo}, nil
 }
 
 // CreateWorkflowPermissionRemediation create remediation for workflow permissions.
-func (r *RemediationMetadata) CreateWorkflowPermissionRemediation(filepath string) *checker.Remediation {
-	return r.createWorkflowRemediation(filepath, "permissions")
+func CreateWorkflowPermissionRemediation(r checker.RemediationMetadata, filepath string) *checker.Remediation {
+	return createWorkflowRemediation(r, filepath, "permissions")
 }
 
 // CreateWorkflowPinningRemediation create remediaiton for pinninn GH Actions.
-func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) *checker.Remediation {
-	return r.createWorkflowRemediation(filepath, "pin")
+func CreateWorkflowPinningRemediation(r checker.RemediationMetadata, filepath string) *checker.Remediation {
+	return createWorkflowRemediation(r, filepath, "pin")
 }
 
-func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *checker.Remediation {
+func createWorkflowRemediation(r checker.RemediationMetadata, path, t string) *checker.Remediation {
 	p := strings.TrimPrefix(path, ".github/workflows/")
-	if r.branch == "" || r.repo == "" {
+	if r.Branch == "" || r.Repo == "" {
 		return nil
 	}
 
-	text := fmt.Sprintf(workflowText, r.repo, p, r.branch, t)
-	markdown := fmt.Sprintf(workflowMarkdown, r.repo, p, r.branch, t)
+	text := fmt.Sprintf(workflowText, r.Repo, p, r.Branch, t)
+	markdown := fmt.Sprintf(workflowMarkdown, r.Repo, p, r.Branch, t)
 
 	return &checker.Remediation{
 		HelpText:     text,
@@ -86,7 +80,7 @@ func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *checker
 }
 
 // CreateDockerfilePinningRemediation create remediaiton for pinning Dockerfile images.
-func CreateDockerfilePinningRemediation(name *string) *checker.Remediation {
+func CreateDockerfilePinningRemediation(r checker.RemediationMetadata, name *string) *checker.Remediation {
 	if name == nil {
 		return nil
 	}

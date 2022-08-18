@@ -16,9 +16,14 @@ package checker
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/clients"
 )
+
+var errInvalidArg = errors.New("invalid argument")
 
 // CheckRequest struct encapsulates all data to be passed into a CheckFn.
 type CheckRequest struct {
@@ -62,4 +67,26 @@ func contains(in []RequestType, exists RequestType) bool {
 		}
 	}
 	return false
+}
+
+// remediationMetadata returns remediation relevant metadata from a CheckRequest.
+func (c *CheckRequest) SetRemediationMetadata() error {
+	if c == nil || c.RepoClient == nil || c.RawResults == nil {
+		return nil
+	}
+
+	// Get the branch for remediation.
+	branch, err := c.RepoClient.GetDefaultBranchName()
+	if err != nil {
+		return fmt.Errorf("GetDefaultBranchName: %w", err)
+	}
+
+	uri := c.RepoClient.URI()
+	parts := strings.Split(uri, "/")
+	if len(parts) != 3 {
+		return fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
+	}
+	repo := fmt.Sprintf("%s/%s", parts[1], parts[2])
+	c.RawResults.RemediationMetadata = RemediationMetadata{Branch: branch, Repo: repo}
+	return nil
 }

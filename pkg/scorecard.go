@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -44,6 +45,11 @@ func runEnabledChecks(ctx context.Context,
 		Repo:                  repo,
 		RawResults:            raw,
 	}
+
+	if err := request.SetRemediationMetadata(); err != nil {
+		log.Print(err)
+	}
+
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
 		checkName := checkName

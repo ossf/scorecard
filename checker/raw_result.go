@@ -22,8 +22,10 @@ import (
 
 // RawResults contains results before a policy
 // is applied.
-//nolint
+//
+//nolint:govet
 type RawResults struct {
+	RemediationMetadata         RemediationMetadata
 	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
 	DangerousWorkflowResults    DangerousWorkflowData
@@ -68,7 +70,6 @@ type PackagingData struct {
 }
 
 // Package represents a package.
-//nolint
 type Package struct {
 	// TODO: not supported yet. This needs to be unique across
 	// ecosystems: purl, OSV, CPE, etc.
@@ -315,4 +316,9 @@ type TokenPermission struct {
 	File         *File
 	Msg          *string
 	Type         PermissionLevel
+}
+
+type RemediationMetadata struct {
+	Branch string
+	Repo   string
 }
