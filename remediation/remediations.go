@@ -15,7 +15,6 @@
 package remediation
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -24,35 +23,12 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 )
 
-var errInvalidArg = errors.New("invalid argument")
-
 var (
 	workflowText = "update your workflow using https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s"
 	//nolint
 	workflowMarkdown  = "update your workflow using [https://app.stepsecurity.io](https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s)"
 	dockerfilePinText = "pin your Docker image by updating %[1]s to %[1]s@%s"
 )
-
-// New returns remediation relevant metadata from a CheckRequest.
-func New(c *checker.CheckRequest) (checker.RemediationMetadata, error) {
-	if c == nil || c.RepoClient == nil {
-		return checker.RemediationMetadata{}, nil
-	}
-
-	// Get the branch for remediation.
-	branch, err := c.RepoClient.GetDefaultBranchName()
-	if err != nil {
-		return checker.RemediationMetadata{}, fmt.Errorf("GetDefaultBranchName: %w", err)
-	}
-
-	uri := c.RepoClient.URI()
-	parts := strings.Split(uri, "/")
-	if len(parts) != 3 {
-		return checker.RemediationMetadata{}, fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
-	}
-	repo := fmt.Sprintf("%s/%s", parts[1], parts[2])
-	return checker.RemediationMetadata{Branch: branch, Repo: repo}, nil
-}
 
 // CreateWorkflowPermissionRemediation create remediation for workflow permissions.
 func CreateWorkflowPermissionRemediation(r checker.RemediationMetadata, filepath string) *checker.Remediation {
