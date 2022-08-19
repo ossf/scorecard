@@ -15,17 +15,26 @@
 package checker
 
 import (
+	"errors"
+	"fmt"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/ossf/scorecard/v4/clients"
 )
+
+var errInvalidArg = errors.New("invalid argument")
 
 // RawResults contains results before a policy
 // is applied.
 //
 //nolint:govet
 type RawResults struct {
-	RemediationMetadata         RemediationMetadata
+	// only
+	metadataOnce        sync.Once
+	RemediationMetadata RemediationMetadata
+
 	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
 	DangerousWorkflowResults    DangerousWorkflowData
@@ -295,4 +304,34 @@ type TokenPermission struct {
 type RemediationMetadata struct {
 	Branch string
 	Repo   string
+}
+
+// remediationMetadata returns remediation relevant metadata from a CheckRequest.
+func (r *RawResults) SetupRemediationMetadata(c *CheckRequest) error {
+	var e error
+	r.metadataOnce.Do(func() {
+		if r == nil || c.RepoClient == nil {
+			return
+		}
+		r.RemediationMetadata = RemediationMetadata{}
+
+		// Get the branch for remediation.
+		branch, err := c.RepoClient.GetDefaultBranchName()
+		if err != nil {
+			e = fmt.Errorf("GetDefaultBranchName: %w", err)
+			return
+		}
+
+		uri := c.RepoClient.URI()
+		parts := strings.Split(uri, "/")
+
+		if len(parts) != 3 {
+			e = fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
+			return
+		}
+		repo := fmt.Sprintf("%s/%s", parts[1], parts[2])
+		r.RemediationMetadata = RemediationMetadata{Branch: branch, Repo: repo}
+	})
+
+	return e
 }

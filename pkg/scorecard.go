@@ -19,7 +19,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
@@ -44,10 +43,6 @@ func runEnabledChecks(ctx context.Context,
 		VulnerabilitiesClient: vulnsClient,
 		Repo:                  repo,
 		RawResults:            raw,
-	}
-
-	if err := request.SetRemediationMetadata(); err != nil {
-		log.Print(err)
 	}
 
 	wg := sync.WaitGroup{}

@@ -37,15 +37,16 @@ func TestRepeatedSetup(t *testing.T) {
 
 		c := checker.CheckRequest{
 			RepoClient: mockRepo,
+			RawResults: &checker.RawResults{},
 		}
-		rmd, err := New(&c)
-		if err != nil {
+		if err := c.RawResults.SetupRemediationMetadata(&c); err != nil {
 			t.Error(err)
 		}
+		rmd := c.RawResults.RemediationMetadata
 
 		want := fmt.Sprintf("ossf/scorecard%d", i)
-		if rmd.repo != want {
-			t.Errorf("failed. expected: %v, got: %v", want, rmd.repo)
+		if rmd.Repo != want {
+			t.Errorf("failed. expected: %v, got: %v", want, rmd.Repo)
 		}
 	}
 }
