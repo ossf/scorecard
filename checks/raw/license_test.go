@@ -90,10 +90,15 @@ func TestLicenseFileCheck(t *testing.T) {
 			},
 		},
 		{
-			name:     "GPL-2.0",
-			filename: "GPL-2.0",
+			name:     "GPL",
+			filename: "GPL",
 			extensions: []string{
-				"",
+				"v1",
+				"-1.0",
+				"v2",
+				"-2.0",
+				"v3",
+				"-3.0",
 			},
 		},
 	}

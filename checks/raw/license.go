@@ -38,7 +38,7 @@ const (
 	anyExt       = ".[^./]"
 	ofl          = "ofl"
 	patents      = "patents"
-	gpl          = "gpl-2\\.0"
+	gpl          = "gpl(v|-)\\d"
 )
 
 // Regex converted from
