@@ -107,8 +107,9 @@ func parseFromYAML(b []byte) (*ScorecardPolicy, error) {
 	retPolicy.Version = int32(sp.Version)
 
 	checksFound := make(map[string]bool)
+	allChecks := checks.GetAllWithExperimental()
 	for n, p := range sp.Policies {
-		if _, exists := checks.AllChecks[n]; !exists {
+		if _, exists := allChecks[n]; !exists {
 			return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInvalidCheck.Error(), n))
 		}
 
@@ -211,14 +212,14 @@ func checksHavePolicies(sp *ScorecardPolicy, enabledChecks checker.CheckNameToFn
 func isSupportedCheck(checkName string, requiredRequestTypes []checker.RequestType) bool {
 	unsupported := checker.ListUnsupported(
 		requiredRequestTypes,
-		checks.AllChecks[checkName].SupportedRequestTypes)
+		checks.GetAllWithExperimental()[checkName].SupportedRequestTypes)
 	return len(unsupported) == 0
 }
 
 // Enables checks by name.
 func enableCheck(checkName string, enabledChecks *checker.CheckNameToFnMap) bool {
 	if enabledChecks != nil {
-		for key, checkFn := range checks.GetAll() {
+		for key, checkFn := range checks.GetAllWithExperimental() {
 			if strings.EqualFold(key, checkName) {
 				(*enabledChecks)[key] = checkFn
 				return true

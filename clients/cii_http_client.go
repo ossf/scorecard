@@ -38,7 +38,7 @@ func (transport *expBackoffTransport) RoundTrip(req *http.Request) (*http.Respon
 	for i := 0; i < int(transport.numRetries); i++ {
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil || resp.StatusCode != http.StatusTooManyRequests {
-			// nolint: wrapcheck
+			//nolint: wrapcheck
 			return resp, err
 		}
 		time.Sleep(time.Duration(math.Pow(2, float64(i))) * time.Second)

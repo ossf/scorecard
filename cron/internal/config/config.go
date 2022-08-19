@@ -62,7 +62,7 @@ var (
 	configYAML []byte
 )
 
-// nolint
+//nolint
 type config struct {
 	ProjectID              string  `yaml:"project-id"`
 	ResultDataBucketURL    string  `yaml:"result-data-bucket-url"`

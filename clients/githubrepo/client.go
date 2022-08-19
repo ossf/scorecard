@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
@@ -31,27 +32,29 @@ import (
 )
 
 var (
-	_                clients.RepoClient = &Client{}
-	errInputRepoType                    = errors.New("input repo should be of type repoURL")
+	_                     clients.RepoClient = &Client{}
+	errInputRepoType                         = errors.New("input repo should be of type repoURL")
+	errDefaultBranchEmpty                    = errors.New("default branch name is empty")
 )
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	repourl      *repoURL
-	repo         *github.Repository
-	repoClient   *github.Client
-	graphClient  *graphqlHandler
-	contributors *contributorsHandler
-	branches     *branchesHandler
-	releases     *releasesHandler
-	workflows    *workflowsHandler
-	checkruns    *checkrunsHandler
-	statuses     *statusesHandler
-	search       *searchHandler
-	webhook      *webhookHandler
-	languages    *languagesHandler
-	ctx          context.Context
-	tarball      tarballHandler
+	repourl       *repoURL
+	repo          *github.Repository
+	repoClient    *github.Client
+	graphClient   *graphqlHandler
+	contributors  *contributorsHandler
+	branches      *branchesHandler
+	releases      *releasesHandler
+	workflows     *workflowsHandler
+	checkruns     *checkrunsHandler
+	statuses      *statusesHandler
+	search        *searchHandler
+	searchCommits *searchCommitsHandler
+	webhook       *webhookHandler
+	languages     *languagesHandler
+	ctx           context.Context
+	tarball       tarballHandler
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
@@ -101,6 +104,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 
 	// Setup searchHandler.
 	client.search.init(client.ctx, client.repourl)
+
+	// Setup searchCommitsHandler
+	client.searchCommits.init(client.ctx, client.repourl)
 
 	// Setup webhookHandler.
 	client.webhook.init(client.ctx, client.repourl)
@@ -155,9 +161,23 @@ func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return client.branches.getDefaultBranch()
 }
 
+// GetDefaultBranchName implements RepoClient.GetDefaultBranchName.
+func (client *Client) GetDefaultBranchName() (string, error) {
+	if len(client.repourl.defaultBranch) > 0 {
+		return client.repourl.defaultBranch, nil
+	}
+
+	return "", fmt.Errorf("%w", errDefaultBranchEmpty)
+}
+
 // GetBranch implements RepoClient.GetBranch.
 func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	return client.branches.getBranch(branch)
+}
+
+// GetCreatedAt is a getter for repo.CreatedAt.
+func (client *Client) GetCreatedAt() (time.Time, error) {
+	return client.repo.CreatedAt.Time, nil
 }
 
 // ListWebhooks implements RepoClient.ListWebhooks.
@@ -188,6 +208,11 @@ func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return client.search.search(request)
+}
+
+// SearchCommits implements RepoClient.SearchCommits.
+func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
+	return client.searchCommits.search(request)
 }
 
 // Close implements RepoClient.Close.
@@ -229,6 +254,9 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 			client: client,
 		},
 		search: &searchHandler{
+			ghClient: client,
+		},
+		searchCommits: &searchCommitsHandler{
 			ghClient: client,
 		},
 		webhook: &webhookHandler{

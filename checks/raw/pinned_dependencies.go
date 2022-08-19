@@ -463,7 +463,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 				continue
 			}
 
-			// nolint:lll
+			//nolint:lll
 			// Check whether this is an action defined in the same repo,
 			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
 			if strings.HasPrefix(execAction.Uses.Value, "./") {

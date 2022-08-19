@@ -163,7 +163,7 @@ func maxOffset(x, y uint) uint {
 }
 
 func calculateSeverityLevel(risk string) string {
-	// nolint:lll
+	//nolint:lll
 	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
 	// "over 9.0 is critical, 7.0 to 8.9 is high, 4.0 to 6.9 is medium and 3.9 or less is low".
 	switch risk {
@@ -181,11 +181,11 @@ func calculateSeverityLevel(risk string) string {
 }
 
 func generateProblemSeverity(risk string) string {
-	// nolint:lll
+	//nolint:lll
 	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
 	switch risk {
 	case "Critical":
-		// nolint:goconst
+		//nolint:goconst
 		return "error"
 	case "High":
 		return "error"
@@ -553,7 +553,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	sarif := createSARIFHeader()
 	runs := make(map[string]*run)
 
-	// nolint
+	//nolint
 	for _, check := range r.Checks {
 		doc, err := checkDocs.GetCheck(check.Name)
 		if err != nil {

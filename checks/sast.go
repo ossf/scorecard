@@ -72,7 +72,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		codeQlScore == checker.InconclusiveResultScore {
 		// That can never happen since sastToolInCheckRuns can never
 		// retun checker.InconclusiveResultScore.
-		return checker.CreateInconclusiveResult(CheckSAST, "internal error")
+		return checker.CreateRuntimeErrorResult(CheckSAST, sce.ErrScorecardInternal)
 	}
 
 	// Both scores are conclusive.
@@ -123,7 +123,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	return checker.CreateRuntimeErrorResult(CheckSAST, sce.WithMessage(sce.ErrScorecardInternal, "contact team"))
 }
 
-// nolint
+//nolint
 func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
@@ -187,7 +187,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 	return checker.CreateProportionalScore(totalTested, totalMerged), nil
 }
 
-// nolint
+//nolint
 func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	searchRequest := clients.SearchRequest{
 		Query: "github/codeql-action/analyze",
@@ -228,7 +228,7 @@ type sonarConfig struct {
 	file checker.File
 }
 
-// nolint
+//nolint
 func sonarEnabled(c *checker.CheckRequest) (int, error) {
 	var config []sonarConfig
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{

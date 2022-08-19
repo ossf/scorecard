@@ -187,7 +187,7 @@ func getVanityRepoURL(u string) string {
 func parseGoModURL(dependency string, repoURLs []data.RepoFormat) []data.RepoFormat {
 	repoURL := data.RepoFormat{}
 	splitURL := strings.Split(dependency, "/")
-	// nolint:gomnd
+	//nolint:gomnd
 	if len(splitURL) < 3 {
 		return repoURLs
 	}

@@ -8,6 +8,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard/v4)](https://goreportcard.com/report/github.com/ossf/scorecard/v4)
 [![codecov](https://codecov.io/gh/ossf/scorecard/branch/main/graph/badge.svg?token=PMJ6NAN9J3)](https://codecov.io/gh/ossf/scorecard)
 [![Slack](https://slack.babeljs.io/badge.svg)](https://slack.openssf.org/#security_scorecards)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 
 <img align="right" src="artwork/openssf_security_compressed.png" width="200" height="400">
 
@@ -91,7 +92,12 @@ This data is available in the public BigQuery dataset
 `openssf:scorecardcron.scorecard-v2`. The latest results are available in the
 BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
 
-You can query the data using [BigQuery Explorer](http://console.cloud.google.com/bigquery) by navigating to Add Data > Pin a Project > Enter Project Name > 'openssf'
+You can query the data using [BigQuery Explorer](http://console.cloud.google.com/bigquery) by navigating to Add Data > Pin a Project > Enter Project Name > 'openssf'.
+For example, you may be interested in how a project's score has changed over time:
+
+```sql
+SELECT date, score FROM `openssf.scorecardcron.scorecard-v2` WHERE repo.name="github.com/ossf/scorecard" ORDER BY date ASC
+```
 
 You can extract the latest results to Google Cloud storage in JSON format using
 the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
@@ -147,22 +153,16 @@ Language: You must have GoLang installed to run Scorecards
 
 To install Scorecards as a standalone:
 
-1.  Visit our latest
-    [release page](https://github.com/ossf/scorecard/releases/latest) and
-    download the correct binary for your operating system 
-1.  Extract the binary file
-1.  We are excited to be an early adopter of one of the the OSSF [slsa-framework/slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator)
-to generate non-forgeable SLSA3 provenance for the scorecard-linux-amd64 binary. If you use this binary, download the companiion provenance file 
-scorecard-linux-amd64.intoto.jsonl as well. Then verify the scorecard binary with [slsa-framework/slsa-verifier](https://github.com/slsa-framework/slsa-verifier#download-the-binary):
+Visit our latest [release page](https://github.com/ossf/scorecard/releases/latest) and
+download the correct zip file for your operating system.
+
+We generate [SLSA3 signatures](slsa.dev) using the OpenSSF's [slsa-framework/slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) during the release process. To verify a release binary:
+1. Install the verification tool from [slsa-framework/slsa-verifier#installation](https://github.com/slsa-framework/slsa-verifier#installation).
+2. Download the signature file `attestation.intoto.jsonl` from the [GitHub releases page](https://github.com/GoogleContainerTools/jib/releases/latest).
+3. Run the verifier:
+```shell
+slsa-verifier -artifact-path <the-zip> -provenance attestation.intoto.jsonl -source github.com/ossf/scorecard -tag <the-tag>
 ```
-$ ./slsa-verifier-linux-amd64 \
-    --artifact-path scorecard-linux-amd64 \
-    --provenance scorecard-linux-amd64.intoto.jsonl \
-    --source github.com/ossf/scorecard
-    --tag vX.Y.Z
-```
-When verification passes, it guarantees that the binary you downloaded was generated using the source code of this repository. 
-If you're interested in reading more about SLSA, visit the official [slsa.dev](https://slsa.dev).
 
 1.  Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to
     identify your directory if necessary)
@@ -429,7 +429,7 @@ Name        | Description                               | Risk Level | Token Req
 [Dependency-Update-Tool](docs/checks.md#dependency-update-tool) | Does the project use tools to help update its dependencies?                                                                                                                                                                                                                                                                  | High | PAT, GITHUB_TOKEN   |
 [Fuzzing](docs/checks.md#fuzzing)                               | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?                                                                                                                                                                                                                                     | Medium | PAT, GITHUB_TOKEN   |
 [License](docs/checks.md#license)                               | Does the project declare a license?                                                                                                                                                                                                                                                                                          | Low | PAT, GITHUB_TOKEN   |
-[Maintained](docs/checks.md#maintained)                         | Is the project maintained?                                                                                                                                                                                                                                                                                                   | High | PAT, GITHUB_TOKEN   |
+[Maintained](docs/checks.md#maintained)                         | Is the project at least 90 days old, and maintained?                                                                                                                                                                                                                                                                                                   | High | PAT, GITHUB_TOKEN   |
 [Pinned-Dependencies](docs/checks.md#pinned-dependencies)       | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?                                                                                                                     | Medium | PAT, GITHUB_TOKEN   |
 [Packaging](docs/checks.md#packaging)                           | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?                                                                                            | Medium | PAT, GITHUB_TOKEN   |
 [SAST](docs/checks.md#sast)                                     | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [LGTM](https://lgtm.com), [SonarCloud](https://sonarcloud.io)? | Medium | PAT, GITHUB_TOKEN   |

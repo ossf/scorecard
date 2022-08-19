@@ -1,16 +1,14 @@
 module github.com/ossf/scorecard/v4
 
-go 1.17
+go 1.18
 
-// TODO(go.mod): Is there a reason these deps are kept separately from the
-//               other `require`s?
 require (
 	github.com/rhysd/actionlint v1.6.15
 	gotest.tools v2.2.0+incompatible
 )
 
 require (
-	cloud.google.com/go/bigquery v1.36.0
+	cloud.google.com/go/bigquery v1.38.0
 	cloud.google.com/go/monitoring v1.4.0 // indirect
 	cloud.google.com/go/pubsub v1.24.0
 	cloud.google.com/go/trace v1.2.0 // indirect
@@ -34,10 +32,10 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
 	go.opencensus.io v0.23.0
-	gocloud.dev v0.25.0
+	gocloud.dev v0.26.0
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.12
-	google.golang.org/genproto v0.0.0-20220714211235-042d03aeabc9
+	google.golang.org/genproto v0.0.0-20220812140447-cec7f5303424
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -82,7 +80,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.1.0 // indirect
-	github.com/googleapis/gax-go/v2 v2.4.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.5.1 // indirect
 	github.com/googleapis/go-type-adapters v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -112,9 +110,9 @@ require (
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
-	google.golang.org/api v0.87.0 // indirect
+	google.golang.org/api v0.92.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/grpc v1.47.0 // indirect
+	google.golang.org/grpc v1.48.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
 
