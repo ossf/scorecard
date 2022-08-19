@@ -44,7 +44,6 @@ func runEnabledChecks(ctx context.Context,
 		Repo:                  repo,
 		RawResults:            raw,
 	}
-
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
 		checkName := checkName
