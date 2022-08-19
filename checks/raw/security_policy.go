@@ -107,6 +107,8 @@ func isSecurityPolicyFilename(name string) bool {
 		strings.EqualFold(name, "security.adoc") ||
 		strings.EqualFold(name, ".github/security.adoc") ||
 		strings.EqualFold(name, "docs/security.adoc") ||
+		strings.EqualFold(name, "security.rst") ||
+		strings.EqualFold(name, ".github/security.rst") ||
 		strings.EqualFold(name, "doc/security.rst") ||
 		strings.EqualFold(name, "docs/security.rst")
 }

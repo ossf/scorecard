@@ -64,6 +64,26 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 		},
 		{
+			name: "security.rst",
+			files: []string{
+				"security.rst",
+			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
+			},
+		},
+		{
+			name: ".github/security.rst",
+			files: []string{
+				".github/security.rst",
+			},
+			want: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 1,
+			},
+		},
+		{
 			name: "docs/security.rst",
 			files: []string{
 				"docs/security.rst",
