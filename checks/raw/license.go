@@ -38,6 +38,7 @@ const (
 	anyExt       = ".[^./]"
 	ofl          = "ofl"
 	patents      = "patents"
+	gpl          = "gpl-2\\.0"
 )
 
 // Regex converted from
@@ -59,6 +60,7 @@ var (
 		{rstr: "\\w+[-_]" + license + "[^.]*", f: extensionMatch, p: extensions},
 		{rstr: "\\w+[-_]" + copying + "[^.]*", f: extensionMatch, p: extensions},
 		{rstr: ofl, f: extensionMatch, p: extensions},
+		{rstr: gpl, f: nil},
 	}
 )
 
