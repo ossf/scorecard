@@ -22,78 +22,98 @@ func TestLicenseFileCheck(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		filename string
+		name       string
+		filename   string
+		extensions []string
 	}{
-		{
-			name:     "LICENSE.md",
-			filename: "LICENSE.md",
-		},
 		{
 			name:     "LICENSE",
 			filename: "LICENSE",
+			extensions: []string{
+				"",
+				".textile",
+				".txt",
+				".rst",
+				".PSF",
+				".APACHE",
+				".BSD",
+				".md",
+				"-MIT",
+			},
+		},
+		{
+			name:     "LICENCE",
+			filename: "LICENCE",
+			extensions: []string{
+				"",
+			},
 		},
 		{
 			name:     "COPYING",
 			filename: "COPYING",
-		},
-		{
-			name:     "COPYING.md",
-			filename: "COPYING.md",
-		},
-		{
-			name:     "LICENSE.textile",
-			filename: "LICENSE.textile",
-		},
-		{
-			name:     "COPYING.textile",
-			filename: "COPYING.textile",
-		},
-		{
-			name:     "LICENSE-MIT",
-			filename: "LICENSE-MIT",
-		},
-		{
-			name:     "COPYING-MIT",
-			filename: "COPYING-MIT",
+			extensions: []string{
+				"",
+				".md",
+				".textile",
+				"-MIT",
+			},
 		},
 		{
 			name:     "MIT-LICENSE-MIT",
 			filename: "MIT-LICENSE-MIT",
+			extensions: []string{
+				"",
+			},
 		},
 		{
 			name:     "MIT-COPYING",
 			filename: "MIT-COPYING",
-		},
-		{
-			name:     "OFL.md",
-			filename: "OFL.md",
-		},
-		{
-			name:     "OFL.textile",
-			filename: "OFL.textile",
+			extensions: []string{
+				"",
+			},
 		},
 		{
 			name:     "OFL",
 			filename: "OFL",
+			extensions: []string{
+				"",
+				".md",
+				".textile",
+			},
 		},
 		{
 			name:     "PATENTS",
 			filename: "PATENTS",
+			extensions: []string{
+				"",
+				".txt",
+			},
 		},
 		{
-			name:     "PATENTS.txt",
-			filename: "PATENTS.txt",
+			name:     "GPL",
+			filename: "GPL",
+			extensions: []string{
+				"v1",
+				"-1.0",
+				"v2",
+				"-2.0",
+				"v3",
+				"-3.0",
+			},
 		},
 	}
+
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			s := TestLicense(tt.filename)
-			if !s {
-				t.Fail()
-			}
-		})
+		for _, ext := range tt.extensions {
+			name := tt.name + ext
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				s := TestLicense(name)
+				if !s {
+					t.Fail()
+				}
+			})
+		}
 	}
 }
