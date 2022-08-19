@@ -99,8 +99,8 @@ func TestBinaryArtifacts(t *testing.T) {
 			files: [][]string{
 				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
 				{
-					"../testdata/binaryartifacts/workflows/nonverify.yml",
-					"../testdata/binaryartifacts/workflows/verify.yml",
+					"../testdata/binaryartifacts/workflows/nonverify.yaml",
+					"../testdata/binaryartifacts/workflows/verify.yaml",
 				},
 			},
 			successfulWorkflowRuns: []clients.WorkflowRun{
@@ -124,7 +124,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			err:  nil,
 			files: [][]string{
 				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
-				{"../testdata/binaryartifacts/workflows/nonverify.yml"},
+				{"../testdata/binaryartifacts/workflows/nonverify.yaml"},
 			},
 			getFileContentCount: 2,
 			expect:              1,
@@ -134,7 +134,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			err:  nil,
 			files: [][]string{
 				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
-				{"../testdata/binaryartifacts/workflows/verify.yml"},
+				{"../testdata/binaryartifacts/workflows/verify.yaml"},
 			},
 			successfulWorkflowRuns: []clients.WorkflowRun{
 				{
@@ -158,12 +158,50 @@ func TestBinaryArtifacts(t *testing.T) {
 			files: [][]string{
 				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
 				{
-					"../testdata/binaryartifacts/workflows/nonverify.yml",
-					"../testdata/binaryartifacts/workflows/verify-outdated-action.yml",
+					"../testdata/binaryartifacts/workflows/nonverify.yaml",
+					"../testdata/binaryartifacts/workflows/verify-outdated-action.yaml",
 				},
 			},
 			getFileContentCount: 3,
 			expect:              1,
+		},
+		{
+			name: "gradle-wrapper.jar with no verification action due to bad workflow",
+			err:  nil,
+			files: [][]string{
+				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
+				{
+					"../testdata/binaryartifacts/workflows/invalid.yaml",
+				},
+			},
+			getFileContentCount: 2,
+			expect:              1,
+		},
+		{
+			name: "gradle-wrapper.jar with verification and bad workflow",
+			err:  nil,
+			files: [][]string{
+				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
+				{
+					"../testdata/binaryartifacts/workflows/invalid.yaml",
+					"../testdata/binaryartifacts/workflows/verify.yaml",
+				},
+			},
+			successfulWorkflowRuns: []clients.WorkflowRun{
+				{
+					HeadSHA: strptr("sha-a"),
+				},
+			},
+			commits: []clients.Commit{
+				{
+					SHA: "sha-a",
+				},
+				{
+					SHA: "sha-old",
+				},
+			},
+			getFileContentCount: 3,
+			expect:              0,
 		},
 	}
 	for _, tt := range tests {
