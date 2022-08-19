@@ -45,9 +45,12 @@ func PinningDependencies(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Set the raw results.
-	if c.RawResults != nil {
-		c.RawResults.PinningDependenciesResults = rawData
+	if c.RawResults == nil {
+		c.RawResults = &checker.RawResults{}
 	}
+	c.RawResults.PinningDependenciesResults = rawData
 
-	return evaluation.PinningDependencies(CheckPinnedDependencies, c, &rawData)
+	//nolint:errcheck
+	c.RawResults.SetupRemediationMetadata(c)
+	return evaluation.PinningDependencies(CheckPinnedDependencies, c, c.RawResults)
 }

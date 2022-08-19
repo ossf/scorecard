@@ -42,9 +42,7 @@ type worklowPinningResult struct {
 }
 
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
-func PinningDependencies(name string, c *checker.CheckRequest,
-	r *checker.PinningDependenciesData,
-) checker.CheckResult {
+func PinningDependencies(name string, c *checker.CheckRequest, r *checker.RawResults) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)
@@ -53,44 +51,44 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	var wp worklowPinningResult
 	pr := make(map[checker.DependencyUseType]pinnedResult)
 	dl := c.Dlogger
-	//nolint:errcheck
-	remediaitonMetadata, _ := remediation.New(c)
 
-	for i := range r.Dependencies {
-		rr := r.Dependencies[i]
-		if rr.Location == nil {
-			if rr.Msg == nil {
+	dependencyResults := &r.PinningDependenciesResults
+
+	for i := range dependencyResults.Dependencies {
+		dependency := dependencyResults.Dependencies[i]
+		if dependency.Location == nil {
+			if dependency.Msg == nil {
 				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
 			dl.Debug(&checker.LogMessage{
-				Text: *rr.Msg,
+				Text: *dependency.Msg,
 			})
 			continue
 		}
 
-		if rr.Msg != nil {
+		if dependency.Msg != nil {
 			dl.Debug(&checker.LogMessage{
-				Path:      rr.Location.Path,
-				Type:      rr.Location.Type,
-				Offset:    rr.Location.Offset,
-				EndOffset: rr.Location.EndOffset,
-				Text:      *rr.Msg,
-				Snippet:   rr.Location.Snippet,
+				Path:      dependency.Location.Path,
+				Type:      dependency.Location.Type,
+				Offset:    dependency.Location.Offset,
+				EndOffset: dependency.Location.EndOffset,
+				Text:      *dependency.Msg,
+				Snippet:   dependency.Location.Snippet,
 			})
 		} else {
 			dl.Warn(&checker.LogMessage{
-				Path:        rr.Location.Path,
-				Type:        rr.Location.Type,
-				Offset:      rr.Location.Offset,
-				EndOffset:   rr.Location.EndOffset,
-				Text:        generateText(&rr),
-				Snippet:     rr.Location.Snippet,
-				Remediation: generateRemediation(remediaitonMetadata, &rr),
+				Path:        dependency.Location.Path,
+				Type:        dependency.Location.Type,
+				Offset:      dependency.Location.Offset,
+				EndOffset:   dependency.Location.EndOffset,
+				Text:        generateText(&dependency),
+				Snippet:     dependency.Location.Snippet,
+				Remediation: generateRemediation(r.RemediationMetadata, &dependency),
 			})
 
 			// Update the pinning status.
-			updatePinningResults(&rr, &wp, pr)
+			updatePinningResults(&dependency, &wp, pr)
 		}
 	}
 

@@ -172,8 +172,10 @@ func Test_PinningDependencies(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			c := checker.CheckRequest{Dlogger: &dl}
 			actual := PinningDependencies("checkname", &c,
-				&checker.PinningDependenciesData{
-					Dependencies: tt.dependencies,
+				&checker.RawResults{
+					PinningDependenciesResults: checker.PinningDependenciesData{
+						Dependencies: tt.dependencies,
+					},
 				})
 
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
