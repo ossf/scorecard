@@ -23,6 +23,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -115,7 +117,7 @@ func TestJSONOutput(t *testing.T) {
 								},
 							},
 						},
-						Score:  5,
+						Score:  0,
 						Reason: "half score reason",
 						Name:   "Check-Name",
 					},
@@ -468,6 +470,7 @@ func TestJSONOutput(t *testing.T) {
 			// Compare outputs.
 			r := bytes.Compare(result.Bytes(), es.Bytes())
 			if r != 0 {
+				t.Log(cmp.Diff(es.String(), result.String()))
 				t.Fatalf("%s: invalid result %d", tt.name, r)
 			}
 

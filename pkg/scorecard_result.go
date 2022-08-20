@@ -152,6 +152,10 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 		} else {
 			x = make([]string, withoutdetails)
 		}
+		// if the number of commits is 0, then we set the result to -1 to indicate that the scorecard is inconclusive.
+		if len(r.RawResults.MaintainedResults.DefaultBranchCommits) == 0 {
+			row.Score = checker.InconclusiveResultScore
+		}
 
 		// UPGRADEv2: rename variable.
 		if row.Score == checker.InconclusiveResultScore {

@@ -8,13 +8,13 @@
       "version": "1.2.3",
       "commit": "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
    },
-   "score": 0,
+   "score": -1,
    "checks": [
       {
          "details": [
             "Warn: warn message: bin/binary.elf"
          ],
-         "score": 0,
+         "score": -1,
          "reason": "min result reason",
          "name": "Check-Name",
          "documentation": {
@@ -26,7 +26,7 @@
          "details": [
             "Warn: warn message: src/doc.txt:3"
          ],
-         "score": 0,
+         "score": -1,
          "reason": "min result reason",
          "name": "Check-Name2",
          "documentation": {

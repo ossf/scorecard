@@ -8,13 +8,13 @@
       "version": "1.2.3",
       "commit": "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
    },
-   "score":6,
+   "score":-1,
    "checks": [
       {
          "details": [
             "Warn: warn message: src/file1.cpp:5"
          ],
-         "score": 6,
+         "score": -1,
          "reason": "six score reason",
          "name": "Check-Name",
          "documentation": {

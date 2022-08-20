@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/ossf/scorecard/v4/checker"
+
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
@@ -119,8 +121,13 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
 ) error {
 	score, err := r.GetAggregateScore(checkDocs)
+	numberOfCommits := len(r.RawResults.MaintainedResults.DefaultBranchCommits)
 	if err != nil {
 		return err
+	}
+	// if the number of commits is 0, then we set the result to -1 to indicate that the scorecard is inconclusive.
+	if numberOfCommits == 0 {
+		score = checker.InconclusiveResultScore
 	}
 
 	encoder := json.NewEncoder(writer)
@@ -143,6 +150,11 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 		if e != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
 		}
+		score := checkResult.Score
+		// if the number of commits is 0, then we set the result to -1 to indicate that the scorecard is inconclusive.
+		if numberOfCommits == 0 {
+			score = checker.InconclusiveResultScore
+		}
 
 		tmpResult := jsonCheckResultV2{
 			Name: checkResult.Name,
@@ -151,7 +163,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 				Short: doc.GetShort(),
 			},
 			Reason: checkResult.Reason,
-			Score:  checkResult.Score,
+			Score:  score,
 		}
 		if showDetails {
 			for i := range checkResult.Details {
