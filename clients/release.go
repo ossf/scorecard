@@ -20,6 +20,8 @@ type Release struct {
 	URL             string
 	TargetCommitish string
 	Assets          []ReleaseAsset
+	ZipballURL      string
+	TarballURL      string
 }
 
 // ReleaseAsset is part of the Release bundle.

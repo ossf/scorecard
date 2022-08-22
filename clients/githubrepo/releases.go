@@ -72,6 +72,8 @@ func releasesFrom(data []*github.RepositoryRelease) []clients.Release {
 			TagName:         r.GetTagName(),
 			URL:             r.GetURL(),
 			TargetCommitish: r.GetTargetCommitish(),
+			ZipballURL:      r.GetZipballURL(),
+			TarballURL:      r.GetTarballURL(),
 		}
 		for _, a := range r.Assets {
 			release.Assets = append(release.Assets, clients.ReleaseAsset{

@@ -30,8 +30,8 @@ var (
 
 const releaseLookBack = 5
 
-//SignedReleases applies the score policy for the Signed-Releases check.
-//nolint
+// SignedReleases applies the score policy for the Signed-Releases check.
+// nolint
 func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedReleasesData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
@@ -42,7 +42,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 	total := 0
 	score := 0
 	for _, release := range r.Releases {
-		if release.TagName == "" {
+		if release.ZipballURL == "" && release.TarballURL == "" && len(release.Assets) == 0 {
 			continue
 		}
 
