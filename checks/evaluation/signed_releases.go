@@ -42,7 +42,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 	total := 0
 	score := 0
 	for _, release := range r.Releases {
-		if len(release.Assets) == 0 {
+		if release.TagName == "" {
 			continue
 		}
 
@@ -127,6 +127,6 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 	}
 
 	score = int(math.Floor(float64(score) / float64(totalReleases)))
-	reason := fmt.Sprintf("%d out of %d artifacts are signed or have provenance", total, totalReleases)
+	reason := fmt.Sprintf("%d out of %d most recent artifacts are signed or have provenance", total, totalReleases)
 	return checker.CreateResultWithScore(name, reason, score)
 }
