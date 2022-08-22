@@ -371,6 +371,55 @@ func TestSignedRelease(t *testing.T) {
 				Error: errors.New("Error getting releases"),
 			},
 		},
+		{
+			name: "Releases with no assets",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					Assets:          []clients.ReleaseAsset{},
+					TarballURL:      "http://foo.com/asset.tar.gz",
+					ZipballURL:      "http://foo.com/asset.zip",
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			name: "Some releases with no assets",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					Assets:          []clients.ReleaseAsset{},
+					TarballURL:      "http://foo.com/asset.tar.gz",
+					ZipballURL:      "http://foo.com/asset.zip",
+				},
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.sig",
+							URL:  "http://foo.com/v2.0.0/foo.sig",
+						},
+						{
+							Name: "foo.txt",
+							URL:  "http://foo.com/v1.0.0/foo.txt",
+						},
+					},
+					TarballURL: "http://foo.com",
+					ZipballURL: "http://foo.com/asset.zip",
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 4,
+			},
+		},
 	}
 
 	for _, tt := range tests {
