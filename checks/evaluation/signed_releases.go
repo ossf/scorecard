@@ -43,6 +43,9 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 	score := 0
 	for _, release := range r.Releases {
 		if release.ZipballURL == "" && release.TarballURL == "" && len(release.Assets) == 0 {
+			dl.Warn(&checker.LogMessage{
+				Text: fmt.Sprintf("Couldn't find assets for release %s at url %s", release.TagName, release.URL),
+			})
 			continue
 		}
 
