@@ -19,9 +19,9 @@ type Release struct {
 	TagName         string
 	URL             string
 	TargetCommitish string
-	Assets          []ReleaseAsset
 	ZipballURL      string
 	TarballURL      string
+	Assets          []ReleaseAsset
 }
 
 // ReleaseAsset is part of the Release bundle.
