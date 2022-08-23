@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-
 	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/ossf/scorecard/v4/checker"
