@@ -19,14 +19,16 @@ import (
 )
 
 // PullRequest struct represents a PR as returned by RepoClient.
-//nolint: govet
+//
+//nolint:govet
 type PullRequest struct {
-	Number   int
-	MergedAt time.Time
-	HeadSHA  string
-	Author   User
-	Labels   []Label
-	Reviews  []Review
+	Number    int
+	MergedAt  time.Time
+	HeadSHA   string
+	Author    User
+	Labels    []Label
+	Reviews   []Review
+	CheckRuns []CheckRun
 }
 
 // Label represents a PR label.

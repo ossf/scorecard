@@ -29,6 +29,7 @@ import (
 
 const (
 	pullRequestsToAnalyze  = 1
+	checksToAnalyze        = 30
 	issuesToAnalyze        = 30
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
@@ -36,7 +37,7 @@ const (
 	commitsToAnalyze       = 30
 )
 
-//nolint: govet
+//nolint:govet
 type graphqlData struct {
 	Repository struct {
 		IsArchived githubv4.Boolean
@@ -89,6 +90,21 @@ type graphqlData struct {
 										}
 									}
 								} `graphql:"reviews(last: $reviewsToAnalyze)"`
+								Commits struct {
+									Nodes []struct {
+										Commit struct {
+											CheckSuites struct {
+												Nodes []struct {
+													App struct {
+														Slug githubv4.String
+													}
+													Conclusion githubv4.CheckConclusionState
+													Status     githubv4.CheckStatusState
+												}
+											} `graphql:"checkSuites(first: $checksToAnalyze)"`
+										}
+									}
+								} `graphql:"commits(last:1)"`
 							}
 						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 					}
@@ -121,16 +137,19 @@ type graphqlData struct {
 	}
 }
 
+type checkRunCache = map[string][]clients.CheckRun
+
 type graphqlHandler struct {
-	client   *githubv4.Client
-	data     *graphqlData
-	once     *sync.Once
-	ctx      context.Context
-	errSetup error
-	repourl  *repoURL
-	commits  []clients.Commit
-	issues   []clients.Issue
-	archived bool
+	checkRuns checkRunCache
+	client    *githubv4.Client
+	data      *graphqlData
+	once      *sync.Once
+	ctx       context.Context
+	errSetup  error
+	repourl   *repoURL
+	commits   []clients.Commit
+	issues    []clients.Issue
+	archived  bool
 }
 
 func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
@@ -139,6 +158,7 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.data = new(graphqlData)
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
+	handler.checkRuns = map[string][]clients.CheckRun{}
 }
 
 func (handler *graphqlHandler) setup() error {
@@ -159,13 +179,15 @@ func (handler *graphqlHandler) setup() error {
 			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
 			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
 			"commitExpression":       githubv4.String(commitExpression),
+			"checksToAnalyze":        githubv4.Int(checksToAnalyze),
 		}
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
 		}
 		handler.archived = bool(handler.data.Repository.IsArchived)
-		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
+		handler.commits, handler.errSetup = commitsFrom(
+			handler.data, handler.repourl.owner, handler.repourl.repo, handler.checkRuns)
 		if handler.errSetup != nil {
 			return
 		}
@@ -201,8 +223,8 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-//nolint
-func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
+//nolint:all
+func commitsFrom(data *graphqlData, repoOwner, repoName string, checkRuns checkRunCache) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
 		var committer string
@@ -236,6 +258,20 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 					Login: string(pr.Author.Login),
 				},
 			}
+			var crs []clients.CheckRun
+			for _, commit := range pr.Commits.Nodes {
+				for _, checkRun := range commit.Commit.CheckSuites.Nodes {
+					crs = append(crs, clients.CheckRun{
+						// the REST API returns lowercase. the graphQL API returns upper
+						Status:     strings.ToLower(string(checkRun.Status)),
+						Conclusion: strings.ToLower(string(checkRun.Conclusion)),
+						App: clients.CheckRunApp{
+							Slug: string(checkRun.App.Slug),
+						},
+					})
+				}
+			}
+			checkRuns[associatedPR.HeadSHA] = crs
 			for _, label := range pr.Labels.Nodes {
 				associatedPR.Labels = append(associatedPR.Labels, clients.Label{
 					Name: string(label.Name),
