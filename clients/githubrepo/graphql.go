@@ -16,6 +16,7 @@ package githubrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -36,6 +37,8 @@ const (
 	labelsToAnalyze        = 30
 	commitsToAnalyze       = 30
 )
+
+var errNotCached = errors.New("result not cached")
 
 //nolint:govet
 type graphqlData struct {
@@ -158,7 +161,6 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.data = new(graphqlData)
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
-	handler.checkRuns = map[string][]clients.CheckRun{}
 }
 
 func (handler *graphqlHandler) setup() error {
@@ -186,8 +188,8 @@ func (handler *graphqlHandler) setup() error {
 			return
 		}
 		handler.archived = bool(handler.data.Repository.IsArchived)
-		handler.commits, handler.errSetup = commitsFrom(
-			handler.data, handler.repourl.owner, handler.repourl.repo, handler.checkRuns)
+		handler.commits, handler.checkRuns, handler.errSetup = parseCommitsChecks(
+			handler.data, handler.repourl.owner, handler.repourl.repo)
 		if handler.errSetup != nil {
 			return
 		}
@@ -201,6 +203,20 @@ func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
 		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
 	}
 	return handler.commits, nil
+}
+
+func (handler *graphqlHandler) cacheCheckRunsForRef(ref string, crs []clients.CheckRun) {
+	handler.checkRuns[ref] = crs
+}
+
+func (handler *graphqlHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
+	if err := handler.setup(); err != nil {
+		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
+	}
+	if crs, ok := handler.checkRuns[ref]; ok {
+		return crs, nil
+	}
+	return nil, errNotCached
 }
 
 func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
@@ -224,7 +240,8 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 }
 
 //nolint:all
-func commitsFrom(data *graphqlData, repoOwner, repoName string, checkRuns checkRunCache) ([]clients.Commit, error) {
+func parseCommitsChecks(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, checkRunCache, error) {
+	checkCache := checkRunCache{}
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
 		var committer string
@@ -271,7 +288,7 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string, checkRuns checkR
 					})
 				}
 			}
-			checkRuns[associatedPR.HeadSHA] = crs
+			checkCache[associatedPR.HeadSHA] = crs
 			for _, label := range pr.Labels.Nodes {
 				associatedPR.Labels = append(associatedPR.Labels, clients.Label{
 					Name: string(label.Name),
@@ -297,7 +314,7 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string, checkRuns checkR
 			AssociatedMergeRequest: associatedPR,
 		})
 	}
-	return ret, nil
+	return ret, checkCache, nil
 }
 
 func issuesFrom(data *graphqlData) []clients.Issue {

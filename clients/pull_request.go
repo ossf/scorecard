@@ -22,13 +22,12 @@ import (
 //
 //nolint:govet
 type PullRequest struct {
-	Number    int
-	MergedAt  time.Time
-	HeadSHA   string
-	Author    User
-	Labels    []Label
-	Reviews   []Review
-	CheckRuns []CheckRun
+	Number   int
+	MergedAt time.Time
+	HeadSHA  string
+	Author   User
+	Labels   []Label
+	Reviews  []Review
 }
 
 // Label represents a PR label.

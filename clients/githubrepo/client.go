@@ -192,14 +192,15 @@ func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.Wor
 
 // ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.
 func (client *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	if crs, ok := client.graphClient.checkRuns[ref]; ok {
-		return crs, nil
+	cachedCrs, err := client.graphClient.listCheckRunsForRef(ref)
+	if errors.Is(err, errNotCached) {
+		crs, err := client.checkruns.listCheckRunsForRef(ref)
+		if err == nil {
+			client.graphClient.cacheCheckRunsForRef(ref, crs)
+		}
+		return crs, err
 	}
-	crs, err := client.checkruns.listCheckRunsForRef(ref)
-	if err == nil {
-		client.graphClient.checkRuns[ref] = crs
-	}
-	return crs, err
+	return cachedCrs, err
 }
 
 // ListStatuses implements RepoClient.ListStatuses.
