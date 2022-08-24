@@ -21,7 +21,7 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-func scoreSecurityCriteria(contentLen, urls, emails, discvuls int) (int, string) {
+func scoreSecurityCriteria(contentLen, linkedContentLen, urls, emails, discvuls int) (int, string) {
 	score := 0
 	reason := ""
 
@@ -45,8 +45,7 @@ func scoreSecurityCriteria(contentLen, urls, emails, discvuls int) (int, string)
 	//     no credit if there is just a link to a site or an email address (those given above)
 	// TODO: get sum of linked contents (urls and emails here from raw/ checks)
 	//       linkContentLen would become an arg here
-	linkContentLen := 0
-	if contentLen > 1 && (contentLen > linkContentLen) {
+	if contentLen > 1 && (contentLen > linkedContentLen) {
 		score += 3
 		reason += "text, "
 	}
@@ -97,9 +96,9 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 			msg.Text = "security policy detected in current repo"
 		}
 
-		var contentLen, urls, emails, discvuls int
-		fmt.Sscanf(f.Snippet, "%d,%d,%d,%d", &contentLen, &urls, &emails, &discvuls)
-		score, reason = scoreSecurityCriteria(contentLen, urls, emails, discvuls)
+		var contentLen, linkedContentLen, urls, emails, discvuls int
+		fmt.Sscanf(f.Snippet, "%d,%d,%d,%d,%d", &contentLen, &linkedContentLen, &urls, &emails, &discvuls)
+		score, reason = scoreSecurityCriteria(contentLen, linkedContentLen, urls, emails, discvuls)
 
 		dl.Info(&msg)
 	}

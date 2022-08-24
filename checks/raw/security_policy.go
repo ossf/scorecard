@@ -163,8 +163,8 @@ var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(pa
 	if (*pfiles) != nil {
 		// preserve file type
 		tempType := (*pfiles)[0].Type
-		urls, emails, discvuls := countUniquePolicyHits(string(content))
-		contentMetrics := fmt.Sprintf("%d,%d,%d,%d", len(content), urls, emails, discvuls)
+		linkedContentLen, urls, emails, discvuls := countUniquePolicyHits(string(content))
+		contentMetrics := fmt.Sprintf("%d,%d,%d,%d,%d", len(content), linkedContentLen, urls, emails, discvuls)
 		(*pfiles)[0] = checker.File{
 			Path:    path,
 			Type:    tempType,
@@ -177,8 +177,8 @@ var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(pa
 	return false, nil
 }
 
-func countUniquePolicyHits(policyContent string) (int, int, int) {
-	var urls, emails, discvuls int
+func countUniquePolicyHits(policyContent string) (int, int, int, int) {
+	var urls, strlenOfUrls, emails, strlenOfEmails, discvuls int
 
 	// pattern for URLs
 	reURL := regexp.MustCompile(`(http|https)://[a-zA-Z0-9./?=_%:-]*`)
@@ -193,29 +193,31 @@ func countUniquePolicyHits(policyContent string) (int, int, int) {
 	rEML := reEML.FindAllString(policyContent, -1)
 	rDIG := reDIG.FindAllString(policyContent, -1)
 
-	urls = countUniqueInPolicy(rURL)
+	urls, strlenOfUrls = countUniqueInPolicy(rURL)
 
-	emails = countUniqueInPolicy(rEML)
+	emails, strlenOfEmails = countUniqueInPolicy(rEML)
 
 	// not really looking unique sets of numbers or words
 	// and take the raw count of hits
 	discvuls = len(rDIG)
 
-	return urls, emails, discvuls
+	return (strlenOfUrls+strlenOfEmails), urls, emails, discvuls
 }
 
 //
 // Returns a count of unique items in a slice
 // src inspiration: https://codereview.stackexchange.com/questions/191238/return-unique-items-in-a-go-slice
 //
-func countUniqueInPolicy(strSlice []string) int {
+func countUniqueInPolicy(strSlice []string) (int, int) {
 	count := 0
+	strlen := 0
 	keys := make(map[string]bool)
 	for _, entry := range strSlice {
 		if _, value := keys[entry]; !value {
 			keys[entry] = true
+			strlen += len(entry)
 			count += 1
 		}
 	}
-	return count
+	return count, strlen
 }
