@@ -43,9 +43,9 @@ func scoreSecurityCriteria(contentLen, linkedContentLen, urls, emails, discvuls 
 	// #3: more bytes than the sum of the length of all the linked content found: score += 3
 	//     rationale: there appears to be information and context around those links
 	//     no credit if there is just a link to a site or an email address (those given above)
-	// TODO: get sum of linked contents (urls and emails here from raw/ checks)
-	//       linkContentLen would become an arg here
-	if contentLen > 1 && (contentLen > linkedContentLen) {
+	//     the test here is that each piece of linked content will likely contain a space
+	//     before and after the content (hence the two multiplier)
+	if contentLen > 1 && (contentLen > (linkedContentLen + ((urls + emails) * 2))) {
 		score += 3
 		reason += "text, "
 	}
