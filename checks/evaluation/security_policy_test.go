@@ -68,7 +68,7 @@ func TestSecurityPolicy(t *testing.T) {
 				},
 			},
 			want: checker.CheckResult{
-				Score: 10,
+				Score: 0,
 			},
 		},
 		{
@@ -84,7 +84,7 @@ func TestSecurityPolicy(t *testing.T) {
 				},
 			},
 			want: checker.CheckResult{
-				Score: 10,
+				Score: 0,
 			},
 		},
 	}

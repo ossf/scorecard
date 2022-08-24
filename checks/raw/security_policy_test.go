@@ -15,6 +15,8 @@
 package raw
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -65,6 +67,7 @@ func TestSecurityPolicy(t *testing.T) {
 	tests := []struct {
 		name    string
 		files   []string
+		path    string
 		result  checker.SecurityPolicyData
 		wantErr bool
 		want    scut.TestReturn
@@ -74,30 +77,35 @@ func TestSecurityPolicy(t *testing.T) {
 			files: []string{
 				"security.md",
 			},
+			path: "",
 		},
 		{
 			name: ".github/security.md",
 			files: []string{
 				".github/security.md",
 			},
+			path: "",
 		},
 		{
 			name: "docs/security.md",
 			files: []string{
 				"docs/security.md",
 			},
+			path: "",
 		},
 		{
 			name: "docs/security.rst",
 			files: []string{
 				"docs/security.rst",
 			},
+			path: "",
 		},
 		{
 			name: "doc/security.rst",
 			files: []string{
 				"doc/security.rst",
 			},
+			path: "",
 		},
 	}
 	for _, tt := range tests {
@@ -110,6 +118,25 @@ func TestSecurityPolicy(t *testing.T) {
 
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
 			mockRepo.EXPECT().Org().Return(nil).AnyTimes()
+			//
+			// the revised Security Policy will immediate go for the
+			// file contents once found. This test will return that
+			// mock file, but this specific unit test is not testing
+			// for content. As such, this test will crash without
+			// a mock GetFileContent, so this will return no content
+			// for the existing file. content test are in overall check
+			//
+			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
+				if tt.path == "" {
+					return nil, nil
+				}
+				content, err := os.ReadFile(tt.path)
+				if err != nil {
+					return content, fmt.Errorf("%w", err)
+				}
+				return content, nil
+			}).AnyTimes()
+
 			dl := scut.TestDetailLogger{}
 			c := checker.CheckRequest{
 				RepoClient: mockRepoClient,
