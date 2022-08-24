@@ -201,7 +201,7 @@ func countUniquePolicyHits(policyContent string) (int, int, int, int) {
 	// and take the raw count of hits
 	discvuls = len(rDIG)
 
-	return (strlenOfUrls+strlenOfEmails), urls, emails, discvuls
+	return (strlenOfUrls + strlenOfEmails), urls, emails, discvuls
 }
 
 //
