@@ -108,7 +108,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 func computeNonAdminBasicScore(scores []levelScore) int {
 	score := 0
 	for i := range scores {
-                s := scores[i]
+		s := scores[i]
 		score += s.scores.basic
 	}
 	return score
@@ -117,7 +117,7 @@ func computeNonAdminBasicScore(scores []levelScore) int {
 func computeAdminBasicScore(scores []levelScore) int {
 	score := 0
 	for i := range scores {
-                s := scores[i]
+		s := scores[i]
 		score += s.scores.adminBasic
 	}
 	return score
@@ -126,7 +126,7 @@ func computeAdminBasicScore(scores []levelScore) int {
 func computeNonAdminReviewScore(scores []levelScore) int {
 	score := 0
 	for i := range scores {
-                s := scores[i]
+		s := scores[i]
 		score += s.scores.review
 	}
 	return score
@@ -135,7 +135,7 @@ func computeNonAdminReviewScore(scores []levelScore) int {
 func computeAdminReviewScore(scores []levelScore) int {
 	score := 0
 	for i := range scores {
-                s := scores[i]
+		s := scores[i]
 		score += s.scores.adminReview
 	}
 	return score
@@ -144,7 +144,7 @@ func computeAdminReviewScore(scores []levelScore) int {
 func computeNonAdminThoroughReviewScore(scores []levelScore) int {
 	score := 0
 	for i := range scores {
-                s := scores[i]
+		s := scores[i]
 		score += s.scores.thoroughReview
 	}
 	return score
@@ -153,7 +153,7 @@ func computeNonAdminThoroughReviewScore(scores []levelScore) int {
 func computeAdminThoroughReviewScore(scores []levelScore) int {
 	score := 0
 	for i := range scores {
-                s := scores[i]
+		s := scores[i]
 		score += s.scores.adminThoroughReview
 	}
 	return score
@@ -162,7 +162,7 @@ func computeAdminThoroughReviewScore(scores []levelScore) int {
 func computeNonAdminContextScore(scores []levelScore) int {
 	score := 0
 	for i := range scores {
-                s := scores[i]
+		s := scores[i]
 		score += s.scores.context
 	}
 	return score
@@ -171,7 +171,7 @@ func computeNonAdminContextScore(scores []levelScore) int {
 func computeCodeownerThoroughReviewScore(scores []levelScore) int {
 	score := 0
 	for i := range scores {
-                s := scores[i]
+		s := scores[i]
 		score += s.scores.codeownerReview
 	}
 	return score
@@ -223,12 +223,13 @@ func computeScore(scores []levelScore) (int, error) {
 	}
 
 	// Fourth, check the thorough non-admin reviews.
-        // Also check whether this repo requires codeowner review
+	// Also check whether this repo requires codeowner review
 	maxThoroughReviewScore := maxScore.thoroughReview * len(scores)
 	maxCodeownerReviewScore := maxScore.codeownerReview * len(scores)
 	thoroughReviewScore := computeNonAdminThoroughReviewScore(scores)
 	codeownerReviewScore := computeCodeownerThoroughReviewScore(scores)
-	score += noarmalizeScore(thoroughReviewScore+codeownerReviewScore, maxThoroughReviewScore+maxCodeownerReviewScore, nonAdminThoroughReviewLevel)
+	score += noarmalizeScore(thoroughReviewScore+codeownerReviewScore, maxThoroughReviewScore+maxCodeownerReviewScore,
+		nonAdminThoroughReviewLevel)
 	if thoroughReviewScore != maxThoroughReviewScore {
 		return int(score), nil
 	}
