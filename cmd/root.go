@@ -18,6 +18,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 	"strings"
@@ -94,11 +95,15 @@ func rootCmd(o *options.Options) error {
 	}
 	// Run the scorecard checks on the repo.
 	doScorecardChecks(ctx, o, logger, checkDocs, pol)
+	if err != nil {
+		return fmt.Errorf("error in doScorecardChecks: %w", err)
+	}
+	return nil
 }
 
 func doScorecardChecks(ctx context.Context, o *options.Options,
 	logger *sclog.Logger, checkDocs docs.Doc, pol *policy.ScorecardPolicy,
-) {
+) error {
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
 		ctx, o.Repo, o.Local, logger)
 	if err != nil {
@@ -109,7 +114,7 @@ func doScorecardChecks(ctx context.Context, o *options.Options,
 		defer ossFuzzRepoClient.Close()
 	}
 	// Read docs.
-	checkDocs, err := docs.Read()
+	checkDocs, err = docs.Read()
 	if err != nil {
 		return fmt.Errorf("cannot read yaml file: %w", err)
 	}
