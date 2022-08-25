@@ -57,5 +57,17 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 			Expect(graphqlhandler.data.RateLimit.Cost).ShouldNot(BeNil())
 			Expect(*graphqlhandler.data.RateLimit.Cost).Should(BeNumerically("<=", 1))
 		})
+		It("Should not have increased for check run query", func() {
+			repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: clients.HeadSHA,
+			}
+			graphqlhandler.init(context.Background(), repourl)
+			Expect(graphqlhandler.setupCheckRuns()).Should(BeNil())
+			Expect(graphqlhandler.checkData).ShouldNot(BeNil())
+			Expect(graphqlhandler.checkData.RateLimit.Cost).ShouldNot(BeNil())
+			Expect(*graphqlhandler.checkData.RateLimit.Cost).Should(BeNumerically("<=", 1))
+		})
 	})
 })
