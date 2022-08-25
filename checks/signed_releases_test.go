@@ -91,6 +91,25 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
+				Score: 8,
+			},
+		},
+		{
+			name: "Releases with assests with intoto SLSA provenance",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.intoto.jsonl",
+							URL:  "http://foo.com/v1.0.0/foo.intoto.jsonl",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
 				Score: 10,
 			},
 		},
@@ -110,7 +129,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -129,7 +148,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -148,7 +167,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -171,7 +190,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -209,7 +228,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{
@@ -243,7 +262,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 5,
+				Score: 4,
 			},
 		},
 		{
@@ -341,7 +360,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 8,
 			},
 		},
 		{

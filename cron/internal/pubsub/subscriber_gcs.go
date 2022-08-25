@@ -97,7 +97,7 @@ func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest,
 		if numReceivedMessages > 0 {
 			msgToProcess = result.GetReceivedMessages()[0]
 		} else {
-			// nolint:gomnd
+			//nolint:gomnd
 			time.Sleep(30 * time.Second)
 		}
 	}

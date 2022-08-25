@@ -132,6 +132,10 @@ type jsonArchivedStatus struct {
 	// TODO: add fields, e.g. date of archival, etc.
 }
 
+type jsonCreatedAtTime struct {
+	Time time.Time `json:"timestamp"`
+}
+
 type jsonComment struct {
 	CreatedAt *time.Time `json:"createdAt"`
 	Author    *jsonUser  `json:"author"`
@@ -162,7 +166,7 @@ type jsonOssfBestPractices struct {
 	Badge string `json:"badge"`
 }
 
-// nolint
+//nolint
 type jsonLicense struct {
 	File jsonFile `json:"file"`
 	// TODO: add fields, like type of license, etc.
@@ -180,7 +184,7 @@ type jsonWorkflowJob struct {
 	ID   *string `json:"id"`
 }
 
-// nolint
+//nolint
 type jsonPackage struct {
 	Name *string          `json:"name,omitempty"`
 	Job  *jsonWorkflowJob `json:"job,omitempty"`
@@ -219,7 +223,7 @@ type jsonTokenPermission struct {
 	Type         string           `json:"type"`
 }
 
-// nolint
+//nolint
 type jsonRawResults struct {
 	// Workflow results.
 	Workflows []jsonWorkflow `json:"workflows"`
@@ -251,6 +255,8 @@ type jsonRawResults struct {
 	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBranchCommits"`
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
+	// Repo creation time
+	CreatedAtTime jsonCreatedAtTime `json:"createdAt"`
 	// Fuzzers.
 	Fuzzers []jsonTool `json:"fuzzers"`
 	// Releases.
@@ -459,6 +465,8 @@ func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedR
 func (r *jsonScorecardRawResult) addMaintainedRawResults(mr *checker.MaintainedData) error {
 	// Set archived status.
 	r.Results.ArchivedStatus = jsonArchivedStatus{Status: mr.ArchivedStatus.Status}
+
+	r.Results.CreatedAtTime = jsonCreatedAtTime{Time: mr.CreatedAt}
 
 	// Issues.
 	for i := range mr.Issues {

@@ -21,6 +21,7 @@ import (
 	_ "github.com/golang/mock/mockgen"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
+
 	_ "github.com/google/ko"
 	_ "github.com/goreleaser/goreleaser"
 	_ "github.com/naveensrinivasan/stunning-tribble"

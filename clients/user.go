@@ -20,6 +20,7 @@ type User struct {
 	Companies        []string
 	Organizations    []User
 	NumContributions int
+	ID               int64
 }
 
 // RepoAssociation is how a user is associated with a repository.

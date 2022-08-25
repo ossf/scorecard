@@ -38,7 +38,6 @@ func TestOptions_Validate(t *testing.T) {
 		Metadata          []string
 		ShowDetails       bool
 		EnableSarif       bool
-		EnableScorecardV5 bool
 		EnableScorecardV6 bool
 	}
 	tests := []struct {
@@ -106,7 +105,6 @@ func TestOptions_Validate(t *testing.T) {
 				Metadata:          tt.fields.Metadata,
 				ShowDetails:       tt.fields.ShowDetails,
 				EnableSarif:       tt.fields.EnableSarif,
-				EnableScorecardV5: tt.fields.EnableScorecardV5,
 				EnableScorecardV6: tt.fields.EnableScorecardV6,
 			}
 			if o.EnableSarif {

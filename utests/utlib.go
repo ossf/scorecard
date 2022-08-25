@@ -79,7 +79,7 @@ func getTestReturn(cr *checker.CheckResult, logger *TestDetailLogger) (*TestRetu
 	for _, v := range logger.messages {
 		switch v.Type {
 		default:
-			// nolint: goerr113
+			//nolint: goerr113
 			return nil, fmt.Errorf("invalid type %v", v.Type)
 		case checker.DetailInfo:
 			ret.NumberOfInfo++
@@ -99,7 +99,7 @@ func errCmp(e1, e2 error) bool {
 }
 
 // ValidateTestReturn validates expected TestReturn with actual checker.CheckResult values.
-// nolint: thelper
+//nolint: thelper
 func ValidateTestReturn(
 	t *testing.T,
 	name string,

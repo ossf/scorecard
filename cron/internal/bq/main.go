@@ -82,7 +82,7 @@ func getBucketSummary(ctx context.Context, bucketURL string) (*bucketSummary, er
 			summary.getOrCreate(creationTime).shardsExpected = int(metadata.GetNumShard())
 			summary.getOrCreate(creationTime).shardMetadata = keyData
 		default:
-			// nolint: goerr113
+			//nolint: goerr113
 			return nil, fmt.Errorf("found unrecognized file: %s", key)
 		}
 	}
@@ -117,7 +117,7 @@ func transferDataToBq(ctx context.Context,
 		if webhookURL == "" {
 			continue
 		}
-		// nolint: noctx, gosec // variable URL is ok here.
+		//nolint: noctx, gosec // variable URL is ok here.
 		resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(shards.shardMetadata))
 		if err != nil {
 			return fmt.Errorf("error during http.Post to %s: %w", webhookURL, err)

@@ -18,7 +18,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"strings"
@@ -53,11 +52,12 @@ func New(o *options.Options) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("validating options: %w", err)
 			}
+			// options are good at this point. silence usage so it doesn't print for runtime errors
+			cmd.SilenceUsage = true
 			return nil
 		},
-		// TODO(cmd): Consider using RunE here
-		Run: func(cmd *cobra.Command, args []string) {
-			rootCmd(o)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return rootCmd(o)
 		},
 	}
 
@@ -71,19 +71,19 @@ func New(o *options.Options) *cobra.Command {
 }
 
 // rootCmd runs scorecard checks given a set of arguments.
-func rootCmd(o *options.Options) {
+func rootCmd(o *options.Options) error {
 	p := &packageManager{}
 	// Set `repo` from package managers.
 	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, p)
 	if err != nil {
-		log.Panic(err)
+		return fmt.Errorf("fetchGitRepositoryFromPackageManagers: %w", err)
 	}
 	if pkgResp.exists {
 		o.Repo = pkgResp.associatedRepo
 	}
 	pol, err := policy.ParseFromFile(o.PolicyFile)
 	if err != nil {
-		log.Panicf("readPolicy: %v", err)
+		return fmt.Errorf("readPolicy: %w", err)
 	}
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.ParseLevel(o.LogLevel))
@@ -102,11 +102,16 @@ func doScorecardChecks(ctx context.Context, o *options.Options,
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
 		ctx, o.Repo, o.Local, logger)
 	if err != nil {
-		log.Panic(err)
+		return fmt.Errorf("GetClients: %w", err)
 	}
 	defer repoClient.Close()
 	if ossFuzzRepoClient != nil {
 		defer ossFuzzRepoClient.Close()
+	}
+	// Read docs.
+	checkDocs, err := docs.Read()
+	if err != nil {
+		return fmt.Errorf("cannot read yaml file: %w", err)
 	}
 	var requiredRequestTypes []checker.RequestType
 	if o.Local != "" {
@@ -117,7 +122,7 @@ func doScorecardChecks(ctx context.Context, o *options.Options,
 	}
 	enabledChecks, err := policy.GetEnabled(pol, o.ChecksToRun, requiredRequestTypes)
 	if err != nil {
-		log.Panic(err)
+		return fmt.Errorf("GetEnabled: %w", err)
 	}
 	if o.Format == options.FormatDefault {
 		for checkName := range enabledChecks {
@@ -135,7 +140,7 @@ func doScorecardChecks(ctx context.Context, o *options.Options,
 		vulnsClient,
 	)
 	if err != nil {
-		log.Panic(err)
+		return fmt.Errorf("RunScorecards: %w", err)
 	}
 	repoResult.Metadata = append(repoResult.Metadata, o.Metadata...)
 	// Sort them by name
@@ -155,6 +160,14 @@ func doScorecardChecks(ctx context.Context, o *options.Options,
 		pol,
 	)
 	if resultsErr != nil {
-		log.Panicf("Failed to format results: %v", resultsErr)
+		return fmt.Errorf("failed to format results: %w", resultsErr)
 	}
+
+	// intentionally placed at end to preserve outputting results, even if a check has a runtime error
+	for _, result := range repoResult.Checks {
+		if result.Error != nil {
+			return fmt.Errorf("one or more checks had a runtime error: %w", result.Error)
+		}
+	}
+	return nil
 }

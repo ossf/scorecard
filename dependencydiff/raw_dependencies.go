@@ -66,7 +66,7 @@ func fetchRawDependencyDiffData(dCtx *dependencydiffContext) error {
 	}
 	_, err = ghClient.Do(dCtx.ctx, req, &dCtx.dependencydiffs)
 	if err != nil {
-		return fmt.Errorf("error parsing the dependency-diff reponse: %w", err)
+		return fmt.Errorf("error parsing the dependency-diff response: %w", err)
 	}
 	for _, d := range dCtx.dependencydiffs {
 		if !d.ChangeType.IsValid() {

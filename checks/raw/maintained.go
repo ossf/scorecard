@@ -45,5 +45,11 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	}
 	result.Issues = issues
 
+	createdAt, err := c.RepoClient.GetCreatedAt()
+	if err != nil {
+		return result, fmt.Errorf("%w", err)
+	}
+	result.CreatedAt = createdAt
+
 	return result, nil
 }

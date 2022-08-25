@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	clients "github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
@@ -169,6 +170,11 @@ func (client *localDirClient) GetDefaultBranch() (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("GetDefaultBranch: %w", clients.ErrUnsupportedFeature)
 }
 
+// GetDefaultBranchName implements RepoClient.GetDefaultBranchName.
+func (client *localDirClient) GetDefaultBranchName() (string, error) {
+	return "", fmt.Errorf("GetDefaultBranchName: %w", clients.ErrUnsupportedFeature)
+}
+
 // ListCommits implements RepoClient.ListCommits.
 func (client *localDirClient) ListCommits() ([]clients.Commit, error) {
 	return nil, fmt.Errorf("ListCommits: %w", clients.ErrUnsupportedFeature)
@@ -214,6 +220,11 @@ func (client *localDirClient) Search(request clients.SearchRequest) (clients.Sea
 	return clients.SearchResponse{}, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
 }
 
+// SearchCommits implements RepoClient.SearchCommits.
+func (client *localDirClient) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
+	return nil, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
+}
+
 func (client *localDirClient) Close() error {
 	return nil
 }
@@ -222,6 +233,10 @@ func (client *localDirClient) Close() error {
 // TODO: add ListProgrammingLanguages support for local directories.
 func (client *localDirClient) ListProgrammingLanguages() ([]clients.Language, error) {
 	return nil, fmt.Errorf("ListProgrammingLanguages: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *localDirClient) GetCreatedAt() (time.Time, error) {
+	return time.Time{}, fmt.Errorf("GetCreatedAt: %w", clients.ErrUnsupportedFeature)
 }
 
 // CreateLocalDirClient returns a client which implements RepoClient interface.

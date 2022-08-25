@@ -535,7 +535,7 @@ func TestOnMatchingFileContent(t *testing.T) {
 }
 
 // TestOnAllFilesDo tests the OnAllFilesDo function.
-// nolint:gocognit
+//nolint:gocognit
 func TestOnAllFilesDo(t *testing.T) {
 	t.Parallel()
 
@@ -576,7 +576,7 @@ func TestOnAllFilesDo(t *testing.T) {
 	alwaysFail := func(path string, args ...interface{}) (bool, error) {
 		return false, errTest
 	}
-	// nolint
+	//nolint
 	tests := []struct {
 		name         string
 		onFile       DoWhileTrueOnFilename
