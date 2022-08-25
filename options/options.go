@@ -44,9 +44,9 @@ type Options struct {
 	ShowDetails bool
 
 	// Feature flags.
-	EnableSarif       bool `env:"ENABLE_SARIF"`
-	EnableScorecardV6 bool `env:"SCORECARD_V6"`
-  EnableScorecardExperimental bool `env:"SCORECARD_EXPERIMENTAL"`
+	EnableSarif                 bool `env:"ENABLE_SARIF"`
+	EnableScorecardV6           bool `env:"SCORECARD_V6"`
+	EnableScorecardExperimental bool `env:"SCORECARD_EXPERIMENTAL"`
 }
 
 // New creates a new instance of `Options`.

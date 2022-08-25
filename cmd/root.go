@@ -94,7 +94,7 @@ func rootCmd(o *options.Options) error {
 		log.Panicf("cannot read yaml file: %v", err)
 	}
 	// Run the scorecard checks on the repo.
-	doScorecardChecks(ctx, o, logger, checkDocs, pol)
+	err = doScorecardChecks(ctx, o, logger, checkDocs, pol)
 	if err != nil {
 		return fmt.Errorf("error in doScorecardChecks: %w", err)
 	}
@@ -113,8 +113,6 @@ func doScorecardChecks(ctx context.Context, o *options.Options,
 	if ossFuzzRepoClient != nil {
 		defer ossFuzzRepoClient.Close()
 	}
-	// Read docs.
-	checkDocs, err = docs.Read()
 	if err != nil {
 		return fmt.Errorf("cannot read yaml file: %w", err)
 	}
