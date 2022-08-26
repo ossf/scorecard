@@ -18,6 +18,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 
@@ -73,7 +74,11 @@ func getRepoURLs(iter data.Iterator) ([]data.RepoFormat, error) {
 		if err != nil {
 			return nil, fmt.Errorf("iter.Next: %w", err)
 		}
-		mapURL := strings.ToLower(repo.Repo)
+		parsedURL, err := url.Parse(strings.ToLower(repo.Repo))
+		if err != nil {
+			panic(err)
+		}
+		mapURL := fmt.Sprintf("%s/%s", parsedURL.Host, parsedURL.Path)
 		if _, ok := repoMap[mapURL]; !ok {
 			repoURLs[mapURL] = new(data.RepoFormat)
 			*repoURLs[mapURL] = repo

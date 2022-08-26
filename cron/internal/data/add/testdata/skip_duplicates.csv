@@ -1,0 +1,5 @@
+repo,metadata
+github.com/owner1/repo1,"meta1,meta2"
+github.com/owner1/repo1,
+github.com/owner2/repo2,"meta3,meta4"
+github.com/owner2/repo2#foo,
