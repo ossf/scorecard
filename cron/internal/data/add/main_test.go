@@ -103,6 +103,20 @@ func TestGetRepoURLs(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:     "SkipDuplicates",
+			filename: "testdata/skip_duplicates.csv",
+			outcome: []data.RepoFormat{
+				{
+					Repo:     "github.com/owner1/repo1",
+					Metadata: []string{"meta1", "meta2"},
+				},
+				{
+					Repo:     "github.com/owner2/repo2",
+					Metadata: []string{"meta3", "meta4"},
+				},
+			},
+		},
 	}
 	for _, testcase := range testcases {
 		testcase := testcase
