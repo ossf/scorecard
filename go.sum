@@ -550,8 +550,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/prometheus/prometheus v2.5.0+incompatible h1:7QPitgO2kOFG8ecuRn9O/4L9+10He72rVRJvMXrE9Hg=
 github.com/prometheus/prometheus v2.5.0+incompatible/go.mod h1:oAIUtOny2rjMX0OWN5vPR5/q/twIROJvdqnQKDdil/s=
-github.com/rhysd/actionlint v1.6.15 h1:IxQIp10aVce77jNnoHye7NFka8/7CRBSvKXoMRGryXM=
-github.com/rhysd/actionlint v1.6.15/go.mod h1:R4ZRjgsIrnsT1CPU/4MdiIBzfJgMKJFd4qqGUERI098=
+github.com/rhysd/actionlint v1.6.16 h1:d4zEC+2PvSt7lveNbbpLNmsT3JvlyrtmwY2fZpBnE4Y=
+github.com/rhysd/actionlint v1.6.16/go.mod h1:R4ZRjgsIrnsT1CPU/4MdiIBzfJgMKJFd4qqGUERI098=
 github.com/rivo/uniseg v0.2.0 h1:S1pD9weZBuJdFmowNwbpi7BJ8TNftyUImj/0WQi72jY=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/robfig/cron v1.2.0 h1:ZjScXvvxeQ63Dbyxy76Fj3AT3Ut0aKsyd2/tl3DTMuQ=

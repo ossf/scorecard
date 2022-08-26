@@ -3,7 +3,7 @@ module github.com/ossf/scorecard/v4
 go 1.18
 
 require (
-	github.com/rhysd/actionlint v1.6.15
+	github.com/rhysd/actionlint v1.6.16
 	gotest.tools v2.2.0+incompatible
 )
 
