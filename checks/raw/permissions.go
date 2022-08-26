@@ -491,6 +491,16 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permis
 			},
 			LogText: "candidate SLSA publishing workflow using slsa-github-generator",
 		},
+		{
+			// Running mvn release:prepare requires committing changes.
+			// https://maven.apache.org/maven-release/maven-release-plugin/examples/prepare-release.html
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Run: ".*mvn.*release:prepare.*",
+				},
+			},
+			LogText: "candidate mvn release workflow",
+		},
 	}
 
 	return isWorkflowOf(workflow, fp, jobMatchers, "not a releasing workflow", pdata)
