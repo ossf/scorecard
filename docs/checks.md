@@ -522,10 +522,11 @@ well-known directories.
 A security policy (typically a `SECURITY.md` file) can give users information
 about what constitutes a vulnerability and how to report one securely so that
 information about a bug is not publicly visible.   
- 
+
 This check examines the contents of the security policy file awarding points
 for those policies that express vulnerability process(es), disclosure timelines,
 and have links (e.g., URL(s) and email(s) to support the users.
+ 
 
 **Remediation steps**
 - Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.
