@@ -155,8 +155,8 @@ func TestSecurityPolicy(t *testing.T) {
 				return
 			}
 
-			if len(res.Files) != len(tt.files) {
-				t.Errorf("test failed: number of files returned is not correct: %+v", res)
+			if (res.File.Path) != (tt.files[0]) {
+				t.Errorf("test failed: the file returned is not correct: %+v", res)
 			}
 		})
 	}

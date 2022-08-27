@@ -59,11 +59,9 @@ func TestSecurityPolicy(t *testing.T) {
 			args: args{
 				name: "test_security_policy_3",
 				r: &checker.SecurityPolicyData{
-					Files: []checker.File{
-						{
-							Path: "/etc/security/pam_env.conf",
-							Type: checker.FileTypeURL,
-						},
+					File: checker.File{
+						Path: "/etc/security/pam_env.conf",
+						Type: checker.FileTypeURL,
 					},
 				},
 			},
@@ -76,10 +74,8 @@ func TestSecurityPolicy(t *testing.T) {
 			args: args{
 				name: "test_security_policy_4",
 				r: &checker.SecurityPolicyData{
-					Files: []checker.File{
-						{
-							Path: "/etc/security/pam_env.conf",
-						},
+					File: checker.File{
+						Path: "/etc/security/pam_env.conf",
 					},
 				},
 			},

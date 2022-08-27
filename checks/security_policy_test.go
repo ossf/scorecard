@@ -44,7 +44,8 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        10,
-				NumberOfInfo: 1,
+				NumberOfInfo: 5,
+				NumberOfWarn: 0,
 			},
 		},
 		{
@@ -55,7 +56,8 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        7,
-				NumberOfInfo: 1,
+				NumberOfInfo: 4,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -66,7 +68,8 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        4,
-				NumberOfInfo: 1,
+				NumberOfInfo: 3,
+				NumberOfWarn: 2,
 			},
 		},
 		{
@@ -77,7 +80,8 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        3,
-				NumberOfInfo: 1,
+				NumberOfInfo: 2,
+				NumberOfWarn: 3,
 			},
 		},
 		{
@@ -88,7 +92,8 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        3,
-				NumberOfInfo: 1,
+				NumberOfInfo: 2,
+				NumberOfWarn: 3,
 			},
 		},
 		{
@@ -99,7 +104,8 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        3,
-				NumberOfInfo: 1,
+				NumberOfInfo: 2,
+				NumberOfWarn: 3,
 			},
 		},
 		{
@@ -110,7 +116,8 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        6,
-				NumberOfInfo: 1,
+				NumberOfInfo: 3,
+				NumberOfWarn: 2,
 			},
 		},
 		{
@@ -121,7 +128,8 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        9,
-				NumberOfInfo: 1,
+				NumberOfInfo: 4,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -132,7 +140,8 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        10,
-				NumberOfInfo: 1,
+				NumberOfInfo: 5,
+				NumberOfWarn: 0,
 			},
 		},
 		{
@@ -144,6 +153,7 @@ func TestSecurityPolicy(t *testing.T) {
 			want: scut.TestReturn{
 				Score:        0,
 				NumberOfInfo: 1,
+				NumberOfWarn: 4,
 			},
 		},
 		{
@@ -155,6 +165,7 @@ func TestSecurityPolicy(t *testing.T) {
 			want: scut.TestReturn{
 				Score:        0,
 				NumberOfInfo: 1,
+				NumberOfWarn: 4,
 			},
 		},
 	}

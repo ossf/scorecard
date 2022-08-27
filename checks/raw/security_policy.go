@@ -30,31 +30,38 @@ import (
 )
 
 type securityPolicyFilesWithURI struct {
-	uri   string
-	files []checker.File
+	info []checker.SecurityPolicyInformation
+	uri  string
+	file checker.File
 }
 
 // SecurityPolicy checks for presence of security policy.
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
 	data := securityPolicyFilesWithURI{
-		uri:   "",
-		files: make([]checker.File, 0),
+		uri:  "",
+		info: make([]checker.SecurityPolicyInformation, 0),
+		file: checker.File{
+			Path:      "",
+			Snippet:   "",
+			Offset:    0,
+			EndOffset: 0,
+			Type:      checker.FileTypeNone,
+		},
 	}
 	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &data)
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
 	}
 	// If we found files in the repo, return immediately.
-	// TODO: // assert that at this point only 1 file is returned by isSecurityPolicyFile
-	if len(data.files) > 0 {
+	if data.file.Type != checker.FileTypeNone {
 		err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
-			Pattern:       data.files[0].Path,
+			Pattern:       data.file.Path,
 			CaseSensitive: false,
-		}, checkSecurityPolicyFileContent, &data.files)
+		}, checkSecurityPolicyFileContent, &data.file, &data.info)
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
 		}
-		return checker.SecurityPolicyData{Files: data.files}, nil
+		return checker.SecurityPolicyData{File: data.file, Information: data.info}, nil
 	}
 
 	// Check if present in parent org.
@@ -79,21 +86,21 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	}
 
 	// Return raw results.
-	if len(data.files) > 0 {
-		filePattern := data.files[0].Path
+	if data.file.Type != checker.FileTypeNone {
+		filePattern := data.file.Path
 		// undo path.Join in isSecurityPolicyFile
-		if data.files[0].Type == checker.FileTypeURL {
-			filePattern = strings.Replace(data.files[0].Path, data.uri+"/", "", 1)
+		if data.file.Type == checker.FileTypeURL {
+			filePattern = strings.Replace(data.file.Path, data.uri+"/", "", 1)
 		}
 		err := fileparser.OnMatchingFileContentDo(dotGitHubClient, fileparser.PathMatcher{
 			Pattern:       filePattern,
 			CaseSensitive: false,
-		}, checkSecurityPolicyFileContent, &data.files)
+		}, checkSecurityPolicyFileContent, &data.file, &data.info)
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
 		}
 	}
-	return checker.SecurityPolicyData{Files: data.files}, nil
+	return checker.SecurityPolicyData{File: data.file, Information: data.info}, nil
 }
 
 // Check repository for repository-specific policy.
@@ -108,18 +115,21 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 	}
 	if isSecurityPolicyFilename(name) {
 		tempPath := name
-		// TODO: really should be FileTypeText (.md, .adoc, etc)
-		tempType := checker.FileTypeSource
+		tempType := checker.FileTypeText
 		if pdata.uri != "" {
 			// TODO: is joining even needed?
 			tempPath = path.Join(pdata.uri, tempPath)
+			// FileTypeURL is used in Security-Policy to
+			// only denote for the details report that the
+			// policy was found at the org level rather
+			// than the repo level
 			tempType = checker.FileTypeURL
 		}
-		pdata.files = append(pdata.files, checker.File{
+		pdata.file = checker.File{
 			Path:   tempPath,
 			Type:   tempType,
 			Offset: checker.OffsetDefault,
-		})
+		}
 		return false, nil
 	}
 	return true, nil
@@ -141,14 +151,20 @@ func isSecurityPolicyFilename(name string) bool {
 var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(path string, content []byte,
 	args ...interface{},
 ) (bool, error) {
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return false, fmt.Errorf(
-			"checkSecurityPolicyFileContent requires exactly one argument: %w", errInvalidArgLength)
+			"checkSecurityPolicyFileContent requires exactly two arguments: %w", errInvalidArgLength)
 	}
-	pfiles, ok := args[0].(*[]checker.File)
+	pfiles, ok := args[0].(*checker.File)
 	if !ok {
 		return false, fmt.Errorf(
-			"checkSecurityPolicyFileContent requires argument of type *[]checker.File: %w", errInvalidArgType)
+			"checkSecurityPolicyFileContent requires argument of type *checker.File: %w", errInvalidArgType)
+	}
+	pinfo, ok := args[1].(*[]checker.SecurityPolicyInformation)
+	if !ok {
+		return false, fmt.Errorf(
+			"%s requires argument of type *[]checker.SecurityPolicyInformation: %w",
+			"checkSecurityPolicyFileContent", errInvalidArgType)
 	}
 
 	if len(content) == 0 {
@@ -157,29 +173,50 @@ var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(pa
 		return true, nil
 	}
 
-	// TODO: there is an assertion here that if content has length
-	//       then (*pfiles)[0] is not nil (can that be checked)
-	//       (so is this test necessary?)
-	if (*pfiles) != nil {
+	if pfiles != nil && (*pinfo) != nil {
 		// preserve file type
-		tempType := (*pfiles)[0].Type
-		linkedContentLen, urls, emails, discvuls := countUniquePolicyHits(string(content))
-		contentMetrics := fmt.Sprintf("%d,%d,%d,%d,%d", len(content), linkedContentLen, urls, emails, discvuls)
-		(*pfiles)[0] = checker.File{
-			Path:    path,
-			Type:    tempType,
-			Offset:  checker.OffsetDefault,
-			Snippet: contentMetrics,
+		tempType := pfiles.Type
+		urlsL, emailsL, discvulsL := collectPolicyHits(string(content))
+
+		*pfiles = checker.File{
+			Path:   path,
+			Type:   tempType,
+			Offset: checker.OffsetDefault,
+			// convey the length/amount of content using
+			// the EndOffset as the len to EOF used in eval
+			EndOffset: uint(len(content)),
 		}
+
+		if len(urlsL) > 0 {
+			(*pinfo) = append((*pinfo), checker.SecurityPolicyInformation{
+				InformationType:  checker.SecurityPolicyInformationTypeLink,
+				InformationValue: urlsL,
+			})
+		}
+
+		if len(emailsL) > 0 {
+			(*pinfo) = append((*pinfo), checker.SecurityPolicyInformation{
+				InformationType:  checker.SecurityPolicyInformationTypeEmail,
+				InformationValue: emailsL,
+			})
+		}
+
+		if len(discvulsL) > 0 {
+			(*pinfo) = append((*pinfo), checker.SecurityPolicyInformation{
+				InformationType:  checker.SecurityPolicyInformationTypeText,
+				InformationValue: discvulsL,
+			})
+		}
+	} else {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "bad file or information reference")
+		return false, e
 	}
 
 	// stop here found something, no need to look further (false)
 	return false, nil
 }
 
-func countUniquePolicyHits(policyContent string) (int, int, int, int) {
-	var urls, strlenOfUrls, emails, strlenOfEmails, discvuls int
-
+func collectPolicyHits(policyContent string) ([]string, []string, []string) {
 	// pattern for URLs
 	reURL := regexp.MustCompile(`(http|https)://[a-zA-Z0-9./?=_%:-]*`)
 	// pattern for emails
@@ -189,35 +226,28 @@ func countUniquePolicyHits(policyContent string) (int, int, int, int) {
 	// strings 'disclos' as in "disclosure" or 'vuln' as in "vulnerability"
 	reDIG := regexp.MustCompile(`(?i)(\b*[0-9]{1,4}\b|(Disclos|Vuln))`)
 
-	rURL := reURL.FindAllString(policyContent, -1)
-	rEML := reEML.FindAllString(policyContent, -1)
-	rDIG := reDIG.FindAllString(policyContent, -1)
+	urlUniqList := uniqueInPolicy(reURL.FindAllString(policyContent, -1))
 
-	urls, strlenOfUrls = countUniqueInPolicy(rURL)
-
-	emails, strlenOfEmails = countUniqueInPolicy(rEML)
+	emailUniqList := uniqueInPolicy(reEML.FindAllString(policyContent, -1))
 
 	// not really looking unique sets of numbers or words
-	// and take the raw count of hits
-	discvuls = len(rDIG)
+	discvulsList := reDIG.FindAllString(policyContent, -1)
 
-	return (strlenOfUrls + strlenOfEmails), urls, emails, discvuls
+	return urlUniqList, emailUniqList, discvulsList
 }
 
 //
-// Returns a count of unique items in a slice
+// Returns unique items in a slice
 // src inspiration: https://codereview.stackexchange.com/questions/191238/return-unique-items-in-a-go-slice
 //
-func countUniqueInPolicy(strSlice []string) (int, int) {
-	count := 0
-	strlen := 0
+func uniqueInPolicy(strSlice []string) []string {
 	keys := make(map[string]bool)
+	list := []string{}
 	for _, entry := range strSlice {
 		if _, value := keys[entry]; !value {
 			keys[entry] = true
-			strlen += len(entry)
-			count += 1
+			list = append(list, entry)
 		}
 	}
-	return count, strlen
+	return list
 }

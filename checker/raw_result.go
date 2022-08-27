@@ -136,11 +136,28 @@ type VulnerabilitiesData struct {
 	Vulnerabilities []clients.Vulnerability
 }
 
+type SecurityPolicyInformationType string
+
+const (
+	// forms of security policy hints being evaluated.
+	SecurityPolicyInformationTypeEmail SecurityPolicyInformationType = "emailAddress"
+	SecurityPolicyInformationTypeLink  SecurityPolicyInformationType = "httpLink"
+	SecurityPolicyInformationTypeText  SecurityPolicyInformationType = "vuln & disclosure text"
+)
+
+type SecurityPolicyInformation struct {
+	InformationType  SecurityPolicyInformationType
+	InformationValue []string
+}
+
 // SecurityPolicyData contains the raw results
 // for the Security-Policy check.
 type SecurityPolicyData struct {
-	// Files contains a list of files.
-	Files []File
+	// security policy information found in repo or org
+	Information []SecurityPolicyInformation
+	// file that contains the security policy information
+	// only looking for one file
+	File File
 }
 
 // BinaryArtifactData contains the raw results

@@ -15,29 +15,64 @@
 package evaluation
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-func scoreSecurityCriteria(contentLen, linkedContentLen, urls, emails, discvuls int) (int, string) {
-	score := 0
-	reason := ""
+func scoreSecurityCriteria(f checker.File, info []checker.SecurityPolicyInformation, dl checker.DetailLogger) int {
+	var urls, emails, discvuls, linkedContentLen, score int
+	// for Security-Policy, EndOffset denotes the
+	// length of the found policy file
+	// (i.e., byte offset at end of file)
+	contentLen := int(f.EndOffset)
+
+	for _, i := range info {
+		valuelen := 0
+		counter := 0
+		for _, v := range i.InformationValue {
+			valuelen += len(v)
+			counter += 1
+		}
+
+		switch i.InformationType {
+		case checker.SecurityPolicyInformationTypeEmail:
+			emails = counter
+			linkedContentLen += valuelen
+		case checker.SecurityPolicyInformationTypeLink:
+			urls = counter
+			linkedContentLen += valuelen
+		case checker.SecurityPolicyInformationTypeText:
+			discvuls = counter
+		}
+	}
+
+	msg := checker.LogMessage{
+		Path: f.Path,
+		Type: f.Type,
+		Text: "",
+	}
 
 	// #1: found one linked (email/http) content: score += 3
 	//     rationale: someone to collaborate with or link to
 	//     information (strong for community)
 	if urls >= 1 || emails >= 1 {
 		score += 3
-		reason += "linked content, "
+		msg.Text = "Found linked content in security policy"
+		dl.Info(&msg)
+	} else {
+		msg.Text = "no email or URL found in security policy"
+		dl.Warn(&msg)
 	}
 
 	// #2: more than one unique (email/http) linked content found: score += 3
 	//     rationale: if more than one link, even stronger for the community
 	if (urls + emails) > 1 {
 		score += 3
-		reason = "multiple " + reason
+		msg.Text = "Found multiple linked content in security policy"
+		dl.Info(&msg)
+	} else {
+		msg.Text = "Only one email or URL (if any) found in security policy"
+		dl.Warn(&msg)
 	}
 
 	// #3: more bytes than the sum of the length of all the linked content found: score += 3
@@ -47,7 +82,11 @@ func scoreSecurityCriteria(contentLen, linkedContentLen, urls, emails, discvuls 
 	//     before and after the content (hence the two multiplier)
 	if contentLen > 1 && (contentLen > (linkedContentLen + ((urls + emails) * 2))) {
 		score += 3
-		reason += "text, "
+		msg.Text = "Found text in security policy"
+		dl.Info(&msg)
+	} else {
+		msg.Text = "No text (beyond any linked content) found in security policy"
+		dl.Warn(&msg)
 	}
 
 	// #4: found whole number(s) and or match(es) to "Disclos" and or "Vuln": score += 1
@@ -57,15 +96,14 @@ func scoreSecurityCriteria(contentLen, linkedContentLen, urls, emails, discvuls 
 	//     looking for at least 2 hits
 	if discvuls > 1 {
 		score += 1
-		reason += "vulnerability & disclosure instructions"
+		msg.Text = "Found disclosure, vulnerability, and/or timelines in security policy"
+		dl.Info(&msg)
+	} else {
+		msg.Text = "One or no descriptive hints of disclosure, vulnerability, and/or timelines in security policy"
+		dl.Warn(&msg)
 	}
 
-	if reason == "" {
-		reason = "nothing"
-	}
-	reason = "security policy contains " + reason
-
-	return score, reason
+	return score
 }
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
@@ -76,36 +114,26 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 	}
 
 	// Apply the policy evaluation.
-	if r.Files == nil || len(r.Files) == 0 {
-		// If the file is null or has zero lengths, directly return as not detected.
+	if r.File == (checker.File{}) {
+		// If the file is unset, directly return as not detected.
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
 
-	score := 0
-	reason := ""
-	var err error
-	for _, f := range r.Files {
-		msg := checker.LogMessage{
-			Path:   f.Path,
-			Type:   f.Type,
-			Offset: f.Offset,
-		}
-		if msg.Type == checker.FileTypeURL {
-			msg.Text = "security policy detected in org repo"
-		} else {
-			msg.Text = "security policy detected in current repo"
-		}
+	score := scoreSecurityCriteria(r.File, r.Information, dl)
 
-		var contentLen, linkedContentLen, urls, emails, discvuls int
-		fmt.Sscanf(f.Snippet, "%d,%d,%d,%d,%d", &contentLen, &linkedContentLen, &urls, &emails, &discvuls)
-		score, reason = scoreSecurityCriteria(contentLen, linkedContentLen, urls, emails, discvuls)
-
-		dl.Info(&msg)
+	msg := checker.LogMessage{
+		Path:   r.File.Path,
+		Type:   r.File.Type,
+		Offset: r.File.Offset,
 	}
 
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
+	if msg.Type == checker.FileTypeURL {
+		msg.Text = "security policy detected in org repo"
 	} else {
-		return checker.CreateResultWithScore(name, reason, score)
+		msg.Text = "security policy detected in current repo"
 	}
+
+	dl.Info(&msg)
+
+	return checker.CreateResultWithScore(name, "security policy file detected", score)
 }
