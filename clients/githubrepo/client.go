@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/go-github/v38/github"
 	"github.com/shurcooL/githubv4"
@@ -174,6 +175,11 @@ func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	return client.branches.getBranch(branch)
 }
 
+// GetCreatedAt is a getter for repo.CreatedAt.
+func (client *Client) GetCreatedAt() (time.Time, error) {
+	return client.repo.CreatedAt.Time, nil
+}
+
 // ListWebhooks implements RepoClient.ListWebhooks.
 func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return client.webhook.listWebhooks()
@@ -186,7 +192,15 @@ func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.Wor
 
 // ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.
 func (client *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	return client.checkruns.listCheckRunsForRef(ref)
+	cachedCrs, err := client.graphClient.listCheckRunsForRef(ref)
+	if errors.Is(err, errNotCached) {
+		crs, err := client.checkruns.listCheckRunsForRef(ref)
+		if err == nil {
+			client.graphClient.cacheCheckRunsForRef(ref, crs)
+		}
+		return crs, err
+	}
+	return cachedCrs, err
 }
 
 // ListStatuses implements RepoClient.ListStatuses.

@@ -365,7 +365,7 @@ by an appropriate file extension, as described in the [REUSE](https://reuse.soft
 ## Maintained 
 
 Risk: `High` (possibly unpatched vulnerabilities)
-   
+
 This check determines whether the project is actively maintained. If the project
 is archived, it receives the lowest score. If there is at least one commit per
 week during the previous 90 days, the project receives the highest score.  If there
@@ -380,7 +380,12 @@ For example, a library that determines if an integer is even would not normally
 need maintenance unless an underlying implementation language definition
 changed. A lack of active maintenance should signal that potential users should
 investigate further to judge the situation.   
- 
+
+This check will only succeed if a Github project is >90 days old. Projects
+that are younger than this are too new to assess whether they are maintained
+or not, and users should inspect the contents of those projects to ensure they
+are as expected.
+
 
 **Remediation steps**
 - There is no remediation work needed from projects with a low score; this check simply provides insight into the project activity and maintenance commitment. External users should determine whether the software is the type that would not normally need active maintenance.
@@ -534,10 +539,14 @@ not support other source hosting repositories (i.e., Forges).
 Signed releases attest to the provenance of the artifact.
 
 This check looks for the following filenames in the project's last five
-releases: [*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),
-*.sig, *.sign.
+[release assets](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases):
+[*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),
+*.sig, *.sign, [*.intoto.jsonl](slsa.dev).
 
-Note: The check does not verify the signatures. 
+If a signature is found in the assets for each release, a score of 8 is given.
+If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
+
+Note: The check does not verify the signatures.
  
 
 **Remediation steps**

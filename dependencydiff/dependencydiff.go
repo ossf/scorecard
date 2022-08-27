@@ -57,7 +57,6 @@ func GetDependencyDiffResults(
 	checksToRun []string, /* A list of enabled check names to run. */
 	changeTypes []string, /* A list of dependency change types for which we surface scorecard results. */
 ) ([]pkg.DependencyCheckResult, error) {
-
 	logger := sclog.NewLogger(sclog.DefaultLevel)
 	ownerAndRepo := strings.Split(repoURI, "/")
 	if len(ownerAndRepo) != 2 {

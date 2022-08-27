@@ -15,12 +15,14 @@
 package checker
 
 import (
+	"time"
+
 	"github.com/ossf/scorecard/v4/clients"
 )
 
 // RawResults contains results before a policy
 // is applied.
-// nolint
+//nolint
 type RawResults struct {
 	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
@@ -54,7 +56,7 @@ type PackagingData struct {
 }
 
 // Package represents a package.
-// nolint
+//nolint
 type Package struct {
 	// TODO: not supported yet. This needs to be unique across
 	// ecosystems: purl, OSV, CPE, etc.
@@ -105,6 +107,7 @@ type Dependency struct {
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {
+	CreatedAt            time.Time
 	Issues               []clients.Issue
 	DefaultBranchCommits []clients.Commit
 	ArchivedStatus       ArchivedStatus

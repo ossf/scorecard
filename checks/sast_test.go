@@ -33,7 +33,7 @@ import (
 func Test_SAST(t *testing.T) {
 	t.Parallel()
 
-	// nolint: govet, goerr113
+	//nolint: govet, goerr113
 	tests := []struct {
 		name          string
 		commits       []clients.Commit
@@ -266,7 +266,7 @@ func Test_SAST(t *testing.T) {
 func Test_validateSonarConfig(t *testing.T) {
 	t.Parallel()
 
-	// nolint: govet
+	//nolint: govet
 	tests := []struct {
 		name      string
 		path      string

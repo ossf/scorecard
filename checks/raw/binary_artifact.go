@@ -222,8 +222,9 @@ func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...in
 	}
 
 	action, errs := actionlint.Parse(content)
-	if len(errs) > 0 {
-		return true, errs[0]
+	if len(errs) > 0 || action == nil {
+		// Parse fail, so not this file.
+		return true, nil
 	}
 
 	for _, j := range action.Jobs {
@@ -249,7 +250,7 @@ func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...in
 				}
 				// OK! This is it.
 				*validatingWorkflowFile = filepath.Base(path)
-				return true, nil
+				return false, nil
 			}
 		}
 	}

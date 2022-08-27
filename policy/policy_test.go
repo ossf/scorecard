@@ -25,7 +25,7 @@ import (
 func TestPolicyRead(t *testing.T) {
 	t.Parallel()
 
-	// nolint
+	//nolint
 	tests := []struct {
 		err      error
 		name     string

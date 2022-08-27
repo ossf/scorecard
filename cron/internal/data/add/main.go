@@ -18,7 +18,9 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/cron/internal/data"
 )
@@ -29,7 +31,8 @@ import (
 // * Sort and output all projects
 // Usage: add all new dependencies to the projects.csv file before running this script
 // Args:
-//     path to input.csv output.csv
+//
+//	path to input.csv output.csv
 func main() {
 	if len(os.Args) != 3 {
 		panic("must provide 2 arguments")
@@ -71,19 +74,24 @@ func getRepoURLs(iter data.Iterator) ([]data.RepoFormat, error) {
 		if err != nil {
 			return nil, fmt.Errorf("iter.Next: %w", err)
 		}
-		if _, ok := repoMap[repo.Repo]; !ok {
-			repoURLs[repo.Repo] = new(data.RepoFormat)
-			*repoURLs[repo.Repo] = repo
-			repoMap[repo.Repo] = make(map[string]bool)
+		parsedURL, err := url.Parse(strings.ToLower(repo.Repo))
+		if err != nil {
+			panic(err)
+		}
+		mapURL := fmt.Sprintf("%s/%s", parsedURL.Host, parsedURL.Path)
+		if _, ok := repoMap[mapURL]; !ok {
+			repoURLs[mapURL] = new(data.RepoFormat)
+			*repoURLs[mapURL] = repo
+			repoMap[mapURL] = make(map[string]bool)
 			for _, metadata := range repo.Metadata {
-				repoMap[repo.Repo][metadata] = true
+				repoMap[mapURL][metadata] = true
 			}
 			continue
 		}
 		for _, metadata := range repo.Metadata {
-			if _, ok := repoMap[repo.Repo][metadata]; !ok && metadata != "" {
-				repoURLs[repo.Repo].Metadata = append(repoURLs[repo.Repo].Metadata, metadata)
-				repoMap[repo.Repo][metadata] = true
+			if _, ok := repoMap[mapURL][metadata]; !ok && metadata != "" {
+				repoURLs[mapURL].Metadata = append(repoURLs[mapURL].Metadata, metadata)
+				repoMap[mapURL][metadata] = true
 			}
 		}
 	}

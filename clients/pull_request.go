@@ -19,7 +19,8 @@ import (
 )
 
 // PullRequest struct represents a PR as returned by RepoClient.
-// nolint: govet
+//
+//nolint:govet
 type PullRequest struct {
 	Number   int
 	MergedAt time.Time

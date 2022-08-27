@@ -26,7 +26,7 @@ import (
 func TestCodeReview(t *testing.T) {
 	t.Parallel()
 
-	// nolint:govet // ignore since this is a test.
+	//nolint:govet // ignore since this is a test.
 	tests := []struct {
 		name     string
 		expected scut.TestReturn

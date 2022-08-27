@@ -44,9 +44,8 @@ type Options struct {
 	ShowDetails bool
 
 	// Feature flags.
-	EnableSarif                 bool `env:"ENABLE_SARIF"`
-	EnableScorecardV5           bool `env:"SCORECARD_V5"`
-	EnableScorecardV6           bool `env:"SCORECARD_V6"`
+	EnableSarif       bool `env:"ENABLE_SARIF"`
+	EnableScorecardV6 bool `env:"SCORECARD_V6"`
 	EnableScorecardExperimental bool `env:"SCORECARD_EXPERIMENTAL"`
 }
 
@@ -92,9 +91,6 @@ const (
 	// EnvVarEnableSarif is the environment variable which controls enabling
 	// SARIF logging.
 	EnvVarEnableSarif = "ENABLE_SARIF"
-	// EnvVarScorecardV5 is the environment variable which enables scorecard v5
-	// options.
-	EnvVarScorecardV5 = "SCORECARD_V5"
 	// EnvVarScorecardV6 is the environment variable which enables scorecard v6
 	// options.
 	EnvVarScorecardV6 = "SCORECARD_V6"
@@ -107,12 +103,11 @@ var (
 	// DefaultLogLevel retrieves the default log level.
 	DefaultLogLevel = log.DefaultLevel.String()
 
-	errCommitIsEmpty            = errors.New("commit should be non-empty")
-	errCommitOptionNotSupported = errors.New("commit option is not supported yet")
-	errFormatNotSupported       = errors.New("unsupported format")
-	errPolicyFileNotSupported   = errors.New("policy file is not supported yet")
-	errRawOptionNotSupported    = errors.New("raw option is not supported yet")
-	errRepoOptionMustBeSet      = errors.New(
+	errCommitIsEmpty          = errors.New("commit should be non-empty")
+	errFormatNotSupported     = errors.New("unsupported format")
+	errPolicyFileNotSupported = errors.New("policy file is not supported yet")
+	errRawOptionNotSupported  = errors.New("raw option is not supported yet")
+	errRepoOptionMustBeSet    = errors.New(
 		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
 	)
 	errSARIFNotSupported    = errors.New("SARIF format is not supported yet")
@@ -153,23 +148,12 @@ func (o *Options) Validate() error {
 		}
 	}
 
-	// Validate V5 features are flag-guarded.
-	if !o.isV5Enabled() { //nolint:staticcheck
-		// TODO(v5): Populate v5 feature flags.
-	}
-
 	// Validate V6 features are flag-guarded.
 	if !o.isV6Enabled() {
 		if o.Format == FormatRaw {
 			errs = append(
 				errs,
 				errRawOptionNotSupported,
-			)
-		}
-		if o.Commit != clients.HeadSHA {
-			errs = append(
-				errs,
-				errCommitOptionNotSupported,
 			)
 		}
 	}
@@ -219,13 +203,6 @@ func (o *Options) isSarifEnabled() bool {
 	// UPGRADEv4: remove.
 	_, enabled := os.LookupEnv(EnvVarEnableSarif)
 	return o.EnableSarif || enabled
-}
-
-// isV5Enabled returns true if v5 functionality was specified in options or via
-// environment variable.
-func (o *Options) isV5Enabled() bool {
-	_, enabled := os.LookupEnv(EnvVarScorecardV5)
-	return o.EnableScorecardV5 || enabled
 }
 
 // isV6Enabled returns true if v6 functionality was specified in options or via

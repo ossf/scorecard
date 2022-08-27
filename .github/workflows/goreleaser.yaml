@@ -24,6 +24,8 @@ permissions:
 
 jobs:
   goreleaser:
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
     permissions:
       contents: write  # for goreleaser/goreleaser-action to create a GitHub release
     runs-on: ubuntu-latest
@@ -38,9 +40,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
+        uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
         with:
-          go-version: 1.17
+          go-version: 1.18
           check-latest: true
       - name: Configure ldflags
         id: ldflags
@@ -52,6 +54,7 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
       - name: Run GoReleaser
+        id: run-goreleaser
         uses: goreleaser/goreleaser-action@b953231f81b8dfd023c58e0854a721e35037f28b # v2.5.0
         with:
           version: latest
@@ -60,3 +63,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           VERSION_LDFLAGS: ${{ steps.ldflags.outputs.version_flags }}
+      - name: Generate subject
+        id: hash
+        env:
+          ARTIFACTS: "${{ steps.run-goreleaser.outputs.artifacts }}"
+        run: |
+          set -euo pipefail
+
+          checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
+          echo "::set-output name=hashes::$(cat $checksum_file | base64 -w0)"
+
+  provenance:
+    needs: [goreleaser]
+    permissions:
+      actions: read # To read the workflow path.
+      id-token: write # To sign the provenance.
+      contents: write # To add assets to a release.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.2.0
+    with:
+      base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
+      upload-assets: true # upload to a new release

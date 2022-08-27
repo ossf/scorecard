@@ -123,19 +123,17 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	return checker.CreateRuntimeErrorResult(CheckSAST, sce.WithMessage(sce.ErrScorecardInternal, "contact team"))
 }
 
-// nolint
 func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		//nolint
 		return checker.InconclusiveResultScore,
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
 	}
 
 	totalMerged := 0
 	totalTested := 0
-	for _, commit := range commits {
-		pr := commit.AssociatedMergeRequest
+	for i := range commits {
+		pr := commits[i].AssociatedMergeRequest
 		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
 		// but the PR was created in the original repo.
 		if pr.MergedAt.IsZero() {
@@ -187,7 +185,6 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 	return checker.CreateProportionalScore(totalTested, totalMerged), nil
 }
 
-// nolint
 func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	searchRequest := clients.SearchRequest{
 		Query: "github/codeql-action/analyze",
@@ -228,7 +225,6 @@ type sonarConfig struct {
 	file checker.File
 }
 
-// nolint
 func sonarEnabled(c *checker.CheckRequest) (int, error) {
 	var config []sonarConfig
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{

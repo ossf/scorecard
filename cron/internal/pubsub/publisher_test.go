@@ -33,13 +33,13 @@ func (topic *mockSucceedTopic) Send(ctx context.Context, msg *pubsub.Message) er
 type mockFailTopic struct{}
 
 func (topic *mockFailTopic) Send(ctx context.Context, msg *pubsub.Message) error {
-	// nolint: goerr113
+	//nolint: goerr113
 	return fmt.Errorf("mockFailTopic failed to send")
 }
 
 func TestPublish(t *testing.T) {
 	t.Parallel()
-	// nolint: govet
+	//nolint: govet
 	testcases := []struct {
 		numErrors uint64
 		name      string

@@ -28,7 +28,7 @@ import (
 // Test_fetchRawDependencyDiffData is a test function for fetchRawDependencyDiffData.
 func Test_fetchRawDependencyDiffData(t *testing.T) {
 	t.Parallel()
-	//nolint
+
 	tests := []struct {
 		name      string
 		dCtx      dependencydiffContext
@@ -64,7 +64,6 @@ func Test_fetchRawDependencyDiffData(t *testing.T) {
 				t.Errorf("want empty results: %v, got len of results:%d", tt.wantEmpty, lenResults)
 				return
 			}
-
 		})
 	}
 }
@@ -131,7 +130,7 @@ func Test_initRepoAndClientByChecks(t *testing.T) {
 
 func Test_getScorecardCheckResults(t *testing.T) {
 	t.Parallel()
-	//nolint
+
 	tests := []struct {
 		name    string
 		dCtx    dependencydiffContext
@@ -230,7 +229,7 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 
 func Test_isSpecifiedByUser(t *testing.T) {
 	t.Parallel()
-	//nolint
+
 	tests := []struct {
 		name               string
 		ct                 pkg.ChangeType
