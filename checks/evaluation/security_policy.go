@@ -52,11 +52,10 @@ func scoreSecurityCriteria(f checker.File, info []checker.SecurityPolicyInformat
 		Text: "",
 	}
 
-	// #1: found one linked (email/http) content: score += 3
-	//     rationale: someone to collaborate with or link to
-	//     information (strong for community)
-	if urls >= 1 || emails >= 1 {
-		score += 3
+	// #1: more than one unique (email/http) linked content found: score += 6
+	//     rationale: if more than one link, even stronger for the community
+	if (urls + emails) > 0 {
+		score += 6
 		msg.Text = "Found linked content in security policy"
 		dl.Info(&msg)
 	} else {
@@ -64,18 +63,7 @@ func scoreSecurityCriteria(f checker.File, info []checker.SecurityPolicyInformat
 		dl.Warn(&msg)
 	}
 
-	// #2: more than one unique (email/http) linked content found: score += 3
-	//     rationale: if more than one link, even stronger for the community
-	if (urls + emails) > 1 {
-		score += 3
-		msg.Text = "Found multiple linked content in security policy"
-		dl.Info(&msg)
-	} else {
-		msg.Text = "Only one email or URL (if any) found in security policy"
-		dl.Warn(&msg)
-	}
-
-	// #3: more bytes than the sum of the length of all the linked content found: score += 3
+	// #2: more bytes than the sum of the length of all the linked content found: score += 3
 	//     rationale: there appears to be information and context around those links
 	//     no credit if there is just a link to a site or an email address (those given above)
 	//     the test here is that each piece of linked content will likely contain a space
@@ -89,7 +77,7 @@ func scoreSecurityCriteria(f checker.File, info []checker.SecurityPolicyInformat
 		dl.Warn(&msg)
 	}
 
-	// #4: found whole number(s) and or match(es) to "Disclos" and or "Vuln": score += 1
+	// #3: found whole number(s) and or match(es) to "Disclos" and or "Vuln": score += 1
 	//     rationale: works towards the intent of the security policy file
 	//     regarding whom to contact about vuls and disclosures and timing
 	//     e.g., we'll disclose, report a vulnerabily, 30 days, etc.

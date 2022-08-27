@@ -44,20 +44,20 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        10,
-				NumberOfInfo: 5,
+				NumberOfInfo: 4,
 				NumberOfWarn: 0,
 			},
 		},
 		{
 			name: ".github/security.md",
-			path: "./testdata/securitypolicy/07_realworld",
+			path: "./testdata/securitypolicy/10_realworldtwo",
 			files: []string{
 				".github/security.md",
 			},
 			want: scut.TestReturn{
-				Score:        7,
+				Score:        10,
 				NumberOfInfo: 4,
-				NumberOfWarn: 1,
+				NumberOfWarn: 0,
 			},
 		},
 		{
@@ -69,7 +69,7 @@ func TestSecurityPolicy(t *testing.T) {
 			want: scut.TestReturn{
 				Score:        4,
 				NumberOfInfo: 3,
-				NumberOfWarn: 2,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -81,31 +81,31 @@ func TestSecurityPolicy(t *testing.T) {
 			want: scut.TestReturn{
 				Score:        3,
 				NumberOfInfo: 2,
-				NumberOfWarn: 3,
+				NumberOfWarn: 2,
 			},
 		},
 		{
 			name: ".github/security.rst",
-			path: "./testdata/securitypolicy/03_urlOnly",
+			path: "./testdata/securitypolicy/06_urlOnly",
 			files: []string{
 				".github/security.rst",
 			},
 			want: scut.TestReturn{
-				Score:        3,
+				Score:        6,
 				NumberOfInfo: 2,
-				NumberOfWarn: 3,
+				NumberOfWarn: 2,
 			},
 		},
 		{
 			name: "docs/security.rst",
-			path: "./testdata/securitypolicy/03_emailOnly",
+			path: "./testdata/securitypolicy/06_emailOnly",
 			files: []string{
 				"docs/security.rst",
 			},
 			want: scut.TestReturn{
-				Score:        3,
+				Score:        6,
 				NumberOfInfo: 2,
-				NumberOfWarn: 3,
+				NumberOfWarn: 2,
 			},
 		},
 		{
@@ -116,7 +116,7 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        6,
-				NumberOfInfo: 3,
+				NumberOfInfo: 2,
 				NumberOfWarn: 2,
 			},
 		},
@@ -128,7 +128,7 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        9,
-				NumberOfInfo: 4,
+				NumberOfInfo: 3,
 				NumberOfWarn: 1,
 			},
 		},
@@ -140,7 +140,7 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 			want: scut.TestReturn{
 				Score:        10,
-				NumberOfInfo: 5,
+				NumberOfInfo: 4,
 				NumberOfWarn: 0,
 			},
 		},
@@ -153,7 +153,7 @@ func TestSecurityPolicy(t *testing.T) {
 			want: scut.TestReturn{
 				Score:        0,
 				NumberOfInfo: 1,
-				NumberOfWarn: 4,
+				NumberOfWarn: 3,
 			},
 		},
 		{
@@ -165,7 +165,7 @@ func TestSecurityPolicy(t *testing.T) {
 			want: scut.TestReturn{
 				Score:        0,
 				NumberOfInfo: 1,
-				NumberOfWarn: 4,
+				NumberOfWarn: 3,
 			},
 		},
 	}
