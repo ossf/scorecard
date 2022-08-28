@@ -74,7 +74,7 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 	if len(commits) > 0 {
 		return commits[0].SHA, nil
 	}
-	return "no commits found", nil
+	return "", nil
 }
 
 // RunScorecards runs enabled Scorecard checks on a Repo.
@@ -95,7 +95,7 @@ func RunScorecards(ctx context.Context,
 	defer repoClient.Close()
 
 	commitSHA, err := getRepoCommitHash(repoClient)
-	if err != nil {
+	if err != nil || commitSHA == "" {
 		return ScorecardResult{}, err
 	}
 	versionInfo := version.GetVersionInfo()
