@@ -65,7 +65,7 @@ certain workflows for branches, such as requiring review or passing certain
 status checks before acceptance into a main branch, or preventing rewriting of
 public history.
 
-Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmin`, and `StrictStatusCheck`. If
+Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmin`, `StrictStatusCheck` and `RequireCodeownerReview`. If
 the provided token does not have admin access, the check will query the branch
 settings accessible to non-admins and provide results based only on these settings.
 Even so, we recommend using a non-admin token, which provides a thorough enough
@@ -116,6 +116,7 @@ Tier 4 Requirements (9/10 points):
 
 Tier 5 Requirements (10/10 points):
   - For administrators: Dismiss stale reviews
+  - For administrators: Require CODEOWNER review
  
 
 **Remediation steps**
@@ -385,7 +386,7 @@ This check will only succeed if a Github project is >90 days old. Projects
 that are younger than this are too new to assess whether they are maintained
 or not, and users should inspect the contents of those projects to ensure they
 are as expected.
-
+ 
 
 **Remediation steps**
 - There is no remediation work needed from projects with a low score; this check simply provides insight into the project activity and maintenance commitment. External users should determine whether the software is the type that would not normally need active maintenance.
