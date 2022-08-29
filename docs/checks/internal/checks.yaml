@@ -204,7 +204,7 @@ checks:
       
       Tier 5 Requirements (10/10 points):
         - For administrators: Dismiss stale reviews
-        - Require CODEOWNER review
+        - For administrators: Require CODEOWNER review
 
     remediation:
       - >-
