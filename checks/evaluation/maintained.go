@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	lookBackDays    = 90
+	lookBackDays    = 365
 	activityPerWeek = 1
 	daysInOneWeek   = 7
 )
