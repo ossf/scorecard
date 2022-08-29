@@ -209,7 +209,7 @@ We generate [SLSA3 signatures](slsa.dev) using the OpenSSF's [slsa-framework/sls
 slsa-verifier -artifact-path <the-zip> -provenance attestation.intoto.jsonl -source github.com/ossf/scorecard -tag <the-tag>
 ```  
 
-#### Using package managers
+##### Using package managers
 
 Package Manager                                            | Supported Distribution | Command
 ---------------------------------------------------------- | ---------------------- | -------
