@@ -30,6 +30,7 @@ const (
 	nonAdminContextLevel        = 2 // Level 3.
 	nonAdminThoroughReviewLevel = 1 // Level 4.
 	adminThoroughReviewLevel    = 1 // Level 5.
+
 )
 
 type scoresInfo struct {
@@ -40,6 +41,7 @@ type scoresInfo struct {
 	context             int
 	thoroughReview      int
 	adminThoroughReview int
+	codeownerReview     int
 }
 
 // Maximum score depending on whether admin token is used.
@@ -76,6 +78,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		score.scores.thoroughReview, score.maxes.thoroughReview = nonAdminThoroughReviewProtection(&b, dl)
 		// Do we want this?
 		score.scores.adminThoroughReview, score.maxes.adminThoroughReview = adminThoroughReviewProtection(&b, dl)
+		score.scores.codeownerReview, score.maxes.codeownerReview = codeownersBranchProtection(&b, dl)
 
 		scores = append(scores, score)
 	}
@@ -104,7 +107,8 @@ func BranchProtection(name string, dl checker.DetailLogger,
 
 func computeNonAdminBasicScore(scores []levelScore) int {
 	score := 0
-	for _, s := range scores {
+	for i := range scores {
+		s := scores[i]
 		score += s.scores.basic
 	}
 	return score
@@ -112,7 +116,8 @@ func computeNonAdminBasicScore(scores []levelScore) int {
 
 func computeAdminBasicScore(scores []levelScore) int {
 	score := 0
-	for _, s := range scores {
+	for i := range scores {
+		s := scores[i]
 		score += s.scores.adminBasic
 	}
 	return score
@@ -120,7 +125,8 @@ func computeAdminBasicScore(scores []levelScore) int {
 
 func computeNonAdminReviewScore(scores []levelScore) int {
 	score := 0
-	for _, s := range scores {
+	for i := range scores {
+		s := scores[i]
 		score += s.scores.review
 	}
 	return score
@@ -128,7 +134,8 @@ func computeNonAdminReviewScore(scores []levelScore) int {
 
 func computeAdminReviewScore(scores []levelScore) int {
 	score := 0
-	for _, s := range scores {
+	for i := range scores {
+		s := scores[i]
 		score += s.scores.adminReview
 	}
 	return score
@@ -136,7 +143,8 @@ func computeAdminReviewScore(scores []levelScore) int {
 
 func computeNonAdminThoroughReviewScore(scores []levelScore) int {
 	score := 0
-	for _, s := range scores {
+	for i := range scores {
+		s := scores[i]
 		score += s.scores.thoroughReview
 	}
 	return score
@@ -144,7 +152,8 @@ func computeNonAdminThoroughReviewScore(scores []levelScore) int {
 
 func computeAdminThoroughReviewScore(scores []levelScore) int {
 	score := 0
-	for _, s := range scores {
+	for i := range scores {
+		s := scores[i]
 		score += s.scores.adminThoroughReview
 	}
 	return score
@@ -152,8 +161,18 @@ func computeAdminThoroughReviewScore(scores []levelScore) int {
 
 func computeNonAdminContextScore(scores []levelScore) int {
 	score := 0
-	for _, s := range scores {
+	for i := range scores {
+		s := scores[i]
 		score += s.scores.context
+	}
+	return score
+}
+
+func computeCodeownerThoroughReviewScore(scores []levelScore) int {
+	score := 0
+	for i := range scores {
+		s := scores[i]
+		score += s.scores.codeownerReview
 	}
 	return score
 }
@@ -204,14 +223,18 @@ func computeScore(scores []levelScore) (int, error) {
 	}
 
 	// Fourth, check the thorough non-admin reviews.
+	// Also check whether this repo requires codeowner review
 	maxThoroughReviewScore := maxScore.thoroughReview * len(scores)
+	maxCodeownerReviewScore := maxScore.codeownerReview * len(scores)
 	thoroughReviewScore := computeNonAdminThoroughReviewScore(scores)
-	score += noarmalizeScore(thoroughReviewScore, maxThoroughReviewScore, nonAdminThoroughReviewLevel)
+	codeownerReviewScore := computeCodeownerThoroughReviewScore(scores)
+	score += noarmalizeScore(thoroughReviewScore+codeownerReviewScore, maxThoroughReviewScore+maxCodeownerReviewScore,
+		nonAdminThoroughReviewLevel)
 	if thoroughReviewScore != maxThoroughReviewScore {
 		return int(score), nil
 	}
 
-	// Last, check the thorough admin review config.
+	// Lastly, check the thorough admin review config.
 	// This one is controversial and has usability issues
 	// https://github.com/ossf/scorecard/issues/1027, so we may remove it.
 	maxAdminThoroughReviewScore := maxScore.adminThoroughReview * len(scores)
@@ -410,5 +433,24 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 	} else {
 		warn(dl, log, "number of required reviewers is 0 on branch '%s'", *branch.Name)
 	}
+	return score, max
+}
+
+func codeownersBranchProtection(branch *clients.BranchRef, dl checker.DetailLogger) (int, int) {
+	score := 0
+	max := 1
+
+	log := branch.Protected != nil && *branch.Protected
+
+	if branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews != nil {
+		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews {
+		case true:
+			info(dl, log, "codeowner review is required on branch '%s'", *branch.Name)
+			score++
+		default:
+			warn(dl, log, "codeowner review is not required on branch '%s'", *branch.Name)
+		}
+	}
+
 	return score, max
 }
