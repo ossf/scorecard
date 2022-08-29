@@ -55,9 +55,9 @@ ________________________________________________________________________________
 ## Overview
 
 ### What is Scorecards?
-
-We created Scorecards to give consumers of open-source projects an easy way to
-judge whether their dependencies are safe.
+We created Scorecards to give maintainers of open-source projects a way to
+improve their security best practices and consumers of open-source projects an
+easy way to judge whether their dependencies are safe.
 
 Scorecards is an automated tool that assesses a number of important heuristics
 [("checks")](#scorecard-checks) associated with software security and assigns
@@ -83,9 +83,11 @@ The inspiration for Scorecards’ logo:
 Scorecards has been run on thousands of projects to monitor and track security
 metrics. Prominent projects that use Scorecards include:
 
+-   [Tensorflow](https://github.com/tensorflow/tensorflow)
+-   [Angular](https://github.com/angular/angular)
+-   [Flutter](https://github.com/flutter/flutter)
 -   [sos.dev](https://sos.dev)
 -   [deps.dev](https://deps.dev)
--   [metrics.openssf.org](https://metrics.openssf.org)
 
 ### Public Data
 
