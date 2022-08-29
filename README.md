@@ -55,9 +55,9 @@ ________________________________________________________________________________
 ## Overview
 
 ### What is Scorecards?
-We created Scorecards to give maintainers of open-source projects a way to
-improve their security best practices and consumers of open-source projects an
-easy way to judge whether their dependencies are safe.
+We created Scorecards to help open source maintainers improve their security 
+best practices and to help open source consumers judge whether their dependencies 
+are safe.
 
 Scorecards is an automated tool that assesses a number of important heuristics
 [("checks")](#scorecard-checks) associated with software security and assigns
@@ -142,17 +142,18 @@ Action
 
 ### Scorecards REST API
 
-To query pre-calculated scores of OSS projects use the REST API
-[here](https://api.securityscorecards.dev). To enable your project to be
-available on the REST API, set `publish_results: true` in the Scorecards GitHub
-Action setting.
+To query pre-calculated scores of OSS projects, use the [REST API](https://api.securityscorecards.dev). 
+
+To enable your project to be available on the REST API, set 
+[`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35) 
+in the Scorecards GitHub Action setting.
 
 ### Scorecards Badges
 
-Enabling `publish_results: true` in Scorecards GitHub Actions also allows
-maintainers to display a Scorecard badge on their repository to show-off their
-hard-work. This badge also auto-updates for every change made to the repository.
-To include a badge, simply add the following markdown to your README:
+Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35) 
+in Scorecards GitHub Actions also allows maintainers to display a Scorecard badge on their repository to show off their
+hard work. This badge also auto-updates for every change made to the repository.
+To include a badge on your project's repository, simply add the following markdown to your README:
 
 ```
 [![OpenSSF
@@ -196,7 +197,7 @@ To install Scorecards as a standalone:
 Visit our latest [release page](https://github.com/ossf/scorecard/releases/latest) and
 download the correct zip file for your operating system.
 
-Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to identify your directory if necessary)
+Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to identify your directory if necessary).
 
 ###### Verifying SLSA provenance for downloaded releases
 
