@@ -20,8 +20,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/caarlos0/env/v6"
-
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/log"
 )
@@ -44,8 +42,8 @@ type Options struct {
 	ShowDetails bool
 
 	// Feature flags.
-	EnableSarif       bool `env:"ENABLE_SARIF"`
-	EnableScorecardV6 bool `env:"SCORECARD_V6"`
+	EnableSarif                 bool `env:"ENABLE_SARIF"`
+	EnableScorecardV6           bool `env:"SCORECARD_V6"`
 	EnableScorecardExperimental bool `env:"SCORECARD_EXPERIMENTAL"`
 }
 
