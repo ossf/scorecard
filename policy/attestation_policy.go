@@ -19,13 +19,15 @@ import (
 	"os"
 	"strings"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/remediation"
-	"gopkg.in/yaml.v2"
 )
 
+//nolint:govet
 type AttestationPolicy struct {
 	// PreventBinaryArtifacts : set to true to require that this project's SCM repo is
 	// free of binary artifacts
@@ -54,14 +56,14 @@ type Dependency struct {
 	Version     string `yaml:"version"`
 }
 
-// Run attestation policy checks on raw data
+// Run attestation policy checks on raw data.
 func RunChecksForPolicy(policy *AttestationPolicy, raw *checker.RawResults,
-	dl checker.DetailLogger) (PolicyResult, error) {
-
+	dl checker.DetailLogger,
+) (PolicyResult, error) {
 	if policy.PreventBinaryArtifacts {
-		checkResult, err := CheckPreventBinaryArtifacts(policy.AllowedBinaryArtifacts, raw)
+		checkResult, err := CheckPreventBinaryArtifacts(policy.AllowedBinaryArtifacts, raw, dl)
 
-		if checkResult == Fail || err != nil {
+		if !checkResult || err != nil {
 			return checkResult, err
 		}
 	}
@@ -69,7 +71,7 @@ func RunChecksForPolicy(policy *AttestationPolicy, raw *checker.RawResults,
 	if policy.EnsureNoVulnerabilities {
 		checkResult, err := CheckNoVulnerabilities(raw, dl)
 
-		if checkResult == Fail || err != nil {
+		if !checkResult || err != nil {
 			return checkResult, err
 		}
 	}
@@ -77,7 +79,7 @@ func RunChecksForPolicy(policy *AttestationPolicy, raw *checker.RawResults,
 	if policy.EnsurePinnedDependencies {
 		checkResult, err := CheckNoUnpinnedDependencies(raw, dl)
 
-		if checkResult == Fail || err != nil {
+		if !checkResult || err != nil {
 			return checkResult, err
 		}
 	}
@@ -85,7 +87,7 @@ func RunChecksForPolicy(policy *AttestationPolicy, raw *checker.RawResults,
 	if policy.EnsureCodeReviewed {
 		checkResult, err := CheckCodeReviewed(raw, dl)
 
-		if checkResult == Fail || err != nil {
+		if !checkResult || err != nil {
 			return checkResult, err
 		}
 	}
@@ -148,15 +150,13 @@ func CheckNoVulnerabilities(results *checker.RawResults, dl checker.DetailLogger
 }
 
 func CheckNoUnpinnedDependencies(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
-
 	workflowPinning, pinningResults, err := evaluation.GetWorkflowPinningStatus(
 		&results.PinningDependenciesResults,
 		dl,
 		remediation.RemediationMetadata{},
 	)
-
 	if err != nil {
-		return Fail, err
+		return Fail, fmt.Errorf("couldn't check workflow pinning status: %w", err)
 	}
 
 	if workflowPinning.ThirdParties == evaluation.NotPinned {
@@ -216,7 +216,6 @@ func ParseAttestationPolicyFromYAML(b []byte) (*AttestationPolicy, error) {
 	retPolicy := AttestationPolicy{}
 
 	err := yaml.Unmarshal(b, &retPolicy)
-
 	if err != nil {
 		return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}

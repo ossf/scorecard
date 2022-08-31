@@ -6,9 +6,8 @@ import (
 	"testing"
 )
 
-func (a AttestationPolicy) ToJson() string {
+func (a AttestationPolicy) ToJSON() string {
 	jsonbytes, err := json.Marshal(a)
-
 	if err != nil {
 		return ""
 	}
@@ -19,7 +18,6 @@ func (a AttestationPolicy) ToJson() string {
 func TestAttestationPolicyRead(t *testing.T) {
 	t.Parallel()
 
-	// nolint
 	tests := []struct {
 		err      error
 		name     string
@@ -31,11 +29,10 @@ func TestAttestationPolicyRead(t *testing.T) {
 			filename: "./testdata/policy-binauthz.yaml",
 			err:      nil,
 			result: AttestationPolicy{
-				PreventBinaryArtifacts:      true,
-				AllowedBinaryArtifacts:      []string{},
-				EnsureNoVulnerabilities:     true,
-				EnsurePinnedDependencies:    true,
-				AllowedUnpinnedDependencies: []Dependency{},
+				PreventBinaryArtifacts:   true,
+				AllowedBinaryArtifacts:   []string{},
+				EnsureNoVulnerabilities:  true,
+				EnsurePinnedDependencies: true,
 			},
 		},
 	}
@@ -55,7 +52,7 @@ func TestAttestationPolicyRead(t *testing.T) {
 
 			// Compare outputs only if the error is nil.
 			// TODO: compare objects.
-			if p.ToJson() != tt.result.ToJson() {
+			if p.ToJSON() != tt.result.ToJSON() {
 				t.Fatalf("%s: invalid result", tt.name)
 			}
 		})
