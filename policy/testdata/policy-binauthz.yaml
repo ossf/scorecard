@@ -29,24 +29,6 @@ ensureNoVulnerabilities: true
 # by hash/commit SHA
 ensurePinnedDependencies: true
 
-# AllowedUnpinnedDependenices : List of Dependencies to ignore when checking for
-# pinned dependencies. Ignored if EnsurePinnedDependencies is false
-allowedUnpinnedDependencies: 
-# Dependencies to ignore can be specified by path, name, or version
-#    - myDependency:
-#        filepath: "path/to/file" 
-#        packagename: "package-name"
-#        version: "sem.ver"
-   - 
-
 # EnsureCodeReviewed : set to true to require that the most recent commits in
 # this project have gone through a code review process
-ensureCodeReviewed: true 
-
-# EnsureSASTConfigured : set to true to require that the project runs a Static Application
-# Security Testing (SAST) tool
-ensureSASTConfigured: true
-
-# EnsureCITestsRun : set to true to require that the project runs automated Continuous
-# Integration (CI) tests
-ensureCITestsRun: true
+ensureCodeReviewed: true

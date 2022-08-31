@@ -43,18 +43,6 @@ type AttestationPolicy struct {
 	// by hash/commit SHA
 	EnsurePinnedDependencies bool `yaml:"ensurePinnedDependencies"`
 
-	// AllowedUnpinnedDependenices : List of Dependencies to ignore when checking for
-	// pinned dependencies. Ignored if EnsurePinnedDependencies is false
-	AllowedUnpinnedDependencies []Dependency `yaml:"allowedUnpinnedDependencies"`
-
-	// EnsureSASTConfigured : set to true to require that the project runs a Static Application
-	// Security Testing (SAST) tool
-	EnsureSASTConfigured bool `yaml:"ensureSASTConfigured"`
-
-	// EnsureCITestsRun : set to true to require that the project runs automated Continuous
-	// Integration (CI) tests
-	EnsureCITestsRun bool `yaml:"ensureCITestsRun"`
-
 	// EnsureCodeReviewed : set to true to require that the most recent commits in
 	// this project have gone through a code review process
 	EnsureCodeReviewed bool `yaml:"ensureCodeReviewed"`
@@ -87,7 +75,7 @@ func RunChecksForPolicy(policy *AttestationPolicy, raw *checker.RawResults,
 	}
 
 	if policy.EnsurePinnedDependencies {
-		checkResult, err := CheckNoUnpinnedDependencies(raw, policy.AllowedUnpinnedDependencies, dl)
+		checkResult, err := CheckNoUnpinnedDependencies(raw, dl)
 
 		if checkResult == Fail || err != nil {
 			return checkResult, err
@@ -159,11 +147,7 @@ func CheckNoVulnerabilities(results *checker.RawResults, dl checker.DetailLogger
 	return nVulns > 0, nil
 }
 
-func CheckNoUnpinnedDependencies(
-	results *checker.RawResults,
-	allowedUnpinnedDependencies []Dependency,
-	dl checker.DetailLogger,
-) (PolicyResult, error) {
+func CheckNoUnpinnedDependencies(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
 
 	workflowPinning, pinningResults, err := evaluation.GetWorkflowPinningStatus(
 		&results.PinningDependenciesResults,
@@ -195,39 +179,6 @@ func CheckNoUnpinnedDependencies(
 	}
 
 	return Pass, nil
-
-	// Check if dependency should be ignored
-	ignore := false
-
-	for j := range allowedUnpinnedDependencies {
-		allowedDep := allowedUnpinnedDependencies[j]
-
-		if (allowedDep.Filepath != "" && strings.HasPrefix(
-			dependency.Location.Path, allowedDep.Filepath)) ||
-			(allowedDep.PackageName != "" &&
-				*dependency.Name == allowedDep.PackageName) {
-			if allowedDep.Version == *dependency.PinnedAt {
-				ignore = true
-				break
-			}
-		}
-	}
-
-	if !ignore {
-		return Fail, nil
-	}
-
-	return Pass, nil
-}
-
-func CheckSASTConfigured(results *checker.RawResults) (PolicyResult, error) {
-	sastResults := evaluation.SAST(results.SASTResults)
-
-	return sastResults.Score == 1, nil
-}
-
-func CheckCITestsRun(results *checker.RawResults) (PolicyResult, error) {
-	return len(results.VulnerabilitiesResults.Vulnerabilities) > 0, nil
 }
 
 func CheckCodeReviewed(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
