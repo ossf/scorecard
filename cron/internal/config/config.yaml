@@ -23,7 +23,7 @@ webhook-url:
 cii-data-bucket-url: gs://ossf-scorecard-cii-data
 # TODO: Temporarily remove SAST and CI-Tests which require lot of GitHub API tokens.
 # TODO(#859): Re-add Contributors after fixing inconsistencies.
-blacklisted-checks: SAST,CI-Tests,Contributors
+blacklisted-checks: CI-Tests,Contributors
 metric-exporter: stackdriver
 result-data-bucket-url: gs://ossf-scorecard-data2
 # Raw results.
