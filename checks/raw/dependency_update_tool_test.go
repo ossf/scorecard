@@ -110,6 +110,15 @@ func Test_checkDependencyFileExists(t *testing.T) {
 			want:    false,
 			wantErr: false,
 		},
+		{
+			name: ".pyup.yml",
+			args: args{
+				name: ".pyup.yml",
+				data: &[]checker.Tool{},
+			},
+			want:    false,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

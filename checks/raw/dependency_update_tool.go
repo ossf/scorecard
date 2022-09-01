@@ -99,6 +99,19 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 				},
 			},
 		})
+	case ".pyup.yml":
+		*ptools = append(*ptools, checker.Tool{
+			Name: "PyUp",
+			URL:  asPointer("https://pyup.io/"),
+			Desc: asPointer("Automated dependency updates for Python."),
+			Files: []checker.File{
+				{
+					Path:   name,
+					Type:   checker.FileTypeSource,
+					Offset: checker.OffsetDefault,
+				},
+			},
+		})
 	default:
 		// Continue iterating.
 		return true, nil
