@@ -33,7 +33,7 @@ const (
 	prodCompletionThreshold        = 0.99
 	prodWebhookURL                 = ""
 	prodCIIDataBucket              = "gs://ossf-scorecard-cii-data"
-	prodBlacklistedChecks          = "SAST,CI-Tests,Contributors"
+	prodBlacklistedChecks          = "CI-Tests,Contributors"
 	prodShardSize           int    = 10
 	prodMetricExporter      string = "stackdriver"
 	// Raw results.
