@@ -17,8 +17,10 @@ preventBinaryArtifacts: true
 
 # AllowedBinaryArtifacts : List of binary artifact paths to ignore
 # when checking for binary artifacts in a repo
-allowedBinaryArtifacts: []
+allowedBinaryArtifacts:
 # List of allowed binary artifact paths as strings
+    - /a/b/c
+    - d
 
 # EnsureNoVulnerabilities : set to true to require that this project is free
 # of vulnerabilities, as discovered from the OSV service

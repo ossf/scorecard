@@ -187,7 +187,7 @@ func CheckCodeReviewed(results *checker.RawResults, dl checker.DetailLogger) (Po
 	return codeReviewResults.Score == 1, nil
 }
 
-// ParseFromFile takes a policy file and returns a `ScorecardPolicy`.
+// ParseFromFile takes a policy file and returns an AttestationPolicy.
 func ParseAttestationPolicyFromFile(policyFile string) (*AttestationPolicy, error) {
 	if policyFile != "" {
 		data, err := os.ReadFile(policyFile)
@@ -211,7 +211,7 @@ func ParseAttestationPolicyFromFile(policyFile string) (*AttestationPolicy, erro
 	return nil, nil
 }
 
-// parseFromYAML parses a policy file and returns a `ScorecardPolicy`.
+// Parses a policy file and returns a AttestationPolicy.
 func ParseAttestationPolicyFromYAML(b []byte) (*AttestationPolicy, error) {
 	retPolicy := AttestationPolicy{}
 
