@@ -200,15 +200,15 @@ checks:
   CII-Best-Practices:
     risk: Low
     tags: security-awareness, security-training, security
-    short: Determines if the project has a CII Best Practices Badge.
+    short: Determines if the project has an OpenSSF (formerly CII) Best Practices Badge.
     description: >-
       This check tries to determine if the project has earned a
-      [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/).
+      [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/).
 
       This badge tells us if the project is applying a particular
       set of security-focused best development practices
       for open source software.
-      The CII Best Practices badge has 3 tiers (passing, silver, and gold);
+      The OpenSSF Best Practices badge has 3 tiers (passing, silver, and gold);
       we give full credit if the
       [passing criteria are met](https://bestpractices.coreinfrastructure.org/criteria/0),
       as achieving a passing badge is a significant achievement
@@ -239,8 +239,8 @@ checks:
       The check uses the URL for the Git repo and the CII API.
     remediation:
       - >-
-        Sign up for the [CII Best Practices
-        program](https://bestpractices.coreinfrastructure.org/en).
+        Sign up for the [OpenSSF Best Practices
+        program](https://bestpractices.coreinfrastructure.org/).
   Code-Review:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
@@ -581,7 +581,7 @@ checks:
     tags: supply-chain, security, vulnerabilities
     short: Determines if the project has open, known unfixed vulnerabilities.
     description: >-
-      This check determines if the project has open, unfixed 
+      This check determines if the project has open, unfixed
       vulnerabilities using the [OSV](https://osv.dev) service.
 
       An existing vulnerability is can readily be used by attackers,

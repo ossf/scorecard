@@ -37,21 +37,21 @@ This check determines if the default and release branches are protected with Git
 
 This check tries to determine if the project runs tests before pull requests are merged.
 Running tests helps developers catch mistakes early on. A low score is considered 'Low' risk.
-The check works by looking for a set of CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its name contains any of the following: appveyor, buildkite, circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion, and it's challenging for an automated tool (like scorecard) to detect them all. If a project's system was not detected and you think it should be, please [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose). 
+The check works by looking for a set of CI-system names in GitHub `CheckRuns` and `Statuses` among the recent commits (~30). A CI-system is considered well-known if its name contains any of the following: appveyor, buildkite, circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci. It does not currently support other source hosting repositories (forges). A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion, and it's challenging for an automated tool (like scorecard) to detect them all. If a project's system was not detected and you think it should be, please [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose). 
 
 **Remediation steps**
 - Check-in scripts that run all the tests in your repository.
-- Integrate those scripts with a CI/CD platform that runs it on every pull request (e.g. [GitHub Actions](https://docs.github.com/en/actions/learn-github-actions/introduction-to-github-actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
+- Integrate those scripts with a CI/CD platform that runs it on every pull request (e.g. if hosted on GitHub, [GitHub Actions](https://docs.github.com/en/actions/learn-github-actions/introduction-to-github-actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
 
 ## CII-Best-Practices 
 
-This check tries to determine if the project has earned a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/).
-This badge tells us if the project is applying a particular set of security-focused best development practices for open source software. The CII Best Practices badge has 3 tiers (passing, silver, and gold); we give full credit if the [passing criteria are met](https://bestpractices.coreinfrastructure.org/criteria/0), as achieving a passing badge is a significant achievement for many projects. We give a little credit if the project is at least working to achieve a badge, and increasingly more as more criteria are met.
+This check tries to determine if the project has earned a [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/).
+This badge tells us if the project is applying a particular set of security-focused best development practices for open source software. The OpenSSF Best Practices badge has 3 tiers (passing, silver, and gold); we give full credit if the [passing criteria are met](https://bestpractices.coreinfrastructure.org/criteria/0), as achieving a passing badge is a significant achievement for many projects. We give a little credit if the project is at least working to achieve a badge, and increasingly more as more criteria are met.
 For example, to earn the passing badge, the project MUST publish the process for reporting vulnerabilities on the project site, it MUST provide a working build system that can automatically rebuild the software from source code (where applicable), it MUST have a general policy that tests will be added to an automated test suite when major new functionality is added, it MUST meet various cryptography criteria where applicable, it MUST have at least one primary developer who knows how to design secure software, at least one of the project's primary developers MUST know of common kinds of errors that lead to vulnerabilities in this kind of software (as well as at least one method to counter or mitigate each of them), and at least one static code analysis tool (beyond compiler warnings and "safe" language modes) MUST be applied to any proposed major production release.
 A low score is considered 'Low' risk. The check uses the URL for the Git repo and the CII API. 
 
 **Remediation steps**
-- Sign up for the [CII Best Practices program](https://bestpractices.coreinfrastructure.org/en).
+- Sign up for the [OpenSSF Best Practices program](https://bestpractices.coreinfrastructure.org/).
 
 ## Code-Review 
 
@@ -73,7 +73,7 @@ The check first tries to detect if Branch-Protection is enabled on the default b
 This check tries to determine if the project has a set of contributors from multiple organizations (e.g., companies).
 Low score has 'Low' risk.
 Some projects cannot meet this requirement. Obviously projects with only one active participant cannot meet it. Many projects have a narrow scope and may not be able to attract the interest of multiple organizations. See [Code Reviews](#code-reviews) for added notes about projects with a small number of participants.
-The check works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commits in the last 30 commits. The highest score is achieved when there are contributors from at least 3 different companies in the last 30 commits. 
+The check works by looking at the authors of recent commits and checking the `Company` field on the GitHub user profile. A contributor must have at least 5 commits in the last 30 commits. The highest score is achieved when there are contributors from at least 3 different companies in the last 30 commits. It does not currently support other source hosting repositories (forges). 
 
 **Remediation steps**
 - There is *NO* remediation work needed here. This is to provide some insights on which organization(s) have contributed to the project and making trust decisions based on that. But you can ask your contributors to join their respective organizations.
@@ -112,19 +112,19 @@ This check tries to determine if the project is published as a package that othe
 It's important that the project provide an easy way to download, install, update, and uninstall the software. It's particularly important to make it easy for users to receive security patches as updates.
 This is often done by creating a "package" that is easy to install and uninstall by a package manager. Many program language ecosystems have a generally-used packaging format supported by a language-level package manager tool and public package repository. Many operating system platforms also have at least one package format, tool, and public repository (in some cases the source repository generates system-independent source packages, which are then used by others to generate system executable packages). Container images are yet another way to package software. In some situations packaging is not sensible, but it's wise to package software in so many circumstances that it's worth checking for it.
 A low score is considered `Medium` risk.
-The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a corresponding hub, e.g., [Npm](https://www.npmjs.com/). There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/). A project may meet this criterion yet have a failing scorecard report; some widely-used tools are relatively easy to detect, but it's challenging for an automated tool (like scorecard) to detect them all. If scorecard fails to detect the way you publish a package and you think scorecard should support your use case, please [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose). 
+The check currently looks for [GitHub packaging workflows]( https://docs.github.com/en/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a corresponding hub, e.g., [Npm](https://www.npmjs.com/). It does not currently support other source hosting repositories (forges). There is a plan to add better support to query package manager hubs directly in the future, e.g., for [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/). A project may meet this criterion yet have a failing scorecard report; some widely-used tools are relatively easy to detect, but it's challenging for an automated tool (like scorecard) to detect them all. If scorecard fails to detect the way you publish a package and you think scorecard should support your use case, please [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose). 
 
 **Remediation steps**
-- Publish your project as a [downloadable package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
-- Use a GitHub action to release your package to language-specific hubs.
+- Publish your project as a downloadable package, e.g., if hosted on GitHub, use [GitHub's mechanisms for publishing a package]](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
+- If hosted on GitHub, use a GitHub action to release your package to language-specific hubs.
 
 ## Pinned-Dependencies 
 
 This check tries to determine if the project is an application that has declared and pinned its dependencies. A "pinned dependency" is a dependency that is explicitly set to a specific version instead of allowing a range of versions. If this project is a library (not an application), this check should automatically pass (but see limitations below).
 It's important for applications to pin dependencies to ensure that checking and deployment are all done with the same software, reducing deployment risks, simplifying debugging, and enabling reproducibility. In some cases pinning dependencies can help mitigate compromised dependencies from undermining the security of the project (in the case where you've evaluated the pinned dependency, you are confident it's not compromised, and a later version is released that is compromised). In particular, pinning dependencies is one way to [counter dependency confusion (aka substitution) attacks](https://azure.microsoft.com/en-us/resources/3-ways-to-mitigate-risk-using-private-package-feeds/). In a dependency confusion attack, an application uses multiple feeds to acquire software packages (a "hybrid configuration"), and attackers can fool the user into using a malicious package via a feed that was not expected for that package. A risk of pinning dependencies is that it can inhibit software updates (e.g., because of a security vulnerability or because the pinned version is compromised); this can be mitigated by [having applications and *not* libraries pin to specific versions](https://jbeckwith.com/2019/12/18/package-lock/), using automated tools to notify applications when their dependencies are outdated, and by applications that *do* pin dependencies update quickly. Low score is therefore considered `Medium` risk.
-The checks works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript), requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows.
+The checks works by (1) looking for the following files in the root directory: go.mod, go.sum (Golang), package-lock.json, npm-shrinkwrap.json (Javascript), requirements.txt, pipfile.lock (Python), gemfile.lock (Ruby), cargo.lock (Rust), yarn.lock (package manager), composer.lock (PHP), vendor/, third_party/, third-party/; (2) looks for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows. It does not currently support other source hosting repositories (forges) other than GitHub.
 *Limitations:* This check should only apply to applications, as libraries shouldn't normally have enforced pinned dependencies. Unfortunately, Scorecard currently can't detect if a project is a library or application. Even when [application detection is added](https://github.com/ossf/scorecard/issues/689), it's always possible for an automated tool like Scorecard to incorrectly categorize software (especially in projects that include both libraries and applications).
-You can learn more about dependencies for projects on GitHub using [GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph). 
+If the project is hosted on GitHub, You can learn more about dependencies for projects using [GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph). 
 
 **Remediation steps**
 - First, determine if your project is producing a library or application. If it is a library, then generally you don't want to pin dependencies of library users. If your project is producing an application, consider the remediations below.
@@ -137,7 +137,7 @@ You can learn more about dependencies for projects on GitHub using [GitHub depen
 
 This check tries to determine if the project uses static code analysis.
 SAST tool may prevent known classes of bugs to be inadvertently introduced in the codebase. A low score is considered `Medium` risk.
-The checks currently looks for known Github apps such as [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and sonarcloud in the recent (~30) merged PRs. The check also looks for the use of "github/codeql-action" in a GitHub workflow. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion and it's especially difficult for an automated tool (like scorecard) to detect them all. 
+The checks currently looks for known Github apps such as [github-code-scanning](https://securitylab.github.com/tools/codeql) (codeql) and sonarcloud in the recent (~30) merged PRs. The check also looks for the use of "github/codeql-action" in a GitHub workflow. It does not currently support other source hosting repositories (forges) other than GitHub. A project may meet this criterion yet have a failing scorecard report; there are many ways to implement this criterion and it's especially difficult for an automated tool (like scorecard) to detect them all. 
 
 **Remediation steps**
 - Run CodeQL checks in your CI/CD by following the instructions [here](https://github.com/github/codeql-action#usage).
@@ -154,7 +154,7 @@ This check tries to determine if the project has published a security policy. It
 
 This check tries to determine if the project cryptographically signs release artifacts.
 Signed releases attest to the provenance of the artifact. A low score is considered 'High' risk.
-It works by looking for filenames: *.minisig (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 GitHub releases. The check does not verify the signatures. 
+It works by looking for filenames: *.minisig (https://github.com/jedisct1/minisign), *.asc (pgp), *.sign. for the last 5 releases if it's hosted on GitHub. The check does not verify the signatures. It does not currently support other source hosting repositories (forges) other than GitHub. 
 
 **Remediation steps**
 - Publish the release.
@@ -162,20 +162,20 @@ It works by looking for filenames: *.minisig (https://github.com/jedisct1/minisi
 - Download the release as an archive locally.
 - Sign the release archive with this key (should output a signature file).
 - Attach the signature file next to the release archive.
-- For GitHub, check out the steps [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
+- If the source is hosted on GitHub, check out the steps [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
 
 ## Token-Permissions 
 
-This check tries to determine if the project's GitHub workflows follow the principle of least privilege, i.e. if the GitHub tokens are set read-only by default.
+This check tries to determine if the project's automated workflows follow the principle of least privilege, i.e. if the tokens are set read-only by default.
 Attackers may use a compromised token with write access to push malicious code into the project. A low score is therefore considered `High` risk.
-For each workflow yaml file, the check looks for the permission definitions. To obtain the highest score, the permissions should be set as read-only at the [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions) and the required write permissions should be declared at the [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions). The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. 
+The check looks at the GitHub workflows. For each workflow yaml file, for the permission definitions. To obtain the highest score, the permissions should be set as read-only at the [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions) and the required write permissions should be declared at the [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions). The check cannot detect if the "read-only" GitHub permission settings is enabled, as there is no API available. It does not currently support other source hosting repositories (forges) other than GitHub. 
 
 **Remediation steps**
 - Set permissions as `read-all` or `contents: read` as described in GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
 
 ## Vulnerabilities 
 
-This check determines if the project has open, unfixed  vulnerabilities using the [OSV](https://osv.dev) service.
+This check determines if the project has open, unfixed vulnerabilities using the [OSV](https://osv.dev) service.
 An existing vulnerability is can readily be used by attackers, so a low score is considered `High` risk. 
 
 **Remediation steps**
