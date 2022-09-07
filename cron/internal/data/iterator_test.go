@@ -266,8 +266,8 @@ func TestNestedIterator(t *testing.T) {
 			},
 		},
 		{
-			name:      "Empty second file",
-			filenames: []string{"testdata/basic.csv", "testdata/split_file_empty.csv"},
+			name:      "one file",
+			filenames: []string{"testdata/basic.csv"},
 			outcomes: []outcome{
 				{
 					hasError: false,

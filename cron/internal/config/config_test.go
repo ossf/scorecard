@@ -78,6 +78,8 @@ func TestYAMLParsing(t *testing.T) {
 				RawResultDataBucketURL: prodRawBucket,
 				RawBigQueryTable:       prodRawBigQueryTable,
 				APIResultsBucketURL:    prodAPIBucketURL,
+				InputBucketURL:         prodInputBucketURL,
+				InputBucketPrefix:      prodInputBucketPrefix,
 			},
 		},
 

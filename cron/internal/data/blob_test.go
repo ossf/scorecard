@@ -15,9 +15,13 @@
 package data
 
 import (
+	"context"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
+
+	"gocloud.dev/blob/fileblob"
 )
 
 const (
@@ -108,6 +112,48 @@ func TestParseBlobFilename(t *testing.T) {
 				if filename != testcase.expectedName {
 					t.Errorf("Expected: %s, got: %s", testcase.expectedName, filename)
 				}
+			}
+		})
+	}
+}
+
+//nolint:tparallel,paralleltest // need bucket to stay open.
+func TestBlobKeysPrefix(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name   string
+		prefix string
+		want   []string
+	}{
+		{
+			name:   "no prefix",
+			prefix: "",
+			want:   []string{"key1.txt", "key2.txt", "key3.txt", "subdir/key4.txt"},
+		},
+		{
+			name:   "subdir prefix",
+			prefix: "subdir/",
+			want:   []string{"subdir/key4.txt"},
+		},
+	}
+
+	const dir = "testdata/blob_test"
+	bucket, err := fileblob.OpenBucket(dir, nil)
+	if err != nil {
+		t.Errorf("Failed to create a file blob for %s", dir)
+	}
+	defer bucket.Close()
+	ctx := context.Background()
+
+	for _, testcase := range testcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			got, err := blobKeysPrefix(ctx, bucket, testcase.prefix)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			if !reflect.DeepEqual(got, testcase.want) {
+				t.Errorf("got = %v, want %v", got, testcase.want)
 			}
 		})
 	}

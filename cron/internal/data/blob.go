@@ -40,19 +40,10 @@ var (
 	errParseBlobName = errors.New("error parsing input blob name")
 )
 
-// GetBlobKeysWithPrefix returns all object keys for a given bucketURL which start with prefix.
-// The prefix can be used to specify directories.
-func GetBlobKeysWithPrefix(ctx context.Context, bucketURL, filePrefix string) ([]string, error) {
-	bucket, err := blob.OpenBucket(ctx, bucketURL)
-	if err != nil {
-		return nil, fmt.Errorf("error from blob.OpenBucket: %w", err)
-	}
-	defer bucket.Close()
-
+func blobKeysPrefix(ctx context.Context, bucket *blob.Bucket, filePrefix string) ([]string, error) {
 	keys := make([]string, 0)
 	iter := bucket.List(&blob.ListOptions{
-		Prefix:    filePrefix,
-		Delimiter: "/",
+		Prefix: filePrefix,
 	})
 	for {
 		next, err := iter.Next(ctx)
@@ -65,6 +56,17 @@ func GetBlobKeysWithPrefix(ctx context.Context, bucketURL, filePrefix string) ([
 		keys = append(keys, next.Key)
 	}
 	return keys, nil
+}
+
+// GetBlobKeysWithPrefix returns all object keys for a given bucketURL which start with prefix.
+// The prefix can be used to specify directories.
+func GetBlobKeysWithPrefix(ctx context.Context, bucketURL, filePrefix string) ([]string, error) {
+	bucket, err := blob.OpenBucket(ctx, bucketURL)
+	if err != nil {
+		return nil, fmt.Errorf("error from blob.OpenBucket: %w", err)
+	}
+	defer bucket.Close()
+	return blobKeysPrefix(ctx, bucket, filePrefix)
 }
 
 // GetBlobKeys returns all object keys for a given bucketURL.
