@@ -37,9 +37,11 @@ const (
 	prodShardSize           int    = 10
 	prodMetricExporter      string = "stackdriver"
 	// Raw results.
-	prodRawBucket        = "gs://ossf-scorecard-rawdata"
-	prodRawBigQueryTable = "scorecard-rawdata"
-	prodAPIBucketURL     = "gs://ossf-scorecard-cron-results"
+	prodRawBucket         = "gs://ossf-scorecard-rawdata"
+	prodRawBigQueryTable  = "scorecard-rawdata"
+	prodAPIBucketURL      = "gs://ossf-scorecard-cron-results"
+	prodInputBucketURL    = "gs://ossf-scorecard-input-projects"
+	prodInputBucketPrefix = ""
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -360,4 +362,43 @@ func TestGetAPIResultsBucketURL(t *testing.T) {
 			t.Errorf("test failed: expected - %s, got = %s", prodAPIBucketURL, bucket)
 		}
 	})
+}
+
+//nolint:paralleltest // Since os.Setenv is used.
+func TestInputBucket(t *testing.T) {
+	tests := []struct {
+		f       func() (string, error)
+		name    string
+		envVar  string
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "GetInputBucketURL",
+			envVar:  inputBucketURL,
+			want:    prodInputBucketURL,
+			wantErr: false,
+			f:       GetInputBucketURL,
+		},
+		{
+			name:    "GetInputBucketPrefix",
+			envVar:  inputBucketPrefix,
+			want:    prodInputBucketPrefix,
+			wantErr: false,
+			f:       GetInputBucketPrefix,
+		},
+	}
+	for _, testcase := range tests {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			os.Unsetenv(testcase.envVar)
+			got, err := testcase.f()
+			if (err != nil) != testcase.wantErr {
+				t.Errorf("failed to get production value from config: %v", err)
+			}
+			if got != testcase.want {
+				t.Errorf("test failed: expected - %s, got = %s", testcase.want, got)
+			}
+		})
+	}
 }

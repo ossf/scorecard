@@ -48,6 +48,8 @@ const (
 	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
 	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
 	apiResultsBucketURL    string = "SCORECARD_API_RESULTS_BUCKET_URL"
+	inputBucketURL         string = "SCORECARD_INPUT_BUCKET_URL"
+	inputBucketPrefix      string = "SCORECARD_INPUT_BUCKET_PREFIX"
 	// Raw results.
 	rawBigqueryTable       string = "RAW_SCORECARD_BIGQUERY_TABLE"
 	rawResultDataBucketURL string = "RAW_SCORECARD_DATA_BUCKET_URL"
@@ -62,7 +64,7 @@ var (
 	configYAML []byte
 )
 
-//nolint
+//nolint:govet
 type config struct {
 	ProjectID              string  `yaml:"project-id"`
 	ResultDataBucketURL    string  `yaml:"result-data-bucket-url"`
@@ -80,6 +82,8 @@ type config struct {
 	RawResultDataBucketURL string `yaml:"raw-result-data-bucket-url"`
 	RawBigQueryTable       string `yaml:"raw-bigquery-table"`
 	APIResultsBucketURL    string `yaml:"api-results-bucket-url"`
+	InputBucketURL         string `yaml:"input-bucket-url"`
+	InputBucketPrefix      string `yaml:"input-bucket-prefix"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -238,4 +242,18 @@ func GetMetricExporter() (string, error) {
 func GetAPIResultsBucketURL() (string, error) {
 	return getStringConfigValue(apiResultsBucketURL, configYAML,
 		"APIResultsBucketURL", "api-results-bucket-url")
+}
+
+// GetInputBucketURL() returns the bucket URL for input files.
+func GetInputBucketURL() (string, error) {
+	return getStringConfigValue(inputBucketURL, configYAML, "InputBucketURL", "input-bucket-url")
+}
+
+// GetInputBucketPrefix() returns the prefix used when fetching files from a bucket.
+func GetInputBucketPrefix() (string, error) {
+	prefix, err := getStringConfigValue(inputBucketPrefix, configYAML, "InputBucketPrefix", "input-bucket-prefix")
+	if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
+		return "", err
+	}
+	return prefix, nil
 }
