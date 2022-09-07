@@ -86,5 +86,8 @@ func (i *nestedIterator) HasNext() bool {
 
 func (i *nestedIterator) Next() (RepoFormat, error) {
 	r, err := i.iterators[i.current].Next()
-	return r, fmt.Errorf("nestedIterator.Next(): %w", err)
+	if err != nil {
+		return RepoFormat{}, fmt.Errorf("nestedIterator.Next(): %w", err)
+	}
+	return r, nil
 }

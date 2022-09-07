@@ -30,7 +30,7 @@ type outcome struct {
 	hasError    bool
 }
 
-//nolint: gocognit
+//nolint:gocognit
 func TestCsvIterator(t *testing.T) {
 	t.Parallel()
 
@@ -166,6 +166,151 @@ func TestCsvIterator(t *testing.T) {
 			defer testFile.Close()
 
 			testReader, err := MakeIteratorFrom(testFile)
+			if err != nil {
+				t.Errorf("failed to create reader: %v", err)
+			}
+			for _, outcome := range testcase.outcomes {
+				if !testReader.HasNext() {
+					t.Error("expected outcome, got EOF")
+				}
+				repoURL, err := testReader.Next()
+				if (err != nil) != outcome.hasError {
+					t.Errorf("expected hasError: %t, got: %v", outcome.hasError, err)
+				}
+
+				if !outcome.hasError {
+					if !cmp.Equal(outcome.repo, repoURL) {
+						t.Errorf("expected equal, got diff: %s", cmp.Diff(outcome.repo, repoURL))
+					}
+				}
+				if outcome.hasError && outcome.expectedErr != nil && !errors.Is(err, outcome.expectedErr) {
+					t.Errorf("expected error: %v, got %v", outcome.expectedErr, err)
+				}
+			}
+			if testReader.HasNext() {
+				t.Error("actual reader has more repos than expected")
+			}
+		})
+	}
+}
+
+//nolint:gocognit
+func TestNestedIterator(t *testing.T) {
+	t.Parallel()
+
+	testcases := []struct {
+		name      string
+		filenames []string
+		outcomes  []outcome
+	}{
+		{
+			name:      "Multiple files",
+			filenames: []string{"testdata/basic.csv", "testdata/split_file.csv"},
+			outcomes: []outcome{
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo: "github.com/owner1/repo1",
+					},
+				},
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo: "github.com/owner2/repo2",
+					},
+				},
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo:     "github.com/owner3/repo3",
+						Metadata: []string{"meta"},
+					},
+				},
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo: "github.com/owner4/repo4",
+					},
+				},
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo: "github.com/owner5/repo5",
+					},
+				},
+			},
+		},
+		{
+			name:      "Empty first file",
+			filenames: []string{"testdata/split_file_empty.csv", "testdata/basic.csv"},
+			outcomes: []outcome{
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo: "github.com/owner1/repo1",
+					},
+				},
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo: "github.com/owner2/repo2",
+					},
+				},
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo:     "github.com/owner3/repo3",
+						Metadata: []string{"meta"},
+					},
+				},
+			},
+		},
+		{
+			name:      "Empty second file",
+			filenames: []string{"testdata/basic.csv", "testdata/split_file_empty.csv"},
+			outcomes: []outcome{
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo: "github.com/owner1/repo1",
+					},
+				},
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo: "github.com/owner2/repo2",
+					},
+				},
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo:     "github.com/owner3/repo3",
+						Metadata: []string{"meta"},
+					},
+				},
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+			var iters []Iterator
+			for _, file := range testcase.filenames {
+				testFile, err := os.Open(file)
+				if err != nil {
+					t.Errorf("failed to open %s: %v", file, err)
+				}
+				defer testFile.Close()
+				iter, err := MakeIteratorFrom(testFile)
+				if err != nil {
+					t.Errorf("failed to create reader: %v", err)
+				}
+				iters = append(iters, iter)
+			}
+
+			testReader, err := MakeNestedIterator(iters)
 			if err != nil {
 				t.Errorf("failed to create reader: %v", err)
 			}
