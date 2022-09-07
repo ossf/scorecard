@@ -303,7 +303,7 @@ Name                        | Description
 Binary-Artifacts            | Is the project free of checked-in binaries?
 Branch-Protection           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?
 CI-Tests                    | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?
-CII-Best-Practices          | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?
+CII-Best-Practices          | Does the project have an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/)?
 Code-Review                 | Does the project require code review before code is merged?
 Contributors                | Does the project have contributors from at least two different organizations?
 Dependency-Update-Tool      | Does the project use tools to help update its dependencies?
