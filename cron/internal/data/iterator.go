@@ -64,3 +64,27 @@ func (reader *csvIterator) Next() (RepoFormat, error) {
 	}
 	return reader.next, nil
 }
+
+func MakeNestedIterator(iterators []Iterator) (Iterator, error) {
+	return &nestedIterator{iterators: iterators}, nil
+}
+
+type nestedIterator struct {
+	iterators []Iterator
+	current   int
+}
+
+func (i *nestedIterator) HasNext() bool {
+	for i.current < len(i.iterators) {
+		if i.iterators[i.current].HasNext() {
+			return true
+		}
+		i.current++
+	}
+	return false
+}
+
+func (i *nestedIterator) Next() (RepoFormat, error) {
+	r, err := i.iterators[i.current].Next()
+	return r, fmt.Errorf("nestedIterator.Next(): %w", err)
+}
