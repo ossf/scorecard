@@ -156,11 +156,11 @@ If a project's system was not detected and you think it should be, please
 
 Risk: `Low` (possibly not following security best practices)
 
-This check determines whether the project has earned a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/), 
+This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/), 
 which indicates that the project uses a set of security-focused best development practices for open
-source software. The check uses the URL for the Git repo and the CII API.
+source software. The check uses the URL for the Git repo and the OpenSSF Best Practices badge API.
 
-The CII Best Practices badge has 3 tiers: passing, silver, and gold. We give
+The OpenSSF Best Practices badge has 3 tiers: passing, silver, and gold. We give
 full credit to projects that meet the [passing criteria](https://bestpractices.coreinfrastructure.org/criteria/0), which is a
 significant achievement for many projects. Lower scores represent a project that
 is at least working to achieve a badge, with increasingly more points awarded as
@@ -185,7 +185,7 @@ Some of these criteria overlap with other Scorecards checks.
  
 
 **Remediation steps**
-- Sign up for the [CII Best Practices program](https://bestpractices.coreinfrastructure.org/en).
+- Sign up for the [OpenSSF Best Practices program](https://bestpractices.coreinfrastructure.org/).
 
 ## Code-Review 
 
