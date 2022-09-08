@@ -461,7 +461,7 @@ checks:
       (especially in projects that include both libraries and applications).
 
       If the project is hosted on GitHub,
-      You can learn more about dependencies for projects using
+      you can learn more about dependencies for projects using
       [GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph).
     remediation:
       - >-
