@@ -31,3 +31,6 @@ raw-result-data-bucket-url: gs://ossf-scorecard-rawdata
 raw-bigquery-table: scorecard-rawdata
 # API results bucket
 api-results-bucket-url: gs://ossf-scorecard-cron-results
+input-bucket-url: gs://ossf-scorecard-input-projects
+# Can be used to specify directories within a bucket. Can be empty.
+input-bucket-prefix:
