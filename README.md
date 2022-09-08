@@ -34,7 +34,7 @@
 -   [Default Scorecards Checks](#scorecard-checks)
 -   [Detailed Check Documentation](docs/checks.md) (Scoring Criteria, Risks, and
     Remediation)
-    
+
 ## Scoring
 -   [Aggregate Score](#aggregate-score)
 
@@ -55,8 +55,8 @@ ________________________________________________________________________________
 ## Overview
 
 ### What is Scorecards?
-We created Scorecards to help open source maintainers improve their security 
-best practices and to help open source consumers judge whether their dependencies 
+We created Scorecards to help open source maintainers improve their security
+best practices and to help open source consumers judge whether their dependencies
 are safe.
 
 Scorecards is an automated tool that assesses a number of important heuristics
@@ -142,15 +142,15 @@ Action
 
 ### Scorecards REST API
 
-To query pre-calculated scores of OSS projects, use the [REST API](https://api.securityscorecards.dev). 
+To query pre-calculated scores of OSS projects, use the [REST API](https://api.securityscorecards.dev).
 
-To enable your project to be available on the REST API, set 
-[`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35) 
+To enable your project to be available on the REST API, set
+[`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
 in the Scorecards GitHub Action setting.
 
 ### Scorecards Badges
 
-Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35) 
+Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
 in Scorecards GitHub Actions also allows maintainers to display a Scorecard badge on their repository to show off their
 hard work. This badge also auto-updates for every change made to the repository.
 To include a badge on your project's repository, simply add the following markdown to your README:
@@ -208,7 +208,7 @@ We generate [SLSA3 signatures](slsa.dev) using the OpenSSF's [slsa-framework/sls
 
 ```shell
 slsa-verifier -artifact-path <the-zip> -provenance attestation.intoto.jsonl -source github.com/ossf/scorecard -tag <the-tag>
-```  
+```
 
 ##### Using package managers
 
