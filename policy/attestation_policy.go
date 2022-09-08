@@ -142,11 +142,11 @@ func CheckPreventBinaryArtifacts(
 func CheckNoVulnerabilities(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
 	nVulns := len(results.VulnerabilitiesResults.Vulnerabilities)
 
-	if nVulns > 1 {
+	if nVulns > 0 {
 		dl.Info(&checker.LogMessage{Text: fmt.Sprintf("found %d vulnerabilities in package", nVulns)})
 	}
 
-	return nVulns > 0, nil
+	return nVulns == 0, nil
 }
 
 func CheckNoUnpinnedDependencies(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
@@ -184,7 +184,7 @@ func CheckNoUnpinnedDependencies(results *checker.RawResults, dl checker.DetailL
 func CheckCodeReviewed(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
 	codeReviewResults := evaluation.CodeReview("", dl, &results.CodeReviewResults)
 
-	return codeReviewResults.Score == 1, nil
+	return codeReviewResults.Score == checker.MaxResultScore, nil
 }
 
 // ParseFromFile takes a policy file and returns an AttestationPolicy.
