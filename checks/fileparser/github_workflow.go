@@ -514,9 +514,6 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			// Python packages.
 			Steps: []*JobMatcherStep{
 				{
-					Uses: "actions/setup-python",
-				},
-				{
 					Uses: "pypa/gh-action-pypi-publish",
 				},
 			},
