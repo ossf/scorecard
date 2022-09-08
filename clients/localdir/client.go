@@ -195,8 +195,8 @@ func (client *localDirClient) ListContributors() ([]clients.User, error) {
 	return nil, fmt.Errorf("ListContributors: %w", clients.ErrUnsupportedFeature)
 }
 
-// ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
-func (client *localDirClient) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
+// ListWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
+func (client *localDirClient) ListWorkflowRuns(filename string, successfulOnly bool) ([]clients.WorkflowRun, error) {
 	return nil, fmt.Errorf("ListSuccessfulWorkflowRuns: %w", clients.ErrUnsupportedFeature)
 }
 

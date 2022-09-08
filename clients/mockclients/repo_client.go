@@ -288,21 +288,6 @@ func (mr *MockRepoClientMockRecorder) ListStatuses(ref interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListStatuses", reflect.TypeOf((*MockRepoClient)(nil).ListStatuses), ref)
 }
 
-// ListSuccessfulWorkflowRuns mocks base method.
-func (m *MockRepoClient) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListSuccessfulWorkflowRuns", filename)
-	ret0, _ := ret[0].([]clients.WorkflowRun)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListSuccessfulWorkflowRuns indicates an expected call of ListSuccessfulWorkflowRuns.
-func (mr *MockRepoClientMockRecorder) ListSuccessfulWorkflowRuns(filename interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSuccessfulWorkflowRuns", reflect.TypeOf((*MockRepoClient)(nil).ListSuccessfulWorkflowRuns), filename)
-}
-
 // ListWebhooks mocks base method.
 func (m *MockRepoClient) ListWebhooks() ([]clients.Webhook, error) {
 	m.ctrl.T.Helper()
@@ -316,6 +301,21 @@ func (m *MockRepoClient) ListWebhooks() ([]clients.Webhook, error) {
 func (mr *MockRepoClientMockRecorder) ListWebhooks() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWebhooks", reflect.TypeOf((*MockRepoClient)(nil).ListWebhooks))
+}
+
+// ListWorkflowRuns mocks base method.
+func (m *MockRepoClient) ListWorkflowRuns(filename string, successfulOnly bool) ([]clients.WorkflowRun, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListWorkflowRuns", filename, successfulOnly)
+	ret0, _ := ret[0].([]clients.WorkflowRun)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListWorkflowRuns indicates an expected call of ListWorkflowRuns.
+func (mr *MockRepoClientMockRecorder) ListWorkflowRuns(filename, successfulOnly interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWorkflowRuns", reflect.TypeOf((*MockRepoClient)(nil).ListWorkflowRuns), filename, successfulOnly)
 }
 
 // Search mocks base method.

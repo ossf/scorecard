@@ -64,7 +64,7 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 			continue
 		}
 
-		runs, err := c.RepoClient.ListSuccessfulWorkflowRuns(filepath.Base(fp))
+		runs, err := c.RepoClient.ListWorkflowRuns(filepath.Base(fp), true)
 		if err != nil {
 			return data, fmt.Errorf("Client.Actions.ListWorkflowRunsByFileName: %w", err)
 		}

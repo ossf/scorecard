@@ -33,13 +33,12 @@ func strptr(s string) *string {
 func TestBinaryArtifacts(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name                   string
-		err                    error
-		files                  [][]string
-		successfulWorkflowRuns []clients.WorkflowRun
-		commits                []clients.Commit
-		getFileContentCount    int
-		expect                 int
+		name                string
+		err                 error
+		files               [][]string
+		workflowRuns        []clients.WorkflowRun
+		getFileContentCount int
+		expect              int
 	}{
 		{
 			name: "Jar file",
@@ -103,17 +102,11 @@ func TestBinaryArtifacts(t *testing.T) {
 					"../testdata/binaryartifacts/workflows/verify.yaml",
 				},
 			},
-			successfulWorkflowRuns: []clients.WorkflowRun{
+			workflowRuns: []clients.WorkflowRun{
 				{
-					HeadSHA: strptr("sha-a"),
-				},
-			},
-			commits: []clients.Commit{
-				{
-					SHA: "sha-a",
-				},
-				{
-					SHA: "sha-old",
+					HeadSHA:    strptr("sha-a"),
+					Complete:   true,
+					Successful: true,
 				},
 			},
 			getFileContentCount: 3,
@@ -136,17 +129,11 @@ func TestBinaryArtifacts(t *testing.T) {
 				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
 				{"../testdata/binaryartifacts/workflows/verify.yaml"},
 			},
-			successfulWorkflowRuns: []clients.WorkflowRun{
+			workflowRuns: []clients.WorkflowRun{
 				{
-					HeadSHA: strptr("sha-old"),
-				},
-			},
-			commits: []clients.Commit{
-				{
-					SHA: "sha-a",
-				},
-				{
-					SHA: "sha-old",
+					HeadSHA:    strptr("sha-a"),
+					Complete:   true,
+					Successful: false,
 				},
 			},
 			getFileContentCount: 2,
@@ -187,20 +174,38 @@ func TestBinaryArtifacts(t *testing.T) {
 					"../testdata/binaryartifacts/workflows/verify.yaml",
 				},
 			},
-			successfulWorkflowRuns: []clients.WorkflowRun{
+			workflowRuns: []clients.WorkflowRun{
 				{
-					HeadSHA: strptr("sha-a"),
-				},
-			},
-			commits: []clients.Commit{
-				{
-					SHA: "sha-a",
-				},
-				{
-					SHA: "sha-old",
+					HeadSHA:    strptr("sha-a"),
+					Complete:   true,
+					Successful: true,
 				},
 			},
 			getFileContentCount: 3,
+			expect:              0,
+		},
+		{
+			name: "gradle-wrapper.jar with verification and new in-progress runs",
+			err:  nil,
+			files: [][]string{
+				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
+				{
+					"../testdata/binaryartifacts/workflows/verify.yaml",
+				},
+			},
+			workflowRuns: []clients.WorkflowRun{
+				{
+					HeadSHA:    strptr("sha-a"),
+					Complete:   false,
+					Successful: false,
+				},
+				{
+					HeadSHA:    strptr("sha-old"),
+					Complete:   true,
+					Successful: true,
+				},
+			},
+			getFileContentCount: 2,
 			expect:              0,
 		},
 	}
@@ -224,11 +229,8 @@ func TestBinaryArtifacts(t *testing.T) {
 					return content, nil
 				})
 			}
-			if tt.successfulWorkflowRuns != nil {
-				mockRepoClient.EXPECT().ListSuccessfulWorkflowRuns(gomock.Any()).Return(tt.successfulWorkflowRuns, nil)
-			}
-			if tt.commits != nil {
-				mockRepoClient.EXPECT().ListCommits().Return(tt.commits, nil)
+			if tt.workflowRuns != nil {
+				mockRepoClient.EXPECT().ListWorkflowRuns(gomock.Any(), gomock.Any()).Return(tt.workflowRuns, nil)
 			}
 
 			f, err := BinaryArtifacts(mockRepoClient)

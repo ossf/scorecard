@@ -186,8 +186,8 @@ func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 }
 
 // ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
-func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
-	return client.workflows.listSuccessfulWorkflowRuns(filename)
+func (client *Client) ListWorkflowRuns(filename string, successfulOnly bool) ([]clients.WorkflowRun, error) {
+	return client.workflows.listWorkflowRuns(filename, successfulOnly)
 }
 
 // ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.

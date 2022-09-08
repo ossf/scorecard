@@ -25,6 +25,10 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
+// runInProgressStatuses is the set of workflow run statuses that are
+// considered "in progress".
+var runInProgressStatuses = []string{"in_progress", "queued", "waiting", "requested"}
+
 type workflowsHandler struct {
 	client  *github.Client
 	ctx     context.Context
@@ -36,15 +40,17 @@ func (handler *workflowsHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.repourl = repourl
 }
 
-func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
+func (handler *workflowsHandler) listWorkflowRuns(filename string, successfulOnly bool) ([]clients.WorkflowRun, error) {
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		return nil, fmt.Errorf(
 			"%w: ListWorkflowRunsByFileName only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
+	options := &github.ListWorkflowRunsOptions{}
+	if successfulOnly {
+		options.Status = "success"
+	}
 	workflowRuns, _, err := handler.client.Actions.ListWorkflowRunsByFileName(
-		handler.ctx, handler.repourl.owner, handler.repourl.repo, filename, &github.ListWorkflowRunsOptions{
-			Status: "success",
-		})
+		handler.ctx, handler.repourl.owner, handler.repourl.repo, filename, options)
 	if err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListWorkflowRunsByFileName: %v", err))
 	}
@@ -54,9 +60,18 @@ func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]
 func workflowsRunsFrom(data *github.WorkflowRuns) []clients.WorkflowRun {
 	var workflowRuns []clients.WorkflowRun
 	for _, workflowRun := range data.WorkflowRuns {
+		isInProgress := false
+		for _, s := range runInProgressStatuses {
+			if s == workflowRun.GetStatus() {
+				isInProgress = true
+				break
+			}
+		}
 		workflowRuns = append(workflowRuns, clients.WorkflowRun{
-			URL:     workflowRun.GetURL(),
-			HeadSHA: workflowRun.HeadSHA,
+			URL:        workflowRun.GetURL(),
+			HeadSHA:    workflowRun.HeadSHA,
+			Complete:   !isInProgress,
+			Successful: workflowRun.GetConclusion() == "success",
 		})
 	}
 	return workflowRuns
