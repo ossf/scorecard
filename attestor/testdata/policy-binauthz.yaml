@@ -17,19 +17,5 @@ preventBinaryArtifacts: true
 
 # AllowedBinaryArtifacts : List of binary artifact paths to ignore
 # when checking for binary artifacts in a repo
-allowedBinaryArtifacts: true
-
-# EnsureNoVulnerabilities : set to true to require that this project is free
-# of vulnerabilities, as discovered from the OSV service
-ensureNoVulnerabilities:
-  - a
-  - b
-  - c
-
-# EnsurePinnedDependencies : set to true to require that this project pin dependencies
-# by hash/commit SHA
-ensurePinnedDependencies: true
-
-# EnsureCodeReviewed : set to true to require that the most recent commits in
-# this project have gone through a code review process
-ensureCodeReviewed: true
+allowedBinaryArtifacts: []
+# List of allowed binary artifact paths as strings

@@ -21,15 +21,3 @@ allowedBinaryArtifacts:
 # List of allowed binary artifact paths as strings
     - /a/b/c
     - d
-
-# EnsureNoVulnerabilities : set to true to require that this project is free
-# of vulnerabilities, as discovered from the OSV service
-ensureNoVulnerabilities: true
-
-# EnsurePinnedDependencies : set to true to require that this project pin dependencies
-# by hash/commit SHA
-ensurePinnedDependencies: true
-
-# EnsureCodeReviewed : set to true to require that the most recent commits in
-# this project have gone through a code review process
-ensureCodeReviewed: true

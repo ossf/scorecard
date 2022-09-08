@@ -22,9 +22,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/evaluation"
 	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/remediation"
 )
 
 //nolint:govet
@@ -36,18 +34,6 @@ type AttestationPolicy struct {
 	// AllowedBinaryArtifacts : List of binary artifact paths to ignore
 	// when checking for binary artifacts in a repo
 	AllowedBinaryArtifacts []string `yaml:"allowedBinaryArtifacts"`
-
-	// EnsureNoVulnerabilities : set to true to require that this project is free
-	// of vulnerabilities, as discovered from the OSV service
-	EnsureNoVulnerabilities bool `yaml:"ensureNoVulnerabilities"`
-
-	// EnsurePinnedDependencies : set to true to require that this project pin dependencies
-	// by hash/commit SHA
-	EnsurePinnedDependencies bool `yaml:"ensurePinnedDependencies"`
-
-	// EnsureCodeReviewed : set to true to require that the most recent commits in
-	// this project have gone through a code review process
-	EnsureCodeReviewed bool `yaml:"ensureCodeReviewed"`
 }
 
 type Dependency struct {
@@ -62,30 +48,6 @@ func RunChecksForPolicy(policy *AttestationPolicy, raw *checker.RawResults,
 ) (PolicyResult, error) {
 	if policy.PreventBinaryArtifacts {
 		checkResult, err := CheckPreventBinaryArtifacts(policy.AllowedBinaryArtifacts, raw, dl)
-
-		if !checkResult || err != nil {
-			return checkResult, err
-		}
-	}
-
-	if policy.EnsureNoVulnerabilities {
-		checkResult, err := CheckNoVulnerabilities(raw, dl)
-
-		if !checkResult || err != nil {
-			return checkResult, err
-		}
-	}
-
-	if policy.EnsurePinnedDependencies {
-		checkResult, err := CheckNoUnpinnedDependencies(raw, dl)
-
-		if !checkResult || err != nil {
-			return checkResult, err
-		}
-	}
-
-	if policy.EnsureCodeReviewed {
-		checkResult, err := CheckCodeReviewed(raw, dl)
 
 		if !checkResult || err != nil {
 			return checkResult, err
@@ -137,54 +99,6 @@ func CheckPreventBinaryArtifacts(
 	}
 
 	return Pass, nil
-}
-
-func CheckNoVulnerabilities(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
-	nVulns := len(results.VulnerabilitiesResults.Vulnerabilities)
-
-	if nVulns > 0 {
-		dl.Info(&checker.LogMessage{Text: fmt.Sprintf("found %d vulnerabilities in package", nVulns)})
-	}
-
-	return nVulns == 0, nil
-}
-
-func CheckNoUnpinnedDependencies(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
-	workflowPinning, pinningResults, err := evaluation.GetWorkflowPinningStatus(
-		&results.PinningDependenciesResults,
-		dl,
-		remediation.RemediationMetadata{},
-	)
-	if err != nil {
-		return Fail, fmt.Errorf("couldn't check workflow pinning status: %w", err)
-	}
-
-	if workflowPinning.ThirdParties == evaluation.NotPinned {
-		dl.Info(&checker.LogMessage{Text: "third-party action workflow not pinned"})
-		return Fail, nil
-	}
-	if workflowPinning.GitHubOwned == evaluation.NotPinned {
-		dl.Info(&checker.LogMessage{Text: "github-owned action workflow not pinned"})
-		return Fail, nil
-	}
-
-	for depType, pinningResult := range pinningResults {
-		switch pinningResult {
-		case evaluation.Pinned, evaluation.PinnedUndefined:
-			dl.Debug(&checker.LogMessage{Text: fmt.Sprintf("%s dependencies pinned by hash", depType)})
-		case evaluation.NotPinned:
-			dl.Debug(&checker.LogMessage{Text: fmt.Sprintf("%s dependencies not pinned by hash", depType)})
-			return Fail, nil
-		}
-	}
-
-	return Pass, nil
-}
-
-func CheckCodeReviewed(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
-	codeReviewResults := evaluation.CodeReview("", dl, &results.CodeReviewResults)
-
-	return codeReviewResults.Score == checker.MaxResultScore, nil
 }
 
 // ParseFromFile takes a policy file and returns an AttestationPolicy.

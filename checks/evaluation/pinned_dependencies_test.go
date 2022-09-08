@@ -25,7 +25,7 @@ func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
 	t.Parallel()
 	//nolint
 	type args struct {
-		r       WorkflowPinningResult
+		r       worklowPinningResult
 		infoMsg string
 		dl      checker.DetailLogger
 	}
@@ -38,9 +38,9 @@ func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
 		{
 			name: "both actions workflow pinned",
 			args: args{
-				r: WorkflowPinningResult{
-					ThirdParties: 1,
-					GitHubOwned:  1,
+				r: worklowPinningResult{
+					thirdParties: 1,
+					gitHubOwned:  1,
 				},
 				dl: &scut.TestDetailLogger{},
 			},
@@ -49,9 +49,9 @@ func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
 		{
 			name: "github actions workflow pinned",
 			args: args{
-				r: WorkflowPinningResult{
-					ThirdParties: 2,
-					GitHubOwned:  2,
+				r: worklowPinningResult{
+					thirdParties: 2,
+					gitHubOwned:  2,
 				},
 				dl: &scut.TestDetailLogger{},
 			},
@@ -60,9 +60,9 @@ func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
 		{
 			name: "error in github actions workflow pinned",
 			args: args{
-				r: WorkflowPinningResult{
-					ThirdParties: 2,
-					GitHubOwned:  2,
+				r: worklowPinningResult{
+					thirdParties: 2,
+					gitHubOwned:  2,
 				},
 				dl: &scut.TestDetailLogger{},
 			},
@@ -187,7 +187,7 @@ func Test_createReturnValues(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		pr map[checker.DependencyUseType]PinnedResult
+		pr map[checker.DependencyUseType]pinnedResult
 		dl *scut.TestDetailLogger
 		t  checker.DependencyUseType
 	}
@@ -209,8 +209,8 @@ func Test_createReturnValues(t *testing.T) {
 			name: "returns 10 if pinned undefined",
 			args: args{
 				t: checker.DependencyUseTypeDownloadThenRun,
-				pr: map[checker.DependencyUseType]PinnedResult{
-					checker.DependencyUseTypeDownloadThenRun: PinnedUndefined,
+				pr: map[checker.DependencyUseType]pinnedResult{
+					checker.DependencyUseTypeDownloadThenRun: pinnedUndefined,
 				},
 				dl: &scut.TestDetailLogger{},
 			},
@@ -220,8 +220,8 @@ func Test_createReturnValues(t *testing.T) {
 			name: "returns 10 if pinned",
 			args: args{
 				t: checker.DependencyUseTypeDownloadThenRun,
-				pr: map[checker.DependencyUseType]PinnedResult{
-					checker.DependencyUseTypeDownloadThenRun: Pinned,
+				pr: map[checker.DependencyUseType]pinnedResult{
+					checker.DependencyUseTypeDownloadThenRun: pinned,
 				},
 				dl: &scut.TestDetailLogger{},
 			},
@@ -231,8 +231,8 @@ func Test_createReturnValues(t *testing.T) {
 			name: "returns 0 if unpinned",
 			args: args{
 				t: checker.DependencyUseTypeDownloadThenRun,
-				pr: map[checker.DependencyUseType]PinnedResult{
-					checker.DependencyUseTypeDownloadThenRun: NotPinned,
+				pr: map[checker.DependencyUseType]pinnedResult{
+					checker.DependencyUseTypeDownloadThenRun: notPinned,
 				},
 				dl: &scut.TestDetailLogger{},
 			},
