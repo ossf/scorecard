@@ -57,6 +57,8 @@ update-dependencies: ## Update go dependencies for all modules
 	go mod tidy && go mod verify
 	cd tools
 	go mod tidy && go mod verify
+	cd ../attestor
+	go mod tidy && go mod verify
 
 $(GOLANGCI_LINT): install
 check-linter: ## Install and run golang linter
@@ -71,6 +73,10 @@ check-osv: $(install)
 			| stunning-tribble
 	# Checking the tools which also has go.mod
 	cd tools 
+	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
+			| stunning-tribble 
+	# Checking the attestor module for vulns
+	cd ../attestor
 	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
 			| stunning-tribble 
 
