@@ -125,6 +125,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 	}
 
 	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", "  ")
 	out := JSONScorecardResultV2{
 		Repo: jsonRepoV2{
 			Name:   r.Repo.Name,
