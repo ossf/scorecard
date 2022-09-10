@@ -404,3 +404,36 @@ func TestInputBucket(t *testing.T) {
 		})
 	}
 }
+
+func TestEnvVarName(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		mapName string
+		key     string
+		want    string
+	}{
+		{
+			name:    "basic",
+			mapName: "foo",
+			key:     "bar",
+			want:    "FOO_BAR",
+		},
+		{
+			name:    "with dashes",
+			mapName: "foo-bar",
+			key:     "baz-qux",
+			want:    "FOO_BAR_BAZ_QUX",
+		},
+	}
+	for _, testcase := range tests {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+			got := envVarName(testcase.mapName, testcase.key)
+			if got != testcase.want {
+				t.Errorf("test failed: expected - %s, got = %s", testcase.want, got)
+			}
+		})
+	}
+}

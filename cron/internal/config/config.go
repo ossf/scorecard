@@ -79,11 +79,12 @@ type config struct {
 	MetricExporter         string  `yaml:"metric-exporter"`
 	ShardSize              int     `yaml:"shard-size"`
 	// Raw results.
-	RawResultDataBucketURL string `yaml:"raw-result-data-bucket-url"`
-	RawBigQueryTable       string `yaml:"raw-bigquery-table"`
-	APIResultsBucketURL    string `yaml:"api-results-bucket-url"`
-	InputBucketURL         string `yaml:"input-bucket-url"`
-	InputBucketPrefix      string `yaml:"input-bucket-prefix"`
+	RawResultDataBucketURL string            `yaml:"raw-result-data-bucket-url"`
+	RawBigQueryTable       string            `yaml:"raw-bigquery-table"`
+	APIResultsBucketURL    string            `yaml:"api-results-bucket-url"`
+	InputBucketURL         string            `yaml:"input-bucket-url"`
+	InputBucketPrefix      string            `yaml:"input-bucket-prefix"`
+	Test                   map[string]string `yaml:"test"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -95,15 +96,19 @@ func getParsedConfigFromFile(byteValue []byte) (config, error) {
 	return ret, nil
 }
 
-func getConfigValue(envVar string, byteValue []byte, fieldName string) (reflect.Value, error) {
-	if val, present := os.LookupEnv(envVar); present {
-		return reflect.ValueOf(val), nil
-	}
+func getReflectedValueFromConfig(byteValue []byte, fieldName string) (reflect.Value, error) {
 	parsedConfig, err := getParsedConfigFromFile(byteValue)
 	if err != nil {
 		return reflect.ValueOf(parsedConfig), fmt.Errorf("error parsing config file: %w", err)
 	}
 	return reflect.ValueOf(parsedConfig).FieldByName(fieldName), nil
+}
+
+func getConfigValue(envVar string, byteValue []byte, fieldName string) (reflect.Value, error) {
+	if val, present := os.LookupEnv(envVar); present {
+		return reflect.ValueOf(val), nil
+	}
+	return getReflectedValueFromConfig(byteValue, fieldName)
 }
 
 func getStringConfigValue(envVar string, byteValue []byte, fieldName, configName string) (string, error) {
@@ -152,6 +157,34 @@ func getFloat64ConfigValue(envVar string, byteValue []byte, fieldName, configNam
 	default:
 		return 0, fmt.Errorf("%w: %s, %s", ErrorValueConversion, value.Type().Name(), configName)
 	}
+}
+
+// envVarName converts a yaml map and nested key to an expected env variable name.
+func envVarName(mapName, key string) string {
+	base := fmt.Sprintf("%s_%s", mapName, key)
+	underscored := strings.ReplaceAll(base, "-", "_")
+	return strings.ToUpper(underscored)
+}
+
+func getMapConfigValue(byteValue []byte, fieldName, configName string) (map[string]string, error) {
+	value, err := getReflectedValueFromConfig(byteValue, fieldName)
+	if err != nil {
+		return map[string]string{}, fmt.Errorf("error getting config value %s: %w", configName, err)
+	}
+	if value.Kind() != reflect.Map {
+		return map[string]string{}, fmt.Errorf("%w: %s, %s", ErrorValueConversion, value.Type().Name(), configName)
+	}
+	ret := map[string]string{}
+	iter := value.MapRange()
+	for iter.Next() {
+		key := iter.Key().String()
+		val := iter.Value().String()
+		if v, present := os.LookupEnv(envVarName(fieldName, key)); present {
+			val = v
+		}
+		ret[key] = val
+	}
+	return ret, nil
 }
 
 // GetProjectID returns the cloud projectID for the cron job.
