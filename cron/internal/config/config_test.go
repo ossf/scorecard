@@ -110,9 +110,12 @@ func TestYAMLParsing(t *testing.T) {
 			},
 		},
 		{
-			name:     "scorecard extra params",
-			filename: "testdata/scorecard.yaml",
+			name:     "optional map values",
+			filename: "testdata/optional_maps.yaml",
 			expectedConfig: config{
+				Criticality: map[string]string{
+					"empty-test": "",
+				},
 				Scorecard: map[string]string{
 					"cii-data-bucket-url":    "gs://ossf-scorecard-cii-data",
 					"result-data-bucket-url": "gs://ossf-scorecard-data2",

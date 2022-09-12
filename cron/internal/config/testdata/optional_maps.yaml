@@ -15,3 +15,6 @@
 scorecard:
   cii-data-bucket-url: gs://ossf-scorecard-cii-data
   result-data-bucket-url: gs://ossf-scorecard-data2
+
+criticality:
+  empty-test: 
