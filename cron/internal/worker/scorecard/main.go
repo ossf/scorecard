@@ -34,7 +34,7 @@ import (
 	"github.com/ossf/scorecard/v4/cron/internal/data"
 	format "github.com/ossf/scorecard/v4/cron/internal/format"
 	"github.com/ossf/scorecard/v4/cron/internal/monitoring"
-	"github.com/ossf/scorecard/v4/cron/internal/pubsub"
+	"github.com/ossf/scorecard/v4/cron/internal/worker"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
@@ -50,7 +50,81 @@ const (
 
 var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
 
-//nolint: gocognit
+type ScorecardWorker struct {
+	ctx               context.Context
+	logger            *log.Logger
+	checkDocs         docs.Doc
+	exporter          monitoring.Exporter
+	rawBucketURL      string
+	blacklistedChecks []string
+
+	apiBucketURL      string
+	repoClient        clients.RepoClient
+	ciiClient         clients.CIIBestPracticesClient
+	ossFuzzRepoClient clients.RepoClient
+	vulnsClient       clients.VulnerabilitiesClient
+}
+
+func newScorecardWorker() (*ScorecardWorker, error) {
+	var err error
+	sw := &ScorecardWorker{}
+	if sw.checkDocs, err = docs.Read(); err != nil {
+		return nil, err
+	}
+
+	if sw.rawBucketURL, err = config.GetRawResultDataBucketURL(); err != nil {
+		return nil, err
+	}
+
+	if sw.blacklistedChecks, err = config.GetBlacklistedChecks(); err != nil {
+		return nil, err
+	}
+
+	var ciiDataBucketURL string
+	if ciiDataBucketURL, err = config.GetCIIDataBucketURL(); err != nil {
+		return nil, err
+	}
+
+	if sw.apiBucketURL, err = config.GetAPIResultsBucketURL(); err != nil {
+		return nil, err
+	}
+
+	sw.ctx = context.Background()
+	sw.logger = log.NewLogger(log.InfoLevel)
+	sw.repoClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
+	sw.ciiClient = clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
+	if sw.ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(sw.ctx, sw.logger); err != nil {
+		return nil, err
+	}
+
+	sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
+	// TODO figure out how to close this
+	// defer ossFuzzRepoClient.Close()
+
+	if sw.exporter, err = startMetricsExporter(); err != nil {
+		return nil, err
+	}
+	// TODO figure out how to close this
+	// defer exporter.StopMetricsExporter()
+
+	// Exposed for monitoring runtime profiles
+	go func() {
+		// TODO(log): Previously Fatal. Need to handle the error here.
+		sw.logger.Info(fmt.Sprintf("%v", http.ListenAndServe(":8080", nil)))
+	}()
+	return sw, nil
+}
+
+func (sw *ScorecardWorker) Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string, logger *log.Logger) error {
+	return processRequest(ctx, req, sw.blacklistedChecks, bucketURL, sw.rawBucketURL, sw.apiBucketURL,
+		sw.checkDocs, sw.repoClient, sw.ossFuzzRepoClient, sw.ciiClient, sw.vulnsClient, logger)
+}
+
+func (sw *ScorecardWorker) PostProcess() {
+	sw.exporter.Flush()
+}
+
+//nolint:gocognit
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest,
 	blacklistedChecks []string, bucketURL, rawBucketURL, apiBucketURL string,
@@ -205,98 +279,13 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 }
 
 func main() {
-	ctx := context.Background()
-
 	flag.Parse()
-
-	checkDocs, err := docs.Read()
+	sw, err := newScorecardWorker()
 	if err != nil {
 		panic(err)
 	}
-
-	subscriptionURL, err := config.GetRequestSubscriptionURL()
-	if err != nil {
-		panic(err)
-	}
-	subscriber, err := pubsub.CreateSubscriber(ctx, subscriptionURL)
-	if err != nil {
-		panic(err)
-	}
-
-	bucketURL, err := config.GetResultDataBucketURL()
-	if err != nil {
-		panic(err)
-	}
-
-	rawBucketURL, err := config.GetRawResultDataBucketURL()
-	if err != nil {
-		panic(err)
-	}
-
-	blacklistedChecks, err := config.GetBlacklistedChecks()
-	if err != nil {
-		panic(err)
-	}
-
-	ciiDataBucketURL, err := config.GetCIIDataBucketURL()
-	if err != nil {
-		panic(err)
-	}
-
-	apiBucketURL, err := config.GetAPIResultsBucketURL()
-	if err != nil {
-		panic(err)
-	}
-
-	logger := log.NewLogger(log.InfoLevel)
-	repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-	ciiClient := clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
-	ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
-	vulnsClient := clients.DefaultVulnerabilitiesClient()
-	if err != nil {
-		panic(err)
-	}
-	defer ossFuzzRepoClient.Close()
-
-	exporter, err := startMetricsExporter()
-	if err != nil {
-		panic(err)
-	}
-	defer exporter.StopMetricsExporter()
-
-	// Exposed for monitoring runtime profiles
-	go func() {
-		// TODO(log): Previously Fatal. Need to handle the error here.
-		logger.Info(fmt.Sprintf("%v", http.ListenAndServe(":8080", nil)))
-	}()
-
-	for {
-		req, err := subscriber.SynchronousPull()
-		if err != nil {
-			panic(err)
-		}
-
-		logger.Info("Received message from subscription")
-		if req == nil {
-			// TODO(log): Previously Warn. Consider logging an error here.
-			logger.Info("subscription returned nil message during Receive, exiting")
-			break
-		}
-		if err := processRequest(ctx, req, blacklistedChecks,
-			bucketURL, rawBucketURL, apiBucketURL, checkDocs,
-			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, logger); err != nil {
-			// TODO(log): Previously Warn. Consider logging an error here.
-			logger.Info(fmt.Sprintf("error processing request: %v", err))
-			// Nack the message so that another worker can retry.
-			subscriber.Nack()
-			continue
-		}
-
-		exporter.Flush()
-		subscriber.Ack()
-	}
-	err = subscriber.Close()
-	if err != nil {
+	wl := worker.NewWorkLoop(sw)
+	if err := wl.Run(); err != nil {
 		panic(err)
 	}
 }

@@ -1,12 +1,12 @@
 # binary.
-scorecard
+/scorecard
 gitblobcache
 clients/githubrepo/roundtripper/tokens/server/github-auth-server
 cron/internal/data/add/add
 cron/internal/data/validate/validate
 cron/internal/data/update/projects-update
 cron/internal/controller/controller
-cron/internal/worker/worker
+cron/internal/worker/scorecard/worker
 cron/internal/cii/cii-worker
 cron/internal/shuffle/shuffle
 cron/internal/webhook/webhook
