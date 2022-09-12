@@ -20,17 +20,22 @@ bigquery-table: scorecard-v2
 completion-threshold: 0.99
 shard-size: 10
 webhook-url: 
-cii-data-bucket-url: gs://ossf-scorecard-cii-data
-# TODO: Temporarily remove SAST and CI-Tests which require lot of GitHub API tokens.
-# TODO(#859): Re-add Contributors after fixing inconsistencies.
-blacklisted-checks: CI-Tests,Contributors
 metric-exporter: stackdriver
 result-data-bucket-url: gs://ossf-scorecard-data2
-# Raw results.
-raw-result-data-bucket-url: gs://ossf-scorecard-rawdata
-raw-bigquery-table: scorecard-rawdata
-# API results bucket
-api-results-bucket-url: gs://ossf-scorecard-cron-results
 input-bucket-url: gs://ossf-scorecard-input-projects
 # Can be used to specify directories within a bucket. Can be empty.
 input-bucket-prefix:
+
+additional-params:
+  criticality:
+    
+  scorecard:
+    # API results bucket
+    api-results-bucket-url: gs://ossf-scorecard-cron-results
+    # TODO: Temporarily remove SAST and CI-Tests which require lot of GitHub API tokens.
+    # TODO(#859): Re-add Contributors after fixing inconsistencies.
+    blacklisted-checks: CI-Tests,Contributors
+    cii-data-bucket-url: gs://ossf-scorecard-cii-data
+    # Raw results.
+    raw-bigquery-table: scorecard-rawdata
+    raw-result-data-bucket-url: gs://ossf-scorecard-rawdata
