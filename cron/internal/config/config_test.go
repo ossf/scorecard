@@ -44,6 +44,21 @@ const (
 	prodInputBucketPrefix = ""
 )
 
+var (
+	prodScorecardParams = map[string]string{
+		"api-results-bucket-url":     prodAPIBucketURL,
+		"blacklisted-checks":         prodBlacklistedChecks,
+		"cii-data-bucket-url":        prodCIIDataBucket,
+		"raw-bigquery-table":         prodRawBigQueryTable,
+		"raw-result-data-bucket-url": prodRawBucket,
+	}
+	prodCriticalityParams map[string]string = nil
+	prodAdditionalParams                    = map[string]map[string]string{
+		"scorecard":   prodScorecardParams,
+		"criticality": prodCriticalityParams,
+	}
+)
+
 func getByteValueFromFile(filename string) ([]byte, error) {
 	if filename == "" {
 		return nil, nil
@@ -55,9 +70,9 @@ func getByteValueFromFile(filename string) ([]byte, error) {
 func TestYAMLParsing(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
+		expectedConfig config
 		name           string
 		filename       string
-		expectedConfig config
 	}{
 		{
 			name:     "validate",
@@ -71,15 +86,11 @@ func TestYAMLParsing(t *testing.T) {
 				BigQueryTable:          prodBigQueryTable,
 				CompletionThreshold:    prodCompletionThreshold,
 				WebhookURL:             prodWebhookURL,
-				CIIDataBucketURL:       prodCIIDataBucket,
-				BlacklistedChecks:      prodBlacklistedChecks,
 				ShardSize:              prodShardSize,
 				MetricExporter:         prodMetricExporter,
-				RawResultDataBucketURL: prodRawBucket,
-				RawBigQueryTable:       prodRawBigQueryTable,
-				APIResultsBucketURL:    prodAPIBucketURL,
 				InputBucketURL:         prodInputBucketURL,
 				InputBucketPrefix:      prodInputBucketPrefix,
+				AdditionalParams:       prodAdditionalParams,
 			},
 		},
 
@@ -99,6 +110,21 @@ func TestYAMLParsing(t *testing.T) {
 				ResultDataBucketURL: "gs://ossf-scorecard-data",
 				RequestTopicURL:     "gcppubsub://projects/openssf/topics/scorecard-batch-requests",
 				ShardSize:           250,
+			},
+		},
+		{
+			name:     "optional map values",
+			filename: "testdata/optional_maps.yaml",
+			expectedConfig: config{
+				AdditionalParams: map[string]map[string]string{
+					"criticality": {
+						"empty-test": "",
+					},
+					"scorecard": {
+						"cii-data-bucket-url":    "gs://ossf-scorecard-cii-data",
+						"result-data-bucket-url": "gs://ossf-scorecard-data2",
+					},
+				},
 			},
 		},
 	}
@@ -398,6 +424,39 @@ func TestInputBucket(t *testing.T) {
 			if (err != nil) != testcase.wantErr {
 				t.Errorf("failed to get production value from config: %v", err)
 			}
+			if got != testcase.want {
+				t.Errorf("test failed: expected - %s, got = %s", testcase.want, got)
+			}
+		})
+	}
+}
+
+func TestEnvVarName(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		mapName string
+		subKey  string
+		want    string
+	}{
+		{
+			name:    "basic",
+			mapName: "foo",
+			subKey:  "bar",
+			want:    "FOO_BAR",
+		},
+		{
+			name:    "with dashes",
+			mapName: "foo-bar",
+			subKey:  "baz-qux",
+			want:    "FOO_BAR_BAZ_QUX",
+		},
+	}
+	for _, testcase := range tests {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+			got := envVarName(testcase.mapName, testcase.subKey)
 			if got != testcase.want {
 				t.Errorf("test failed: expected - %s, got = %s", testcase.want, got)
 			}

@@ -34,7 +34,7 @@ spec:
         env:
         - name: SCORECARD_DATA_BUCKET_URL
           value: "gs://ossf-scorecard-data-releasetest2"
-        - name: RAW_SCORECARD_DATA_BUCKET_URL
+        - name: SCORECARD_RAW_RESULT_DATA_BUCKET_URL
           value: "gs://ossf-scorecard-rawdata-releasetest"
         - name: SCORECARD_REQUEST_SUBSCRIPTION_URL
           value: "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker-releasetest"
