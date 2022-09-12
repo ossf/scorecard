@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
 
       - name: "Run analysis"
-        uses: ossf/scorecard-action@08dd0cebb088ac0fd6364339b1b3b68b75041ea8 # v2.0.0-alpha.2
+        uses: ossf/scorecard-action@68bf5b3327e4fd443d2add8ab122280547b4a16d # v2.0.0-alpha.2
         with:
           results_file: results.sarif
           results_format: sarif
