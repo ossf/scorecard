@@ -73,6 +73,7 @@ type config struct {
 	ShardSize              int               `yaml:"shard-size"`
 	InputBucketURL         string            `yaml:"input-bucket-url"`
 	InputBucketPrefix      string            `yaml:"input-bucket-prefix"`
+	Criticality            map[string]string `yaml:"criticality"`
 	Scorecard              map[string]string `yaml:"scorecard"`
 }
 
@@ -287,4 +288,9 @@ func GetInputBucketPrefix() (string, error) {
 // GetScorecardValues() returns a map of key, value pairs containing additional, scorecard specific values.
 func GetScorecardValues() (map[string]string, error) {
 	return getMapConfigValue(configYAML, "Scorecard", "scorecard")
+}
+
+// GetCriticalityValues() returns a map of key, value pairs containing additional, criticality specific values.
+func GetCriticalityValues() (map[string]string, error) {
+	return getMapConfigValue(configYAML, "Criticality", "criticality")
 }

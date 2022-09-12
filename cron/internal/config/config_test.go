@@ -44,13 +44,16 @@ const (
 	prodInputBucketPrefix = ""
 )
 
-var prodScorecardParams = map[string]string{
-	"api-results-bucket-url":     prodAPIBucketURL,
-	"blacklisted-checks":         prodBlacklistedChecks,
-	"cii-data-bucket-url":        prodCIIDataBucket,
-	"raw-bigquery-table":         prodRawBigQueryTable,
-	"raw-result-data-bucket-url": prodRawBucket,
-}
+var (
+	prodScorecardParams = map[string]string{
+		"api-results-bucket-url":     prodAPIBucketURL,
+		"blacklisted-checks":         prodBlacklistedChecks,
+		"cii-data-bucket-url":        prodCIIDataBucket,
+		"raw-bigquery-table":         prodRawBigQueryTable,
+		"raw-result-data-bucket-url": prodRawBucket,
+	}
+	prodCriticalityParams map[string]string = nil
+)
 
 func getByteValueFromFile(filename string) ([]byte, error) {
 	if filename == "" {
@@ -83,6 +86,7 @@ func TestYAMLParsing(t *testing.T) {
 				MetricExporter:         prodMetricExporter,
 				InputBucketURL:         prodInputBucketURL,
 				InputBucketPrefix:      prodInputBucketPrefix,
+				Criticality:            prodCriticalityParams,
 				Scorecard:              prodScorecardParams,
 			},
 		},
