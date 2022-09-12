@@ -55,10 +55,8 @@ all: update-dependencies all-targets-update-dependencies tree-status
 update-dependencies: ## Update go dependencies for all modules
 	# Update root go modules
 	go mod tidy && go mod verify
-	cd tools
-	go mod tidy && go mod verify
-	cd ../attestor
-	go mod tidy && go mod verify
+	cd tools; go mod tidy && go mod verify; cd ../
+	cd attestor; go mod tidy && go mod verify; cd ../
 
 $(GOLANGCI_LINT): install
 check-linter: ## Install and run golang linter
@@ -72,13 +70,11 @@ check-osv: $(install)
 	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
 			| stunning-tribble
 	# Checking the tools which also has go.mod
-	cd tools 
-	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
-			| stunning-tribble 
+	cd tools; go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
+			| stunning-tribble ; cd ..
 	# Checking the attestor module for vulns
-	cd ../attestor
-	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
-			| stunning-tribble 
+	cd attestor; go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
+			| stunning-tribble ; cd ..
 
 add-projects: ## Adds new projects to ./cron/internal/data/projects.csv
 add-projects: ./cron/internal/data/projects.csv | build-add-script
@@ -282,7 +278,7 @@ cron-github-server-docker:
 
 ##@ Tests
 ################################# make test ###################################
-test-targets = unit-test e2e-pat e2e-gh-token ci-e2e
+test-targets = unit-test unit-test-attestor e2e-pat e2e-gh-token ci-e2e
 .PHONY: test $(test-targets)
 test: $(test-targets)
 
@@ -290,6 +286,9 @@ unit-test: ## Runs unit test without e2e
 	# Run unit tests, ignoring e2e tests
 	# run the go tests and gen the file coverage-all used to do the integration with codecov
 	SKIP_GINKGO=1 go test -race -covermode=atomic  -coverprofile=unit-coverage.out `go list ./...`
+
+unit-test-attestor: ## Runs unit tests on scorecard-attestor
+	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage-attestor.out `go list ./...`; cd ..;
 
 $(GINKGO): install
 

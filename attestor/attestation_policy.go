@@ -17,8 +17,8 @@ package policy
 import (
 	"fmt"
 	"os"
-	"strings"
 
+	"github.com/gobwas/glob"
 	"gopkg.in/yaml.v2"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -34,12 +34,6 @@ type AttestationPolicy struct {
 	// AllowedBinaryArtifacts : List of binary artifact paths to ignore
 	// when checking for binary artifacts in a repo
 	AllowedBinaryArtifacts []string `yaml:"allowedBinaryArtifacts"`
-}
-
-type Dependency struct {
-	Filepath    string `yaml:"filepath"`
-	PackageName string `yaml:"packagename"`
-	Version     string `yaml:"version"`
 }
 
 // Run attestation policy checks on raw data.
@@ -77,13 +71,14 @@ func CheckPreventBinaryArtifacts(
 		for j := range allowedBinaryArtifacts {
 			// Treat user input as paths and try to match prefixes
 			// This is a bit easier to use than forcing things to be file names
-			allowPath := allowedBinaryArtifacts[j]
-			if allowPath != "" && strings.HasPrefix(artifactFile.Path, allowPath) {
+			allowGlob := allowedBinaryArtifacts[j]
+
+			if g := glob.MustCompile(allowGlob); g.Match(artifactFile.Path) {
 				ignoreArtifact = true
 				dl.Info(&checker.LogMessage{Text: fmt.Sprintf(
-					"ignoring binary artifact at %s due to ignored path %s",
+					"ignoring binary artifact at %s due to ignored glob path %s",
 					artifactFile.Path,
-					allowPath,
+					g,
 				)})
 			}
 		}

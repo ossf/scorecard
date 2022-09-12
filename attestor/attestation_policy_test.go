@@ -90,8 +90,8 @@ func TestCheckPreventBinaryArtifacts(t *testing.T) {
 		},
 
 		{
-			name:                   "test with entire artifact path ignored",
-			allowedBinaryArtifacts: []string{"a/", "b"},
+			name:                   "test with glob ignored",
+			allowedBinaryArtifacts: []string{"a/*", "b/*"},
 			raw: &checker.RawResults{
 				BinaryArtifactResults: checker.BinaryArtifactData{Files: []checker.File{
 					{Path: "a/c/foo.txt"},
