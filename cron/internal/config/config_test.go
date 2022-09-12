@@ -53,6 +53,10 @@ var (
 		"raw-result-data-bucket-url": prodRawBucket,
 	}
 	prodCriticalityParams map[string]string = nil
+	prodAdditionalParams                    = map[string]map[string]string{
+		"scorecard":   prodScorecardParams,
+		"criticality": prodCriticalityParams,
+	}
 )
 
 func getByteValueFromFile(filename string) ([]byte, error) {
@@ -86,8 +90,7 @@ func TestYAMLParsing(t *testing.T) {
 				MetricExporter:         prodMetricExporter,
 				InputBucketURL:         prodInputBucketURL,
 				InputBucketPrefix:      prodInputBucketPrefix,
-				Criticality:            prodCriticalityParams,
-				Scorecard:              prodScorecardParams,
+				AdditionalParams:       prodAdditionalParams,
 			},
 		},
 
@@ -113,12 +116,14 @@ func TestYAMLParsing(t *testing.T) {
 			name:     "optional map values",
 			filename: "testdata/optional_maps.yaml",
 			expectedConfig: config{
-				Criticality: map[string]string{
-					"empty-test": "",
-				},
-				Scorecard: map[string]string{
-					"cii-data-bucket-url":    "gs://ossf-scorecard-cii-data",
-					"result-data-bucket-url": "gs://ossf-scorecard-data2",
+				AdditionalParams: map[string]map[string]string{
+					"criticality": {
+						"empty-test": "",
+					},
+					"scorecard": {
+						"cii-data-bucket-url":    "gs://ossf-scorecard-cii-data",
+						"result-data-bucket-url": "gs://ossf-scorecard-data2",
+					},
 				},
 			},
 		},
@@ -431,19 +436,19 @@ func TestEnvVarName(t *testing.T) {
 	tests := []struct {
 		name    string
 		mapName string
-		key     string
+		subKey  string
 		want    string
 	}{
 		{
 			name:    "basic",
 			mapName: "foo",
-			key:     "bar",
+			subKey:  "bar",
 			want:    "FOO_BAR",
 		},
 		{
 			name:    "with dashes",
 			mapName: "foo-bar",
-			key:     "baz-qux",
+			subKey:  "baz-qux",
 			want:    "FOO_BAR_BAZ_QUX",
 		},
 	}
@@ -451,7 +456,7 @@ func TestEnvVarName(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
-			got := envVarName(testcase.mapName, testcase.key)
+			got := envVarName(testcase.mapName, testcase.subKey)
 			if got != testcase.want {
 				t.Errorf("test failed: expected - %s, got = %s", testcase.want, got)
 			}

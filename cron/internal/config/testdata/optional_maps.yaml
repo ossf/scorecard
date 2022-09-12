@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-scorecard:
-  cii-data-bucket-url: gs://ossf-scorecard-cii-data
-  result-data-bucket-url: gs://ossf-scorecard-data2
+additional-params:
+  scorecard:
+    cii-data-bucket-url: gs://ossf-scorecard-cii-data
+    result-data-bucket-url: gs://ossf-scorecard-data2
 
-criticality:
-  empty-test: 
+  criticality:
+    empty-test: 

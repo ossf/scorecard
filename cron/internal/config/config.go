@@ -61,20 +61,19 @@ var (
 
 //nolint:govet
 type config struct {
-	ProjectID              string            `yaml:"project-id"`
-	ResultDataBucketURL    string            `yaml:"result-data-bucket-url"`
-	RequestTopicURL        string            `yaml:"request-topic-url"`
-	RequestSubscriptionURL string            `yaml:"request-subscription-url"`
-	BigQueryDataset        string            `yaml:"bigquery-dataset"`
-	BigQueryTable          string            `yaml:"bigquery-table"`
-	CompletionThreshold    float32           `yaml:"completion-threshold"`
-	WebhookURL             string            `yaml:"webhook-url"`
-	MetricExporter         string            `yaml:"metric-exporter"`
-	ShardSize              int               `yaml:"shard-size"`
-	InputBucketURL         string            `yaml:"input-bucket-url"`
-	InputBucketPrefix      string            `yaml:"input-bucket-prefix"`
-	Criticality            map[string]string `yaml:"criticality"`
-	Scorecard              map[string]string `yaml:"scorecard"`
+	ProjectID              string                       `yaml:"project-id"`
+	ResultDataBucketURL    string                       `yaml:"result-data-bucket-url"`
+	RequestTopicURL        string                       `yaml:"request-topic-url"`
+	RequestSubscriptionURL string                       `yaml:"request-subscription-url"`
+	BigQueryDataset        string                       `yaml:"bigquery-dataset"`
+	BigQueryTable          string                       `yaml:"bigquery-table"`
+	CompletionThreshold    float32                      `yaml:"completion-threshold"`
+	WebhookURL             string                       `yaml:"webhook-url"`
+	MetricExporter         string                       `yaml:"metric-exporter"`
+	ShardSize              int                          `yaml:"shard-size"`
+	InputBucketURL         string                       `yaml:"input-bucket-url"`
+	InputBucketPrefix      string                       `yaml:"input-bucket-prefix"`
+	AdditionalParams       map[string]map[string]string `yaml:"additional-params"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -149,20 +148,21 @@ func getFloat64ConfigValue(envVar string, byteValue []byte, fieldName, configNam
 	}
 }
 
-func envVarName(mapName, key string) string {
-	base := fmt.Sprintf("%s_%s", mapName, key)
+func envVarName(subMapName, subKeyName string) string {
+	base := fmt.Sprintf("%s_%s", subMapName, subKeyName)
 	underscored := strings.ReplaceAll(base, "-", "_")
 	return strings.ToUpper(underscored)
 }
 
-// getMapConfigValue returns a map from a nested yaml. The value can be overridden if an env variable
-// is set which corresponds to the name of the map and nested key. For example, the baz-qux value can
-// be overridden if FOO_BAR_BAZ_QUX is set.
+// getMapConfigValue returns a map from a nested yaml file. The values can be overridden if an env variable
+// is set which corresponds to the name of the nested map and nested key. For example, the baz-qux value in
+// the returned map can be overridden if FOO_BAR_BAZ_QUX is set.
+// In the example below, "additional-params" is the fieldName, and "foo-bar" is the subMapName:
 //
-// foo-bar:
-//
-//	baz-qux:
-func getMapConfigValue(byteValue []byte, fieldName, configName string) (map[string]string, error) {
+//	additional-params:
+//	  foo-bar:
+//	    baz-qux:
+func getMapConfigValue(byteValue []byte, fieldName, configName, subMapName string) (map[string]string, error) {
 	value, err := getReflectedValueFromConfig(byteValue, fieldName)
 	if err != nil {
 		return map[string]string{}, fmt.Errorf("error getting config value %s: %w", configName, err)
@@ -170,15 +170,19 @@ func getMapConfigValue(byteValue []byte, fieldName, configName string) (map[stri
 	if value.Kind() != reflect.Map {
 		return map[string]string{}, fmt.Errorf("%w: %s, %s", ErrorValueConversion, value.Type().Name(), configName)
 	}
+	subMap := value.MapIndex(reflect.ValueOf(subMapName))
+	if subMap.Kind() != reflect.Map {
+		return map[string]string{}, fmt.Errorf("%w: %s, %s", ErrorValueConversion, value.Type().Name(), configName)
+	}
 	ret := map[string]string{}
-	iter := value.MapRange()
+	iter := subMap.MapRange()
 	for iter.Next() {
-		key := iter.Key().String()
+		subKey := iter.Key().String()
 		val := iter.Value().String()
-		if v, present := os.LookupEnv(envVarName(fieldName, key)); present {
+		if v, present := os.LookupEnv(envVarName(subMapName, subKey)); present {
 			val = v
 		}
-		ret[key] = val
+		ret[subKey] = val
 	}
 	return ret, nil
 }
@@ -285,12 +289,16 @@ func GetInputBucketPrefix() (string, error) {
 	return prefix, nil
 }
 
+func GetAdditionalParams(subMapName string) (map[string]string, error) {
+	return getMapConfigValue(configYAML, "AdditionalParams", "additional-params", subMapName)
+}
+
 // GetScorecardValues() returns a map of key, value pairs containing additional, scorecard specific values.
 func GetScorecardValues() (map[string]string, error) {
-	return getMapConfigValue(configYAML, "Scorecard", "scorecard")
+	return GetAdditionalParams("scorecard")
 }
 
 // GetCriticalityValues() returns a map of key, value pairs containing additional, criticality specific values.
 func GetCriticalityValues() (map[string]string, error) {
-	return getMapConfigValue(configYAML, "Criticality", "criticality")
+	return GetAdditionalParams("criticality")
 }
