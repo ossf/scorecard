@@ -288,7 +288,7 @@ unit-test: ## Runs unit test without e2e
 	SKIP_GINKGO=1 go test -race -covermode=atomic  -coverprofile=unit-coverage.out `go list ./...`
 
 unit-test-attestor: ## Runs unit tests on scorecard-attestor
-	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage.out `go list ./...`; cd ..;
+	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage-attestor.out `go list ./...`; cd ..;
 
 $(GINKGO): install
 
