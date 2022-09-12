@@ -43,16 +43,11 @@ const (
 	shardSize              string = "SCORECARD_SHARD_SIZE"
 	webhookURL             string = "SCORECARD_WEBHOOK_URL"
 	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
-	ciiDataBucketURL       string = "SCORECARD_CII_DATA_BUCKET_URL"
-	blacklistedChecks      string = "SCORECARD_BLACKLISTED_CHECKS"
 	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
 	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
 	apiResultsBucketURL    string = "SCORECARD_API_RESULTS_BUCKET_URL"
 	inputBucketURL         string = "SCORECARD_INPUT_BUCKET_URL"
 	inputBucketPrefix      string = "SCORECARD_INPUT_BUCKET_PREFIX"
-	// Raw results.
-	rawBigqueryTable       string = "RAW_SCORECARD_BIGQUERY_TABLE"
-	rawResultDataBucketURL string = "RAW_SCORECARD_DATA_BUCKET_URL"
 )
 
 var (
@@ -66,22 +61,16 @@ var (
 
 //nolint:govet
 type config struct {
-	ProjectID              string  `yaml:"project-id"`
-	ResultDataBucketURL    string  `yaml:"result-data-bucket-url"`
-	RequestTopicURL        string  `yaml:"request-topic-url"`
-	RequestSubscriptionURL string  `yaml:"request-subscription-url"`
-	BigQueryDataset        string  `yaml:"bigquery-dataset"`
-	BigQueryTable          string  `yaml:"bigquery-table"`
-	CompletionThreshold    float32 `yaml:"completion-threshold"`
-	WebhookURL             string  `yaml:"webhook-url"`
-	CIIDataBucketURL       string  `yaml:"cii-data-bucket-url"`
-	BlacklistedChecks      string  `yaml:"blacklisted-checks"`
-	MetricExporter         string  `yaml:"metric-exporter"`
-	ShardSize              int     `yaml:"shard-size"`
-	// Raw results.
-	RawResultDataBucketURL string            `yaml:"raw-result-data-bucket-url"`
-	RawBigQueryTable       string            `yaml:"raw-bigquery-table"`
-	APIResultsBucketURL    string            `yaml:"api-results-bucket-url"`
+	ProjectID              string            `yaml:"project-id"`
+	ResultDataBucketURL    string            `yaml:"result-data-bucket-url"`
+	RequestTopicURL        string            `yaml:"request-topic-url"`
+	RequestSubscriptionURL string            `yaml:"request-subscription-url"`
+	BigQueryDataset        string            `yaml:"bigquery-dataset"`
+	BigQueryTable          string            `yaml:"bigquery-table"`
+	CompletionThreshold    float32           `yaml:"completion-threshold"`
+	WebhookURL             string            `yaml:"webhook-url"`
+	MetricExporter         string            `yaml:"metric-exporter"`
+	ShardSize              int               `yaml:"shard-size"`
 	InputBucketURL         string            `yaml:"input-bucket-url"`
 	InputBucketPrefix      string            `yaml:"input-bucket-prefix"`
 	Scorecard              map[string]string `yaml:"scorecard"`
@@ -193,6 +182,14 @@ func getMapConfigValue(byteValue []byte, fieldName, configName string) (map[stri
 	return ret, nil
 }
 
+func getScorecardParam(key string) (string, error) {
+	s, err := GetScorecardValues()
+	if err != nil {
+		return "", err
+	}
+	return s[key], nil
+}
+
 // GetProjectID returns the cloud projectID for the cron job.
 func GetProjectID() (string, error) {
 	return getStringConfigValue(projectID, configYAML, "ProjectID", "project-id")
@@ -230,14 +227,12 @@ func GetCompletionThreshold() (float64, error) {
 
 // GetRawBigQueryTable returns the table name to transfer cron job results.
 func GetRawBigQueryTable() (string, error) {
-	return getStringConfigValue(rawBigqueryTable, configYAML,
-		"RawBigQueryTable", "raw-bigquery-table")
+	return getScorecardParam("raw-bigquery-table")
 }
 
 // GetRawResultDataBucketURL returns the bucketURL for storing cron job's raw results.
 func GetRawResultDataBucketURL() (string, error) {
-	return getStringConfigValue(rawResultDataBucketURL, configYAML,
-		"RawResultDataBucketURL", "raw-result-data-bucket-url")
+	return getScorecardParam("raw-result-data-bucket-url")
 }
 
 // GetShardSize returns the shard_size for the cron job.
@@ -256,20 +251,13 @@ func GetWebhookURL() (string, error) {
 
 // GetCIIDataBucketURL returns the bucket URL where CII data is stored.
 func GetCIIDataBucketURL() (string, error) {
-	url, err := getStringConfigValue(ciiDataBucketURL, configYAML, "CIIDataBucketURL", "cii-data-bucket-url")
-	if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
-		return url, err
-	}
-	return url, nil
+	return getScorecardParam("cii-data-bucket-url")
 }
 
 // GetBlacklistedChecks returns a list of checks which are not to be run.
 func GetBlacklistedChecks() ([]string, error) {
-	checks, err := getStringConfigValue(blacklistedChecks, configYAML, "BlacklistedChecks", "blacklisted-checks")
-	if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
-		return nil, err
-	}
-	return strings.Split(checks, ","), nil
+	checks, err := getScorecardParam("blacklisted-checks")
+	return strings.Split(checks, ","), err
 }
 
 // GetMetricExporter returns the opencensus exporter type.
@@ -279,8 +267,7 @@ func GetMetricExporter() (string, error) {
 
 // GetAPIResultsBucketURL returns the bucket URL for storing cron job results.
 func GetAPIResultsBucketURL() (string, error) {
-	return getStringConfigValue(apiResultsBucketURL, configYAML,
-		"APIResultsBucketURL", "api-results-bucket-url")
+	return getScorecardParam("api-results-bucket-url")
 }
 
 // GetInputBucketURL() returns the bucket URL for input files.
