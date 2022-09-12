@@ -84,7 +84,7 @@ type config struct {
 	APIResultsBucketURL    string            `yaml:"api-results-bucket-url"`
 	InputBucketURL         string            `yaml:"input-bucket-url"`
 	InputBucketPrefix      string            `yaml:"input-bucket-prefix"`
-	Test                   map[string]string `yaml:"test"`
+	Scorecard              map[string]string `yaml:"scorecard"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -159,13 +159,19 @@ func getFloat64ConfigValue(envVar string, byteValue []byte, fieldName, configNam
 	}
 }
 
-// envVarName converts a yaml map and nested key to an expected env variable name.
 func envVarName(mapName, key string) string {
 	base := fmt.Sprintf("%s_%s", mapName, key)
 	underscored := strings.ReplaceAll(base, "-", "_")
 	return strings.ToUpper(underscored)
 }
 
+// getMapConfigValue returns a map from a nested yaml. The value can be overridden if an env variable
+// is set which corresponds to the name of the map and nested key. For example, the baz-qux value can
+// be overridden if FOO_BAR_BAZ_QUX is set.
+//
+// foo-bar:
+//
+//	baz-qux:
 func getMapConfigValue(byteValue []byte, fieldName, configName string) (map[string]string, error) {
 	value, err := getReflectedValueFromConfig(byteValue, fieldName)
 	if err != nil {
@@ -289,4 +295,9 @@ func GetInputBucketPrefix() (string, error) {
 		return "", err
 	}
 	return prefix, nil
+}
+
+// GetScorecardValues() returns a map of key, value pairs containing additional, scorecard specific values.
+func GetScorecardValues() (map[string]string, error) {
+	return getMapConfigValue(configYAML, "Scorecard", "scorecard")
 }

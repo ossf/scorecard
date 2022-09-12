@@ -44,6 +44,12 @@ const (
 	prodInputBucketPrefix = ""
 )
 
+var (
+	prodScorecardParams = map[string]string{
+		"foo": "bar",
+	}
+)
+
 func getByteValueFromFile(filename string) ([]byte, error) {
 	if filename == "" {
 		return nil, nil
@@ -55,9 +61,9 @@ func getByteValueFromFile(filename string) ([]byte, error) {
 func TestYAMLParsing(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
+		expectedConfig config
 		name           string
 		filename       string
-		expectedConfig config
 	}{
 		{
 			name:     "validate",
@@ -80,6 +86,7 @@ func TestYAMLParsing(t *testing.T) {
 				APIResultsBucketURL:    prodAPIBucketURL,
 				InputBucketURL:         prodInputBucketURL,
 				InputBucketPrefix:      prodInputBucketPrefix,
+				Scorecard:              prodScorecardParams,
 			},
 		},
 
@@ -99,6 +106,16 @@ func TestYAMLParsing(t *testing.T) {
 				ResultDataBucketURL: "gs://ossf-scorecard-data",
 				RequestTopicURL:     "gcppubsub://projects/openssf/topics/scorecard-batch-requests",
 				ShardSize:           250,
+			},
+		},
+		{
+			name:     "scorecard extra params",
+			filename: "testdata/scorecard.yaml",
+			expectedConfig: config{
+				Scorecard: map[string]string{
+					"cii-data-bucket-url":    "gs://ossf-scorecard-cii-data",
+					"result-data-bucket-url": "gs://ossf-scorecard-data2",
+				},
 			},
 		},
 	}
