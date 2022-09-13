@@ -55,38 +55,37 @@ type ScorecardWorker struct {
 	logger            *log.Logger
 	checkDocs         docs.Doc
 	exporter          monitoring.Exporter
-	rawBucketURL      string
-	blacklistedChecks []string
-
-	apiBucketURL      string
 	repoClient        clients.RepoClient
 	ciiClient         clients.CIIBestPracticesClient
 	ossFuzzRepoClient clients.RepoClient
 	vulnsClient       clients.VulnerabilitiesClient
+	apiBucketURL      string
+	rawBucketURL      string
+	blacklistedChecks []string
 }
 
 func newScorecardWorker() (*ScorecardWorker, error) {
 	var err error
 	sw := &ScorecardWorker{}
 	if sw.checkDocs, err = docs.Read(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("docs.Read: %w", err)
 	}
 
 	if sw.rawBucketURL, err = config.GetRawResultDataBucketURL(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("docs.GetRawResultDataBucketURL: %w", err)
 	}
 
 	if sw.blacklistedChecks, err = config.GetBlacklistedChecks(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("config.GetBlacklistedChecks: %w", err)
 	}
 
 	var ciiDataBucketURL string
 	if ciiDataBucketURL, err = config.GetCIIDataBucketURL(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("config.GetCIIDataBucketURL: %w", err)
 	}
 
 	if sw.apiBucketURL, err = config.GetAPIResultsBucketURL(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("config.GetAPIResultsBucketURL: %w", err)
 	}
 
 	sw.ctx = context.Background()
@@ -94,7 +93,7 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	sw.repoClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
 	sw.ciiClient = clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
 	if sw.ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(sw.ctx, sw.logger); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("githubrepo.CreateOssFuzzRepoClient: %w", err)
 	}
 
 	sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
@@ -102,7 +101,7 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	// defer ossFuzzRepoClient.Close()
 
 	if sw.exporter, err = startMetricsExporter(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("startMetricsExporter: %w", err)
 	}
 	// TODO figure out how to close this
 	// defer exporter.StopMetricsExporter()
@@ -115,7 +114,11 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	return sw, nil
 }
 
-func (sw *ScorecardWorker) Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string, logger *log.Logger) error {
+func (sw *ScorecardWorker) Process(ctx context.Context,
+	req *data.ScorecardBatchRequest,
+	bucketURL string,
+	logger *log.Logger,
+) error {
 	return processRequest(ctx, req, sw.blacklistedChecks, bucketURL, sw.rawBucketURL, sw.apiBucketURL,
 		sw.checkDocs, sw.repoClient, sw.ossFuzzRepoClient, sw.ciiClient, sw.vulnsClient, logger)
 }

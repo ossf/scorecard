@@ -43,17 +43,17 @@ func (wl *WorkLoop) Run() error {
 
 	subscriptionURL, err := config.GetRequestSubscriptionURL()
 	if err != nil {
-		return err
+		return fmt.Errorf("config.GetRequestSubscriptionURL: %w", err)
 	}
 
 	subscriber, err := pubsub.CreateSubscriber(ctx, subscriptionURL)
 	if err != nil {
-		return err
+		return fmt.Errorf("config.CreateSubscriber: %w", err)
 	}
 
 	bucketURL, err := config.GetResultDataBucketURL()
 	if err != nil {
-		return err
+		return fmt.Errorf("config.GetResultDataBucketURL: %w", err)
 	}
 
 	logger := log.NewLogger(log.InfoLevel)
@@ -61,7 +61,7 @@ func (wl *WorkLoop) Run() error {
 	for {
 		req, err := subscriber.SynchronousPull()
 		if err != nil {
-			return err
+			return fmt.Errorf("subscriber.SynchronousPull: %w", err)
 		}
 
 		logger.Info("Received message from subscription")
@@ -81,8 +81,8 @@ func (wl *WorkLoop) Run() error {
 		wl.worker.PostProcess()
 		subscriber.Ack()
 	}
-	err = subscriber.Close()
-	if err != nil {
-		panic(err)
+	if err := subscriber.Close(); err != nil {
+		return fmt.Errorf("subscriber.Close: %w", err)
 	}
+	return nil
 }
