@@ -49,32 +49,33 @@ func MakeIteratorFrom(reader io.Reader) (Iterator, error) {
 }
 
 type csvIterator struct {
-	decoder *csvutil.Decoder
-	err     error
-	next    RepoFormat
-	count   int
+	decoder     *csvutil.Decoder
+	err         error
+	next        RepoFormat
+	afterHeader bool
 }
 
-// check if the most recently decoded record is a header, and skip it if it is.
-func (reader *csvIterator) ignoreHeader() {
+// returns true on the first call if the most recently decoded record is a header.
+// always returns false on subsequent calls, as this is only intended to evaluate the first line.
+func (reader *csvIterator) isHeader() bool {
+	if reader.afterHeader {
+		return false
+	}
 	header, err := csvutil.Header(RepoFormat{}, "csv")
 	if err != nil {
 		reader.err = err
-		return
+		return false
 	}
 	lastRead := reader.decoder.Record()
-	if reflect.DeepEqual(header, lastRead) {
-		reader.err = reader.decoder.Decode(&reader.next)
-	}
+	reader.afterHeader = true
+	return reflect.DeepEqual(header, lastRead)
 }
 
 func (reader *csvIterator) HasNext() bool {
 	reader.err = reader.decoder.Decode(&reader.next)
-	// only compares the first read against the csv header for performance
-	if reader.count == 0 {
-		reader.ignoreHeader()
+	if reader.isHeader() {
+		reader.err = reader.decoder.Decode(&reader.next)
 	}
-	reader.count++
 	return !errors.Is(reader.err, io.EOF)
 }
 

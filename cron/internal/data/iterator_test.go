@@ -184,6 +184,11 @@ func TestCsvIterator(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:     "Only Header Row",
+			filename: "testdata/only_header.csv",
+			outcomes: []outcome{},
+		},
 	}
 
 	for _, testcase := range testcases {
