@@ -460,6 +460,7 @@ func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedR
 	return nil
 }
 
+//nolint:unparam
 func (r *jsonScorecardRawResult) addMaintainedRawResults(mr *checker.MaintainedData) error {
 	// Set archived status.
 	r.Results.ArchivedStatus = jsonArchivedStatus{Status: mr.ArchivedStatus.Status}

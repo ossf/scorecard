@@ -123,13 +123,13 @@ func addCodeReviewRawResults(r *jsonScorecardRawResult, cr *checker.CodeReviewDa
 
 		// commits field
 		commits := []jsonCommit{}
-		for _, commit := range cs.Commits {
+		for i := range cs.Commits {
 			commits = append(commits, jsonCommit{
 				Committer: jsonUser{
-					Login: commit.Committer.Login,
+					Login: commits[i].Committer.Login,
 				},
-				Message: commit.Message,
-				SHA:     commit.SHA,
+				Message: commits[i].Message,
+				SHA:     commits[i].SHA,
 			})
 		}
 
@@ -222,7 +222,7 @@ func addDependencyUpdateToolRawResults(r *jsonScorecardRawResult,
 	return nil
 }
 
-//nolint
+//nolint:unparam
 func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.BranchProtectionsData) error {
 	r.Results.BranchProtections = []jsonBranchProtection{}
 	for _, v := range bp.Branches {

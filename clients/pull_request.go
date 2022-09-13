@@ -43,7 +43,7 @@ type Review struct {
 	Comments []Comment
 }
 
-// Comment represents a comment on a specific PR review (not an issue comment)
+// Comment represents a comment on a specific PR review (not an issue comment).
 type Comment struct {
 	Author *User
 }
