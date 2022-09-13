@@ -55,7 +55,7 @@ type csvIterator struct {
 	count   int
 }
 
-// check if the most recently decoded record is a header, and skip it if it is
+// check if the most recently decoded record is a header, and skip it if it is.
 func (reader *csvIterator) ignoreHeader() {
 	header, err := csvutil.Header(RepoFormat{}, "csv")
 	if err != nil {
