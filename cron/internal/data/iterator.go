@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 
 	"github.com/jszwec/csvutil"
 
@@ -36,7 +37,11 @@ type Iterator interface {
 func MakeIteratorFrom(reader io.Reader) (Iterator, error) {
 	csvReader := csv.NewReader(reader)
 	csvReader.Comment = '#'
-	dec, err := csvutil.NewDecoder(csvReader)
+	header, err := csvutil.Header(RepoFormat{}, "csv")
+	if err != nil {
+		return nil, fmt.Errorf("error in csvutil.Header: %w", err)
+	}
+	dec, err := csvutil.NewDecoder(csvReader, header...)
 	if err != nil {
 		return nil, fmt.Errorf("error in csvutil.NewDecoder: %w", err)
 	}
@@ -47,10 +52,29 @@ type csvIterator struct {
 	decoder *csvutil.Decoder
 	err     error
 	next    RepoFormat
+	count   int
+}
+
+// check if the most recently decoded record is a header, and skip it if it is
+func (reader *csvIterator) ignoreHeader() {
+	header, err := csvutil.Header(RepoFormat{}, "csv")
+	if err != nil {
+		reader.err = err
+		return
+	}
+	lastRead := reader.decoder.Record()
+	if reflect.DeepEqual(header, lastRead) {
+		reader.err = reader.decoder.Decode(&reader.next)
+	}
 }
 
 func (reader *csvIterator) HasNext() bool {
 	reader.err = reader.decoder.Decode(&reader.next)
+	// only compares the first read against the csv header for performance
+	if reader.count == 0 {
+		reader.ignoreHeader()
+	}
+	reader.count++
 	return !errors.Is(reader.err, io.EOF)
 }
 
