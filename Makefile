@@ -153,7 +153,7 @@ build-controller: ## Runs go build on the cron PubSub controller
 
 build-worker: ## Runs go build on the cron PubSub worker
 	# Run go build on the cron PubSub worker
-	cd cron/internal/worker && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o worker
+	cd cron/internal/worker/scorecard && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o worker
 
 build-cii-worker: ## Runs go build on the CII worker
 	# Run go build on the CII worker
@@ -265,7 +265,7 @@ scorecard-docker:
 cron-controller-docker:
 	DOCKER_BUILDKIT=1 docker build . --file cron/internal/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 cron-worker-docker:
-	DOCKER_BUILDKIT=1 docker build . --file cron/internal/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
+	DOCKER_BUILDKIT=1 docker build . --file cron/internal/worker/scorecard/Dockerfile --tag $(IMAGE_NAME)-batch-worker
 cron-cii-worker-docker:
 	DOCKER_BUILDKIT=1 docker build . --file cron/internal/cii/Dockerfile --tag $(IMAGE_NAME)-cii-worker
 cron-bq-transfer-docker:
