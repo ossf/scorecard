@@ -16,21 +16,19 @@ package evaluation
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 type ReviewScore = int
 
 // TODO More partial credit? E.g. approval from non-contributor, discussion liveness,
-// number of resolved comments, number of approvers (more eyes on a project)
+// number of resolved comments, number of approvers (more eyes on a project).
 const (
-	NoReview              ReviewScore = 0 // No approving review by contributors before merge
-	Reviewed                          = 1 // Changes were reviewed by contributor w/ write access
-	ReviewedOutsideGithub             = 1 // Full marks until we can check review platforms outside of GitHub
+	NoReview              ReviewScore = 0 // No approving review before merge
+	Reviewed              ReviewScore = 1 // Changes were reviewed
+	ReviewedOutsideGithub ReviewScore = 1 // Full marks until we can check review platforms outside of GitHub
 )
 
 // CodeReview applies the score policy for the Code-Review check.
@@ -46,28 +44,21 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 
 	score := 0
 	numReviewed := 0
-	for _, changeset := range r.DefaultBranchChangesets {
-		score += reviewScoreForChangeset(changeset, r)
+	for i := range r.DefaultBranchChangesets {
+		score += reviewScoreForChangeset(&r.DefaultBranchChangesets[i])
 		if score >= Reviewed {
 			numReviewed += 1
 		}
 	}
-	reason := fmt.Sprintf("%v out of last %v changesets were reviewed before merge", numReviewed, len(r.DefaultBranchChangesets))
+	reason := fmt.Sprintf(
+		"%v out of last %v changesets reviewed before merge", numReviewed, len(r.DefaultBranchChangesets),
+	)
 
 	return checker.CreateProportionalScoreResult(name, reason, score, len(r.DefaultBranchChangesets))
 }
 
-func isBot(name string) bool {
-	for _, substring := range []string{"bot", "gardener"} {
-		if strings.Contains(name, substring) {
-			return true
-		}
-	}
-	return false
-}
-
-func reviewScoreForChangeset(changeset checker.Changeset, c *checker.CodeReviewData) (score ReviewScore) {
-	if changeset.ReviewPlatform != checker.ReviewPlatformGitHub {
+func reviewScoreForChangeset(changeset *checker.Changeset) (score ReviewScore) {
+	if changeset.ReviewPlatform != "" && changeset.ReviewPlatform != checker.ReviewPlatformGitHub {
 		return ReviewedOutsideGithub
 	}
 
@@ -80,15 +71,4 @@ func reviewScoreForChangeset(changeset checker.Changeset, c *checker.CodeReviewD
 	}
 
 	return NoReview
-}
-
-func isContributor(username string, c *checker.CodeReviewData) (isContributor bool) {
-	isContributor = false
-	for _, user := range c.Users {
-		if user.Login == username {
-			isContributor = user.RepoAssociation.Gte(clients.RepoAssociationContributor)
-			return
-		}
-	}
-	return
 }

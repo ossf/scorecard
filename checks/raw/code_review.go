@@ -25,6 +25,8 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
+var errScmDetection = errors.New("couldn't detect scm platform from commit msg")
+
 // CodeReview retrieves the raw data for the Code-Review check.
 func CodeReview(c clients.RepoClient, dl checker.DetailLogger) (checker.CodeReviewData, error) {
 	// Look at the latest commits.
@@ -44,128 +46,118 @@ func CodeReview(c clients.RepoClient, dl checker.DetailLogger) (checker.CodeRevi
 	}, nil
 }
 
-func isReviewedOnGitHub(c *clients.Commit, dl checker.DetailLogger) (bool, string) {
+func getGithubRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
 	mr := c.AssociatedMergeRequest
-
-	return !mr.MergedAt.IsZero(), strconv.Itoa(mr.Number)
-
+	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
+		dl.Info(&checker.LogMessage{
+			Text: fmt.Sprintf("commit %s was reviewed on github #%d approved merge request",
+				c.SHA, c.AssociatedMergeRequest.Number),
+		})
+		if mr.Number != 0 {
+			return strconv.Itoa(mr.Number)
+		}
+	}
+	return ""
 }
 
-func isReviewedOnProw(c *clients.Commit, dl checker.DetailLogger) (bool, string) {
+func getProwRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
+	mr := c.AssociatedMergeRequest
 	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
 		for _, l := range c.AssociatedMergeRequest.Labels {
 			if l.Name == "lgtm" || l.Name == "approved" {
-				dl.Debug(&checker.LogMessage{
-					Text: fmt.Sprintf("commit %s review was through %s #%d approved merge request",
-						c.SHA, checker.ReviewPlatformProw, c.AssociatedMergeRequest.Number),
+				dl.Info(&checker.LogMessage{
+					Text: fmt.Sprintf("commit %s was reviewed on prow #%d approved merge request",
+						c.SHA, c.AssociatedMergeRequest.Number),
 				})
-				return true, ""
+				if mr.Number != 0 {
+					return strconv.Itoa(mr.Number)
+				}
 			}
 		}
 	}
-	return false, ""
+
+	return ""
 }
 
-func isReviewedOnGerrit(c *clients.Commit, dl checker.DetailLogger) (bool, string) {
+func getGerritRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
 	m := c.Message
-	if strings.Contains(m, "\nReviewed-on: ") &&
-		strings.Contains(m, "\nReviewed-by: ") {
-		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, checker.ReviewPlatformGerrit),
+	if strings.Contains(m, "Reviewed-on:") &&
+		strings.Contains(m, "Reviewed-by:") {
+		dl.Info(&checker.LogMessage{
+			Text: fmt.Sprintf("commit %s was reviewed on gerrit", c.SHA),
 		})
-		return true, ""
+		return c.SHA
 	}
-	return false, ""
+	return ""
 }
 
-// Given m, a commit message, find the Phabricator revision ID in it
-func getPhabricatorRevId(m string) (string, error) {
-	matchPhabricatorRevId, err := regexp.Compile("^Differential Revision:\\s*(\\w+)\\s+")
-
+// Given m, a commit message, find the Phabricator revision ID in it.
+func getPhabricatorRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
+	m := c.Message
+	p, err := regexp.Compile(`Differential Revision:\s*(\w+)`)
 	if err != nil {
-		return "", err
+		dl.Debug((&checker.LogMessage{Text: "phabricator revisionID regex compile failed"}))
+		return ""
+	}
+	match := p.FindStringSubmatch(m)
+	if match == nil || len(match) < 2 {
+		return ""
 	}
 
-	match := matchPhabricatorRevId.FindStringSubmatch(m)
+	dl.Info(&checker.LogMessage{
+		Text: fmt.Sprintf("commit %s was reviewed on phabricator revision %s", c.SHA, match[1]),
+	})
+
+	return match[1]
+}
+
+// Given m, a commit message, find the piper revision ID in it.
+func getPiperRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
+	m := c.Message
+	matchPiperRevID, err := regexp.Compile(`PiperOrigin-RevId:\s*(\d{3,})`)
+	if err != nil {
+		dl.Debug((&checker.LogMessage{Text: "piper regex compile failed"}))
+		return ""
+	}
+
+	match := matchPiperRevID.FindStringSubmatch(m)
 
 	if match == nil || len(match) < 2 {
-		return "", errors.New("coudn't find phabricator differential revision ID")
+		return ""
 	}
 
-	return match[1], nil
+	dl.Info(&checker.LogMessage{
+		Text: fmt.Sprintf("commit %s reviewed through piper revision %s", c.SHA, match[1]),
+	})
+
+	return match[1]
 }
 
-func isReviewedOnPhabricator(c *clients.Commit, dl checker.DetailLogger) (bool, string) {
-
-	m := c.Message
-	if strings.Contains(m, "\nDifferential Revision: ") &&
-		strings.Contains(m, "\nReviewed By: ") {
-		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf(
-				"commit %s was approved through %s",
-				c.SHA,
-				checker.ReviewPlatformPhabricator,
-			),
-		})
-
-		revId, err := getPhabricatorRevId(m)
-
-		if err != nil {
-			dl.Debug(&checker.LogMessage{
-				Text: fmt.Sprintf(
-					"couldn't find phab differential revision in commit message for commit=%s",
-					c.SHA,
-				),
-			})
-		}
-
-		return true, revId
+func getCommitRevisionByPlatform(
+	c *clients.Commit,
+	dl checker.DetailLogger,
+) (string, string, error) {
+	if revisionID := getProwRevisionID(c, dl); revisionID != "" {
+		return checker.ReviewPlatformProw, revisionID, nil
 	}
-	return false, ""
-}
-
-// Given m, a commit message, find the piper revision ID in it
-func getPiperRevId(m string) (string, error) {
-	matchPiperRevId, err := regexp.Compile(".PiperOrigin-RevId\\s+:\\s*(\\d{3,})\\s+")
-
-	if err != nil {
-		return "", err
+	if revisionID := getGithubRevisionID(c, dl); revisionID != "" {
+		return checker.ReviewPlatformGitHub, revisionID, nil
+	}
+	if revisionID := getPhabricatorRevisionID(c, dl); revisionID != "" {
+		return checker.ReviewPlatformPhabricator, revisionID, nil
+	}
+	if revisionID := getGerritRevisionID(c, dl); revisionID != "" {
+		return checker.ReviewPlatformGerrit, revisionID, nil
+	}
+	if revisionID := getPiperRevisionID(c, dl); revisionID != "" {
+		return checker.ReviewPlatformPiper, revisionID, nil
 	}
 
-	match := matchPiperRevId.FindStringSubmatch(m)
-
-	if match == nil || len(match) < 2 {
-		return "", errors.New("coudn't find piper revision ID")
-	}
-
-	return match[1], nil
-}
-
-func isReviewedOnPiper(c *clients.Commit, dl checker.DetailLogger) (bool, string) {
-	m := c.Message
-	if strings.Contains(m, "\nPiperOrigin-RevId: ") {
-		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("commit %s was approved through %s", c.SHA, checker.ReviewPlatformPiper),
-		})
-
-		revId, err := getPiperRevId(m)
-
-		if err != nil {
-			dl.Debug(&checker.LogMessage{
-				Text: fmt.Sprintf(
-					"couldn't find piper revision in commit message for commit=%s",
-					c.SHA,
-				),
-			})
-		}
-
-		return true, revId
-	}
-	return false, ""
+	return "", "", errScmDetection
 }
 
 // Group commits by the changeset they belong to
-// Commits must be in-order
+// Commits must be in-order.
 func getChangesets(commits []clients.Commit, dl checker.DetailLogger) []checker.Changeset {
 	changesets := []checker.Changeset{}
 
@@ -173,62 +165,44 @@ func getChangesets(commits []clients.Commit, dl checker.DetailLogger) []checker.
 		return changesets
 	}
 
-	currentReviewPlatform, currentRevision, err := getCommitRevisionByPlatform(
-		&commits[0],
-		dl,
-	)
-
-	if err != nil {
-		dl.Debug(&checker.LogMessage{Text: err.Error()})
-		changesets = append(
-			changesets,
-			checker.Changeset{
-				RevisionID:     currentRevision,
-				Commits:        commits[0:1],
-				ReviewPlatform: currentReviewPlatform,
-			},
-		)
-	}
-
-	j := 0
-	for i := 0; i < len(commits); i++ {
-		if i == len(commits)-1 {
-			changesets = append(
-				changesets,
-				checker.Changeset{
-					Commits:        commits[j:i],
-					ReviewPlatform: currentReviewPlatform,
-					RevisionID:     currentRevision,
-				},
-			)
+	i := 0
+	for {
+		if i >= len(commits) {
 			break
 		}
-
-		nextReviewPlatform, nextRevision, err := getCommitRevisionByPlatform(&commits[i+1], dl)
-		if err != nil || nextReviewPlatform != currentReviewPlatform ||
-			nextRevision != currentRevision {
-			if err != nil {
-				dl.Debug(&checker.LogMessage{Text: err.Error()})
+		//nolint:errcheck
+		plat, rev, _ := getCommitRevisionByPlatform(&commits[i], dl)
+		j := i + 1
+		for {
+			if j >= len(commits) {
+				changesets = append(changesets, checker.Changeset{
+					ReviewPlatform: plat,
+					RevisionID:     rev,
+					Commits:        commits[i:j],
+				})
+				break
 			}
-			// Add all previous commits to the 'batch' of a single changeset
-			changesets = append(
-				changesets,
-				checker.Changeset{
-					Commits:        commits[j:i],
-					ReviewPlatform: currentReviewPlatform,
-					RevisionID:     currentRevision,
-				},
-			)
-			currentReviewPlatform = nextReviewPlatform
-			currentRevision = nextRevision
-			j = i + 1
+
+			plat2, rev2, err := getCommitRevisionByPlatform(&commits[j], dl)
+
+			if err != nil || plat2 != plat || rev2 != rev {
+				changesets = append(changesets, checker.Changeset{
+					ReviewPlatform: plat,
+					RevisionID:     rev,
+					Commits:        commits[i:j],
+				})
+				break
+			}
+
+			j += 1
 		}
+		i = j
 	}
 
 	// Add data to Changeset raw result (if available)
 	// Do this per changeset, instead of per-commit, to save effort
-	for _, changeset := range changesets {
-		augmentChangeset(&changeset)
+	for i := range changesets {
+		augmentChangeset(&changesets[i])
 	}
 
 	return changesets
@@ -247,38 +221,4 @@ func augmentChangeset(changeset *checker.Changeset) {
 	changeset.Authors = []clients.User{
 		changeset.Commits[0].AssociatedMergeRequest.Author,
 	}
-}
-
-func getCommitRevisionByPlatform(
-	c *clients.Commit,
-	dl checker.DetailLogger,
-) (string, string, error) {
-	foundRev, revisionId := isReviewedOnGitHub(c, dl)
-	if foundRev {
-		return checker.ReviewPlatformGitHub, revisionId, nil
-	}
-
-	foundRev, revisionId = isReviewedOnProw(c, dl)
-	if foundRev {
-		return checker.ReviewPlatformProw, revisionId, nil
-	}
-
-	foundRev, revisionId = isReviewedOnGerrit(c, dl)
-	if foundRev {
-		return checker.ReviewPlatformGerrit, revisionId, nil
-	}
-
-	foundRev, revisionId = isReviewedOnPhabricator(c, dl)
-	if foundRev {
-		return checker.ReviewPlatformPhabricator, revisionId, nil
-	}
-
-	foundRev, revisionId = isReviewedOnPiper(c, dl)
-	if foundRev {
-		return checker.ReviewPlatformPiper, revisionId, nil
-	}
-
-	return "", "", errors.New(
-		fmt.Sprintf("couldn't find linked review platform for commit %s", c.SHA),
-	)
 }
