@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -103,20 +102,21 @@ type jsonCompany struct {
 	// TODO: other info.
 }
 
-//nolint:govet
-type jsonMergeRequest struct {
-	Number  int          `json:"number"`
-	Labels  []string     `json:"labels"`
-	Reviews []jsonReview `json:"reviews"`
-	Author  jsonUser     `json:"author"`
+type jsonDefaultBranchChangeset struct {
+	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
+	RevisionID     string       `json:"number"`
+	ReviewPlatform string       `json:"platform"`
+	Reviews        []jsonReview `json:"reviews"`
+	Authors        []jsonUser   `json:"authors"`
+	Commits        []jsonCommit `json:"commits"`
+	// TODO: check runs, etc.
 }
 
-type jsonDefaultBranchCommit struct {
-	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
-	MergeRequest  *jsonMergeRequest `json:"mergeRequest"`
-	CommitMessage string            `json:"commitMessage"`
-	SHA           string            `json:"sha"`
-	Committer     jsonUser          `json:"committer"`
+type jsonCommit struct {
+	Message   string   `json:"message"`
+	SHA       string   `json:"sha"`
+	Committer jsonUser `json:"committer"`
+
 	// TODO: check runs, etc.
 }
 
@@ -166,7 +166,6 @@ type jsonOssfBestPractices struct {
 	Badge string `json:"badge"`
 }
 
-//nolint
 type jsonLicense struct {
 	File jsonFile `json:"file"`
 	// TODO: add fields, like type of license, etc.
@@ -184,7 +183,6 @@ type jsonWorkflowJob struct {
 	ID   *string `json:"id"`
 }
 
-//nolint
 type jsonPackage struct {
 	Name *string          `json:"name,omitempty"`
 	Job  *jsonWorkflowJob `json:"job,omitempty"`
@@ -223,7 +221,7 @@ type jsonTokenPermission struct {
 	Type         string           `json:"type"`
 }
 
-//nolint
+//nolint:govet
 type jsonRawResults struct {
 	// Workflow results.
 	Workflows []jsonWorkflow `json:"workflows"`
@@ -252,7 +250,7 @@ type jsonRawResults struct {
 	// structure for it.
 	Contributors jsonContributors `json:"Contributors"`
 	// Commits.
-	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBranchCommits"`
+	DefaultBranchChangesets []jsonDefaultBranchChangeset `json:"defaultBranchCommits"`
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
 	// Repo creation time
@@ -500,7 +498,7 @@ func (r *jsonScorecardRawResult) addMaintainedRawResults(mr *checker.MaintainedD
 		r.Results.RecentIssues = append(r.Results.RecentIssues, issue)
 	}
 
-	return r.setDefaultCommitData(mr.DefaultBranchCommits)
+	return nil
 }
 
 func getStrPtr(s string) *string {
@@ -509,39 +507,29 @@ func getStrPtr(s string) *string {
 }
 
 // Function shared between addMaintainedRawResults() and addCodeReviewRawResults().
-func (r *jsonScorecardRawResult) setDefaultCommitData(commits []clients.Commit) error {
-	if len(r.Results.DefaultBranchCommits) > 0 {
-		return nil
-	}
+func (r *jsonScorecardRawResult) setDefaultCommitData(changesets []checker.Changeset) error {
+	r.Results.DefaultBranchChangesets = []jsonDefaultBranchChangeset{}
 
-	r.Results.DefaultBranchCommits = []jsonDefaultBranchCommit{}
-	for i := range commits {
-		commit := commits[i]
-		com := jsonDefaultBranchCommit{
-			Committer: jsonUser{
-				Login: commit.Committer.Login,
-				// Note: repo association is not available. We could
-				// try to use issue information to set it, but we're likely to miss
-				// many anyway.
-			},
-			CommitMessage: commit.Message,
-			SHA:           commit.SHA,
+	for i := range changesets {
+		cs := changesets[i]
+
+		// commits field
+		commits := []jsonCommit{}
+		for j := range cs.Commits {
+			commit := cs.Commits[j]
+			commits = append(commits, jsonCommit{
+				Committer: jsonUser{
+					Login: commit.Committer.Login,
+				},
+				Message: commit.Message,
+				SHA:     commit.SHA,
+			})
 		}
 
-		// Merge request field.
-		mr := jsonMergeRequest{
-			Number: commit.AssociatedMergeRequest.Number,
-			Author: jsonUser{
-				Login: commit.AssociatedMergeRequest.Author.Login,
-			},
-		}
-
-		for _, l := range commit.AssociatedMergeRequest.Labels {
-			mr.Labels = append(mr.Labels, l.Name)
-		}
-
-		for _, r := range commit.AssociatedMergeRequest.Reviews {
-			mr.Reviews = append(mr.Reviews, jsonReview{
+		// reviews field
+		reviews := []jsonReview{}
+		for _, r := range cs.Reviews {
+			reviews = append(reviews, jsonReview{
 				State: r.State,
 				Reviewer: jsonUser{
 					Login: r.Author.Login,
@@ -549,11 +537,22 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(commits []clients.Commit) 
 			})
 		}
 
-		com.MergeRequest = &mr
+		// authors field
+		authors := []jsonUser{}
+		for _, a := range cs.Authors {
+			authors = append(authors, jsonUser{
+				Login: a.Login,
+			})
+		}
 
-		com.CommitMessage = commit.Message
-
-		r.Results.DefaultBranchCommits = append(r.Results.DefaultBranchCommits, com)
+		r.Results.DefaultBranchChangesets = append(r.Results.DefaultBranchChangesets,
+			jsonDefaultBranchChangeset{
+				RevisionID: cs.RevisionID,
+				Commits:    commits,
+				Reviews:    reviews,
+				Authors:    authors,
+			},
+		)
 	}
 	return nil
 }
@@ -565,7 +564,7 @@ func (r *jsonScorecardRawResult) addOssfBestPracticesRawResults(cbp *checker.CII
 }
 
 func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewData) error {
-	return r.setDefaultCommitData(cr.DefaultBranchCommits)
+	return r.setDefaultCommitData(cr.DefaultBranchChangesets)
 }
 
 //nolint:unparam

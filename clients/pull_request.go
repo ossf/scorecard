@@ -37,6 +37,13 @@ type Label struct {
 
 // Review represents a PR review.
 type Review struct {
+	Author   *User
+	State    string
+	SHA      string
+	Comments []Comment
+}
+
+// Comment represents a comment on a specific PR review (not an issue comment)
+type Comment struct {
 	Author *User
-	State  string
 }

@@ -122,7 +122,24 @@ type LicenseData struct {
 // CodeReviewData contains the raw results
 // for the Code-Review check.
 type CodeReviewData struct {
-	DefaultBranchCommits []clients.Commit
+	DefaultBranchChangesets []Changeset
+	Users                   []clients.User
+}
+
+const (
+	ReviewPlatformGitHub      = "GitHub"
+	ReviewPlatformProw        = "Prow"
+	ReviewPlatformGerrit      = "Gerrit"
+	ReviewPlatformPhabricator = "Phabricator"
+	ReviewPlatformPiper       = "Piper"
+)
+
+type Changeset struct {
+	ReviewPlatform string
+	RevisionID     string
+	Reviews        []clients.Review
+	Commits        []clients.Commit
+	Authors        []clients.User
 }
 
 // ContributorsData represents contributor information.
