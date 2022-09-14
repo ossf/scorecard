@@ -137,9 +137,7 @@ const (
 type Changeset struct {
 	ReviewPlatform string
 	RevisionID     string
-	Reviews        []clients.Review
 	Commits        []clients.Commit
-	Authors        []clients.User
 }
 
 // ContributorsData represents contributor information.

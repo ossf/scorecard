@@ -527,31 +527,10 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(changesets []checker.Chang
 			})
 		}
 
-		// reviews field
-		reviews := []jsonReview{}
-		for _, r := range cs.Reviews {
-			reviews = append(reviews, jsonReview{
-				State: r.State,
-				Reviewer: jsonUser{
-					Login: r.Author.Login,
-				},
-			})
-		}
-
-		// authors field
-		authors := []jsonUser{}
-		for _, a := range cs.Authors {
-			authors = append(authors, jsonUser{
-				Login: a.Login,
-			})
-		}
-
 		r.Results.DefaultBranchChangesets = append(r.Results.DefaultBranchChangesets,
 			jsonDefaultBranchChangeset{
 				RevisionID: cs.RevisionID,
 				Commits:    commits,
-				Reviews:    reviews,
-				Authors:    authors,
 			},
 		)
 	}

@@ -18,6 +18,8 @@ import (
 	"testing"
 	"time"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 )
@@ -31,7 +33,6 @@ func assertCommitEq(t *testing.T, actual clients.Commit, expected clients.Commit
 	}
 }
 
-//nolint:gocritic
 func assertChangesetEq(t *testing.T, actual, expected checker.Changeset) {
 	t.Helper()
 
@@ -64,12 +65,19 @@ func assertChangesetEq(t *testing.T, actual, expected checker.Changeset) {
 	}
 }
 
+func csless(a, b checker.Changeset) bool {
+	return a.RevisionID < b.RevisionID
+}
+
 func assertChangesetArrEq(t *testing.T, actual, expected []checker.Changeset) {
 	t.Helper()
 
 	if len(actual) != len(expected) {
 		t.Fatalf("different number of changesets\na:%d\nb:%d", len(actual), len(expected))
 	}
+
+	slices.SortFunc(actual, csless)
+	slices.SortFunc(expected, csless)
 
 	for i := range actual {
 		assertChangesetEq(t, actual[i], expected[i])

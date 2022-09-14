@@ -145,22 +145,11 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 				Commits:        []clients.Commit{commits[i]},
 			}
 
-			// Add Revision data if available
-			if rev.Platform == checker.ReviewPlatformGitHub {
-				changeset.Reviews = commits[i].AssociatedMergeRequest.Reviews
-
-				// Pull request creator is primary author
-				// TODO: Handle case where a user who isn't the PR creator pushes changes
-				// to the PR branch without relying on unsigned Git authorship
-				changeset.Authors = []clients.User{
-					commits[i].AssociatedMergeRequest.Author,
-				}
-			}
-
 			changesetsByRevInfo[rev] = newChangeset
 		} else {
 			// Part of a previously found changeset.
 			changeset.Commits = append(changeset.Commits, commits[i])
+			changesetsByRevInfo[rev] = changeset
 		}
 	}
 
