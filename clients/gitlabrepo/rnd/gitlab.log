@@ -1,0 +1,34 @@
+// DATE STRUCTURE DD-MM-YYYY //
+ 
+** INTENT: ENABLE SCORECARD TO INTERFACE WITH GITLAB IN ADDITION TO IT'S CURRENT INTERFACES (i.e. github) **
+
+08-09-2022
+-> built initial build for scorecard
+-> began reading through githubrepo directory files
+-> raw_dependencies.go (./dependencydiff/raw_dependencies.go) will need implementation
+
+09-09-2022
+-> first stakeholders meetings
+-> discovered https://github.com/xanzy/go-gitlab, which will do most of (if not all) of the gitlab integration
+-> created basic client outline
+-> setup gitlabclient skeleton
+-> wrote basics of languages.go which handles extracting the languages used in a given gitlab project
+    -> eventually I will need to get rid of a placeholder value that will be the number of files in a project
+-> wrote basics of releases.go which handles the extracting of data from the various project releases
+-> wrote basics of contributors.go which handles finding all of the contributors to a gitlab project
+-> wrote basics of repo.go which handles creating the repoURL for a gitlab project
+-> begun writing tarball.go (still have a lot of work to go)
+
+12-09-2022
+-> begun work on searchCommits.go which handles searching through the commits in a gitlab project (DONE)
+-> begun work on statuses.go
+    -> statuses in github relies on an external tool that is github exclusive
+    -> may need to find a workaround in the future
+-> wrote basics of tarball.go which handles getting a tarball of the file from gitlab so we can make less requests to
+    the gitlab api.
+-> I now understand that the relative files are not important and the only file it is important to fill out is
+    the client.go file whereas the other files are all supporting files
+-> Total client.go methods complete: 15
+-> Total client.go methods to-go: 10
+
+13-09-2022

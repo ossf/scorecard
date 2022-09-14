@@ -232,6 +232,7 @@ Installation.
     `GITHUB_AUTH_TOKEN`, `GITHUB_TOKEN`, `GH_AUTH_TOKEN` or `GH_TOKEN` using the
     commands below according to your platform.
 
+## For GitHub Repositories
 ```shell
 # For posix platforms, e.g. linux, mac:
 export GITHUB_AUTH_TOKEN=<your access token>
@@ -242,6 +243,15 @@ export GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
 # For windows:
 set GITHUB_AUTH_TOKEN=<your access token>
 set GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
+```
+
+## For GitLab Projects (you will get a github token env var is not set, but it won't impact the performance)
+```shell
+# For posix platforms, e.g. linux, mac:
+export GITLAB_AUTH_TOKEN=<your access token>
+
+# For windows:
+set GITLAB_AUTH_TOKEN=<your access token>
 ```
 
 OR
@@ -265,6 +275,11 @@ These variables can be obtained from the GitHub
 ##### Using repository URL
 
 Scorecards can run using just one argument, the URL of the target repo:
+
+# For GitLab Projects the repository should be provided as follows:
+```
+scorecard gitlab.<organization>.com/<user>/<projectID>
+```
 
 ```shell
 $ scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
