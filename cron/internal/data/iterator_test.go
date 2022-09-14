@@ -153,6 +153,42 @@ func TestCsvIterator(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:     "Ignore First Header Row",
+			filename: "testdata/ignore_header.csv",
+			outcomes: []outcome{
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo: "github.com/owner1/repo1",
+					},
+				},
+				{
+					// will error due to GitHub URL sanity check
+					hasError: true,
+					repo: RepoFormat{
+						Repo: "repo",
+					},
+				},
+			},
+		},
+		{
+			name:     "No Header Row",
+			filename: "testdata/no_header.csv",
+			outcomes: []outcome{
+				{
+					hasError: false,
+					repo: RepoFormat{
+						Repo: "github.com/owner1/repo1",
+					},
+				},
+			},
+		},
+		{
+			name:     "Only Header Row",
+			filename: "testdata/only_header.csv",
+			outcomes: []outcome{},
+		},
 	}
 
 	for _, testcase := range testcases {
