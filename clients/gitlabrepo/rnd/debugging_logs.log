@@ -1,0 +1,45 @@
+GitHub Score:
+-> 10/10 Binary-Artifacts
+-> 6/10 Branch-Protection
+-> ? CI-Tests
+-> 0/10 CII-Best-Practices
+-> 0/10 Code-Review
+-> 0/10 Contributors
+-> 10/10 Dangerous-Workflow
+-> 0/10 Dependency-Update-Tool
+-> 0/10 Fuzzing
+-> 10/10 License
+-> 0/10 Maintained
+-> ? Packaging
+-> 10/10 Pinned-Dependencies
+-> 0/10 SAST
+-> 0/10 Security-Policy
+-> ? Signed-Releases
+-> 10/10 Token-Premissions
+-> 10/10 Vunerabilities
+
+Overall: 4.2/10
+
+gitlab.kudelski.com/nathaniel.wert/7026
+
+GitLab Score:
+-> 10/10 Binary-Artifacts
+-> 4/10 Branch-Protection
+-> 0/10 CI-Tests
+-> 0/10 CII-Best-Practices
+-> 0/10 Code-Review
+-> 0/10 Contributors
+-> 10/10 Dangerous-Workflow
+-> 0/10 Dependency-Update-Tool
+-> 0/10 Fuzzing
+-> 0/10 License
+-> 0/10 Maintained
+-> ? Packaging
+-> 10/10 Pinned-Dependencies
+-> 0/10 SAST
+-> ? Security-Policy
+-> ? Signed-Releases
+-> 10/10 Token-Premissions
+-> 10/10 Vunerabilities
+
+Overall: 4.6/10
