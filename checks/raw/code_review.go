@@ -15,7 +15,6 @@
 package raw
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -25,17 +24,15 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
-var errScmDetection = errors.New("couldn't detect scm platform from commit msg")
-
 // CodeReview retrieves the raw data for the Code-Review check.
-func CodeReview(c clients.RepoClient, dl checker.DetailLogger) (checker.CodeReviewData, error) {
+func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 	// Look at the latest commits.
 	commits, err := c.ListCommits()
 	if err != nil {
 		return checker.CodeReviewData{}, fmt.Errorf("%w", err)
 	}
 
-	changesets := getChangesets(commits, dl)
+	changesets := getChangesets(commits)
 
 	if err != nil {
 		return checker.CodeReviewData{}, fmt.Errorf("%w", err)
@@ -46,32 +43,20 @@ func CodeReview(c clients.RepoClient, dl checker.DetailLogger) (checker.CodeRevi
 	}, nil
 }
 
-func getGithubRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
+func getGithubRevisionID(c *clients.Commit) string {
 	mr := c.AssociatedMergeRequest
-	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
-		dl.Info(&checker.LogMessage{
-			Text: fmt.Sprintf("commit %s was reviewed on github #%d approved merge request",
-				c.SHA, c.AssociatedMergeRequest.Number),
-		})
-		if mr.Number != 0 {
-			return strconv.Itoa(mr.Number)
-		}
+	if !c.AssociatedMergeRequest.MergedAt.IsZero() && mr.Number != 0 {
+		return strconv.Itoa(mr.Number)
 	}
 	return ""
 }
 
-func getProwRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
+func getProwRevisionID(c *clients.Commit) string {
 	mr := c.AssociatedMergeRequest
 	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
 		for _, l := range c.AssociatedMergeRequest.Labels {
-			if l.Name == "lgtm" || l.Name == "approved" {
-				dl.Info(&checker.LogMessage{
-					Text: fmt.Sprintf("commit %s was reviewed on prow #%d approved merge request",
-						c.SHA, c.AssociatedMergeRequest.Number),
-				})
-				if mr.Number != 0 {
-					return strconv.Itoa(mr.Number)
-				}
+			if l.Name == "lgtm" || l.Name == "approved" && mr.Number != 0 {
+				return strconv.Itoa(mr.Number)
 			}
 		}
 	}
@@ -79,146 +64,120 @@ func getProwRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
 	return ""
 }
 
-func getGerritRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
+func getGerritRevisionID(c *clients.Commit) string {
 	m := c.Message
 	if strings.Contains(m, "Reviewed-on:") &&
 		strings.Contains(m, "Reviewed-by:") {
-		dl.Info(&checker.LogMessage{
-			Text: fmt.Sprintf("commit %s was reviewed on gerrit", c.SHA),
-		})
 		return c.SHA
 	}
 	return ""
 }
 
 // Given m, a commit message, find the Phabricator revision ID in it.
-func getPhabricatorRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
+func getPhabricatorRevisionID(c *clients.Commit) string {
 	m := c.Message
-	p, err := regexp.Compile(`Differential Revision:\s*(\w+)`)
-	if err != nil {
-		dl.Debug((&checker.LogMessage{Text: "phabricator revisionID regex compile failed"}))
-		return ""
-	}
+	p, _ := regexp.Compile(`Differential Revision:\s*(\w+)`)
+
 	match := p.FindStringSubmatch(m)
 	if match == nil || len(match) < 2 {
 		return ""
 	}
 
-	dl.Info(&checker.LogMessage{
-		Text: fmt.Sprintf("commit %s was reviewed on phabricator revision %s", c.SHA, match[1]),
-	})
-
 	return match[1]
 }
 
 // Given m, a commit message, find the piper revision ID in it.
-func getPiperRevisionID(c *clients.Commit, dl checker.DetailLogger) string {
+func getPiperRevisionID(c *clients.Commit) string {
 	m := c.Message
-	matchPiperRevID, err := regexp.Compile(`PiperOrigin-RevId:\s*(\d{3,})`)
-	if err != nil {
-		dl.Debug((&checker.LogMessage{Text: "piper regex compile failed"}))
-		return ""
-	}
+	matchPiperRevID, _ := regexp.Compile(`PiperOrigin-RevId:\s*(\d{3,})`)
 
 	match := matchPiperRevID.FindStringSubmatch(m)
-
 	if match == nil || len(match) < 2 {
 		return ""
 	}
 
-	dl.Info(&checker.LogMessage{
-		Text: fmt.Sprintf("commit %s reviewed through piper revision %s", c.SHA, match[1]),
-	})
-
 	return match[1]
 }
 
-func getCommitRevisionByPlatform(
-	c *clients.Commit,
-	dl checker.DetailLogger,
-) (string, string, error) {
-	if revisionID := getProwRevisionID(c, dl); revisionID != "" {
-		return checker.ReviewPlatformProw, revisionID, nil
+type revisionInfo struct {
+	Platform string
+	ID       string
+}
+
+func detectCommitRevisionInfo(c *clients.Commit) revisionInfo {
+	if revisionID := getProwRevisionID(c); revisionID != "" {
+		return revisionInfo{checker.ReviewPlatformProw, revisionID}
 	}
-	if revisionID := getGithubRevisionID(c, dl); revisionID != "" {
-		return checker.ReviewPlatformGitHub, revisionID, nil
+	if revisionID := getGithubRevisionID(c); revisionID != "" {
+		return revisionInfo{checker.ReviewPlatformGitHub, revisionID}
 	}
-	if revisionID := getPhabricatorRevisionID(c, dl); revisionID != "" {
-		return checker.ReviewPlatformPhabricator, revisionID, nil
+	if revisionID := getPhabricatorRevisionID(c); revisionID != "" {
+		return revisionInfo{checker.ReviewPlatformPhabricator, revisionID}
 	}
-	if revisionID := getGerritRevisionID(c, dl); revisionID != "" {
-		return checker.ReviewPlatformGerrit, revisionID, nil
+	if revisionID := getGerritRevisionID(c); revisionID != "" {
+		return revisionInfo{checker.ReviewPlatformGerrit, revisionID}
 	}
-	if revisionID := getPiperRevisionID(c, dl); revisionID != "" {
-		return checker.ReviewPlatformPiper, revisionID, nil
+	if revisionID := getPiperRevisionID(c); revisionID != "" {
+		return revisionInfo{checker.ReviewPlatformPiper, revisionID}
 	}
 
-	return "", "", errScmDetection
+	return revisionInfo{}
 }
 
 // Group commits by the changeset they belong to
 // Commits must be in-order.
-func getChangesets(commits []clients.Commit, dl checker.DetailLogger) []checker.Changeset {
+func getChangesets(commits []clients.Commit) []checker.Changeset {
 	changesets := []checker.Changeset{}
 
 	if len(commits) == 0 {
 		return changesets
 	}
 
-	i := 0
-	for {
-		if i >= len(commits) {
-			break
-		}
-		//nolint:errcheck
-		plat, rev, _ := getCommitRevisionByPlatform(&commits[i], dl)
-		j := i + 1
-		for {
-			if j >= len(commits) {
-				changesets = append(changesets, checker.Changeset{
-					ReviewPlatform: plat,
-					RevisionID:     rev,
-					Commits:        commits[i:j],
-				})
-				break
+	changesetsByRevInfo := make(map[revisionInfo]checker.Changeset)
+
+	for i := range commits {
+		rev := detectCommitRevisionInfo(&commits[i])
+
+		if changeset, ok := changesetsByRevInfo[rev]; !ok {
+			newChangeset := checker.Changeset{
+				ReviewPlatform: rev.Platform,
+				RevisionID:     rev.ID,
+				Commits:        []clients.Commit{commits[i]},
 			}
 
-			plat2, rev2, err := getCommitRevisionByPlatform(&commits[j], dl)
+			// Add Revision data if available
+			if rev.Platform == checker.ReviewPlatformGitHub {
+				changeset.Reviews = commits[i].AssociatedMergeRequest.Reviews
 
-			if err != nil || plat2 != plat || rev2 != rev {
-				changesets = append(changesets, checker.Changeset{
-					ReviewPlatform: plat,
-					RevisionID:     rev,
-					Commits:        commits[i:j],
-				})
-				break
+				// Pull request creator is primary author
+				// TODO: Handle case where a user who isn't the PR creator pushes changes
+				// to the PR branch without relying on unsigned Git authorship
+				changeset.Authors = []clients.User{
+					commits[i].AssociatedMergeRequest.Author,
+				}
 			}
 
-			j += 1
+			changesetsByRevInfo[rev] = newChangeset
+		} else {
+			// Part of a previously found changeset.
+			changeset.Commits = append(changeset.Commits, commits[i])
 		}
-		i = j
 	}
 
-	// Add data to Changeset raw result (if available)
-	// Do this per changeset, instead of per-commit, to save effort
-	for i := range changesets {
-		augmentChangeset(&changesets[i])
+	for ri, cs := range changesetsByRevInfo {
+		// Ungroup all commits that don't have revision info
+		missing := revisionInfo{}
+		if ri == missing {
+			for i := range cs.Commits {
+				c := cs.Commits[i]
+				changesets = append(changesets, checker.Changeset{
+					Commits: []clients.Commit{c},
+				})
+			}
+		} else {
+			changesets = append(changesets, cs)
+		}
 	}
 
 	return changesets
-}
-
-func augmentChangeset(changeset *checker.Changeset) {
-	if changeset.ReviewPlatform != checker.ReviewPlatformGitHub {
-		return
-	}
-
-	changeset.Reviews = changeset.Commits[0].AssociatedMergeRequest.Reviews
-
-	// Pull request creator is primary author
-	// TODO: Handle case where a user who isn't the PR creator pushes changes
-	// to the PR branch without relying on unsigned Git authorship
-	changeset.Authors = []clients.User{
-		changeset.Commits[0].AssociatedMergeRequest.Author,
-	}
 }

@@ -250,7 +250,7 @@ type jsonRawResults struct {
 	// structure for it.
 	Contributors jsonContributors `json:"Contributors"`
 	// Commits.
-	DefaultBranchChangesets []jsonDefaultBranchChangeset `json:"defaultBranchCommits"`
+	DefaultBranchChangesets []jsonDefaultBranchChangeset `json:"defaultBranchChangesets"`
 	// Archived status of the repo.
 	ArchivedStatus jsonArchivedStatus `json:"archived"`
 	// Repo creation time

@@ -20,7 +20,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
-	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 //nolint:gocritic
@@ -81,7 +80,6 @@ func assertChangesetArrEq(t *testing.T, actual, expected []checker.Changeset) {
 func Test_getChangesets(t *testing.T) {
 	t.Parallel()
 
-	dl := &scut.TestDetailLogger{}
 	tests := []struct {
 		name     string
 		commits  []clients.Commit
@@ -369,7 +367,7 @@ func Test_getChangesets(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Logf("test: %s", tt.name)
-		changesets := getChangesets(tt.commits, dl)
+		changesets := getChangesets(tt.commits)
 		assertChangesetArrEq(t, changesets, tt.expected)
 	}
 }
