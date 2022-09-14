@@ -76,7 +76,10 @@ func getGerritRevisionID(c *clients.Commit) string {
 // Given m, a commit message, find the Phabricator revision ID in it.
 func getPhabricatorRevisionID(c *clients.Commit) string {
 	m := c.Message
-	p, _ := regexp.Compile(`Differential Revision:\s*(\w+)`)
+	p, err := regexp.Compile(`Differential Revision:\s*(\w+)`)
+	if err != nil {
+		return ""
+	}
 
 	match := p.FindStringSubmatch(m)
 	if match == nil || len(match) < 2 {
@@ -89,7 +92,10 @@ func getPhabricatorRevisionID(c *clients.Commit) string {
 // Given m, a commit message, find the piper revision ID in it.
 func getPiperRevisionID(c *clients.Commit) string {
 	m := c.Message
-	matchPiperRevID, _ := regexp.Compile(`PiperOrigin-RevId:\s*(\d{3,})`)
+	matchPiperRevID, err := regexp.Compile(`PiperOrigin-RevId:\s*(\d{3,})`)
+	if err != nil {
+		return ""
+	}
 
 	match := matchPiperRevID.FindStringSubmatch(m)
 	if match == nil || len(match) < 2 {
