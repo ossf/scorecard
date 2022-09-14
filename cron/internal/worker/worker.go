@@ -78,7 +78,9 @@ func (wl *WorkLoop) Run() error {
 		}
 
 		// Sanity check - make sure we are not re-processing an already processed request.
-		if !exists {
+		if exists {
+			logger.Info(fmt.Sprintf("Skipping already processed request: %s.", req.String()))
+		} else {
 			if err := wl.worker.Process(ctx, req, bucketURL, logger); err != nil {
 				announceError(err, subscriber, logger)
 				continue
