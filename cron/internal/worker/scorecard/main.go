@@ -97,14 +97,10 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	}
 
 	sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
-	// TODO figure out how to close this
-	// defer ossFuzzRepoClient.Close()
 
 	if sw.exporter, err = startMetricsExporter(); err != nil {
 		return nil, fmt.Errorf("startMetricsExporter: %w", err)
 	}
-	// TODO figure out how to close this
-	// defer exporter.StopMetricsExporter()
 
 	// Exposed for monitoring runtime profiles
 	go func() {
@@ -112,6 +108,11 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 		sw.logger.Info(fmt.Sprintf("%v", http.ListenAndServe(":8080", nil)))
 	}()
 	return sw, nil
+}
+
+func (sw *ScorecardWorker) Close() {
+	sw.exporter.StopMetricsExporter()
+	sw.ossFuzzRepoClient.Close()
 }
 
 func (sw *ScorecardWorker) Process(ctx context.Context,
@@ -137,25 +138,7 @@ func processRequest(ctx context.Context,
 	vulnsClient clients.VulnerabilitiesClient,
 	logger *log.Logger,
 ) error {
-	filename := data.GetBlobFilename(
-		fmt.Sprintf("shard-%07d", batchRequest.GetShardNum()),
-		batchRequest.GetJobTime().AsTime())
-	// Sanity check - make sure we are not re-processing an already processed request.
-	existsScore, err := data.BlobExists(ctx, bucketURL, filename)
-	if err != nil {
-		return fmt.Errorf("error during BlobExists: %w", err)
-	}
-
-	existsRaw, err := data.BlobExists(ctx, rawBucketURL, filename)
-	if err != nil {
-		return fmt.Errorf("error during BlobExists: %w", err)
-	}
-
-	if existsScore && existsRaw {
-		logger.Info(fmt.Sprintf("Already processed shard %s. Nothing to do.", filename))
-		// We have already processed this request, nothing to do.
-		return nil
-	}
+	filename := worker.ResultFilename(batchRequest)
 
 	var buffer2 bytes.Buffer
 	var rawBuffer bytes.Buffer
@@ -248,12 +231,14 @@ func processRequest(ctx context.Context,
 		}
 	}
 
-	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer2.Bytes()); err != nil {
+	// Raw result.
+	if err := data.WriteToBlobStore(ctx, rawBucketURL, filename, rawBuffer.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
 
-	// Raw result.
-	if err := data.WriteToBlobStore(ctx, rawBucketURL, filename, rawBuffer.Bytes()); err != nil {
+	// write to the canonical bucket last, as the presence of filename indicates the job was completed.
+	// see worker package for details.
+	if err := data.WriteToBlobStore(ctx, bucketURL, filename, buffer2.Bytes()); err != nil {
 		return fmt.Errorf("error during WriteToBlobStore2: %w", err)
 	}
 
@@ -287,6 +272,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer sw.Close()
 	wl := worker.NewWorkLoop(sw)
 	if err := wl.Run(); err != nil {
 		panic(err)

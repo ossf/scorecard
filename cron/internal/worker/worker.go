@@ -70,12 +70,19 @@ func (wl *WorkLoop) Run() error {
 			logger.Info("subscription returned nil message during Receive, exiting")
 			break
 		}
-		if err := wl.worker.Process(ctx, req, bucketURL, logger); err != nil {
-			// TODO(log): Previously Warn. Consider logging an error here.
-			logger.Info(fmt.Sprintf("error processing request: %v", err))
-			// Nack the message so that another worker can retry.
-			subscriber.Nack()
+
+		exists, err := resultExists(ctx, req, bucketURL)
+		if err != nil {
+			announceError(err, subscriber, logger)
 			continue
+		}
+
+		// Sanity check - make sure we are not re-processing an already processed request.
+		if !exists {
+			if err := wl.worker.Process(ctx, req, bucketURL, logger); err != nil {
+				announceError(err, subscriber, logger)
+				continue
+			}
 		}
 
 		wl.worker.PostProcess()
@@ -85,4 +92,24 @@ func (wl *WorkLoop) Run() error {
 		return fmt.Errorf("subscriber.Close: %w", err)
 	}
 	return nil
+}
+
+func announceError(err error, subscriber pubsub.Subscriber, logger *log.Logger) {
+	// TODO(log): Previously Warn. Consider logging an error here.
+	logger.Info(fmt.Sprintf("error processing request: %v", err))
+	// Nack the message so that another worker can retry.
+	subscriber.Nack()
+}
+
+func resultExists(ctx context.Context, sbr *data.ScorecardBatchRequest, bucketURL string) (bool, error) {
+	exists, err := data.BlobExists(ctx, bucketURL, ResultFilename(sbr))
+	if err != nil {
+		return false, fmt.Errorf("error during BlobExists: %w", err)
+	}
+	return exists, nil
+}
+
+func ResultFilename(sbr *data.ScorecardBatchRequest) string {
+	shardname := fmt.Sprintf("shard-%07d", sbr.GetShardNum())
+	return data.GetBlobFilename(shardname, sbr.GetJobTime().AsTime())
 }
