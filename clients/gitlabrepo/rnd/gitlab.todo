@@ -1,0 +1,7 @@
+TODO: adjut githubrepo/repo.go to redirect urls with "gitlab" to the gitlabrepo section
+
+TODO: replace placeholder with a function to get a gitlab project's number of lines
+
+TODO: check my usage of github organizations is equivalent to gitlab groups in necessary files.
+
+TODO: cleanup branches.go

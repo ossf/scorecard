@@ -1,0 +1,171 @@
+github.com/google/go-github/v38/github -> github.Client
+-> functionality:
+    -> Search.Commits(context, query, options) -> (searchResults, response, error)
+        -> Search through commits for specific query based on search options
+        -> context is already implemented natively
+        -> query is already implemented natively
+        -> SearchOptions will need research
+        -> searchResults will need research
+        -> response will need research based on what response gitlab gives
+        -> error is standard built-in error
+    -> Repositories.ListContributors(context, owner, repository, options) -> (contributors[], response, error)
+        -> gets a list of contributors to the given repository by the given owner
+        -> context is already implemented natively
+        -> owner is already implemented natively
+        -> repository is already implemented natively
+        -> options will need research
+        -> contributors[] struct will need research from gitlab api
+        -> response will need research based on what response gitlab gives
+        -> error is standard built-in error
+    -> Organizations.List(context, user, listoptions) -> (organization[], response, error)
+        -> gets a list of the organizations a repository belongs to
+        -> context is already implemented natively
+        -> user is a string that is implemented natively
+        -> listoptions is nil
+        -> organization[] will require research from gitlab api
+        -> response will need research based on what response gitlab gives
+        -> error is standard built-in error
+        -> NOTES: CAN FAIL DUE TO TOKEN SCOPES SO ERRORS ARE IGNORED
+    -> Users.Get(context, user_string) -> (user, response, error)
+        -> fetches a given user from the github api
+        -> context is already implemented natively
+        -> user_string is a string that is implemented natively
+        -> user will need research based on what response gitlab gives
+        -> response will need research based on what response gitlab gives
+        -> error is standard built-in error
+    -> Repositories.ListHooks(context, owner_string, repo_string, options) -> (hook[], response, error)
+        -> lists all hooks for a specified repository
+        -> context is already implemented natively
+        -> owner_string is a string and is already implemented natively
+        -> repo_string is a string and is already implemented natively
+        -> list_options will need research based on gitlab options
+        -> hook is a struct that will need research based on what gitlab api yields for hook get requests
+        -> response will need research based on what response gitlab gives
+        -> error is standard built-in error
+    -> Search.Code(context, query_string, searchOptions) -> (CodeSearchResult, response, error)
+        -> code searches code via various criteria
+        -> context is already implemented natively
+        -> query_string is already implemented natively
+        -> searchOptions will need research based on gitlab options
+        -> codesearchresults will need more research based on gitlab options + github api
+        -> response will need research based on what response gitlab gives
+        -> error is standard built-in error
+-> notes:
+    -> response will be configured to be gitlab native
+
+github.com/google/go-github/v38/github -> github.SearchOptions
+-> Description
+    -> Defines parameters from the github search api
+-> Plan of action
+    -> Search gitlab api to find relavent search options
+-> Github-Link
+    -> https://docs.github.com/en/free-pro-team@latest/rest/reference/search/
+-> Gitlab-Link
+    -> 
+
+github.com/google/go-github/v38/github -> github.CommitsSearchResult
+-> Description
+    -> resulst of a search of commits to a repository
+-> Notes
+    -> this is a struct that has another commitResult struct apart of implemented
+-> Plan of action 
+    -> search gitlab api to see what is given from an api request to get commits
+-> Github-Link
+    -> https://docs.github.com/en/free-pro-team@latest/rest/reference/search/#search-commits
+-> GitLab-Link
+    -> https://docs.gitlab.com/ee/api/commits.html
+
+github.com/google/go-github/v38/github -> github.ListContributorOptions
+-> Description
+    -> 
+
+github.com/google/go-github/v38/github -> github.Repository
+-> Description
+    -> struct of all data returned from an api call to github api
+-> Github-Link
+    -> https://docs.github.com/en/free-pro-team@latest/rest/reference/repos/
+
+github.com/google/go-github/v38/github -> github.NewClient
+-> Description
+    -> creates a new github client from a httpClient ("net/http" package)
+
+github.com/google/go-github/v38/github -> github.CodeSearchResult
+-> Description
+    -> struct of all data from a single code search of github
+-> Github-Link
+    -> https://docs.github.com/en/free-pro-team@latest/rest/reference/search/#search-code
+
+github.com/google/go-github/v38/github -> github.ListWorkflowRunsOptions
+-> Description
+    -> Options to be supplied to the github api that returns workflow runs
+-> Github-Link
+    -> https://docs.github.com/en/free-pro-team@latest/rest/reference/actions/#list-workflow-runs-for-a-repository
+
+github.com/google/go-github/v38/github -> github.WorkflowRuns
+-> Description 
+    -> list of workflow structs to be run
+-> Github-Link
+    -> https://docs.github.com/en/free-pro-team@latest/rest/reference/actions/#list-workflow-runs-for-a-repository
+
+github.com/google/go-github/v38/github -> github.ListOptions
+-> Description
+    -> options to be supplied to github api calls that return a list
+
+github.com/google/go-github/v38/github -> github.RepoStatus
+-> Description
+    -> struct for response to find status of a github repository
+-> Github-Link
+    -> https://docs.github.com/en/free-pro-team@latest/rest/reference/repos/#list-commit-statuses-for-a-reference
+
+github.com/google/go-github/v38/github -> github.RepositoryRelease
+-> Description
+    -> struct for data response to find releases info from the github api
+-> Github-Link
+    -> https://docs.github.com/en/free-pro-team@latest/rest/reference/repos/#list-releases
+
+github.com/google/go-github/v38/github -> github.ListCheckRunOptions
+-> Description
+    -> 
+
+github.com/google/go-github/v38/github -> github.ListCheckRunsResults
+-> Description
+    -> struct to hold structs for the different runs from the github api
+-> Github-Link
+    -> https://docs.github.com/en/free-pro-team@latest/rest/reference/checks/#list-check-runs-for-a-git-reference
+
+Repositories (GitHub) ~= Projects (GitLab)
+Login (GitHub) ~= Username (GitLab)
+
+branches.go
+/*
+type BranchRef struct {
+	Name *string -> *gitlab.Branch.Name
+	Protected *bool -> *gitlab.Branch.Protected
+	BranchProtectionRule BranchProtectionRule -> (SEE BELOW)
+}
+
+type BranchProtectionRule struct {
+	RequiredPullRequestReviews PullRequestReviewRule -> (SEE BELOW)
+	AlowDeletions *bool -> true if not protected; false if protected
+	AllowForcePushes *bool -> *gitlab.ProtectedBranch.AllowForcePush (false if protected is false)
+	RequireLinearHistory *bool -> // Gitlab never enforces linear history
+	EnforceAdmins *bool ->
+	CheckRules StatusChecksRule -> (SEE BELOW)
+}
+
+type StatusChecksRule struct {
+	UpToDateBeforeMerger *bool -> // Feature does not yet exist in gitlab so true till implemented
+	RequiresStatusChecks *bool -> *gitlab.ExternalStatusChecks.ListProjectStatusChecks
+	Contexts []string -> //*gitlab.ProjectStatusCheck.Name
+}
+
+type PullRequestReviewRule struct {
+	RequiredApprovingReviewCount *int32 -> *gitlab.MergeRequestApprovalRule.ApprovalsRequired
+	^ seems to be a project setting so it will be the same for all protected branches
+	DismissStaleReviews *bool -> // Does not exist in gitlab so default is true
+	RequireCodeOwnerReviews *bool -> *gitlab.ProtectedBranch.CodeOwnerApprovalRequired (false if protected is false)
+}
+*/
+
+
+
