@@ -17,6 +17,7 @@ package raw
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 
@@ -24,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
 )
@@ -52,13 +54,21 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	// https#://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
 	// TODO(1491): Make this non-GitHub specific.
 	logger := log.NewLogger(log.InfoLevel)
-	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
-	err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA)
+	var client clients.RepoClient
+	if strings.Contains(c.Repo.Org().String(), "gitlab.") {
+		client, err = gitlabrepo.CreateGitlabClientWithToken(c.Ctx, os.Getenv("GITLAB_AUTH_TOKEN"), c.Repo)
+		err = client.InitRepo(c.Repo, clients.HeadSHA)
+	} else {
+		client = githubrepo.CreateGithubRepoClient(c.Ctx, logger)
+		err = client.InitRepo(c.Repo.Org(), clients.HeadSHA)
+	}
+	// dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
+	// err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA)
 	switch {
 	case err == nil:
-		defer dotGitHubClient.Close()
-		data.uri = dotGitHubClient.URI()
-		err = fileparser.OnAllFilesDo(dotGitHubClient, isSecurityPolicyFile, &data)
+		defer client.Close()
+		data.uri = client.URI()
+		err = fileparser.OnAllFilesDo(client, isSecurityPolicyFile, &data)
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
 		}

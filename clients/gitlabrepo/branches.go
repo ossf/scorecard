@@ -44,9 +44,12 @@ func (handler *branchesHandler) setup() error {
 		}
 
 		if branch.Protected {
-			protectedBranch, _, err := handler.glClient.ProtectedBranches.GetProtectedBranch(handler.repourl.projectID, branch.Name)
-			if err != nil {
+			protectedBranch, resp, err := handler.glClient.ProtectedBranches.GetProtectedBranch(handler.repourl.projectID, branch.Name)
+			if err != nil && resp.StatusCode != 403 {
 				handler.errSetup = fmt.Errorf("request for protected branch failed with error %w", err)
+				return
+			} else if resp.StatusCode == 403 {
+				handler.errSetup = fmt.Errorf("incorrect permissions to fully check branch protection")
 				return
 			}
 

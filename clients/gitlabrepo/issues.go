@@ -31,16 +31,31 @@ func (handler *issuesHandler) setup() error {
 			return
 		}
 
+		// There doesn't seem to be a good way to get user access_levels in gitlab so the following way may seem incredibly
+		// barberic, however I couldn't find a better way in the docs.
+		projectAccessTokens, resp, err := handler.glClient.ProjectAccessTokens.ListProjectAccessTokens(handler.repourl.projectID, &gitlab.ListProjectAccessTokensOptions{})
+		if err != nil && resp.StatusCode != 401 {
+			handler.errSetup = fmt.Errorf("unable to find access tokens associated with the project id: %w", err)
+		} else if resp.StatusCode == 401 {
+			fmt.Println("permissions unsufficient to check issue author associations, so all users have been given base permission of RepoAssociationMember")
+		}
+
 		if len(issues) > 0 {
 			for _, issue := range issues {
+				authorAssociation := clients.RepoAssociationMember
+				if resp.StatusCode != 401 {
+					authorAssociation = findAuthorAssociationFromUserID(projectAccessTokens, issue.Author.ID)
+				}
+				issueIDString := fmt.Sprint(issue.ID)
 				handler.issues = append(handler.issues,
 					clients.Issue{
-						URI:       &issue.ExternalID,
+						URI:       &issueIDString,
 						CreatedAt: issue.CreatedAt,
 						Author: &clients.User{
 							ID: int64(issue.Author.ID),
 						},
-						Comments: nil,
+						AuthorAssociation: &authorAssociation,
+						Comments:          nil,
 					})
 			}
 		} else {
@@ -56,4 +71,30 @@ func (handler *issuesHandler) listIssues() ([]clients.Issue, error) {
 	}
 
 	return handler.issues, nil
+}
+
+func findAuthorAssociationFromUserID(accessTokens []*gitlab.ProjectAccessToken, targetID int) clients.RepoAssociation {
+	for _, accessToken := range accessTokens {
+		if accessToken.UserID == targetID {
+			switch accessToken.AccessLevel {
+			case 0:
+				return clients.RepoAssociationNone
+			case 5:
+				return clients.RepoAssociationFirstTimeContributor
+			case 10:
+				return clients.RepoAssociationCollaborator
+			case 20:
+				return clients.RepoAssociationCollaborator
+			case 30:
+				return clients.RepoAssociationMember
+			case 40:
+				return clients.RepoAssociationMaintainer
+			case 50:
+				return clients.RepoAssociationOwner
+			default:
+				return clients.RepoAssociationNone
+			}
+		}
+	}
+	return clients.RepoAssociationNone
 }
