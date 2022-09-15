@@ -15,7 +15,6 @@ const (
 	gitlabOrgProj = ".gitlab"
 )
 
-// TODO: check that this repoURL conforms to gitlab naming.
 type repoURL struct {
 	hostname      string
 	owner         string
@@ -28,12 +27,7 @@ type repoURL struct {
 // Parses input string into repoURL struct
 /*
 *  Accepted input string formats are as follows:
-	*  "<companyDomain:string>/<owner:string>/<projectID:int>"
 	*  "gitlab.<companyDomain:string>.com/<owner:string>/<projectID:int>"
-
-* TODO: add support for following input string formats
-	*  "<companyDomain:string>/<owner:string>/<URLEncodedPath:string>"
-	*  "gitlab.<companyDomain:string>.com/<owner:string>/<URLEncodedPath:string>"
 */
 func (r *repoURL) parse(input string) error {
 	var t string
@@ -66,7 +60,6 @@ func (r *repoURL) parse(input string) error {
 		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("%v. Expected full repository url", input))
 	}
 
-	// TODO: make sure this actually gets the the correct information.
 	r.hostname, r.owner, r.projectID = u.Host, split[0], split[1]
 	return nil
 }
@@ -83,7 +76,6 @@ func (r *repoURL) String() string {
 	return fmt.Sprintf("%s-%s_%s", r.hostname, r.owner, r.projectID)
 }
 
-// TODO: figure out what this function does and whether or not it is entirely necessary.
 func (r *repoURL) Org() clients.Repo {
 	return &repoURL{
 		hostname:  r.hostname,

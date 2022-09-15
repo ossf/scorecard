@@ -46,8 +46,8 @@ func (handler *commitsHandler) setup() error {
 					return
 				}
 
-				// For some reason some users have unknown names, so below we are going to parse their email into pieces
-				// i.e. (firstname.lastname@domain.com) -> "firstname lastname"
+				// For some reason some users have unknown names, so below we are going to parse their email into pieces.
+				// i.e. (firstname.lastname@domain.com) -> "firstname lastname".
 				if len(users) == 0 {
 					users, _, err = handler.glClient.Search.Users(parseEmailToName(commit.CommitterEmail), &gitlab.SearchOptions{})
 					if err != nil {
@@ -63,13 +63,9 @@ func (handler *commitsHandler) setup() error {
 			// here is the earliest one.
 			mergeRequests, _, err := handler.glClient.Commits.ListMergeRequestsByCommit(handler.repourl.projectID, commit.ID)
 			if err != nil {
-				// Possibly do not return here as newer commits may not be associated with merge requests
-				// TODO: check out the above possibility
 				handler.errSetup = fmt.Errorf("unable to find merge requests associated with commit: %w", err)
 				return
 			}
-			// There has to be an argmin function I can use because this is probably super slow.
-			// TODO: grab argmin implementation.
 			var mergeRequest *gitlab.MergeRequest
 			if len(mergeRequests) > 0 {
 				mergeRequest = mergeRequests[0]
