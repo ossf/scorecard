@@ -18,7 +18,7 @@ func (handler *statusesHandler) init(repourl *repoURL) {
 }
 
 // The docs were a bit fuzzy, but I'm pretty sure this is commit statuses
-// for gitlab this only works if ref is a SHA so I'll add that to the docs.
+// for gitlab this only works if ref is SHA.
 func (handler *statusesHandler) listStatuses(ref string) ([]clients.Status, error) {
 	commitStatuses, _, err := handler.glClient.Commits.GetCommitStatuses(
 		handler.repourl.projectID, ref, &gitlab.GetCommitStatusesOptions{})

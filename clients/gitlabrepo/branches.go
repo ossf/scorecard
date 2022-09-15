@@ -88,15 +88,6 @@ func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
 	return handler.defaultBranchRef, nil
 }
 
-// func (handler *branchesHandler) getDefaultBranchName() (string, error) {
-// 	err := handler.setup()
-// 	if err != nil {
-// 		return "", fmt.Errorf("error during branchesHandler.setup: %w", err)
-// 	}
-
-// 	return *handler.defaultBranchRef.Name, nil
-// }
-
 func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, error) {
 	bran, _, err := handler.glClient.Branches.GetBranch(handler.repourl.projectID, branch)
 	if err != nil {

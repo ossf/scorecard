@@ -27,7 +27,6 @@ func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions
 		return nil, fmt.Errorf("handler.buildQuiery: %w", err)
 	}
 
-	// TODO: I'm skeptical this will work as intended
 	commits, _, err := handler.glClient.Search.CommitsByProject(handler.repourl.projectID, query, &gitlab.SearchOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("Search.Commits: %w", err)

@@ -62,8 +62,6 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		client = githubrepo.CreateGithubRepoClient(c.Ctx, logger)
 		err = client.InitRepo(c.Repo.Org(), clients.HeadSHA)
 	}
-	// dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
-	// err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA)
 	switch {
 	case err == nil:
 		defer client.Close()

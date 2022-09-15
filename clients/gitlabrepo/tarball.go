@@ -30,6 +30,11 @@ var (
 	errZipSlip          = errors.New("ZipSlip path detected")
 )
 
+/*
+TARBALL.GO DOES NOT YET WORK, I'M WORKING ON IT, BUT IT DOESN'T DETRACT OR CHANGE ANY OF THE BASE
+FUNCTIONALITIES OF THE GITLABREPO IMPLEMENTATION SO I'LL FIX THIS IN A SECOND PR.
+*/
+
 func extractAndValidateArchivePath(path, dest string) (string, error) {
 	const splitLength = 2
 

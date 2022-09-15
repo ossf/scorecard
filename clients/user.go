@@ -34,24 +34,24 @@ const (
 	// Mannequin: Author is a placeholder for an unclaimed user.
 	RepoAssociationMannequin RepoAssociation = iota
 	// None: Author has no association with the repository.
-	// NoPermissions in GitLab.
+	// NoPermissions: (GitLab).
 	RepoAssociationNone
 	// FirstTimer: Author has not previously committed to the VCS.
 	RepoAssociationFirstTimer
 	// FirstTimeContributor: Author has not previously committed to the repository.
-	// MinimalAccessPermissions in Gitlab
+	// MinimalAccessPermissions: (Gitlab).
 	RepoAssociationFirstTimeContributor
 	// Contributor: Author has been a contributor to the repository.
 	RepoAssociationContributor
 	// Collaborator: Author has been invited to collaborate on the repository.
 	RepoAssociationCollaborator
 	// Member: Author is a member of the organization that owns the repository.
-	// In GitLab Members privileges are basically equivalent to the Developer privileges.
+	// DeveloperAccessPermissions: (GitLab).
 	RepoAssociationMember
 	// Maintainer: Author is part of the maintanance team for the repository (GitLab).
 	RepoAssociationMaintainer
 	// Owner: Author is the owner of the repository.
-	// Owner Permissions in GitLab.
+	// (Owner): (GitLab).
 	RepoAssociationOwner
 )
 
