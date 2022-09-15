@@ -51,8 +51,6 @@ func (handler *releasesHandler) getReleases() ([]clients.Release, error) {
 	return handler.releases, nil
 }
 
-// TODO: make sure that the url I am using as the url is actually the url to the release
-// and not the url to the author.
 func releasesFrom(data []*gitlab.Release) []clients.Release {
 	var releases []clients.Release
 	for _, r := range data {
