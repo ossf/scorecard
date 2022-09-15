@@ -2,6 +2,7 @@ package gitlabrepo
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/xanzy/go-gitlab"
@@ -44,6 +45,16 @@ func (handler *commitsHandler) setup() error {
 					handler.errSetup = fmt.Errorf("unable to find user associated with commit: %w", err)
 					return
 				}
+
+				// For some reason some users have unknown names, so below we are going to parse their email into pieces
+				// i.e. (firstname.lastname@domain.com) -> "firstname lastname"
+				if len(users) == 0 {
+					users, _, err = handler.glClient.Search.Users(parseEmailToName(commit.CommitterEmail), &gitlab.SearchOptions{})
+					if err != nil {
+						handler.errSetup = fmt.Errorf("unable to find user associated with commit: %w", err)
+						return
+					}
+				}
 				userToEmail[commit.AuthorEmail] = users[0]
 				user = users[0]
 			}
@@ -61,13 +72,15 @@ func (handler *commitsHandler) setup() error {
 			// TODO: grab argmin implementation.
 			var mergeRequest *gitlab.MergeRequest
 			if len(mergeRequests) > 0 {
-				idx := 0
-				for i, mergeRequest := range mergeRequests {
-					if mergeRequest.MergedAt.Before(*mergeRequests[idx].MergedAt) {
-						idx = i
+				mergeRequest = mergeRequests[0]
+				for i := range mergeRequests {
+					if mergeRequests[i] == nil || mergeRequests[i].MergedAt == nil {
+						continue
+					}
+					if mergeRequests[i].CreatedAt.Before(*mergeRequest.CreatedAt) {
+						mergeRequest = mergeRequests[i]
 					}
 				}
-				mergeRequest = mergeRequests[idx]
 			} else {
 				handler.commits = append(handler.commits, clients.Commit{
 					CommittedDate: *commit.CommittedDate,
@@ -75,6 +88,14 @@ func (handler *commitsHandler) setup() error {
 					SHA:           commit.ID,
 				})
 				continue
+			}
+
+			if mergeRequest == nil || mergeRequest.MergedAt == nil {
+				handler.commits = append(handler.commits, clients.Commit{
+					CommittedDate: *commit.CommittedDate,
+					Message:       commit.Message,
+					SHA:           commit.ID,
+				})
 			}
 
 			// Casting the Reviewers into clients.Review.
@@ -122,4 +143,12 @@ func (handler *commitsHandler) listCommits() ([]clients.Commit, error) {
 	}
 
 	return handler.commits, nil
+}
+
+// Expected email form: <firstname>.<lastname>@<namespace>.com
+func parseEmailToName(email string) string {
+	s := strings.Split(email, ".")
+	firstName := s[0]
+	lastName := strings.Split(s[1], "@")[0]
+	return firstName + " " + lastName
 }

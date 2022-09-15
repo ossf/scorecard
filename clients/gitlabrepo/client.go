@@ -54,12 +54,16 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	}
 
 	client.repo = repo
+
 	client.repourl = &repoURL{
 		hostname:      inputRepo.URI(),
-		owner:         repo.Owner.Username,
 		projectID:     fmt.Sprint(repo.ID),
 		defaultBranch: repo.DefaultBranch,
 		commitSHA:     commitSHA,
+	}
+
+	if repo.Owner != nil {
+		client.repourl.owner = repo.Owner.Name
 	}
 
 	// Init contributorsHandler
@@ -141,11 +145,7 @@ func (client *Client) IsArchived() (bool, error) {
 }
 
 func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
-	branch, err := client.branches.getDefaultBranch()
-	if err != nil {
-		return nil, fmt.Errorf("%w", errDefaultBranchEmpty)
-	}
-	return branch, nil
+	return client.branches.getDefaultBranch()
 }
 
 func (client *Client) GetDefaultBranchName() (string, error) {
