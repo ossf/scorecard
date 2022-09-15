@@ -46,6 +46,10 @@ func (handler *contributorsHandler) setup() error {
 			users, _, err := handler.glClient.Search.Users(contrib.Name, &gitlab.SearchOptions{})
 			if err != nil {
 				handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
+			} else if len(users) == 0 {
+				// For some reason it seems that some outdated GitLab users have their email as their name, which
+				// means that the api won't find them.
+				continue
 			}
 
 			contributor := clients.User{
