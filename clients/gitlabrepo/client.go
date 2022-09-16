@@ -29,9 +29,8 @@ import (
 )
 
 var (
-	_                     clients.RepoClient = &Client{}
-	errInputRepoType                         = errors.New("input repo should be of type repoURL")
-	errDefaultBranchEmpty                    = errors.New("default branch name is empty")
+	_                clients.RepoClient = &Client{}
+	errInputRepoType                    = errors.New("input repo should be of type repoURL")
 )
 
 type Client struct {
@@ -52,7 +51,7 @@ type Client struct {
 	webhook       *webhookHandler
 	languages     *languagesHandler
 	ctx           context.Context
-	tarball       tarballHandler
+	// tarball       tarballHandler
 }
 
 // InitRepo sets up the GitLab project in local storage for improving performance and GitLab token usage efficiency.
@@ -121,7 +120,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	client.languages.init(client.repourl)
 
 	// Init tarballHandler.
-	client.tarball.init(client.ctx, client.repourl, client.repo, commitSHA)
+	// client.tarball.init(client.ctx, client.repourl, client.repo, commitSHA)
 	return nil
 }
 
@@ -204,7 +203,8 @@ func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]cli
 }
 
 func (client *Client) Close() error {
-	return client.tarball.cleanup()
+	return nil
+	// return client.tarball.cleanup()
 }
 
 func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients.Repo) (clients.RepoClient, error) {
