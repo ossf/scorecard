@@ -41,10 +41,12 @@ func (handler *contributorsHandler) init(repourl *repoURL) {
 func (handler *contributorsHandler) setup() error {
 	handler.once.Do(func() {
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-			handler.errSetup = fmt.Errorf("%w: ListContributors only supported for HEAD queries", clients.ErrUnsupportedFeature)
+			handler.errSetup = fmt.Errorf("%w: ListContributors only supported for HEAD queries",
+				clients.ErrUnsupportedFeature)
 			return
 		}
-		contribs, _, err := handler.glClient.Repositories.Contributors(handler.repourl.projectID, &gitlab.ListContributorsOptions{})
+		contribs, _, err := handler.glClient.Repositories.Contributors(
+			handler.repourl.projectID, &gitlab.ListContributorsOptions{})
 		if err != nil {
 			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
 			return
