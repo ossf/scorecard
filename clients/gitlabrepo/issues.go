@@ -1,3 +1,17 @@
+// Copyright 2022 Security Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package gitlabrepo
 
 import (
@@ -36,8 +50,10 @@ func (handler *issuesHandler) setup() error {
 		projectAccessTokens, resp, err := handler.glClient.ProjectAccessTokens.ListProjectAccessTokens(handler.repourl.projectID, &gitlab.ListProjectAccessTokensOptions{})
 		if err != nil && resp.StatusCode != 401 {
 			handler.errSetup = fmt.Errorf("unable to find access tokens associated with the project id: %w", err)
+			return
 		} else if resp.StatusCode == 401 {
-			fmt.Println("permissions unsufficient to check issue author associations, so all users have been given base permission of RepoAssociationMember")
+			handler.errSetup = fmt.Errorf("Unsufficient permissions to check issue author associations")
+			return
 		}
 
 		if len(issues) > 0 {
