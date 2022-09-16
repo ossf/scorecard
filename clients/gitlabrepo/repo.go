@@ -1,10 +1,24 @@
+// Copyright 2022 Security Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // NOTE: In Gitlab repositories are called projects, however to ensure compatibility,
 // this package will regard to Gitlab projects as repositories.
 package gitlabrepo
 
 import (
 	"fmt"
-	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/clients"
@@ -28,39 +42,22 @@ type repoURL struct {
 /*
 *  Accepted input string formats are as follows:
 	*  "gitlab.<companyDomain:string>.com/<owner:string>/<projectID:int>"
+	* "https://gitlab.<companyDomain:string>.com/<owner:string>/<projectID:int>"
 */
 func (r *repoURL) parse(input string) error {
-	var t string
-
-	const three = 3
-	const four = 4
-
-	c := strings.Split(input, "/")
-
-	switch l := len(c); {
-	// Sanitising the inputs to always be of case 3 or 4.
-	case l == three:
-		t = c[0] + "/" + c[1] + "/" + c[2]
-	case l == four:
-		t = input
+	if strings.Contains(input, "https://") {
+		input = strings.TrimPrefix(input, "https://")
+	} else if strings.Contains(input, "http://") {
+		input = strings.TrimPrefix(input, "http://")
+	} else if strings.Contains(input, "://") {
+		return sce.WithMessage(sce.ErrScorecardInternal, "unknwon input format")
 	}
 
-	if !strings.Contains(t, "://") {
-		t = "https://" + t
-	}
+	stringParts := strings.Split(input, "/")
 
-	u, e := url.Parse(t)
-	if e != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
-	}
+	stringParts[2] = strings.TrimSuffix(stringParts[2], "/")
 
-	const splitLen = 2
-	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
-	if len(split) != splitLen {
-		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("%v. Expected full repository url", input))
-	}
-
-	r.hostname, r.owner, r.projectID = u.Host, split[0], split[1]
+	r.hostname, r.owner, r.projectID = stringParts[0], stringParts[1], stringParts[2]
 	return nil
 }
 
@@ -86,8 +83,15 @@ func (r *repoURL) Org() clients.Repo {
 
 // IsValid implements Repo.IsValid.
 func (r *repoURL) IsValid() error {
-	if !strings.Contains(r.hostname, "gitlab.") {
-		return sce.WithMessage(sce.ErrorUnsupportedHost, r.hostname)
+	hostMatched, _ := regexp.MatchString("gitlab.*com", r.hostname)
+	if !hostMatched {
+		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("non gitlab repository found"))
+	}
+
+	isNotDigit := func(c rune) bool { return c < '0' || c > '9' }
+	b := strings.IndexFunc(r.projectID, isNotDigit) == -1
+	if b != true {
+		return sce.WithMessage(sce.ErrorInvalidURL, "incorrect format for projectID")
 	}
 
 	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.projectID) == "" {

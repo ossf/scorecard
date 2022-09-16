@@ -48,7 +48,7 @@ const (
 	// Member: Author is a member of the organization that owns the repository.
 	// DeveloperAccessPermissions: (GitLab).
 	RepoAssociationMember
-	// Maintainer: Author is part of the maintanance team for the repository (GitLab).
+	// Maintainer: Author is part of the maintenance team for the repository (GitLab).
 	RepoAssociationMaintainer
 	// Owner: Author is the owner of the repository.
 	// (Owner): (GitLab).

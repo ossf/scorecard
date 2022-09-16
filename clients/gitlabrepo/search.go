@@ -1,3 +1,17 @@
+// Copyright 2022 Security Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package gitlabrepo
 
 import (
@@ -44,7 +58,7 @@ func (handler *searchHandler) buildQuery(request clients.SearchRequest) (string,
 	}
 	var queryBuilder strings.Builder
 	if _, err := queryBuilder.WriteString(
-		fmt.Sprintf("%s repo:%s/%s",
+		fmt.Sprintf("%s project:%s/%s",
 			strings.ReplaceAll(request.Query, "/", " "),
 			handler.repourl.owner, handler.repourl.projectID)); err != nil {
 		return "", fmt.Errorf("WriteString: %w", err)

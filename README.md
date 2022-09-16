@@ -34,7 +34,7 @@
 -   [Default Scorecards Checks](#scorecard-checks)
 -   [Detailed Check Documentation](docs/checks.md) (Scoring Criteria, Risks, and
     Remediation)
-    
+
 ## Scoring
 -   [Aggregate Score](#aggregate-score)
 
@@ -55,8 +55,8 @@ ________________________________________________________________________________
 ## Overview
 
 ### What is Scorecards?
-We created Scorecards to help open source maintainers improve their security 
-best practices and to help open source consumers judge whether their dependencies 
+We created Scorecards to help open source maintainers improve their security
+best practices and to help open source consumers judge whether their dependencies
 are safe.
 
 Scorecards is an automated tool that assesses a number of important heuristics
@@ -142,15 +142,15 @@ Action
 
 ### Scorecards REST API
 
-To query pre-calculated scores of OSS projects, use the [REST API](https://api.securityscorecards.dev). 
+To query pre-calculated scores of OSS projects, use the [REST API](https://api.securityscorecards.dev).
 
-To enable your project to be available on the REST API, set 
-[`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35) 
+To enable your project to be available on the REST API, set
+[`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
 in the Scorecards GitHub Action setting.
 
 ### Scorecards Badges
 
-Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35) 
+Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
 in Scorecards GitHub Actions also allows maintainers to display a Scorecard badge on their repository to show off their
 hard work. This badge also auto-updates for every change made to the repository.
 To include a badge on your project's repository, simply add the following markdown to your README:
@@ -208,7 +208,7 @@ We generate [SLSA3 signatures](slsa.dev) using the OpenSSF's [slsa-framework/sls
 
 ```shell
 slsa-verifier -artifact-path <the-zip> -provenance attestation.intoto.jsonl -source github.com/ossf/scorecard -tag <the-tag>
-```  
+```
 
 ##### Using package managers
 
@@ -232,7 +232,6 @@ Installation.
     `GITHUB_AUTH_TOKEN`, `GITHUB_TOKEN`, `GH_AUTH_TOKEN` or `GH_TOKEN` using the
     commands below according to your platform.
 
-## For GitHub Repositories
 ```shell
 # For posix platforms, e.g. linux, mac:
 export GITHUB_AUTH_TOKEN=<your access token>
@@ -243,15 +242,6 @@ export GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
 # For windows:
 set GITHUB_AUTH_TOKEN=<your access token>
 set GITHUB_AUTH_TOKEN=<your access token1>,<your access token2>
-```
-
-## For GitLab Projects (you will get a github token env var is not set, but it won't impact the performance)
-```shell
-# For posix platforms, e.g. linux, mac:
-export GITLAB_AUTH_TOKEN=<your access token>
-
-# For windows:
-set GITLAB_AUTH_TOKEN=<your access token>
 ```
 
 OR
@@ -275,11 +265,6 @@ These variables can be obtained from the GitHub
 ##### Using repository URL
 
 Scorecards can run using just one argument, the URL of the target repo:
-
-# For GitLab Projects the repository should be provided as follows:
-```
-scorecard gitlab.<organization>.com/<user>/<projectID>
-```
 
 ```shell
 $ scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
@@ -451,7 +436,7 @@ Name        | Description                               | Risk Level | Token Req
 [Binary-Artifacts](docs/checks.md#binary-artifacts)             | Is the project free of checked-in binaries?                                                                                                                                                                                                                                                                                  | High               | PAT, GITHUB_TOKEN   |
 [Branch-Protection](docs/checks.md#branch-protection)           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                                                       | High | PAT (`repo` or `repo> public_repo`), GITHUB_TOKEN    | certain settings are only supported with a maintainer PAT
 [CI-Tests](docs/checks.md#ci-tests)                             | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?                                                                                                                                         | Low | PAT, GITHUB_TOKEN   |
-[CII-Best-Practices](docs/checks.md#cii-best-practices)         | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?                                                                                                                                                                                                                         | Low  | PAT, GITHUB_TOKEN   |
+[CII-Best-Practices](docs/checks.md#cii-best-practices)         | Does the project have an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?                                                                                                                                                                                                                         | Low  | PAT, GITHUB_TOKEN   |
 [Code-Review](docs/checks.md#code-review)                       | Does the project require code review before code is merged?                                                                                                                                                                                                                                                                  | High | PAT, GITHUB_TOKEN   |
 [Contributors](docs/checks.md#contributors)                     | Does the project have contributors from at least two different organizations?                                                                                                                                                                                                                                                | Low | PAT, GITHUB_TOKEN   |
 [Dangerous-Workflow](docs/checks.md#dangerous-workflow)         | Does the project avoid dangerous coding patterns in GitHub Action workflows?                                                                                                                                                                                                                                                 | Critical | PAT, GITHUB_TOKEN   |
