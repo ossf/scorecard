@@ -155,7 +155,7 @@ func (handler *commitsHandler) listCommits() ([]clients.Commit, error) {
 	return handler.commits, nil
 }
 
-// Expected email form: <firstname>.<lastname>@<namespace>.com
+// Expected email form: <firstname>.<lastname>@<namespace>.com.
 func parseEmailToName(email string) string {
 	s := strings.Split(email, ".")
 	firstName := s[0]

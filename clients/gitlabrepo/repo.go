@@ -50,7 +50,7 @@ func (r *repoURL) parse(input string) error {
 	} else if strings.Contains(input, "http://") {
 		input = strings.TrimPrefix(input, "http://")
 	} else if strings.Contains(input, "://") {
-		return sce.WithMessage(sce.ErrScorecardInternal, "unknwon input format")
+		return sce.WithMessage(sce.ErrScorecardInternal, "unknown input format")
 	}
 
 	stringParts := strings.Split(input, "/")
@@ -83,14 +83,17 @@ func (r *repoURL) Org() clients.Repo {
 
 // IsValid implements Repo.IsValid.
 func (r *repoURL) IsValid() error {
-	hostMatched, _ := regexp.MatchString("gitlab.*com", r.hostname)
+	hostMatched, err := regexp.MatchString("gitlab.*com", r.hostname)
+	if err != nil {
+		return fmt.Errorf("error processing regex: %w", err)
+	}
 	if !hostMatched {
-		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("non gitlab repository found"))
+		return sce.WithMessage(sce.ErrorInvalidURL, "non gitlab repository found")
 	}
 
 	isNotDigit := func(c rune) bool { return c < '0' || c > '9' }
 	b := strings.IndexFunc(r.projectID, isNotDigit) == -1
-	if b != true {
+	if !b {
 		return sce.WithMessage(sce.ErrorInvalidURL, "incorrect format for projectID")
 	}
 
