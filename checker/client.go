@@ -17,12 +17,9 @@ package checker
 import (
 	"context"
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/ossf/scorecard/v4/clients"
 	ghrepo "github.com/ossf/scorecard/v4/clients/githubrepo"
-	glrepo "github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	"github.com/ossf/scorecard/v4/log"
 )
@@ -37,9 +34,7 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 	clients.VulnerabilitiesClient, // vulnClient
 	error,
 ) {
-	var repo clients.Repo
-	var makeRepoError error
-
+	var githubRepo clients.Repo
 	if localURI != "" {
 		localRepo, errLocal := localdir.MakeLocalDirRepo(localURI)
 		var retErr error
@@ -54,60 +49,26 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 			retErr
 	}
 
-	if strings.Contains(repoURI, "gitlab.") {
-		fmt.Println("Gitlab Initiation")
-		repo, makeRepoError = glrepo.MakeGitlabRepo(repoURI)
-		if makeRepoError != nil {
-			return repo,
-				nil,
-				nil,
-				nil,
-				nil,
-				fmt.Errorf("getting local directory client: %w", makeRepoError)
-		}
-	} else {
-		fmt.Println("Github Initiation")
-		repo, makeRepoError = ghrepo.MakeGithubRepo(repoURI)
-		if makeRepoError != nil {
-			return repo,
-				nil,
-				nil,
-				nil,
-				nil,
-				fmt.Errorf("getting local directory client: %w", makeRepoError)
-		}
+	githubRepo, errGitHub := ghrepo.MakeGithubRepo(repoURI)
+	if errGitHub != nil {
+		return githubRepo,
+			nil,
+			nil,
+			nil,
+			nil,
+			fmt.Errorf("getting local directory client: %w", errGitHub)
 	}
 
-	fmt.Println("Creating oss fuzz client")
 	ossFuzzRepoClient, errOssFuzz := ghrepo.CreateOssFuzzRepoClient(ctx, logger)
 	var retErr error
 	if errOssFuzz != nil {
 		retErr = fmt.Errorf("getting OSS-Fuzz repo client: %w", errOssFuzz)
 	}
 	// TODO(repo): Should we be handling the OSS-Fuzz client error like this?
-	if strings.Contains(repoURI, "gitlab.") {
-		gitlabAuthToken := os.Getenv("GITLAB_AUTH_TOKEN")
-		client, err := glrepo.CreateGitlabClientWithToken(ctx, gitlabAuthToken, repo)
-		if err != nil {
-			return repo,
-				nil,
-				nil,
-				nil,
-				nil,
-				fmt.Errorf("failed to create gitlab client: %w", err)
-		}
-		return repo,
-			client,
-			ossFuzzRepoClient,
-			clients.DefaultCIIBestPracticesClient(),
-			clients.DefaultVulnerabilitiesClient(),
-			retErr
-	} else {
-		return repo, /*repo*/
-			ghrepo.CreateGithubRepoClient(ctx, logger), /*repoClient*/
-			ossFuzzRepoClient, /*ossFuzzClient*/
-			clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
-			clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
-			retErr
-	}
+	return githubRepo, /*repo*/
+		ghrepo.CreateGithubRepoClient(ctx, logger), /*repoClient*/
+		ossFuzzRepoClient, /*ossFuzzClient*/
+		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
+		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
+		retErr
 }
