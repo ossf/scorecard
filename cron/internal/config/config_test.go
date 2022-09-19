@@ -16,6 +16,7 @@ package config
 
 import (
 	"errors"
+	"log"
 	"os"
 	"testing"
 
@@ -65,6 +66,14 @@ func getByteValueFromFile(filename string) ([]byte, error) {
 	}
 	//nolint
 	return os.ReadFile(filename)
+}
+
+// runs once before all tests, to initialize the config file for testing purposes.
+func TestMain(m *testing.M) {
+	if err := ReadConfig("config.yaml"); err != nil {
+		log.Fatalf("failed to read config: %v", err)
+	}
+	os.Exit(m.Run())
 }
 
 func TestYAMLParsing(t *testing.T) {

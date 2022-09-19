@@ -16,8 +16,6 @@
 package config
 
 import (
-	// Used to embed config.yaml.
-	_ "embed"
 	"errors"
 	"fmt"
 	"os"
@@ -55,7 +53,7 @@ var (
 	ErrorEmptyConfigValue = errors.New("config value set to empty")
 	// ErrorValueConversion indicates an unexpected type was found for the value of the config option.
 	ErrorValueConversion = errors.New("unexpected type, cannot convert value")
-	//go:embed config.yaml
+	// stores config file contents, set with ReadConfig.
 	configYAML []byte
 )
 
@@ -193,6 +191,17 @@ func getScorecardParam(key string) (string, error) {
 		return "", err
 	}
 	return s[key], nil
+}
+
+// ReadConfig reads the contents of a configuration file for later use by getters.
+// This function must be called before any other exported function.
+func ReadConfig(filename string) error {
+	var err error
+	configYAML, err = os.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("config file \"%s\": %w", filename, err)
+	}
+	return nil
 }
 
 // GetProjectID returns the cloud projectID for the cron job.
