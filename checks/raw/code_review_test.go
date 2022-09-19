@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -66,7 +67,11 @@ func assertChangesetEq(t *testing.T, actual, expected checker.Changeset) {
 }
 
 func csless(a, b checker.Changeset) bool {
-	return a.RevisionID < b.RevisionID
+	if cmp := strings.Compare(a.RevisionID, b.RevisionID); cmp != 0 {
+		return cmp < 0
+	}
+
+	return a.ReviewPlatform < b.ReviewPlatform
 }
 
 func assertChangesetArrEq(t *testing.T, actual, expected []checker.Changeset) {

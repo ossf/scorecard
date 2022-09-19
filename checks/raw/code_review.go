@@ -159,6 +159,7 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 		}
 	}
 
+	// Changesets are returned in map order (i.e. randomized)
 	for ri, cs := range changesetsByRevInfo {
 		// Ungroup all commits that don't have revision info
 		missing := revisionInfo{}
