@@ -36,8 +36,6 @@ func (a AttestationPolicy) ToJSON() string {
 func TestCheckPreventBinaryArtifacts(t *testing.T) {
 	t.Parallel()
 
-	dl := scut.TestDetailLogger{}
-
 	tests := []struct {
 		name                   string
 		raw                    *checker.RawResults
@@ -107,6 +105,7 @@ func TestCheckPreventBinaryArtifacts(t *testing.T) {
 		tt := &tests[i]
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			dl := scut.TestDetailLogger{}
 			actual, err := CheckPreventBinaryArtifacts(tt.allowedBinaryArtifacts, tt.raw, &dl)
 
 			if !errors.Is(err, tt.err) {
