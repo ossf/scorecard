@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -209,6 +210,120 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())
+		})
+		It("Should return binary artifacts present in GitLab source code", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-binary-artifacts-e2e")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			// TODO: upload real binaries to the repo as well.
+			// There are 24 dummy binareies that are ignored because they only contain ASCII characters.
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore - 1,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.BinaryArtifacts(&req)
+			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return binary artifacts present at GitLab commit in source code", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-binary-artifacts-e2e")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, "5b48dea88825662d67ed94b609b45cf7705333b6")
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			// TODO: upload real binaries to the repo as well.
+			// There are 24 dummy binaries that are ignored because they only contain ASCII characters.
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore - 1,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.BinaryArtifacts(&req)
+			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return no binary artifacts present in source code", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-binary-artifacts-e2e-4-binaries")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			// TODO: upload real binaries to the repo as well.
+			// Existing binaries only contain SCII characters and are ignored.
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.BinaryArtifacts(&req)
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return binary artifacts present at commit in source code", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-binary-artifacts-e2e-4-binaries")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, "d994b3e1a8912283f9958a7c1e0aa480ca24a7ce")
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			// TODO: upload real binaries to the repo.
+			// Existing binaries only contain SCII characters and are ignored.
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.BinaryArtifacts(&req)
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

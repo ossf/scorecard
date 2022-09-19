@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -102,6 +103,56 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: x,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.DangerousWorkflow(&req)
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
+		})
+		It("Should return dangerous workflow works - GitLab", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-dangerous-workflow-e2e")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKNE"), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.DangerousWorkflow(&req)
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
+		})
+		It("Should return dangerous workflow at commit - GitLab", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-dangerous-workflow-e2e")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, "8db326e9ba20517feeefd157524a89184ed41f7f")
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
 				Repo:       repo,
 				Dlogger:    &dl,
 			}

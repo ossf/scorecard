@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -172,6 +173,61 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())
+		})
+		// TODO: find public gitlab repository that has security policy.
+		It("Should return valid security policy - GitLab", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/tensorflow/tensorflow")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKNE"), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			}
+			result := checks.SecurityPolicy(&req)
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return valid security policy at commitSHA - GitLab", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/tensorflow/tensorflow")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, "e0cb70344e46276b37d65824f95eca478080de4a")
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 0,
+			}
+			result := checks.SecurityPolicy(&req)
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

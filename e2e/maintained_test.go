@@ -16,6 +16,7 @@ package e2e
 
 import (
 	"context"
+	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -24,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -34,6 +36,33 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 			repo, err := githubrepo.MakeGithubRepo("apache/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.Maintained(&req)
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "active repo", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		// TODO: Find GitLab public repository that is being actively maintained
+		It("Should return valid maintained status - GitLab", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/apache/airflow")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
 			err = repoClient.InitRepo(repo, clients.HeadSHA)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{

@@ -16,6 +16,7 @@ package e2e
 
 import (
 	"context"
+	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -24,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -61,6 +63,58 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c")
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  30,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.CodeReview(&req)
+			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return use of code reviews - GitLab", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/airflow")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  30,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.CodeReview(&req)
+			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return use of code reviews at commit - GitLab", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/airflow")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
 			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c")
 			Expect(err).Should(BeNil())
 
