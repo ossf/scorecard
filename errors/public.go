@@ -30,8 +30,10 @@ var (
 	ErrorInvalidURL = errors.New("invalid repo flag")
 	// ErrorShellParsing indicates there was an error when parsing shell code.
 	ErrorShellParsing = errors.New("error parsing shell code")
-	// ErrorUnsupportedCheck indicates check caanot be run for given request.
+	// ErrorUnsupportedCheck indicates check cannot be run for given request.
 	ErrorUnsupportedCheck = errors.New("check is not supported for this request")
+	// ErrorCheckRuntime indicates an individual check had a runtime error.
+	ErrorCheckRuntime = errors.New("check runtime error")
 )
 
 // WithMessage wraps any of the errors listed above.

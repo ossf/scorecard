@@ -914,3 +914,104 @@ func Test_stepsMatch(t *testing.T) {
 		})
 	}
 }
+
+func TestIsPackagingWorkflow(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		filename string
+		expected bool
+	}{
+		{
+			name:     "npmjs.org publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-npm.yaml",
+			expected: true,
+		},
+		{
+			name:     "npm github publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-npm-github.yaml",
+			expected: false, // Should this be false?
+		},
+		{
+			name:     "maven publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-maven.yaml",
+			expected: true,
+		},
+		{
+			name:     "gradle publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-gradle.yaml",
+			expected: true,
+		},
+		{
+			name:     "gem publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-gem.yaml",
+			expected: true,
+		},
+		{
+			name:     "nuget publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-nuget.yaml",
+			expected: true,
+		},
+		{
+			name:     "docker action publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-action.yaml",
+			expected: true,
+		},
+		{
+			name:     "docker push publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-push.yaml",
+			expected: true,
+		},
+		{
+			name:     "pypi publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-pypi.yaml",
+			expected: true,
+		},
+		{
+			name:     "pypi publish minimal",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-pypi-minimal.yaml",
+			expected: true,
+		},
+		{
+			name:     "pypi publish failing",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-pypi-failing.yaml",
+			expected: false,
+		},
+		{
+			name:     "python semantic release publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-python-semantic-release.yaml",
+			expected: true,
+		},
+		{
+			name:     "go publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-go.yaml",
+			expected: true,
+		},
+		{
+			name:     "cargo publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-cargo.yaml",
+			expected: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := stdos.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %v", err)
+			}
+			workflow, errs := actionlint.Parse(content)
+			if len(errs) > 0 && workflow == nil {
+				t.Errorf("cannot parse file: %v", err)
+			}
+			p := strings.Replace(tt.filename, "../testdata/", "", 1)
+
+			_, ok := IsPackagingWorkflow(workflow, p)
+			if ok != tt.expected {
+				t.Errorf("isPackagingWorkflow() = %v, expected %v", ok, tt.expected)
+			}
+		})
+	}
+}
