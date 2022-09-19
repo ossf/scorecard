@@ -211,9 +211,10 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())
 		})
-		It("Should return binary artifacts present in GitLab source code", func() {
+		It("Should return binary artifacts present in source code - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-binary-artifacts-e2e")
+			// Project url is gitlab.com/N8BWert/scorecard-check-binary-artifacts-e2e.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39537263")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -239,9 +240,10 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		It("Should return binary artifacts present at GitLab commit in source code", func() {
+		It("Should return binary artifacts present at commit in source code - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-binary-artifacts-e2e")
+			// Project url is gitlab.com/N8BWert/scorecard-check-binary-artifacts-e2e.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39537263")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -267,9 +269,10 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		It("Should return no binary artifacts present in source code", func() {
+		It("Should return no binary artifacts present in source code - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-binary-artifacts-e2e-4-binaries")
+			// Project url is gitlab.com/N8BWert/scorecard-check-binary-artifacts-e2e-4-binaries.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39537269")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -296,9 +299,10 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		It("Should return binary artifacts present at commit in source code", func() {
+		It("Should return binary artifacts present at commit in source code - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-binary-artifacts-e2e-4-binaries")
+			// Project url is gitlab.com/N8BWert/scorecard-check-binary-artifacts-e2e-4-binaries.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39537269")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())

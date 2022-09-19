@@ -123,7 +123,8 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 		})
 		It("Should return dependencies check is working - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-pinned-dependencies-e2e")
+			// project url is gitlab.com/N8BWert/scorecard-check-pinned-dependencies-e2e.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39539192")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -149,7 +150,8 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 		})
 		It("Should return dependencies check at commit - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-pinned-dependencies-e2e")
+			// project url is gitlab.com/N8BWert/scorecard-check-pinned-dependencies-e2e.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39539192")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())

@@ -118,10 +118,11 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should get non-admin branch protection on other repositories - GitLab", func() {
-			// skipIfTokenIsNot(patTokenType, "PAT only")
+			skipIfTokenIsNot(gitlabPatToken, "GitLab only")
 
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-branch-protection-e2e")
+			// Project url is gitlab.com/N8BWert/scorecard-check-branch-protection-e2e
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39537550")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -149,10 +150,11 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should fail to return branch protection on other repositories - GitLab", func() {
-			skipIfTokenIsNot(patTokenType, "PAT only")
+			skipIfTokenIsNot(gitlabPatToken, "GitLab only")
 
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-branch-protection-e2e-none")
+			// Project url is gitlab.com/N8BWert/scorecard-check-branch-protection-e2e-none
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39537551")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -178,10 +180,11 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should fail to return branch protection on other repositories - GitLab", func() {
-			skipIfTokenIsNot(patTokenType, "PAT only")
+			skipIfTokenIsNot(gitlabPatToken, "GitLab only")
 
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-branch-protection-e2e-patch-1")
+			// Project url is gitlab.com/N8BWert/scorecard-check-branch-protection-e2e-patch-1
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39537557")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())

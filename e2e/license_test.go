@@ -122,7 +122,8 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 		})
 		It("Should return license check works - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-license-e2e")
+			// project url is gitlab.com/N8BWert/scorecard-check-license-e2e.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39539054")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -148,7 +149,8 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 		})
 		It("Should return license check works at commitSHA - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-license-e2e")
+			// project url is gitlab.com/N8BWert/scorecard-check-license-e2e.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39539054")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())

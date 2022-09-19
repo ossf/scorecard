@@ -81,7 +81,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 		})
 		It("Should return use of CI tests - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/airflow")
+			// Project url is gitlab.com/gitlab-org/gitlab
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/278964")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -106,11 +107,13 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 		})
 		It("Should return use of CI tests at commit - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/airflow")
+			// Project url is gitlab.com/gitlab-org/gitlab
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/278964")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
-			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c")
+			// url to commit is https://gitlab.com/gitlab-org/gitlab/-/commit/8ae23fa220d73fa07501aabd94214c9e83fe61a0
+			err = repoClient.InitRepo(repo, "8ae23fa220d73fa07501aabd94214c9e83fe61a0")
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),

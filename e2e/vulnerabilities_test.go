@@ -114,38 +114,9 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			Expect(scut.ValidateTestReturn(nil, "osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		It("Should return that there are no vulnerabilities - GitLab", func() {
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf/scorecard")
-			Expect(err).Should(BeNil())
-			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
-			Expect(err).Should(BeNil())
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
-			Expect(err).Should(BeNil())
-
-			dl := scut.TestDetailLogger{}
-			req := checker.CheckRequest{
-				Ctx:                   context.Background(),
-				RepoClient:            repoClient,
-				VulnerabilitiesClient: clients.DefaultVulnerabilitiesClient(),
-				Repo:                  repo,
-				Dlogger:               &dl,
-			}
-			expected := scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			}
-
-			result := checks.Vulnerabilities(&req)
-			// New version.
-			Expect(scut.ValidateTestReturn(nil, "no osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
-			Expect(repoClient.Close()).Should(BeNil())
-		})
-
 		It("Should return that there are vulnerabilities - GitLab", func() {
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-vulnerabilities-open62541")
+			// project url is gitlab.com/N8BWert/scorecard-check-vulnerabilites-open62541.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39539557")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -173,7 +144,8 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return that there are vulnerabilities at commit - GitLab", func() {
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-vulnerabilities-open62541")
+			// project url is gitlab.com/N8BWert/scorecard-check-vulnerabilites-open62541.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39539557")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())

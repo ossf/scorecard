@@ -117,6 +117,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})
+		// TODO: rewrite github actions as gitlab ci
 		It("Should return dangerous workflow works - GitLab", func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-dangerous-workflow-e2e")

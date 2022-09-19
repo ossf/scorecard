@@ -55,9 +55,11 @@ var _ = Describe("E2E TEST:"+checks.CheckPackaging, func() {
 			Expect(scut.ValidateTestReturn(nil, "use packaging", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
+		// TODO: rewrite github actions to use gitlab CI
 		It("Should return use of packaging in CI/CD - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-packaging-e2e")
+			// project url is gitlab.com/N8BWert/scorecard-check-packaging-e2e.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39539165")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())

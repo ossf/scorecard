@@ -56,11 +56,13 @@ var _ = Describe("E2E TEST:"+checks.CheckSignedReleases, func() {
 			Expect(scut.ValidateTestReturn(nil, "verified release", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
+		// TODO: Make this test test a ossf repository I currently have it just testing against the gitlab project.
 		It("Should return valid signed releases - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-signed-releases-e2e")
+			// project url is gitlab.com/gitlab-org/gitlab
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/278964")
 			Expect(err).Should(BeNil())
-			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKNE"), repo)
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
 			err = repoClient.InitRepo(repo, clients.HeadSHA)
 			Expect(err).Should(BeNil())
@@ -70,6 +72,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSignedReleases, func() {
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
+			// TODO: update the expected values to be the result of the actual test
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         8,

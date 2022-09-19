@@ -174,10 +174,10 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())
 		})
-		// TODO: find public gitlab repository that has security policy.
 		It("Should return valid security policy - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/tensorflow/tensorflow")
+			// project url is gitlab.com/gitlab-org/gitlab
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/278964")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKNE"), repo)
 			Expect(err).Should(BeNil())
@@ -190,6 +190,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
+			// TODO: update expected based on what is returned from gitlab project.
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -204,11 +205,13 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 		})
 		It("Should return valid security policy at commitSHA - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/tensorflow/tensorflow")
+			// project url is gitlab.com/gitlab-org/gitlab.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/278964")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
-			err = repoClient.InitRepo(repo, "e0cb70344e46276b37d65824f95eca478080de4a")
+			// url to commit is https://gitlab.com/gitlab-org/gitlab/-/commit/8ae23fa220d73fa07501aabd94214c9e83fe61a0
+			err = repoClient.InitRepo(repo, "8ae23fa220d73fa07501aabd94214c9e83fe61a0")
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -217,6 +220,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
+
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,

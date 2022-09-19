@@ -56,10 +56,10 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 			Expect(scut.ValidateTestReturn(nil, "active repo", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		// TODO: Find GitLab public repository that is being actively maintained
 		It("Should return valid maintained status - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/apache/airflow")
+			// project url is gitlab.com/gitlab-org/gitlab
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/278964")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -71,6 +71,7 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
+			// TODO: update expected as needed
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,

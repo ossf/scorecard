@@ -58,7 +58,8 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 		})
 		It("Should return valid project contributors - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf/scorecard")
+			// Project url is gitlab.com/gitlab-org/gitlab
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/278964")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
@@ -70,6 +71,7 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
+			// TODO: change the expected return to be whatever is actually expected
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
