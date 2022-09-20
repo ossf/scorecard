@@ -31,7 +31,9 @@ import (
 	"github.com/google/go-github/v38/github"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v4/errors"
+	ll "github.com/ossf/scorecard/v4/log"
 )
 
 const (
@@ -69,6 +71,7 @@ type tarballHandler struct {
 	once        *sync.Once
 	ctx         context.Context
 	repo        *github.Repository
+	httpClient  *http.Client
 	commitSHA   string
 	tempDir     string
 	tempTarFile string
@@ -80,6 +83,7 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 	handler.once = new(sync.Once)
 	handler.ctx = ctx
 	handler.repo = repo
+	handler.httpClient = makeHTTPClient(ctx)
 	handler.commitSHA = commitSHA
 }
 
@@ -122,9 +126,9 @@ func (handler *tarballHandler) getTarball() error {
 	if err != nil {
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := handler.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("http.DefaultClient.Do: %w", err)
+		return fmt.Errorf("handler.httpClient.Do: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -260,4 +264,10 @@ func (handler *tarballHandler) cleanup() error {
 	// Remove old files so we don't iterate through them.
 	handler.files = nil
 	return nil
+}
+
+func makeHTTPClient(ctx context.Context) *http.Client {
+	logger := ll.NewLogger(ll.DefaultLevel)
+	tr := roundtripper.NewTransport(ctx, logger)
+	return &http.Client{Transport: tr}
 }
