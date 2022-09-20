@@ -18,6 +18,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,6 +30,8 @@ import (
 )
 
 const ciiBaseURL = "https://bestpractices.coreinfrastructure.org/projects.json"
+
+var configFilename = flag.String(config.ConfigFlag, config.ConfigDefault, config.ConfigUsage)
 
 type ciiPageResp struct {
 	RepoURL    string `json:"repo_url"`
@@ -82,6 +85,11 @@ func getPage(ctx context.Context, pageNum int) ([]ciiPageResp, error) {
 func main() {
 	ctx := context.Background()
 	fmt.Println("Starting...")
+
+	flag.Parse()
+	if err := config.ReadConfig(*configFilename); err != nil {
+		panic(err)
+	}
 
 	ciiDataBucket, err := config.GetCIIDataBucketURL()
 	if err != nil {

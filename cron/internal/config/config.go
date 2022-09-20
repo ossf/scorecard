@@ -33,6 +33,14 @@ const (
 	ShardNumFilename string = ".shard_num"
 	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.
 	TransferStatusFilename string = ".transfer_complete"
+
+	// ConfigFlag is the name of the CLI flag to specify a config file.
+	ConfigFlag string = "config"
+	// ConfigDefault is the default value for the config file if not provided as a CLI arg.
+	ConfigDefault string = "/etc/scorecard/config.yaml"
+	// ConfigUsage is a description of the config CLI flag.
+	ConfigUsage string = "Location of config file"
+
 	projectID              string = "SCORECARD_PROJECT_ID"
 	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
 	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"

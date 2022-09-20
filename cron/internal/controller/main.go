@@ -18,6 +18,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"time"
@@ -32,7 +33,10 @@ import (
 	"github.com/ossf/scorecard/v4/cron/internal/pubsub"
 )
 
-var headSHA = clients.HeadSHA
+var (
+	headSHA        = clients.HeadSHA
+	configFilename = flag.String(config.ConfigFlag, config.ConfigDefault, config.ConfigUsage)
+)
 
 func publishToRepoRequestTopic(iter data.Iterator, topicPublisher pubsub.Publisher,
 	shardSize int, datetime time.Time,
@@ -142,6 +146,11 @@ func bucketFiles(ctx context.Context) data.Iterator {
 func main() {
 	ctx := context.Background()
 	t := time.Now()
+
+	flag.Parse()
+	if err := config.ReadConfig(*configFilename); err != nil {
+		panic(err)
+	}
 
 	topic, err := config.GetRequestTopicURL()
 	if err != nil {

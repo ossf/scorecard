@@ -18,6 +18,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -30,6 +31,8 @@ import (
 	"github.com/ossf/scorecard/v4/cron/internal/config"
 	"github.com/ossf/scorecard/v4/cron/internal/data"
 )
+
+var configFilename = flag.String(config.ConfigFlag, config.ConfigDefault, config.ConfigUsage)
 
 type shardSummary struct {
 	shardMetadata  []byte
@@ -150,6 +153,12 @@ func getBQConfig() (projectID, datasetName, tableName string, err error) {
 
 func main() {
 	ctx := context.Background()
+
+	flag.Parse()
+	if err := config.ReadConfig(*configFilename); err != nil {
+		panic(err)
+	}
+
 	bucketURL, err := config.GetResultDataBucketURL()
 	if err != nil {
 		panic(err)
