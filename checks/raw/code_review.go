@@ -106,7 +106,7 @@ func getPiperRevisionID(c *clients.Commit) string {
 }
 
 type revisionInfo struct {
-	Platform string
+	Platform checker.ReviewPlatform
 	ID       string
 }
 

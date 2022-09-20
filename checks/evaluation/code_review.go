@@ -21,14 +21,14 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-type ReviewScore = int
+type reviewScore = int
 
-// TODO More partial credit? E.g. approval from non-contributor, discussion liveness,
+// TODO(raghavkaul) More partial credit? E.g. approval from non-contributor, discussion liveness,
 // number of resolved comments, number of approvers (more eyes on a project).
 const (
-	NoReview              ReviewScore = 0 // No approving review before merge
-	Reviewed              ReviewScore = 1 // Changes were reviewed
-	ReviewedOutsideGithub ReviewScore = 1 // Full marks until we can check review platforms outside of GitHub
+	noReview              reviewScore = 0 // No approving review before merge
+	changesReviewed       reviewScore = 1 // Changes were reviewed
+	reviewedOutsideGithub reviewScore = 1 // Full marks until we can check review platforms outside of GitHub
 )
 
 // CodeReview applies the score policy for the Code-Review check.
@@ -46,7 +46,7 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 	numReviewed := 0
 	for i := range r.DefaultBranchChangesets {
 		score += reviewScoreForChangeset(&r.DefaultBranchChangesets[i])
-		if score >= Reviewed {
+		if score >= changesReviewed {
 			numReviewed += 1
 		}
 	}
@@ -57,18 +57,18 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 	return checker.CreateProportionalScoreResult(name, reason, score, len(r.DefaultBranchChangesets))
 }
 
-func reviewScoreForChangeset(changeset *checker.Changeset) (score ReviewScore) {
+func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
 	if changeset.ReviewPlatform != "" && changeset.ReviewPlatform != checker.ReviewPlatformGitHub {
-		return ReviewedOutsideGithub
+		return reviewedOutsideGithub
 	}
 
 	for i := range changeset.Commits {
 		for _, review := range changeset.Commits[i].AssociatedMergeRequest.Reviews {
 			if review.State == "APPROVED" {
-				return Reviewed
+				return changesReviewed
 			}
 		}
 	}
 
-	return NoReview
+	return noReview
 }

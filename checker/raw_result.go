@@ -123,15 +123,15 @@ type LicenseData struct {
 // for the Code-Review check.
 type CodeReviewData struct {
 	DefaultBranchChangesets []Changeset
-	Users                   []clients.User
 }
+type ReviewPlatform = string
 
 const (
-	ReviewPlatformGitHub      = "GitHub"
-	ReviewPlatformProw        = "Prow"
-	ReviewPlatformGerrit      = "Gerrit"
-	ReviewPlatformPhabricator = "Phabricator"
-	ReviewPlatformPiper       = "Piper"
+	ReviewPlatformGitHub      ReviewPlatform = "GitHub"
+	ReviewPlatformProw        ReviewPlatform = "Prow"
+	ReviewPlatformGerrit      ReviewPlatform = "Gerrit"
+	ReviewPlatformPhabricator ReviewPlatform = "Phabricator"
+	ReviewPlatformPiper       ReviewPlatform = "Piper"
 )
 
 type Changeset struct {
