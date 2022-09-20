@@ -83,8 +83,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		// GitLab doesn't seem to preserve merge requests (pull requests in github) and some users are messed up in the transfer so this
-		// returns a different value than the above GitHub test.
+		// GitLab doesn't seem to preserve merge requests (pull requests in github) and some users had data lost in
+		// the transfer from github so this returns a different value than the above GitHub test.
 		It("Should return use of code reviews - GitLab", func() {
 			dl := scut.TestDetailLogger{}
 			// Project url is gitlab.com/N8BWert/airflow.
@@ -112,8 +112,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		// GitLab doesn't seem to preserve merge requests (pull requests in github) and some users are messed up in the transfer so this
-		// returns a different value than the above GitHub test.
+		// GitLab doesn't seem to preserve merge requests (pull requests in github) and some users had data lost in
+		// the transfer from github so this returns a different value than the above GitHub test.
 		It("Should return use of code reviews at commit - GitLab", func() {
 			dl := scut.TestDetailLogger{}
 			// project url is gitlab.com/N8BWert/airflow.

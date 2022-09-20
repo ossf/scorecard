@@ -117,8 +117,6 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		// GitLab values are slightly different as some features are only available to certain tiers, however the below test should
-		// work as an e2e test
 		It("Should get non-admin branch protection on other repositories - GitLab", func() {
 			skipIfTokenIsNot(patTokenType, "GitLab pac only")
 
@@ -198,7 +196,6 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
-			// Due to some slight differences in base configs and allowed free user changes these values are correct for the repository given.
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         2,

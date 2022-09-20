@@ -15,7 +15,6 @@ package e2e
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 
 	"github.com/go-git/go-git/v5"
@@ -86,7 +85,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 		It("Should return license check works for the local repoclient", func() {
 			dl := scut.TestDetailLogger{}
 
-			tmpDir, err := ioutil.TempDir("", "")
+			tmpDir, err := os.MkdirTemp("", "")
 			Expect(err).Should(BeNil())
 			defer os.RemoveAll(tmpDir)
 

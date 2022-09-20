@@ -15,7 +15,6 @@ package e2e
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 
 	"github.com/go-git/go-git/v5"
@@ -83,7 +82,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 		It("Should return dangerous workflow for local repoClient", func() {
 			dl := scut.TestDetailLogger{}
 
-			tmpDir, err := ioutil.TempDir("", "")
+			tmpDir, err := os.MkdirTemp("", "")
 			Expect(err).Should(BeNil())
 			defer os.RemoveAll(tmpDir)
 
@@ -122,7 +121,8 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 		// 	// TODO: Write a test repository with a dangerous workflow.
 		// 	repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-dangerous-workflow-e2e")
 		// 	Expect(err).Should(BeNil())
-		// 	repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKNE"), repo)
+		// 	repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(),
+		//		os.Getenv("GITLAB_AUTH_TOKNE"), repo)
 		// 	Expect(err).Should(BeNil())
 		// 	err = repoClient.InitRepo(repo, clients.HeadSHA)
 		// 	Expect(err).Should(BeNil())
@@ -148,7 +148,8 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 		// 	// TODO: Write a test repository with a dangerous workflow.
 		// 	repo, err := gitlabrepo.MakeGitlabRepo("gitlab.ossf.com/ossf-tests/scorecard-check-dangerous-workflow-e2e")
 		// 	Expect(err).Should(BeNil())
-		// 	repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+		// 	repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(),
+		//		os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 		// 	Expect(err).Should(BeNil())
 		// 	err = repoClient.InitRepo(repo, "8db326e9ba20517feeefd157524a89184ed41f7f")
 		// 	Expect(err).Should(BeNil())

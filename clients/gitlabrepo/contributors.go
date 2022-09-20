@@ -74,7 +74,7 @@ func (handler *contributorsHandler) setup() error {
 
 			// TODO: Handle many users of same name
 
-			if users == nil || len(users) == 0 {
+			if len(users) == 0 {
 				continue
 			}
 

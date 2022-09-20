@@ -115,7 +115,7 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return that there are vulnerabilities - GitLab", func() {
-			// project url is gitlab.com/N8BWert/scorecard-check-vulnerabilites-open62541.
+			// project url is gitlab.com/N8BWert/scorecard-check-vulnerabilities-open62541.
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39539557")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
@@ -144,7 +144,7 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return that there are vulnerabilities at commit - GitLab", func() {
-			// project url is gitlab.com/N8BWert/scorecard-check-vulnerabilites-open62541.
+			// project url is gitlab.com/N8BWert/scorecard-check-vulnerabilities-open62541.
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/39539557")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)

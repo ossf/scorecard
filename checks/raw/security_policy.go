@@ -59,7 +59,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	if strings.Contains(c.Repo.Org().String(), "gitlab.") {
 		client, err = gitlabrepo.CreateGitlabClientWithToken(c.Ctx, os.Getenv("GITLAB_AUTH_TOKEN"), c.Repo)
 		if err != nil {
-			return checker.SecurityPolicyData{}, err
+			return checker.SecurityPolicyData{}, fmt.Errorf("unable to create gitlab client: %w", err)
 		}
 		err = client.InitRepo(c.Repo, clients.HeadSHA)
 	} else {
@@ -72,7 +72,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		data.uri = client.URI()
 		err = fileparser.OnAllFilesDo(client, isSecurityPolicyFile, &data)
 		if err != nil {
-			return checker.SecurityPolicyData{}, err
+			return checker.SecurityPolicyData{}, fmt.Errorf("unable to create github client: %w", err)
 		}
 
 	case errors.Is(err, sce.ErrRepoUnreachable):

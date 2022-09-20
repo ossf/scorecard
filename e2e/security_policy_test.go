@@ -15,7 +15,6 @@ package e2e
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 
 	"github.com/go-git/go-git/v5"
@@ -140,7 +139,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 		It("Should return valid security policy for local repoClient at head", func() {
 			dl := scut.TestDetailLogger{}
 
-			tmpDir, err := ioutil.TempDir("", "")
+			tmpDir, err := os.MkdirTemp("", "")
 			Expect(err).Should(BeNil())
 			defer os.RemoveAll(tmpDir)
 
@@ -174,7 +173,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())
 		})
-		// TODO: find a smaller repository to find the security policy of (or at least a project that a tar file can be gotten of).
 		It("Should return valid security policy - GitLab", func() {
 			dl := scut.TestDetailLogger{}
 			// project url is gitlab.com/bramw/baserow.

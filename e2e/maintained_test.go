@@ -55,14 +55,16 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		// To check the below maintanace status, the person running the test must own the repository.
-		// Therefore, the below test works it just requires a maintained repository to exist under someone's personal account, which I do not have.
+		// Therefore, the below test works it just requires a maintained repository to exist under
+		// someone's personal account, which I do not have.
 
 		// It("Should return valid maintained status - GitLab", func() {
 		// 	dl := scut.TestDetailLogger{}
 		// 	// project url is gitlab.com/gitlab-org/gitlab
 		// 	repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/278964")
 		// 	Expect(err).Should(BeNil())
-		// 	repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+		// 	repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(),
+		//		os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 		// 	Expect(err).Should(BeNil())
 		// 	err = repoClient.InitRepo(repo, clients.HeadSHA)
 		// 	Expect(err).Should(BeNil())
