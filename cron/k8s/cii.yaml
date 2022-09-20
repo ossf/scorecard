@@ -29,3 +29,11 @@ spec:
           - name: cii-worker
             image: gcr.io/openssf/scorecard-cii-worker:stable
             imagePullPolicy: Always
+            volumeMounts:
+              - name: config-volume
+                mountPath: /etc/scorecard
+                readOnly: true
+          volumes:
+            - name: config-volume
+              configMap:
+                name: scorecard-config

@@ -41,6 +41,14 @@ spec:
           limits:
             memory: 12Gi
             ephemeral-storage: 500Gi
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/scorecard
+            readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: scorecard-config
   strategy:
     type: "RollingUpdate"
     rollingUpdate:

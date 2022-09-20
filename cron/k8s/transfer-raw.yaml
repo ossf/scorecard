@@ -38,4 +38,12 @@ spec:
                 value: "scorecard-rawdata"
               - name: SCORECARD_DATA_BUCKET_URL
                 value: "gs://ossf-scorecard-rawdata"
+            volumeMounts:
+              - name: config-volume
+                mountPath: /etc/scorecard
+                readOnly: true
+          volumes:
+            - name: config-volume
+              configMap:
+                name: scorecard-config
           restartPolicy: OnFailure

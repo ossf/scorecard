@@ -41,3 +41,11 @@ spec:
                 memory: 1Gi
               requests:
                 memory: 1Gi
+            volumeMounts:
+              - name: config-volume
+                mountPath: /etc/scorecard
+                readOnly: true
+          volumes:
+            - name: config-volume
+              configMap:
+                name: scorecard-config
