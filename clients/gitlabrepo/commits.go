@@ -69,8 +69,10 @@ func (handler *commitsHandler) setup() error {
 						return
 					}
 				}
-				userToEmail[commit.AuthorEmail] = users[0]
-				user = users[0]
+				if len(users) != 0 {
+					userToEmail[commit.AuthorEmail] = users[0]
+					user = users[0]
+				}
 			}
 
 			// Commits are able to be a part of multiple merge requests, but the only one that will be important
@@ -126,21 +128,38 @@ func (handler *commitsHandler) setup() error {
 			}
 
 			// append the commits to the handler.
-			handler.commits = append(handler.commits,
-				clients.Commit{
-					CommittedDate: *commit.CommittedDate,
-					Message:       commit.Message,
-					SHA:           commit.ID,
-					AssociatedMergeRequest: clients.PullRequest{
-						Number:   mergeRequest.ID,
-						MergedAt: *mergeRequest.MergedAt,
-						HeadSHA:  mergeRequest.SHA,
-						Author:   clients.User{ID: int64(mergeRequest.Author.ID)},
-						Labels:   labels,
-						Reviews:  reviews,
-					},
-					Committer: clients.User{ID: int64(user.ID)},
-				})
+			if user != nil {
+				handler.commits = append(handler.commits,
+					clients.Commit{
+						CommittedDate: *commit.CommittedDate,
+						Message:       commit.Message,
+						SHA:           commit.ID,
+						AssociatedMergeRequest: clients.PullRequest{
+							Number:   mergeRequest.ID,
+							MergedAt: *mergeRequest.MergedAt,
+							HeadSHA:  mergeRequest.SHA,
+							Author:   clients.User{ID: int64(mergeRequest.Author.ID)},
+							Labels:   labels,
+							Reviews:  reviews,
+						},
+						Committer: clients.User{ID: int64(user.ID)},
+					})
+			} else {
+				handler.commits = append(handler.commits,
+					clients.Commit{
+						CommittedDate: *commit.CommittedDate,
+						Message:       commit.Message,
+						SHA:           commit.ID,
+						AssociatedMergeRequest: clients.PullRequest{
+							Number:   mergeRequest.ID,
+							MergedAt: *mergeRequest.MergedAt,
+							HeadSHA:  mergeRequest.SHA,
+							Author:   clients.User{ID: int64(mergeRequest.Author.ID)},
+							Labels:   labels,
+							Reviews:  reviews,
+						},
+					})
+			}
 		}
 	})
 

@@ -72,9 +72,12 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 				Dlogger:    &dl,
 			}
 			// TODO: change the expected return to be whatever is actually expected
+			// This should also probably be changed to a repository where people make more than one contribution.
+			// This repository seems like every user contributes pretty much one time.
+			// Perhaps there should be a mirror of the scorecard GitHub on GitLab for this to look at.
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
+				Score:         0,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,

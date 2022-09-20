@@ -17,6 +17,7 @@ package raw
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
@@ -72,7 +73,7 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 		}
 
 		// TODO: if this is a sha, get the associated branch. for now, ignore.
-		if commit.MatchString(release.TargetCommitish) {
+		if commit.MatchString(release.TargetCommitish) && !strings.Contains(c.URI(), "gitlab.") {
 			continue
 		}
 

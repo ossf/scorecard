@@ -70,8 +70,10 @@ func releasesFrom(data []*gitlab.Release) []clients.Release {
 	for _, r := range data {
 		release := clients.Release{
 			TagName:         r.TagName,
-			URL:             r.Assets.Links[0].DirectAssetURL,
-			TargetCommitish: r.CommitPath,
+			TargetCommitish: r.Commit.ID,
+		}
+		if len(r.Assets.Links) > 0 {
+			release.URL = r.Assets.Links[0].DirectAssetURL
 		}
 		for _, a := range r.Assets.Sources {
 			release.Assets = append(release.Assets, clients.ReleaseAsset{

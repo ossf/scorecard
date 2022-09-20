@@ -51,7 +51,7 @@ type Client struct {
 	webhook       *webhookHandler
 	languages     *languagesHandler
 	ctx           context.Context
-	// tarball       tarballHandler
+	tarball       tarballHandler
 }
 
 // InitRepo sets up the GitLab project in local storage for improving performance and GitLab token usage efficiency.
@@ -120,7 +120,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	client.languages.init(client.repourl)
 
 	// Init tarballHandler.
-	// client.tarball.init(client.ctx, client.repourl, client.repo, commitSHA)
+	client.tarball.init(client.ctx, client.repourl, client.repo, commitSHA)
 	return nil
 }
 
@@ -129,13 +129,11 @@ func (client *Client) URI() string {
 }
 
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	return nil, nil
-	// return client.tarball.listFiles(predicate)
+	return client.tarball.listFiles(predicate)
 }
 
 func (client *Client) GetFileContent(filename string) ([]byte, error) {
-	return nil, nil
-	// return client.tarball.getFileContent(filename)
+	return client.tarball.getFileContent(filename)
 }
 
 func (client *Client) ListCommits() ([]clients.Commit, error) {
@@ -203,8 +201,7 @@ func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]cli
 }
 
 func (client *Client) Close() error {
-	return nil
-	// return client.tarball.cleanup()
+	return client.tarball.cleanup()
 }
 
 func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients.Repo) (clients.RepoClient, error) {

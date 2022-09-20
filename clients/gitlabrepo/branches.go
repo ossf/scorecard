@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/xanzy/go-gitlab"
 
@@ -30,6 +31,7 @@ type branchesHandler struct {
 	errSetup         error
 	repourl          *repoURL
 	defaultBranchRef *clients.BranchRef
+	branchNames      []string
 }
 
 func (handler *branchesHandler) init(repourl *repoURL) {
@@ -70,7 +72,7 @@ func (handler *branchesHandler) setup() error {
 
 			projectStatusChecks, resp, err := handler.glClient.ExternalStatusChecks.ListProjectStatusChecks(
 				handler.repourl.projectID, &gitlab.ListOptions{})
-			if err != nil && resp.StatusCode != 404 {
+			if err != nil && resp.StatusCode != 404 && resp.StatusCode != 401 {
 				handler.errSetup = fmt.Errorf("request for external status checks failed with error %w", err)
 				return
 			}
@@ -103,10 +105,78 @@ func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
 	return handler.defaultBranchRef, nil
 }
 
-func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, error) {
-	bran, _, err := handler.glClient.Branches.GetBranch(handler.repourl.projectID, branch)
-	if err != nil {
+func (handler *branchesHandler) getBranch(commitOrBranch string) (*clients.BranchRef, error) {
+	// If the given string is a branch name then the branch can be found by simply getting branch by it's name.
+	bran, resp, err := handler.glClient.Branches.GetBranch(handler.repourl.projectID, commitOrBranch)
+	if err != nil && resp.StatusCode != 404 {
 		return nil, fmt.Errorf("error getting branch in branchsHandler.getBranch: %w", err)
+	}
+
+	// Unfortunately it seems that most of the time commitOrBranch will be a release branch commit.
+	// In this case, GitLab creates a commit whenever a release is triggered so we can create a time before the commit
+	// and after the commit such that the only branch with a commit at that time will be the release branch.
+	if bran == nil {
+		// Get commit from commitOrBranch string.
+		commit, _, err := handler.glClient.Commits.GetCommit(handler.repourl.projectID, commitOrBranch)
+		if err != nil {
+			return nil, fmt.Errorf("given commit sha did not align with any known commits: %w", err)
+		}
+
+		// We need the various branches of the project to query each branch individually for the release branch name.
+		if handler.branchNames == nil {
+			branches, _, err := handler.glClient.Branches.ListBranches(handler.repourl.projectID, &gitlab.ListBranchesOptions{})
+			if err != nil {
+				return nil, fmt.Errorf("could not get the branches from the given GitLab project: %w", err)
+			}
+			for _, branch := range branches {
+				handler.branchNames = append(handler.branchNames, branch.Name)
+			}
+		}
+
+		// Our boundary around the given commit will be 1 minute
+		beforeTime := commit.CreatedAt.Add(-1 * time.Minute)
+		afterTime := commit.CreatedAt.Add(1 * time.Minute)
+		var branchName string
+		for _, name := range handler.branchNames {
+			// The main branch seems to always be involved in release branches so we will disregard it here.
+			if strings.EqualFold(name, "main") {
+				continue
+			}
+
+			// Above we obtained the commit associated with this release, however the only way to obtain the associated
+			// branch of the commit seems to be to query each branch until we find a commit with the same CreatedAt time.
+			possibleCommits, resp, err := handler.glClient.Commits.ListCommits(handler.repourl.projectID,
+				&gitlab.ListCommitsOptions{
+					RefName: &name,
+					Since:   &beforeTime,
+					Until:   &afterTime,
+				})
+			if err != nil && resp.StatusCode != 404 {
+				return nil, fmt.Errorf("error finding possible list of commits to find release branch: %w", err)
+			}
+
+			if possibleCommits != nil {
+				for _, com := range possibleCommits {
+					if com.ID == commitOrBranch {
+						branchName = name
+						break
+					}
+				}
+			}
+
+			if branchName != "" {
+				break
+			}
+		}
+
+		if branchName == "" {
+			return nil, fmt.Errorf("branch was not available from given committish")
+		}
+
+		bran, _, err = handler.glClient.Branches.GetBranch(handler.repourl.projectID, branchName)
+		if err != nil {
+			return nil, fmt.Errorf("could not obtain the branch: %w", err)
+		}
 	}
 
 	if bran.Protected {
@@ -117,7 +187,8 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 
 		projectStatusChecks, resp, err := handler.glClient.ExternalStatusChecks.ListProjectStatusChecks(
 			handler.repourl.projectID, &gitlab.ListOptions{})
-		if err != nil && resp.StatusCode != 404 {
+		// Project Status Checks are only allowed for GitLab ultimate members so we will assume them to be null if user does not have permissions.
+		if err != nil && resp.StatusCode != 404 && resp.StatusCode != 401 {
 			return nil, fmt.Errorf("request for external status checks failed with error %w", err)
 		}
 
@@ -137,6 +208,9 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 }
 
 func makeContextsFromResp(checks []*gitlab.ProjectStatusCheck) []string {
+	if checks == nil {
+		return nil
+	}
 	ret := make([]string, len(checks))
 	for i, statusCheck := range checks {
 		ret[i] = statusCheck.Name
@@ -149,8 +223,10 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 	projectApprovalRule *gitlab.ProjectApprovals,
 ) *clients.BranchRef {
 	requiresStatusChecks := newFalse()
-	if len(projectStatusChecks) > 0 {
-		requiresStatusChecks = newTrue()
+	if projectStatusChecks != nil {
+		if len(projectStatusChecks) > 0 {
+			requiresStatusChecks = newTrue()
+		}
 	}
 
 	statusChecksRule := clients.StatusChecksRule{

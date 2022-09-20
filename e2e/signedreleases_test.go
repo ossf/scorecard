@@ -75,9 +75,9 @@ var _ = Describe("E2E TEST:"+checks.CheckSignedReleases, func() {
 			// TODO: update the expected values to be the result of the actual test
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         8,
-				NumberOfWarn:  5,
-				NumberOfInfo:  5,
+				Score:         0,
+				NumberOfWarn:  10,
+				NumberOfInfo:  0,
 				NumberOfDebug: 5,
 			}
 			result := checks.SignedReleases(&req)

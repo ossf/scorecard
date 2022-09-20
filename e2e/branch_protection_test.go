@@ -117,8 +117,10 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
+		// GitLab values are slightly different as some features are only available to certain tiers, however the below test should
+		// work as an e2e test
 		It("Should get non-admin branch protection on other repositories - GitLab", func() {
-			skipIfTokenIsNot(gitlabPatToken, "GitLab only")
+			skipIfTokenIsNot(patTokenType, "GitLab pac only")
 
 			dl := scut.TestDetailLogger{}
 			// Project url is gitlab.com/N8BWert/scorecard-check-branch-protection-e2e
@@ -136,10 +138,10 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         6,
-				NumberOfWarn:  1,
-				NumberOfInfo:  4,
-				NumberOfDebug: 3,
+				Score:         4,
+				NumberOfWarn:  3,
+				NumberOfInfo:  5,
+				NumberOfDebug: 0,
 			}
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
@@ -150,7 +152,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should fail to return branch protection on other repositories - GitLab", func() {
-			skipIfTokenIsNot(gitlabPatToken, "GitLab only")
+			skipIfTokenIsNot(patTokenType, "GitLab pac only")
 
 			dl := scut.TestDetailLogger{}
 			// Project url is gitlab.com/N8BWert/scorecard-check-branch-protection-e2e-none
@@ -180,7 +182,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should fail to return branch protection on other repositories - GitLab", func() {
-			skipIfTokenIsNot(gitlabPatToken, "GitLab only")
+			skipIfTokenIsNot(patTokenType, "GitLab pac only")
 
 			dl := scut.TestDetailLogger{}
 			// Project url is gitlab.com/N8BWert/scorecard-check-branch-protection-e2e-patch-1
@@ -196,12 +198,13 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
+			// Due to some slight differences in base configs and allowed free user changes these values are correct for the repository given.
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         1,
-				NumberOfWarn:  3,
-				NumberOfInfo:  3,
-				NumberOfDebug: 3,
+				Score:         2,
+				NumberOfWarn:  4,
+				NumberOfInfo:  5,
+				NumberOfDebug: 0,
 			}
 			result := checks.BranchProtection(&req)
 

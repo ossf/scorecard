@@ -41,7 +41,6 @@ type tokenType int
 const (
 	patTokenType tokenType = iota
 	githubWorkflowDefaultTokenType
-	gitlabPatToken tokenType = iota
 )
 
 var tokType tokenType
@@ -60,8 +59,6 @@ var _ = BeforeSuite(func() {
 		tokType = patTokenType
 	case "GITHUB_TOKEN":
 		tokType = githubWorkflowDefaultTokenType
-	case "GITLAB_AUTH_TOKEN":
-		tokType = gitlabPatToken
 	default:
 		panic(fmt.Sprintf("invald TOKEN_TYPE: %s", tt))
 	}

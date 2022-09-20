@@ -174,12 +174,13 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())
 		})
+		// TODO: find a smaller repository to find the security policy of (or at least a project that a tar file can be gotten of).
 		It("Should return valid security policy - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			// project url is gitlab.com/gitlab-org/gitlab
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/278964")
+			// project url is gitlab.com/bramw/baserow.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/bramw/10858056")
 			Expect(err).Should(BeNil())
-			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKNE"), repo)
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
 			err = repoClient.InitRepo(repo, clients.HeadSHA)
 			Expect(err).Should(BeNil())
@@ -205,13 +206,13 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 		})
 		It("Should return valid security policy at commitSHA - GitLab", func() {
 			dl := scut.TestDetailLogger{}
-			// project url is gitlab.com/gitlab-org/gitlab.
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/278964")
+			// project url is gitlab.com/bramw/baserow.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/bramw/10858056")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
-			// url to commit is https://gitlab.com/gitlab-org/gitlab/-/commit/8ae23fa220d73fa07501aabd94214c9e83fe61a0
-			err = repoClient.InitRepo(repo, "8ae23fa220d73fa07501aabd94214c9e83fe61a0")
+			// url to commit is https://gitlab.com/bramw/baserow/-/commit/28e6224b7d86f7b30bad6adb6b42f26a814c2f58
+			err = repoClient.InitRepo(repo, "28e6224b7d86f7b30bad6adb6b42f26a814c2f58")
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
