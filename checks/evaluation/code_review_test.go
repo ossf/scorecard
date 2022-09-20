@@ -50,16 +50,15 @@ func TestCodeReview(t *testing.T) {
 		{
 			name: "NoReviews",
 			expected: scut.TestReturn{
-				Score:        checker.MinResultScore,
-				NumberOfWarn: 2,
+				Score: checker.MinResultScore,
 			},
 			rawData: &checker.CodeReviewData{
-				DefaultBranchCommits: []clients.Commit{
+				DefaultBranchChangesets: []checker.Changeset{
 					{
-						SHA: "1",
+						Commits: []clients.Commit{{SHA: "1"}},
 					},
 					{
-						SHA: "2",
+						Commits: []clients.Commit{{SHA: "1"}},
 					},
 				},
 			},
