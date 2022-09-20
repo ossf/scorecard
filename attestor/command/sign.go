@@ -15,8 +15,10 @@
 package command
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/grafeas/kritis/pkg/attestlib"
 	"github.com/grafeas/kritis/pkg/kritis/metadata/containeranalysis"
@@ -47,6 +49,7 @@ func runSign() error {
 		if kmsDigestAlg == "" {
 			return fmt.Errorf("kms_digest_alg is unspecified, must be one of SHA256|SHA384|SHA512, and the same as specified by the key version's algorithm")
 		}
+		kmsDigestAlg = strings.ToUpper(kmsDigestAlg)
 		cSigner, err = signer.NewCloudKmsSigner(kmsKeyName, signer.DigestAlgorithm(kmsDigestAlg))
 		if err != nil {
 			return fmt.Errorf("creating kms signer failed: %v\n", err)
@@ -81,9 +84,9 @@ func runSign() error {
 	// Parse attestation project
 	if attestationProject == "" {
 		attestationProject = util.GetProjectFromContainerImage(image)
-		logger.Info(fmt.Sprintf("Using image project as attestation project: %s\n", attestationProject))
+		logger.Info(fmt.Sprintf("Using image project as attestation project: %s", attestationProject))
 	} else {
-		logger.Info(fmt.Sprintf("Using specified attestation project: %s\n", attestationProject))
+		logger.Info(fmt.Sprintf("Using specified attestation project: %s", attestationProject))
 	}
 
 	// Check note name
@@ -93,6 +96,11 @@ func runSign() error {
 	if err != nil {
 		return fmt.Errorf("note name is invalid %v", err)
 	}
+
+	// Silence glog outputs from kritis-signer
+	flag.Parse()
+	flag.Lookup("logtostderr").Value.Set("true")
+	flag.Lookup("v").Value.Set("10")
 
 	// Create signer
 	r := signer.New(client, cSigner, scorecardNoteName, attestationProject, overwrite)
