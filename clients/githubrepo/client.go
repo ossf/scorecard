@@ -273,6 +273,9 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 		languages: &languagesHandler{
 			ghclient: client,
 		},
+		tarball: tarballHandler{
+			httpClient: httpClient,
+		},
 	}
 }
 
