@@ -7,9 +7,12 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
+require cloud.google.com/go/grafeas v0.2.0 // indirect
+
 require (
 	cloud.google.com/go v0.102.1 // indirect
 	cloud.google.com/go/compute v1.7.0 // indirect
+	cloud.google.com/go/containeranalysis v0.4.0
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/storage v1.23.0 // indirect
 	github.com/bombsimon/logrusr/v2 v2.0.1 // indirect
