@@ -29,11 +29,8 @@ import (
 	"sync"
 
 	"github.com/google/go-github/v38/github"
-
 	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v4/errors"
-	ll "github.com/ossf/scorecard/v4/log"
 )
 
 const (
@@ -83,7 +80,6 @@ func (handler *tarballHandler) init(ctx context.Context, repo *github.Repository
 	handler.once = new(sync.Once)
 	handler.ctx = ctx
 	handler.repo = repo
-	handler.httpClient = makeHTTPClient(ctx)
 	handler.commitSHA = commitSHA
 }
 
@@ -264,10 +260,4 @@ func (handler *tarballHandler) cleanup() error {
 	// Remove old files so we don't iterate through them.
 	handler.files = nil
 	return nil
-}
-
-func makeHTTPClient(ctx context.Context) *http.Client {
-	logger := ll.NewLogger(ll.DefaultLevel)
-	tr := roundtripper.NewTransport(ctx, logger)
-	return &http.Client{Transport: tr}
 }
