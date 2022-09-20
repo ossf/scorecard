@@ -177,8 +177,8 @@ func main() {
 	}
 
 	var reader data.Iterator
-	if useLocalFiles := len(os.Args) > 1; useLocalFiles {
-		reader = localFiles(os.Args[1:])
+	if useLocalFiles := len(flag.Args()) > 0; useLocalFiles {
+		reader = localFiles(flag.Args())
 	} else {
 		reader = bucketFiles(ctx)
 	}
