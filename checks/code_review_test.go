@@ -229,7 +229,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 0,
+				Score: checker.MaxResultScore,
 			},
 		},
 		{
