@@ -17,9 +17,12 @@ package checker
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/clients"
 	ghrepo "github.com/ossf/scorecard/v4/clients/githubrepo"
+	glrepo "github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	"github.com/ossf/scorecard/v4/log"
 )
@@ -34,7 +37,9 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 	clients.VulnerabilitiesClient, // vulnClient
 	error,
 ) {
-	var githubRepo clients.Repo
+	var repo clients.Repo
+	var makeRepoError error
+
 	if localURI != "" {
 		localRepo, errLocal := localdir.MakeLocalDirRepo(localURI)
 		var retErr error
@@ -49,14 +54,26 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 			retErr
 	}
 
-	githubRepo, errGitHub := ghrepo.MakeGithubRepo(repoURI)
-	if errGitHub != nil {
-		return githubRepo,
-			nil,
-			nil,
-			nil,
-			nil,
-			fmt.Errorf("getting local directory client: %w", errGitHub)
+	if strings.Contains(repoURI, "gitlab.") {
+		repo, makeRepoError = glrepo.MakeGitlabRepo(repoURI)
+		if makeRepoError != nil {
+			return repo,
+				nil,
+				nil,
+				nil,
+				nil,
+				fmt.Errorf("getting local directory client: %w", makeRepoError)
+		}
+	} else {
+		repo, makeRepoError = ghrepo.MakeGithubRepo(repoURI)
+		if makeRepoError != nil {
+			return repo,
+				nil,
+				nil,
+				nil,
+				nil,
+				fmt.Errorf("getting local directory client: %w", makeRepoError)
+		}
 	}
 
 	ossFuzzRepoClient, errOssFuzz := ghrepo.CreateOssFuzzRepoClient(ctx, logger)
@@ -65,10 +82,28 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 		retErr = fmt.Errorf("getting OSS-Fuzz repo client: %w", errOssFuzz)
 	}
 	// TODO(repo): Should we be handling the OSS-Fuzz client error like this?
-	return githubRepo, /*repo*/
-		ghrepo.CreateGithubRepoClient(ctx, logger), /*repoClient*/
-		ossFuzzRepoClient, /*ossFuzzClient*/
-		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
-		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
-		retErr
+	if strings.Contains(repoURI, "gitlab.") {
+		glClient, err := glrepo.CreateGitlabClientWithToken(ctx, os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+		if err != nil {
+			return repo,
+				nil,
+				nil,
+				nil,
+				nil,
+				fmt.Errorf("error creating gitlab client: %w", err)
+		}
+		return repo, /*repo*/
+			glClient, /*repoClient*/
+			ossFuzzRepoClient, /*ossFuzzClient*/
+			clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
+			clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
+			retErr
+	} else {
+		return repo, /*repo*/
+			ghrepo.CreateGithubRepoClient(ctx, logger), /*repoClient*/
+			ossFuzzRepoClient, /*ossFuzzClient*/
+			clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
+			clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
+			retErr
+	}
 }
