@@ -69,6 +69,7 @@ type tarballHandler struct {
 	once        *sync.Once
 	ctx         context.Context
 	repo        *github.Repository
+	httpClient  *http.Client
 	commitSHA   string
 	tempDir     string
 	tempTarFile string
@@ -122,9 +123,9 @@ func (handler *tarballHandler) getTarball() error {
 	if err != nil {
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := handler.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("http.DefaultClient.Do: %w", err)
+		return fmt.Errorf("handler.httpClient.Do: %w", err)
 	}
 	defer resp.Body.Close()
 
