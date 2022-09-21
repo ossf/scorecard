@@ -29,7 +29,7 @@ spec:
       containers:
       - name: worker
         image: gcr.io/openssf/scorecard-batch-worker:latest
-        args: ["--ignoreRuntimeErrors=false"]
+        args: ["--ignoreRuntimeErrors=false", "--config=/etc/scorecard/config.yaml"]
         imagePullPolicy: Always
         env:
         - name: SCORECARD_DATA_BUCKET_URL

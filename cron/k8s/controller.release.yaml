@@ -52,7 +52,7 @@ spec:
           containers:
           - name: controller
             image: gcr.io/openssf/scorecard-batch-controller:latest
-            args: ["cron/internal/data/projects.release.csv"]
+            args: ["--config=/etc/scorecard/config.yaml", "cron/internal/data/projects.release.csv"]
             imagePullPolicy: Always
             env:
             - name: SCORECARD_REQUEST_TOPIC_URL

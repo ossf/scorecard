@@ -27,6 +27,7 @@ spec:
           containers:
           - name: bq-rawdata-transfer
             image: gcr.io/openssf/scorecard-bq-transfer:latest
+            args: ["--config=/etc/scorecard/config.yaml"]
             imagePullPolicy: Always
             resources:
               limits:

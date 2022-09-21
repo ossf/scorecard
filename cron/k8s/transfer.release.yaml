@@ -28,6 +28,7 @@ spec:
           containers:
           - name: bq-transfer-releasetest-v2
             image: gcr.io/openssf/scorecard-bq-transfer:latest
+            args: ["--config=/etc/scorecard/config.yaml"]
             imagePullPolicy: Always
             env:
             - name: SCORECARD_DATA_BUCKET_URL
