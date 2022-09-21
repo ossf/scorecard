@@ -18,7 +18,7 @@ package cmd
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -143,7 +143,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 
 					return &http.Response{
 						StatusCode: 200,
-						Body:       ioutil.NopCloser(bytes.NewBufferString(tt.args.result)),
+						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
 			got, err := fetchGitRepositoryFromNPM(tt.args.packageName, p)
@@ -423,7 +423,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 
 					return &http.Response{
 						StatusCode: 200,
-						Body:       ioutil.NopCloser(bytes.NewBufferString(tt.args.result)),
+						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
 			got, err := fetchGitRepositoryFromPYPI(tt.args.packageName, p)
@@ -692,7 +692,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 
 					return &http.Response{
 						StatusCode: 200,
-						Body:       ioutil.NopCloser(bytes.NewBufferString(tt.args.result)),
+						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
 			got, err := fetchGitRepositoryFromRubyGems(tt.args.packageName, p)

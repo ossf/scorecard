@@ -74,20 +74,19 @@ type jsonUser struct {
 	Login string `json:"login"`
 }
 
-//nolint:govet
-type jsonMergeRequest struct {
-	Number  int          `json:"number"`
-	Labels  []string     `json:"labels"`
-	Reviews []jsonReview `json:"reviews"`
-	Author  jsonUser     `json:"author"`
+type jsonDefaultBranchChangeset struct {
+	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
+	RevisionID     string       `json:"number"`
+	ReviewPlatform string       `json:"platform"`
+	Reviews        []jsonReview `json:"reviews"`
+	Authors        []jsonUser   `json:"authors"`
+	Commits        []jsonCommit `json:"commits"`
 }
 
-type jsonDefaultBranchCommit struct {
-	// ApprovedReviews *jsonApprovedReviews `json:"approved-reviews"`
-	Committer     jsonUser          `json:"committer"`
-	MergeRequest  *jsonMergeRequest `json:"mergeRequest"`
-	CommitMessage string            `json:"commitMessage"`
-	SHA           string            `json:"sha"`
+type jsonCommit struct {
+	Committer jsonUser `json:"committer"`
+	Message   string   `json:"message"`
+	SHA       string   `json:"sha"`
 
 	// TODO: check runs, etc.
 }
@@ -111,49 +110,35 @@ type jsonRawResults struct {
 	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools"`
 	// Branch protection settings for development and release branches.
 	BranchProtections []jsonBranchProtection `json:"branchProtections"`
-	// Commits.
-	DefaultBranchCommits []jsonDefaultBranchCommit `json:"defaultBranchCommits"`
+	// Changesets
+	DefaultBranchChangesets []jsonDefaultBranchChangeset `json:"defaultBranchChangesets"`
 }
 
 //nolint:unparam
 func addCodeReviewRawResults(r *jsonScorecardRawResult, cr *checker.CodeReviewData) error {
-	r.Results.DefaultBranchCommits = []jsonDefaultBranchCommit{}
-	for i := range cr.DefaultBranchCommits {
-		commit := cr.DefaultBranchCommits[i]
-		com := jsonDefaultBranchCommit{
-			Committer: jsonUser{
-				Login: commit.Committer.Login,
-			},
-			CommitMessage: commit.Message,
-			SHA:           commit.SHA,
-		}
+	r.Results.DefaultBranchChangesets = []jsonDefaultBranchChangeset{}
 
-		// Merge request field.
-		mr := jsonMergeRequest{
-			Number: commit.AssociatedMergeRequest.Number,
-			Author: jsonUser{
-				Login: commit.AssociatedMergeRequest.Author.Login,
-			},
-		}
+	for i := range cr.DefaultBranchChangesets {
+		cs := cr.DefaultBranchChangesets[i]
 
-		for _, l := range commit.AssociatedMergeRequest.Labels {
-			mr.Labels = append(mr.Labels, l.Name)
-		}
-
-		for _, r := range commit.AssociatedMergeRequest.Reviews {
-			mr.Reviews = append(mr.Reviews, jsonReview{
-				State: r.State,
-				Reviewer: jsonUser{
-					Login: r.Author.Login,
+		// commits field
+		commits := []jsonCommit{}
+		for i := range cs.Commits {
+			commits = append(commits, jsonCommit{
+				Committer: jsonUser{
+					Login: commits[i].Committer.Login,
 				},
+				Message: commits[i].Message,
+				SHA:     commits[i].SHA,
 			})
 		}
 
-		com.MergeRequest = &mr
-
-		com.CommitMessage = commit.Message
-
-		r.Results.DefaultBranchCommits = append(r.Results.DefaultBranchCommits, com)
+		r.Results.DefaultBranchChangesets = append(r.Results.DefaultBranchChangesets,
+			jsonDefaultBranchChangeset{
+				RevisionID: cs.RevisionID,
+				Commits:    commits,
+			},
+		)
 	}
 	return nil
 }
@@ -216,7 +201,7 @@ func addDependencyUpdateToolRawResults(r *jsonScorecardRawResult,
 	return nil
 }
 
-//nolint
+//nolint:unparam
 func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.BranchProtectionsData) error {
 	r.Results.BranchProtections = []jsonBranchProtection{}
 	for _, v := range bp.Branches {

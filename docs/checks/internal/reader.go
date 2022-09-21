@@ -27,6 +27,7 @@ import (
 var checksYAML []byte
 
 // Check stores a check's information.
+//
 //nolint:govet
 type Check struct {
 	Risk        string   `yaml:"risk"`
