@@ -43,6 +43,7 @@ func (handler *branchesHandler) init(repourl *repoURL) {
 	handler.once = new(sync.Once)
 }
 
+// nolint: nestif
 func (handler *branchesHandler) setup() error {
 	handler.once.Do(func() {
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
@@ -225,10 +226,9 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 	projectApprovalRule *gitlab.ProjectApprovals,
 ) *clients.BranchRef {
 	requiresStatusChecks := newFalse()
-	if projectStatusChecks != nil {
-		if len(projectStatusChecks) > 0 {
-			requiresStatusChecks = newTrue()
-		}
+
+	if len(projectStatusChecks) > 0 {
+		requiresStatusChecks = newTrue()
 	}
 
 	statusChecksRule := clients.StatusChecksRule{

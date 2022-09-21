@@ -121,6 +121,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 
 	// Init tarballHandler.
 	client.tarball.init(client.ctx, client.repourl, client.repo, commitSHA)
+
 	return nil
 }
 
