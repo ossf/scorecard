@@ -229,7 +229,6 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 	projectApprovalRule *gitlab.ProjectApprovals,
 ) *clients.BranchRef {
 	requiresStatusChecks := newFalse()
-
 	if len(projectStatusChecks) > 0 {
 		requiresStatusChecks = newTrue()
 	}

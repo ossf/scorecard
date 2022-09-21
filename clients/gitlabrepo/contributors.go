@@ -72,12 +72,15 @@ func (handler *contributorsHandler) setup() error {
 				}
 			}
 
+<<<<<<< HEAD
 			// TODO: Handle many users of same name
 
 			if len(users) == 0 {
 				continue
 			}
 
+=======
+>>>>>>> 0f87094 (:sparkles: Gitlab support (#2265))
 			contributor := clients.User{
 				Login:            contrib.Email,
 				Companies:        []string{users[0].Organization},
