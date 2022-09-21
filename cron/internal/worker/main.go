@@ -50,7 +50,7 @@ const (
 
 var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
 
-//nolint: gocognit
+// nolint: gocognit
 func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest,
 	blacklistedChecks []string, bucketURL, rawBucketURL, apiBucketURL string,
@@ -267,6 +267,7 @@ func main() {
 	// Exposed for monitoring runtime profiles
 	go func() {
 		// TODO(log): Previously Fatal. Need to handle the error here.
+		//nolint: gosec // internal server.
 		logger.Info(fmt.Sprintf("%v", http.ListenAndServe(":8080", nil)))
 	}()
 

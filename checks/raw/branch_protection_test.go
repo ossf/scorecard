@@ -33,7 +33,7 @@ var (
 	mainBranchName    = "main"
 )
 
-//nolint: govet
+// nolint: govet
 type branchArg struct {
 	err           error
 	name          string
