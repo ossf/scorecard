@@ -15,19 +15,14 @@
 package checks
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/checks/evaluation"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-const (
-	// CheckCITests is the registered name for CITests.
-	CheckCITests = "CI-Tests"
-	success      = "success"
-)
+// CheckCodeReview is the registered name for DoesCodeReview.
+const CheckCITests = "CI-Tests"
 
 //nolint:gochecknoinits
 func init() {
@@ -40,127 +35,20 @@ func init() {
 	}
 }
 
-// CITests runs CI-Tests check.
+// CodeReview will check if the maintainers perform code review.
 func CITests(c *checker.CheckRequest) checker.CheckResult {
-	commits, err := c.RepoClient.ListCommits()
+	rawData, err := raw.CITests(c.RepoClient)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
-		return checker.CreateRuntimeErrorResult(CheckCITests, e)
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, e)
 	}
 
-	totalMerged := 0
-	totalTested := 0
-	for i := range commits {
-		pr := &commits[i].AssociatedMergeRequest
-		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
-		// but the PR was created in the original repo.
-		if pr.MergedAt.IsZero() {
-			continue
-		}
-		totalMerged++
-
-		var foundCI bool
-
-		// Github Statuses.
-		prSuccessStatus, err := prHasSuccessStatus(pr, c)
-		if err != nil {
-			return checker.CreateRuntimeErrorResult(CheckCITests, err)
-		}
-		if prSuccessStatus {
-			totalTested++
-			foundCI = true
-			continue
-		}
-
-		// Github Check Runs.
-		prCheckSuccessful, err := prHasSuccessfulCheck(pr, c)
-		if err != nil {
-			return checker.CreateRuntimeErrorResult(CheckCITests, err)
-		}
-		if prCheckSuccessful {
-			totalTested++
-			foundCI = true
-		}
-
-		if !foundCI {
-			c.Dlogger.Debug(&checker.LogMessage{
-				Text: fmt.Sprintf("merged PR without CI test: %d", pr.Number),
-			})
-		}
+	// Return raw results.
+	if c.RawResults != nil {
+		c.RawResults.CITestResults = rawData
 	}
 
-	if totalMerged == 0 {
-		return checker.CreateInconclusiveResult(CheckCITests, "no pull request found")
-	}
+	// Return the score evaluation.
+	return evaluation.CITests(CheckCITests, &rawData, c.Dlogger)
 
-	reason := fmt.Sprintf("%d out of %d merged PRs checked by a CI test", totalTested, totalMerged)
-	return checker.CreateProportionalScoreResult(CheckCITests, reason, totalTested, totalMerged)
-}
-
-// PR has a status marked 'success' and a CI-related context.
-func prHasSuccessStatus(pr *clients.PullRequest, c *checker.CheckRequest) (bool, error) {
-	statuses, err := c.RepoClient.ListStatuses(pr.HeadSHA)
-	if err != nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Repositories.ListStatuses: %v", err))
-	}
-
-	for _, status := range statuses {
-		if status.State != success {
-			continue
-		}
-		if isTest(status.Context) || isTest(status.TargetURL) {
-			c.Dlogger.Debug(&checker.LogMessage{
-				Path: status.URL,
-				Type: checker.FileTypeURL,
-				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,
-					status.Context),
-			})
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// PR has a successful CI-related check.
-func prHasSuccessfulCheck(pr *clients.PullRequest, c *checker.CheckRequest) (bool, error) {
-	crs, err := c.RepoClient.ListCheckRunsForRef(pr.HeadSHA)
-	if err != nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
-	}
-
-	for _, cr := range crs {
-		if cr.Status != "completed" {
-			continue
-		}
-		if cr.Conclusion != success {
-			continue
-		}
-		if isTest(cr.App.Slug) {
-			c.Dlogger.Debug(&checker.LogMessage{
-				Path: cr.URL,
-				Type: checker.FileTypeURL,
-				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", pr.Number,
-					cr.App.Slug),
-			})
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// isTest returns true if the given string is a CI test.
-func isTest(s string) bool {
-	l := strings.ToLower(s)
-
-	// Add more patterns here!
-	for _, pattern := range []string{
-		"appveyor", "buildkite", "circleci", "e2e", "github-actions", "jenkins",
-		"mergeable", "packit-as-a-service", "semaphoreci", "test", "travis-ci",
-		"flutter-dashboard", "Cirrus CI",
-	} {
-		if strings.Contains(l, pattern) {
-			return true
-		}
-	}
-	return false
 }
