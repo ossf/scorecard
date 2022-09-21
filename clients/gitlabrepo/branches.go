@@ -38,6 +38,7 @@ func (handler *branchesHandler) init(repourl *repoURL) {
 	handler.once = new(sync.Once)
 }
 
+// nolint: nestif
 func (handler *branchesHandler) setup() error {
 	handler.once.Do(func() {
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {

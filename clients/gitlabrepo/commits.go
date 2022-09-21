@@ -38,6 +38,7 @@ func (handler *commitsHandler) init(repourl *repoURL) {
 	handler.once = new(sync.Once)
 }
 
+// nolint: gocognit
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
 		commits, _, err := handler.glClient.Commits.ListCommits(handler.repourl.projectID, &gitlab.ListCommitsOptions{})

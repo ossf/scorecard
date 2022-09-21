@@ -45,11 +45,12 @@ type repoURL struct {
 	* "https://gitlab.<companyDomain:string>.com/<owner:string>/<projectID:int>"
 */
 func (r *repoURL) parse(input string) error {
-	if strings.Contains(input, "https://") {
+	switch {
+	case strings.Contains(input, "https://"):
 		input = strings.TrimPrefix(input, "https://")
-	} else if strings.Contains(input, "http://") {
+	case strings.Contains(input, "http://"):
 		input = strings.TrimPrefix(input, "http://")
-	} else if strings.Contains(input, "://") {
+	case strings.Contains(input, "://"):
 		return sce.WithMessage(sce.ErrScorecardInternal, "unknown input format")
 	}
 

@@ -130,12 +130,10 @@ func (client *Client) URI() string {
 
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	return nil, nil
-	// return client.tarball.listFiles(predicate)
 }
 
 func (client *Client) GetFileContent(filename string) ([]byte, error) {
 	return nil, nil
-	// return client.tarball.getFileContent(filename)
 }
 
 func (client *Client) ListCommits() ([]clients.Commit, error) {
@@ -204,7 +202,6 @@ func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]cli
 
 func (client *Client) Close() error {
 	return nil
-	// return client.tarball.cleanup()
 }
 
 func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients.Repo) (clients.RepoClient, error) {
