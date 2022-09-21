@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,7 +15,6 @@ package e2e
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 
 	"github.com/go-git/go-git/v5"
@@ -83,7 +82,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 		It("Should return dangerous workflow for local repoClient", func() {
 			dl := scut.TestDetailLogger{}
 
-			tmpDir, err := ioutil.TempDir("", "")
+			tmpDir, err := os.MkdirTemp("", "")
 			Expect(err).Should(BeNil())
 			defer os.RemoveAll(tmpDir)
 

@@ -322,7 +322,7 @@ func parseCheckRuns(data *checkRunsGraphqlData) checkRunCache {
 	return checkCache
 }
 
-//nolint:all
+//nolint
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {

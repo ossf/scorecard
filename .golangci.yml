@@ -18,7 +18,6 @@ linters:
   disable-all: true
   enable:
     - asciicheck
-    - bodyclose
     - deadcode
     - depguard
     - dogsled
@@ -50,17 +49,13 @@ linters:
     - misspell
     - nakedret
     - nestif
-    - noctx
-    - nolintlint
     - paralleltest
     - predeclared
     - staticcheck
     - stylecheck
     - thelper
-    - tparallel
     - typecheck
     - unconvert
-    - unparam
     - unused
     - varcheck
     - whitespace
