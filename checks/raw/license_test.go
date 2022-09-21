@@ -103,6 +103,7 @@ func TestLicenseFileCheck(t *testing.T) {
 		},
 	}
 
+	//nolint: paralleltest
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		for _, ext := range tt.extensions {

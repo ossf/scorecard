@@ -24,7 +24,7 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-//nolint
+// nolint: govet
 type jsonCheckResult struct {
 	Name       string
 	Details    []string
@@ -45,7 +45,7 @@ type jsonCheckDocumentationV2 struct {
 	// Can be extended if needed.
 }
 
-//nolint
+// nolint: govet
 type jsonCheckResultV2 struct {
 	Details []string                 `json:"details"`
 	Score   int                      `json:"score"`
@@ -71,8 +71,9 @@ func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("%.1f", s)), nil
 }
 
-//nolint:govet
 // JSONScorecardResultV2 exports results as JSON for new detail format.
+//
+//nolint:govet
 type JSONScorecardResultV2 struct {
 	Date           string              `json:"date"`
 	Repo           jsonRepoV2          `json:"repo"`
