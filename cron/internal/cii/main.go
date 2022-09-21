@@ -31,8 +31,6 @@ import (
 
 const ciiBaseURL = "https://bestpractices.coreinfrastructure.org/projects.json"
 
-var configFilename = flag.String(config.ConfigFlag, config.ConfigDefault, config.ConfigUsage)
-
 type ciiPageResp struct {
 	RepoURL    string `json:"repo_url"`
 	BadgeLevel string `json:"badge_level"`
@@ -87,7 +85,7 @@ func main() {
 	fmt.Println("Starting...")
 
 	flag.Parse()
-	if err := config.ReadConfig(*configFilename); err != nil {
+	if err := config.ReadConfig(); err != nil {
 		panic(err)
 	}
 

@@ -48,10 +48,7 @@ const (
 	rawResultsFile = "raw.json"
 )
 
-var (
-	configFilename      = flag.String(config.ConfigFlag, config.ConfigDefault, config.ConfigUsage)
-	ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
-)
+var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
 
 //nolint:gocognit
 func processRequest(ctx context.Context,
@@ -211,7 +208,7 @@ func main() {
 	ctx := context.Background()
 
 	flag.Parse()
-	if err := config.ReadConfig(*configFilename); err != nil {
+	if err := config.ReadConfig(); err != nil {
 		panic(err)
 	}
 

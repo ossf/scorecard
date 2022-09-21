@@ -32,8 +32,6 @@ import (
 	"github.com/ossf/scorecard/v4/cron/internal/data"
 )
 
-var configFilename = flag.String(config.ConfigFlag, config.ConfigDefault, config.ConfigUsage)
-
 type shardSummary struct {
 	shardMetadata  []byte
 	shardsExpected int
@@ -155,7 +153,7 @@ func main() {
 	ctx := context.Background()
 
 	flag.Parse()
-	if err := config.ReadConfig(*configFilename); err != nil {
+	if err := config.ReadConfig(); err != nil {
 		panic(err)
 	}
 

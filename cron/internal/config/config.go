@@ -17,6 +17,7 @@ package config
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"reflect"
@@ -34,12 +35,9 @@ const (
 	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.
 	TransferStatusFilename string = ".transfer_complete"
 
-	// ConfigFlag is the name of the CLI flag to specify a config file.
-	ConfigFlag string = "config"
-	// ConfigDefault is the default value for the config file if not provided as a CLI arg.
-	ConfigDefault string = "/etc/scorecard/config.yaml"
-	// ConfigUsage is a description of the config CLI flag.
-	ConfigUsage string = "Location of config file"
+	configFlag    string = "config"
+	configDefault string = ""
+	configUsage   string = "Location of config file. Required"
 
 	projectID              string = "SCORECARD_PROJECT_ID"
 	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
@@ -61,8 +59,11 @@ var (
 	ErrorEmptyConfigValue = errors.New("config value set to empty")
 	// ErrorValueConversion indicates an unexpected type was found for the value of the config option.
 	ErrorValueConversion = errors.New("unexpected type, cannot convert value")
+	// ErrorNoConfig indicates no config file was provided, or flag.Parse() was not called.
+	ErrorNoConfig = errors.New("no configuration file provided with --" + configFlag)
 	// stores config file contents, set with ReadConfig.
-	configYAML []byte
+	configYAML     []byte
+	configFilename = flag.String(configFlag, configDefault, configUsage)
 )
 
 //nolint:govet
@@ -201,13 +202,16 @@ func getScorecardParam(key string) (string, error) {
 	return s[key], nil
 }
 
-// ReadConfig reads the contents of a configuration file for later use by getters.
-// This function must be called before any other exported function.
-func ReadConfig(filename string) error {
+// ReadConfig reads the contents of a configuration file specified with --config for later use by getters.
+// This function must be called before any other exported function, and after flag.Parse() is called.
+func ReadConfig() error {
 	var err error
-	configYAML, err = os.ReadFile(filename)
+	if configFilename == nil || *configFilename == "" {
+		return ErrorNoConfig
+	}
+	configYAML, err = os.ReadFile(*configFilename)
 	if err != nil {
-		return fmt.Errorf("config file \"%s\": %w", filename, err)
+		return fmt.Errorf("config file: %w", err)
 	}
 	return nil
 }

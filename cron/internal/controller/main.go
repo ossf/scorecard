@@ -33,10 +33,7 @@ import (
 	"github.com/ossf/scorecard/v4/cron/internal/pubsub"
 )
 
-var (
-	headSHA        = clients.HeadSHA
-	configFilename = flag.String(config.ConfigFlag, config.ConfigDefault, config.ConfigUsage)
-)
+var headSHA = clients.HeadSHA
 
 func publishToRepoRequestTopic(iter data.Iterator, topicPublisher pubsub.Publisher,
 	shardSize int, datetime time.Time,
@@ -148,7 +145,7 @@ func main() {
 	t := time.Now()
 
 	flag.Parse()
-	if err := config.ReadConfig(*configFilename); err != nil {
+	if err := config.ReadConfig(); err != nil {
 		panic(err)
 	}
 
