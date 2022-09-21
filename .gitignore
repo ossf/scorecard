@@ -26,7 +26,7 @@ results.json
 
 # Output of the go coverage tool, specifically when used with LiteIDE.
 *.coverprofile*
-unit-coverage.out
+**/unit-coverage.out
 e2e-coverage.out
 
 

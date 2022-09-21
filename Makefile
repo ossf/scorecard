@@ -288,7 +288,7 @@ unit-test: ## Runs unit test without e2e
 	SKIP_GINKGO=1 go test -race -covermode=atomic  -coverprofile=unit-coverage.out `go list ./...`
 
 unit-test-attestor: ## Runs unit tests on scorecard-attestor
-	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage-attestor.out `go list ./...`; cd ..;
+	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage.out `go list ./...`; cd ..;
 
 $(GINKGO): install
 
@@ -300,10 +300,10 @@ endif
 e2e-pat: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
 e2e-pat: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
-	TOKEN_TYPE="PAT" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out ./...
+	TOKEN_TYPE="PAT" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
 
 e2e-gh-token: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to default GITHUB_TOKEN
 e2e-gh-token: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN set to secrets.GITHUB_TOKEN must be used to run this.
-	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out ./...
+	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
 ###############################################################################

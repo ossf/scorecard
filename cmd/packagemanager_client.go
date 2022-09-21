@@ -26,7 +26,7 @@ type packageManagerClient interface {
 
 type packageManager struct{}
 
-//nolint: noctx
+// nolint: noctx
 func (c *packageManager) Get(url, packageName string) (*http.Response, error) {
 	const timeout = 10
 	client := &http.Client{
