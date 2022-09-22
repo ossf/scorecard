@@ -50,5 +50,4 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 
 	// Return the score evaluation.
 	return evaluation.CITests(CheckCITests, &rawData, c.Dlogger)
-
 }
