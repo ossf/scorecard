@@ -1,16 +1,23 @@
 # binary.
 scorecard
+scorecard.docker
+scorecard.releaser
 gitblobcache
 clients/githubrepo/roundtripper/tokens/server/github-auth-server
+clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker
 cron/internal/data/add/add
 cron/internal/data/validate/validate
 cron/internal/data/update/projects-update
 cron/internal/controller/controller
+cron/internal/controller/controller.docker
 cron/internal/worker/worker
 cron/internal/cii/cii-worker
+cron/internal/cii/cii-worker.docker
 cron/internal/shuffle/shuffle
 cron/internal/webhook/webhook
+cron/internal/webhook/webhook.docker
 cron/internal/bq/data-transfer
+cron/internal/bq/data-transfer.docker
 
 # Binaries for programs and plugins.
 *.exe
