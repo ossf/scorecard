@@ -16,7 +16,6 @@ package e2e
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 
 	"github.com/go-git/go-git/v5"
@@ -173,7 +172,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 		})
 		It("Should return binary artifacts present at commit in source code when using local repoClient", func() {
 			// create temp dir
-			tmpDir, err := ioutil.TempDir("", "")
+			tmpDir, err := os.MkdirTemp("", "")
 			Expect(err).Should(BeNil())
 			defer os.RemoveAll(tmpDir)
 
