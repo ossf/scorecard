@@ -70,7 +70,8 @@ func getByteValueFromFile(filename string) ([]byte, error) {
 
 // runs once before all tests, to initialize the config file for testing purposes.
 func TestMain(m *testing.M) {
-	*configFilename = "config.yaml"
+	// TODO change to config.yaml when removing built-in embedding
+	*configFilename = ""
 	if err := ReadConfig(); err != nil {
 		log.Fatalf("failed to read config: %v", err)
 	}

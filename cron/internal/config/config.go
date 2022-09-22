@@ -16,6 +16,8 @@
 package config
 
 import (
+	// Used to embed config.yaml.
+	_ "embed"
 	"errors"
 	"flag"
 	"fmt"
@@ -61,7 +63,7 @@ var (
 	ErrorValueConversion = errors.New("unexpected type, cannot convert value")
 	// ErrorNoConfig indicates no config file was provided, or flag.Parse() was not called.
 	ErrorNoConfig = errors.New("no configuration file provided with --" + configFlag)
-	// stores config file contents, set with ReadConfig.
+	//go:embed config.yaml
 	configYAML     []byte
 	configFilename = flag.String(configFlag, configDefault, configUsage)
 )
@@ -207,7 +209,7 @@ func getScorecardParam(key string) (string, error) {
 func ReadConfig() error {
 	var err error
 	if configFilename == nil || *configFilename == "" {
-		return ErrorNoConfig
+		return nil
 	}
 	configYAML, err = os.ReadFile(*configFilename)
 	if err != nil {
