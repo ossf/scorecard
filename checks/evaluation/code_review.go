@@ -42,10 +42,9 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		return checker.CreateInconclusiveResult(name, "no commits found")
 	}
 
-	score := 0
 	numReviewed := 0
 	for i := range r.DefaultBranchChangesets {
-		score += reviewScoreForChangeset(&r.DefaultBranchChangesets[i])
+		score := reviewScoreForChangeset(&r.DefaultBranchChangesets[i])
 		if score >= changesReviewed {
 			numReviewed += 1
 		}
@@ -54,7 +53,7 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		"%v out of last %v changesets reviewed before merge", numReviewed, len(r.DefaultBranchChangesets),
 	)
 
-	return checker.CreateProportionalScoreResult(name, reason, score, len(r.DefaultBranchChangesets))
+	return checker.CreateProportionalScoreResult(name, reason, numReviewed, len(r.DefaultBranchChangesets))
 }
 
 func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
