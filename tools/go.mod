@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/golang/mock v1.6.0
-	github.com/golangci/golangci-lint v1.48.0
+	github.com/golangci/golangci-lint v1.49.0
 	github.com/google/addlicense v1.0.0
 	github.com/google/ko v0.11.3-0.20220812194550-f9b4471f654a
 	github.com/goreleaser/goreleaser v1.10.3
@@ -42,7 +42,7 @@ require (
 	github.com/DisgoOrg/log v1.1.3 // indirect
 	github.com/DisgoOrg/restclient v1.2.8 // indirect
 	github.com/Djarvur/go-err113 v0.0.0-20210108212216-aea10b59be24 // indirect
-	github.com/GaijinEntertainment/go-exhaustruct/v2 v2.2.2 // indirect
+	github.com/GaijinEntertainment/go-exhaustruct/v2 v2.3.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
@@ -107,6 +107,7 @@ require (
 	github.com/cloudflare/circl v1.2.0 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.12.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/curioswitch/go-reassign v0.1.2 // indirect
 	github.com/daixiang0/gci v0.6.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denis-tingaikin/go-header v0.4.3 // indirect
@@ -226,9 +227,9 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/maratori/testpackage v1.1.0 // indirect
 	github.com/matoous/godox v0.0.0-20210227103229-6504466cf951 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-ieproxy v0.0.7 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mbilski/exhaustivestruct v1.2.0 // indirect
@@ -271,8 +272,9 @@ require (
 	github.com/ryancurrah/gomodguard v1.2.4 // indirect
 	github.com/ryanrolds/sqlclosecheck v0.3.0 // indirect
 	github.com/sanposhiho/wastedassign/v2 v2.0.7 // indirect
-	github.com/sashamelentyev/usestdlibvars v1.10.0 // indirect
-	github.com/securego/gosec/v2 v2.12.0 // indirect
+	github.com/sashamelentyev/interfacebloat v1.1.0 // indirect
+	github.com/sashamelentyev/usestdlibvars v1.13.0 // indirect
+	github.com/securego/gosec/v2 v2.13.1 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
 	github.com/sigstore/cosign v1.12.0 // indirect
@@ -296,12 +298,13 @@ require (
 	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
-	github.com/sylvia7788/contextcheck v1.0.5 // indirect
+	github.com/sylvia7788/contextcheck v1.0.6 // indirect
 	github.com/tdakkota/asciicheck v0.1.1 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/tetafro/godot v1.4.11 // indirect
 	github.com/theupdateframework/go-tuf v0.5.0 // indirect
 	github.com/timakin/bodyclose v0.0.0-20210704033933-f49887972144 // indirect
+	github.com/timonwong/logrlint v0.1.0 // indirect
 	github.com/titanous/rocacheck v0.0.0-20171023193734-afe73141d399 // indirect
 	github.com/tomarrell/wrapcheck/v2 v2.6.2 // indirect
 	github.com/tommy-muehle/go-mnd/v2 v2.5.0 // indirect
@@ -324,6 +327,7 @@ require (
 	go.uber.org/zap v1.22.0 // indirect
 	gocloud.dev v0.26.0 // indirect
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
+	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/exp/typeparams v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b // indirect
