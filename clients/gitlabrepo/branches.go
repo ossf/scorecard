@@ -76,6 +76,7 @@ func (handler *branchesHandler) setup() error {
 
 			projectStatusChecks, resp, err := handler.glClient.ExternalStatusChecks.ListProjectStatusChecks(
 				handler.repourl.projectID, &gitlab.ListOptions{})
+
 			if err != nil && resp.StatusCode != 404 && resp.StatusCode != 401 {
 				handler.errSetup = fmt.Errorf("request for external status checks failed with error %w", err)
 				return
@@ -109,6 +110,7 @@ func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
 	return handler.defaultBranchRef, nil
 }
 
+// nolint: gocognit, nestif
 func (handler *branchesHandler) getBranch(commitOrBranch string) (*clients.BranchRef, error) {
 	// If the given string is a branch name then the branch can be found by simply getting branch by it's name.
 	bran, resp, err := handler.glClient.Branches.GetBranch(handler.repourl.projectID, commitOrBranch)
@@ -189,6 +191,7 @@ func (handler *branchesHandler) getBranch(commitOrBranch string) (*clients.Branc
 
 		projectStatusChecks, resp, err := handler.glClient.ExternalStatusChecks.ListProjectStatusChecks(
 			handler.repourl.projectID, &gitlab.ListOptions{})
+
 		// Project Status Checks are only allowed for GitLab ultimate members so we will assume they are
 		// null if user does not have permissions.
 		if err != nil && resp.StatusCode != 404 && resp.StatusCode != 401 {

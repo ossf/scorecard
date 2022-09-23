@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
 const master = "master"
@@ -73,8 +74,15 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 		}
 
 		// TODO: if this is a sha, get the associated branch. for now, ignore.
-		if commit.MatchString(release.TargetCommitish) && !strings.Contains(c.URI(), "gitlab.") {
-			continue
+		switch c.(type) {
+		case *mockrepo.MockRepoClient:
+			if commit.MatchString(release.TargetCommitish) {
+				continue
+			}
+		default:
+			if commit.MatchString(release.TargetCommitish) && !strings.Contains(c.URI(), "gitlab.") {
+				continue
+			}
 		}
 
 		if branches.contains(release.TargetCommitish) ||
