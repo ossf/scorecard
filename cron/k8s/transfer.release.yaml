@@ -26,28 +26,28 @@ spec:
         spec:
           restartPolicy: OnFailure
           containers:
-          - name: bq-transfer-releasetest-v2
-            image: gcr.io/openssf/scorecard-bq-transfer:latest
-            args: ["--config=/etc/scorecard/config.yaml"]
-            imagePullPolicy: Always
-            env:
-            - name: SCORECARD_DATA_BUCKET_URL
-              value: "gs://ossf-scorecard-data-releasetest2"
-            - name: SCORECARD_BIGQUERY_TABLE
-              value: "scorecard_releasetest2"
-            - name: SCORECARD_COMPLETION_THRESHOLD
-              value: "0.9"
-            - name: SCORECARD_WEBHOOK_URL
-              value: "http://10.4.8.246/"
-            resources:
-              limits:
-                memory: 1Gi
-              requests:
-                memory: 1Gi
-            volumeMounts:
-              - name: config-volume
-                mountPath: /etc/scorecard
-                readOnly: true
+            - name: bq-transfer-releasetest-v2
+              image: gcr.io/openssf/scorecard-bq-transfer:latest
+              args: ["--config=/etc/scorecard/config.yaml"]
+              imagePullPolicy: Always
+              env:
+                - name: SCORECARD_DATA_BUCKET_URL
+                  value: "gs://ossf-scorecard-data-releasetest2"
+                - name: SCORECARD_BIGQUERY_TABLE
+                  value: "scorecard_releasetest2"
+                - name: SCORECARD_COMPLETION_THRESHOLD
+                  value: "0.9"
+                - name: SCORECARD_WEBHOOK_URL
+                  value: "http://10.4.8.246/"
+              resources:
+                limits:
+                  memory: 1Gi
+                requests:
+                  memory: 1Gi
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/scorecard
+                  readOnly: true
           volumes:
             - name: config-volume
               configMap:
