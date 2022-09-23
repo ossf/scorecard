@@ -19,6 +19,7 @@ import (
 	// Used to embed config.yaml.
 	_ "embed"
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"reflect"
@@ -35,6 +36,11 @@ const (
 	ShardNumFilename string = ".shard_num"
 	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.
 	TransferStatusFilename string = ".transfer_complete"
+
+	configFlag    string = "config"
+	configDefault string = ""
+	configUsage   string = "Location of config file. Required"
+
 	projectID              string = "SCORECARD_PROJECT_ID"
 	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
 	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
@@ -55,8 +61,11 @@ var (
 	ErrorEmptyConfigValue = errors.New("config value set to empty")
 	// ErrorValueConversion indicates an unexpected type was found for the value of the config option.
 	ErrorValueConversion = errors.New("unexpected type, cannot convert value")
+	// ErrorNoConfig indicates no config file was provided, or flag.Parse() was not called.
+	ErrorNoConfig = errors.New("no configuration file provided with --" + configFlag)
 	//go:embed config.yaml
-	configYAML []byte
+	configYAML     []byte
+	configFilename = flag.String(configFlag, configDefault, configUsage)
 )
 
 //nolint:govet
@@ -193,6 +202,20 @@ func getScorecardParam(key string) (string, error) {
 		return "", err
 	}
 	return s[key], nil
+}
+
+// ReadConfig reads the contents of a configuration file specified with --config for later use by getters.
+// This function must be called before any other exported function, and after flag.Parse() is called.
+func ReadConfig() error {
+	var err error
+	if configFilename == nil || *configFilename == "" {
+		return nil
+	}
+	configYAML, err = os.ReadFile(*configFilename)
+	if err != nil {
+		return fmt.Errorf("config file: %w", err)
+	}
+	return nil
 }
 
 // GetProjectID returns the cloud projectID for the cron job.

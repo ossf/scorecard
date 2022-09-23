@@ -48,6 +48,7 @@ type Exporter interface {
 }
 
 // GetExporter defines a factory for returning opencensus Exporter.
+// Ensure config.ReadConfig() is called at some point before this function.
 func GetExporter() (Exporter, error) {
 	exporter, err := config.GetMetricExporter()
 	if err != nil {
