@@ -6,14 +6,14 @@ updates:
     interval: daily
   commit-message:
       prefix: ":seedling:"
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 3
 - package-ecosystem: gomod
   directory: "/tools"
   schedule:
     interval: daily
   commit-message:
       prefix: ":seedling:"
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 3
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
@@ -26,14 +26,14 @@ updates:
     interval: daily
   commit-message:
       prefix: ":seedling:"
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 3
 - package-ecosystem: docker
   directory: "/cron/bq"
   schedule:
     interval: daily
   commit-message:
       prefix: ":seedling:"
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 3
 - package-ecosystem: docker
   directory: "/cron/worker"
   schedule:

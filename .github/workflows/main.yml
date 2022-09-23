@@ -62,6 +62,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: Run unit-tests
        run: make unit-test
      - name: Upload codecoverage
@@ -106,6 +107,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: generate mocks
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -131,6 +133,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -152,6 +155,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: generate docs
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -176,6 +180,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
        with:
@@ -185,6 +190,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build-proto
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -210,6 +216,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -231,6 +238,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: Run build
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -256,6 +264,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -277,6 +286,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build cron
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -302,6 +312,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -323,6 +334,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build worker
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -348,6 +360,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -369,6 +382,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build cii-worker
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -394,6 +408,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -415,6 +430,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build shuffler
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -440,6 +456,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -461,6 +478,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build bq transfer
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -486,6 +504,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -507,6 +526,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build bq transfer
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -532,6 +552,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -553,6 +574,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build webhook
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -578,6 +600,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -599,6 +622,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build-add-script
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -624,6 +648,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -645,6 +670,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build-validate-script
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -670,6 +696,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -691,6 +718,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: build-validate-script
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -715,6 +743,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
        with:
@@ -724,6 +753,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: Run build
        run: |
             go env -w GOFLAGS=-mod=mod
@@ -760,6 +790,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: Run build
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -784,6 +815,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v2.1.7
@@ -805,6 +837,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: Run build
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -829,6 +862,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
        with:
@@ -838,6 +872,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: Run build
        uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
        with:
@@ -863,6 +898,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
+          cache: true
       - name: Check license headers
         run: |
           go env -w GOFLAGS=-mod=mod
