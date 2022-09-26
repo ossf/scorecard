@@ -26,7 +26,7 @@ import (
 )
 
 type Worker interface {
-	Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string, logger *log.Logger) error
+	Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) error
 	PostProcess()
 }
 
@@ -81,7 +81,7 @@ func (wl *WorkLoop) Run() error {
 		if exists {
 			logger.Info(fmt.Sprintf("Skipping already processed request: %s.", req.String()))
 		} else {
-			if err := wl.worker.Process(ctx, req, bucketURL, logger); err != nil {
+			if err := wl.worker.Process(ctx, req, bucketURL); err != nil {
 				announceError(err, subscriber, logger)
 				continue
 			}

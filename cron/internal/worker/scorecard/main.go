@@ -115,13 +115,9 @@ func (sw *ScorecardWorker) Close() {
 	sw.ossFuzzRepoClient.Close()
 }
 
-func (sw *ScorecardWorker) Process(ctx context.Context,
-	req *data.ScorecardBatchRequest,
-	bucketURL string,
-	logger *log.Logger,
-) error {
+func (sw *ScorecardWorker) Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) error {
 	return processRequest(ctx, req, sw.blacklistedChecks, bucketURL, sw.rawBucketURL, sw.apiBucketURL,
-		sw.checkDocs, sw.repoClient, sw.ossFuzzRepoClient, sw.ciiClient, sw.vulnsClient, logger)
+		sw.checkDocs, sw.repoClient, sw.ossFuzzRepoClient, sw.ciiClient, sw.vulnsClient, sw.logger)
 }
 
 func (sw *ScorecardWorker) PostProcess() {
