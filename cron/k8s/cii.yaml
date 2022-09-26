@@ -26,14 +26,14 @@ spec:
         spec:
           restartPolicy: Never
           containers:
-          - name: cii-worker
-            image: gcr.io/openssf/scorecard-cii-worker:stable
-            args: ["--config=/etc/scorecard/config.yaml"]
-            imagePullPolicy: Always
-            volumeMounts:
-              - name: config-volume
-                mountPath: /etc/scorecard
-                readOnly: true
+            - name: cii-worker
+              image: gcr.io/openssf/scorecard-cii-worker:stable
+              args: ["--config=/etc/scorecard/config.yaml"]
+              imagePullPolicy: Always
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/scorecard
+                  readOnly: true
           volumes:
             - name: config-volume
               configMap:

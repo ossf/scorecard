@@ -50,27 +50,27 @@ spec:
         spec:
           restartPolicy: Never
           containers:
-          - name: controller
-            image: gcr.io/openssf/scorecard-batch-controller:stable
-            args: ["--config=/etc/scorecard/config.yaml", "cron/internal/data/projects.csv"]
-            imagePullPolicy: Always
-            resources:
-              limits:
-                memory: 1Gi
-              requests:
-                memory: 1Gi
-            volumeMounts:
-              - name: config-volume
-                mountPath: /etc/scorecard
-                readOnly: true
+            - name: controller
+              image: gcr.io/openssf/scorecard-batch-controller:stable
+              args: ["--config=/etc/scorecard/config.yaml", "cron/internal/data/projects.csv"]
+              imagePullPolicy: Always
+              resources:
+                limits:
+                  memory: 1Gi
+                requests:
+                  memory: 1Gi
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/scorecard
+                  readOnly: true
+            - name: worker-update
+              image: bitnami/kubectl@sha256:44468c0f5b348e6dcf5e11feb6fdcc969c874bba2856150fe50eb1aacb3bdfee
+              command:
+                - "kubectl"
+                - "rollout"
+                - "restart"
+                - "deployment/scorecard-batch-worker"
           volumes:
             - name: config-volume
               configMap:
                 name: scorecard-config
-          - name: worker-update
-            image: bitnami/kubectl@sha256:44468c0f5b348e6dcf5e11feb6fdcc969c874bba2856150fe50eb1aacb3bdfee
-            command:
-              - "kubectl"
-              - "rollout"
-              - "restart"
-              - "deployment/scorecard-batch-worker"
