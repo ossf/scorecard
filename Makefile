@@ -143,9 +143,9 @@ build: $(build-targets)
 build-proto: ## Compiles and generates all required protobufs
 build-proto: cron/internal/data/request.pb.go cron/internal/data/metadata.pb.go
 cron/internal/data/request.pb.go: cron/internal/data/request.proto | $(PROTOC) $(PROTOC_GEN_GO)
-	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=../../../ cron/internal/data/request.proto
+	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/internal/data/request.proto
 cron/internal/data/metadata.pb.go: cron/internal/data/metadata.proto | $(PROTOC) $(PROTOC_GEN_GO)
-	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=../../../ cron/internal/data/metadata.proto
+	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_out=paths=source_relative cron/internal/data/metadata.proto
 
 generate-mocks: ## Compiles and generates all mocks using mockgen.
 generate-mocks: clients/mockclients/repo_client.go \
@@ -179,45 +179,107 @@ validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml
 	go run ./docs/checks/internal/validate/main.go
 
-build-scorecard: ## Runs go build on repo
+SCORECARD_DEPS = $(shell find . -iname "*.go" | grep -v tools/ | grep -v attestor/)
+build-scorecard: ## Build Scorecard CLI
+build-scorecard: scorecard
+scorecard: $(SCORECARD_DEPS)
 	# Run go build and generate scorecard executable
 	CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'
+scorecard-docker: ## Build Scorecard CLI Docker image
+scorecard-docker: scorecard.docker
+scorecard.docker: Dockerfile $(SCORECARD_DEPS)
+	DOCKER_BUILDKIT=1 docker build . --file Dockerfile \
+			--tag $(IMAGE_NAME) && \
+			touch scorecard.docker
 
-build-releaser: ## Runs goreleaser on the repo
+build-releaser: ## Build goreleaser for the Scorecard CLI
+build-releaser: scorecard.releaser
+scorecard.releaser: .goreleaser.yml $(SCORECARD_DEPS) | $(GORELEASER)
 	# Run go releaser on the Scorecard repo
-	$(GORELEASER) check
-	VERSION_LDFLAGS="$(LDFLAGS)" $(GORELEASER) release --snapshot --rm-dist --skip-publish --skip-sign
+	$(GORELEASER) check && \
+		VERSION_LDFLAGS="$(LDFLAGS)" $(GORELEASER) release \
+		--snapshot --rm-dist --skip-publish --skip-sign && \
+		touch scorecard.releaser
 
-build-controller: ## Runs go build on the cron PubSub controller
+CRON_CONTROLLER_DEPS = $(shell find cron/internal/ -iname "*.go")
+build-controller: ## Build cron controller
+build-controller: cron/internal/controller/controller
+cron/internal/controller/controller: $(CRON_CONTROLLER_DEPS)
 	# Run go build on the cron PubSub controller
 	cd cron/internal/controller && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o controller
+cron-controller-docker: ## Build cron controller Docker image
+cron-controller-docker: cron/internal/controller/controller.docker
+cron/internal/controller/controller.docker: cron/internal/controller/Dockerfile $(CRON_CONTROLLER_DEPS)
+	DOCKER_BUILDKIT=1 docker build . --file cron/internal/controller/Dockerfile \
+			--tag $(IMAGE_NAME)-batch-controller \
+			&& touch cron/internal/controller/controller.docker
 
 build-worker: ## Runs go build on the cron PubSub worker
 	# Run go build on the cron PubSub worker
 	cd cron/internal/worker && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o worker
 
-build-cii-worker: ## Runs go build on the CII worker
+CRON_CII_DEPS = $(shell find cron/internal/ clients/ -iname "*.go")
+build-cii-worker: ## Build cron CII worker
+build-cii-worker: cron/internal/cii/cii-worker
+cron/internal/cii/cii-worker: $(CRON_CII_DEPS)
 	# Run go build on the CII worker
 	cd cron/internal/cii && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o cii-worker
+cron-cii-worker-docker: # Build cron CII worker Docker image
+cron-cii-worker-docker: cron/internal/cii/cii-worker.docker
+cron/internal/cii/cii-worker.docker: cron/internal/cii/Dockerfile $(CRON_CII_DEPS)
+	DOCKER_BUILDKIT=1 docker build . --file cron/internal/cii/Dockerfile \
+			--tag $(IMAGE_NAME)-cii-worker && \
+			touch cron/internal/cii/cii-worker.docker
 
-build-shuffler: ## Runs go build on the cron shuffle script
+CRON_SHUFFLER_DEPS = $(shell find cron/internal/data/ cron/internal/shuffle/ -iname "*.go")
+build-shuffler: ## Build cron shuffle script
+build-shuffler: cron/internal/shuffle/shuffle
+cron/internal/shuffle/shuffle: $(CRON_SHUFFLER_DEPS)
 	# Run go build on the cron shuffle script
 	cd cron/internal/shuffle && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o shuffle
 
-build-bq-transfer: ## Runs go build on the BQ transfer cron job
-build-bq-transfer: ./cron/internal/bq/*.go
+CRON_TRANSFER_DEPS = $(shell find cron/internal/data/ cron/internal/config/ cron/internal/bq/ -iname "*.go")
+build-bq-transfer: ## Build cron BQ transfer worker
+build-bq-transfer: cron/internal/bq/data-transfer
+cron/internal/bq/data-transfer: $(CRON_TRANSFER_DEPS)
 	# Run go build on the Copier cron job
 	cd cron/internal/bq && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o data-transfer
+cron-bq-transfer-docker: ## Build cron BQ transfer worker Docker image
+cron-bq-transfer-docker: cron/internal/bq/data-transfer.docker
+cron/internal/bq/data-transfer.docker: cron/internal/bq/Dockerfile $(CRON_TRANSFER_DEPS)
+	DOCKER_BUILDKIT=1 docker build . --file cron/internal/bq/Dockerfile \
+			--tag $(IMAGE_NAME)-bq-transfer && \
+			touch cron/internal/bq/data-transfer.docker
 
-build-github-server: ## Runs go build on the GitHub auth server
-build-github-server: ./clients/githubrepo/roundtripper/tokens/*
+TOKEN_SERVER_DEPS = $(shell find clients/githubrepo/roundtripper/tokens/ -iname "*.go")
+build-github-server: ## Build GitHub token server
+build-github-server: clients/githubrepo/roundtripper/tokens/server/github-auth-server
+clients/githubrepo/roundtripper/tokens/server/github-auth-server: $(TOKEN_SERVER_DEPS)
 	# Run go build on the GitHub auth server
 	cd clients/githubrepo/roundtripper/tokens/server && \
 		CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o github-auth-server
+cron-github-server-docker: ## Build GitHub token server Docker image
+cron-github-server-docker: clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker
+clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker: \
+	clients/githubrepo/roundtripper/tokens/server/Dockerfile $(TOKEN_SERVER_DEPS)
+	DOCKER_BUILDKIT=1 docker build . \
+			--file clients/githubrepo/roundtripper/tokens/server/Dockerfile \
+			--tag ${IMAGE_NAME}-github-server && \
+			touch clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker
 
-build-webhook: ## Runs go build on the cron webhook
+CRON_WEBHOOK_DEPS = $(shell find cron/internal/webhook/ cron/internal/data/ -iname "*.go")
+build-webhook: ## Build cron webhook server
+build-webhook: cron/internal/webhook/webhook
+cron/internal/webhook/webhook: $(CRON_WEBHOOK_DEPS)
 	# Run go build on the cron webhook
 	cd cron/internal/webhook && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o webhook
+cron-webhook-docker: ## Build cron webhook server Docker image
+cron-webhook-docker: cron/internal/webhook/webhook.docker
+cron/internal/webhook/webhook.docker: cron/internal/webhook/Dockerfile $(CRON_WEBHOOK_DEPS)
+	DOCKER_BUILDKIT=1 docker build . --file cron/internal/webhook/Dockerfile \
+			--tag ${IMAGE_NAME}-webhook && \
+			touch cron/internal/webhook/webhook.docker
+
 
 build-add-script: ## Runs go build on the add script
 build-add-script: cron/internal/data/add/add
@@ -241,20 +303,8 @@ docker-targets = scorecard-docker cron-controller-docker cron-worker-docker cron
 .PHONY: dockerbuild $(docker-targets)
 dockerbuild: $(docker-targets)
 
-scorecard-docker:
-	DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag $(IMAGE_NAME)
-cron-controller-docker:
-	DOCKER_BUILDKIT=1 docker build . --file cron/internal/controller/Dockerfile --tag $(IMAGE_NAME)-batch-controller
 cron-worker-docker:
 	DOCKER_BUILDKIT=1 docker build . --file cron/internal/worker/Dockerfile --tag $(IMAGE_NAME)-batch-worker
-cron-cii-worker-docker:
-	DOCKER_BUILDKIT=1 docker build . --file cron/internal/cii/Dockerfile --tag $(IMAGE_NAME)-cii-worker
-cron-bq-transfer-docker:
-	DOCKER_BUILDKIT=1 docker build . --file cron/internal/bq/Dockerfile --tag $(IMAGE_NAME)-bq-transfer
-cron-webhook-docker:
-	DOCKER_BUILDKIT=1 docker build . --file cron/internal/webhook/Dockerfile --tag ${IMAGE_NAME}-webhook
-cron-github-server-docker:
-	DOCKER_BUILDKIT=1 docker build . --file clients/githubrepo/roundtripper/tokens/server/Dockerfile --tag ${IMAGE_NAME}-github-server
 ###############################################################################
 
 ##@ Tests
