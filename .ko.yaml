@@ -1,7 +1,0 @@
-builds:
-- id: scorecard
-  flags:
-    - -tags
-    - -netgo
-  ldflags:
-  - "{{.Env.LDFLAGS}}"
