@@ -27,24 +27,24 @@ spec:
         app.kubernetes.io/name: worker
     spec:
       containers:
-      - name: worker
-        image: gcr.io/openssf/scorecard-batch-worker:stable
-        args: ["--ignoreRuntimeErrors=true", "--config=/etc/scorecard/config.yaml"]
-        imagePullPolicy: Always
-        env:
-        - name: GITHUB_AUTH_SERVER
-          value: "10.4.4.210:80"
-        resources:
-          requests:
-            memory: 5Gi
-            ephemeral-storage: 100Gi
-          limits:
-            memory: 12Gi
-            ephemeral-storage: 500Gi
-        volumeMounts:
-          - name: config-volume
-            mountPath: /etc/scorecard
-            readOnly: true
+        - name: worker
+          image: gcr.io/openssf/scorecard-batch-worker:stable
+          args: ["--ignoreRuntimeErrors=true", "--config=/etc/scorecard/config.yaml"]
+          imagePullPolicy: Always
+          env:
+            - name: GITHUB_AUTH_SERVER
+              value: "10.4.4.210:80"
+          resources:
+            requests:
+              memory: 5Gi
+              ephemeral-storage: 100Gi
+            limits:
+              memory: 12Gi
+              ephemeral-storage: 500Gi
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/scorecard
+              readOnly: true
       volumes:
         - name: config-volume
           configMap:

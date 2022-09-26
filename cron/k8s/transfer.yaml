@@ -25,19 +25,19 @@ spec:
       template:
         spec:
           containers:
-          - name: bq-transfer-v2
-            image: gcr.io/openssf/scorecard-bq-transfer:latest
-            args: ["--config=/etc/scorecard/config.yaml"]
-            imagePullPolicy: Always
-            resources:
-              limits:
-                memory: 1Gi
-              requests:
-                memory: 1Gi
-            volumeMounts:
-              - name: config-volume
-                mountPath: /etc/scorecard
-                readOnly: true
+            - name: bq-transfer-v2
+              image: gcr.io/openssf/scorecard-bq-transfer:latest
+              args: ["--config=/etc/scorecard/config.yaml"]
+              imagePullPolicy: Always
+              resources:
+                limits:
+                  memory: 1Gi
+                requests:
+                  memory: 1Gi
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/scorecard
+                  readOnly: true
           volumes:
             - name: config-volume
               configMap:
