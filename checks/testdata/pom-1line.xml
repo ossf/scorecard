@@ -1,4 +1,0 @@
- <sonar.coverage.jacoco.xmlReportPaths>target/jacoco-report/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-<sonar.host.url>https://sonarqube.private.domain</sonar.host.url>
-<sonar.projectKey>${projectKey}</sonar.projectKey>
-<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
