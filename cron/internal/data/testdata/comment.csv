@@ -1,7 +1,0 @@
-repo,metadata
-#Repo1
-github.com/owner1/repo1,
-#Repo2
-github.com/owner2/repo2,
-# this is longer comment for Repo3
-github.com/owner3/repo3,meta
