@@ -126,10 +126,10 @@ func addCodeReviewRawResults(r *jsonScorecardRawResult, cr *checker.CodeReviewDa
 		for i := range cs.Commits {
 			commits = append(commits, jsonCommit{
 				Committer: jsonUser{
-					Login: commits[i].Committer.Login,
+					Login: cs.Commits[i].Committer.Login,
 				},
-				Message: commits[i].Message,
-				SHA:     commits[i].SHA,
+				Message: cs.Commits[i].Message,
+				SHA:     cs.Commits[i].SHA,
 			})
 		}
 

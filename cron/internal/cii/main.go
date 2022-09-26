@@ -18,6 +18,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -82,6 +83,11 @@ func getPage(ctx context.Context, pageNum int) ([]ciiPageResp, error) {
 func main() {
 	ctx := context.Background()
 	fmt.Println("Starting...")
+
+	flag.Parse()
+	if err := config.ReadConfig(); err != nil {
+		panic(err)
+	}
 
 	ciiDataBucket, err := config.GetCIIDataBucketURL()
 	if err != nil {

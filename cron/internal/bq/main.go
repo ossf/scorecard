@@ -18,6 +18,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -150,6 +151,12 @@ func getBQConfig() (projectID, datasetName, tableName string, err error) {
 
 func main() {
 	ctx := context.Background()
+
+	flag.Parse()
+	if err := config.ReadConfig(); err != nil {
+		panic(err)
+	}
+
 	bucketURL, err := config.GetResultDataBucketURL()
 	if err != nil {
 		panic(err)

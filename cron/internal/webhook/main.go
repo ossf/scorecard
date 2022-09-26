@@ -81,6 +81,7 @@ func scriptHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/", scriptHandler)
 	fmt.Printf("Starting HTTP server on port 8080 ...\n")
+	// nolint:gosec // internal server.
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}

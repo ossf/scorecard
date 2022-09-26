@@ -99,7 +99,7 @@ func errCmp(e1, e2 error) bool {
 }
 
 // ValidateTestReturn validates expected TestReturn with actual checker.CheckResult values.
-//nolint: thelper
+// nolint: thelper
 func ValidateTestReturn(
 	t *testing.T,
 	name string,
