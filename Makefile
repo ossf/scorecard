@@ -84,7 +84,7 @@ install: $(GOLANGCI_LINT) \
 ##@ Build
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = build check-linter check-osv validate-docs add-projects validate-projects
+all-targets = build check-linter validate-docs add-projects validate-projects
 .PHONY: all all-targets-update-dependencies $(all-targets) update-dependencies tree-status
 all-targets-update-dependencies: $(all-targets) | update-dependencies
 all: update-dependencies all-targets-update-dependencies tree-status
@@ -99,18 +99,6 @@ check-linter: ## Install and run golang linter
 check-linter: | $(GOLANGCI_LINT)
 	# Run golangci-lint linter
 	$(GOLANGCI_LINT) run -c .golangci.yml
-
-check-osv: ## Checks osv.dev for any vulnerabilities
-check-osv: | $(STUNNING_TRIBBLE)
-	# Run stunning-tribble for checking the dependencies have any OSV
-	go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
-			| $(STUNNING_TRIBBLE)
-	# Checking the tools which also has go.mod
-	cd tools; go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
-			| $(STUNNING_TRIBBLE) ; cd ..
-	# Checking the attestor module for vulns
-	cd attestor; go list -m -f '{{if not (or  .Main)}}{{.Path}}@{{.Version}}_{{.Replace}}{{end}}' all \
-			| $(STUNNING_TRIBBLE) ; cd ..
 
 add-projects: ## Adds new projects to ./cron/internal/data/projects.csv
 add-projects: ./cron/internal/data/projects.csv | build-add-script
