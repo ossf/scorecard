@@ -145,7 +145,7 @@ build-proto: cron/internal/data/request.pb.go cron/internal/data/metadata.pb.go
 cron/internal/data/request.pb.go: cron/internal/data/request.proto | $(PROTOC) $(PROTOC_GEN_GO)
 	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/internal/data/request.proto
 cron/internal/data/metadata.pb.go: cron/internal/data/metadata.proto | $(PROTOC) $(PROTOC_GEN_GO)
-	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_out=paths=source_relative cron/internal/data/metadata.proto
+	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/internal/data/metadata.proto
 
 generate-mocks: ## Compiles and generates all mocks using mockgen.
 generate-mocks: clients/mockclients/repo_client.go \
