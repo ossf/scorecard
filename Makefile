@@ -168,6 +168,11 @@ build-bq-transfer: ./cron/internal/bq/*.go
 	# Run go build on the Copier cron job
 	cd cron/internal/bq && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o data-transfer
 
+build-attestor: ## Runs go build on scorecard attestor
+	# Run go build on scorecard attestor
+	cd attestor/; CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)' -o scorecard-attestor
+
+
 build-github-server: ## Runs go build on the GitHub auth server
 build-github-server: ./clients/githubrepo/roundtripper/tokens/*
 	# Run go build on the GitHub auth server

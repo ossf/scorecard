@@ -7,13 +7,12 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/go-logr/glogr"
 	"github.com/golang/glog"
 	"github.com/grafeas/kritis/pkg/attestlib"
 	"github.com/grafeas/kritis/pkg/kritis/metadata/containeranalysis"
 	"github.com/grafeas/kritis/pkg/kritis/signer"
 	"github.com/grafeas/kritis/pkg/kritis/util"
-	attest "github.com/ossf/scorecard-attestor/policy"
+	"github.com/ossf/scorecard-attestor/policy"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	sclog "github.com/ossf/scorecard/v4/log"
@@ -133,7 +132,6 @@ func exitOnBadFlags(mode SignerMode, err string) {
 
 func main() {
 	flag.Parse()
-	gl := glogr.New()
 	glog.Infof("Signer mode: %s.", mode)
 	ctx := context.Background()
 
@@ -143,8 +141,6 @@ func main() {
 	}
 
 	// Check image url is non-empty
-	// TODO: check and format image url to
-	//  gcr.io/project-id/rest-of-image-path@sha256:[sha-value]
 	if image == "" {
 		exitOnBadFlags(SignerMode(mode), "image url is empty")
 	}
@@ -160,7 +156,7 @@ func main() {
 		if policyPath == "" {
 			exitOnBadFlags(SignerMode(mode), "policy path is empty")
 		}
-		policy, err := attest.ParseAttestationPolicyFromFile(policyPath)
+		attestationPolicy, err := policy.ParseAttestationPolicyFromFile(policyPath)
 		if err != nil {
 			glog.Fatalf("Fail to load scorecard attestation policy: %v", err)
 		}
@@ -186,10 +182,10 @@ func main() {
 			}
 		}
 
-		logger := sclog.Logger{Logger: &gl}
+		logger := sclog.NewLogger(sclog.DefaultLevel)
 
 		repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
-			ctx, repoURL, "", &logger)
+			ctx, repoURL, "", logger)
 
 		enabledChecks := map[string]checker.Check{
 			"BinaryArtifacts": {
@@ -214,11 +210,11 @@ func main() {
 			glog.Fatalf("RunScorecards: %w", err)
 		}
 
-		result, err := attest.RunChecksForPolicy(policy, &repoResult.RawResults)
+		result, err := policy.RunChecksForPolicy(attestationPolicy, &repoResult.RawResults)
 		if err != nil {
 			glog.Fatalf("Error when evaluating image %q against policy", image)
 		}
-		if result != attest.Pass {
+		if result != policy.Pass {
 			glog.Errorf("policy check failed on image %s:", image)
 			os.Exit(1)
 		}

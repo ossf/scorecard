@@ -63,7 +63,7 @@ require (
 	k8s.io/apimachinery v0.18.8 // indirect
 	k8s.io/client-go v0.18.8 // indirect
 	k8s.io/klog v1.0.0 // indirect
-	k8s.io/klog/v2 v2.0.0 // indirect
+	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/utils v0.0.0-20211116205334-6203023598ed // indirect
 	mvdan.cc/sh/v3 v3.5.1 // indirect
 	sigs.k8s.io/release-utils v0.6.0 // indirect
@@ -79,7 +79,6 @@ require (
 	cloud.google.com/go/storage v1.23.0 // indirect
 	github.com/bombsimon/logrusr/v2 v2.0.1 // indirect
 	github.com/bradleyfalzon/ghinstallation/v2 v2.1.0 // indirect
-	github.com/go-logr/glogr v1.2.2
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/gobwas/glob v0.2.3
 	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect

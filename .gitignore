@@ -1,5 +1,6 @@
 # binary.
 scorecard
+attestor/scorecard-attestor
 gitblobcache
 clients/githubrepo/roundtripper/tokens/server/github-auth-server
 cron/internal/data/add/add
