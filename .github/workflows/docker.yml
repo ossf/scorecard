@@ -49,6 +49,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
@@ -75,6 +76,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: docker build
        run: make scorecard-docker
   cron-controller:
@@ -92,6 +94,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
@@ -118,6 +121,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: docker build
        run: make cron-controller-docker
   cron-worker:
@@ -135,6 +139,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
@@ -161,6 +166,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: docker build
        run: make cron-worker-docker
   cron-cii-worker:
@@ -178,6 +184,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
@@ -204,6 +211,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: docker build
        run: make cron-cii-worker-docker
   cron-bq-transfer:
@@ -221,6 +229,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
@@ -247,6 +256,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: docker build
        run: make cron-bq-transfer-docker
   cron-webhook:
@@ -264,6 +274,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
@@ -290,6 +301,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: docker build
        run: make cron-webhook-docker
   cron-github-server:
@@ -307,6 +319,7 @@ jobs:
        uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
        with:
         version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
@@ -333,5 +346,6 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: true
      - name: docker build
        run: make cron-github-server-docker

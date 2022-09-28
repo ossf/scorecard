@@ -64,6 +64,7 @@ const (
 )
 
 // CheckResult captures result from a check run.
+//
 //nolint:govet
 type CheckResult struct {
 	Name    string
@@ -94,6 +95,7 @@ type CheckDetail struct {
 
 // LogMessage is a structure that encapsulates detail's information.
 // This allows updating the definition easily.
+//
 //nolint:govet
 type LogMessage struct {
 	Text        string       // A short string explaining why the detail was recorded/logged.

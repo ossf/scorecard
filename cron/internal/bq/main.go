@@ -18,6 +18,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -89,9 +90,12 @@ func getBucketSummary(ctx context.Context, bucketURL string) (*bucketSummary, er
 	return &summary, nil
 }
 
+// isCompleted checks if the percentage of completed shards is over the desired completion threshold.
+// It also returns false to prevent transfers in cases where the expected number of shards is 0,
+// as either the .shard_metadata file is missing, or there is nothing to transfer anyway.
 func isCompleted(expected, created int, completionThreshold float64) bool {
 	completedPercentage := float64(created) / float64(expected)
-	return completedPercentage >= completionThreshold
+	return expected > 0 && completedPercentage >= completionThreshold
 }
 
 func transferDataToBq(ctx context.Context,
@@ -150,6 +154,12 @@ func getBQConfig() (projectID, datasetName, tableName string, err error) {
 
 func main() {
 	ctx := context.Background()
+
+	flag.Parse()
+	if err := config.ReadConfig(); err != nil {
+		panic(err)
+	}
+
 	bucketURL, err := config.GetResultDataBucketURL()
 	if err != nil {
 		panic(err)
