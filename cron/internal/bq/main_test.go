@@ -15,7 +15,14 @@
 package main
 
 import (
+	"context"
+	"path/filepath"
+	"reflect"
+	"strings"
 	"testing"
+	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestIsCompleted(t *testing.T) {
@@ -56,6 +63,67 @@ func TestIsCompleted(t *testing.T) {
 			completed := isCompleted(testcase.inputExpected, testcase.inputCreated, testcase.completedThreshold)
 			if completed != testcase.expectedCompleted {
 				t.Errorf("test failed - expected: %t, got: %t", testcase.expectedCompleted, completed)
+			}
+		})
+	}
+}
+
+func TestGetBucketSummary(t *testing.T) {
+	t.Parallel()
+	//nolint:govet
+	testcases := []struct {
+		name     string
+		blobPath string
+		want     *bucketSummary
+		wantErr  bool
+	}{
+		{
+			name:     "basic",
+			blobPath: "testdata/basic",
+			want: &bucketSummary{
+				shards: map[time.Time]*shardSummary{
+					time.Date(2022, 9, 19, 2, 0, 1, 0, time.UTC): {
+						shardMetadata:  []byte(`{"shardLoc":"test","numShard":3,"commitSha":"2231d1f722454c6c9aa6ad77377d2936803216ff"}`),
+						shardsExpected: 3,
+						shardsCreated:  2,
+						isTransferred:  true,
+					},
+					time.Date(2022, 9, 26, 2, 0, 3, 0, time.UTC): {
+						shardMetadata:  []byte(`{"shardLoc":"test","numShard":5,"commitSha":"2231d1f722454c6c9aa6ad77377d2936803216ff"}`),
+						shardsExpected: 5,
+						shardsCreated:  3,
+						isTransferred:  false,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:     "invalid file present",
+			blobPath: "testdata/invalid",
+			want:     nil,
+			wantErr:  true,
+		},
+	}
+
+	exporter := func(t reflect.Type) bool { return strings.HasPrefix(t.PkgPath(), "github.com/ossf/scorecard") }
+
+	for i := range testcases {
+		tt := &testcases[i]
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			// convert local to absolute path, which is needed for the fileblob bucket
+			testdataPath, err := filepath.Abs(tt.blobPath)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			summary, err := getBucketSummary(context.Background(), "file:///"+testdataPath)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getBucketSummary() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !cmp.Equal(summary, tt.want, cmp.Exporter(exporter)) {
+				t.Errorf("Got diff: %s", cmp.Diff(summary, tt.want, cmp.Exporter(exporter)))
 			}
 		})
 	}
