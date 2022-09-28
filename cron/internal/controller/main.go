@@ -18,6 +18,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"time"
@@ -143,6 +144,11 @@ func main() {
 	ctx := context.Background()
 	t := time.Now()
 
+	flag.Parse()
+	if err := config.ReadConfig(); err != nil {
+		panic(err)
+	}
+
 	topic, err := config.GetRequestTopicURL()
 	if err != nil {
 		panic(err)
@@ -168,8 +174,8 @@ func main() {
 	}
 
 	var reader data.Iterator
-	if useLocalFiles := len(os.Args) > 1; useLocalFiles {
-		reader = localFiles(os.Args[1:])
+	if useLocalFiles := len(flag.Args()) > 0; useLocalFiles {
+		reader = localFiles(flag.Args())
 	} else {
 		reader = bucketFiles(ctx)
 	}
