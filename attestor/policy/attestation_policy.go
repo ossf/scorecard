@@ -37,9 +37,8 @@ type AttestationPolicy struct {
 }
 
 // Run attestation policy checks on raw data.
-func RunChecksForPolicy(policy *AttestationPolicy, raw *checker.RawResults,
-	dl checker.DetailLogger,
-) (PolicyResult, error) {
+func RunChecksForPolicy(policy *AttestationPolicy, raw *checker.RawResults) (PolicyResult, error) {
+	dl := checker.NewLogger()
 	if policy.PreventBinaryArtifacts {
 		checkResult, err := CheckPreventBinaryArtifacts(policy.AllowedBinaryArtifacts, raw, dl)
 
