@@ -28,15 +28,16 @@ import (
 
 // Options define common options for configuring scorecard.
 type Options struct {
-	Repo       string
-	Local      string
-	Commit     string
-	LogLevel   string
-	Format     string
-	NPM        string
-	PyPI       string
-	RubyGems   string
-	PolicyFile string
+	Repo        string
+	Local       string
+	Commit      string
+	CommitDepth int64
+	LogLevel    string
+	Format      string
+	NPM         string
+	PyPI        string
+	RubyGems    string
+	PolicyFile  string
 	// TODO(action): Add logic for writing results to file
 	ResultsFile string
 	ChecksToRun []string
@@ -60,6 +61,9 @@ func New() *Options {
 	if opts.Commit == "" {
 		opts.Commit = DefaultCommit
 	}
+	if opts.CommitDepth == 0 {
+		opts.CommitDepth = DefaultCommitDepth
+	}
 	if opts.Format == "" {
 		opts.Format = FormatDefault
 	}
@@ -74,6 +78,8 @@ const (
 	// DefaultCommit specifies the default commit reference to use.
 	DefaultCommit = clients.HeadSHA
 
+	// DefaultCommitDepth specifies the default commit depth to use.
+	DefaultCommitDepth = 30
 	// Formats.
 
 	// FormatJSON specifies that results should be output in JSON format.
