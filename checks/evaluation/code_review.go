@@ -21,7 +21,7 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-type reviewScore = int
+type reviewScore int
 
 // TODO(raghavkaul) More partial credit? E.g. approval from non-contributor, discussion liveness,
 // number of resolved comments, number of approvers (more eyes on a project).
@@ -29,6 +29,7 @@ const (
 	noReview              reviewScore = 0 // No approving review before merge
 	changesReviewed       reviewScore = 1 // Changes were reviewed
 	reviewedOutsideGithub reviewScore = 1 // Full marks until we can check review platforms outside of GitHub
+	reviewNotNeeded       reviewScore = 1 // Review not needed (e.g. bot commits)
 )
 
 // CodeReview applies the score policy for the Code-Review check.
@@ -57,6 +58,13 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 }
 
 func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
+	if changeset.Commits[0].Committer.IsBot {
+		// NB: This will cause scorecard to ignore bot PRs that are subsequently
+		// edited by collaborators (e.g. if dependabot opens a PR, but another user
+		// edits the PR branch before it is merged)
+		return reviewNotNeeded
+	}
+
 	if changeset.ReviewPlatform != "" && changeset.ReviewPlatform != checker.ReviewPlatformGitHub {
 		return reviewedOutsideGithub
 	}

@@ -21,6 +21,7 @@ type User struct {
 	Organizations    []User
 	NumContributions int
 	ID               int64
+	IsBot            bool
 }
 
 // RepoAssociation is how a user is associated with a repository.

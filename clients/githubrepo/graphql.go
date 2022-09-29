@@ -328,8 +328,13 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
 		var committer string
 		// Find the commit's committer.
+		var isBot bool = false
 		if commit.Committer.User.Login != nil && *commit.Committer.User.Login != "" {
 			committer = *commit.Committer.User.Login
+			// Only valid because we're using User.Login
+			// which can't have a [bot] suffix on GitHub
+			// unless it's actually a bot
+			isBot = strings.HasSuffix(committer, "[bot]")
 		} else if commit.Committer.Name != nil &&
 			// Username "GitHub" may indicate the commit was committed by GitHub.
 			// We verify that the commit is signed by GitHub, because the name can be spoofed.
@@ -378,6 +383,7 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 			SHA:           string(commit.Oid),
 			Committer: clients.User{
 				Login: committer,
+				IsBot: isBot,
 			},
 			AssociatedMergeRequest: associatedPR,
 		})

@@ -55,10 +55,10 @@ func TestCodeReview(t *testing.T) {
 			rawData: &checker.CodeReviewData{
 				DefaultBranchChangesets: []checker.Changeset{
 					{
-						Commits: []clients.Commit{{SHA: "1"}},
+						Commits: []clients.Commit{{SHA: "a"}},
 					},
 					{
-						Commits: []clients.Commit{{SHA: "1"}},
+						Commits: []clients.Commit{{SHA: "a"}},
 					},
 				},
 			},
@@ -75,7 +75,7 @@ func TestCodeReview(t *testing.T) {
 						RevisionID:     "1",
 						Commits: []clients.Commit{
 							{
-								SHA: "1",
+								SHA: "a",
 								AssociatedMergeRequest: clients.PullRequest{
 									Reviews: []clients.Review{
 										{
@@ -83,6 +83,15 @@ func TestCodeReview(t *testing.T) {
 										},
 									},
 								},
+							},
+						},
+					},
+					{
+						RevisionID: "b",
+						Commits: []clients.Commit{
+							{
+								Committer: clients.User{Login: "alice[bot]", IsBot: true},
+								SHA:       "b",
 							},
 						},
 					},
@@ -99,7 +108,7 @@ func TestCodeReview(t *testing.T) {
 					{
 						ReviewPlatform: checker.ReviewPlatformGerrit,
 						RevisionID:     "1",
-						Commits:        []clients.Commit{{SHA: "1"}},
+						Commits:        []clients.Commit{{SHA: "a"}},
 					},
 				},
 			},
