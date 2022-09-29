@@ -226,7 +226,7 @@ cron/internal/shuffle/shuffle: $(CRON_SHUFFLER_DEPS)
 	# Run go build on the cron shuffle script
 	cd cron/internal/shuffle && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o shuffle
 
-CRON_TRANSFER_DEPS = $(shell find cron/data/ cron/internal/config/ cron/internal/bq/ -iname "*.go")
+CRON_TRANSFER_DEPS = $(shell find cron/data/ cron/config/ cron/internal/bq/ -iname "*.go")
 build-bq-transfer: ## Build cron BQ transfer worker
 build-bq-transfer: cron/internal/bq/data-transfer
 cron/internal/bq/data-transfer: $(CRON_TRANSFER_DEPS)
