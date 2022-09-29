@@ -143,6 +143,9 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 
 	for i := range commits {
 		rev := detectCommitRevisionInfo(&commits[i])
+		if rev.ID == "" {
+			rev.ID = commits[i].SHA
+		}
 
 		if changeset, ok := changesetsByRevInfo[rev]; !ok {
 			newChangeset := checker.Changeset{
