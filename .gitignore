@@ -1,5 +1,5 @@
 # binary.
-/scorecard
+scorecard
 scorecard.docker
 scorecard.releaser
 gitblobcache
@@ -10,7 +10,7 @@ cron/internal/data/validate/validate
 cron/internal/data/update/projects-update
 cron/internal/controller/controller
 cron/internal/controller/controller.docker
-cron/internal/worker/scorecard/worker
+cron/internal/worker/worker
 cron/internal/cii/cii-worker
 cron/internal/cii/cii-worker.docker
 cron/internal/shuffle/shuffle

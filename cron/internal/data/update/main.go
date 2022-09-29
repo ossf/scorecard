@@ -19,7 +19,7 @@ import (
 	"bytes"
 	"os"
 
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 // Adds "project=${PROJECT},dependency=true" to the repositories metadata.

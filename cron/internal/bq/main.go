@@ -28,8 +28,8 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 
+	"github.com/ossf/scorecard/v4/cron/data"
 	"github.com/ossf/scorecard/v4/cron/internal/config"
-	"github.com/ossf/scorecard/v4/cron/internal/data"
 )
 
 type shardSummary struct {

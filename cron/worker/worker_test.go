@@ -20,7 +20,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 func asPointer(i int32) *int32 {

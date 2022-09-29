@@ -28,8 +28,8 @@ import (
 	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/cron/data"
 	"github.com/ossf/scorecard/v4/cron/internal/config"
-	"github.com/ossf/scorecard/v4/cron/internal/data"
 	"github.com/ossf/scorecard/v4/cron/internal/pubsub"
 )
 
