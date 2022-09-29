@@ -71,6 +71,20 @@ func (wl *WorkLoop) Run() error {
 			break
 		}
 
+		// don't process requests from jobs without metadata files, as the results will never be transferred.
+		// https://github.com/ossf/scorecard/issues/2307
+		hasMd, err := hasMetadataFile(ctx, req, bucketURL)
+		if err != nil {
+			announceError(err, subscriber, logger)
+			continue
+		}
+
+		if !hasMd {
+			// nack the message so it can be tried later, as the metadata file may not have been created yet.
+			subscriber.Nack()
+			continue
+		}
+
 		exists, err := resultExists(ctx, req, bucketURL)
 		if err != nil {
 			announceError(err, subscriber, logger)
@@ -114,4 +128,13 @@ func resultExists(ctx context.Context, sbr *data.ScorecardBatchRequest, bucketUR
 func ResultFilename(sbr *data.ScorecardBatchRequest) string {
 	shardname := fmt.Sprintf("shard-%07d", sbr.GetShardNum())
 	return data.GetBlobFilename(shardname, sbr.GetJobTime().AsTime())
+}
+
+func hasMetadataFile(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) (bool, error) {
+	filename := data.GetShardMetadataFilename(req.GetJobTime().AsTime())
+	exists, err := data.BlobExists(ctx, bucketURL, filename)
+	if err != nil {
+		return false, fmt.Errorf("data.BlobExists: %w", err)
+	}
+	return exists, nil
 }
