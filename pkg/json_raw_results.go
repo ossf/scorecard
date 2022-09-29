@@ -549,33 +549,20 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(changesets []checker.Chang
 		}
 
 		reviews := []jsonReview{}
-		for j := range cs.Commits {
-			mr := cs.Commits[j].AssociatedMergeRequest
-			if mr.Reviews == nil {
-				continue
-			}
-			for k := range mr.Reviews {
-				r := mr.Reviews[k]
-				reviews = append(reviews, jsonReview{
-					State: r.State,
-					Reviewer: jsonUser{
-						Login: r.Author.Login,
-					},
-				})
-			}
+		for j := range cs.Reviews {
+			r := cs.Reviews[j]
+			reviews = append(reviews, jsonReview{
+				State: r.State,
+				Reviewer: jsonUser{
+					Login: r.Author.Login,
+				},
+			})
 		}
 
 		// Only add the Merge Request opener as the PR author
-		authors := []jsonUser{}
-		for j := range cs.Commits {
-			mr := cs.Commits[j].AssociatedMergeRequest
-			if mr.Author.Login != "" {
-				authors = append(authors, jsonUser{
-					Login: mr.Author.Login,
-				})
-				break
-			}
-		}
+		authors := []jsonUser{{
+			Login: cs.Author.Login,
+		}}
 
 		r.Results.DefaultBranchChangesets = append(r.Results.DefaultBranchChangesets,
 			jsonDefaultBranchChangeset{

@@ -75,7 +75,8 @@ type graphqlData struct {
 									}
 								}
 								Author struct {
-									Login githubv4.String
+									Login        githubv4.String
+									ResourcePath githubv4.String
 								}
 								Number     githubv4.Int
 								HeadRefOid githubv4.String
@@ -396,12 +397,14 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 				string(pr.Repository.Name) != repoName {
 				continue
 			}
+			openedByBot := strings.HasPrefix(string(pr.Author.ResourcePath), "/apps/")
 			associatedPR = clients.PullRequest{
 				Number:   int(pr.Number),
 				HeadSHA:  string(pr.HeadRefOid),
 				MergedAt: pr.MergedAt.Time,
 				Author: clients.User{
 					Login: string(pr.Author.Login),
+					IsBot: openedByBot,
 				},
 				MergedBy: clients.User{
 					Login: string(pr.MergedBy.Login),

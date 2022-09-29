@@ -55,10 +55,47 @@ func TestCodeReview(t *testing.T) {
 			rawData: &checker.CodeReviewData{
 				DefaultBranchChangesets: []checker.Changeset{
 					{
-						Commits: []clients.Commit{{SHA: "1"}},
+						Commits: []clients.Commit{{SHA: "a"}},
 					},
 					{
-						Commits: []clients.Commit{{SHA: "1"}},
+						Commits: []clients.Commit{{SHA: "a"}},
+					},
+				},
+			},
+		},
+		{
+			name: "all human changesets reviewed, missing review on bot changeset",
+			expected: scut.TestReturn{
+				Score: 7,
+			},
+			rawData: &checker.CodeReviewData{
+				DefaultBranchChangesets: []checker.Changeset{
+					{
+						Author:         clients.User{Login: "alice"},
+						ReviewPlatform: checker.ReviewPlatformGitHub,
+						RevisionID:     "1",
+						Reviews: []clients.Review{
+							{
+								Author: &clients.User{},
+								State:  "APPROVED",
+							},
+						},
+						Commits: []clients.Commit{
+							{
+								Committer: clients.User{Login: "bob"},
+								SHA:       "b",
+							},
+						},
+					},
+					{
+						Author:     clients.User{Login: "alice-the-bot[bot]", IsBot: true},
+						RevisionID: "b",
+						Commits: []clients.Commit{
+							{
+								Committer: clients.User{Login: "alice-the-bot[bot]", IsBot: true},
+								SHA:       "b",
+							},
+						},
 					},
 				},
 			},
@@ -80,10 +117,54 @@ func TestCodeReview(t *testing.T) {
 								State:  "APPROVED",
 							},
 						},
+						Commits: []clients.Commit{
+							{
+								Committer: clients.User{Login: "bob"},
+								SHA:       "b",
+							},
+						},
 					},
 				},
 			},
 		},
+
+		{
+			name: "bot commits only",
+			expected: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+			},
+			rawData: &checker.CodeReviewData{
+				DefaultBranchChangesets: []checker.Changeset{
+					{
+						Author:         clients.User{Login: "alice-the-bot[bot]", IsBot: true},
+						ReviewPlatform: checker.ReviewPlatformGitHub,
+						RevisionID:     "1",
+						Reviews: []clients.Review{
+							{
+								Author: &clients.User{},
+								State:  "APPROVED",
+							},
+						},
+						Commits: []clients.Commit{
+							{
+								Committer: clients.User{Login: "alice-the-bot[bot]", IsBot: true},
+								SHA:       "b",
+							},
+						},
+					},
+					{
+						RevisionID: "b",
+						Commits: []clients.Commit{
+							{
+								Committer: clients.User{Login: "alice-the-bot[bot]", IsBot: true},
+								SHA:       "b",
+							},
+						},
+					},
+				},
+			},
+		},
+
 		{
 			name: "all changesets reviewed outside github",
 			expected: scut.TestReturn{
@@ -94,7 +175,7 @@ func TestCodeReview(t *testing.T) {
 					{
 						ReviewPlatform: checker.ReviewPlatformGerrit,
 						RevisionID:     "1",
-						Commits:        []clients.Commit{{SHA: "1"}},
+						Commits:        []clients.Commit{{SHA: "a"}},
 					},
 				},
 			},
