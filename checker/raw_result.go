@@ -41,6 +41,18 @@ type RawResults struct {
 	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
 	TokenPermissionsResults     TokenPermissionsData
+	CITestResults               CITestData
+}
+
+type RevisionCIInfo struct {
+	HeadSHA           string
+	CheckRuns         []clients.CheckRun
+	Statuses          []clients.Status
+	PullRequestNumber int
+}
+
+type CITestData struct {
+	CIInfo []RevisionCIInfo
 }
 
 // FuzzingData represents different fuzzing done.
@@ -210,7 +222,6 @@ type Tool struct {
 // Run represents a run.
 type Run struct {
 	URL string
-	// TODO: add fields, e.g., Result=["success", "failure"]
 }
 
 // ArchivedStatus definess the archived status.
