@@ -161,7 +161,7 @@ which indicates that the project uses a set of security-focused best development
 source software. The check uses the URL for the Git repo and the OpenSSF Best Practices badge API.
 
 The OpenSSF Best Practices badge has 3 tiers: passing, silver, and gold. We give
-full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/1), which is a
+full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/2), which is a
 significant achievement for many projects. Lower scores represent a project that
 is at least working to achieve a badge, with increasingly more points awarded as
 more criteria are met.
