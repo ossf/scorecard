@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package worker implements a generic cron worker job.
+// Package worker implements the generic cron worker logic.
 package worker
 
 import (
@@ -25,19 +25,29 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
+// Worker is the interface used to process batch requests.
+//
+// Process does the processing for a batch request. Returning an error will cause the request to be nack'd,
+// allowing it to be re-processed later. If no error is returned, the request will be ack'd, consuming it.
+//
+// PostProcess is called only after an error-free call to Process.
 type Worker interface {
 	Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) error
 	PostProcess()
 }
 
+// WorkLoop is the entry point into the common cron worker structure.
 type WorkLoop struct {
 	worker Worker
 }
 
+// NewWorkLoop creates a workloop using a specified worker.
 func NewWorkLoop(worker Worker) WorkLoop {
 	return WorkLoop{worker: worker}
 }
 
+// Run initiates the processing performed by the WorkLoop.
+// config.ReadConfig() must be called prior to this function.
 func (wl *WorkLoop) Run() error {
 	ctx := context.Background()
 
@@ -125,6 +135,8 @@ func resultExists(ctx context.Context, sbr *data.ScorecardBatchRequest, bucketUR
 	return exists, nil
 }
 
+// ResultFilename returns the filename where the result from processing a batch request should go.
+// This naming convention is used to detect duplicate requests, as well as transfer the results to BigQuery.
 func ResultFilename(sbr *data.ScorecardBatchRequest) string {
 	shardname := fmt.Sprintf("shard-%07d", sbr.GetShardNum())
 	return data.GetBlobFilename(shardname, sbr.GetJobTime().AsTime())
