@@ -17,19 +17,10 @@
 package command
 
 import (
-	"flag"
 	"fmt"
 	"os"
 
-	"github.com/golang/glog"
-)
-
-type SignerMode string
-
-const (
-	CheckAndSign  SignerMode = "check-and-sign"
-	CheckOnly     SignerMode = "check-only"
-	BypassAndSign SignerMode = "bypass-and-sign"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -52,108 +43,78 @@ var (
 	// input flags: kms flags
 	kmsKeyName   string
 	kmsDigestAlg string
-
-	// helper global variables
-	modeFlags   *flag.FlagSet
-	modeExample string
 )
 
+func addCheckFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringVar(&policyPath, "policy", "", "(required for check) scorecard attestation policy file path, e.g., /tmp/policy-binauthz.yml")
+	cmd.MarkPersistentFlagRequired("policy")
+	cmd.PersistentFlags().StringVar(&repoURL, "repo-url", "", "Repo URL from which source was built")
+	cmd.MarkPersistentFlagRequired("repo-url")
+	cmd.PersistentFlags().StringVar(&commitSHA, "commit", "", "Git SHA at which image was built")
+}
+
+func addSignFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringVar(&image, "image", "", "Image url, e.g., gcr.io/foo/bar@sha256:abcd")
+	cmd.MarkPersistentFlagRequired("image")
+	cmd.PersistentFlags().StringVar(&noteName, "note-name", "", "note name that created attestations are attached to, in the form of projects/[PROVIDER_ID]/notes/[NOTE_ID]")
+	cmd.MarkPersistentFlagRequired("note-name")
+	cmd.PersistentFlags().StringVar(&attestationProject, "attestation-project", "", "project id for GCP project that stores attestation, use image project if set to empty")
+	cmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite attestation if already existed")
+	cmd.PersistentFlags().StringVar(&kmsKeyName, "kms-key-name", "", "kms key name, in the format of in the format projects/*/locations/*/keyRings/*/cryptoKeys/*/cryptoKeyVersions/*")
+	cmd.PersistentFlags().StringVar(&kmsDigestAlg, "kms-digest-alg", "", "kms digest algorithm, must be one of SHA256|SHA384|SHA512, and the same as specified by the key version's algorithm")
+	cmd.PersistentFlags().StringVar(&pgpPriKeyPath, "pgp-private-key", "", "pgp private signing key path, e.g., /dev/shm/key.pgp")
+	cmd.PersistentFlags().StringVar(&pgpPassphrase, "pgp-passphrase", "", "passphrase for pgp private key, if any")
+	cmd.PersistentFlags().StringVar(&pkixPriKeyPath, "pkix-private_key", "", "pkix private signing key path, e.g., /dev/shm/key.pem")
+	cmd.PersistentFlags().StringVar(&pkixAlg, "pkix-alg", "", "pkix signature algorithm, e.g., ecdsa-p256-sha256")
+
+}
+
+var rootCmd = &cobra.Command{
+	Use:   "scorecard-attestor",
+	Short: "scorecard-attestor generates attestations based on scorecard results",
+}
+
+var checkAndSignCmd = &cobra.Command{
+	Use:   "check-and-sign",
+	Short: "Run scorecard and sign a container image according to policy",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := runCheck(); err != nil {
+			return err
+		}
+		return runSign()
+	},
+}
+
+var checkCmd = &cobra.Command{
+	Use:   "check-only",
+	Short: "Run scorecard and check an image against a policy",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runCheck()
+	},
+}
+
+var signCmd = &cobra.Command{
+	Use:   "bypass-and-sign",
+	Short: "Sign a container image",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runSign()
+	},
+}
+
 func init() {
-	// need to add all flags to avoid "flag not provided error"
-	addBasicFlags(flag.CommandLine)
-	addCheckFlags(flag.CommandLine)
-	addSignFlags(flag.CommandLine)
+	rootCmd.AddCommand(signCmd, checkCmd, checkAndSignCmd)
+
+	addCheckFlags(checkAndSignCmd)
+	addSignFlags(checkAndSignCmd)
+
+	addCheckFlags(checkCmd)
+
+	addSignFlags(signCmd)
 }
 
-func addBasicFlags(fs *flag.FlagSet) {
-	fs.StringVar(&mode, "mode", "check-and-sign", "(required) mode of operation, check-and-sign|check-only|bypass-and-sign")
-	fs.StringVar(&image, "image", "", "(required) image url, e.g., gcr.io/foo/bar@sha256:abcd")
-	fs.StringVar(&repoURL, "repo-url", "", "(required) repo URL from which source was built")
-	fs.StringVar(&commitSHA, "commit", "", "git SHA at which image was built")
-}
-
-func addCheckFlags(fs *flag.FlagSet) {
-	fs.StringVar(&policyPath, "policy", "", "(required for check) scorecard attestation policy file path, e.g., /tmp/policy-binauthz.yml")
-}
-
-func addSignFlags(fs *flag.FlagSet) {
-	fs.StringVar(&noteName, "note-name", "", "(required for sign) note name that created attestations are attached to, in the form of projects/[PROVIDER_ID]/notes/[NOTE_ID]")
-	fs.StringVar(&attestationProject, "attestation-project", "", "project id for GCP project that stores attestation, use image project if set to empty")
-	fs.BoolVar(&overwrite, "overwrite", false, "overwrite attestation if already existed")
-	fs.StringVar(&kmsKeyName, "kms-key-name", "", "kms key name, in the format of in the format projects/*/locations/*/keyRings/*/cryptoKeys/*/cryptoKeyVersions/*")
-	fs.StringVar(&kmsDigestAlg, "kms-digest-alg", "", "kms digest algorithm, must be one of SHA256|SHA384|SHA512, and the same as specified by the key version's algorithm")
-	fs.StringVar(&pgpPriKeyPath, "pgp-private-key", "", "pgp private signing key path, e.g., /dev/shm/key.pgp")
-	fs.StringVar(&pgpPassphrase, "pgp-passphrase", "", "passphrase for pgp private key, if any")
-	fs.StringVar(&pkixPriKeyPath, "pkix-private_key", "", "pkix private signing key path, e.g., /dev/shm/key.pem")
-	fs.StringVar(&pkixAlg, "pkix-alg", "", "pkix signature algorithm, e.g., ecdsa-p256-sha256")
-}
-
-// parseSignerMode creates mode-specific flagset and analyze actions (check, sign) for given mode
-func parseSignerMode(mode SignerMode) (doCheck bool, doSign bool, err error) {
-	modeFlags, doCheck, doSign, err = flag.NewFlagSet("", flag.ExitOnError), false, false, nil
-	addBasicFlags(modeFlags)
-	switch mode {
-	case CheckAndSign:
-		addCheckFlags(modeFlags)
-		addSignFlags(modeFlags)
-		doCheck, doSign = true, true
-		modeExample = `	./scorecard-attestor \
-	-mode=check-and-sign \
-	-image=gcr.io/my-image-repo/image-1@sha256:123 \
-	-policy=policy.yaml \
-	-note-name=projects/$NOTE_PROJECT/NOTES/$NOTE_ID \
-	-kms-key-name=projects/$KMS_PROJECT/locations/$KMS_KEYLOCATION/keyRings/$KMS_KEYRING/cryptoKeys/$KMS_KEYNAME/cryptoKeyVersions/$KMS_KEYVERSION \
-	-kms-digest-alg=SHA512`
-	case BypassAndSign:
-		addSignFlags(modeFlags)
-		doSign = true
-		modeExample = `	./scorecard-attestor \
-	-mode=bypass-and-sign \
-	-image=gcr.io/my-image-repo/image-1@sha256:123 \
-	-note-name=projects/$NOTE_PROJECT/NOTES/$NOTE_ID \
-	-kms-key-name=projects/$KMS_PROJECT/locations/$KMS_KEYLOCATION/keyRings/$KMS_KEYRING/cryptoKeys/$KMS_KEYNAME/cryptoKeyVersions/$KMS_KEYVERSION \
-	-kms-digest-alg=SHA512`
-	case CheckOnly:
-		addCheckFlags(modeFlags)
-		doCheck = true
-		modeExample = `	./scorecard-attestor \
-	-mode=check-only \
-	-image=gcr.io/my-image-repo/image-1@sha256:123 \
-	-policy=policy.yaml`
-	default:
-		return false, false, fmt.Errorf("unrecognized mode %s, must be one of check-and-sign|check-only|bypass-and-sign", mode)
-	}
-	flag.Parse()
-	return doCheck, doSign, err
-}
-
-func exitOnBadFlags(mode SignerMode, err string) {
-	fmt.Fprintf(modeFlags.Output(), "Usage of signer's %s mode:\n", mode)
-	modeFlags.PrintDefaults()
-	fmt.Fprintf(modeFlags.Output(), "Example (%s mode):\n %s\n", mode, modeExample)
-	fmt.Fprintf(modeFlags.Output(), "Bad flags for mode %s: %v. \n", mode, err)
-	os.Exit(1)
-}
-
-func Command() {
-	flag.Parse()
-	glog.Infof("Signer mode: %s.", mode)
-
-	doCheck, doSign, err := parseSignerMode(SignerMode(mode))
-	if err != nil {
-		glog.Fatalf("Parse mode err %v.", err)
-	}
-
-	// Check image url is non-empty
-	if image == "" {
-		exitOnBadFlags(SignerMode(mode), "image url is empty")
-	}
-
-	if doCheck {
-		checkCommand()
-	}
-
-	if doSign {
-		signCommand()
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }

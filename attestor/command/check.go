@@ -16,6 +16,7 @@ package command
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/golang/glog"
@@ -26,22 +27,22 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-func checkCommand() {
+func runCheck() error {
 	ctx := context.Background()
 
 	// Read the Binauthz attestation policy
 	if policyPath == "" {
-		exitOnBadFlags(SignerMode(mode), "policy path is empty")
+		return fmt.Errorf("policy path is empty")
 	}
 	attestationPolicy, err := policy.ParseAttestationPolicyFromFile(policyPath)
 	if err != nil {
-		glog.Fatalf("Fail to load scorecard attestation policy: %v", err)
+		return fmt.Errorf("fail to load scorecard attestation policy: %v", err)
 	}
 
 	if repoURL == "" {
 		buildRepo := os.Getenv("REPO_NAME")
 		if buildRepo == "" {
-			exitOnBadFlags(SignerMode(mode), "repoURL not specified")
+			return fmt.Errorf("repoURL not specified")
 		}
 		repoURL = buildRepo
 		glog.Infof("Found repo URL %s Cloud Build environment", repoURL)
@@ -84,16 +85,16 @@ func checkCommand() {
 		vulnsClient,
 	)
 	if err != nil {
-		glog.Fatalf("RunScorecards: %w", err)
+		return fmt.Errorf("RunScorecards: %w", err)
 	}
 
 	result, err := policy.RunChecksForPolicy(attestationPolicy, &repoResult.RawResults)
 	if err != nil {
-		glog.Fatalf("Error when evaluating image %q against policy", image)
+		return fmt.Errorf("error when evaluating image %q against policy", image)
 	}
 	if result != policy.Pass {
-		glog.Errorf("policy check failed on image %s:", image)
-		os.Exit(1)
+		return fmt.Errorf("image failed policy check %s:", image)
 	}
-	glog.Infof("Image %q passes policy check", image)
+	glog.Infof("Policy check passed")
+	return nil
 }

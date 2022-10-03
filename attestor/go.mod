@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/ossf/scorecard/v4 v4.6.0
+	github.com/spf13/cobra v1.5.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -51,7 +52,6 @@ require (
 	github.com/rhysd/actionlint v1.6.15 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
-	github.com/spf13/cobra v1.5.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
