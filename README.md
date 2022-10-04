@@ -47,6 +47,10 @@
 -   [Connect with the Scorecards Community](#connect-with-the-scorecards-community)
 -   [Report a Security Issue](SECURITY.md)
 
+## FAQ
+
+- [FAQ](docs/faq.md)
+
 ________________________________________________________________________________
 ________________________________________________________________________________
 
@@ -524,3 +528,10 @@ To report a security issue, please follow instructions [here](SECURITY.md).
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/ossf/scorecard.svg)](https://starchart.cc/ossf/scorecard)
+
+
+## FAQ
+
+### FAQ
+
+To see what are the Frequently Asked Questions regarding the Scorecard, check out the [FAQ](docs/faq.md).
