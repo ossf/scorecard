@@ -167,7 +167,7 @@ is at least working to achieve a badge, with increasingly more points awarded as
 more criteria are met.
 
 - [gold badge](https://bestpractices.coreinfrastructure.org/en/criteria/2): 10
-- [siver badge](https://bestpractices.coreinfrastructure.org/en/criteria/1): 7
+- [silver badge](https://bestpractices.coreinfrastructure.org/en/criteria/1): 7
 - [passing badge](https://bestpractices.coreinfrastructure.org/en/criteria/0): 5
 - in progress badge: 2
 
