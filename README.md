@@ -534,4 +534,4 @@ To report a security issue, please follow instructions [here](SECURITY.md).
 
 ### FAQ
 
-To see what are the Frequently Asked Questions regarding the Scorecard, check out the [FAQ](docs/faq.md).
+See the [FAQ](docs/faq.md) for answers to Frequently Asked Questions about Scorecards.

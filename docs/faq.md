@@ -1,9 +1,9 @@
 # Frequently Asked Questions
 
-This page describes the most frequently asked questions about the Scorecard use, checks or relevance. These answers are continually changing. If you know any other question that could be interesting to be covered here, please [contribute](../CONTRIBUTING.md)!
+This page answers frequently asked questions about Scorecards, including its purpose, usage, and checks. This page is continually updated. If you would like to add a question, please [contribute]!(../CONTRIBUTING.md)!
 
 ## Installation / Usage
-  - [Can I have a preview of the score?](#can-i-have-a-preview-of-the-score)
+  - [Can I preview my project's score?](#can-i-preview-my-projects-score)
   - [What is the difference between Scorecard and other Code Scanning Tools?](#what-is-the-difference-between-scorecard-and-other-code-scanning-tools)
 
 ## Check-Specific Questions
@@ -19,11 +19,11 @@ ________________________________________________________________________________
 
 ## Installation / Usage
 
-### Can I have a preview of the score?
+### Can I preview my project's score?
 
 Yes, a preview of the Scorecard scores can be seen at https://api.securityscorecards.dev/projects/github.com/<username_or_org>/<repository_name>/ for the repositories tracked by the Scorecard Project for being considered relevant in the Open Source scenario.
 
-Anyhow, you can generate the scores for any public repository through the CLI following the steps bellow:
+You can also use the CLI to generate scores for any public repository by following these steps:
 
 1. [Installation](https://github.com/joycebrum/scorecard#installation)
 1. [Authentication](https://github.com/joycebrum/scorecard#authentication)
@@ -31,7 +31,7 @@ Anyhow, you can generate the scores for any public repository through the CLI fo
 
 ### What is the difference between Scorecard and other Code Scanning Tools?
 
-To determine exactly what are the differences it is important to analyse both tools and compare them. But, usually, the code scanning tools are focused on one or two specific types of vulnerabilities, while the Scorecard's Checks are focused on the overall security posture of the project. That's because the Scorecard is related to the Security Best Practices and whether the project is following them or not.
+Usually, the code scanning tools are focused on one or two specific types of vulnerabilities, while the Scorecard's Checks are focused on the overall security posture of the project. That's because the Scorecard is related to the Security Best Practices and whether the project is following them or not.
 
 ## Check-Specific Questions
 
