@@ -204,6 +204,15 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 	return exporter, nil
 }
 
+func hasMetadataFile(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) (bool, error) {
+	filename := data.GetBlobFilename(config.ShardMetadataFilename, req.GetJobTime().AsTime())
+	exists, err := data.BlobExists(ctx, bucketURL, filename)
+	if err != nil {
+		return false, fmt.Errorf("data.BlobExists: %w", err)
+	}
+	return exists, nil
+}
+
 func main() {
 	ctx := context.Background()
 
@@ -286,6 +295,15 @@ func main() {
 			logger.Info("subscription returned nil message during Receive, exiting")
 			break
 		}
+
+		// don't process requests from jobs without metadata files, as the results will never be transferred.
+		// https://github.com/ossf/scorecard/issues/2307
+		if hasMd, err := hasMetadataFile(ctx, req, bucketURL); !hasMd || err != nil {
+			// nack the message so it can be tried later, as the metadata file may not have been created yet.
+			subscriber.Nack()
+			continue
+		}
+
 		if err := processRequest(ctx, req, blacklistedChecks,
 			bucketURL, rawBucketURL, apiBucketURL, checkDocs,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, logger); err != nil {
