@@ -65,6 +65,8 @@ func runCheck() error {
 	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
 		ctx, repoURL, "", logger)
 
+	requiredChecks := policy.GetRequiredChecksForPolicy(attestationPolicy)
+
 	enabledChecks := map[string]checker.Check{
 		"BinaryArtifacts": {
 			Fn: checks.BinaryArtifacts,
@@ -72,6 +74,13 @@ func runCheck() error {
 				checker.CommitBased,
 			},
 		},
+	}
+
+	// Filter out checks that won't be needed for policy-evaluation time
+	for name := range enabledChecks {
+		if _, isRequired := requiredChecks[name]; !isRequired {
+			delete(enabledChecks, name)
+		}
 	}
 
 	repoResult, err := pkg.RunScorecards(
@@ -88,7 +97,7 @@ func runCheck() error {
 		return fmt.Errorf("RunScorecards: %w", err)
 	}
 
-	result, err := policy.RunChecksForPolicy(attestationPolicy, &repoResult.RawResults)
+	result, err := policy.EvaluateResults(attestationPolicy, &repoResult.RawResults)
 	if err != nil {
 		return fmt.Errorf("error when evaluating image %q against policy", image)
 	}
