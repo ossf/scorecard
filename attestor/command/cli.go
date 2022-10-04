@@ -69,7 +69,8 @@ func addSignFlags(cmd *cobra.Command) {
 
 }
 
-var rootCmd = &cobra.Command{
+// Export for testability
+var RootCmd = &cobra.Command{
 	Use:   "scorecard-attestor",
 	Short: "scorecard-attestor generates attestations based on scorecard results",
 }
@@ -102,7 +103,7 @@ var signCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(signCmd, checkCmd, checkAndSignCmd)
+	RootCmd.AddCommand(signCmd, checkCmd, checkAndSignCmd)
 
 	addCheckFlags(checkAndSignCmd)
 	addSignFlags(checkAndSignCmd)
@@ -113,7 +114,7 @@ func init() {
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
