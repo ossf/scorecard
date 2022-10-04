@@ -33,12 +33,8 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 	// Apply the policy evaluation.
 	if r.Tools == nil || len(r.Tools) == 0 {
 		dl.Warn(&checker.LogMessage{
-			Text: `dependabot config file not detected in source location.
-			We recommend setting this configuration in code so it can be easily verified by others.`,
-		})
-		dl.Warn(&checker.LogMessage{
-			Text: `renovatebot config file not detected in source location.
-			We recommend setting this configuration in code so it can be easily verified by others.`,
+			Text: `Config file not detected in source location for dependabot, renovatebot, Sonatype Lift, or
+			PyUp (Python). We recommend setting this configuration in code so it can be easily verified by others.`,
 		})
 		return checker.CreateMinScoreResult(name, "no update tool detected")
 	}
