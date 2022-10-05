@@ -327,6 +327,10 @@ e2e-gh-token: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to
 e2e-gh-token: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN set to secrets.GITHUB_TOKEN must be used to run this.
 	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
+
+e2e-attestor: ## Runs e2e tests for scorecard-attestor
+	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..
+
 ###############################################################################
 
 ##@ TODO(#744)
