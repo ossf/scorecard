@@ -18,14 +18,16 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/golang/glog"
 	"github.com/grafeas/kritis/pkg/attestlib"
 	"github.com/grafeas/kritis/pkg/kritis/metadata/containeranalysis"
 	"github.com/grafeas/kritis/pkg/kritis/signer"
 	"github.com/grafeas/kritis/pkg/kritis/util"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 func runSign() error {
+	logger := sclog.NewLogger(sclog.DefaultLevel)
+
 	// Create a client
 	client, err := containeranalysis.New()
 	if err != nil {
@@ -39,7 +41,7 @@ func runSign() error {
 	}
 	var cSigner attestlib.Signer
 	if kmsKeyName != "" {
-		glog.Infof("Using kms key %s for signing.", kmsKeyName)
+		logger.Info(fmt.Sprintf("Using kms key %s for signing.", kmsKeyName))
 		if kmsDigestAlg == "" {
 			return fmt.Errorf("kms_digest_alg is unspecified, must be one of SHA256|SHA384|SHA512, and the same as specified by the key version's algorithm")
 		}
@@ -48,7 +50,7 @@ func runSign() error {
 			return fmt.Errorf("creating kms signer failed: %v\n", err)
 		}
 	} else if pgpPriKeyPath != "" {
-		glog.Infof("Using pgp key for signing.")
+		logger.Info("Using pgp key for signing.")
 		signerKey, err := ioutil.ReadFile(pgpPriKeyPath)
 		if err != nil {
 			return fmt.Errorf("fail to read signer key: %v\n", err)
@@ -59,7 +61,7 @@ func runSign() error {
 			return fmt.Errorf("creating pgp signer failed: %v\n", err)
 		}
 	} else {
-		glog.Infof("Using pkix key for signing.")
+		logger.Info("Using pkix key for signing.")
 		signerKey, err := ioutil.ReadFile(pkixPriKeyPath)
 		if err != nil {
 			return fmt.Errorf("fail to read signer key: %v\n", err)
@@ -83,9 +85,9 @@ func runSign() error {
 	// Parse attestation project
 	if attestationProject == "" {
 		attestationProject = util.GetProjectFromContainerImage(image)
-		glog.Infof("Using image project as attestation project: %s\n", attestationProject)
+		logger.Info(fmt.Sprintf("Using image project as attestation project: %s\n", attestationProject))
 	} else {
-		glog.Infof("Using specified attestation project: %s\n", attestationProject)
+		logger.Info(fmt.Sprintf("Using specified attestation project: %s\n", attestationProject))
 	}
 
 	// Create signer

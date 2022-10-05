@@ -42,7 +42,7 @@ func TestRootCmd(t *testing.T) {
 		{
 			name: "test check-only from root",
 			args: []string{
-				"check-only",
+				"verify",
 				"--policy=../policy/testdata/policy-binauthz.yaml",
 				"--repo-url=https://github.com/ossf-tests/scorecard",
 			},

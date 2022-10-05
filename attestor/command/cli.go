@@ -64,7 +64,7 @@ func addSignFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&kmsDigestAlg, "kms-digest-alg", "", "kms digest algorithm, must be one of SHA256|SHA384|SHA512, and the same as specified by the key version's algorithm")
 	cmd.PersistentFlags().StringVar(&pgpPriKeyPath, "pgp-private-key", "", "pgp private signing key path, e.g., /dev/shm/key.pgp")
 	cmd.PersistentFlags().StringVar(&pgpPassphrase, "pgp-passphrase", "", "passphrase for pgp private key, if any")
-	cmd.PersistentFlags().StringVar(&pkixPriKeyPath, "pkix-private_key", "", "pkix private signing key path, e.g., /dev/shm/key.pem")
+	cmd.PersistentFlags().StringVar(&pkixPriKeyPath, "pkix-private-key", "", "pkix private signing key path, e.g., /dev/shm/key.pem")
 	cmd.PersistentFlags().StringVar(&pkixAlg, "pkix-alg", "", "pkix signature algorithm, e.g., ecdsa-p256-sha256")
 
 }
@@ -76,7 +76,7 @@ var RootCmd = &cobra.Command{
 }
 
 var checkAndSignCmd = &cobra.Command{
-	Use:   "check-and-sign",
+	Use:   "attest",
 	Short: "Run scorecard and sign a container image according to policy",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if err := runCheck(); err != nil {
@@ -87,30 +87,20 @@ var checkAndSignCmd = &cobra.Command{
 }
 
 var checkCmd = &cobra.Command{
-	Use:   "check-only",
+	Use:   "verify",
 	Short: "Run scorecard and check an image against a policy",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return runCheck()
 	},
 }
 
-var signCmd = &cobra.Command{
-	Use:   "bypass-and-sign",
-	Short: "Sign a container image",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return runSign()
-	},
-}
-
 func init() {
-	RootCmd.AddCommand(signCmd, checkCmd, checkAndSignCmd)
+	RootCmd.AddCommand(checkCmd, checkAndSignCmd)
 
 	addCheckFlags(checkAndSignCmd)
 	addSignFlags(checkAndSignCmd)
 
 	addCheckFlags(checkCmd)
-
-	addSignFlags(signCmd)
 }
 
 func Execute() {

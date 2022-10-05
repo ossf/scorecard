@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/golang/glog"
 	"github.com/ossf/scorecard-attestor/policy"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
@@ -29,6 +28,7 @@ import (
 
 func runCheck() error {
 	ctx := context.Background()
+	logger := sclog.NewLogger(sclog.DefaultLevel)
 
 	// Read the Binauthz attestation policy
 	if policyPath == "" {
@@ -45,22 +45,20 @@ func runCheck() error {
 			return fmt.Errorf("repoURL not specified")
 		}
 		repoURL = buildRepo
-		glog.Infof("Found repo URL %s Cloud Build environment", repoURL)
+		logger.Info(fmt.Sprintf("Found repo URL %s Cloud Build environment", repoURL))
 	} else {
-		glog.Infof("Running scorecard on %s", repoURL)
+		logger.Info(fmt.Sprintf("Running scorecard on %s", repoURL))
 	}
 
 	if commitSHA == "" {
 		buildSHA := os.Getenv("COMMIT_SHA")
 		if buildSHA == "" {
-			glog.Infof("commit not specified, running on HEAD")
+			logger.Info("commit not specified, running on HEAD")
 		} else {
 			commitSHA = buildSHA
-			glog.Infof("Found revision %s Cloud Build environment", commitSHA)
+			logger.Info(fmt.Sprintf("Found revision %s Cloud Build environment", commitSHA))
 		}
 	}
-
-	logger := sclog.NewLogger(sclog.DefaultLevel)
 
 	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
 		ctx, repoURL, "", logger)
@@ -104,6 +102,6 @@ func runCheck() error {
 	if result != policy.Pass {
 		return fmt.Errorf("image failed policy check %s:", image)
 	}
-	glog.Infof("Policy check passed")
+	logger.Info("Policy check passed")
 	return nil
 }
