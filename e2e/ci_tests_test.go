@@ -101,6 +101,5 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			Expect(scut.ValidateTestReturn(nil, "CI tests run", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-
 	})
 })
