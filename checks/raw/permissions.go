@@ -57,6 +57,8 @@ func TokenPermissions(c *checker.CheckRequest) (checker.TokenPermissionsData, er
 		CaseSensitive: false,
 	}, validateGitHubActionTokenPermissions, &data)
 
+	data.results.SetupRemediationMetadata(c)
+
 	return data.results, err
 }
 

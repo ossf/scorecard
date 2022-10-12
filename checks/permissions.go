@@ -45,13 +45,10 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return raw results.
-	if c.RawResults == nil {
-		c.RawResults = &checker.RawResults{}
+	if c.RawResults != nil {
+		c.RawResults.TokenPermissionsResults = rawData
 	}
-	c.RawResults.TokenPermissionsResults = rawData
 
-	//nolint:errcheck
-	c.RawResults.SetupRemediationMetadata(c)
 	// Return the score evaluation.
-	return evaluation.TokenPermissions(CheckTokenPermissions, c.Dlogger, c.RawResults)
+	return evaluation.TokenPermissions(CheckTokenPermissions, c.Dlogger, &rawData)
 }

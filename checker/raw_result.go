@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/ossf/scorecard/v4/clients"
@@ -31,10 +30,6 @@ var errInvalidArg = errors.New("invalid argument")
 //
 //nolint:govet
 type RawResults struct {
-	// only
-	metadataOnce        sync.Once
-	RemediationMetadata RemediationMetadata
-
 	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
 	DangerousWorkflowResults    DangerousWorkflowData
@@ -110,9 +105,20 @@ const (
 	DependencyUseTypePipCommand DependencyUseType = "pipCommand"
 )
 
+// SetupRemediationMetadata extracts data from the check request which is used
+// when generating remediation text for Pinned Dependencies data.
+func (t *PinningDependenciesData) SetupRemediationMetadata(c *CheckRequest) {
+	if t == nil || c.RepoClient == nil {
+		return
+	}
+	t.RemediationMetadata = RemediationMetadata{}
+	t.RemediationMetadata.extractBranchAndRepo(c)
+}
+
 // PinningDependenciesData represents pinned dependency data.
 type PinningDependenciesData struct {
-	Dependencies []Dependency
+	RemediationMetadata RemediationMetadata
+	Dependencies        []Dependency
 }
 
 // Dependency represents a dependency.
@@ -284,9 +290,20 @@ type WorkflowJob struct {
 	ID   *string
 }
 
+// SetupRemediationMetadata extracts data from the check request which is used
+// when generating remediation text for TokenPermissions data.
+func (t *TokenPermissionsData) SetupRemediationMetadata(c *CheckRequest) {
+	if t == nil || c.RepoClient == nil {
+		return
+	}
+	t.RemediationMetadata = RemediationMetadata{}
+	t.RemediationMetadata.extractBranchAndRepo(c)
+}
+
 // TokenPermissionsData represents data about a permission failure.
 type TokenPermissionsData struct {
-	TokenPermissions []TokenPermission
+	RemediationMetadata RemediationMetadata
+	TokenPermissions    []TokenPermission
 }
 
 // PermissionLocation represents a declaration type.
@@ -327,37 +344,38 @@ type TokenPermission struct {
 	Type         PermissionLevel
 }
 
-type RemediationMetadata struct {
-	Branch string
-	Repo   string
+type RemediationKey string
+
+const (
+	BranchName RemediationKey = "branch"
+	RepoName   RemediationKey = "repo"
+)
+
+type RemediationMetadata map[RemediationKey]string
+
+func extractRepoName(c *CheckRequest) (string, error) {
+	uri := c.RepoClient.URI()
+	parts := strings.Split(uri, "/")
+	if len(parts) != 3 {
+		return "", errInvalidArg
+	}
+	return fmt.Sprintf("%s/%s", parts[1], parts[2]), nil
 }
 
-// remediationMetadata returns remediation relevant metadata from a CheckRequest.
-func (r *RawResults) SetupRemediationMetadata(c *CheckRequest) error {
-	var e error
-	r.metadataOnce.Do(func() {
-		if r == nil || c.RepoClient == nil {
-			return
-		}
-		r.RemediationMetadata = RemediationMetadata{}
+func (r RemediationMetadata) extractBranchAndRepo(c *CheckRequest) {
+	if r == nil || c.RepoClient == nil {
+		return
+	}
+	// Get the branch for remediation.
+	branch, err := c.RepoClient.GetDefaultBranchName()
+	if err != nil {
+		return
+	}
+	r[BranchName] = branch
 
-		// Get the branch for remediation.
-		branch, err := c.RepoClient.GetDefaultBranchName()
-		if err != nil {
-			e = fmt.Errorf("GetDefaultBranchName: %w", err)
-			return
-		}
-
-		uri := c.RepoClient.URI()
-		parts := strings.Split(uri, "/")
-
-		if len(parts) != 3 {
-			e = fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
-			return
-		}
-		repo := fmt.Sprintf("%s/%s", parts[1], parts[2])
-		r.RemediationMetadata = RemediationMetadata{Branch: branch, Repo: repo}
-	})
-
-	return e
+	repo, err := extractRepoName(c)
+	if err != nil {
+		return
+	}
+	r[RepoName] = repo
 }

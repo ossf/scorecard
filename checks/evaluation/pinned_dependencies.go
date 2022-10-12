@@ -42,7 +42,7 @@ type worklowPinningResult struct {
 }
 
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
-func PinningDependencies(name string, c *checker.CheckRequest, r *checker.RawResults) checker.CheckResult {
+func PinningDependencies(name string, dl checker.DetailLogger, r *checker.PinningDependenciesData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)
@@ -50,12 +50,9 @@ func PinningDependencies(name string, c *checker.CheckRequest, r *checker.RawRes
 
 	var wp worklowPinningResult
 	pr := make(map[checker.DependencyUseType]pinnedResult)
-	dl := c.Dlogger
 
-	dependencyResults := &r.PinningDependenciesResults
-
-	for i := range dependencyResults.Dependencies {
-		dependency := dependencyResults.Dependencies[i]
+	for i := range r.Dependencies {
+		dependency := r.Dependencies[i]
 		if dependency.Location == nil {
 			if dependency.Msg == nil {
 				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")

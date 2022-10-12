@@ -170,13 +170,7 @@ func Test_PinningDependencies(t *testing.T) {
 			t.Parallel()
 
 			dl := scut.TestDetailLogger{}
-			c := checker.CheckRequest{Dlogger: &dl}
-			actual := PinningDependencies("checkname", &c,
-				&checker.RawResults{
-					PinningDependenciesResults: checker.PinningDependenciesData{
-						Dependencies: tt.dependencies,
-					},
-				})
+			actual := PinningDependencies("checkname", &dl, &checker.PinningDependenciesData{Dependencies: tt.dependencies})
 
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()

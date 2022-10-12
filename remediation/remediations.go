@@ -42,12 +42,15 @@ func CreateWorkflowPinningRemediation(r checker.RemediationMetadata, filepath st
 
 func createWorkflowRemediation(r checker.RemediationMetadata, path, t string) *checker.Remediation {
 	p := strings.TrimPrefix(path, ".github/workflows/")
-	if r.Branch == "" || r.Repo == "" {
+
+	branch, bOk := r[checker.BranchName]
+	repo, rOk := r[checker.RepoName]
+	if !bOk || !rOk {
 		return nil
 	}
 
-	text := fmt.Sprintf(workflowText, r.Repo, p, r.Branch, t)
-	markdown := fmt.Sprintf(workflowMarkdown, r.Repo, p, r.Branch, t)
+	text := fmt.Sprintf(workflowText, repo, p, branch, t)
+	markdown := fmt.Sprintf(workflowMarkdown, repo, p, branch, t)
 
 	return &checker.Remediation{
 		HelpText:     text,

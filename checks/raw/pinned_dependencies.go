@@ -57,6 +57,8 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 		return checker.PinningDependenciesData{}, err
 	}
 
+	results.SetupRemediationMetadata(c)
+
 	return results, nil
 }
 
