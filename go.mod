@@ -25,7 +25,7 @@ require (
 	github.com/jszwec/csvutil v1.7.1
 	github.com/moby/buildkit v0.10.3
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/onsi/gomega v1.20.2
+	github.com/onsi/gomega v1.21.1
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/sirupsen/logrus v1.9.0
@@ -46,7 +46,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
-	github.com/onsi/ginkgo/v2 v2.1.6
+	github.com/onsi/ginkgo/v2 v2.3.0
 	sigs.k8s.io/release-utils v0.6.0
 )
 
