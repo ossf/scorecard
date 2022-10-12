@@ -15,15 +15,11 @@
 package checker
 
 import (
-	"errors"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/remediation"
 )
-
-var errInvalidArg = errors.New("invalid argument")
 
 // RawResults contains results before a policy
 // is applied.
@@ -111,13 +107,12 @@ func (t *PinningDependenciesData) SetupRemediationMetadata(c *CheckRequest) {
 	if t == nil || c.RepoClient == nil {
 		return
 	}
-	t.RemediationMetadata = RemediationMetadata{}
-	t.RemediationMetadata.extractBranchAndRepo(c)
+	t.RemediationMetadata = remediation.NewMetadata(c.RepoClient)
 }
 
 // PinningDependenciesData represents pinned dependency data.
 type PinningDependenciesData struct {
-	RemediationMetadata RemediationMetadata
+	RemediationMetadata remediation.Metadata
 	Dependencies        []Dependency
 }
 
@@ -296,13 +291,12 @@ func (t *TokenPermissionsData) SetupRemediationMetadata(c *CheckRequest) {
 	if t == nil || c.RepoClient == nil {
 		return
 	}
-	t.RemediationMetadata = RemediationMetadata{}
-	t.RemediationMetadata.extractBranchAndRepo(c)
+	t.RemediationMetadata = remediation.NewMetadata(c.RepoClient)
 }
 
 // TokenPermissionsData represents data about a permission failure.
 type TokenPermissionsData struct {
-	RemediationMetadata RemediationMetadata
+	RemediationMetadata remediation.Metadata
 	TokenPermissions    []TokenPermission
 }
 
@@ -342,40 +336,4 @@ type TokenPermission struct {
 	File         *File
 	Msg          *string
 	Type         PermissionLevel
-}
-
-type RemediationKey string
-
-const (
-	BranchName RemediationKey = "branch"
-	RepoName   RemediationKey = "repo"
-)
-
-type RemediationMetadata map[RemediationKey]string
-
-func extractRepoName(c *CheckRequest) (string, error) {
-	uri := c.RepoClient.URI()
-	parts := strings.Split(uri, "/")
-	if len(parts) != 3 {
-		return "", errInvalidArg
-	}
-	return fmt.Sprintf("%s/%s", parts[1], parts[2]), nil
-}
-
-func (r RemediationMetadata) extractBranchAndRepo(c *CheckRequest) {
-	if r == nil || c.RepoClient == nil {
-		return
-	}
-	// Get the branch for remediation.
-	branch, err := c.RepoClient.GetDefaultBranchName()
-	if err != nil {
-		return
-	}
-	r[BranchName] = branch
-
-	repo, err := extractRepoName(c)
-	if err != nil {
-		return
-	}
-	r[RepoName] = repo
 }

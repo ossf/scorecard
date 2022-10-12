@@ -19,6 +19,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 func TestDetailString(t *testing.T) {
@@ -121,7 +122,7 @@ func TestDetailString(t *testing.T) {
 				Msg: checker.LogMessage{
 					Text: "some meaningful text",
 					Path: "Dockerfile",
-					Remediation: &checker.Remediation{
+					Remediation: &remediation.Remediation{
 						HelpText: "fix x by doing y",
 					},
 				},

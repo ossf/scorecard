@@ -26,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/log"
 	spol "github.com/ossf/scorecard/v4/policy"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 func sarifMockDocRead() *mockDoc {
@@ -96,7 +97,7 @@ func sarifMockDocRead() *mockDoc {
 	return &m
 }
 
-//nolint
+// nolint
 func TestSARIFOutput(t *testing.T) {
 	t.Parallel()
 
@@ -166,7 +167,7 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    checker.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
-									Remediation: &checker.Remediation{
+									Remediation: &remediation.Remediation{
 										HelpMarkdown: "this is the custom markdown help",
 										HelpText:     "this is the custom text help",
 									},

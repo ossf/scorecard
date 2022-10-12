@@ -131,7 +131,7 @@ func PinningDependencies(name string, dl checker.DetailLogger, r *checker.Pinnin
 		"dependency not pinned by hash detected", score, checker.MaxResultScore)
 }
 
-func generateRemediation(remediationMd checker.RemediationMetadata, rr *checker.Dependency) *checker.Remediation {
+func generateRemediation(remediationMd remediation.Metadata, rr *checker.Dependency) *remediation.Remediation {
 	switch rr.Type {
 	case checker.DependencyUseTypeGHAction:
 		return remediation.CreateWorkflowPinningRemediation(remediationMd, rr.Location.Path)

@@ -18,6 +18,8 @@ package checker
 import (
 	"fmt"
 	"math"
+
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 type (
@@ -64,6 +66,7 @@ const (
 )
 
 // CheckResult captures result from a check run.
+//
 //nolint:govet
 type CheckResult struct {
 	Name    string
@@ -74,18 +77,6 @@ type CheckResult struct {
 	Reason  string
 }
 
-// Remediation represents a remediation.
-type Remediation struct {
-	// Code snippet for humans.
-	Snippet string
-	// Diff for machines.
-	Diff string
-	// Help text for humans.
-	HelpText string
-	// Help text in markdown format for humans.
-	HelpMarkdown string
-}
-
 // CheckDetail contains information for each detail.
 type CheckDetail struct {
 	Msg  LogMessage
@@ -94,15 +85,16 @@ type CheckDetail struct {
 
 // LogMessage is a structure that encapsulates detail's information.
 // This allows updating the definition easily.
+//
 //nolint:govet
 type LogMessage struct {
-	Text        string       // A short string explaining why the detail was recorded/logged.
-	Path        string       // Fullpath to the file.
-	Type        FileType     // Type of file.
-	Offset      uint         // Offset in the file of Path (line for source/text files).
-	EndOffset   uint         // End of offset in the file, e.g. if the command spans multiple lines.
-	Snippet     string       // Snippet of code
-	Remediation *Remediation // Remediation information, if any.
+	Text        string                   // A short string explaining why the detail was recorded/logged.
+	Path        string                   // Fullpath to the file.
+	Type        FileType                 // Type of file.
+	Offset      uint                     // Offset in the file of Path (line for source/text files).
+	EndOffset   uint                     // End of offset in the file, e.g. if the command spans multiple lines.
+	Snippet     string                   // Snippet of code
+	Remediation *remediation.Remediation // Remediation information, if any.
 }
 
 // CreateProportionalScore creates a proportional score.
