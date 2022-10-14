@@ -81,16 +81,16 @@ type Remediation struct {
 }
 
 // CreateWorkflowPermissionRemediation create remediation for workflow permissions.
-func CreateWorkflowPermissionRemediation(md Metadata, filepath string) *Remediation {
-	return createWorkflowRemediation(md, filepath, "permissions")
+func (md Metadata) CreateWorkflowPermissionRemediation(filepath string) *Remediation {
+	return md.createWorkflowRemediation(filepath, "permissions")
 }
 
 // CreateWorkflowPinningRemediation create remediaiton for pinninn GH Actions.
-func CreateWorkflowPinningRemediation(md Metadata, filepath string) *Remediation {
-	return createWorkflowRemediation(md, filepath, "pin")
+func (md Metadata) CreateWorkflowPinningRemediation(filepath string) *Remediation {
+	return md.createWorkflowRemediation(filepath, "pin")
 }
 
-func createWorkflowRemediation(md Metadata, path, t string) *Remediation {
+func (md Metadata) createWorkflowRemediation(path, t string) *Remediation {
 	p := strings.TrimPrefix(path, ".github/workflows/")
 
 	branch, bOk := md[BranchName]
@@ -109,7 +109,7 @@ func createWorkflowRemediation(md Metadata, path, t string) *Remediation {
 }
 
 // CreateDockerfilePinningRemediation create remediaiton for pinning Dockerfile images.
-func CreateDockerfilePinningRemediation(md Metadata, name *string) *Remediation {
+func (md Metadata) CreateDockerfilePinningRemediation(name *string) *Remediation {
 	if name == nil {
 		return nil
 	}

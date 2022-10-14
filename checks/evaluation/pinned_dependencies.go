@@ -134,9 +134,9 @@ func PinningDependencies(name string, dl checker.DetailLogger, r *checker.Pinnin
 func generateRemediation(remediationMd remediation.Metadata, rr *checker.Dependency) *remediation.Remediation {
 	switch rr.Type {
 	case checker.DependencyUseTypeGHAction:
-		return remediation.CreateWorkflowPinningRemediation(remediationMd, rr.Location.Path)
+		return remediationMd.CreateWorkflowPinningRemediation(rr.Location.Path)
 	case checker.DependencyUseTypeDockerfileContainerImage:
-		return remediation.CreateDockerfilePinningRemediation(remediationMd, rr.Name)
+		return remediationMd.CreateDockerfilePinningRemediation(rr.Name)
 	default:
 		return nil
 	}
