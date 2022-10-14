@@ -36,7 +36,8 @@ const (
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
-	commitsToAnalyze       = 30
+	commitsToAnalyze       = 120
+	commitsCursor          = ""
 )
 
 var errNotCached = errors.New("result not cached")
@@ -97,7 +98,7 @@ type graphqlData struct {
 							}
 						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 					}
-				} `graphql:"history(first: $commitsToAnalyze)"`
+				} `graphql:"history(first: $commitsToAnalyze, after: $commitsCursor)"`
 			} `graphql:"... on Commit"`
 		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
@@ -154,7 +155,11 @@ type checkRunsGraphqlData struct {
 							}
 						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 					}
-				} `graphql:"history(first: $commitsToAnalyze)"`
+					PageInfo struct {
+						EndCursor   githubv4.String
+						HasNextPage bool
+					}
+				} `graphql:"history(first: $commitsToAnalyze, after: $commitsCursor)"`
 			} `graphql:"... on Commit"`
 		} `graphql:"object(expression: $commitExpression)"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
@@ -195,6 +200,10 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 }
 
 func (handler *graphqlHandler) setup() error {
+	// changes
+	var allCommits []commits
+
+	// end changes
 	handler.setupOnce.Do(func() {
 		commitExpression := handler.commitExpression()
 		vars := map[string]interface{}{
@@ -206,8 +215,35 @@ func (handler *graphqlHandler) setup() error {
 			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
 			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
 			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
+			"commitsCursor":          (*githubv4.String)(nil), // Null after argument to get first page.
 			"commitExpression":       githubv4.String(commitExpression),
 		}
+		// changes
+		commitDepth := 112 // make static for testing
+		commitPages := (commitDepth / commitsToAnalyze) + 1
+		commitRemainder := commitDepth % commitsToAnalyze
+		for i := 0; i < commitPages; i++ {
+			if i == (commitPages - 1) {
+				vars["commitsToAnalyze"] = commitRemainder
+			}
+			err := handler.client.Query(handler.ctx, handler.data, vars)
+			if err != nil {
+				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+				return
+			}
+			handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
+			if handler.errSetup != nil {
+				return
+			}
+			allCommits = append(allCommits, handler.commits)
+			vars["commitsCursor"] = githubv4.NewString(handler.data.Repository.Object.Commit.History.PageInfo.EndCursor)
+			if !handler.data.Repository.Object.Commit.History.PageInfo.HasNextPage {
+				break
+			}
+		}
+
+		//end changes
+
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
@@ -230,6 +266,7 @@ func (handler *graphqlHandler) setupCheckRuns() error {
 			"name":                  githubv4.String(handler.repourl.repo),
 			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
 			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
+			"commitsCursor":         (*githubv4.String)(nil), // Null after argument to get first page.
 			"commitExpression":      githubv4.String(commitExpression),
 			"checksToAnalyze":       githubv4.Int(checksToAnalyze),
 		}
