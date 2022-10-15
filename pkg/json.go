@@ -86,6 +86,7 @@ type JSONScorecardResultV2 struct {
 // AsJSON exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", "  ")
 
 	out := jsonScorecardResult{
 		Repo:     r.Repo.Name,
