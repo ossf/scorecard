@@ -241,8 +241,9 @@ func calculateScore(result map[string]permissions) int {
 
 		// contents.
 		// Allows attacker to commit unreviewed code.
+		// Scoring does not apply to job-level permissions, as this is a common place to use third-party actions.
 		// High risk: -10
-		if permissionIsPresent(perms, "contents") {
+		if permissionIsPresentInTopLevel(perms, "contents") {
 			score -= checker.MaxResultScore
 		}
 
