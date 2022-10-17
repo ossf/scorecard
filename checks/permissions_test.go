@@ -251,7 +251,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-no-release.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MinResultScore,
+				Score:         checker.MaxResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
 				NumberOfDebug: 4,
