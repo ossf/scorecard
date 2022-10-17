@@ -59,6 +59,9 @@ const (
 
 	// FlagFormat is the flag name for specifying output format.
 	FlagFormat = "format"
+
+	// FlagDepth is the flag name for specifying commit depth
+	FlagDepth = "commit-depth"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -69,6 +72,14 @@ type Command interface {
 
 // AddFlags adds this options' flags to the cobra command.
 func (o *Options) AddFlags(cmd *cobra.Command) {
+
+	cmd.Flags().IntVar(
+		&o.Depth,
+		FlagDepth,
+		o.Depth,
+		"number of commits to check",
+	)
+
 	cmd.Flags().StringVar(
 		&o.Repo,
 		FlagRepo,

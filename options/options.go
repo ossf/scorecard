@@ -37,6 +37,7 @@ type Options struct {
 	PyPI       string
 	RubyGems   string
 	PolicyFile string
+	Depth      int //my addition
 	// TODO(action): Add logic for writing results to file
 	ResultsFile string
 	ChecksToRun []string

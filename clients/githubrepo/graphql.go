@@ -39,6 +39,7 @@ const (
 	commitsToAnalyze       = 30
 )
 
+var CommitDepth = 30
 var errNotCached = errors.New("result not cached")
 
 //nolint:govet
@@ -97,7 +98,12 @@ type graphqlData struct {
 							}
 						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 					}
-				} `graphql:"history(first: $commitsToAnalyze)"`
+					PageInfo struct {
+						StartCursor githubv4.String
+						EndCursor   githubv4.String
+						HasNextPage bool
+					}
+				} `graphql:"history(first: $commitDepth, after: $historyCursor)"`
 			} `graphql:"... on Commit"`
 		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
@@ -205,19 +211,100 @@ func (handler *graphqlHandler) setup() error {
 			"issueCommentsToAnalyze": githubv4.Int(issueCommentsToAnalyze),
 			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
 			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
-			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
+			"commitDepth":            githubv4.Int(CommitDepth), // used instead of commitsToAnalyze
 			"commitExpression":       githubv4.String(commitExpression),
+			"historyCursor":          (*githubv4.String)(nil),
+			//"commitsToAnalyze":       githubv4.Int(commitDepth),
 		}
-		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
-			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+		var allHistory []struct {
+			CommittedDate githubv4.DateTime
+			Message       githubv4.String
+			Oid           githubv4.GitObjectID
+			Author        struct {
+				User struct {
+					Login githubv4.String
+				}
+			}
+			Committer struct {
+				Name *string
+				User struct {
+					Login *string
+				}
+			}
+			Signature struct {
+				IsValid           bool
+				WasSignedByGitHub bool
+			}
+			AssociatedPullRequests struct {
+				Nodes []struct {
+					Repository struct {
+						Name  githubv4.String
+						Owner struct {
+							Login githubv4.String
+						}
+					}
+					Author struct {
+						Login githubv4.String
+					}
+					Number     githubv4.Int
+					HeadRefOid githubv4.String
+					MergedAt   githubv4.DateTime
+					Labels     struct {
+						Nodes []struct {
+							Name githubv4.String
+						}
+					} `graphql:"labels(last: $labelsToAnalyze)"`
+					Reviews struct {
+						Nodes []struct {
+							State  githubv4.String
+							Author struct {
+								Login githubv4.String
+							}
+						}
+					} `graphql:"reviews(last: $reviewsToAnalyze)"`
+				}
+			} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
+		}
+		var allIsssues []clients.Issue
+		var allCommits []clients.Commit
+		var commitsLeft int = CommitDepth
+		if CommitDepth > 99 {
+			vars["commitDepth"] = githubv4.Int(100) // need 100 pages to start
+			for {
+				if err := handler.client.Query(handler.ctx, &handler.data, vars); err != nil {
+					handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+					return
+				}
+				vars["historyCursor"] = handler.data.Repository.Object.Commit.History.PageInfo.EndCursor
+				allHistory = append(allHistory, handler.data.Repository.Object.Commit.History.Nodes...)
+				allIsssues = append(allIsssues, issuesFrom(handler.data)...)
+				tmp, err := commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
+				if err != nil {
+					break
+				}
+				allCommits = append(allCommits, tmp...)
+				handler.archived = bool(handler.data.Repository.IsArchived)
+				commitsLeft -= 100
+				if commitsLeft <= 0 {
+					break
+				}
+				if commitsLeft < 100 {
+					vars["commitDepth"] = githubv4.Int(commitsLeft) // amount of commits left
+				}
+			}
+			handler.issues = append(handler.issues, allIsssues...)
+			handler.commits = append(handler.commits, allCommits...)
 			return
+		} else {
+			if err := handler.client.Query(handler.ctx, &handler.data, vars); err != nil {
+				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+				return
+			}
 		}
 		handler.archived = bool(handler.data.Repository.IsArchived)
-		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
-		if handler.errSetup != nil {
-			return
-		}
 		handler.issues = issuesFrom(handler.data)
+		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
+		return
 	})
 	return handler.errSetup
 }
@@ -322,7 +409,7 @@ func parseCheckRuns(data *checkRunsGraphqlData) checkRunCache {
 	return checkCache
 }
 
-//nolint
+// nolint
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {

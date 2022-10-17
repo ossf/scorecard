@@ -27,6 +27,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	sclog "github.com/ossf/scorecard/v4/log"
@@ -72,6 +73,9 @@ func New(o *options.Options) *cobra.Command {
 
 // rootCmd runs scorecard checks given a set of arguments.
 func rootCmd(o *options.Options) error {
+	if o.Depth != 0 {
+		githubrepo.CommitDepth = o.Depth // one way lol
+	}
 	p := &packageManager{}
 	// Set `repo` from package managers.
 	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, p)

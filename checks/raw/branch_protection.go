@@ -80,7 +80,6 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 			branches.contains(branchRedirect(release.TargetCommitish)) {
 			continue
 		}
-
 		// Get the associated release branch.
 		branchRef, err := c.GetBranch(release.TargetCommitish)
 		if err != nil {
