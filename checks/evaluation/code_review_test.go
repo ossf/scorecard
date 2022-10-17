@@ -104,6 +104,24 @@ func TestCodeReview(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "implicit maintainer approval through github merge",
+			expected: scut.TestReturn{
+				Score: checker.MaxResultScore,
+			},
+			rawData: &checker.CodeReviewData{
+				DefaultBranchChangesets: []checker.Changeset{
+					{
+						ReviewPlatform: checker.ReviewPlatformGitHub,
+						Commits:        []clients.Commit{{SHA: "1"}},
+					},
+					{
+						ReviewPlatform: checker.ReviewPlatformGitHub,
+						Commits:        []clients.Commit{{SHA: "2"}},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {

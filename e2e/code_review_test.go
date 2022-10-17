@@ -16,19 +16,20 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 // TODO: use dedicated repo that don't change.
-// TODO: need negative results.
 var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 	Context("E2E TEST:Validating use of code reviews", func() {
 		It("Should return use of code reviews", func() {
@@ -79,6 +80,28 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return use of implicit code reviews at commit", func() {
+			repo, err := githubrepo.MakeGithubRepo("spring-projects/spring-framework")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "ca5e453f87f7e84033bb90a2fb54ee9f7fc94d61")
+			Expect(err).Should(BeNil())
+
+			reviewData, err := raw.CodeReview(repoClient)
+			Expect(err).Should(BeNil())
+			Expect(reviewData.DefaultBranchChangesets).ShouldNot(BeEmpty())
+
+			gh := 0
+			for _, cs := range reviewData.DefaultBranchChangesets {
+				if cs.ReviewPlatform == checker.ReviewPlatformGitHub {
+					fmt.Printf("found github revision %s in spring-framework", cs.RevisionID)
+					gh += 1
+				}
+			}
+			Expect(gh).Should(BeNumerically("==", 2))
+
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
