@@ -102,7 +102,7 @@ Following the targets that can be used to test your changes locally.
 | Command  | Description                                        | Is called in the CI? |
 | -------- | -------------------------------------------------- | -------------------- |
 | make all | Runs go test,golangci lint checks, fmt, go mod tidy| yes                  |
-| make e2e | Runs e2e tests                                     | yes                  |
+| make e2e-pat | Runs e2e tests                                     | yes                  |
 
 ## Permission for GitHub personal access tokens
 

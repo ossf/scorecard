@@ -84,7 +84,7 @@ install: $(GOLANGCI_LINT) \
 ##@ Build
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = build check-linter validate-docs add-projects validate-projects
+all-targets = build unit-test unit-test-attestor check-linter validate-docs add-projects validate-projects
 .PHONY: all all-targets-update-dependencies $(all-targets) update-dependencies tree-status
 all-targets-update-dependencies: $(all-targets) | update-dependencies
 all: update-dependencies all-targets-update-dependencies tree-status
