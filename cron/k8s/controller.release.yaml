@@ -55,6 +55,8 @@ spec:
               args: ["--config=/etc/scorecard/config.yaml", "cron/internal/data/projects.release.csv"]
               imagePullPolicy: Always
               env:
+                - name: GOMEMLIMIT
+                  value: "950MiB"
                 - name: SCORECARD_REQUEST_TOPIC_URL
                   value: "gcppubsub://projects/openssf/topics/scorecard-batch-requests-releasetest"
                 - name: SCORECARD_DATA_BUCKET_URL
