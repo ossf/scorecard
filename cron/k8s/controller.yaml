@@ -54,6 +54,9 @@ spec:
               image: gcr.io/openssf/scorecard-batch-controller:stable
               args: ["--config=/etc/scorecard/config.yaml", "cron/internal/data/projects.csv"]
               imagePullPolicy: Always
+              env:
+                - name: GOMEMLIMIT
+                  value: "950MiB"
               resources:
                 limits:
                   memory: 1Gi
