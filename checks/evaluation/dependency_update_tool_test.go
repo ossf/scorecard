@@ -76,7 +76,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			err: false,
 			expected: scut.TestReturn{
 				Score:        0,
-				NumberOfWarn: 2,
+				NumberOfWarn: 1,
 			},
 		},
 		{

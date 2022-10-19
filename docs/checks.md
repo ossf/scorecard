@@ -292,9 +292,12 @@ The highest score is awarded when all workflows avoid the dangerous code pattern
 Risk: `High` (possibly vulnerable to attacks on known flaws)
 
 This check tries to determine if the project uses a dependency update tool,
-specifically [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or
-[renovatebot](https://docs.renovatebot.com/configuration-options/). Out-of-date
-dependencies make a project vulnerable to known flaws and prone to attacks.
+specifically one of:
+- [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
+- [renovatebot](https://docs.renovatebot.com/configuration-options/)
+- [Sonatype Lift](https://help.sonatype.com/lift/getting-started)
+- [PyUp](https://docs.pyup.io/docs) (Python)
+Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
 These tools automate the process of updating dependencies by scanning for
 outdated or insecure requirements, and opening a pull request to update them if
 found.
@@ -310,7 +313,7 @@ low score is therefore not a definitive indication that the project is at risk.
  
 
 **Remediation steps**
-- Signup for automatic dependency updates with [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
+- Signup for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
 - Unlike dependabot, renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
 
 ## Fuzzing 
@@ -478,9 +481,7 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
 - If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
 - For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
 - For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
-- To help update your dependencies after pinning them, use tools such as
- Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
-or [renovate bot](https://github.com/renovatebot/renovate).
+- To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
 
 ## SAST 
 

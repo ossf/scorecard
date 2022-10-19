@@ -75,7 +75,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			SearchCommits:     []clients.Commit{{Committer: clients.User{ID: 111111111}}},
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
-				NumberOfWarn: 2,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -87,7 +87,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			SearchCommits:     []clients.Commit{},
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
-				NumberOfWarn: 2,
+				NumberOfWarn: 1,
 			},
 		},
 
