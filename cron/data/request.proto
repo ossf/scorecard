@@ -16,10 +16,19 @@ syntax = "proto3";
 
 package ossf.scorecard.cron.internal.data;
 
-option go_package = "github.com/ossf/scorecard/cron/internal/data";
+import "google/protobuf/timestamp.proto";
 
-message ShardMetadata {
-  optional string shard_loc = 1;
-  optional int32 num_shard = 2;
-  optional string commit_sha = 3;
+option go_package = "github.com/ossf/scorecard/cron/data";
+
+message Repo {
+  optional string url = 1;
+  optional string commit = 3;
+  repeated string metadata = 2;
+}
+
+message ScorecardBatchRequest {
+  repeated Repo repos = 4;
+  optional int32 shard_num = 2;
+  optional google.protobuf.Timestamp job_time = 3;
+  reserved 1;
 }

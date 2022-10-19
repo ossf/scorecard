@@ -23,7 +23,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 var repo1 = "repo1"
