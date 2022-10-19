@@ -105,6 +105,7 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	// Exposed for monitoring runtime profiles
 	go func() {
 		// TODO(log): Previously Fatal. Need to handle the error here.
+		//nolint:gosec // not internet facing.
 		sw.logger.Info(fmt.Sprintf("%v", http.ListenAndServe(":8080", nil)))
 	}()
 	return sw, nil
