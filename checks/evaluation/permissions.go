@@ -241,7 +241,6 @@ func calculateScore(result map[string]permissions) int {
 
 		// contents.
 		// Allows attacker to commit unreviewed code.
-		// Scoring does not apply to job-level permissions, as this is a common place to use third-party actions.
 		// High risk: -10
 		if permissionIsPresentInTopLevel(perms, "contents") {
 			score -= checker.MaxResultScore
@@ -250,14 +249,14 @@ func calculateScore(result map[string]permissions) int {
 		// packages: https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages.
 		// Allows attacker to publish packages.
 		// High risk: -10
-		if permissionIsPresent(perms, "packages") {
+		if permissionIsPresentInTopLevel(perms, "packages") {
 			score -= checker.MaxResultScore
 		}
 
 		// actions.
 		// May allow an attacker to steal GitHub secrets by approving to run an action that needs approval.
 		// High risk: -10
-		if permissionIsPresent(perms, "actions") {
+		if permissionIsPresentInTopLevel(perms, "actions") {
 			score -= checker.MaxResultScore
 		}
 
