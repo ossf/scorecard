@@ -1,6 +1,6 @@
 module github.com/ossf/scorecard/v4
 
-go 1.18
+go 1.19
 
 require (
 	github.com/rhysd/actionlint v1.6.15
@@ -33,7 +33,7 @@ require (
 	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
 	go.opencensus.io v0.23.0
 	gocloud.dev v0.26.0
-	golang.org/x/text v0.3.7
+	golang.org/x/text v0.4.0
 	golang.org/x/tools v0.1.12
 	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc
 	google.golang.org/protobuf v1.28.1
