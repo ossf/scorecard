@@ -147,7 +147,7 @@ func processRequest(ctx context.Context,
 			logger.Info(fmt.Sprintf("invalid GitHub URL: %v", err))
 			continue
 		}
-		repo.AppendMetadata(repoReq.Metadata...)
+		repo.AppendMetadata(repo.Metadata()...)
 
 		commitSHA := clients.HeadSHA
 		requiredRequestType := []checker.RequestType{}
