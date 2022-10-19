@@ -129,11 +129,11 @@ build: ## Build all binaries and images in the repo.
 build: $(build-targets)
 
 build-proto: ## Compiles and generates all required protobufs
-build-proto: cron/internal/data/request.pb.go cron/internal/data/metadata.pb.go
-cron/internal/data/request.pb.go: cron/internal/data/request.proto | $(PROTOC) $(PROTOC_GEN_GO)
-	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/internal/data/request.proto
-cron/internal/data/metadata.pb.go: cron/internal/data/metadata.proto | $(PROTOC) $(PROTOC_GEN_GO)
-	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/internal/data/metadata.proto
+build-proto: cron/data/request.pb.go cron/data/metadata.pb.go
+cron/data/request.pb.go: cron/data/request.proto | $(PROTOC) $(PROTOC_GEN_GO)
+	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/data/request.proto
+cron/data/metadata.pb.go: cron/data/metadata.proto | $(PROTOC) $(PROTOC_GEN_GO)
+	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/data/metadata.proto
 
 generate-mocks: ## Compiles and generates all mocks using mockgen.
 generate-mocks: clients/mockclients/repo_client.go \
@@ -219,14 +219,14 @@ cron/internal/cii/cii-worker.docker: cron/internal/cii/Dockerfile $(CRON_CII_DEP
 			--tag $(IMAGE_NAME)-cii-worker && \
 			touch cron/internal/cii/cii-worker.docker
 
-CRON_SHUFFLER_DEPS = $(shell find cron/internal/data/ cron/internal/shuffle/ -iname "*.go")
+CRON_SHUFFLER_DEPS = $(shell find cron/data/ cron/internal/shuffle/ -iname "*.go")
 build-shuffler: ## Build cron shuffle script
 build-shuffler: cron/internal/shuffle/shuffle
 cron/internal/shuffle/shuffle: $(CRON_SHUFFLER_DEPS)
 	# Run go build on the cron shuffle script
 	cd cron/internal/shuffle && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o shuffle
 
-CRON_TRANSFER_DEPS = $(shell find cron/internal/data/ cron/internal/config/ cron/internal/bq/ -iname "*.go")
+CRON_TRANSFER_DEPS = $(shell find cron/data/ cron/config/ cron/internal/bq/ -iname "*.go")
 build-bq-transfer: ## Build cron BQ transfer worker
 build-bq-transfer: cron/internal/bq/data-transfer
 cron/internal/bq/data-transfer: $(CRON_TRANSFER_DEPS)
@@ -255,7 +255,7 @@ clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker: \
 			--tag ${IMAGE_NAME}-github-server && \
 			touch clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker
 
-CRON_WEBHOOK_DEPS = $(shell find cron/internal/webhook/ cron/internal/data/ -iname "*.go")
+CRON_WEBHOOK_DEPS = $(shell find cron/internal/webhook/ cron/data/ -iname "*.go")
 build-webhook: ## Build cron webhook server
 build-webhook: cron/internal/webhook/webhook
 cron/internal/webhook/webhook: $(CRON_WEBHOOK_DEPS)
@@ -271,19 +271,19 @@ cron/internal/webhook/webhook.docker: cron/internal/webhook/Dockerfile $(CRON_WE
 
 build-add-script: ## Runs go build on the add script
 build-add-script: cron/internal/data/add/add
-cron/internal/data/add/add: cron/internal/data/add/*.go cron/internal/data/*.go cron/internal/data/projects.csv
+cron/internal/data/add/add: cron/internal/data/add/*.go cron/data/*.go cron/internal/data/projects.csv
 	# Run go build on the add script
 	cd cron/internal/data/add && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o add
 
 build-validate-script: ## Runs go build on the validate script
 build-validate-script: cron/internal/data/validate/validate
-cron/internal/data/validate/validate: cron/internal/data/validate/*.go cron/internal/data/*.go cron/internal/data/projects.csv
+cron/internal/data/validate/validate: cron/internal/data/validate/*.go cron/data/*.go cron/internal/data/projects.csv
 	# Run go build on the validate script
 	cd cron/internal/data/validate && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o validate
 
 build-update-script: ## Runs go build on the update script
 build-update-script: cron/internal/data/update/projects-update
-cron/internal/data/update/projects-update:  cron/internal/data/update/*.go cron/internal/data/*.go
+cron/internal/data/update/projects-update:  cron/internal/data/update/*.go cron/data/*.go
 	# Run go build on the update script
 	cd cron/internal/data/update && CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'  -o projects-update
 

@@ -26,7 +26,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/google"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 const stableTag = "stable"
