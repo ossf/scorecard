@@ -28,7 +28,7 @@ import (
 	_ "gocloud.dev/pubsub/gcppubsub"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 var errorPublish = errors.New("total errors when publishing")

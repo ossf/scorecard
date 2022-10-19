@@ -25,7 +25,7 @@ The cluster name is `openssf` which is in zone `us-central1-c`.
 
 ## Creating or updating the ConfigMap using the config.yaml file
 
-We use [ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/) to store our config file (`cron/internal/config/config.yaml`).
+We use [ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/) to store our config file (`cron/config/config.yaml`).
 The file can be created for the first time, or updated, with the same command:
 ```
 kubectl create configmap scorecard-config --from-file=config.yaml -o yaml --dry-run=client | kubectl apply -f -
