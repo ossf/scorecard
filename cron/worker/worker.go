@@ -17,6 +17,7 @@ package worker
 
 import (
 	"context"
+	"flag"
 	"fmt"
 
 	"github.com/ossf/scorecard/v4/cron/config"
@@ -47,9 +48,16 @@ func NewWorkLoop(worker Worker) WorkLoop {
 }
 
 // Run initiates the processing performed by the WorkLoop.
-// config.ReadConfig() must be called prior to this function.
 func (wl *WorkLoop) Run() error {
 	ctx := context.Background()
+
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+
+	if err := config.ReadConfig(); err != nil {
+		return fmt.Errorf("config.ReadConfig: %w", err)
+	}
 
 	subscriptionURL, err := config.GetRequestSubscriptionURL()
 	if err != nil {
