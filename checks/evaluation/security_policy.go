@@ -19,31 +19,22 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-func scoreSecurityCriteria(f checker.File, info []checker.SecurityPolicyInformation, dl checker.DetailLogger) int {
+func scoreSecurityCriteria(f checker.File,
+	contentLen uint,
+	info []checker.SecurityPolicyInformation,
+	dl checker.DetailLogger,
+) int {
 	var urls, emails, discvuls, linkedContentLen, score int
-	// for Security-Policy, EndOffset denotes the
-	// length of the found policy file
-	// (i.e., byte offset at end of file)
-	contentLen := int(f.EndOffset)
 
-	for _, i := range info {
-		valuelen := 0
-		counter := 0
-		for _, v := range i.InformationValue {
-			valuelen += len(v)
-			counter += 1
-		}
+	emails = countSecInfo(info, checker.SecurityPolicyInformationTypeEmail, true)
+	urls = countSecInfo(info, checker.SecurityPolicyInformationTypeLink, true)
+	discvuls = countSecInfo(info, checker.SecurityPolicyInformationTypeText, false)
 
-		switch i.InformationType {
-		case checker.SecurityPolicyInformationTypeEmail:
-			emails = counter
-			linkedContentLen += valuelen
-		case checker.SecurityPolicyInformationTypeLink:
-			urls = counter
-			linkedContentLen += valuelen
-		case checker.SecurityPolicyInformationTypeText:
-			discvuls = counter
-		}
+	for _, i := range findSecInfo(info, checker.SecurityPolicyInformationTypeEmail, true) {
+		linkedContentLen += len(i.InformationValue.Match)
+	}
+	for _, i := range findSecInfo(info, checker.SecurityPolicyInformationTypeLink, true) {
+		linkedContentLen += len(i.InformationValue.Match)
 	}
 
 	msg := checker.LogMessage{
@@ -68,7 +59,7 @@ func scoreSecurityCriteria(f checker.File, info []checker.SecurityPolicyInformat
 	//     no credit if there is just a link to a site or an email address (those given above)
 	//     the test here is that each piece of linked content will likely contain a space
 	//     before and after the content (hence the two multiplier)
-	if contentLen > 1 && (contentLen > (linkedContentLen + ((urls + emails) * 2))) {
+	if contentLen > 1 && (contentLen > uint(linkedContentLen+((urls+emails)*2))) {
 		score += 3
 		msg.Text = "Found text in security policy"
 		dl.Info(&msg)
@@ -94,6 +85,40 @@ func scoreSecurityCriteria(f checker.File, info []checker.SecurityPolicyInformat
 	return score
 }
 
+func countSecInfo(secInfo []checker.SecurityPolicyInformation,
+	infoType checker.SecurityPolicyInformationType,
+	unique bool,
+) int {
+	keys := make(map[string]bool)
+	count := 0
+	for _, entry := range secInfo {
+		if _, value := keys[entry.InformationValue.Match]; !value && entry.InformationType == infoType {
+			keys[entry.InformationValue.Match] = true
+			count += 1
+		} else if !unique && entry.InformationType == infoType {
+			count += 1
+		}
+	}
+	return count
+}
+
+func findSecInfo(secInfo []checker.SecurityPolicyInformation,
+	infoType checker.SecurityPolicyInformationType,
+	unique bool,
+) []checker.SecurityPolicyInformation {
+	keys := make(map[string]bool)
+	var secList []checker.SecurityPolicyInformation
+	for _, entry := range secInfo {
+		if _, value := keys[entry.InformationValue.Match]; !value && entry.InformationType == infoType {
+			keys[entry.InformationValue.Match] = true
+			secList = append(secList, entry)
+		} else if !unique && entry.InformationType == infoType {
+			secList = append(secList, entry)
+		}
+	}
+	return secList
+}
+
 // SecurityPolicy applies the score policy for the Security-Policy check.
 func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPolicyData) checker.CheckResult {
 	if r == nil {
@@ -107,7 +132,7 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
 
-	score := scoreSecurityCriteria(r.File, r.Information, dl)
+	score := scoreSecurityCriteria(r.File, r.SecurityContentLength, r.Information, dl)
 
 	msg := checker.LogMessage{
 		Path:   r.File.Path,

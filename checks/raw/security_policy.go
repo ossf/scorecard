@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"path"
@@ -61,7 +62,11 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
 		}
-		return checker.SecurityPolicyData{File: data.file, Information: data.info}, nil
+		return checker.SecurityPolicyData{
+			File:                  data.file,
+			SecurityContentLength: data.file.EndOffset,
+			Information:           data.info,
+		}, nil
 	}
 
 	// Check if present in parent org.
@@ -100,7 +105,11 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			return checker.SecurityPolicyData{}, err
 		}
 	}
-	return checker.SecurityPolicyData{File: data.file, Information: data.info}, nil
+	return checker.SecurityPolicyData{
+		File:                  data.file,
+		SecurityContentLength: data.file.EndOffset,
+		Information:           data.info,
+	}, nil
 }
 
 // Check repository for repository-specific policy.
@@ -176,7 +185,7 @@ var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(pa
 	if pfiles != nil && (*pinfo) != nil {
 		// preserve file type
 		tempType := pfiles.Type
-		urlsL, emailsL, discvulsL := collectPolicyHits(string(content))
+		policyHits := collectPolicyHits(content)
 
 		*pfiles = checker.File{
 			Path:   path,
@@ -187,25 +196,8 @@ var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(pa
 			EndOffset: uint(len(content)),
 		}
 
-		if len(urlsL) > 0 {
-			(*pinfo) = append((*pinfo), checker.SecurityPolicyInformation{
-				InformationType:  checker.SecurityPolicyInformationTypeLink,
-				InformationValue: urlsL,
-			})
-		}
-
-		if len(emailsL) > 0 {
-			(*pinfo) = append((*pinfo), checker.SecurityPolicyInformation{
-				InformationType:  checker.SecurityPolicyInformationTypeEmail,
-				InformationValue: emailsL,
-			})
-		}
-
-		if len(discvulsL) > 0 {
-			(*pinfo) = append((*pinfo), checker.SecurityPolicyInformation{
-				InformationType:  checker.SecurityPolicyInformationTypeText,
-				InformationValue: discvulsL,
-			})
+		if len(policyHits) > 0 {
+			(*pinfo) = append((*pinfo), policyHits...)
 		}
 	} else {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "bad file or information reference")
@@ -216,7 +208,9 @@ var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(pa
 	return false, nil
 }
 
-func collectPolicyHits(policyContent string) ([]string, []string, []string) {
+func collectPolicyHits(policyContent []byte) []checker.SecurityPolicyInformation {
+	var hits []checker.SecurityPolicyInformation
+
 	// pattern for URLs
 	reURL := regexp.MustCompile(`(http|https)://[a-zA-Z0-9./?=_%:-]*`)
 	// pattern for emails
@@ -226,28 +220,50 @@ func collectPolicyHits(policyContent string) ([]string, []string, []string) {
 	// strings 'disclos' as in "disclosure" or 'vuln' as in "vulnerability"
 	reDIG := regexp.MustCompile(`(?i)(\b*[0-9]{1,4}\b|(Disclos|Vuln))`)
 
-	urlUniqList := uniqueInPolicy(reURL.FindAllString(policyContent, -1))
+	lineNum := 0
+	for {
+		advance, token, err := bufio.ScanLines(policyContent, true)
+		if advance == 0 || err != nil {
+			break
+		}
 
-	emailUniqList := uniqueInPolicy(reEML.FindAllString(policyContent, -1))
-
-	// not really looking unique sets of numbers or words
-	discvulsList := reDIG.FindAllString(policyContent, -1)
-
-	return urlUniqList, emailUniqList, discvulsList
-}
-
-//
-// Returns unique items in a slice
-// src inspiration: https://codereview.stackexchange.com/questions/191238/return-unique-items-in-a-go-slice
-//
-func uniqueInPolicy(strSlice []string) []string {
-	keys := make(map[string]bool)
-	list := []string{}
-	for _, entry := range strSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
+		lineNum += 1
+		if len(token) != 0 {
+			for _, indexes := range reURL.FindAllIndex(token, -1) {
+				hits = append(hits, checker.SecurityPolicyInformation{
+					InformationType: checker.SecurityPolicyInformationTypeLink,
+					InformationValue: checker.SecurityPolicyValueType{
+						Match:      string(token[indexes[0]:indexes[1]]), // Snippet of match
+						LineNumber: uint(lineNum),                        // line number in file
+						Offset:     uint(indexes[0]),                     // Offset in the line
+					},
+				})
+			}
+			for _, indexes := range reEML.FindAllIndex(token, -1) {
+				hits = append(hits, checker.SecurityPolicyInformation{
+					InformationType: checker.SecurityPolicyInformationTypeEmail,
+					InformationValue: checker.SecurityPolicyValueType{
+						Match:      string(token[indexes[0]:indexes[1]]), // Snippet of match
+						LineNumber: uint(lineNum),                        // line number in file
+						Offset:     uint(indexes[0]),                     // Offset in the line
+					},
+				})
+			}
+			for _, indexes := range reDIG.FindAllIndex(token, -1) {
+				hits = append(hits, checker.SecurityPolicyInformation{
+					InformationType: checker.SecurityPolicyInformationTypeText,
+					InformationValue: checker.SecurityPolicyValueType{
+						Match:      string(token[indexes[0]:indexes[1]]), // Snippet of match
+						LineNumber: uint(lineNum),                        // line number in file
+						Offset:     uint(indexes[0]),                     // Offset in the line
+					},
+				})
+			}
+		}
+		if advance <= len(policyContent) {
+			policyContent = policyContent[advance:]
 		}
 	}
-	return list
+
+	return hits
 }

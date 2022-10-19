@@ -142,12 +142,18 @@ const (
 	// forms of security policy hints being evaluated.
 	SecurityPolicyInformationTypeEmail SecurityPolicyInformationType = "emailAddress"
 	SecurityPolicyInformationTypeLink  SecurityPolicyInformationType = "httpLink"
-	SecurityPolicyInformationTypeText  SecurityPolicyInformationType = "vuln & disclosure text"
+	SecurityPolicyInformationTypeText  SecurityPolicyInformationType = "vulnDisclosureText"
 )
+
+type SecurityPolicyValueType struct {
+	Match      string // Snippet of match
+	LineNumber uint   // Line number in policy file of match
+	Offset     uint   // Offset in the line of the match
+}
 
 type SecurityPolicyInformation struct {
 	InformationType  SecurityPolicyInformationType
-	InformationValue []string
+	InformationValue SecurityPolicyValueType
 }
 
 // SecurityPolicyData contains the raw results
@@ -158,6 +164,8 @@ type SecurityPolicyData struct {
 	// file that contains the security policy information
 	// only looking for one file
 	File File
+	// total size in bytes of the security policy file contents
+	SecurityContentLength uint
 }
 
 // BinaryArtifactData contains the raw results
