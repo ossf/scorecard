@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 func main() {
