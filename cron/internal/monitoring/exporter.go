@@ -24,7 +24,7 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver/monitoredresource/gcp"
 	"go.opencensus.io/stats/view"
 
-	"github.com/ossf/scorecard/v4/cron/internal/config"
+	"github.com/ossf/scorecard/v4/cron/config"
 )
 
 var errorUndefinedExporter = errors.New("unsupported exporterType")

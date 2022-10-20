@@ -21,7 +21,7 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 // ErrorInParse indicates there was an error while unmarshalling the protocol buffer message.
