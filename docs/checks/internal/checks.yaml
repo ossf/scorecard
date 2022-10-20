@@ -36,7 +36,7 @@ checks:
       For example, a library that determines if an integer is even would not normally
       need maintenance unless an underlying implementation language definition
       changed. A lack of active maintenance should signal that potential users should
-      investigate further to judge the situation.   
+      investigate further to judge the situation.
 
       This check will only succeed if a Github project is >90 days old. Projects
       that are younger than this are too new to assess whether they are maintained
@@ -54,37 +54,38 @@ checks:
     repos: GitHub, local
     short: Determines if the project uses a dependency update tool.
     description: |
-      Risk: `High` (possibly vulnerable to attacks on known flaws)  
+      Risk: `High` (possibly vulnerable to attacks on known flaws)
 
       This check tries to determine if the project uses a dependency update tool,
-      specifically [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or
-      [renovatebot](https://docs.renovatebot.com/configuration-options/). Out-of-date
-      dependencies make a project vulnerable to known flaws and prone to attacks.
+      specifically one of:
+      - [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
+      - [renovatebot](https://docs.renovatebot.com/configuration-options/)
+      - [Sonatype Lift](https://help.sonatype.com/lift/getting-started)
+      - [PyUp](https://docs.pyup.io/docs) (Python)
+      Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
       These tools automate the process of updating dependencies by scanning for
       outdated or insecure requirements, and opening a pull request to update them if
-      found.   
+      found.
 
       This check can determine only whether the dependency update tool is enabled; it
       does not ensure that the tool is run or that the tool's pull requests are
-      merged.   
+      merged.
 
       Note: A project that fulfills this criterion with other tools may still receive
       a low score on this test. There are many ways to implement dependency updates,
       and it is challenging for an automated tool like Scorecard to detect them all. A
-      low score is therefore not a definitive indication that the project is at risk.  
+      low score is therefore not a definitive indication that the project is at risk.
 
     remediation:
       - >-
-        Signup for automatic dependency updates with
-        [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or
-        [renovatebot](https://docs.renovatebot.com/configuration-options/) and place
+        Signup for automatic dependency updates with one of the previously listed dependency update tools and place
         the config file in the locations that are recommended by these tools. Due to
         https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can
         be enabled for forks where security updates have ever been turned on so projects
         maintaining stable forks should evaluate whether this behavior is satisfactory
         before turning it on.
       - >-
-        Unlike dependabot, renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning 
+        Unlike dependabot, renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning
         via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without
         aditional manual effort.
   Binary-Artifacts:
@@ -110,28 +111,28 @@ checks:
           maliciously subverted executables. Reviews generally review source code, not
           executables, since it's difficult to audit executables to ensure that they
           correspond to the source code. Over time the included executables might not
-          correspond to the source code. 
+          correspond to the source code.
         - Generated executables allow the executable generation process to atrophy,
           which can lead to an inability to create working executables. These problems
           can be countered with verified reproducible builds, but it's easier to
           implement verified reproducible builds when executables are not included in
           the source repository (since the executable generation process is less
-          likely to have atrophied). 
+          likely to have atrophied).
 
       Allowed by Scorecards:
 
         - Files in the source repository that are simultaneously reviewable source
           code and executables, since these are reviewable. (Some interpretive
           systems, such as many operating system shells, don't have a mechanism for
-          storing generated executables that are different from the source file.) 
+          storing generated executables that are different from the source file.)
         - Source code in the source repository generated by other tools (e.g., by
           bison, yacc, flex, and lex). There are potential downsides to generated
           source code, but generated source code tends to be much easier to review and
           thus presents a lower risk. Generated source code is also often difficult
-          for external tools to detect. 
+          for external tools to detect.
         - Generated documentation in source repositories. Generated documentation is
           intended for use by humans (not computers) who can evaluate the context.
-          Thus, generated documentation doesn't pose the same level of risk.  
+          Thus, generated documentation doesn't pose the same level of risk.
 
     remediation:
       - >-
@@ -144,10 +145,10 @@ checks:
     repos: GitHub
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: |
-      Risk: `High` (vulnerable to intentional malicious code injection)  
-      
+      Risk: `High` (vulnerable to intentional malicious code injection)
+
       This check determines whether a project's default and release branches are
-      protected with GitHub's [branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) settings. 
+      protected with GitHub's [branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) settings.
       Branch protection allows maintainers to define rules that enforce
       certain workflows for branches, such as requiring review or passing certain
       status checks before acceptance into a main branch, or preventing rewriting of
@@ -157,7 +158,7 @@ checks:
       the provided token does not have admin access, the check will query the branch
       settings accessible to non-admins and provide results based only on these settings.
       Even so, we recommend using a non-admin token, which provides a thorough enough
-      result to meet most user needs. 
+      result to meet most user needs.
 
       Different types of branch protection protect against different risks:
 
@@ -171,7 +172,7 @@ checks:
           rewriting of public history without external notice.
 
         - Require [status checks](https://docs.github.com/en/github/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/about-status-checks):
-          ensures that all required CI tests are met before a change is accepted. 
+          ensures that all required CI tests are met before a change is accepted.
 
       Although requiring code review can greatly reduce the chance that
       unintentional or malicious code enters the "main" branch, it is not feasible for
@@ -181,7 +182,7 @@ checks:
       Additionally, in some cases these rules will need to be suspended. For example,
       if a past commit includes illegal content such as child pornography, it may be
       necessary to use a force push to rewrite the history rather than simply hide the
-      commit. 
+      commit.
 
       This test has tiered scoring. Each tier must be fully satisfied to achieve points at the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.
 
@@ -191,17 +192,17 @@ checks:
         - Prevent force push
         - Prevent branch deletion
         - For administrators: Include administrator for review
-      
+
       Tier 2 Requirements (6/10 points):
         - Required reviewers >=1 ​
         - For administrators: Strict status checks (require branches to be up-to-date before merging)
-      
+
       Tier 3 Requirements (8/10 points):
         - Status checks defined
-      
+
       Tier 4 Requirements (9/10 points):
         - Required reviewers >= 2
-      
+
       Tier 5 Requirements (10/10 points):
         - For administrators: Dismiss stale reviews
         - For administrators: Require CODEOWNER review
@@ -238,7 +239,7 @@ checks:
       is therefore not a definitive indication that the project is at risk.
 
       If a project's system was not detected and you think it should be, please
-      [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose). 
+      [open an issue in the scorecard project](https://github.com/ossf/scorecard/issues/new/choose).
     remediation:
       - Check-in scripts that run all the tests in your repository.
       - >-
@@ -249,21 +250,21 @@ checks:
     risk: Low
     tags: security-awareness, security-training, security
     repos: GitHub
-    short: Determines if the project has a CII Best Practices Badge.
+    short: Determines if the project has an OpenSSF (formerly CII) Best Practices Badge.
     description: |
       Risk: `Low` (possibly not following security best practices)
 
-      This check determines whether the project has earned a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/), 
+      This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/),
       which indicates that the project uses a set of security-focused best development practices for open
-      source software. The check uses the URL for the Git repo and the CII API.
+      source software. The check uses the URL for the Git repo and the OpenSSF Best Practices badge API.
 
-      The CII Best Practices badge has 3 tiers: passing, silver, and gold. We give
+      The OpenSSF Best Practices badge has 3 tiers: passing, silver, and gold. We give
       full credit to projects that meet the [passing criteria](https://bestpractices.coreinfrastructure.org/criteria/0), which is a
       significant achievement for many projects. Lower scores represent a project that
       is at least working to achieve a badge, with increasingly more points awarded as
       more criteria are met.
 
-      To earn the passing badge, the project MUST: 
+      To earn the passing badge, the project MUST:
 
         - publish the process for reporting vulnerabilities on the project site
         - provide a working build system that can automatically rebuild the software
@@ -274,14 +275,14 @@ checks:
         - have at least one primary developer who knows how to design secure software
         - have at least one primary developer who knows of common kinds of errors
           that lead to vulnerabilities in this kind of software (and at least one
-          method to counter or mitigate each of them) 
+          method to counter or mitigate each of them)
         - apply at least one static code analysis tool (beyond compiler warnings and
-          "safe" language modes) to any proposed major production release. 
+          "safe" language modes) to any proposed major production release.
 
       Some of these criteria overlap with other Scorecards checks.
     remediation:
       - >-
-        Sign up for the [CII Best Practices program](https://bestpractices.coreinfrastructure.org/en).
+        Sign up for the [OpenSSF Best Practices program](https://bestpractices.coreinfrastructure.org/).
   Code-Review:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
@@ -320,7 +321,7 @@ checks:
       Requiring review does not eliminate all risks. The other reviewers might fail to
       notice unintentional vulnerabilities or malicious code, be colluding with a
       malicious developer, or even be the same person (using a "[sock
-      puppet](https://en.wikipedia.org/wiki/Sock_puppet_account)" account).  
+      puppet](https://en.wikipedia.org/wiki/Sock_puppet_account)" account).
 
     remediation:
       - >-
@@ -363,14 +364,14 @@ checks:
       the interest of multiple organizations. See
       [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews)
       for more information about evaluating projects with a small number of
-      participants.   
+      participants.
     remediation:
       - >-
         Ask contributors to
         [join their respective organizations](https://docs.github.com/en/organizations/managing-membership-in-your-organization/inviting-users-to-join-your-organization),
         if they have not already. Otherwise, there is no remediation for this check;
         it simply provides insight into which organizations have contributed so that
-        you can make a trust-based decision based on that information.  
+        you can make a trust-based decision based on that information.
   Fuzzing:
     risk: Medium
     tags: supply-chain, security, testing
@@ -394,7 +395,7 @@ checks:
       Note: A project that fulfills this criterion with other tools may still receive
       a low score on this test. There are many ways to implement fuzzing, and it is
       challenging for an automated tool like Scorecard to detect them all. A low score
-      is therefore not a definitive indication that the project is at risk.   
+      is therefore not a definitive indication that the project is at risk.
     remediation:
       - >-
         Integrate the project with OSS-Fuzz by following the instructions
@@ -426,11 +427,11 @@ checks:
 
         - Many program language ecosystems have a generally-used packaging format
           supported by a language-level package manager tool and public package
-          repository. 
+          repository.
         - Many operating system platforms also have at least one package format,
           tool, and public repository (in some cases the source repository generates
           system-independent source packages, which are then used by others to
-          generate system executable packages). 
+          generate system executable packages).
         - Using container images.
 
       Note: A project that fulfills this criterion with other tools may still receive
@@ -439,7 +440,7 @@ checks:
       score is therefore not a definitive indication that the project is at risk. If
       Scorecards fails to detect the way you publish a package and you think we should
       support your use case, please let us know by [opening an
-      issue](https://github.com/ossf/scorecard/issues/new/choose). 
+      issue](https://github.com/ossf/scorecard/issues/new/choose).
     remediation:
       - Publish your project as a downloadable package, e.g., if hosted on GitHub, use [GitHub's mechanisms for publishing a package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
       - If hosted on GitHub, use a GitHub action to release your package to language-specific hubs.
@@ -447,27 +448,28 @@ checks:
     risk: Medium
     tags: supply-chain, security, dependencies
     repos: GitHub, local
-    short: Determines if the project has declared and pinned its dependencies.
+    short: Determines if the project has declared and pinned the dependencies of its build process.
     description: |
       Risk: `Medium` (possible compromised dependencies)
 
-      This check tries to determine if the project pins its dependencies. 
-      A "pinned dependency" is a dependency that is explicitly set to a specific hash instead of 
+      This check tries to determine if the project pins dependencies used during its build and release process.
+      A "pinned dependency" is a dependency that is explicitly set to a specific hash instead of
       allowing a mutable version or range of versions. It
       is currently limited to repositories hosted on GitHub, and does not support
-      other source hosting repositories (i.e., Forges). 
+      other source hosting repositories (i.e., Forges).
 
-      The check works by looking for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows.
+      The check works by looking for unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows
+      which are used during the build and release process of a project.
 
       Pinned dependencies reduce several security risks:
 
         - They ensure that checking and deployment are all done with the same
           software, reducing deployment risks, simplifying debugging, and enabling
-          reproducibility. 
+          reproducibility.
         - They can help mitigate compromised dependencies from undermining the
           security of the project (in the case where you've evaluated the pinned
           dependency, you are confident it's not compromised, and a later version is
-          released that is compromised). 
+          released that is compromised).
         - They are one way to [counter dependency confusion (aka substitution) attacks](https://azure.microsoft.com/en-us/resources/3-ways-to-mitigate-risk-using-private-package-feeds/),
           in which an application uses multiple feeds to acquire software packages (a
           "hybrid configuration"), and attackers fool the user into using a malicious
@@ -477,7 +479,6 @@ checks:
       security vulnerability or because the pinned version is compromised. Mitigate
       this risk by:
 
-        - [having applications and _not_ libraries pin to specific hashes](https://jbeckwith.com/2019/12/18/package-lock/);
         - using automated tools to notify applications when their dependencies are
           outdated;
         - quickly updating applications that do pin dependencies.
@@ -485,34 +486,28 @@ checks:
       For projects hosted on GitHub, you can learn more about
       dependencies using the [GitHub dependency graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph).
     remediation:
-      - >- 
-        First determine if your project is producing a library or
-        application. If it is a library, you generally don't want to pin dependencies of
-        library users, and should not follow any remediation steps.
       - >-
         If your project is producing an application, declare all your dependencies with specific versions in your package
         format file (e.g. `package.json` for npm, `requirements.txt` for python).
         For C/C++, check in the code from a trusted source and add a `README` on the
         specific version used (and the archive SHA hashes).
       - >-
-        If the package manager supports lock files (e.g. `package-lock.json` for
+        If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for
         npm), make sure to check these in the source code as well. These files
         maintain signatures for the entire dependency tree and saves from future
         exploitation in case the package is compromised.
       - >-
-        For Dockerfiles, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds
+        For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds
         across multiple architectures, you can pin to the manifest list hash instead
-        of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) 
+        of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md)
         to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
-      - >- 
-        For GitHub workflows, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example.
+      - >-
+        For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example.
         To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking
         the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found
         by the Token-Permissions check.
       - >-
-        To help update your dependencies after pinning them, use tools such as
-         Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
-        or [renovate bot](https://github.com/renovatebot/renovate).
+        To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
   SAST:
     risk: Medium
     tags: supply-chain, security, testing
@@ -531,15 +526,15 @@ checks:
       codebase.
 
       The checks currently looks for known Github apps such as
-      [CodeQL](https://codeql.github.com/) (github-code-scanning),
-      [LGTM](https://lgtm.com/) and
+      [CodeQL](https://codeql.github.com/) (github-code-scanning) or
       [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-      of "github/codeql-action" in a GitHub workflow.
+      of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
+      [LGTM](https://lgtm.com/) service until its forthcoming shutdown.
 
       Note: A project that fulfills this criterion with other tools may still receive
       a low score on this test. There are many ways to implement SAST, and it is
       challenging for an automated tool like Scorecard to detect them all. A low score
-      is therefore not a definitive indication that the project is at risk.   
+      is therefore not a definitive indication that the project is at risk.
     remediation:
       - >-
         Run CodeQL checks in your CI/CD by following the instructions
@@ -558,11 +553,11 @@ checks:
 
       A security policy (typically a `SECURITY.md` file) can give users information
       about what constitutes a vulnerability and how to report one securely so that
-      information about a bug is not publicly visible.   
+      information about a bug is not publicly visible.
 
       This check examines the contents of the security policy file awarding points
       for those policies that express vulnerability process(es), disclosure timelines,
-      and have links (e.g., URL(s) and email(s) to support the users.
+      and have links (e.g., URL(s) and email(s)) to support the users.
     remediation:
       - >-
         Place a security policy file `SECURITY.md` in the root directory of your
@@ -570,7 +565,7 @@ checks:
       - >-
         The file should contain information on what constitutes a vulnerability
         and a way to report it securely (e.g. issue tracker with private issue
-        support, encrypted email with a published public key). Follow the 
+        support, encrypted email with a published public key). Follow the
         [coordinated vulnerability disclosure guidelines](https://github.com/ossf/oss-vulnerability-guide/blob/main/guide.md)
         to respond to vulnerability disclosures.
       - >-
@@ -634,14 +629,14 @@ checks:
       [top level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions)
       and the required write permissions are declared at the
       [run-level](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions).
-      One point is reduced from the score if all jobs have their permissions defined but the top level permissions are not defined. 
-      This configuration is secure, but there is a chance that when a new job is added to the workflow, its job permissions could be 
+      One point is reduced from the score if all jobs have their permissions defined but the top level permissions are not defined.
+      This configuration is secure, but there is a chance that when a new job is added to the workflow, its job permissions could be
       left undefined because of human error.
 
       The check cannot detect if the "read-only" GitHub permission setting is
       enabled, as there is no API available.
 
-      Additionally, points are reduced if certain write permissions are defined for a job. 
+      Additionally, points are reduced if certain write permissions are defined for a job.
 
       ### Write permissions causing a small reduction
       * `statuses` - May allow an attacker to change the result of pre-submit checks and get a PR merged.
@@ -653,7 +648,7 @@ checks:
       * `contents` - Allows an attacker to commit unreviewed code. However, points are not reduced if the job utilizes a recognized packaging action or command.
       * `packages` - Allows an attacker to publish packages. However, points are not reduced if the job utilizes a recognized packaging action or command.
       * `actions` - May allow an attacker to steal GitHub secrets by approving to run an action that needs approval.
- 
+
     remediation:
       - >-
         Set permissions as `read-all` or `contents: read` as described in
@@ -669,11 +664,11 @@ checks:
     short: Determines if the project has open, known unfixed vulnerabilities.
     description: |
       Risk: `High`  (known vulnerabilities)
-        
+
       This check determines whether the project has open, unfixed vulnerabilities
       using the [OSV (Open Source Vulnerabilities)](https://osv.dev/) service. An open
       vulnerability is readily exploited by attackers and should be fixed as soon as
-      possible.     
+      possible.
     remediation:
       - >-
         Fix the vulnerabilities. The details of each vulnerability can be found
@@ -686,33 +681,33 @@ checks:
     short: Determines if the project's GitHub Action workflows avoid dangerous patterns.
     description: |
       Risk: `Critical`  (vulnerable to repository compromise)
-        
-      This check determines whether the project's GitHub Action workflows has dangerous 
-      code patterns. Some examples of these patterns are untrusted code checkouts, 
+
+      This check determines whether the project's GitHub Action workflows has dangerous
+      code patterns. Some examples of these patterns are untrusted code checkouts,
       logging github context and secrets, or use of potentially untrusted inputs in scripts.
       The following patterns are checked:
 
-      Untrusted Code Checkout: This is the misuse of potentially dangerous triggers. 
-      This checks if a `pull_request_target` or `workflow_run` workflow trigger was used in conjunction 
+      Untrusted Code Checkout: This is the misuse of potentially dangerous triggers.
+      This checks if a `pull_request_target` or `workflow_run` workflow trigger was used in conjunction
       with an explicit pull request checkout. Workflows triggered with `pull_request_target` / `workflow_run`
-      have write permission to the target repository and access to target repository 
-      secrets. With the PR checkout, PR authors may compromise the repository, for 
-      example, by using build scripts controlled by the author of the PR or reading 
-      token in memory. This check does not detect whether untrusted code checkouts are 
+      have write permission to the target repository and access to target repository
+      secrets. With the PR checkout, PR authors may compromise the repository, for
+      example, by using build scripts controlled by the author of the PR or reading
+      token in memory. This check does not detect whether untrusted code checkouts are
       used safely, for example, only on pull request that have been assigned a label.
 
-      Script Injection with Untrusted Context Variables: This pattern detects whether a 
-      workflow's inline script may execute untrusted input from attackers. This occurs when 
-      an attacker adds malicious commands and scripts to a context. When a workflow runs, 
-      these strings may be interpreted as code that is executed on the runner. Attackers 
-      can add their own content to certain github context variables that are considered 
-      untrusted, for example, `github.event.issue.title`. These values should not flow 
+      Script Injection with Untrusted Context Variables: This pattern detects whether a
+      workflow's inline script may execute untrusted input from attackers. This occurs when
+      an attacker adds malicious commands and scripts to a context. When a workflow runs,
+      these strings may be interpreted as code that is executed on the runner. Attackers
+      can add their own content to certain github context variables that are considered
+      untrusted, for example, `github.event.issue.title`. These values should not flow
       directly into executable code.
 
       The highest score is awarded when all workflows avoid the dangerous code patterns.
     remediation:
       - >-
-        Avoid the dangerous workflow patterns. 
+        Avoid the dangerous workflow patterns.
         See this [post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/)
         for information on avoiding untrusted code checkouts.
         See this [document](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections)
