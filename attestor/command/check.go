@@ -68,9 +68,6 @@ func runCheck() error {
 	enabledChecks := map[string]checker.Check{
 		"BinaryArtifacts": {
 			Fn: checks.BinaryArtifacts,
-			SupportedRequestTypes: []checker.RequestType{
-				checker.CommitBased,
-			},
 		},
 	}
 
