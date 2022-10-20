@@ -25,6 +25,8 @@ import (
 	sclog "github.com/ossf/scorecard/v4/log"
 )
 
+const scorecardNoteID = "ossf-scorecard-attestation"
+
 func runSign() error {
 	logger := sclog.NewLogger(sclog.DefaultLevel)
 
@@ -76,12 +78,6 @@ func runSign() error {
 		}
 	}
 
-	// Check note name
-	err = util.CheckNoteName(noteName)
-	if err != nil {
-		return fmt.Errorf("note name is invalid %v", err)
-	}
-
 	// Parse attestation project
 	if attestationProject == "" {
 		attestationProject = util.GetProjectFromContainerImage(image)
@@ -90,8 +86,16 @@ func runSign() error {
 		logger.Info(fmt.Sprintf("Using specified attestation project: %s\n", attestationProject))
 	}
 
+	// Check note name
+	scorecardNoteName := fmt.Sprintf("projects/%s/notes/%s", attestationProject, scorecardNoteID)
+
+	err = util.CheckNoteName(scorecardNoteName)
+	if err != nil {
+		return fmt.Errorf("note name is invalid %v", err)
+	}
+
 	// Create signer
-	r := signer.New(client, cSigner, noteName, attestationProject, overwrite)
+	r := signer.New(client, cSigner, scorecardNoteName, attestationProject, overwrite)
 	// Sign image
 	err = r.SignImage(image)
 	if err != nil {

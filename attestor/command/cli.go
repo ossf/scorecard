@@ -32,7 +32,6 @@ var (
 	policyPath         string
 	attestationProject string
 	overwrite          bool
-	noteName           string
 	// input flags: pgp key flags
 	pgpPriKeyPath string
 	pgpPassphrase string
@@ -56,10 +55,8 @@ func addCheckFlags(cmd *cobra.Command) {
 func addSignFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&image, "image", "", "Image url, e.g., gcr.io/foo/bar@sha256:abcd")
 	cmd.MarkPersistentFlagRequired("image")
-	cmd.PersistentFlags().StringVar(&noteName, "note-name", "", "note name that created attestations are attached to, in the form of projects/[PROVIDER_ID]/notes/[NOTE_ID]")
-	cmd.MarkPersistentFlagRequired("note-name")
 	cmd.PersistentFlags().StringVar(&attestationProject, "attestation-project", "", "project id for GCP project that stores attestation, use image project if set to empty")
-	cmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite attestation if already existed")
+	cmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite attestation if already existed (default false)")
 	cmd.PersistentFlags().StringVar(&kmsKeyName, "kms-key-name", "", "kms key name, in the format of in the format projects/*/locations/*/keyRings/*/cryptoKeys/*/cryptoKeyVersions/*")
 	cmd.PersistentFlags().StringVar(&kmsDigestAlg, "kms-digest-alg", "", "kms digest algorithm, must be one of SHA256|SHA384|SHA512, and the same as specified by the key version's algorithm")
 	cmd.PersistentFlags().StringVar(&pgpPriKeyPath, "pgp-private-key", "", "pgp private signing key path, e.g., /dev/shm/key.pgp")
