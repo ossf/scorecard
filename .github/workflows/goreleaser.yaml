@@ -46,7 +46,7 @@ jobs:
           check-latest: true
       - name: Configure ldflags
         id: ldflags
-        run: echo "::set-output name=version_flags::$(./scripts/version-ldflags)"
+        run: echo "version_flags=$(./scripts/version-ldflags)" >> "$GITHUB_OUTPUT"
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@c8bb57c57e8df1be8c73ff3d59deab1dbc00e0d1 # v3.1.0
@@ -71,7 +71,7 @@ jobs:
           set -euo pipefail
 
           checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
-          echo "::set-output name=hashes::$(cat $checksum_file | base64 -w0)"
+          echo "hashes=$(cat $checksum_file | base64 -w0)" >> "$GITHUB_OUTPUT"
 
   provenance:
     needs: [goreleaser]
