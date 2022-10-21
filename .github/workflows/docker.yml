@@ -41,7 +41,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
+       uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -52,7 +52,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
+       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -68,7 +68,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
+       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -86,7 +86,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
+       uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -97,7 +97,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
+       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -113,7 +113,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
+       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -131,7 +131,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
+       uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -142,7 +142,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
+       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -158,7 +158,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
+       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -176,7 +176,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
+       uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -187,7 +187,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
+       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -203,7 +203,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
+       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -221,7 +221,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
+       uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -232,7 +232,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
+       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -248,7 +248,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
+       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -266,7 +266,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
+       uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -277,7 +277,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
+       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -293,7 +293,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
+       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -311,7 +311,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95 # v1
+       uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -322,7 +322,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 #v2.1.7
+       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
        with:
           # In order:
           # * Module download cache
@@ -338,7 +338,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.3.4
+       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go

@@ -426,8 +426,9 @@ func stepsMatch(stepToMatch *JobMatcherStep, step *actionlint.Step) bool {
 		if run == nil {
 			return false
 		}
+		withoutLineContinuations := regexp.MustCompile("\\\\(\n|\r|\r\n)").ReplaceAllString(run.Value, "")
 		r := regexp.MustCompile(stepToMatch.Run)
-		if !r.MatchString(run.Value) {
+		if !r.MatchString(withoutLineContinuations) {
 			return false
 		}
 	}

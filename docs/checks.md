@@ -161,10 +161,15 @@ which indicates that the project uses a set of security-focused best development
 source software. The check uses the URL for the Git repo and the OpenSSF Best Practices badge API.
 
 The OpenSSF Best Practices badge has 3 tiers: passing, silver, and gold. We give
-full credit to projects that meet the [passing criteria](https://bestpractices.coreinfrastructure.org/criteria/0), which is a
+full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/2), which is a
 significant achievement for many projects. Lower scores represent a project that
 is at least working to achieve a badge, with increasingly more points awarded as
 more criteria are met.
+
+- [gold badge](https://bestpractices.coreinfrastructure.org/en/criteria/2): 10
+- [silver badge](https://bestpractices.coreinfrastructure.org/en/criteria/1): 7
+- [passing badge](https://bestpractices.coreinfrastructure.org/en/criteria/0): 5
+- in progress badge: 2
 
 To earn the passing badge, the project MUST:
 
@@ -292,9 +297,12 @@ The highest score is awarded when all workflows avoid the dangerous code pattern
 Risk: `High` (possibly vulnerable to attacks on known flaws)
 
 This check tries to determine if the project uses a dependency update tool,
-specifically [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or
-[renovatebot](https://docs.renovatebot.com/configuration-options/). Out-of-date
-dependencies make a project vulnerable to known flaws and prone to attacks.
+specifically one of:
+- [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
+- [renovatebot](https://docs.renovatebot.com/configuration-options/)
+- [Sonatype Lift](https://help.sonatype.com/lift/getting-started)
+- [PyUp](https://docs.pyup.io/docs) (Python)
+Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
 These tools automate the process of updating dependencies by scanning for
 outdated or insecure requirements, and opening a pull request to update them if
 found.
@@ -310,7 +318,7 @@ low score is therefore not a definitive indication that the project is at risk.
  
 
 **Remediation steps**
-- Signup for automatic dependency updates with [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
+- Signup for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
 - Unlike dependabot, renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
 
 ## Fuzzing 
@@ -438,13 +446,14 @@ issue](https://github.com/ossf/scorecard/issues/new/choose).
 
 Risk: `Medium` (possible compromised dependencies)
 
-This check tries to determine if the project pins its dependencies.
+This check tries to determine if the project pins dependencies used during its build and release process.
 A "pinned dependency" is a dependency that is explicitly set to a specific hash instead of
 allowing a mutable version or range of versions. It
 is currently limited to repositories hosted on GitHub, and does not support
 other source hosting repositories (i.e., Forges).
 
-The check works by looking for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows.
+The check works by looking for unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows
+which are used during the build and release process of a project.
 
 Pinned dependencies reduce several security risks:
 
@@ -464,7 +473,6 @@ However, pinning dependencies can inhibit software updates, either because of a
 security vulnerability or because the pinned version is compromised. Mitigate
 this risk by:
 
-  - [having applications and _not_ libraries pin to specific hashes](https://jbeckwith.com/2019/12/18/package-lock/);
   - using automated tools to notify applications when their dependencies are
     outdated;
   - quickly updating applications that do pin dependencies.
@@ -474,14 +482,11 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
  
 
 **Remediation steps**
-- First determine if your project is producing a library or application. If it is a library, you generally don't want to pin dependencies of library users, and should not follow any remediation steps.
 - If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
-- If the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
-- For Dockerfiles, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
-- For GitHub workflows, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
-- To help update your dependencies after pinning them, use tools such as
- Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
-or [renovate bot](https://github.com/renovatebot/renovate).
+- If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
+- For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
+- For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
+- To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
 
 ## SAST 
 
@@ -497,10 +502,10 @@ tools can prevent known classes of bugs from being inadvertently introduced in t
 codebase.
 
 The checks currently looks for known Github apps such as
-[CodeQL](https://codeql.github.com/) (github-code-scanning),
-[LGTM](https://lgtm.com/) and
+[CodeQL](https://codeql.github.com/) (github-code-scanning) or
 [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-of "github/codeql-action" in a GitHub workflow.
+of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
+[LGTM](https://lgtm.com/) service until its forthcoming shutdown.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to implement SAST, and it is

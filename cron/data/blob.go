@@ -23,10 +23,12 @@ import (
 	"time"
 
 	"gocloud.dev/blob"
+	// Needed to read file:/// buckets. Intended primarily for testing, though needed here for tests outside the package.
+	_ "gocloud.dev/blob/fileblob"
 	// Needed to link in GCP drivers.
 	_ "gocloud.dev/blob/gcsblob"
 
-	"github.com/ossf/scorecard/v4/cron/internal/config"
+	"github.com/ossf/scorecard/v4/cron/config"
 )
 
 const (

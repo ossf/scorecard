@@ -21,7 +21,9 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/localdir"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 func Test_getRepoCommitHash(t *testing.T) {
@@ -61,6 +63,50 @@ func Test_getRepoCommitHash(t *testing.T) {
 			})
 
 			got, err := getRepoCommitHash(mockRepoClient)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getRepoCommitHash() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("getRepoCommitHash() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_getRepoCommitHashLocal(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		path    string
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "local directory",
+			path:    "testdata",
+			want:    "unknown",
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			logger := log.NewLogger(log.DebugLevel)
+			localDirClient := localdir.CreateLocalDirClient(context.Background(), logger)
+			localRepo, err := localdir.MakeLocalDirRepo("testdata")
+			if err != nil {
+				t.Errorf("MakeLocalDirRepo: %v", err)
+				return
+			}
+			if err := localDirClient.InitRepo(localRepo, clients.HeadSHA); err != nil {
+				t.Errorf("InitRepo: %v", err)
+				return
+			}
+
+			got, err := getRepoCommitHash(localDirClient)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getRepoCommitHash() error = %v, wantErr %v", err, tt.wantErr)
 				return
