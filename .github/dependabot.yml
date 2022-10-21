@@ -4,6 +4,7 @@ updates:
   directory: "/"
   schedule:
     interval: daily
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
   open-pull-requests-limit: 3
@@ -11,6 +12,7 @@ updates:
   directory: "/tools"
   schedule:
     interval: daily
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
   open-pull-requests-limit: 3
@@ -18,37 +20,57 @@ updates:
   directory: "/"
   schedule:
       interval: "daily"
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
 - package-ecosystem: docker
   directory: "/"
   schedule:
     interval: daily
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
   open-pull-requests-limit: 3
 - package-ecosystem: docker
-  directory: "/cron/bq"
+  directory: "/cron/internal/bq"
   schedule:
     interval: daily
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
   open-pull-requests-limit: 3
 - package-ecosystem: docker
-  directory: "/cron/worker"
+  directory: "/cron/internal/worker"
   schedule:
     interval: daily
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
 - package-ecosystem: docker
-  directory: "/cron/webhook"
+  directory: "/cron/internal/webhook"
   schedule:
     interval: daily
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
 - package-ecosystem: docker
-  directory: "/cron/controller"
+  directory: "/cron/internal/controller"
   schedule:
     interval: daily
+  rebase-strategy: disabled
+  commit-message:
+      prefix: ":seedling:"
+- package-ecosystem: docker
+  directory: "/cron/internal/cii"
+  schedule:
+    interval: daily
+  rebase-strategy: disabled
+  commit-message:
+      prefix: ":seedling:"
+- package-ecosystem: docker
+  directory: "/clients/githubrepo/roundtripper/tokens/server"
+  schedule:
+    interval: daily
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
