@@ -34,7 +34,7 @@ require (
 	go.opencensus.io v0.23.0
 	gocloud.dev v0.26.0
 	golang.org/x/text v0.4.0
-	golang.org/x/tools v0.1.12
+	golang.org/x/tools v0.2.0
 	google.golang.org/genproto v0.0.0-20220915135415-7fd63a7952de
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0
