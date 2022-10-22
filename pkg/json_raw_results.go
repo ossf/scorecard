@@ -223,6 +223,19 @@ type jsonTokenPermission struct {
 	Type         string           `json:"type"`
 }
 
+type jsonSecurityFile struct {
+	Path          string                   `json:"path"`
+	ContentLength uint                     `json:"contentLength,omitempty"`
+	Hits          []jsonSecurityPolicyHits `json:"matches,omitempty"`
+}
+
+type jsonSecurityPolicyHits struct {
+	Type       string  `json:"type"`
+	Match      string `json:"match,omitempty"`
+	LineNumber uint    `json:"lineNumber,omitempty"`
+	Offset     uint    `json:"offset,omitempty"`
+}
+
 //nolint
 type jsonRawResults struct {
 	// Workflow results.
@@ -241,7 +254,7 @@ type jsonRawResults struct {
 	Binaries []jsonFile `json:"binaries"`
 	// List of security policy files found in the repo.
 	// Note: we return one at most.
-	SecurityPolicies []jsonFile `json:"securityPolicies"`
+	SecurityPolicies []jsonSecurityFile `json:"securityPolicies"`
 	// List of update tools.
 	// Note: we return one at most.
 	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools"`
@@ -608,10 +621,22 @@ func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryA
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.SecurityPolicyData) error {
-	r.Results.SecurityPolicies = []jsonFile{}
-	r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonFile{
-		Path: sp.File.Path,
-	})
+	r.Results.SecurityPolicies = []jsonSecurityFile{}
+	if (sp.File != checker.File{}) {
+		r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonSecurityFile{
+			Path: sp.File.Path,
+			ContentLength: sp.SecurityContentLength,
+			Hits: []jsonSecurityPolicyHits{},
+		})
+		for _, entry := range sp.Information {
+			r.Results.SecurityPolicies[0].Hits = append(r.Results.SecurityPolicies[0].Hits, jsonSecurityPolicyHits{
+				Type: string(entry.InformationType),
+				Match: entry.InformationValue.Match,
+				LineNumber: entry.InformationValue.LineNumber,
+				Offset: entry.InformationValue.Offset,
+			})
+		}
+	}
 	return nil
 }
 
