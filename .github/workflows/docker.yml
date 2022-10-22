@@ -52,7 +52,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
        with:
           # In order:
           # * Module download cache
@@ -97,7 +97,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
        with:
           # In order:
           # * Module download cache
@@ -142,7 +142,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
        with:
           # In order:
           # * Module download cache
@@ -187,7 +187,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
        with:
           # In order:
           # * Module download cache
@@ -232,7 +232,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
        with:
           # In order:
           # * Module download cache
@@ -277,7 +277,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
        with:
           # In order:
           # * Module download cache
@@ -322,7 +322,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
        with:
           # In order:
           # * Module download cache
