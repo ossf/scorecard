@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
       - id: ldflags
         run: |
-          echo "::set-output name=value::$(./scripts/version-ldflags)"
+          echo "value=$(./scripts/version-ldflags)" >> "$GITHUB_OUTPUT"
 
   # Trusted builder.
   build:
