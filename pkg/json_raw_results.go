@@ -225,18 +225,18 @@ type jsonTokenPermission struct {
 
 type jsonSecurityFile struct {
 	Path          string                   `json:"path"`
-	ContentLength uint                     `json:"contentLength,omitempty"`
 	Hits          []jsonSecurityPolicyHits `json:"matches,omitempty"`
+	ContentLength uint                     `json:"contentLength,omitempty"`
 }
 
 type jsonSecurityPolicyHits struct {
-	Type       string  `json:"type"`
+	Type       string `json:"type"`
 	Match      string `json:"match,omitempty"`
-	LineNumber uint    `json:"lineNumber,omitempty"`
-	Offset     uint    `json:"offset,omitempty"`
+	LineNumber uint   `json:"lineNumber,omitempty"`
+	Offset     uint   `json:"offset,omitempty"`
 }
 
-//nolint
+//nolint:govet
 type jsonRawResults struct {
 	// Workflow results.
 	Workflows []jsonWorkflow `json:"workflows"`
@@ -624,16 +624,16 @@ func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.Securit
 	r.Results.SecurityPolicies = []jsonSecurityFile{}
 	if (sp.File != checker.File{}) {
 		r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonSecurityFile{
-			Path: sp.File.Path,
+			Path:          sp.File.Path,
 			ContentLength: sp.SecurityContentLength,
-			Hits: []jsonSecurityPolicyHits{},
+			Hits:          []jsonSecurityPolicyHits{},
 		})
 		for _, entry := range sp.Information {
 			r.Results.SecurityPolicies[0].Hits = append(r.Results.SecurityPolicies[0].Hits, jsonSecurityPolicyHits{
-				Type: string(entry.InformationType),
-				Match: entry.InformationValue.Match,
+				Type:       string(entry.InformationType),
+				Match:      entry.InformationValue.Match,
 				LineNumber: entry.InformationValue.LineNumber,
-				Offset: entry.InformationValue.Offset,
+				Offset:     entry.InformationValue.Offset,
 			})
 		}
 	}
