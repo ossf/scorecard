@@ -84,7 +84,7 @@ jobs:
          verbose: true
 
       - name: find comment
-        uses: peter-evans/find-comment@1769778a0c5bd330272d749d12c036d65e70d39d # v1.2.0
+        uses: peter-evans/find-comment@b657a70ff16d17651703a84bee1cb9ad9d2be2ea # v1.2.0
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
