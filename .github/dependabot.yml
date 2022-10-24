@@ -26,7 +26,7 @@ updates:
 - package-ecosystem: docker
   directory: "/"
   schedule:
-    interval: daily
+    interval: weekly
   rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
@@ -34,7 +34,7 @@ updates:
 - package-ecosystem: docker
   directory: "/cron/internal/bq"
   schedule:
-    interval: daily
+    interval: weekly
   rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
@@ -42,35 +42,35 @@ updates:
 - package-ecosystem: docker
   directory: "/cron/internal/worker"
   schedule:
-    interval: daily
+    interval: weekly
   rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
 - package-ecosystem: docker
   directory: "/cron/internal/webhook"
   schedule:
-    interval: daily
+    interval: weekly
   rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
 - package-ecosystem: docker
   directory: "/cron/internal/controller"
   schedule:
-    interval: daily
+    interval: weekly
   rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
 - package-ecosystem: docker
   directory: "/cron/internal/cii"
   schedule:
-    interval: daily
+    interval: weekly
   rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
 - package-ecosystem: docker
   directory: "/clients/githubrepo/roundtripper/tokens/server"
   schedule:
-    interval: daily
+    interval: weekly
   rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
