@@ -51,7 +51,7 @@ jobs:
      - name: install ko
        uses: imjasonh/setup-ko@ace48d793556083a76f1e3e6068850c1f4a369aa
      - name: publishimage
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
