@@ -41,7 +41,7 @@ jobs:
       # https://docs.github.com/en/actions/advanced-guides/storing-workflow-data-as-artifacts
       # Optional.
       - name: "Upload artifact"
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # v3
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # v3
         with:
           name: SARIF file
           path: results.sarif
