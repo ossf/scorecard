@@ -23,6 +23,7 @@ import (
 	"github.com/caarlos0/env/v6"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -37,16 +38,15 @@ type Options struct {
 	PyPI       string
 	RubyGems   string
 	PolicyFile string
-	Depth      int //my addition
 	// TODO(action): Add logic for writing results to file
 	ResultsFile string
 	ChecksToRun []string
 	Metadata    []string
 	ShowDetails bool
-
 	// Feature flags.
 	EnableSarif       bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6 bool `env:"SCORECARD_V6"`
+	Depth             int  // Commit-depth
 }
 
 // New creates a new instance of `Options`.
@@ -169,7 +169,10 @@ func (o *Options) Validate() error {
 			errCommitIsEmpty,
 		)
 	}
-
+	// if commit-depth set then modify global in graphql.go to reflect new depth (instead of default 30)
+	if o.Depth != 0 {
+		githubrepo.CommitDepth = o.Depth // sets global variable in githubrepo to use new depth.
+	}
 	if len(errs) != 0 {
 		return fmt.Errorf(
 			"%w: %+v",
@@ -177,7 +180,6 @@ func (o *Options) Validate() error {
 			errs,
 		)
 	}
-
 	return nil
 }
 
