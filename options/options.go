@@ -171,7 +171,7 @@ func (o *Options) Validate() error {
 	}
 	// if commit-depth set then modify global in graphql.go to reflect new depth (instead of default 30)
 	if o.Depth != 0 {
-		githubrepo.CommitDepth = o.Depth // sets global variable in githubrepo to use new depth.
+		githubrepo.CommitsToAnalyze = o.Depth // sets global variable in githubrepo to use new depth.
 	}
 	if len(errs) != 0 {
 		return fmt.Errorf(

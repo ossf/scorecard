@@ -36,12 +36,11 @@ const (
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
-	commitsToAnalyze       = 30
 )
 
 var (
-	CommitDepth  = 30
-	errNotCached = errors.New("result not cached")
+	CommitsToAnalyze = 30
+	errNotCached     = errors.New("result not cached")
 )
 
 //nolint:govet
@@ -105,7 +104,7 @@ type graphqlData struct {
 						EndCursor   githubv4.String
 						HasNextPage bool
 					}
-				} `graphql:"history(first: $commitDepth, after: $historyCursor)"`
+				} `graphql:"history(first: $commitsToAnalyze, after: $historyCursor)"`
 			} `graphql:"... on Commit"`
 		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
@@ -213,14 +212,11 @@ func (handler *graphqlHandler) setup() error {
 			"issueCommentsToAnalyze": githubv4.Int(issueCommentsToAnalyze),
 			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
 			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
-			"commitDepth":            githubv4.Int(CommitDepth),
+			"commitsToAnalyze":       githubv4.Int(CommitsToAnalyze),
 			"commitExpression":       githubv4.String(commitExpression),
 			"historyCursor":          (*githubv4.String)(nil),
 		}
-		var allIsssues []clients.Issue
-		var allCommits []clients.Commit
-		commitsLeft := CommitDepth
-		if CommitDepth < 99 {
+		if CommitsToAnalyze < 99 {
 			if err := handler.client.Query(handler.ctx, &handler.data, vars); err != nil {
 				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 				return
@@ -230,28 +226,28 @@ func (handler *graphqlHandler) setup() error {
 			handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
 			return
 		}
-		vars["commitDepth"] = githubv4.Int(100) // need 100 pages to start.
-		for ; commitsLeft <= 0; commitsLeft = commitsLeft - 100 {
+		var allCommits []clients.Commit
+		commitsLeft := CommitsToAnalyze
+		vars["commitsToAnalyze"] = githubv4.Int(100)
+		for ; commitsLeft > 0; commitsLeft = commitsLeft - 100 {
 			if commitsLeft < 100 {
-				vars["commitDepth"] = githubv4.Int(commitsLeft) // amount of commits left.
+				vars["commitsToAnalyze"] = githubv4.Int(commitsLeft)
 			}
 			if err := handler.client.Query(handler.ctx, &handler.data, vars); err != nil {
 				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
-				return
+				break
 			}
 			vars["historyCursor"] = handler.data.Repository.Object.Commit.History.PageInfo.EndCursor
-			allIsssues = append(allIsssues, issuesFrom(handler.data)...)
 			tmp, err := commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
 			if err != nil {
+				handler.errSetup = err
 				break
 			}
 			allCommits = append(allCommits, tmp...)
-			handler.issues = append(handler.issues, allIsssues...)
-			handler.commits = append(handler.commits, allCommits...)
-			handler.archived = bool(handler.data.Repository.IsArchived)
 		}
+		handler.commits = append(handler.commits, allCommits...)
 		handler.issues = issuesFrom(handler.data)
-		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
+		handler.archived = bool(handler.data.Repository.IsArchived)
 	})
 	return handler.errSetup
 }
@@ -263,7 +259,7 @@ func (handler *graphqlHandler) setupCheckRuns() error {
 			"owner":                 githubv4.String(handler.repourl.owner),
 			"name":                  githubv4.String(handler.repourl.repo),
 			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
+			"commitsToAnalyze":      githubv4.Int(CommitsToAnalyze),
 			"commitExpression":      githubv4.String(commitExpression),
 			"checksToAnalyze":       githubv4.Int(checksToAnalyze),
 		}
