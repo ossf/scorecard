@@ -185,7 +185,7 @@ func addBinaryArtifactRawResults(r *jsonScorecardRawResult, ba *checker.BinaryAr
 func addSecurityPolicyRawResults(r *jsonScorecardRawResult, sp *checker.SecurityPolicyData) error {
 	r.Results.SecurityPolicies = []jsonFile{}
 	r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonFile{
-		Path: sp.File.Path,
+		Path: sp.PolicyFiles[0].File.Path,
 	})
 	return nil
 }

@@ -127,17 +127,19 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 	}
 
 	// Apply the policy evaluation.
-	if r.File == (checker.File{}) {
+	if len(r.PolicyFiles) == 0 {
 		// If the file is unset, directly return as not detected.
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
 
-	score := scoreSecurityCriteria(r.File, r.SecurityContentLength, r.Information, dl)
+	score := scoreSecurityCriteria(r.PolicyFiles[0].File,
+		r.PolicyFiles[0].SecurityContentLength,
+		r.PolicyFiles[0].Information, dl)
 
 	msg := checker.LogMessage{
-		Path:   r.File.Path,
-		Type:   r.File.Type,
-		Offset: r.File.Offset,
+		Path:   r.PolicyFiles[0].File.Path,
+		Type:   r.PolicyFiles[0].File.Type,
+		Offset: r.PolicyFiles[0].File.Offset,
 	}
 
 	if msg.Type == checker.FileTypeURL {

@@ -622,13 +622,13 @@ func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryA
 //nolint:unparam
 func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.SecurityPolicyData) error {
 	r.Results.SecurityPolicies = []jsonSecurityFile{}
-	if (sp.File != checker.File{}) {
+	if len(sp.PolicyFiles) > 0 {
 		r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonSecurityFile{
-			Path:          sp.File.Path,
-			ContentLength: sp.SecurityContentLength,
+			Path:          sp.PolicyFiles[0].File.Path,
+			ContentLength: sp.PolicyFiles[0].SecurityContentLength,
 			Hits:          []jsonSecurityPolicyHits{},
 		})
-		for _, entry := range sp.Information {
+		for _, entry := range sp.PolicyFiles[0].Information {
 			r.Results.SecurityPolicies[0].Hits = append(r.Results.SecurityPolicies[0].Hits, jsonSecurityPolicyHits{
 				Type:       string(entry.InformationType),
 				Match:      entry.InformationValue.Match,

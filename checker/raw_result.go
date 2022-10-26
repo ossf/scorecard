@@ -156,9 +156,7 @@ type SecurityPolicyInformation struct {
 	InformationValue SecurityPolicyValueType
 }
 
-// SecurityPolicyData contains the raw results
-// for the Security-Policy check.
-type SecurityPolicyData struct {
+type SecurityPolicyFile struct {
 	// security policy information found in repo or org
 	Information []SecurityPolicyInformation
 	// file that contains the security policy information
@@ -166,6 +164,12 @@ type SecurityPolicyData struct {
 	File File
 	// total size in bytes of the security policy file contents
 	SecurityContentLength uint
+}
+
+// SecurityPolicyData contains the raw results
+// for the Security-Policy check.
+type SecurityPolicyData struct {
+	PolicyFiles []SecurityPolicyFile
 }
 
 // BinaryArtifactData contains the raw results

@@ -31,42 +31,31 @@ import (
 )
 
 type securityPolicyFilesWithURI struct {
-	info []checker.SecurityPolicyInformation
-	uri  string
-	file checker.File
+	uri   string
+	files []checker.SecurityPolicyFile
 }
 
 // SecurityPolicy checks for presence of security policy.
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
 	data := securityPolicyFilesWithURI{
-		uri:  "",
-		info: make([]checker.SecurityPolicyInformation, 0),
-		file: checker.File{
-			Path:      "",
-			Snippet:   "",
-			Offset:    0,
-			EndOffset: 0,
-			Type:      checker.FileTypeNone,
-		},
+		uri:   "",
+		files: make([]checker.SecurityPolicyFile, 0),
 	}
 	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &data)
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
 	}
 	// If we found files in the repo, return immediately.
-	if data.file.Type != checker.FileTypeNone {
+	if len(data.files) > 0 {
 		err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
-			Pattern:       data.file.Path,
+			Pattern:       data.files[0].File.Path,
 			CaseSensitive: false,
-		}, checkSecurityPolicyFileContent, &data.file, &data.info)
+		}, checkSecurityPolicyFileContent, &data.files[0].File, &data.files[0].Information)
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
 		}
-		return checker.SecurityPolicyData{
-			File:                  data.file,
-			SecurityContentLength: data.file.EndOffset,
-			Information:           data.info,
-		}, nil
+		data.files[0].SecurityContentLength = data.files[0].File.EndOffset
+		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
 	}
 
 	// Check if present in parent org.
@@ -91,25 +80,22 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	}
 
 	// Return raw results.
-	if data.file.Type != checker.FileTypeNone {
-		filePattern := data.file.Path
+	if len(data.files) > 0 {
+		filePattern := data.files[0].File.Path
 		// undo path.Join in isSecurityPolicyFile
-		if data.file.Type == checker.FileTypeURL {
-			filePattern = strings.Replace(data.file.Path, data.uri+"/", "", 1)
+		if data.files[0].File.Type == checker.FileTypeURL {
+			filePattern = strings.Replace(data.files[0].File.Path, data.uri+"/", "", 1)
 		}
 		err := fileparser.OnMatchingFileContentDo(dotGitHubClient, fileparser.PathMatcher{
 			Pattern:       filePattern,
 			CaseSensitive: false,
-		}, checkSecurityPolicyFileContent, &data.file, &data.info)
+		}, checkSecurityPolicyFileContent, &data.files[0].File, &data.files[0].Information)
 		if err != nil {
 			return checker.SecurityPolicyData{}, err
 		}
+		data.files[0].SecurityContentLength = data.files[0].File.EndOffset
 	}
-	return checker.SecurityPolicyData{
-		File:                  data.file,
-		SecurityContentLength: data.file.EndOffset,
-		Information:           data.info,
-	}, nil
+	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
 }
 
 // Check repository for repository-specific policy.
@@ -134,11 +120,15 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 			// than the repo level
 			tempType = checker.FileTypeURL
 		}
-		pdata.file = checker.File{
-			Path:   tempPath,
-			Type:   tempType,
-			Offset: checker.OffsetDefault,
-		}
+		pdata.files = append(pdata.files, checker.SecurityPolicyFile{
+			File: checker.File{
+				Path:   tempPath,
+				Type:   tempType,
+				Offset: checker.OffsetDefault,
+			},
+			SecurityContentLength: 0,
+			Information:           make([]checker.SecurityPolicyInformation, 0),
+		})
 		return false, nil
 	}
 	return true, nil
