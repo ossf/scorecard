@@ -217,7 +217,7 @@ func (handler *graphqlHandler) setup() error {
 			"historyCursor":          (*githubv4.String)(nil),
 		}
 		if CommitsToAnalyze < 99 {
-			if err := handler.client.Query(handler.ctx, &handler.data, vars); err != nil {
+			if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 				return
 			}
@@ -233,7 +233,7 @@ func (handler *graphqlHandler) setup() error {
 			if commitsLeft < 100 {
 				vars["commitsToAnalyze"] = githubv4.Int(commitsLeft)
 			}
-			if err := handler.client.Query(handler.ctx, &handler.data, vars); err != nil {
+			if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 				break
 			}
