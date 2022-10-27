@@ -132,7 +132,10 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
 
-	score := -1
+	// TODO: although this a loop, the raw checks will only return one security policy
+	// when more than one security policy file can be aggregated into a composite
+	// score, that logic can be comprehended here.
+	score := 0
 	for _, spd := range r.PolicyFiles {
 		score = scoreSecurityCriteria(spd.File,
 			spd.SecurityContentLength,
@@ -149,9 +152,6 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 		}
 
 		dl.Info(&msg)
-		// TODO: remove this break when it is possible to score acorss many policy files
-		//nolint
-		break
 	}
 
 	return checker.CreateResultWithScore(name, "security policy file detected", score)

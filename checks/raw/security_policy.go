@@ -55,9 +55,6 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 				return checker.SecurityPolicyData{}, err
 			}
 			data.files[idx].SecurityContentLength = data.files[idx].File.EndOffset
-			// TODO: remove this break when it is possible to score acorss many policy files
-			//nolint
-			break
 		}
 		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
 	}
@@ -99,9 +96,6 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 				return checker.SecurityPolicyData{}, err
 			}
 			data.files[idx].SecurityContentLength = data.files[idx].File.EndOffset
-			// TODO: remove this break when it is possible to score acorss many policy files
-			//nolint
-			break
 		}
 	}
 	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
@@ -139,6 +133,7 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 			Information:           make([]checker.SecurityPolicyInformation, 0),
 		})
 		// TODO: change 'false' to 'true' when multiple security policy files are supported
+		// otherwise this check stops at the first security policy found
 		return false, nil
 	}
 	return true, nil
