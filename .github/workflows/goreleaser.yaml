@@ -40,16 +40,16 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+        uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
         with:
           go-version: 1.19
           check-latest: true
       - name: Configure ldflags
         id: ldflags
-        run: echo "::set-output name=version_flags::$(./scripts/version-ldflags)"
+        run: echo "version_flags=$(./scripts/version-ldflags)" >> "$GITHUB_OUTPUT"
       - name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@c8bb57c57e8df1be8c73ff3d59deab1dbc00e0d1 # v3.1.0
+        uses: crazy-max/ghaction-import-gpg@111c56156bcc6918c056dbef52164cfa583dc549 # v5.2.0
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
@@ -71,7 +71,7 @@ jobs:
           set -euo pipefail
 
           checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
-          echo "::set-output name=hashes::$(cat $checksum_file | base64 -w0)"
+          echo "hashes=$(cat $checksum_file | base64 -w0)" >> "$GITHUB_OUTPUT"
 
   provenance:
     needs: [goreleaser]

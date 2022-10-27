@@ -44,14 +44,14 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
      - name: install ko
        uses: imjasonh/setup-ko@ace48d793556083a76f1e3e6068850c1f4a369aa
      - name: publishimage
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -61,7 +61,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@ced07f21fb1da67979f539bbc6304c16c0677e76
+       uses: sigstore/cosign-installer@9becc617647dfa20ae7b1151972e9b3a2c338a2b
      - name: Sign image
        run: |
           cosign sign ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}

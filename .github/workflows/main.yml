@@ -43,7 +43,7 @@ jobs:
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 #v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -58,7 +58,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -88,7 +88,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -103,13 +103,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: generate mocks
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -136,7 +136,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -151,13 +151,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: generate docs
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -186,13 +186,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-proto
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -219,7 +219,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -234,13 +234,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -267,7 +267,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -282,13 +282,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build cron
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -315,7 +315,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -330,13 +330,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build worker
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -363,7 +363,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -378,13 +378,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build cii-worker
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -411,7 +411,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -426,13 +426,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build shuffler
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -459,7 +459,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -474,13 +474,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build bq transfer
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -507,7 +507,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -522,13 +522,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build bq transfer
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -555,7 +555,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -570,13 +570,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build webhook
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -603,7 +603,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -618,13 +618,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-add-script
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -651,7 +651,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -666,13 +666,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-validate-script
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -699,7 +699,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -714,13 +714,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-validate-script
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -749,7 +749,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -771,7 +771,7 @@ jobs:
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -786,13 +786,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -818,7 +818,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v2.1.7
+       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
        with:
          path: |
            ~/go/pkg/mod
@@ -833,13 +833,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -868,13 +868,13 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -894,7 +894,7 @@ jobs:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
-      - uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
