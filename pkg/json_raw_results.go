@@ -623,18 +623,20 @@ func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryA
 func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.SecurityPolicyData) error {
 	r.Results.SecurityPolicies = []jsonSecurityFile{}
 	if len(sp.PolicyFiles) > 0 {
-		r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonSecurityFile{
-			Path:          sp.PolicyFiles[0].File.Path,
-			ContentLength: sp.PolicyFiles[0].SecurityContentLength,
-			Hits:          []jsonSecurityPolicyHits{},
-		})
-		for _, entry := range sp.PolicyFiles[0].Information {
-			r.Results.SecurityPolicies[0].Hits = append(r.Results.SecurityPolicies[0].Hits, jsonSecurityPolicyHits{
-				Type:       string(entry.InformationType),
-				Match:      entry.InformationValue.Match,
-				LineNumber: entry.InformationValue.LineNumber,
-				Offset:     entry.InformationValue.Offset,
+		for idx := range sp.PolicyFiles {
+			r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonSecurityFile{
+				Path:          sp.PolicyFiles[idx].File.Path,
+				ContentLength: sp.PolicyFiles[idx].SecurityContentLength,
+				Hits:          []jsonSecurityPolicyHits{},
 			})
+			for _, entry := range sp.PolicyFiles[idx].Information {
+				r.Results.SecurityPolicies[idx].Hits = append(r.Results.SecurityPolicies[idx].Hits, jsonSecurityPolicyHits{
+					Type:       string(entry.InformationType),
+					Match:      entry.InformationValue.Match,
+					LineNumber: entry.InformationValue.LineNumber,
+					Offset:     entry.InformationValue.Offset,
+				})
+			}
 		}
 	}
 	return nil

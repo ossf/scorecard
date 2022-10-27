@@ -38,8 +38,7 @@ type securityPolicyFilesWithURI struct {
 // SecurityPolicy checks for presence of security policy.
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
 	data := securityPolicyFilesWithURI{
-		uri:   "",
-		files: make([]checker.SecurityPolicyFile, 0),
+		uri: "", files: make([]checker.SecurityPolicyFile, 0),
 	}
 	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &data)
 	if err != nil {
@@ -47,14 +46,19 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	}
 	// If we found files in the repo, return immediately.
 	if len(data.files) > 0 {
-		err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
-			Pattern:       data.files[0].File.Path,
-			CaseSensitive: false,
-		}, checkSecurityPolicyFileContent, &data.files[0].File, &data.files[0].Information)
-		if err != nil {
-			return checker.SecurityPolicyData{}, err
+		for idx := range data.files {
+			err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+				Pattern:       data.files[idx].File.Path,
+				CaseSensitive: false,
+			}, checkSecurityPolicyFileContent, &data.files[idx].File, &data.files[idx].Information)
+			if err != nil {
+				return checker.SecurityPolicyData{}, err
+			}
+			data.files[idx].SecurityContentLength = data.files[idx].File.EndOffset
+			// TODO: remove this break when it is possible to score acorss many policy files
+			//nolint
+			break
 		}
-		data.files[0].SecurityContentLength = data.files[0].File.EndOffset
 		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
 	}
 
@@ -81,19 +85,24 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 
 	// Return raw results.
 	if len(data.files) > 0 {
-		filePattern := data.files[0].File.Path
-		// undo path.Join in isSecurityPolicyFile
-		if data.files[0].File.Type == checker.FileTypeURL {
-			filePattern = strings.Replace(data.files[0].File.Path, data.uri+"/", "", 1)
+		for idx := range data.files {
+			filePattern := data.files[idx].File.Path
+			// undo path.Join in isSecurityPolicyFile
+			if data.files[idx].File.Type == checker.FileTypeURL {
+				filePattern = strings.Replace(data.files[idx].File.Path, data.uri+"/", "", 1)
+			}
+			err := fileparser.OnMatchingFileContentDo(dotGitHubClient, fileparser.PathMatcher{
+				Pattern:       filePattern,
+				CaseSensitive: false,
+			}, checkSecurityPolicyFileContent, &data.files[idx].File, &data.files[idx].Information)
+			if err != nil {
+				return checker.SecurityPolicyData{}, err
+			}
+			data.files[idx].SecurityContentLength = data.files[idx].File.EndOffset
+			// TODO: remove this break when it is possible to score acorss many policy files
+			//nolint
+			break
 		}
-		err := fileparser.OnMatchingFileContentDo(dotGitHubClient, fileparser.PathMatcher{
-			Pattern:       filePattern,
-			CaseSensitive: false,
-		}, checkSecurityPolicyFileContent, &data.files[0].File, &data.files[0].Information)
-		if err != nil {
-			return checker.SecurityPolicyData{}, err
-		}
-		data.files[0].SecurityContentLength = data.files[0].File.EndOffset
 	}
 	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
 }
@@ -129,6 +138,7 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 			SecurityContentLength: 0,
 			Information:           make([]checker.SecurityPolicyInformation, 0),
 		})
+		// TODO: change 'false' to 'true' when multiple security policy files are supported
 		return false, nil
 	}
 	return true, nil

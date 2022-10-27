@@ -132,23 +132,27 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
 
-	score := scoreSecurityCriteria(r.PolicyFiles[0].File,
-		r.PolicyFiles[0].SecurityContentLength,
-		r.PolicyFiles[0].Information, dl)
+	score := -1
+	for _, spd := range r.PolicyFiles {
+		score = scoreSecurityCriteria(spd.File,
+			spd.SecurityContentLength,
+			spd.Information, dl)
 
-	msg := checker.LogMessage{
-		Path:   r.PolicyFiles[0].File.Path,
-		Type:   r.PolicyFiles[0].File.Type,
-		Offset: r.PolicyFiles[0].File.Offset,
+		msg := checker.LogMessage{
+			Path: spd.File.Path,
+			Type: spd.File.Type,
+		}
+		if msg.Type == checker.FileTypeURL {
+			msg.Text = "security policy detected in org repo"
+		} else {
+			msg.Text = "security policy detected in current repo"
+		}
+
+		dl.Info(&msg)
+		// TODO: remove this break when it is possible to score acorss many policy files
+		//nolint
+		break
 	}
-
-	if msg.Type == checker.FileTypeURL {
-		msg.Text = "security policy detected in org repo"
-	} else {
-		msg.Text = "security policy detected in current repo"
-	}
-
-	dl.Info(&msg)
 
 	return checker.CreateResultWithScore(name, "security policy file detected", score)
 }
