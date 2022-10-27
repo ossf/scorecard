@@ -23,6 +23,7 @@ import (
 	"github.com/caarlos0/env/v6"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -41,8 +42,8 @@ type Options struct {
 	ResultsFile string
 	ChecksToRun []string
 	Metadata    []string
+	Depth       int
 	ShowDetails bool
-
 	// Feature flags.
 	EnableSarif       bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6 bool `env:"SCORECARD_V6"`
@@ -167,6 +168,10 @@ func (o *Options) Validate() error {
 			errs,
 			errCommitIsEmpty,
 		)
+	}
+	// if commit-depth set then modify global in graphql.go to reflect new depth (instead of default 30)
+	if o.Depth != 0 {
+		githubrepo.CommitsToAnalyze = o.Depth
 	}
 
 	if len(errs) != 0 {

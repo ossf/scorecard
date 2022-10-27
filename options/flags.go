@@ -59,6 +59,8 @@ const (
 
 	// FlagFormat is the flag name for specifying output format.
 	FlagFormat = "format"
+
+	FlagDepth = "commit-depth"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -130,6 +132,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagShowDetails,
 		o.ShowDetails,
 		"show extra details about each check",
+	)
+
+	cmd.Flags().IntVar(
+		&o.Depth,
+		FlagDepth,
+		o.Depth,
+		"number of commits to check",
 	)
 
 	checkNames := []string{}

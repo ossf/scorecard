@@ -36,10 +36,12 @@ const (
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
-	commitsToAnalyze       = 30
 )
 
-var errNotCached = errors.New("result not cached")
+var (
+	CommitsToAnalyze = 30
+	errNotCached     = errors.New("result not cached")
+)
 
 //nolint:govet
 type graphqlData struct {
@@ -97,7 +99,12 @@ type graphqlData struct {
 							}
 						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 					}
-				} `graphql:"history(first: $commitsToAnalyze)"`
+					PageInfo struct {
+						StartCursor githubv4.String
+						EndCursor   githubv4.String
+						HasNextPage bool
+					}
+				} `graphql:"history(first: $commitsToAnalyze, after: $historyCursor)"`
 			} `graphql:"... on Commit"`
 		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
@@ -205,19 +212,42 @@ func (handler *graphqlHandler) setup() error {
 			"issueCommentsToAnalyze": githubv4.Int(issueCommentsToAnalyze),
 			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
 			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
-			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
+			"commitsToAnalyze":       githubv4.Int(CommitsToAnalyze),
 			"commitExpression":       githubv4.String(commitExpression),
+			"historyCursor":          (*githubv4.String)(nil),
 		}
-		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
-			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+		if CommitsToAnalyze < 99 {
+			if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
+				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+				return
+			}
+			handler.archived = bool(handler.data.Repository.IsArchived)
+			handler.issues = issuesFrom(handler.data)
+			handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
 			return
 		}
-		handler.archived = bool(handler.data.Repository.IsArchived)
-		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
-		if handler.errSetup != nil {
-			return
+		var allCommits []clients.Commit
+		commitsLeft := CommitsToAnalyze
+		vars["commitsToAnalyze"] = githubv4.Int(100)
+		for ; commitsLeft > 0; commitsLeft = commitsLeft - 100 {
+			if commitsLeft < 100 {
+				vars["commitsToAnalyze"] = githubv4.Int(commitsLeft)
+			}
+			if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
+				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+				break
+			}
+			vars["historyCursor"] = handler.data.Repository.Object.Commit.History.PageInfo.EndCursor
+			tmp, err := commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
+			if err != nil {
+				handler.errSetup = err
+				break
+			}
+			allCommits = append(allCommits, tmp...)
 		}
+		handler.commits = append(handler.commits, allCommits...)
 		handler.issues = issuesFrom(handler.data)
+		handler.archived = bool(handler.data.Repository.IsArchived)
 	})
 	return handler.errSetup
 }
@@ -229,20 +259,42 @@ func (handler *graphqlHandler) setupCheckRuns() error {
 			"owner":                 githubv4.String(handler.repourl.owner),
 			"name":                  githubv4.String(handler.repourl.repo),
 			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
+			"commitsToAnalyze":      githubv4.Int(CommitsToAnalyze),
 			"commitExpression":      githubv4.String(commitExpression),
 			"checksToAnalyze":       githubv4.Int(checksToAnalyze),
 		}
-		if err := handler.client.Query(handler.ctx, handler.checkData, vars); err != nil {
-			// quit early without setting crsErrSetup for "Resource not accessible by integration" error
-			// for whatever reason, this check doesn't work with a GITHUB_TOKEN, only a PAT
-			if strings.Contains(err.Error(), "Resource not accessible by integration") {
+		if CommitsToAnalyze < 99 {
+			if err := handler.client.Query(handler.ctx, handler.checkData, vars); err != nil {
+				// quit early without setting crsErrSetup for "Resource not accessible by integration" error
+				// for whatever reason, this check doesn't work with a GITHUB_TOKEN, only a PAT
+				if strings.Contains(err.Error(), "Resource not accessible by integration") {
+					return
+				}
+				handler.errSetupCheckRuns = err
 				return
 			}
-			handler.errSetupCheckRuns = err
+			handler.checkRuns = parseCheckRuns(handler.checkData)
 			return
 		}
-		handler.checkRuns = parseCheckRuns(handler.checkData)
+		var allCheckRuns []checkRunCache
+		commitsLeft := CommitsToAnalyze
+		vars["commitsToAnalyze"] = githubv4.Int(100)
+		for ; commitsLeft > 0; commitsLeft = commitsLeft - 100 {
+			if commitsLeft < 100 {
+				vars["commitsToAnalyze"] = githubv4.Int(commitsLeft)
+			}
+			if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
+				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+				break
+			}
+			vars["historyCursor"] = handler.data.Repository.Object.Commit.History.PageInfo.EndCursor
+			allCheckRuns = append(allCheckRuns, parseCheckRuns(handler.checkData))
+		}
+		for _, theMap := range allCheckRuns {
+			for key, value := range theMap {
+				handler.checkRuns[key] = value
+			}
+		}
 	})
 	return handler.errSetupCheckRuns
 }
@@ -322,7 +374,7 @@ func parseCheckRuns(data *checkRunsGraphqlData) checkRunCache {
 	return checkCache
 }
 
-//nolint
+// nolint
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
