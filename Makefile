@@ -123,7 +123,7 @@ build-cron: build-controller build-worker build-cii-worker \
 	build-shuffler build-bq-transfer build-github-server \
 	build-webhook build-add-script build-validate-script build-update-script
 
-build-targets = generate-mocks generate-docs build-scorecard build-cron build-proto
+build-targets = generate-mocks generate-docs build-scorecard build-cron build-proto build-attestor
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)

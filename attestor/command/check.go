@@ -63,7 +63,7 @@ func runCheck() error {
 	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
 		ctx, repoURL, "", logger)
 
-	requiredChecks := policy.GetRequiredChecksForPolicy(attestationPolicy)
+	requiredChecks := attestationPolicy.GetRequiredChecksForPolicy()
 
 	enabledChecks := map[string]checker.Check{
 		"BinaryArtifacts": {
@@ -92,7 +92,7 @@ func runCheck() error {
 		return fmt.Errorf("RunScorecards: %w", err)
 	}
 
-	result, err := policy.EvaluateResults(attestationPolicy, &repoResult.RawResults)
+	result, err := attestationPolicy.EvaluateResults(&repoResult.RawResults)
 	if err != nil {
 		return fmt.Errorf("error when evaluating image %q against policy", image)
 	}

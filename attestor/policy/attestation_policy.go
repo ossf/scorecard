@@ -38,10 +38,10 @@ type AttestationPolicy struct {
 
 // Allows us to run fewer scorecard checks if some policy values
 // are don't-cares
-func GetRequiredChecksForPolicy(policy *AttestationPolicy) map[string]bool {
+func (ap *AttestationPolicy) GetRequiredChecksForPolicy() map[string]bool {
 	requiredChecks := make(map[string]bool)
 
-	if policy.PreventBinaryArtifacts {
+	if ap.PreventBinaryArtifacts {
 		requiredChecks["BinaryArtifacts"] = true
 	}
 
@@ -49,10 +49,10 @@ func GetRequiredChecksForPolicy(policy *AttestationPolicy) map[string]bool {
 }
 
 // Run attestation policy checks on raw data
-func EvaluateResults(policy *AttestationPolicy, raw *checker.RawResults) (PolicyResult, error) {
+func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyResult, error) {
 	dl := checker.NewLogger()
-	if policy.PreventBinaryArtifacts {
-		checkResult, err := CheckPreventBinaryArtifacts(policy.AllowedBinaryArtifacts, raw, dl)
+	if ap.PreventBinaryArtifacts {
+		checkResult, err := CheckPreventBinaryArtifacts(ap.AllowedBinaryArtifacts, raw, dl)
 
 		if !checkResult || err != nil {
 			return checkResult, err
