@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"path"
 	"regexp"
 	"strings"
 
@@ -82,6 +83,11 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	if len(data.files) > 0 {
 		for idx := range data.files {
 			filePattern := data.files[idx].File.Path
+			// undo path.Join in isSecurityPolicyFile just
+			// for this call to OnMatchingFileContentsDo
+			if data.files[idx].File.Type == checker.FileTypeURL {
+				filePattern = strings.Replace(filePattern, data.uri+"/", "", 1)
+			}
 			err := fileparser.OnMatchingFileContentDo(dotGitHubClient, fileparser.PathMatcher{
 				Pattern:       filePattern,
 				CaseSensitive: false,
@@ -108,6 +114,8 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 		tempPath := name
 		tempType := checker.FileTypeText
 		if pdata.uri != "" {
+			// report complete path for org-based policy files
+			tempPath = path.Join(pdata.uri, tempPath)
 			// FileTypeURL is used in Security-Policy to
 			// only denote for the details report that the
 			// policy was found at the org level rather
@@ -169,19 +177,9 @@ var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(pa
 	}
 
 	if pfiles != nil && (*pinfo) != nil {
-		// preserve file type
-		tempType := pfiles.Type
+		pfiles.Offset = checker.OffsetDefault
+		pfiles.FileSize = uint(len(content))
 		policyHits := collectPolicyHits(content)
-
-		*pfiles = checker.File{
-			Path:   path,
-			Type:   tempType,
-			Offset: checker.OffsetDefault,
-			// convey the length/amount of content using
-			// the EndOffset as the len to EOF used in eval
-			FileSize: uint(len(content)),
-		}
-
 		if len(policyHits) > 0 {
 			(*pinfo) = append((*pinfo), policyHits...)
 		}
