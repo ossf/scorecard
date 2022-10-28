@@ -64,7 +64,6 @@ func TestSecurityPolicy(t *testing.T) {
 							Path: "/etc/security/pam_env.conf",
 							Type: checker.FileTypeURL,
 						},
-						SecurityContentLength: 0,
 						Information:           make([]checker.SecurityPolicyInformation, 0),
 					},
 				}},
@@ -82,7 +81,6 @@ func TestSecurityPolicy(t *testing.T) {
 						File:                  checker.File{
 							Path: "/etc/security/pam_env.conf",
 						},
-						SecurityContentLength: 0,
 						Information:           make([]checker.SecurityPolicyInformation, 0),
 					},
 				}},

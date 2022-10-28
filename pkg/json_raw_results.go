@@ -626,7 +626,7 @@ func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.Securit
 		for idx := range sp.PolicyFiles {
 			r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonSecurityFile{
 				Path:          sp.PolicyFiles[idx].File.Path,
-				ContentLength: sp.PolicyFiles[idx].SecurityContentLength,
+				ContentLength: sp.PolicyFiles[idx].File.FileSize,
 				Hits:          []jsonSecurityPolicyHits{},
 			})
 			for _, entry := range sp.PolicyFiles[idx].Information {

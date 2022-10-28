@@ -160,10 +160,7 @@ type SecurityPolicyFile struct {
 	// security policy information found in repo or org
 	Information []SecurityPolicyInformation
 	// file that contains the security policy information
-	// only looking for one file
 	File File
-	// total size in bytes of the security policy file contents
-	SecurityContentLength uint
 }
 
 // SecurityPolicyData contains the raw results
@@ -239,6 +236,7 @@ type File struct {
 	Snippet   string   // Snippet of code
 	Offset    uint     // Offset in the file of Path (line for source/text files).
 	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
+	FileSize  uint     // Total size of file.
 	Type      FileType // Type of file.
 	// TODO: add hash.
 }

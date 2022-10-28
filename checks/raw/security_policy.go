@@ -18,7 +18,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"path"
 	"regexp"
 	"strings"
 
@@ -54,7 +53,6 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			if err != nil {
 				return checker.SecurityPolicyData{}, err
 			}
-			data.files[idx].SecurityContentLength = data.files[idx].File.EndOffset
 		}
 		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
 	}
@@ -84,10 +82,6 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	if len(data.files) > 0 {
 		for idx := range data.files {
 			filePattern := data.files[idx].File.Path
-			// undo path.Join in isSecurityPolicyFile
-			if data.files[idx].File.Type == checker.FileTypeURL {
-				filePattern = strings.Replace(data.files[idx].File.Path, data.uri+"/", "", 1)
-			}
 			err := fileparser.OnMatchingFileContentDo(dotGitHubClient, fileparser.PathMatcher{
 				Pattern:       filePattern,
 				CaseSensitive: false,
@@ -95,7 +89,6 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			if err != nil {
 				return checker.SecurityPolicyData{}, err
 			}
-			data.files[idx].SecurityContentLength = data.files[idx].File.EndOffset
 		}
 	}
 	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
@@ -115,8 +108,6 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 		tempPath := name
 		tempType := checker.FileTypeText
 		if pdata.uri != "" {
-			// TODO: is joining even needed?
-			tempPath = path.Join(pdata.uri, tempPath)
 			// FileTypeURL is used in Security-Policy to
 			// only denote for the details report that the
 			// policy was found at the org level rather
@@ -125,12 +116,12 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 		}
 		pdata.files = append(pdata.files, checker.SecurityPolicyFile{
 			File: checker.File{
-				Path:   tempPath,
-				Type:   tempType,
-				Offset: checker.OffsetDefault,
+				Path:     tempPath,
+				Type:     tempType,
+				Offset:   checker.OffsetDefault,
+				FileSize: checker.OffsetDefault,
 			},
-			SecurityContentLength: 0,
-			Information:           make([]checker.SecurityPolicyInformation, 0),
+			Information: make([]checker.SecurityPolicyInformation, 0),
 		})
 		// TODO: change 'false' to 'true' when multiple security policy files are supported
 		// otherwise this check stops at the first security policy found
@@ -188,7 +179,7 @@ var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(pa
 			Offset: checker.OffsetDefault,
 			// convey the length/amount of content using
 			// the EndOffset as the len to EOF used in eval
-			EndOffset: uint(len(content)),
+			FileSize: uint(len(content)),
 		}
 
 		if len(policyHits) > 0 {

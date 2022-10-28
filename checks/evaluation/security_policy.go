@@ -20,7 +20,6 @@ import (
 )
 
 func scoreSecurityCriteria(f checker.File,
-	contentLen uint,
 	info []checker.SecurityPolicyInformation,
 	dl checker.DetailLogger,
 ) int {
@@ -59,7 +58,7 @@ func scoreSecurityCriteria(f checker.File,
 	//     no credit if there is just a link to a site or an email address (those given above)
 	//     the test here is that each piece of linked content will likely contain a space
 	//     before and after the content (hence the two multiplier)
-	if contentLen > 1 && (contentLen > uint(linkedContentLen+((urls+emails)*2))) {
+	if f.FileSize > 1 && (f.FileSize > uint(linkedContentLen+((urls+emails)*2))) {
 		score += 3
 		msg.Text = "Found text in security policy"
 		dl.Info(&msg)
@@ -138,7 +137,6 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 	score := 0
 	for _, spd := range r.PolicyFiles {
 		score = scoreSecurityCriteria(spd.File,
-			spd.SecurityContentLength,
 			spd.Information, dl)
 
 		msg := checker.LogMessage{
