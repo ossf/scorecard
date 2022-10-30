@@ -55,7 +55,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
       - name: Run GoReleaser
         id: run-goreleaser
-        uses: goreleaser/goreleaser-action@b953231f81b8dfd023c58e0854a721e35037f28b # v2.5.0
+        uses: goreleaser/goreleaser-action@b508e2e3ef3b19d4e4146d4f8fb3ba9db644a757 # v2.5.0
         with:
           version: latest
           args: release --rm-dist
