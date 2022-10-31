@@ -79,11 +79,24 @@ jobs:
       
       - name: Run attestor e2e
         run: make e2e-attestor
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+        with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 10
+          command: make e2e-attestor
 
       - name: codecov
         uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
         with:
-         files: ./e2e-coverage.out ./attestor/e2e-coverage.out
+         files: ./e2e-coverage.out
+         verbose: true
+
+      - name: codecov attestor
+        uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
+        with:
+         files: ./attestor/e2e/e2e-coverage.out
          verbose: true
 
       - name: find comment

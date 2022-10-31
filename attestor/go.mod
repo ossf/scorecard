@@ -56,7 +56,7 @@ require (
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/term v0.1.0 // indirect
-	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
+	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.18.8 // indirect
