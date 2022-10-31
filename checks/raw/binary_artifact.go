@@ -19,12 +19,12 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"unicode"
 
 	semver "github.com/Masterminds/semver/v3"
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
 	"github.com/rhysd/actionlint"
+	"golang.org/x/tools/godoc/util"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
@@ -155,7 +155,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	}
 
 	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
-	if !isText(content) && exists2 {
+	if !util.IsText(content) && exists2 {
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
 			Type:   checker.FileTypeBinary,
@@ -164,19 +164,6 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	}
 
 	return true, nil
-}
-
-// TODO: refine this function.
-func isText(content []byte) bool {
-	for _, c := range string(content) {
-		if c == '\t' || c == '\n' || c == '\r' {
-			continue
-		}
-		if !unicode.IsPrint(c) {
-			return false
-		}
-	}
-	return true
 }
 
 // gradleWrapperValidated checks for the gradle-wrapper-verify action being
