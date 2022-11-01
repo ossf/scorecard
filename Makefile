@@ -123,7 +123,7 @@ build-cron: build-controller build-worker build-cii-worker \
 	build-shuffler build-bq-transfer build-github-server \
 	build-webhook build-add-script build-validate-script build-update-script
 
-build-targets = generate-mocks generate-docs build-scorecard build-cron build-proto
+build-targets = generate-mocks generate-docs build-scorecard build-cron build-proto build-attestor
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
@@ -239,6 +239,10 @@ cron/internal/bq/data-transfer.docker: cron/internal/bq/Dockerfile $(CRON_TRANSF
 			--tag $(IMAGE_NAME)-bq-transfer && \
 			touch cron/internal/bq/data-transfer.docker
 
+build-attestor: ## Runs go build on scorecard attestor
+	# Run go build on scorecard attestor
+	cd attestor/; CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)' -o scorecard-attestor
+
 TOKEN_SERVER_DEPS = $(shell find clients/githubrepo/roundtripper/tokens/ -iname "*.go")
 build-github-server: ## Build GitHub token server
 build-github-server: clients/githubrepo/roundtripper/tokens/server/github-auth-server
@@ -323,6 +327,10 @@ e2e-gh-token: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to
 e2e-gh-token: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN set to secrets.GITHUB_TOKEN must be used to run this.
 	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
+
+e2e-attestor: ## Runs e2e tests for scorecard-attestor
+	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..
+
 ###############################################################################
 
 ##@ TODO(#744)
