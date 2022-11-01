@@ -1,5 +1,6 @@
 # binary.
 scorecard
+attestor/scorecard-attestor
 scorecard.docker
 scorecard.releaser
 gitblobcache

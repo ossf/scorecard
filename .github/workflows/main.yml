@@ -64,11 +64,16 @@ jobs:
          check-latest: true
          cache: true
      - name: Run unit-tests
-       run: make unit-test
+       run: make unit-test unit-test-attestor
      - name: Upload codecoverage
        uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
        with:
          files: ./unit-coverage.out
+         verbose: true
+     - name: Upload codecoverage attestor
+       uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
+       with:
+         files: ./attestor/unit-coverage.out
          verbose: true
   generate-mocks:
     name: generate-mocks
