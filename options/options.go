@@ -39,11 +39,11 @@ type Options struct {
 	RubyGems   string
 	PolicyFile string
 	// TODO(action): Add logic for writing results to file
-	ResultsFile string
-	ChecksToRun []string
-	Metadata    []string
-	Depth       int
-	ShowDetails bool
+	ResultsFile     string
+	ChecksToRun     []string
+	Metadata        []string
+	NumberOfCommits int
+	ShowDetails     bool
 	// Feature flags.
 	EnableSarif       bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6 bool `env:"SCORECARD_V6"`
@@ -170,8 +170,8 @@ func (o *Options) Validate() error {
 		)
 	}
 	// if commit-depth set then modify global in graphql.go to reflect new depth (instead of default 30)
-	if o.Depth != 0 {
-		githubrepo.CommitsToAnalyze = o.Depth
+	if o.NumberOfCommits != 0 {
+		githubrepo.CommitsToAnalyze = o.NumberOfCommits
 	}
 
 	if len(errs) != 0 {
