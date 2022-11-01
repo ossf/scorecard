@@ -36,12 +36,23 @@ type AttestationPolicy struct {
 	AllowedBinaryArtifacts []string `yaml:"allowedBinaryArtifacts"`
 }
 
-// Run attestation policy checks on raw data.
-func RunChecksForPolicy(policy *AttestationPolicy, raw *checker.RawResults,
-	dl checker.DetailLogger,
-) (PolicyResult, error) {
-	if policy.PreventBinaryArtifacts {
-		checkResult, err := CheckPreventBinaryArtifacts(policy.AllowedBinaryArtifacts, raw, dl)
+// Allows us to run fewer scorecard checks if some policy values
+// are don't-cares
+func (ap *AttestationPolicy) GetRequiredChecksForPolicy() map[string]bool {
+	requiredChecks := make(map[string]bool)
+
+	if ap.PreventBinaryArtifacts {
+		requiredChecks["BinaryArtifacts"] = true
+	}
+
+	return requiredChecks
+}
+
+// Run attestation policy checks on raw data
+func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyResult, error) {
+	dl := checker.NewLogger()
+	if ap.PreventBinaryArtifacts {
+		checkResult, err := CheckPreventBinaryArtifacts(ap.AllowedBinaryArtifacts, raw, dl)
 
 		if !checkResult || err != nil {
 			return checkResult, err
