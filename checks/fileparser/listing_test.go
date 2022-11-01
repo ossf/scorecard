@@ -535,6 +535,7 @@ func TestOnMatchingFileContent(t *testing.T) {
 }
 
 // TestOnAllFilesDo tests the OnAllFilesDo function.
+//
 //nolint:gocognit
 func TestOnAllFilesDo(t *testing.T) {
 	t.Parallel()

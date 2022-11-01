@@ -4,51 +4,73 @@ updates:
   directory: "/"
   schedule:
     interval: daily
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 3
 - package-ecosystem: gomod
   directory: "/tools"
   schedule:
     interval: daily
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 3
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
       interval: "daily"
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
 - package-ecosystem: docker
   directory: "/"
   schedule:
-    interval: daily
+    interval: weekly
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 3
 - package-ecosystem: docker
-  directory: "/cron/bq"
+  directory: "/cron/internal/bq"
   schedule:
-    interval: daily
+    interval: weekly
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 3
 - package-ecosystem: docker
-  directory: "/cron/worker"
+  directory: "/cron/internal/worker"
   schedule:
-    interval: daily
-  commit-message:
-      prefix: ":seedling:"
-- package-ecosystem: docker
-  directory: "/cron/webhook"
-  schedule:
-    interval: daily
+    interval: weekly
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
 - package-ecosystem: docker
-  directory: "/cron/controller"
+  directory: "/cron/internal/webhook"
   schedule:
-    interval: daily
+    interval: weekly
+  rebase-strategy: disabled
+  commit-message:
+      prefix: ":seedling:"
+- package-ecosystem: docker
+  directory: "/cron/internal/controller"
+  schedule:
+    interval: weekly
+  rebase-strategy: disabled
+  commit-message:
+      prefix: ":seedling:"
+- package-ecosystem: docker
+  directory: "/cron/internal/cii"
+  schedule:
+    interval: weekly
+  rebase-strategy: disabled
+  commit-message:
+      prefix: ":seedling:"
+- package-ecosystem: docker
+  directory: "/clients/githubrepo/roundtripper/tokens/server"
+  schedule:
+    interval: weekly
+  rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"

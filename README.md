@@ -21,38 +21,42 @@
 ## Using Scorecards
 
 -   [Scorecards GitHub Action](#scorecards-github-action)
+-   [Scorecards REST API](#scorecards-rest-api)
+-   [Scorecards Badges](#scorecards-badges)
 -   [Scorecards Command Line Interface](#scorecards-command-line-interface)
     -   [Prerequisites](#prerequisites)
     -   [Installation](#installation)
     -   [Authentication](#authentication)
     -   [Basic Usage](#basic-usage)
-    -   [Report Problems](#report-problems)
 
 ## Checks
 
--   [Default Scorecards Checks ](#scorecard-checks)
+-   [Default Scorecards Checks](#scorecard-checks)
 -   [Detailed Check Documentation](docs/checks.md) (Scoring Criteria, Risks, and
     Remediation)
 
+## Scoring
+-   [Aggregate Score](#aggregate-score)
+
 ## Contribute
 
+-   [Report Problems](#report-problems)
 -   [Code of Conduct](CODE_OF_CONDUCT.md)
 -   [Contribute to Scorecards ](CONTRIBUTING.md)
 -   [Add a New Check](checks/write.md)
 -   [Connect with the Scorecards Community](#connect-with-the-scorecards-community)
 -   [Report a Security Issue](SECURITY.md)
 
-________________________________________________________________________________
-________________________________________________________________________________
+## FAQ
 
-
+- [FAQ](docs/faq.md)
 
 ## Overview
 
 ### What is Scorecards?
-
-We created Scorecards to give consumers of open-source projects an easy way to
-judge whether their dependencies are safe.
+We created Scorecards to help open source maintainers improve their security
+best practices and to help open source consumers judge whether their dependencies
+are safe.
 
 Scorecards is an automated tool that assesses a number of important heuristics
 [("checks")](#scorecard-checks) associated with software security and assigns
@@ -78,9 +82,11 @@ The inspiration for Scorecards’ logo:
 Scorecards has been run on thousands of projects to monitor and track security
 metrics. Prominent projects that use Scorecards include:
 
+-   [Tensorflow](https://github.com/tensorflow/tensorflow)
+-   [Angular](https://github.com/angular/angular)
+-   [Flutter](https://github.com/flutter/flutter)
 -   [sos.dev](https://sos.dev)
 -   [deps.dev](https://deps.dev)
--   [metrics.openssf.org](https://metrics.openssf.org)
 
 ### Public Data
 
@@ -133,6 +139,26 @@ repository’s Security tab. For more information, see the Scorecards GitHub
 Action
 [installation instructions](https://github.com/ossf/scorecard-action#installation).
 
+### Scorecards REST API
+
+To query pre-calculated scores of OSS projects, use the [REST API](https://api.securityscorecards.dev).
+
+To enable your project to be available on the REST API, set
+[`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
+in the Scorecards GitHub Action setting.
+
+### Scorecards Badges
+
+Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
+in Scorecards GitHub Actions also allows maintainers to display a Scorecard badge on their repository to show off their
+hard work. This badge also auto-updates for every change made to the repository.
+To include a badge on your project's repository, simply add the following markdown to your README:
+
+```
+[![OpenSSF
+Scorecard](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo}/badge)](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo})
+```
+
 ### Scorecards Command Line Interface
 
 To run a Scorecards scan on projects you do not own, use the command line
@@ -149,6 +175,20 @@ Language: You must have GoLang installed to run Scorecards
 
 #### Installation
 
+##### Docker
+
+`scorecard` is available as a Docker container:
+
+```shell
+docker pull gcr.io/openssf/scorecard:stable
+```
+
+To use a specific scorecards version (e.g., v3.2.1), run:
+
+```shell
+docker pull gcr.io/openssf/scorecard:v3.2.1
+```
+
 ##### Standalone
 
 To install Scorecards as a standalone:
@@ -156,32 +196,26 @@ To install Scorecards as a standalone:
 Visit our latest [release page](https://github.com/ossf/scorecard/releases/latest) and
 download the correct zip file for your operating system.
 
+Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to identify your directory if necessary).
+
+###### Verifying SLSA provenance for downloaded releases
+
 We generate [SLSA3 signatures](slsa.dev) using the OpenSSF's [slsa-framework/slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) during the release process. To verify a release binary:
 1. Install the verification tool from [slsa-framework/slsa-verifier#installation](https://github.com/slsa-framework/slsa-verifier#installation).
 2. Download the signature file `attestation.intoto.jsonl` from the [GitHub releases page](https://github.com/GoogleContainerTools/jib/releases/latest).
 3. Run the verifier:
+
 ```shell
 slsa-verifier -artifact-path <the-zip> -provenance attestation.intoto.jsonl -source github.com/ossf/scorecard -tag <the-tag>
 ```
 
-1.  Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to
-    identify your directory if necessary)
+##### Using package managers
 
-##### Using Homebrew
-
-You can use [Homebrew](https://brew.sh/) (on macOS or Linux) to install
-Scorecards.
-
-```sh
-brew install scorecard
-```
-
-#### Using Linux package managers
-
-Package Manager                                            | Linux Distribution | Command
----------------------------------------------------------- | ------------------ | -------
-Nix                                                        | NixOS              | `nix-shell -p nixpkgs.scorecard`
-[AUR helper](https://wiki.archlinux.org/title/AUR_helpers) | Arch Linux         | Use your AUR helper to install `scorecard`
+Package Manager                                            | Supported Distribution | Command
+---------------------------------------------------------- | ---------------------- | -------
+Nix                                                        | NixOS                  | `nix-shell -p nixpkgs.scorecard`
+[AUR helper](https://wiki.archlinux.org/title/AUR_helpers) | Arch Linux             | Use your AUR helper to install `scorecard`
+[Homebrew](https://brew.sh/)                               | macOS or Linux         | `brew install scorecard`
 
 #### Authentication
 
@@ -226,22 +260,6 @@ These variables can be obtained from the GitHub
 [developer settings](https://github.com/settings/apps) page.
 
 #### Basic Usage
-
-##### Docker
-
-`scorecard` is available as a Docker container:
-
-The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
-
-```shell
-docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-details --repo=https://github.com/ossf/scorecard
-```
-
-To use a specific scorecards version (e.g., v3.2.1), run:
-
-```shell
-docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:v3.2.1 --show-details --repo=https://github.com/ossf/scorecard
-```
 
 ##### Using repository URL
 
@@ -334,19 +352,19 @@ Check scores:
 |---------|------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
-##### Scoring
+###### Docker
 
-Each individual check returns a score of 0 to 10, with 10 representing the best
-possible score. Scorecards also produces an aggregate score, which is a
-weight-based average of the individual checks weighted by risk.
+The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
 
-*   “Critical” risk checks are weighted at 10
-*   “High” risk checks are weighted at 7.5
-*   “Medium” risk checks are weighted at 5
-*   “Low” risk checks are weighted at 2.5
+```shell
+docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-details --repo=https://github.com/ossf/scorecard
+```
 
-See the [list of current Scorecards checks](#scorecard-checks) for each check's
-risk level.
+To use a specific scorecards version (e.g., v3.2.1), run:
+
+```shell
+docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:v3.2.1 --show-details --repo=https://github.com/ossf/scorecard
+```
 
 ##### Showing Detailed Results
 
@@ -404,12 +422,7 @@ The currently supported formats are `default` (text) and `json`.
 
 These may be specified with the `--format` flag. For example, `--format=json`.
 
-#### Report Problems
 
-If you have what looks like a bug, please use the
-[Github issue tracking system.](https://github.com/ossf/scorecard/issues) Before
-you file an issue, please search existing issues to see if your issue is already
-covered.
 
 ## Checks
 
@@ -422,7 +435,7 @@ Name        | Description                               | Risk Level | Token Req
 [Binary-Artifacts](docs/checks.md#binary-artifacts)             | Is the project free of checked-in binaries?                                                                                                                                                                                                                                                                                  | High               | PAT, GITHUB_TOKEN   |
 [Branch-Protection](docs/checks.md#branch-protection)           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                                                       | High | PAT (`repo` or `repo> public_repo`), GITHUB_TOKEN    | certain settings are only supported with a maintainer PAT
 [CI-Tests](docs/checks.md#ci-tests)                             | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?                                                                                                                                         | Low | PAT, GITHUB_TOKEN   |
-[CII-Best-Practices](docs/checks.md#cii-best-practices)         | Does the project have a [CII Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?                                                                                                                                                                                                                         | Low  | PAT, GITHUB_TOKEN   |
+[CII-Best-Practices](docs/checks.md#cii-best-practices)         | Does the project have an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/en)?                                                                                                                                                                                                                         | Low  | PAT, GITHUB_TOKEN   |
 [Code-Review](docs/checks.md#code-review)                       | Does the project require code review before code is merged?                                                                                                                                                                                                                                                                  | High | PAT, GITHUB_TOKEN   |
 [Contributors](docs/checks.md#contributors)                     | Does the project have contributors from at least two different organizations?                                                                                                                                                                                                                                                | Low | PAT, GITHUB_TOKEN   |
 [Dangerous-Workflow](docs/checks.md#dangerous-workflow)         | Does the project avoid dangerous coding patterns in GitHub Action workflows?                                                                                                                                                                                                                                                 | Critical | PAT, GITHUB_TOKEN   |
@@ -432,7 +445,7 @@ Name        | Description                               | Risk Level | Token Req
 [Maintained](docs/checks.md#maintained)                         | Is the project at least 90 days old, and maintained?                                                                                                                                                                                                                                                                                                   | High | PAT, GITHUB_TOKEN   |
 [Pinned-Dependencies](docs/checks.md#pinned-dependencies)       | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?                                                                                                                     | Medium | PAT, GITHUB_TOKEN   |
 [Packaging](docs/checks.md#packaging)                           | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?                                                                                            | Medium | PAT, GITHUB_TOKEN   |
-[SAST](docs/checks.md#sast)                                     | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [LGTM](https://lgtm.com), [SonarCloud](https://sonarcloud.io)? | Medium | PAT, GITHUB_TOKEN   |
+[SAST](docs/checks.md#sast)                                     | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [LGTM (deprecated)](https://lgtm.com), [SonarCloud](https://sonarcloud.io)? | Medium | PAT, GITHUB_TOKEN   |
 [Security-Policy](docs/checks.md#security-policy)               | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?                                                                                                                                          | Medium | PAT, GITHUB_TOKEN   |
 [Signed-Releases](docs/checks.md#signed-releases)               | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?                                                                                                                                                                                                           | High | PAT, GITHUB_TOKEN   |
 [Token-Permissions](docs/checks.md#token-permissions)           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?                                                                                                                                                                                   | High | PAT, GITHUB_TOKEN   |
@@ -444,13 +457,33 @@ Name        | Description                               | Risk Level | Token Req
 To see detailed information about each check, its scoring criteria, and
 remediation steps, check out the [checks documentation page](docs/checks.md).
 
+## Scoring
+
+### Aggregate Score
+Each individual check returns a score of 0 to 10, with 10 representing the best
+possible score. Scorecards also produces an aggregate score, which is a
+weight-based average of the individual checks weighted by risk.
+
+*   “Critical” risk checks are weighted at 10
+*   “High” risk checks are weighted at 7.5
+*   “Medium” risk checks are weighted at 5
+*   “Low” risk checks are weighted at 2.5
+
+See the [list of current Scorecards checks](#scorecard-checks) for each check's
+risk level.
+
 ## Contribute
 
-### Code of Conduct
+### Report Problems
 
-Before contributing, please follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+If you have what looks like a bug, please use the
+[Github issue tracking system.](https://github.com/ossf/scorecard/issues) Before
+you file an issue, please search existing issues to see if your issue is already
+covered.
 
 ### Contribute to Scorecards
+
+Before contributing, please follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 See the [Contributing](CONTRIBUTING.md) documentation for guidance on how to
 contribute to the project.
@@ -490,3 +523,10 @@ To report a security issue, please follow instructions [here](SECURITY.md).
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/ossf/scorecard.svg)](https://starchart.cc/ossf/scorecard)
+
+
+## FAQ
+
+### FAQ
+
+See the [FAQ](docs/faq.md) for answers to Frequently Asked Questions about Scorecards.

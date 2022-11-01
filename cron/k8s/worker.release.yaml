@@ -27,32 +27,38 @@ spec:
         app.kubernetes.io/name: worker-releasetest
     spec:
       containers:
-      - name: worker
-        image: gcr.io/openssf/scorecard-batch-worker:latest
-        args: ["--ignoreRuntimeErrors=false"]
-        imagePullPolicy: Always
-        env:
-        - name: SCORECARD_DATA_BUCKET_URL
-          value: "gs://ossf-scorecard-data-releasetest2"
-        - name: RAW_SCORECARD_DATA_BUCKET_URL
-          value: "gs://ossf-scorecard-rawdata-releasetest"
-        - name: SCORECARD_REQUEST_SUBSCRIPTION_URL
-          value: "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker-releasetest"
-        - name: SCORECARD_METRIC_EXPORTER
-          value: "printer"
-        - name: GITHUB_AUTH_SERVER
-          value: "10.4.4.210:80"
-        - name: "SCORECARD_API_RESULTS_BUCKET_URL"
-          value: "gs://ossf-scorecard-cron-releasetest-results"
-        - name: "SCORECARD_BLACKLISTED_CHECKS"
-          value: "CI-Tests,Contributors"
-        resources:
-          requests:
-            memory: 5Gi
-            ephemeral-storage: 100Gi
-          limits:
-            memory: 12Gi
-            ephemeral-storage: 500Gi
+        - name: worker
+          image: gcr.io/openssf/scorecard-batch-worker:latest
+          args: ["--ignoreRuntimeErrors=false", "--config=/etc/scorecard/config.yaml"]
+          imagePullPolicy: Always
+          env:
+            - name: SCORECARD_DATA_BUCKET_URL
+              value: "gs://ossf-scorecard-data-releasetest2"
+            - name: SCORECARD_RAW_RESULT_DATA_BUCKET_URL
+              value: "gs://ossf-scorecard-rawdata-releasetest"
+            - name: SCORECARD_REQUEST_SUBSCRIPTION_URL
+              value: "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker-releasetest"
+            - name: SCORECARD_METRIC_EXPORTER
+              value: "printer"
+            - name: GITHUB_AUTH_SERVER
+              value: "10.4.4.210:80"
+            - name: "SCORECARD_API_RESULTS_BUCKET_URL"
+              value: "gs://ossf-scorecard-cron-releasetest-results"
+          resources:
+            requests:
+              memory: 5Gi
+              ephemeral-storage: 100Gi
+            limits:
+              memory: 12Gi
+              ephemeral-storage: 500Gi
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/scorecard
+              readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: scorecard-config
   strategy:
     type: "RollingUpdate"
     rollingUpdate:

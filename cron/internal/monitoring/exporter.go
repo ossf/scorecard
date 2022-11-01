@@ -24,7 +24,7 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver/monitoredresource/gcp"
 	"go.opencensus.io/stats/view"
 
-	"github.com/ossf/scorecard/v4/cron/internal/config"
+	"github.com/ossf/scorecard/v4/cron/config"
 )
 
 var errorUndefinedExporter = errors.New("unsupported exporterType")
@@ -48,6 +48,7 @@ type Exporter interface {
 }
 
 // GetExporter defines a factory for returning opencensus Exporter.
+// Ensure config.ReadConfig() is called at some point before this function.
 func GetExporter() (Exporter, error) {
 	exporter, err := config.GetMetricExporter()
 	if err != nil {

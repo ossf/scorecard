@@ -50,29 +50,39 @@ spec:
         spec:
           restartPolicy: Never
           containers:
-          - name: controller
-            image: gcr.io/openssf/scorecard-batch-controller:latest
-            args: ["cron/internal/data/projects.release.csv"]
-            imagePullPolicy: Always
-            env:
-            - name: SCORECARD_REQUEST_TOPIC_URL
-              value: "gcppubsub://projects/openssf/topics/scorecard-batch-requests-releasetest"
-            - name: SCORECARD_DATA_BUCKET_URL
-              value: "gs://ossf-scorecard-data-releasetest2"
-            # Raw results.
-            - name: RAW_SCORECARD_DATA_BUCKET_URL
-              value: "gs://ossf-scorecard-rawdata-releasetest"
-            - name: SCORECARD_SHARD_SIZE
-              value: "5"
-            resources:
-              limits:
-                memory: 1Gi
-              requests:
-                memory: 1Gi
-          - name: worker-update
-            image: bitnami/kubectl@sha256:44468c0f5b348e6dcf5e11feb6fdcc969c874bba2856150fe50eb1aacb3bdfee
-            command:
-              - "kubectl"
-              - "rollout"
-              - "restart"
-              - "deployment/scorecard-batch-worker-releasetest"
+            - name: controller
+              image: gcr.io/openssf/scorecard-batch-controller:latest
+              args: ["--config=/etc/scorecard/config.yaml", "cron/internal/data/projects.release.csv"]
+              imagePullPolicy: Always
+              env:
+                - name: GOMEMLIMIT
+                  value: "950MiB"
+                - name: SCORECARD_REQUEST_TOPIC_URL
+                  value: "gcppubsub://projects/openssf/topics/scorecard-batch-requests-releasetest"
+                - name: SCORECARD_DATA_BUCKET_URL
+                  value: "gs://ossf-scorecard-data-releasetest2"
+                # Raw results.
+                - name: SCORECARD_RAW_RESULT_DATA_BUCKET_URL
+                  value: "gs://ossf-scorecard-rawdata-releasetest"
+                - name: SCORECARD_SHARD_SIZE
+                  value: "5"
+              resources:
+                limits:
+                  memory: 1Gi
+                requests:
+                  memory: 1Gi
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/scorecard
+                  readOnly: true
+            - name: worker-update
+              image: bitnami/kubectl@sha256:44468c0f5b348e6dcf5e11feb6fdcc969c874bba2856150fe50eb1aacb3bdfee
+              command:
+                - "kubectl"
+                - "rollout"
+                - "restart"
+                - "deployment/scorecard-batch-worker-releasetest"
+          volumes:
+            - name: config-volume
+              configMap:
+                name: scorecard-config

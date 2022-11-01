@@ -25,17 +25,26 @@ spec:
       template:
         spec:
           containers:
-          - name: bq-rawdata-transfer
-            image: gcr.io/openssf/scorecard-bq-transfer:latest
-            imagePullPolicy: Always
-            resources:
-              limits:
-                memory: 1Gi
-              requests:
-                memory: 1Gi
-            env:
-              - name: SCORECARD_BIGQUERY_TABLE
-                value: "scorecard-rawdata"
-              - name: SCORECARD_DATA_BUCKET_URL
-                value: "gs://ossf-scorecard-rawdata"
+            - name: bq-rawdata-transfer
+              image: gcr.io/openssf/scorecard-bq-transfer:latest
+              args: ["--config=/etc/scorecard/config.yaml"]
+              imagePullPolicy: Always
+              resources:
+                limits:
+                  memory: 1Gi
+                requests:
+                  memory: 1Gi
+              env:
+                - name: SCORECARD_BIGQUERY_TABLE
+                  value: "scorecard-rawdata"
+                - name: SCORECARD_DATA_BUCKET_URL
+                  value: "gs://ossf-scorecard-rawdata"
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/scorecard
+                  readOnly: true
+          volumes:
+            - name: config-volume
+              configMap:
+                name: scorecard-config
           restartPolicy: OnFailure

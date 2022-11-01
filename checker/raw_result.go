@@ -41,6 +41,18 @@ type RawResults struct {
 	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
 	TokenPermissionsResults     TokenPermissionsData
+	CITestResults               CITestData
+}
+
+type RevisionCIInfo struct {
+	HeadSHA           string
+	CheckRuns         []clients.CheckRun
+	Statuses          []clients.Status
+	PullRequestNumber int
+}
+
+type CITestData struct {
+	CIInfo []RevisionCIInfo
 }
 
 // FuzzingData represents different fuzzing done.
@@ -122,7 +134,22 @@ type LicenseData struct {
 // CodeReviewData contains the raw results
 // for the Code-Review check.
 type CodeReviewData struct {
-	DefaultBranchCommits []clients.Commit
+	DefaultBranchChangesets []Changeset
+}
+type ReviewPlatform = string
+
+const (
+	ReviewPlatformGitHub      ReviewPlatform = "GitHub"
+	ReviewPlatformProw        ReviewPlatform = "Prow"
+	ReviewPlatformGerrit      ReviewPlatform = "Gerrit"
+	ReviewPlatformPhabricator ReviewPlatform = "Phabricator"
+	ReviewPlatformPiper       ReviewPlatform = "Piper"
+)
+
+type Changeset struct {
+	ReviewPlatform string
+	RevisionID     string
+	Commits        []clients.Commit
 }
 
 // ContributorsData represents contributor information.
@@ -221,7 +248,6 @@ type Tool struct {
 // Run represents a run.
 type Run struct {
 	URL string
-	// TODO: add fields, e.g., Result=["success", "failure"]
 }
 
 // ArchivedStatus definess the archived status.

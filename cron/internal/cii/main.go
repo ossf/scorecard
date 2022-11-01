@@ -18,14 +18,15 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/cron/internal/config"
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/config"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 const ciiBaseURL = "https://bestpractices.coreinfrastructure.org/projects.json"
@@ -82,6 +83,11 @@ func getPage(ctx context.Context, pageNum int) ([]ciiPageResp, error) {
 func main() {
 	ctx := context.Background()
 	fmt.Println("Starting...")
+
+	flag.Parse()
+	if err := config.ReadConfig(); err != nil {
+		panic(err)
+	}
 
 	ciiDataBucket, err := config.GetCIIDataBucketURL()
 	if err != nil {

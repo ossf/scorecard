@@ -26,7 +26,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/google"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 const stableTag = "stable"
@@ -81,6 +81,7 @@ func scriptHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/", scriptHandler)
 	fmt.Printf("Starting HTTP server on port 8080 ...\n")
+	// nolint:gosec // internal server.
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}

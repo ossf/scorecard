@@ -19,12 +19,13 @@ import (
 	"bytes"
 	"os"
 
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 // Adds "project=${PROJECT},dependency=true" to the repositories metadata.
 // Args:
-//     file path to old_projects.csv new_projects.csv
+//
+//	file path to old_projects.csv new_projects.csv
 func main() {
 	if len(os.Args) != 3 {
 		panic("must provide 2 arguments")

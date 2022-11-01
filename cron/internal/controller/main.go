@@ -16,7 +16,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"time"
@@ -26,8 +28,8 @@ import (
 	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/cron/internal/config"
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/config"
+	"github.com/ossf/scorecard/v4/cron/data"
 	"github.com/ossf/scorecard/v4/cron/internal/pubsub"
 )
 
@@ -82,20 +84,68 @@ func publishToRepoRequestTopic(iter data.Iterator, topicPublisher pubsub.Publish
 	return shardNum, nil
 }
 
+func localFiles(filenames []string) data.Iterator {
+	var iters []data.Iterator
+	for _, filename := range filenames {
+		f, err := os.Open(filename)
+		if err != nil {
+			panic(err)
+		}
+		i, err := data.MakeIteratorFrom(f)
+		if err != nil {
+			panic(err)
+		}
+		iters = append(iters, i)
+	}
+	iter, err := data.MakeNestedIterator(iters)
+	if err != nil {
+		panic(err)
+	}
+	return iter
+}
+
+func bucketFiles(ctx context.Context) data.Iterator {
+	var iters []data.Iterator
+
+	bucket, err := config.GetInputBucketURL()
+	if err != nil {
+		panic(err)
+	}
+	prefix, err := config.GetInputBucketPrefix()
+	if err != nil {
+		panic(err)
+	}
+
+	files, err := data.GetBlobKeysWithPrefix(ctx, bucket, prefix)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, f := range files {
+		b, err := data.GetBlobContent(ctx, bucket, f)
+		if err != nil {
+			panic(err)
+		}
+		r := bytes.NewReader(b)
+		i, err := data.MakeIteratorFrom(r)
+		if err != nil {
+			panic(err)
+		}
+		iters = append(iters, i)
+	}
+	iter, err := data.MakeNestedIterator(iters)
+	if err != nil {
+		panic(err)
+	}
+	return iter
+}
+
 func main() {
 	ctx := context.Background()
 	t := time.Now()
 
-	if len(os.Args) != 2 {
-		panic("must provide a single argument")
-	}
-
-	inFile, err := os.OpenFile(os.Args[1], os.O_RDONLY, 0o644)
-	if err != nil {
-		panic(err)
-	}
-	reader, err := data.MakeIteratorFrom(inFile)
-	if err != nil {
+	flag.Parse()
+	if err := config.ReadConfig(); err != nil {
 		panic(err)
 	}
 
@@ -123,6 +173,12 @@ func main() {
 		panic(err)
 	}
 
+	var reader data.Iterator
+	if useLocalFiles := len(flag.Args()) > 0; useLocalFiles {
+		reader = localFiles(flag.Args())
+	} else {
+		reader = bucketFiles(ctx)
+	}
 	shardNum, err := publishToRepoRequestTopic(reader, topicPublisher, shardSize, t)
 	if err != nil {
 		panic(err)

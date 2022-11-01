@@ -42,6 +42,7 @@ func main() {
 		panic(err)
 	}
 
+	//nolint: gosec // internal server.
 	if err := http.Serve(l, nil); err != nil {
 		panic(err)
 	}

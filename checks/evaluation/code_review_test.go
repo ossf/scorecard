@@ -50,16 +50,56 @@ func TestCodeReview(t *testing.T) {
 		{
 			name: "NoReviews",
 			expected: scut.TestReturn{
-				Score:        checker.MinResultScore,
-				NumberOfWarn: 2,
+				Score: checker.MinResultScore,
 			},
 			rawData: &checker.CodeReviewData{
-				DefaultBranchCommits: []clients.Commit{
+				DefaultBranchChangesets: []checker.Changeset{
 					{
-						SHA: "1",
+						Commits: []clients.Commit{{SHA: "1"}},
 					},
 					{
-						SHA: "2",
+						Commits: []clients.Commit{{SHA: "1"}},
+					},
+				},
+			},
+		},
+		{
+			name: "all changesets reviewed",
+			expected: scut.TestReturn{
+				Score: checker.MaxResultScore,
+			},
+			rawData: &checker.CodeReviewData{
+				DefaultBranchChangesets: []checker.Changeset{
+					{
+						ReviewPlatform: checker.ReviewPlatformGitHub,
+						RevisionID:     "1",
+						Commits: []clients.Commit{
+							{
+								SHA: "1",
+								AssociatedMergeRequest: clients.PullRequest{
+									Reviews: []clients.Review{
+										{
+											State: "APPROVED",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "all changesets reviewed outside github",
+			expected: scut.TestReturn{
+				Score: checker.MaxResultScore,
+			},
+			rawData: &checker.CodeReviewData{
+				DefaultBranchChangesets: []checker.Changeset{
+					{
+						ReviewPlatform: checker.ReviewPlatformGerrit,
+						RevisionID:     "1",
+						Commits:        []clients.Commit{{SHA: "1"}},
 					},
 				},
 			},

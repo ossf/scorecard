@@ -35,23 +35,23 @@ jobs:
       COSIGN_EXPERIMENTAL: "true"
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95
+       uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Clone the code
-       uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
      - name: install ko
-       uses: imjasonh/setup-ko@78eea08f10db87a7a23a666a4a6fe2734f2eeb8d
+       uses: imjasonh/setup-ko@ace48d793556083a76f1e3e6068850c1f4a369aa
      - name: publishimage
-       uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f
+       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
        with:
           max_attempts: 3
           retry_on: error
@@ -61,7 +61,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@b3413d484cc23cf8778c3d2aa361568d4eb54679
+       uses: sigstore/cosign-installer@9becc617647dfa20ae7b1151972e9b3a2c338a2b
      - name: Sign image
        run: |
           cosign sign ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}
