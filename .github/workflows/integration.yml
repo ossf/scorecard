@@ -76,7 +76,7 @@ jobs:
           retry_on: error
           timeout_minutes: 30
           command: make e2e-pat
-      
+
       - name: Run attestor e2e
         run: make e2e-attestor
         env:
