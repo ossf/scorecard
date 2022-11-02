@@ -158,6 +158,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	}
 
 	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
+	// TODO remove the comparison after testing in release-test worker
 	isTextFile := isText(content)
 	if _, enabled := os.LookupEnv("SCORECARD_COMPARE_ISTEXT"); enabled && isTextFile != isText2(content) {
 		log.Printf("isText implementations differ (raw.isText: %t) for file: %s", isTextFile, path)
@@ -186,6 +187,7 @@ func isText(content []byte) bool {
 	return true
 }
 
+// TODO decine between isText and isText2 after testing in release-test worker
 // modified version of golang.org/x/tools/godoc/util.
 func isText2(s []byte) bool {
 	const max = 1024 // at least utf8.UTFMax
