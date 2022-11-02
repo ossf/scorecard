@@ -16,6 +16,8 @@ package raw
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -25,6 +27,7 @@ import (
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
 	"github.com/rhysd/actionlint"
+	"golang.org/x/tools/godoc/util"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
@@ -155,7 +158,11 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	}
 
 	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
-	if !isText(content) && exists2 {
+	isTextFile := isText(content)
+	if _, enabled := os.LookupEnv("SCORECARD_COMPARE_ISTEXT"); enabled && isTextFile != util.IsText(content) {
+		log.Printf("isText implementations differ for file: %s", path)
+	}
+	if !isTextFile && exists2 {
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
 			Type:   checker.FileTypeBinary,
