@@ -150,6 +150,8 @@ type Changeset struct {
 	ReviewPlatform string
 	RevisionID     string
 	Commits        []clients.Commit
+	Reviews        []clients.Review
+	Author         clients.User
 }
 
 // ContributorsData represents contributor information.

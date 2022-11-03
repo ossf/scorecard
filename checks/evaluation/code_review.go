@@ -62,7 +62,12 @@ func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
 	}
 
 	if changeset.ReviewPlatform == checker.ReviewPlatformGitHub {
-		return changesReviewed
+		for i := range changeset.Reviews {
+			review := changeset.Reviews[i]
+			if review.State == "APPROVED" && review.Author.Login != changeset.Author.Login {
+				return changesReviewed
+			}
+		}
 	}
 
 	return noReview

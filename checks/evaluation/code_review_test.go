@@ -71,18 +71,13 @@ func TestCodeReview(t *testing.T) {
 			rawData: &checker.CodeReviewData{
 				DefaultBranchChangesets: []checker.Changeset{
 					{
+						Author:         clients.User{Login: "alice"},
 						ReviewPlatform: checker.ReviewPlatformGitHub,
 						RevisionID:     "1",
-						Commits: []clients.Commit{
+						Reviews: []clients.Review{
 							{
-								SHA: "1",
-								AssociatedMergeRequest: clients.PullRequest{
-									Reviews: []clients.Review{
-										{
-											State: "APPROVED",
-										},
-									},
-								},
+								Author: &clients.User{},
+								State:  "APPROVED",
 							},
 						},
 					},
@@ -100,24 +95,6 @@ func TestCodeReview(t *testing.T) {
 						ReviewPlatform: checker.ReviewPlatformGerrit,
 						RevisionID:     "1",
 						Commits:        []clients.Commit{{SHA: "1"}},
-					},
-				},
-			},
-		},
-		{
-			name: "implicit maintainer approval through github merge",
-			expected: scut.TestReturn{
-				Score: checker.MaxResultScore,
-			},
-			rawData: &checker.CodeReviewData{
-				DefaultBranchChangesets: []checker.Changeset{
-					{
-						ReviewPlatform: checker.ReviewPlatformGitHub,
-						Commits:        []clients.Commit{{SHA: "1"}},
-					},
-					{
-						ReviewPlatform: checker.ReviewPlatformGitHub,
-						Commits:        []clients.Commit{{SHA: "2"}},
 					},
 				},
 			},
