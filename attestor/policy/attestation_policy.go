@@ -186,7 +186,7 @@ func CheckNoVulnerabilities(results *checker.RawResults, dl checker.DetailLogger
 	return nVulns == 0, nil
 }
 
-func toString(cs checker.Changeset) string {
+func toString(cs *checker.Changeset) string {
 	platform := cs.ReviewPlatform
 	if platform == "" {
 		platform = "unknown"
@@ -199,7 +199,8 @@ func CheckCodeReviewed(
 	results *checker.RawResults,
 	dl checker.DetailLogger,
 ) (PolicyResult, error) {
-	for _, changeset := range results.CodeReviewResults.DefaultBranchChangesets {
+	for i := range results.CodeReviewResults.DefaultBranchChangesets {
+		changeset := &results.CodeReviewResults.DefaultBranchChangesets[i]
 		numApprovers := 0
 		approvals := make(map[string]bool)
 		// CodeReview check is limited to github.com pull request reviews

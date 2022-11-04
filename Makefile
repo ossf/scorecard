@@ -99,6 +99,7 @@ check-linter: ## Install and run golang linter
 check-linter: | $(GOLANGCI_LINT)
 	# Run golangci-lint linter
 	$(GOLANGCI_LINT) run -c .golangci.yml
+	cd attestor; $(GOLANGCI_LINT) run -c ../.golangci.yml; cd ..;
 
 add-projects: ## Adds new projects to ./cron/internal/data/projects.csv
 add-projects: ./cron/internal/data/projects.csv | build-add-script
