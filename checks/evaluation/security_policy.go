@@ -42,8 +42,7 @@ func scoreSecurityCriteria(f checker.File,
 		Text: "",
 	}
 
-	// #1: more than one unique (email/http) linked content found: score += 6
-	//     rationale: if more than one link, even stronger for the community
+	// #1: linked content found (email/http): score += 6
 	if (urls + emails) > 0 {
 		score += 6
 		msg.Text = "Found linked content in security policy"
@@ -91,7 +90,7 @@ func countSecInfo(secInfo []checker.SecurityPolicyInformation,
 	keys := make(map[string]bool)
 	count := 0
 	for _, entry := range secInfo {
-		if _, value := keys[entry.InformationValue.Match]; !value && entry.InformationType == infoType {
+		if _, present := keys[entry.InformationValue.Match]; !present && entry.InformationType == infoType {
 			keys[entry.InformationValue.Match] = true
 			count += 1
 		} else if !unique && entry.InformationType == infoType {
@@ -108,7 +107,7 @@ func findSecInfo(secInfo []checker.SecurityPolicyInformation,
 	keys := make(map[string]bool)
 	var secList []checker.SecurityPolicyInformation
 	for _, entry := range secInfo {
-		if _, value := keys[entry.InformationValue.Match]; !value && entry.InformationType == infoType {
+		if _, present := keys[entry.InformationValue.Match]; !present && entry.InformationType == infoType {
 			keys[entry.InformationValue.Match] = true
 			secList = append(secList, entry)
 		} else if !unique && entry.InformationType == infoType {

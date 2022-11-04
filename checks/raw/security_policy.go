@@ -35,7 +35,8 @@ type securityPolicyFilesWithURI struct {
 	files []checker.SecurityPolicyFile
 }
 
-// SecurityPolicy checks for presence of security policy.
+// SecurityPolicy checks for presence of security policy
+// and applicable content discovered by checkSecurityPolicyFileContent().
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
 	data := securityPolicyFilesWithURI{
 		uri: "", files: make([]checker.SecurityPolicyFile, 0),
