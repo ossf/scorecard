@@ -22,12 +22,12 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	semver "github.com/Masterminds/semver/v3"
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
 	"github.com/rhysd/actionlint"
-	"golang.org/x/tools/godoc/util"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
@@ -158,9 +158,10 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	}
 
 	exists2 := binaryFileTypes[strings.ReplaceAll(filepath.Ext(path), ".", "")]
+	// TODO remove the comparison after testing in release-test worker
 	isTextFile := isText(content)
-	if _, enabled := os.LookupEnv("SCORECARD_COMPARE_ISTEXT"); enabled && isTextFile != util.IsText(content) {
-		log.Printf("isText implementations differ for file: %s", path)
+	if _, enabled := os.LookupEnv("SCORECARD_COMPARE_ISTEXT"); enabled && isTextFile != isText2(content) {
+		log.Printf("isText implementations differ (raw.isText: %t) for file: %s", isTextFile, path)
 	}
 	if !isTextFile && exists2 {
 		*pfiles = append(*pfiles, checker.File{
@@ -180,6 +181,26 @@ func isText(content []byte) bool {
 			continue
 		}
 		if !unicode.IsPrint(c) {
+			return false
+		}
+	}
+	return true
+}
+
+// TODO decine between isText and isText2 after testing in release-test worker
+// modified version of golang.org/x/tools/godoc/util.
+func isText2(s []byte) bool {
+	const max = 1024 // at least utf8.UTFMax
+	if len(s) > max {
+		s = s[0:max]
+	}
+	for i, c := range string(s) {
+		if i+utf8.UTFMax > len(s) {
+			// last char may be incomplete - ignore
+			break
+		}
+		if c == 0xFFFD || c < ' ' && c != '\n' && c != '\t' && c != '\r' {
+			// decoding error or control character - not a text file
 			return false
 		}
 	}
