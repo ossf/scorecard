@@ -169,9 +169,9 @@ func addBinaryArtifactRawResults(r *jsonScorecardRawResult, ba *checker.BinaryAr
 //nolint:unparam
 func addSecurityPolicyRawResults(r *jsonScorecardRawResult, sp *checker.SecurityPolicyData) error {
 	r.Results.SecurityPolicies = []jsonFile{}
-	for _, v := range sp.Files {
+	for idx := range sp.PolicyFiles {
 		r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonFile{
-			Path: v.Path,
+			Path: sp.PolicyFiles[idx].File.Path,
 		})
 	}
 	return nil
