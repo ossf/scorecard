@@ -90,7 +90,6 @@ jobs:
       - name: codecov
         uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
         with:
-         fail_ci_if_error: true
          files: ./e2e-coverage.out,./attestor/e2e/e2e-coverage.out
          verbose: true
 
