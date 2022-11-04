@@ -68,7 +68,6 @@ jobs:
      - name: Upload codecoverage
        uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
        with:
-         fail_ci_if_error: true
          files: ./unit-coverage.out,./attestor/unit-coverage.out
          verbose: true
   generate-mocks:
