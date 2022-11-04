@@ -48,7 +48,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: setup-go
-        uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+        uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
         with:
           go-version: '1.19'
           check-latest: true
@@ -76,11 +76,21 @@ jobs:
           retry_on: error
           timeout_minutes: 30
           command: make e2e-pat
+      
+      - name: Run attestor e2e  #using retry because the GitHub token is being throttled.
+        uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+        with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 10
+          command: make e2e-attestor
 
       - name: codecov
         uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
         with:
-         files: ./e2e-coverage.out
+         files: ./e2e-coverage.out,./attestor/e2e/e2e-coverage.out
          verbose: true
 
       - name: find comment
@@ -92,7 +102,7 @@ jobs:
           body-includes: Integration tests ran for
 
       - name: create or update comment
-        uses: peter-evans/create-or-update-comment@2b2c85d0bf1b8a7b4e7e344bd5c71dc4b9196e9f # v1.4.5
+        uses: peter-evans/create-or-update-comment@5adcb0bb0f9fb3f95ef05400558bdb3f329ee808 # v1.4.5
         with:
           issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
           comment-id: ${{ steps.fc.outputs.comment-id }}

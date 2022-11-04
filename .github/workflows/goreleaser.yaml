@@ -40,7 +40,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
+        uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
         with:
           go-version: 1.19
           check-latest: true
@@ -55,7 +55,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
       - name: Run GoReleaser
         id: run-goreleaser
-        uses: goreleaser/goreleaser-action@b953231f81b8dfd023c58e0854a721e35037f28b # v2.5.0
+        uses: goreleaser/goreleaser-action@b508e2e3ef3b19d4e4146d4f8fb3ba9db644a757 # v2.5.0
         with:
           version: latest
           args: release --rm-dist

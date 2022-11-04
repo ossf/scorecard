@@ -44,7 +44,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f
+       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -61,7 +61,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@ced07f21fb1da67979f539bbc6304c16c0677e76
+       uses: sigstore/cosign-installer@9becc617647dfa20ae7b1151972e9b3a2c338a2b
      - name: Sign image
        run: |
           cosign sign ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}
