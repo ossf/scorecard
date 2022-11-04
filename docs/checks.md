@@ -527,11 +527,33 @@ well-known directories.
 A security policy (typically a `SECURITY.md` file) can give users information
 about what constitutes a vulnerability and how to report one securely so that
 information about a bug is not publicly visible.
+
+This check examines the contents of the security policy file awarding points
+for those policies that express vulnerability process(es), disclosure timelines,
+and have links (e.g., URL(s) and email(s)) to support the users.
+
+Linking Requirements (one or more) (6/10 points):
+  - A valid form of an email address to contact for vulnerabilities
+  - A valid form of a http/https address to support vulnerability reporting
+
+Free Form Text (3/10 points):
+  - Free form text is present in the security policy file which is beyond
+    simply having a http/https address and/or email in the file
+  - The string length of any such links in the policy file do not count
+    towards detecting free form text
+
+Security Policy Specific Text (1/10 points):
+  - Specific text providing basic or general information about vulnerability
+    and disclosure practices, expectations, and/or timelines
+  - Text should include a total of 2 or more hits which match (case insensitive)
+    `vuln` and as in "Vulnerability" or "vulnerabilities";
+    `disclos` as "Disclosure" or "disclose";
+    and numbers which convey expectations of times, e.g., 30 days or 90 days
  
 
 **Remediation steps**
 - Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.
-- The file should contain information on what constitutes a vulnerability and a way to report it securely (e.g. issue tracker with private issue support, encrypted email with a published public key). Follow the [coordinated vulnerability disclosure guidelines](https://github.com/ossf/oss-vulnerability-guide/blob/main/guide.md) to respond to vulnerability disclosures.
+- The file should contain information on what constitutes a vulnerability and a way to report it securely (e.g. issue tracker with private issue support, encrypted email with a published public key). Follow the [coordinated vulnerability disclosure guidelines](https://github.com/ossf/oss-vulnerability-guide/blob/main/maintainer-guide.md) to respond to vulnerability disclosures.
 - For GitHub, see more information [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository).
 
 ## Signed-Releases 
