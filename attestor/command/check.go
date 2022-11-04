@@ -93,7 +93,7 @@ func runCheck() (policy.PolicyResult, error) {
 		}
 	}
 
-	repoResult, err := pkg.RunScorecards(
+	repoResult, err := pkg.RunScorecard(
 		ctx,
 		repo,
 		commitSHA,
@@ -105,7 +105,7 @@ func runCheck() (policy.PolicyResult, error) {
 		vulnsClient,
 	)
 	if err != nil {
-		return policy.Fail, fmt.Errorf("RunScorecards: %w", err)
+		return policy.Fail, fmt.Errorf("RunScorecard: %w", err)
 	}
 
 	result, err := attestationPolicy.EvaluateResults(&repoResult.RawResults)

@@ -80,8 +80,8 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 	return "", nil
 }
 
-// RunScorecards runs enabled Scorecard checks on a Repo.
-func RunScorecards(ctx context.Context,
+// RunScorecard runs enabled Scorecard checks on a Repo.
+func RunScorecard(ctx context.Context,
 	repo clients.Repo,
 	commitSHA string,
 	commitDepth int,

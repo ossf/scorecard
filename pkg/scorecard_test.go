@@ -118,7 +118,7 @@ func Test_getRepoCommitHashLocal(t *testing.T) {
 	}
 }
 
-func TestRunScorecards(t *testing.T) {
+func TestRunScorecard(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		commitSHA string
@@ -163,13 +163,13 @@ func TestRunScorecards(t *testing.T) {
 				}, nil
 			})
 			defer ctrl.Finish()
-			got, err := RunScorecards(context.Background(), repo, tt.args.commitSHA, 0, nil, mockRepoClient, nil, nil, nil)
+			got, err := RunScorecard(context.Background(), repo, tt.args.commitSHA, 0, nil, mockRepoClient, nil, nil, nil)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RunScorecards() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RunScorecards() got = %v, want %v", got, tt.want)
+				t.Errorf("RunScorecard() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

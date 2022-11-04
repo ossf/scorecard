@@ -1,6 +1,6 @@
-# Contributing to Security Scorecards
+# Contributing to Security Scorecard
 
-Thank you for contributing your time and expertise to the Security Scorecards
+Thank you for contributing your time and expertise to the Security Scorecard
 project. This document describes the contribution guidelines for the project.
 
 **Note:** Before you start contributing, you must read and abide by our

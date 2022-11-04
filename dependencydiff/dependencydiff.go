@@ -155,7 +155,7 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 			// Run scorecard on those types of dependencies that the caller would like to check.
 			// If the input map changeTypesToCheck is empty, by default, we run the checks for all valid types.
 			// TODO (#2064): use the Scorecare REST API to retrieve the Scorecard result statelessly.
-			scorecardResult, err := pkg.RunScorecards(
+			scorecardResult, err := pkg.RunScorecard(
 				dCtx.ctx,
 				dCtx.ghRepo,
 				// TODO (#2065): In future versions, ideally, this should be
