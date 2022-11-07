@@ -69,16 +69,49 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 	var results checker.LicenseData
 	var path string
 
+	licensesFound, lerr := c.RepoClient.ListLicenses()
+	if lerr == nil && len(licensesFound) > 0 {
+		//fmt.Printf ("'%T' of size '%d' has '%+v'\n", licensesFound, len(licensesFound), licensesFound)
+		for _, v := range licensesFound {
+			results.LicenseFiles = append(results.LicenseFiles,
+				checker.LicenseFile{
+					File:	checker.File{
+						Path: v.Path,
+						Type: checker.FileTypeSource,
+					},
+					License: checker.License{
+						Key:         v.Key,
+						Name:        v.Name,
+						Size:        v.Size,
+						SpdxId:      v.SPDXId,
+						Attribution: checker.LicenseAttributionTypeRepo,
+					},
+				})
+		}
+		return results, nil
+	}
+
+	// no licenses reported by repo API, continue looking for files
 	err := fileparser.OnAllFilesDo(c.RepoClient, isLicenseFile, &path)
 	if err != nil {
 		return results, fmt.Errorf("fileparser.OnAllFilesDo: %w", err)
 	}
 
+	// scorecard search stops at first candidate (isLicenseFile) license file found
 	if path != "" {
-		results.Files = append(results.Files,
-			checker.File{
-				Path: path,
-				Type: checker.FileTypeSource,
+		results.LicenseFiles = append(results.LicenseFiles,
+			checker.LicenseFile{
+				File:	checker.File{
+					Path: path,
+					Type: checker.FileTypeSource,
+				},
+				License: checker.License{
+					Key:         "",
+					Name:        "",
+					Size:        int(0),
+					SpdxId:      "",
+					Attribution: checker.LicenseAttributionTypeScorecard,
+				},
 			})
 	}
 

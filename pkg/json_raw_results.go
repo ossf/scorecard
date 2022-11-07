@@ -563,11 +563,11 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 //nolint:unparam
 func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) error {
 	r.Results.Licenses = []jsonLicense{}
-	for _, file := range ld.Files {
+	for _, file := range ld.LicenseFiles {
 		r.Results.Licenses = append(r.Results.Licenses,
 			jsonLicense{
 				File: jsonFile{
-					Path: file.Path,
+					Path: file.File.Path,
 				},
 			},
 		)

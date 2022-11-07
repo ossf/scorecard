@@ -29,13 +29,13 @@ func License(name string, dl checker.DetailLogger,
 	}
 
 	// Apply the policy evaluation.
-	if r.Files == nil || len(r.Files) == 0 {
+	if r.LicenseFiles == nil || len(r.LicenseFiles) == 0 {
 		return checker.CreateMinScoreResult(name, "license file not detected")
 	}
 
-	for _, f := range r.Files {
+	for _, f := range r.LicenseFiles {
 		dl.Info(&checker.LogMessage{
-			Path:   f.Path,
+			Path:   f.File.Path,
 			Type:   checker.FileTypeSource,
 			Offset: 1,
 		})

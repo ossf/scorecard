@@ -125,10 +125,35 @@ type MaintainedData struct {
 	ArchivedStatus       ArchivedStatus
 }
 
+type LicenseAttributionType string
+
+const (
+	// forms of security policy hints being evaluated.
+	LicenseAttributionTypeOther     LicenseAttributionType = "otherAttribution"
+	LicenseAttributionTypeRepo      LicenseAttributionType = "repoAttribution"
+	LicenseAttributionTypeScorecard LicenseAttributionType = "scorecardAttribution"
+)
+
+// license details
+type License struct {
+	Key         string // repo specified key
+	Name        string // OSI standardized license name
+	Size        int    // size of the license file found (default: 0)
+	SpdxId      string // SPDX standardized identifier
+	Attribution LicenseAttributionType // source of licensing information
+}
+
+// one file contains one license
+type LicenseFile struct {
+	File File
+	License License
+}
+
 // LicenseData contains the raw results
 // for the License check.
+// Some repos may have more than one license.
 type LicenseData struct {
-	Files []File
+	LicenseFiles []LicenseFile
 }
 
 // CodeReviewData contains the raw results
