@@ -44,8 +44,6 @@ spec:
               value: "10.4.4.210:80"
             - name: "SCORECARD_API_RESULTS_BUCKET_URL"
               value: "gs://ossf-scorecard-cron-releasetest-results"
-            - name: SCORECARD_COMPARE_ISTEXT
-              value: "1"
           resources:
             requests:
               memory: 5Gi
