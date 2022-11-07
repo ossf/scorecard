@@ -84,7 +84,7 @@ install: $(GOLANGCI_LINT) \
 ##@ Build
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = build unit-test unit-test-attestor check-linter validate-docs add-projects validate-projects
+all-targets = build unit-test check-linter validate-docs add-projects validate-projects
 .PHONY: all all-targets-update-dependencies $(all-targets) update-dependencies tree-status
 all-targets-update-dependencies: $(all-targets) | update-dependencies
 all: update-dependencies all-targets-update-dependencies tree-status
@@ -93,13 +93,11 @@ update-dependencies: ## Update go dependencies for all modules
 	# Update root go modules
 	go mod tidy && go mod verify
 	cd tools; go mod tidy && go mod verify; cd ../
-	cd attestor; go mod tidy && go mod verify; cd ../
 
 check-linter: ## Install and run golang linter
 check-linter: | $(GOLANGCI_LINT)
 	# Run golangci-lint linter
 	$(GOLANGCI_LINT) run -c .golangci.yml
-	cd attestor; $(GOLANGCI_LINT) run -c ../.golangci.yml; cd ..;
 
 add-projects: ## Adds new projects to ./cron/internal/data/projects.csv
 add-projects: ./cron/internal/data/projects.csv | build-add-script
@@ -168,7 +166,7 @@ validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml
 	go run ./docs/checks/internal/validate/main.go
 
-SCORECARD_DEPS = $(shell find . -iname "*.go" | grep -v tools/ | grep -v attestor/)
+SCORECARD_DEPS = $(shell find . -iname "*.go" | grep -v tools/)
 build-scorecard: ## Build Scorecard CLI
 build-scorecard: scorecard
 scorecard: $(SCORECARD_DEPS)
@@ -309,7 +307,7 @@ cron-worker-docker:
 
 ##@ Tests
 ################################# make test ###################################
-test-targets = unit-test unit-test-attestor e2e-pat e2e-gh-token ci-e2e
+test-targets = unit-test e2e-pat e2e-gh-token ci-e2e
 .PHONY: test $(test-targets)
 test: $(test-targets)
 

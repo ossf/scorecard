@@ -69,7 +69,6 @@ func addSignFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&pkixAlg, "pkix-alg", "", "pkix signature algorithm, e.g., ecdsa-p256-sha256")
 }
 
-// RootCmd export for testability.
 var RootCmd = &cobra.Command{
 	Use:   "scorecard-attestor",
 	Short: "scorecard-attestor generates attestations based on scorecard results",
