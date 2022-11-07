@@ -16,11 +16,15 @@ package githubrepo
 
 import (
 	"context"
+	"net/http"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
@@ -30,6 +34,108 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 		graphqlhandler = &graphqlHandler{
 			client: graphClient,
 		}
+	})
+
+	Context("E2E TEST: Confirm Paging Commits Works", func() {
+		It("Should only have 1 commit", func() {
+			_repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: clients.HeadSHA,
+			}
+			_vars := map[string]interface{}{
+				"owner":                  githubv4.String("ossf"),
+				"name":                   githubv4.String("scorecard"),
+				"pullRequestsToAnalyze":  githubv4.Int(1),
+				"issuesToAnalyze":        githubv4.Int(30),
+				"issueCommentsToAnalyze": githubv4.Int(30),
+				"reviewsToAnalyze":       githubv4.Int(30),
+				"labelsToAnalyze":        githubv4.Int(30),
+				"commitsToAnalyze":       githubv4.Int(1),
+				"commitExpression":       githubv4.String("heads/main"),
+				"historyCursor":          (*githubv4.String)(nil),
+			}
+			_ctx := context.Background()
+			_logger := log.NewLogger(log.DebugLevel)
+			_rt := roundtripper.NewTransport(_ctx, _logger)
+			_httpClient := &http.Client{
+				Transport: _rt,
+			}
+			_graphClient := githubv4.NewClient(_httpClient)
+			_handler := &graphqlHandler{
+				client: _graphClient,
+			}
+			_handler.init(context.Background(), _repourl)
+			commits, err := populateCommits(_handler, _vars)
+			Expect(err).To(BeNil())
+			Expect(len(commits)).Should(BeEquivalentTo(1))
+		})
+		It("Should have 30 commits", func() {
+			_repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: clients.HeadSHA,
+			}
+			_vars := map[string]interface{}{
+				"owner":                  githubv4.String("ossf"),
+				"name":                   githubv4.String("scorecard"),
+				"pullRequestsToAnalyze":  githubv4.Int(1),
+				"issuesToAnalyze":        githubv4.Int(30),
+				"issueCommentsToAnalyze": githubv4.Int(30),
+				"reviewsToAnalyze":       githubv4.Int(30),
+				"labelsToAnalyze":        githubv4.Int(30),
+				"commitsToAnalyze":       githubv4.Int(30),
+				"commitExpression":       githubv4.String("heads/main"),
+				"historyCursor":          (*githubv4.String)(nil),
+			}
+			_ctx := context.Background()
+			_logger := log.NewLogger(log.DebugLevel)
+			_rt := roundtripper.NewTransport(_ctx, _logger)
+			_httpClient := &http.Client{
+				Transport: _rt,
+			}
+			_graphClient := githubv4.NewClient(_httpClient)
+			_handler := &graphqlHandler{
+				client: _graphClient,
+			}
+			_handler.init(context.Background(), _repourl)
+			commits, err := populateCommits(_handler, _vars)
+			Expect(err).To(BeNil())
+			Expect(len(commits)).Should(BeEquivalentTo(30))
+		})
+		It("Should have 101 commits", func() {
+			_repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: clients.HeadSHA,
+			}
+			_vars := map[string]interface{}{
+				"owner":                  githubv4.String("ossf"),
+				"name":                   githubv4.String("scorecard"),
+				"pullRequestsToAnalyze":  githubv4.Int(1),
+				"issuesToAnalyze":        githubv4.Int(30),
+				"issueCommentsToAnalyze": githubv4.Int(30),
+				"reviewsToAnalyze":       githubv4.Int(30),
+				"labelsToAnalyze":        githubv4.Int(30),
+				"commitsToAnalyze":       githubv4.Int(101),
+				"commitExpression":       githubv4.String("heads/main"),
+				"historyCursor":          (*githubv4.String)(nil),
+			}
+			_ctx := context.Background()
+			_logger := log.NewLogger(log.DebugLevel)
+			_rt := roundtripper.NewTransport(_ctx, _logger)
+			_httpClient := &http.Client{
+				Transport: _rt,
+			}
+			_graphClient := githubv4.NewClient(_httpClient)
+			_handler := &graphqlHandler{
+				client: _graphClient,
+			}
+			_handler.init(context.Background(), _repourl)
+			commits, err := populateCommits(_handler, _vars)
+			Expect(err).To(BeNil())
+			Expect(len(commits)).Should(BeEquivalentTo(101))
+		})
 	})
 
 	Context("E2E TEST: Validate query cost", func() {

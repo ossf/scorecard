@@ -203,10 +203,14 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 
 func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]clients.Commit, error) {
 	var allCommits []clients.Commit
-	commitsLeft := CommitsToAnalyze
+	var commitsLeft githubv4.Int
+	commitsLeft, ok := vars["commitsToAnalyze"].(githubv4.Int)
+	if !ok {
+		return nil, nil
+	}
 	for vars["commitsToAnalyze"] = githubv4.Int(100); commitsLeft > 0; commitsLeft = commitsLeft - 100 {
 		if commitsLeft < 100 {
-			vars["commitsToAnalyze"] = githubv4.Int(commitsLeft)
+			vars["commitsToAnalyze"] = commitsLeft
 		}
 		err := handler.client.Query(handler.ctx, handler.data, vars)
 		if err != nil {
