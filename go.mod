@@ -31,7 +31,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
-	go.opencensus.io v0.23.0
+	go.opencensus.io v0.24.0
 	gocloud.dev v0.26.0
 	golang.org/x/text v0.4.0
 	golang.org/x/tools v0.2.0
