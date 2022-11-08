@@ -24,8 +24,8 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func (a AttestationPolicy) ToJSON() string {
-	jsonbytes, err := json.Marshal(a)
+func (ap AttestationPolicy) ToJSON() string {
+	jsonbytes, err := json.Marshal(ap)
 	if err != nil {
 		return ""
 	}

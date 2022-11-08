@@ -24,26 +24,26 @@ import (
 )
 
 var (
-	// input flags
+	// input flags.
 	repoURL            string
 	commitSHA          string
-	mode               string
 	image              string
 	policyPath         string
 	attestationProject string
 	overwrite          bool
-	// input flags: pgp key flags
+	// input flags: pgp key flags.
 	pgpPriKeyPath string
 	pgpPassphrase string
-	// pkix key flags
+	// pkix key flags.
 	pkixPriKeyPath string
 	pkixAlg        string
 
-	// input flags: kms flags
+	// input flags: kms flags.
 	kmsKeyName   string
 	kmsDigestAlg string
 )
 
+//nolint:lll,errcheck // TODO
 func addCheckFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&policyPath, "policy", "", "(required for check) scorecard attestation policy file path, e.g., /tmp/policy-binauthz.yml")
 	cmd.MarkPersistentFlagRequired("policy")
@@ -52,6 +52,7 @@ func addCheckFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&commitSHA, "commit", "", "Git SHA at which image was built")
 }
 
+//nolint:lll,errcheck // TODO
 func addSignFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&image, "image", "", "Image url, e.g., gcr.io/foo/bar@sha256:abcd")
 	cmd.MarkPersistentFlagRequired("image")
@@ -63,10 +64,9 @@ func addSignFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&pgpPassphrase, "pgp-passphrase", "", "passphrase for pgp private key, if any")
 	cmd.PersistentFlags().StringVar(&pkixPriKeyPath, "pkix-private-key", "", "pkix private signing key path, e.g., /dev/shm/key.pem")
 	cmd.PersistentFlags().StringVar(&pkixAlg, "pkix-alg", "", "pkix signature algorithm, e.g., ecdsa-p256-sha256")
-
 }
 
-// Export for testability
+// RootCmd is exported for testability.
 var RootCmd = &cobra.Command{
 	Use:   "scorecard-attestor",
 	Short: "scorecard-attestor generates attestations based on scorecard results",
@@ -91,6 +91,7 @@ var checkCmd = &cobra.Command{
 	},
 }
 
+//nolint:gochecknoinits // TODO
 func init() {
 	RootCmd.AddCommand(checkCmd, checkAndSignCmd)
 

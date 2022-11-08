@@ -15,17 +15,26 @@
 package command
 
 import (
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/grafeas/kritis/pkg/attestlib"
 	"github.com/grafeas/kritis/pkg/kritis/metadata/containeranalysis"
 	"github.com/grafeas/kritis/pkg/kritis/signer"
 	"github.com/grafeas/kritis/pkg/kritis/util"
+
 	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 const scorecardNoteID = "ossf-scorecard-attestation"
+
+var (
+	//nolint:lll
+	errNoKmsDigestAlg     = errors.New("kms_digest_alg is unspecified, must be one of SHA256|SHA384|SHA512, and the same as specified by the key version's algorithm")
+	errNoKey              = errors.New("neither kms_key_name, pgp_private_key, or pkix_private_key is specified")
+	errUnknownPKIXSignAlg = errors.New("empty or unknown PKIX signature algorithm")
+)
 
 func runSign() error {
 	logger := sclog.NewLogger(sclog.DefaultLevel)
@@ -33,48 +42,49 @@ func runSign() error {
 	// Create a client
 	client, err := containeranalysis.New()
 	if err != nil {
-		return fmt.Errorf("could not initialize the client %v", err)
+		return fmt.Errorf("could not initialize the client %w", err)
 	}
 
 	// Read the signing credentials
 	// Either kmsKeyName or pgpPriKeyPath needs to be set
 	if kmsKeyName == "" && pgpPriKeyPath == "" && pkixPriKeyPath == "" {
-		return fmt.Errorf("neither kms_key_name, pgp_private_key, or pkix_private_key is specified")
+		return errNoKey
 	}
 	var cSigner attestlib.Signer
+	//nolint:gocritic,nestif // TODO fix linters
 	if kmsKeyName != "" {
 		logger.Info(fmt.Sprintf("Using kms key %s for signing.", kmsKeyName))
 		if kmsDigestAlg == "" {
-			return fmt.Errorf("kms_digest_alg is unspecified, must be one of SHA256|SHA384|SHA512, and the same as specified by the key version's algorithm")
+			return errNoKmsDigestAlg
 		}
 		cSigner, err = signer.NewCloudKmsSigner(kmsKeyName, signer.DigestAlgorithm(kmsDigestAlg))
 		if err != nil {
-			return fmt.Errorf("creating kms signer failed: %v\n", err)
+			return fmt.Errorf("creating kms signer failed: %w", err)
 		}
 	} else if pgpPriKeyPath != "" {
 		logger.Info("Using pgp key for signing.")
-		signerKey, err := ioutil.ReadFile(pgpPriKeyPath)
+		signerKey, err := os.ReadFile(pgpPriKeyPath)
 		if err != nil {
-			return fmt.Errorf("fail to read signer key: %v\n", err)
+			return fmt.Errorf("fail to read signer key: %w", err)
 		}
 		// Create a cryptolib signer
 		cSigner, err = attestlib.NewPgpSigner(signerKey, pgpPassphrase)
 		if err != nil {
-			return fmt.Errorf("creating pgp signer failed: %v\n", err)
+			return fmt.Errorf("creating pgp signer failed: %w", err)
 		}
 	} else {
 		logger.Info("Using pkix key for signing.")
-		signerKey, err := ioutil.ReadFile(pkixPriKeyPath)
+		signerKey, err := os.ReadFile(pkixPriKeyPath)
 		if err != nil {
-			return fmt.Errorf("fail to read signer key: %v\n", err)
+			return fmt.Errorf("fail to read signer key: %w", err)
 		}
 		sAlg := attestlib.ParseSignatureAlgorithm(pkixAlg)
 		if sAlg == attestlib.UnknownSigningAlgorithm {
-			return fmt.Errorf("empty or unknown PKIX signature algorithm: %s\n", pkixAlg)
+			return fmt.Errorf("%w: %s", errUnknownPKIXSignAlg, pkixAlg)
 		}
 		cSigner, err = attestlib.NewPkixSigner(signerKey, sAlg, "")
 		if err != nil {
-			return fmt.Errorf("creating pkix signer failed: %v\n", err)
+			return fmt.Errorf("creating pkix signer failed: %w", err)
 		}
 	}
 
@@ -91,7 +101,7 @@ func runSign() error {
 
 	err = util.CheckNoteName(scorecardNoteName)
 	if err != nil {
-		return fmt.Errorf("note name is invalid %v", err)
+		return fmt.Errorf("note name is invalid %w", err)
 	}
 
 	// Create signer
@@ -99,7 +109,7 @@ func runSign() error {
 	// Sign image
 	err = r.SignImage(image)
 	if err != nil {
-		return fmt.Errorf("signing image failed: %v", err)
+		return fmt.Errorf("signing image failed: %w", err)
 	}
 	return nil
 }

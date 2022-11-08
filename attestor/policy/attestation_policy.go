@@ -37,7 +37,7 @@ type AttestationPolicy struct {
 }
 
 // Allows us to run fewer scorecard checks if some policy values
-// are don't-cares
+// are don't-cares.
 func (ap *AttestationPolicy) GetRequiredChecksForPolicy() map[string]bool {
 	requiredChecks := make(map[string]bool)
 
@@ -48,7 +48,7 @@ func (ap *AttestationPolicy) GetRequiredChecksForPolicy() map[string]bool {
 	return requiredChecks
 }
 
-// Run attestation policy checks on raw data
+// Run attestation policy checks on raw data.
 func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyResult, error) {
 	dl := checker.NewLogger()
 	if ap.PreventBinaryArtifacts {

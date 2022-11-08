@@ -16,6 +16,7 @@ package command
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -26,23 +27,29 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
+var (
+	errFailedPolicy = errors.New("image failed policy check")
+	errNoPolicy     = errors.New("policy path is empty")
+	errNoRepoURL    = errors.New("repoURL not specified")
+)
+
 func runCheck() error {
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.DefaultLevel)
 
 	// Read the Binauthz attestation policy
 	if policyPath == "" {
-		return fmt.Errorf("policy path is empty")
+		return errNoPolicy
 	}
 	attestationPolicy, err := policy.ParseAttestationPolicyFromFile(policyPath)
 	if err != nil {
-		return fmt.Errorf("fail to load scorecard attestation policy: %v", err)
+		return fmt.Errorf("fail to load scorecard attestation policy: %w", err)
 	}
 
 	if repoURL == "" {
 		buildRepo := os.Getenv("REPO_NAME")
 		if buildRepo == "" {
-			return fmt.Errorf("repoURL not specified")
+			return errNoRepoURL
 		}
 		repoURL = buildRepo
 		logger.Info(fmt.Sprintf("Found repo URL %s Cloud Build environment", repoURL))
@@ -60,8 +67,10 @@ func runCheck() error {
 		}
 	}
 
-	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
-		ctx, repoURL, "", logger)
+	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(ctx, repoURL, "", logger)
+	if err != nil {
+		return fmt.Errorf("checker.GetClients: %w", err)
+	}
 
 	requiredChecks := attestationPolicy.GetRequiredChecksForPolicy()
 
@@ -94,10 +103,10 @@ func runCheck() error {
 
 	result, err := attestationPolicy.EvaluateResults(&repoResult.RawResults)
 	if err != nil {
-		return fmt.Errorf("error when evaluating image %q against policy", image)
+		return fmt.Errorf("error when evaluating image %q against policy: %w", image, err)
 	}
 	if result != policy.Pass {
-		return fmt.Errorf("image failed policy check %s:", image)
+		return fmt.Errorf("%w: %q", errFailedPolicy, image)
 	}
 	logger.Info("Policy check passed")
 	return nil
