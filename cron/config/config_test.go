@@ -38,14 +38,20 @@ const (
 	prodShardSize           int    = 10
 	prodMetricExporter      string = "stackdriver"
 	// Raw results.
-	prodRawBucket         = "gs://ossf-scorecard-rawdata"
-	prodRawBigQueryTable  = "scorecard-rawdata"
-	prodAPIBucketURL      = "gs://ossf-scorecard-cron-results"
-	prodInputBucketURL    = "gs://ossf-scorecard-input-projects"
-	prodInputBucketPrefix = ""
+	prodRawBucket             = "gs://ossf-scorecard-rawdata"
+	prodRawBigQueryTable      = "scorecard-rawdata"
+	prodAPIBucketURL          = "gs://ossf-scorecard-cron-results"
+	prodInputBucketURL        = "gs://ossf-scorecard-input-projects"
+	prodInputBucketPrefix     = ""
+	prodInputBucketPrefixFile = ""
 )
 
 var (
+	prodInputBucketParams = map[string]string{
+		"url":         prodInputBucketURL,
+		"prefix":      prodInputBucketPrefix,
+		"prefix-file": prodInputBucketPrefixFile,
+	}
 	prodScorecardParams = map[string]string{
 		"api-results-bucket-url":     prodAPIBucketURL,
 		"blacklisted-checks":         prodBlacklistedChecks,
@@ -53,10 +59,9 @@ var (
 		"raw-bigquery-table":         prodRawBigQueryTable,
 		"raw-result-data-bucket-url": prodRawBucket,
 	}
-	prodCriticalityParams map[string]string = nil
-	prodAdditionalParams                    = map[string]map[string]string{
-		"scorecard":   prodScorecardParams,
-		"criticality": prodCriticalityParams,
+	prodAdditionalParams = map[string]map[string]string{
+		"input-bucket": prodInputBucketParams,
+		"scorecard":    prodScorecardParams,
 	}
 )
 
