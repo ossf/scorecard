@@ -221,6 +221,19 @@ type jsonTokenPermission struct {
 	Type         string           `json:"type"`
 }
 
+type jsonSecurityFile struct {
+	Path          string                   `json:"path"`
+	Hits          []jsonSecurityPolicyHits `json:"matches,omitempty"`
+	ContentLength uint                     `json:"contentLength,omitempty"`
+}
+
+type jsonSecurityPolicyHits struct {
+	Type       string `json:"type"`
+	Match      string `json:"match,omitempty"`
+	LineNumber uint   `json:"lineNumber,omitempty"`
+	Offset     uint   `json:"offset,omitempty"`
+}
+
 //nolint:govet
 type jsonRawResults struct {
 	// Workflow results.
@@ -239,7 +252,7 @@ type jsonRawResults struct {
 	Binaries []jsonFile `json:"binaries"`
 	// List of security policy files found in the repo.
 	// Note: we return one at most.
-	SecurityPolicies []jsonFile `json:"securityPolicies"`
+	SecurityPolicies []jsonSecurityFile `json:"securityPolicies"`
 	// List of update tools.
 	// Note: we return one at most.
 	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools"`
@@ -619,11 +632,23 @@ func (r *jsonScorecardRawResult) addBinaryArtifactRawResults(ba *checker.BinaryA
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addSecurityPolicyRawResults(sp *checker.SecurityPolicyData) error {
-	r.Results.SecurityPolicies = []jsonFile{}
-	for _, v := range sp.Files {
-		r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonFile{
-			Path: v.Path,
-		})
+	r.Results.SecurityPolicies = []jsonSecurityFile{}
+	if len(sp.PolicyFiles) > 0 {
+		for idx := range sp.PolicyFiles {
+			r.Results.SecurityPolicies = append(r.Results.SecurityPolicies, jsonSecurityFile{
+				Path:          sp.PolicyFiles[idx].File.Path,
+				ContentLength: sp.PolicyFiles[idx].File.FileSize,
+				Hits:          []jsonSecurityPolicyHits{},
+			})
+			for _, entry := range sp.PolicyFiles[idx].Information {
+				r.Results.SecurityPolicies[idx].Hits = append(r.Results.SecurityPolicies[idx].Hits, jsonSecurityPolicyHits{
+					Type:       string(entry.InformationType),
+					Match:      entry.InformationValue.Match,
+					LineNumber: entry.InformationValue.LineNumber,
+					Offset:     entry.InformationValue.Offset,
+				})
+			}
+		}
 	}
 	return nil
 }
