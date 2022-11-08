@@ -64,7 +64,7 @@ func (r *repoURL) parse(input string) error {
 	const splitLen = 2
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
-		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("%v. Exepted full repository url", input))
+		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("%v. Expected full repository url", input))
 	}
 
 	r.host, r.owner, r.repo = u.Host, split[0], split[1]
