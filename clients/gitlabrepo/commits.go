@@ -128,25 +128,23 @@ func (handler *commitsHandler) setup() error {
 				})
 			}
 
-			commit := clients.Commit{
-				CommittedDate: *commit.CommittedDate,
-				Message:       commit.Message,
-				SHA:           commit.ID,
-				AssociatedMergeRequest: clients.PullRequest{
-					Number:   mergeRequest.ID,
-					MergedAt: *mergeRequest.MergedAt,
-					HeadSHA:  mergeRequest.SHA,
-					Author:   clients.User{ID: int64(mergeRequest.Author.ID)},
-					Labels:   labels,
-					Reviews:  reviews,
-				},
-			}
-
-			if user != nil {
-				commit.Committer = clients.User{ID: int64(user.ID)}
-			}
-
-			handler.commits = append(handler.commits, commit)
+			// append the commits to the handler.
+			handler.commits = append(handler.commits,
+				clients.Commit{
+					CommittedDate: *commit.CommittedDate,
+					Message:       commit.Message,
+					SHA:           commit.ID,
+					AssociatedMergeRequest: clients.PullRequest{
+						Number:   mergeRequest.ID,
+						MergedAt: *mergeRequest.MergedAt,
+						HeadSHA:  mergeRequest.SHA,
+						Author:   clients.User{ID: int64(mergeRequest.Author.ID)},
+						Labels:   labels,
+						Reviews:  reviews,
+						MergedBy: clients.User{ID: int64(mergeRequest.MergedBy.ID)},
+					},
+					Committer: clients.User{ID: int64(user.ID)},
+				})
 		}
 	})
 

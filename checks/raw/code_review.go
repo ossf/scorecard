@@ -51,6 +51,20 @@ func getGithubRevisionID(c *clients.Commit) string {
 	return ""
 }
 
+func getGithubReviews(c *clients.Commit) (reviews []clients.Review) {
+	reviews = []clients.Review{}
+	reviews = append(reviews, c.AssociatedMergeRequest.Reviews...)
+
+	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
+		reviews = append(reviews, clients.Review{Author: &c.AssociatedMergeRequest.MergedBy, State: "APPROVED"})
+	}
+	return
+}
+
+func getGithubAuthor(c *clients.Commit) (author clients.User) {
+	return c.AssociatedMergeRequest.Author
+}
+
 func getProwRevisionID(c *clients.Commit) string {
 	mr := c.AssociatedMergeRequest
 	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
@@ -143,12 +157,20 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 
 	for i := range commits {
 		rev := detectCommitRevisionInfo(&commits[i])
+		if rev.ID == "" {
+			rev.ID = commits[i].SHA
+		}
 
 		if changeset, ok := changesetsByRevInfo[rev]; !ok {
 			newChangeset := checker.Changeset{
 				ReviewPlatform: rev.Platform,
 				RevisionID:     rev.ID,
 				Commits:        []clients.Commit{commits[i]},
+			}
+
+			if rev.Platform == checker.ReviewPlatformGitHub {
+				newChangeset.Reviews = getGithubReviews(&commits[i])
+				newChangeset.Author = getGithubAuthor(&commits[i])
 			}
 
 			changesetsByRevInfo[rev] = newChangeset
@@ -160,8 +182,9 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 	}
 
 	// Changesets are returned in map order (i.e. randomized)
-	for ri, cs := range changesetsByRevInfo {
+	for ri := range changesetsByRevInfo {
 		// Ungroup all commits that don't have revision info
+		cs := changesetsByRevInfo[ri]
 		missing := revisionInfo{}
 		if ri == missing {
 			for i := range cs.Commits {
