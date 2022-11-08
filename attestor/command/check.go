@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ossf/scorecard-attestor/policy"
+	"github.com/ossf/scorecard/v4/attestor/policy"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	sclog "github.com/ossf/scorecard/v4/log"

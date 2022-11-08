@@ -84,7 +84,7 @@ install: $(GOLANGCI_LINT) \
 ##@ Build
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = build unit-test unit-test-attestor check-linter validate-docs add-projects validate-projects
+all-targets = build unit-test check-linter validate-docs add-projects validate-projects
 .PHONY: all all-targets-update-dependencies $(all-targets) update-dependencies tree-status
 all-targets-update-dependencies: $(all-targets) | update-dependencies
 all: update-dependencies all-targets-update-dependencies tree-status
@@ -93,7 +93,6 @@ update-dependencies: ## Update go dependencies for all modules
 	# Update root go modules
 	go mod tidy && go mod verify
 	cd tools; go mod tidy && go mod verify; cd ../
-	cd attestor; go mod tidy && go mod verify; cd ../
 
 check-linter: ## Install and run golang linter
 check-linter: | $(GOLANGCI_LINT)
@@ -167,7 +166,7 @@ validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml
 	go run ./docs/checks/internal/validate/main.go
 
-SCORECARD_DEPS = $(shell find . -iname "*.go" | grep -v tools/ | grep -v attestor/)
+SCORECARD_DEPS = $(shell find . -iname "*.go" | grep -v tools/)
 build-scorecard: ## Build Scorecard CLI
 build-scorecard: scorecard
 scorecard: $(SCORECARD_DEPS)
@@ -301,7 +300,7 @@ cron-worker-docker:
 
 ##@ Tests
 ################################# make test ###################################
-test-targets = unit-test unit-test-attestor e2e-pat e2e-gh-token ci-e2e
+test-targets = unit-test e2e-pat e2e-gh-token ci-e2e
 .PHONY: test $(test-targets)
 test: $(test-targets)
 
@@ -309,9 +308,6 @@ unit-test: ## Runs unit test without e2e
 	# Run unit tests, ignoring e2e tests
 	# run the go tests and gen the file coverage-all used to do the integration with codecov
 	SKIP_GINKGO=1 go test -race -covermode=atomic  -coverprofile=unit-coverage.out `go list ./...`
-
-unit-test-attestor: ## Runs unit tests on scorecard-attestor
-	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage.out `go list ./...`; cd ..;
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN
@@ -327,9 +323,6 @@ e2e-gh-token: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to
 e2e-gh-token: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN set to secrets.GITHUB_TOKEN must be used to run this.
 	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
-
-e2e-attestor: ## Runs e2e tests for scorecard-attestor
-	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..
 
 ###############################################################################
 

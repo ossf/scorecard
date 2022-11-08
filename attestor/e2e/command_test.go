@@ -15,11 +15,13 @@ package e2e
 
 import (
 	"bytes"
+	"os"
 	"strings"
 	"testing"
 
-	"github.com/ossf/scorecard-attestor/command"
 	"github.com/spf13/cobra"
+
+	"github.com/ossf/scorecard/v4/attestor/command"
 )
 
 func execute(t *testing.T, c *cobra.Command, args ...string) (string, error) {
@@ -35,6 +37,10 @@ func execute(t *testing.T, c *cobra.Command, args ...string) (string, error) {
 }
 
 func TestRootCmd(t *testing.T) {
+	if val, exists := os.LookupEnv("SKIP_GINKGO"); exists && val == "1" {
+		t.Skip()
+	}
+	t.Parallel()
 	tt := []struct {
 		name string
 		args []string
@@ -51,7 +57,6 @@ func TestRootCmd(t *testing.T) {
 
 	for _, tc := range tt {
 		_, err := execute(t, command.RootCmd, tc.args...)
-
 		if err != nil {
 			t.Fatalf("%s: %s", tc.name, err)
 		}

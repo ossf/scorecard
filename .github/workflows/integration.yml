@@ -77,16 +77,6 @@ jobs:
           timeout_minutes: 30
           command: make e2e-pat
 
-      - name: Run attestor e2e  #using retry because the GitHub token is being throttled.
-        uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
-        env:
-          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-        with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 10
-          command: make e2e-attestor
-
       - name: codecov
         uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
         with:
