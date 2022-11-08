@@ -87,6 +87,7 @@ metrics. Prominent projects that use Scorecards include:
 -   [Flutter](https://github.com/flutter/flutter)
 -   [sos.dev](https://sos.dev)
 -   [deps.dev](https://deps.dev)
+-   [metrics.openssf](https://metrics.openssf.org/grafana/d/default/metric-dashboard?orgId=1)
 
 ### Public Data
 
