@@ -61,9 +61,10 @@ func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
 		return reviewedOutsideGithub
 	}
 
-	for i := range changeset.Commits {
-		for _, review := range changeset.Commits[i].AssociatedMergeRequest.Reviews {
-			if review.State == "APPROVED" {
+	if changeset.ReviewPlatform == checker.ReviewPlatformGitHub {
+		for i := range changeset.Reviews {
+			review := changeset.Reviews[i]
+			if review.State == "APPROVED" && review.Author.Login != changeset.Author.Login {
 				return changesReviewed
 			}
 		}

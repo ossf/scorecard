@@ -28,6 +28,7 @@ type PullRequest struct {
 	Author   User
 	Labels   []Label
 	Reviews  []Review
+	MergedBy User
 }
 
 // Label represents a PR label.
