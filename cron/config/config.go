@@ -325,6 +325,15 @@ func GetInputBucketPrefix() (string, error) {
 	return bucketParams["prefix"], nil
 }
 
+// GetInputBucketPrefixFile() returns the file whose contents specify the prefix to use.
+func GetInputBucketPrefixFile() (string, error) {
+	bucketParams, err := GetAdditionalParams(inputBucketName)
+	if err != nil {
+		return "", fmt.Errorf("getting config for %s: %w", inputBucketName, err)
+	}
+	return bucketParams["prefix-file"], nil
+}
+
 func GetAdditionalParams(subMapName string) (map[string]string, error) {
 	return getMapConfigValue(configYAML, "AdditionalParams", "additional-params", subMapName)
 }
