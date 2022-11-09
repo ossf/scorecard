@@ -37,11 +37,10 @@ const (
 	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.
 	TransferStatusFilename string = ".transfer_complete"
 
-	configFlag    string = "config"
-	configDefault string = ""
-	configUsage   string = "Location of config file. Required"
-
-	inputBucketName string = "input-bucket"
+	configFlag        string = "config"
+	configDefault     string = ""
+	configUsage       string = "Location of config file. Required"
+	inputBucketParams string = "input-bucket"
 
 	projectID              string = "SCORECARD_PROJECT_ID"
 	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
@@ -302,7 +301,7 @@ func GetAPIResultsBucketURL() (string, error) {
 
 // GetInputBucketURL() returns the bucket URL for input files.
 func GetInputBucketURL() (string, error) {
-	bucketParams, err := GetAdditionalParams(inputBucketName)
+	bucketParams, err := GetAdditionalParams(inputBucketParams)
 	bURL, ok := bucketParams["url"]
 	if err != nil || !ok {
 		// TODO temporarily falling back to old variables until changes propagate to production
@@ -313,7 +312,7 @@ func GetInputBucketURL() (string, error) {
 
 // GetInputBucketPrefix() returns the prefix used when fetching files from a bucket.
 func GetInputBucketPrefix() (string, error) {
-	bucketParams, err := GetAdditionalParams(inputBucketName)
+	bucketParams, err := GetAdditionalParams(inputBucketParams)
 	if err != nil {
 		// TODO temporarily falling back to old variables until changes propagate to production
 		prefix, err := getStringConfigValue(inputBucketPrefix, configYAML, "InputBucketPrefix", "input-bucket-prefix")
@@ -327,9 +326,9 @@ func GetInputBucketPrefix() (string, error) {
 
 // GetInputBucketPrefixFile() returns the file whose contents specify the prefix to use.
 func GetInputBucketPrefixFile() (string, error) {
-	bucketParams, err := GetAdditionalParams(inputBucketName)
+	bucketParams, err := GetAdditionalParams(inputBucketParams)
 	if err != nil {
-		return "", fmt.Errorf("getting config for %s: %w", inputBucketName, err)
+		return "", fmt.Errorf("getting config for %s: %w", inputBucketParams, err)
 	}
 	return bucketParams["prefix-file"], nil
 }
