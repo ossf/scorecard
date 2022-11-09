@@ -55,38 +55,38 @@ func getPrefix(ctx context.Context, bucket string) (string, error) {
 	return strings.TrimSpace(s), nil
 }
 
-func bucketFiles(ctx context.Context) data.Iterator {
+func bucketFiles(ctx context.Context) (data.Iterator, error) {
 	var iters []data.Iterator
 
 	bucket, err := config.GetInputBucketURL()
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("config.GetInputBucketURL: %w", err)
 	}
 	prefix, err := getPrefix(ctx, bucket)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("getPrefix: %w", err)
 	}
 
 	files, err := data.GetBlobKeysWithPrefix(ctx, bucket, prefix)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("data.GetBlobKeysWithPrefix: %w", err)
 	}
 
 	for _, f := range files {
 		b, err := data.GetBlobContent(ctx, bucket, f)
 		if err != nil {
-			panic(err)
+			return nil, fmt.Errorf("data.GetBlobContent: %w", err)
 		}
 		r := bytes.NewReader(b)
 		i, err := data.MakeIteratorFrom(r)
 		if err != nil {
-			panic(err)
+			return nil, fmt.Errorf("data.MakeIteratorFrom: %w", err)
 		}
 		iters = append(iters, i)
 	}
 	iter, err := data.MakeNestedIterator(iters)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("data.MakeNestedIterator: %w", err)
 	}
-	return iter
+	return iter, nil
 }
