@@ -26,12 +26,12 @@ import (
 )
 
 type licensesHandler struct {
-	ghclient  *github.Client
-	once      *sync.Once
-	ctx       context.Context
-	errSetup  error
-	repourl   *repoURL
-	licenses  []clients.License
+	ghclient *github.Client
+	once     *sync.Once
+	ctx      context.Context
+	errSetup error
+	repourl  *repoURL
+	licenses []clients.License
 }
 
 func (handler *licensesHandler) init(ctx context.Context, repourl *repoURL) {
@@ -39,7 +39,6 @@ func (handler *licensesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
-	fmt.Println ("licenses handler initialized\n")
 }
 
 // TODO: Can add support to parse the raw response JSON and mark licenses that are not in
@@ -68,13 +67,13 @@ func (handler *licensesHandler) setup() error {
 		//       should that change to an array of licenses, the change would
 		//       be here to iterate over any such range.
 		handler.licenses = append(handler.licenses, clients.License{
-				Key:    bodyJSON.GetLicense().GetKey(),
-				Name:   bodyJSON.GetLicense().GetName(),
-				SPDXId: bodyJSON.GetLicense().GetSPDXID(),
-				Path:   bodyJSON.GetName(),
-				Type:   bodyJSON.GetType(),
-				Size:   bodyJSON.GetSize(),
-			},
+			Key:    bodyJSON.GetLicense().GetKey(),
+			Name:   bodyJSON.GetLicense().GetName(),
+			SPDXId: bodyJSON.GetLicense().GetSPDXID(),
+			Path:   bodyJSON.GetName(),
+			Type:   bodyJSON.GetType(),
+			Size:   bodyJSON.GetSize(),
+		},
 		)
 		handler.errSetup = nil
 	})

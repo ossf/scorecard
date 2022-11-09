@@ -71,11 +71,11 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 
 	licensesFound, lerr := c.RepoClient.ListLicenses()
 	if lerr == nil && len(licensesFound) > 0 {
-		//fmt.Printf ("'%T' of size '%d' has '%+v'\n", licensesFound, len(licensesFound), licensesFound)
+		// TODO: fmt.Printf ("'%T' of size '%d' has '%+v'\n", licensesFound, len(licensesFound), licensesFound)
 		for _, v := range licensesFound {
 			results.LicenseFiles = append(results.LicenseFiles,
 				checker.LicenseFile{
-					File:	checker.File{
+					File: checker.File{
 						Path: v.Path,
 						Type: checker.FileTypeSource,
 					},
@@ -83,7 +83,7 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 						Key:         v.Key,
 						Name:        v.Name,
 						Size:        v.Size,
-						SpdxId:      v.SPDXId,
+						SpdxID:      v.SPDXId,
 						Attribution: checker.LicenseAttributionTypeRepo,
 					},
 				})
@@ -101,7 +101,7 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 	if path != "" {
 		results.LicenseFiles = append(results.LicenseFiles,
 			checker.LicenseFile{
-				File:	checker.File{
+				File: checker.File{
 					Path: path,
 					Type: checker.FileTypeSource,
 				},
@@ -109,7 +109,7 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 					Key:         "",
 					Name:        "",
 					Size:        int(0),
-					SpdxId:      "",
+					SpdxID:      "",
 					Attribution: checker.LicenseAttributionTypeScorecard,
 				},
 			})

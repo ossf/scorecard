@@ -22,7 +22,7 @@ import (
 
 // RawResults contains results before a policy
 // is applied.
-//nolint
+// nolint
 type RawResults struct {
 	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
@@ -68,7 +68,7 @@ type PackagingData struct {
 }
 
 // Package represents a package.
-//nolint
+// nolint
 type Package struct {
 	// TODO: not supported yet. This needs to be unique across
 	// ecosystems: purl, OSV, CPE, etc.
@@ -134,19 +134,19 @@ const (
 	LicenseAttributionTypeScorecard LicenseAttributionType = "scorecardAttribution"
 )
 
-// license details
+// license details.
 type License struct {
-	Key         string // repo specified key
-	Name        string // OSI standardized license name
-	Size        int    // size of the license file found (default: 0)
-	SpdxId      string // SPDX standardized identifier
+	Key         string                 // repo specified key
+	Name        string                 // OSI standardized license name
+	SpdxID      string                 // SPDX standardized identifier
 	Attribution LicenseAttributionType // source of licensing information
+	Size        int                    // size of the license file found (default: 0)
 }
 
-// one file contains one license
+// one file contains one license.
 type LicenseFile struct {
-	File File
 	License License
+	File    File
 }
 
 // LicenseData contains the raw results

@@ -217,7 +217,7 @@ func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 	return client.languages.listProgrammingLanguages()
 }
 
-// ListLicenses implements RepoClient.ListLicenses
+// ListLicenses implements RepoClient.ListLicenses.
 func (client *Client) ListLicenses() ([]clients.License, error) {
 	return client.licenses.listLicenses()
 }

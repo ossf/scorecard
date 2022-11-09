@@ -15,12 +15,12 @@
 package clients
 
 // License represents a customized struct for licenses used by clients.
-// from pkg.go.dev/github.com/google/go-github/github#RepositoryLicense
+// from pkg.go.dev/github.com/google/go-github/github#RepositoryLicense.
 type License struct {
 	Key    string // RepositoryLicense.GetLicense().GetKey()
 	Name   string // RepositoryLicense.GetLicense().GetName()
 	Path   string // RepositoryLicense.GetName()
-	Size   int    // RepositoryLicense.GetSize()
 	SPDXId string // RepositoryLicense.GetLicense().GetSPDXID()
 	Type   string // RepositoryLicense.GetType()
+	Size   int    // RepositoryLicense.GetSize()
 }

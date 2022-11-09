@@ -33,9 +33,9 @@ func License(name string, dl checker.DetailLogger,
 		return checker.CreateMinScoreResult(name, "license file not detected")
 	}
 
-	for _, f := range r.LicenseFiles {
+	for idx := range r.LicenseFiles {
 		dl.Info(&checker.LogMessage{
-			Path:   f.File.Path,
+			Path:   r.LicenseFiles[idx].File.Path,
 			Type:   checker.FileTypeSource,
 			Offset: 1,
 		})
