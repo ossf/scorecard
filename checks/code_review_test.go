@@ -73,14 +73,15 @@ func TestCodereview(t *testing.T) {
 				{
 					SHA: "sha",
 					Committer: clients.User{
-						Login: "user",
+						Login: "bob",
 					},
 					AssociatedMergeRequest: clients.PullRequest{
 						Number:   1,
 						MergedAt: time.Now(),
 						Reviews: []clients.Review{
 							{
-								State: "APPROVED",
+								Author: &clients.User{Login: "alice"},
+								State:  "APPROVED",
 							},
 						},
 					},
@@ -159,10 +160,10 @@ func TestCodereview(t *testing.T) {
 			},
 		},
 		{
-			name: "2 PRs 2 review on GitHub",
+			name: "2 PRs 1 review on GitHub",
 			commits: []clients.Commit{
 				{
-					SHA: "sha",
+					SHA: "a",
 					Committer: clients.User{
 						Login: "bob",
 					},
@@ -171,13 +172,39 @@ func TestCodereview(t *testing.T) {
 						MergedAt: time.Now(),
 						Reviews: []clients.Review{
 							{
-								State: "APPROVED",
+								Author: &clients.User{Login: "alice"},
+								State:  "APPROVED",
 							},
 						},
 					},
 				},
 				{
 					SHA: "sha2",
+					Committer: clients.User{
+						Login: "bob",
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 5,
+			},
+		},
+		{
+			name: "implicit maintainer approval through merge",
+			commits: []clients.Commit{
+				{
+					SHA: "abc",
+					Committer: clients.User{
+						Login: "bob",
+					},
+					AssociatedMergeRequest: clients.PullRequest{
+						Number:   1,
+						MergedAt: time.Now(),
+						MergedBy: clients.User{Login: "alice"},
+					},
+				},
+				{
+					SHA: "def",
 					Committer: clients.User{
 						Login: "bob",
 					},
