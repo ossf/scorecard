@@ -41,6 +41,8 @@ const (
 	configDefault string = ""
 	configUsage   string = "Location of config file. Required"
 
+	inputBucketName string = "input-bucket"
+
 	projectID              string = "SCORECARD_PROJECT_ID"
 	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
 	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
@@ -300,16 +302,27 @@ func GetAPIResultsBucketURL() (string, error) {
 
 // GetInputBucketURL() returns the bucket URL for input files.
 func GetInputBucketURL() (string, error) {
-	return getStringConfigValue(inputBucketURL, configYAML, "InputBucketURL", "input-bucket-url")
+	bucketParams, err := GetAdditionalParams(inputBucketName)
+	bURL, ok := bucketParams["url"]
+	if err != nil || !ok {
+		// TODO temporarily falling back to old variables until changes propagate to production
+		return getStringConfigValue(inputBucketURL, configYAML, "InputBucketURL", "input-bucket-url")
+	}
+	return bURL, nil
 }
 
 // GetInputBucketPrefix() returns the prefix used when fetching files from a bucket.
 func GetInputBucketPrefix() (string, error) {
-	prefix, err := getStringConfigValue(inputBucketPrefix, configYAML, "InputBucketPrefix", "input-bucket-prefix")
-	if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
-		return "", err
+	bucketParams, err := GetAdditionalParams(inputBucketName)
+	if err != nil {
+		// TODO temporarily falling back to old variables until changes propagate to production
+		prefix, err := getStringConfigValue(inputBucketPrefix, configYAML, "InputBucketPrefix", "input-bucket-prefix")
+		if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
+			return "", err
+		}
+		return prefix, nil
 	}
-	return prefix, nil
+	return bucketParams["prefix"], nil
 }
 
 func GetAdditionalParams(subMapName string) (map[string]string, error) {

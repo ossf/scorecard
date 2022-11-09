@@ -479,3 +479,41 @@ func TestEnvVarName(t *testing.T) {
 		})
 	}
 }
+
+func TestGetAdditionalParams(t *testing.T) {
+	t.Parallel()
+	//nolint:govet
+	tests := []struct {
+		name    string
+		mapName string
+		want    map[string]string
+		wantErr bool
+	}{
+		{
+			name:    "scorecard values",
+			mapName: "scorecard",
+			want:    prodScorecardParams,
+			wantErr: false,
+		},
+		{
+			name:    "nonexistant value",
+			mapName: "this-value-should-never-exist",
+			want:    map[string]string{},
+			wantErr: true,
+		},
+	}
+	for _, testcase := range tests {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := GetAdditionalParams(testcase.mapName)
+			if testcase.wantErr != (err != nil) {
+				t.Fatalf("unexpected error value for GetAdditionalParams: %v", err)
+			}
+			if !cmp.Equal(got, testcase.want) {
+				diff := cmp.Diff(got, testcase.want)
+				t.Errorf("test failed: expected - %v, got - %v. \n%s", testcase.want, got, diff)
+			}
+		})
+	}
+}
