@@ -22,7 +22,7 @@ import (
 
 // RawResults contains results before a policy
 // is applied.
-//nolint
+// nolint
 type RawResults struct {
 	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
@@ -68,7 +68,7 @@ type PackagingData struct {
 }
 
 // Package represents a package.
-//nolint
+// nolint
 type Package struct {
 	// TODO: not supported yet. This needs to be unique across
 	// ecosystems: purl, OSV, CPE, etc.
@@ -125,10 +125,35 @@ type MaintainedData struct {
 	ArchivedStatus       ArchivedStatus
 }
 
+type LicenseAttributionType string
+
+const (
+	// forms of security policy hints being evaluated.
+	LicenseAttributionTypeOther     LicenseAttributionType = "otherAttribution"
+	LicenseAttributionTypeRepo      LicenseAttributionType = "repoAttribution"
+	LicenseAttributionTypeScorecard LicenseAttributionType = "scorecardAttribution"
+)
+
+// license details.
+type License struct {
+	Key         string                 // repo specified key
+	Name        string                 // OSI standardized license name
+	SpdxID      string                 // SPDX standardized identifier
+	Attribution LicenseAttributionType // source of licensing information
+	Size        int                    // size of the license file found (default: 0)
+}
+
+// one file contains one license.
+type LicenseFile struct {
+	License License
+	File    File
+}
+
 // LicenseData contains the raw results
 // for the License check.
+// Some repos may have more than one license.
 type LicenseData struct {
-	Files []File
+	LicenseFiles []LicenseFile
 }
 
 // CodeReviewData contains the raw results

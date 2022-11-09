@@ -50,6 +50,7 @@ type Client struct {
 	searchCommits *searchCommitsHandler
 	webhook       *webhookHandler
 	languages     *languagesHandler
+	licenses      *licensesHandler
 	ctx           context.Context
 	// tarball       tarballHandler
 }
@@ -118,6 +119,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 
 	// Init languagesHandler
 	client.languages.init(client.repourl)
+
+	// Init languagesHandler
+	client.licenses.init(client.repourl)
 
 	// Init tarballHandler.
 	// client.tarball.init(client.ctx, client.repourl, client.repo, commitSHA)
@@ -190,6 +194,11 @@ func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 
 func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 	return client.languages.listProgrammingLanguages()
+}
+
+// ListLicenses implements RepoClient.ListLicenses.
+func (client *Client) ListLicenses() ([]clients.License, error) {
+	return client.licenses.listLicenses()
 }
 
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {

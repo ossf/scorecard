@@ -53,6 +53,7 @@ type Client struct {
 	searchCommits *searchCommitsHandler
 	webhook       *webhookHandler
 	languages     *languagesHandler
+	licenses      *licensesHandler
 	ctx           context.Context
 	tarball       tarballHandler
 }
@@ -113,6 +114,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 
 	// Setup languagesHandler.
 	client.languages.init(client.ctx, client.repourl)
+
+	// Setup licensesHandler.
+	client.licenses.init(client.ctx, client.repourl)
 	return nil
 }
 
@@ -213,6 +217,11 @@ func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 	return client.languages.listProgrammingLanguages()
 }
 
+// ListLicenses implements RepoClient.ListLicenses.
+func (client *Client) ListLicenses() ([]clients.License, error) {
+	return client.licenses.listLicenses()
+}
+
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return client.search.search(request)
@@ -271,6 +280,9 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 			ghClient: client,
 		},
 		languages: &languagesHandler{
+			ghclient: client,
+		},
+		licenses: &licensesHandler{
 			ghclient: client,
 		},
 		tarball: tarballHandler{
