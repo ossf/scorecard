@@ -16,7 +16,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"flag"
 	"fmt"
@@ -84,60 +83,24 @@ func publishToRepoRequestTopic(iter data.Iterator, topicPublisher pubsub.Publish
 	return shardNum, nil
 }
 
-func localFiles(filenames []string) data.Iterator {
+func localFiles(filenames []string) (data.Iterator, error) {
 	var iters []data.Iterator
 	for _, filename := range filenames {
 		f, err := os.Open(filename)
 		if err != nil {
-			panic(err)
+			return nil, fmt.Errorf("unable to open input file: %w", err)
 		}
 		i, err := data.MakeIteratorFrom(f)
 		if err != nil {
-			panic(err)
+			return nil, fmt.Errorf("data.MakeIteratorFrom: %w", err)
 		}
 		iters = append(iters, i)
 	}
 	iter, err := data.MakeNestedIterator(iters)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("data.MakeNestedIterator: %w", err)
 	}
-	return iter
-}
-
-func bucketFiles(ctx context.Context) data.Iterator {
-	var iters []data.Iterator
-
-	bucket, err := config.GetInputBucketURL()
-	if err != nil {
-		panic(err)
-	}
-	prefix, err := config.GetInputBucketPrefix()
-	if err != nil {
-		panic(err)
-	}
-
-	files, err := data.GetBlobKeysWithPrefix(ctx, bucket, prefix)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, f := range files {
-		b, err := data.GetBlobContent(ctx, bucket, f)
-		if err != nil {
-			panic(err)
-		}
-		r := bytes.NewReader(b)
-		i, err := data.MakeIteratorFrom(r)
-		if err != nil {
-			panic(err)
-		}
-		iters = append(iters, i)
-	}
-	iter, err := data.MakeNestedIterator(iters)
-	if err != nil {
-		panic(err)
-	}
-	return iter
+	return iter, nil
 }
 
 func main() {
@@ -175,10 +138,14 @@ func main() {
 
 	var reader data.Iterator
 	if useLocalFiles := len(flag.Args()) > 0; useLocalFiles {
-		reader = localFiles(flag.Args())
+		reader, err = localFiles(flag.Args())
 	} else {
-		reader = bucketFiles(ctx)
+		reader, err = bucketFiles(ctx)
 	}
+	if err != nil {
+		panic(err)
+	}
+
 	shardNum, err := publishToRepoRequestTopic(reader, topicPublisher, shardSize, t)
 	if err != nil {
 		panic(err)
