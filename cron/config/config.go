@@ -37,9 +37,10 @@ const (
 	// TransferStatusFilename file identifies if shard transfer to BigQuery is completed.
 	TransferStatusFilename string = ".transfer_complete"
 
-	configFlag    string = "config"
-	configDefault string = ""
-	configUsage   string = "Location of config file. Required"
+	configFlag        string = "config"
+	configDefault     string = ""
+	configUsage       string = "Location of config file. Required"
+	inputBucketParams string = "input-bucket"
 
 	projectID              string = "SCORECARD_PROJECT_ID"
 	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
@@ -300,16 +301,36 @@ func GetAPIResultsBucketURL() (string, error) {
 
 // GetInputBucketURL() returns the bucket URL for input files.
 func GetInputBucketURL() (string, error) {
-	return getStringConfigValue(inputBucketURL, configYAML, "InputBucketURL", "input-bucket-url")
+	bucketParams, err := GetAdditionalParams(inputBucketParams)
+	bURL, ok := bucketParams["url"]
+	if err != nil || !ok {
+		// TODO temporarily falling back to old variables until changes propagate to production
+		return getStringConfigValue(inputBucketURL, configYAML, "InputBucketURL", "input-bucket-url")
+	}
+	return bURL, nil
 }
 
 // GetInputBucketPrefix() returns the prefix used when fetching files from a bucket.
 func GetInputBucketPrefix() (string, error) {
-	prefix, err := getStringConfigValue(inputBucketPrefix, configYAML, "InputBucketPrefix", "input-bucket-prefix")
-	if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
-		return "", err
+	bucketParams, err := GetAdditionalParams(inputBucketParams)
+	if err != nil {
+		// TODO temporarily falling back to old variables until changes propagate to production
+		prefix, err := getStringConfigValue(inputBucketPrefix, configYAML, "InputBucketPrefix", "input-bucket-prefix")
+		if err != nil && !errors.Is(err, ErrorEmptyConfigValue) {
+			return "", err
+		}
+		return prefix, nil
 	}
-	return prefix, nil
+	return bucketParams["prefix"], nil
+}
+
+// GetInputBucketPrefixFile() returns the file whose contents specify the prefix to use.
+func GetInputBucketPrefixFile() (string, error) {
+	bucketParams, err := GetAdditionalParams(inputBucketParams)
+	if err != nil {
+		return "", fmt.Errorf("getting config for %s: %w", inputBucketParams, err)
+	}
+	return bucketParams["prefix-file"], nil
 }
 
 func GetAdditionalParams(subMapName string) (map[string]string, error) {

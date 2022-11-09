@@ -128,11 +128,26 @@ func TestBlobKeysPrefix(t *testing.T) {
 		{
 			name:   "no prefix",
 			prefix: "",
-			want:   []string{"key1.txt", "key2.txt", "key3.txt", "subdir/key4.txt"},
+			want:   []string{"key1.txt", "key2.txt", "key3.txt", "subdir/key4.txt", "subdir/nested/key5.txt"},
 		},
 		{
 			name:   "subdir prefix",
 			prefix: "subdir/",
+			want:   []string{"subdir/key4.txt", "subdir/nested/key5.txt"},
+		},
+		{
+			name:   "subdir prefix no terminal slash",
+			prefix: "subdir",
+			want:   []string{"subdir/key4.txt", "subdir/nested/key5.txt"},
+		},
+		{
+			name:   "nested prefix",
+			prefix: "subdir/nested/",
+			want:   []string{"subdir/nested/key5.txt"},
+		},
+		{
+			name:   "file prefix",
+			prefix: "subdir/key4.txt",
 			want:   []string{"subdir/key4.txt"},
 		},
 	}
