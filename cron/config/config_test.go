@@ -38,14 +38,20 @@ const (
 	prodShardSize           int    = 10
 	prodMetricExporter      string = "stackdriver"
 	// Raw results.
-	prodRawBucket         = "gs://ossf-scorecard-rawdata"
-	prodRawBigQueryTable  = "scorecard-rawdata"
-	prodAPIBucketURL      = "gs://ossf-scorecard-cron-results"
-	prodInputBucketURL    = "gs://ossf-scorecard-input-projects"
-	prodInputBucketPrefix = ""
+	prodRawBucket             = "gs://ossf-scorecard-rawdata"
+	prodRawBigQueryTable      = "scorecard-rawdata"
+	prodAPIBucketURL          = "gs://ossf-scorecard-cron-results"
+	prodInputBucketURL        = "gs://ossf-scorecard-input-projects"
+	prodInputBucketPrefix     = ""
+	prodInputBucketPrefixFile = ""
 )
 
 var (
+	prodInputBucketParams = map[string]string{
+		"url":         prodInputBucketURL,
+		"prefix":      prodInputBucketPrefix,
+		"prefix-file": prodInputBucketPrefixFile,
+	}
 	prodScorecardParams = map[string]string{
 		"api-results-bucket-url":     prodAPIBucketURL,
 		"blacklisted-checks":         prodBlacklistedChecks,
@@ -53,10 +59,9 @@ var (
 		"raw-bigquery-table":         prodRawBigQueryTable,
 		"raw-result-data-bucket-url": prodRawBucket,
 	}
-	prodCriticalityParams map[string]string = nil
-	prodAdditionalParams                    = map[string]map[string]string{
-		"scorecard":   prodScorecardParams,
-		"criticality": prodCriticalityParams,
+	prodAdditionalParams = map[string]map[string]string{
+		"input-bucket": prodInputBucketParams,
+		"scorecard":    prodScorecardParams,
 	}
 )
 
@@ -470,6 +475,44 @@ func TestEnvVarName(t *testing.T) {
 			got := envVarName(testcase.mapName, testcase.subKey)
 			if got != testcase.want {
 				t.Errorf("test failed: expected - %s, got = %s", testcase.want, got)
+			}
+		})
+	}
+}
+
+func TestGetAdditionalParams(t *testing.T) {
+	t.Parallel()
+	//nolint:govet
+	tests := []struct {
+		name    string
+		mapName string
+		want    map[string]string
+		wantErr bool
+	}{
+		{
+			name:    "scorecard values",
+			mapName: "scorecard",
+			want:    prodScorecardParams,
+			wantErr: false,
+		},
+		{
+			name:    "nonexistant value",
+			mapName: "this-value-should-never-exist",
+			want:    map[string]string{},
+			wantErr: true,
+		},
+	}
+	for _, testcase := range tests {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := GetAdditionalParams(testcase.mapName)
+			if testcase.wantErr != (err != nil) {
+				t.Fatalf("unexpected error value for GetAdditionalParams: %v", err)
+			}
+			if !cmp.Equal(got, testcase.want) {
+				diff := cmp.Diff(got, testcase.want)
+				t.Errorf("test failed: expected - %v, got - %v. \n%s", testcase.want, got, diff)
 			}
 		})
 	}
