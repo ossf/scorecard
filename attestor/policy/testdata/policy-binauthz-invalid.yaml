@@ -17,4 +17,29 @@ preventBinaryArtifacts: true
 
 # AllowedBinaryArtifacts : List of binary artifact paths to ignore
 # when checking for binary artifacts in a repo
-allowedBinaryArtifacts: true
+allowedBinaryArtifacts:
+# List of allowed binary artifact paths as strings
+    - /a/b/c
+    - d
+
+# PreventKnownVulnerabilities : set to true to require that this project is free
+# of vulnerabilities, as discovered from the OSV service
+preventKnownVulnerabilities: true
+
+# PreventUnpinnedDependencies : set to true to require that this project pin dependencies
+# by hash/commit SHA
+preventUnpinnedDependencies: true
+
+# AllowedUnpinnedDependencies : set of dependencies to ignore when checking for
+# unpinned dependencies
+allowedUnpinnedDependencies:
+# The following line is incorrect, and should be 'nested,' e.g.
+# allowedUnpinnedDependencies:
+#   - filepath: Path-To-File
+#   - packagename: com.pkg
+#     version: vulnerable-version
+    filepath: [Dockerfile]
+
+# EnsureCodeReviewed : set to true to require that the most recent commits in
+# this project have gone through a code review process
+ensureCodeReviewed: false
