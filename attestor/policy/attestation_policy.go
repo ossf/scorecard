@@ -17,11 +17,13 @@ package policy
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/gobwas/glob"
 	"gopkg.in/yaml.v2"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -34,26 +36,97 @@ type AttestationPolicy struct {
 	// AllowedBinaryArtifacts : List of binary artifact paths to ignore
 	// when checking for binary artifacts in a repo
 	AllowedBinaryArtifacts []string `yaml:"allowedBinaryArtifacts"`
+
+	// PreventKnownVulnerabilities : set to true to require that this project is free
+	// of vulnerabilities, as discovered from the OSV service
+	PreventKnownVulnerabilities bool `yaml:"preventKnownVulnerabilities"`
+
+	// PreventUnpinnedDependencies : set to true to require that this project pin dependencies
+	// by hash/commit SHA
+	PreventUnpinnedDependencies bool `yaml:"preventUnpinnedDependencies"`
+
+	// AllowedUnpinnedDependencies : set of dependencies to ignore when checking for
+	// unpinned dependencies
+	AllowedUnpinnedDependencies []Dependency `yaml:"allowedUnpinnedDependencies"`
+
+	// EnsureCodeReviewed : set to true to require that the most recent commits in
+	// this project have gone through a code review process
+	EnsureCodeReviewed bool `yaml:"ensureCodeReviewed"`
+
+	// CodeReviewRequirements : define specific code review requirements that the default
+	// branch must have met, e.g. required approvers
+	CodeReviewRequirements CodeReviewRequirements `yaml:"codeReviewRequirements"`
+}
+
+type CodeReviewRequirements struct {
+	RequiredApprovers []string `yaml:"requiredApprovers"`
+	MinReviewers      int      `yaml:"minReviewers"`
+}
+
+type Dependency struct {
+	Filepath    string `yaml:"filepath"`
+	PackageName string `yaml:"packagename"`
+	Version     string `yaml:"version"`
 }
 
 // Allows us to run fewer scorecard checks if some policy values
-// are don't-cares
+// are don't-cares.
 func (ap *AttestationPolicy) GetRequiredChecksForPolicy() map[string]bool {
 	requiredChecks := make(map[string]bool)
 
 	if ap.PreventBinaryArtifacts {
-		requiredChecks["BinaryArtifacts"] = true
+		requiredChecks[checks.CheckBinaryArtifacts] = true
+	}
+
+	if ap.PreventKnownVulnerabilities {
+		requiredChecks[checks.CheckVulnerabilities] = true
+	}
+
+	if ap.EnsureCodeReviewed {
+		requiredChecks[checks.CheckCodeReview] = true
+	}
+
+	if ap.PreventUnpinnedDependencies {
+		requiredChecks[checks.CheckPinnedDependencies] = true
 	}
 
 	return requiredChecks
 }
 
-// Run attestation policy checks on raw data
+// Run attestation policy checks on raw data.
 func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyResult, error) {
 	dl := checker.NewLogger()
 	if ap.PreventBinaryArtifacts {
 		checkResult, err := CheckPreventBinaryArtifacts(ap.AllowedBinaryArtifacts, raw, dl)
 
+		if !checkResult || err != nil {
+			return checkResult, err
+		}
+	}
+
+	if ap.PreventUnpinnedDependencies {
+		checkResult, err := CheckNoUnpinnedDependencies(ap.AllowedUnpinnedDependencies, raw, dl)
+		if !checkResult || err != nil {
+			return checkResult, err
+		}
+	}
+
+	if ap.PreventKnownVulnerabilities {
+		checkResult, err := CheckNoVulnerabilities(raw, dl)
+		if !checkResult || err != nil {
+			return checkResult, err
+		}
+	}
+
+	if ap.EnsureCodeReviewed {
+		// By default, if code review reqs. aren't specified, we assume
+		// the user wants there to be atleast one reviewer
+		if len(ap.CodeReviewRequirements.RequiredApprovers) == 0 &&
+			ap.CodeReviewRequirements.MinReviewers == 0 {
+			ap.CodeReviewRequirements.MinReviewers = 1
+		}
+
+		checkResult, err := CheckCodeReviewed(ap.CodeReviewRequirements, raw, dl)
 		if !checkResult || err != nil {
 			return checkResult, err
 		}
@@ -80,8 +153,6 @@ func CheckPreventBinaryArtifacts(
 		ignoreArtifact := false
 
 		for j := range allowedBinaryArtifacts {
-			// Treat user input as paths and try to match prefixes
-			// This is a bit easier to use than forcing things to be file names
 			allowGlob := allowedBinaryArtifacts[j]
 
 			if g := glob.MustCompile(allowGlob); g.Match(artifactFile.Path) {
@@ -104,7 +175,126 @@ func CheckPreventBinaryArtifacts(
 		}
 	}
 
+	dl.Info(&checker.LogMessage{Text: "repo was free of binary artifacts"})
 	return Pass, nil
+}
+
+func CheckNoVulnerabilities(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
+	nVulns := len(results.VulnerabilitiesResults.Vulnerabilities)
+
+	dl.Info(&checker.LogMessage{Text: fmt.Sprintf("found %d vulnerabilities in package", nVulns)})
+
+	return nVulns == 0, nil
+}
+
+func toString(cs checker.Changeset) string {
+	platform := cs.ReviewPlatform
+	if platform == "" {
+		platform = "unknown"
+	}
+	return fmt.Sprintf("%s(%s)", platform, cs.RevisionID)
+}
+
+func CheckCodeReviewed(
+	reqs CodeReviewRequirements,
+	results *checker.RawResults,
+	dl checker.DetailLogger,
+) (PolicyResult, error) {
+	for _, changeset := range results.CodeReviewResults.DefaultBranchChangesets {
+		numApprovers := 0
+		approvals := make(map[string]bool)
+		// CodeReview check is limited to github.com pull request reviews
+		// Log if a change isn't a github pr since it's a bit unintuitive
+		foundLinkedReviews := false
+
+		for i := range changeset.Commits {
+			commit := changeset.Commits[i]
+			for _, review := range commit.AssociatedMergeRequest.Reviews {
+				foundLinkedReviews = true
+				if review.State == "APPROVED" {
+					numApprovers += 1
+					approvals[review.Author.Login] = true
+				}
+			}
+		}
+
+		if !foundLinkedReviews {
+			dl.Warn(
+				&checker.LogMessage{
+					Text: fmt.Sprintf(
+						"no code reviews linked to %s",
+						toString(changeset),
+					),
+				},
+			)
+		}
+
+		if numApprovers < reqs.MinReviewers {
+			dl.Info(
+				&checker.LogMessage{
+					Text: fmt.Sprintf(
+						"not enough approvals for %s (needed:%d found:%d)",
+						toString(changeset),
+						reqs.MinReviewers,
+						numApprovers,
+					),
+				},
+			)
+			return Fail, nil
+		}
+
+		missingApprovers := false
+		for _, appr := range reqs.RequiredApprovers {
+			if approved, ok := approvals[appr]; !(ok && approved) {
+				dl.Info(
+					&checker.LogMessage{
+						Text: fmt.Sprintf(
+							"approver %s required but didn't approve %s",
+							appr,
+							toString(changeset),
+						),
+					},
+				)
+				missingApprovers = true
+			}
+		}
+
+		if missingApprovers {
+			return Fail, nil
+		}
+	}
+
+	return Pass, nil
+}
+
+func CheckNoUnpinnedDependencies(
+	allowed []Dependency,
+	results *checker.RawResults,
+	dl checker.DetailLogger,
+) (PolicyResult, error) {
+	for i := range results.PinningDependenciesResults.Dependencies {
+		dep := results.PinningDependenciesResults.Dependencies[i]
+		if (dep.PinnedAt == nil || *dep.PinnedAt == "") && !isUnpinnedDependencyAllowed(dep, allowed) {
+			dl.Info(&checker.LogMessage{Text: fmt.Sprintf("found unpinned dependency %v", dep)})
+			return Fail, nil
+		}
+	}
+
+	dl.Info(&checker.LogMessage{Text: "repo was free of unpinned dependencies"})
+	return Pass, nil
+}
+
+func isUnpinnedDependencyAllowed(d checker.Dependency, allowed []Dependency) bool {
+	for i := range allowed {
+		a := allowed[i]
+		if *d.Name == a.PackageName {
+			return true
+		}
+		if d.Location != nil && strings.HasPrefix(d.Location.Path, a.Filepath) {
+			return true
+		}
+	}
+	return false
 }
 
 // ParseFromFile takes a policy file and returns an AttestationPolicy.
@@ -116,7 +306,7 @@ func ParseAttestationPolicyFromFile(policyFile string) (*AttestationPolicy, erro
 				fmt.Sprintf("os.ReadFile: %v", err))
 		}
 
-		sp, err := ParseAttestationPolicyFromYAML(data)
+		ap, err := ParseAttestationPolicyFromYAML(data)
 		if err != nil {
 			return nil,
 				sce.WithMessage(
@@ -125,7 +315,7 @@ func ParseAttestationPolicyFromFile(policyFile string) (*AttestationPolicy, erro
 				)
 		}
 
-		return sp, nil
+		return ap, nil
 	}
 
 	return nil, nil
@@ -133,12 +323,12 @@ func ParseAttestationPolicyFromFile(policyFile string) (*AttestationPolicy, erro
 
 // Parses a policy file and returns a AttestationPolicy.
 func ParseAttestationPolicyFromYAML(b []byte) (*AttestationPolicy, error) {
-	retPolicy := AttestationPolicy{}
+	ap := AttestationPolicy{}
 
-	err := yaml.Unmarshal(b, &retPolicy)
+	err := yaml.Unmarshal(b, &ap)
 	if err != nil {
-		return &retPolicy, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return &ap, sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
-	return &retPolicy, nil
+	return &ap, nil
 }
