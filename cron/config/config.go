@@ -298,7 +298,8 @@ func GetMetricExporter() (string, error) {
 
 // GetMetricStackdriverPrefix returns the prefix for stackdriver opencensus exporter.
 func GetMetricStackdriverPrefix() (string, error) {
-	return getStringConfigValue(metricStackdriverPrefix, configYAML, "MetricStackdriverPrefix", "metric-stackdriver-prefix")
+	return getStringConfigValue(
+		metricStackdriverPrefix, configYAML, "MetricStackdriverPrefix", "metric-stackdriver-prefix")
 }
 
 // GetAPIResultsBucketURL returns the bucket URL for storing cron job results.
