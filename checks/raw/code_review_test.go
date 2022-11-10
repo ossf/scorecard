@@ -34,7 +34,7 @@ func assertCommitEq(t *testing.T, actual clients.Commit, expected clients.Commit
 	}
 }
 
-func assertChangesetEq(t *testing.T, actual, expected checker.Changeset) {
+func assertChangesetEq(t *testing.T, actual, expected *checker.Changeset) {
 	t.Helper()
 
 	if actual.ReviewPlatform != expected.ReviewPlatform {
@@ -66,6 +66,7 @@ func assertChangesetEq(t *testing.T, actual, expected checker.Changeset) {
 	}
 }
 
+//nolint:gocritic
 func csless(a, b checker.Changeset) bool {
 	if cmp := strings.Compare(a.RevisionID, b.RevisionID); cmp != 0 {
 		return cmp < 0
@@ -85,7 +86,7 @@ func assertChangesetArrEq(t *testing.T, actual, expected []checker.Changeset) {
 	slices.SortFunc(expected, csless)
 
 	for i := range actual {
-		assertChangesetEq(t, actual[i], expected[i])
+		assertChangesetEq(t, &actual[i], &expected[i])
 	}
 }
 

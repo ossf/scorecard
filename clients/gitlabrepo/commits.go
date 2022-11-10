@@ -139,6 +139,7 @@ func (handler *commitsHandler) setup() error {
 						Author:   clients.User{ID: int64(mergeRequest.Author.ID)},
 						Labels:   labels,
 						Reviews:  reviews,
+						MergedBy: clients.User{ID: int64(mergeRequest.MergedBy.ID)},
 					},
 					Committer: clients.User{ID: int64(user.ID)},
 				})

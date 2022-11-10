@@ -94,6 +94,9 @@ type graphqlData struct {
 										}
 									}
 								} `graphql:"reviews(last: $reviewsToAnalyze)"`
+								MergedBy struct {
+									Login githubv4.String
+								}
 							}
 						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 					}
@@ -355,6 +358,9 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 				MergedAt: pr.MergedAt.Time,
 				Author: clients.User{
 					Login: string(pr.Author.Login),
+				},
+				MergedBy: clients.User{
+					Login: string(pr.MergedBy.Login),
 				},
 			}
 			for _, label := range pr.Labels.Nodes {

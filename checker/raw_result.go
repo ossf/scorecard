@@ -150,6 +150,8 @@ type Changeset struct {
 	ReviewPlatform string
 	RevisionID     string
 	Commits        []clients.Commit
+	Reviews        []clients.Review
+	Author         clients.User
 }
 
 // ContributorsData represents contributor information.
@@ -163,11 +165,37 @@ type VulnerabilitiesData struct {
 	Vulnerabilities []clients.Vulnerability
 }
 
+type SecurityPolicyInformationType string
+
+const (
+	// forms of security policy hints being evaluated.
+	SecurityPolicyInformationTypeEmail SecurityPolicyInformationType = "emailAddress"
+	SecurityPolicyInformationTypeLink  SecurityPolicyInformationType = "httpLink"
+	SecurityPolicyInformationTypeText  SecurityPolicyInformationType = "vulnDisclosureText"
+)
+
+type SecurityPolicyValueType struct {
+	Match      string // Snippet of match
+	LineNumber uint   // Line number in policy file of match
+	Offset     uint   // Offset in the line of the match
+}
+
+type SecurityPolicyInformation struct {
+	InformationType  SecurityPolicyInformationType
+	InformationValue SecurityPolicyValueType
+}
+
+type SecurityPolicyFile struct {
+	// security policy information found in repo or org
+	Information []SecurityPolicyInformation
+	// file that contains the security policy information
+	File File
+}
+
 // SecurityPolicyData contains the raw results
 // for the Security-Policy check.
 type SecurityPolicyData struct {
-	// Files contains a list of files.
-	Files []File
+	PolicyFiles []SecurityPolicyFile
 }
 
 // BinaryArtifactData contains the raw results
@@ -236,6 +264,7 @@ type File struct {
 	Snippet   string   // Snippet of code
 	Offset    uint     // Offset in the file of Path (line for source/text files).
 	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
+	FileSize  uint     // Total size of file.
 	Type      FileType // Type of file.
 	// TODO: add hash.
 }

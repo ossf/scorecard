@@ -22,12 +22,20 @@ shard-size: 10
 webhook-url: 
 metric-exporter: stackdriver
 result-data-bucket-url: gs://ossf-scorecard-data2
+
+# TODO temporarily leaving old variables until changes propagate to production
 input-bucket-url: gs://ossf-scorecard-input-projects
 # Can be used to specify directories within a bucket. Can be empty.
 input-bucket-prefix:
 
 additional-params:
-  criticality:
+  input-bucket:
+    url: gs://ossf-scorecard-input-projects
+    # Optional prefix to limit files used as input files within a bucket (e.g. a specific file or directory)
+    prefix:
+    # Optional file to read a prefix from, instead of statically defining prefix above (note: prefix must be blank to use this option)
+    # This is good in situations where the prefix changes frequently (e.g. always using the most recent folder in a bucket)
+    prefix-file:
     
   scorecard:
     # API results bucket
