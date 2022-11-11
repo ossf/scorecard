@@ -21,6 +21,7 @@ completion-threshold: 0.99
 shard-size: 10
 webhook-url: 
 metric-exporter: stackdriver
+metric-stackdriver-prefix: scorecard-cron
 result-data-bucket-url: gs://ossf-scorecard-data2
 
 # TODO temporarily leaving old variables until changes propagate to production
