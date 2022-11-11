@@ -24,19 +24,20 @@ import (
 )
 
 const (
-	testEnvVar              string = "TEST_ENV_VAR"
-	prodProjectID                  = "openssf"
-	prodBucket                     = "gs://ossf-scorecard-data2"
-	prodTopic                      = "gcppubsub://projects/openssf/topics/scorecard-batch-requests"
-	prodSubscription               = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
-	prodBigQueryDataset            = "scorecardcron"
-	prodBigQueryTable              = "scorecard-v2"
-	prodCompletionThreshold        = 0.99
-	prodWebhookURL                 = ""
-	prodCIIDataBucket              = "gs://ossf-scorecard-cii-data"
-	prodBlacklistedChecks          = "CI-Tests,Contributors"
-	prodShardSize           int    = 10
-	prodMetricExporter      string = "stackdriver"
+	testEnvVar                  string = "TEST_ENV_VAR"
+	prodProjectID                      = "openssf"
+	prodBucket                         = "gs://ossf-scorecard-data2"
+	prodTopic                          = "gcppubsub://projects/openssf/topics/scorecard-batch-requests"
+	prodSubscription                   = "gcppubsub://projects/openssf/subscriptions/scorecard-batch-worker"
+	prodBigQueryDataset                = "scorecardcron"
+	prodBigQueryTable                  = "scorecard-v2"
+	prodCompletionThreshold            = 0.99
+	prodWebhookURL                     = ""
+	prodCIIDataBucket                  = "gs://ossf-scorecard-cii-data"
+	prodBlacklistedChecks              = "CI-Tests,Contributors"
+	prodShardSize               int    = 10
+	prodMetricExporter          string = "stackdriver"
+	prodMetricStackdriverPrefix string = "scorecard-cron"
 	// Raw results.
 	prodRawBucket             = "gs://ossf-scorecard-rawdata"
 	prodRawBigQueryTable      = "scorecard-rawdata"
@@ -94,22 +95,22 @@ func TestYAMLParsing(t *testing.T) {
 			name:     "validate",
 			filename: "config.yaml",
 			expectedConfig: config{
-				ProjectID:              prodProjectID,
-				ResultDataBucketURL:    prodBucket,
-				RequestTopicURL:        prodTopic,
-				RequestSubscriptionURL: prodSubscription,
-				BigQueryDataset:        prodBigQueryDataset,
-				BigQueryTable:          prodBigQueryTable,
-				CompletionThreshold:    prodCompletionThreshold,
-				WebhookURL:             prodWebhookURL,
-				ShardSize:              prodShardSize,
-				MetricExporter:         prodMetricExporter,
-				InputBucketURL:         prodInputBucketURL,
-				InputBucketPrefix:      prodInputBucketPrefix,
-				AdditionalParams:       prodAdditionalParams,
+				ProjectID:               prodProjectID,
+				ResultDataBucketURL:     prodBucket,
+				RequestTopicURL:         prodTopic,
+				RequestSubscriptionURL:  prodSubscription,
+				BigQueryDataset:         prodBigQueryDataset,
+				BigQueryTable:           prodBigQueryTable,
+				CompletionThreshold:     prodCompletionThreshold,
+				WebhookURL:              prodWebhookURL,
+				ShardSize:               prodShardSize,
+				MetricExporter:          prodMetricExporter,
+				MetricStackdriverPrefix: prodMetricStackdriverPrefix,
+				InputBucketURL:          prodInputBucketURL,
+				InputBucketPrefix:       prodInputBucketPrefix,
+				AdditionalParams:        prodAdditionalParams,
 			},
 		},
-
 		{
 			name:     "basic",
 			filename: "testdata/basic.yaml",
@@ -389,6 +390,20 @@ func TestGetMetricExporter(t *testing.T) {
 		}
 		if exporter != prodMetricExporter {
 			t.Errorf("test failed: expected - %s, got = %s", prodMetricExporter, exporter)
+		}
+	})
+}
+
+//nolint:paralleltest // Since os.Setenv is used.
+func TestGetMetricStackdriverPrefix(t *testing.T) {
+	t.Run("GetMetricStackdriverPrefix", func(t *testing.T) {
+		os.Unsetenv(metricStackdriverPrefix)
+		prefix, err := GetMetricStackdriverPrefix()
+		if err != nil {
+			t.Errorf("failed to get production metric stackdriver prefix from config: %v", err)
+		}
+		if prefix != prodMetricStackdriverPrefix {
+			t.Errorf("test failed: expected - %s, got = %s", prodMetricStackdriverPrefix, prefix)
 		}
 	})
 }
