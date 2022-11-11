@@ -42,19 +42,20 @@ const (
 	configUsage       string = "Location of config file. Required"
 	inputBucketParams string = "input-bucket"
 
-	projectID              string = "SCORECARD_PROJECT_ID"
-	requestTopicURL        string = "SCORECARD_REQUEST_TOPIC_URL"
-	requestSubscriptionURL string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
-	bigqueryDataset        string = "SCORECARD_BIGQUERY_DATASET"
-	completionThreshold    string = "SCORECARD_COMPLETION_THRESHOLD"
-	shardSize              string = "SCORECARD_SHARD_SIZE"
-	webhookURL             string = "SCORECARD_WEBHOOK_URL"
-	metricExporter         string = "SCORECARD_METRIC_EXPORTER"
-	bigqueryTable          string = "SCORECARD_BIGQUERY_TABLE"
-	resultDataBucketURL    string = "SCORECARD_DATA_BUCKET_URL"
-	apiResultsBucketURL    string = "SCORECARD_API_RESULTS_BUCKET_URL"
-	inputBucketURL         string = "SCORECARD_INPUT_BUCKET_URL"
-	inputBucketPrefix      string = "SCORECARD_INPUT_BUCKET_PREFIX"
+	projectID               string = "SCORECARD_PROJECT_ID"
+	requestTopicURL         string = "SCORECARD_REQUEST_TOPIC_URL"
+	requestSubscriptionURL  string = "SCORECARD_REQUEST_SUBSCRIPTION_URL"
+	bigqueryDataset         string = "SCORECARD_BIGQUERY_DATASET"
+	completionThreshold     string = "SCORECARD_COMPLETION_THRESHOLD"
+	shardSize               string = "SCORECARD_SHARD_SIZE"
+	webhookURL              string = "SCORECARD_WEBHOOK_URL"
+	metricExporter          string = "SCORECARD_METRIC_EXPORTER"
+	metricStackdriverPrefix string = "SCORECARD_METRIC_STACKDRIVER_PREFIX"
+	bigqueryTable           string = "SCORECARD_BIGQUERY_TABLE"
+	resultDataBucketURL     string = "SCORECARD_DATA_BUCKET_URL"
+	apiResultsBucketURL     string = "SCORECARD_API_RESULTS_BUCKET_URL"
+	inputBucketURL          string = "SCORECARD_INPUT_BUCKET_URL"
+	inputBucketPrefix       string = "SCORECARD_INPUT_BUCKET_PREFIX"
 )
 
 var (
@@ -71,19 +72,20 @@ var (
 
 //nolint:govet
 type config struct {
-	ProjectID              string                       `yaml:"project-id"`
-	ResultDataBucketURL    string                       `yaml:"result-data-bucket-url"`
-	RequestTopicURL        string                       `yaml:"request-topic-url"`
-	RequestSubscriptionURL string                       `yaml:"request-subscription-url"`
-	BigQueryDataset        string                       `yaml:"bigquery-dataset"`
-	BigQueryTable          string                       `yaml:"bigquery-table"`
-	CompletionThreshold    float32                      `yaml:"completion-threshold"`
-	WebhookURL             string                       `yaml:"webhook-url"`
-	MetricExporter         string                       `yaml:"metric-exporter"`
-	ShardSize              int                          `yaml:"shard-size"`
-	InputBucketURL         string                       `yaml:"input-bucket-url"`
-	InputBucketPrefix      string                       `yaml:"input-bucket-prefix"`
-	AdditionalParams       map[string]map[string]string `yaml:"additional-params"`
+	ProjectID               string                       `yaml:"project-id"`
+	ResultDataBucketURL     string                       `yaml:"result-data-bucket-url"`
+	RequestTopicURL         string                       `yaml:"request-topic-url"`
+	RequestSubscriptionURL  string                       `yaml:"request-subscription-url"`
+	BigQueryDataset         string                       `yaml:"bigquery-dataset"`
+	BigQueryTable           string                       `yaml:"bigquery-table"`
+	CompletionThreshold     float32                      `yaml:"completion-threshold"`
+	WebhookURL              string                       `yaml:"webhook-url"`
+	MetricExporter          string                       `yaml:"metric-exporter"`
+	MetricStackdriverPrefix string                       `yaml:"metric-stackdriver-prefix"`
+	ShardSize               int                          `yaml:"shard-size"`
+	InputBucketURL          string                       `yaml:"input-bucket-url"`
+	InputBucketPrefix       string                       `yaml:"input-bucket-prefix"`
+	AdditionalParams        map[string]map[string]string `yaml:"additional-params"`
 }
 
 func getParsedConfigFromFile(byteValue []byte) (config, error) {
@@ -292,6 +294,12 @@ func GetBlacklistedChecks() ([]string, error) {
 // GetMetricExporter returns the opencensus exporter type.
 func GetMetricExporter() (string, error) {
 	return getStringConfigValue(metricExporter, configYAML, "MetricExporter", "metric-exporter")
+}
+
+// GetMetricStackdriverPrefix returns the prefix for stackdriver opencensus exporter.
+func GetMetricStackdriverPrefix() (string, error) {
+	return getStringConfigValue(
+		metricStackdriverPrefix, configYAML, "MetricStackdriverPrefix", "metric-stackdriver-prefix")
 }
 
 // GetAPIResultsBucketURL returns the bucket URL for storing cron job results.
