@@ -100,7 +100,7 @@ func (r *repoURL) IsValid() error {
 
 	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.repo) == "" {
 		return sce.WithMessage(sce.ErrorInvalidURL,
-			fmt.Sprintf("%v. Expected the full reposiroty url", r.URI()))
+			fmt.Sprintf("%v. Expected the full repository url", r.URI()))
 	}
 	return nil
 }
