@@ -25,6 +25,8 @@ import (
 	"github.com/ossf/scorecard/v4/cron/config"
 )
 
+// ShardSummary is a summary of information about a set of shards with the same
+// creation time.
 type ShardSummary struct {
 	creationTime   time.Time
 	shardMetadata  []byte
@@ -84,7 +86,7 @@ func (summary *BucketSummary) getOrCreate(t time.Time) *ShardSummary {
 
 // Shards returns a slice of ShardSummary instances for each shard creation time.
 func (summary *BucketSummary) Shards() []*ShardSummary {
-	shards := make([]*ShardSummary, 0, 0)
+	var shards []*ShardSummary
 	for _, s := range summary.shards {
 		shards = append(shards, s)
 	}
