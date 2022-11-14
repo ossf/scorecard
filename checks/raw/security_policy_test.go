@@ -94,6 +94,27 @@ func TestSecurityPolicy(t *testing.T) {
 			path: "",
 		},
 		{
+			name: "security.markdown",
+			files: []string{
+				"security.markdown",
+			},
+			path: "",
+		},
+		{
+			name: ".github/security.markdown",
+			files: []string{
+				".github/security.markdown",
+			},
+			path: "",
+		},
+		{
+			name: "docs/security.markdown",
+			files: []string{
+				"docs/security.markdown",
+			},
+			path: "",
+		},
+		{
 			name: "docs/security.rst",
 			files: []string{
 				"docs/security.rst",
