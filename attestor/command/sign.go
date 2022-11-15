@@ -15,7 +15,6 @@
 package command
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -96,11 +95,6 @@ func runSign() error {
 	if err != nil {
 		return fmt.Errorf("note name is invalid %v", err)
 	}
-
-	// Silence glog outputs from kritis-signer
-	flag.Parse()
-	flag.Lookup("logtostderr").Value.Set("true")
-	flag.Lookup("v").Value.Set("10")
 
 	// Create signer
 	r := signer.New(client, cSigner, scorecardNoteName, attestationProject, overwrite)

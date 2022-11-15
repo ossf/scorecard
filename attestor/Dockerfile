@@ -21,7 +21,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN make build-attestor
 
-FROM gcr.io/google-appengine/debian10@sha256:d2e40ef81a0f353f1b9c3cf07e384a1f23db3acdaa0eae4c269b653ab45ffadf
+FROM gcr.io/google-appengine/debian11@sha256:fed7dd5b2c4bbfb70bd26a277cdaff98dced71f113632ccd5451dcc013fce0a4
 COPY --from=build /src/scorecard/attestor /
 ENTRYPOINT [ "/scorecard-attestor" ]
 

@@ -245,7 +245,7 @@ build-attestor: ## Runs go build on scorecard attestor
 
 build-attestor-docker: ## Build scorecard-attestor Docker image
 build-attestor-docker:
-	DOCKER_BUILDKIT=1 docker build . --file Attestor.dockerfile \
+	DOCKER_BUILDKIT=1 docker build . --file attestor/Dockerfile \
 		--tag scorecard-attestor:latest \
 		--tag scorecard-atttestor:$(GIT_HASH)
 

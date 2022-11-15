@@ -74,7 +74,7 @@ var RootCmd = &cobra.Command{
 
 var checkAndSignCmd = &cobra.Command{
 	Use:   "attest",
-	Short: "Run scorecard and sign a container image according to policy",
+	Short: "Run scorecard and sign a container image if attestation policy check passes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		passed, err := runCheck()
 

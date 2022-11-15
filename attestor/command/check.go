@@ -114,7 +114,7 @@ func runCheck() (policy.PolicyResult, error) {
 	if result != policy.Pass {
 		logger.Info("image failed scorecard attestation policy check")
 	} else {
-		logger.Info("image passed scorecard attestationpolicy check")
+		logger.Info("image passed scorecard attestation policy check")
 	}
 	return result, nil
 }
