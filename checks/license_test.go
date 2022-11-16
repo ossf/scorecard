@@ -42,8 +42,9 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			inputFolder: "testdata/licensedir/withlicense",
 			expected: scut.TestReturn{
 				Error:        nil,
-				Score:        checker.MaxResultScore,
+				Score:        checker.MaxResultScore - 1,
 				NumberOfInfo: 1,
+				NumberOfWarn: 1,
 			},
 			err: nil,
 		},
