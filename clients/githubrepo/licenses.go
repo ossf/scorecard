@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"path"
 	"sync"
 
@@ -57,9 +58,19 @@ func (handler *licensesHandler) setup() error {
 		// The client.repoClient.Do API writes the response body to var bodyJSON,
 		// so we can ignore the first returned variable (the entire http response object)
 		// since we only need the response body here.
-		_, err = client.Do(handler.ctx, req, &bodyJSON)
-		if err != nil {
-			handler.errSetup = fmt.Errorf("response for repo license failed with %w", err)
+		resp, derr := client.Do(handler.ctx, req, &bodyJSON)
+		switch resp.StatusCode {
+		// Handle 400 error, perhaps the API changed.
+		case http.StatusBadRequest:
+			handler.errSetup = fmt.Errorf("bad request for repo license code %d, %w", resp.StatusCode, derr)
+			return
+		// Handle 404 error, appears that the repo has no license,
+		// just return no need to log or error off.
+		case http.StatusNotFound:
+			return
+		}
+		if derr != nil {
+			handler.errSetup = fmt.Errorf("response for repo license failed with %w", derr)
 			return
 		}
 
