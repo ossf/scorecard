@@ -18,14 +18,11 @@ package gitlabrepo
 // add "github.com/xanzy/go-gitlab" to this list.
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/ossf/scorecard/v4/clients"
 )
-
-var errRepoUnsupported = errors.New("notsupported")
 
 type licensesHandler struct {
 	// TODO: glClient *gitlab.Client
@@ -50,7 +47,7 @@ func (handler *licensesHandler) setup() error {
 		// TODO: err := (*struct{})(nil)
 		if len(licenseMap) == 0 {
 			// TODO: handler.errSetup = fmt.Errorf("request for repo licenses failed with %w", err)
-			handler.errSetup = fmt.Errorf("request for repo licenses not yet supported %w", errRepoUnsupported)
+			handler.errSetup = fmt.Errorf("%w: ListLicenses not yet supported for gitlab", clients.ErrUnsupportedFeature)
 			return
 		}
 
