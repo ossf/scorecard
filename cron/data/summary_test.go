@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package data
 
 import (
 	"context"
@@ -60,7 +60,11 @@ func TestIsCompleted(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
-			completed := isCompleted(testcase.inputExpected, testcase.inputCreated, testcase.completedThreshold)
+			shards := &ShardSummary{
+				shardsExpected: testcase.inputExpected,
+				shardsCreated:  testcase.inputCreated,
+			}
+			completed := shards.IsCompleted(testcase.completedThreshold)
 			if completed != testcase.expectedCompleted {
 				t.Errorf("test failed - expected: %t, got: %t", testcase.expectedCompleted, completed)
 			}
@@ -74,21 +78,23 @@ func TestGetBucketSummary(t *testing.T) {
 	testcases := []struct {
 		name     string
 		blobPath string
-		want     *bucketSummary
+		want     *BucketSummary
 		wantErr  bool
 	}{
 		{
 			name:     "basic",
-			blobPath: "testdata/basic",
-			want: &bucketSummary{
-				shards: map[time.Time]*shardSummary{
+			blobPath: "testdata/summary_test/basic",
+			want: &BucketSummary{
+				shards: map[time.Time]*ShardSummary{
 					time.Date(2022, 9, 19, 2, 0, 1, 0, time.UTC): {
+						creationTime:   time.Date(2022, 9, 19, 2, 0, 1, 0, time.UTC),
 						shardMetadata:  []byte(`{"shardLoc":"test","numShard":3,"commitSha":"2231d1f722454c6c9aa6ad77377d2936803216ff"}`),
 						shardsExpected: 3,
 						shardsCreated:  2,
 						isTransferred:  true,
 					},
 					time.Date(2022, 9, 26, 2, 0, 3, 0, time.UTC): {
+						creationTime:   time.Date(2022, 9, 26, 2, 0, 3, 0, time.UTC),
 						shardMetadata:  []byte(`{"shardLoc":"test","numShard":5,"commitSha":"2231d1f722454c6c9aa6ad77377d2936803216ff"}`),
 						shardsExpected: 5,
 						shardsCreated:  3,
@@ -100,7 +106,7 @@ func TestGetBucketSummary(t *testing.T) {
 		},
 		{
 			name:     "invalid file present",
-			blobPath: "testdata/invalid",
+			blobPath: "testdata/summary_test/invalid",
 			want:     nil,
 			wantErr:  true,
 		},
@@ -117,7 +123,7 @@ func TestGetBucketSummary(t *testing.T) {
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
-			summary, err := getBucketSummary(context.Background(), "file:///"+testdataPath)
+			summary, err := GetBucketSummary(context.Background(), "file:///"+testdataPath)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getBucketSummary() error = %v, wantErr %v", err, tt.wantErr)
 				return
