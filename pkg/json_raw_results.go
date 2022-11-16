@@ -166,9 +166,16 @@ type jsonOssfBestPractices struct {
 	Badge string `json:"badge"`
 }
 
+type jsonLicenseInfo struct {
+	File        string `json:"path"`
+	Key         string `json:"key,omitempty"`
+	Name        string `json:"name,omitempty"`
+	SpdxID      string `json:"spdxid,omitempty"`
+	Attribution string `json:"attribution,omitempty"`
+}
+
 type jsonLicense struct {
-	File jsonFile `json:"file"`
-	// TODO: add fields, like type of license, etc.
+	License jsonLicenseInfo `json:"file"`
 }
 
 type jsonWorkflow struct {
@@ -598,8 +605,12 @@ func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) e
 	for idx := range ld.LicenseFiles {
 		r.Results.Licenses = append(r.Results.Licenses,
 			jsonLicense{
-				File: jsonFile{
-					Path: ld.LicenseFiles[idx].File.Path,
+				License: jsonLicenseInfo{
+					File:        ld.LicenseFiles[idx].File.Path,
+					Key:         ld.LicenseFiles[idx].LicenseInformation.Key,
+					Name:        ld.LicenseFiles[idx].LicenseInformation.Name,
+					SpdxID:      ld.LicenseFiles[idx].LicenseInformation.SpdxID,
+					Attribution: string(ld.LicenseFiles[idx].LicenseInformation.Attribution),
 				},
 			},
 		)
