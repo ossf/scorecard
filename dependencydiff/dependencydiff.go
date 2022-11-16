@@ -92,8 +92,7 @@ func GetDependencyDiffResults(
 
 func initRepoAndClientByChecks(dCtx *dependencydiffContext, dSrcRepo string) error {
 	repo, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := checker.GetClients(
-		dCtx.ctx, dSrcRepo, "", dCtx.logger,
-	)
+		dCtx.ctx, dSrcRepo, "", dCtx.logger, 30)
 	if err != nil {
 		return fmt.Errorf("error getting the github repo and clients: %w", err)
 	}

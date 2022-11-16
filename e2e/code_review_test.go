@@ -35,8 +35,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -60,8 +60,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c")
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c", repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{

@@ -71,7 +71,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			ctx := context.Background()
 
 			client := localdir.CreateLocalDirClient(ctx, logger)
-			if err := client.InitRepo(repo, clients.HeadSHA); err != nil {
+			if err := client.InitRepo(repo, clients.HeadSHA, client.GetCommitDepth()); err != nil {
 				t.Errorf("InitRepo: %v", err)
 			}
 

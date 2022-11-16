@@ -23,7 +23,6 @@ import (
 	"github.com/caarlos0/env/v6"
 
 	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -39,11 +38,11 @@ type Options struct {
 	RubyGems   string
 	PolicyFile string
 	// TODO(action): Add logic for writing results to file
-	ResultsFile     string
-	ChecksToRun     []string
-	Metadata        []string
-	NumberOfCommits int
-	ShowDetails     bool
+	ResultsFile string
+	ChecksToRun []string
+	Metadata    []string
+	CommitDepth int
+	ShowDetails bool
 	// Feature flags.
 	EnableSarif       bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6 bool `env:"SCORECARD_V6"`
@@ -67,6 +66,10 @@ func New() *Options {
 	if opts.LogLevel == "" {
 		opts.LogLevel = DefaultLogLevel
 	}
+	// settings default commit depth of 30 if not passed.
+	if opts.CommitDepth < 0 {
+		opts.CommitDepth = DefaultCommitDepth
+	}
 
 	return opts
 }
@@ -74,6 +77,8 @@ func New() *Options {
 const (
 	// DefaultCommit specifies the default commit reference to use.
 	DefaultCommit = clients.HeadSHA
+
+	DefaultCommitDepth = 30 // Default Commit Depth
 
 	// Formats.
 
@@ -168,10 +173,6 @@ func (o *Options) Validate() error {
 			errs,
 			errCommitIsEmpty,
 		)
-	}
-	// if commit-depth set then modify global in graphql.go to reflect new depth (instead of default 30)
-	if o.NumberOfCommits != 0 {
-		githubrepo.CommitsToAnalyze = o.NumberOfCommits
 	}
 
 	if len(errs) != 0 {

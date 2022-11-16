@@ -39,21 +39,26 @@ var (
 
 //nolint:govet
 type localDirClient struct {
-	logger   *log.Logger
-	ctx      context.Context
-	path     string
-	once     sync.Once
-	errFiles error
-	files    []string
+	logger      *log.Logger
+	ctx         context.Context
+	path        string
+	once        sync.Once
+	errFiles    error
+	files       []string
+	commitDepth int
 }
 
 // InitRepo sets up the local repo.
-func (client *localDirClient) InitRepo(inputRepo clients.Repo, commitSHA string) error {
+func (client *localDirClient) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	localRepo, ok := inputRepo.(*repoLocal)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
 	}
-
+	if commitDepth == 0 {
+		client.commitDepth = 30 // default
+	} else {
+		client.commitDepth = commitDepth
+	}
 	client.path = strings.TrimPrefix(localRepo.URI(), "file://")
 
 	return nil
@@ -223,6 +228,11 @@ func (client *localDirClient) Search(request clients.SearchRequest) (clients.Sea
 // SearchCommits implements RepoClient.SearchCommits.
 func (client *localDirClient) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
 	return nil, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
+}
+
+// GetCommitDepth implements RepoClient.GetCommitDepth.
+func (client *localDirClient) GetCommitDepth() int {
+	return client.commitDepth
 }
 
 func (client *localDirClient) Close() error {

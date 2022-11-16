@@ -34,10 +34,10 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
@@ -62,10 +62,10 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-fuzzing-cflite")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
@@ -90,10 +90,10 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-fuzzing-golang")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
@@ -118,10 +118,10 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-fuzzing-golang")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
@@ -138,10 +138,10 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-packaging-e2e")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),

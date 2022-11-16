@@ -36,11 +36,11 @@ const (
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
+	commitsToAnalyze       = 30
 )
 
 var (
-	CommitsToAnalyze = 30
-	errNotCached     = errors.New("result not cached")
+	errNotCached = errors.New("result not cached")
 )
 
 //nolint:govet
@@ -187,9 +187,10 @@ type graphqlHandler struct {
 	commits            []clients.Commit
 	issues             []clients.Issue
 	archived           bool
+	commitDepth        int
 }
 
-func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
+func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commitDepth int) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 	handler.data = new(graphqlData)
@@ -199,6 +200,7 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.setupCheckRunsOnce = new(sync.Once)
 	handler.checkRuns = checkRunCache{}
 	handler.logger = log.NewLogger(log.DefaultLevel)
+	handler.commitDepth = commitDepth
 }
 
 func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]clients.Commit, error) {
@@ -237,12 +239,12 @@ func (handler *graphqlHandler) setup() error {
 			"issueCommentsToAnalyze": githubv4.Int(issueCommentsToAnalyze),
 			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
 			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
-			"commitsToAnalyze":       githubv4.Int(CommitsToAnalyze),
+			"commitsToAnalyze":       githubv4.Int(handler.commitDepth),
 			"commitExpression":       githubv4.String(commitExpression),
 			"historyCursor":          (*githubv4.String)(nil),
 		}
 		// if NumberOfCommits set to < 99 we are required by the graphql to page by 100 commits.
-		if CommitsToAnalyze > 99 {
+		if handler.commitDepth > 99 {
 			handler.commits, handler.errSetup = populateCommits(handler, vars)
 			handler.issues = issuesFrom(handler.data)
 			handler.archived = bool(handler.data.Repository.IsArchived)
@@ -266,14 +268,14 @@ func (handler *graphqlHandler) setupCheckRuns() error {
 			"owner":                 githubv4.String(handler.repourl.owner),
 			"name":                  githubv4.String(handler.repourl.repo),
 			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-			"commitsToAnalyze":      githubv4.Int(CommitsToAnalyze),
+			"commitsToAnalyze":      githubv4.Int(handler.commitDepth),
 			"commitExpression":      githubv4.String(commitExpression),
 			"checksToAnalyze":       githubv4.Int(checksToAnalyze),
 		}
 		// TODO:
 		// sast and ci checks causes cache miss if commits dont match number of check runs.
 		// paging for this needs to be implemented if using higher than 100 --number-of-commits
-		if CommitsToAnalyze > 99 {
+		if handler.commitDepth > 99 {
 			vars["commitsToAnalyze"] = githubv4.Int(99)
 		}
 		if err := handler.client.Query(handler.ctx, handler.checkData, vars); err != nil {

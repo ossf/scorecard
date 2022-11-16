@@ -38,8 +38,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -64,8 +64,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-binary-artifacts-e2e")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -91,8 +91,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-binary-artifacts-e2e")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "5b48dea88825662d67ed94b609b45cf7705333b6")
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, "5b48dea88825662d67ed94b609b45cf7705333b6", repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -118,8 +118,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-binary-artifacts-e2e-4-binaries")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -146,8 +146,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-binary-artifacts-e2e-4-binaries")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "d994b3e1a8912283f9958a7c1e0aa480ca24a7ce")
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, "d994b3e1a8912283f9958a7c1e0aa480ca24a7ce", repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -186,7 +186,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			Expect(err).Should(BeNil())
 
 			x := localdir.CreateLocalDirClient(context.Background(), logger)
-			err = x.InitRepo(repo, clients.HeadSHA)
+			err = x.InitRepo(repo, clients.HeadSHA, x.GetCommitDepth())
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{

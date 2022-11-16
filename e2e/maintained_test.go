@@ -33,8 +33,8 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("apache/airflow")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),

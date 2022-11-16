@@ -90,7 +90,7 @@ func RunScorecards(ctx context.Context,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 ) (ScorecardResult, error) {
-	if err := repoClient.InitRepo(repo, commitSHA); err != nil {
+	if err := repoClient.InitRepo(repo, commitSHA, repoClient.GetCommitDepth()); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
 		return ScorecardResult{}, err

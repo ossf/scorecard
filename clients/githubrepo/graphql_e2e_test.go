@@ -65,7 +65,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 			_handler := &graphqlHandler{
 				client: _graphClient,
 			}
-			_handler.init(context.Background(), _repourl)
+			_handler.init(context.Background(), _repourl, 1)
 			commits, err := populateCommits(_handler, _vars)
 			Expect(err).To(BeNil())
 			Expect(len(commits)).Should(BeEquivalentTo(1))
@@ -98,7 +98,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 			_handler := &graphqlHandler{
 				client: _graphClient,
 			}
-			_handler.init(context.Background(), _repourl)
+			_handler.init(context.Background(), _repourl, 30)
 			commits, err := populateCommits(_handler, _vars)
 			Expect(err).To(BeNil())
 			Expect(len(commits)).Should(BeEquivalentTo(30))
@@ -131,7 +131,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 			_handler := &graphqlHandler{
 				client: _graphClient,
 			}
-			_handler.init(context.Background(), _repourl)
+			_handler.init(context.Background(), _repourl, 101)
 			commits, err := populateCommits(_handler, _vars)
 			Expect(err).To(BeNil())
 			Expect(len(commits)).Should(BeEquivalentTo(101))
@@ -145,7 +145,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
 			}
-			graphqlhandler.init(context.Background(), repourl)
+			graphqlhandler.init(context.Background(), repourl, 30)
 			Expect(graphqlhandler.setup()).Should(BeNil())
 			Expect(graphqlhandler.data).ShouldNot(BeNil())
 			Expect(graphqlhandler.data.RateLimit.Cost).ShouldNot(BeNil())
@@ -157,7 +157,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 				repo:      "scorecard",
 				commitSHA: "de5224bbc56eceb7a25aece55d2d53bbc561ed2d",
 			}
-			graphqlhandler.init(context.Background(), repourl)
+			graphqlhandler.init(context.Background(), repourl, 30)
 			Expect(graphqlhandler.setup()).Should(BeNil())
 			Expect(graphqlhandler.data).ShouldNot(BeNil())
 			Expect(graphqlhandler.data.RateLimit.Cost).ShouldNot(BeNil())
@@ -169,7 +169,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
 			}
-			graphqlhandler.init(context.Background(), repourl)
+			graphqlhandler.init(context.Background(), repourl, 30)
 			Expect(graphqlhandler.setupCheckRuns()).Should(BeNil())
 			Expect(graphqlhandler.checkData).ShouldNot(BeNil())
 			Expect(graphqlhandler.checkData.RateLimit.Cost).ShouldNot(BeNil())

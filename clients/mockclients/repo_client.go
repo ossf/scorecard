@@ -79,6 +79,20 @@ func (mr *MockRepoClientMockRecorder) GetBranch(branch interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBranch", reflect.TypeOf((*MockRepoClient)(nil).GetBranch), branch)
 }
 
+// GetCommitDepth mocks base method.
+func (m *MockRepoClient) GetCommitDepth() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCommitDepth")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// GetCommitDepth indicates an expected call of GetCommitDepth.
+func (mr *MockRepoClientMockRecorder) GetCommitDepth() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCommitDepth", reflect.TypeOf((*MockRepoClient)(nil).GetCommitDepth))
+}
+
 // GetCreatedAt mocks base method.
 func (m *MockRepoClient) GetCreatedAt() (time.Time, error) {
 	m.ctrl.T.Helper()
@@ -140,17 +154,17 @@ func (mr *MockRepoClientMockRecorder) GetFileContent(filename interface{}) *gomo
 }
 
 // InitRepo mocks base method.
-func (m *MockRepoClient) InitRepo(repo clients.Repo, commitSHA string) error {
+func (m *MockRepoClient) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InitRepo", repo, commitSHA)
+	ret := m.ctrl.Call(m, "InitRepo", repo, commitSHA, commitDepth)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InitRepo indicates an expected call of InitRepo.
-func (mr *MockRepoClientMockRecorder) InitRepo(repo, commitSHA interface{}) *gomock.Call {
+func (mr *MockRepoClientMockRecorder) InitRepo(repo, commitSHA, commitDepth interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitRepo", reflect.TypeOf((*MockRepoClient)(nil).InitRepo), repo, commitSHA)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitRepo", reflect.TypeOf((*MockRepoClient)(nil).InitRepo), repo, commitSHA, commitDepth)
 }
 
 // IsArchived mocks base method.

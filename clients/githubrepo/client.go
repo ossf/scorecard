@@ -55,10 +55,11 @@ type Client struct {
 	languages     *languagesHandler
 	ctx           context.Context
 	tarball       tarballHandler
+	commitDepth   int
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
-func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
+func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	ghRepo, ok := inputRepo.(*repoURL)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
@@ -69,7 +70,11 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}
-
+	if commitDepth == 0 {
+		client.commitDepth = 30 // default
+	} else {
+		client.commitDepth = commitDepth
+	}
 	client.repo = repo
 	client.repourl = &repoURL{
 		owner:         repo.Owner.GetLogin(),
@@ -82,7 +87,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	client.tarball.init(client.ctx, client.repo, commitSHA)
 
 	// Setup GraphQL.
-	client.graphClient.init(client.ctx, client.repourl)
+	client.graphClient.init(client.ctx, client.repourl, client.commitDepth)
 
 	// Setup contributorsHandler.
 	client.contributors.init(client.ctx, client.repourl)
@@ -138,6 +143,7 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 
 // ListIssues implements RepoClient.ListIssues.
 func (client *Client) ListIssues() ([]clients.Issue, error) {
+	// here you would need to pass commitDepth or something
 	return client.graphClient.getIssues()
 }
 
@@ -228,8 +234,12 @@ func (client *Client) Close() error {
 	return client.tarball.cleanup()
 }
 
+func (client *Client) GetCommitDepth() int {
+	return client.commitDepth
+}
+
 // CreateGithubRepoClientWithTransport returns a Client which implements RepoClient interface.
-func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripper) clients.RepoClient {
+func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripper, commitDepth int) clients.RepoClient {
 	httpClient := &http.Client{
 		Transport: rt,
 	}
@@ -276,26 +286,27 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 		tarball: tarballHandler{
 			httpClient: httpClient,
 		},
+		commitDepth: commitDepth,
 	}
 }
 
 // CreateGithubRepoClient returns a Client which implements RepoClient interface.
-func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
+func CreateGithubRepoClient(ctx context.Context, logger *log.Logger, commitDepth int) clients.RepoClient {
 	// Use our custom roundtripper
 	rt := roundtripper.NewTransport(ctx, logger)
-	return CreateGithubRepoClientWithTransport(ctx, rt)
+	return CreateGithubRepoClientWithTransport(ctx, rt, commitDepth)
 }
 
 // CreateOssFuzzRepoClient returns a RepoClient implementation
 // intialized to `google/oss-fuzz` GitHub repository.
-func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
+func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger, commitDepth int) (clients.RepoClient, error) {
 	ossFuzzRepo, err := MakeGithubRepo("google/oss-fuzz")
 	if err != nil {
 		return nil, fmt.Errorf("error during MakeGithubRepo: %w", err)
 	}
 
-	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger)
-	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, clients.HeadSHA); err != nil {
+	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger, commitDepth)
+	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, clients.HeadSHA, commitDepth); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
 	return ossFuzzRepoClient, nil

@@ -35,8 +35,8 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -65,8 +65,8 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e-none")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -93,8 +93,8 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e-patch-1")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -125,8 +125,8 @@ var _ = Describe("E2E TEST GITHUB_TOKEN:"+checks.CheckBranchProtection, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),

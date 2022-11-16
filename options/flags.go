@@ -60,7 +60,7 @@ const (
 	// FlagFormat is the flag name for specifying output format.
 	FlagFormat = "format"
 
-	FlagNumberOfCommits = "number-of-commits"
+	FlagCommitDepth = "commit-depth"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -135,9 +135,9 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	)
 
 	cmd.Flags().IntVar(
-		&o.NumberOfCommits,
-		FlagNumberOfCommits,
-		o.NumberOfCommits,
+		&o.CommitDepth,
+		FlagCommitDepth,
+		o.CommitDepth,
 		"number of commits to check, commits begin backwards from the HEAD",
 	)
 

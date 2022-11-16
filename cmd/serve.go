@@ -59,8 +59,8 @@ func serveCmd(o *options.Options) *cobra.Command {
 					rw.WriteHeader(http.StatusBadRequest)
 				}
 				ctx := r.Context()
-				repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-				ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+				repoClient := githubrepo.CreateGithubRepoClient(ctx, logger, o.CommitDepth)
+				ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger, o.CommitDepth)
 				vulnsClient := clients.DefaultVulnerabilitiesClient()
 				if err != nil {
 					logger.Error(err, "initializing clients")

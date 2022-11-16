@@ -26,7 +26,7 @@ import (
 
 // GetClients returns a list of clients for running scorecard checks.
 // TODO(repo): Pass a `http.RoundTripper` here.
-func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logger) (
+func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logger, commitDepth int) (
 	clients.Repo, // repo
 	clients.RepoClient, // repoClient
 	clients.RepoClient, // ossFuzzClient
@@ -59,14 +59,14 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 			fmt.Errorf("getting local directory client: %w", errGitHub)
 	}
 
-	ossFuzzRepoClient, errOssFuzz := ghrepo.CreateOssFuzzRepoClient(ctx, logger)
+	ossFuzzRepoClient, errOssFuzz := ghrepo.CreateOssFuzzRepoClient(ctx, logger, commitDepth)
 	var retErr error
 	if errOssFuzz != nil {
 		retErr = fmt.Errorf("getting OSS-Fuzz repo client: %w", errOssFuzz)
 	}
 	// TODO(repo): Should we be handling the OSS-Fuzz client error like this?
 	return githubRepo, /*repo*/
-		ghrepo.CreateGithubRepoClient(ctx, logger), /*repoClient*/
+		ghrepo.CreateGithubRepoClient(ctx, logger, commitDepth), /*repoClient*/
 		ossFuzzRepoClient, /*ossFuzzClient*/
 		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
 		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
