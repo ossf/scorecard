@@ -128,7 +128,7 @@ type MaintainedData struct {
 type LicenseAttributionType string
 
 const (
-	// forms of security policy hints being evaluated.
+	// sources of license information used to assert repo's license.
 	LicenseAttributionTypeOther     LicenseAttributionType = "otherAttribution"
 	LicenseAttributionTypeRepo      LicenseAttributionType = "repoAttribution"
 	LicenseAttributionTypeScorecard LicenseAttributionType = "scorecardAttribution"
@@ -140,13 +140,12 @@ type License struct {
 	Name        string                 // OSI standardized license name
 	SpdxID      string                 // SPDX standardized identifier
 	Attribution LicenseAttributionType // source of licensing information
-	Size        int                    // size of the license file found (default: 0)
 }
 
 // one file contains one license.
 type LicenseFile struct {
-	License License
-	File    File
+	LicenseInformation License
+	File               File
 }
 
 // LicenseData contains the raw results

@@ -15,34 +15,88 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
+	"github.com/ossf/scorecard/v4/clients"
 )
 
-type check func(str string, extCheck []string) bool
-
-type checks struct {
-	rstr string // regex string
-	f    check
-	p    []string
-}
-
-const (
-	copying      = "copy(ing|right)"
-	license      = "(un)?licen[sc]e"
-	preferredExt = "*\\.(md|markdown|html)$"
-	anyExt       = ".[^./]"
-	ofl          = "ofl"
-	patents      = "patents"
-	gpl          = "gpl(v|-)\\d"
+// from checks.md
+//   - files must be at the top-level directory (hence the '^' in the regex)
+//   - files must be of the name like COPY[ING|RIGHT] or LICEN[SC]E(plural)
+//     no preceding names or the like (again, hence the '^')
+//   - a folder is also acceptable as in COPYRIGHT/ or LICENSES/ although
+//     the contents of the folder are totally ignored at this time
+//   - file or folder the contents are not (yet) examined
+//   - it is a case insenstive check (hence the leading regex compiler option).
+//
+// TODO: still working on matching this pattern: GPL-2.0-LICENSE or LICENSE_RELEASE.
+// TODO: integrate `(([.-_]?\d{1,2}[.-_]\d{1,2})([.-_]\d{1,3})?([.-_]))?` +.
+var reLicenseFile = regexp.MustCompile(
+	// generalized pattern matching here
+	// COPYRIGHTs
+	// UNLICENSE
+	// LICENSE where LICENSE
+	// may be proceeded by a licence spec (e.g., GPL as in GPLLICENSE or GPL-LICENSE)
+	// may have a license spec version   (e.g., GPL_2.0_LICENSE or GPL-2.0.0-LICENSE)
+	//     which can be separated by any mix/match of dot, underscore, hyphen
+	// may be spelled with 'C' or 'S' (e.g., LICENCE or LICENSE)
+	// may be plural (e.g., LICENCES)
+	// and the extension is pretty much ignored
+	`(?i)` + // case insensitive
+		`(` +
+		`^patent(s)|` + // patent files
+		`^copy(ing|right)|` + // copyright files
+		`^(un|` + // unlicence license
+		`^(` + // specific license which prefix '[-_]LICEN[sc]E(s)'
+		`afl|` +
+		`apache|` +
+		`apsl|` +
+		`artistic|` +
+		`(0)?bsd|` +
+		`cc([0-])|` +
+		`efl|` +
+		`epl|` +
+		`eupl|` +
+		`([al])?gpl|` +
+		`mit|` +
+		`mpl` +
+		`)` +
+		`([-_])?` +
+		`)?` +
+		`licen[sc]e(s)?` +
+		`)`,
 )
+
+// from checks.md
+//   - for the most part extension are ignore, but this cannot be so, many files
+//     can get caught up in the filename match (like .license.yaml), therefore
+//     the need to accept a host of file extensions which could likely contain
+//     license information.
+/*
+var reLicenseFileExts = regexp.MustCompile(`(?i)(` +
+	`\.rst|` +
+	`\.txt|` +
+	`\.md|` +
+	`\.adoc|` +
+	`\.xml|` +
+	`\.markdown|` +
+	`\.html` +
+	`)`,
+)
+*/
+
+// TODO: still working on a more generalized extension.
+// TODO: license.yaml still hits and it should not integrate fix.
+var reLicenseFileExts = regexp.MustCompile(`(?i)(\w)`)
 
 // Regex converted from
 // https://github.com/licensee/licensee/blob/master/lib/licensee/project_files/license_file.rb
+// TODO: comprehend if these are needed any longer
+/*
 var (
 	extensions  = []string{"xml", "go", "gemspec"}
 	regexChecks = []checks{
@@ -63,15 +117,17 @@ var (
 		{rstr: gpl, f: nil},
 	}
 )
-
+*/
 // License retrieves the raw data for the License check.
 func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 	var results checker.LicenseData
 	var path string
 
 	licensesFound, lerr := c.RepoClient.ListLicenses()
-	if lerr == nil && len(licensesFound) > 0 {
-		// TODO: fmt.Printf ("'%T' of size '%d' has '%+v'\n", licensesFound, len(licensesFound), licensesFound)
+	switch {
+	// repo API for licenses is supported
+	// go the work and return from immediate (no searching repo).
+	case lerr == nil:
 		for _, v := range licensesFound {
 			results.LicenseFiles = append(results.LicenseFiles,
 				checker.LicenseFile{
@@ -79,19 +135,25 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 						Path: v.Path,
 						Type: checker.FileTypeSource,
 					},
-					License: checker.License{
+					LicenseInformation: checker.License{
 						Key:         v.Key,
 						Name:        v.Name,
-						Size:        v.Size,
 						SpdxID:      v.SPDXId,
 						Attribution: checker.LicenseAttributionTypeRepo,
 					},
 				})
 		}
 		return results, nil
+	// if repo API for listing licenses is not support
+	// continue on using the repo search for a license file.
+	case errors.Is(lerr, clients.ErrUnsupportedFeature):
+		break
+	// something else failed, done.
+	default:
+		return results, fmt.Errorf("RepoClient.ListLicenses: %w", lerr)
 	}
 
-	// no licenses reported by repo API, continue looking for files
+	// no repo API for listing licenses, continue looking for files
 	err := fileparser.OnAllFilesDo(c.RepoClient, isLicenseFile, &path)
 	if err != nil {
 		return results, fmt.Errorf("fileparser.OnAllFilesDo: %w", err)
@@ -105,10 +167,9 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 					Path: path,
 					Type: checker.FileTypeSource,
 				},
-				License: checker.License{
+				LicenseInformation: checker.License{
 					Key:         "",
 					Name:        "",
-					Size:        int(0),
 					SpdxID:      "",
 					Attribution: checker.LicenseAttributionTypeScorecard,
 				},
@@ -116,27 +177,6 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 	}
 
 	return results, nil
-}
-
-// ExtensionMatch to check for matching extension.
-func extensionMatch(f string, exts []string) bool {
-	s := strings.Split(f, ".")
-
-	if len(s) <= 1 {
-		return false
-	}
-
-	fext := s[len(s)-1]
-
-	found := false
-	for _, ext := range exts {
-		if ext == fext {
-			found = true
-			break
-		}
-	}
-
-	return found
 }
 
 // TestLicense used for testing purposes.
@@ -163,22 +203,27 @@ var isLicenseFile fileparser.DoWhileTrueOnFilename = func(name string, args ...i
 
 // CheckLicense to check whether the name parameter fulfill license file criteria.
 func checkLicense(name string) bool {
-	for _, check := range regexChecks {
-		rg := regexp.MustCompile(check.rstr)
-
-		nameLower := strings.ToLower(name)
-		t := rg.MatchString(nameLower)
-		if t {
-			extFound := true
-
-			// check extension calling f function.
-			// f function will always be func extensionMatch(..)
-			if check.f != nil {
-				extFound = check.f(nameLower, check.p)
+	proper := false
+	for _, indexes := range reLicenseFile.FindAllIndex([]byte(name), -1) {
+		// ah.. something matched, is match a proper file name,
+		// assume it is and try to refute
+		proper = true
+		if len(name) != len(name[indexes[0]:indexes[1]]) {
+			// the match length does not match the file name
+			// so work on ignoring recognized extension(s)
+			if (len(name) > indexes[1]) &&
+				(!(name[indexes[1]] == '.' || name[indexes[1]] == '/' ||
+					name[indexes[1]] == '_' || name[indexes[1]] == '-')) {
+				// something other than an extension or path separator
+				// occurred after the proper filename (sub)match must be bad
+				proper = false
+			} else if reLicenseFileExts.FindAllIndex([]byte(name), -1) == nil {
+				// TODO: double check this
+				// the index found must be at the same name[indexes[1]]
+				// anything less is something like .md.license.txt
+				proper = false
 			}
-
-			return extFound
 		}
 	}
-	return false
+	return proper
 }
