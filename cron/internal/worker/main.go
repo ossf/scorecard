@@ -33,7 +33,7 @@ import (
 	"github.com/ossf/scorecard/v4/cron/config"
 	"github.com/ossf/scorecard/v4/cron/data"
 	format "github.com/ossf/scorecard/v4/cron/internal/format"
-	"github.com/ossf/scorecard/v4/cron/internal/monitoring"
+	"github.com/ossf/scorecard/v4/cron/monitoring"
 	"github.com/ossf/scorecard/v4/cron/worker"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"

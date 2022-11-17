@@ -21,3 +21,27 @@ allowedBinaryArtifacts:
 # List of allowed binary artifact paths as strings
     - /a/b/c
     - d
+
+# PreventKnownVulnerabilities : set to true to require that this project is free
+# of vulnerabilities, as discovered from the OSV service
+preventKnownVulnerabilities: false
+
+# PreventUnpinnedDependencies : set to true to require that this project pin dependencies
+# by hash/commit SHA
+preventUnpinnedDependencies: false
+
+# AllowedUnpinnedDependencies : set of dependencies to ignore when checking for
+# unpinned dependencies
+allowedUnpinnedDependencies:
+    - filepath: Dockerfile
+
+# EnsureCodeReviewed : set to true to require that the most recent commits in
+# this project have gone through a code review process
+ensureCodeReviewed: true
+
+# CodeReviewRequirements : define specific code review requirements that the default
+# branch must have met, e.g. required approvers
+codeReviewRequirements:
+    requiredApprovers:
+        - alice
+    minReviewers: 2
