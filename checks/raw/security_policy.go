@@ -64,8 +64,8 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	// TODO(1491): Make this non-GitHub specific.
 	logger := log.NewLogger(log.InfoLevel)
 	// HAD TO HARD CODE TO 30
-	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger, 30)
-	err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA, 30)
+	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
+	err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA, 0)
 	switch {
 	case err == nil:
 		defer dotGitHubClient.Close()

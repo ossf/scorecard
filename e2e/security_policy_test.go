@@ -35,8 +35,8 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
-			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -61,8 +61,8 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
-			err = repoClient.InitRepo(repo, "e0cb70344e46276b37d65824f95eca478080de4a", repoClient.GetCommitDepth())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "e0cb70344e46276b37d65824f95eca478080de4a", 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -87,8 +87,8 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("randombit/botan")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
-			err = repoClient.InitRepo(repo, clients.HeadSHA, repoClient.GetCommitDepth())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -113,8 +113,8 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("randombit/botan")
 			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger, 30)
-			err = repoClient.InitRepo(repo, "bab40cdd29d19e0638cf1301dfd355c52b94d1c0", repoClient.GetCommitDepth())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "bab40cdd29d19e0638cf1301dfd355c52b94d1c0", 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -151,7 +151,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			Expect(err).Should(BeNil())
 
 			x := localdir.CreateLocalDirClient(context.Background(), logger)
-			err = x.InitRepo(repo, clients.HeadSHA, x.GetCommitDepth())
+			err = x.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{

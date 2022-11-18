@@ -90,9 +90,9 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 
 	sw.ctx = context.Background()
 	sw.logger = log.NewLogger(log.InfoLevel)
-	sw.repoClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger, 30)
+	sw.repoClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
 	sw.ciiClient = clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
-	if sw.ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(sw.ctx, sw.logger, 30); err != nil {
+	if sw.ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(sw.ctx, sw.logger); err != nil {
 		return nil, fmt.Errorf("githubrepo.CreateOssFuzzRepoClient: %w", err)
 	}
 
@@ -164,7 +164,7 @@ func processRequest(ctx context.Context,
 			delete(checksToRun, check)
 		}
 
-		result, err := pkg.RunScorecards(ctx, repo, commitSHA, checksToRun,
+		result, err := pkg.RunScorecards(ctx, repo, commitSHA, 0, checksToRun,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.

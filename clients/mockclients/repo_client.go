@@ -79,20 +79,6 @@ func (mr *MockRepoClientMockRecorder) GetBranch(branch interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBranch", reflect.TypeOf((*MockRepoClient)(nil).GetBranch), branch)
 }
 
-// GetCommitDepth mocks base method.
-func (m *MockRepoClient) GetCommitDepth() int {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCommitDepth")
-	ret0, _ := ret[0].(int)
-	return ret0
-}
-
-// GetCommitDepth indicates an expected call of GetCommitDepth.
-func (mr *MockRepoClientMockRecorder) GetCommitDepth() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCommitDepth", reflect.TypeOf((*MockRepoClient)(nil).GetCommitDepth))
-}
-
 // GetCreatedAt mocks base method.
 func (m *MockRepoClient) GetCreatedAt() (time.Time, error) {
 	m.ctrl.T.Helper()

@@ -61,7 +61,7 @@ func runCheck() error {
 	}
 
 	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
-		ctx, repoURL, "", logger, 30)
+		ctx, repoURL, "", logger)
 
 	requiredChecks := attestationPolicy.GetRequiredChecksForPolicy()
 
@@ -82,6 +82,7 @@ func runCheck() error {
 		ctx,
 		repo,
 		commitSHA,
+		0,
 		enabledChecks,
 		repoClient,
 		ossFuzzRepoClient,

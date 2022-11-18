@@ -234,12 +234,8 @@ func (client *Client) Close() error {
 	return client.tarball.cleanup()
 }
 
-func (client *Client) GetCommitDepth() int {
-	return client.commitDepth
-}
-
 // CreateGithubRepoClientWithTransport returns a Client which implements RepoClient interface.
-func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripper, commitDepth int) clients.RepoClient {
+func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripper) clients.RepoClient {
 	httpClient := &http.Client{
 		Transport: rt,
 	}
@@ -286,27 +282,26 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 		tarball: tarballHandler{
 			httpClient: httpClient,
 		},
-		commitDepth: commitDepth,
 	}
 }
 
 // CreateGithubRepoClient returns a Client which implements RepoClient interface.
-func CreateGithubRepoClient(ctx context.Context, logger *log.Logger, commitDepth int) clients.RepoClient {
+func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
 	// Use our custom roundtripper
 	rt := roundtripper.NewTransport(ctx, logger)
-	return CreateGithubRepoClientWithTransport(ctx, rt, commitDepth)
+	return CreateGithubRepoClientWithTransport(ctx, rt)
 }
 
 // CreateOssFuzzRepoClient returns a RepoClient implementation
 // intialized to `google/oss-fuzz` GitHub repository.
-func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger, commitDepth int) (clients.RepoClient, error) {
+func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	ossFuzzRepo, err := MakeGithubRepo("google/oss-fuzz")
 	if err != nil {
 		return nil, fmt.Errorf("error during MakeGithubRepo: %w", err)
 	}
 
-	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger, commitDepth)
-	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, clients.HeadSHA, commitDepth); err != nil {
+	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger)
+	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, clients.HeadSHA, 0); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
 	return ossFuzzRepoClient, nil

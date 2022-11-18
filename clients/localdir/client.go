@@ -230,11 +230,6 @@ func (client *localDirClient) SearchCommits(request clients.SearchCommitsOptions
 	return nil, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
 }
 
-// GetCommitDepth implements RepoClient.GetCommitDepth.
-func (client *localDirClient) GetCommitDepth() int {
-	return client.commitDepth
-}
-
 func (client *localDirClient) Close() error {
 	return nil
 }

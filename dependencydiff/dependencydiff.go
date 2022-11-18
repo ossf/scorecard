@@ -92,7 +92,7 @@ func GetDependencyDiffResults(
 
 func initRepoAndClientByChecks(dCtx *dependencydiffContext, dSrcRepo string) error {
 	repo, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := checker.GetClients(
-		dCtx.ctx, dSrcRepo, "", dCtx.logger, 30)
+		dCtx.ctx, dSrcRepo, "", dCtx.logger)
 	if err != nil {
 		return fmt.Errorf("error getting the github repo and clients: %w", err)
 	}
@@ -161,6 +161,7 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 				// TODO (#2065): In future versions, ideally, this should be
 				// the commitSHA corresponding to d.Version instead of HEAD.
 				clients.HeadSHA,
+				0,
 				checksToRun,
 				dCtx.ghRepoClient,
 				dCtx.ossFuzzClient,

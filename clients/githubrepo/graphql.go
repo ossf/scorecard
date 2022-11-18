@@ -36,12 +36,9 @@ const (
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
-	commitsToAnalyze       = 30
 )
 
-var (
-	errNotCached = errors.New("result not cached")
-)
+var errNotCached = errors.New("result not cached")
 
 //nolint:govet
 type graphqlData struct {
