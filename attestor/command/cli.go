@@ -74,21 +74,31 @@ var RootCmd = &cobra.Command{
 
 var checkAndSignCmd = &cobra.Command{
 	Use:   "attest",
-	Short: "Run scorecard and sign a container image according to policy",
+	Short: "Run scorecard and sign a container image if attestation policy check passes",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := runCheck(); err != nil {
+		passed, err := runCheck()
+
+		if err != nil {
 			return err
 		}
-		return runSign()
+
+		if passed {
+			return runSign()
+		}
+
+		return nil
 	},
+	SilenceUsage: true,
 }
 
 var checkCmd = &cobra.Command{
 	Use:   "verify",
 	Short: "Run scorecard and check an image against a policy",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runCheck()
+		_, err := runCheck()
+		return err
 	},
+	SilenceUsage: true,
 }
 
 func init() {
