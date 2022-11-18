@@ -269,7 +269,7 @@ func (handler *graphqlHandler) setupCheckRuns() error {
 			"commitExpression":      githubv4.String(commitExpression),
 			"checksToAnalyze":       githubv4.Int(checksToAnalyze),
 		}
-		// TODO:
+		// TODO(#2224):
 		// sast and ci checks causes cache miss if commits dont match number of check runs.
 		// paging for this needs to be implemented if using higher than 100 --number-of-commits
 		if handler.commitDepth > 99 {
