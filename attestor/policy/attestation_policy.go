@@ -98,7 +98,6 @@ func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyRes
 	dl := checker.NewLogger()
 	if ap.PreventBinaryArtifacts {
 		checkResult, err := CheckPreventBinaryArtifacts(ap.AllowedBinaryArtifacts, raw, dl)
-
 		if !checkResult || err != nil {
 			return checkResult, err
 		}
