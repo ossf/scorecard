@@ -70,7 +70,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}
-	if commitDepth == 0 {
+	if commitDepth <= 0 {
 		client.commitDepth = 30 // default
 	} else {
 		client.commitDepth = commitDepth

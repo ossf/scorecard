@@ -67,7 +67,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}
-	if commitDepth == 0 {
+	if commitDepth <= 0 {
 		client.commitDepth = 30 // default
 	} else {
 		client.commitDepth = commitDepth
@@ -202,10 +202,6 @@ func (client *Client) Search(request clients.SearchRequest) (clients.SearchRespo
 
 func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
 	return client.searchCommits.search(request)
-}
-
-func (client *Client) GetCommitDepth() int {
-	return client.commitDepth
 }
 
 func (client *Client) Close() error {

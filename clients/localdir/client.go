@@ -54,7 +54,7 @@ func (client *localDirClient) InitRepo(inputRepo clients.Repo, commitSHA string,
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
 	}
-	if commitDepth == 0 {
+	if commitDepth <= 0 {
 		client.commitDepth = 30 // default
 	} else {
 		client.commitDepth = commitDepth
