@@ -7,7 +7,7 @@ require (
 	github.com/golangci/golangci-lint v1.50.1
 	github.com/google/addlicense v1.1.0
 	github.com/google/ko v0.11.3-0.20220812194550-f9b4471f654a
-	github.com/goreleaser/goreleaser v1.12.3
+	github.com/goreleaser/goreleaser v1.13.0
 	github.com/naveensrinivasan/stunning-tribble v0.4.2
 	github.com/onsi/ginkgo/v2 v2.5.0
 	google.golang.org/protobuf v1.28.1
@@ -116,7 +116,7 @@ require (
 	github.com/dghubble/oauth1 v0.7.1 // indirect
 	github.com/dghubble/sling v1.4.0 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
-	github.com/disgoorg/disgo v0.13.20 // indirect
+	github.com/disgoorg/disgo v0.13.21 // indirect
 	github.com/disgoorg/log v1.2.0 // indirect
 	github.com/disgoorg/snowflake/v2 v2.0.1 // indirect
 	github.com/docker/cli v20.10.17+incompatible // indirect
@@ -178,7 +178,7 @@ require (
 	github.com/golangci/unconvert v0.0.0-20180507085042-28b1c447d1f4 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-containerregistry v0.11.0 // indirect
-	github.com/google/go-github/v48 v48.0.0 // indirect
+	github.com/google/go-github/v48 v48.1.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/pprof v0.0.0-20220729232143-a41b82acbcb1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -188,7 +188,7 @@ require (
 	github.com/gordonklaus/ineffassign v0.0.0-20210914165742-4cc7213b9bc8 // indirect
 	github.com/goreleaser/chglog v0.2.2 // indirect
 	github.com/goreleaser/fileglob v1.3.0 // indirect
-	github.com/goreleaser/nfpm/v2 v2.20.0 // indirect
+	github.com/goreleaser/nfpm/v2 v2.22.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
@@ -205,7 +205,7 @@ require (
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
-	github.com/invopop/jsonschema v0.6.0 // indirect
+	github.com/invopop/jsonschema v0.7.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jgautheron/goconst v1.5.1 // indirect
 	github.com/jingyugao/rowserrcheck v1.1.1 // indirect
@@ -217,7 +217,7 @@ require (
 	github.com/kisielk/errcheck v1.6.2 // indirect
 	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.3 // indirect
-	github.com/klauspost/compress v1.15.11 // indirect
+	github.com/klauspost/compress v1.15.12 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/kulti/thelper v0.6.3 // indirect
 	github.com/kunwardeep/paralleltest v1.0.6 // indirect
@@ -236,6 +236,7 @@ require (
 	github.com/matoous/godox v0.0.0-20210227103229-6504466cf951 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/mattn/go-mastodon v0.0.6 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mbilski/exhaustivestruct v1.2.0 // indirect
@@ -292,19 +293,19 @@ require (
 	github.com/sivchari/containedctx v1.0.2 // indirect
 	github.com/sivchari/nosnakecase v1.7.0 // indirect
 	github.com/sivchari/tenv v1.7.0 // indirect
-	github.com/slack-go/slack v0.11.3 // indirect
+	github.com/slack-go/slack v0.11.4 // indirect
 	github.com/sonatard/noctx v0.0.1 // indirect
 	github.com/sourcegraph/go-diff v0.6.1 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
-	github.com/spf13/cobra v1.6.0 // indirect
+	github.com/spf13/cobra v1.6.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.13.0 // indirect
 	github.com/ssgreg/nlreturn/v2 v2.2.1 // indirect
 	github.com/stbenjam/no-sprintf-host-port v0.1.1 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
-	github.com/stretchr/testify v1.8.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/tdakkota/asciicheck v0.1.1 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
@@ -315,13 +316,14 @@ require (
 	github.com/titanous/rocacheck v0.0.0-20171023193734-afe73141d399 // indirect
 	github.com/tomarrell/wrapcheck/v2 v2.7.0 // indirect
 	github.com/tommy-muehle/go-mnd/v2 v2.5.1 // indirect
+	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/ultraware/funlen v0.0.3 // indirect
 	github.com/ultraware/whitespace v0.0.5 // indirect
 	github.com/uudashr/gocognit v1.0.6 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1 // indirect
-	github.com/xanzy/go-gitlab v0.73.1 // indirect
+	github.com/xanzy/go-gitlab v0.74.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.2.0 // indirect
