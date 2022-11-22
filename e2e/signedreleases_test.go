@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSignedReleases, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-signed-releases-e2e")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),

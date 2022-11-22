@@ -72,10 +72,10 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		if err != nil {
 			return checker.SecurityPolicyData{}, fmt.Errorf("unable to create gitlab client: %w", err)
 		}
-		err = client.InitRepo(c.Repo, clients.HeadSHA)
+		err = client.InitRepo(c.Repo, clients.HeadSHA, 0)
 	} else {
 		client = githubrepo.CreateGithubRepoClient(c.Ctx, logger)
-		err = client.InitRepo(c.Repo.Org(), clients.HeadSHA)
+		err = client.InitRepo(c.Repo.Org(), clients.HeadSHA, 0)
 	}
 	switch {
 	case err == nil:

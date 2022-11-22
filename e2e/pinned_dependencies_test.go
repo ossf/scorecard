@@ -39,7 +39,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-pinned-dependencies-e2e")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -64,7 +64,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-pinned-dependencies-e2e")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "c8bfd7cf04ea7af741e1d07af98fabfcc1b6ffb1")
+			err = repoClient.InitRepo(repo, "c8bfd7cf04ea7af741e1d07af98fabfcc1b6ffb1", 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -100,7 +100,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			Expect(err).Should(BeNil())
 
 			x := localdir.CreateLocalDirClient(context.Background(), logger)
-			err = x.InitRepo(repo, clients.HeadSHA)
+			err = x.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{

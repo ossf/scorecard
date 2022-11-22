@@ -42,7 +42,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -67,7 +67,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c")
+			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c", 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -91,7 +91,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			repo, err := githubrepo.MakeGithubRepo("spring-projects/spring-framework")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "ca5e453f87f7e84033bb90a2fb54ee9f7fc94d61")
+			err = repoClient.InitRepo(repo, "ca5e453f87f7e84033bb90a2fb54ee9f7fc94d61", 0)
 			Expect(err).Should(BeNil())
 
 			reviewData, err := raw.CodeReview(repoClient)

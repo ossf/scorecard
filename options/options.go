@@ -41,8 +41,8 @@ type Options struct {
 	ResultsFile string
 	ChecksToRun []string
 	Metadata    []string
+	CommitDepth int
 	ShowDetails bool
-
 	// Feature flags.
 	EnableSarif       bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6 bool `env:"SCORECARD_V6"`
@@ -54,7 +54,6 @@ func New() *Options {
 	if err := env.Parse(opts); err != nil {
 		fmt.Printf("could not parse env vars, using default options: %v", err)
 	}
-
 	// Defaulting.
 	// TODO(options): Consider moving this to a separate function/method.
 	if opts.Commit == "" {
@@ -66,7 +65,6 @@ func New() *Options {
 	if opts.LogLevel == "" {
 		opts.LogLevel = DefaultLogLevel
 	}
-
 	return opts
 }
 
@@ -75,7 +73,6 @@ const (
 	DefaultCommit = clients.HeadSHA
 
 	// Formats.
-
 	// FormatJSON specifies that results should be output in JSON format.
 	FormatJSON = "json"
 	// FormatSarif specifies that results should be output in SARIF format.
@@ -86,7 +83,6 @@ const (
 	FormatRaw = "raw"
 
 	// Environment variables.
-
 	// EnvVarEnableSarif is the environment variable which controls enabling
 	// SARIF logging.
 	EnvVarEnableSarif = "ENABLE_SARIF"

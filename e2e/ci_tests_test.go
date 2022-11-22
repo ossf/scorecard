@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -60,7 +60,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c")
+			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c", 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -84,7 +84,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			repo, err := githubrepo.MakeGithubRepo("duo-labs/parliament")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "1ead655ec85bdbe0739e4a4125ce36eb48a329bc")
+			err = repoClient.InitRepo(repo, "1ead655ec85bdbe0739e4a4125ce36eb48a329bc", 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),

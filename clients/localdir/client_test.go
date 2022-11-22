@@ -76,7 +76,7 @@ func TestClient_CreationAndCaching(t *testing.T) {
 			}
 
 			client := CreateLocalDirClient(ctx, logger)
-			if err := client.InitRepo(repo, clients.HeadSHA); err != nil {
+			if err := client.InitRepo(repo, clients.HeadSHA, 30); err != nil {
 				t.Errorf("InitRepo: %v", err)
 			}
 

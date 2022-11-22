@@ -52,10 +52,11 @@ type Client struct {
 	languages     *languagesHandler
 	ctx           context.Context
 	tarball       tarballHandler
+	commitDepth   int
 }
 
 // InitRepo sets up the GitLab project in local storage for improving performance and GitLab token usage efficiency.
-func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
+func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	glRepo, ok := inputRepo.(*repoURL)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
@@ -66,9 +67,12 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}
-
+	if commitDepth <= 0 {
+		client.commitDepth = 30 // default
+	} else {
+		client.commitDepth = commitDepth
+	}
 	client.repo = repo
-
 	client.repourl = &repoURL{
 		hostname:      inputRepo.URI(),
 		projectID:     fmt.Sprint(repo.ID),

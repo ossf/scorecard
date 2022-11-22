@@ -70,7 +70,7 @@ func serveCmd(o *options.Options) *cobra.Command {
 				ciiClient := clients.DefaultCIIBestPracticesClient()
 				checksToRun := checks.GetAll()
 				repoResult, err := pkg.RunScorecards(
-					ctx, repo, clients.HeadSHA /*commitSHA*/, checksToRun, repoClient,
+					ctx, repo, clients.HeadSHA /*commitSHA*/, o.CommitDepth, checksToRun, repoClient,
 					ossFuzzRepoClient, ciiClient, vulnsClient)
 				if err != nil {
 					logger.Error(err, "running enabled scorecard checks on repo")
