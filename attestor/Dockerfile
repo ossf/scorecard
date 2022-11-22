@@ -1,4 +1,4 @@
-# Copyright 2021 Security Scorecard Authors
+# Copyright 2022 Security Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-name: 'Dependency Review'
-on: [pull_request]
 
-permissions:
-  contents: read
+FROM golang@sha256:ea3d912d500b1ae0a691b2e53eb8a6345b579d42d7e6a64acca83d274b949740 AS base
+WORKDIR /src/scorecard
+COPY . ./
 
-jobs:
-  dependency-review:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Checkout Repository'
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-      - name: 'Dependency Review'
-        uses: actions/dependency-review-action@11310527b429536e263dc6cc47873e608189ba21
+FROM base AS build
+ARG TARGETOS
+ARG TARGETARCH
+RUN make build-attestor
+
+FROM gcr.io/google-appengine/debian11@sha256:fed7dd5b2c4bbfb70bd26a277cdaff98dced71f113632ccd5451dcc013fce0a4
+COPY --from=build /src/scorecard/attestor /
+ENTRYPOINT [ "/scorecard-attestor" ]
+

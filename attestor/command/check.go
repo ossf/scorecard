@@ -26,23 +26,34 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-func runCheck() error {
+type EmptyParameterError struct {
+	Param string
+}
+
+func (ep EmptyParameterError) Error() string {
+	return fmt.Sprintf("param %s is empty", ep.Param)
+}
+
+func runCheck() (policy.PolicyResult, error) {
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.DefaultLevel)
 
 	// Read the Binauthz attestation policy
 	if policyPath == "" {
-		return fmt.Errorf("policy path is empty")
+		return policy.Fail, EmptyParameterError{Param: "policy"}
 	}
+
+	var attestationPolicy *policy.AttestationPolicy
+
 	attestationPolicy, err := policy.ParseAttestationPolicyFromFile(policyPath)
 	if err != nil {
-		return fmt.Errorf("fail to load scorecard attestation policy: %v", err)
+		return policy.Fail, fmt.Errorf("fail to load scorecard attestation policy: %w", err)
 	}
 
 	if repoURL == "" {
 		buildRepo := os.Getenv("REPO_NAME")
 		if buildRepo == "" {
-			return fmt.Errorf("repoURL not specified")
+			return policy.Fail, EmptyParameterError{Param: "repoURL"}
 		}
 		repoURL = buildRepo
 		logger.Info(fmt.Sprintf("Found repo URL %s Cloud Build environment", repoURL))
@@ -54,14 +65,18 @@ func runCheck() error {
 		buildSHA := os.Getenv("COMMIT_SHA")
 		if buildSHA == "" {
 			logger.Info("commit not specified, running on HEAD")
+			commitSHA = "HEAD"
 		} else {
 			commitSHA = buildSHA
-			logger.Info(fmt.Sprintf("Found revision %s Cloud Build environment", commitSHA))
+			logger.Info(fmt.Sprintf("Found revision %s from GCB build environment", commitSHA))
 		}
 	}
 
 	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
 		ctx, repoURL, "", logger)
+	if err != nil {
+		return policy.Fail, fmt.Errorf("couldn't set up clients: %w", err)
+	}
 
 	requiredChecks := attestationPolicy.GetRequiredChecksForPolicy()
 
@@ -90,16 +105,17 @@ func runCheck() error {
 		vulnsClient,
 	)
 	if err != nil {
-		return fmt.Errorf("RunScorecards: %w", err)
+		return policy.Fail, fmt.Errorf("RunScorecards: %w", err)
 	}
 
 	result, err := attestationPolicy.EvaluateResults(&repoResult.RawResults)
 	if err != nil {
-		return fmt.Errorf("error when evaluating image %q against policy", image)
+		return policy.Fail, fmt.Errorf("error when evaluating image %q against policy: %w", image, err)
 	}
 	if result != policy.Pass {
-		return fmt.Errorf("image failed policy check %s:", image)
+		logger.Info("image failed scorecard attestation policy check")
+	} else {
+		logger.Info("image passed scorecard attestation policy check")
 	}
-	logger.Info("Policy check passed")
-	return nil
+	return result, nil
 }
