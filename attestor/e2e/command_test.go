@@ -18,6 +18,7 @@ import (
 	"strings"
 	"testing"
 
+
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard-attestor/command"

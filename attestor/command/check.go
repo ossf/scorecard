@@ -97,6 +97,7 @@ func runCheck() (policy.PolicyResult, error) {
 		ctx,
 		repo,
 		commitSHA,
+		0,
 		enabledChecks,
 		repoClient,
 		ossFuzzRepoClient,

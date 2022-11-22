@@ -243,6 +243,7 @@ build-attestor: ## Runs go build on scorecard attestor
 	# Run go build on scorecard attestor
 	cd attestor/; CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)' -o scorecard-attestor
 
+
 build-attestor-docker: ## Build scorecard-attestor Docker image
 build-attestor-docker:
 	DOCKER_BUILDKIT=1 docker build . --file attestor/Dockerfile \

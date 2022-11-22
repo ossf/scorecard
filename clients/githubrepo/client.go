@@ -55,10 +55,11 @@ type Client struct {
 	languages     *languagesHandler
 	ctx           context.Context
 	tarball       tarballHandler
+	commitDepth   int
 }
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
-func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
+func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	ghRepo, ok := inputRepo.(*repoURL)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
@@ -69,7 +70,11 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}
-
+	if commitDepth <= 0 {
+		client.commitDepth = 30 // default
+	} else {
+		client.commitDepth = commitDepth
+	}
 	client.repo = repo
 	client.repourl = &repoURL{
 		owner:         repo.Owner.GetLogin(),
@@ -82,7 +87,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	client.tarball.init(client.ctx, client.repo, commitSHA)
 
 	// Setup GraphQL.
-	client.graphClient.init(client.ctx, client.repourl)
+	client.graphClient.init(client.ctx, client.repourl, client.commitDepth)
 
 	// Setup contributorsHandler.
 	client.contributors.init(client.ctx, client.repourl)
@@ -138,6 +143,7 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 
 // ListIssues implements RepoClient.ListIssues.
 func (client *Client) ListIssues() ([]clients.Issue, error) {
+	// here you would need to pass commitDepth or something
 	return client.graphClient.getIssues()
 }
 
@@ -295,7 +301,7 @@ func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.R
 	}
 
 	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger)
-	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, clients.HeadSHA); err != nil {
+	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, clients.HeadSHA, 0); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
 	return ossFuzzRepoClient, nil
