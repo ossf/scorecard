@@ -7,9 +7,8 @@ on:
   schedule:
     # Weekly on Saturdays.
     - cron:  '30 1 * * 6'
-  #pull_request:
-    # All branches are supported.
-  #  branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions: read-all
 
