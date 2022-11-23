@@ -110,7 +110,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -137,7 +137,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
 			// url to commit is https://gitlab.com/gitlab-org/gitlab/-/commit/8ae23fa220d73fa07501aabd94214c9e83fe61a0
-			err = repoClient.InitRepo(repo, "8ae23fa220d73fa07501aabd94214c9e83fe61a0")
+			err = repoClient.InitRepo(repo, "8ae23fa220d73fa07501aabd94214c9e83fe61a0", 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),

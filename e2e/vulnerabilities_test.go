@@ -120,7 +120,7 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			dl := scut.TestDetailLogger{}
@@ -149,7 +149,7 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
-			err = repoClient.InitRepo(repo, "de6367caa31b59e2156f83b04c2f30611b7ac393")
+			err = repoClient.InitRepo(repo, "de6367caa31b59e2156f83b04c2f30611b7ac393", 0)
 			Expect(err).Should(BeNil())
 
 			dl := scut.TestDetailLogger{}

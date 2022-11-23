@@ -124,7 +124,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 		// 	repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(),
 		//		os.Getenv("GITLAB_AUTH_TOKNE"), repo)
 		// 	Expect(err).Should(BeNil())
-		// 	err = repoClient.InitRepo(repo, clients.HeadSHA)
+		// 	err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 		// 	Expect(err).Should(BeNil())
 		// 	req := checker.CheckRequest{
 		// 		Ctx:        context.Background(),
@@ -151,7 +151,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 		// 	repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(),
 		//		os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 		// 	Expect(err).Should(BeNil())
-		// 	err = repoClient.InitRepo(repo, "8db326e9ba20517feeefd157524a89184ed41f7f")
+		// 	err = repoClient.InitRepo(repo, "8db326e9ba20517feeefd157524a89184ed41f7f", 0)
 		// 	Expect(err).Should(BeNil())
 		// 	req := checker.CheckRequest{
 		// 		Ctx:        context.Background(),

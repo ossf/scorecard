@@ -33,6 +33,8 @@ require (
 	github.com/googleapis/gnostic v0.2.2 // indirect
 	github.com/gophercloud/gophercloud v0.1.0 // indirect
 	github.com/h2non/filetype v1.1.3 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
@@ -54,6 +56,7 @@ require (
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
+	github.com/xanzy/go-gitlab v0.76.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/term v0.2.0 // indirect
 	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af // indirect

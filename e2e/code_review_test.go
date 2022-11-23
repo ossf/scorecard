@@ -16,11 +16,8 @@ package e2e
 
 import (
 	"context"
-<<<<<<< HEAD
-	"os"
-=======
 	"fmt"
->>>>>>> 4063fb6 (🌱 Code Review: treat merging a PR as code review (#2413))
+	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -117,7 +114,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -146,7 +143,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
-			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c")
+			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c", 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -164,6 +161,27 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return use of implicit code reviews at commit", func() {
+			repo, err := githubrepo.MakeGithubRepo("spring-projects/spring-framework")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "ca5e453f87f7e84033bb90a2fb54ee9f7fc94d61", 0)
+			Expect(err).Should(BeNil())
+
+			reviewData, err := raw.CodeReview(repoClient)
+			Expect(err).Should(BeNil())
+			Expect(reviewData.DefaultBranchChangesets).ShouldNot(BeEmpty())
+
+			gh := 0
+			for _, cs := range reviewData.DefaultBranchChangesets {
+				if cs.ReviewPlatform == checker.ReviewPlatformGitHub {
+					fmt.Printf("found github revision %s in spring-framework", cs.RevisionID)
+					gh += 1
+				}
+			}
+			Expect(gh).Should(BeNumerically("==", 2))
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

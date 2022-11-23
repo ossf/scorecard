@@ -63,7 +63,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSAST, func() {
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
