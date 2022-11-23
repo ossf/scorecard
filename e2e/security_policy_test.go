@@ -192,9 +192,9 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			// TODO: update expected based on what is returned from gitlab project.
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				Score:         9,
+				NumberOfWarn:  1,
+				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
@@ -222,9 +222,9 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				Score:         9,
+				NumberOfWarn:  1,
+				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)

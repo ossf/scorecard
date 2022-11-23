@@ -126,7 +126,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  20,
+				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
@@ -155,7 +155,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  20,
+				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
