@@ -56,11 +56,11 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	hm := make(map[string]permissions)
 	dl := c.Dlogger
 	//nolint:errcheck
-	remediaitonMetadata, _ := remediation.New(c)
+	remediationMetadata, _ := remediation.New(c)
 
 	for _, r := range results.TokenPermissions {
 		var msg checker.LogMessage
-
+		var rem *checker.Remediation
 		if r.File != nil {
 			msg.Path = r.File.Path
 			msg.Offset = r.File.Offset
@@ -68,7 +68,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 			msg.Snippet = r.File.Snippet
 
 			if msg.Path != "" {
-				msg.Remediation = remediaitonMetadata.CreateWorkflowPermissionRemediation(r.File.Path)
+				rem = remediationMetadata.CreateWorkflowPermissionRemediation(r.File.Path)
 			}
 		}
 
@@ -92,7 +92,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 
 			// We warn only for top-level.
 			if *r.LocationType == checker.PermissionLocationTop {
-				dl.Warn(&msg)
+				warnWithRemediation(dl, &msg, rem)
 			} else {
 				dl.Debug(&msg)
 			}
@@ -103,7 +103,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 			}
 
 		case checker.PermissionLevelWrite:
-			dl.Warn(&msg)
+			warnWithRemediation(dl, &msg, rem)
 
 			// Group results by workflow name for score computation.
 			if err := updateWorkflowHashMap(hm, r); err != nil {
@@ -113,6 +113,11 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	}
 
 	return calculateScore(hm), nil
+}
+
+func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage, rem *checker.Remediation) {
+	msg.Remediation = rem
+	logger.Warn(msg)
 }
 
 func recordPermissionWrite(hm map[string]permissions, path string,
