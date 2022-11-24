@@ -61,6 +61,7 @@ jobs:
         uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         with:
           max_attempts: 3
           retry_on: error
