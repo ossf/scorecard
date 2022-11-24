@@ -14,8 +14,8 @@
 
 name: build
 
-permissions:
-  contents: read
+#permissions:
+#  contents: read
 
 on:
   push:
