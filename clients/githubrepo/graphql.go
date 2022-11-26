@@ -36,7 +36,6 @@ const (
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
-	commitsToAnalyze       = 30
 )
 
 var errNotCached = errors.New("result not cached")
@@ -100,7 +99,12 @@ type graphqlData struct {
 							}
 						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 					}
-				} `graphql:"history(first: $commitsToAnalyze)"`
+					PageInfo struct {
+						StartCursor githubv4.String
+						EndCursor   githubv4.String
+						HasNextPage bool
+					}
+				} `graphql:"history(first: $commitsToAnalyze, after: $historyCursor)"`
 			} `graphql:"... on Commit"`
 		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
@@ -183,9 +187,10 @@ type graphqlHandler struct {
 	commits            []clients.Commit
 	issues             []clients.Issue
 	archived           bool
+	commitDepth        int
 }
 
-func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
+func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commitDepth int) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 	handler.data = new(graphqlData)
@@ -195,6 +200,32 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.setupCheckRunsOnce = new(sync.Once)
 	handler.checkRuns = checkRunCache{}
 	handler.logger = log.NewLogger(log.DefaultLevel)
+	handler.commitDepth = commitDepth
+}
+
+func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]clients.Commit, error) {
+	var allCommits []clients.Commit
+	var commitsLeft githubv4.Int
+	commitsLeft, ok := vars["commitsToAnalyze"].(githubv4.Int)
+	if !ok {
+		return nil, nil
+	}
+	for vars["commitsToAnalyze"] = githubv4.Int(100); commitsLeft > 0; commitsLeft = commitsLeft - 100 {
+		if commitsLeft < 100 {
+			vars["commitsToAnalyze"] = commitsLeft
+		}
+		err := handler.client.Query(handler.ctx, handler.data, vars)
+		if err != nil {
+			return nil, fmt.Errorf("failed to populate commits: %w", err)
+		}
+		vars["historyCursor"] = handler.data.Repository.Object.Commit.History.PageInfo.EndCursor
+		tmp, err := commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
+		if err != nil {
+			return nil, fmt.Errorf("failed to populate commits: %w", err)
+		}
+		allCommits = append(allCommits, tmp...)
+	}
+	return allCommits, nil
 }
 
 func (handler *graphqlHandler) setup() error {
@@ -208,19 +239,24 @@ func (handler *graphqlHandler) setup() error {
 			"issueCommentsToAnalyze": githubv4.Int(issueCommentsToAnalyze),
 			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
 			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
-			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
+			"commitsToAnalyze":       githubv4.Int(handler.commitDepth),
 			"commitExpression":       githubv4.String(commitExpression),
+			"historyCursor":          (*githubv4.String)(nil),
+		}
+		// if NumberOfCommits set to < 99 we are required by the graphql to page by 100 commits.
+		if handler.commitDepth > 99 {
+			handler.commits, handler.errSetup = populateCommits(handler, vars)
+			handler.issues = issuesFrom(handler.data)
+			handler.archived = bool(handler.data.Repository.IsArchived)
+			return
 		}
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
 		}
-		handler.archived = bool(handler.data.Repository.IsArchived)
 		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
-		if handler.errSetup != nil {
-			return
-		}
 		handler.issues = issuesFrom(handler.data)
+		handler.archived = bool(handler.data.Repository.IsArchived)
 	})
 	return handler.errSetup
 }
@@ -232,9 +268,15 @@ func (handler *graphqlHandler) setupCheckRuns() error {
 			"owner":                 githubv4.String(handler.repourl.owner),
 			"name":                  githubv4.String(handler.repourl.repo),
 			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
+			"commitsToAnalyze":      githubv4.Int(handler.commitDepth),
 			"commitExpression":      githubv4.String(commitExpression),
 			"checksToAnalyze":       githubv4.Int(checksToAnalyze),
+		}
+		// TODO(#2224):
+		// sast and ci checks causes cache miss if commits dont match number of check runs.
+		// paging for this needs to be implemented if using higher than 100 --number-of-commits
+		if handler.commitDepth > 99 {
+			vars["commitsToAnalyze"] = githubv4.Int(99)
 		}
 		if err := handler.client.Query(handler.ctx, handler.checkData, vars); err != nil {
 			// quit early without setting crsErrSetup for "Resource not accessible by integration" error
@@ -325,7 +367,7 @@ func parseCheckRuns(data *checkRunsGraphqlData) checkRunCache {
 	return checkCache
 }
 
-//nolint
+// nolint
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {

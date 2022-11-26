@@ -7,9 +7,8 @@ on:
   schedule:
     # Weekly on Saturdays.
     - cron:  '30 1 * * 6'
-  #pull_request:
-    # All branches are supported.
-  #  branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions: read-all
 
@@ -48,6 +47,6 @@ jobs:
           retention-days: 5
 
       - name: "Upload SARIF results"
-        uses: github/codeql-action/upload-sarif@c3b6fce4ee2ca25bc1066aa3bf73962fda0e8898 # v1
+        uses: github/codeql-action/upload-sarif@678fc3afe258fb2e0cdc165ccf77b85719de7b3c # v1
         with:
           sarif_file: results.sarif

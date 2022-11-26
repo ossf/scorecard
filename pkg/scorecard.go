@@ -84,13 +84,14 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 func RunScorecards(ctx context.Context,
 	repo clients.Repo,
 	commitSHA string,
+	commitDepth int,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 ) (ScorecardResult, error) {
-	if err := repoClient.InitRepo(repo, commitSHA); err != nil {
+	if err := repoClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
 		return ScorecardResult{}, err

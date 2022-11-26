@@ -63,8 +63,9 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	// https#://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
 	// TODO(1491): Make this non-GitHub specific.
 	logger := log.NewLogger(log.InfoLevel)
+	// HAD TO HARD CODE TO 30
 	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
-	err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA)
+	err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA, 0)
 	switch {
 	case err == nil:
 		defer dotGitHubClient.Close()
