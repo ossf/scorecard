@@ -140,6 +140,7 @@ type License struct {
 	Name        string                 // OSI standardized license name
 	SpdxID      string                 // SPDX standardized identifier
 	Attribution LicenseAttributionType // source of licensing information
+	Approved    bool                   // FSF or OSI Approved License
 }
 
 // one file contains one license.

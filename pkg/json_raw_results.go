@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -172,6 +173,7 @@ type jsonLicenseInfo struct {
 	Name        string `json:"name,omitempty"`
 	SpdxID      string `json:"spdxid,omitempty"`
 	Attribution string `json:"attribution,omitempty"`
+	Approved    string `json:"approved,omitempty"`
 }
 
 type jsonLicense struct {
@@ -611,6 +613,7 @@ func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) e
 					Name:        ld.LicenseFiles[idx].LicenseInformation.Name,
 					SpdxID:      ld.LicenseFiles[idx].LicenseInformation.SpdxID,
 					Attribution: string(ld.LicenseFiles[idx].LicenseInformation.Attribution),
+					Approved:    strconv.FormatBool(ld.LicenseFiles[idx].LicenseInformation.Approved),
 				},
 			},
 		)

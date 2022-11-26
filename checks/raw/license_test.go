@@ -73,7 +73,7 @@ func TestLicenseFileCheck(t *testing.T) {
 		{
 			name:       "MIT-COPYING",
 			filename:   "MIT-COPYING",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
@@ -249,14 +249,6 @@ func TestLicenseFileCheck(t *testing.T) {
 		{
 			name:       "APACHE_LICENSETEXT.md",
 			filename:   "APACHE_LICENSETEXT.md",
-			shouldFail: true,
-			extensions: []string{
-				"",
-			},
-		},
-		{
-			name:       "COPYING",
-			filename:   "COPYING",
 			shouldFail: false,
 			extensions: []string{
 				"",
@@ -295,10 +287,9 @@ func TestLicenseFileCheck(t *testing.T) {
 			},
 		},
 		{
-			name: "GPL-2.0-LICENSE",
-			// TODO: fix regex which will flip shouldFail
+			name:       "GPL-2.0-LICENSE",
 			filename:   "GPL-2.0-LICENSE",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
@@ -314,7 +305,7 @@ func TestLicenseFileCheck(t *testing.T) {
 		{
 			name:       "GPL2LICENCES",
 			filename:   "GPL2LICENCES",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
@@ -338,14 +329,6 @@ func TestLicenseFileCheck(t *testing.T) {
 		{
 			name:       "LICENCES",
 			filename:   "LICENCES",
-			shouldFail: false,
-			extensions: []string{
-				"",
-			},
-		},
-		{
-			name:       "LICENSE",
-			filename:   "LICENSE",
 			shouldFail: false,
 			extensions: []string{
 				"",
@@ -434,7 +417,7 @@ func TestLicenseFileCheck(t *testing.T) {
 		{
 			name:       "MIG_kjahdskhaskjdhk_LICENSE",
 			filename:   "MIG_kjahdskhaskjdhk_LICENSE",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
@@ -450,7 +433,7 @@ func TestLicenseFileCheck(t *testing.T) {
 		{
 			name:       "MIT_.0_LICENSE",
 			filename:   "MIT_.0_LICENSE",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
@@ -458,7 +441,7 @@ func TestLicenseFileCheck(t *testing.T) {
 		{
 			name:       "MIT_kjahdskhaskjdhk_LICENSE",
 			filename:   "MIT_kjahdskhaskjdhk_LICENSE",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
@@ -521,7 +504,7 @@ func TestLicenseFileCheck(t *testing.T) {
 		},
 		{
 			name: "license.yaml",
-			// TODO: fix regex which will flip shouldFail
+			// TODO: fix ext testing can't discern an invalid fileext from a valid SpdxID
 			filename:   "license.yaml",
 			shouldFail: false,
 			extensions: []string{
@@ -529,54 +512,50 @@ func TestLicenseFileCheck(t *testing.T) {
 			},
 		},
 		{
-			name:       "licenserc.yaml",
+			name: "licenserc.yaml",
+			// TODO: fix ext testing can't discern an invalid fileext from a valid SpdxID
 			filename:   "licenserc.yaml",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
 		},
 		{
-			name: "mit-2-0-0-LICENSE",
-			// TODO: fix regex which will flip shouldFail
+			name:       "mit-2-0-0-LICENSE",
 			filename:   "mit-2-0-0-LICENSE",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
 		},
 		{
-			name: "mit-2.0.0-LICENSE",
-			// TODO: fix regex which will flip shouldFail
+			name:       "mit-2.0.0-LICENSE",
 			filename:   "mit-2.0.0-LICENSE",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
 		},
 		{
-			name: "mit.2.0.0.LICENSE",
-			// TODO: fix regex which will flip shouldFail
+			name:       "mit.2.0.0.LICENSE",
 			filename:   "mit.2.0.0.LICENSE",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
 		},
 		{
-			name: "mit_2_0_0_LICENSE",
-			// TODO: fix regex which will flip shouldFail
+			name:       "mit_2_0_0_LICENSE",
 			filename:   "mit_2_0_0_LICENSE",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
 		},
 		{
-			name: "mit_2_0_LICENSE",
-			// TODO: fix regex which will flip shouldFail
+			name:       "mit_2_0_LICENSE",
 			filename:   "mit_2_0_LICENSE",
-			shouldFail: true,
+			shouldFail: false,
 			extensions: []string{
 				"",
 			},
