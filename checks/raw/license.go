@@ -28,12 +28,13 @@ import (
 )
 
 // from checks.md
-//   - files must be at the top-level directory (hence the '^' in the regex)
+//   - files must be at the top-level directory (hence the '^' in the regex).
 //   - files must be of the name like COPY[ING|RIGHT] or LICEN[SC]E(plural)
-//     no preceding names or the like (again, hence the '^')
-//   - a folder is also acceptable as in COPYRIGHT/ or LICENSES/ although
-//     the contents of the folder are totally ignored at this time
-//   - file or folder the contents are not (yet) examined
+//     no preceding names or the like (again, hence the '^').
+//   - a folder is also acceptable as in COPYRIGHT/ or LICENSES/.
+//
+// TODO: although the contents of the folder are totally ignored at this time.
+// TODO: file or folder the contents are not (yet) examined.
 //   - it is a case insenstive check (hence the leading regex compiler option).
 var reLicenseFile = regexp.MustCompile(
 	// generalized pattern matching to detect a file named:
@@ -57,6 +58,10 @@ var reLicenseFile = regexp.MustCompile(
 	//      followed by some form of a version number (major, minor, but
 	//      no patch--with each number being no more than 2 digits) where
 	//      that version number may be proceeded by a letter.
+	//   3. the function 'validateSpdxIDAndExt()' in this check works
+	//      to disambiguate SPDX Identifiers and allowed file extensions
+	//      that cannot be cleanly (or regularly) discerned by regex,
+	//      that is why this is a generalized regex pattern.
 	`(?i)` + // case insensitive
 		`^(?P<lp>` + // must be at the top level (i.e., no leading dot/period or path separator)
 		// (opt) preceded SPDX ID (e.g., 'GPL-2.0' as in GPL-2.0-LICENCE)
@@ -79,7 +84,7 @@ var reGroupNames = reLicenseFile.SubexpNames()
 
 // from checks.md
 //   - for the most part extension are ignore, but this cannot be so, many files
-//     can get caught up in the filename match (like .license.yaml), therefore
+//     can get caught up in the filename match (like 'license.yaml'), therefore
 //     the need to accept a host of file extensions which could likely contain
 //     license information.
 var reLicenseFileExts = regexp.MustCompile(
@@ -103,29 +108,9 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 	var results checker.LicenseData
 
 	// prepare case insensitive map to map approved licenses matched in repo.
-	ciMapMutex.Lock()
-	defer ciMapMutex.Unlock()
-	if len(fsfOsiApprovedLicenseCiMap) == 0 {
-		for key, entry := range fsfOsiApprovedLicenseMap {
-			// Special case, the unlicense, in the map is
-			// called 'The Unlicense' with the Spdx id 'Unlicense'.
-			// For the regex's 'un' will match the [pre|suf]Spdx
-			// regex group (just as it would match '0BSD'), but
-			// 'un' will not "hit" in the map with key 'Unlicense'
-			// so change to 'UN' for 'unlicense' for 'isLicenseFile()'
-			if strings.ToUpper(key) == "UNLICENSE" {
-				fsfOsiApprovedLicenseCiMap["UN"] = entry
-			} else {
-				// TODO: unit-test fails with race condition
-				//       source seems to be strings.ToUpper()
-				//       unit-test does a parallel test - could be the cause
-				fsfOsiApprovedLicenseCiMap[strings.ToUpper(key)] = entry
-			}
-		}
-	}
+	setCiMap()
 
 	licensesFound, lerr := c.RepoClient.ListLicenses()
-	// TODO: lerr = clients.ErrUnsupportedFeature
 	switch {
 	// repo API for licenses is supported
 	// go the work and return from immediate (no searching repo).
@@ -157,14 +142,9 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 	}
 
 	// prepare map to index into regex named groups
-	// only needs to be done once for the license check
-	if len(reGroupIdxs) == 0 {
-		for idx, vl := range reGroupNames {
-			if vl != "" {
-				reGroupIdxs[vl] = idx
-			}
-		}
-	}
+	// only needs to be done once for the non-repo
+	// license check.
+	setGroupIdxsMap()
 
 	// no repo API for listing licenses, continue looking for files
 	path := checker.LicenseFile{}
@@ -203,6 +183,9 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 
 // TestLicense used for testing purposes.
 func TestLicense(name string) bool {
+	setCiMap()
+	setGroupIdxsMap()
+
 	_, ok := checkLicense(name)
 	return ok
 }
@@ -222,7 +205,53 @@ var isLicenseFile fileparser.DoWhileTrueOnFilename = func(name string, args ...i
 	return true, nil
 }
 
+// direct mapping of regex groups by name to index number.
 var reGroupIdxs = make(map[string]int)
+
+// case-insensitive map of fsfOsiApprovedLicenseMap.
+var fsfOsiApprovedLicenseCiMap = map[string]fsfOsiLicenseType{}
+
+// parallel testing in license_test.go causes a race
+// in initializing the CiMap and reGroupIdxs with values, this shared mutex
+// prevents that race condition in the unit-test.
+var (
+	ciMapMutex        = sync.Mutex{}
+	reGrpIdxsMapMutex = sync.Mutex{}
+)
+
+func setCiMap() {
+	ciMapMutex.Lock()
+	defer ciMapMutex.Unlock()
+	if len(fsfOsiApprovedLicenseCiMap) == 0 {
+		for key, entry := range fsfOsiApprovedLicenseMap {
+			// Special case, the unlicense, in the map is
+			// called 'The Unlicense' with the Spdx id 'Unlicense'.
+			// For the regex's 'un' will match the [pre|suf]Spdx
+			// regex group (just as it would match '0BSD'), but
+			// 'un' will not "hit" in the map with key 'Unlicense'
+			// so change to 'UN' for 'unlicense' for 'isLicenseFile()'
+			// TODO: make this general (pass a key map for changing these
+			//       special cases). For now this is the only one.
+			if strings.ToUpper(key) == "UNLICENSE" {
+				fsfOsiApprovedLicenseCiMap["UN"] = entry
+			} else {
+				fsfOsiApprovedLicenseCiMap[strings.ToUpper(key)] = entry
+			}
+		}
+	}
+}
+
+func setGroupIdxsMap() {
+	reGrpIdxsMapMutex.Lock()
+	defer reGrpIdxsMapMutex.Unlock()
+	if len(reGroupIdxs) == 0 {
+		for idx, vl := range reGroupNames {
+			if vl != "" {
+				reGroupIdxs[vl] = idx
+			}
+		}
+	}
+}
 
 func getSpdxID(matches []string) string {
 	// try to discern an SPDX Identifier (a)
@@ -255,7 +284,6 @@ func getFolder(matches []string) string {
 }
 
 func extensionOK(ext string) bool {
-	// TODO check and if needed reject files with unrecognized extensions
 	if ext == "" {
 		return true
 	}
@@ -269,22 +297,21 @@ func validateSpdxIDAndExt(matches []string, spdx, ext string) (string, string) {
 
 	// fixes when [pre|suf]Spdx consumes ext
 	if ext != "" && strings.Contains(ext, spdx) {
-		// TODO: fmt.Printf("FIX FAILURE C Ext is '%s' spdx is '%s' reExt is '%s'\n", ext, spdx, matches[reGroupIdxs["ext"]])
 		spdx = ""
 	}
 	// fixes when ext incorporates part of [pre|suf]Spdx as ext
+	// while allowing spdx's that appear as extensions which
+	// start with a digit.
 	if ext != "" && spdx != "" && strings.Contains(spdx, ext) {
-		if !extensionOK(ext) {
-			// TODO: fmt.Printf("FIX FAILURE B\n")
+		spdxDigitInExt := regexp.MustCompile(`\.[[:digit:]]`)
+		if !extensionOK(ext) && len(spdxDigitInExt.FindStringSubmatch(spdx)) > 0 {
 			ext = ""
 		} else {
 			spdx = strings.ReplaceAll(spdx, ext, "")
-			// TODO: fmt.Printf("FIXED FAILURE Bb r='%s, %s'\n", spdx, ext)
 		}
 	} else if ext != "" && spdx != "" && ext != spdx {
 		if ext != matches[reGroupIdxs["ext"]] {
 			spdx = spdx + matches[reGroupIdxs["ext"]]
-			// TODO: fmt.Printf("FIXED FAILURE Ba '%s'('%s') != '%s'\n", ext, matches[reGroupIdxs["ext"]], spdx)
 		}
 	}
 	return spdx, ext
@@ -295,23 +322,17 @@ func getLicensePath(matches []string, val, spdx, ext string) string {
 	// at this point what matched should equal
 	// the input given that there must have
 	// been an extension or either/both some
-	// match to an Spdx ID... check that here
+	// match to an Spdx ID, check that here.
 	if lp != val {
 		if getFolder(matches) == "" && spdx == "" {
-			// TODO: fmt.Printf("NG: in='%s' != lp='%s'\n", val, lp)
 			return ""
 		} else if lp+ext == val {
-			// TODO: fmt.Printf("\nFIX FAILURE E in='%s' != lp='%s'\nFIX FAILURE E '%#v'\n", val, lp, matches)
 			return lp + ext
 		}
-		// fixes failure E when an SpdxID is partially matched in regex
-		// this is for names like 'LICENSE-CC-BY-SA-4.0.md'
-		// which is caught here--the SpdxID 100% matched.
-		// TODO: fmt.Printf("\nASSERTION FAILURE E in='%s' != lp='%s'\n", val, lp)
 		return ""
 	}
+	// last chance to reject file extensions which are not allowed
 	if !extensionOK(ext) {
-		// TODO: fmt.Printf("\nASSERTION FAILURE E in='%s' != lp='%s' ext='%s'\n", val, lp, ext)
 		return ""
 	}
 	return lp
@@ -320,11 +341,10 @@ func getLicensePath(matches []string, val, spdx, ext string) string {
 func checkLicense(lfName string) (checker.LicenseFile, bool) {
 	grpMatches := reLicenseFile.FindStringSubmatch(lfName)
 	if len(grpMatches) == 0 {
-		// TODO: fmt.Printf ("NG: 3 '%s'\n", lfName)
 		return checker.LicenseFile{}, false
 	}
 
-	// ah.. detected one of the mandory file names
+	// Detected one of the mandatory file names
 	// quick check for done (the name passed is
 	// detected in its entirety)
 	// TODO: open/read contents to try to discern
@@ -332,7 +352,6 @@ func checkLicense(lfName string) (checker.LicenseFile, bool) {
 	//       no hints.
 	licensePath := grpMatches[reGroupIdxs["detectedFile"]]
 	if lfName == licensePath {
-		// TODO: fmt.Printf ("CK: 1 '%s'\n", licensePath)
 		return (checker.LicenseFile{
 			File: checker.File{
 				Path: licensePath,
@@ -364,7 +383,7 @@ func checkLicense(lfName string) (checker.LicenseFile, bool) {
 	return (checker.LicenseFile{
 		File: checker.File{
 			Path: licensePath,
-			Type: checker.FileTypeSource, // TODO: introduce FileTypeFolder
+			Type: checker.FileTypeSource, // TODO: introduce FileTypeFolder with licenseFolder
 		},
 		LicenseInformation: checker.License{
 			SpdxID: licenseSpdxID,
@@ -375,14 +394,6 @@ func checkLicense(lfName string) (checker.LicenseFile, bool) {
 type fsfOsiLicenseType struct {
 	Name string
 }
-
-// case-insensitive map of fsfOsiApprovedLicenseMap.
-var fsfOsiApprovedLicenseCiMap = map[string]fsfOsiLicenseType{}
-
-// parallel testing in license_test.go causes a race
-// in initializing the CiMap above, this shared mutex
-// prevents that race condition in the unit-test.
-var ciMapMutex = sync.Mutex{}
 
 // (there's no magic here)
 // created from the table at https://spdx.org/licenses

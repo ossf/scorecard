@@ -33,14 +33,17 @@ func TestLicenseFileCheck(t *testing.T) {
 			shouldFail: false,
 			extensions: []string{
 				"",
-				".textile",
-				".txt",
-				".rst",
-				".PSF",
-				".APACHE",
-				".BSD",
+				".adoc",
+				".asc",
+				".docx",
+				".doc",
+				".ext",
+				".html",
+				".markdown",
 				".md",
-				"-MIT",
+				".rst",
+				".txt",
+				".xml",
 			},
 		},
 		{
@@ -49,6 +52,17 @@ func TestLicenseFileCheck(t *testing.T) {
 			shouldFail: false,
 			extensions: []string{
 				"",
+				".adoc",
+				".asc",
+				".docx",
+				".doc",
+				".ext",
+				".html",
+				".markdown",
+				".md",
+				".rst",
+				".txt",
+				".xml",
 			},
 		},
 		{
@@ -57,8 +71,17 @@ func TestLicenseFileCheck(t *testing.T) {
 			shouldFail: false,
 			extensions: []string{
 				"",
+				".adoc",
+				".asc",
+				".docx",
+				".doc",
+				".ext",
+				".html",
+				".markdown",
 				".md",
-				".textile",
+				".rst",
+				".txt",
+				".xml",
 				"-MIT",
 			},
 		},
@@ -81,6 +104,34 @@ func TestLicenseFileCheck(t *testing.T) {
 		{
 			name:       "OFL",
 			filename:   "OFL",
+			shouldFail: true,
+			extensions: []string{
+				"",
+				".md",
+				".textile",
+			},
+		},
+		{
+			name:       "LPPL-1.3clicences",
+			filename:   "LPPL-1.3clicences",
+			shouldFail: false,
+			extensions: []string{
+				"",
+				".xml",
+			},
+		},
+		{
+			name:       "LICENSE_LPPL-1.3c",
+			filename:   "LICENSE_LPPL-1.3c",
+			shouldFail: false,
+			extensions: []string{
+				"",
+				".md",
+			},
+		},
+		{
+			name:       "Artistic-1.0-Perl LICENSE",
+			filename:   "Artistic-1.0-Perl LICENSE",
 			shouldFail: true,
 			extensions: []string{
 				"",
@@ -319,14 +370,6 @@ func TestLicenseFileCheck(t *testing.T) {
 			},
 		},
 		{
-			name:       "LICENCE",
-			filename:   "LICENCE",
-			shouldFail: false,
-			extensions: []string{
-				"",
-			},
-		},
-		{
 			name:       "LICENCES",
 			filename:   "LICENCES",
 			shouldFail: false,
@@ -356,6 +399,25 @@ func TestLicenseFileCheck(t *testing.T) {
 			shouldFail: false,
 			extensions: []string{
 				"",
+			},
+		},
+		{
+			name:       "license-CC-BY-4.0",
+			filename:   "license-CC-BY-4.0",
+			shouldFail: false,
+			extensions: []string{
+				"",
+				".adoc",
+				".asc",
+				".docx",
+				".doc",
+				".ext",
+				".html",
+				".markdown",
+				".md",
+				".rst",
+				".txt",
+				".xml",
 			},
 		},
 		{
@@ -503,19 +565,17 @@ func TestLicenseFileCheck(t *testing.T) {
 			},
 		},
 		{
-			name: "license.yaml",
-			// TODO: fix ext testing can't discern an invalid fileext from a valid SpdxID
+			name:       "license.yaml",
 			filename:   "license.yaml",
-			shouldFail: false,
+			shouldFail: true,
 			extensions: []string{
 				"",
 			},
 		},
 		{
-			name: "licenserc.yaml",
-			// TODO: fix ext testing can't discern an invalid fileext from a valid SpdxID
+			name:       "licenserc.yaml",
 			filename:   "licenserc.yaml",
-			shouldFail: false,
+			shouldFail: true,
 			extensions: []string{
 				"",
 			},

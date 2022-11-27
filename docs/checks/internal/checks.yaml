@@ -746,29 +746,47 @@ checks:
       Risk: `Low` (possible impediment to security review)
 
       This check tries to determine if the project has published a license. It
-      works by checking standard locations for a file named according to common
-      conventions for licenses.
+      works by using either hosting APIs or by checking standard locations
+      for a file named according to common conventions for licenses.
 
       A license can give users information about how the source code may or may
       not be used. The lack of a license will impede any kind of security review
       or audit and creates a legal risk for potential users.
 
-      This check will detect files in the top-level directory with any combination
-      of the following names and extensions:`LICENSE`, `LICENCE`, `COPYING`,
-      `COPYRIGHT` and .html, .txt, .md. It will also detect these files in a
-      directory named `LICENSES`. (Files in a `LICENSES` directory are typically
-      named as their [SPDX](https://spdx.org/licenses/) license identifier followed
-      by an appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
+      Scorecard uses the
+      [GitHub License API](https://docs.github.com/en/rest/licenses#get-the-license-for-a-repository)
+      for GitHub hosted projects. Otherwise, Scorecard attempts to detect a
+      published license file on its own.
+
+      On its own, this check will detect files in the top-level directory with
+      any combination of the following names and extensions:`LICENSE`, `LICENCE`,
+      `COPYING`, `COPYRIGHT` and having common extensions such as `.html`, `.txt`,
+      or `.md`. It will also detect these files in a directory named `LICENSES`.
+      (Files in a `LICENSES` directory are typically named as their
+      [SPDX](https://spdx.org/licenses/) license identifier followed by an
+      appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
+
+      License Requirements:
+        - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename (6/10 points)
+        - The detected file is at the top-level directory (3/10 points)
+        - A [FSF or OSI](https://spdx.org/licenses/) license is specified (1/10 points)
 
     remediation:
       - >-
-        Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to apply to your project.
+        Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)
+        to apply to your project. For GitHub hosted projects, follow those
+        instructions to establish a license for your project.
       - >-
-        Create the license in a .txt, .html, or .md file named LICENSE or COPYING,
-        and place it in the top-level directory.
+        For other hosting environments, create the license in a `.adoc`, `.asc`,
+        `.docx`, `.doc`, `.ext`, `.html`, `.markdown`, `.md`, `.rst`, `.txt`,
+        or `.xml`, named `LICENSE`, `COPYRIGHT`, or `COPYING`, and place it in the
+        top-level directory. To identify a specific license, use an [SPDX license identifier](https://spdx.org/licenses/)
+        in the filename. Examples include `LICENSE.md`, `Apache-2.0-LICENSE.md` or
+        `LICENSE-Apache-2.0`.
       - >-
-        Alternately, create a `LICENSE` directory and add license files with a name
-        that matches your [SPDX license identifier](https://spdx.dev/ids/).
+        Alternately, create a `LICENSE` directory and add a license file(s) with a name
+        that matches your [SPDX license identifier](https://spdx.org/licenses/).
+        such as `LICENSES/Apache-2.0.txt`.
 
   Webhooks:
     risk: High
