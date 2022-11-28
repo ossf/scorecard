@@ -123,7 +123,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 				Score:         0,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 16,
+				NumberOfDebug: 15,
 			}
 			result := checks.CITests(&req)
 			Expect(scut.ValidateTestReturn(nil, "CI tests run", &expected, &result, &dl)).Should(BeTrue())
@@ -150,7 +150,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 				Score:         0,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 16,
+				NumberOfDebug: 15,
 			}
 			result := checks.CITests(&req)
 			Expect(scut.ValidateTestReturn(nil, "CI tests run", &expected, &result, &dl)).Should(BeTrue())
