@@ -240,6 +240,12 @@ func (client *localDirClient) ListProgrammingLanguages() ([]clients.Language, er
 	return nil, fmt.Errorf("ListProgrammingLanguages: %w", clients.ErrUnsupportedFeature)
 }
 
+// ListLicenses implements RepoClient.ListLicenses.
+// TODO: add ListLicenses support for local directories.
+func (client *localDirClient) ListLicenses() ([]clients.License, error) {
+	return nil, fmt.Errorf("ListLicenses: %w", clients.ErrUnsupportedFeature)
+}
+
 func (client *localDirClient) GetCreatedAt() (time.Time, error) {
 	return time.Time{}, fmt.Errorf("GetCreatedAt: %w", clients.ErrUnsupportedFeature)
 }

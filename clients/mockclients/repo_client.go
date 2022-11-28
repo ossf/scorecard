@@ -243,6 +243,21 @@ func (mr *MockRepoClientMockRecorder) ListIssues() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIssues", reflect.TypeOf((*MockRepoClient)(nil).ListIssues))
 }
 
+// ListLicenses mocks base method.
+func (m *MockRepoClient) ListLicenses() ([]clients.License, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListLicenses")
+	ret0, _ := ret[0].([]clients.License)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListLicenses indicates an expected call of ListLicenses.
+func (mr *MockRepoClientMockRecorder) ListLicenses() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLicenses", reflect.TypeOf((*MockRepoClient)(nil).ListLicenses))
+}
+
 // ListProgrammingLanguages mocks base method.
 func (m *MockRepoClient) ListProgrammingLanguages() ([]clients.Language, error) {
 	m.ctrl.T.Helper()

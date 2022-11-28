@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -166,9 +167,16 @@ type jsonOssfBestPractices struct {
 	Badge string `json:"badge"`
 }
 
+type jsonLicenseInfo struct {
+	File        string `json:"path"`
+	Name        string `json:"name,omitempty"`
+	SpdxID      string `json:"spdxid,omitempty"`
+	Attribution string `json:"attribution,omitempty"`
+	Approved    string `json:"approved,omitempty"`
+}
+
 type jsonLicense struct {
-	File jsonFile `json:"file"`
-	// TODO: add fields, like type of license, etc.
+	License jsonLicenseInfo `json:"file"`
 }
 
 type jsonWorkflow struct {
@@ -595,11 +603,15 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 //nolint:unparam
 func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) error {
 	r.Results.Licenses = []jsonLicense{}
-	for _, file := range ld.Files {
+	for idx := range ld.LicenseFiles {
 		r.Results.Licenses = append(r.Results.Licenses,
 			jsonLicense{
-				File: jsonFile{
-					Path: file.Path,
+				License: jsonLicenseInfo{
+					File:        ld.LicenseFiles[idx].File.Path,
+					Name:        ld.LicenseFiles[idx].LicenseInformation.Name,
+					SpdxID:      ld.LicenseFiles[idx].LicenseInformation.SpdxID,
+					Attribution: string(ld.LicenseFiles[idx].LicenseInformation.Attribution),
+					Approved:    strconv.FormatBool(ld.LicenseFiles[idx].LicenseInformation.Approved),
 				},
 			},
 		)
