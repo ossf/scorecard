@@ -124,10 +124,9 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 					},
 					LicenseInformation: checker.License{
 						Approved:    len(fsfOsiApprovedLicenseCiMap[strings.ToUpper(v.SPDXId)].Name) > 0,
-						Key:         v.Key,
 						Name:        v.Name,
 						SpdxID:      v.SPDXId,
-						Attribution: checker.LicenseAttributionTypeRepo,
+						Attribution: checker.LicenseAttributionTypeAPI,
 					},
 				})
 		}
@@ -163,18 +162,15 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 		// Aside from 'UN', these settings (Name, Key) match GH repo API
 		// for when the Spdx Identifier cannot be determined.
 		path.LicenseInformation.Name = fsfOsiApprovedLicenseCiMap[strings.ToUpper(path.LicenseInformation.SpdxID)].Name
-		path.LicenseInformation.Key = strings.ToLower(path.LicenseInformation.SpdxID)
 		if strings.ToUpper(path.LicenseInformation.SpdxID) == "UN" {
 			path.LicenseInformation.SpdxID = "UNLICENSE"
-			path.LicenseInformation.Key = strings.ToLower(path.LicenseInformation.SpdxID)
 		} else if path.LicenseInformation.SpdxID == "" {
 			path.LicenseInformation.SpdxID = "NOASSERTION"
 			path.LicenseInformation.Name = "Other"
-			path.LicenseInformation.Key = strings.ToLower(path.LicenseInformation.Name)
 		}
 		path.LicenseInformation.Approved = len(
 			fsfOsiApprovedLicenseCiMap[strings.ToUpper(path.LicenseInformation.SpdxID)].Name) > 0
-		path.LicenseInformation.Attribution = checker.LicenseAttributionTypeScorecard
+		path.LicenseInformation.Attribution = checker.LicenseAttributionTypeHeuristics
 		results.LicenseFiles = append(results.LicenseFiles, path)
 	}
 
@@ -358,7 +354,6 @@ func checkLicense(lfName string) (checker.LicenseFile, bool) {
 				Type: checker.FileTypeSource,
 			},
 			LicenseInformation: checker.License{
-				Key:    "",
 				Name:   "",
 				SpdxID: "",
 			},

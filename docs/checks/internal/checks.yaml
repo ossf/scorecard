@@ -755,8 +755,8 @@ checks:
 
       Scorecard uses the
       [GitHub License API](https://docs.github.com/en/rest/licenses#get-the-license-for-a-repository)
-      for GitHub hosted projects. Otherwise, Scorecard attempts to detect a
-      published license file on its own.
+      for GitHub hosted projects. Otherwise, Scorecard uses its own heuristics to
+      detect a published license file.
 
       On its own, this check will detect files in the top-level directory with
       any combination of the following names and extensions:`LICENSE`, `LICENCE`,

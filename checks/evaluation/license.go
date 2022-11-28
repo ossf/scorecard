@@ -36,7 +36,7 @@ func scoreLicenseCriteria(f *checker.LicenseFile,
 
 	// #2 the licence was found at the top-level or LICENSE/ folder.
 	switch f.LicenseInformation.Attribution {
-	case checker.LicenseAttributionTypeRepo, checker.LicenseAttributionTypeScorecard:
+	case checker.LicenseAttributionTypeAPI, checker.LicenseAttributionTypeHeuristics:
 		// both repoAPI and scorecard (not using the API) follow checks.md
 		// for a file to be found it must have been in the correct location
 		// award location points.

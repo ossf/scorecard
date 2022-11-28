@@ -129,14 +129,13 @@ type LicenseAttributionType string
 
 const (
 	// sources of license information used to assert repo's license.
-	LicenseAttributionTypeOther     LicenseAttributionType = "otherAttribution"
-	LicenseAttributionTypeRepo      LicenseAttributionType = "repoAttribution"
-	LicenseAttributionTypeScorecard LicenseAttributionType = "scorecardAttribution"
+	LicenseAttributionTypeOther      LicenseAttributionType = "other"
+	LicenseAttributionTypeAPI        LicenseAttributionType = "repositoryAPI"
+	LicenseAttributionTypeHeuristics LicenseAttributionType = "builtinHeuristics"
 )
 
 // license details.
 type License struct {
-	Key         string                 // repo specified key
 	Name        string                 // OSI standardized license name
 	SpdxID      string                 // SPDX standardized identifier
 	Attribution LicenseAttributionType // source of licensing information

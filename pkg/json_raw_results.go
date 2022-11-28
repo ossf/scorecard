@@ -169,7 +169,6 @@ type jsonOssfBestPractices struct {
 
 type jsonLicenseInfo struct {
 	File        string `json:"path"`
-	Key         string `json:"key,omitempty"`
 	Name        string `json:"name,omitempty"`
 	SpdxID      string `json:"spdxid,omitempty"`
 	Attribution string `json:"attribution,omitempty"`
@@ -609,7 +608,6 @@ func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) e
 			jsonLicense{
 				License: jsonLicenseInfo{
 					File:        ld.LicenseFiles[idx].File.Path,
-					Key:         ld.LicenseFiles[idx].LicenseInformation.Key,
 					Name:        ld.LicenseFiles[idx].LicenseInformation.Name,
 					SpdxID:      ld.LicenseFiles[idx].LicenseInformation.SpdxID,
 					Attribution: string(ld.LicenseFiles[idx].LicenseInformation.Attribution),
