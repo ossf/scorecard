@@ -373,18 +373,29 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 	// Only log information if the branch is protected.
 	log := branch.Protected != nil && *branch.Protected
 
-	if branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge != nil {
-		// Note: `This setting will not take effect unless at least one status check is enabled`.
-		max++
-		switch *branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge {
-		case true:
-			info(dl, log, "status checks require up-to-date branches for '%s'", *branch.Name)
-			score++
-		default:
-			warn(dl, log, "status checks do not require up-to-date branches for '%s'", *branch.Name)
-		}
-	} else {
+	if branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge == nil || branch.BranchProtectionRule.RequireLastPushApproval == nil {
 		debug(dl, log, "unable to retrieve whether up-to-date branches are needed to merge on branch '%s'", *branch.Name)
+		return score, max
+	}
+
+	// Process UpToDateBeforeMerge value.
+	// Note: `This setting will not take effect unless at least one status check is enabled`.
+	max++
+	if *branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge {
+		info(dl, log, "status checks require up-to-date branches for '%s'", *branch.Name)
+		score++
+	} else {
+		warn(dl, log, "status checks do not require up-to-date branches for '%s'", *branch.Name)
+	}
+
+	// Process RequireLastPushApproval value.
+	max++
+	if *branch.BranchProtectionRule.RequireLastPushApproval {
+
+		info(dl, log, "'last push approval' enabled on branch '%s'", *branch.Name)
+		score++
+	} else {
+		warn(dl, log, "'last push approval' disabled on branch '%s'", *branch.Name)
 	}
 
 	return score, max
@@ -401,10 +412,10 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 		max++
 		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews {
 		case true:
-			info(dl, log, "Stale review dismissal enabled on branch '%s'", *branch.Name)
+			info(dl, log, "stale review dismissal enabled on branch '%s'", *branch.Name)
 			score++
 		case false:
-			warn(dl, log, "Stale review dismissal disabled on branch '%s'", *branch.Name)
+			warn(dl, log, "stale review dismissal disabled on branch '%s'", *branch.Name)
 		}
 	} else {
 		debug(dl, log, "unable to retrieve review dismissal on branch '%s'", *branch.Name)
