@@ -101,7 +101,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			if data.files[idx].File.Type == checker.FileTypeURL {
 				filePattern = strings.Replace(filePattern, data.uri+"/", "", 1)
 			}
-			err := fileparser.OnMatchingFileContentDo(dotGitHubClient, fileparser.PathMatcher{
+			err := fileparser.OnMatchingFileContentDo(client, fileparser.PathMatcher{
 				Pattern:       filePattern,
 				CaseSensitive: false,
 			}, checkSecurityPolicyFileContent, &data.files[idx].File, &data.files[idx].Information)
