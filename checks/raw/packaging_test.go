@@ -16,7 +16,6 @@ package raw
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -80,7 +79,6 @@ func Test_Packaging(t *testing.T) {
 			}
 
 			expectedLength := 1
-			fmt.Println(tt.name, tt.score, expectedLength, len(pkgs.Packages))
 			if len(pkgs.Packages) != expectedLength {
 				t.Errorf(cmp.Diff(len(pkgs.Packages), expectedLength))
 			}
