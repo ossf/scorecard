@@ -46,7 +46,7 @@ func Test_Packaging(t *testing.T) {
 			filenames: []string{"path/go.mod"},
 			score:     0,
 		},
-		// TODO(): add unit tests for packaging
+		// TODO(2501): add unit tests for packaging.
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
