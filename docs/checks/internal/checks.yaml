@@ -409,22 +409,23 @@ checks:
     risk: Medium
     tags: supply-chain, security, releases
     repos: GitHub
-    short: Determines if the project publishes artifacts from CI - that others can easily download, install, easily update, and uninstall.
+    short: Determines if the project is published as a package that others can easily download, install, easily update, and uninstall.
     description: |
       Risk: `Medium` (users possibly missing security updates)
 
-      This check tries to determine if the project publishes artifacts from CI. It is
+      This check tries to determine if the project is published as a package. It is
       currently limited to repositories hosted on GitHub, and does not support other
       source hosting repositories (i.e., Forges).
 
-      Artifacts provide users of a project an easy way to download, install, update, and
+      Packages give users of a project an easy way to download, install, update, and
       uninstall the software by a package manager. In particular, they make it easy
       for users to receive security patches as updates.
 
       The check currently looks for
       [GitHub packaging workflows](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package)
       and language-specific GitHub Actions that upload the package to a corresponding
-      hub, e.g., [Npm](https://www.npmjs.com/). We plan to add better support to query
+      hub, e.g., [Npm](https://www.npmjs.com/). Go projects automatically pass this check, since
+      they do not require explicit publishing. We plan to add better support to query
       package manager hubs directly in the future, e.g., for
       [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).
 
@@ -746,47 +747,29 @@ checks:
       Risk: `Low` (possible impediment to security review)
 
       This check tries to determine if the project has published a license. It
-      works by using either hosting APIs or by checking standard locations
-      for a file named according to common conventions for licenses.
+      works by checking standard locations for a file named according to common
+      conventions for licenses.
 
       A license can give users information about how the source code may or may
       not be used. The lack of a license will impede any kind of security review
       or audit and creates a legal risk for potential users.
 
-      Scorecard uses the
-      [GitHub License API](https://docs.github.com/en/rest/licenses#get-the-license-for-a-repository)
-      for GitHub hosted projects. Otherwise, Scorecard uses its own heuristics to
-      detect a published license file.
-
-      On its own, this check will detect files in the top-level directory with
-      any combination of the following names and extensions:`LICENSE`, `LICENCE`,
-      `COPYING`, `COPYRIGHT` and having common extensions such as `.html`, `.txt`,
-      or `.md`. It will also detect these files in a directory named `LICENSES`.
-      (Files in a `LICENSES` directory are typically named as their
-      [SPDX](https://spdx.org/licenses/) license identifier followed by an
-      appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
-
-      License Requirements:
-        - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename (6/10 points)
-        - The detected file is at the top-level directory (3/10 points)
-        - A [FSF or OSI](https://spdx.org/licenses/) license is specified (1/10 points)
+      This check will detect files in the top-level directory with any combination
+      of the following names and extensions:`LICENSE`, `LICENCE`, `COPYING`,
+      `COPYRIGHT` and .html, .txt, .md. It will also detect these files in a
+      directory named `LICENSES`. (Files in a `LICENSES` directory are typically
+      named as their [SPDX](https://spdx.org/licenses/) license identifier followed
+      by an appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
 
     remediation:
       - >-
-        Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)
-        to apply to your project. For GitHub hosted projects, follow those
-        instructions to establish a license for your project.
+        Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to apply to your project.
       - >-
-        For other hosting environments, create the license in a `.adoc`, `.asc`,
-        `.docx`, `.doc`, `.ext`, `.html`, `.markdown`, `.md`, `.rst`, `.txt`,
-        or `.xml`, named `LICENSE`, `COPYRIGHT`, or `COPYING`, and place it in the
-        top-level directory. To identify a specific license, use an [SPDX license identifier](https://spdx.org/licenses/)
-        in the filename. Examples include `LICENSE.md`, `Apache-2.0-LICENSE.md` or
-        `LICENSE-Apache-2.0`.
+        Create the license in a .txt, .html, or .md file named LICENSE or COPYING,
+        and place it in the top-level directory.
       - >-
-        Alternately, create a `LICENSE` directory and add a license file(s) with a name
-        that matches your [SPDX license identifier](https://spdx.org/licenses/).
-        such as `LICENSES/Apache-2.0.txt`.
+        Alternately, create a `LICENSE` directory and add license files with a name
+        that matches your [SPDX license identifier](https://spdx.dev/ids/).
 
   Webhooks:
     risk: High
