@@ -424,10 +424,10 @@ checks:
       The check currently looks for
       [GitHub packaging workflows](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package)
       and language-specific GitHub Actions that upload the package to a corresponding
-      hub, e.g., [Npm](https://www.npmjs.com/). Go projects automatically pass this check, since
+      hub, e.g., [npm](https://www.npmjs.com/). Go projects automatically pass this check, since
       they do not require explicit publishing. We plan to add better support to query
       package manager hubs directly in the future, e.g., for
-      [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).
+      [npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).
 
       You can create a package in several ways:
 

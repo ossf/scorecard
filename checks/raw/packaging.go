@@ -27,13 +27,22 @@ import (
 // Packaging checks for packages.
 func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 	var data checker.PackagingData
-	ok, err := isGoProject(c, &data)
+
+	// Handle Go projects seperately: they don't need packaging.
+	ok, err := isGoProject(c)
 	if err != nil {
 		return data, fmt.Errorf("%w", err)
 	}
 	if ok {
+		pkg := checker.Package{
+			Ecosystem: ecosystemAsPointer(checker.PackageEcosystemGo),
+			Name:      stringPointer(c.Repo.URI()),
+		}
+		data.Packages = append(data.Packages, pkg)
 		return data, nil
 	}
+
+	// Handle other ecosystems.
 	matchedFiles, err := c.RepoClient.ListFiles(fileparser.IsGithubWorkflowFileCb)
 	if err != nil {
 		return data, fmt.Errorf("RepoClient.ListFiles: %w", err)
@@ -118,7 +127,7 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 	return data, nil
 }
 
-func isGoProject(c *checker.CheckRequest, data *checker.PackagingData) (bool, error) {
+func isGoProject(c *checker.CheckRequest) (bool, error) {
 	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
 	if err != nil {
 		return false, fmt.Errorf("%w", err)
@@ -127,22 +136,9 @@ func isGoProject(c *checker.CheckRequest, data *checker.PackagingData) (bool, er
 		return false, fmt.Errorf("RepoClient.ListFiles: %w", err)
 	}
 
-	foundGoSum := false
-	foundGoMod := false
 	for _, fp := range matchedFiles {
 		// Only look in the root directory.
 		if fp == "go.mod" {
-			foundGoMod = true
-		}
-		if fp == "go.sum" {
-			foundGoSum = true
-		}
-		if foundGoSum && foundGoMod {
-			pkg := checker.Package{
-				Ecosystem: ecosystemAsPointer(checker.PackageEcosystemGo),
-				Name:      stringPointer(c.Repo.URI()),
-			}
-			data.Packages = append(data.Packages, pkg)
 			return true, nil
 		}
 	}
