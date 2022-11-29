@@ -399,7 +399,6 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 	} else {
 		max++
 		if *branch.BranchProtectionRule.RequireLastPushApproval {
-
 			info(dl, log, "'last push approval' enabled on branch '%s'", *branch.Name)
 			score++
 		} else {
