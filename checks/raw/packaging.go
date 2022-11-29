@@ -130,7 +130,7 @@ func isGoProject(c *checker.CheckRequest, data *checker.PackagingData) (bool, er
 	foundGoSum := false
 	foundGoMod := false
 	for _, fp := range matchedFiles {
-
+		// Only look in the root directory.
 		if fp == "go.mod" {
 			foundGoMod = true
 		}
