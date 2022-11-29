@@ -70,6 +70,7 @@ type PackagingData struct {
 // Package represents a package.
 // nolint
 type Package struct {
+	Ecosystem *PackageEcosystem
 	// TODO: not supported yet. This needs to be unique across
 	// ecosystems: purl, OSV, CPE, etc.
 	Name *string
@@ -79,6 +80,22 @@ type Package struct {
 	Msg  *string
 	Runs []Run
 }
+
+// PackageEcosystem is the name of the ecosystem.
+// We follow the same names as in https://ossf.github.io/osv-schema/.
+type PackageEcosystem string
+
+const (
+	PackageEcosystemGo        PackageEcosystem = "Go"
+	PackageEcosystemNpm       PackageEcosystem = "npm"
+	PackageEcosystemPypi      PackageEcosystem = "PyPi"
+	PackageEcosystemRubyGems  PackageEcosystem = "RubyGems"
+	PackageEcosystemCratesIo  PackageEcosystem = "crates.io"
+	PackageEcosystemNuGet     PackageEcosystem = "NuGet"
+	PackageEcosystemPackagist PackageEcosystem = "Packagist"
+	PackageEcosystemMaven     PackageEcosystem = "Maven"
+	PackageEcosystemCrates    PackageEcosystem = "crates.io"
+)
 
 // DependencyUseType reprensets a type of dependency use.
 type DependencyUseType string

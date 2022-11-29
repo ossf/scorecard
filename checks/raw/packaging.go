@@ -27,10 +27,14 @@ import (
 // Packaging checks for packages.
 func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 	var data checker.PackagingData
-	matchedFiles, err := c.RepoClient.ListFiles(fileparser.IsGithubWorkflowFileCb)
+	ok, err := isGoProject(c, &data)
 	if err != nil {
 		return data, fmt.Errorf("%w", err)
 	}
+	if ok {
+		return data, nil
+	}
+	matchedFiles, err := c.RepoClient.ListFiles(fileparser.IsGithubWorkflowFileCb)
 	if err != nil {
 		return data, fmt.Errorf("RepoClient.ListFiles: %w", err)
 	}
@@ -112,6 +116,41 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 
 	// Return raw results.
 	return data, nil
+}
+
+func isGoProject(c *checker.CheckRequest, data *checker.PackagingData) (bool, error) {
+	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
+	if err != nil {
+		return false, fmt.Errorf("%w", err)
+	}
+	if err != nil {
+		return false, fmt.Errorf("RepoClient.ListFiles: %w", err)
+	}
+
+	foundGoSum := false
+	foundGoMod := false
+	for _, fp := range matchedFiles {
+
+		if fp == "go.mod" {
+			foundGoMod = true
+		}
+		if fp == "go.sum" {
+			foundGoSum = true
+		}
+		if foundGoSum && foundGoMod {
+			pkg := checker.Package{
+				Ecosystem: ecosystemAsPointer(checker.PackageEcosystemGo),
+				Name:      stringPointer(c.Repo.URI()),
+			}
+			data.Packages = append(data.Packages, pkg)
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func ecosystemAsPointer(eco checker.PackageEcosystem) *checker.PackageEcosystem {
+	return &eco
 }
 
 func stringPointer(s string) *string {

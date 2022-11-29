@@ -485,6 +485,16 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			LogText: "candidate ruby publishing workflow using gem",
 		},
 		{
+			// Dart packages.
+			Steps: []*JobMatcherStep{
+				{
+					Run: "dart.*pub.*publish",
+				},
+			},
+			LogText: "candidate dart publishing workflow",
+		},
+
+		{
 			// NuGet packages.
 			Steps: []*JobMatcherStep{
 				{

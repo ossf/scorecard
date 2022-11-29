@@ -51,7 +51,7 @@ func Packaging(name string, dl checker.DetailLogger, r *checker.PackagingData) c
 
 	if pass {
 		return checker.CreateMaxScoreResult(name,
-			"publishing workflow detected")
+			"published package detected")
 	}
 
 	dl.Warn(&checker.LogMessage{
@@ -67,6 +67,12 @@ func createLogMessage(p checker.Package) (checker.LogMessage, error) {
 
 	if p.Msg != nil {
 		return msg, sce.WithMessage(sce.ErrScorecardInternal, "Msg should be nil")
+	}
+
+	// This happens only for ecosystems that don't require explicit publishing, like Go.
+	if p.Name != nil && p.Ecosystem != nil {
+		msg.Text = fmt.Sprintf("%s project detected: %s", *p.Ecosystem, *p.Name)
+		return msg, nil
 	}
 
 	if p.File == nil {

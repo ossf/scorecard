@@ -192,10 +192,11 @@ type jsonWorkflowJob struct {
 }
 
 type jsonPackage struct {
-	Name *string          `json:"name,omitempty"`
-	Job  *jsonWorkflowJob `json:"job,omitempty"`
-	File *jsonFile        `json:"file,omitempty"`
-	Runs []jsonRun        `json:"runs,omitempty"`
+	Ecosystem *string          `json:"ecosystem,omitempty"`
+	Name      *string          `json:"name,omitempty"`
+	Job       *jsonWorkflowJob `json:"job,omitempty"`
+	File      *jsonFile        `json:"file,omitempty"`
+	Runs      []jsonRun        `json:"runs,omitempty"`
 }
 
 type jsonRun struct {
@@ -344,26 +345,30 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 		if p.Msg != nil {
 			continue
 		}
-		if p.File == nil {
-			//nolint
-			return errors.New("File field is nil")
+
+		// This happens only for ecosystems that don't require explicit publishing, like Go.
+		if p.Name != nil && p.Ecosystem != nil {
+			jpk.Ecosystem = asPointer(string(*p.Ecosystem))
+			jpk.Name = p.Name
 		}
 
-		jpk.File = &jsonFile{
-			Path:   p.File.Path,
-			Offset: p.File.Offset,
-		}
+		if p.File != nil {
+			jpk.File = &jsonFile{
+				Path:   p.File.Path,
+				Offset: p.File.Offset,
+			}
 
-		if p.File.Snippet != "" {
-			jpk.File.Snippet = &p.File.Snippet
-		}
+			if p.File.Snippet != "" {
+				jpk.File.Snippet = &p.File.Snippet
+			}
 
-		for _, run := range p.Runs {
-			jpk.Runs = append(jpk.Runs,
-				jsonRun{
-					URL: run.URL,
-				},
-			)
+			for _, run := range p.Runs {
+				jpk.Runs = append(jpk.Runs,
+					jsonRun{
+						URL: run.URL,
+					},
+				)
+			}
 		}
 
 		r.Results.Packages = append(r.Results.Packages, jpk)

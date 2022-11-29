@@ -409,15 +409,15 @@ checks:
     risk: Medium
     tags: supply-chain, security, releases
     repos: GitHub
-    short: Determines if the project is published as a package that others can easily download, install, easily update, and uninstall.
+    short: Determines if the project publishes artifacts from CI - that others can easily download, install, easily update, and uninstall.
     description: |
       Risk: `Medium` (users possibly missing security updates)
 
-      This check tries to determine if the project is published as a package. It is
+      This check tries to determine if the project publishes artifacts from CI. It is
       currently limited to repositories hosted on GitHub, and does not support other
       source hosting repositories (i.e., Forges).
 
-      Packages give users of a project an easy way to download, install, update, and
+      Artifacts provide users of a project an easy way to download, install, update, and
       uninstall the software by a package manager. In particular, they make it easy
       for users to receive security patches as updates.
 
