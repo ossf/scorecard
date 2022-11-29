@@ -36,10 +36,10 @@ import (
 )
 
 const (
-	scorecardLong = "A program that shows security scorecard for an open source software."
+	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
 	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --{npm,pypi,rubygems}=<package_name>)
 	 [--checks=check1,...] [--show-details]`
-	scorecardShort = "Security Scorecard"
+	scorecardShort = "OpenSSF Scorecard"
 )
 
 // New creates a new instance of the scorecard command.

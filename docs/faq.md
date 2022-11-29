@@ -5,6 +5,7 @@ This page answers frequently asked questions about Scorecard, including its purp
 ## Installation / Usage
   - [Can I preview my project's score?](#can-i-preview-my-projects-score)
   - [What is the difference between Scorecard and other Code Scanning tools?](#what-is-the-difference-between-scorecard-and-other-code-scanning-tools)
+  - [Wasn't this project called "Scorecards" (plural)?](#wasnt-this-project-called-scorecards-plural)
 
 ## Check-Specific Questions
   - [Binary-Artifacts: Can I allowlist testing artifacts?](#binary-artifacts-can-i-allowlist-testing-artifacts)
@@ -33,6 +34,10 @@ You can also use the CLI to generate scores for any public repository by followi
 ### What is the difference between Scorecard and other Code Scanning tools?
 
 Most code scanning tools are focused on detecting specific vulnerabilities already existing in your codebase. Scorecard, however, is focused on improving the project's overall security posture by helping it adopt best practices. The best solution for your project may well be to adopt Scorecard along with other tools!
+
+### Wasn't this project called "Scorecards" (plural)?
+
+Yes, kind of. The project was initially called "Security Scorecards" but that form wasn't used consistently. In particular, the repo was named "scorecard" and so was the program. Over time people started referring to either form (singular and plural) and the inconsitency became prevalent. To end this situation the decision was made to consolidate over the use of the singular form in keeping with the repo and program name, drop the "Security" part and use "OpenSSF" instead to ensure uniqueness. One should therefore refer to this project as "OpenSSF Scorecard" or "Scorecard" for short.
 
 ## Check-specific Questions
 

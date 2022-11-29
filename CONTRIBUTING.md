@@ -1,6 +1,6 @@
-# Contributing to Security Scorecard
+# Contributing to OpenSSF Scorecard
 
-Thank you for contributing your time and expertise to the Security Scorecard
+Thank you for contributing your time and expertise to the OpenSSF Scorecard
 project. This document describes the contribution guidelines for the project.
 
 **Note:** Before you start contributing, you must read and abide by our
