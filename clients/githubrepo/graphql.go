@@ -279,11 +279,6 @@ func (handler *graphqlHandler) setup() error {
 func (handler *graphqlHandler) setupCheckRuns() error {
 	// this function needs to be ran before setup so it has commits to query.
 	handler.setupCheckRunsOnce.Do(func() {
-		// this should never run first?
-		if handler.commits == nil {
-			handler.errSetupCheckRuns = fmt.Errorf("error during graphqlHandler.setupCheckRuns: no commits in handler to query.")
-			return
-		}
 		// looping over handler commit list to match each commit with checkrun.
 		for idx := range handler.commits {
 			commitExpression := handler.commits[idx].SHA
