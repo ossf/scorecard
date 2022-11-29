@@ -277,10 +277,16 @@ func (handler *graphqlHandler) setup() error {
 }
 
 func (handler *graphqlHandler) setupCheckRuns() error {
+	// this function needs to be ran before setup so it has commits to query.
 	handler.setupCheckRunsOnce.Do(func() {
+		// this should never run first?
+		if handler.commits == nil {
+			handler.errSetupCheckRuns = fmt.Errorf("error during graphqlHandler.setupCheckRuns: no commits in handler to query.")
+			return
+		}
 		// looping over handler commit list to match each commit with checkrun.
-		for _, commit := range handler.commits {
-			commitExpression := commit.SHA
+		for idx := range handler.commits {
+			commitExpression := handler.commits[idx].SHA
 			vars := map[string]interface{}{
 				"owner":                 githubv4.String(handler.repourl.owner),
 				"name":                  githubv4.String(handler.repourl.repo),
@@ -299,7 +305,6 @@ func (handler *graphqlHandler) setupCheckRuns() error {
 				// for whatever reason, this check doesn't work with a GITHUB_TOKEN, only a PAT
 				return
 			}
-			// Add the check runs to the handler.
 			for k, v := range checksRuns {
 				handler.checkRuns[k] = v
 			}

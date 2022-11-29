@@ -36,6 +36,39 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 		}
 	})
 
+	Context("E2E TEST: Confirm Paging CheckRuns Works", func() {
+		It("Should only have 1 checkRun", func() {
+			_repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: clients.HeadSHA,
+			}
+			_ctx := context.Background()
+			_logger := log.NewLogger(log.DebugLevel)
+			_rt := roundtripper.NewTransport(_ctx, _logger)
+			_httpClient := &http.Client{
+				Transport: _rt,
+			}
+			_graphClient := githubv4.NewClient(_httpClient)
+			_handler := &graphqlHandler{
+				client: _graphClient,
+			}
+			_handler.init(context.Background(), _repourl, 1)
+			_vars := map[string]interface{}{
+				"owner":                 githubv4.String("ossf"),
+				"name":                  githubv4.String("scorecard"),
+				"pullRequestsToAnalyze": githubv4.Int(1),
+				"commitExpression":      githubv4.GitObjectID("304baf2930f6a53f71c6a2d893ccd61c7af67ca9"),
+				"checksToAnalyze":       githubv4.Int(checksToAnalyze),
+			}
+			checkRuns, err := populateCheckRuns(_handler, _vars)
+			Expect(err).To(BeNil())
+			Expect(len(checkRuns)).Should(BeEquivalentTo(1))
+			Expect(_handler.checkData.RateLimit.Cost).ShouldNot(BeNil())
+			Expect(*_handler.checkData.RateLimit.Cost).Should(BeNumerically("<=", 1))
+		})
+	})
+
 	Context("E2E TEST: Confirm Paging Commits Works", func() {
 		It("Should only have 1 commit", func() {
 			_repourl := &repoURL{
@@ -167,9 +200,11 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 			repourl := &repoURL{
 				owner:     "ossf",
 				repo:      "scorecard",
-				commitSHA: clients.HeadSHA,
+				commitSHA: "de5224bbc56eceb7a25aece55d2d53bbc561ed2d",
 			}
 			graphqlhandler.init(context.Background(), repourl, 30)
+			// setup needs to be ran before setupCheckRuns so setupCheckRuns has commits to query.
+			Expect(graphqlhandler.setup()).Should(BeNil())
 			Expect(graphqlhandler.setupCheckRuns()).Should(BeNil())
 			Expect(graphqlhandler.checkData).ShouldNot(BeNil())
 			Expect(graphqlhandler.checkData.RateLimit.Cost).ShouldNot(BeNil())
