@@ -161,9 +161,9 @@ type checkRunsGraphqlData struct {
 							}
 						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 					}
-				} `graphql:"history(first: $commitsToAnalyze)"`
+				} `graphql:"history(first:1)"`
 			} `graphql:"... on Commit"`
-		} `graphql:"object(expression: $commitExpression)"`
+		} `graphql:"object(oid: $commitExpression)"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
 	RateLimit struct {
 		Cost *int
@@ -228,6 +228,21 @@ func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]cl
 	return allCommits, nil
 }
 
+func populateCheckRuns(handler *graphqlHandler, vars map[string]interface{}) (checkRunCache, error) {
+	err := handler.client.Query(handler.ctx, handler.checkData, vars)
+	if err != nil {
+		if strings.Contains(err.Error(), "Resource not accessible by integration") {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to populate checkRuns: %w", err)
+	}
+	checkRunCacheVar := parseCheckRuns(handler.checkData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to populate checkruns: %w", err)
+	}
+	return checkRunCacheVar, nil
+}
+
 func (handler *graphqlHandler) setup() error {
 	handler.setupOnce.Do(func() {
 		commitExpression := handler.commitExpression()
@@ -263,31 +278,32 @@ func (handler *graphqlHandler) setup() error {
 
 func (handler *graphqlHandler) setupCheckRuns() error {
 	handler.setupCheckRunsOnce.Do(func() {
-		commitExpression := handler.commitExpression()
-		vars := map[string]interface{}{
-			"owner":                 githubv4.String(handler.repourl.owner),
-			"name":                  githubv4.String(handler.repourl.repo),
-			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-			"commitsToAnalyze":      githubv4.Int(handler.commitDepth),
-			"commitExpression":      githubv4.String(commitExpression),
-			"checksToAnalyze":       githubv4.Int(checksToAnalyze),
-		}
-		// TODO(#2224):
-		// sast and ci checks causes cache miss if commits dont match number of check runs.
-		// paging for this needs to be implemented if using higher than 100 --number-of-commits
-		if handler.commitDepth > 99 {
-			vars["commitsToAnalyze"] = githubv4.Int(99)
-		}
-		if err := handler.client.Query(handler.ctx, handler.checkData, vars); err != nil {
-			// quit early without setting crsErrSetup for "Resource not accessible by integration" error
-			// for whatever reason, this check doesn't work with a GITHUB_TOKEN, only a PAT
-			if strings.Contains(err.Error(), "Resource not accessible by integration") {
+		// looping over handler commit list to match each commit with checkrun.
+		for _, commit := range handler.commits {
+			commitExpression := commit.SHA
+			vars := map[string]interface{}{
+				"owner":                 githubv4.String(handler.repourl.owner),
+				"name":                  githubv4.String(handler.repourl.repo),
+				"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
+				"commitExpression":      githubv4.GitObjectID(commitExpression),
+				"checksToAnalyze":       githubv4.Int(checksToAnalyze),
+			}
+			checksRuns, err := populateCheckRuns(handler, vars)
+			if err != nil {
+				handler.errSetupCheckRuns = err
 				return
 			}
-			handler.errSetupCheckRuns = err
-			return
+			if checksRuns == nil {
+				// "Resource not accessible by integration" error hit
+				// quit early without setting crsErrSetup for "Resource not accessible by integration" error
+				// for whatever reason, this check doesn't work with a GITHUB_TOKEN, only a PAT
+				return
+			}
+			// Add the check runs to the handler.
+			for k, v := range checksRuns {
+				handler.checkRuns[k] = v
+			}
 		}
-		handler.checkRuns = parseCheckRuns(handler.checkData)
 	})
 	return handler.errSetupCheckRuns
 }
