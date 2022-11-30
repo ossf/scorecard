@@ -30,6 +30,7 @@ import (
 func Test_Packaging(t *testing.T) {
 	t.Parallel()
 
+	//nolint
 	tests := []struct {
 		name          string
 		filenames     []string

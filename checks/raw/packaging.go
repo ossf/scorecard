@@ -28,7 +28,7 @@ import (
 func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 	var data checker.PackagingData
 
-	// Handle Go projects seperately: they don't need packaging.
+	// Handle Go projects separately: they don't need packaging.
 	ok, err := isGoProject(c)
 	if err != nil {
 		return data, fmt.Errorf("%w", err)
