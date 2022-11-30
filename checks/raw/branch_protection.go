@@ -111,7 +111,6 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 	if err := collectCodeownersFiles(c, &codeownersFiles); err != nil {
 		return checker.BranchProtectionsData{}, err
 	}
-	fmt.Printf("codeownersFiles: %v\n", codeownersFiles)
 
 	// No error, return the data.
 	return checker.BranchProtectionsData{

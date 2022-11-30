@@ -449,7 +449,7 @@ func codeownerBranchProtection(
 		case true:
 			info(dl, log, "codeowner review is required on branch '%s'", *branch.Name)
 			if len(codeownersFiles) == 0 {
-				warn(dl, log, "no codeowners files found")
+				warn(dl, log, "codeowners branch protection is being ignored - but no codeowners file found in repo")
 			} else {
 				score++
 			}

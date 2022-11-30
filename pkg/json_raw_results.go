@@ -73,6 +73,11 @@ type jsonBranchProtection struct {
 	Name       string                        `json:"name"`
 }
 
+type jsonBranchProtectionMetadata struct {
+	Branches        []jsonBranchProtection `json:"branches"`
+	CodeownersFiles []string               `json:"codeownersFiles"`
+}
+
 type jsonReview struct {
 	State    string   `json:"state"`
 	Reviewer jsonUser `json:"reviewer"`
@@ -265,7 +270,7 @@ type jsonRawResults struct {
 	// Note: we return one at most.
 	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools"`
 	// Branch protection settings for development and release branches.
-	BranchProtections []jsonBranchProtection `json:"branchProtections"`
+	BranchProtections jsonBranchProtectionMetadata `json:"branchProtections"`
 	// Contributors. Note: we could use the list of commits instead to store this data.
 	// However, it's harder to get statistics using commit list, so we have a dedicated
 	// structure for it.
@@ -711,7 +716,7 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.BranchProtectionsData) error {
-	r.Results.BranchProtections = []jsonBranchProtection{}
+	branches := []jsonBranchProtection{}
 	for _, v := range bp.Branches {
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {
@@ -728,11 +733,15 @@ func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.Branc
 				StatusCheckContexts:                 v.BranchProtectionRule.CheckRules.Contexts,
 			}
 		}
-		r.Results.BranchProtections = append(r.Results.BranchProtections, jsonBranchProtection{
+		branches = append(branches, jsonBranchProtection{
 			Name:       *v.Name,
 			Protection: bp,
 		})
 	}
+	r.Results.BranchProtections.Branches = branches
+
+	r.Results.BranchProtections.CodeownersFiles = bp.CodeownersFiles
+
 	return nil
 }
 
