@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ossf/scorecard-attestor/policy"
+	"github.com/ossf/scorecard/v4/attestor/policy"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	sclog "github.com/ossf/scorecard/v4/log"
@@ -81,8 +81,17 @@ func runCheck() (policy.PolicyResult, error) {
 	requiredChecks := attestationPolicy.GetRequiredChecksForPolicy()
 
 	enabledChecks := map[string]checker.Check{
-		"BinaryArtifacts": {
+		checks.CheckBinaryArtifacts: {
 			Fn: checks.BinaryArtifacts,
+		},
+		checks.CheckVulnerabilities: {
+			Fn: checks.Vulnerabilities,
+		},
+		checks.CheckCodeReview: {
+			Fn: checks.CodeReview,
+		},
+		checks.CheckPinnedDependencies: {
+			Fn: checks.PinningDependencies,
 		},
 	}
 
