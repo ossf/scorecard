@@ -130,9 +130,6 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 func isGoProject(c *checker.CheckRequest) (bool, error) {
 	matchedFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
 	if err != nil {
-		return false, fmt.Errorf("%w", err)
-	}
-	if err != nil {
 		return false, fmt.Errorf("RepoClient.ListFiles: %w", err)
 	}
 

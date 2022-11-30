@@ -31,20 +31,19 @@ func Test_Packaging(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		filenames []string
-		err       error
-		score     int
+		name          string
+		filenames     []string
+		err           error
+		ecosystemName string
 	}{
 		{
-			name:      "Go project root dir",
-			filenames: []string{"go.mod"},
-			score:     10,
+			name:          "Go project root dir",
+			filenames:     []string{"go.mod"},
+			ecosystemName: string(checker.PackageEcosystemGo),
 		},
 		{
 			name:      "Go project not root dir",
 			filenames: []string{"path/go.mod"},
-			score:     0,
 		},
 		// TODO(2501): add unit tests for packaging.
 	}
@@ -83,8 +82,13 @@ func Test_Packaging(t *testing.T) {
 				t.Errorf(cmp.Diff(len(pkgs.Packages), expectedLength))
 			}
 
-			if pkgs.Packages[0].Name == nil && tt.score != 0 {
-				t.Errorf("no name found")
+			if pkgs.Packages[0].Ecosystem == nil && tt.ecosystemName != "" {
+				t.Errorf("no ecosystem found")
+			}
+
+			if pkgs.Packages[0].Ecosystem != nil &&
+				string(*pkgs.Packages[0].Ecosystem) != tt.ecosystemName {
+				t.Errorf(cmp.Diff(*pkgs.Packages[0].Ecosystem, tt.ecosystemName))
 			}
 		})
 	}
