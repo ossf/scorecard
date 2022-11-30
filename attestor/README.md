@@ -16,6 +16,17 @@ Unless there's an internal error, scorecard-attestor will always return a succes
 
 Policies for scorecard attestor can be passed through the CLI using the `--policy` flag. Examples of policies can be seen in [attestor/policy/testdata](/attestor/policy/testdata).
 
+### Policies
+
+* `PreventBinaryArtifacts`: Ensure that a repository is free from binary artifacts, which can link against the final repo artifact but isn't reviewable.
+  * `AllowedBinaryArtifacts`: A list of binary artifacts, by repo path, to ignore. If not specified, no binary artifacts will be allowed
+* `PreventKnownVulnerabilities`: Ensure that the project is free from security vulnerabilities/advisories, as registered in osv.dev.
+* `PreventUnpinnedDependencies`: Ensure that a project's dependencies are pinned by hash. Dependency pinning makes builds more predictable, and prevents the consumption of malicious package versions from a compromised upstream.
+  * `AllowedUnpinnedDependencies`: Ignore some dependencies, either by the filepath of the dependency management file (`filepath`, e.g. requirements.txt or package.json) or the dependency name (`packagename`, the specific package being ignored). If multiple filepaths/names, or a combination of filepaths and names are specified, all of them will be used. If not specified, no unpinned dependencies will be allowed.
+* `RequireCodeReviewed`: Require that If `CodeReviewRequirements` is not specified, at least one reviewer will be required on all changesets. Scorecard-attestor inherits scorecard's deafult commit window (i.e. will only look at the last 30 commits to determine if they are reviewed or not).
+  * `CodeReviewRequirements.MinReviewers`: The minimum number of distinct approvals required.
+  * `CodeReviewRequirements.RequiredApprovers`: A set of approvers, all of whom must be found to have approved all changes. If any have not approved any changes, the check fails.
+
 ### Policy schema
 
 Policies follow the following schema:
@@ -47,14 +58,6 @@ optional:
                 contents: "//str"
             minReviewers: "//int"
 ```
-
-### Missing parameters
-
-Policies that are left blank will be ignored. Policies that allow users additional configuration options will be given default parameters as listed below.
-
-* `PreventBinaryArtifacts`: If not specified, `AllowedBinaryArtifacts` will be empty, i.e. no binary artifacts will be allowed
-* `PreventUnpinnedDependencies`: If not specified, `AllowedUnpinnedDependencies` will be empty, i.e. no unpinned dependencies will be allowed
-* `RequireCodeReviewed`: If not specified, `CodeReviewRequirements` will require at least one reviewer on all changesets.
 
 ## Sample
 

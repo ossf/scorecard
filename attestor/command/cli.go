@@ -24,36 +24,40 @@ import (
 )
 
 var (
-	// input flags
+	// input flags.
 	repoURL            string
 	commitSHA          string
-	mode               string
 	image              string
 	policyPath         string
 	attestationProject string
 	overwrite          bool
-	// input flags: pgp key flags
+	// input flags: pgp key flags.
 	pgpPriKeyPath string
 	pgpPassphrase string
-	// pkix key flags
+	// pkix key flags.
 	pkixPriKeyPath string
 	pkixAlg        string
 
-	// input flags: kms flags
+	// input flags: kms flags.
 	kmsKeyName   string
 	kmsDigestAlg string
 )
 
+//nolint:lll
 func addCheckFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&policyPath, "policy", "", "(required for check) scorecard attestation policy file path, e.g., /tmp/policy-binauthz.yml")
+	//nolint:errcheck
 	cmd.MarkPersistentFlagRequired("policy")
 	cmd.PersistentFlags().StringVar(&repoURL, "repo-url", "", "Repo URL from which source was built")
+	//nolint:errcheck
 	cmd.MarkPersistentFlagRequired("repo-url")
 	cmd.PersistentFlags().StringVar(&commitSHA, "commit", "", "Git SHA at which image was built")
 }
 
+//nolint:lll
 func addSignFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&image, "image", "", "Image url, e.g., gcr.io/foo/bar@sha256:abcd")
+	//nolint:errcheck
 	cmd.MarkPersistentFlagRequired("image")
 	cmd.PersistentFlags().StringVar(&attestationProject, "attestation-project", "", "project id for GCP project that stores attestation, use image project if set to empty")
 	cmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite attestation if already existed (default false)")
@@ -63,10 +67,8 @@ func addSignFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&pgpPassphrase, "pgp-passphrase", "", "passphrase for pgp private key, if any")
 	cmd.PersistentFlags().StringVar(&pkixPriKeyPath, "pkix-private-key", "", "pkix private signing key path, e.g., /dev/shm/key.pem")
 	cmd.PersistentFlags().StringVar(&pkixAlg, "pkix-alg", "", "pkix signature algorithm, e.g., ecdsa-p256-sha256")
-
 }
 
-// Export for testability
 var RootCmd = &cobra.Command{
 	Use:   "scorecard-attestor",
 	Short: "scorecard-attestor generates attestations based on scorecard results",
@@ -77,7 +79,6 @@ var checkAndSignCmd = &cobra.Command{
 	Short: "Run scorecard and sign a container image if attestation policy check passes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		passed, err := runCheck()
-
 		if err != nil {
 			return err
 		}
@@ -101,6 +102,7 @@ var checkCmd = &cobra.Command{
 	SilenceUsage: true,
 }
 
+//nolint:gochecknoinits
 func init() {
 	RootCmd.AddCommand(checkCmd, checkAndSignCmd)
 

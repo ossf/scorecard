@@ -23,7 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
-	scut "github.com/ossf/scorecard/v4/utests"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 func (ap *AttestationPolicy) ToJSON() string {
@@ -67,8 +67,8 @@ func TestCheckNoVulnerabilities(t *testing.T) {
 		tt := &tests[i]
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			dl := scut.TestDetailLogger{}
-			actual, err := CheckNoVulnerabilities(tt.raw, &dl)
+			logger := sclog.NewLogger(sclog.DefaultLevel)
+			actual, err := CheckNoVulnerabilities(tt.raw, logger)
 
 			if !errors.Is(err, tt.err) {
 				t.Fatalf("%s: expected %v, got %v", tt.name, tt.err, err)
@@ -149,8 +149,8 @@ func TestCheckPreventBinaryArtifacts(t *testing.T) {
 		tt := &tests[i]
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			dl := scut.TestDetailLogger{}
-			actual, err := CheckPreventBinaryArtifacts(tt.allowedBinaryArtifacts, tt.raw, &dl)
+			logger := sclog.NewLogger(sclog.DefaultLevel)
+			actual, err := CheckPreventBinaryArtifacts(tt.allowedBinaryArtifacts, tt.raw, logger)
 
 			if !errors.Is(err, tt.err) {
 				t.Fatalf("%s: expected %v, got %v", tt.name, tt.err, err)
@@ -324,8 +324,8 @@ func TestCheckCodeReviewed(t *testing.T) {
 		tt := &tests[i]
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			dl := scut.TestDetailLogger{}
-			actual, err := CheckCodeReviewed(tt.reqs, tt.raw, &dl)
+			logger := sclog.NewLogger(sclog.DefaultLevel)
+			actual, err := CheckCodeReviewed(tt.reqs, tt.raw, logger)
 
 			if !errors.Is(err, tt.err) {
 				t.Fatalf("%s: expected %v, got %v", tt.name, tt.err, err)
@@ -410,8 +410,8 @@ func TestNoUnpinnedDependencies(t *testing.T) {
 		tt := &tests[i]
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			dl := scut.TestDetailLogger{}
-			actual, err := CheckNoUnpinnedDependencies(tt.ignores, tt.raw, &dl)
+			logger := sclog.NewLogger(sclog.DefaultLevel)
+			actual, err := CheckNoUnpinnedDependencies(tt.ignores, tt.raw, logger)
 
 			if !errors.Is(err, tt.err) {
 				t.Fatalf("%s: expected %v, got %v", tt.name, tt.err, err)

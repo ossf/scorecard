@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 //nolint:govet
@@ -95,23 +96,23 @@ func (ap *AttestationPolicy) GetRequiredChecksForPolicy() map[string]bool {
 
 // Run attestation policy checks on raw data.
 func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyResult, error) {
-	dl := checker.NewLogger()
+	logger := sclog.NewLogger(sclog.DefaultLevel)
 	if ap.PreventBinaryArtifacts {
-		checkResult, err := CheckPreventBinaryArtifacts(ap.AllowedBinaryArtifacts, raw, dl)
+		checkResult, err := CheckPreventBinaryArtifacts(ap.AllowedBinaryArtifacts, raw, logger)
 		if !checkResult || err != nil {
 			return checkResult, err
 		}
 	}
 
 	if ap.PreventUnpinnedDependencies {
-		checkResult, err := CheckNoUnpinnedDependencies(ap.AllowedUnpinnedDependencies, raw, dl)
+		checkResult, err := CheckNoUnpinnedDependencies(ap.AllowedUnpinnedDependencies, raw, logger)
 		if !checkResult || err != nil {
 			return checkResult, err
 		}
 	}
 
 	if ap.PreventKnownVulnerabilities {
-		checkResult, err := CheckNoVulnerabilities(raw, dl)
+		checkResult, err := CheckNoVulnerabilities(raw, logger)
 		if !checkResult || err != nil {
 			return checkResult, err
 		}
@@ -125,7 +126,7 @@ func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyRes
 			ap.CodeReviewRequirements.MinReviewers = 1
 		}
 
-		checkResult, err := CheckCodeReviewed(ap.CodeReviewRequirements, raw, dl)
+		checkResult, err := CheckCodeReviewed(ap.CodeReviewRequirements, raw, logger)
 		if !checkResult || err != nil {
 			return checkResult, err
 		}
@@ -144,7 +145,7 @@ const (
 func CheckPreventBinaryArtifacts(
 	allowedBinaryArtifacts []string,
 	results *checker.RawResults,
-	dl checker.DetailLogger,
+	logger *sclog.Logger,
 ) (PolicyResult, error) {
 	for i := range results.BinaryArtifactResults.Files {
 		artifactFile := results.BinaryArtifactResults.Files[i]
@@ -156,37 +157,39 @@ func CheckPreventBinaryArtifacts(
 
 			if g := glob.MustCompile(allowGlob); g.Match(artifactFile.Path) {
 				ignoreArtifact = true
-				dl.Info(&checker.LogMessage{Text: fmt.Sprintf(
-					"ignoring binary artifact at %s due to ignored glob path %s",
-					artifactFile.Path,
-					g,
-				)})
+				logger.Info(
+					fmt.Sprintf(
+						"ignoring binary artifact at %s due to ignored glob path %s",
+						artifactFile.Path, g,
+					),
+				)
 			}
 		}
 
 		if !ignoreArtifact {
-			dl.Info(&checker.LogMessage{
-				Path: artifactFile.Path, Type: checker.FileTypeBinary,
-				Offset: artifactFile.Offset,
-				Text:   "binary detected",
-			})
+			logger.Info(
+				fmt.Sprintf(
+					"binary detected path:%s type: %v offset:%v",
+					artifactFile.Path, checker.FileTypeBinary, artifactFile.Offset,
+				),
+			)
 			return Fail, nil
 		}
 	}
 
-	dl.Info(&checker.LogMessage{Text: "repo was free of binary artifacts"})
+	logger.Info("repo was free of binary artifacts")
 	return Pass, nil
 }
 
-func CheckNoVulnerabilities(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
+func CheckNoVulnerabilities(results *checker.RawResults, logger *sclog.Logger) (PolicyResult, error) {
 	nVulns := len(results.VulnerabilitiesResults.Vulnerabilities)
 
-	dl.Info(&checker.LogMessage{Text: fmt.Sprintf("found %d vulnerabilities in package", nVulns)})
+	logger.Info(fmt.Sprintf("found %d vulnerabilities in package", nVulns))
 
 	return nVulns == 0, nil
 }
 
-func toString(cs checker.Changeset) string {
+func toString(cs *checker.Changeset) string {
 	platform := cs.ReviewPlatform
 	if platform == "" {
 		platform = "unknown"
@@ -197,9 +200,10 @@ func toString(cs checker.Changeset) string {
 func CheckCodeReviewed(
 	reqs CodeReviewRequirements,
 	results *checker.RawResults,
-	dl checker.DetailLogger,
+	logger *sclog.Logger,
 ) (PolicyResult, error) {
-	for _, changeset := range results.CodeReviewResults.DefaultBranchChangesets {
+	for i := range results.CodeReviewResults.DefaultBranchChangesets {
+		changeset := &results.CodeReviewResults.DefaultBranchChangesets[i]
 		numApprovers := 0
 		approvals := make(map[string]bool)
 		// CodeReview check is limited to github.com pull request reviews
@@ -218,26 +222,17 @@ func CheckCodeReviewed(
 		}
 
 		if !foundLinkedReviews {
-			dl.Warn(
-				&checker.LogMessage{
-					Text: fmt.Sprintf(
-						"no code reviews linked to %s",
-						toString(changeset),
-					),
-				},
-			)
+			logger.Info(fmt.Sprintf("no code reviews linked to %s", toString(changeset)))
 		}
 
 		if numApprovers < reqs.MinReviewers {
-			dl.Info(
-				&checker.LogMessage{
-					Text: fmt.Sprintf(
-						"not enough approvals for %s (needed:%d found:%d)",
-						toString(changeset),
-						reqs.MinReviewers,
-						numApprovers,
-					),
-				},
+			logger.Info(
+				fmt.Sprintf(
+					"not enough approvals for %s (needed:%d found:%d)",
+					toString(changeset),
+					reqs.MinReviewers,
+					numApprovers,
+				),
 			)
 			return Fail, nil
 		}
@@ -245,14 +240,12 @@ func CheckCodeReviewed(
 		missingApprovers := false
 		for _, appr := range reqs.RequiredApprovers {
 			if approved, ok := approvals[appr]; !(ok && approved) {
-				dl.Info(
-					&checker.LogMessage{
-						Text: fmt.Sprintf(
-							"approver %s required but didn't approve %s",
-							appr,
-							toString(changeset),
-						),
-					},
+				logger.Info(
+					fmt.Sprintf(
+						"approver %s required but didn't approve %s",
+						appr,
+						toString(changeset),
+					),
 				)
 				missingApprovers = true
 			}
@@ -269,17 +262,17 @@ func CheckCodeReviewed(
 func CheckNoUnpinnedDependencies(
 	allowed []Dependency,
 	results *checker.RawResults,
-	dl checker.DetailLogger,
+	logger *sclog.Logger,
 ) (PolicyResult, error) {
 	for i := range results.PinningDependenciesResults.Dependencies {
 		dep := results.PinningDependenciesResults.Dependencies[i]
 		if (dep.PinnedAt == nil || *dep.PinnedAt == "") && !isUnpinnedDependencyAllowed(dep, allowed) {
-			dl.Info(&checker.LogMessage{Text: fmt.Sprintf("found unpinned dependency %v", dep)})
+			logger.Info(fmt.Sprintf("found unpinned dependency %v", dep))
 			return Fail, nil
 		}
 	}
 
-	dl.Info(&checker.LogMessage{Text: "repo was free of unpinned dependencies"})
+	logger.Info("repo was free of unpinned dependencies")
 	return Pass, nil
 }
 
