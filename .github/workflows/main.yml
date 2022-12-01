@@ -1,4 +1,4 @@
-# Copyright 2021 Security Scorecard Authors
+# Copyright 2021 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -903,5 +903,5 @@ jobs:
         run: |
           go env -w GOFLAGS=-mod=mod
           go install github.com/google/addlicense@2fe3ee94479d08be985a84861de4e6b06a1c7208
-          addlicense -ignore "**/script-empty.sh" -ignore "testdata/**" -ignore "**/testdata/**" -l apache -c 'Security Scorecard Authors' -v *
+          addlicense -ignore "**/script-empty.sh" -ignore "testdata/**" -ignore "**/testdata/**" -l apache -c 'OpenSSF Scorecard Authors' -v *
           git diff --exit-code
