@@ -34,7 +34,7 @@ Problems with generated executable (binary) artifacts:
     the source repository (since the executable generation process is less
     likely to have atrophied).
 
-Allowed by Scorecards:
+Allowed by Scorecard:
 
   - Files in the source repository that are simultaneously reviewable source
     code and executables, since these are reviewable. (Some interpretive
@@ -186,7 +186,7 @@ To earn the passing badge, the project MUST:
   - apply at least one static code analysis tool (beyond compiler warnings and
     "safe" language modes) to any proposed major production release.
 
-Some of these criteria overlap with other Scorecards checks.
+Some of these criteria overlap with other Scorecard checks.
  
 
 **Remediation steps**
@@ -442,9 +442,9 @@ You can create a package in several ways:
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to package software, and it is
-challenging for an automated tool like Scorecards to detect them all. A low
+challenging for an automated tool like Scorecard to detect them all. A low
 score is therefore not a definitive indication that the project is at risk. If
-Scorecards fails to detect the way you publish a package and you think we should
+Scorecard fails to detect the way you publish a package and you think we should
 support your use case, please let us know by [opening an
 issue](https://github.com/ossf/scorecard/issues/new/choose).
  
