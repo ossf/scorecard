@@ -180,7 +180,7 @@ func typeOfPermission(val string) checker.PermissionLevel {
 	switch val {
 	case "read", "read-all":
 		return checker.PermissionLevelRead
-	case "none":
+	case "none": //nolint:goconst
 		return checker.PermissionLevelNone
 	}
 	return checker.PermissionLevelUnknown
