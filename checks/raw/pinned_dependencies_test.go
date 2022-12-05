@@ -888,7 +888,7 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/script-pkg-managers",
-			warns:    38,
+			warns:    43,
 		},
 		{
 			name:     "invalid shell script",
