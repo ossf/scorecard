@@ -31,10 +31,10 @@ RUN ["go", "get", "-insecure", "somerepo.com/org/name@v1.2.3-semver"]
 RUN ["go", "get", "-insecure", "somerepo.com/org/name@v1.2.3-semver+great"]
 RUN ["go", "get", "somerepo.com/org/name@v1"]
 RUN ["go", "get", "somerepo.com/org/name@v1.2"]
-RUN ["go", "install", "somerepo.com/org/name@none"]
-RUN ["go", "install", "somerepo.com/org/name@latest"]
-RUN ["go", "install", "somerepo.com/org/name@patch"]
-RUN ["go", "install", "somerepo.com/org/name@upgrade"]
+RUN ["go", "get", "somerepo.com/org/name@none"]
+RUN ["go", "get", "somerepo.com/org/name@latest"]
+RUN ["go", "get", "somerepo.com/org/name@patch"]
+RUN ["go", "get", "somerepo.com/org/name@upgrade"]
 
 RUN go install /some/local/path
 RUN go mod download
