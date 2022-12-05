@@ -10,7 +10,7 @@ require (
 require (
 	cloud.google.com/go/bigquery v1.44.0
 	cloud.google.com/go/monitoring v1.8.0 // indirect
-	cloud.google.com/go/pubsub v1.27.0
+	cloud.google.com/go/pubsub v1.27.1
 	cloud.google.com/go/trace v1.4.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.12
 	github.com/bombsimon/logrusr/v2 v2.0.1
@@ -36,7 +36,7 @@ require (
 	gocloud.dev v0.26.0
 	golang.org/x/text v0.4.0
 	golang.org/x/tools v0.3.0
-	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6
+	google.golang.org/genproto v0.0.0-20221201164419-0e50fba7f41c
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
