@@ -23,6 +23,18 @@ RUN go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 RUN go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 RUN ["go", "install", "-Y", "github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999"]
 RUN ["go", "get", "github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999"]
+RUN ["go", "get", "somerepo.com/org/name@v1.2.3"]
+RUN ["go", "get", "somerepo.com/org/name@v1.2.3-semver"]
+RUN ["go", "get", "somerepo.com/org/name@v1.2.3-semver+great"]
+RUN ["go", "get", "-insecure", "somerepo.com/org/name@v1.2.3"]
+RUN ["go", "get", "-insecure", "somerepo.com/org/name@v1.2.3-semver"]
+RUN ["go", "get", "-insecure", "somerepo.com/org/name@v1.2.3-semver+great"]
+RUN ["go", "get", "somerepo.com/org/name@v1"]
+RUN ["go", "get", "somerepo.com/org/name@v1.2"]
+RUN ["go", "install", "somerepo.com/org/name@none"]
+RUN ["go", "install", "somerepo.com/org/name@latest"]
+RUN ["go", "install", "somerepo.com/org/name@patch"]
+RUN ["go", "install", "somerepo.com/org/name@upgrade"]
 
 RUN go install /some/local/path
 RUN go mod download

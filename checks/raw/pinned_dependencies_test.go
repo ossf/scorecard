@@ -770,7 +770,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/Dockerfile-pkg-managers",
-			warns:    39,
+			warns:    47,
 		},
 		{
 			name:     "download with some python",
