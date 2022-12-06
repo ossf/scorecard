@@ -60,6 +60,18 @@ jobs:
         run: go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
       - name:
         run: go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
+      - run: go get somerepo.com/org/name@v1.2.3
+      - run: go get somerepo.com/org/name@v1.2.3-semver
+      - run: go get somerepo.com/org/name@v1.2.3-semver+great
+      - run: go get -insecure somerepo.com/org/name@v1.2.3
+      - run: go get -insecure somerepo.com/org/name@v1.2.3-semver
+      - run: go get -insecure somerepo.com/org/name@v1.2.3-semver+great
+      - run: go get somerepo.com/org/name@v1
+      - run: go get somerepo.com/org/name@v1.2
+      - run: go get somerepo.com/org/name@none
+      - run: go get somerepo.com/org/name@latest
+      - run: go get somerepo.com/org/name@patch
+      - run: go get somerepo.com/org/name@upgrade
       - name:
         run: go mod download
       - name:

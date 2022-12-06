@@ -180,7 +180,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 		{
 			name:     "npm packages without verification",
 			filename: "./testdata/.github/workflows/github-workflow-pkg-managers.yaml",
-			warns:    28,
+			warns:    36,
 		},
 	}
 	for _, tt := range tests {
@@ -770,7 +770,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/Dockerfile-pkg-managers",
-			warns:    39,
+			warns:    47,
 		},
 		{
 			name:     "download with some python",
@@ -888,7 +888,7 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/script-pkg-managers",
-			warns:    36,
+			warns:    43,
 		},
 		{
 			name:     "invalid shell script",

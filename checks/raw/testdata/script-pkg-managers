@@ -23,6 +23,17 @@ go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 go get somerepo.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 go get another-repo.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 go get somerepo.com/org/name@v1.2.3
+go get somerepo.com/org/name@v1.2.3-semver
+go get somerepo.com/org/name@v1.2.3-semver+great
+go get -insecure somerepo.com/org/name@v1.2.3
+go get -insecure somerepo.com/org/name@v1.2.3-semver
+go get -insecure somerepo.com/org/name@v1.2.3-semver+great
+go get somerepo.com/org/name@v1
+go get somerepo.com/org/name@v1.2
+go get somerepo.com/org/name@none
+go get somerepo.com/org/name@latest
+go get somerepo.com/org/name@patch
+go get somerepo.com/org/name@upgrade
 go get another-repo.com/org/name@release
 go get local-folder
 go get ./local-folder
