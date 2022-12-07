@@ -373,12 +373,6 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 	// Only log information if the branch is protected.
 	log := branch.Protected != nil && *branch.Protected
 
-	if branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge == nil ||
-		branch.BranchProtectionRule.RequireLastPushApproval == nil {
-		debug(dl, log, "unable to retrieve whether up-to-date branches are needed to merge on branch '%s'", *branch.Name)
-		return score, max
-	}
-
 	// Process UpToDateBeforeMerge value.
 	if branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge == nil {
 		debug(dl, log, "unable to retrieve whether up-to-date branches are needed to merge on branch '%s'", *branch.Name)
