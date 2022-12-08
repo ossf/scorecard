@@ -27,8 +27,7 @@ import (
 
 // Test_fetchRawDependencyDiffData is a test function for fetchRawDependencyDiffData.
 func Test_fetchRawDependencyDiffData(t *testing.T) {
-	t.Parallel()
-
+	//nolint
 	tests := []struct {
 		name      string
 		dCtx      dependencydiffContext
@@ -69,7 +68,6 @@ func Test_fetchRawDependencyDiffData(t *testing.T) {
 }
 
 func Test_initRepoAndClientByChecks(t *testing.T) {
-	t.Parallel()
 	//nolint
 	tests := []struct {
 		name                           string
@@ -129,8 +127,7 @@ func Test_initRepoAndClientByChecks(t *testing.T) {
 }
 
 func Test_getScorecardCheckResults(t *testing.T) {
-	t.Parallel()
-
+	//nolint
 	tests := []struct {
 		name    string
 		dCtx    dependencydiffContext
@@ -161,7 +158,6 @@ func Test_getScorecardCheckResults(t *testing.T) {
 }
 
 func Test_mapDependencyEcosystemNaming(t *testing.T) {
-	t.Parallel()
 	//nolint
 	tests := []struct {
 		name      string
@@ -217,7 +213,7 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			//nolint
 			err := mapDependencyEcosystemNaming(tt.deps)
 			if tt.errWanted != nil && errors.Is(tt.errWanted, err) {
 				t.Errorf("not a wanted error, want:%v, got:%v", tt.errWanted, err)
@@ -228,8 +224,7 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 }
 
 func Test_isSpecifiedByUser(t *testing.T) {
-	t.Parallel()
-
+	//nolint
 	tests := []struct {
 		name               string
 		ct                 pkg.ChangeType
@@ -267,7 +262,7 @@ func Test_isSpecifiedByUser(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			//nolint
 			result := isSpecifiedByUser(tt.ct, tt.changeTypesToCheck)
 			if result != tt.resultWanted {
 				t.Errorf("result (%v) != result wanted (%v)", result, tt.resultWanted)
