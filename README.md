@@ -35,6 +35,9 @@
 -   [Detailed Check Documentation](docs/checks.md) (Scoring Criteria, Risks, and
     Remediation)
 
+## Other Important Recommendations
+-   [Two-factor Authentication (2FA)](#two-factor-authentication-2fa)
+
 ## Scoring
 -   [Aggregate Score](#aggregate-score)
 
@@ -456,6 +459,27 @@ Name        | Description                               | Risk Level | Token Req
 
 To see detailed information about each check, its scoring criteria, and
 remediation steps, check out the [checks documentation page](docs/checks.md).
+
+## Other Important Recommendations
+
+### Two-factor Authentication (2FA)
+
+The [2FA](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/about-two-factor-authentication) is an extra layer of security when logging into websites or apps. With 2FA, you have to log in with your username and password and provide another form of authentication that only you know or have access to.
+
+It is a strong recommendation not only on Github but also in other website to always enable 2FA if avaiable. This way you will secure your account and, consequently, secure all the projects you contribute to.
+
+Although 2FA is one of the most important steps to secure any project, the OpenSSF Scorecard is still not able to verify whether users in an organization or the maintainers of a project uses 2FA. That's why OpenSSF Scorecard urges all maintainers to enable 2FA as soon as possible.
+
+#### Enabling 2FA
+
+##### For an user
+
+Follow the steps described at [Configuring two-factor authentication](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/configuring-two-factor-authentication)
+
+##### For an organization
+
+1. [Prepare to require 2FA in your organization](https://docs.github.com/en/organizations/keeping-your-organization-secure/managing-two-factor-authentication-for-your-organization/preparing-to-require-two-factor-authentication-in-your-organization)
+2. [Require 2FA in your organization](https://docs.github.com/en/organizations/keeping-your-organization-secure/managing-two-factor-authentication-for-your-organization/requiring-two-factor-authentication-in-your-organization)
 
 ## Scoring
 
