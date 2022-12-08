@@ -206,8 +206,6 @@ func CheckCodeReviewed(
 		changeset := &results.CodeReviewResults.DefaultBranchChangesets[i]
 		numApprovers := 0
 		approvals := make(map[string]bool)
-		// CodeReview check is limited to github.com pull request reviews
-		// Log if a change isn't a github pr since it's a bit unintuitive
 		foundLinkedReviews := false
 
 		for i := range changeset.Commits {
@@ -221,6 +219,8 @@ func CheckCodeReviewed(
 			}
 		}
 
+		// CodeReview check is limited to github.com pull request reviews
+		// Log if a change isn't a github pr since it's a bit unintuitive
 		if !foundLinkedReviews {
 			logger.Info(fmt.Sprintf("no code reviews linked to %s", toString(changeset)))
 		}
@@ -237,17 +237,18 @@ func CheckCodeReviewed(
 			return Fail, nil
 		}
 
-		missingApprovers := false
+		if len(reqs.RequiredApprovers) == 0 {
+			continue
+		}
+
+		missingApprovers := true
 		for _, appr := range reqs.RequiredApprovers {
-			if approved, ok := approvals[appr]; !(ok && approved) {
+			if approved, ok := approvals[appr]; ok && approved {
 				logger.Info(
-					fmt.Sprintf(
-						"approver %s required but didn't approve %s",
-						appr,
-						toString(changeset),
-					),
+					fmt.Sprintf("found approver %s for %s", appr, toString(changeset)),
 				)
-				missingApprovers = true
+				missingApprovers = false
+				break
 			}
 		}
 

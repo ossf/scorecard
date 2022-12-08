@@ -33,6 +33,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 			tt := []struct {
 				name     string
 				repoURL  string
+				commit   string
 				policy   policy.AttestationPolicy
 				expected policy.PolicyResult
 			}{
@@ -114,6 +115,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 				{
 					name:    "test repo with simple code review requirements",
 					repoURL: "https://github.com/ossf/scorecard",
+					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
 					policy: policy.AttestationPolicy{
 						EnsureCodeReviewed: true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
@@ -133,6 +135,53 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					},
 					expected: policy.Fail,
 				},
+				{
+					name:    "test code reviews required with min reviewers",
+					repoURL: "https://github.com/ossf/scorecard",
+					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
+					policy: policy.AttestationPolicy{
+						PreventBinaryArtifacts:      true,
+						PreventKnownVulnerabilities: true,
+						PreventUnpinnedDependencies: true,
+						EnsureCodeReviewed:          true,
+						CodeReviewRequirements: policy.CodeReviewRequirements{
+							MinReviewers: 1,
+						},
+					},
+					expected: policy.Pass,
+				},
+				{
+					name:    "test code reviews required with min reviewers and required reviewers",
+					repoURL: "https://github.com/ossf/scorecard",
+					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
+					policy: policy.AttestationPolicy{
+						PreventBinaryArtifacts:      true,
+						PreventKnownVulnerabilities: true,
+						PreventUnpinnedDependencies: true,
+						EnsureCodeReviewed:          true,
+						CodeReviewRequirements: policy.CodeReviewRequirements{
+							MinReviewers:      1,
+							RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38"},
+						},
+					},
+					expected: policy.Pass,
+				},
+				{
+					name:    "test code reviews required with too many min reviewers but matching required reviewers",
+					repoURL: "https://github.com/ossf/scorecard",
+					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
+					policy: policy.AttestationPolicy{
+						PreventBinaryArtifacts:      true,
+						PreventKnownVulnerabilities: true,
+						PreventUnpinnedDependencies: true,
+						EnsureCodeReviewed:          true,
+						CodeReviewRequirements: policy.CodeReviewRequirements{
+							MinReviewers:      2,
+							RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38"},
+						},
+					},
+					expected: policy.Fail,
+				},
 			}
 
 			for _, tc := range tt {
@@ -148,7 +197,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 				Expect(err).Should(BeNil())
 				Expect(nbytes).Should(BeNumerically(">", 0))
 
-				result, err := command.RunCheckWithParams(tc.repoURL, "HEAD", f.Name())
+				result, err := command.RunCheckWithParams(tc.repoURL, tc.commit, f.Name())
 				Expect(err).Should(BeNil())
 				Expect(result).Should(BeEquivalentTo(tc.expected))
 			}
