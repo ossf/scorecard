@@ -87,7 +87,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  2,
 				NumberOfInfo:  0,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
