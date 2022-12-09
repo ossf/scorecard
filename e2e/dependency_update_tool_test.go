@@ -16,7 +16,10 @@ package e2e
 
 import (
 	"context"
+	"errors"
+	"os"
 
+	"github.com/go-git/go-git/v5"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -24,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/localdir"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -83,6 +87,37 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "renovabot", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return error on a local repo client", func() {
+			dl := scut.TestDetailLogger{}
+
+			tmpDir, err := os.MkdirTemp("", "")
+			Expect(err).Should(BeNil())
+			defer os.RemoveAll(tmpDir)
+
+			_, e := git.PlainClone(tmpDir, false, &git.CloneOptions{
+				// Note: we don't have a dedicated repo, but any repo should work.
+				URL: "http://github.com/ossf-tests/scorecard-check-token-permissions-e2e",
+			})
+			Expect(e).Should(BeNil())
+
+			repo, err := localdir.MakeLocalDirRepo(tmpDir)
+			Expect(err).Should(BeNil())
+
+			x := localdir.CreateLocalDirClient(context.Background(), logger)
+			err = x.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: x,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+
+			result := checks.DependencyUpdateTool(&req)
+			Expect(result.Error).ShouldNot(BeNil())
+			Expect(x.Close()).Should(BeNil())
 		})
 	})
 })
