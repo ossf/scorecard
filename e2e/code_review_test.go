@@ -91,7 +91,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			err = repoClient.InitRepo(repo, "ca5e453f87f7e84033bb90a2fb54ee9f7fc94d61", 0)
 			Expect(err).Should(BeNil())
 
-			reviewData, err := raw.CodeReview(repoClient)
+			reviewData, err := checks.CodeReview(repoClient)
 			Expect(err).Should(BeNil())
 			Expect(reviewData.DefaultBranchChangesets).ShouldNot(BeEmpty())
 
@@ -132,7 +132,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Dlogger:    &dl,
 			}
 
-			_, err := checks.CodeReview(&req)
+			_, err = checks.CodeReview(&req)
 			Expect(err).ShouldNot(BeNil())
 			Expect(x.Close()).Should(BeNil())
 		})
