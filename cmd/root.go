@@ -124,20 +124,24 @@ func rootCmd(o *options.Options) error {
 		}
 	}
 
-	repoResult, err := pkg.RunScorecard(
-		ctx,
-		repoURI,
-		o.Commit,
-		o.CommitDepth,
-		enabledChecks,
-		repoClient,
-		ossFuzzRepoClient,
-		ciiClient,
-		vulnsClient,
-	)
-	if err != nil {
-		return fmt.Errorf("RunScorecard: %w", err)
+	var repoResult pkg.ScorecardResult
+	for i := 1; i < 3; i++ {
+		repoResult, err = pkg.RunScorecard(
+			ctx,
+			repoURI,
+			o.Commit,
+			o.CommitDepth,
+			enabledChecks,
+			repoClient,
+			ossFuzzRepoClient,
+			ciiClient,
+			vulnsClient,
+		)
+		if err != nil {
+			return fmt.Errorf("RunScorecard: %w", err)
+		}
 	}
+
 	repoResult.Metadata = append(repoResult.Metadata, o.Metadata...)
 
 	// Sort them by name

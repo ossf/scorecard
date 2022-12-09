@@ -39,6 +39,7 @@ func (handler *languagesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
+	handler.languages = nil
 }
 
 // TODO: Can add support to parse the raw response JSON and mark languages that are not in
