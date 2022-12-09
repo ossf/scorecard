@@ -40,6 +40,7 @@ func (handler *releasesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
+	handler.releases = nil
 }
 
 func (handler *releasesHandler) setup() error {

@@ -39,6 +39,7 @@ func (handler *contributorsHandler) init(ctx context.Context, repourl *repoURL) 
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
+	handler.contributors = nil
 }
 
 func (handler *contributorsHandler) setup() error {

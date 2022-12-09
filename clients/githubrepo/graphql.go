@@ -201,6 +201,8 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commi
 	handler.checkRuns = checkRunCache{}
 	handler.logger = log.NewLogger(log.DefaultLevel)
 	handler.commitDepth = commitDepth
+	handler.commits = nil
+	handler.issues = nil
 }
 
 func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]clients.Commit, error) {
