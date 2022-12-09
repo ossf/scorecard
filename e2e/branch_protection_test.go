@@ -16,7 +16,9 @@ package e2e
 
 import (
 	"context"
+	"os"
 
+	"github.com/go-git/go-git/v5"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -24,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/localdir"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 

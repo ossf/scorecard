@@ -16,7 +16,6 @@ package e2e
 
 import (
 	"context"
-	"errors"
 	"os"
 
 	"github.com/go-git/go-git/v5"
