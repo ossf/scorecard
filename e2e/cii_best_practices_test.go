@@ -53,5 +53,35 @@ var _ = Describe("E2E TEST:"+checks.CheckCIIBestPractices, func() {
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "passing badge", &expected, &result, &dl)).Should(BeTrue())
 		})
+		It("Should return error on a local repo client", func() {
+			dl := scut.TestDetailLogger{}
+
+			tmpDir, err := os.MkdirTemp("", "")
+			Expect(err).Should(BeNil())
+			defer os.RemoveAll(tmpDir)
+
+			_, e := git.PlainClone(tmpDir, false, &git.CloneOptions{
+				URL: "http://github.com/tensorflow/tensorflow",
+			})
+			Expect(e).Should(BeNil())
+
+			repo, err := localdir.MakeLocalDirRepo(tmpDir)
+			Expect(err).Should(BeNil())
+
+			x := localdir.CreateLocalDirClient(context.Background(), logger)
+			err = x.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: x,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+
+			result := checks.CIIBestPractices(&req)
+			Expect(result.Error).ShouldNot(BeNil())
+			Expect(x.Close()).Should(BeNil())
+		})
 	})
 })

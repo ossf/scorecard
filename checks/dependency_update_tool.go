@@ -24,12 +24,9 @@ import (
 // CheckDependencyUpdateTool is the exported name for Automatic-Depdendency-Update.
 const CheckDependencyUpdateTool = "Dependency-Update-Tool"
 
-//nolint
+// nolint
 func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool, supportedRequestTypes); err != nil {
+	if err := registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}

@@ -81,7 +81,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
-		It("Should return license check works for the local repoclient", func() {
+		It("Should return error on a local repo client", func() {
 			dl := scut.TestDetailLogger{}
 
 			tmpDir, err := os.MkdirTemp("", "")
@@ -106,17 +106,10 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 				Repo:       repo,
 				Dlogger:    &dl,
 			}
-			expected := scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore - 1,
-				NumberOfWarn:  1,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
-			}
-			result := checks.License(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
-				&dl)).Should(BeTrue())
+			result := checks.Packaging(&req)
+			Expect(result.Error).ShouldNot(BeNil())
+			Expect(x.Close()).Should(BeNil())
 		})
 	})
 })
