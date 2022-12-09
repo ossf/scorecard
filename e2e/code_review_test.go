@@ -25,6 +25,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
@@ -91,7 +92,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			err = repoClient.InitRepo(repo, "ca5e453f87f7e84033bb90a2fb54ee9f7fc94d61", 0)
 			Expect(err).Should(BeNil())
 
-			reviewData, err := checks.CodeReview(repoClient)
+			reviewData, err := raw.CodeReview(repoClient)
 			Expect(err).Should(BeNil())
 			Expect(reviewData.DefaultBranchChangesets).ShouldNot(BeEmpty())
 
