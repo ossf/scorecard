@@ -364,7 +364,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  4,
 				NumberOfInfo:  0,
-				NumberOfDebug: 6,
+				NumberOfDebug: 8,
 			},
 			nonadmin:      true,
 			defaultBranch: main,
