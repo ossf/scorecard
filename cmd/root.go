@@ -138,6 +138,7 @@ func rootCmd(o *options.Options) error {
 	if err != nil {
 		return fmt.Errorf("RunScorecard: %w", err)
 	}
+
 	repoResult.Metadata = append(repoResult.Metadata, o.Metadata...)
 
 	// Sort them by name
