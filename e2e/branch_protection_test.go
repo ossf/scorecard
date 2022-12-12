@@ -49,17 +49,17 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         6,
-				NumberOfWarn:  1,
+				Score:         5,
+				NumberOfWarn:  2,
 				NumberOfInfo:  4,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			}
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
 			// Old version.
 
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "branch protection accessible none", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should fail to return branch protection on other repositories", func() {
@@ -87,10 +87,10 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			result := checks.BranchProtection(&req)
 
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "branch protection accessible patch", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		It("Should fail to return branch protection on other repositories", func() {
+		It("Should fail to return branch protection on other repositories patch", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 
 			dl := scut.TestDetailLogger{}
@@ -110,12 +110,12 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 				Score:         1,
 				NumberOfWarn:  3,
 				NumberOfInfo:  3,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			}
 			result := checks.BranchProtection(&req)
 
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "branch protection accessible local", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return error on a local repo client", func() {
