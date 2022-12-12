@@ -25,7 +25,7 @@ Policies for scorecard attestor can be passed through the CLI using the `--polic
   * `AllowedUnpinnedDependencies`: Ignore some dependencies, either by the filepath of the dependency management file (`filepath`, e.g. requirements.txt or package.json) or the dependency name (`packagename`, the specific package being ignored). If multiple filepaths/names, or a combination of filepaths and names are specified, all of them will be used. If not specified, no unpinned dependencies will be allowed.
 * `RequireCodeReviewed`: Require that If `CodeReviewRequirements` is not specified, at least one reviewer will be required on all changesets. Scorecard-attestor inherits scorecard's deafult commit window (i.e. will only look at the last 30 commits to determine if they are reviewed or not).
   * `CodeReviewRequirements.MinReviewers`: The minimum number of distinct approvals required.
-  * `CodeReviewRequirements.RequiredApprovers`: A set of approvers, all of whom must be found to have approved all changes. If any have not approved any changes, the check fails.
+  * `CodeReviewRequirements.RequiredApprovers`: A set of approvers, any of whom must be found to have approved all changes. If a change is found without any approvals from this list, the check fails.
 
 ### Policy schema
 

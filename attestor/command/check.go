@@ -35,6 +35,11 @@ func (ep EmptyParameterError) Error() string {
 }
 
 func runCheck() (policy.PolicyResult, error) {
+	return RunCheckWithParams(repoURL, commitSHA, policyPath)
+}
+
+// RunCheckWithParams: Run scorecard check on repo. Export for testability.
+func RunCheckWithParams(repoURL, commitSHA, policyPath string) (policy.PolicyResult, error) {
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.DefaultLevel)
 
