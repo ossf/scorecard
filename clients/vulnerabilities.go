@@ -20,7 +20,7 @@ import (
 
 // VulnerabilitiesClient checks for vulnerabilities in vuln DB.
 type VulnerabilitiesClient interface {
-	HasUnfixedVulnerabilities(
+	ListUnfixedVulnerabilities(
 		context context.Context,
 		commit string,
 		localDir string,

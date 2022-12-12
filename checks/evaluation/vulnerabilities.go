@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/google/osv-scanner/pkg/grouper"
+
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -47,7 +48,7 @@ func Vulnerabilities(name string, dl checker.DetailLogger,
 	if len(IDs) > 0 {
 		for _, v := range IDs {
 			dl.Warn(&checker.LogMessage{
-				Text: fmt.Sprintf("HEAD is vulnerable to: %s", strings.Join(v.IDs, " / ")),
+				Text: fmt.Sprintf("Project is vulnerable to: %s", strings.Join(v.IDs, " / ")),
 			})
 		}
 

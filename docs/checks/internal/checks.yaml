@@ -697,8 +697,10 @@ checks:
       possible.
     remediation:
       - >-
-        Update your dependencies to a non-vulnerable version. The details of each vulnerability can be found
+        Fix the vulnerabilities in your own code base. The details of each vulnerability can be found
         on <https://osv.dev>.
+      - >-
+        If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
       - >-
         If you believe the vulnerability does not affect your project, the 
         vulnerability can be ignored. 

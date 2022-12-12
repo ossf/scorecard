@@ -25,8 +25,8 @@ var _ VulnerabilitiesClient = osvClient{}
 
 type osvClient struct{}
 
-// HasUnfixedVulnerabilities implements VulnerabilityClient.HasUnfixedVulnerabilities.
-func (v osvClient) HasUnfixedVulnerabilities(
+// ListUnfixedVulnerabilities implements VulnerabilityClient.ListUnfixedVulnerabilities.
+func (v osvClient) ListUnfixedVulnerabilities(
 	ctx context.Context,
 	commit,
 	localPath string,
@@ -50,11 +50,11 @@ func (v osvClient) HasUnfixedVulnerabilities(
 	}
 
 	response := VulnerabilitiesResponse{}
-
-	for _, v := range res.Flatten() {
+	vulns := res.Flatten()
+	for i := range vulns {
 		response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
-			ID:      v.Vulnerability.ID,
-			Aliases: v.Vulnerability.Aliases,
+			ID:      vulns[i].Vulnerability.ID,
+			Aliases: vulns[i].Vulnerability.Aliases,
 		})
 		// Remove duplicate vulnerability IDs for now as we don't report information
 		// on the source of each vulnerability yet, therefore having multiple identical
@@ -67,7 +67,7 @@ func (v osvClient) HasUnfixedVulnerabilities(
 	return response, nil
 }
 
-// RemoveDuplicate removes duplicate entries from a slice
+// RemoveDuplicate removes duplicate entries from a slice.
 func removeDuplicate[T any, K comparable](sliceList []T, keyExtract func(T) K) []T {
 	allKeys := make(map[K]bool)
 	list := []T{}

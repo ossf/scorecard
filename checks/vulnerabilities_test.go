@@ -60,7 +60,7 @@ func TestVulnerabilities(t *testing.T) {
 			}).AnyTimes()
 
 			mockVulnClient := mockrepo.NewMockVulnerabilitiesClient(ctrl)
-			mockVulnClient.EXPECT().HasUnfixedVulnerabilities(context.TODO(), gomock.Any(), gomock.Any()).DoAndReturn(
+			mockVulnClient.EXPECT().ListUnfixedVulnerabilities(context.TODO(), gomock.Any(), gomock.Any()).DoAndReturn(
 				func(ctx context.Context, commit string, localPath string) (clients.VulnerabilitiesResponse, error) {
 					return tt.expected, tt.err
 				}).MinTimes(1)

@@ -47,7 +47,7 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 3, // 3 vulnerabilities remove 3 points.
-				NumberOfWarn:  1,
+				NumberOfWarn:  3,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
@@ -74,7 +74,7 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 3, // 3 vulnerabilities remove 3 points.
-				NumberOfWarn:  1,
+				NumberOfWarn:  3,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
@@ -100,8 +100,8 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore - 2, // 4 vulnerabilities remove 4 points.
-				NumberOfWarn:  1,
+				Score:         checker.MaxResultScore - 2, // 2 vulnerabilities remove 2 points.
+				NumberOfWarn:  2,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}

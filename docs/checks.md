@@ -651,7 +651,8 @@ possible.
  
 
 **Remediation steps**
-- Update your dependencies to a non-vulnerable version. The details of each vulnerability can be found on <https://osv.dev>.
+- Fix the vulnerabilities in your own code base. The details of each vulnerability can be found on <https://osv.dev>.
+- If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
 - If you believe the vulnerability does not affect your project, the  vulnerability can be ignored.  To ignore, create an `osv-scanner.toml` file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of `osv-scanner.toml` can be found on  [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).
 
 ## Webhooks 

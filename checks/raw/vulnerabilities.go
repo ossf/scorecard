@@ -33,9 +33,9 @@ func Vulnerabilities(c *checker.CheckRequest) (checker.VulnerabilitiesData, erro
 	if err != nil {
 		return checker.VulnerabilitiesData{}, fmt.Errorf("RepoClient.LocalPath: %w", err)
 	}
-	resp, err := c.VulnerabilitiesClient.HasUnfixedVulnerabilities(c.Ctx, commitHash, localPath)
+	resp, err := c.VulnerabilitiesClient.ListUnfixedVulnerabilities(c.Ctx, commitHash, localPath)
 	if err != nil {
-		return checker.VulnerabilitiesData{}, fmt.Errorf("vulnerabilitiesClient.HasUnfixedVulnerabilities: %w", err)
+		return checker.VulnerabilitiesData{}, fmt.Errorf("vulnerabilitiesClient.ListUnfixedVulnerabilities: %w", err)
 	}
 	return checker.VulnerabilitiesData{
 		Vulnerabilities: resp.Vulnerabilities,
