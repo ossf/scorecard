@@ -42,6 +42,7 @@ e2e-coverage.out
 .vscode/
 *.iml
 .idea
+.history
 
 # tools
 bin

@@ -142,6 +142,15 @@ func applyPredicate(
 	return files, nil
 }
 
+// LocalPath implements RepoClient.LocalPath.
+func (client *localDirClient) LocalPath() (string, error) {
+	clientPath, err := filepath.Abs(client.path)
+	if err != nil {
+		return "", fmt.Errorf("error during filepath.Abs: %w", err)
+	}
+	return clientPath, nil
+}
+
 // ListFiles implements RepoClient.ListFiles.
 func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	client.once.Do(func() {

@@ -644,14 +644,15 @@ Additionally, points are reduced if certain write permissions are defined for a 
 
 Risk: `High`  (known vulnerabilities)
 
-This check determines whether the project has open, unfixed vulnerabilities
-using the [OSV (Open Source Vulnerabilities)](https://osv.dev/) service. An open
-vulnerability is readily exploited by attackers and should be fixed as soon as
+This check determines whether the project has open, unfixed vulnerabilities 
+in it's dependencies using the [OSV (Open Source Vulnerabilities)](https://osv.dev/) service.
+An open vulnerability is readily exploited by attackers and should be fixed as soon as
 possible.
  
 
 **Remediation steps**
 - Fix the vulnerabilities. The details of each vulnerability can be found on <https://osv.dev>.
+- If you believe the vulnerability does not actually affect your project, the  vulnerability can be ignored by creating a `osv-scanner.toml` file next to the  dependency manifest (e.g. package-lock.json) and specifying the ID to ignore and reason Details on the structure of `osv-scanner.toml` can be  found on [OSV-Scanner repository](https://github.com/google/osv-scanner).
 
 ## Webhooks 
 

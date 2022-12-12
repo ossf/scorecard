@@ -51,16 +51,16 @@ func (m *MockVulnerabilitiesClient) EXPECT() *MockVulnerabilitiesClientMockRecor
 }
 
 // HasUnfixedVulnerabilities mocks base method.
-func (m *MockVulnerabilitiesClient) HasUnfixedVulnerabilities(context context.Context, commit string) (clients.VulnerabilitiesResponse, error) {
+func (m *MockVulnerabilitiesClient) HasUnfixedVulnerabilities(context context.Context, commit, localDir string) (clients.VulnerabilitiesResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasUnfixedVulnerabilities", context, commit)
+	ret := m.ctrl.Call(m, "HasUnfixedVulnerabilities", context, commit, localDir)
 	ret0, _ := ret[0].(clients.VulnerabilitiesResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // HasUnfixedVulnerabilities indicates an expected call of HasUnfixedVulnerabilities.
-func (mr *MockVulnerabilitiesClientMockRecorder) HasUnfixedVulnerabilities(context, commit interface{}) *gomock.Call {
+func (mr *MockVulnerabilitiesClientMockRecorder) HasUnfixedVulnerabilities(context, commit, localDir interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasUnfixedVulnerabilities", reflect.TypeOf((*MockVulnerabilitiesClient)(nil).HasUnfixedVulnerabilities), context, commit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasUnfixedVulnerabilities", reflect.TypeOf((*MockVulnerabilitiesClient)(nil).HasUnfixedVulnerabilities), context, commit, localDir)
 }

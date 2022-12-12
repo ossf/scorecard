@@ -15,62 +15,63 @@
 package clients
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"net/http"
+	"fmt"
 
-	"github.com/ossf/scorecard/v4/errors"
+	"github.com/google/osv-scanner/pkg/osvscanner"
 )
 
 var _ VulnerabilitiesClient = osvClient{}
 
 type osvClient struct{}
 
-const osvQueryEndpoint = "https://api.osv.dev/v1/query"
-
-type osvQuery struct {
-	Commit string `json:"commit"`
-}
-
-type osvResp struct {
-	Vulns []struct {
-		ID string `json:"id"`
-	} `json:"vulns"`
-}
-
 // HasUnfixedVulnerabilities implements VulnerabilityClient.HasUnfixedVulnerabilities.
-func (v osvClient) HasUnfixedVulnerabilities(ctx context.Context, commit string) (VulnerabilitiesResponse, error) {
-	query, err := json.Marshal(&osvQuery{
-		Commit: commit,
-	})
+func (v osvClient) HasUnfixedVulnerabilities(
+	ctx context.Context,
+	commit,
+	localPath string,
+) (VulnerabilitiesResponse, error) {
+	directoryPaths := []string{}
+	if localPath != "" {
+		directoryPaths = append(directoryPaths, localPath)
+	}
+	gitCommits := []string{}
+	if commit != "" {
+		gitCommits = append(gitCommits, commit)
+	}
+	res, err := osvscanner.DoScan(osvscanner.ScannerActions{
+		DirectoryPaths: directoryPaths,
+		SkipGit:        true,
+		Recursive:      true,
+		GitCommits:     gitCommits,
+	}, nil) // TODO: Do logging?
 	if err != nil {
-		return VulnerabilitiesResponse{}, errors.WithMessage(err, "failed to marshal query")
+		return VulnerabilitiesResponse{}, fmt.Errorf("osvscanner.DoScan: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, osvQueryEndpoint, bytes.NewReader(query))
-	if err != nil {
-		return VulnerabilitiesResponse{}, errors.WithMessage(err, "failed to create request")
-	}
+	response := VulnerabilitiesResponse{}
 
-	httpClient := &http.Client{}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return VulnerabilitiesResponse{}, errors.WithMessage(err, "failed to send request")
-	}
-	defer resp.Body.Close()
-
-	var osvresp osvResp
-	decoder := json.NewDecoder(resp.Body)
-	if err := decoder.Decode(&osvresp); err != nil {
-		return VulnerabilitiesResponse{}, errors.WithMessage(err, "failed to decode response")
-	}
-
-	var ret VulnerabilitiesResponse
-	for _, vuln := range osvresp.Vulns {
-		ret.Vulnerabilities = append(ret.Vulnerabilities, Vulnerability{
-			ID: vuln.ID,
+	for _, v := range res.Flatten() {
+		response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
+			ID: v.Vulnerability.ID,
 		})
+		// Remove duplicate vulnerability IDs for now as we don't report information
+		// on the source of each vulnerability yet, therefore having multiple identical
+		// vuln IDs might be confusing.
+		response.Vulnerabilities = removeDuplicate(response.Vulnerabilities)
 	}
-	return ret, nil
+	return response, nil
+}
+
+// RemoveDuplicate removes duplicate entries from a slice.
+func removeDuplicate[T comparable](sliceList []T) []T {
+	allKeys := make(map[T]bool)
+	list := []T{}
+	for _, item := range sliceList {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }

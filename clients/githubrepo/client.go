@@ -130,6 +130,11 @@ func (client *Client) URI() string {
 	return fmt.Sprintf("github.com/%s/%s", client.repourl.owner, client.repourl.repo)
 }
 
+// LocalPath implements RepoClient.LocalPath.
+func (client *Client) LocalPath() (string, error) {
+	return client.tarball.getLocalPath()
+}
+
 // ListFiles implements RepoClient.ListFiles.
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	return client.tarball.listFiles(predicate)
