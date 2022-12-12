@@ -49,7 +49,6 @@ linters:
     - misspell
     - nakedret
     - nestif
-    - paralleltest
     - predeclared
     - staticcheck
     - stylecheck

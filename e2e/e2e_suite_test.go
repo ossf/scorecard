@@ -29,7 +29,6 @@ func TestE2e(t *testing.T) {
 	if val, exists := os.LookupEnv("SKIP_GINKGO"); exists && val == "1" {
 		t.Skip()
 	}
-	t.Parallel()
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "E2e Suite")
 }
