@@ -100,7 +100,7 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore - 4, // 4 vulnerabilities remove 4 points.
+				Score:         checker.MaxResultScore - 2, // 4 vulnerabilities remove 4 points.
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,

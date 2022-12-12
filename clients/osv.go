@@ -53,23 +53,28 @@ func (v osvClient) HasUnfixedVulnerabilities(
 
 	for _, v := range res.Flatten() {
 		response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
-			ID: v.Vulnerability.ID,
+			ID:      v.Vulnerability.ID,
+			Aliases: v.Vulnerability.Aliases,
 		})
 		// Remove duplicate vulnerability IDs for now as we don't report information
 		// on the source of each vulnerability yet, therefore having multiple identical
 		// vuln IDs might be confusing.
-		response.Vulnerabilities = removeDuplicate(response.Vulnerabilities)
+		response.Vulnerabilities = removeDuplicate(
+			response.Vulnerabilities,
+			func(key Vulnerability) string { return key.ID },
+		)
 	}
 	return response, nil
 }
 
-// RemoveDuplicate removes duplicate entries from a slice.
-func removeDuplicate[T comparable](sliceList []T) []T {
-	allKeys := make(map[T]bool)
+// RemoveDuplicate removes duplicate entries from a slice
+func removeDuplicate[T any, K comparable](sliceList []T, keyExtract func(T) K) []T {
+	allKeys := make(map[K]bool)
 	list := []T{}
 	for _, item := range sliceList {
-		if _, value := allKeys[item]; !value {
-			allKeys[item] = true
+		key := keyExtract(item)
+		if _, value := allKeys[key]; !value {
+			allKeys[key] = true
 			list = append(list, item)
 		}
 	}

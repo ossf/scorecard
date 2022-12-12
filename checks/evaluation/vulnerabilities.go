@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/osv-scanner/pkg/grouper"
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -31,20 +32,25 @@ func Vulnerabilities(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	score := checker.MaxResultScore
-	IDs := []string{}
+	aliasVulnerabilities := []grouper.IDAliases{}
 	for _, vuln := range r.Vulnerabilities {
-		IDs = append(IDs, vuln.ID)
-		score--
+		aliasVulnerabilities = append(aliasVulnerabilities, grouper.IDAliases(vuln))
 	}
+
+	IDs := grouper.Group(aliasVulnerabilities)
+	score := checker.MaxResultScore - len(IDs)
 
 	if score < checker.MinResultScore {
 		score = checker.MinResultScore
 	}
 
 	if len(IDs) > 0 {
+		outputIDs := []string{}
+		for _, v := range IDs {
+			outputIDs = append(outputIDs, strings.Join(v.IDs, " / "))
+		}
 		dl.Warn(&checker.LogMessage{
-			Text: fmt.Sprintf("HEAD is vulnerable to %s", strings.Join(IDs, ", ")),
+			Text: fmt.Sprintf("HEAD is vulnerable to:\n%s", strings.Join(outputIDs, "\n")),
 		})
 		return checker.CreateResultWithScore(name,
 			fmt.Sprintf("%v existing vulnerabilities detected", len(IDs)), score)

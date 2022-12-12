@@ -39,7 +39,7 @@ func TestRemoveDuplicate(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := removeDuplicate(tt.list)
+			got := removeDuplicate(tt.list, tt.keyExtract)
 			if !reflect.DeepEqual(tt.want, got) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}

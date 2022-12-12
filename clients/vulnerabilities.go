@@ -39,5 +39,6 @@ type VulnerabilitiesResponse struct {
 
 // Vulnerability uniquely identifies a reported security vuln.
 type Vulnerability struct {
-	ID string
+	ID      string
+	Aliases []string
 }
