@@ -645,7 +645,7 @@ Additionally, points are reduced if certain write permissions are defined for a 
 Risk: `High`  (known vulnerabilities)
 
 This check determines whether the project has open, unfixed vulnerabilities 
-in its dependencies using the [OSV (Open Source Vulnerabilities)](https://osv.dev/) service.
+in its own codebase or its dependencies using the [OSV (Open Source Vulnerabilities)](https://osv.dev/) service.
 An open vulnerability is readily exploited by attackers and should be fixed as soon as
 possible.
  
