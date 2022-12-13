@@ -141,7 +141,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
 					policy: policy.AttestationPolicy{
 						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: true,
+						PreventKnownVulnerabilities: false,
 						PreventUnpinnedDependencies: true,
 						EnsureCodeReviewed:          true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
@@ -156,7 +156,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
 					policy: policy.AttestationPolicy{
 						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: true,
+						PreventKnownVulnerabilities: false,
 						PreventUnpinnedDependencies: true,
 						EnsureCodeReviewed:          true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
@@ -172,7 +172,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
 					policy: policy.AttestationPolicy{
 						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: true,
+						PreventKnownVulnerabilities: false,
 						PreventUnpinnedDependencies: true,
 						EnsureCodeReviewed:          true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
