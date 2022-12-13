@@ -84,7 +84,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			result := checks.BranchProtection(&req)
 
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "branch protection accessible none", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should fail to return branch protection on other repositories patch", func() {
@@ -112,7 +112,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			result := checks.BranchProtection(&req)
 
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "branch protection accessible patch", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
