@@ -85,9 +85,13 @@ func TestVulnerabilities(t *testing.T) {
 				return []clients.Commit{{SHA: "test"}}, nil
 			}).AnyTimes()
 
+			mockRepo.EXPECT().LocalPath().DoAndReturn(func() (string, error) {
+				return "test_path", nil
+			}).AnyTimes()
+
 			mockVulnClient := mockrepo.NewMockVulnerabilitiesClient(ctrl)
-			mockVulnClient.EXPECT().HasUnfixedVulnerabilities(context.TODO(), gomock.Any()).DoAndReturn(
-				func(ctx context.Context, repo string) (clients.VulnerabilitiesResponse, error) {
+			mockVulnClient.EXPECT().ListUnfixedVulnerabilities(context.TODO(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, commit string, localPath string) (clients.VulnerabilitiesResponse, error) {
 					if tt.vulnsError {
 						//nolint
 						return clients.VulnerabilitiesResponse{}, errors.New("error")

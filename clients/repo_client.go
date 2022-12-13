@@ -32,6 +32,9 @@ type RepoClient interface {
 	URI() string
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)
+	// Returns an absolute path to the local repository
+	// in the format that matches the local OS
+	LocalPath() (string, error)
 	GetFileContent(filename string) ([]byte, error)
 	GetBranch(branch string) (*BranchRef, error)
 	GetCreatedAt() (time.Time, error)
