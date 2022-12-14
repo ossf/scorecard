@@ -23,8 +23,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/raw"
 	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
