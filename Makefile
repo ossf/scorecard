@@ -317,9 +317,6 @@ unit-test: ## Runs unit test without e2e
 	# run the go tests and gen the file coverage-all used to do the integration with codecov
 	SKIP_GINKGO=1 go test -race -covermode=atomic  -coverprofile=unit-coverage.out `go list ./...`
 
-unit-test-attestor: ## Runs unit tests on scorecard-attestor
-	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage.out `go list ./...`; cd ..;
-
 check-env:
 ifndef GITHUB_AUTH_TOKEN
 	$(error GITHUB_AUTH_TOKEN is undefined)
