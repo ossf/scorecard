@@ -158,7 +158,8 @@ cmd/packagemanager_mockclient.go: cmd/packagemanager_client.go | $(MOCKGEN)
 
 generate-docs: ## Generates docs
 generate-docs: validate-docs docs/checks.md
-docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
+# If updating the below list, also update .github/workflows/docs.yaml:on.pull_request.paths
+docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go 
 	# Generating checks.md
 	go run ./docs/checks/internal/generate/main.go docs/checks.md
 
