@@ -318,7 +318,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         8,
 				NumberOfWarn:  2,
-				NumberOfInfo:  7,
+				NumberOfInfo:  8,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -349,17 +349,18 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         8,
 				NumberOfWarn:  1,
-				NumberOfInfo:  7,
+				NumberOfInfo:  8,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:        &trueVal,
-					RequireLinearHistory: &trueVal,
-					AllowForcePushes:     &falseVal,
-					AllowDeletions:       &falseVal,
+					EnforceAdmins:           &trueVal,
+					RequireLinearHistory:    &trueVal,
+					RequireLastPushApproval: &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
 					CheckRules: clients.StatusChecksRule{
 						RequiresStatusChecks: &trueVal,
 						UpToDateBeforeMerge:  &trueVal,
@@ -378,8 +379,8 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Branches are protected and require codeowner review, but file is not present",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         8,
-				NumberOfWarn:  2,
+				Score:         5,
+				NumberOfWarn:  3,
 				NumberOfInfo:  7,
 				NumberOfDebug: 0,
 			},
