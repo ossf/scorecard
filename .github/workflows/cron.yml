@@ -15,70 +15,26 @@
 permissions:
   contents: read
 
-name: docker-build
+name: cron-docker-build
 
 on:
- push:
-  branches:
-  - main
-  paths-ignore:
-  - "*.md"
- pull_request:
-  branches:
-  - main
-  paths-ignore:
-  - "*.md"
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "cron/**/*.docker"
+      - "cron/**/Dockerfile"
+      - "cron/**/*.go"
+      - "clients/**/*.go"
 
 env:
   PROTOC_VERSION: 3.17.3
   GO_VERSION: 1.17
 
 jobs:
-  scorecard:
-    name: scorecard-docker
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-     - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
-       with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-
-     - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
-       with:
-        version: ${{ env.PROTOC_VERSION }}
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
-     - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
-       with:
-          fetch-depth: 0
-     - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
-       with:
-         go-version: ${{ env.GO_VERSION }}
-         check-latest: true
-         cache: true
-     - name: docker build
-       run: make scorecard-docker
   cron-controller:
     name: cron-controller-docker
     runs-on: ubuntu-latest
