@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'go','javascript' ]
+        language: [ 'go' ]
 
     steps:
     - name: Harden Runner
