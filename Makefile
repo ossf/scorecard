@@ -139,7 +139,7 @@ generate-mocks: clients/mockclients/repo_client.go \
 	clients/mockclients/repo.go \
 	clients/mockclients/cii_client.go \
 	checks/mockclients/vulnerabilities.go \
-	cmd/packagemanager_mockclient.go
+	cmd/packagemanager_mockclient.go # If updating this list, also update .github/workflows/mocks.yaml:on.pull_request.paths
 clients/mockclients/repo_client.go: clients/repo_client.go | $(MOCKGEN)
 	# Generating MockRepoClient
 	$(MOCKGEN) -source=clients/repo_client.go -destination=clients/mockclients/repo_client.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
