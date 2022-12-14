@@ -133,8 +133,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Dlogger:    &dl,
 			}
 
-			_, err = checks.CodeReview(&req)
-			Expect(err).ShouldNot(BeNil())
+			result := checks.CodeReview(&req)
+			Expect(result.Error).ShouldNot(BeNil())
 			Expect(x.Close()).Should(BeNil())
 		})
 	})
