@@ -78,7 +78,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		score.scores.thoroughReview, score.maxes.thoroughReview = nonAdminThoroughReviewProtection(&b, dl)
 		// Do we want this?
 		score.scores.adminThoroughReview, score.maxes.adminThoroughReview = adminThoroughReviewProtection(&b, dl)
-		score.scores.codeownerReview, score.maxes.codeownerReview = codeownersBranchProtection(&b, dl)
+		score.scores.codeownerReview, score.maxes.codeownerReview = codeownerBranchProtection(&b, r.CodeownersFiles, dl)
 
 		scores = append(scores, score)
 	}
@@ -436,7 +436,9 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 	return score, max
 }
 
-func codeownersBranchProtection(branch *clients.BranchRef, dl checker.DetailLogger) (int, int) {
+func codeownerBranchProtection(
+	branch *clients.BranchRef, codeownersFiles []string, dl checker.DetailLogger,
+) (int, int) {
 	score := 0
 	max := 1
 
@@ -446,7 +448,11 @@ func codeownersBranchProtection(branch *clients.BranchRef, dl checker.DetailLogg
 		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews {
 		case true:
 			info(dl, log, "codeowner review is required on branch '%s'", *branch.Name)
-			score++
+			if len(codeownersFiles) == 0 {
+				warn(dl, log, "codeowners branch protection is being ignored - but no codeowners file found in repo")
+			} else {
+				score++
+			}
 		default:
 			warn(dl, log, "codeowner review is not required on branch '%s'", *branch.Name)
 		}

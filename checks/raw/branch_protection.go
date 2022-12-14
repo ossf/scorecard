@@ -16,9 +16,11 @@ package raw
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 )
 
@@ -105,10 +107,52 @@ func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, erro
 		// Branch doesn't exist or was deleted. Continue.
 	}
 
+	codeownersFiles := []string{}
+	if err := collectCodeownersFiles(c, &codeownersFiles); err != nil {
+		return checker.BranchProtectionsData{}, err
+	}
+
 	// No error, return the data.
 	return checker.BranchProtectionsData{
-		Branches: branches.set,
+		Branches:        branches.set,
+		CodeownersFiles: codeownersFiles,
 	}, nil
+}
+
+func collectCodeownersFiles(c clients.RepoClient, codeownersFiles *[]string) error {
+	return fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
+		Pattern:       "CODEOWNERS",
+		CaseSensitive: true,
+	}, addCodeownersFile, codeownersFiles)
+}
+
+var addCodeownersFile fileparser.DoWhileTrueOnFileContent = func(
+	path string,
+	content []byte,
+	args ...interface{},
+) (bool, error) {
+	fmt.Printf("got codeowners file at %s\n", path)
+
+	if len(args) != 1 {
+		return false, fmt.Errorf(
+			"addCodeownersFile requires exactly 1 arguments: got %v: %w",
+			len(args), errInvalidArgLength)
+	}
+
+	codeownersFiles := dataAsStringSlicePtr(args[0])
+
+	*codeownersFiles = append(*codeownersFiles, path)
+
+	return true, nil
+}
+
+func dataAsStringSlicePtr(data interface{}) *[]string {
+	pdata, ok := data.(*[]string)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type *[]string, got %v", reflect.TypeOf(data)))
+	}
+	return pdata
 }
 
 func branchRedirect(name string) string {

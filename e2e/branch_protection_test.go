@@ -47,7 +47,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         6,
-				NumberOfWarn:  1,
+				NumberOfWarn:  2,
 				NumberOfInfo:  4,
 				NumberOfDebug: 3,
 			}

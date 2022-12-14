@@ -73,6 +73,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		defaultBranch string
 		releases      []string
 		nonadmin      bool
+		repoFiles     []string
 	}{
 		{
 			name: "Nil release and main branch names",
@@ -172,7 +173,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         2,
-				NumberOfWarn:  7,
+				NumberOfWarn:  8,
 				NumberOfInfo:  9,
 				NumberOfDebug: 0,
 			},
@@ -226,7 +227,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         8,
-				NumberOfWarn:  2,
+				NumberOfWarn:  4,
 				NumberOfInfo:  14,
 				NumberOfDebug: 0,
 			},
@@ -412,6 +413,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				DoAndReturn(func(b string) (*clients.BranchRef, error) {
 					return getBranch(tt.branches, b, tt.nonadmin), nil
 				}).AnyTimes()
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).AnyTimes().Return(tt.repoFiles, nil)
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				Dlogger:    &dl,
