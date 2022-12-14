@@ -28,6 +28,7 @@ const CheckVulnerabilities = "Vulnerabilities"
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.CommitBased,
+		checker.FileBased,
 	}
 	if err := registerCheck(CheckVulnerabilities, Vulnerabilities, supportedRequestTypes); err != nil {
 		// this should never happen

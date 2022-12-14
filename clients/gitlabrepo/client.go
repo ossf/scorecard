@@ -136,6 +136,10 @@ func (client *Client) URI() string {
 	return fmt.Sprintf("%s/%s/%s", client.repourl.hostname, client.repourl.owner, client.repourl.projectID)
 }
 
+func (client *Client) LocalPath() (string, error) {
+	return "", nil
+}
+
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	return nil, nil
 }

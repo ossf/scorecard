@@ -222,7 +222,7 @@ func TestCheckCodeReviewed(t *testing.T) {
 			name: "no approvals from the right users",
 			reqs: CodeReviewRequirements{
 				MinReviewers:      2,
-				RequiredApprovers: []string{"bob"},
+				RequiredApprovers: []string{"bob", "bob-2"},
 			},
 			raw: &checker.RawResults{
 				CodeReviewResults: checker.CodeReviewData{
@@ -244,6 +244,46 @@ func TestCheckCodeReviewed(t *testing.T) {
 				},
 			},
 			expected: Fail,
+		},
+		{
+			name: "approvals from one of the required approvers",
+			reqs: CodeReviewRequirements{
+				MinReviewers:      2,
+				RequiredApprovers: []string{"bob", "alice"},
+			},
+			raw: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							RevisionID: "1",
+							Commits: []clients.Commit{{
+								SHA: "a",
+								AssociatedMergeRequest: clients.PullRequest{
+									Reviews: []clients.Review{
+										{Author: &clients.User{Login: "alice"}, State: "APPROVED"},
+										{Author: &clients.User{Login: "alice-2"}, State: "APPROVED"},
+										{Author: &clients.User{Login: "bob"}, State: "NEEDS_CHANGES"},
+									},
+								},
+							}},
+						},
+						{
+							RevisionID: "1",
+							Commits: []clients.Commit{{
+								SHA: "a",
+								AssociatedMergeRequest: clients.PullRequest{
+									Reviews: []clients.Review{
+										{Author: &clients.User{Login: "alice"}, State: "NEEDS_CHANGES"},
+										{Author: &clients.User{Login: "alice-2"}, State: "APPROVED"},
+										{Author: &clients.User{Login: "bob"}, State: "APPROVED"},
+									},
+								},
+							}},
+						},
+					},
+				},
+			},
+			expected: Pass,
 		},
 		{
 			name: "some changesets not reviewed",

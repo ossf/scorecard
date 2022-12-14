@@ -45,7 +45,7 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 			localdir.CreateLocalDirClient(ctx, logger), /*repoClient*/
 			nil, /*ossFuzzClient*/
 			nil, /*ciiClient*/
-			nil, /*vulnClient*/
+			clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
 			retErr
 	}
 

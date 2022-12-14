@@ -333,6 +333,21 @@ func (mr *MockRepoClientMockRecorder) ListWebhooks() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWebhooks", reflect.TypeOf((*MockRepoClient)(nil).ListWebhooks))
 }
 
+// LocalPath mocks base method.
+func (m *MockRepoClient) LocalPath() (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LocalPath")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LocalPath indicates an expected call of LocalPath.
+func (mr *MockRepoClientMockRecorder) LocalPath() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LocalPath", reflect.TypeOf((*MockRepoClient)(nil).LocalPath))
+}
+
 // Search mocks base method.
 func (m *MockRepoClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	m.ctrl.T.Helper()
