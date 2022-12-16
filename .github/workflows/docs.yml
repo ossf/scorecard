@@ -14,16 +14,16 @@
 
 name: generate-validate-docs
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
       - main
   pull_request:
     paths:
-      - 'docs/checks.md'
-      - 'docs/checks/internal/checks.yaml'
-      - 'docs/checks/internal/*.go'
-      - 'docs/checks/internal/generate/*.go'
+      - 'docs/*'
 
 env:
   PROTOC_VERSION: 3.17.3
