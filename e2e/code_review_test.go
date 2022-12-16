@@ -16,7 +16,6 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -96,7 +95,6 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			gh := 0
 			for _, cs := range reviewData.DefaultBranchChangesets {
 				if cs.ReviewPlatform == checker.ReviewPlatformGitHub {
-					fmt.Printf("found github revision %s in spring-framework", cs.RevisionID)
 					gh += 1
 				}
 			}
@@ -130,7 +128,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			repo, err := githubrepo.MakeGithubRepo("Kromey/fast_poisson")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			err = repoClient.InitRepo(repo, "10aefa7c9a6669ef34e209c3c4b6ad48dd9844e3", 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{

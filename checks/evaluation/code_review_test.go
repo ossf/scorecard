@@ -64,6 +64,22 @@ func TestCodeReview(t *testing.T) {
 			},
 		},
 		{
+			name: "Unreviewed human and bot changes",
+			expected: scut.TestReturn{
+				Score: checker.MinResultScore,
+			},
+			rawData: &checker.CodeReviewData{
+				DefaultBranchChangesets: []checker.Changeset{
+					{
+						Commits: []clients.Commit{{SHA: "a", Committer: clients.User{IsBot: true}}},
+					},
+					{
+						Commits: []clients.Commit{{SHA: "b"}},
+					},
+				},
+			},
+		},
+		{
 			name: "all human changesets reviewed, missing review on bot changeset",
 			expected: scut.TestReturn{
 				Score: 7,

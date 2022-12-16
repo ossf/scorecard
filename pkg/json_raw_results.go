@@ -86,6 +86,7 @@ type jsonUser struct {
 	// Companies refer to a claim by a user in their profile.
 	Companies        []jsonCompany `json:"company,omitempty"`
 	NumContributions int           `json:"NumContributions,omitempty"`
+	IsBot            bool          `json:"isBot"`
 }
 
 type jsonContributors struct {
@@ -555,6 +556,7 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(changesets []checker.Chang
 				State: r.State,
 				Reviewer: jsonUser{
 					Login: r.Author.Login,
+					IsBot: r.Author.IsBot,
 				},
 			})
 		}

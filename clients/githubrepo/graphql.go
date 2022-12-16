@@ -397,6 +397,8 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 				string(pr.Repository.Name) != repoName {
 				continue
 			}
+			// ResourcePath: e.g., for dependabot, "/apps/dependabot", or "/apps/renovate"
+			// Path that can be appended to "https://github.com" for a Github resource
 			openedByBot := strings.HasPrefix(string(pr.Author.ResourcePath), "/apps/")
 			associatedPR = clients.PullRequest{
 				Number:   int(pr.Number),
