@@ -42,6 +42,15 @@ func TestBinaryArtifacts(t *testing.T) {
 		expect                 int
 	}{
 		{
+			name: "Wasm file",
+			err:  nil,
+			files: [][]string{
+				{"../testdata/binaryartifacts/wasms/simple.wasm"},
+			},
+			getFileContentCount: 1,
+			expect:              1,
+		},
+		{
 			name: "Jar file",
 			err:  nil,
 			files: [][]string{
