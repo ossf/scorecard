@@ -21,24 +21,45 @@ on:
  push:
   branches:
   - main
-  paths-ignore:
-  - "*.md"
  pull_request:
   branches:
   - main
-  paths-ignore:
-  - "*.md"
 
 env:
   PROTOC_VERSION: 3.17.3
-  GO_VERSION: 1.17
+  GO_VERSION: 1.19
 
 jobs:
+  docs_only_check:
+    name: Check for docs-only change
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      docs_only: ${{ steps.docs_only_check.outputs.docs_only }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
+    - id: files
+      name: Get changed files
+      uses: tj-actions/changed-files@0626c3f94002c0a9d7491dd7fed7055bbdff6f92 #v35.1.0
+      with:
+        files_ignore: '**.md'
+    - id: docs_only_check
+      if: steps.files.outputs.any_changed != 'true'
+      name: Check for docs-only changes
+      run: echo "docs_only=true" >> $GITHUB_OUTPUT
+
   scorecard:
     name: scorecard-docker
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs:
+      - docs_only_check
+    if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -84,6 +105,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs:
+      - docs_only_check
+    if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -129,6 +153,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs:
+      - docs_only_check
+    if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -174,6 +201,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs:
+      - docs_only_check
+    if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -219,6 +249,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs:
+      - docs_only_check
+    if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -264,6 +297,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs:
+      - docs_only_check
+    if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -309,6 +345,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs:
+      - docs_only_check
+    if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
