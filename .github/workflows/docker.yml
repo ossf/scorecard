@@ -18,9 +18,6 @@ permissions:
 name: docker-build
 
 on:
- push:
-  branches:
-  - main
  pull_request:
   branches:
   - main
@@ -39,7 +36,7 @@ jobs:
       docs_only: ${{ steps.docs_only_check.outputs.docs_only }}
     steps:
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b #v3.2.0
       with:
         fetch-depth: 2
     - id: files
