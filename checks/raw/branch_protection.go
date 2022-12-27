@@ -131,8 +131,6 @@ var addCodeownersFile fileparser.DoWhileTrueOnFileContent = func(
 	content []byte,
 	args ...interface{},
 ) (bool, error) {
-	fmt.Printf("got codeowners file at %s\n", path)
-
 	if len(args) != 1 {
 		return false, fmt.Errorf(
 			"addCodeownersFile requires exactly 1 arguments: got %v: %w",

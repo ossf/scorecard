@@ -425,7 +425,6 @@ func isGoUnpinnedDownload(cmd []string) bool {
 	if !isBinaryName("go", cmd[0]) {
 		return false
 	}
-
 	// `Go install` will automatically look up the
 	// go.mod and go.sum, so we don't flag it.
 	if len(cmd) <= 2 {
@@ -456,6 +455,10 @@ func isGoUnpinnedDownload(cmd []string) bool {
 			i++
 		}
 
+		if i+1 >= len(cmd) {
+			// this is case go get -d -v
+			return false
+		}
 		// TODO check more than one package
 		pkg := cmd[i+1]
 		// Consider strings that are not URLs as local folders

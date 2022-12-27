@@ -106,3 +106,36 @@ func TestValidateShellFile(t *testing.T) {
 		t.Errorf("failed to detect shell parsing error: %v", err)
 	}
 }
+
+func Test_isGoUnpinnedDownload(t *testing.T) {
+	type args struct {
+		cmd []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "go get",
+			args: args{
+				cmd: []string{"go", "get", "github.com/ossf/scorecard"},
+			},
+			want: true,
+		},
+		{
+			name: "go get with -d -v",
+			args: args{
+				cmd: []string{"go", "get", "-d", "-v"},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isGoUnpinnedDownload(tt.args.cmd); got != tt.want {
+				t.Errorf("isGoUnpinnedDownload() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
