@@ -73,6 +73,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		defaultBranch string
 		releases      []string
 		nonadmin      bool
+		repoFiles     []string
 	}{
 		{
 			name: "Nil release and main branch names",
@@ -134,7 +135,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         2,
-				NumberOfWarn:  6,
+				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
@@ -158,10 +159,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
 						},
-						EnforceAdmins:        &falseVal,
-						RequireLinearHistory: &falseVal,
-						AllowForcePushes:     &falseVal,
-						AllowDeletions:       &falseVal,
+						EnforceAdmins:           &falseVal,
+						RequireLinearHistory:    &falseVal,
+						RequireLastPushApproval: &falseVal,
+						AllowForcePushes:        &falseVal,
+						AllowDeletions:          &falseVal,
 					},
 				},
 			},
@@ -172,8 +174,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         2,
-				NumberOfWarn:  7,
-				NumberOfInfo:  9,
+				NumberOfWarn:  9,
+				NumberOfInfo:  10,
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
@@ -192,10 +194,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
 						},
-						EnforceAdmins:        &trueVal,
-						RequireLinearHistory: &trueVal,
-						AllowForcePushes:     &falseVal,
-						AllowDeletions:       &falseVal,
+						EnforceAdmins:           &trueVal,
+						RequireLastPushApproval: &trueVal,
+						RequireLinearHistory:    &trueVal,
+						AllowForcePushes:        &falseVal,
+						AllowDeletions:          &falseVal,
 					},
 				},
 				{
@@ -212,10 +215,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
 						},
-						EnforceAdmins:        &falseVal,
-						RequireLinearHistory: &falseVal,
-						AllowForcePushes:     &falseVal,
-						AllowDeletions:       &falseVal,
+						EnforceAdmins:           &falseVal,
+						RequireLastPushApproval: &falseVal,
+						RequireLinearHistory:    &falseVal,
+						AllowForcePushes:        &falseVal,
+						AllowDeletions:          &falseVal,
 					},
 				},
 			},
@@ -226,8 +230,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         8,
-				NumberOfWarn:  2,
-				NumberOfInfo:  14,
+				NumberOfWarn:  4,
+				NumberOfInfo:  16,
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
@@ -246,10 +250,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
 						},
-						EnforceAdmins:        &trueVal,
-						RequireLinearHistory: &trueVal,
-						AllowForcePushes:     &falseVal,
-						AllowDeletions:       &falseVal,
+						EnforceAdmins:           &trueVal,
+						RequireLastPushApproval: &trueVal,
+						RequireLinearHistory:    &trueVal,
+						AllowForcePushes:        &falseVal,
+						AllowDeletions:          &falseVal,
 					},
 				},
 				{
@@ -266,10 +271,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
 						},
-						EnforceAdmins:        &trueVal,
-						RequireLinearHistory: &trueVal,
-						AllowForcePushes:     &falseVal,
-						AllowDeletions:       &falseVal,
+						EnforceAdmins:           &trueVal,
+						RequireLastPushApproval: &trueVal,
+						RequireLinearHistory:    &trueVal,
+						AllowForcePushes:        &falseVal,
+						AllowDeletions:          &falseVal,
 					},
 				},
 			},
@@ -280,7 +286,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         2,
-				NumberOfWarn:  6,
+				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
@@ -301,10 +307,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
 						},
-						EnforceAdmins:        &falseVal,
-						RequireLinearHistory: &falseVal,
-						AllowForcePushes:     &falseVal,
-						AllowDeletions:       &falseVal,
+						EnforceAdmins:           &falseVal,
+						RequireLastPushApproval: &falseVal,
+						RequireLinearHistory:    &falseVal,
+						AllowForcePushes:        &falseVal,
+						AllowDeletions:          &falseVal,
 					},
 				}, {
 					Name:      &rel1,
@@ -353,7 +360,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  4,
 				NumberOfInfo:  0,
-				NumberOfDebug: 6,
+				NumberOfDebug: 8,
 			},
 			nonadmin:      true,
 			defaultBranch: main,
@@ -412,6 +419,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				DoAndReturn(func(b string) (*clients.BranchRef, error) {
 					return getBranch(tt.branches, b, tt.nonadmin), nil
 				}).AnyTimes()
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).AnyTimes().Return(tt.repoFiles, nil)
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				Dlogger:    &dl,

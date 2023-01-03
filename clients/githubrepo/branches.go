@@ -36,19 +36,20 @@ const (
 	query {
   repository(owner: "laurentsimon", name: "test3") {
     branchProtectionRules(first: 100) {
-        allowsDeletions
-        allowsForcePushes
-        dismissesStaleReviews
-        isAdminEnforced
-        ...
-        pattern
-        matchingRefs(first: 100) {
-          nodes {
-            name
-
-          }
-        }
-      }
+		edges{
+			node{
+				allowsDeletions
+				allowsForcePushes
+				dismissesStaleReviews
+				isAdminEnforced
+				...
+				pattern
+				matchingRefs(first: 100) {
+				nodes {
+					name
+				}
+			}
+		}
     }
     refs(first: 100, refPrefix: "refs/heads/") {
       nodes {
@@ -86,6 +87,7 @@ type branchProtectionRule struct {
 	RequiredApprovingReviewCount *int32
 	RequiresCodeOwnerReviews     *bool
 	RequiresLinearHistory        *bool
+	RequireLastPushApproval      *bool
 	RequiredStatusCheckContexts  []string
 	// TODO: verify there is no conflicts.
 	// BranchProtectionRuleConflicts interface{}
@@ -184,6 +186,7 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 
 func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
+	copyBoolPtr(src.RequireLastPushApproval, &dst.RequireLastPushApproval)
 	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
 	if src.RequiresStatusChecks != nil {
 		copyBoolPtr(src.RequiresStatusChecks, &dst.CheckRules.RequiresStatusChecks)

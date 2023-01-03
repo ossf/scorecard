@@ -252,7 +252,8 @@ type WebhooksData struct {
 // BranchProtectionsData contains the raw results
 // for the Branch-Protection check.
 type BranchProtectionsData struct {
-	Branches []clients.BranchRef
+	Branches        []clients.BranchRef
+	CodeownersFiles []string
 }
 
 // Tool represents a tool.
