@@ -105,7 +105,8 @@ Tier 1 Requirements (3/10 points):
   - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
-  - Required reviewers >=1 ​
+  - Required reviewers >=1
+  - For administrators: Last push review
   - For administrators: Strict status checks (require branches to be up-to-date before merging)
 
 Tier 3 Requirements (8/10 points):

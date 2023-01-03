@@ -28,6 +28,7 @@ type BranchProtectionRule struct {
 	AllowForcePushes           *bool
 	RequireLinearHistory       *bool
 	EnforceAdmins              *bool
+	RequireLastPushApproval    *bool
 	CheckRules                 StatusChecksRule
 }
 
