@@ -27,13 +27,13 @@ env:
   GO_VERSION: 1.19
 
 jobs:
-  docs_only_check:
-    name: Check for docs-only change
+  cron_changes_check:
+    name: Check if cron code has changed
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
-      docs_only: ${{ steps.docs_only_check.outputs.docs_only }}
+      cron_changed: ${{ steps.cron_changes_check.outputs.cron_changed }}
     steps:
     - name: Check out code
       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b #v3.2.0
@@ -44,14 +44,14 @@ jobs:
       uses: tj-actions/changed-files@392359fc8c85be1a8752e9ab6b1ad9e45158b4a9 #v35.2.0
       with:
         files: |
-          "cron/**/*.docker"
-          "cron/**/Dockerfile"
-          "cron/**/*.go"
-          "clients/**/*.go"
-    - id: docs_only_check
-      if: steps.files.outputs.any_changed != 'true'
-      name: Check for docs-only changes
-      run: echo "docs_only=true" >> $GITHUB_OUTPUT
+          cron/**/*.docker
+          cron/**/Dockerfile
+          cron/**/*.go
+          clients/**/*.go
+    - id: cron_changes_check
+      if: steps.files.outputs.any_changed == 'true'
+      name: Check if cron code has changed
+      run: echo "cron_changed=true" >> $GITHUB_OUTPUT
 
   cron-controller:
     name: cron-controller-docker
@@ -59,8 +59,8 @@ jobs:
     permissions:
       contents: read
     needs:
-      - docs_only_check
-    if: (needs.docs_only_check.outputs.docs_only != 'true')
+      - cron_changes_check
+    if: (needs.cron_changes_check.outputs.cron_changed == 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -107,8 +107,8 @@ jobs:
     permissions:
       contents: read
     needs:
-      - docs_only_check
-    if: (needs.docs_only_check.outputs.docs_only != 'true')
+      - cron_changes_check
+    if: (needs.cron_changes_check.outputs.cron_changed == 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -155,8 +155,8 @@ jobs:
     permissions:
       contents: read
     needs:
-      - docs_only_check
-    if: (needs.docs_only_check.outputs.docs_only != 'true')
+      - cron_changes_check
+    if: (needs.cron_changes_check.outputs.cron_changed == 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -203,8 +203,8 @@ jobs:
     permissions:
       contents: read
     needs:
-      - docs_only_check
-    if: (needs.docs_only_check.outputs.docs_only != 'true')
+      - cron_changes_check
+    if: (needs.cron_changes_check.outputs.cron_changed == 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -251,8 +251,8 @@ jobs:
     permissions:
       contents: read
     needs:
-      - docs_only_check
-    if: (needs.docs_only_check.outputs.docs_only != 'true')
+      - cron_changes_check
+    if: (needs.cron_changes_check.outputs.cron_changed == 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -299,8 +299,8 @@ jobs:
     permissions:
       contents: read
     needs:
-      - docs_only_check
-    if: (needs.docs_only_check.outputs.docs_only != 'true')
+      - cron_changes_check
+    if: (needs.cron_changes_check.outputs.cron_changed == 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1

@@ -22,19 +22,44 @@ on:
     branches:
       - main
   pull_request:
-    paths:
-      - 'clients/mockclients/repo_client.go'
-      - 'clients/mockclients/repo.go'
-      - 'clients/mockclients/cii_client.go'
-      - 'checks/mockclients/vulnerabilities.go'
-      - 'cmd/packagemanager_mockclient.go'
+    branches:
+      - main
 
 jobs:
+  mocks_changes_check:
+    name: Check if any docs have changed
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      mocks_need_rebuild: ${{ steps.mocks_changes_check.outputs.mocks_need_rebuild }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b #v3.2.0
+      with:
+        fetch-depth: 2
+    - id: files
+      name: Get changed files
+      uses: tj-actions/changed-files@0626c3f94002c0a9d7491dd7fed7055bbdff6f92 #v35.1.0
+      with:
+        files: |
+          clients/mockclients/repo_client.go
+          clients/mockclients/repo.go
+          clients/mockclients/cii_client.go
+          checks/mockclients/vulnerabilities.go
+          cmd/packagemanager_mockclient.go
+    - id: mocks_changes_check
+      if: steps.files.outputs.any_changed == 'true'
+      name: Check for changes to files indicating mock rebuild needed
+      run: echo "mocks_need_rebuild=true" >> $GITHUB_OUTPUT
   generate-mocks:
     name: generate-mocks
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs:
+      - mocks_changes_check
+    if: (needs.mocks_changes_check.outputs.mocks_need_rebuild == 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1

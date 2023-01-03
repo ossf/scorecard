@@ -22,19 +22,43 @@ on:
     branches:
       - main
   pull_request:
-    paths:
-      - 'docs/*'
+    branches:
+      - main
 
 env:
   PROTOC_VERSION: 3.17.3
   GO_VERSION: 1.19
 
 jobs:
+  docs_changes_check:
+    name: Check if any docs have changed
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      docs_changed: ${{ steps.docs_changes_check.outputs.docs_changed }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b #v3.2.0
+      with:
+        fetch-depth: 2
+    - id: files
+      name: Get changed files
+      uses: tj-actions/changed-files@0626c3f94002c0a9d7491dd7fed7055bbdff6f92 #v35.1.0
+      with:
+        files: '**.md'
+    - id: docs_changes_check
+      if: steps.files.outputs.any_changed == 'true'
+      name: Check for docs-only changes
+      run: echo "docs_changed=true" >> $GITHUB_OUTPUT
   validate-docs:
     name: validate-docs
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs:
+      - docs_changes_check
+    if: (needs.docs_changes_check.outputs.docs_changed == 'true')
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
@@ -75,6 +99,9 @@ jobs:
   generate-docs:
     name: generate-docs
     runs-on: ubuntu-latest
+    needs:
+      - docs_changes_check
+    if: (needs.docs_changes_check.outputs.docs_changed == 'true')
     permissions:
       contents: read
     steps:
