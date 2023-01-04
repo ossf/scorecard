@@ -37,7 +37,7 @@ type text struct {
 	Text string `json:"text,omitempty"`
 }
 
-//nolint
+// nolint
 type region struct {
 	StartLine   *uint `json:"startLine,omitempty"`
 	EndLine     *uint `json:"endLine,omitempty"`
@@ -68,7 +68,7 @@ type location struct {
 	HasRemediation bool  `json:"-"`
 }
 
-//nolint
+// nolint
 type relatedLocation struct {
 	ID               int              `json:"id"`
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
@@ -121,7 +121,7 @@ type tool struct {
 	Driver driver `json:"driver"`
 }
 
-//nolint
+// nolint
 type result struct {
 	RuleID           string            `json:"ruleId"`
 	Level            string            `json:"level,omitempty"` // Optional.
@@ -303,7 +303,7 @@ func detailsToLocations(details []checker.CheckDetail,
 
 		// Add remediaiton information
 		if d.Msg.Remediation != nil {
-			loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, d.Msg.Remediation.HelpMarkdown)
+			loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, d.Msg.Remediation.TextMarkdown)
 			loc.HasRemediation = true
 		}
 

@@ -23,8 +23,6 @@ import (
 type (
 	// DetailType is the type of details.
 	DetailType int
-	// FileType is the type of a file.
-	FileType int
 )
 
 const (
@@ -49,20 +47,6 @@ const (
 	DetailDebug
 )
 
-const (
-	// FileTypeNone is a default, not defined.
-	// FileTypeNone must be `0`.
-	FileTypeNone FileType = iota
-	// FileTypeSource is for source code files.
-	FileTypeSource
-	// FileTypeBinary is for binary files.
-	FileTypeBinary
-	// FileTypeText is for text files.
-	FileTypeText
-	// FileTypeURL for URLs.
-	FileTypeURL
-)
-
 // CheckResult captures result from a check run.
 //
 //nolint:govet
@@ -73,18 +57,6 @@ type CheckResult struct {
 	Details []CheckDetail
 	Score   int
 	Reason  string
-}
-
-// Remediation represents a remediation.
-type Remediation struct {
-	// Code snippet for humans.
-	Snippet string
-	// Diff for machines.
-	Diff string
-	// Help text for humans.
-	HelpText string
-	// Help text in markdown format for humans.
-	HelpMarkdown string
 }
 
 // CheckDetail contains information for each detail.

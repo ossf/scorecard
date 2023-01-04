@@ -1,0 +1,17 @@
+short: short description
+desc: description
+motivation: >
+  line1
+  line2
+implementation: >
+  line1
+  line2
+risk: High
+remediation:
+  effort: Low
+  text:
+    - step1
+    - step2 https://www.google.com/something
+  markdown:
+    - step1
+    - step2 [google.com](https://www.google.com/something)

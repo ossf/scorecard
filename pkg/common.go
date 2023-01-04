@@ -46,7 +46,7 @@ func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
 	}
 
 	if d.Msg.Remediation != nil {
-		sb.WriteString(fmt.Sprintf(": %s", d.Msg.Remediation.HelpText))
+		sb.WriteString(fmt.Sprintf(": %s", d.Msg.Remediation.Text))
 	}
 
 	return sb.String()

@@ -80,8 +80,8 @@ func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *checker
 	markdown := fmt.Sprintf(workflowMarkdown, r.repo, p, r.branch, t)
 
 	return &checker.Remediation{
-		HelpText:     text,
-		HelpMarkdown: markdown,
+		Text:         text,
+		TextMarkdown: markdown,
 	}
 }
 
@@ -120,7 +120,7 @@ func CreateDockerfilePinningRemediation(dep *checker.Dependency, digester Digest
 	markdown := text
 
 	return &checker.Remediation{
-		HelpText:     text,
-		HelpMarkdown: markdown,
+		Text:         text,
+		TextMarkdown: markdown,
 	}
 }
