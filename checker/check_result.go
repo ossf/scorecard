@@ -18,6 +18,9 @@ package checker
 import (
 	"fmt"
 	"math"
+
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 type (
@@ -47,6 +50,17 @@ const (
 	DetailDebug
 )
 
+type CheckStructuredResult struct {
+	Name string
+	// TODO(X): update Rules to contain a URL.
+	Rules    []string
+	Risk     rule.Risk // Risk left given all the findings.
+	Findings []finding.Finding
+	Reason   string
+	Score    int
+	// TODO(X): developer annotations
+}
+
 // CheckResult captures result from a check run.
 //
 //nolint:govet
@@ -70,13 +84,13 @@ type CheckDetail struct {
 //
 //nolint:govet
 type LogMessage struct {
-	Text        string       // A short string explaining why the detail was recorded/logged.
-	Path        string       // Fullpath to the file.
-	Type        FileType     // Type of file.
-	Offset      uint         // Offset in the file of Path (line for source/text files).
-	EndOffset   uint         // End of offset in the file, e.g. if the command spans multiple lines.
-	Snippet     string       // Snippet of code
-	Remediation *Remediation // Remediation information, if any.
+	Text        string            // A short string explaining why the detail was recorded/logged.
+	Path        string            // Fullpath to the file.
+	Type        finding.FileType  // Type of file.
+	Offset      uint              // Offset in the file of Path (line for source/text files).
+	EndOffset   uint              // End of offset in the file, e.g. if the command spans multiple lines.
+	Snippet     string            // Snippet of code
+	Remediation *rule.Remediation // Remediation information, if any.
 }
 
 // CreateProportionalScore creates a proportional score.

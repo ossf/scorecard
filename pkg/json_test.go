@@ -109,7 +109,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -146,7 +146,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:   "warn message",
 									Path:   "bin/binary.elf",
-									Type:   checker.FileTypeBinary,
+									Type:   finding.FileTypeBinary,
 									Offset: 0,
 								},
 							},
@@ -182,7 +182,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:   "warn message",
 									Path:   "bin/binary.elf",
-									Type:   checker.FileTypeBinary,
+									Type:   finding.FileTypeBinary,
 									Offset: 0,
 								},
 							},
@@ -198,7 +198,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/doc.txt",
-									Type:    checker.FileTypeText,
+									Type:    finding.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
 								},
@@ -215,7 +215,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "info message",
 									Path:    "some/path.js",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -225,7 +225,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "some/path.py",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG2();}",
 								},
@@ -235,7 +235,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "debug message",
 									Path:    "some/path.go",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG5();}",
 								},
@@ -272,7 +272,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:   "warn message",
 									Path:   "bin/binary.elf",
-									Type:   checker.FileTypeBinary,
+									Type:   finding.FileTypeBinary,
 									Offset: 0,
 								},
 							},
@@ -288,7 +288,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/doc.txt",
-									Type:    checker.FileTypeText,
+									Type:    finding.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
 								},
@@ -305,7 +305,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "info message",
 									Path:    "some/path.js",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -315,7 +315,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "some/path.py",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG2();}",
 								},
@@ -325,7 +325,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "debug message",
 									Path:    "some/path.go",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG5();}",
 								},
@@ -362,7 +362,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -399,7 +399,7 @@ func TestJSONOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text: "warn message",
 									Path: "https://domain.com/something",
-									Type: checker.FileTypeURL,
+									Type: finding.FileTypeURL,
 								},
 							},
 						},

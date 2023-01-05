@@ -15,42 +15,99 @@
 package finding
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/remediation"
+	"embed"
+	"fmt"
+	"strings"
+
+	"github.com/ossf/scorecard/v4/rule"
+)
+
+// FileType is the type of a file.
+type FileType int
+
+const (
+	// FileTypeNone is a default, not defined.
+	// FileTypeNone must be `0`.
+	FileTypeNone FileType = iota
+	// FileTypeSource is for source code files.
+	FileTypeSource
+	// FileTypeBinary is for binary files.
+	FileTypeBinary
+	// FileTypeText is for text files.
+	FileTypeText
+	// FileTypeURL for URLs.
+	FileTypeURL
+)
+
+type Location struct {
+	Type      FileType
+	Value     string
+	LineStart *uint
+	LineEnd   *uint
+	Snippet   *string
+}
+
+// Outcome is the result of a finding.
+type Outcome string
+
+const (
+	// OutcomePositive indicates a positive outcome.
+	OutcomePositive Outcome = "Positive"
+	// OutcomeNegative indicates a negative outcome.
+	OutcomeNegative Outcome = "Negative"
 )
 
 type Finding struct {
 	RuleName    string
-	Outcome     checker.Outcome
-	Text        *string
-	Location    *checker.Path
-	Remediation *remediation.Remediation
+	Outcome     Outcome
+	Risk        rule.Risk
+	Text        string
+	Location    *Location
+	Remediation *rule.Remediation
 }
 
-func FindingNew(rule string) (*Finding, error) {
-	r, err := rule.RuleNew(rule)
+func FindingNew(loc embed.FS, ruleID string) (*Finding, error) {
+	r, err := rule.RuleNew(loc, ruleID)
 	if err != nil {
 		return nil, err
 	}
-	return &Finding{
-		RuleName:    rule,
-		Outcome:     checker.OutcomeNegative,
+	f := &Finding{
+		RuleName:    ruleID,
+		Outcome:     OutcomeNegative,
 		Remediation: r.Remediation,
 		// TODO: remediation and use the branch / etc
-	}, nil
+	}
+	if r.Remediation != nil {
+		f.Risk = r.Risk
+	}
+	return f, nil
 }
 
 func (f *Finding) WithText(text string) *Finding {
-	f.Text = &text
+	f.Text = text
 	return f
 }
 
-func (f *Finding) WithLocation(path checker.Path) *Finding {
-	f.Location = &path
+func (f *Finding) WithLocation(loc Location) *Finding {
+	f.Location = &loc
 	return f
 }
 
 func (f *Finding) WithPatch(patch string) *Finding {
-	f.Remediation.patch = &patch
+	f.Remediation.Patch = &patch
+	return f
+}
+
+func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
+	if f.Remediation != nil {
+		// Replace all dynamic values.
+		for k, v := range values {
+			fmt.Println("befoer:", f.Remediation.Text)
+			f.Remediation.Text = strings.Replace(f.Remediation.Text,
+				fmt.Sprintf("${{ %s }}", k), v, -1)
+			f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
+				fmt.Sprintf("${{ %s }}", k), v, -1)
+		}
+	}
 	return f
 }

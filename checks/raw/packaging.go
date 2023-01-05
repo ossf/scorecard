@@ -22,6 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // Packaging checks for packages.
@@ -55,7 +56,7 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 				Msg: &match.Msg,
 				File: &checker.File{
 					Path:   fp,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 			},
@@ -74,7 +75,7 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 			pkg := checker.Package{
 				File: &checker.File{
 					Path:   fp,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: match.File.Offset,
 				},
 				Runs: []checker.Run{
@@ -102,7 +103,7 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 				Msg: stringPointer(fmt.Sprintf("GitHub publishing workflow not used in runs: %v", fp)),
 				File: &checker.File{
 					Path:   fp,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 				// TODO: Job

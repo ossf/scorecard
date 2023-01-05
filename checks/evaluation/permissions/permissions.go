@@ -15,12 +15,17 @@
 package evaluation
 
 import (
+	"embed"
 	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/remediation"
+	"github.com/ossf/scorecard/v4/rule"
 )
+
+//go:embed *.yml
+var rules embed.FS
 
 type permissions struct {
 	topLevelWritePermissions map[string]bool
@@ -60,7 +65,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 
 	for _, r := range results.TokenPermissions {
 		var msg checker.LogMessage
-		var rem *checker.Remediation
+		var rem *rule.Remediation
 		if r.File != nil {
 			msg.Path = r.File.Path
 			msg.Offset = r.File.Offset
@@ -115,7 +120,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	return calculateScore(hm), nil
 }
 
-func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage, rem *checker.Remediation) {
+func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage, rem *rule.Remediation) {
 	msg.Remediation = rem
 	logger.Warn(msg)
 }

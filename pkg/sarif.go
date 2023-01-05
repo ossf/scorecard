@@ -29,6 +29,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
@@ -220,15 +221,15 @@ func detailToRegion(details *checker.CheckDetail) region {
 	switch details.Msg.Type {
 	default:
 		panic("invalid")
-	case checker.FileTypeURL:
+	case finding.FileTypeURL:
 		line := maxOffset(checker.OffsetDefault, details.Msg.Offset)
 		reg = region{
 			StartLine: &line,
 			Snippet:   snippet,
 		}
-	case checker.FileTypeNone:
+	case finding.FileTypeNone:
 		// Do nothing.
-	case checker.FileTypeSource:
+	case finding.FileTypeSource:
 		startLine := maxOffset(checker.OffsetDefault, details.Msg.Offset)
 		endLine := maxOffset(startLine, details.Msg.EndOffset)
 		reg = region{
@@ -236,12 +237,12 @@ func detailToRegion(details *checker.CheckDetail) region {
 			EndLine:   &endLine,
 			Snippet:   snippet,
 		}
-	case checker.FileTypeText:
+	case finding.FileTypeText:
 		reg = region{
 			CharOffset: &details.Msg.Offset,
 			Snippet:    snippet,
 		}
-	case checker.FileTypeBinary:
+	case finding.FileTypeBinary:
 		reg = region{
 			// Note: GitHub does not support ByteOffset, so we also set
 			// StartLine.
@@ -261,7 +262,7 @@ func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 	case detail.Msg.Path == "",
 		!showDetails,
 		detail.Type != checker.DetailWarn,
-		detail.Msg.Type == checker.FileTypeURL:
+		detail.Msg.Type == finding.FileTypeURL:
 		return false
 	case score == checker.InconclusiveResultScore:
 		return true
@@ -303,7 +304,7 @@ func detailsToLocations(details []checker.CheckDetail,
 
 		// Add remediaiton information
 		if d.Msg.Remediation != nil {
-			loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, d.Msg.Remediation.TextMarkdown)
+			loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, d.Msg.Remediation.Markdown)
 			loc.HasRemediation = true
 		}
 

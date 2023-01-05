@@ -121,7 +121,7 @@ func TestDetailString(t *testing.T) {
 				Msg: checker.LogMessage{
 					Text: "some meaningful text",
 					Path: "Dockerfile",
-					Remediation: &checker.Remediation{
+					Remediation: &rule.Remediation{
 						HelpText: "fix x by doing y",
 					},
 				},

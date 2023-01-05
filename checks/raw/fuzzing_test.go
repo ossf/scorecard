@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // Test_checkOSSFuzz is a test function for checkOSSFuzz.
@@ -363,7 +364,8 @@ func Test_getProminentLanguages(t *testing.T) {
 				{
 					Name:     clients.Python,
 					NumLines: 40,
-				}, {
+				},
+				{
 					Name:     clients.JavaScript,
 					NumLines: 800,
 				},
@@ -384,7 +386,8 @@ func Test_getProminentLanguages(t *testing.T) {
 				{
 					Name:     clients.Python,
 					NumLines: 40,
-				}, {
+				},
+				{
 					Name:     clients.JavaScript,
 					NumLines: 800,
 				},
@@ -395,7 +398,8 @@ func Test_getProminentLanguages(t *testing.T) {
 				{
 					Name:     clients.Python,
 					NumLines: 40,
-				}, {
+				},
+				{
 					Name:     clients.JavaScript,
 					NumLines: 800,
 				},
@@ -406,7 +410,8 @@ func Test_getProminentLanguages(t *testing.T) {
 				{
 					Name:     clients.Python,
 					NumLines: 40,
-				}, {
+				},
+				{
 					Name:     clients.JavaScript,
 					NumLines: 800,
 				},

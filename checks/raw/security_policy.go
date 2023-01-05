@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -87,7 +88,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			filePattern := data.files[idx].File.Path
 			// undo path.Join in isSecurityPolicyFile just
 			// for this call to OnMatchingFileContentsDo
-			if data.files[idx].File.Type == checker.FileTypeURL {
+			if data.files[idx].File.Type == finding.FileTypeURL {
 				filePattern = strings.Replace(filePattern, data.uri+"/", "", 1)
 			}
 			err := fileparser.OnMatchingFileContentDo(dotGitHubClient, fileparser.PathMatcher{
@@ -114,7 +115,7 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 	}
 	if isSecurityPolicyFilename(name) {
 		tempPath := name
-		tempType := checker.FileTypeText
+		tempType := finding.FileTypeText
 		if pdata.uri != "" {
 			// report complete path for org-based policy files
 			tempPath = path.Join(pdata.uri, tempPath)
@@ -122,7 +123,7 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 			// only denote for the details report that the
 			// policy was found at the org level rather
 			// than the repo level
-			tempType = checker.FileTypeURL
+			tempType = finding.FileTypeURL
 		}
 		pdata.files = append(pdata.files, checker.SecurityPolicyFile{
 			File: checker.File{

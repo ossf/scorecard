@@ -22,6 +22,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/crane"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 var errInvalidArg = errors.New("invalid argument")
@@ -61,16 +62,16 @@ func New(c *checker.CheckRequest) (RemediationMetadata, error) {
 }
 
 // CreateWorkflowPermissionRemediation create remediation for workflow permissions.
-func (r *RemediationMetadata) CreateWorkflowPermissionRemediation(filepath string) *checker.Remediation {
+func (r *RemediationMetadata) CreateWorkflowPermissionRemediation(filepath string) *rule.Remediation {
 	return r.createWorkflowRemediation(filepath, "permissions")
 }
 
 // CreateWorkflowPinningRemediation create remediaiton for pinninn GH Actions.
-func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) *checker.Remediation {
+func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) *rule.Remediation {
 	return r.createWorkflowRemediation(filepath, "pin")
 }
 
-func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *checker.Remediation {
+func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *rule.Remediation {
 	p := strings.TrimPrefix(path, ".github/workflows/")
 	if r.branch == "" || r.repo == "" {
 		return nil
@@ -79,9 +80,9 @@ func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *checker
 	text := fmt.Sprintf(workflowText, r.repo, p, r.branch, t)
 	markdown := fmt.Sprintf(workflowMarkdown, r.repo, p, r.branch, t)
 
-	return &checker.Remediation{
-		Text:         text,
-		TextMarkdown: markdown,
+	return &rule.Remediation{
+		Text:     text,
+		Markdown: markdown,
 	}
 }
 
@@ -119,8 +120,8 @@ func CreateDockerfilePinningRemediation(dep *checker.Dependency, digester Digest
 	text := fmt.Sprintf(dockerfilePinText, name, hash)
 	markdown := text
 
-	return &checker.Remediation{
-		Text:         text,
-		TextMarkdown: markdown,
+	return &rule.Remediation{
+		Text:     text,
+		Markdown: markdown,
 	}
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	clients "github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 func Test_checkDependencyFileExists(t *testing.T) {
@@ -119,24 +120,24 @@ func Test_checkDependencyFileExists(t *testing.T) {
 			want:    false,
 			wantErr: false,
 		},
-        {
-            name: ".lift.toml",
-            args: args{
-                name: ".lift.toml",
-                data: &[]checker.Tool{},
-            },
-            want:    false,
-            wantErr: false,
-        },
-        {
-            name: ".lift/config.toml",
-            args: args{
-                name: ".lift/config.toml",
-                data: &[]checker.Tool{},
-            },
-            want:    false,
-            wantErr: false,
-        },
+		{
+			name: ".lift.toml",
+			args: args{
+				name: ".lift.toml",
+				data: &[]checker.Tool{},
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: ".lift/config.toml",
+			args: args{
+				name: ".lift/config.toml",
+				data: &[]checker.Tool{},
+			},
+			want:    false,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -208,7 +209,8 @@ func TestDependencyUpdateTool(t *testing.T) {
 			want:              1,
 			CallSearchCommits: 1,
 			files:             []string{},
-			SearchCommits: []clients.Commit{{Committer: clients.User{ID: 111111111}},
+			SearchCommits: []clients.Commit{
+				{Committer: clients.User{ID: 111111111}},
 				{Committer: clients.User{ID: dependabotID}},
 			},
 		},

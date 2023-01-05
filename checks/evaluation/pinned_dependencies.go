@@ -21,7 +21,9 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/remediation"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 var errInvalidValue = errors.New("invalid value")
@@ -136,7 +138,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		"dependency not pinned by hash detected", score, checker.MaxResultScore)
 }
 
-func generateRemediation(remediaitonMd remediation.RemediationMetadata, rr *checker.Dependency) *checker.Remediation {
+func generateRemediation(remediaitonMd remediation.RemediationMetadata, rr *checker.Dependency) *rule.Remediation {
 	switch rr.Type {
 	case checker.DependencyUseTypeGHAction:
 		return remediaitonMd.CreateWorkflowPinningRemediation(rr.Location.Path)
@@ -279,7 +281,7 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 	if r.gitHubOwned != notPinned {
 		score += 2
 		dl.Info(&checker.LogMessage{
-			Type:   checker.FileTypeSource,
+			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
 		})
@@ -288,7 +290,7 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 	if r.thirdParties != notPinned {
 		score += 8
 		dl.Info(&checker.LogMessage{
-			Type:   checker.FileTypeSource,
+			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   fmt.Sprintf("%s %s", "Third-party", infoMsg),
 		})

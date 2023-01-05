@@ -170,7 +170,7 @@ func CheckPreventBinaryArtifacts(
 			logger.Info(
 				fmt.Sprintf(
 					"binary detected path:%s type: %v offset:%v",
-					artifactFile.Path, checker.FileTypeBinary, artifactFile.Offset,
+					artifactFile.Path, finding.FileTypeBinary, artifactFile.Offset,
 				),
 			)
 			return Fail, nil
