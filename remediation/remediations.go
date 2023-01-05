@@ -36,29 +36,29 @@ var (
 
 // TODO fix how this info makes it checks/evaluation.
 type RemediationMetadata struct {
-	branch string
-	repo   string
+	Branch string
+	Repo   string
 }
 
 // New returns remediation relevant metadata from a CheckRequest.
-func New(c *checker.CheckRequest) (RemediationMetadata, error) {
+func New(c *checker.CheckRequest) (*RemediationMetadata, error) {
 	if c == nil || c.RepoClient == nil {
-		return RemediationMetadata{}, nil
+		return &RemediationMetadata{}, nil
 	}
 
 	// Get the branch for remediation.
 	branch, err := c.RepoClient.GetDefaultBranchName()
 	if err != nil {
-		return RemediationMetadata{}, fmt.Errorf("GetDefaultBranchName: %w", err)
+		return &RemediationMetadata{}, fmt.Errorf("GetDefaultBranchName: %w", err)
 	}
 
 	uri := c.RepoClient.URI()
 	parts := strings.Split(uri, "/")
 	if len(parts) != 3 {
-		return RemediationMetadata{}, fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
+		return &RemediationMetadata{}, fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
 	}
 	repo := fmt.Sprintf("%s/%s", parts[1], parts[2])
-	return RemediationMetadata{branch: branch, repo: repo}, nil
+	return &RemediationMetadata{Branch: branch, Repo: repo}, nil
 }
 
 // CreateWorkflowPermissionRemediation create remediation for workflow permissions.
@@ -73,12 +73,12 @@ func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) 
 
 func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *rule.Remediation {
 	p := strings.TrimPrefix(path, ".github/workflows/")
-	if r.branch == "" || r.repo == "" {
+	if r.Branch == "" || r.Repo == "" {
 		return nil
 	}
 
-	text := fmt.Sprintf(workflowText, r.repo, p, r.branch, t)
-	markdown := fmt.Sprintf(workflowMarkdown, r.repo, p, r.branch, t)
+	text := fmt.Sprintf(workflowText, r.Repo, p, r.Branch, t)
+	markdown := fmt.Sprintf(workflowMarkdown, r.Repo, p, r.Branch, t)
 
 	return &rule.Remediation{
 		Text:     text,

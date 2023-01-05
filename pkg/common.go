@@ -33,20 +33,41 @@ func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
 	}
 
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text))
+	if d.Msg.Finding == nil {
+		sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text))
 
-	if d.Msg.Path != "" {
-		sb.WriteString(fmt.Sprintf(": %s", d.Msg.Path))
-		if d.Msg.Offset != 0 {
-			sb.WriteString(fmt.Sprintf(":%d", d.Msg.Offset))
+		if d.Msg.Path != "" {
+			sb.WriteString(fmt.Sprintf(": %s", d.Msg.Path))
+			if d.Msg.Offset != 0 {
+				sb.WriteString(fmt.Sprintf(":%d", d.Msg.Offset))
+			}
+			if d.Msg.EndOffset != 0 && d.Msg.Offset < d.Msg.EndOffset {
+				sb.WriteString(fmt.Sprintf("-%d", d.Msg.EndOffset))
+			}
 		}
-		if d.Msg.EndOffset != 0 && d.Msg.Offset < d.Msg.EndOffset {
-			sb.WriteString(fmt.Sprintf("-%d", d.Msg.EndOffset))
-		}
-	}
 
-	if d.Msg.Remediation != nil {
-		sb.WriteString(fmt.Sprintf(": %s", d.Msg.Remediation.Text))
+		if d.Msg.Remediation != nil {
+			sb.WriteString(fmt.Sprintf(": %s", d.Msg.Remediation.Text))
+		}
+
+	} else {
+		f := d.Msg.Finding
+		sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), f.Message))
+
+		if f.Location != nil {
+			sb.WriteString(fmt.Sprintf(": %s", f.Location.Value))
+			if f.Location.LineStart != nil {
+				sb.WriteString(fmt.Sprintf(":%d", *f.Location.LineStart))
+			}
+			if f.Location.LineEnd != nil && *f.Location.LineStart < *f.Location.LineEnd {
+				sb.WriteString(fmt.Sprintf("-%d", *f.Location.LineEnd))
+			}
+		}
+
+		// Effort to remediate.
+		if f.Remediation != nil {
+			sb.WriteString(fmt.Sprintf(": %s (%s effort)", f.Remediation.Text, f.Remediation.Effort))
+		}
 	}
 
 	return sb.String()

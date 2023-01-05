@@ -17,11 +17,12 @@ package evaluation
 import (
 	"embed"
 	"fmt"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/remediation"
-	"github.com/ossf/scorecard/v4/rule"
 )
 
 //go:embed *.yml
@@ -36,20 +37,20 @@ type permissions struct {
 func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPermissionsData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
-		return checker.CreateRuntimeErrorResult(name, e)
+		return checker.CreateStructuredRuntimeErrorResult(name, e)
 	}
 
 	score, err := applyScorePolicy(r, c)
 	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
+		return checker.CreateStructuredRuntimeErrorResult(name, err)
 	}
 
 	if score != checker.MaxResultScore {
-		return checker.CreateResultWithScore(name,
+		return checker.CreateStructuredResultWithScore(name,
 			"non read-only tokens detected in GitHub workflows", score)
 	}
 
-	return checker.CreateMaxScoreResult(name,
+	return checker.CreateStructuredMaxScoreResult(name,
 		"tokens are read-only in GitHub workflows")
 }
 
@@ -64,16 +65,33 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	remediationMetadata, _ := remediation.New(c)
 
 	for _, r := range results.TokenPermissions {
-		var msg checker.LogMessage
-		var rem *rule.Remediation
+		f, err := finding.FindingNew(rules, "GitHubWorkflowPermissionsDefaultNoWrite")
+		if err != nil {
+			return checker.InconclusiveResultScore,
+				sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		msg := checker.LogMessage{
+			Finding: f,
+		}
+		// var rem *remediation.RemediationMetadata
+		var path *string
 		if r.File != nil {
-			msg.Path = r.File.Path
-			msg.Offset = r.File.Offset
-			msg.Type = r.File.Type
-			msg.Snippet = r.File.Snippet
+			msg.Finding = msg.Finding.WithLocation(finding.Location{
+				Type:      r.File.Type,
+				Value:     r.File.Path,
+				LineStart: &r.File.Offset,
+				Snippet:   &r.File.Snippet,
+			})
+			// msg.Path = r.File.Path
+			// msg.Offset = r.File.Offset
+			// msg.Type = r.File.Type
+			// msg.Snippet = r.File.Snippet
 
-			if msg.Path != "" {
-				rem = remediationMetadata.CreateWorkflowPermissionRemediation(r.File.Path)
+			// TODO: json/sarif
+			// "Warn: topLevel 'contents' permission set to 'write': .github/workflows/build-module-readme.yml:28: update your workflow using https://app.stepsecurity.io/secureworkflow/GoogleCloudPlatform/rad-lab/build-module-readme.yml/main?enable=permissions",
+			if r.File.Path != "" {
+				path = &r.File.Path
+				// rem = remediationMetadata.CreateWorkflowPermissionRemediation(r.File.Path)
 			}
 		}
 
@@ -81,7 +99,8 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 		if err != nil {
 			return checker.MinResultScore, err
 		}
-		msg.Text = text
+		msg.Finding = msg.Finding.WithMessage(text)
+		// msg.Text = text
 
 		switch r.Type {
 		case checker.PermissionLevelNone, checker.PermissionLevelRead:
@@ -97,7 +116,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 
 			// We warn only for top-level.
 			if *r.LocationType == checker.PermissionLocationTop {
-				warnWithRemediation(dl, &msg, rem)
+				warnWithRemediation(dl, &msg, remediationMetadata, path)
 			} else {
 				dl.Debug(&msg)
 			}
@@ -108,7 +127,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 			}
 
 		case checker.PermissionLevelWrite:
-			warnWithRemediation(dl, &msg, rem)
+			warnWithRemediation(dl, &msg, remediationMetadata, path)
 
 			// Group results by workflow name for score computation.
 			if err := updateWorkflowHashMap(hm, r); err != nil {
@@ -120,8 +139,18 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	return calculateScore(hm), nil
 }
 
-func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage, rem *rule.Remediation) {
-	msg.Remediation = rem
+func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage,
+	rem *remediation.RemediationMetadata, path *string,
+) {
+	// msg.Remediation = rem
+	if path != nil {
+		msg.Finding = msg.Finding.WithRemediationMetadata(map[string]string{
+			"repo":     rem.Repo,
+			"branch":   rem.Branch,
+			"workflow": strings.TrimPrefix(*path, ".github/workflows/"),
+		})
+	}
+
 	logger.Warn(msg)
 }
 

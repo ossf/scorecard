@@ -56,7 +56,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	pr := make(map[checker.DependencyUseType]pinnedResult)
 	dl := c.Dlogger
 	//nolint:errcheck
-	remediaitonMetadata, _ := remediation.New(c)
+	remediationMetadata, _ := remediation.New(c)
 
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]
@@ -88,7 +88,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				EndOffset:   rr.Location.EndOffset,
 				Text:        generateText(&rr),
 				Snippet:     rr.Location.Snippet,
-				Remediation: generateRemediation(remediaitonMetadata, &rr),
+				Remediation: generateRemediation(remediationMetadata, &rr),
 			})
 
 			// Update the pinning status.
@@ -138,10 +138,10 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		"dependency not pinned by hash detected", score, checker.MaxResultScore)
 }
 
-func generateRemediation(remediaitonMd remediation.RemediationMetadata, rr *checker.Dependency) *rule.Remediation {
+func generateRemediation(remediationMd *remediation.RemediationMetadata, rr *checker.Dependency) *rule.Remediation {
 	switch rr.Type {
 	case checker.DependencyUseTypeGHAction:
-		return remediaitonMd.CreateWorkflowPinningRemediation(rr.Location.Path)
+		return remediationMd.CreateWorkflowPinningRemediation(rr.Location.Path)
 	case checker.DependencyUseTypeDockerfileContainerImage:
 		return remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
 	default:

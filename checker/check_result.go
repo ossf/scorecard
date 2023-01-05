@@ -50,17 +50,6 @@ const (
 	DetailDebug
 )
 
-type CheckStructuredResult struct {
-	Name string
-	// TODO(X): update Rules to contain a URL.
-	Rules    []string
-	Risk     rule.Risk // Risk left given all the findings.
-	Findings []finding.Finding
-	Reason   string
-	Score    int
-	// TODO(X): developer annotations
-}
-
 // CheckResult captures result from a check run.
 //
 //nolint:govet
@@ -68,9 +57,16 @@ type CheckResult struct {
 	Name    string
 	Version int
 	Error   error
-	Details []CheckDetail
 	Score   int
 	Reason  string
+
+	// Non-structured results.
+	Details []CheckDetail
+
+	// Structured results.
+	Rules    []string  // TODO(X): add support.
+	Risk     rule.Risk // TODO(X): add support.
+	Findings []finding.Finding
 }
 
 // CheckDetail contains information for each detail.
@@ -84,6 +80,10 @@ type CheckDetail struct {
 //
 //nolint:govet
 type LogMessage struct {
+	// Structured resuts.
+	Finding *finding.Finding
+
+	// Non-structured results.
 	Text        string            // A short string explaining why the detail was recorded/logged.
 	Path        string            // Fullpath to the file.
 	Type        finding.FileType  // Type of file.

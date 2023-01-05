@@ -61,7 +61,7 @@ type Finding struct {
 	RuleName    string
 	Outcome     Outcome
 	Risk        rule.Risk
-	Text        string
+	Message     string
 	Location    *Location
 	Remediation *rule.Remediation
 }
@@ -83,8 +83,8 @@ func FindingNew(loc embed.FS, ruleID string) (*Finding, error) {
 	return f, nil
 }
 
-func (f *Finding) WithText(text string) *Finding {
-	f.Text = text
+func (f *Finding) WithMessage(text string) *Finding {
+	f.Message = text
 	return f
 }
 
@@ -102,7 +102,6 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 	if f.Remediation != nil {
 		// Replace all dynamic values.
 		for k, v := range values {
-			fmt.Println("befoer:", f.Remediation.Text)
 			f.Remediation.Text = strings.Replace(f.Remediation.Text,
 				fmt.Sprintf("${{ %s }}", k), v, -1)
 			f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
