@@ -37,20 +37,20 @@ type permissions struct {
 func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPermissionsData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
-		return checker.CreateStructuredRuntimeErrorResult(name, e)
+		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
 	score, err := applyScorePolicy(r, c)
 	if err != nil {
-		return checker.CreateStructuredRuntimeErrorResult(name, err)
+		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
 	if score != checker.MaxResultScore {
-		return checker.CreateStructuredResultWithScore(name,
+		return checker.CreateResultWithScore(name,
 			"non read-only tokens detected in GitHub workflows", score)
 	}
 
-	return checker.CreateStructuredMaxScoreResult(name,
+	return checker.CreateMaxScoreResult(name,
 		"tokens are read-only in GitHub workflows")
 }
 

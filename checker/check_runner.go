@@ -118,8 +118,6 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 		break
 	}
 
-	// TODO: Compute the final risk.
-
 	// Set details.
 	// TODO(#1393): Remove.
 	res.Details = l.Flush()
