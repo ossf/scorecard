@@ -61,11 +61,6 @@ func New(c *checker.CheckRequest) (*RemediationMetadata, error) {
 	return &RemediationMetadata{Branch: branch, Repo: repo}, nil
 }
 
-// CreateWorkflowPermissionRemediation create remediation for workflow permissions.
-func (r *RemediationMetadata) CreateWorkflowPermissionRemediation(filepath string) *rule.Remediation {
-	return r.createWorkflowRemediation(filepath, "permissions")
-}
-
 // CreateWorkflowPinningRemediation create remediaiton for pinninn GH Actions.
 func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) *rule.Remediation {
 	return r.createWorkflowRemediation(filepath, "pin")
