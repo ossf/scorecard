@@ -38,13 +38,13 @@ const (
 // Remediation represents the remediation for a finding.
 type Remediation struct {
 	// Text for humans.
-	Text string
+	Text string `json:"text"`
 	// Text in markdown format for humans.
-	Markdown string
+	Markdown string `json:"markdown"`
 	// Patch for machines.
-	Patch *string
+	Patch *string `json:"patch,omitempty"`
 	// Effort to remediate.
-	Effort RemediationEffort
+	Effort RemediationEffort `json:"effort"`
 }
 
 type jsonRemediation struct {
@@ -70,10 +70,12 @@ const (
 	RiskCritical Risk = "Critical"
 	// RiskHigh is a high risk.
 	RiskHigh Risk = "High"
-	// RiskMedimum is a medium risk.
-	RiskMedimum Risk = "Medium"
+	// RiskMedium is a medium risk.
+	RiskMedium Risk = "Medium"
 	// RiskLow is a low risk.
 	RiskLow Risk = "Low"
+	// RiskNone is a no risk.
+	RiskNone Risk = "None"
 )
 
 type Rule struct {
@@ -86,6 +88,19 @@ type Rule struct {
 }
 
 var errInvalid = errors.New("invalid")
+
+func (r *Risk) GreaterThan(rr Risk) bool {
+	m := map[Risk]int{
+		RiskNone:     0,
+		RiskLow:      1,
+		RiskMedium:   2,
+		RiskHigh:     3,
+		RiskCritical: 4,
+	}
+	v := m[*r]
+	vv := m[rr]
+	return v > vv
+}
 
 func RuleNew(loc embed.FS, rule string) (*Rule, error) {
 	content, err := loc.ReadFile(fmt.Sprintf("%s.yml", rule))
@@ -137,7 +152,7 @@ func validateRemediation(r jsonRemediation) error {
 
 func validateRisk(r string) error {
 	switch Risk(r) {
-	case RiskLow, RiskHigh, RiskMedimum, RiskCritical:
+	case RiskNone, RiskLow, RiskHigh, RiskMedium, RiskCritical:
 		return nil
 	default:
 		return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("risk '%s'", r))

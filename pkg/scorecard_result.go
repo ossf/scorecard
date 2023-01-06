@@ -43,7 +43,7 @@ type RepoInfo struct {
 }
 
 // ScorecardResult struct is returned on a successful Scorecard run.
-//nolint
+// nolint
 type ScorecardResult struct {
 	Repo       RepoInfo
 	Date       time.Time
@@ -117,6 +117,8 @@ func FormatResults(
 		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), os.Stdout, doc, policy)
 	case options.FormatJSON:
 		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+	case options.FormatEJSON:
+		err = results.AsEJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
 	case options.FormatRaw:
 		err = results.AsRawJSON(os.Stdout)
 	default:

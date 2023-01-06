@@ -16,6 +16,7 @@ package finding
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -39,12 +40,14 @@ const (
 	FileTypeURL
 )
 
+// Location represents the location of a finding.
+// nolint: govet
 type Location struct {
-	Type      FileType
-	Value     string
-	LineStart *uint
-	LineEnd   *uint
-	Snippet   *string
+	Type      FileType `json:"type"`
+	Value     string   `json:"value"`
+	LineStart *uint    `json:"lineStart,omitempty"`
+	LineEnd   *uint    `json:"lineEnd,omitempty"`
+	Snippet   *string  `json:"snippet,omitempty"`
 }
 
 // Outcome is the result of a finding.
@@ -57,25 +60,29 @@ const (
 	OutcomeNegative Outcome = "Negative"
 )
 
+var errUnresolvedVariables = errors.New("unresolved variables in rule description")
+
+// Finding represents a finding.
+// nolint: govet
 type Finding struct {
-	RuleName    string
-	Outcome     Outcome
-	Risk        rule.Risk
-	Message     string
-	Location    *Location
-	Remediation *rule.Remediation
+	RuleName    string            `json:"rule"`
+	Outcome     Outcome           `json:"outcome"`
+	Risk        rule.Risk         `json:"risk"`
+	Message     string            `json:"message"`
+	Location    *Location         `json:"location,omitempty"`
+	Remediation *rule.Remediation `json:"remediation,omitempty"`
 }
 
 func FindingNew(loc embed.FS, ruleID string) (*Finding, error) {
 	r, err := rule.RuleNew(loc, ruleID)
 	if err != nil {
+		// nolint
 		return nil, err
 	}
 	f := &Finding{
 		RuleName:    ruleID,
 		Outcome:     OutcomeNegative,
 		Remediation: r.Remediation,
-		// TODO: remediation and use the branch / etc
 	}
 	if r.Remediation != nil {
 		f.Risk = r.Risk
@@ -88,13 +95,20 @@ func (f *Finding) WithMessage(text string) *Finding {
 	return f
 }
 
-func (f *Finding) WithLocation(loc Location) *Finding {
-	f.Location = &loc
+func (f *Finding) WithLocation(loc *Location) *Finding {
+	f.Location = loc
 	return f
 }
 
-func (f *Finding) WithPatch(patch string) *Finding {
-	f.Remediation.Patch = &patch
+func (f *Finding) WithPatch(patch *string) *Finding {
+	f.Remediation.Patch = patch
+	return f
+}
+
+func (f *Finding) WithOutcome(o Outcome) *Finding {
+	f.Outcome = o
+	// Outcome is positive, no remediation needed.
+	f.Remediation = nil
 	return f
 }
 

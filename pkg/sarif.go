@@ -204,13 +204,62 @@ func generateDefaultConfig(risk string) string {
 	return "error"
 }
 
+func getPath(d *checker.CheckDetail) string {
+	f := d.Msg.Finding
+	if f != nil && f.Location != nil {
+		return f.Location.Value
+	}
+	return d.Msg.Path
+}
+
+func getLocationType(d *checker.CheckDetail) finding.FileType {
+	f := d.Msg.Finding
+	if f != nil && f.Location != nil {
+		return f.Location.Type
+	}
+	return d.Msg.Type
+}
+
+func getSnippet(d *checker.CheckDetail) *text {
+	f := d.Msg.Finding
+	if f != nil && f.Location != nil && f.Location.Snippet != nil {
+		// NOTE: Snippet may be nil.
+		return &text{Text: *f.Location.Snippet}
+	}
+	if d.Msg.Snippet != "" {
+		return &text{Text: d.Msg.Snippet}
+	}
+	return nil
+}
+
+func getStartLine(d *checker.CheckDetail) uint {
+	f := d.Msg.Finding
+	if f != nil && f.Location != nil && f.Location.LineStart != nil {
+		return *f.Location.LineStart
+	}
+	return d.Msg.Offset
+}
+
+func getEndLine(d *checker.CheckDetail) uint {
+	f := d.Msg.Finding
+	if f != nil && f.Location != nil && f.Location.LineEnd != nil {
+		return *f.Location.LineEnd
+	}
+	return d.Msg.EndOffset
+}
+
+func getText(d *checker.CheckDetail) *text {
+	f := d.Msg.Finding
+	if f != nil {
+		return &text{Text: f.Message}
+	}
+	return &text{Text: d.Msg.Text}
+}
+
 func detailToRegion(details *checker.CheckDetail) region {
 	var reg region
-	var snippet *text
-	if details.Msg.Snippet != "" {
-		snippet = &text{Text: details.Msg.Snippet}
-	}
-
+	snippet := getSnippet(details)
+	locType := getLocationType(details)
 	// https://github.com/github/codeql-action/issues/754.
 	// "code-scanning currently only supports character offset/length and start/end line/columns offsets".
 
@@ -218,11 +267,11 @@ func detailToRegion(details *checker.CheckDetail) region {
 	// "3.30.1 General".
 	// Line numbers > 0.
 	// byteOffset and charOffset >= 0.
-	switch details.Msg.Type {
+	switch locType {
 	default:
 		panic("invalid")
 	case finding.FileTypeURL:
-		line := maxOffset(checker.OffsetDefault, details.Msg.Offset)
+		line := maxOffset(checker.OffsetDefault, getStartLine(details))
 		reg = region{
 			StartLine: &line,
 			Snippet:   snippet,
@@ -230,24 +279,26 @@ func detailToRegion(details *checker.CheckDetail) region {
 	case finding.FileTypeNone:
 		// Do nothing.
 	case finding.FileTypeSource:
-		startLine := maxOffset(checker.OffsetDefault, details.Msg.Offset)
-		endLine := maxOffset(startLine, details.Msg.EndOffset)
+		startLine := maxOffset(checker.OffsetDefault, getStartLine(details))
+		endLine := maxOffset(startLine, getEndLine(details))
 		reg = region{
 			StartLine: &startLine,
 			EndLine:   &endLine,
 			Snippet:   snippet,
 		}
 	case finding.FileTypeText:
+		offset := getStartLine(details)
 		reg = region{
-			CharOffset: &details.Msg.Offset,
+			CharOffset: &offset,
 			Snippet:    snippet,
 		}
 	case finding.FileTypeBinary:
+		offset := getStartLine(details)
 		reg = region{
 			// Note: GitHub does not support ByteOffset, so we also set
 			// StartLine.
-			ByteOffset: &details.Msg.Offset,
-			StartLine:  &details.Msg.Offset,
+			ByteOffset: &offset,
+			StartLine:  &offset,
 		}
 	}
 	return reg
@@ -256,18 +307,34 @@ func detailToRegion(details *checker.CheckDetail) region {
 func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 	minScore, score int,
 ) bool {
+	path := getPath(detail)
+	locType := getLocationType(detail)
+
 	switch {
 	default:
 		return false
-	case detail.Msg.Path == "",
+	case path == "",
 		!showDetails,
 		detail.Type != checker.DetailWarn,
-		detail.Msg.Type == finding.FileTypeURL:
+		locType == finding.FileTypeURL:
 		return false
 	case score == checker.InconclusiveResultScore:
 		return true
 	case minScore >= score:
 		return true
+	}
+}
+
+func setRemediation(loc *location, d *checker.CheckDetail) {
+	f := d.Msg.Finding
+	if f != nil && f.Remediation != nil {
+		loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, f.Remediation.Markdown)
+		loc.HasRemediation = true
+		return
+	}
+	if d.Msg.Remediation != nil {
+		loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, d.Msg.Remediation.Markdown)
+		loc.HasRemediation = true
 	}
 }
 
@@ -295,18 +362,15 @@ func detailsToLocations(details []checker.CheckDetail,
 		loc := location{
 			PhysicalLocation: physicalLocation{
 				ArtifactLocation: artifactLocation{
-					URI:       d.Msg.Path,
+					URI:       getPath(&d),
 					URIBaseID: "%SRCROOT%",
 				},
 			},
-			Message: &text{Text: d.Msg.Text},
+			Message: getText(&d),
 		}
 
-		// Add remediaiton information
-		if d.Msg.Remediation != nil {
-			loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, d.Msg.Remediation.Markdown)
-			loc.HasRemediation = true
-		}
+		// Add remediation information
+		setRemediation(&loc, &d)
 
 		// Set the region depending on the file type.
 		loc.PhysicalLocation.Region = detailToRegion(&d)

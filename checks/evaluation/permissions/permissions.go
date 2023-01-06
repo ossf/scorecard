@@ -65,33 +65,21 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	remediationMetadata, _ := remediation.New(c)
 
 	for _, r := range results.TokenPermissions {
-		f, err := finding.FindingNew(rules, "GitHubWorkflowPermissionsDefaultNoWrite")
-		if err != nil {
-			return checker.InconclusiveResultScore,
-				sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		msg := checker.LogMessage{
-			Finding: f,
-		}
+
 		// var rem *remediation.RemediationMetadata
-		var path *string
+		var loc *finding.Location
 		if r.File != nil {
-			msg.Finding = msg.Finding.WithLocation(finding.Location{
+			loc = &finding.Location{
 				Type:      r.File.Type,
 				Value:     r.File.Path,
 				LineStart: &r.File.Offset,
-				Snippet:   &r.File.Snippet,
-			})
-			// msg.Path = r.File.Path
-			// msg.Offset = r.File.Offset
-			// msg.Type = r.File.Type
-			// msg.Snippet = r.File.Snippet
+			}
+			if r.File.Snippet != "" {
+				loc.Snippet = &r.File.Snippet
+			}
 
-			// TODO: json/sarif
-			// "Warn: topLevel 'contents' permission set to 'write': .github/workflows/build-module-readme.yml:28: update your workflow using https://app.stepsecurity.io/secureworkflow/GoogleCloudPlatform/rad-lab/build-module-readme.yml/main?enable=permissions",
 			if r.File.Path != "" {
-				path = &r.File.Path
-				// rem = remediationMetadata.CreateWorkflowPermissionRemediation(r.File.Path)
+				loc.Value = r.File.Path
 			}
 		}
 
@@ -99,14 +87,18 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 		if err != nil {
 			return checker.MinResultScore, err
 		}
-		msg.Finding = msg.Finding.WithMessage(text)
-		// msg.Text = text
 
+		msg, err := createMsg(r.LocationType)
+		if err != nil {
+			return checker.InconclusiveResultScore, err
+		}
+		msg.Finding = msg.Finding.WithMessage(text).WithLocation(loc)
 		switch r.Type {
 		case checker.PermissionLevelNone, checker.PermissionLevelRead:
-			dl.Info(&msg)
+			msg.Finding = msg.Finding.WithOutcome(finding.OutcomePositive)
+			dl.Info(msg)
 		case checker.PermissionLevelUnknown:
-			dl.Debug(&msg)
+			dl.Debug(msg)
 
 		case checker.PermissionLevelUndeclared:
 			if r.LocationType == nil {
@@ -116,9 +108,9 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 
 			// We warn only for top-level.
 			if *r.LocationType == checker.PermissionLocationTop {
-				warnWithRemediation(dl, &msg, remediationMetadata, path)
+				warnWithRemediation(dl, msg, remediationMetadata, loc)
 			} else {
-				dl.Debug(&msg)
+				dl.Debug(msg)
 			}
 
 			// Group results by workflow name for score computation.
@@ -127,7 +119,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 			}
 
 		case checker.PermissionLevelWrite:
-			warnWithRemediation(dl, &msg, remediationMetadata, path)
+			warnWithRemediation(dl, msg, remediationMetadata, loc)
 
 			// Group results by workflow name for score computation.
 			if err := updateWorkflowHashMap(hm, r); err != nil {
@@ -139,18 +131,31 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	return calculateScore(hm), nil
 }
 
+func createMsg(loct *checker.PermissionLocation) (*checker.LogMessage, error) {
+	ruleName := "GitHubWorkflowPermissionsStepsNoWrite"
+	if loct == nil || *loct == checker.PermissionLocationTop {
+		ruleName = "GitHubWorkflowPermissionsTopNoWrite"
+	}
+	f, err := finding.FindingNew(rules, ruleName)
+	if err != nil {
+		return nil,
+			sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+	return &checker.LogMessage{
+		Finding: f,
+	}, nil
+}
+
 func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage,
-	rem *remediation.RemediationMetadata, path *string,
+	rem *remediation.RemediationMetadata, loc *finding.Location,
 ) {
-	// msg.Remediation = rem
-	if path != nil {
+	if loc != nil && loc.Value != "" {
 		msg.Finding = msg.Finding.WithRemediationMetadata(map[string]string{
 			"repo":     rem.Repo,
 			"branch":   rem.Branch,
-			"workflow": strings.TrimPrefix(*path, ".github/workflows/"),
+			"workflow": strings.TrimPrefix(loc.Value, ".github/workflows/"),
 		})
 	}
-
 	logger.Warn(msg)
 }
 

@@ -59,14 +59,9 @@ type CheckResult struct {
 	Error   error
 	Score   int
 	Reason  string
-
-	// Non-structured results.
 	Details []CheckDetail
-
 	// Structured results.
-	Rules    []string  // TODO(X): add support.
-	Risk     rule.Risk // TODO(X): add support.
-	Findings []finding.Finding
+	Rules []string // TODO(X): add support.
 }
 
 // CheckDetail contains information for each detail.

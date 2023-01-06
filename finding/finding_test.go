@@ -37,10 +37,12 @@ func Test_FindingNew(t *testing.T) {
 	patch := "some patch values"
 	sline := uint(10)
 	eline := uint(46)
+	positiveOutcome := OutcomePositive
 	t.Parallel()
 	tests := []struct {
 		name    string
 		id      string
+		outcome *Outcome
 		err     error
 		env     map[string]string
 		finding *Finding
@@ -156,6 +158,18 @@ func Test_FindingNew(t *testing.T) {
 				Message: "some text",
 			},
 		},
+		{
+			name:    "outcome",
+			id:      "testdata/env-variables",
+			outcome: &positiveOutcome,
+			finding: &Finding{
+				RuleName: "testdata/env-variables",
+				Outcome:  OutcomePositive,
+				Risk:     rule.RiskHigh,
+				Message:  "some text",
+			},
+		},
+		// TODO: WithOutcome
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -169,20 +183,19 @@ func Test_FindingNew(t *testing.T) {
 				}
 				return
 			}
-			r = r.WithMessage(tt.finding.Message)
+			r = r.WithMessage(tt.finding.Message).WithLocation(tt.finding.Location)
 
 			if len(tt.env) > 1 {
 				r = r.WithRemediationMetadata(tt.env)
 			}
 
-			if tt.finding.Remediation != nil && tt.finding.Remediation.Patch != nil {
-				r = r.WithPatch(*tt.finding.Remediation.Patch)
+			if tt.finding.Remediation != nil {
+				r = r.WithPatch(tt.finding.Remediation.Patch)
 			}
 
-			if tt.finding.Location != nil {
-				r = r.WithLocation(*tt.finding.Location)
+			if tt.outcome != nil {
+				r = r.WithOutcome(*tt.outcome)
 			}
-
 			if diff := cmp.Diff(*tt.finding, *r); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
