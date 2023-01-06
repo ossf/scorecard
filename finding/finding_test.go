@@ -39,6 +39,7 @@ func Test_FindingNew(t *testing.T) {
 	eline := uint(46)
 	positiveOutcome := OutcomePositive
 	t.Parallel()
+	// nolint:govet
 	tests := []struct {
 		name    string
 		id      string
@@ -169,7 +170,6 @@ func Test_FindingNew(t *testing.T) {
 				Message:  "some text",
 			},
 		},
-		// TODO: WithOutcome
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below

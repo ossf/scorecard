@@ -16,7 +16,6 @@ package finding
 
 import (
 	"embed"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -58,8 +57,6 @@ const (
 	// OutcomeNegative indicates a negative outcome.
 	OutcomeNegative Outcome = "Negative"
 )
-
-var errUnresolvedVariables = errors.New("unresolved variables in rule description")
 
 // Finding represents a finding.
 // nolint: govet
