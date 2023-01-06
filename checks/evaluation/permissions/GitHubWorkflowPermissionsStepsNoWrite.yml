@@ -1,0 +1,16 @@
+short: Checks that GitHub workflows do not have steps with dangerous write permissions
+desc: This rule checks that GitHub workflows do not have steps with dangerous write permissions
+motivation: >
+  TODO: attack surface is the Actions called in the steps, and its dependencies.
+
+implementation: >
+  The rule is implemented by checking whether the `permissions` keyword is given non-write permission for the following
+  scopes: X, X, X.
+  TODO: permissions for know action to publish are not reported.
+risk: Medium
+remediation:
+  effort: High
+  text:
+    - Verify which permissions are needed and it you can reduce them. TODO(use annotation)
+  markdown:
+    - Verify which permissions are needed and it you can reduce them. TODO(use annotation)
