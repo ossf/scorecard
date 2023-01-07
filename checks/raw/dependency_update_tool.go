@@ -88,7 +88,7 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
 		"renovate.json5", ".renovaterc":
 		*ptools = append(*ptools, checker.Tool{
-			Name: "Renovabot",
+			Name: "RenovateBot",
 			URL:  asPointer("https://github.com/renovatebot/renovate"),
 			Desc: asPointer("Automated dependency updates. Multi-platform and multi-language."),
 			Files: []checker.File{
