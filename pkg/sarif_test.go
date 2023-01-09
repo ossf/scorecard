@@ -24,8 +24,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
 	spol "github.com/ossf/scorecard/v4/policy"
+	rules "github.com/ossf/scorecard/v4/rule"
 )
 
 func sarifMockDocRead() *mockDoc {
@@ -96,7 +98,7 @@ func sarifMockDocRead() *mockDoc {
 	return &m
 }
 
-//nolint
+// nolint
 func TestSARIFOutput(t *testing.T) {
 	t.Parallel()
 
@@ -166,9 +168,9 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
-									Remediation: &rule.Remediation{
-										HelpMarkdown: "this is the custom markdown help",
-										HelpText:     "this is the custom text help",
+									Remediation: &rules.Remediation{
+										Markdown: "this is the custom markdown help",
+										Text:     "this is the custom text help",
 									},
 								},
 							},
