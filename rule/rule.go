@@ -1,4 +1,4 @@
-// Copyright 2022 OpenSSF Scorecard Authors
+// Copyright 2023 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ type Remediation struct {
 	Effort RemediationEffort `json:"effort"`
 }
 
+// nolint: govet
 type jsonRemediation struct {
 	Text     []string          `yaml:"text"`
 	Markdown []string          `yaml:"markdown"`
@@ -78,6 +79,7 @@ const (
 	RiskNone Risk = "None"
 )
 
+// nolint: govet
 type Rule struct {
 	Name        string
 	Short       string

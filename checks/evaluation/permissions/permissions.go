@@ -65,8 +65,6 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	remediationMetadata, _ := remediation.New(c)
 
 	for _, r := range results.TokenPermissions {
-
-		// var rem *remediation.RemediationMetadata
 		var loc *finding.Location
 		if r.File != nil {
 			loc = &finding.Location{

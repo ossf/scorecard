@@ -33,6 +33,7 @@ func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
 	}
 
 	var sb strings.Builder
+	// Non-structured results.
 	if d.Msg.Finding == nil {
 		sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text))
 
@@ -50,24 +51,26 @@ func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
 			sb.WriteString(fmt.Sprintf(": %s", d.Msg.Remediation.Text))
 		}
 
-	} else {
-		f := d.Msg.Finding
-		sb.WriteString(fmt.Sprintf("%s: %s severity: %s", typeToString(d.Type), f.Risk, f.Message))
+		return sb.String()
+	}
 
-		if f.Location != nil {
-			sb.WriteString(fmt.Sprintf(": %s", f.Location.Value))
-			if f.Location.LineStart != nil {
-				sb.WriteString(fmt.Sprintf(":%d", *f.Location.LineStart))
-			}
-			if f.Location.LineEnd != nil && *f.Location.LineStart < *f.Location.LineEnd {
-				sb.WriteString(fmt.Sprintf("-%d", *f.Location.LineEnd))
-			}
-		}
+	// Stuctured results.
+	f := d.Msg.Finding
+	sb.WriteString(fmt.Sprintf("%s: %s severity: %s", typeToString(d.Type), f.Risk, f.Message))
 
-		// Effort to remediate.
-		if f.Remediation != nil {
-			sb.WriteString(fmt.Sprintf(": %s (%s effort)", f.Remediation.Text, f.Remediation.Effort))
+	if f.Location != nil {
+		sb.WriteString(fmt.Sprintf(": %s", f.Location.Value))
+		if f.Location.LineStart != nil {
+			sb.WriteString(fmt.Sprintf(":%d", *f.Location.LineStart))
 		}
+		if f.Location.LineEnd != nil && *f.Location.LineStart < *f.Location.LineEnd {
+			sb.WriteString(fmt.Sprintf("-%d", *f.Location.LineEnd))
+		}
+	}
+
+	// Effort to remediate.
+	if f.Remediation != nil {
+		sb.WriteString(fmt.Sprintf(": %s (%s effort)", f.Remediation.Text, f.Remediation.Effort))
 	}
 
 	return sb.String()

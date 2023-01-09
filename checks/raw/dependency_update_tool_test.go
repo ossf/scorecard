@@ -22,7 +22,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	clients "github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
-	"github.com/ossf/scorecard/v4/finding"
 )
 
 func Test_checkDependencyFileExists(t *testing.T) {

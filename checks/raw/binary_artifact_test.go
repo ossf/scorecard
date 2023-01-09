@@ -23,7 +23,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
-	"github.com/ossf/scorecard/v4/finding"
 )
 
 func strptr(s string) *string {

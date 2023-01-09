@@ -45,8 +45,8 @@ func TestRepeatedSetup(t *testing.T) {
 		}
 
 		want := fmt.Sprintf("ossf/scorecard%d", i)
-		if rmd.repo != want {
-			t.Errorf("failed. expected: %v, got: %v", want, rmd.repo)
+		if rmd.Repo != want {
+			t.Errorf("failed. expected: %v, got: %v", want, rmd.Repo)
 		}
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright 2021 OpenSSF Scorecard Authors
+// Copyright 2023 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ var testfs embed.FS
 
 func Test_RuleNew(t *testing.T) {
 	t.Parallel()
+	// nolint: govet
 	tests := []struct {
 		name string
 		id   string
