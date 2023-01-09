@@ -54,11 +54,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -99,17 +99,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: generate mocks
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -147,17 +147,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: generate docs
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -182,17 +182,17 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-proto
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -230,17 +230,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -278,17 +278,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build cron
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -326,17 +326,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build worker
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -374,17 +374,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build cii-worker
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -422,17 +422,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build shuffler
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -470,17 +470,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build bq transfer
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -518,17 +518,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build bq transfer
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -566,17 +566,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build webhook
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -614,17 +614,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-add-script
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -662,17 +662,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-validate-script
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -710,17 +710,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-validate-script
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -745,11 +745,11 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -782,17 +782,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -829,17 +829,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -864,17 +864,17 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
+       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -893,8 +893,8 @@ jobs:
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v2.3.4
-      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+      - uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
