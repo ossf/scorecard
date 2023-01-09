@@ -34,6 +34,7 @@ func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
 
 	var sb strings.Builder
 	// Non-structured results.
+	//nolint: nestif
 	if d.Msg.Finding == nil {
 		sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text))
 
@@ -54,7 +55,7 @@ func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
 		return sb.String()
 	}
 
-	// Stuctured results.
+	// Structured results.
 	f := d.Msg.Finding
 	sb.WriteString(fmt.Sprintf("%s: %s severity: %s", typeToString(d.Type), f.Risk, f.Message))
 
