@@ -15,6 +15,6 @@ remediation:
     - Tick the 'Restrict permissions for GITHUB_TOKEN'
     - Untick other options
   markdown:
-    - Update your workflow using [https://app.stepsecurity.io/secureworkflow](https://app.stepsecurity.io/secureworkflow/${{ repo }}/${{ workflow }}/${{ branch }}?enable=permissions).
+    - Visit [https://app.stepsecurity.io/secureworkflow](https://app.stepsecurity.io/secureworkflow/${{ repo }}/${{ workflow }}/${{ branch }}?enable=permissions).
     - Tick the 'Restrict permissions for GITHUB_TOKEN'
     - Untick other options
