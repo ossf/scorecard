@@ -228,7 +228,7 @@ requests before running Scorecard. There are two ways to authenticate your
 requests: either create a GitHub personal access token, or create a GitHub App
 Installation.
 
--   [Create a GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
+-   [Create a classic GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-personal-access-token-classic).
     When creating the personal access token, we suggest you choose the
     `public_repo` scope. Set the token in an environment variable called
     `GITHUB_AUTH_TOKEN`, `GITHUB_TOKEN`, `GH_AUTH_TOKEN` or `GH_TOKEN` using the

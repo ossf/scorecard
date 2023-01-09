@@ -133,6 +133,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 		"pyo":    true,
 		"par":    true,
 		"rpm":    true,
+		"wasm":   true,
 		"whl":    true,
 	}
 	var t types.Type
