@@ -102,7 +102,7 @@ Note: If Scorecard is run without an administrative access token, the requiremen
 Tier 1 Requirements (3/10 points):
   - Prevent force push
   - Prevent branch deletion
-  - For administrators: Include administrator for review
+  - For administrators: Do not allow bypassing the above settings
 
 Tier 2 Requirements (6/10 points):
   - Required reviewers >=1
