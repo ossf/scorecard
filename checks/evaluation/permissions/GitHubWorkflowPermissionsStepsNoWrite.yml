@@ -7,8 +7,8 @@ motivation: >
 
 implementation: >
   The rule is implemented by checking whether the `permissions` keyword is given non-write permission for the following
-  scopes: X, X, X.
-  TODO: permissions for know action to publish are not reported.
+  scopes: `statuses`, `checks`, `security-events`, `deployments`, `contents`, `packages`, `actions`.
+  Write permissions given to recognized packaging actions or commands are allowed and do not bring much risk to the project.
 risk: Medium
 remediation:
   effort: High
