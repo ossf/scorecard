@@ -28,7 +28,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-//nolint
+// nolint
 func TestGithubTokenPermissions(t *testing.T) {
 	t.Parallel()
 
@@ -473,7 +473,11 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 
 			for _, expectedLog := range tt.expected {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == p &&
+					return logMessage.Finding != nil &&
+						logMessage.Finding.Location != nil &&
+						logMessage.Finding.Location.LineStart != nil &&
+						*logMessage.Finding.Location.LineStart == expectedLog.lineNumber &&
+						logMessage.Finding.Location.Value == p &&
 						logType == checker.DetailWarn
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {

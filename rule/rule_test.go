@@ -30,7 +30,7 @@ func errCmp(e1, e2 error) bool {
 //go:embed testdata/*
 var testfs embed.FS
 
-func Test_RuleNew(t *testing.T) {
+func Test_New(t *testing.T) {
 	t.Parallel()
 	// nolint: govet
 	tests := []struct {
@@ -71,7 +71,7 @@ func Test_RuleNew(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			r, err := RuleNew(testfs, tt.id)
+			r, err := New(testfs, tt.id)
 			if err != nil || tt.err != nil {
 				if !errCmp(err, tt.err) {
 					t.Fatalf("unexpected error: %v", cmp.Diff(err, tt.err, cmpopts.EquateErrors()))

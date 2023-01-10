@@ -76,17 +76,15 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 				loc.Snippet = &r.File.Snippet
 			}
 
-			if r.File.Path != "" {
-				loc.Value = r.File.Path
-			}
+			loc.Value = r.File.Path
 		}
 
-		text, err := createMessage(r)
+		text, err := createText(r)
 		if err != nil {
 			return checker.MinResultScore, err
 		}
 
-		msg, err := createMsg(r.LocationType)
+		msg, err := createLogMsg(r.LocationType)
 		if err != nil {
 			return checker.InconclusiveResultScore, err
 		}
@@ -129,12 +127,12 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	return calculateScore(hm), nil
 }
 
-func createMsg(loct *checker.PermissionLocation) (*checker.LogMessage, error) {
+func createLogMsg(loct *checker.PermissionLocation) (*checker.LogMessage, error) {
 	ruleName := "GitHubWorkflowPermissionsStepsNoWrite"
 	if loct == nil || *loct == checker.PermissionLocationTop {
 		ruleName = "GitHubWorkflowPermissionsTopNoWrite"
 	}
-	f, err := finding.FindingNew(rules, ruleName)
+	f, err := finding.New(rules, ruleName)
 	if err != nil {
 		return nil,
 			sce.WithMessage(sce.ErrScorecardInternal, err.Error())
@@ -200,7 +198,7 @@ func updateWorkflowHashMap(hm map[string]permissions, t checker.TokenPermission)
 	return nil
 }
 
-func createMessage(t checker.TokenPermission) (string, error) {
+func createText(t checker.TokenPermission) (string, error) {
 	// By default, use the message already present.
 	if t.Msg != nil {
 		return *t.Msg, nil
@@ -211,7 +209,7 @@ func createMessage(t checker.TokenPermission) (string, error) {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, "locationType is nil")
 	}
 
-	// Use a different message depending on the type.
+	// Use a different text depending on the type.
 	if t.Type == checker.PermissionLevelUndeclared {
 		return fmt.Sprintf("no %s permission defined", *t.LocationType), nil
 	}

@@ -69,8 +69,8 @@ type Finding struct {
 	Remediation *rule.Remediation `json:"remediation,omitempty"`
 }
 
-func FindingNew(loc embed.FS, ruleID string) (*Finding, error) {
-	r, err := rule.RuleNew(loc, ruleID)
+func New(loc embed.FS, ruleID string) (*Finding, error) {
+	r, err := rule.New(loc, ruleID)
 	if err != nil {
 		// nolint
 		return nil, err

@@ -32,7 +32,7 @@ func errCmp(e1, e2 error) bool {
 //go:embed testdata/*
 var testfs embed.FS
 
-func Test_FindingNew(t *testing.T) {
+func Test_New(t *testing.T) {
 	snippet := "some code snippet"
 	patch := "some patch values"
 	sline := uint(10)
@@ -176,7 +176,7 @@ func Test_FindingNew(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			r, err := FindingNew(testfs, tt.id)
+			r, err := New(testfs, tt.id)
 			if err != nil || tt.err != nil {
 				if !errCmp(err, tt.err) {
 					t.Fatalf("unexpected error: %v", cmp.Diff(err, tt.err, cmpopts.EquateErrors()))

@@ -104,7 +104,7 @@ func (r *Risk) GreaterThan(rr Risk) bool {
 	return v > vv
 }
 
-func RuleNew(loc embed.FS, rule string) (*Rule, error) {
+func New(loc embed.FS, rule string) (*Rule, error) {
 	content, err := loc.ReadFile(fmt.Sprintf("%s.yml", rule))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errInvalid, err)
