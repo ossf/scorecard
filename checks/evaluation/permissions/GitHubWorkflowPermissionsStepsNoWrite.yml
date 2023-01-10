@@ -1,7 +1,9 @@
 short: Checks that GitHub workflows do not have steps with dangerous write permissions
 desc: This rule checks that GitHub workflows do not have steps with dangerous write permissions
 motivation: >
-  TODO: attack surface is the Actions called in the steps, and its dependencies.
+  Even with permissions default set to read, some scopes having write permissions brings vulnerabilities to the project,
+  such as commiting unreviewed code, remove pre-submit checks to introduce a bug, etc.
+  For more information about the scopes and the vulnerabilities involved, see https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions.
 
 implementation: >
   The rule is implemented by checking whether the `permissions` keyword is given non-write permission for the following
