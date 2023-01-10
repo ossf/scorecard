@@ -105,42 +105,6 @@ $ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-
 $ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies,Binary-Artifacts
 ```
 
-## How to debug GO
-
-You can use logs throughout the code, VSCode default debugging tool or VSCode extensions to debug Go. Here we are gonna cover logging to console and to a file to help starters with minimal debugging using `log` lib.
-
-### Logging to console
-
-```go
-import (
-  ...
-  "log"
-)
-
-func Function() {
-  ...
-  log.Println() // log message to console
-}
-```
-
-### Logging to a file
-
-```go
-import (
-  ...
-  "log"
-  "os"
-)
-
-func Function() {
-  ...
-  file, _err := os.OpenFile("<your_file_name>.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-  log.SetOutput(file)
-
-  log.Println() // log message to file
-}
-```
-
 ## PR Process
 
 Every PR should be annotated with an icon indicating whether it's a:
