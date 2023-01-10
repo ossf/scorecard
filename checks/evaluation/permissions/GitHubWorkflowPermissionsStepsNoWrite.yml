@@ -13,6 +13,6 @@ risk: Medium
 remediation:
   effort: High
   text:
-    - Verify which permissions are needed and it you can reduce them. TODO(use annotation)
+    - Verify which permissions are needed and if you can reduce them. TODO(use annotation)
   markdown:
-    - Verify which permissions are needed and it you can reduce them. TODO(use annotation)
+    - Verify which permissions are needed and if you can reduce them. TODO(use annotation)
