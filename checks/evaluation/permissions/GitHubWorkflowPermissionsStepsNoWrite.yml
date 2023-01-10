@@ -7,9 +7,9 @@ motivation: >
   For more information about the scopes and the vulnerabilities involved, see https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions.
 
 implementation: >
-  The rule is implemented by checking whether the `permissions` keyword is given non-write permission for the following
+  The rule is implemented by checking whether the `permissions` keyword is given non-write permissions for the following
   scopes: `statuses`, `checks`, `security-events`, `deployments`, `contents`, `packages`, `actions`.
-  Write permissions given to recognized packaging actions or commands are allowed and do not bring much risk to the project.
+  Write permissions given to recognized packaging actions or commands are allowed and are considered an acceptable risk.
 risk: Medium
 remediation:
   effort: High
