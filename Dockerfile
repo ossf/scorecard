@@ -13,18 +13,16 @@
 # limitations under the License.
 
 # golang:1.19
-FROM golang@sha256:25de7b6b28219279a409961158c547aadd0960cf2dcbc533780224afa1157fd4 AS base
+FROM golang@sha256:25de7b6b28219279a409961158c547aadd0960cf2dcbc533780224afa1157fd4 AS build
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
 RUN go mod download
 COPY . ./
+RUN make build-scorecard
 
-FROM base AS build
-ARG TARGETOS
-ARG TARGETARCH
-RUN CGO_ENABLED=0 make build-scorecard
-
-FROM gcr.io/distroless/base:nonroot@sha256:99133cb0878bb1f84d1753957c6fd4b84f006f2798535de22ebf7ba170bbf434
+# https://github.com/chainguard-images/images/tree/main/images/static
+# latest
+FROM cgr.dev/chainguard/static:latest@sha256:17844d8faa68296eddddad9c1678edaf18cc556433d68c5bd3808a6efac200a8
 COPY --from=build /src/scorecard /
 ENTRYPOINT [ "/scorecard" ]
