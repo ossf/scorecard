@@ -85,17 +85,38 @@ func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *checker
 	}
 }
 
+func dockerImageName(d *checker.Dependency) (name string, ok bool) {
+	if d.Name == nil || *d.Name == "" {
+		return "", false
+	}
+	if d.PinnedAt != nil && *d.PinnedAt != "" {
+		return fmt.Sprintf("%s:%s", *d.Name, *d.PinnedAt), true
+	}
+	return *d.Name, true
+}
+
+type Digester interface{ Digest(string) (string, error) }
+
+type CraneDigester struct{}
+
+func (c CraneDigester) Digest(name string) (string, error) {
+	//nolint:wrapcheck // error value not used
+	return crane.Digest(name)
+}
+
 // CreateDockerfilePinningRemediation create remediaiton for pinning Dockerfile images.
-func CreateDockerfilePinningRemediation(name *string) *checker.Remediation {
-	if name == nil {
+func CreateDockerfilePinningRemediation(dep *checker.Dependency, digester Digester) *checker.Remediation {
+	name, ok := dockerImageName(dep)
+	if !ok {
 		return nil
 	}
-	hash, err := crane.Digest(*name)
+
+	hash, err := digester.Digest(name)
 	if err != nil {
 		return nil
 	}
 
-	text := fmt.Sprintf(dockerfilePinText, *name, hash)
+	text := fmt.Sprintf(dockerfilePinText, name, hash)
 	markdown := text
 
 	return &checker.Remediation{
