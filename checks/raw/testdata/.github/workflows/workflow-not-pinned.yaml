@@ -34,6 +34,10 @@ jobs:
         # a pull request then we can checkout the head.
         fetch-depth: 2
 
+    - name: Dockerhub actionlint # (just to test docker://) urls for the uses parameter, not needed for the workflow
+      uses: docker://rhysd/actionlint@latest
+      with:
+        args: -color
     - name: Get build targets
       run: |
        . .github/workflows/get_build_targets.sh
