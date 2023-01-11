@@ -77,6 +77,7 @@ func (handler *contributorsHandler) setup() error {
 				Companies:        []string{users[0].Organization},
 				NumContributions: contrib.Commits,
 				ID:               int64(users[0].ID),
+				IsBot:            users[0].Bot,
 			}
 			handler.contributors = append(handler.contributors, contributor)
 		}
