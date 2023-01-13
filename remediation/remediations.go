@@ -101,7 +101,7 @@ func (c CraneDigester) Digest(name string) (string, error) {
 }
 
 // CreateDockerfilePinningRemediation create remediaiton for pinning Dockerfile images.
-func CreateDockerfilePinningRemediation(dep *checker.Dependency, digester Digester) *checker.Remediation {
+func CreateDockerfilePinningRemediation(dep *checker.Dependency, digester Digester) *rule.Remediation {
 	name, ok := dockerImageName(dep)
 	if !ok {
 		return nil
