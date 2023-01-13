@@ -141,7 +141,7 @@ func generateRemediation(remediaitonMd remediation.RemediationMetadata, rr *chec
 	case checker.DependencyUseTypeGHAction:
 		return remediaitonMd.CreateWorkflowPinningRemediation(rr.Location.Path)
 	case checker.DependencyUseTypeDockerfileContainerImage:
-		return remediation.CreateDockerfilePinningRemediation(rr.Name)
+		return remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
 	default:
 		return nil
 	}
@@ -183,7 +183,6 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 }
 
 // TODO(laurent): need to support GCB pinning.
-//nolint
 func maxScore(s1, s2 int) int {
 	if s1 > s2 {
 		return s1
