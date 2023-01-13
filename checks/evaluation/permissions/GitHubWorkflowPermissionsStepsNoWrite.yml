@@ -16,8 +16,8 @@ short: Checks that GitHub workflows do not have steps with dangerous write permi
 desc: This rule checks that GitHub workflows do not have steps with dangerous write permissions
 motivation: >
   Even with permissions default set to read, some scopes having write permissions in their steps brings incurs a risk to the project.
-  By giving write permission to the Actions you call in jobs, external Action you call could abuse them - depending on the permissions, this could let them
-  commit unreviewed code, remove pre-submit checks to introduce a bug, etc.
+  By giving write permission to the Actions you call in jobs, an external Action you call could abuse them. Depending on the permissions,
+  this could let the external Action commit unreviewed code, remove pre-submit checks to introduce a bug.
   For more information about the scopes and the vulnerabilities involved, see https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions.
 
 implementation: >
@@ -28,6 +28,6 @@ risk: Medium
 remediation:
   effort: High
   text:
-    - Verify which permissions are needed and if you can reduce them. TODO(use annotation)
+    - Verify which permissions are needed and consider whether you can reduce them.
   markdown:
-    - Verify which permissions are needed and if you can reduce them. TODO(use annotation)
+    - Verify which permissions are needed and consider whether you can reduce them.
