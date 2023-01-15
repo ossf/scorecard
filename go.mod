@@ -82,7 +82,7 @@ require (
 	github.com/spdx/tools-golang v0.3.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/term v0.4.0 // indirect
-	golang.org/x/time v0.1.0 // indirect
+	golang.org/x/time v0.3.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/api v0.18.8 // indirect
 	k8s.io/apimachinery v0.18.8 // indirect
@@ -144,14 +144,14 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
-	github.com/xanzy/go-gitlab v0.77.0
+	github.com/xanzy/go-gitlab v0.78.0
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326
 	golang.org/x/net v0.5.0 // indirect
-	golang.org/x/oauth2 v0.1.0 // indirect
+	golang.org/x/oauth2 v0.3.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
