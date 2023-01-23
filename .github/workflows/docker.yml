@@ -59,7 +59,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -70,7 +70,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
+       uses: actions/cache@58c146cc91c5b9e778e71775dfe9bf1442ad9a12 #v3.2.3
        with:
           # In order:
           # * Module download cache
@@ -107,7 +107,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -118,7 +118,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
+       uses: actions/cache@58c146cc91c5b9e778e71775dfe9bf1442ad9a12 #v3.2.3
        with:
           # In order:
           # * Module download cache
@@ -155,7 +155,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -166,7 +166,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
+       uses: actions/cache@58c146cc91c5b9e778e71775dfe9bf1442ad9a12 #v3.2.3
        with:
           # In order:
           # * Module download cache
@@ -203,7 +203,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -214,7 +214,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
+       uses: actions/cache@58c146cc91c5b9e778e71775dfe9bf1442ad9a12 #v3.2.3
        with:
           # In order:
           # * Module download cache
@@ -251,7 +251,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -262,7 +262,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
+       uses: actions/cache@58c146cc91c5b9e778e71775dfe9bf1442ad9a12 #v3.2.3
        with:
           # In order:
           # * Module download cache
@@ -299,7 +299,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -310,7 +310,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
+       uses: actions/cache@58c146cc91c5b9e778e71775dfe9bf1442ad9a12 #v3.2.3
        with:
           # In order:
           # * Module download cache
@@ -347,7 +347,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -358,7 +358,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
+       uses: actions/cache@58c146cc91c5b9e778e71775dfe9bf1442ad9a12 #v3.2.3
        with:
           # In order:
           # * Module download cache
