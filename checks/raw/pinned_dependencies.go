@@ -439,7 +439,6 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		return false, fileparser.FormatActionlintError(errs)
 	}
 
-	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
 	for jobName, job := range workflow.Jobs {
 		jobName := jobName
 		job := job
@@ -470,10 +469,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 				continue
 			}
 
-			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
-			// Example: action-name@hash
-			match := hashRegex.MatchString(execAction.Uses.Value)
-			if !match {
+			if !isActionDependencyPinned(execAction.Uses.Value) {
 				dep := checker.Dependency{
 					Location: &checker.File{
 						Path:      pathfn,
@@ -497,4 +493,19 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	}
 
 	return true, nil
+}
+
+func isActionDependencyPinned(actionUses string) bool {
+	localActionRegex := regexp.MustCompile(`^\..+[^/]`)
+	if localActionRegex.MatchString(actionUses) {
+		return true
+	}
+
+	publicActionRegex := regexp.MustCompile(`.*@[a-fA-F\d]{40,}`)
+	if publicActionRegex.MatchString(actionUses) {
+		return true
+	}
+
+	dockerhubActionRegex := regexp.MustCompile(`docker://.*@sha256:[a-fA-F\d]{64}`)
+	return dockerhubActionRegex.MatchString(actionUses)
 }
