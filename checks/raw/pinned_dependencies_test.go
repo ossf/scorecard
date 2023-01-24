@@ -55,7 +55,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		{
 			name:     "Non-pinned workflow",
 			filename: "./testdata/.github/workflows/workflow-not-pinned.yaml",
-			warns:    1,
+			warns:    2,
 		},
 		{
 			name:     "Non-yaml file",
@@ -94,6 +94,87 @@ func TestGithubWorkflowPinning(t *testing.T) {
 
 			if tt.warns != len(r.Dependencies) {
 				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			}
+		})
+	}
+}
+
+func TestGithubWorkflowPinningPattern(t *testing.T) {
+	tests := []struct {
+		desc     string
+		uses     string
+		ispinned bool
+	}{
+		{
+			desc:     "checking out mutable tag",
+			uses:     "actions/checkout@v3",
+			ispinned: false,
+		},
+		{
+			desc:     "hecking out mutable tag",
+			uses:     "actions/checkout@v3.2.0",
+			ispinned: false,
+		},
+		{
+			desc:     "checking out mutable tag",
+			uses:     "actions/checkout@main",
+			ispinned: false,
+		},
+		{
+			desc:     "checking out mutable tag",
+			uses:     "actions/aws@v2.0.1",
+			ispinned: false,
+		},
+		{
+			desc:     "checking out mutable tag",
+			uses:     "actions/aws/ec2@main",
+			ispinned: false,
+		},
+		{
+			desc:     "checking out specific commmit from github with truncated SHA-1",
+			uses:     "actions/checkout@a81bbbf",
+			ispinned: false,
+		},
+		{
+			desc:     "checking out specific commmit from github with SHA-1",
+			uses:     "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+			ispinned: true,
+		},
+		{
+			desc:     "local workflow",
+			uses:     "./.github/uses.yml",
+			ispinned: true,
+		},
+		{
+			desc: "non-github docker image pinned by digest",
+			//nolint:lll
+			uses:     "docker://gcr.io/distroless/static-debian11@sha256:9e6f8952f12974d088f648ed6252ea1887cdd8641719c8acd36bf6d2537e71c0",
+			ispinned: true,
+		},
+		{
+			desc: "non-github docker image pinned to mutable tag",
+			//nolint:lll
+			uses:     "docker://gcr.io/distroless/static-debian11:sha256-3876708467ad6f38f263774aa107d331e8de6558a2874aa223b96fc0d9dfc820.sig",
+			ispinned: false,
+		},
+		{
+			desc:     "non-github docker image pinned to mutable version",
+			uses:     "docker://rhysd/actionlint:latest",
+			ispinned: false,
+		},
+		{
+			desc:     "non-github docker image pinned by digest",
+			uses:     "docker://rhysd/actionlint:latest@sha256:5f957b2a08d223e48133e1a914ed046bea12e578fe2f6ae4de47fdbe691a2468",
+			ispinned: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+			p := isActionDependencyPinned(tt.uses)
+			if p != tt.ispinned {
+				t.Fatalf("dependency %s ispinned?: %v expected?: %v", tt.uses, p, tt.ispinned)
 			}
 		})
 	}
