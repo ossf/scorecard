@@ -28,9 +28,9 @@ remediation:
     - Visit https://app.stepsecurity.io/secureworkflow/${{ repo }}/${{ workflow }}/${{ branch }}?enable=permissions
     - Tick the 'Restrict permissions for GITHUB_TOKEN'
     - Untick other options
-    - "NOTE: If you want to resolves multiple issues at once, you can visit https://app.stepsecurity.io/securerepo instead."
+    - "NOTE: If you want to resolve multiple issues at once, you can visit https://app.stepsecurity.io/securerepo instead."
   markdown:
     - Visit [https://app.stepsecurity.io/secureworkflow](https://app.stepsecurity.io/secureworkflow/${{ repo }}/${{ workflow }}/${{ branch }}?enable=permissions).
     - Tick the 'Restrict permissions for GITHUB_TOKEN'
     - Untick other options
-    - "NOTE: If you want to resolves multiple issues at once, you can visit [https://app.stepsecurity.io/securerepo](https://app.stepsecurity.io/securerepo) instead."
+    - "NOTE: If you want to resolve multiple issues at once, you can visit [https://app.stepsecurity.io/securerepo](https://app.stepsecurity.io/securerepo) instead."

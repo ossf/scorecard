@@ -138,7 +138,7 @@ func validateRemediation(r jsonRemediation) error {
 	case RemediationEffortHigh, RemediationEffortMedium, RemediationEffortLow:
 		return nil
 	default:
-		return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("remediation '%s'", r))
+		return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("remediation '%v'", r))
 	}
 }
 
@@ -147,7 +147,7 @@ func validateRisk(r Risk) error {
 	case RiskNone, RiskLow, RiskHigh, RiskMedium, RiskCritical:
 		return nil
 	default:
-		return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("risk '%s'", r))
+		return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("risk '%v'", r))
 	}
 }
 
@@ -167,6 +167,7 @@ func (r *RemediationEffort) UnmarshalYAML(n *yaml.Node) error {
 		return fmt.Errorf("%w: %v", errInvalid, err)
 	}
 
+	// nolint:goconst
 	switch n.Value {
 	case "Low":
 		*r = RemediationEffortLow
@@ -201,6 +202,36 @@ func (r *Risk) UnmarshalYAML(n *yaml.Node) error {
 		return fmt.Errorf("%w: %q", errInvalid, str)
 	}
 	return nil
+}
+
+func (r *RemediationEffort) String() string {
+	switch *r {
+	case RemediationEffortLow:
+		return "Low"
+	case RemediationEffortMedium:
+		return "Medium"
+	case RemediationEffortHigh:
+		return "High"
+	default:
+		return ""
+	}
+}
+
+func (r *Risk) String() string {
+	switch *r {
+	case RiskNone:
+		return "None"
+	case RiskLow:
+		return "Low"
+	case RiskHigh:
+		return "High"
+	case RiskMedium:
+		return "Medium"
+	case RiskCritical:
+		return "Critical"
+	default:
+		return ""
+	}
 }
 
 func (r *Risk) GreaterThan(rr Risk) bool {
