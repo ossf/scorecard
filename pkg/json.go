@@ -202,7 +202,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 	return nil
 }
 
-func (r *ScorecardResult) AsEJSON(showDetails bool,
+func (r *ScorecardResult) AsSJSON(showDetails bool,
 	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
 ) error {
 	score, err := r.GetAggregateScore(checkDocs)

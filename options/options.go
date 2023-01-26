@@ -76,9 +76,9 @@ const (
 	// Formats.
 	// FormatJSON specifies that results should be output in JSON format.
 	FormatJSON = "json"
-	// FormatEJSON specifies that results should be output in extended JSON format,
+	// FormatSJSON specifies that results should be output in structured JSON format,
 	// i.e., with the structured results.
-	FormatEJSON = "extended-json"
+	FormatSJSON = "structured-json"
 	// FormatSarif specifies that results should be output in SARIF format.
 	FormatSarif = "sarif"
 	// FormatDefault specifies that results should be output in default format.
@@ -158,7 +158,7 @@ func (o *Options) Validate() error {
 	}
 
 	if !o.isExperimentalEnabled() {
-		if o.Format == FormatEJSON {
+		if o.Format == FormatSJSON {
 			errs = append(
 				errs,
 				errFormatSupportedWithExperimental,
@@ -229,7 +229,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatEJSON, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatSJSON, FormatSarif, FormatDefault, FormatRaw:
 		return true
 	default:
 		return false
