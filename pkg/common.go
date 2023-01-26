@@ -26,36 +26,29 @@ func textToMarkdown(s string) string {
 	return strings.ReplaceAll(s, "\n", "\n\n")
 }
 
-// DetailToString turns a detail information into a string.
-func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
-	if d.Type == checker.DetailDebug && logLevel != log.DebugLevel {
-		return ""
-	}
-
+func nonStructuredResultString(d *checker.CheckDetail) string {
 	var sb strings.Builder
-	// Non-structured results.
-	//nolint: nestif
-	if d.Msg.Finding == nil {
-		sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text))
+	sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text))
 
-		if d.Msg.Path != "" {
-			sb.WriteString(fmt.Sprintf(": %s", d.Msg.Path))
-			if d.Msg.Offset != 0 {
-				sb.WriteString(fmt.Sprintf(":%d", d.Msg.Offset))
-			}
-			if d.Msg.EndOffset != 0 && d.Msg.Offset < d.Msg.EndOffset {
-				sb.WriteString(fmt.Sprintf("-%d", d.Msg.EndOffset))
-			}
+	if d.Msg.Path != "" {
+		sb.WriteString(fmt.Sprintf(": %s", d.Msg.Path))
+		if d.Msg.Offset != 0 {
+			sb.WriteString(fmt.Sprintf(":%d", d.Msg.Offset))
 		}
-
-		if d.Msg.Remediation != nil {
-			sb.WriteString(fmt.Sprintf(": %s", d.Msg.Remediation.Text))
+		if d.Msg.EndOffset != 0 && d.Msg.Offset < d.Msg.EndOffset {
+			sb.WriteString(fmt.Sprintf("-%d", d.Msg.EndOffset))
 		}
-
-		return sb.String()
 	}
 
-	// Structured results.
+	if d.Msg.Remediation != nil {
+		sb.WriteString(fmt.Sprintf(": %s", d.Msg.Remediation.Text))
+	}
+
+	return sb.String()
+}
+
+func structuredResultString(d *checker.CheckDetail) string {
+	var sb strings.Builder
 	f := d.Msg.Finding
 	sb.WriteString(fmt.Sprintf("%s: %s severity: %s", typeToString(d.Type), f.Risk, f.Message))
 
@@ -73,8 +66,23 @@ func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
 	if f.Remediation != nil {
 		sb.WriteString(fmt.Sprintf(": %s (%s effort)", f.Remediation.Text, f.Remediation.Effort))
 	}
-
 	return sb.String()
+}
+
+// DetailToString turns a detail information into a string.
+func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
+	if d.Type == checker.DetailDebug && logLevel != log.DebugLevel {
+		return ""
+	}
+
+	// Non-structured results.
+	// NOTE: This is temporary until we have migrated all checks.
+	if d.Msg.Finding == nil {
+		return nonStructuredResultString(d)
+	}
+
+	// Structured results.
+	return structuredResultString(d)
 }
 
 func detailsToString(details []checker.CheckDetail, logLevel log.Level) (string, bool) {

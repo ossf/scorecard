@@ -49,13 +49,17 @@ type Location struct {
 }
 
 // Outcome is the result of a finding.
-type Outcome string
+type Outcome int
 
 const (
-	// OutcomePositive indicates a positive outcome.
-	OutcomePositive Outcome = "Positive"
 	// OutcomeNegative indicates a negative outcome.
-	OutcomeNegative Outcome = "Negative"
+	OutcomeNegative Outcome = iota
+	// OutcomeNotSupported indicates a non-supported outcome.
+	OutcomeNotSupported
+	// OutcomeNotApplicable indicates a non-applicable outcome.
+	OutcomeNotApplicable
+	// OutcomePositive indicates a positive outcome.
+	OutcomePositive
 )
 
 // Finding represents a finding.
