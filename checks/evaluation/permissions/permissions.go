@@ -153,6 +153,8 @@ func reportDefaultFindings(results *checker.TokenPermissionsData, dl checker.Det
 
 	// Workflow files found, report positive findings if no
 	// negative findings were found.
+	// NOTE: we don't consider rule `GitHubWorkflowPermissionsTopNoWrite`
+	// because positive results are already reported.
 	found, _ := negativeRuleResults["GitHubWorkflowPermissionsStepsNoWrite"]
 	if !found {
 		text := fmt.Sprintf("no %s write permissions found", checker.PermissionLocationJob)
