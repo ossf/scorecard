@@ -33,11 +33,6 @@ type permissions struct {
 	jobLevelWritePermissions map[string]bool
 }
 
-var negativeRuleResults = map[string]bool{
-	"GitHubWorkflowPermissionsStepsNoWrite": false,
-	"GitHubWorkflowPermissionsTopNoWrite":   false,
-}
-
 // TokenPermissions applies the score policy for the Token-Permissions check.
 func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPermissionsData) checker.CheckResult {
 	if r == nil {
@@ -68,6 +63,10 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	dl := c.Dlogger
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
+	negativeRuleResults := map[string]bool{
+		"GitHubWorkflowPermissionsStepsNoWrite": false,
+		"GitHubWorkflowPermissionsTopNoWrite":   false,
+	}
 
 	for _, r := range results.TokenPermissions {
 		var loc *finding.Location
@@ -109,7 +108,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 
 			// We warn only for top-level.
 			if *r.LocationType == checker.PermissionLocationTop {
-				warnWithRemediation(dl, msg, remediationMetadata, loc)
+				warnWithRemediation(dl, msg, remediationMetadata, loc, negativeRuleResults)
 			} else {
 				dl.Debug(msg)
 			}
@@ -120,7 +119,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 			}
 
 		case checker.PermissionLevelWrite:
-			warnWithRemediation(dl, msg, remediationMetadata, loc)
+			warnWithRemediation(dl, msg, remediationMetadata, loc, negativeRuleResults)
 
 			// Group results by workflow name for score computation.
 			if err := updateWorkflowHashMap(hm, r); err != nil {
@@ -129,14 +128,16 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 		}
 	}
 
-	if err := reportDefaultFindings(results, c.Dlogger); err != nil {
+	if err := reportDefaultFindings(results, c.Dlogger, negativeRuleResults); err != nil {
 		return checker.InconclusiveResultScore, err
 	}
 
 	return calculateScore(hm), nil
 }
 
-func reportDefaultFindings(results *checker.TokenPermissionsData, dl checker.DetailLogger) error {
+func reportDefaultFindings(results *checker.TokenPermissionsData,
+	dl checker.DetailLogger, negativeRuleResults map[string]bool,
+) error {
 	// No workflow files exist.
 	if len(results.TokenPermissions) == 0 {
 		text := "no workflows found in the repository"
@@ -196,6 +197,7 @@ func createLogMsg(loct *checker.PermissionLocation) (*checker.LogMessage, error)
 
 func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage,
 	rem *remediation.RemediationMetadata, loc *finding.Location,
+	negativeRuleResults map[string]bool,
 ) {
 	if loc != nil && loc.Value != "" {
 		msg.Finding = msg.Finding.WithRemediationMetadata(map[string]string{
