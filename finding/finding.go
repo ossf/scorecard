@@ -54,18 +54,18 @@ type Outcome int
 const (
 	// OutcomeNegative indicates a negative outcome.
 	OutcomeNegative Outcome = iota
-	// OutcomeNotSupported indicates a non-supported outcome.
-	OutcomeNotSupported
-	// OutcomeNotApplicable indicates a non-applicable outcome.
-	OutcomeNotApplicable
 	// OutcomePositive indicates a positive outcome.
 	OutcomePositive
+	// OutcomeNotApplicable indicates a non-applicable outcome.
+	OutcomeNotApplicable
+	// OutcomeNotSupported indicates a non-supported outcome.
+	OutcomeNotSupported
 )
 
 // Finding represents a finding.
 // nolint: govet
 type Finding struct {
-	RuleName    string            `json:"rule"`
+	Rule        string            `json:"rule"`
 	Outcome     Outcome           `json:"outcome"`
 	Risk        rule.Risk         `json:"risk"`
 	Message     string            `json:"message"`
@@ -80,7 +80,7 @@ func New(loc embed.FS, ruleID string) (*Finding, error) {
 		return nil, err
 	}
 	f := &Finding{
-		RuleName:    ruleID,
+		Rule:        ruleID,
 		Outcome:     OutcomeNegative,
 		Remediation: r.Remediation,
 	}
@@ -107,8 +107,11 @@ func (f *Finding) WithPatch(patch *string) *Finding {
 
 func (f *Finding) WithOutcome(o Outcome) *Finding {
 	f.Outcome = o
-	// Outcome is positive, no remediation needed.
-	f.Remediation = nil
+	// Positive is not negative, remove the remediation.
+	if o != OutcomeNegative {
+		f.Remediation = nil
+	}
+
 	return f
 }
 
@@ -123,4 +126,8 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 		}
 	}
 	return f
+}
+
+func (o *Outcome) WorseThan(oo Outcome) bool {
+	return *o < oo
 }

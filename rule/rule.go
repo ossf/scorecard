@@ -235,14 +235,5 @@ func (r *Risk) String() string {
 }
 
 func (r *Risk) GreaterThan(rr Risk) bool {
-	m := map[Risk]int{
-		RiskNone:     0,
-		RiskLow:      1,
-		RiskMedium:   2,
-		RiskHigh:     3,
-		RiskCritical: 4,
-	}
-	v := m[*r]
-	vv := m[rr]
-	return v > vv
+	return *r > rr
 }

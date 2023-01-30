@@ -181,11 +181,11 @@ func reportFinding(rule, text string, o finding.Outcome, dl checker.DetailLogger
 }
 
 func createLogMsg(loct *checker.PermissionLocation) (*checker.LogMessage, error) {
-	ruleName := "GitHubWorkflowPermissionsStepsNoWrite"
+	Rule := "GitHubWorkflowPermissionsStepsNoWrite"
 	if loct == nil || *loct == checker.PermissionLocationTop {
-		ruleName = "GitHubWorkflowPermissionsTopNoWrite"
+		Rule = "GitHubWorkflowPermissionsTopNoWrite"
 	}
-	f, err := finding.New(rules, ruleName)
+	f, err := finding.New(rules, Rule)
 	if err != nil {
 		return nil,
 			sce.WithMessage(sce.ErrScorecardInternal, err.Error())
@@ -209,7 +209,7 @@ func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage,
 	logger.Warn(msg)
 
 	// Record that we found a negative result.
-	negativeRuleResults[msg.Finding.RuleName] = true
+	negativeRuleResults[msg.Finding.Rule] = true
 }
 
 func recordPermissionWrite(hm map[string]permissions, path string,

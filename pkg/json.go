@@ -256,7 +256,11 @@ func (r *ScorecardResult) AsSJSON(showDetails bool,
 				if f.Risk.GreaterThan(tmpResult.Risk) {
 					tmpResult.Risk = f.Risk
 				}
-				tmpResult.Outcome = finding.OutcomeNegative
+
+				if f.Outcome.WorseThan(tmpResult.Outcome) {
+					tmpResult.Outcome = f.Outcome
+				}
+
 				tmpResult.Findings = append(tmpResult.Findings, *f)
 			}
 		}

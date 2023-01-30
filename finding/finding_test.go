@@ -38,6 +38,7 @@ func Test_New(t *testing.T) {
 	sline := uint(10)
 	eline := uint(46)
 	positiveOutcome := OutcomePositive
+	negativeOutcome := OutcomeNegative
 	t.Parallel()
 	// nolint:govet
 	tests := []struct {
@@ -49,12 +50,13 @@ func Test_New(t *testing.T) {
 		finding *Finding
 	}{
 		{
-			name: "risk high",
-			id:   "testdata/risk-high",
+			name:    "risk high",
+			id:      "testdata/risk-high",
+			outcome: &negativeOutcome,
 			finding: &Finding{
-				RuleName: "testdata/risk-high",
-				Outcome:  OutcomeNegative,
-				Risk:     rule.RiskHigh,
+				Rule:    "testdata/risk-high",
+				Outcome: OutcomeNegative,
+				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
@@ -63,12 +65,13 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name: "effort low",
-			id:   "testdata/effort-low",
+			name:    "effort low",
+			id:      "testdata/effort-low",
+			outcome: &negativeOutcome,
 			finding: &Finding{
-				RuleName: "testdata/effort-low",
-				Outcome:  OutcomeNegative,
-				Risk:     rule.RiskHigh,
+				Rule:    "testdata/effort-low",
+				Outcome: OutcomeNegative,
+				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
@@ -77,12 +80,13 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name: "effort high",
-			id:   "testdata/effort-high",
+			name:    "effort high",
+			id:      "testdata/effort-high",
+			outcome: &negativeOutcome,
 			finding: &Finding{
-				RuleName: "testdata/effort-high",
-				Outcome:  OutcomeNegative,
-				Risk:     rule.RiskHigh,
+				Rule:    "testdata/effort-high",
+				Outcome: OutcomeNegative,
+				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
@@ -91,13 +95,14 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name: "env variables",
-			id:   "testdata/env-variables",
-			env:  map[string]string{"branch": "master", "repo": "ossf/scorecard"},
+			name:    "env variables",
+			id:      "testdata/env-variables",
+			outcome: &negativeOutcome,
+			env:     map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				RuleName: "testdata/env-variables",
-				Outcome:  OutcomeNegative,
-				Risk:     rule.RiskHigh,
+				Rule:    "testdata/env-variables",
+				Outcome: OutcomeNegative,
+				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
@@ -106,13 +111,14 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name: "patch",
-			id:   "testdata/env-variables",
-			env:  map[string]string{"branch": "master", "repo": "ossf/scorecard"},
+			name:    "patch",
+			id:      "testdata/env-variables",
+			outcome: &negativeOutcome,
+			env:     map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				RuleName: "testdata/env-variables",
-				Outcome:  OutcomeNegative,
-				Risk:     rule.RiskHigh,
+				Rule:    "testdata/env-variables",
+				Outcome: OutcomeNegative,
+				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
@@ -122,13 +128,14 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name: "location",
-			id:   "testdata/env-variables",
-			env:  map[string]string{"branch": "master", "repo": "ossf/scorecard"},
+			name:    "location",
+			id:      "testdata/env-variables",
+			outcome: &negativeOutcome,
+			env:     map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				RuleName: "testdata/env-variables",
-				Outcome:  OutcomeNegative,
-				Risk:     rule.RiskHigh,
+				Rule:    "testdata/env-variables",
+				Outcome: OutcomeNegative,
+				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
@@ -144,13 +151,14 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name: "text",
-			id:   "testdata/env-variables",
-			env:  map[string]string{"branch": "master", "repo": "ossf/scorecard"},
+			name:    "text",
+			id:      "testdata/env-variables",
+			outcome: &negativeOutcome,
+			env:     map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				RuleName: "testdata/env-variables",
-				Outcome:  OutcomeNegative,
-				Risk:     rule.RiskHigh,
+				Rule:    "testdata/env-variables",
+				Outcome: OutcomeNegative,
+				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
@@ -164,10 +172,10 @@ func Test_New(t *testing.T) {
 			id:      "testdata/env-variables",
 			outcome: &positiveOutcome,
 			finding: &Finding{
-				RuleName: "testdata/env-variables",
-				Outcome:  OutcomePositive,
-				Risk:     rule.RiskHigh,
-				Message:  "some text",
+				Rule:    "testdata/env-variables",
+				Outcome: OutcomePositive,
+				Risk:    rule.RiskHigh,
+				Message: "some text",
 			},
 		},
 	}
