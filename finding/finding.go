@@ -73,6 +73,7 @@ type Finding struct {
 	Remediation *rule.Remediation `json:"remediation,omitempty"`
 }
 
+// New creates a new finding.
 func New(loc embed.FS, ruleID string) (*Finding, error) {
 	r, err := rule.New(loc, ruleID)
 	if err != nil {
@@ -90,21 +91,30 @@ func New(loc embed.FS, ruleID string) (*Finding, error) {
 	return f, nil
 }
 
+// WithMessage adds a message to an existing finding.
+// No copy is made.
 func (f *Finding) WithMessage(text string) *Finding {
 	f.Message = text
 	return f
 }
 
+// WithLocation adds a location to an existing finding.
+// No copy is made.
 func (f *Finding) WithLocation(loc *Location) *Finding {
 	f.Location = loc
 	return f
 }
 
+// WithPatch adds a patch to an existing finding.
+// No copy is made.
 func (f *Finding) WithPatch(patch *string) *Finding {
 	f.Remediation.Patch = patch
 	return f
 }
 
+// WithOutcome adds an outcome to an existing finding.
+// No copy is made.
+// WARNING: this function should be called at most once for a finding.
 func (f *Finding) WithOutcome(o Outcome) *Finding {
 	f.Outcome = o
 	// Positive is not negative, remove the remediation.
@@ -115,6 +125,8 @@ func (f *Finding) WithOutcome(o Outcome) *Finding {
 	return f
 }
 
+// WithRemediationMetadata adds remediation metadata to an existing finding.
+// No copy is made.
 func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 	if f.Remediation != nil {
 		// Replace all dynamic values.
@@ -128,6 +140,7 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 	return f
 }
 
+// WorseThan compares outcomes.
 func (o *Outcome) WorseThan(oo Outcome) bool {
 	return *o < oo
 }

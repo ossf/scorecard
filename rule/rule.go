@@ -94,6 +94,7 @@ type Rule struct {
 
 var errInvalid = errors.New("invalid")
 
+// New create a new rule.
 func New(loc embed.FS, rule string) (*Rule, error) {
 	content, err := loc.ReadFile(fmt.Sprintf("%s.yml", rule))
 	if err != nil {
@@ -161,6 +162,8 @@ func parseFromJSON(content []byte) (*jsonRule, error) {
 	return &r, nil
 }
 
+// UnmarshalYAML is a custom unmarshalling function
+// to transform the string into an enum.
 func (r *RemediationEffort) UnmarshalYAML(n *yaml.Node) error {
 	var str string
 	if err := n.Decode(&str); err != nil {
@@ -181,6 +184,8 @@ func (r *RemediationEffort) UnmarshalYAML(n *yaml.Node) error {
 	return nil
 }
 
+// UnmarshalYAML is a custom unmarshalling function
+// to transform the string into an enum.
 func (r *Risk) UnmarshalYAML(n *yaml.Node) error {
 	var str string
 	if err := n.Decode(&str); err != nil {
@@ -204,6 +209,7 @@ func (r *Risk) UnmarshalYAML(n *yaml.Node) error {
 	return nil
 }
 
+// String stringifies the enum.
 func (r *RemediationEffort) String() string {
 	switch *r {
 	case RemediationEffortLow:
@@ -217,6 +223,7 @@ func (r *RemediationEffort) String() string {
 	}
 }
 
+// String stringifies the enum.
 func (r *Risk) String() string {
 	switch *r {
 	case RiskNone:
@@ -234,6 +241,7 @@ func (r *Risk) String() string {
 	}
 }
 
+// GreaterThan compare risks.
 func (r *Risk) GreaterThan(rr Risk) bool {
 	return *r > rr
 }

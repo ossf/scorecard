@@ -42,12 +42,12 @@ func Test_New(t *testing.T) {
 	t.Parallel()
 	// nolint:govet
 	tests := []struct {
-		name    string
-		id      string
-		outcome *Outcome
-		err     error
-		env     map[string]string
-		finding *Finding
+		name     string
+		id       string
+		outcome  *Outcome
+		err      error
+		metadata map[string]string
+		finding  *Finding
 	}{
 		{
 			name:    "risk high",
@@ -95,10 +95,10 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name:    "env variables",
-			id:      "testdata/env-variables",
-			outcome: &negativeOutcome,
-			env:     map[string]string{"branch": "master", "repo": "ossf/scorecard"},
+			name:     "env variables",
+			id:       "testdata/env-variables",
+			outcome:  &negativeOutcome,
+			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
 				Rule:    "testdata/env-variables",
 				Outcome: OutcomeNegative,
@@ -111,10 +111,10 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name:    "patch",
-			id:      "testdata/env-variables",
-			outcome: &negativeOutcome,
-			env:     map[string]string{"branch": "master", "repo": "ossf/scorecard"},
+			name:     "patch",
+			id:       "testdata/env-variables",
+			outcome:  &negativeOutcome,
+			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
 				Rule:    "testdata/env-variables",
 				Outcome: OutcomeNegative,
@@ -128,10 +128,10 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name:    "location",
-			id:      "testdata/env-variables",
-			outcome: &negativeOutcome,
-			env:     map[string]string{"branch": "master", "repo": "ossf/scorecard"},
+			name:     "location",
+			id:       "testdata/env-variables",
+			outcome:  &negativeOutcome,
+			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
 				Rule:    "testdata/env-variables",
 				Outcome: OutcomeNegative,
@@ -151,10 +151,10 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name:    "text",
-			id:      "testdata/env-variables",
-			outcome: &negativeOutcome,
-			env:     map[string]string{"branch": "master", "repo": "ossf/scorecard"},
+			name:     "text",
+			id:       "testdata/env-variables",
+			outcome:  &negativeOutcome,
+			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
 				Rule:    "testdata/env-variables",
 				Outcome: OutcomeNegative,
@@ -193,8 +193,8 @@ func Test_New(t *testing.T) {
 			}
 			r = r.WithMessage(tt.finding.Message).WithLocation(tt.finding.Location)
 
-			if len(tt.env) > 1 {
-				r = r.WithRemediationMetadata(tt.env)
+			if len(tt.metadata) > 1 {
+				r = r.WithRemediationMetadata(tt.metadata)
 			}
 
 			if tt.finding.Remediation != nil {
