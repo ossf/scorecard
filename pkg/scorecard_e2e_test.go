@@ -16,7 +16,9 @@ package pkg
 
 import (
 	"context"
+	"fmt"
 	"sort"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo/v2"
@@ -30,6 +32,7 @@ import (
 )
 
 func (s *ScorecardResult) normalize() {
+	s.Date = time.Time{}
 	sort.Slice(s.Checks, func(i, j int) bool {
 		return s.Checks[i].Name < s.Checks[j].Name
 	})
@@ -49,23 +52,41 @@ func countDetails(c []checker.CheckDetail) (debug, info, warn int) {
 	return debug, info, warn
 }
 
-func compareScorecardResults(a, b *ScorecardResult) bool {
-	if a.Repo != b.Repo || a.Scorecard != b.Scorecard || len(a.Checks) != len(b.Checks) {
+func compareScorecardResults(a, b ScorecardResult) bool {
+	if a.Repo != b.Repo || a.Scorecard != b.Scorecard {
+		return false
+	}
+
+	if len(a.Checks) != len(b.Checks) {
+		fmt.Fprintf(GinkgoWriter, "Unequal number of checks in results: %d vs %d\n", len(a.Checks), len(b.Checks))
 		return false
 	}
 
 	for i := range a.Checks {
-		if a.Checks[i].Name != b.Checks[i].Name ||
-			a.Checks[i].Version != b.Checks[i].Version ||
-			a.Checks[i].Score != b.Checks[i].Score ||
-			a.Checks[i].Reason != b.Checks[i].Reason {
+		if a.Checks[i].Name != b.Checks[i].Name {
+			fmt.Fprintf(GinkgoWriter, "Check name mismatch: %q vs %q\n", a.Checks[i].Name, b.Checks[i].Name)
 			return false
 		}
-
+		if a.Checks[i].Version != b.Checks[i].Version {
+			fmt.Fprintf(GinkgoWriter, "%q version mismatch: %d vs %d\n", a.Checks[i].Name, a.Checks[i].Version, b.Checks[i].Version)
+			return false
+		}
+		if a.Checks[i].Score != b.Checks[i].Score {
+			fmt.Fprintf(GinkgoWriter, "%q score mismatch: %d vs %d\n", a.Checks[i].Name, a.Checks[i].Score, b.Checks[i].Score)
+			return false
+		}
+		if a.Checks[i].Reason != b.Checks[i].Reason {
+			fmt.Fprintf(GinkgoWriter, "%q reason mismatch: %q vs %q\n", a.Checks[i].Name, a.Checks[i].Reason, b.Checks[i].Reason)
+			return false
+		}
 		// details are only compared using the number of debug, info and warn
 		aDebug, aInfo, aWarn := countDetails(a.Checks[i].Details)
 		bDebug, bInfo, bWarn := countDetails(b.Checks[i].Details)
 		if aDebug != bDebug || aInfo != bInfo || aWarn != bWarn {
+			fmt.Fprintf(GinkgoWriter, "%q details mismatch:\n", a.Checks[i].Name)
+			fmt.Fprintf(GinkgoWriter, "\tdebug: %d-%d\n", aDebug, bDebug)
+			fmt.Fprintf(GinkgoWriter, "\tinfo: %d-%d\n", aInfo, bInfo)
+			fmt.Fprintf(GinkgoWriter, "\twarn: %d-%d\n", aWarn, bWarn)
 			return false
 		}
 	}
@@ -79,21 +100,24 @@ var _ = Describe("E2E TEST: RunScorecard with re-used repoClient", func() {
 				return
 			}
 			ctx := context.Background()
-			isolatedLogger := sclog.NewLogger(sclog.DefaultLevel)
+			allChecks := checks.GetAll()
+
+			isolatedLogger := sclog.NewLogger(sclog.DebugLevel)
 			lastRepo := repos[len(repos)-1]
 			repo, rc, ofrc, cc, vc, err := checker.GetClients(ctx, lastRepo, "", isolatedLogger)
 			Expect(err).Should(BeNil())
-			isolatedResult, err := RunScorecard(ctx, repo, clients.HeadSHA, 0, checks.GetAll(), rc, ofrc, cc, vc)
+			isolatedResult, err := RunScorecard(ctx, repo, clients.HeadSHA, 0, allChecks, rc, ofrc, cc, vc)
 			Expect(err).Should(BeNil())
-			logger := sclog.NewLogger(sclog.DefaultLevel)
-			_, rc, ofrc, cc, vc, err = checker.GetClients(ctx, repos[0], "", logger)
+
+			logger := sclog.NewLogger(sclog.DebugLevel)
+			_, rc2, ofrc2, cc2, vc2, err := checker.GetClients(ctx, repos[0], "", logger)
 			Expect(err).Should(BeNil())
 
 			var sharedResult ScorecardResult
 			for i := range repos {
 				repo, err = githubrepo.MakeGithubRepo(repos[i])
 				Expect(err).Should(BeNil())
-				sharedResult, err = RunScorecard(ctx, repo, clients.HeadSHA, 0, checks.GetAll(), rc, ofrc, cc, vc)
+				sharedResult, err = RunScorecard(ctx, repo, clients.HeadSHA, 0, allChecks, rc2, ofrc2, cc2, vc2)
 				Expect(err).Should(BeNil())
 			}
 
