@@ -96,11 +96,11 @@ func Test_New(t *testing.T) {
 		},
 		{
 			name:     "env variables",
-			id:       "testdata/env-variables",
+			id:       "testdata/metadata-variables",
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Rule:    "testdata/env-variables",
+				Rule:    "testdata/metadata-variables",
 				Outcome: OutcomeNegative,
 				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
@@ -112,11 +112,11 @@ func Test_New(t *testing.T) {
 		},
 		{
 			name:     "patch",
-			id:       "testdata/env-variables",
+			id:       "testdata/metadata-variables",
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Rule:    "testdata/env-variables",
+				Rule:    "testdata/metadata-variables",
 				Outcome: OutcomeNegative,
 				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
@@ -129,11 +129,11 @@ func Test_New(t *testing.T) {
 		},
 		{
 			name:     "location",
-			id:       "testdata/env-variables",
+			id:       "testdata/metadata-variables",
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Rule:    "testdata/env-variables",
+				Rule:    "testdata/metadata-variables",
 				Outcome: OutcomeNegative,
 				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
@@ -152,11 +152,11 @@ func Test_New(t *testing.T) {
 		},
 		{
 			name:     "text",
-			id:       "testdata/env-variables",
+			id:       "testdata/metadata-variables",
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Rule:    "testdata/env-variables",
+				Rule:    "testdata/metadata-variables",
 				Outcome: OutcomeNegative,
 				Risk:    rule.RiskHigh,
 				Remediation: &rule.Remediation{
@@ -169,10 +169,10 @@ func Test_New(t *testing.T) {
 		},
 		{
 			name:    "outcome",
-			id:      "testdata/env-variables",
+			id:      "testdata/metadata-variables",
 			outcome: &positiveOutcome,
 			finding: &Finding{
-				Rule:    "testdata/env-variables",
+				Rule:    "testdata/metadata-variables",
 				Outcome: OutcomePositive,
 				Risk:    rule.RiskHigh,
 				Message: "some text",
