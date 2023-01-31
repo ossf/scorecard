@@ -25,6 +25,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 const (
@@ -349,7 +350,7 @@ func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp st
 			return JobMatchResult{
 				File: checker.File{
 					Path:   fp,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: GetLineNumber(job.Pos),
 				},
 				Msg: fmt.Sprintf("%v: %v", matcher.LogText, fp),
@@ -360,7 +361,7 @@ func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp st
 	return JobMatchResult{
 		File: checker.File{
 			Path:   fp,
-			Type:   checker.FileTypeSource,
+			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 		},
 		Msg: fmt.Sprintf("%v: %v", logMsgNoMatch, fp),

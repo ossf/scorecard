@@ -21,6 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 const (
@@ -78,7 +79,7 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 			Files: []checker.File{
 				{
 					Path:   name,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 			},
@@ -94,7 +95,7 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 			Files: []checker.File{
 				{
 					Path:   name,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 			},
@@ -107,7 +108,7 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 			Files: []checker.File{
 				{
 					Path:   name,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 			},
@@ -120,7 +121,7 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 			Files: []checker.File{
 				{
 					Path:   name,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 			},

@@ -15,12 +15,18 @@
 package evaluation
 
 import (
+	"embed"
 	"fmt"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/remediation"
 )
+
+//go:embed *.yml
+var rules embed.FS
 
 type permissions struct {
 	topLevelWritePermissions map[string]bool
@@ -57,32 +63,42 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	dl := c.Dlogger
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
+	negativeRuleResults := map[string]bool{
+		"GitHubWorkflowPermissionsStepsNoWrite": false,
+		"GitHubWorkflowPermissionsTopNoWrite":   false,
+	}
 
 	for _, r := range results.TokenPermissions {
-		var msg checker.LogMessage
-		var rem *checker.Remediation
+		var loc *finding.Location
 		if r.File != nil {
-			msg.Path = r.File.Path
-			msg.Offset = r.File.Offset
-			msg.Type = r.File.Type
-			msg.Snippet = r.File.Snippet
-
-			if msg.Path != "" {
-				rem = remediationMetadata.CreateWorkflowPermissionRemediation(r.File.Path)
+			loc = &finding.Location{
+				Type:      r.File.Type,
+				Value:     r.File.Path,
+				LineStart: &r.File.Offset,
 			}
+			if r.File.Snippet != "" {
+				loc.Snippet = &r.File.Snippet
+			}
+
+			loc.Value = r.File.Path
 		}
 
-		text, err := createMessage(r)
+		text, err := createText(r)
 		if err != nil {
 			return checker.MinResultScore, err
 		}
-		msg.Text = text
 
+		msg, err := createLogMsg(r.LocationType)
+		if err != nil {
+			return checker.InconclusiveResultScore, err
+		}
+		msg.Finding = msg.Finding.WithMessage(text).WithLocation(loc)
 		switch r.Type {
 		case checker.PermissionLevelNone, checker.PermissionLevelRead:
-			dl.Info(&msg)
+			msg.Finding = msg.Finding.WithOutcome(finding.OutcomePositive)
+			dl.Info(msg)
 		case checker.PermissionLevelUnknown:
-			dl.Debug(&msg)
+			dl.Debug(msg)
 
 		case checker.PermissionLevelUndeclared:
 			if r.LocationType == nil {
@@ -92,9 +108,9 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 
 			// We warn only for top-level.
 			if *r.LocationType == checker.PermissionLocationTop {
-				warnWithRemediation(dl, &msg, rem)
+				warnWithRemediation(dl, msg, remediationMetadata, loc, negativeRuleResults)
 			} else {
-				dl.Debug(&msg)
+				dl.Debug(msg)
 			}
 
 			// Group results by workflow name for score computation.
@@ -103,7 +119,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 			}
 
 		case checker.PermissionLevelWrite:
-			warnWithRemediation(dl, &msg, rem)
+			warnWithRemediation(dl, msg, remediationMetadata, loc, negativeRuleResults)
 
 			// Group results by workflow name for score computation.
 			if err := updateWorkflowHashMap(hm, r); err != nil {
@@ -112,12 +128,88 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 		}
 	}
 
+	if err := reportDefaultFindings(results, c.Dlogger, negativeRuleResults); err != nil {
+		return checker.InconclusiveResultScore, err
+	}
+
 	return calculateScore(hm), nil
 }
 
-func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage, rem *checker.Remediation) {
-	msg.Remediation = rem
+func reportDefaultFindings(results *checker.TokenPermissionsData,
+	dl checker.DetailLogger, negativeRuleResults map[string]bool,
+) error {
+	// No workflow files exist.
+	if len(results.TokenPermissions) == 0 {
+		text := "no workflows found in the repository"
+		if err := reportFinding("GitHubWorkflowPermissionsStepsNoWrite",
+			text, finding.OutcomeNotApplicable, dl); err != nil {
+			return err
+		}
+		if err := reportFinding("GitHubWorkflowPermissionsTopNoWrite",
+			text, finding.OutcomeNotApplicable, dl); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// Workflow files found, report positive findings if no
+	// negative findings were found.
+	// NOTE: we don't consider rule `GitHubWorkflowPermissionsTopNoWrite`
+	// because positive results are already reported.
+	found := negativeRuleResults["GitHubWorkflowPermissionsStepsNoWrite"]
+	if !found {
+		text := fmt.Sprintf("no %s write permissions found", checker.PermissionLocationJob)
+		if err := reportFinding("GitHubWorkflowPermissionsStepsNoWrite",
+			text, finding.OutcomePositive, dl); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func reportFinding(rule, text string, o finding.Outcome, dl checker.DetailLogger) error {
+	f, err := finding.New(rules, rule)
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+	f = f.WithMessage(text).WithOutcome(o)
+	dl.Info(&checker.LogMessage{
+		Finding: f,
+	})
+	return nil
+}
+
+func createLogMsg(loct *checker.PermissionLocation) (*checker.LogMessage, error) {
+	Rule := "GitHubWorkflowPermissionsStepsNoWrite"
+	if loct == nil || *loct == checker.PermissionLocationTop {
+		Rule = "GitHubWorkflowPermissionsTopNoWrite"
+	}
+	f, err := finding.New(rules, Rule)
+	if err != nil {
+		return nil,
+			sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+	return &checker.LogMessage{
+		Finding: f,
+	}, nil
+}
+
+func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage,
+	rem *remediation.RemediationMetadata, loc *finding.Location,
+	negativeRuleResults map[string]bool,
+) {
+	if loc != nil && loc.Value != "" {
+		msg.Finding = msg.Finding.WithRemediationMetadata(map[string]string{
+			"repo":     rem.Repo,
+			"branch":   rem.Branch,
+			"workflow": strings.TrimPrefix(loc.Value, ".github/workflows/"),
+		})
+	}
 	logger.Warn(msg)
+
+	// Record that we found a negative result.
+	negativeRuleResults[msg.Finding.Rule] = true
 }
 
 func recordPermissionWrite(hm map[string]permissions, path string,
@@ -163,7 +255,7 @@ func updateWorkflowHashMap(hm map[string]permissions, t checker.TokenPermission)
 	return nil
 }
 
-func createMessage(t checker.TokenPermission) (string, error) {
+func createText(t checker.TokenPermission) (string, error) {
 	// By default, use the message already present.
 	if t.Msg != nil {
 		return *t.Msg, nil
@@ -174,7 +266,7 @@ func createMessage(t checker.TokenPermission) (string, error) {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, "locationType is nil")
 	}
 
-	// Use a different message depending on the type.
+	// Use a different text depending on the type.
 	if t.Type == checker.PermissionLevelUndeclared {
 		return fmt.Sprintf("no %s permission defined", *t.LocationType), nil
 	}

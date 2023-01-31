@@ -17,6 +17,7 @@ package evaluation
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // BinaryArtifacts applies the score policy for the Binary-Artifacts check.
@@ -36,7 +37,7 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 	score := checker.MaxResultScore
 	for _, f := range r.Files {
 		dl.Warn(&checker.LogMessage{
-			Path: f.Path, Type: checker.FileTypeBinary,
+			Path: f.Path, Type: finding.FileTypeBinary,
 			Offset: f.Offset,
 			Text:   "binary detected",
 		})

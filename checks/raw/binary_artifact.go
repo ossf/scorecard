@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 var (
@@ -149,7 +150,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	if exists1 {
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
-			Type:   checker.FileTypeBinary,
+			Type:   finding.FileTypeBinary,
 			Offset: checker.OffsetDefault,
 		})
 		return true, nil
@@ -159,7 +160,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	if !isText(content) && exists2 {
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
-			Type:   checker.FileTypeBinary,
+			Type:   finding.FileTypeBinary,
 			Offset: checker.OffsetDefault,
 		})
 	}
