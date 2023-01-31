@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 const (
@@ -240,7 +241,7 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(
 			// FileTypeFuzz as Type, and # of lines as Offset.
 			pdata.files = append(pdata.files, checker.File{
 				Path:    path,
-				Type:    checker.FileTypeSource,
+				Type:    finding.FileTypeSource,
 				Snippet: found,
 				Offset:  uint(i + 1), // Since the # of lines starts from zero.
 			})

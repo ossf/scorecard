@@ -19,6 +19,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // Webhooks applies the score policy for the Webhooks check.
@@ -39,7 +40,7 @@ func Webhooks(name string, dl checker.DetailLogger,
 		if !hook.UsesAuthSecret {
 			dl.Warn(&checker.LogMessage{
 				Path: hook.Path,
-				Type: checker.FileTypeURL,
+				Type: finding.FileTypeURL,
 				Text: "Webhook with no secret configured",
 			})
 			hasNoSecretCount++

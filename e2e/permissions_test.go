@@ -48,7 +48,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 5,
 			}
 			result := checks.TokenPermissions(&req)
@@ -73,7 +73,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 5,
 			}
 			result := checks.TokenPermissions(&req)
@@ -110,7 +110,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 5,
 			}
 			result := checks.TokenPermissions(&req)

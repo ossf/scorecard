@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // CheckSAST is the registered name for SAST.
@@ -157,7 +158,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			if sastTools[cr.App.Slug] {
 				c.Dlogger.Debug(&checker.LogMessage{
 					Path: cr.URL,
-					Type: checker.FileTypeURL,
+					Type: finding.FileTypeURL,
 					Text: fmt.Sprintf("tool detected: %v", cr.App.Slug),
 				})
 				totalTested++
@@ -199,7 +200,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	for _, result := range resp.Results {
 		c.Dlogger.Debug(&checker.LogMessage{
 			Path:   result.Path,
-			Type:   checker.FileTypeSource,
+			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   "CodeQL detected",
 		})
@@ -294,7 +295,7 @@ var validateSonarConfig fileparser.DoWhileTrueOnFileContent = func(pathfn string
 		url: string(match[1]),
 		file: checker.File{
 			Path:      pathfn,
-			Type:      checker.FileTypeSource,
+			Type:      finding.FileTypeSource,
 			Offset:    offset,
 			EndOffset: endOffset,
 		},

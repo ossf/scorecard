@@ -44,8 +44,9 @@ type Options struct {
 	CommitDepth int
 	ShowDetails bool
 	// Feature flags.
-	EnableSarif       bool `env:"ENABLE_SARIF"`
-	EnableScorecardV6 bool `env:"SCORECARD_V6"`
+	EnableSarif                 bool `env:"ENABLE_SARIF"`
+	EnableScorecardV6           bool `env:"SCORECARD_V6"`
+	EnableScorecardExperimental bool `env:"SCORECARD_EXPERIMENTAL"`
 }
 
 // New creates a new instance of `Options`.
@@ -75,6 +76,9 @@ const (
 	// Formats.
 	// FormatJSON specifies that results should be output in JSON format.
 	FormatJSON = "json"
+	// FormatSJSON specifies that results should be output in structured JSON format,
+	// i.e., with the structured results.
+	FormatSJSON = "structured-json"
 	// FormatSarif specifies that results should be output in SARIF format.
 	FormatSarif = "sarif"
 	// FormatDefault specifies that results should be output in default format.
@@ -89,17 +93,21 @@ const (
 	// EnvVarScorecardV6 is the environment variable which enables scorecard v6
 	// options.
 	EnvVarScorecardV6 = "SCORECARD_V6"
+	// EnvVarScorecardExperimental is the environment variable which enables experimental
+	// features.
+	EnvVarScorecardExperimental = "SCORECARD_EXPERIMENTAL"
 )
 
 var (
 	// DefaultLogLevel retrieves the default log level.
 	DefaultLogLevel = log.DefaultLevel.String()
 
-	errCommitIsEmpty          = errors.New("commit should be non-empty")
-	errFormatNotSupported     = errors.New("unsupported format")
-	errPolicyFileNotSupported = errors.New("policy file is not supported yet")
-	errRawOptionNotSupported  = errors.New("raw option is not supported yet")
-	errRepoOptionMustBeSet    = errors.New(
+	errCommitIsEmpty                   = errors.New("commit should be non-empty")
+	errFormatNotSupported              = errors.New("unsupported format")
+	errFormatSupportedWithExperimental = errors.New("format supported only with SCORECARD_EXPERIMENTAL=1")
+	errPolicyFileNotSupported          = errors.New("policy file is not supported yet")
+	errRawOptionNotSupported           = errors.New("raw option is not supported yet")
+	errRepoOptionMustBeSet             = errors.New(
 		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
@@ -149,6 +157,15 @@ func (o *Options) Validate() error {
 		}
 	}
 
+	if !o.isExperimentalEnabled() {
+		if o.Format == FormatSJSON {
+			errs = append(
+				errs,
+				errFormatSupportedWithExperimental,
+			)
+		}
+	}
+
 	// Validate format.
 	if !validateFormat(o.Format) {
 		errs = append(
@@ -188,6 +205,13 @@ func boolSum(bools ...bool) int {
 
 // Feature flags.
 
+// isExperimentalEnabled returns true if experimental features were enabled via
+// environment variable.
+func (o *Options) isExperimentalEnabled() bool {
+	value, _ := os.LookupEnv(EnvVarScorecardExperimental)
+	return value == "1"
+}
+
 // isSarifEnabled returns true if SARIF format was specified in options or via
 // environment variable.
 func (o *Options) isSarifEnabled() bool {
@@ -205,7 +229,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatSJSON, FormatSarif, FormatDefault, FormatRaw:
 		return true
 	default:
 		return false

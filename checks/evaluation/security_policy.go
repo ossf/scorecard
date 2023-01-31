@@ -17,6 +17,7 @@ package evaluation
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 func scoreSecurityCriteria(f checker.File,
@@ -142,7 +143,7 @@ func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPol
 			Path: spd.File.Path,
 			Type: spd.File.Type,
 		}
-		if msg.Type == checker.FileTypeURL {
+		if msg.Type == finding.FileTypeURL {
 			msg.Text = "security policy detected in org repo"
 		} else {
 			msg.Text = "security policy detected in current repo"

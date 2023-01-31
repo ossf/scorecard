@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 var (
@@ -30,8 +31,8 @@ var (
 
 const releaseLookBack = 5
 
-//SignedReleases applies the score policy for the Signed-Releases check.
-//nolint
+// SignedReleases applies the score policy for the Signed-Releases check.
+// nolint
 func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedReleasesData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
@@ -60,7 +61,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 				if strings.HasSuffix(asset.Name, suffix) {
 					dl.Info(&checker.LogMessage{
 						Path: asset.URL,
-						Type: checker.FileTypeURL,
+						Type: finding.FileTypeURL,
 						Text: fmt.Sprintf("provenance for release artifact: %s", asset.Name),
 					})
 					hasProvenance = true
@@ -81,7 +82,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 
 		dl.Warn(&checker.LogMessage{
 			Path: release.URL,
-			Type: checker.FileTypeURL,
+			Type: finding.FileTypeURL,
 			Text: fmt.Sprintf("release artifact %s does not have provenance", release.TagName),
 		})
 
@@ -91,7 +92,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 				if strings.HasSuffix(asset.Name, suffix) {
 					dl.Info(&checker.LogMessage{
 						Path: asset.URL,
-						Type: checker.FileTypeURL,
+						Type: finding.FileTypeURL,
 						Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
 					})
 					signed = true
@@ -109,7 +110,7 @@ func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedRelea
 		if !signed {
 			dl.Warn(&checker.LogMessage{
 				Path: release.URL,
-				Type: checker.FileTypeURL,
+				Type: finding.FileTypeURL,
 				Text: fmt.Sprintf("release artifact %s not signed", release.TagName),
 			})
 		}

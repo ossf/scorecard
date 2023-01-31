@@ -18,13 +18,14 @@ package checker
 import (
 	"fmt"
 	"math"
+
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 type (
 	// DetailType is the type of details.
 	DetailType int
-	// FileType is the type of a file.
-	FileType int
 )
 
 const (
@@ -49,20 +50,6 @@ const (
 	DetailDebug
 )
 
-const (
-	// FileTypeNone is a default, not defined.
-	// FileTypeNone must be `0`.
-	FileTypeNone FileType = iota
-	// FileTypeSource is for source code files.
-	FileTypeSource
-	// FileTypeBinary is for binary files.
-	FileTypeBinary
-	// FileTypeText is for text files.
-	FileTypeText
-	// FileTypeURL for URLs.
-	FileTypeURL
-)
-
 // CheckResult captures result from a check run.
 //
 //nolint:govet
@@ -70,21 +57,11 @@ type CheckResult struct {
 	Name    string
 	Version int
 	Error   error
-	Details []CheckDetail
 	Score   int
 	Reason  string
-}
-
-// Remediation represents a remediation.
-type Remediation struct {
-	// Code snippet for humans.
-	Snippet string
-	// Diff for machines.
-	Diff string
-	// Help text for humans.
-	HelpText string
-	// Help text in markdown format for humans.
-	HelpMarkdown string
+	Details []CheckDetail
+	// Structured results.
+	Rules []string // TODO(X): add support.
 }
 
 // CheckDetail contains information for each detail.
@@ -98,13 +75,17 @@ type CheckDetail struct {
 //
 //nolint:govet
 type LogMessage struct {
-	Text        string       // A short string explaining why the detail was recorded/logged.
-	Path        string       // Fullpath to the file.
-	Type        FileType     // Type of file.
-	Offset      uint         // Offset in the file of Path (line for source/text files).
-	EndOffset   uint         // End of offset in the file, e.g. if the command spans multiple lines.
-	Snippet     string       // Snippet of code
-	Remediation *Remediation // Remediation information, if any.
+	// Structured resuts.
+	Finding *finding.Finding
+
+	// Non-structured results.
+	Text        string            // A short string explaining why the detail was recorded/logged.
+	Path        string            // Fullpath to the file.
+	Type        finding.FileType  // Type of file.
+	Offset      uint              // Offset in the file of Path (line for source/text files).
+	EndOffset   uint              // End of offset in the file, e.g. if the command spans multiple lines.
+	Snippet     string            // Snippet of code
+	Remediation *rule.Remediation // Remediation information, if any.
 }
 
 // CreateProportionalScore creates a proportional score.
