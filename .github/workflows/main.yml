@@ -30,6 +30,7 @@ env:
   GO_VERSION: 1.19
 
 jobs:
+<<<<<<< HEAD
   changes:
     runs-on: ubuntu-latest
     permissions:
@@ -38,11 +39,7 @@ jobs:
       runUnitTests: ${{ steps.filter.outputs.runUnitTests }} 
     steps:
     # For pull requests it's not necessary to checkout the code
-<<<<<<< HEAD
     - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # v2.11.1
-=======
-    - uses: dorny/paths-filter@v2
->>>>>>> b0c0efa (added a job to get the files changed and checked if the there are only markdown changes before running the unit-test job)
       id: filter
       with:
         filters: |
@@ -50,8 +47,6 @@ jobs:
             - '*/*.!(md)'
   unit-test:
     name: unit-test
-    needs: changes
-    if: ${{ needs.changes.outputs.runUnitTests == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
