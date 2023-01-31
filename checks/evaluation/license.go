@@ -17,6 +17,7 @@ package evaluation
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 func scoreLicenseCriteria(f *checker.LicenseFile,
@@ -25,12 +26,12 @@ func scoreLicenseCriteria(f *checker.LicenseFile,
 	var score int
 	msg := checker.LogMessage{
 		Path:   "",
-		Type:   checker.FileTypeNone,
+		Type:   finding.FileTypeNone,
 		Text:   "",
 		Offset: 1,
 	}
 	msg.Path = f.File.Path
-	msg.Type = checker.FileTypeSource
+	msg.Type = finding.FileTypeSource
 	// #1 a license file was found.
 	score += 6
 

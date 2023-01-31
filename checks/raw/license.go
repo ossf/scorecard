@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // from checks.md
@@ -120,7 +121,7 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 				checker.LicenseFile{
 					File: checker.File{
 						Path: v.Path,
-						Type: checker.FileTypeSource,
+						Type: finding.FileTypeSource,
 					},
 					LicenseInformation: checker.License{
 						Approved:    len(fsfOsiApprovedLicenseCiMap[strings.ToUpper(v.SPDXId)].Name) > 0,
@@ -351,7 +352,7 @@ func checkLicense(lfName string) (checker.LicenseFile, bool) {
 		return (checker.LicenseFile{
 			File: checker.File{
 				Path: licensePath,
-				Type: checker.FileTypeSource,
+				Type: finding.FileTypeSource,
 			},
 			LicenseInformation: checker.License{
 				Name:   "",
@@ -378,7 +379,7 @@ func checkLicense(lfName string) (checker.LicenseFile, bool) {
 	return (checker.LicenseFile{
 		File: checker.File{
 			Path: licensePath,
-			Type: checker.FileTypeSource, // TODO: introduce FileTypeFolder with licenseFolder
+			Type: finding.FileTypeSource, // TODO: introduce FileTypeFolder with licenseFolder
 		},
 		LicenseInformation: checker.License{
 			SpdxID: licenseSpdxID,

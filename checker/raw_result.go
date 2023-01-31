@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // RawResults contains results before a policy
@@ -286,11 +287,11 @@ type ArchivedStatus struct {
 // File represents a file.
 type File struct {
 	Path      string
-	Snippet   string   // Snippet of code
-	Offset    uint     // Offset in the file of Path (line for source/text files).
-	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
-	FileSize  uint     // Total size of file.
-	Type      FileType // Type of file.
+	Snippet   string           // Snippet of code
+	Offset    uint             // Offset in the file of Path (line for source/text files).
+	EndOffset uint             // End of offset in the file, e.g. if the command spans multiple lines.
+	FileSize  uint             // Total size of file.
+	Type      finding.FileType // Type of file.
 	// TODO: add hash.
 }
 

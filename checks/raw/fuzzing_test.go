@@ -363,7 +363,8 @@ func Test_getProminentLanguages(t *testing.T) {
 				{
 					Name:     clients.Python,
 					NumLines: 40,
-				}, {
+				},
+				{
 					Name:     clients.JavaScript,
 					NumLines: 800,
 				},
@@ -384,7 +385,8 @@ func Test_getProminentLanguages(t *testing.T) {
 				{
 					Name:     clients.Python,
 					NumLines: 40,
-				}, {
+				},
+				{
 					Name:     clients.JavaScript,
 					NumLines: 800,
 				},
@@ -395,7 +397,8 @@ func Test_getProminentLanguages(t *testing.T) {
 				{
 					Name:     clients.Python,
 					NumLines: 40,
-				}, {
+				},
+				{
 					Name:     clients.JavaScript,
 					NumLines: 800,
 				},
@@ -406,7 +409,8 @@ func Test_getProminentLanguages(t *testing.T) {
 				{
 					Name:     clients.Python,
 					NumLines: 40,
-				}, {
+				},
+				{
 					Name:     clients.JavaScript,
 					NumLines: 800,
 				},

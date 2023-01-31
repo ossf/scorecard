@@ -29,6 +29,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 var (
@@ -330,7 +331,7 @@ func collectFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pat
 		checker.Dependency{
 			Location: &checker.File{
 				Path:      pathfn,
-				Type:      checker.FileTypeSource,
+				Type:      finding.FileTypeSource,
 				Offset:    startLine,
 				EndOffset: endLine,
 				Snippet:   cmd,
@@ -381,7 +382,7 @@ func collectExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn 
 				checker.Dependency{
 					Location: &checker.File{
 						Path:      pathfn,
-						Type:      checker.FileTypeSource,
+						Type:      finding.FileTypeSource,
 						Offset:    startLine,
 						EndOffset: endLine,
 						Snippet:   cmd,
@@ -652,7 +653,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 			checker.Dependency{
 				Location: &checker.File{
 					Path:      pathfn,
-					Type:      checker.FileTypeSource,
+					Type:      finding.FileTypeSource,
 					Offset:    startLine,
 					EndOffset: endLine,
 					Snippet:   cmd,
@@ -670,7 +671,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 			checker.Dependency{
 				Location: &checker.File{
 					Path:      pathfn,
-					Type:      checker.FileTypeSource,
+					Type:      finding.FileTypeSource,
 					Offset:    startLine,
 					EndOffset: endLine,
 					Snippet:   cmd,
@@ -688,7 +689,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 			checker.Dependency{
 				Location: &checker.File{
 					Path:      pathfn,
-					Type:      checker.FileTypeSource,
+					Type:      finding.FileTypeSource,
 					Offset:    startLine,
 					EndOffset: endLine,
 					Snippet:   cmd,
@@ -706,7 +707,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 			checker.Dependency{
 				Location: &checker.File{
 					Path:      pathfn,
-					Type:      checker.FileTypeSource,
+					Type:      finding.FileTypeSource,
 					Offset:    startLine,
 					EndOffset: endLine,
 					Snippet:   cmd,
@@ -801,7 +802,7 @@ func collectFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd,
 		checker.Dependency{
 			Location: &checker.File{
 				Path:      pathfn,
-				Type:      checker.FileTypeSource,
+				Type:      finding.FileTypeSource,
 				Offset:    startLine,
 				EndOffset: endLine,
 				Snippet:   cmd,

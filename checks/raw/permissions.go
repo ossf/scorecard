@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 type permission string
@@ -127,7 +128,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 				checker.TokenPermission{
 					File: &checker.File{
 						Path:    path,
-						Type:    checker.FileTypeSource,
+						Type:    finding.FileTypeSource,
 						Offset:  lineNumber,
 						Snippet: val,
 					},
@@ -144,7 +145,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 				checker.TokenPermission{
 					File: &checker.File{
 						Path:    path,
-						Type:    checker.FileTypeSource,
+						Type:    finding.FileTypeSource,
 						Offset:  lineNumber,
 						Snippet: val,
 					},
@@ -163,7 +164,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 		checker.TokenPermission{
 			File: &checker.File{
 				Path:   path,
-				Type:   checker.FileTypeSource,
+				Type:   finding.FileTypeSource,
 				Offset: lineNumber,
 				// TODO: set Snippet.
 			},
@@ -210,7 +211,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 			checker.TokenPermission{
 				File: &checker.File{
 					Path:   path,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 				LocationType: &permLoc,
@@ -227,7 +228,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 				checker.TokenPermission{
 					File: &checker.File{
 						Path:    path,
-						Type:    checker.FileTypeSource,
+						Type:    finding.FileTypeSource,
 						Offset:  lineNumber,
 						Snippet: val,
 					},
@@ -244,7 +245,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 			checker.TokenPermission{
 				File: &checker.File{
 					Path:    path,
-					Type:    checker.FileTypeSource,
+					Type:    finding.FileTypeSource,
 					Offset:  lineNumber,
 					Snippet: val,
 				},
@@ -270,7 +271,7 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 			checker.TokenPermission{
 				File: &checker.File{
 					Path:   path,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 				LocationType: &permLoc,
@@ -299,7 +300,7 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 				checker.TokenPermission{
 					File: &checker.File{
 						Path:   path,
-						Type:   checker.FileTypeSource,
+						Type:   finding.FileTypeSource,
 						Offset: fileparser.GetLineNumber(job.Pos),
 					},
 					LocationType: &permLoc,
@@ -376,7 +377,7 @@ func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissi
 	tokenPermissions := checker.TokenPermission{
 		File: &checker.File{
 			Path:   fp,
-			Type:   checker.FileTypeSource,
+			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			// TODO: set Snippet.
 		},
@@ -416,7 +417,7 @@ func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, pdata
 		checker.TokenPermission{
 			File: &checker.File{
 				Path:   fp,
-				Type:   checker.FileTypeSource,
+				Type:   finding.FileTypeSource,
 				Offset: checker.OffsetDefault,
 			},
 			Msg:  &match.Msg,
@@ -517,7 +518,7 @@ func isWorkflowOf(workflow *actionlint.Workflow, fp string,
 		checker.TokenPermission{
 			File: &checker.File{
 				Path:   fp,
-				Type:   checker.FileTypeSource,
+				Type:   finding.FileTypeSource,
 				Offset: checker.OffsetDefault,
 			},
 			Msg:  &match.Msg,

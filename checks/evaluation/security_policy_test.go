@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -59,14 +60,16 @@ func TestSecurityPolicy(t *testing.T) {
 			args: args{
 				name: "test_security_policy_3",
 				r: &checker.SecurityPolicyData{
-					PolicyFiles: []checker.SecurityPolicyFile{{
-						File:                  checker.File{
-							Path: "/etc/security/pam_env.conf",
-							Type: checker.FileTypeURL,
+					PolicyFiles: []checker.SecurityPolicyFile{
+						{
+							File: checker.File{
+								Path: "/etc/security/pam_env.conf",
+								Type: finding.FileTypeURL,
+							},
+							Information: make([]checker.SecurityPolicyInformation, 0),
 						},
-						Information:           make([]checker.SecurityPolicyInformation, 0),
 					},
-				}},
+				},
 			},
 			want: checker.CheckResult{
 				Score: 0,
@@ -77,13 +80,15 @@ func TestSecurityPolicy(t *testing.T) {
 			args: args{
 				name: "test_security_policy_4",
 				r: &checker.SecurityPolicyData{
-					PolicyFiles: []checker.SecurityPolicyFile{{
-						File:                  checker.File{
-							Path: "/etc/security/pam_env.conf",
+					PolicyFiles: []checker.SecurityPolicyFile{
+						{
+							File: checker.File{
+								Path: "/etc/security/pam_env.conf",
+							},
+							Information: make([]checker.SecurityPolicyInformation, 0),
 						},
-						Information:           make([]checker.SecurityPolicyInformation, 0),
 					},
-				}},
+				},
 			},
 			want: checker.CheckResult{
 				Score: 0,

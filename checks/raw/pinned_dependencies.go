@@ -26,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // PinningDependencies checks for (un)pinned dependencies.
@@ -267,7 +268,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 				checker.Dependency{
 					Location: &checker.File{
 						Path:      pathfn,
-						Type:      checker.FileTypeSource,
+						Type:      finding.FileTypeSource,
 						Offset:    uint(child.StartLine),
 						EndOffset: uint(child.EndLine),
 						Snippet:   child.Original,
@@ -286,7 +287,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 				dep := checker.Dependency{
 					Location: &checker.File{
 						Path:      pathfn,
-						Type:      checker.FileTypeSource,
+						Type:      finding.FileTypeSource,
 						Offset:    uint(child.StartLine),
 						EndOffset: uint(child.EndLine),
 						Snippet:   child.Original,
@@ -473,7 +474,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 				dep := checker.Dependency{
 					Location: &checker.File{
 						Path:      pathfn,
-						Type:      checker.FileTypeSource,
+						Type:      finding.FileTypeSource,
 						Offset:    uint(execAction.Uses.Pos.Line),
 						EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
 						Snippet:   execAction.Uses.Value,
