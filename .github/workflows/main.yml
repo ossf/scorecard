@@ -30,7 +30,6 @@ env:
   GO_VERSION: 1.19
 
 jobs:
-<<<<<<< HEAD
   changes:
     runs-on: ubuntu-latest
     permissions:
@@ -47,6 +46,8 @@ jobs:
             - '*/*.!(md)'
   unit-test:
     name: unit-test
+    needs: changes
+    if: ${{ needs.changes.outputs.runUnitTests == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
