@@ -16,7 +16,7 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/evaluation"
+	evaluation "github.com/ossf/scorecard/v4/checks/evaluation/binary_artifacts"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -24,7 +24,7 @@ import (
 // CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
 const CheckBinaryArtifacts string = "Binary-Artifacts"
 
-//nolint
+// nolint
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.CommitBased,

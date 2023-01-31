@@ -16,9 +16,11 @@
 package checker
 
 import (
+	"embed"
 	"fmt"
 	"math"
 
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/rule"
 )
@@ -198,4 +200,18 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Score:   InconclusiveResultScore,
 		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
 	}
+}
+
+func LogFinding(rules embed.FS, rule, text string, loc *finding.Location,
+	o finding.Outcome, dl DetailLogger,
+) error {
+	f, err := finding.New(rules, rule)
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+	f = f.WithMessage(text).WithOutcome(o).WithLocation(loc)
+	dl.Info(&LogMessage{
+		Finding: f,
+	})
+	return nil
 }

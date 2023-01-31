@@ -371,3 +371,25 @@ type TokenPermission struct {
 	Msg          *string
 	Type         PermissionLevel
 }
+
+// LocationFromPath generates location from a file.
+func LocationFromFile(f *File) *finding.Location {
+	// TODO(2626): merge location and path.
+	var loc *finding.Location
+	if f != nil {
+		loc = &finding.Location{
+			Type:      f.Type,
+			Value:     f.Path,
+			LineStart: &f.Offset,
+		}
+		if f.EndOffset != 0 {
+			loc.LineEnd = &f.EndOffset
+		}
+		if f.Snippet != "" {
+			loc.Snippet = &f.Snippet
+		}
+
+		loc.Value = f.Path
+	}
+	return loc
+}

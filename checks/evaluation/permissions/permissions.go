@@ -63,25 +63,13 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	dl := c.Dlogger
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
-	negativeRuleResults := map[string]bool{
+	reportedRuleResults := map[string]bool{
 		"GitHubWorkflowPermissionsStepsNoWrite": false,
 		"GitHubWorkflowPermissionsTopNoWrite":   false,
 	}
 
 	for _, r := range results.TokenPermissions {
-		var loc *finding.Location
-		if r.File != nil {
-			loc = &finding.Location{
-				Type:      r.File.Type,
-				Value:     r.File.Path,
-				LineStart: &r.File.Offset,
-			}
-			if r.File.Snippet != "" {
-				loc.Snippet = &r.File.Snippet
-			}
-
-			loc.Value = r.File.Path
-		}
+		loc := checker.LocationFromFile(r.File)
 
 		text, err := createText(r)
 		if err != nil {
@@ -108,7 +96,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 
 			// We warn only for top-level.
 			if *r.LocationType == checker.PermissionLocationTop {
-				warnWithRemediation(dl, msg, remediationMetadata, loc, negativeRuleResults)
+				warnWithRemediation(dl, msg, remediationMetadata, loc, reportedRuleResults)
 			} else {
 				dl.Debug(msg)
 			}
@@ -119,7 +107,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 			}
 
 		case checker.PermissionLevelWrite:
-			warnWithRemediation(dl, msg, remediationMetadata, loc, negativeRuleResults)
+			warnWithRemediation(dl, msg, remediationMetadata, loc, reportedRuleResults)
 
 			// Group results by workflow name for score computation.
 			if err := updateWorkflowHashMap(hm, r); err != nil {
@@ -128,25 +116,25 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 		}
 	}
 
-	if err := reportDefaultFindings(results, c.Dlogger, negativeRuleResults); err != nil {
+	if err := logDefaultFindings(results, c.Dlogger, reportedRuleResults); err != nil {
 		return checker.InconclusiveResultScore, err
 	}
 
 	return calculateScore(hm), nil
 }
 
-func reportDefaultFindings(results *checker.TokenPermissionsData,
-	dl checker.DetailLogger, negativeRuleResults map[string]bool,
+func logDefaultFindings(results *checker.TokenPermissionsData,
+	dl checker.DetailLogger, reportedRuleResults map[string]bool,
 ) error {
 	// No workflow files exist.
 	if len(results.TokenPermissions) == 0 {
 		text := "no workflows found in the repository"
-		if err := reportFinding("GitHubWorkflowPermissionsStepsNoWrite",
-			text, finding.OutcomeNotApplicable, dl); err != nil {
+		if err := checker.LogFinding(rules, "GitHubWorkflowPermissionsStepsNoWrite",
+			text, nil, finding.OutcomeNotApplicable, dl); err != nil {
 			return err
 		}
-		if err := reportFinding("GitHubWorkflowPermissionsTopNoWrite",
-			text, finding.OutcomeNotApplicable, dl); err != nil {
+		if err := checker.LogFinding(rules, "GitHubWorkflowPermissionsTopNoWrite",
+			text, nil, finding.OutcomeNotApplicable, dl); err != nil {
 			return err
 		}
 		return nil
@@ -156,27 +144,15 @@ func reportDefaultFindings(results *checker.TokenPermissionsData,
 	// negative findings were found.
 	// NOTE: we don't consider rule `GitHubWorkflowPermissionsTopNoWrite`
 	// because positive results are already reported.
-	found := negativeRuleResults["GitHubWorkflowPermissionsStepsNoWrite"]
+	found := reportedRuleResults["GitHubWorkflowPermissionsStepsNoWrite"]
 	if !found {
 		text := fmt.Sprintf("no %s write permissions found", checker.PermissionLocationJob)
-		if err := reportFinding("GitHubWorkflowPermissionsStepsNoWrite",
-			text, finding.OutcomePositive, dl); err != nil {
+		if err := checker.LogFinding(rules, "GitHubWorkflowPermissionsStepsNoWrite",
+			text, nil, finding.OutcomePositive, dl); err != nil {
 			return err
 		}
 	}
 
-	return nil
-}
-
-func reportFinding(rule, text string, o finding.Outcome, dl checker.DetailLogger) error {
-	f, err := finding.New(rules, rule)
-	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-	}
-	f = f.WithMessage(text).WithOutcome(o)
-	dl.Info(&checker.LogMessage{
-		Finding: f,
-	})
 	return nil
 }
 
@@ -197,7 +173,7 @@ func createLogMsg(loct *checker.PermissionLocation) (*checker.LogMessage, error)
 
 func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage,
 	rem *remediation.RemediationMetadata, loc *finding.Location,
-	negativeRuleResults map[string]bool,
+	reportedRuleResults map[string]bool,
 ) {
 	if loc != nil && loc.Value != "" {
 		msg.Finding = msg.Finding.WithRemediationMetadata(map[string]string{
@@ -209,7 +185,7 @@ func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage,
 	logger.Warn(msg)
 
 	// Record that we found a negative result.
-	negativeRuleResults[msg.Finding.Rule] = true
+	reportedRuleResults[msg.Finding.Rule] = true
 }
 
 func recordPermissionWrite(hm map[string]permissions, path string,
