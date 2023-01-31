@@ -1,0 +1,33 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+short: Checks that graddle wrappers are safely managed
+desc: This rule checks that graddle wrappers are safely managed if they are present
+motivation: >
+  TODO: copy BinaryArtifactsNotPresent rule or link to it?
+  The graddle wrapper (see https://docs.gradle.org/current/userguide/gradle_wrapper.html) is required to build with graddle.
+  Even though the wrapper is a binary and binaries shuold be avoided (see BinaryArtifactsNotPresent rule), there is a list of "known" official binaries maintained by X.
+  So a maintainer can commit the wrapper to their repository so long as they have a safe way to verify that the wrapper
+  is one of the official binaries.
+
+implementation: >
+  The rule is implemented by first searching for files with the name 'gradle-wrapper.jar'. If one or more files are found,
+  the rule checks that the repository has configured the 'gradle/wrapper-validation-action' Action from https://github.com/gradle/wrapper-validation-action.
+risk: High
+remediation:
+  effort: Low
+  text:
+    - Install the 'gradle/wrapper-validation-action' Action by following the instructions in https://github.com/gradle/wrapper-validation-action.
+  markdown:
+    - Install the [gradle/wrapper-validation-action](https://github.com/gradle/wrapper-validation-action) on the repository.
