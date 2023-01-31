@@ -35,6 +35,7 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	// Keep track of reported results.
 	reportedRuleResults := map[string]bool{
 		"BinaryGraddleWrapperSafe":  false,
 		"BinaryArtifactsNotPresent": false,
@@ -74,6 +75,7 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 		score--
 	}
 
+	// Report findings for all rules.
 	if err := logDefaultFindings(dl, reportedRuleResults); err != nil {
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
@@ -86,6 +88,7 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 }
 
 func logDefaultFindings(dl checker.DetailLogger, r map[string]bool) error {
+	// We always report at least one finding for each rule.
 	if !r["BinaryArtifactsNotPresent"] {
 		if err := checker.LogFinding(rules, "BinaryArtifactsNotPresent",
 			"no binaries found",
@@ -93,10 +96,10 @@ func logDefaultFindings(dl checker.DetailLogger, r map[string]bool) error {
 			return err
 		}
 	}
-
 	if !r["BinaryGraddleWrapperSafe"] {
 		if err := checker.LogFinding(rules, "BinaryGraddleWrapperSafe",
 			"no unsafe graddle wrapper binaries found",
+			// No wrapper binary found, so the rule is not applicable.
 			nil, finding.OutcomeNotApplicable, dl); err != nil {
 			return err
 		}
