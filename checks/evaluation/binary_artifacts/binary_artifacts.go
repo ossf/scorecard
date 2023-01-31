@@ -43,6 +43,7 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 
 	// Apply the policy evaluation.
 	if r.Files == nil || len(r.Files) == 0 {
+		// Report findings for all rules.
 		if err := logDefaultFindings(dl, reportedRuleResults); err != nil {
 			return checker.CreateRuntimeErrorResult(name, err)
 		}
