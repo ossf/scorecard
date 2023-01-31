@@ -30,25 +30,8 @@ env:
   GO_VERSION: 1.19
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    outputs:
-      runUnitTests: ${{ steps.filter.outputs.runUnitTests }} 
-    steps:
-    # For pull requests it's not necessary to checkout the code
-    - uses: dorny/paths-filter@v2
-      id: filter
-      with:
-        filters: |
-          runUnitTests:
-            - '*.!(md)'
-          
   unit-test:
     name: unit-test
-    needs: changes
-    if: ${{ needs.changes.outputs.runUnitTests == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
