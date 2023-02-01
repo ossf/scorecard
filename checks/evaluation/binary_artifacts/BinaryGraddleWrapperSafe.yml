@@ -17,8 +17,8 @@ desc: This rule checks that graddle wrappers are safely managed if they are pres
 motivation: >
   TODO: copy BinaryArtifactsNotPresent rule or link to it?
   The gradle wrapper (see https://docs.gradle.org/current/userguide/gradle_wrapper.html) is required to build with graddle.
-  Even though the wrapper is a binary and binaries shuold be avoided (see BinaryArtifactsNotPresent rule), there is a list of "known" official binaries maintained by X.
-  So a maintainer can commit the wrapper to their repository so long as they have a safe way to verify that the wrapper
+  Even though the wrapper is a binary and binaries should be avoided (see BinaryArtifactsNotPresent rule), there is a list of "known" official binaries.
+  So a maintainer can commit the wrapper to their repository so long as they have a safe way to verify that the file
   is one of the official binaries.
 implementation: >
   The rule is implemented by first searching for files with the name 'gradle-wrapper.jar'. If one or more files are found,
