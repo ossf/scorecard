@@ -43,11 +43,13 @@ func Test_New(t *testing.T) {
 			name: "all fields set",
 			id:   "testdata/all-fields",
 			rule: &Rule{
-				Name:       "testdata/all-fields",
-				Short:      "short description",
-				Desc:       "description",
-				Motivation: "line1 line2\n",
-				Risk:       RiskHigh,
+				Name:           "testdata/all-fields",
+				Short:          "short description",
+				Desc:           "description",
+				Motivation:     "mot1 mot2\n",
+				Implementation: "impl1 impl2\n",
+				Outcome:        []string{"outcome 1", "outcome 2"},
+				Risk:           RiskHigh,
 				Remediation: &Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",

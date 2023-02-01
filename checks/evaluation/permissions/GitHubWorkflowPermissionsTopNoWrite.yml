@@ -21,6 +21,10 @@ motivation: >
 implementation: >
   The rule is implemented by checking whether the `permissions` keyword is defined at the top of the workflow,
   and that no write permissions are given.
+outcome:
+  - If the permissions are explicitely declared with no write scopes, the rule returns OutcomePositive (1).
+  - If the permissions are explicitely declared but contain write scopes, the rule returns OutcomePositive (1).
+  - If one or more binaries are present in the repository, the rule returns OutcomeNegative (0) for each of the findings.
 risk: High
 remediation:
   effort: Low

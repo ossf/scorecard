@@ -19,11 +19,12 @@ motivation: >
   By giving write permission to the Actions you call in jobs, an external Action you call could abuse them. Depending on the permissions,
   this could let the external Action commit unreviewed code, remove pre-submit checks to introduce a bug.
   For more information about the scopes and the vulnerabilities involved, see https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions.
-
 implementation: >
   The rule is implemented by checking whether the `permissions` keyword is given non-write permissions for the following
   scopes: `statuses`, `checks`, `security-events`, `deployments`, `contents`, `packages`, `actions`.
   Write permissions given to recognized packaging actions or commands are allowed and are considered an acceptable risk.
+outcome:
+  - this rule is going to change, so this is a place holder.
 risk: Medium
 remediation:
   effort: High

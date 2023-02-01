@@ -1,11 +1,14 @@
 short: short description
 desc: description
 motivation: >
-  line1
-  line2
+  mot1
+  mot2
 implementation: >
-  line1
-  line2
+  impl1
+  impl2
+outcome:
+  - outcome 1
+  - outcome 2
 risk: High
 remediation:
   effort: Low

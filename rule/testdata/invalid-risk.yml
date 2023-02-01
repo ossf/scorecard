@@ -6,6 +6,9 @@ motivation: >
 implementation: >
   line1
   line2
+outcome:
+  - outcome 1
+  - outcome 2
 risk: invalid
 remediation:
   effort: Low

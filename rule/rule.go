@@ -62,6 +62,7 @@ type jsonRule struct {
 	Desc           string          `yaml:"desc"`
 	Motivation     string          `yaml:"motivation"`
 	Implementation string          `yaml:"implementation"`
+	Outcome        []string        `yaml:"outcome"`
 	Risk           Risk            `yaml:"risk"`
 	Remediation    jsonRemediation `yaml:"remediation"`
 }
@@ -84,12 +85,14 @@ const (
 
 // nolint: govet
 type Rule struct {
-	Name        string
-	Short       string
-	Desc        string
-	Motivation  string
-	Risk        Risk
-	Remediation *Remediation
+	Name           string
+	Short          string
+	Desc           string
+	Motivation     string
+	Implementation string
+	Outcome        []string
+	Risk           Risk
+	Remediation    *Remediation
 }
 
 var errInvalid = errors.New("invalid")
@@ -111,11 +114,13 @@ func New(loc embed.FS, rule string) (*Rule, error) {
 	}
 
 	return &Rule{
-		Name:       rule,
-		Short:      r.Short,
-		Desc:       r.Desc,
-		Motivation: r.Motivation,
-		Risk:       r.Risk,
+		Name:           rule,
+		Short:          r.Short,
+		Desc:           r.Desc,
+		Motivation:     r.Motivation,
+		Implementation: r.Implementation,
+		Outcome:        r.Outcome,
+		Risk:           r.Risk,
 		Remediation: &Remediation{
 			Text:     strings.Join(r.Remediation.Text, "\n"),
 			Markdown: strings.Join(r.Remediation.Markdown, "\n"),
