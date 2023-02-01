@@ -69,10 +69,41 @@ the changes made locally.
 git clone git@github.com:<user>/scorecard.git $GOPATH/src/github.com/<user>/scorecard.git
 ```
 
+1.  Enter the project folder by running the command `cd ./scorecard`
 1.  Ensure you activate module support before continue (`$ export
     GO111MODULE=on`)
 1.  Install the build tools for the project by running the command `make install`
 1.  Run the command `make build` to build the source code
+
+## How to run scorecard locally
+
+In the project folder, run the following command:
+
+```shell
+// Get scores for a repository
+$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
+```
+
+You can input the repository you want to analyze using the `--repo=<your_repo>` flag. To view more Scorecard commands run:
+
+```shell
+// View scorecard help
+$ go run main.go --help
+```
+
+### Choosing checks to run
+
+You can use the `--checks` option to select which checks to run.
+This is useful if, for example, you only want to run the check you're
+currently developing.
+
+```shell
+// Get score for Pinned-Dependencies check
+$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies
+
+// Get score for Pinned-Dependencies and Binary-Artifacts check
+$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies,Binary-Artifacts
+```
 
 ## PR Process
 
@@ -152,9 +183,3 @@ make generate-docs
 
 **DO NOT** edit `docs/checks.md` directly, as that is an
 auto-generated file. Edit `docs/checks/internal/checks.yaml` instead.
-
-## Choosing checks to run
-
-You can use the `--checks` option to select which checks to run.
-This is useful if, for example, you only want to run the check you're
-currently developing.
