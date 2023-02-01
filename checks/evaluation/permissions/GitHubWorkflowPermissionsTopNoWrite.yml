@@ -23,7 +23,7 @@ implementation: >
   and that no write permissions are given.
 outcome:
   - If the repository uses a version control system different from GitHub, the rule returns OutcomeNotSupported (3).
-  - If not workflows are found in the repository, the rule returns OutcomeNotApplicable (2).
+  - If no workflows are present in the repository, the rule returns OutcomeNotApplicable (2).
   - If the permissions are explicitely declared with no write scopes, the rule returns OutcomePositive (1).
   - If the permissions are explicitely declared but contain write scopes, the rule returns OutcomeNegative (0).
 risk: High
