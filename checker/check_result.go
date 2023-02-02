@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"math"
 
-	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/rule"
 )
@@ -202,12 +201,12 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	}
 }
 
-func LogFinding(rules embed.FS, rule, text string, loc *finding.Location,
+func LogFinding(rules embed.FS, ruleName, text string, loc *finding.Location,
 	o finding.Outcome, dl DetailLogger,
 ) error {
-	f, err := finding.New(rules, rule)
+	f, err := finding.New(rules, ruleName)
 	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return err
 	}
 	f = f.WithMessage(text).WithOutcome(o).WithLocation(loc)
 	dl.Info(&LogMessage{

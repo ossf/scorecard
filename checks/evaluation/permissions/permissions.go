@@ -131,11 +131,11 @@ func logDefaultFindings(results *checker.TokenPermissionsData,
 		text := "no workflows found in the repository"
 		if err := checker.LogFinding(rules, "GitHubWorkflowPermissionsStepsNoWrite",
 			text, nil, finding.OutcomeNotApplicable, dl); err != nil {
-			return err
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 		if err := checker.LogFinding(rules, "GitHubWorkflowPermissionsTopNoWrite",
 			text, nil, finding.OutcomeNotApplicable, dl); err != nil {
-			return err
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 		return nil
 	}
@@ -149,7 +149,7 @@ func logDefaultFindings(results *checker.TokenPermissionsData,
 		text := fmt.Sprintf("no %s write permissions found", checker.PermissionLocationJob)
 		if err := checker.LogFinding(rules, "GitHubWorkflowPermissionsStepsNoWrite",
 			text, nil, finding.OutcomePositive, dl); err != nil {
-			return err
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 	}
 

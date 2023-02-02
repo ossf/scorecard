@@ -16,6 +16,8 @@ package evaluation
 
 import (
 	"embed"
+	"fmt"
+	"os"
 	"path"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -35,9 +37,10 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	fmt.Println(os.Getwd())
 	// Keep track of reported results.
 	reportedRuleResults := map[string]bool{
-		"BinaryGradleWrapperSafe":  false,
+		"BinaryGradleWrapperSafe":   false,
 		"BinaryArtifactsNotPresent": false,
 	}
 
@@ -52,16 +55,17 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 
 	score := checker.MaxResultScore
 	for _, f := range r.Files {
+		//nolint:gosec
 		loc := checker.LocationFromFile(&f)
 		switch {
-		// BinaryGraddleWrapperSafe case.
+		// BinaryGradleWrapperSafe case.
 		case path.Base(f.Path) == "graddle-wrapper.jar":
-			if err := checker.LogFinding(rules, "BinaryGraddleWrapperSafe",
+			if err := checker.LogFinding(rules, "BinaryGradleWrapperSafe",
 				"unsafe graddle-wrapper.jar found",
 				loc, finding.OutcomeNegative, dl); err != nil {
 				return checker.CreateRuntimeErrorResult(name, err)
 			}
-			reportedRuleResults["BinaryGraddleWrapperSafe"] = true
+			reportedRuleResults["BinaryGradleWrapperSafe"] = true
 		// Default case BinaryArtifactsNotPresent.
 		default:
 			if err := checker.LogFinding(rules, "BinaryArtifactsNotPresent",
@@ -94,15 +98,15 @@ func logDefaultFindings(dl checker.DetailLogger, r map[string]bool) error {
 		if err := checker.LogFinding(rules, "BinaryArtifactsNotPresent",
 			"no binaries found",
 			nil, finding.OutcomePositive, dl); err != nil {
-			return err
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 	}
-	if !r["BinaryGraddleWrapperSafe"] {
-		if err := checker.LogFinding(rules, "BinaryGraddleWrapperSafe",
+	if !r["BinaryGradleWrapperSafe"] {
+		if err := checker.LogFinding(rules, "BinaryGradleWrapperSafe",
 			"no unsafe graddle wrapper binaries found",
 			// No wrapper binary found, so the rule is not applicable.
 			nil, finding.OutcomeNotApplicable, dl); err != nil {
-			return err
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 	}
 	return nil
