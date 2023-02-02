@@ -37,7 +37,7 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 
 	// Keep track of reported results.
 	reportedRuleResults := map[string]bool{
-		"BinaryGraddleWrapperSafe":  false,
+		"BinaryGradleWrapperSafe":  false,
 		"BinaryArtifactsNotPresent": false,
 	}
 
