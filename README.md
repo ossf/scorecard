@@ -16,7 +16,7 @@
 
 -   [What Is Scorecard?](#what-is-scorecard)
 -   [Prominent Scorecard Users](#prominent-scorecard-users)
--   [Scorecard' Public Data](#public-data)
+-   [Scorecard's Public Data](#public-data)
 
 ## Using Scorecard
 
