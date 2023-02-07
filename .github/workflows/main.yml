@@ -43,7 +43,7 @@ jobs:
       with:
         filters: |
           runUnitTests:
-            - '*.!(md)'
+            - '*/*.!(md)'
   unit-test:
     name: unit-test
     needs: changes
