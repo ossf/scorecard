@@ -14,7 +14,7 @@
 # limitations under the License.
 # Note: taken from https://github.com/pushiqiang/utils/blob/master/docker/Dockerfile_template
 # Add tab
-    FROM python:3.7
+    FROM python:3.12.0a4-slim-bullseye
 
 # 如果在中国，apt使用163源, ifconfig.co/json, http://ip-api.com 
 RUN curl -s ifconfig.co/json | grep "China" > /dev/null && \
