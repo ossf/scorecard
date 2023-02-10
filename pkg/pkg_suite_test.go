@@ -15,6 +15,7 @@
 package pkg_test
 
 import (
+	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -22,6 +23,9 @@ import (
 )
 
 func TestPkg(t *testing.T) {
+	if val, exists := os.LookupEnv("SKIP_GINKGO"); exists && val == "1" {
+		t.Skip()
+	}
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Pkg Suite")
 }
