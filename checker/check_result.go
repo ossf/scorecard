@@ -204,9 +204,9 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 func LogFinding(rules embed.FS, ruleName, text string, loc *finding.Location,
 	o finding.Outcome, dl DetailLogger,
 ) error {
-	//nolint:wrapcheck
 	f, err := finding.New(rules, ruleName)
 	if err != nil {
+		//nolint:wrapcheck
 		return err
 	}
 	f = f.WithMessage(text).WithOutcome(o).WithLocation(loc)
