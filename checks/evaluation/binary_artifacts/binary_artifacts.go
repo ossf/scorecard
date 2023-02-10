@@ -16,8 +16,6 @@ package evaluation
 
 import (
 	"embed"
-	"fmt"
-	"os"
 	"path"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -37,7 +35,6 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	fmt.Println(os.Getwd())
 	// Keep track of reported results.
 	reportedRuleResults := map[string]bool{
 		"BinaryGradleWrapperSafe":   false,
