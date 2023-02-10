@@ -31,10 +31,10 @@ import (
 	sclog "github.com/ossf/scorecard/v4/log"
 )
 
-func (s *ScorecardResult) normalize() {
-	s.Date = time.Time{}
-	sort.Slice(s.Checks, func(i, j int) bool {
-		return s.Checks[i].Name < s.Checks[j].Name
+func (r *ScorecardResult) normalize() {
+	r.Date = time.Time{}
+	sort.Slice(r.Checks, func(i, j int) bool {
+		return r.Checks[i].Name < r.Checks[j].Name
 	})
 }
 
@@ -52,16 +52,20 @@ func countDetails(c []checker.CheckDetail) (debug, info, warn int) {
 	return debug, info, warn
 }
 
+//nolint:lll,gocritic // comparison was failing with pointer types
 func compareScorecardResults(a, b ScorecardResult) bool {
-	if a.Repo != b.Repo || a.Scorecard != b.Scorecard {
+	if a.Repo != b.Repo {
+		fmt.Fprintf(GinkgoWriter, "Unequal repo details in results: %v vs %v\n", a.Repo, b.Repo)
 		return false
 	}
-
+	if a.Scorecard != b.Scorecard {
+		fmt.Fprintf(GinkgoWriter, "Unequal scorecard details in results: %v vs %v\n", a.Scorecard, b.Scorecard)
+		return false
+	}
 	if len(a.Checks) != len(b.Checks) {
 		fmt.Fprintf(GinkgoWriter, "Unequal number of checks in results: %d vs %d\n", len(a.Checks), len(b.Checks))
 		return false
 	}
-
 	for i := range a.Checks {
 		if a.Checks[i].Name != b.Checks[i].Name {
 			fmt.Fprintf(GinkgoWriter, "Check name mismatch: %q vs %q\n", a.Checks[i].Name, b.Checks[i].Name)
