@@ -16,6 +16,7 @@
 package checker
 
 import (
+	"embed"
 	"fmt"
 	"math"
 
@@ -198,4 +199,31 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Score:   InconclusiveResultScore,
 		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
 	}
+}
+
+func LogFinding(rules embed.FS, ruleName, text string, loc *finding.Location,
+	o finding.Outcome, dl DetailLogger,
+) error {
+	f, err := finding.New(rules, ruleName)
+	if err != nil {
+		return fmt.Errorf("finding.New: %w", err)
+	}
+
+	f = f.WithMessage(text).WithOutcome(o).WithLocation(loc)
+	switch o {
+	case finding.OutcomeNegative:
+		dl.Warn(&LogMessage{
+			Finding: f,
+		})
+	case finding.OutcomePositive, finding.OutcomeNotApplicable:
+		dl.Info(&LogMessage{
+			Finding: f,
+		})
+	default:
+		dl.Debug(&LogMessage{
+			Finding: f,
+		})
+	}
+
+	return nil
 }

@@ -16,7 +16,7 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/evaluation"
+	evaluation "github.com/ossf/scorecard/v4/checks/evaluation/fuzzing"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
