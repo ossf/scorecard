@@ -1,0 +1,32 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+short: Check that the project is fuzzed using OneFuzz
+desc: This rule checks that whether the project is fuzzed with OneFuzz
+motivation: >
+  TODO(https://github.com/ossf/scorecard/issues/2657): fuzzing catches bugs. For go, can be logic bug, null pointer accesses, DoS attacks.
+implementation: >
+ The implementation checks if the command 'onefuzz' is present in the source code files.
+outcome:
+  - If the command is found, one finding with OutcomePositive (1) is returned.
+  - If the command is not found, one finding with OutcomeNegative (0) is returned.
+risk: Medium
+remediation:
+  effort: High
+  text:
+    - Follow the steps in https://github.com/microsoft/onefuzz to start fuzzing for your project.
+    - Over time, try to add fuzzing for more functionalities of your project.
+  markdown:
+    - Follow the steps in [https://github.com/microsoft/onefuzz](https://github.com/microsoft/onefuzz) to start fuzzing for your project.
+    - Over time, try to add fuzzing for more functionalities of your project.
