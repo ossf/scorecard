@@ -31,7 +31,7 @@ const (
 	fuzzerOSSFuzz         = "OSSFuzz"
 	fuzzerClusterFuzzLite = "ClusterFuzzLite"
 	oneFuzz               = "OneFuzz"
-	fuzzerBuiltInGo       = "GoBuiltInFuzzer"
+	fuzzerNativeGo        = "GoNativeFuzzer"
 	// TODO: add more fuzzing check supports.
 )
 
@@ -54,7 +54,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	clients.Go: {
 		filePattern: "*_test.go",
 		funcPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
-		Name:        fuzzerBuiltInGo,
+		Name:        fuzzerNativeGo,
 		URL:         asPointer("https://go.dev/doc/fuzz/"),
 		Desc: asPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),

@@ -372,8 +372,8 @@ type TokenPermission struct {
 	Type         PermissionLevel
 }
 
-// LocationFromPath generates location from a file.
-func LocationFromPath(f *File) *finding.Location {
+// Location generates location from a file.
+func (f *File) Location() *finding.Location {
 	// TODO(2626): merge location and path.
 	if f != nil {
 		loc := &finding.Location{

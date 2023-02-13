@@ -49,7 +49,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
+				NumberOfWarn:  4,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
@@ -77,8 +77,8 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfWarn:  3,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)
@@ -105,8 +105,8 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  2,
+				NumberOfWarn:  3,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)

@@ -52,6 +52,9 @@ func TestFuzzing(t *testing.T) {
 				},
 			},
 			wantErr: false,
+			expected: scut.TestReturn{
+				NumberOfWarn: 4,
+			},
 		},
 		{
 			name: "hits 1",
@@ -71,9 +74,9 @@ func TestFuzzing(t *testing.T) {
 			wantErr: false,
 			want:    checker.CheckResult{Score: 10},
 			expected: scut.TestReturn{
-				NumberOfWarn:  0,
+				NumberOfWarn:  3,
 				NumberOfDebug: 0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				Score:         10,
 			},
 		},
@@ -105,11 +108,17 @@ func TestFuzzing(t *testing.T) {
 			},
 			wantFuzzErr: false,
 			want:        checker.CheckResult{Score: 0},
+			expected: scut.TestReturn{
+				NumberOfWarn: 4,
+			},
 		},
 		{
 			name:        "error",
 			wantFuzzErr: true,
 			want:        checker.CheckResult{},
+			expected: scut.TestReturn{
+				NumberOfWarn: 4,
+			},
 		},
 	}
 	for _, tt := range tests {

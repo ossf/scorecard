@@ -26,6 +26,13 @@ import (
 //go:embed *.yml
 var rules embed.FS
 
+var (
+	fuzzingWithClustterFuzzLite = "FuzzingWithClusterFuzzLite"
+	fuzzingWithOneFuzz          = "FuzzingWithOneFuzz"
+	fuzzingWithOSSFuzz          = "FuzzingWithOSSFuzz"
+	fuzzingWithGoNative         = "FuzzingWithGoNative"
+)
+
 // Fuzzing applies the score policy for the Fuzzing check.
 func Fuzzing(name string, dl checker.DetailLogger,
 	r *checker.FuzzingData,
@@ -36,9 +43,7 @@ func Fuzzing(name string, dl checker.DetailLogger,
 	}
 
 	// Keep track of reported results.
-	reportedRuleResults := map[string]bool{
-		"FuzzingWithGoNative": false,
-	}
+	reportedRuleResults := make(map[string]bool)
 
 	if len(r.Fuzzers) == 0 {
 		// Report findings for all rules.
@@ -50,29 +55,39 @@ func Fuzzing(name string, dl checker.DetailLogger,
 	fuzzers := []string{}
 	for i := range r.Fuzzers {
 		fuzzer := r.Fuzzers[i]
-		for j := range fuzzer.Files {
-			f := fuzzer.Files[j]
-			loc := checker.LocationFromPath(&f)
-			switch fuzzer.Name {
-			case "GoBuiltInFuzzer":
-				if err := checker.LogFinding(rules, "FuzzingWithGoNative",
-					"project fuzzed with Go native framework",
-					loc, finding.OutcomePositive, dl); err != nil {
-					return checker.CreateRuntimeErrorResult(name, err)
-				}
-				reportedRuleResults["FuzzingWithGoNative"] = true
-			case "OSSFuzz":
-				if err := checker.LogFinding(rules, "FuzzingWithOSSFuzz",
-					"project fuzzed with Go native framework",
-					loc, finding.OutcomePositive, dl); err != nil {
-					return checker.CreateRuntimeErrorResult(name, err)
-				}
-				reportedRuleResults["FuzzingWithOSSFuzz"] = true
-			// case "ClusterFuzzLite":
-			// case "OneFuzz":
-			default:
-				return checker.CreateRuntimeErrorResult(name, fmt.Errorf("unsupported fuzzer: %v", fuzzer))
+		// NOTE: files are not populated for all fuzzers yet.
+		// To simplify the code, we currently do not report the locations.
+		switch fuzzer.Name {
+		case "GoNativeFuzzer":
+			if err := checker.LogFinding(rules, fuzzingWithGoNative,
+				"project fuzzed with Go native framework",
+				nil, finding.OutcomePositive, dl); err != nil {
+				return checker.CreateRuntimeErrorResult(name, err)
 			}
+			reportedRuleResults[fuzzingWithGoNative] = true
+		case "OSSFuzz":
+			if err := checker.LogFinding(rules, fuzzingWithOSSFuzz,
+				"project fuzzed with OSS-Fuzz",
+				nil, finding.OutcomePositive, dl); err != nil {
+				return checker.CreateRuntimeErrorResult(name, err)
+			}
+			reportedRuleResults[fuzzingWithOSSFuzz] = true
+		case "ClusterFuzzLite":
+			if err := checker.LogFinding(rules, fuzzingWithClustterFuzzLite,
+				"project fuzzed with ClusterFuzzLite",
+				nil, finding.OutcomePositive, dl); err != nil {
+				return checker.CreateRuntimeErrorResult(name, err)
+			}
+			reportedRuleResults[fuzzingWithClustterFuzzLite] = true
+		case "OneFuzz":
+			if err := checker.LogFinding(rules, fuzzingWithOneFuzz,
+				"project fuzzed with OneFuzz",
+				nil, finding.OutcomePositive, dl); err != nil {
+				return checker.CreateRuntimeErrorResult(name, err)
+			}
+			reportedRuleResults[fuzzingWithOneFuzz] = true
+		default:
+			return checker.CreateRuntimeErrorResult(name, fmt.Errorf("unsupported fuzzer: %v", fuzzer))
 		}
 		fuzzers = append(fuzzers, fuzzer.Name)
 	}
@@ -87,9 +102,33 @@ func Fuzzing(name string, dl checker.DetailLogger,
 
 func logDefaultFindings(dl checker.DetailLogger, r map[string]bool) error {
 	// We always report at least one finding for each rule.
-	if !r["FuzzingWithGoNative"] {
-		if err := checker.LogFinding(rules, "FuzzingWithGoNative",
+	if !r[fuzzingWithGoNative] {
+		if err := checker.LogFinding(rules, fuzzingWithGoNative,
 			"no fuzzing using Go native framework",
+			nil, finding.OutcomeNegative, dl); err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+	}
+
+	if !r[fuzzingWithOSSFuzz] {
+		if err := checker.LogFinding(rules, fuzzingWithOSSFuzz,
+			"no fuzzing using OSS-Fuzz",
+			nil, finding.OutcomeNegative, dl); err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+	}
+
+	if !r[fuzzingWithOneFuzz] {
+		if err := checker.LogFinding(rules, fuzzingWithOneFuzz,
+			"no fuzzing using OneFuzz",
+			nil, finding.OutcomeNegative, dl); err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+	}
+
+	if !r[fuzzingWithClustterFuzzLite] {
+		if err := checker.LogFinding(rules, fuzzingWithClustterFuzzLite,
+			"no fuzzing using ClusterFuzzLite",
 			nil, finding.OutcomeNegative, dl); err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}

@@ -12,22 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-short: Check that the project is fuzzed using OSS-Fuzz
-desc: This rule checks that whether the project is fuzzed with OSS-Fuzz
+short: Check that the project is fuzzed using Go native fuzzing framework
+desc: This rule checks that whether the project is fuzzed with the Go native fuzzing framework
 motivation: >
-  TODO: fuzzing catches bugs. For go, can be logic bug, null pointer accesses, DoS attacks.
+  TODO(https://github.com/ossf/scorecard/issues/2657): fuzzing catches bugs. For go, can be logic bug, null pointer accesses, DoS attacks.
 implementation: >
- The implementation lists the projects integrated with OSS-Fuzz in https://github.com/google/oss-fuzz/tree/master/projects,
- and checks whether the project is in the list.
+ The implementation checks whether some .go files contains functions with the signature 'func FuzzSomeName(*testing.F)'.
 outcome:
-  - If an integration with OSS-Fuzz is found, the rule returns OutcomePositive (1).
-  - If no integration with OSS-Fuzz is found, the rule returns OutcomeNegative (0).
-risk: High
+  - If one or more fuzzing functions are found in the source code, a finding with OutcomePositive (1) is returned.
+  - If no fuzzing functions are found in the source code, a finding with OutcomeNegative (0) is returned.
+risk: Medium
 remediation:
-  effort: Low
+  effort: High
   text:
-    - Follow the steps in https://github.com/google/oss-fuzz to integrate fuzzing for your project.
+    - Follow the steps in https://go.dev/doc/fuzz/ to enable fuzzing on your project.
     - Over time, try to add fuzzing for more functionalities of your project.
   markdown:
-    - Follow the steps in [https://github.com/google/oss-fuzz](https://github.com/google/oss-fuzz) to integrate fuzzing for your project.
+    - Follow the steps in [https://go.dev/doc/fuzz/](https://go.dev/doc/fuzz/) to enable fuzzing on your project.
     - Over time, try to add fuzzing for more functionalities of your project.
