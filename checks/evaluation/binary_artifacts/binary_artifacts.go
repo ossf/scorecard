@@ -26,6 +26,11 @@ import (
 //go:embed *.yml
 var rules embed.FS
 
+var (
+	binaryGradleSafe          = "BinaryGradleWrapperSafe"
+	binaryArtifactsNotPresent = "BinaryArtifactsNotPresent"
+)
+
 // BinaryArtifacts applies the score policy for the Binary-Artifacts check.
 func BinaryArtifacts(name string, dl checker.DetailLogger,
 	r *checker.BinaryArtifactData,
@@ -36,10 +41,7 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 	}
 
 	// Keep track of reported results.
-	reportedRuleResults := map[string]bool{
-		"BinaryGradleWrapperSafe":   false,
-		"BinaryArtifactsNotPresent": false,
-	}
+	reportedRuleResults := make(map[string]bool)
 
 	// Apply the policy evaluation.
 	if r.Files == nil || len(r.Files) == 0 {
@@ -54,23 +56,24 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 	for _, f := range r.Files {
 		//nolint:gosec
 		loc := checker.LocationFromFile(&f)
+		metadata := map[string]string{"path": f.Path}
 		switch {
 		// BinaryGradleWrapperSafe case.
-		case path.Base(f.Path) == "graddle-wrapper.jar":
-			if err := checker.LogFinding(rules, "BinaryGradleWrapperSafe",
-				"unsafe graddle-wrapper.jar found",
-				loc, finding.OutcomeNegative, dl); err != nil {
+		case path.Base(f.Path) == "gradle-wrapper.jar":
+			if err := checker.LogFinding(rules, binaryGradleSafe,
+				"unsafe gradle-wrapper.jar found",
+				loc, finding.OutcomeNegative, metadata, dl); err != nil {
 				return checker.CreateRuntimeErrorResult(name, err)
 			}
-			reportedRuleResults["BinaryGradleWrapperSafe"] = true
+			reportedRuleResults[binaryGradleSafe] = true
 		// Default case BinaryArtifactsNotPresent.
 		default:
-			if err := checker.LogFinding(rules, "BinaryArtifactsNotPresent",
+			if err := checker.LogFinding(rules, binaryArtifactsNotPresent,
 				"binary found",
-				loc, finding.OutcomeNegative, dl); err != nil {
+				loc, finding.OutcomeNegative, metadata, dl); err != nil {
 				return checker.CreateRuntimeErrorResult(name, err)
 			}
-			reportedRuleResults["BinaryArtifactsNotPresent"] = true
+			reportedRuleResults[binaryArtifactsNotPresent] = true
 		}
 
 		// We remove one point for each binary.
@@ -91,18 +94,18 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 
 func logDefaultFindings(dl checker.DetailLogger, r map[string]bool) error {
 	// We always report at least one finding for each rule.
-	if !r["BinaryArtifactsNotPresent"] {
-		if err := checker.LogFinding(rules, "BinaryArtifactsNotPresent",
+	if !r[binaryArtifactsNotPresent] {
+		if err := checker.LogFinding(rules, binaryArtifactsNotPresent,
 			"no binaries found",
-			nil, finding.OutcomePositive, dl); err != nil {
+			nil, finding.OutcomePositive, nil, dl); err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 	}
-	if !r["BinaryGradleWrapperSafe"] {
-		if err := checker.LogFinding(rules, "BinaryGradleWrapperSafe",
-			"no unsafe graddle wrapper binaries found",
+	if !r[binaryGradleSafe] {
+		if err := checker.LogFinding(rules, binaryGradleSafe,
+			"no unsafe gradle wrapper binaries found",
 			// No wrapper binary found, so the rule is not applicable.
-			nil, finding.OutcomeNotApplicable, dl); err != nil {
+			nil, finding.OutcomeNotApplicable, nil, dl); err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 	}

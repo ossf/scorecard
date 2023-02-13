@@ -202,7 +202,7 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 }
 
 func LogFinding(rules embed.FS, ruleName, text string, loc *finding.Location,
-	o finding.Outcome, dl DetailLogger,
+	o finding.Outcome, metadata map[string]string, dl DetailLogger,
 ) error {
 	f, err := finding.New(rules, ruleName)
 	if err != nil {
@@ -210,6 +210,9 @@ func LogFinding(rules embed.FS, ruleName, text string, loc *finding.Location,
 		return err
 	}
 	f = f.WithMessage(text).WithOutcome(o).WithLocation(loc)
+	if len(metadata) > 0 {
+		f = f.WithRemediationMetadata(metadata)
+	}
 	switch o {
 	case finding.OutcomeNegative:
 		dl.Warn(&LogMessage{

@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-short: Checks that graddle wrappers are safely managed
-desc: This rule checks that graddle wrappers are safely managed if they are present
+short: Checks that gradle wrappers are safely managed
+desc: This rule checks that gradle wrappers are safely managed if they are present
 motivation: >
-  TODO: copy BinaryArtifactsNotPresent rule or link to it?
-  The gradle wrapper (see https://docs.gradle.org/current/userguide/gradle_wrapper.html) is required to build with graddle.
+  The gradle wrapper (see https://docs.gradle.org/current/userguide/gradle_wrapper.html) is required to build with gradle.
   Even though the wrapper is a binary and binaries should be avoided (see BinaryArtifactsNotPresent rule), there is a list of "known" official binaries.
   So a maintainer can commit the wrapper to their repository so long as they have a safe way to verify that the file
   is one of the official binaries.

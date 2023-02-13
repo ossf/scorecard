@@ -33,6 +33,11 @@ type permissions struct {
 	jobLevelWritePermissions map[string]bool
 }
 
+var (
+	gitHubWorkflowPermissionsStepsNoWrite = "GitHubWorkflowPermissionsStepsNoWrite"
+	gitHubWorkflowPermissionsTopNoWrite   = "GitHubWorkflowPermissionsTopNoWrite"
+)
+
 // TokenPermissions applies the score policy for the Token-Permissions check.
 func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPermissionsData) checker.CheckResult {
 	if r == nil {
@@ -63,10 +68,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	dl := c.Dlogger
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
-	reportedRuleResults := map[string]bool{
-		"GitHubWorkflowPermissionsStepsNoWrite": false,
-		"GitHubWorkflowPermissionsTopNoWrite":   false,
-	}
+	reportedRuleResults := make(map[string]bool)
 
 	for _, r := range results.TokenPermissions {
 		loc := checker.LocationFromFile(r.File)
@@ -129,12 +131,12 @@ func logDefaultFindings(results *checker.TokenPermissionsData,
 	// No workflow files exist.
 	if len(results.TokenPermissions) == 0 {
 		text := "no workflows found in the repository"
-		if err := checker.LogFinding(rules, "GitHubWorkflowPermissionsStepsNoWrite",
-			text, nil, finding.OutcomeNotApplicable, dl); err != nil {
+		if err := checker.LogFinding(rules, gitHubWorkflowPermissionsStepsNoWrite,
+			text, nil, finding.OutcomeNotApplicable, nil, dl); err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
-		if err := checker.LogFinding(rules, "GitHubWorkflowPermissionsTopNoWrite",
-			text, nil, finding.OutcomeNotApplicable, dl); err != nil {
+		if err := checker.LogFinding(rules, gitHubWorkflowPermissionsTopNoWrite,
+			text, nil, finding.OutcomeNotApplicable, nil, dl); err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 		return nil
@@ -144,11 +146,11 @@ func logDefaultFindings(results *checker.TokenPermissionsData,
 	// negative findings were found.
 	// NOTE: we don't consider rule `GitHubWorkflowPermissionsTopNoWrite`
 	// because positive results are already reported.
-	found := reportedRuleResults["GitHubWorkflowPermissionsStepsNoWrite"]
+	found := reportedRuleResults[gitHubWorkflowPermissionsStepsNoWrite]
 	if !found {
 		text := fmt.Sprintf("no %s write permissions found", checker.PermissionLocationJob)
-		if err := checker.LogFinding(rules, "GitHubWorkflowPermissionsStepsNoWrite",
-			text, nil, finding.OutcomePositive, dl); err != nil {
+		if err := checker.LogFinding(rules, gitHubWorkflowPermissionsStepsNoWrite,
+			text, nil, finding.OutcomePositive, nil, dl); err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 	}
@@ -157,9 +159,9 @@ func logDefaultFindings(results *checker.TokenPermissionsData,
 }
 
 func createLogMsg(loct *checker.PermissionLocation) (*checker.LogMessage, error) {
-	Rule := "GitHubWorkflowPermissionsStepsNoWrite"
+	Rule := gitHubWorkflowPermissionsStepsNoWrite
 	if loct == nil || *loct == checker.PermissionLocationTop {
-		Rule = "GitHubWorkflowPermissionsTopNoWrite"
+		Rule = gitHubWorkflowPermissionsTopNoWrite
 	}
 	f, err := finding.New(rules, Rule)
 	if err != nil {
