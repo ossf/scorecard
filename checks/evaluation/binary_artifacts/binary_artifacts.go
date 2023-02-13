@@ -55,7 +55,7 @@ func BinaryArtifacts(name string, dl checker.DetailLogger,
 	score := checker.MaxResultScore
 	for _, f := range r.Files {
 		//nolint:gosec
-		loc := checker.LocationFromFile(&f)
+		loc := f.Location()
 		metadata := map[string]string{"path": f.Path}
 		switch {
 		// BinaryGradleWrapperSafe case.

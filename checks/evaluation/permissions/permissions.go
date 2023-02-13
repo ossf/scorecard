@@ -71,8 +71,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	reportedRuleResults := make(map[string]bool)
 
 	for _, r := range results.TokenPermissions {
-		loc := checker.LocationFromFile(r.File)
-
+		loc := r.File.Location()
 		text, err := createText(r)
 		if err != nil {
 			return checker.MinResultScore, err
