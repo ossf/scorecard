@@ -61,6 +61,15 @@ func Fuzzing(name string, dl checker.DetailLogger,
 					return checker.CreateRuntimeErrorResult(name, err)
 				}
 				reportedRuleResults["FuzzingWithGoNative"] = true
+			case "OSSFuzz":
+				if err := checker.LogFinding(rules, "FuzzingWithOSSFuzz",
+					"project fuzzed with Go native framework",
+					loc, finding.OutcomePositive, dl); err != nil {
+					return checker.CreateRuntimeErrorResult(name, err)
+				}
+				reportedRuleResults["FuzzingWithOSSFuzz"] = true
+			// case "ClusterFuzzLite":
+			// case "OneFuzz":
 			default:
 				return checker.CreateRuntimeErrorResult(name, fmt.Errorf("unsupported fuzzer: %v", fuzzer))
 			}
