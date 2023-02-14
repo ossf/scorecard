@@ -4,7 +4,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: test
+      - name: get status
         run: |
           echo "GH_AUTH_TOKEN:"
           export GH_TOKEN=${{ secrets.GH_AUTH_TOKEN }}
@@ -20,3 +20,13 @@ jobs:
           export GH_TOKEN=${{ secrets.SCORECARD_TOKEN }}
           gh auth login || echo "failed login"
           gh auth status || echo "failed status"
+
+      - name: create comment
+        run: |
+          ISSUE_NUMBER=2657
+          export GH_TOKEN=${{ secrets.GH_AUTH_TOKEN }}
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments \
+            -f body='test'          
