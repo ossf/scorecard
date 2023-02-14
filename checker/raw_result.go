@@ -122,6 +122,7 @@ type Dependency struct {
 	Location *File
 	Msg      *string // Only for debug messages.
 	Type     DependencyUseType
+	Pinned   bool
 }
 
 // MaintainedData contains the raw results

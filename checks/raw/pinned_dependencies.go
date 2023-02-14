@@ -261,7 +261,6 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			if pinned || regex.MatchString(name) {
 				// Record the asName.
 				pinnedAsNames[asName] = true
-				continue
 			}
 
 			pdata.Dependencies = append(pdata.Dependencies,
@@ -275,6 +274,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 					},
 					Name:     asPointer(name),
 					PinnedAt: asPointer(asName),
+					Pinned:   pinned || regex.MatchString(name),
 					Type:     checker.DependencyUseTypeDockerfileContainerImage,
 				},
 			)
@@ -283,27 +283,26 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		case len(valueList) == 1:
 			name := valueList[0]
 			pinned := pinnedAsNames[name]
-			if !pinned && !regex.MatchString(name) {
-				dep := checker.Dependency{
-					Location: &checker.File{
-						Path:      pathfn,
-						Type:      finding.FileTypeSource,
-						Offset:    uint(child.StartLine),
-						EndOffset: uint(child.EndLine),
-						Snippet:   child.Original,
-					},
-					Type: checker.DependencyUseTypeDockerfileContainerImage,
-				}
-				parts := strings.SplitN(name, ":", 2)
-				if len(parts) > 0 {
-					dep.Name = asPointer(parts[0])
-					if len(parts) > 1 {
-						dep.PinnedAt = asPointer(parts[1])
-					}
-				}
-				pdata.Dependencies = append(pdata.Dependencies, dep)
-			}
 
+			dep := checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      finding.FileTypeSource,
+					Offset:    uint(child.StartLine),
+					EndOffset: uint(child.EndLine),
+					Snippet:   child.Original,
+				},
+				Pinned: pinned || regex.MatchString(name),
+				Type:   checker.DependencyUseTypeDockerfileContainerImage,
+			}
+			parts := strings.SplitN(name, ":", 2)
+			if len(parts) > 0 {
+				dep.Name = asPointer(parts[0])
+				if len(parts) > 1 {
+					dep.PinnedAt = asPointer(parts[1])
+				}
+			}
+			pdata.Dependencies = append(pdata.Dependencies, dep)
 		default:
 			// That should not happen.
 			return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
@@ -470,26 +469,25 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 				continue
 			}
 
-			if !isActionDependencyPinned(execAction.Uses.Value) {
-				dep := checker.Dependency{
-					Location: &checker.File{
-						Path:      pathfn,
-						Type:      finding.FileTypeSource,
-						Offset:    uint(execAction.Uses.Pos.Line),
-						EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
-						Snippet:   execAction.Uses.Value,
-					},
-					Type: checker.DependencyUseTypeGHAction,
-				}
-				parts := strings.SplitN(execAction.Uses.Value, "@", 2)
-				if len(parts) > 0 {
-					dep.Name = asPointer(parts[0])
-					if len(parts) > 1 {
-						dep.PinnedAt = asPointer(parts[1])
-					}
-				}
-				pdata.Dependencies = append(pdata.Dependencies, dep)
+			dep := checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      finding.FileTypeSource,
+					Offset:    uint(execAction.Uses.Pos.Line),
+					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
+					Snippet:   execAction.Uses.Value,
+				},
+				Pinned: isActionDependencyPinned(execAction.Uses.Value),
+				Type:   checker.DependencyUseTypeGHAction,
 			}
+			parts := strings.SplitN(execAction.Uses.Value, "@", 2)
+			if len(parts) > 0 {
+				dep.Name = asPointer(parts[0])
+				if len(parts) > 1 {
+					dep.PinnedAt = asPointer(parts[1])
+				}
+			}
+			pdata.Dependencies = append(pdata.Dependencies, dep)
 		}
 	}
 

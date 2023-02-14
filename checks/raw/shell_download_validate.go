@@ -337,7 +337,8 @@ func collectFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pat
 				EndOffset: endLine,
 				Snippet:   cmd,
 			},
-			Type: checker.DependencyUseTypeDownloadThenRun,
+			Pinned: false,
+			Type:   checker.DependencyUseTypeDownloadThenRun,
 		},
 	)
 }
@@ -388,7 +389,8 @@ func collectExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn 
 						EndOffset: endLine,
 						Snippet:   cmd,
 					},
-					Type: checker.DependencyUseTypeDownloadThenRun,
+					Pinned: false,
+					Type:   checker.DependencyUseTypeDownloadThenRun,
 				},
 			)
 		}
@@ -397,11 +399,7 @@ func collectExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn 
 
 // Npm install docs are here.
 // https://docs.npmjs.com/cli/v7/commands/npm-install
-func isNpmUnpinnedDownload(cmd []string) bool {
-	if len(cmd) == 0 {
-		return false
-	}
-
+func isNpmDownload(cmd []string) bool {
 	if !isBinaryName("npm", cmd[0]) {
 		return false
 	}
@@ -419,50 +417,39 @@ func isNpmUnpinnedDownload(cmd []string) bool {
 	return false
 }
 
-func isGoUnpinnedDownload(cmd []string) bool {
-	if len(cmd) == 0 {
-		return false
-	}
-
-	if !isBinaryName("go", cmd[0]) {
-		return false
-	}
+func isGoDownload(cmd []string) bool {
 	// `Go install` will automatically look up the
 	// go.mod and go.sum, so we don't flag it.
 	if len(cmd) <= 2 {
 		return false
 	}
 
-	found := false
+	return isBinaryName("go", cmd[0]) && slices.Contains([]string{"get", "install"}, cmd[1])
+}
+
+func isGoUnpinnedDownload(cmd []string) bool {
 	insecure := false
 	hashRegex := regexp.MustCompile("^[A-Fa-f0-9]{40,}$")
 	semverRegex := regexp.MustCompile(`^v\d+\.\d+\.\d+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-.]+)?$`)
-	for i := 1; i < len(cmd)-1; i++ {
-		// Search for get and install commands.
-		if slices.Contains([]string{"get", "install"}, cmd[i]) {
-			found = true
-		}
 
-		if !found {
-			continue
+	for i := 2; i < len(cmd); i++ {
+		// The -d flag instructs get to download but not install the packages
+		if strings.EqualFold(cmd[i], "-d") {
+			return false
 		}
 
 		// Skip all flags
 		// TODO skip other build flags which might take arguments
-		for i < len(cmd)-1 && slices.Contains([]string{"-d", "-f", "-t", "-u", "-v", "-fix", "-insecure"}, cmd[i+1]) {
+		if slices.Contains([]string{"-f", "-t", "-u", "-v", "-fix", "-insecure"}, cmd[i]) {
 			// Record the flag -insecure
-			if cmd[i+1] == "-insecure" {
+			if cmd[i] == "-insecure" {
 				insecure = true
 			}
-			i++
+			continue
 		}
 
-		if i+1 >= len(cmd) {
-			// this is case go get -d -v
-			return false
-		}
 		// TODO check more than one package
-		pkg := cmd[i+1]
+		pkg := cmd[i]
 		// Consider strings that are not URLs as local folders
 		// which are pinned.
 		regex := regexp.MustCompile(`\w+\.\w+/\w+`)
@@ -485,7 +472,15 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		}
 	}
 
-	return found
+	return true
+}
+
+func isPipInstall(cmd []string) bool {
+	if len(cmd) < 2 {
+		return false
+	}
+
+	return (isBinaryName("pip", cmd[0]) || isBinaryName("pip3", cmd[0])) && strings.EqualFold(cmd[1], "install")
 }
 
 func isPinnedEditableSource(pkgSource string) bool {
@@ -509,28 +504,13 @@ func isFlag(cmd string) bool {
 }
 
 func isUnpinnedPipInstall(cmd []string) bool {
-	if !isBinaryName("pip", cmd[0]) && !isBinaryName("pip3", cmd[0]) {
-		return false
-	}
-
-	isInstall := false
 	hasNoDeps := false
 	isEditableInstall := false
 	isPinnedEditableInstall := true
 	hasRequireHashes := false
 	hasAdditionalArgs := false
 	hasWheel := false
-	for i := 1; i < len(cmd); i++ {
-		// Search for install commands.
-		if strings.EqualFold(cmd[i], "install") {
-			isInstall = true
-			continue
-		}
-
-		if !isInstall {
-			break
-		}
-
+	for i := 2; i < len(cmd); i++ {
 		// Require --no-deps to not install the dependencies when doing editable install
 		// because we can't verify if dependencies are pinned
 		// https://pip.pypa.io/en/stable/topics/secure-installs/#do-not-use-setuptools-directly
@@ -609,7 +589,7 @@ func isUnpinnedPipInstall(cmd []string) bool {
 
 	// Any other form of install is unpinned,
 	// e.g. `pip install`.
-	return isInstall
+	return true
 }
 
 func isPythonCommand(cmd []string) bool {
@@ -637,49 +617,52 @@ func extractPipCommand(cmd []string) ([]string, bool) {
 	return nil, false
 }
 
-func isUnpinnedPythonPipInstall(cmd []string) bool {
+func isPythonPipInstall(cmd []string) bool {
 	if !isPythonCommand(cmd) {
 		return false
 	}
+
 	pipCommand, ok := extractPipCommand(cmd)
 	if !ok {
 		return false
 	}
+
+	return isPipInstall(pipCommand)
+}
+
+func isUnpinnedPythonPipInstall(cmd []string) bool {
+	pipCommand, _ := extractPipCommand(cmd)
 	return isUnpinnedPipInstall(pipCommand)
 }
 
-func isPipUnpinnedDownload(cmd []string) bool {
-	if len(cmd) == 0 {
-		return false
-	}
+func isPipDownload(cmd []string) bool {
+	return isPipInstall(cmd) || isPythonPipInstall(cmd)
+}
 
-	if isUnpinnedPipInstall(cmd) {
+func isPipUnpinnedDownload(cmd []string) bool {
+	if isPipInstall(cmd) && isUnpinnedPipInstall(cmd) {
 		return true
 	}
 
-	if isUnpinnedPythonPipInstall(cmd) {
+	if isPythonPipInstall(cmd) && isUnpinnedPythonPipInstall(cmd) {
 		return true
 	}
 
 	return false
 }
 
-func isChocoUnpinnedDownload(cmd []string) bool {
+func isChocoDownload(cmd []string) bool {
 	// Install command is in the form 'choco install ...'
 	if len(cmd) < 2 {
 		return false
 	}
 
-	if !isBinaryName("choco", cmd[0]) && !isBinaryName("choco.exe", cmd[0]) {
-		return false
-	}
+	return (isBinaryName("choco", cmd[0]) || isBinaryName("choco.exe", cmd[0])) && strings.EqualFold(cmd[1], "install")
+}
 
-	if !strings.EqualFold(cmd[1], "install") {
-		return false
-	}
-
+func isChocoUnpinnedDownload(cmd []string) bool {
 	// If this is an install command, then some variant of requirechecksum must be present.
-	for i := 1; i < len(cmd); i++ {
+	for i := 2; i < len(cmd); i++ {
 		parts := strings.Split(cmd[i], "=")
 		if len(parts) == 0 {
 			continue
@@ -799,8 +782,12 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 
 	startLine, endLine = getLine(startLine, endLine, node)
 
+	if len(c) == 0 {
+		return
+	}
+
 	// Go get/install.
-	if isGoUnpinnedDownload(c) {
+	if isGoDownload(c) {
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
 				Location: &checker.File{
@@ -810,7 +797,8 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Type: checker.DependencyUseTypeGoCommand,
+				Pinned: !isGoUnpinnedDownload(c),
+				Type:   checker.DependencyUseTypeGoCommand,
 			},
 		)
 
@@ -818,7 +806,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 	}
 
 	// Pip install.
-	if isPipUnpinnedDownload(c) {
+	if isPipDownload(c) {
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
 				Location: &checker.File{
@@ -828,7 +816,8 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Type: checker.DependencyUseTypePipCommand,
+				Pinned: !isPipUnpinnedDownload(c),
+				Type:   checker.DependencyUseTypePipCommand,
 			},
 		)
 
@@ -836,7 +825,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 	}
 
 	// Npm install.
-	if isNpmUnpinnedDownload(c) {
+	if isNpmDownload(c) {
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
 				Location: &checker.File{
@@ -846,7 +835,8 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Type: checker.DependencyUseTypeNpmCommand,
+				Pinned: false,
+				Type:   checker.DependencyUseTypeNpmCommand,
 			},
 		)
 
@@ -854,7 +844,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 	}
 
 	// Choco install.
-	if isChocoUnpinnedDownload(c) {
+	if isChocoDownload(c) {
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
 				Location: &checker.File{
@@ -864,7 +854,8 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Type: checker.DependencyUseTypeChocoCommand,
+				Pinned: !isChocoUnpinnedDownload(c),
+				Type:   checker.DependencyUseTypeChocoCommand,
 			},
 		)
 
@@ -977,7 +968,8 @@ func collectFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd,
 				EndOffset: endLine,
 				Snippet:   cmd,
 			},
-			Type: checker.DependencyUseTypeDownloadThenRun,
+			Pinned: false,
+			Type:   checker.DependencyUseTypeDownloadThenRun,
 		},
 	)
 }
