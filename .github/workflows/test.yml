@@ -1,0 +1,19 @@
+name: test secrets
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        run: |
+          echo "GH_AUTH_TOKEN:"
+          gh auth login --with-token $(echo ${{ secrets.GH_AUTH_TOKEN }}) || echo "failed login"
+          gh auth status || echo "failed status"
+          
+          echo "PERSONAL_ACCESS_TOKEN:"
+          gh auth login --with-token $(echo ${{ secrets.PERSONAL_ACCESS_TOKEN }}) || echo "failed login"
+          gh auth status || echo "failed status"
+          
+          echo "SCORECARD_TOKEN:"
+          gh auth login --with-token $(echo ${{ secrets.SCORECARD_TOKEN }}) || echo "failed login"
+          gh auth status || echo "failed status"
