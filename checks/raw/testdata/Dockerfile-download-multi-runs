@@ -13,7 +13,7 @@
 # limitations under the License.
 # Note: taken from https://github.com/pushiqiang/utils/blob/master/docker/Dockerfile_template
 # Add tab
-    FROM python:3.7
+    FROM python:3.12.0a5-slim
 
 RUN echo hello && wget http://file-with-sudo -O /tmp/file3
 
