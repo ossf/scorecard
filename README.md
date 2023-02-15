@@ -1,5 +1,6 @@
 # OpenSSF Scorecard
 
+
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard/badge)](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/5621/badge)](https://bestpractices.coreinfrastructure.org/projects/5621)
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
