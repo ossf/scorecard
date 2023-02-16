@@ -26,7 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
-func TestAsPointer(t *testing.T) {
+func TestAsStringPointer(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct { //nolint:govet
@@ -37,17 +37,17 @@ func TestAsPointer(t *testing.T) {
 		{
 			name:     "test_empty_string",
 			input:    "",
-			expected: asPointer(""),
+			expected: asStringPointer(""),
 		},
 		{
 			name:     "test_non_empty_string",
 			input:    "test",
-			expected: asPointer("test"),
+			expected: asStringPointer("test"),
 		},
 		{
 			name:     "test_number_string",
 			input:    "123",
-			expected: asPointer("123"),
+			expected: asStringPointer("123"),
 		},
 	}
 
@@ -55,9 +55,9 @@ func TestAsPointer(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := asPointer(tt.input)
+			result := asStringPointer(tt.input)
 			if *result != *tt.expected {
-				t.Errorf("asPointer() = %v, want %v", result, tt.expected)
+				t.Errorf("asStringPointer() = %v, want %v", result, tt.expected)
 			}
 		})
 	}
@@ -110,7 +110,7 @@ func TestJsonScorecardRawResult_AddPackagingRawResults(t *testing.T) {
 			input: &checker.PackagingData{
 				Packages: []checker.Package{
 					{
-						Msg: asPointer("testMsg"),
+						Msg: asStringPointer("testMsg"),
 					},
 				},
 			},
@@ -193,8 +193,8 @@ func TestJsonScorecardRawResult_AddTokenPermissionsRawResults(t *testing.T) {
 						LocationType: &loc,
 						Type:         checker.PermissionLevelUndeclared,
 						Job: &checker.WorkflowJob{
-							Name: asPointer("testJobName"),
-							ID:   asPointer("testJobID"),
+							Name: asStringPointer("testJobName"),
+							ID:   asStringPointer("testJobID"),
 						},
 						File: &checker.File{
 							Path:    "testPath",
@@ -250,8 +250,8 @@ func TestJsonScorecardRawResult_AddDependencyPinningRawResults(t *testing.T) {
 							EndOffset: 5,
 							Snippet:   "testSnippet",
 						},
-						Name:     asPointer("testDependency"),
-						PinnedAt: asPointer("testPinnedAt"),
+						Name:     asStringPointer("testDependency"),
+						PinnedAt: asStringPointer("testPinnedAt"),
 						Type:     checker.DependencyUseTypeGHAction,
 					},
 				},
@@ -264,8 +264,8 @@ func TestJsonScorecardRawResult_AddDependencyPinningRawResults(t *testing.T) {
 				Dependencies: []checker.Dependency{
 					{
 						Location: nil,
-						Name:     asPointer("testDependency"),
-						PinnedAt: asPointer("testPinnedAt"),
+						Name:     asStringPointer("testDependency"),
+						PinnedAt: asStringPointer("testPinnedAt"),
 						Type:     checker.DependencyUseTypeGHAction,
 					},
 				},
@@ -309,8 +309,8 @@ func TestJsonScorecardRawResult_AddDangerousWorkflowRawResults(t *testing.T) {
 						},
 						Type: checker.DangerousWorkflowScriptInjection,
 						Job: &checker.WorkflowJob{
-							Name: asPointer("testJob"),
-							ID:   asPointer("testID"),
+							Name: asStringPointer("testJob"),
+							ID:   asStringPointer("testID"),
 						},
 					},
 				},
@@ -437,7 +437,7 @@ func TestJsonScorecardRawResult_AddMaintainedRawResults(t *testing.T) {
 				CreatedAt: time.Now(),
 				Issues: []clients.Issue{
 					{
-						URI: asPointer("testUrl"),
+						URI: asStringPointer("testUrl"),
 						Author: &clients.User{
 							Login: "testLogin",
 						},
@@ -960,8 +960,8 @@ func TestAddFuzzingRawResults(t *testing.T) {
 		Fuzzers: []checker.Tool{
 			{
 				Name: "fuzzer1",
-				URL:  asPointer("https://example.com/fuzzer1"),
-				Desc: asPointer("Fuzzer 1 description"),
+				URL:  asStringPointer("https://example.com/fuzzer1"),
+				Desc: asStringPointer("Fuzzer 1 description"),
 				Files: []checker.File{
 					{
 						Path: "path/to/fuzzer1/file1",
@@ -973,8 +973,8 @@ func TestAddFuzzingRawResults(t *testing.T) {
 			},
 			{
 				Name: "fuzzer2",
-				URL:  asPointer("https://example.com/fuzzer2"),
-				Desc: asPointer("Fuzzer 2 description"),
+				URL:  asStringPointer("https://example.com/fuzzer2"),
+				Desc: asStringPointer("Fuzzer 2 description"),
 				Files: []checker.File{
 					{
 						Path: "path/to/fuzzer2/file1",
@@ -992,8 +992,8 @@ func TestAddFuzzingRawResults(t *testing.T) {
 	expectedFuzzers := []jsonTool{
 		{
 			Name: "fuzzer1",
-			URL:  asPointer("https://example.com/fuzzer1"),
-			Desc: asPointer("Fuzzer 1 description"),
+			URL:  asStringPointer("https://example.com/fuzzer1"),
+			Desc: asStringPointer("Fuzzer 1 description"),
 			Files: []jsonFile{
 				{
 					Path: "path/to/fuzzer1/file1",
@@ -1005,8 +1005,8 @@ func TestAddFuzzingRawResults(t *testing.T) {
 		},
 		{
 			Name: "fuzzer2",
-			URL:  asPointer("https://example.com/fuzzer2"),
-			Desc: asPointer("Fuzzer 2 description"),
+			URL:  asStringPointer("https://example.com/fuzzer2"),
+			Desc: asStringPointer("Fuzzer 2 description"),
 			Files: []jsonFile{
 				{
 					Path: "path/to/fuzzer2/file1",
@@ -1080,8 +1080,8 @@ func TestJsonScorecardRawResult(t *testing.T) {
 		Fuzzers: []checker.Tool{
 			{
 				Name: "fuzzer1",
-				URL:  asPointer("https://example.com/fuzzer1"),
-				Desc: asPointer("fuzzer1 description"),
+				URL:  asStringPointer("https://example.com/fuzzer1"),
+				Desc: asStringPointer("fuzzer1 description"),
 				Files: []checker.File{
 					{Path: "fuzzers/fuzzer1/foo"},
 					{Path: "fuzzers/fuzzer1/bar"},
@@ -1089,8 +1089,8 @@ func TestJsonScorecardRawResult(t *testing.T) {
 			},
 			{
 				Name: "fuzzer2",
-				URL:  asPointer("https://example.com/fuzzer2"),
-				Desc: asPointer("fuzzer2 description"),
+				URL:  asStringPointer("https://example.com/fuzzer2"),
+				Desc: asStringPointer("fuzzer2 description"),
 				Files: []checker.File{
 					{Path: "fuzzers/fuzzer2/foo"},
 					{Path: "fuzzers/fuzzer2/bar"},
@@ -1184,8 +1184,8 @@ func TestJsonScorecardRawResult(t *testing.T) {
 	expectedFuzzers := []jsonTool{
 		{
 			Name: "fuzzer1",
-			URL:  asPointer("https://example.com/fuzzer1"),
-			Desc: asPointer("fuzzer1 description"),
+			URL:  asStringPointer("https://example.com/fuzzer1"),
+			Desc: asStringPointer("fuzzer1 description"),
 			Files: []jsonFile{
 				{Path: "fuzzers/fuzzer1/foo"},
 				{Path: "fuzzers/fuzzer1/bar"},
@@ -1193,8 +1193,8 @@ func TestJsonScorecardRawResult(t *testing.T) {
 		},
 		{
 			Name: "fuzzer2",
-			URL:  asPointer("https://example.com/fuzzer1"),
-			Desc: asPointer("fuzzer1 description"),
+			URL:  asStringPointer("https://example.com/fuzzer1"),
+			Desc: asStringPointer("fuzzer1 description"),
 			Files: []jsonFile{
 				{Path: "fuzzers/fuzzer2/foo"},
 				{Path: "fuzzers/fuzzer2/bar"},

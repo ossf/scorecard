@@ -85,7 +85,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
 		funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
 		Name:        fuzzerPropertyBasedHaskell,
-		Desc: asPointer(
+		Desc: asStringPointer(
 			"Property-based testing in Haskell generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),
 	},
@@ -100,7 +100,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		// Look for direct imports of fast-check.
 		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
 		Name:        fuzzerPropertyBasedJavaScript,
-		Desc: asPointer(
+		Desc: asStringPointer(
 			"Property-based testing in JavaScript generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),
 	},
@@ -109,7 +109,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		// Look for direct imports of fast-check.
 		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
 		Name:        fuzzerPropertyBasedTypeScript,
-		Desc: asPointer(
+		Desc: asStringPointer(
 			"Property-based testing in TypeScript generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),
 	},

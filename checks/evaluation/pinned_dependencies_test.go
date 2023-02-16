@@ -186,7 +186,7 @@ func Test_PinningDependencies(t *testing.T) {
 				{
 					Location: &checker.File{},
 					Type:     checker.DependencyUseTypePipCommand,
-					Msg:      asPointer("debug message"),
+					Msg:      asStringPointer("debug message"),
 				},
 			},
 			expected: scut.TestReturn{
@@ -224,7 +224,7 @@ func Test_PinningDependencies(t *testing.T) {
 				},
 				{
 					Location: &checker.File{},
-					Msg:      asPointer("debug message"),
+					Msg:      asStringPointer("debug message"),
 				},
 			},
 			expected: scut.TestReturn{

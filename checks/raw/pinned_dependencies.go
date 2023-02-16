@@ -274,7 +274,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 					},
 					Name:     asStringPointer(name),
 					PinnedAt: asStringPointer(asName),
-					Pinned:   pinned || regex.MatchString(name),
+					Pinned:   asBoolPointer(pinned || regex.MatchString(name)),
 					Type:     checker.DependencyUseTypeDockerfileContainerImage,
 				},
 			)
@@ -292,7 +292,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 					EndOffset: uint(child.EndLine),
 					Snippet:   child.Original,
 				},
-				Pinned: pinned || regex.MatchString(name),
+				Pinned: asBoolPointer(pinned || regex.MatchString(name)),
 				Type:   checker.DependencyUseTypeDockerfileContainerImage,
 			}
 			parts := strings.SplitN(name, ":", 2)
@@ -477,7 +477,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
 					Snippet:   execAction.Uses.Value,
 				},
-				Pinned: isActionDependencyPinned(execAction.Uses.Value),
+				Pinned: asBoolPointer(isActionDependencyPinned(execAction.Uses.Value)),
 				Type:   checker.DependencyUseTypeGHAction,
 			}
 			parts := strings.SplitN(execAction.Uses.Value, "@", 2)

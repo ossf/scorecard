@@ -651,7 +651,7 @@ func TestAttestationPolicy_EvaluateResults(t *testing.T) {
 				raw: &checker.RawResults{
 					PinningDependenciesResults: checker.PinningDependenciesData{
 						Dependencies: []checker.Dependency{
-							{Name: asPointer("foo"), PinnedAt: asPointer("abcdef")},
+							{Name: asStringPointer("foo"), PinnedAt: asStringPointer("abcdef")},
 						},
 					},
 				},
