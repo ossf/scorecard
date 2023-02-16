@@ -75,9 +75,9 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.4.0 // indirect
-	github.com/json-iterator/go v1.1.10 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/package-url/packageurl-go v0.1.0 // indirect
 	github.com/pjbgf/sha1cd v0.2.3 // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
@@ -172,6 +172,8 @@ replace (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt v3.2.1+incompatible
 	// This replace is for GHSA-qq97-vm5h-rrhg
 	github.com/docker/distribution => github.com/docker/distribution v2.8.0+incompatible
+	// This replace is for https://osv.dev/vulnerability/GHSA-r48q-9g5r-8q2h
+	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
 	// https://go.googlesource.com/vulndb/+/refs/heads/master/reports/GO-2020-0020.yaml
 	github.com/gorilla/handlers => github.com/gorilla/handlers v1.3.0
 	// https://github.com/miekg/dns/issues/1037
