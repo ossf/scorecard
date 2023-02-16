@@ -292,7 +292,7 @@ type jsonRawResults struct {
 	DependencyPinning jsonPinningDependenciesData `json:"dependencyPinning"`
 }
 
-func asPointer(s string) *string {
+func asStringPointer(s string) *string {
 	return &s
 }
 
@@ -312,7 +312,7 @@ func (r *jsonScorecardRawResult) addTokenPermissionsRawResults(tp *checker.Token
 		}
 
 		p := jsonTokenPermission{
-			LocationType: asPointer(string(*t.LocationType)),
+			LocationType: asStringPointer(string(*t.LocationType)),
 			Name:         t.Name,
 			Value:        t.Value,
 			Type:         string(t.Type),

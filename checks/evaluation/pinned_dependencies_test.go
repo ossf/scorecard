@@ -86,7 +86,7 @@ func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
 	}
 }
 
-func asPointer(s string) *string {
+func asStringPointer(s string) *string {
 	return &s
 }
 
@@ -103,7 +103,7 @@ func Test_PinningDependencies(t *testing.T) {
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
-					Msg:      asPointer("some message"),
+					Msg:      asStringPointer("some message"),
 					Type:     checker.DependencyUseTypeDownloadThenRun,
 				},
 			},
@@ -120,7 +120,7 @@ func Test_PinningDependencies(t *testing.T) {
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
-					Msg:      asPointer("some message"),
+					Msg:      asStringPointer("some message"),
 					Type:     checker.DependencyUseTypeDownloadThenRun,
 				},
 				{
@@ -153,7 +153,7 @@ func Test_PinningDependencies(t *testing.T) {
 				},
 				{
 					Location: &checker.File{},
-					Msg:      asPointer("debug message"),
+					Msg:      asStringPointer("debug message"),
 				},
 			},
 			expected: scut.TestReturn{

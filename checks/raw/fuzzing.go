@@ -62,8 +62,8 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		filePattern: "*_test.go",
 		funcPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
 		Name:        fuzzerBuiltInGo,
-		URL:         asPointer("https://go.dev/doc/fuzz/"),
-		Desc: asPointer(
+		URL:         asStringPointer("https://go.dev/doc/fuzz/"),
+		Desc: asStringPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
 	},
 	// Fuzz patterns for Haskell based on property-based testing.
@@ -127,8 +127,8 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		fuzzers = append(fuzzers,
 			checker.Tool{
 				Name: fuzzerClusterFuzzLite,
-				URL:  asPointer("https://github.com/google/clusterfuzzlite"),
-				Desc: asPointer("continuous fuzzing solution that runs as part of Continuous Integration (CI) workflows"),
+				URL:  asStringPointer("https://github.com/google/clusterfuzzlite"),
+				Desc: asStringPointer("continuous fuzzing solution that runs as part of Continuous Integration (CI) workflows"),
 				// TODO: File.
 			},
 		)
@@ -142,8 +142,8 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		fuzzers = append(fuzzers,
 			checker.Tool{
 				Name: oneFuzz,
-				URL:  asPointer("https://github.com/microsoft/onefuzz"),
-				Desc: asPointer("Enables continuous developer-driven fuzzing to proactively harden software prior to release."),
+				URL:  asStringPointer("https://github.com/microsoft/onefuzz"),
+				Desc: asStringPointer("Enables continuous developer-driven fuzzing to proactively harden software prior to release."),
 				// TODO: File.
 			},
 		)
@@ -157,8 +157,8 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		fuzzers = append(fuzzers,
 			checker.Tool{
 				Name: fuzzerOSSFuzz,
-				URL:  asPointer("https://github.com/google/oss-fuzz"),
-				Desc: asPointer("Continuous Fuzzing for Open Source Software"),
+				URL:  asStringPointer("https://github.com/google/oss-fuzz"),
+				Desc: asStringPointer("Continuous Fuzzing for Open Source Software"),
 				// TODO: File.
 			},
 		)
