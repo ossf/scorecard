@@ -336,7 +336,7 @@ func collectFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pat
 				EndOffset: endLine,
 				Snippet:   cmd,
 			},
-			Pinned: false,
+			Pinned: asBoolPointer(false),
 			Type:   checker.DependencyUseTypeDownloadThenRun,
 		},
 	)
@@ -388,7 +388,7 @@ func collectExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn 
 						EndOffset: endLine,
 						Snippet:   cmd,
 					},
-					Pinned: false,
+					Pinned: asBoolPointer(false),
 					Type:   checker.DependencyUseTypeDownloadThenRun,
 				},
 			)
@@ -645,7 +645,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Pinned: !isGoUnpinnedDownload(c),
+				Pinned: asBoolPointer(!isGoUnpinnedDownload(c)),
 				Type:   checker.DependencyUseTypeGoCommand,
 			},
 		)
@@ -664,7 +664,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Pinned: !isPipUnpinnedDownload(c),
+				Pinned: asBoolPointer(!isPipUnpinnedDownload(c)),
 				Type:   checker.DependencyUseTypePipCommand,
 			},
 		)
@@ -683,7 +683,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Pinned: false,
+				Pinned: asBoolPointer(false),
 				Type:   checker.DependencyUseTypeNpmCommand,
 			},
 		)
@@ -702,7 +702,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Pinned: !isChocoUnpinnedDownload(c),
+				Pinned: asBoolPointer(!isChocoUnpinnedDownload(c)),
 				Type:   checker.DependencyUseTypeChocoCommand,
 			},
 		)
@@ -798,7 +798,7 @@ func collectFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd,
 				EndOffset: endLine,
 				Snippet:   cmd,
 			},
-			Pinned: false,
+			Pinned: asBoolPointer(false),
 			Type:   checker.DependencyUseTypeDownloadThenRun,
 		},
 	)

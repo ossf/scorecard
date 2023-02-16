@@ -138,3 +138,7 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 func asStringPointer(s string) *string {
 	return &s
 }
+
+func asBoolPointer(b bool) *bool {
+	return &b
+}
