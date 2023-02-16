@@ -272,8 +272,8 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 						EndOffset: uint(child.EndLine),
 						Snippet:   child.Original,
 					},
-					Name:     asPointer(name),
-					PinnedAt: asPointer(asName),
+					Name:     asStringPointer(name),
+					PinnedAt: asStringPointer(asName),
 					Pinned:   pinned || regex.MatchString(name),
 					Type:     checker.DependencyUseTypeDockerfileContainerImage,
 				},
@@ -297,9 +297,9 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			}
 			parts := strings.SplitN(name, ":", 2)
 			if len(parts) > 0 {
-				dep.Name = asPointer(parts[0])
+				dep.Name = asStringPointer(parts[0])
 				if len(parts) > 1 {
-					dep.PinnedAt = asPointer(parts[1])
+					dep.PinnedAt = asStringPointer(parts[1])
 				}
 			}
 			pdata.Dependencies = append(pdata.Dependencies, dep)
@@ -394,7 +394,7 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			if err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line), uint(execRun.Run.Pos.Line),
 				script, taintedFiles, pdata); err != nil {
 				pdata.Dependencies = append(pdata.Dependencies, checker.Dependency{
-					Msg: asPointer(err.Error()),
+					Msg: asStringPointer(err.Error()),
 				})
 			}
 		}
@@ -482,9 +482,9 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			}
 			parts := strings.SplitN(execAction.Uses.Value, "@", 2)
 			if len(parts) > 0 {
-				dep.Name = asPointer(parts[0])
+				dep.Name = asStringPointer(parts[0])
 				if len(parts) > 1 {
-					dep.PinnedAt = asPointer(parts[1])
+					dep.PinnedAt = asStringPointer(parts[1])
 				}
 			}
 			pdata.Dependencies = append(pdata.Dependencies, dep)

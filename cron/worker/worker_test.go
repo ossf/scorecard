@@ -23,7 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/cron/data"
 )
 
-func asPointer(i int32) *int32 {
+func asIntPointer(i int32) *int32 {
 	return &i
 }
 
@@ -38,7 +38,7 @@ func TestResultFilename(t *testing.T) {
 			name: "Basic",
 			req: &data.ScorecardBatchRequest{
 				JobTime:  timestamppb.New(time.Date(1979, time.October, 12, 1, 2, 3, 0, time.UTC)),
-				ShardNum: asPointer(42),
+				ShardNum: asIntPointer(42),
 			},
 			want: "1979.10.12/010203/shard-0000042",
 		},

@@ -49,8 +49,8 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 		if commits[i].Committer.ID == dependabotID {
 			tools = append(tools, checker.Tool{
 				Name:  "Dependabot",
-				URL:   asPointer("https://github.com/dependabot"),
-				Desc:  asPointer("Automated dependency updates built into GitHub"),
+				URL:   asStringPointer("https://github.com/dependabot"),
+				Desc:  asStringPointer("Automated dependency updates built into GitHub"),
 				Files: []checker.File{{}},
 			})
 			break
@@ -74,8 +74,8 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 	case ".github/dependabot.yml", ".github/dependabot.yaml":
 		*ptools = append(*ptools, checker.Tool{
 			Name: "Dependabot",
-			URL:  asPointer("https://github.com/dependabot"),
-			Desc: asPointer("Automated dependency updates built into GitHub"),
+			URL:  asStringPointer("https://github.com/dependabot"),
+			Desc: asStringPointer("Automated dependency updates built into GitHub"),
 			Files: []checker.File{
 				{
 					Path:   name,
@@ -90,8 +90,8 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 		"renovate.json5", ".renovaterc":
 		*ptools = append(*ptools, checker.Tool{
 			Name: "RenovateBot",
-			URL:  asPointer("https://github.com/renovatebot/renovate"),
-			Desc: asPointer("Automated dependency updates. Multi-platform and multi-language."),
+			URL:  asStringPointer("https://github.com/renovatebot/renovate"),
+			Desc: asStringPointer("Automated dependency updates. Multi-platform and multi-language."),
 			Files: []checker.File{
 				{
 					Path:   name,
@@ -103,8 +103,8 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 	case ".pyup.yml":
 		*ptools = append(*ptools, checker.Tool{
 			Name: "PyUp",
-			URL:  asPointer("https://pyup.io/"),
-			Desc: asPointer("Automated dependency updates for Python."),
+			URL:  asStringPointer("https://pyup.io/"),
+			Desc: asStringPointer("Automated dependency updates for Python."),
 			Files: []checker.File{
 				{
 					Path:   name,
@@ -116,8 +116,8 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 	case ".lift.toml", ".lift/config.toml":
 		*ptools = append(*ptools, checker.Tool{
 			Name: "Sonatype Lift",
-			URL:  asPointer("https://lift.sonatype.com"),
-			Desc: asPointer("Automated dependency updates. Multi-platform and multi-language."),
+			URL:  asStringPointer("https://lift.sonatype.com"),
+			Desc: asStringPointer("Automated dependency updates. Multi-platform and multi-language."),
 			Files: []checker.File{
 				{
 					Path:   name,
@@ -135,6 +135,6 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 	return false, nil
 }
 
-func asPointer(s string) *string {
+func asStringPointer(s string) *string {
 	return &s
 }
