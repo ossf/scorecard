@@ -24,7 +24,7 @@ on:
 
 env:
   PROTOC_VERSION: 3.17.3
-  GO_VERSION: 1.20
+  GO_VERSION: "1.20"
 
 jobs:
   docs_only_check:
