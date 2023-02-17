@@ -17,6 +17,8 @@ package evaluation
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
@@ -40,6 +42,13 @@ type worklowPinningResult struct {
 	gitHubOwned  pinnedResult
 }
 
+// Structure to host information about downloadThenRun
+// for Dockerfiles and shell scripts
+type downloadThenRunPinningResult struct {
+	dockerfile  pinnedResult
+	shellScript pinnedResult
+}
+
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
 func PinningDependencies(name string, c *checker.CheckRequest,
 	r *checker.PinningDependenciesData,
@@ -55,6 +64,16 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 			total:  0,
 		},
 		gitHubOwned: pinnedResult{
+			pinned: 0,
+			total:  0,
+		},
+	}
+	var d = downloadThenRunPinningResult{
+		dockerfile: pinnedResult{
+			pinned: 0,
+			total:  0,
+		},
+		shellScript: pinnedResult{
 			pinned: 0,
 			total:  0,
 		},
@@ -103,7 +122,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		}
 
 		// Update the pinning status.
-		updatePinningResults(&rr, &wp, pr)
+		updatePinningResults(&rr, &wp, &d, pr)
 	}
 
 	// Generate scores and Info results.
@@ -120,13 +139,13 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	}
 
 	// Docker downloads.
-	dockerDownloadScore, err := createReturnForIsDockerfileFreeOfInsecureDownloads(pr, dl)
+	dockerDownloadScore, err := createReturnForIsDockerfileFreeOfInsecureDownloads(d, dl)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
 	// Script downloads.
-	scriptScore, err := createReturnForIsShellScriptFreeOfInsecureDownloads(pr, dl)
+	scriptScore, err := createReturnForIsShellScriptFreeOfInsecureDownloads(d, dl)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
@@ -160,13 +179,16 @@ func generateRemediation(remediationMd *remediation.RemediationMetadata, rr *che
 }
 
 func updatePinningResults(rr *checker.Dependency,
-	wp *worklowPinningResult, pr map[checker.DependencyUseType]pinnedResult,
+	wp *worklowPinningResult, d *downloadThenRunPinningResult, pr map[checker.DependencyUseType]pinnedResult,
 ) {
 	if rr.Type == checker.DependencyUseTypeGHAction {
 		// Note: `Snippet` contains `action/name@xxx`, so we cna use it to infer
 		// if it's a GitHub-owned action or not.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
 		addWorkflowPinnedResult(rr, wp, gitHubOwned)
+		return
+	} else if rr.Type == checker.DependencyUseTypeDownloadThenRun {
+		addDownloadThenRunPinnedResult(rr, d)
 		return
 	}
 
@@ -217,11 +239,25 @@ func addWorkflowPinnedResult(rr *checker.Dependency, w *worklowPinningResult, is
 	}
 }
 
+func addDownloadThenRunPinnedResult(rr *checker.Dependency, d *downloadThenRunPinningResult) {
+	// Identify if is Dockerfile
+	if strings.Contains(rr.Location.Path, "Dockerfile") {
+		addPinnedResult(rr, &d.dockerfile)
+		return
+	}
+	// Identify if is shell script
+	match, _ := regexp.MatchString("(.+)\\.sh", rr.Location.Path)
+	if match {
+		addPinnedResult(rr, &d.shellScript)
+		return
+	}
+}
+
 // Create the result for scripts.
-func createReturnForIsShellScriptFreeOfInsecureDownloads(pr map[checker.DependencyUseType]pinnedResult,
+func createReturnForIsShellScriptFreeOfInsecureDownloads(d downloadThenRunPinningResult,
 	dl checker.DetailLogger,
 ) (int, error) {
-	return createReturnValues(pr, checker.DependencyUseTypeDownloadThenRun,
+	return createReturnValues(d.shellScript,
 		"no insecure (not pinned by hash) dependency downloads found in shell scripts",
 		dl)
 }
@@ -230,33 +266,32 @@ func createReturnForIsShellScriptFreeOfInsecureDownloads(pr map[checker.Dependen
 func createReturnForIsDockerfilePinned(pr map[checker.DependencyUseType]pinnedResult,
 	dl checker.DetailLogger,
 ) (int, error) {
-	return createReturnValues(pr, checker.DependencyUseTypeDockerfileContainerImage,
-		"Dockerfile dependencies are pinned",
+	return createReturnValues(pr[checker.DependencyUseTypeDockerfileContainerImage],
+		"Dockerfile container images are pinned",
 		dl)
 }
 
 // Create the result for docker commands.
-func createReturnForIsDockerfileFreeOfInsecureDownloads(pr map[checker.DependencyUseType]pinnedResult,
+func createReturnForIsDockerfileFreeOfInsecureDownloads(d downloadThenRunPinningResult,
 	dl checker.DetailLogger,
 ) (int, error) {
-	return createReturnValues(pr, checker.DependencyUseTypeDownloadThenRun,
+	return createReturnValues(d.dockerfile,
 		"no insecure (not pinned by hash) dependency downloads found in Dockerfiles",
 		dl)
 }
 
-func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
-	t checker.DependencyUseType, infoMsg string,
+func createReturnValues(pr pinnedResult,
+	infoMsg string,
 	dl checker.DetailLogger,
 ) (int, error) {
 	// Note: we don't check if the entry exists,
 	// as it will have the default value which is handled in the switch statement.
 	//nolint
-	r, _ := pr[t]
 	var score int
-	if r.total == 0 {
+	if pr.total == 0 {
 		score = checker.MaxResultScore
 	} else {
-		score = checker.CreateProportionalScore(r.pinned, r.total)
+		score = checker.CreateProportionalScore(pr.pinned, pr.total)
 	}
 	if score == checker.MaxResultScore {
 		dl.Info(&checker.LogMessage{
