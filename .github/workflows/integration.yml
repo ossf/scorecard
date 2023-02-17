@@ -49,7 +49,7 @@ jobs:
       - name: setup-go
         uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
         with:
-          go-version: '1.19'
+          go-version: '1.20'
           check-latest: true
 
       - name: Prepare test env

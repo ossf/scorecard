@@ -1,6 +1,6 @@
 module github.com/ossf/scorecard/v4
 
-go 1.19
+go 1.20
 
 require (
 	github.com/rhysd/actionlint v1.6.15
