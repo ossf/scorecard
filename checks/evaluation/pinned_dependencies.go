@@ -28,13 +28,10 @@ import (
 
 var errInvalidValue = errors.New("invalid value")
 
-type pinnedResult int
-
-const (
-	pinnedUndefined pinnedResult = iota
-	pinned
-	notPinned
-)
+type pinnedResult struct {
+	pinned int
+	total  int
+}
 
 // Structure to host information about pinned github
 // or third party dependencies.
@@ -52,8 +49,21 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var wp worklowPinningResult
+	var wp = worklowPinningResult{
+		thirdParties: pinnedResult{
+			pinned: 0,
+			total:  0,
+		},
+		gitHubOwned: pinnedResult{
+			pinned: 0,
+			total:  0,
+		},
+	}
 	pr := make(map[checker.DependencyUseType]pinnedResult)
+	for _, el := range pr {
+		el.pinned = 0
+		el.total = 0
+	}
 	dl := c.Dlogger
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
@@ -80,7 +90,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				Text:      *rr.Msg,
 				Snippet:   rr.Location.Snippet,
 			})
-		} else {
+		} else if *rr.Pinned == false {
 			dl.Warn(&checker.LogMessage{
 				Path:        rr.Location.Path,
 				Type:        rr.Location.Type,
@@ -90,10 +100,10 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				Snippet:     rr.Location.Snippet,
 				Remediation: generateRemediation(remediationMetadata, &rr),
 			})
-
-			// Update the pinning status.
-			updatePinningResults(&rr, &wp, pr)
 		}
+
+		// Update the pinning status.
+		updatePinningResults(&rr, &wp, pr)
 	}
 
 	// Generate scores and Info results.
@@ -156,13 +166,13 @@ func updatePinningResults(rr *checker.Dependency,
 		// Note: `Snippet` contains `action/name@xxx`, so we cna use it to infer
 		// if it's a GitHub-owned action or not.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
-		addWorkflowPinnedResult(wp, false, gitHubOwned)
+		addWorkflowPinnedResult(rr, wp, gitHubOwned)
 		return
 	}
 
 	// Update other result types.
-	var p pinnedResult
-	addPinnedResult(&p, false)
+	var p pinnedResult = pr[rr.Type]
+	addPinnedResult(rr, &p)
 	pr[rr.Type] = p
 }
 
@@ -192,28 +202,18 @@ func maxScore(s1, s2 int) int {
 	return s2
 }
 
-// For the 'to' param, true means the file is pinning dependencies (or there are no dependencies),
-// false means there are unpinned dependencies.
-func addPinnedResult(r *pinnedResult, to bool) {
-	// If the result is `notPinned`, we keep it.
-	// In other cases, we always update the result.
-	if *r == notPinned {
-		return
+func addPinnedResult(rr *checker.Dependency, r *pinnedResult) {
+	if *rr.Pinned {
+		r.pinned += 1
 	}
-
-	switch to {
-	case true:
-		*r = pinned
-	case false:
-		*r = notPinned
-	}
+	r.total += 1
 }
 
-func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
+func addWorkflowPinnedResult(rr *checker.Dependency, w *worklowPinningResult, isGitHub bool) {
 	if isGitHub {
-		addPinnedResult(&w.gitHubOwned, to)
+		addPinnedResult(rr, &w.gitHubOwned)
 	} else {
-		addPinnedResult(&w.thirdParties, to)
+		addPinnedResult(rr, &w.thirdParties)
 	}
 }
 
@@ -252,18 +252,19 @@ func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
 	// as it will have the default value which is handled in the switch statement.
 	//nolint
 	r, _ := pr[t]
-	switch r {
-	default:
-		return checker.InconclusiveResultScore, fmt.Errorf("%w: %v", errInvalidValue, r)
-	case pinned, pinnedUndefined:
+	var score int
+	if r.total == 0 {
+		score = checker.MaxResultScore
+	} else {
+		score = checker.CreateProportionalScore(r.pinned, r.total)
+	}
+	if score == checker.MaxResultScore {
 		dl.Info(&checker.LogMessage{
 			Text: infoMsg,
 		})
-		return checker.MaxResultScore, nil
-	case notPinned:
-		// No logging needed as it's done by the checks.
-		return checker.MinResultScore, nil
 	}
+
+	return score, nil
 }
 
 // Create the result.
@@ -276,19 +277,33 @@ func createReturnForIsGitHubActionsWorkflowPinned(wp worklowPinningResult, dl ch
 func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, infoMsg string,
 	dl checker.DetailLogger,
 ) (int, error) {
-	score := checker.MinResultScore
+	var gitHubOwnedScore int
+	var thirdPartiesScore int
+	if r.gitHubOwned.total == 0 {
+		gitHubOwnedScore = checker.MaxResultScore
+	} else {
+		gitHubOwnedScore = checker.CreateProportionalScore(r.gitHubOwned.pinned, r.gitHubOwned.total)
+	}
+	if r.thirdParties.total == 0 {
+		thirdPartiesScore = checker.MaxResultScore
+	} else {
+		thirdPartiesScore = checker.CreateProportionalScore(r.thirdParties.pinned, r.thirdParties.total)
+	}
+	const gitHubOwnedWeight = 2
+	const thirdPartiesWeight = 8
+	score := checker.AggregateScoresWithWeight(map[int]int{
+		gitHubOwnedScore:  gitHubOwnedWeight,
+		thirdPartiesScore: thirdPartiesWeight,
+	})
 
-	if r.gitHubOwned != notPinned {
-		score += 2
+	if gitHubOwnedScore == checker.MaxResultScore {
 		dl.Info(&checker.LogMessage{
 			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
 		})
 	}
-
-	if r.thirdParties != notPinned {
-		score += 8
+	if thirdPartiesScore == checker.MaxResultScore {
 		dl.Info(&checker.LogMessage{
 			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
