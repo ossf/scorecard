@@ -102,6 +102,13 @@ func Test_isTest(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "azure-pipelines",
+			args: args{
+				s: "azure-pipelines",
+			},
+			want: true,
+		},
+		{
 			name: "non-existing",
 			args: args{
 				s: "non-existing",
