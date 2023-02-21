@@ -174,16 +174,6 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
-	// Scores may be inconclusive.
-	actionScore = maxScore(0, actionScore)
-	dockerFromScore = maxScore(0, dockerFromScore)
-	dockerDownloadScore = maxScore(0, dockerDownloadScore)
-	scriptScore = maxScore(0, scriptScore)
-	pipScore = maxScore(0, pipScore)
-	npmScore = maxScore(0, npmScore)
-	chocoScore = maxScore(0, chocoScore)
-	goScore = maxScore(0, goScore)
-
 	score := checker.AggregateScores(actionScore, dockerFromScore,
 		dockerDownloadScore, scriptScore, pipScore, npmScore, chocoScore, goScore)
 
@@ -242,14 +232,6 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 		return "GitHub-owned"
 	}
 	return "third-party"
-}
-
-// TODO(laurent): need to support GCB pinning.
-func maxScore(s1, s2 int) int {
-	if s1 > s2 {
-		return s1
-	}
-	return s2
 }
 
 func addPinnedResult(rr *checker.Dependency, r *pinnedResult) {
