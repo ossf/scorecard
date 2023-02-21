@@ -39,8 +39,14 @@ func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
 			name: "both actions workflow pinned",
 			args: args{
 				r: worklowPinningResult{
-					thirdParties: 1,
-					gitHubOwned:  1,
+					thirdParties: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
 				},
 				dl: &scut.TestDetailLogger{},
 			},
@@ -50,23 +56,52 @@ func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
 			name: "github actions workflow pinned",
 			args: args{
 				r: worklowPinningResult{
-					thirdParties: 2,
-					gitHubOwned:  2,
+					thirdParties: pinnedResult{
+						pinned: 0,
+						total:  1,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
 				},
 				dl: &scut.TestDetailLogger{},
 			},
-			want: 0,
+			want: 2,
 		},
 		{
-			name: "error in github actions workflow pinned",
+			name: "third-parties actions workflow pinned",
 			args: args{
 				r: worklowPinningResult{
-					thirdParties: 2,
-					gitHubOwned:  2,
+					thirdParties: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 0,
+						total:  1,
+					},
 				},
 				dl: &scut.TestDetailLogger{},
 			},
-			want: 0,
+			want: 8,
+		},
+		{
+			name: "partial actions workflow pinned",
+			args: args{
+				r: worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 1,
+						total:  2,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 1,
+						total:  2,
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want: 5,
 		},
 	}
 	for _, tt := range tests {
@@ -88,6 +123,10 @@ func asStringPointer(s string) *string {
 	return &s
 }
 
+func asBoolPointer(b bool) *bool {
+	return &b
+}
+
 func Test_PinningDependencies(t *testing.T) {
 	t.Parallel()
 
@@ -100,16 +139,19 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "download then run pinned debug",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Msg:      asStringPointer("some message"),
-					Type:     checker.DependencyUseTypeDownloadThenRun,
+					Location: &checker.File{
+						Path: "Dockerfile",
+					},
+					Msg:    asStringPointer("some message"),
+					Type:   checker.DependencyUseTypeDownloadThenRun,
+					Pinned: asBoolPointer(true),
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  5,
+				NumberOfInfo:  9,
 				NumberOfDebug: 1,
 			},
 		},
@@ -117,49 +159,125 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "download then run pinned debug and warn",
 			dependencies: []checker.Dependency{
 				{
+					Location: &checker.File{
+						Path: "Dockerfile",
+					},
+					Msg:    asStringPointer("some message"),
+					Type:   checker.DependencyUseTypeDownloadThenRun,
+					Pinned: asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{
+						Path: "Dockerfile",
+					},
+					Type:   checker.DependencyUseTypeDownloadThenRun,
+					Pinned: asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         8,
+				NumberOfWarn:  1,
+				NumberOfInfo:  8,
+				NumberOfDebug: 1,
+			},
+		},
+		{
+			name: "various warnings",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{
+						Path: "Dockerfile",
+					},
+					Type:   checker.DependencyUseTypePipCommand,
+					Pinned: asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{
+						Path: "Dockerfile",
+					},
+					Type:   checker.DependencyUseTypeDownloadThenRun,
+					Pinned: asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{
+						Path: "Dockerfile",
+					},
+					Type:   checker.DependencyUseTypeDockerfileContainerImage,
+					Pinned: asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{
+						Path: "Dockerfile",
+					},
+					Msg:    asStringPointer("debug message"),
+					Pinned: asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         6,
+				NumberOfWarn:  3,
+				NumberOfInfo:  6,
+				NumberOfDebug: 1,
+			},
+		},
+		{
+			name: "download then run dockerfile and shell script",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{
+						Path: "Dockerfile",
+					},
+					Type:   checker.DependencyUseTypeDownloadThenRun,
+					Pinned: asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{
+						Path: "script.sh",
+					},
+					Type:   checker.DependencyUseTypeDownloadThenRun,
+					Pinned: asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         7,
+				NumberOfWarn:  2,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "pip, npm, choco and go installs",
+			dependencies: []checker.Dependency{
+				{
 					Location: &checker.File{},
-					Msg:      asStringPointer("some message"),
-					Type:     checker.DependencyUseTypeDownloadThenRun,
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(false),
 				},
 				{
 					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDownloadThenRun,
+					Type:     checker.DependencyUseTypeNpmCommand,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeChocoCommand,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeGoCommand,
+					Pinned:   asBoolPointer(false),
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         5,
-				NumberOfWarn:  1,
-				NumberOfInfo:  3,
-				NumberOfDebug: 1,
-			},
-		},
-		{
-			name: "various wanrings",
-			dependencies: []checker.Dependency{
-				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-				},
-				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDownloadThenRun,
-				},
-				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDockerfileContainerImage,
-				},
-				{
-					Location: &checker.File{},
-					Msg:      asStringPointer("debug message"),
-				},
-			},
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         2,
-				NumberOfWarn:  3,
-				NumberOfInfo:  2,
-				NumberOfDebug: 1,
+				NumberOfWarn:  4,
+				NumberOfInfo:  5,
+				NumberOfDebug: 0,
 			},
 		},
 	}
@@ -200,17 +318,20 @@ func Test_createReturnValues(t *testing.T) {
 		{
 			name: "returns 10 if no error and no pinnedResult",
 			args: args{
-				t:  checker.DependencyUseTypeDownloadThenRun,
+				t:  checker.DependencyUseTypePipCommand,
 				dl: &scut.TestDetailLogger{},
 			},
 			want: 10,
 		},
 		{
-			name: "returns 10 if pinned undefined",
+			name: "returns 10 if no pinnedResult",
 			args: args{
-				t: checker.DependencyUseTypeDownloadThenRun,
+				t: checker.DependencyUseTypePipCommand,
 				pr: map[checker.DependencyUseType]pinnedResult{
-					checker.DependencyUseTypeDownloadThenRun: pinnedUndefined,
+					checker.DependencyUseTypePipCommand: {
+						pinned: 0,
+						total:  0,
+					},
 				},
 				dl: &scut.TestDetailLogger{},
 			},
@@ -219,9 +340,12 @@ func Test_createReturnValues(t *testing.T) {
 		{
 			name: "returns 10 if pinned",
 			args: args{
-				t: checker.DependencyUseTypeDownloadThenRun,
+				t: checker.DependencyUseTypePipCommand,
 				pr: map[checker.DependencyUseType]pinnedResult{
-					checker.DependencyUseTypeDownloadThenRun: pinned,
+					checker.DependencyUseTypePipCommand: {
+						pinned: 1,
+						total:  1,
+					},
 				},
 				dl: &scut.TestDetailLogger{},
 			},
@@ -230,20 +354,37 @@ func Test_createReturnValues(t *testing.T) {
 		{
 			name: "returns 0 if unpinned",
 			args: args{
-				t: checker.DependencyUseTypeDownloadThenRun,
+				t: checker.DependencyUseTypePipCommand,
 				pr: map[checker.DependencyUseType]pinnedResult{
-					checker.DependencyUseTypeDownloadThenRun: notPinned,
+					checker.DependencyUseTypePipCommand: {
+						pinned: 0,
+						total:  2,
+					},
 				},
 				dl: &scut.TestDetailLogger{},
 			},
 			want: 0,
+		},
+		{
+			name: "returns partial pinned",
+			args: args{
+				t: checker.DependencyUseTypeDownloadThenRun,
+				pr: map[checker.DependencyUseType]pinnedResult{
+					checker.DependencyUseTypeDownloadThenRun: {
+						pinned: 1,
+						total:  2,
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want: 5,
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := createReturnValues(tt.args.pr, tt.args.t, "some message", tt.args.dl)
+			got, err := createReturnValues(tt.args.pr[tt.args.t], "some message", tt.args.dl)
 			if err != nil {
 				t.Errorf("error during createReturnValues: %v", err)
 			}
@@ -260,53 +401,6 @@ func Test_createReturnValues(t *testing.T) {
 			}
 			if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
 				t.Errorf("test failed: log message not present: %+v", "some message")
-			}
-		})
-	}
-}
-
-func Test_maxScore(t *testing.T) {
-	t.Parallel()
-	type args struct {
-		s1 int
-		s2 int
-	}
-	tests := []struct {
-		name string
-		args args
-		want int
-	}{
-		{
-			name: "returns s1 if s1 is greater than s2",
-			args: args{
-				s1: 10,
-				s2: 5,
-			},
-			want: 10,
-		},
-		{
-			name: "returns s2 if s2 is greater than s1",
-			args: args{
-				s1: 5,
-				s2: 10,
-			},
-			want: 10,
-		},
-		{
-			name: "returns s1 if s1 is equal to s2",
-			args: args{
-				s1: 10,
-				s2: 10,
-			},
-			want: 10,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			if got := maxScore(tt.args.s1, tt.args.s2); got != tt.want {
-				t.Errorf("maxScore() = %v, want %v", got, tt.want)
 			}
 		})
 	}
