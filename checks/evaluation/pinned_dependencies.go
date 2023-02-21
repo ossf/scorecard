@@ -168,6 +168,12 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
+	// Go installs.
+	goScore, err := createReturnForIsGoInstallPinned(pr, dl)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(name, err)
+	}
+
 	// Scores may be inconclusive.
 	actionScore = maxScore(0, actionScore)
 	dockerFromScore = maxScore(0, dockerFromScore)
@@ -176,9 +182,10 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	pipScore = maxScore(0, pipScore)
 	npmScore = maxScore(0, npmScore)
 	chocoScore = maxScore(0, chocoScore)
+	goScore = maxScore(0, goScore)
 
 	score := checker.AggregateScores(actionScore, dockerFromScore,
-		dockerDownloadScore, scriptScore, pipScore, npmScore, chocoScore)
+		dockerDownloadScore, scriptScore, pipScore, npmScore, chocoScore, goScore)
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "all dependencies are pinned")
@@ -325,6 +332,15 @@ func createReturnForIsChocoInstallPinned(pr map[checker.DependencyUseType]pinned
 ) (int, error) {
 	return createReturnValues(pr[checker.DependencyUseTypeChocoCommand],
 		"Choco installs are pinned",
+		dl)
+}
+
+// Create the result for go install commands.
+func createReturnForIsGoInstallPinned(pr map[checker.DependencyUseType]pinnedResult,
+	dl checker.DetailLogger,
+) (int, error) {
+	return createReturnValues(pr[checker.DependencyUseTypeGoCommand],
+		"Go installs are pinned",
 		dl)
 }
 
