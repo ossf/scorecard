@@ -119,7 +119,10 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		}
 
 		// Update the pinning status.
-		updatePinningResults(&rr, &wp, &d, pr)
+		err := updatePinningResults(&rr, &wp, &d, pr)
+		if err != nil {
+			return checker.CreateRuntimeErrorResult(name, err)
+		}
 	}
 
 	// Generate scores and Info results.
@@ -195,16 +198,15 @@ func generateRemediation(remediationMd *remediation.RemediationMetadata, rr *che
 
 func updatePinningResults(rr *checker.Dependency,
 	wp *worklowPinningResult, d *downloadThenRunPinningResult, pr map[checker.DependencyUseType]pinnedResult,
-) {
+) error {
 	if rr.Type == checker.DependencyUseTypeGHAction {
 		// Note: `Snippet` contains `action/name@xxx`, so we cna use it to infer
 		// if it's a GitHub-owned action or not.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
 		addWorkflowPinnedResult(rr, wp, gitHubOwned)
-		return
+		return nil
 	} else if rr.Type == checker.DependencyUseTypeDownloadThenRun {
-		addDownloadThenRunPinnedResult(rr, d)
-		return
+		return addDownloadThenRunPinnedResult(rr, d)
 	}
 
 	// Update other result types.
@@ -246,17 +248,20 @@ func addWorkflowPinnedResult(rr *checker.Dependency, w *worklowPinningResult, is
 	}
 }
 
-func addDownloadThenRunPinnedResult(rr *checker.Dependency, d *downloadThenRunPinningResult) {
+func addDownloadThenRunPinnedResult(rr *checker.Dependency, d *downloadThenRunPinningResult) error {
 	// Identify if is Dockerfile
 	if strings.Contains(rr.Location.Path, "Dockerfile") {
 		addPinnedResult(rr, &d.dockerfile)
-		return
+		return nil
 	}
 	// Identify if is shell script
-	match, _ := regexp.MatchString("(.+)\\.sh", rr.Location.Path)
+	match, err := regexp.MatchString("(.+)\\.sh", rr.Location.Path)
+	if err != nil {
+		return fmt.Errorf("error matching shell script regex: %v", err)
+	}
 	if match {
 		addPinnedResult(rr, &d.shellScript)
-		return
+		return nil
 	}
 }
 
