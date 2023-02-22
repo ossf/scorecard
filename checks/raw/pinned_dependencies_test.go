@@ -92,13 +92,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				return
 			}
 
-			var unpinned int
-
-			for _, dependency := range r.Dependencies {
-				if *dependency.Pinned == false {
-					unpinned += 1
-				}
-			}
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.warns != unpinned {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
@@ -249,13 +243,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 				return
 			}
 
-			var unpinned int
-
-			for _, dependency := range r.Dependencies {
-				if *dependency.Pinned == false {
-					unpinned += 1
-				}
-			}
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.warns != unpinned {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
@@ -304,13 +292,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 				return
 			}
 
-			var unpinned int
-
-			for _, dependency := range r.Dependencies {
-				if *dependency.Pinned == false {
-					unpinned += 1
-				}
-			}
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.warns != unpinned {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
@@ -389,13 +371,7 @@ func TestDockerfilePinning(t *testing.T) {
 				return
 			}
 
-			var unpinned int
-
-			for _, dependency := range r.Dependencies {
-				if *dependency.Pinned == false {
-					unpinned += 1
-				}
-			}
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.warns != unpinned {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
@@ -813,13 +789,7 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 				return
 			}
 
-			var unpinned int
-
-			for _, dependency := range r.Dependencies {
-				if *dependency.Pinned == false {
-					unpinned += 1
-				}
-			}
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.warns != unpinned {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
@@ -924,13 +894,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 				return
 			}
 
-			var unpinned int
-
-			for _, dependency := range r.Dependencies {
-				if *dependency.Pinned == false {
-					unpinned += 1
-				}
-			}
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.warns != unpinned {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
@@ -974,13 +938,7 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 				return
 			}
 
-			var unpinned int
-
-			for _, dependency := range r.Dependencies {
-				if *dependency.Pinned == false {
-					unpinned += 1
-				}
-			}
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.warns != unpinned {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
@@ -1058,13 +1016,7 @@ func TestShellScriptDownload(t *testing.T) {
 				return
 			}
 
-			var unpinned int
-
-			for _, dependency := range r.Dependencies {
-				if *dependency.Pinned == false {
-					unpinned += 1
-				}
-			}
+			unpinned := countUnpinned(r.Dependencies)
 
 			// Note: this works because all our examples
 			// either have warns or debugs.
@@ -1118,13 +1070,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 				return
 			}
 
-			var unpinned int
-
-			for _, dependency := range r.Dependencies {
-				if *dependency.Pinned == false {
-					unpinned += 1
-				}
-			}
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.warns != unpinned {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
@@ -1185,13 +1131,7 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 				return
 			}
 
-			var unpinned int
-
-			for _, dependency := range r.Dependencies {
-				if *dependency.Pinned == false {
-					unpinned += 1
-				}
-			}
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.warns != unpinned {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
@@ -1350,4 +1290,16 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 			}
 		})
 	}
+}
+
+func countUnpinned(r []checker.Dependency) int {
+	var unpinned int
+
+	for _, dependency := range r {
+		if *dependency.Pinned == false {
+			unpinned += 1
+		}
+	}
+
+	return unpinned
 }
