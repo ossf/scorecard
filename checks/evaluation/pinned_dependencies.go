@@ -40,7 +40,7 @@ type worklowPinningResult struct {
 }
 
 // Structure to host information about downloadThenRun
-// for Dockerfiles and shell scripts
+// for Dockerfiles and shell scripts.
 type downloadThenRunPinningResult struct {
 	dockerfile  pinnedResult
 	shellScript pinnedResult
