@@ -213,6 +213,7 @@ func updatePinningResults(rr *checker.Dependency,
 	var p = pr[rr.Type]
 	addPinnedResult(rr, &p)
 	pr[rr.Type] = p
+	return nil
 }
 
 func generateText(rr *checker.Dependency) string {
@@ -263,6 +264,7 @@ func addDownloadThenRunPinnedResult(rr *checker.Dependency, d *downloadThenRunPi
 		addPinnedResult(rr, &d.shellScript)
 		return nil
 	}
+	return nil
 }
 
 // Create the result for scripts.
