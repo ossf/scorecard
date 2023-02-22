@@ -92,8 +92,16 @@ func TestGithubWorkflowPinning(t *testing.T) {
 				return
 			}
 
-			if tt.warns != len(r.Dependencies) {
-				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			var unpinned int
+
+			for _, dependency := range r.Dependencies {
+				if *dependency.Pinned == false {
+					unpinned += 1
+				}
+			}
+
+			if tt.warns != unpinned {
+				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
 			}
 		})
 	}
@@ -241,8 +249,16 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 				return
 			}
 
-			if tt.warns != len(r.Dependencies) {
-				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			var unpinned int
+
+			for _, dependency := range r.Dependencies {
+				if *dependency.Pinned == false {
+					unpinned += 1
+				}
+			}
+
+			if tt.warns != unpinned {
+				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
 			}
 		})
 	}
@@ -288,8 +304,16 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 				return
 			}
 
-			if tt.warns != len(r.Dependencies) {
-				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			var unpinned int
+
+			for _, dependency := range r.Dependencies {
+				if *dependency.Pinned == false {
+					unpinned += 1
+				}
+			}
+
+			if tt.warns != unpinned {
+				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
 			}
 		})
 	}
@@ -365,8 +389,16 @@ func TestDockerfilePinning(t *testing.T) {
 				return
 			}
 
-			if tt.warns != len(r.Dependencies) {
-				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			var unpinned int
+
+			for _, dependency := range r.Dependencies {
+				if *dependency.Pinned == false {
+					unpinned += 1
+				}
+			}
+
+			if tt.warns != unpinned {
+				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
 			}
 		})
 	}
@@ -781,8 +813,16 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 				return
 			}
 
-			if tt.warns != len(r.Dependencies) {
-				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			var unpinned int
+
+			for _, dependency := range r.Dependencies {
+				if *dependency.Pinned == false {
+					unpinned += 1
+				}
+			}
+
+			if tt.warns != unpinned {
+				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
 			}
 		})
 	}
@@ -884,8 +924,16 @@ func TestDockerfileScriptDownload(t *testing.T) {
 				return
 			}
 
-			if tt.warns != len(r.Dependencies) {
-				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			var unpinned int
+
+			for _, dependency := range r.Dependencies {
+				if *dependency.Pinned == false {
+					unpinned += 1
+				}
+			}
+
+			if tt.warns != unpinned {
+				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
 			}
 		})
 	}
@@ -926,8 +974,16 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 				return
 			}
 
-			if tt.warns != len(r.Dependencies) {
-				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			var unpinned int
+
+			for _, dependency := range r.Dependencies {
+				if *dependency.Pinned == false {
+					unpinned += 1
+				}
+			}
+
+			if tt.warns != unpinned {
+				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
 			}
 		})
 	}
@@ -1002,12 +1058,20 @@ func TestShellScriptDownload(t *testing.T) {
 				return
 			}
 
+			var unpinned int
+
+			for _, dependency := range r.Dependencies {
+				if *dependency.Pinned == false {
+					unpinned += 1
+				}
+			}
+
 			// Note: this works because all our examples
 			// either have warns or debugs.
-			ws := (tt.warns == len(r.Dependencies)) && (tt.debugs == 0)
-			ds := (tt.debugs == len(r.Dependencies)) && (tt.warns == 0)
+			ws := (tt.warns == unpinned) && (tt.debugs == 0)
+			ds := (tt.debugs == unpinned) && (tt.warns == 0)
 			if !ws && !ds {
-				t.Errorf("expected %v or %v. Got %v", tt.warns, tt.debugs, len(r.Dependencies))
+				t.Errorf("expected %v or %v. Got %v", tt.warns, tt.debugs, unpinned)
 			}
 		})
 	}
@@ -1054,8 +1118,16 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 				return
 			}
 
-			if tt.warns != len(r.Dependencies) {
-				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			var unpinned int
+
+			for _, dependency := range r.Dependencies {
+				if *dependency.Pinned == false {
+					unpinned += 1
+				}
+			}
+
+			if tt.warns != unpinned {
+				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
 			}
 		})
 	}
@@ -1113,8 +1185,16 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 				return
 			}
 
-			if tt.warns != len(r.Dependencies) {
-				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			var unpinned int
+
+			for _, dependency := range r.Dependencies {
+				if *dependency.Pinned == false {
+					unpinned += 1
+				}
+			}
+
+			if tt.warns != unpinned {
+				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
 			}
 		})
 	}
