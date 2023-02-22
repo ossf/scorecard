@@ -106,7 +106,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				Text:      *rr.Msg,
 				Snippet:   rr.Location.Snippet,
 			})
-		} else if *rr.Pinned == false {
+		} else if !*rr.Pinned {
 			dl.Warn(&checker.LogMessage{
 				Path:        rr.Location.Path,
 				Type:        rr.Location.Type,
