@@ -210,7 +210,7 @@ func updatePinningResults(rr *checker.Dependency,
 	}
 
 	// Update other result types.
-	var p pinnedResult = pr[rr.Type]
+	var p = pr[rr.Type]
 	addPinnedResult(rr, &p)
 	pr[rr.Type] = p
 }
