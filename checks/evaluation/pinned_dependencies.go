@@ -15,7 +15,6 @@
 package evaluation
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -27,8 +26,6 @@ import (
 	"github.com/ossf/scorecard/v4/remediation"
 	"github.com/ossf/scorecard/v4/rule"
 )
-
-var errInvalidValue = errors.New("invalid value")
 
 type pinnedResult struct {
 	pinned int
