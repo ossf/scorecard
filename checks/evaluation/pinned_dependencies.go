@@ -258,7 +258,7 @@ func addDownloadThenRunPinnedResult(rr *checker.Dependency, d *downloadThenRunPi
 	// Identify if is shell script
 	match, err := regexp.MatchString("(.+)\\.sh", rr.Location.Path)
 	if err != nil {
-		return fmt.Errorf("error matching shell script regex: %v", err)
+		return fmt.Errorf("error matching shell script regex: %w", err)
 	}
 	if match {
 		addPinnedResult(rr, &d.shellScript)
