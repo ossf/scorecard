@@ -44,12 +44,27 @@ spec:
       - name: github-auth-server
         image: gcr.io/openssf/scorecard-github-server:stable
         imagePullPolicy: Always
+        volumeMounts:
+        - name: github-app-key
+          mountPath: "/etc/github/"
+          readOnly: true
         env:
-        - name: GITHUB_AUTH_TOKEN
+        - name: GITHUB_APP_KEY_PATH
+          value: /etc/github/app_key
+        - name: GITHUB_APP_ID
           valueFrom:
             secretKeyRef:
               name: github
-              key: token
+              key: app_id
+        - name: GITHUB_APP_INSTALLATION_ID
+          valueFrom:
+            secretKeyRef:
+              name: github
+              key: installation_id
+      volumes:
+      - name: github-app-key
+        secret:
+          secretName: github
   strategy:
     type: "RollingUpdate"
     rollingUpdate:
