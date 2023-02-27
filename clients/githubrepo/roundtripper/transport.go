@@ -64,5 +64,11 @@ func (gt *githubTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	if err == nil {
 		stats.Record(ctx, githubstats.RemainingTokens.M(int64(remaining)))
 	}
+
+	retryAfter, err := strconv.Atoi(resp.Header.Get("Retry-After"))
+	if err == nil {
+		stats.Record(r.Context(), githubstats.RetryAfter.M(int64(retryAfter)))
+	}
+
 	return resp, nil
 }
