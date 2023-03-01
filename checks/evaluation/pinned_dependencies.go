@@ -55,31 +55,9 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var wp = worklowPinningResult{
-		thirdParties: pinnedResult{
-			pinned: 0,
-			total:  0,
-		},
-		gitHubOwned: pinnedResult{
-			pinned: 0,
-			total:  0,
-		},
-	}
-	var d = downloadThenRunPinningResult{
-		dockerfile: pinnedResult{
-			pinned: 0,
-			total:  0,
-		},
-		shellScript: pinnedResult{
-			pinned: 0,
-			total:  0,
-		},
-	}
+	var wp worklowPinningResult
+	var d downloadThenRunPinningResult
 	pr := make(map[checker.DependencyUseType]pinnedResult)
-	for _, el := range pr {
-		el.pinned = 0
-		el.total = 0
-	}
 	dl := c.Dlogger
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
