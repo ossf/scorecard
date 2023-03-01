@@ -31,8 +31,6 @@ import (
 var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 	Context("E2E TEST:Validating use of fuzzing tools", func() {
 		It("Should return use of OSS-Fuzz", func() {
-			//nolint:lll
-			Skip("Skipping OSS-Fuzz test due to issues searching google/oss-fuzz with the REST API. https://github.com/ossf/scorecard/issues/2670")
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
 			Expect(err).Should(BeNil())

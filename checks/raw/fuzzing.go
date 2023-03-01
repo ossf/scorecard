@@ -17,6 +17,8 @@ package raw
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -29,6 +31,7 @@ import (
 
 const (
 	fuzzerOSSFuzz         = "OSSFuzz"
+	ossFuzzProjectURL     = "https://oss-fuzz-build-logs.storage.googleapis.com/status.json"
 	fuzzerClusterFuzzLite = "ClusterFuzzLite"
 	oneFuzz               = "OneFuzz"
 	fuzzerBuiltInGo       = "GoBuiltInFuzzer"
@@ -167,20 +170,19 @@ func checkOneFuzz(c *checker.CheckRequest) (bool, error) {
 }
 
 func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
-	if c.OssFuzzRepo == nil {
-		return false, nil
-	}
-
-	req := clients.SearchRequest{
-		Query:    c.RepoClient.URI(),
-		Filename: "project.yaml",
-	}
-	result, err := c.OssFuzzRepo.Search(req)
+	resp, err := http.Get(ossFuzzProjectURL)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
-		return false, e
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("http.Get: %v", err))
 	}
-	return result.Hits > 0, nil
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("fetch OSS-Fuzz project list: %s", resp.Status))
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("io.ReadAll: %v", err))
+	}
+	return bytes.Contains(body, []byte(c.RepoClient.URI())), nil
 }
 
 func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []checker.File, error) {
