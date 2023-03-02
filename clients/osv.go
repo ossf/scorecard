@@ -48,10 +48,12 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	}, nil) // TODO: Do logging?
 
 	response := VulnerabilitiesResponse{}
-	if err == nil {
+
+	if err == nil { // No vulns found
 		return response, nil
 	}
 
+	// If vulnerabilities are found, err will be set to osvscanner.VulnerabilitiesFoundErr
 	if errors.Is(err, osvscanner.VulnerabilitiesFoundErr) {
 		vulns := res.Flatten()
 		for i := range vulns {
