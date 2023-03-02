@@ -114,6 +114,14 @@ func (r *repoURL) Metadata() []string {
 	return r.metadata
 }
 
+func (r *repoURL) commitExpression() string {
+	if strings.EqualFold(r.commitSHA, clients.HeadSHA) {
+		// TODO(#575): Confirm that this works as expected.
+		return fmt.Sprintf("heads/%s", r.defaultBranch)
+	}
+	return r.commitSHA
+}
+
 // MakeGithubRepo takes input of form "owner/repo" or "github.com/owner/repo"
 // and returns an implementation of clients.Repo interface.
 func MakeGithubRepo(input string) (clients.Repo, error) {
