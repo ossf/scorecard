@@ -153,7 +153,7 @@ func (c *client) URI() string {
 	return c.statusURL
 }
 
-// InitRepo sets up the local repo.
+// InitRepo implements RepoClient.InitRepo.
 func (c *client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	return fmt.Errorf("InitRepo: %w", clients.ErrUnsupportedFeature)
 }
@@ -213,7 +213,7 @@ func (c *client) ListContributors() ([]clients.User, error) {
 	return nil, fmt.Errorf("ListContributors: %w", clients.ErrUnsupportedFeature)
 }
 
-// ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
+// ListSuccessfulWorkflowRuns implements RepoClient.ListSuccessfulWorkflowRuns.
 func (c *client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	return nil, fmt.Errorf("ListSuccessfulWorkflowRuns: %w", clients.ErrUnsupportedFeature)
 }
