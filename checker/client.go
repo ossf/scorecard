@@ -60,11 +60,9 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 			fmt.Errorf("getting local directory client: %w", errGitHub)
 	}
 
-	const ossFuzzStatusURL = "https://oss-fuzz-build-logs.storage.googleapis.com/status.json"
-	ossFuzzRepoClient := ossfuzz.CreateOSSFuzzClient(ossFuzzStatusURL)
 	return githubRepo, /*repo*/
 		ghrepo.CreateGithubRepoClient(ctx, logger), /*repoClient*/
-		ossFuzzRepoClient, /*ossFuzzClient*/
+		ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL), /*ossFuzzClient*/
 		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
 		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
 		nil

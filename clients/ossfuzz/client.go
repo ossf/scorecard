@@ -28,6 +28,10 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
+const (
+	StatusURL = "https://oss-fuzz-build-logs.storage.googleapis.com/status.json"
+)
+
 var (
 	errUnreachableStatusFile = errors.New("could not fetch OSS Fuzz status file")
 	errMalformedURL          = errors.New("malformed repo url")
