@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/raw"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/ossfuzz"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -37,7 +38,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
@@ -65,7 +66,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
@@ -93,7 +94,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
@@ -121,7 +122,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
@@ -141,7 +142,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
-			ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(context.Background(), logger)
+			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
