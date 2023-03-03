@@ -25,6 +25,7 @@ import (
 )
 
 func TestClient(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		project    string
@@ -88,6 +89,7 @@ func TestClient(t *testing.T) {
 }
 
 func TestClientEager(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name          string
 		project       string
@@ -165,7 +167,7 @@ func TestClientEager(t *testing.T) {
 func setupServer(t *testing.T) string {
 	t.Helper()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := os.ReadFile("testdata/" + r.URL.Path)
+		b, err := os.ReadFile("./testdata" + r.URL.Path)
 		if err != nil {
 			t.Logf("os.ReadFile: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
