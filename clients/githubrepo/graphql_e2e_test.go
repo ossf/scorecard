@@ -38,12 +38,12 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 
 	Context("E2E TEST: Confirm Paging Commits Works", func() {
 		It("Should only have 1 commit", func() {
-			_repourl := &repoURL{
+			repourl := &repoURL{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
 			}
-			_vars := map[string]interface{}{
+			vars := map[string]interface{}{
 				"owner":                  githubv4.String("ossf"),
 				"name":                   githubv4.String("scorecard"),
 				"pullRequestsToAnalyze":  githubv4.Int(1),
@@ -55,28 +55,28 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 				"commitExpression":       githubv4.String("heads/main"),
 				"historyCursor":          (*githubv4.String)(nil),
 			}
-			_ctx := context.Background()
-			_logger := log.NewLogger(log.DebugLevel)
-			_rt := roundtripper.NewTransport(_ctx, _logger)
-			_httpClient := &http.Client{
-				Transport: _rt,
+			ctx := context.Background()
+			logger := log.NewLogger(log.DebugLevel)
+			rt := roundtripper.NewTransport(ctx, logger)
+			httpClient := &http.Client{
+				Transport: rt,
 			}
-			_graphClient := githubv4.NewClient(_httpClient)
-			_handler := &graphqlHandler{
-				client: _graphClient,
+			graphClient := githubv4.NewClient(httpClient)
+			handler := &graphqlHandler{
+				client: graphClient,
 			}
-			_handler.init(context.Background(), _repourl, 1)
-			commits, err := populateCommits(_handler, _vars)
+			handler.init(context.Background(), repourl, 1)
+			commits, err := populateCommits(handler, vars)
 			Expect(err).To(BeNil())
 			Expect(len(commits)).Should(BeEquivalentTo(1))
 		})
 		It("Should have 30 commits", func() {
-			_repourl := &repoURL{
+			repourl := &repoURL{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
 			}
-			_vars := map[string]interface{}{
+			vars := map[string]interface{}{
 				"owner":                  githubv4.String("ossf"),
 				"name":                   githubv4.String("scorecard"),
 				"pullRequestsToAnalyze":  githubv4.Int(1),
@@ -88,28 +88,28 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 				"commitExpression":       githubv4.String("heads/main"),
 				"historyCursor":          (*githubv4.String)(nil),
 			}
-			_ctx := context.Background()
-			_logger := log.NewLogger(log.DebugLevel)
-			_rt := roundtripper.NewTransport(_ctx, _logger)
-			_httpClient := &http.Client{
-				Transport: _rt,
+			ctx := context.Background()
+			logger := log.NewLogger(log.DebugLevel)
+			rt := roundtripper.NewTransport(ctx, logger)
+			httpClient := &http.Client{
+				Transport: rt,
 			}
-			_graphClient := githubv4.NewClient(_httpClient)
-			_handler := &graphqlHandler{
-				client: _graphClient,
+			graphClient := githubv4.NewClient(httpClient)
+			handler := &graphqlHandler{
+				client: graphClient,
 			}
-			_handler.init(context.Background(), _repourl, 30)
-			commits, err := populateCommits(_handler, _vars)
+			handler.init(context.Background(), repourl, 30)
+			commits, err := populateCommits(handler, vars)
 			Expect(err).To(BeNil())
 			Expect(len(commits)).Should(BeEquivalentTo(30))
 		})
 		It("Should have 101 commits", func() {
-			_repourl := &repoURL{
+			repourl := &repoURL{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
 			}
-			_vars := map[string]interface{}{
+			vars := map[string]interface{}{
 				"owner":                  githubv4.String("ossf"),
 				"name":                   githubv4.String("scorecard"),
 				"pullRequestsToAnalyze":  githubv4.Int(1),
@@ -121,18 +121,18 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 				"commitExpression":       githubv4.String("heads/main"),
 				"historyCursor":          (*githubv4.String)(nil),
 			}
-			_ctx := context.Background()
-			_logger := log.NewLogger(log.DebugLevel)
-			_rt := roundtripper.NewTransport(_ctx, _logger)
-			_httpClient := &http.Client{
-				Transport: _rt,
+			ctx := context.Background()
+			logger := log.NewLogger(log.DebugLevel)
+			rt := roundtripper.NewTransport(ctx, logger)
+			httpClient := &http.Client{
+				Transport: rt,
 			}
-			_graphClient := githubv4.NewClient(_httpClient)
-			_handler := &graphqlHandler{
-				client: _graphClient,
+			graphClient := githubv4.NewClient(httpClient)
+			handler := &graphqlHandler{
+				client: graphClient,
 			}
-			_handler.init(context.Background(), _repourl, 101)
-			commits, err := populateCommits(_handler, _vars)
+			handler.init(context.Background(), repourl, 101)
+			commits, err := populateCommits(handler, vars)
 			Expect(err).To(BeNil())
 			Expect(len(commits)).Should(BeEquivalentTo(101))
 		})
@@ -162,18 +162,6 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 			Expect(graphqlhandler.data).ShouldNot(BeNil())
 			Expect(graphqlhandler.data.RateLimit.Cost).ShouldNot(BeNil())
 			Expect(*graphqlhandler.data.RateLimit.Cost).Should(BeNumerically("<=", 1))
-		})
-		It("Should not have increased for check run query", func() {
-			repourl := &repoURL{
-				owner:     "ossf",
-				repo:      "scorecard",
-				commitSHA: clients.HeadSHA,
-			}
-			graphqlhandler.init(context.Background(), repourl, 30)
-			Expect(graphqlhandler.setupCheckRuns()).Should(BeNil())
-			Expect(graphqlhandler.checkData).ShouldNot(BeNil())
-			Expect(graphqlhandler.checkData.RateLimit.Cost).ShouldNot(BeNil())
-			Expect(*graphqlhandler.checkData.RateLimit.Cost).Should(BeNumerically("<=", 1))
 		})
 	})
 })

@@ -375,6 +375,13 @@ func Test_isTestdataFile(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			name: "testdata file",
+			args: args{
+				fullpath: "archiva-modules/archiva-base/archiva-checksum/src/test/resources/examples/redback-authz-open.jar",
+			},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
