@@ -171,8 +171,6 @@ func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 		return false, nil
 	}
 
-	// TODO type check the interface here to warn clients to rotate off the old GitHub repo client?
-
 	req := clients.SearchRequest{
 		Query:    c.RepoClient.URI(),
 		Filename: "project.yaml",
