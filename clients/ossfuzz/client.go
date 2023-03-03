@@ -17,9 +17,12 @@ package ossfuzz
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,6 +33,7 @@ type ossFuzzClient struct {
 	statusURL string
 	err       error
 	contents  []byte
+	projects  map[string]bool
 	once      sync.Once
 }
 
@@ -40,23 +44,64 @@ func CreateOSSFuzzClient(ctx context.Context, ossFuzzStatusURL string) clients.R
 	}
 }
 
+type ossFuzzStatus struct {
+	Projects []struct {
+		RepoURI string `json:"main_repo"`
+	} `json:"projects"`
+}
+
+func CreateEagerOSSFuzzClient(ctx context.Context, ossFuzzStatusURL string) (clients.RepoClient, error) {
+	contents, err := fetchStatusFile(ossFuzzStatusURL)
+	if err != nil {
+		return nil, err
+	}
+	status := ossFuzzStatus{}
+	err = json.Unmarshal(contents, &status)
+	if err != nil {
+		return nil, fmt.Errorf("parse OSS Fuzz status file: %w", err)
+	}
+
+	c := ossFuzzClient{
+		statusURL: ossFuzzStatusURL,
+		projects:  map[string]bool{},
+	}
+	// consume the sync.Once for the later search
+	c.once.Do(func() {})
+	for i := range status.Projects {
+		repoURI := status.Projects[i].RepoURI
+		normalizedRepoURI, err := parseRepo(repoURI)
+		if err != nil {
+			continue
+		}
+		c.projects[normalizedRepoURI] = true
+	}
+	return &c, nil
+}
+
 // Search implements RepoClient.Search.
 func (c *ossFuzzClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	c.once.Do(func() {
-		c.contents, c.err = parseStatusJSON(c.statusURL)
+		c.contents, c.err = fetchStatusFile(c.statusURL)
 	})
 	if c.err != nil {
 		return clients.SearchResponse{}, c.err
 	}
-	projectURI := []byte(request.Query)
-	sr := clients.SearchResponse{}
-	if bytes.Contains(c.contents, projectURI) {
+	var sr clients.SearchResponse
+	// the eager client may have pre-calculated these results
+	if c.projects != nil {
+		if c.projects[request.Query] {
+			sr.Hits = 1
+		}
+		return sr, nil
+	}
+	projectURI := request.Query
+	if bytes.Contains(c.contents, []byte(projectURI)) {
 		sr.Hits = 1
 	}
 	return sr, nil
 }
 
-func parseStatusJSON(url string) ([]byte, error) {
+func fetchStatusFile(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("http.Get: %w", err)
@@ -66,6 +111,21 @@ func parseStatusJSON(url string) ([]byte, error) {
 		return nil, fmt.Errorf("fetch OSS-Fuzz project list: %s", resp.Status)
 	}
 	return io.ReadAll(resp.Body)
+}
+
+func parseRepo(s string) (string, error) {
+	u, e := url.Parse(s)
+	if e != nil {
+		return "", fmt.Errorf("url.Parse: %w", e)
+	}
+	const splitLen = 2
+	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
+	if len(split) != splitLen {
+		return "", fmt.Errorf("malformed url: %s", s)
+	}
+	org := split[0]
+	repo := strings.TrimSuffix(split[1], ".git")
+	return fmt.Sprintf("%s/%s/%s", u.Host, org, repo), nil
 }
 
 // URI implements RepoClient.URI.
