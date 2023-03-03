@@ -15,7 +15,6 @@
 package ossfuzz
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -48,11 +47,26 @@ type ossFuzzStatus struct {
 }
 
 // CreateOSSFuzzClient returns a client which implements RepoClient interface.
-func CreateOSSFuzzClient(ctx context.Context, ossFuzzStatusURL string) clients.RepoClient {
+func CreateOSSFuzzClient(ossFuzzStatusURL string) clients.RepoClient {
 	return &client{
 		statusURL: ossFuzzStatusURL,
 		projects:  map[string]bool{},
 	}
+}
+
+// CreateOSSFuzzClientEager returns a OSS Fuzz Client which has already fetched and parsed the status file.
+func CreateOSSFuzzClientEager(ossFuzzStatusURL string) (clients.RepoClient, error) {
+	c := client{
+		statusURL: ossFuzzStatusURL,
+		projects:  map[string]bool{},
+	}
+	c.once.Do(func() {
+		c.init()
+	})
+	if c.err != nil {
+		return nil, c.err
+	}
+	return &c, nil
 }
 
 // Search implements RepoClient.Search.

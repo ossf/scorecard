@@ -61,11 +61,7 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 	}
 
 	const ossFuzzStatusURL = "https://oss-fuzz-build-logs.storage.googleapis.com/status.json"
-	ossFuzzRepoClient := ossfuzz.CreateOSSFuzzClient(ctx, ossFuzzStatusURL)
-	// ossFuzzRepoClient, err := ossfuzz.CreateEagerOSSFuzzClient(ctx, ossFuzzStatusURL)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	ossFuzzRepoClient := ossfuzz.CreateOSSFuzzClient(ossFuzzStatusURL)
 	return githubRepo, /*repo*/
 		ghrepo.CreateGithubRepoClient(ctx, logger), /*repoClient*/
 		ossFuzzRepoClient, /*ossFuzzClient*/
