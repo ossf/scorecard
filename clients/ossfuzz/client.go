@@ -60,29 +60,25 @@ func CreateOSSFuzzClient(ctx context.Context, ossFuzzStatusURL string) clients.R
 	}
 }
 
-type ossFuzzStatus struct {
-	Projects []struct {
-		RepoURI string `json:"main_repo"`
-	} `json:"projects"`
-}
-
 func CreateEagerOSSFuzzClient(ctx context.Context, ossFuzzStatusURL string) (clients.RepoClient, error) {
 	contents, err := fetchStatusFile(ossFuzzStatusURL)
 	if err != nil {
 		return nil, err
 	}
-	status := ossFuzzStatus{}
+	status := struct {
+		Projects []struct {
+			RepoURI string `json:"main_repo"`
+		} `json:"projects"`
+	}{}
 	if err = json.Unmarshal(contents, &status); err != nil {
 		return nil, fmt.Errorf("parse status file: %w", err)
 	}
-
 	c := eagerClient{
 		commonClient: commonClient{
 			statusURL: ossFuzzStatusURL,
 		},
 		projects: map[string]bool{},
 	}
-
 	for i := range status.Projects {
 		repoURI := status.Projects[i].RepoURI
 		normalizedRepoURI, err := normalize(repoURI)
