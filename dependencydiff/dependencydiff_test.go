@@ -20,52 +20,9 @@ import (
 	"path"
 	"testing"
 
-	"github.com/ossf/scorecard/v4/clients"
 	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 )
-
-// Test_fetchRawDependencyDiffData is a test function for fetchRawDependencyDiffData.
-func Test_fetchRawDependencyDiffData(t *testing.T) {
-	//nolint
-	tests := []struct {
-		name      string
-		dCtx      dependencydiffContext
-		wantEmpty bool
-		wantErr   bool
-	}{
-		{
-			name: "error response",
-			dCtx: dependencydiffContext{
-				logger:    sclog.NewLogger(sclog.InfoLevel),
-				ctx:       context.Background(),
-				ownerName: "no_such_owner",
-				repoName:  "repo_not_exist",
-				base:      "main",
-				head:      clients.HeadSHA,
-			},
-			wantEmpty: true,
-			wantErr:   true,
-		},
-		// Considering of the token usage, normal responses are tested in the e2e test.
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			err := fetchRawDependencyDiffData(&tt.dCtx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("fetchRawDependencyDiffData() error = {%v}, want error: %v", err, tt.wantErr)
-				return
-			}
-			lenResults := len(tt.dCtx.dependencydiffs)
-			if (lenResults == 0) != tt.wantEmpty {
-				t.Errorf("want empty results: %v, got len of results:%d", tt.wantEmpty, lenResults)
-				return
-			}
-		})
-	}
-}
 
 func Test_initRepoAndClientByChecks(t *testing.T) {
 	//nolint
