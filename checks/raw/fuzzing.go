@@ -17,8 +17,6 @@ package raw
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"net/http"
 	"regexp"
 	"strings"
 
@@ -170,19 +168,22 @@ func checkOneFuzz(c *checker.CheckRequest) (bool, error) {
 }
 
 func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
-	resp, err := http.Get(ossFuzzProjectURL)
+	if c.OssFuzzRepo == nil {
+		return false, nil
+	}
+
+	// TODO type check the interface here to warn clients to rotate?
+
+	req := clients.SearchRequest{
+		Query:    c.RepoClient.URI(),
+		Filename: "project.yaml",
+	}
+	result, err := c.OssFuzzRepo.Search(req)
 	if err != nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("http.Get: %v", err))
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
+		return false, e
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 400 {
-		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("fetch OSS-Fuzz project list: %s", resp.Status))
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("io.ReadAll: %v", err))
-	}
-	return bytes.Contains(body, []byte(c.RepoClient.URI())), nil
+	return result.Hits > 0, nil
 }
 
 func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []checker.File, error) {
