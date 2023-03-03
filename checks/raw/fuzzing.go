@@ -29,7 +29,6 @@ import (
 
 const (
 	fuzzerOSSFuzz         = "OSSFuzz"
-	ossFuzzProjectURL     = "https://oss-fuzz-build-logs.storage.googleapis.com/status.json"
 	fuzzerClusterFuzzLite = "ClusterFuzzLite"
 	oneFuzz               = "OneFuzz"
 	fuzzerBuiltInGo       = "GoBuiltInFuzzer"
@@ -172,7 +171,7 @@ func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 		return false, nil
 	}
 
-	// TODO type check the interface here to warn clients to rotate?
+	// TODO type check the interface here to warn clients to rotate off the old GitHub repo client?
 
 	req := clients.SearchRequest{
 		Query:    c.RepoClient.URI(),

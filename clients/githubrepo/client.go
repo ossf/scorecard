@@ -311,6 +311,9 @@ func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.Rep
 
 // CreateOssFuzzRepoClient returns a RepoClient implementation
 // intialized to `google/oss-fuzz` GitHub repository.
+//
+// Deprecated: Searching the github.com/google/oss-fuzz repo for projects is flawed. Use a constructor
+// from clients/ossfuzz instead. https://github.com/ossf/scorecard/issues/2670
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	ossFuzzRepo, err := MakeGithubRepo("google/oss-fuzz")
 	if err != nil {
