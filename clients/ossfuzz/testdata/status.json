@@ -1,0 +1,24 @@
+{
+  "projects": [
+    {
+      "name": "ossf-scorecard",
+      "main_repo": "https://github.com/ossf/scorecard"
+    },
+    {
+      "name": "scorecard-web",
+      "main_repo": "https://github.com/ossf/scorecard-webapp"
+    },
+    {
+      "name": "xz",
+      "main_repo": "https://git.tukaani.org/xz.git"
+    },
+    {
+      "name": "zetasql",
+      "main_repo": null
+    },
+    {
+      "name": "zydis",
+      "main_repo": "https://github.com/zyantific/zydis.git"
+    }
+  ]
+}
