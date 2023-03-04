@@ -23,6 +23,7 @@ import (
 	ghrepo "github.com/ossf/scorecard/v4/clients/githubrepo"
 	glrepo "github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
+	"github.com/ossf/scorecard/v4/clients/ossfuzz"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -91,17 +92,10 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 		repoClient = ghrepo.CreateGithubRepoClient(ctx, logger)
 	}
 
-	//nolint:staticcheck
-	ossFuzzRepoClient, errOssFuzz := ghrepo.CreateOssFuzzRepoClient(ctx, logger)
-	var retErr error
-	if errOssFuzz != nil {
-		retErr = fmt.Errorf("getting OSS-Fuzz repo client: %w", errOssFuzz)
-	}
-
 	return repo, /*repo*/
 		repoClient, /*repoClient*/
-		ossFuzzRepoClient, /*ossFuzzClient*/
+		ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL), /*ossFuzzClient*/
 		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
 		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
-		retErr
+		nil
 }
