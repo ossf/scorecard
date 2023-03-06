@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: gcr.io/openssf/scorecard-batch-worker:test
+          image: gcr.io/openssf/scorecard-batch-worker:latest
           args: ["--ignoreRuntimeErrors=true", "--config=/etc/scorecard/config.yaml"]
           imagePullPolicy: Always
           env:
@@ -55,7 +55,7 @@ spec:
             - name: "SCORECARD_API_RESULTS_BUCKET_URL"
               value: "gs://ossf-scorecard-cron-releasetest-results"
             - name: "SCORECARD_BLACKLISTED_CHECKS"
-              value: "CI-Tests,Contributors,Dependency-Update-Tool,Fuzzing,SAST"
+              value: "CI-Tests,Contributors,Dependency-Update-Tool,SAST"
           resources:
             requests:
               memory: 5Gi
