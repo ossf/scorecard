@@ -6,7 +6,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.50.1
 	github.com/google/addlicense v1.1.1
-	github.com/google/ko v0.11.3-0.20220812194550-f9b4471f654a
+	github.com/google/ko v0.12.0
 	github.com/goreleaser/goreleaser v1.14.1
 	github.com/naveensrinivasan/stunning-tribble v0.4.2
 	github.com/onsi/ginkgo/v2 v2.8.3
@@ -362,7 +362,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.3.3 // indirect
-	k8s.io/apimachinery v0.24.3 // indirect
+	k8s.io/apimachinery v0.24.4 // indirect
 	k8s.io/klog/v2 v2.70.1 // indirect
 	k8s.io/utils v0.0.0-20220812165043-ad590609e2e5 // indirect
 	mvdan.cc/gofumpt v0.4.0 // indirect
