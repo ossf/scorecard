@@ -64,5 +64,6 @@ func (gt *githubTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	if err == nil {
 		stats.Record(ctx, githubstats.RemainingTokens.M(int64(remaining)))
 	}
+
 	return resp, nil
 }

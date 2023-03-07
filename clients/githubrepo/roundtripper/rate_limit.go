@@ -20,6 +20,9 @@ import (
 	"strconv"
 	"time"
 
+	"go.opencensus.io/stats"
+
+	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
 )
@@ -44,6 +47,17 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 	if err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
 	}
+
+	retryValue := resp.Header.Get("Retry-After")
+	if retryAfter, err := strconv.Atoi(retryValue); err == nil { // if NO error
+		stats.Record(r.Context(), githubstats.RetryAfter.M(int64(retryAfter)))
+		duration := time.Duration(retryAfter) * time.Second
+		gh.logger.Info(fmt.Sprintf("Retry-After header set. Waiting %s to retry...", duration))
+		time.Sleep(duration)
+		gh.logger.Info("Retry-After header set. Retrying...")
+		return gh.RoundTrip(r)
+	}
+
 	rateLimit := resp.Header.Get("X-RateLimit-Remaining")
 	remaining, err := strconv.Atoi(rateLimit)
 	if err != nil {

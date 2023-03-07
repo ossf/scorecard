@@ -32,8 +32,18 @@ spec:
           args: ["--ignoreRuntimeErrors=true", "--config=/etc/scorecard/config.yaml"]
           imagePullPolicy: Always
           env:
-            - name: GITHUB_AUTH_SERVER
-              value: "10.4.4.210:80"
+            - name: GITHUB_APP_KEY_PATH
+              value: /etc/github/app_key
+            - name: GITHUB_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: github
+                  key: app_id
+            - name: GITHUB_APP_INSTALLATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: github
+                  key: installation_id
           resources:
             requests:
               memory: 5Gi
@@ -45,10 +55,16 @@ spec:
             - name: config-volume
               mountPath: /etc/scorecard
               readOnly: true
+            - name: github-app-key
+              mountPath: "/etc/github/"
+              readOnly: true
       volumes:
         - name: config-volume
           configMap:
             name: scorecard-config
+        - name: github-app-key
+          secret:
+            secretName: github
   strategy:
     type: "RollingUpdate"
     rollingUpdate:
