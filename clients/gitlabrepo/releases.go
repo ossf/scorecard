@@ -44,7 +44,7 @@ func (handler *releasesHandler) setup() error {
 			handler.errSetup = fmt.Errorf("%w: ListReleases only supported for HEAD queries", clients.ErrUnsupportedFeature)
 			return
 		}
-		releases, _, err := handler.glClient.Releases.ListReleases(handler.repourl.projectID, &gitlab.ListReleasesOptions{})
+		releases, _, err := handler.glClient.Releases.ListReleases(handler.repourl.project, &gitlab.ListReleasesOptions{})
 		if err != nil {
 			handler.errSetup = fmt.Errorf("%w: ListReleases failed", err)
 			return

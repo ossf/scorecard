@@ -34,8 +34,8 @@ func TestSearchCommitsBuildQuery(t *testing.T) {
 		{
 			name: "Basic",
 			repourl: &repoURL{
-				owner:     "testowner",
-				projectID: "1234",
+				owner:   "testowner",
+				project: "1234",
 			},
 			searchReq: clients.SearchCommitsOptions{
 				Author: "testAuthor",
@@ -45,8 +45,8 @@ func TestSearchCommitsBuildQuery(t *testing.T) {
 		{
 			name: "EmptyQuery:",
 			repourl: &repoURL{
-				owner:     "testowner",
-				projectID: "1234",
+				owner:   "testowner",
+				project: "1234",
 			},
 			searchReq:       clients.SearchCommitsOptions{},
 			hasError:        true,

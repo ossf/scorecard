@@ -18,8 +18,10 @@ package gitlabrepo
 
 import (
 	"fmt"
-	"regexp"
+	"net/url"
 	"strings"
+
+	"github.com/xanzy/go-gitlab"
 
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -30,9 +32,10 @@ const (
 )
 
 type repoURL struct {
-	hostname      string
+	scheme        string
+	host          string
 	owner         string
-	projectID     string
+	project       string
 	defaultBranch string
 	commitSHA     string
 	metadata      []string
@@ -41,64 +44,92 @@ type repoURL struct {
 // Parses input string into repoURL struct
 /*
 *  Accepted input string formats are as follows:
-	*  "gitlab.<companyDomain:string>.com/<owner:string>/<projectID:int>"
-	* "https://gitlab.<companyDomain:string>.com/<owner:string>/<projectID:int>"
+	*  "gitlab.<companyDomain:string>.com/<owner:string>/<projectID:string>"
+	* "https://gitlab.<companyDomain:string>.com/<owner:string>/<projectID:string>"
+
+The following input format is not supported:
+	* https://gitlab.<companyDomain:string>.com/projects/<projectID:int>
 */
 func (r *repoURL) parse(input string) error {
-	switch {
-	case strings.Contains(input, "https://"):
-		input = strings.TrimPrefix(input, "https://")
-	case strings.Contains(input, "http://"):
-		input = strings.TrimPrefix(input, "http://")
-	case strings.Contains(input, "://"):
-		return sce.WithMessage(sce.ErrScorecardInternal, "unknown input format")
+	var t string
+	c := strings.Split(input, "/")
+	switch l := len(c); {
+	// This will takes care for repo/owner format.
+	// By default it will use gitlab.com
+	case l == 2:
+		t = "gitlab.com/" + c[0] + "/" + c[1]
+	case l >= 3:
+		t = input
 	}
 
-	stringParts := strings.Split(input, "/")
+	// Allow skipping scheme for ease-of-use, default to https.
+	if !strings.Contains(t, "://") {
+		t = "https://" + t
+	}
 
-	stringParts[2] = strings.TrimSuffix(stringParts[2], "/")
+	u, e := url.Parse(t)
+	if e != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
+	}
 
-	r.hostname, r.owner, r.projectID = stringParts[0], stringParts[1], stringParts[2]
+	const splitLen = 2
+	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
+	if len(split) != splitLen {
+		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("%v. Expected full repository url", input))
+	}
+
+	r.scheme, r.host, r.owner, r.project = u.Scheme, u.Host, split[0], split[1]
 	return nil
 }
 
 // URI implements Repo.URI().
-// TODO: there may be a reason the string was originally in format "%s/%s/%s", hostname, owner, projectID,
-// however I changed it to be more "userful".
 func (r *repoURL) URI() string {
-	return fmt.Sprintf("https://%s", r.hostname)
+	return fmt.Sprintf("%s/%s/%s", r.host, r.owner, r.project)
+}
+
+func (r *repoURL) Host() string {
+	return fmt.Sprintf("%s://%s", r.scheme, r.host)
 }
 
 // String implements Repo.String.
 func (r *repoURL) String() string {
-	return fmt.Sprintf("%s-%s_%s", r.hostname, r.owner, r.projectID)
+	return fmt.Sprintf("%s-%s_%s", r.host, r.owner, r.project)
 }
 
 func (r *repoURL) Org() clients.Repo {
 	return &repoURL{
-		hostname:  r.hostname,
-		owner:     r.owner,
-		projectID: gitlabOrgProj,
+		host:    r.host,
+		owner:   r.owner,
+		project: gitlabOrgProj,
 	}
 }
 
 // IsValid implements Repo.IsValid.
 func (r *repoURL) IsValid() error {
-	hostMatched, err := regexp.MatchString("gitlab.*com", r.hostname)
+	if strings.Contains(r.host, "gitlab.") {
+		return nil
+	}
+
+	client, err := gitlab.NewClient("", gitlab.WithBaseURL(fmt.Sprintf("%s://%s", r.scheme, r.host)))
 	if err != nil {
-		return fmt.Errorf("error processing regex: %w", err)
-	}
-	if !hostMatched {
-		return sce.WithMessage(sce.ErrorInvalidURL, "non gitlab repository found")
-	}
-
-	isNotDigit := func(c rune) bool { return c < '0' || c > '9' }
-	b := strings.IndexFunc(r.projectID, isNotDigit) == -1
-	if !b {
-		return sce.WithMessage(sce.ErrorInvalidURL, "incorrect format for projectID")
+		return sce.WithMessage(err,
+			fmt.Sprintf("couldn't create gitlab client for %s", r.host),
+		)
 	}
 
-	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.projectID) == "" {
+	_, resp, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{})
+	if resp == nil || resp.StatusCode != 200 {
+		return sce.WithMessage(sce.ErrRepoUnreachable,
+			fmt.Sprintf("couldn't reach gitlab instance at %s", r.host),
+		)
+	}
+	if err != nil {
+		return sce.WithMessage(err,
+			fmt.Sprintf("error when connecting to gitlab instance at %s", r.host),
+		)
+	}
+
+	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.project) == "" {
 		return sce.WithMessage(sce.ErrorInvalidURL,
 			fmt.Sprintf("%v. Expected the full project url", r.URI()))
 	}
