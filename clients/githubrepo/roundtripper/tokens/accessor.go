@@ -43,7 +43,11 @@ func readGitHubTokens() (string, bool) {
 // MakeTokenAccessor is a factory function of TokenAccessor.
 func MakeTokenAccessor() TokenAccessor {
 	if value, exists := readGitHubTokens(); exists {
-		return makeRoundRobinAccessor(strings.Split(value, ","))
+		tokens := strings.Split(value, ",")
+		if len(tokens) == 1 {
+			return makeSimpleAccessor(tokens[0])
+		}
+		return makeRoundRobinAccessor(tokens)
 	}
 	if value, exists := os.LookupEnv(githubAuthServer); exists {
 		return makeRPCAccessor(value)
