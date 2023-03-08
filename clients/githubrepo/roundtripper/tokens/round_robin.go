@@ -36,7 +36,7 @@ func (tokens *roundRobinAccessor) Next() (uint64, string) {
 
 	// If selected accessToken is unavailable, wait.
 	for !atomic.CompareAndSwapInt64(&tokens.accessState[index], 0, time.Now().Unix()) {
-		currVal := tokens.accessState[index]
+		currVal := atomic.LoadInt64(&tokens.accessState[index])
 		expired := time.Now().After(time.Unix(currVal, 0).Add(expiryTimeInSec * time.Second))
 		if !expired {
 			continue
