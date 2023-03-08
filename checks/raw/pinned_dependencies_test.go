@@ -557,6 +557,60 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 					endLine:   42,
 					t:         checker.DependencyUseTypePipCommand,
 				},
+				{
+					snippet:   "pip install --no-deps -e hg+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 46,
+					endLine:   46,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e svn+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 47,
+					endLine:   47,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e bzr+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 48,
+					endLine:   48,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git",
+					startLine: 49,
+					endLine:   49,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git#egg=package",
+					startLine: 50,
+					endLine:   50,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0",
+					startLine: 51,
+					endLine:   51,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package",
+					startLine: 52,
+					endLine:   52,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 60,
+					endLine:   60,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "python -m pip install --no-deps -e git+https://github.com/username/repo.git",
+					startLine: 62,
+					endLine:   62,
+					t:         checker.DependencyUseTypePipCommand,
+				},
 			},
 		},
 		{
@@ -851,7 +905,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/Dockerfile-pkg-managers",
-			warns:    47,
+			warns:    56,
 		},
 		{
 			name:     "download with some python",
