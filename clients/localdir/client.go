@@ -243,6 +243,18 @@ func (client *localDirClient) Close() error {
 	return nil
 }
 
+func (client *localDirClient) ListBranches() ([]*clients.BranchRef, error) {
+	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *localDirClient) ListTags() ([]clients.Tag, error) {
+	return nil, fmt.Errorf("ListTags: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *localDirClient) ContainsRevision(base, target string) (bool, error) {
+	return false, fmt.Errorf("ContainsRevision: %w", clients.ErrUnsupportedFeature)
+}
+
 // ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
 // TODO: add ListProgrammingLanguages support for local directories.
 func (client *localDirClient) ListProgrammingLanguages() ([]clients.Language, error) {
@@ -261,6 +273,17 @@ func (client *localDirClient) GetCreatedAt() (time.Time, error) {
 
 func (client *localDirClient) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("GetOrgRepoClient: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *localDirClient) NewClient(repo clients.Repo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
+	new := &localDirClient{
+		ctx:    client.ctx,
+		logger: client.logger,
+	}
+	if err := new.InitRepo(repo, commitSHA, commitDepth); err != nil {
+		return nil, err
+	}
+	return new, nil
 }
 
 // CreateLocalDirClient returns a client which implements RepoClient interface.

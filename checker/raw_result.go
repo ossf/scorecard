@@ -308,6 +308,8 @@ const (
 	DangerousWorkflowScriptInjection DangerousWorkflowType = "scriptInjection"
 	// DangerousWorkflowUntrustedCheckout represents an untrusted checkout.
 	DangerousWorkflowUntrustedCheckout DangerousWorkflowType = "untrustedCheckout"
+	// DangerousWorkflowImposterReference represents an untrusted imposter reference.
+	DangerousWorkflowImposterReference DangerousWorkflowType = "imposterReference"
 )
 
 // DangerousWorkflowData contains raw results

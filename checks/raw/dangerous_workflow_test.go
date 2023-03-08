@@ -24,6 +24,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
+	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
@@ -148,16 +149,31 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-wildcard.yml",
 			expected: ret{nb: 1},
 		},
+		{
+			name:     "imposter commit",
+			filename: ".github/workflows/github-workflow-imposter-commit.yaml",
+			expected: ret{nb: 1},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			branch := "main"
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{tt.filename}, nil)
+			mockRepoClient.EXPECT().ListBranches().Return([]*clients.BranchRef{{Name: &branch}}, nil).AnyTimes()
+			mockRepoClient.EXPECT().ListTags().Return([]clients.Tag{{Name: branch}}, nil).AnyTimes()
+			mockRepoClient.EXPECT().ContainsRevision(gomock.Any(), gomock.Any()).DoAndReturn(func(base string, target string) (bool, error) {
+				if target == "imposter" {
+					return false, nil
+				}
+				return true, nil
+			}).AnyTimes()
 			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
+				t.Log("mock: ", file)
 				// This will read the file and return the content
 				content, err := os.ReadFile("../testdata/" + file)
 				if err != nil {

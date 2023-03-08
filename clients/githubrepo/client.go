@@ -124,6 +124,31 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	return nil
 }
 
+// NewClient implements RepoClient.NewClient.
+func (client *Client) NewClient(inputRepo clients.Repo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
+	new := &Client{
+		ctx:           client.ctx,
+		repoClient:    client.repoClient,
+		graphClient:   client.graphClient,
+		contributors:  client.contributors,
+		branches:      client.branches,
+		releases:      client.releases,
+		workflows:     client.workflows,
+		checkruns:     client.checkruns,
+		statuses:      client.statuses,
+		search:        client.search,
+		searchCommits: client.searchCommits,
+		webhook:       client.webhook,
+		languages:     client.languages,
+		licenses:      client.licenses,
+		tarball:       client.tarball,
+	}
+	if err := new.InitRepo(inputRepo, commitSHA, commitDepth); err != nil {
+		return nil, err
+	}
+	return new, nil
+}
+
 // URI implements RepoClient.URI.
 func (client *Client) URI() string {
 	return fmt.Sprintf("github.com/%s/%s", client.repourl.owner, client.repourl.repo)
@@ -168,6 +193,11 @@ func (client *Client) ListContributors() ([]clients.User, error) {
 // IsArchived implements RepoClient.IsArchived.
 func (client *Client) IsArchived() (bool, error) {
 	return client.graphClient.isArchived()
+}
+
+// ListBranches implements RepoClient.ListBranches.
+func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
+	return client.branches.list()
 }
 
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
@@ -252,6 +282,28 @@ func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]cli
 // Close implements RepoClient.Close.
 func (client *Client) Close() error {
 	return client.tarball.cleanup()
+}
+
+// ContainsRevision implements RepoClient.ContainsRevision.
+func (client *Client) ContainsRevision(base, target string) (bool, error) {
+	return client.branches.containsRevision(base, target)
+}
+
+// ListTags implements RepoClient.ListTags.
+func (client *Client) ListTags() ([]clients.Tag, error) {
+	url := client.repourl
+	tags, _, err := client.repoClient.Repositories.ListTags(client.ctx, url.owner, url.repo, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]clients.Tag, 0, len(tags))
+	for _, t := range tags {
+		out = append(out, clients.Tag{
+			Name: t.GetName(),
+		})
+	}
+	return out, nil
 }
 
 // CreateGithubRepoClientWithTransport returns a Client which implements RepoClient interface.

@@ -135,6 +135,32 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	return nil
 }
 
+// NewClient implements RepoClient.NewClient.
+func (client *Client) NewClient(inputRepo clients.Repo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
+	new := &Client{
+		ctx:           client.ctx,
+		glClient:      client.glClient,
+		contributors:  client.contributors,
+		branches:      client.branches,
+		releases:      client.releases,
+		workflows:     client.workflows,
+		checkruns:     client.checkruns,
+		commits:       client.commits,
+		issues:        client.issues,
+		project:       client.project,
+		statuses:      client.statuses,
+		search:        client.search,
+		searchCommits: client.searchCommits,
+		webhook:       client.webhook,
+		languages:     client.languages,
+		licenses:      client.licenses,
+	}
+	if err := new.InitRepo(inputRepo, commitSHA, commitDepth); err != nil {
+		return nil, err
+	}
+	return new, nil
+}
+
 func (client *Client) URI() string {
 	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.project)
 }
@@ -226,6 +252,18 @@ func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]cli
 
 func (client *Client) Close() error {
 	return nil
+}
+
+func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
+	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *Client) ListTags() ([]clients.Tag, error) {
+	return nil, fmt.Errorf("ListTags: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *Client) ContainsRevision(base, target string) (bool, error) {
+	return false, fmt.Errorf("ContainsRevision: %w", clients.ErrUnsupportedFeature)
 }
 
 func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients.Repo) (clients.RepoClient, error) {

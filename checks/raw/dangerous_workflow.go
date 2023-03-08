@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
@@ -24,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 )
@@ -69,19 +71,24 @@ var (
 func DangerousWorkflow(c clients.RepoClient) (checker.DangerousWorkflowData, error) {
 	// data is shared across all GitHub workflows.
 	var data checker.DangerousWorkflowData
+
+	v := &validateGitHubActionWorkflowPatterns{
+		client: c,
+	}
+
 	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, validateGitHubActionWorkflowPatterns, &data)
+	}, v.Validate, &data)
 
 	return data, err
 }
 
-// Check file content.
-var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = func(path string,
-	content []byte,
-	args ...interface{},
-) (bool, error) {
+type validateGitHubActionWorkflowPatterns struct {
+	client clients.RepoClient
+}
+
+func (v *validateGitHubActionWorkflowPatterns) Validate(path string, content []byte, args ...interface{}) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
@@ -114,6 +121,11 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 
 	// 2. Check for script injection in workflow inline scripts.
 	if err := validateScriptInjection(workflow, path, pdata); err != nil {
+		return false, err
+	}
+
+	// 3. Check for imposter commit references from forks
+	if err := validateImposterCommits(v.client, workflow, path, pdata); err != nil {
 		return false, err
 	}
 
@@ -268,4 +280,124 @@ func checkVariablesInScript(script string, pos *actionlint.Pos,
 		script = script[s+e:]
 	}
 	return nil
+}
+
+func validateImposterCommits(client clients.RepoClient, workflow *actionlint.Workflow, path string,
+	pdata *checker.DangerousWorkflowData,
+) error {
+	ctx := context.TODO()
+	cache := &containsCache{
+		client: client,
+		cache:  make(map[commitKey]bool),
+	}
+	for _, job := range workflow.Jobs {
+		for _, step := range job.Steps {
+			switch e := step.Exec.(type) {
+			case *actionlint.ExecAction:
+				// Parse out repo / SHA.
+				ref := e.Uses.Value
+				trimmedRef := strings.TrimPrefix(ref, "actions://")
+				s := strings.Split(trimmedRef, "@")
+				if len(s) != 2 {
+					return fmt.Errorf("unexpected reference: %s", trimmedRef)
+				}
+				repo := s[0]
+				sha := s[1]
+
+				// Check if repo contains SHA - we use a cache to reduce duplicate calls to GitHub,
+				// since reachability queries can be expensive.
+				ok, err := cache.Contains(ctx, repo, sha)
+				if err != nil {
+					return err
+				}
+				if !ok {
+					pdata.Workflows = append(pdata.Workflows,
+						checker.DangerousWorkflow{
+							File: checker.File{
+								Path:    path,
+								Type:    finding.FileTypeSource,
+								Offset:  fileparser.GetLineNumber(step.Pos),
+								Snippet: trimmedRef,
+							},
+							Job:  createJob(job),
+							Type: checker.DangerousWorkflowImposterReference,
+						},
+					)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+type commitKey struct {
+	repo, sha string
+}
+
+// containsCache caches response values for whether a commit is contained in a given repo.
+// This allows us to deduplicate work if we've already checked this commit.
+type containsCache struct {
+	client clients.RepoClient
+	cache  map[commitKey]bool
+}
+
+func (c *containsCache) Contains(ctx context.Context, repo, sha string) (bool, error) {
+	key := commitKey{
+		repo: repo,
+		sha:  sha,
+	}
+
+	// See if we've already seen (repo, sha).
+	v, ok := c.cache[key]
+	if ok {
+		return v, nil
+	}
+
+	// If not, query subrepo for commit reachability.
+	// Make new client for referenced repo.
+	gh, err := githubrepo.MakeGithubRepo(repo)
+	if err != nil {
+		return false, err
+	}
+	subclient, err := c.client.NewClient(gh, "", 0)
+	if err != nil {
+		return false, err
+	}
+
+	out, err := checkImposterCommit(subclient, sha)
+	c.cache[key] = out
+	return out, err
+}
+
+func checkImposterCommit(c clients.RepoClient, target string) (bool, error) {
+	branches, err := c.ListBranches()
+	if err != nil {
+		return false, err
+	}
+	for _, b := range branches {
+		ok, err := c.ContainsRevision(fmt.Sprintf("refs/heads/%s", *b.Name), target)
+		if err != nil {
+			return false, err
+		}
+		if ok {
+			return true, nil
+		}
+	}
+
+	tags, err := c.ListTags()
+	if err != nil {
+		return false, err
+	}
+	for _, t := range tags {
+		ok, err := c.ContainsRevision(fmt.Sprintf("refs/tags/%s", t.Name), target)
+		if err != nil {
+			return false, err
+		}
+		if ok {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

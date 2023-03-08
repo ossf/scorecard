@@ -37,6 +37,8 @@ func DangerousWorkflow(name string, dl checker.DetailLogger,
 			text = fmt.Sprintf("untrusted code checkout '%v'", e.File.Snippet)
 		case checker.DangerousWorkflowScriptInjection:
 			text = fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet)
+		case checker.DangerousWorkflowImposterReference:
+			text = fmt.Sprintf("untrusted reference does not belong to repo '%v'", e.File.Snippet)
 		default:
 			err := sce.WithMessage(sce.ErrScorecardInternal, "invalid type")
 			return checker.CreateRuntimeErrorResult(name, err)

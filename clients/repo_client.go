@@ -30,6 +30,7 @@ const HeadSHA = "HEAD"
 // RepoClient interface is used by Scorecard checks to access a repo.
 type RepoClient interface {
 	InitRepo(repo Repo, commitSHA string, commitDepth int) error
+	NewClient(repo Repo, commitSHA string, commitDepth int) (RepoClient, error)
 	URI() string
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)
@@ -42,6 +43,7 @@ type RepoClient interface {
 	GetDefaultBranchName() (string, error)
 	GetDefaultBranch() (*BranchRef, error)
 	GetOrgRepoClient(context.Context) (RepoClient, error)
+	ListBranches() ([]*BranchRef, error)
 	ListCommits() ([]Commit, error)
 	ListIssues() ([]Issue, error)
 	ListLicenses() ([]License, error)
@@ -50,8 +52,10 @@ type RepoClient interface {
 	ListSuccessfulWorkflowRuns(filename string) ([]WorkflowRun, error)
 	ListCheckRunsForRef(ref string) ([]CheckRun, error)
 	ListStatuses(ref string) ([]Status, error)
+	ListTags() ([]Tag, error)
 	ListWebhooks() ([]Webhook, error)
 	ListProgrammingLanguages() ([]Language, error)
+	ContainsRevision(base, target string) (bool, error)
 	Search(request SearchRequest) (SearchResponse, error)
 	SearchCommits(request SearchCommitsOptions) ([]Commit, error)
 	Close() error

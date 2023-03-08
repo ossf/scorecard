@@ -159,6 +159,11 @@ func (c *client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 	return fmt.Errorf("InitRepo: %w", clients.ErrUnsupportedFeature)
 }
 
+// InitRepo implements RepoClient.InitRepo.
+func (c *client) NewClient(inputRepo clients.Repo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
+	return nil, fmt.Errorf("NewClient: %w", clients.ErrUnsupportedFeature)
+}
+
 // IsArchived implements RepoClient.IsArchived.
 func (c *client) IsArchived() (bool, error) {
 	return false, fmt.Errorf("IsArchived: %w", clients.ErrUnsupportedFeature)
@@ -262,4 +267,19 @@ func (c *client) ListLicenses() ([]clients.License, error) {
 // GetCreatedAt implements RepoClient.GetCreatedAt.
 func (c *client) GetCreatedAt() (time.Time, error) {
 	return time.Time{}, fmt.Errorf("GetCreatedAt: %w", clients.ErrUnsupportedFeature)
+}
+
+// ContainsRevision implements RepoClient.ContainsRevision.
+func (c *client) ContainsRevision(base, target string) (bool, error) {
+	return false, fmt.Errorf("ContainsRevision: %w", clients.ErrUnsupportedFeature)
+}
+
+// ListBranches implements RepoClient.ListBranches.
+func (c *client) ListBranches() ([]*clients.BranchRef, error) {
+	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
+}
+
+// ListTags implements RepoClient.ListTags.
+func (c *client) ListTags() ([]clients.Tag, error) {
+	return nil, fmt.Errorf("ListTags: %w", clients.ErrUnsupportedFeature)
 }
