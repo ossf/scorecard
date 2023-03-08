@@ -24,7 +24,9 @@ var (
 	// RemainingTokens measures the remaining number of API tokens.
 	RemainingTokens = stats.Int64("RemainingTokens",
 		"Measures the remaining count of API tokens", stats.UnitDimensionless)
-
+	// RetryAfter measures the retry delay when dealing with secondary rate limits.
+	RetryAfter = stats.Int64("RetryAfter",
+		"Measures the retry delay when dealing with secondary rate limits", stats.UnitSeconds)
 	// TokenIndex is the tag key for specifying a unique token.
 	TokenIndex = tag.MustNewKey("tokenIndex")
 	// ResourceType specifies the type of GitHub resource.

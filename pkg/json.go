@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
@@ -163,7 +164,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 			Version: r.Scorecard.Version,
 			Commit:  r.Scorecard.CommitSHA,
 		},
-		Date:           r.Date.Format("2006-01-02"),
+		Date:           r.Date.Format(time.RFC3339),
 		Metadata:       r.Metadata,
 		AggregateScore: jsonFloatScore(score),
 	}

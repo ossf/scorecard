@@ -43,7 +43,9 @@ additional-params:
     api-results-bucket-url: gs://ossf-scorecard-cron-results
     # TODO: Temporarily remove SAST and CI-Tests which require lot of GitHub API tokens.
     # TODO(#859): Re-add Contributors after fixing inconsistencies.
-    blacklisted-checks: CI-Tests,Contributors
+    # TODO: Dependency-Update-Tool, Fuzzing, and SAST are search heavy
+    # TODO: Vulnerabilities is resource intensive, wait until the next osv-scanner release after v1.2.0
+    blacklisted-checks: CI-Tests,Contributors,Dependency-Update-Tool,Fuzzing,SAST,Vulnerabilities
     cii-data-bucket-url: gs://ossf-scorecard-cii-data
     # Raw results.
     raw-bigquery-table: scorecard-rawdata

@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
+	"github.com/ossf/scorecard/v4/clients/ossfuzz"
 	"github.com/ossf/scorecard/v4/cron/config"
 	"github.com/ossf/scorecard/v4/cron/data"
 	format "github.com/ossf/scorecard/v4/cron/internal/format"
@@ -92,8 +93,8 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	sw.logger = log.NewLogger(log.InfoLevel)
 	sw.repoClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
 	sw.ciiClient = clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
-	if sw.ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(sw.ctx, sw.logger); err != nil {
-		return nil, fmt.Errorf("githubrepo.CreateOssFuzzRepoClient: %w", err)
+	if sw.ossFuzzRepoClient, err = ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL); err != nil {
+		return nil, fmt.Errorf("ossfuzz.CreateOSSFuzzClientEager: %w", err)
 	}
 
 	sw.vulnsClient = clients.DefaultVulnerabilitiesClient()

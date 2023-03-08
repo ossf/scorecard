@@ -31,7 +31,7 @@ kind: Deployment
 metadata:
   name: scorecard-github-server
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: github-auth-server

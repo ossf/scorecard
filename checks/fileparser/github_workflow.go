@@ -559,6 +559,9 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 				{
 					Uses: "imjasonh/setup-ko",
 				},
+				{
+					Uses: "ko-build/setup-ko",
+				},
 			},
 			LogText: "candidate container publishing workflow using ko",
 		},
