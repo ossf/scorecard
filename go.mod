@@ -35,7 +35,7 @@ require (
 	go.opencensus.io v0.24.0
 	gocloud.dev v0.26.0
 	golang.org/x/text v0.7.0
-	golang.org/x/tools v0.5.0
+	golang.org/x/tools v0.5.1-0.20230117180257-8aba49bb5ea2
 	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0
@@ -47,7 +47,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/gobwas/glob v0.2.3
-	github.com/google/osv-scanner v1.2.0
+	github.com/google/osv-scanner v1.2.1-0.20230302232134-592acbc2539b
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.7.0
 	sigs.k8s.io/release-utils v0.6.0
@@ -85,6 +85,7 @@ require (
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
+	golang.org/x/vuln v0.0.0-20230118164824-4ec8867cc0e6 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/api v0.20.0 // indirect
 	k8s.io/apimachinery v0.20.0 // indirect
@@ -150,7 +151,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.3.0 // indirect
-	golang.org/x/exp v0.0.0-20230213192124-5e25df0256eb
+	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.3.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
