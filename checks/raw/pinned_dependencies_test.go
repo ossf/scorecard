@@ -261,7 +261,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 		{
 			name:     "npm packages without verification",
 			filename: "./testdata/.github/workflows/github-workflow-pkg-managers.yaml",
-			warns:    36,
+			warns:    45,
 		},
 	}
 	for _, tt := range tests {
