@@ -495,13 +495,10 @@ func isPinnedEditableSource(pkgSource string) bool {
 	}
 	regexGitSource := regexp.MustCompile(`^git(\+(https?|ssh|git))?\:\/\/.*(.git)?@[a-fA-F0-9]{40}(#egg=.*)?$`)
 	// Is VCS install from Git and it's pinned
-	if regexGitSource.MatchString(pkgSource) {
-		return true
-	}
+	return regexGitSource.MatchString(pkgSource)
 	// Disclaimer: We are not handling if Subversion (svn),
 	// Mercurial (hg) or Bazaar (bzr) remote sources are pinned
 	// because they are not common on GitHub repos
-	return false
 }
 
 func isUnpinnedPipInstall(cmd []string) bool {
