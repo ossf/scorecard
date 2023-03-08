@@ -753,6 +753,60 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 					endLine:   31,
 					t:         checker.DependencyUseTypeChocoCommand,
 				},
+				{
+					snippet:   "pip install --no-deps -e hg+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 38,
+					endLine:   38,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e svn+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 39,
+					endLine:   39,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e bzr+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 40,
+					endLine:   40,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git",
+					startLine: 41,
+					endLine:   41,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git#egg=package",
+					startLine: 42,
+					endLine:   42,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0",
+					startLine: 43,
+					endLine:   43,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package",
+					startLine: 44,
+					endLine:   44,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 52,
+					endLine:   52,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "python -m pip install --no-deps -e git+https://github.com/username/repo.git",
+					startLine: 54,
+					endLine:   54,
+					t:         checker.DependencyUseTypePipCommand,
+				},
 			},
 		},
 	}
@@ -1023,7 +1077,7 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/script-pkg-managers",
-			warns:    43,
+			warns:    52,
 		},
 		{
 			name:     "invalid shell script",
