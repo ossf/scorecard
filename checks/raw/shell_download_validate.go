@@ -493,6 +493,9 @@ func isUnpinnedPipInstall(cmd []string) bool {
 	}
 
 	isInstall := false
+	hasNoDeps := false
+	isEditableInstall := false
+	isPinnedEditableInstall := false
 	hasRequireHashes := false
 	hasAdditionalArgs := false
 	hasWheel := false
@@ -505,6 +508,35 @@ func isUnpinnedPipInstall(cmd []string) bool {
 
 		if !isInstall {
 			break
+		}
+
+		if strings.EqualFold(cmd[i], "--no-deps") {
+			hasNoDeps = true
+			continue
+		}
+
+		if slices.Contains([]string{"-e", "--editable"}, cmd[i]) {
+			isEditableInstall = true
+			if i+1 < len(cmd) {
+				i++
+				pkgSource := cmd[i]
+				regexRemoteSource := regexp.MustCompile(`^(git|svn|hg|bzr).+$`)
+				// Is from local source
+				if !regexRemoteSource.MatchString(pkgSource) {
+					isPinnedEditableInstall = true
+					continue
+				}
+				regexGitSource := regexp.MustCompile(`^git(\+(https?|ssh|git))?\:\/\/.*(.git)?@[a-fA-F0-9]{40}(#egg=.*)?$`)
+				// Is VCS install from Git and it's pinned
+				if regexGitSource.MatchString(pkgSource) {
+					isPinnedEditableInstall = true
+					continue
+				}
+				// Disclaimer: We are not handling if Subversion (svn),
+				// Mercurial (hg) or Bazaar (bzr) remote sources are pinned
+				// because they are not common on GitHub repos
+			}
+			continue
 		}
 
 		// https://github.com/ossf/scorecard/issues/1306#issuecomment-974539197.
@@ -523,6 +555,14 @@ func isUnpinnedPipInstall(cmd []string) bool {
 		}
 
 		hasAdditionalArgs = true
+	}
+
+	// If is editable install, it's secure if package is from local source
+	// or from remote (VCS install) pinned by hash, and if dependencies are
+	// not installed because we can't verify if they are pinned by hash.
+	// Example: `pip install --no-deps -e git+https://git.repo/some_pkg.git@da39a3ee5e6b4b0d3255bfef95601890afd80709`
+	if isEditableInstall {
+		return !hasNoDeps || !isPinnedEditableInstall
 	}
 
 	// If hashes are required, it's pinned.
