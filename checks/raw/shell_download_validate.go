@@ -487,6 +487,23 @@ func isGoUnpinnedDownload(cmd []string) bool {
 	return found
 }
 
+func isPinnedEditableSource(pkgSource string) bool {
+	regexRemoteSource := regexp.MustCompile(`^(git|svn|hg|bzr).+$`)
+	// Is from local source
+	if !regexRemoteSource.MatchString(pkgSource) {
+		return true
+	}
+	regexGitSource := regexp.MustCompile(`^git(\+(https?|ssh|git))?\:\/\/.*(.git)?@[a-fA-F0-9]{40}(#egg=.*)?$`)
+	// Is VCS install from Git and it's pinned
+	if regexGitSource.MatchString(pkgSource) {
+		return true
+	}
+	// Disclaimer: We are not handling if Subversion (svn),
+	// Mercurial (hg) or Bazaar (bzr) remote sources are pinned
+	// because they are not common on GitHub repos
+	return false
+}
+
 func isUnpinnedPipInstall(cmd []string) bool {
 	if !isBinaryName("pip", cmd[0]) && !isBinaryName("pip3", cmd[0]) {
 		return false
@@ -520,21 +537,8 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			if i+1 < len(cmd) {
 				i++
 				pkgSource := cmd[i]
-				regexRemoteSource := regexp.MustCompile(`^(git|svn|hg|bzr).+$`)
-				// Is from local source
-				if !regexRemoteSource.MatchString(pkgSource) {
-					isPinnedEditableInstall = true
-					continue
-				}
-				regexGitSource := regexp.MustCompile(`^git(\+(https?|ssh|git))?\:\/\/.*(.git)?@[a-fA-F0-9]{40}(#egg=.*)?$`)
-				// Is VCS install from Git and it's pinned
-				if regexGitSource.MatchString(pkgSource) {
-					isPinnedEditableInstall = true
-					continue
-				}
-				// Disclaimer: We are not handling if Subversion (svn),
-				// Mercurial (hg) or Bazaar (bzr) remote sources are pinned
-				// because they are not common on GitHub repos
+				isPinnedEditableInstall = isPinnedEditableSource(pkgSource)
+				continue
 			}
 			continue
 		}
