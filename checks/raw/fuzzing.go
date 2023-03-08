@@ -89,7 +89,9 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 			checker.Tool{
 				Name: oneFuzz,
 				URL:  asStringPointer("https://github.com/microsoft/onefuzz"),
-				Desc: asStringPointer("Enables continuous developer-driven fuzzing to proactively harden software prior to release."),
+				Desc: asStringPointer(
+					"Enables continuous developer-driven fuzzing to proactively harden software prior to release.",
+				),
 				// TODO: File.
 			},
 		)
