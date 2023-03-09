@@ -16,6 +16,7 @@ package clients
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/osv-scanner/pkg/osvscanner"
@@ -45,26 +46,34 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		Recursive:      true,
 		GitCommits:     gitCommits,
 	}, nil) // TODO: Do logging?
-	if err != nil {
-		return VulnerabilitiesResponse{}, fmt.Errorf("osvscanner.DoScan: %w", err)
-	}
 
 	response := VulnerabilitiesResponse{}
-	vulns := res.Flatten()
-	for i := range vulns {
-		response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
-			ID:      vulns[i].Vulnerability.ID,
-			Aliases: vulns[i].Vulnerability.Aliases,
-		})
-		// Remove duplicate vulnerability IDs for now as we don't report information
-		// on the source of each vulnerability yet, therefore having multiple identical
-		// vuln IDs might be confusing.
-		response.Vulnerabilities = removeDuplicate(
-			response.Vulnerabilities,
-			func(key Vulnerability) string { return key.ID },
-		)
+
+	if err == nil { // No vulns found
+		return response, nil
 	}
-	return response, nil
+
+	// If vulnerabilities are found, err will be set to osvscanner.VulnerabilitiesFoundErr
+	if errors.Is(err, osvscanner.VulnerabilitiesFoundErr) {
+		vulns := res.Flatten()
+		for i := range vulns {
+			response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
+				ID:      vulns[i].Vulnerability.ID,
+				Aliases: vulns[i].Vulnerability.Aliases,
+			})
+			// Remove duplicate vulnerability IDs for now as we don't report information
+			// on the source of each vulnerability yet, therefore having multiple identical
+			// vuln IDs might be confusing.
+			response.Vulnerabilities = removeDuplicate(
+				response.Vulnerabilities,
+				func(key Vulnerability) string { return key.ID },
+			)
+		}
+
+		return response, nil
+	}
+
+	return VulnerabilitiesResponse{}, fmt.Errorf("osvscanner.DoScan: %w", err)
 }
 
 // RemoveDuplicate removes duplicate entries from a slice.
