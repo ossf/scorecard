@@ -493,8 +493,9 @@ func isPinnedEditableSource(pkgSource string) bool {
 	if !regexRemoteSource.MatchString(pkgSource) {
 		return true
 	}
-	regexGitSource := regexp.MustCompile(`^git(\+(https?|ssh|git))?\:\/\/.*(.git)?@[a-fA-F0-9]{40}(#egg=.*)?$`)
 	// Is VCS install from Git and it's pinned
+	// https://pip.pypa.io/en/latest/topics/vcs-support/#vcs-support
+	regexGitSource := regexp.MustCompile(`^git(\+(https?|ssh|git))?\:\/\/.*(.git)?@[a-fA-F0-9]{40}(#egg=.*)?$`)
 	return regexGitSource.MatchString(pkgSource)
 	// Disclaimer: We are not handling if Subversion (svn),
 	// Mercurial (hg) or Bazaar (bzr) remote sources are pinned
@@ -524,11 +525,16 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			break
 		}
 
+		// Require --no-deps to not install the dependencies when doing editable install
+		// because we can't verify if dependencies are pinned
+		// https://pip.pypa.io/en/stable/topics/secure-installs/#do-not-use-setuptools-directly
+		// https://github.com/pypa/pip/issues/4995
 		if strings.EqualFold(cmd[i], "--no-deps") {
 			hasNoDeps = true
 			continue
 		}
 
+		// https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-e
 		if slices.Contains([]string{"-e", "--editable"}, cmd[i]) {
 			isEditableInstall = true
 			if i+1 < len(cmd) {
@@ -560,7 +566,7 @@ func isUnpinnedPipInstall(cmd []string) bool {
 
 	// If is editable install, it's secure if package is from local source
 	// or from remote (VCS install) pinned by hash, and if dependencies are
-	// not installed because we can't verify if they are pinned by hash.
+	// not installed.
 	// Example: `pip install --no-deps -e git+https://git.repo/some_pkg.git@da39a3ee5e6b4b0d3255bfef95601890afd80709`
 	if isEditableInstall {
 		return !hasNoDeps || !isPinnedEditableInstall
