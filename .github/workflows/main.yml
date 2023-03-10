@@ -43,7 +43,7 @@ jobs:
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 #v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 #v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -88,7 +88,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -136,7 +136,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -219,7 +219,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -267,7 +267,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -315,7 +315,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -363,7 +363,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -411,7 +411,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -459,7 +459,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -507,7 +507,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -555,7 +555,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -603,7 +603,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -651,7 +651,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -699,7 +699,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -771,7 +771,7 @@ jobs:
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
@@ -818,7 +818,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+       uses: actions/cache@940f3d7cf195ba83374c77632d1e2cbb2f24ae68 # v3.3.0
        with:
          path: |
            ~/go/pkg/mod
