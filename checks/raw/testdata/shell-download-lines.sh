@@ -50,6 +50,8 @@ pip install --no-deps -e git+ssh://github.com/username/repo.git@0123456789abcdef
 pip install --no-deps -e git+git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
 pip install --no-deps -e git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
 pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e . git+https://github.com/username/repo.git
+pip install --no-deps -e . git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
 
 python -m pip install --no-deps -e git+https://github.com/username/repo.git
 python -m pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package

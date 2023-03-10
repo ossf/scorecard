@@ -808,9 +808,15 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 					t:         checker.DependencyUseTypePipCommand,
 				},
 				{
+					snippet:   "pip install --no-deps -e . git+https://github.com/username/repo.git",
+					startLine: 53,
+					endLine:   53,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
 					snippet:   "python -m pip install --no-deps -e git+https://github.com/username/repo.git",
-					startLine: 54,
-					endLine:   54,
+					startLine: 56,
+					endLine:   56,
 					t:         checker.DependencyUseTypePipCommand,
 				},
 			},
@@ -1083,7 +1089,7 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/script-pkg-managers",
-			warns:    52,
+			warns:    53,
 		},
 		{
 			name:     "invalid shell script",
