@@ -103,7 +103,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	client.workflows.init(client.ctx, client.repourl)
 
 	// Setup checkrunsHandler.
-	client.checkruns.init(client.ctx, client.repourl)
+	client.checkruns.init(client.ctx, client.repourl, commitDepth)
 
 	// Setup statusesHandler.
 	client.statuses.init(client.ctx, client.repourl)
@@ -207,15 +207,7 @@ func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.Wor
 
 // ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.
 func (client *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	cachedCrs, err := client.graphClient.listCheckRunsForRef(ref)
-	if errors.Is(err, errNotCached) {
-		crs, err := client.checkruns.listCheckRunsForRef(ref)
-		if err == nil {
-			client.graphClient.cacheCheckRunsForRef(ref, crs)
-		}
-		return crs, err
-	}
-	return cachedCrs, err
+	return client.checkruns.listCheckRunsForRef(ref)
 }
 
 // ListStatuses implements RepoClient.ListStatuses.
@@ -276,7 +268,8 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 			client: client,
 		},
 		checkruns: &checkrunsHandler{
-			client: client,
+			client:      client,
+			graphClient: graphClient,
 		},
 		statuses: &statusesHandler{
 			client: client,
@@ -311,6 +304,9 @@ func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.Rep
 
 // CreateOssFuzzRepoClient returns a RepoClient implementation
 // intialized to `google/oss-fuzz` GitHub repository.
+//
+// Deprecated: Searching the github.com/google/oss-fuzz repo for projects is flawed. Use a constructor
+// from clients/ossfuzz instead. https://github.com/ossf/scorecard/issues/2670
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	ossFuzzRepo, err := MakeGithubRepo("google/oss-fuzz")
 	if err != nil {

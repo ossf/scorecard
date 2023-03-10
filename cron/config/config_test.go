@@ -34,7 +34,7 @@ const (
 	prodCompletionThreshold            = 0.99
 	prodWebhookURL                     = ""
 	prodCIIDataBucket                  = "gs://ossf-scorecard-cii-data"
-	prodBlacklistedChecks              = "CI-Tests,Contributors"
+	prodBlacklistedChecks              = "CI-Tests,Contributors,Dependency-Update-Tool,Fuzzing,SAST,Vulnerabilities"
 	prodShardSize               int    = 10
 	prodMetricExporter          string = "stackdriver"
 	prodMetricStackdriverPrefix string = "scorecard-cron"

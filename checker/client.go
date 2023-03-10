@@ -21,6 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	ghrepo "github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
+	"github.com/ossf/scorecard/v4/clients/ossfuzz"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -59,16 +60,10 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 			fmt.Errorf("getting local directory client: %w", errGitHub)
 	}
 
-	ossFuzzRepoClient, errOssFuzz := ghrepo.CreateOssFuzzRepoClient(ctx, logger)
-	var retErr error
-	if errOssFuzz != nil {
-		retErr = fmt.Errorf("getting OSS-Fuzz repo client: %w", errOssFuzz)
-	}
-	// TODO(repo): Should we be handling the OSS-Fuzz client error like this?
 	return githubRepo, /*repo*/
 		ghrepo.CreateGithubRepoClient(ctx, logger), /*repoClient*/
-		ossFuzzRepoClient, /*ossFuzzClient*/
+		ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL), /*ossFuzzClient*/
 		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
 		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
-		retErr
+		nil
 }

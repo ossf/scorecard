@@ -26,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/ossfuzz"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
@@ -60,7 +61,7 @@ func serveCmd(o *options.Options) *cobra.Command {
 				}
 				ctx := r.Context()
 				repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-				ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+				ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 				vulnsClient := clients.DefaultVulnerabilitiesClient()
 				if err != nil {
 					logger.Error(err, "initializing clients")
