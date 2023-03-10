@@ -606,9 +606,15 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 					t:         checker.DependencyUseTypePipCommand,
 				},
 				{
+					snippet:   "pip install --no-deps -e . git+https://github.com/username/repo.git",
+					startLine: 61,
+					endLine:   61,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
 					snippet:   "python -m pip install --no-deps -e git+https://github.com/username/repo.git",
-					startLine: 62,
-					endLine:   62,
+					startLine: 64,
+					endLine:   64,
 					t:         checker.DependencyUseTypePipCommand,
 				},
 			},
@@ -959,7 +965,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/Dockerfile-pkg-managers",
-			warns:    56,
+			warns:    57,
 		},
 		{
 			name:     "download with some python",

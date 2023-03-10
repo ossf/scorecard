@@ -78,6 +78,8 @@ RUN pip install --no-deps -e git+ssh://github.com/username/repo.git@0123456789ab
 RUN pip install --no-deps -e git+git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
 RUN pip install --no-deps -e git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
 RUN pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install --no-deps -e . git+https://github.com/username/repo.git
+RUN pip install --no-deps -e . git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
 
 RUN python -m notpip -X bla
 
