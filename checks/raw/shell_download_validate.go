@@ -502,6 +502,11 @@ func isPinnedEditableSource(pkgSource string) bool {
 	// because they are not common on GitHub repos
 }
 
+func isFlag(cmd string) bool {
+	regexFlag := regexp.MustCompile(`^(\-\-?\w+)+$`)
+	return regexFlag.MatchString(cmd)
+}
+
 func isUnpinnedPipInstall(cmd []string) bool {
 	if !isBinaryName("pip", cmd[0]) && !isBinaryName("pip3", cmd[0]) {
 		return false
@@ -510,7 +515,7 @@ func isUnpinnedPipInstall(cmd []string) bool {
 	isInstall := false
 	hasNoDeps := false
 	isEditableInstall := false
-	isPinnedEditableInstall := false
+	isPinnedEditableInstall := true
 	hasRequireHashes := false
 	hasAdditionalArgs := false
 	hasWheel := false
@@ -537,12 +542,6 @@ func isUnpinnedPipInstall(cmd []string) bool {
 		// https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-e
 		if slices.Contains([]string{"-e", "--editable"}, cmd[i]) {
 			isEditableInstall = true
-			if i+1 < len(cmd) {
-				i++
-				pkgSource := cmd[i]
-				isPinnedEditableInstall = isPinnedEditableSource(pkgSource)
-				continue
-			}
 			continue
 		}
 
@@ -552,6 +551,12 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			break
 		}
 
+		// Catch not handled flags, otherwise is package
+		if isFlag(cmd[i]) {
+			continue
+		}
+
+		// Wheel package
 		// Exclude *.whl as they're mostly used
 		// for tests. See https://github.com/ossf/scorecard/pull/611.
 		if strings.HasSuffix(cmd[i], ".whl") {
@@ -561,8 +566,20 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			continue
 		}
 
+		// Editable install package source
+		if isEditableInstall {
+			isPinned := isPinnedEditableSource(cmd[i])
+			if !isPinned {
+				isPinnedEditableInstall = false
+			}
+			continue
+		}
+
 		hasAdditionalArgs = true
 	}
+
+	// --require-hashes and -e flags cannot be used together in pip install
+	// -e and *.whl package cannot be used together in pip install
 
 	// If is editable install, it's secure if package is from local source
 	// or from remote (VCS install) pinned by hash, and if dependencies are
