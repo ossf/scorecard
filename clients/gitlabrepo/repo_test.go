@@ -113,3 +113,43 @@ func TestRepoURL_IsValid(t *testing.T) {
 		})
 	}
 }
+
+func TestRepoURL_DetectGitlab(t *testing.T) {
+	tests := []struct {
+		repouri  string
+		expected bool
+	}{
+		{
+			repouri:  "github.com/ossf/scorecard",
+			expected: false,
+		},
+		{
+			repouri:  "ossf/scorecard",
+			expected: false,
+		},
+		{
+			repouri:  "https://github.com/ossf/scorecard",
+			expected: false,
+		},
+		{
+			repouri:  "gitlab.com/gitlab-org/gitlab",
+			expected: true,
+		},
+		{
+			repouri:  "https://salsa.debian.org/webmaster-team/webml",
+			expected: true,
+		},
+		{
+			// Invalid repo
+			repouri:  "https://abcdef.foo.txt/nilproj/nilrepo",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		g := DetectGitLab(tt.repouri)
+		if g != tt.expected {
+			t.Errorf("got %s isgitlab: %t expected %t", tt.repouri, g, tt.expected)
+		}
+	}
+}

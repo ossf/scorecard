@@ -54,10 +54,9 @@ func (r *repoURL) parse(input string) error {
 	var t string
 	c := strings.Split(input, "/")
 	switch l := len(c); {
-	// This will takes care for repo/owner format.
-	// By default it will use gitlab.com
+	// owner/repo format is not supported for gitlab, it's github-only
 	case l == 2:
-		t = "gitlab.com/" + c[0] + "/" + c[1]
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("gitlab repo must specify host: %s", input))
 	case l >= 3:
 		t = input
 	}
