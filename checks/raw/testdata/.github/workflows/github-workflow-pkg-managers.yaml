@@ -125,6 +125,10 @@ jobs:
       - name:
         run: pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
       - name:
+        run: pip install --no-deps -e . git+https://github.com/username/repo.git
+      - name:
+        run: pip install --no-deps -e . git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
         run: python -m notpip -X bla
       - name:
         run: python2.7 -m pip install -X -H somepkg 'some-ther==1.2.3' 'somebla<3.4.5'
