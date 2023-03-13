@@ -46,13 +46,13 @@ func (handler *branchesHandler) setup() error {
 			return
 		}
 
-		proj, _, err := handler.glClient.Projects.GetProject(handler.repourl.projectID, &gitlab.GetProjectOptions{})
+		proj, _, err := handler.glClient.Projects.GetProject(handler.repourl.project, &gitlab.GetProjectOptions{})
 		if err != nil {
 			handler.errSetup = fmt.Errorf("requirest for project failed with error %w", err)
 			return
 		}
 
-		branch, _, err := handler.glClient.Branches.GetBranch(handler.repourl.projectID, proj.DefaultBranch)
+		branch, _, err := handler.glClient.Branches.GetBranch(handler.repourl.project, proj.DefaultBranch)
 		if err != nil {
 			handler.errSetup = fmt.Errorf("request for default branch failed with error %w", err)
 			return
@@ -60,7 +60,7 @@ func (handler *branchesHandler) setup() error {
 
 		if branch.Protected {
 			protectedBranch, resp, err := handler.glClient.ProtectedBranches.GetProtectedBranch(
-				handler.repourl.projectID, branch.Name)
+				handler.repourl.project, branch.Name)
 			if err != nil && resp.StatusCode != 403 {
 				handler.errSetup = fmt.Errorf("request for protected branch failed with error %w", err)
 				return
@@ -70,13 +70,13 @@ func (handler *branchesHandler) setup() error {
 			}
 
 			projectStatusChecks, resp, err := handler.glClient.ExternalStatusChecks.ListProjectStatusChecks(
-				handler.repourl.projectID, &gitlab.ListOptions{})
+				handler.repourl.project, &gitlab.ListOptions{})
 			if err != nil && resp.StatusCode != 404 {
 				handler.errSetup = fmt.Errorf("request for external status checks failed with error %w", err)
 				return
 			}
 
-			projectApprovalRule, resp, err := handler.glClient.Projects.GetApprovalConfiguration(handler.repourl.projectID)
+			projectApprovalRule, resp, err := handler.glClient.Projects.GetApprovalConfiguration(handler.repourl.project)
 			if err != nil && resp.StatusCode != 404 {
 				handler.errSetup = fmt.Errorf("request for project approval rule failed with %w", err)
 				return
@@ -105,24 +105,24 @@ func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
 }
 
 func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, error) {
-	bran, _, err := handler.glClient.Branches.GetBranch(handler.repourl.projectID, branch)
+	bran, _, err := handler.glClient.Branches.GetBranch(handler.repourl.project, branch)
 	if err != nil {
 		return nil, fmt.Errorf("error getting branch in branchsHandler.getBranch: %w", err)
 	}
 
 	if bran.Protected {
-		protectedBranch, _, err := handler.glClient.ProtectedBranches.GetProtectedBranch(handler.repourl.projectID, bran.Name)
+		protectedBranch, _, err := handler.glClient.ProtectedBranches.GetProtectedBranch(handler.repourl.project, bran.Name)
 		if err != nil {
 			return nil, fmt.Errorf("request for protected branch failed with error %w", err)
 		}
 
 		projectStatusChecks, resp, err := handler.glClient.ExternalStatusChecks.ListProjectStatusChecks(
-			handler.repourl.projectID, &gitlab.ListOptions{})
+			handler.repourl.project, &gitlab.ListOptions{})
 		if err != nil && resp.StatusCode != 404 {
 			return nil, fmt.Errorf("request for external status checks failed with error %w", err)
 		}
 
-		projectApprovalRule, resp, err := handler.glClient.Projects.GetApprovalConfiguration(handler.repourl.projectID)
+		projectApprovalRule, resp, err := handler.glClient.Projects.GetApprovalConfiguration(handler.repourl.project)
 		if err != nil && resp.StatusCode != 404 {
 			return nil, fmt.Errorf("request for project approval rule failed with %w", err)
 		}

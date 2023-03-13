@@ -41,7 +41,7 @@ func (handler *commitsHandler) init(repourl *repoURL) {
 // nolint: gocognit
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
-		commits, _, err := handler.glClient.Commits.ListCommits(handler.repourl.projectID, &gitlab.ListCommitsOptions{})
+		commits, _, err := handler.glClient.Commits.ListCommits(handler.repourl.project, &gitlab.ListCommitsOptions{})
 		if err != nil {
 			handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
 			return
@@ -76,7 +76,7 @@ func (handler *commitsHandler) setup() error {
 
 			// Commits are able to be a part of multiple merge requests, but the only one that will be important
 			// here is the earliest one.
-			mergeRequests, _, err := handler.glClient.Commits.ListMergeRequestsByCommit(handler.repourl.projectID, commit.ID)
+			mergeRequests, _, err := handler.glClient.Commits.ListMergeRequestsByCommit(handler.repourl.project, commit.ID)
 			if err != nil {
 				handler.errSetup = fmt.Errorf("unable to find merge requests associated with commit: %w", err)
 				return

@@ -40,7 +40,7 @@ func (handler *issuesHandler) init(repourl *repoURL) {
 func (handler *issuesHandler) setup() error {
 	handler.once.Do(func() {
 		issues, _, err := handler.glClient.Issues.ListProjectIssues(
-			handler.repourl.projectID, &gitlab.ListProjectIssuesOptions{})
+			handler.repourl.project, &gitlab.ListProjectIssuesOptions{})
 		if err != nil {
 			handler.errSetup = fmt.Errorf("unable to find issues associated with the project id: %w", err)
 			return
@@ -49,7 +49,7 @@ func (handler *issuesHandler) setup() error {
 		// There doesn't seem to be a good way to get user access_levels in gitlab so the following way may seem incredibly
 		// barberic, however I couldn't find a better way in the docs.
 		projectAccessTokens, resp, err := handler.glClient.ProjectAccessTokens.ListProjectAccessTokens(
-			handler.repourl.projectID, &gitlab.ListProjectAccessTokensOptions{})
+			handler.repourl.project, &gitlab.ListProjectAccessTokensOptions{})
 		if err != nil && resp.StatusCode != 401 {
 			handler.errSetup = fmt.Errorf("unable to find access tokens associated with the project id: %w", err)
 			return

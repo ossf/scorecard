@@ -76,6 +76,10 @@ func (r *repoURL) URI() string {
 	return fmt.Sprintf("%s/%s/%s", r.host, r.owner, r.repo)
 }
 
+func (r *repoURL) Host() string {
+	return r.host
+}
+
 // String implements Repo.String.
 func (r *repoURL) String() string {
 	return fmt.Sprintf("%s-%s-%s", r.host, r.owner, r.repo)
