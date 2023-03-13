@@ -38,7 +38,7 @@ func (handler *commitsHandler) init(repourl *repoURL) {
 	handler.once = new(sync.Once)
 }
 
-// nolint: gocognit
+//nolint:gocognit
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
 		commits, _, err := handler.glClient.Commits.ListCommits(handler.repourl.project, &gitlab.ListCommitsOptions{})
@@ -47,32 +47,8 @@ func (handler *commitsHandler) setup() error {
 			return
 		}
 
-		// To limit the number of user requests we are going to map every committer email
-		// to a user.
-		userToEmail := make(map[string]*gitlab.User)
 		for _, commit := range commits {
-			user, ok := userToEmail[commit.AuthorEmail]
-			if !ok {
-				users, _, err := handler.glClient.Search.Users(commit.CommitterName, &gitlab.SearchOptions{})
-				if err != nil {
-					// Possibility this shouldn't be an issue as individuals can leave organizations
-					// (possibly taking their account with them)
-					handler.errSetup = fmt.Errorf("unable to find user associated with commit: %w", err)
-					return
-				}
-
-				// For some reason some users have unknown names, so below we are going to parse their email into pieces.
-				// i.e. (firstname.lastname@domain.com) -> "firstname lastname".
-				if len(users) == 0 {
-					users, _, err = handler.glClient.Search.Users(parseEmailToName(commit.CommitterEmail), &gitlab.SearchOptions{})
-					if err != nil {
-						handler.errSetup = fmt.Errorf("unable to find user associated with commit: %w", err)
-						return
-					}
-				}
-				userToEmail[commit.AuthorEmail] = users[0]
-				user = users[0]
-			}
+			var err error
 
 			// Commits are able to be a part of multiple merge requests, but the only one that will be important
 			// here is the earliest one.
@@ -92,13 +68,6 @@ func (handler *commitsHandler) setup() error {
 						mergeRequest = mergeRequests[i]
 					}
 				}
-			} else {
-				handler.commits = append(handler.commits, clients.Commit{
-					CommittedDate: *commit.CommittedDate,
-					Message:       commit.Message,
-					SHA:           commit.ID,
-				})
-				continue
 			}
 
 			if mergeRequest == nil || mergeRequest.MergedAt == nil {
@@ -107,15 +76,42 @@ func (handler *commitsHandler) setup() error {
 					Message:       commit.Message,
 					SHA:           commit.ID,
 				})
+				continue
 			}
 
-			// Casting the Reviewers into clients.Review.
-			var reviews []clients.Review
+			// Two GitLab APIs for reviews (reviews vs. approvals)
+			// Use a map to consolidate results from both APIs by the user ID who performed the
+			reviews := make(map[int]clients.Review)
 			for _, reviewer := range mergeRequest.Reviewers {
-				reviews = append(reviews, clients.Review{
-					Author: &clients.User{ID: int64(reviewer.ID)},
-					State:  "",
-				})
+				if reviewer.State == "unreviewed" {
+					continue
+				}
+				reviews[reviewer.ID] = clients.Review{
+					Author: &clients.User{Login: reviewer.Username, ID: int64(reviewer.ID)},
+					State:  "COMMENTED",
+				}
+			}
+
+			approvals, _, err := handler.glClient.MergeRequests.GetMergeRequestApprovals(
+				handler.repourl.project, mergeRequest.IID,
+			)
+			if err != nil {
+				handler.errSetup = fmt.Errorf("unable to find approvers for commit: %w", err)
+				return
+			}
+
+			if approvals != nil {
+				for _, approver := range approvals.ApprovedBy {
+					reviews[approver.User.ID] = clients.Review{
+						Author: &clients.User{Login: approver.User.Username, ID: int64(approver.User.ID)},
+						State:  "APPROVED",
+					}
+				}
+			}
+
+			vals := make([]clients.Review, 0, len(reviews))
+			for _, v := range reviews {
+				vals = append(vals, v)
 			}
 
 			// Casting the Labels into []clients.Label.
@@ -136,12 +132,11 @@ func (handler *commitsHandler) setup() error {
 						Number:   mergeRequest.ID,
 						MergedAt: *mergeRequest.MergedAt,
 						HeadSHA:  mergeRequest.SHA,
-						Author:   clients.User{ID: int64(mergeRequest.Author.ID)},
+						Author:   clients.User{Login: mergeRequest.Author.Username, ID: int64(mergeRequest.Author.ID)},
 						Labels:   labels,
-						Reviews:  reviews,
-						MergedBy: clients.User{ID: int64(mergeRequest.MergedBy.ID)},
+						Reviews:  vals,
+						MergedBy: clients.User{Login: mergeRequest.MergedBy.Username, ID: int64(mergeRequest.MergedBy.ID)},
 					},
-					Committer: clients.User{ID: int64(user.ID)},
 				})
 		}
 	})
