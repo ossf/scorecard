@@ -46,7 +46,7 @@ func (handler *contributorsHandler) setup() error {
 			return
 		}
 		contribs, _, err := handler.glClient.Repositories.Contributors(
-			handler.repourl.projectID, &gitlab.ListContributorsOptions{})
+			handler.repourl.project, &gitlab.ListContributorsOptions{})
 		if err != nil {
 			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
 			return

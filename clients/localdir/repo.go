@@ -37,6 +37,10 @@ func (r *repoLocal) URI() string {
 	return fmt.Sprintf("file://%s", r.path)
 }
 
+func (r *repoLocal) Host() string {
+	return ""
+}
+
 // String implements Repo.String.
 func (r *repoLocal) String() string {
 	return r.URI()

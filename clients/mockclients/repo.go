@@ -129,6 +129,14 @@ func (m *MockRepo) URI() string {
 	return ret0
 }
 
+// URI mocks base method.
+func (m *MockRepo) Host() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Host")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
 // URI indicates an expected call of URI.
 func (mr *MockRepoMockRecorder) URI() *gomock.Call {
 	mr.mock.ctrl.T.Helper()

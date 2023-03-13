@@ -15,7 +15,6 @@
 package e2e
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -185,7 +184,6 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 			}
 
 			for _, tc := range tt {
-				fmt.Printf("attestor_policy_test.go: %s\n", tc.name)
 				f, err := os.CreateTemp("/tmp", strings.ReplaceAll(tc.name, " ", "-"))
 				Expect(err).Should(BeNil())
 				defer os.Remove(f.Name())
