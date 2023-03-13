@@ -487,12 +487,35 @@ func isGoUnpinnedDownload(cmd []string) bool {
 	return found
 }
 
+func isPinnedEditableSource(pkgSource string) bool {
+	regexRemoteSource := regexp.MustCompile(`^(git|svn|hg|bzr).+$`)
+	// Is from local source
+	if !regexRemoteSource.MatchString(pkgSource) {
+		return true
+	}
+	// Is VCS install from Git and it's pinned
+	// https://pip.pypa.io/en/latest/topics/vcs-support/#vcs-support
+	regexGitSource := regexp.MustCompile(`^git(\+(https?|ssh|git))?\:\/\/.*(.git)?@[a-fA-F0-9]{40}(#egg=.*)?$`)
+	return regexGitSource.MatchString(pkgSource)
+	// Disclaimer: We are not handling if Subversion (svn),
+	// Mercurial (hg) or Bazaar (bzr) remote sources are pinned
+	// because they are not common on GitHub repos
+}
+
+func isFlag(cmd string) bool {
+	regexFlag := regexp.MustCompile(`^(\-\-?\w+)+$`)
+	return regexFlag.MatchString(cmd)
+}
+
 func isUnpinnedPipInstall(cmd []string) bool {
 	if !isBinaryName("pip", cmd[0]) && !isBinaryName("pip3", cmd[0]) {
 		return false
 	}
 
 	isInstall := false
+	hasNoDeps := false
+	isEditableInstall := false
+	isPinnedEditableInstall := true
 	hasRequireHashes := false
 	hasAdditionalArgs := false
 	hasWheel := false
@@ -507,12 +530,33 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			break
 		}
 
+		// Require --no-deps to not install the dependencies when doing editable install
+		// because we can't verify if dependencies are pinned
+		// https://pip.pypa.io/en/stable/topics/secure-installs/#do-not-use-setuptools-directly
+		// https://github.com/pypa/pip/issues/4995
+		if strings.EqualFold(cmd[i], "--no-deps") {
+			hasNoDeps = true
+			continue
+		}
+
+		// https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-e
+		if slices.Contains([]string{"-e", "--editable"}, cmd[i]) {
+			isEditableInstall = true
+			continue
+		}
+
 		// https://github.com/ossf/scorecard/issues/1306#issuecomment-974539197.
 		if strings.EqualFold(cmd[i], "--require-hashes") {
 			hasRequireHashes = true
 			break
 		}
 
+		// Catch not handled flags, otherwise is package
+		if isFlag(cmd[i]) {
+			continue
+		}
+
+		// Wheel package
 		// Exclude *.whl as they're mostly used
 		// for tests. See https://github.com/ossf/scorecard/pull/611.
 		if strings.HasSuffix(cmd[i], ".whl") {
@@ -522,7 +566,27 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			continue
 		}
 
+		// Editable install package source
+		if isEditableInstall {
+			isPinned := isPinnedEditableSource(cmd[i])
+			if !isPinned {
+				isPinnedEditableInstall = false
+			}
+			continue
+		}
+
 		hasAdditionalArgs = true
+	}
+
+	// --require-hashes and -e flags cannot be used together in pip install
+	// -e and *.whl package cannot be used together in pip install
+
+	// If is editable install, it's secure if package is from local source
+	// or from remote (VCS install) pinned by hash, and if dependencies are
+	// not installed.
+	// Example: `pip install --no-deps -e git+https://git.repo/some_pkg.git@da39a3ee5e6b4b0d3255bfef95601890afd80709`
+	if isEditableInstall {
+		return !hasNoDeps || !isPinnedEditableInstall
 	}
 
 	// If hashes are required, it's pinned.
