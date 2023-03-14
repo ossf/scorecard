@@ -76,7 +76,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			return checker.SecurityPolicyData{}, err
 		}
 
-	case errors.Is(err, sce.ErrRepoUnreachable):
+	case errors.Is(err, sce.ErrRepoUnreachable), errors.Is(err, clients.ErrUnsupportedFeature):
 		break
 	default:
 		return checker.SecurityPolicyData{}, err

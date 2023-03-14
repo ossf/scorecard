@@ -51,6 +51,7 @@ type Client struct {
 	webhook       *webhookHandler
 	languages     *languagesHandler
 	licenses      *licensesHandler
+	tarball       *tarballHandler
 	ctx           context.Context
 	commitDepth   int
 }
@@ -128,6 +129,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	// Init languagesHandler
 	client.licenses.init(client.repourl)
 
+	// Init tarballHandler
+	client.tarball.init(client.ctx, client.repourl, repo, commitSHA)
+
 	return nil
 }
 
@@ -140,11 +144,11 @@ func (client *Client) LocalPath() (string, error) {
 }
 
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	return nil, nil
+	return client.tarball.listFiles(predicate)
 }
 
 func (client *Client) GetFileContent(filename string) ([]byte, error) {
-	return nil, nil
+	return client.tarball.getFileContent(filename)
 }
 
 func (client *Client) ListCommits() ([]clients.Commit, error) {
@@ -181,6 +185,10 @@ func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 
 func (client *Client) GetCreatedAt() (time.Time, error) {
 	return client.project.getCreatedAt()
+}
+
+func (client *Client) GetOrgPolicyRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	return nil, fmt.Errorf("GetOrgPolicyRepoClient (GitLab): %w", clients.ErrUnsupportedFeature)
 }
 
 func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
@@ -269,6 +277,7 @@ func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients
 			glClient: client,
 		},
 		licenses: &licensesHandler{},
+		tarball:  &tarballHandler{},
 	}, nil
 }
 
