@@ -138,7 +138,7 @@ func TestSecurityPolicy(t *testing.T) {
 			mockRepo := mockrepo.NewMockRepo(ctrl)
 
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
-			mockRepo.EXPECT().Org().Return(nil).AnyTimes()
+			mockRepo.EXPECT().Org().Return("").AnyTimes()
 			//
 			// the revised Security Policy will immediate go for the
 			// file contents once found. This test will return that

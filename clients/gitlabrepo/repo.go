@@ -27,10 +27,6 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-const (
-	gitlabOrgProj = ".gitlab"
-)
-
 type repoURL struct {
 	scheme        string
 	host          string
@@ -95,12 +91,8 @@ func (r *repoURL) String() string {
 	return fmt.Sprintf("%s-%s_%s", r.host, r.owner, r.project)
 }
 
-func (r *repoURL) Org() clients.Repo {
-	return &repoURL{
-		host:    r.host,
-		owner:   r.owner,
-		project: gitlabOrgProj,
-	}
+func (r *repoURL) Org() string {
+	return r.owner
 }
 
 // IsValid implements Repo.IsValid.

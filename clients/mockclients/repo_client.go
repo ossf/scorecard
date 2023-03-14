@@ -20,6 +20,7 @@
 package mockrepo
 
 import (
+	"context"
 	reflect "reflect"
 	time "time"
 
@@ -137,6 +138,15 @@ func (m *MockRepoClient) GetFileContent(filename string) ([]byte, error) {
 func (mr *MockRepoClientMockRecorder) GetFileContent(filename interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileContent", reflect.TypeOf((*MockRepoClient)(nil).GetFileContent), filename)
+}
+
+// GetOrgPolicyRepoClient mocks base method.
+func (m *MockRepoClient) GetOrgPolicyRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrgPolicyRepoClient")
+	ret0, _ := ret[0].(clients.RepoClient)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // InitRepo mocks base method.

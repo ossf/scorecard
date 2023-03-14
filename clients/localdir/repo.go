@@ -47,8 +47,8 @@ func (r *repoLocal) String() string {
 }
 
 // Org implements Repo.Org.
-func (r *repoLocal) Org() clients.Repo {
-	return nil
+func (r *repoLocal) Org() string {
+	return ""
 }
 
 // IsValid implements Repo.IsValid.

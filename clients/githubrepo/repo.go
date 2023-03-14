@@ -23,10 +23,6 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-const (
-	githubOrgRepo = ".github"
-)
-
 type repoURL struct {
 	host, owner, repo, defaultBranch, commitSHA string
 	metadata                                    []string
@@ -86,12 +82,8 @@ func (r *repoURL) String() string {
 }
 
 // Org implements Repo.Org.
-func (r *repoURL) Org() clients.Repo {
-	return &repoURL{
-		host:  r.host,
-		owner: r.owner,
-		repo:  githubOrgRepo,
-	}
+func (r *repoURL) Org() string {
+	return r.owner
 }
 
 // IsValid implements Repo.IsValid.
