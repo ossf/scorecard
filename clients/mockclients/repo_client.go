@@ -140,10 +140,10 @@ func (mr *MockRepoClientMockRecorder) GetFileContent(filename interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileContent", reflect.TypeOf((*MockRepoClient)(nil).GetFileContent), filename)
 }
 
-// GetOrgPolicyRepoClient mocks base method.
-func (m *MockRepoClient) GetOrgPolicyRepoClient(ctx context.Context) (clients.RepoClient, error) {
+// GetOrgRepoClient mocks base method.
+func (m *MockRepoClient) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOrgPolicyRepoClient")
+	ret := m.ctrl.Call(m, "GetOrgRepoClient")
 	ret0, _ := ret[0].(clients.RepoClient)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1

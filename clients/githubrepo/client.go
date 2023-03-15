@@ -195,7 +195,7 @@ func (client *Client) GetCreatedAt() (time.Time, error) {
 	return client.repo.CreatedAt.Time, nil
 }
 
-func (client *Client) GetOrgPolicyRepoClient(ctx context.Context) (clients.RepoClient, error) {
+func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
 	dotGithubRepo, err := MakeGithubRepo(fmt.Sprintf("%s/.github", client.repourl.owner))
 	if err != nil {
 		return nil, fmt.Errorf("error during MakeGithubRepo: %w", err)

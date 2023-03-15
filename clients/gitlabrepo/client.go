@@ -187,8 +187,8 @@ func (client *Client) GetCreatedAt() (time.Time, error) {
 	return client.project.getCreatedAt()
 }
 
-func (client *Client) GetOrgPolicyRepoClient(ctx context.Context) (clients.RepoClient, error) {
-	return nil, fmt.Errorf("GetOrgPolicyRepoClient (GitLab): %w", clients.ErrUnsupportedFeature)
+func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	return nil, fmt.Errorf("GetOrgRepoClient (GitLab): %w", clients.ErrUnsupportedFeature)
 }
 
 func (client *Client) ListWebhooks() ([]clients.Webhook, error) {

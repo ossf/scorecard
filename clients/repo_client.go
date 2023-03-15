@@ -41,7 +41,7 @@ type RepoClient interface {
 	GetCreatedAt() (time.Time, error)
 	GetDefaultBranchName() (string, error)
 	GetDefaultBranch() (*BranchRef, error)
-	GetOrgPolicyRepoClient(context.Context) (RepoClient, error)
+	GetOrgRepoClient(context.Context) (RepoClient, error)
 	ListCommits() ([]Commit, error)
 	ListIssues() ([]Issue, error)
 	ListLicenses() ([]License, error)

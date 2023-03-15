@@ -60,7 +60,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 
 	// Check if present in parent org.
 	// https#://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
-	client, err := c.RepoClient.GetOrgPolicyRepoClient(c.Ctx)
+	client, err := c.RepoClient.GetOrgRepoClient(c.Ctx)
 
 	switch {
 	case err == nil:

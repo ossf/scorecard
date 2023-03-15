@@ -259,8 +259,8 @@ func (client *localDirClient) GetCreatedAt() (time.Time, error) {
 	return time.Time{}, fmt.Errorf("GetCreatedAt: %w", clients.ErrUnsupportedFeature)
 }
 
-func (client *localDirClient) GetOrgPolicyRepoClient(ctx context.Context) (clients.RepoClient, error) {
-	return nil, fmt.Errorf("GetOrgPolicyRepoClient: %w", clients.ErrUnsupportedFeature)
+func (client *localDirClient) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	return nil, fmt.Errorf("GetOrgRepoClient: %w", clients.ErrUnsupportedFeature)
 }
 
 // CreateLocalDirClient returns a client which implements RepoClient interface.

@@ -189,9 +189,9 @@ func (c *client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("GetDefaultBranch: %w", clients.ErrUnsupportedFeature)
 }
 
-// GetOrgPolicyRepoClient implements RepoClient.GetOrgPolicyRepoClient.
-func (c *client) GetOrgPolicyRepoClient(ctx context.Context) (clients.RepoClient, error) {
-	return nil, fmt.Errorf("GetOrgPolicyRepoClient: %w", clients.ErrUnsupportedFeature)
+// GetOrgRepoClient implements RepoClient.GetOrgRepoClient.
+func (c *client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	return nil, fmt.Errorf("GetOrgRepoClient: %w", clients.ErrUnsupportedFeature)
 }
 
 // GetDefaultBranchName implements RepoClient.GetDefaultBranchName.
