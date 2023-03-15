@@ -91,10 +91,6 @@ func (r *repoURL) String() string {
 	return fmt.Sprintf("%s-%s_%s", r.host, r.owner, r.project)
 }
 
-func (r *repoURL) Org() string {
-	return r.owner
-}
-
 // IsValid implements Repo.IsValid.
 func (r *repoURL) IsValid() error {
 	if strings.Contains(r.host, "gitlab.") {

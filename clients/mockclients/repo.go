@@ -92,20 +92,6 @@ func (mr *MockRepoMockRecorder) Metadata() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Metadata", reflect.TypeOf((*MockRepo)(nil).Metadata))
 }
 
-// Org mocks base method.
-func (m *MockRepo) Org() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Org")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// Org indicates an expected call of Org.
-func (mr *MockRepoMockRecorder) Org() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Org", reflect.TypeOf((*MockRepo)(nil).Org))
-}
-
 // String mocks base method.
 func (m *MockRepo) String() string {
 	m.ctrl.T.Helper()

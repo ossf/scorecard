@@ -81,11 +81,6 @@ func (r *repoURL) String() string {
 	return fmt.Sprintf("%s-%s-%s", r.host, r.owner, r.repo)
 }
 
-// Org implements Repo.Org.
-func (r *repoURL) Org() string {
-	return r.owner
-}
-
 // IsValid implements Repo.IsValid.
 func (r *repoURL) IsValid() error {
 	switch r.host {

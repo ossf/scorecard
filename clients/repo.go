@@ -19,7 +19,6 @@ type Repo interface {
 	URI() string
 	Host() string
 	String() string
-	Org() string
 	IsValid() error
 	Metadata() []string
 	AppendMetadata(metadata ...string)
