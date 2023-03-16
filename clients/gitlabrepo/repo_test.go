@@ -16,6 +16,7 @@ package gitlabrepo
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -25,10 +26,11 @@ import (
 func TestRepoURL_IsValid(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		inputURL string
-		expected repoURL
-		wantErr  bool
+		name         string
+		inputURL     string
+		expected     repoURL
+		wantErr      bool
+		flagRequired bool
 	}{
 		{
 			name: "github repository",
@@ -73,7 +75,6 @@ func TestRepoURL_IsValid(t *testing.T) {
 			inputURL: "https://gitlab.com/ossf-test/scorecard-check-binary-artifacts-e2e/",
 			wantErr:  false,
 		},
-
 		{
 			name: "valid hosted gitlab project",
 			expected: repoURL{
@@ -82,12 +83,16 @@ func TestRepoURL_IsValid(t *testing.T) {
 				owner:   "webmaster-team",
 				project: "webml",
 			},
-			inputURL: "https://salsa.debian.org/webmaster-team/webwml",
-			wantErr:  false,
+			inputURL:     "https://salsa.debian.org/webmaster-team/webwml",
+			wantErr:      false,
+			flagRequired: true,
 		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure blow
+		if tt.flagRequired && os.Getenv("TEST_GITLAB_EXTERNAL") == "" {
+			continue
+		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := repoURL{
@@ -116,8 +121,9 @@ func TestRepoURL_IsValid(t *testing.T) {
 
 func TestRepoURL_DetectGitlab(t *testing.T) {
 	tests := []struct {
-		repouri  string
-		expected bool
+		repouri      string
+		expected     bool
+		flagRequired bool
 	}{
 		{
 			repouri:  "github.com/ossf/scorecard",
@@ -136,8 +142,9 @@ func TestRepoURL_DetectGitlab(t *testing.T) {
 			expected: true,
 		},
 		{
-			repouri:  "https://salsa.debian.org/webmaster-team/webml",
-			expected: true,
+			repouri:      "https://salsa.debian.org/webmaster-team/webml",
+			expected:     true,
+			flagRequired: true,
 		},
 		{
 			// Invalid repo
@@ -147,6 +154,9 @@ func TestRepoURL_DetectGitlab(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		if tt.flagRequired && os.Getenv("TEST_GITLAB_EXTERNAL") == "" {
+			continue
+		}
 		g := DetectGitLab(tt.repouri)
 		if g != tt.expected {
 			t.Errorf("got %s isgitlab: %t expected %t", tt.repouri, g, tt.expected)
