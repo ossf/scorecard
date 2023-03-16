@@ -15,6 +15,7 @@
 package ossfuzz
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -186,6 +187,11 @@ func (c *client) GetBranch(branch string) (*clients.BranchRef, error) {
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
 func (c *client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("GetDefaultBranch: %w", clients.ErrUnsupportedFeature)
+}
+
+// GetOrgRepoClient implements RepoClient.GetOrgRepoClient.
+func (c *client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	return nil, fmt.Errorf("GetOrgRepoClient: %w", clients.ErrUnsupportedFeature)
 }
 
 // GetDefaultBranchName implements RepoClient.GetDefaultBranchName.
