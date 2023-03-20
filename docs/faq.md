@@ -8,12 +8,21 @@ This page answers frequently asked questions about Scorecard, including its purp
   - [Wasn't this project called "Scorecards" (plural)?](#wasnt-this-project-called-scorecards-plural)
 
 ## Check-Specific Questions
-  - [Binary-Artifacts: Can I allowlist testing artifacts?](#binary-artifacts-can-i-allowlist-testing-artifacts)
-  - [Code-Review: Can it ignore bot commits?](#code-review-can-it-ignore-bot-commits)
-  - [Fuzzing: Does Scorecard accept custom fuzzers?](#fuzzing-does-scorecard-accept-custom-fuzzers)
-  - [Pinned-Dependencies: Will Scorecard detect unpinned dependencies in tests with Dockerfiles?](#pinned-dependencies-will-scorecard-detect-unpinned-dependencies-in-tests-with-dockerfiles)
-  - [Pinned-Dependencies: Can I use version pinning instead of hash pinning?](#pinned-dependencies-can-i-use-version-pinning-instead-of-hash-pinning)
-  - [Signed-Releases: Why sign releases?](#signed-releases-why-sign-releases)
+- [Frequently Asked Questions](#frequently-asked-questions)
+  - [Installation / Usage](#installation--usage)
+  - [Check-Specific Questions](#check-specific-questions)
+  - [Installation / Usage](#installation--usage-1)
+    - [Can I preview my project's score?](#can-i-preview-my-projects-score)
+    - [What is the difference between Scorecard and other Code Scanning tools?](#what-is-the-difference-between-scorecard-and-other-code-scanning-tools)
+    - [Wasn't this project called "Scorecards" (plural)?](#wasnt-this-project-called-scorecards-plural)
+  - [Check-specific Questions](#check-specific-questions-1)
+    - [Binary-Artifacts: Can I allowlist testing artifacts?](#binary-artifacts-can-i-allowlist-testing-artifacts)
+    - [Code-Review: Can it ignore bot commits?](#code-review-can-it-ignore-bot-commits)
+    - [Fuzzing: Does Scorecard accept custom fuzzers?](#fuzzing-does-scorecard-accept-custom-fuzzers)
+    - [Pinned-Dependencies: Will Scorecard detect unpinned dependencies in tests with Dockerfiles?](#pinned-dependencies-will-scorecard-detect-unpinned-dependencies-in-tests-with-dockerfiles)
+    - [Pinned-Dependencies: Can I use version pinning instead of hash pinning?](#pinned-dependencies-can-i-use-version-pinning-instead-of-hash-pinning)
+    - [Signed-Releases: Why sign releases?](#signed-releases-why-sign-releases)
+    - [Branch-Protection: How to setup a 10/10 branch protection on GitHub?](#branch-protection-how-to-setup-a-1010-branch-protection-on-github)
 
 ---
 
@@ -80,3 +89,28 @@ Currently, the main benefit of [signed releases](/checks.md#signed-releases) is 
 However, there are already moves to make it even more relevant. For example, the OpenSSF is working on [implementing signature verification for NPM packages](https://github.blog/2022-08-08-new-request-for-comments-on-improving-npm-security-with-sigstore-is-now-open/) which would allow a consumer to automatically verify if the package they are downloading was generated through a reliable builder and if it is correctly signed.
 
 Signing releases already has some relevance and it will soon offer even more security benefits for both consumers and maintainers.
+
+### Branch-Protection: How to setup a 10/10 branch protection on GitHub?
+
+To get a 10/10 score for Branch-Protection check using a non-admin token, you should have the following settings for your main branch:
+
+![image](/design/images/branch-protection-settings-non-admin-token.png)
+
+When using an admin token, Scorecard can verify if a few other important settings are ensured:
+
+![image](/design/images/branch-protection-settings-admin-token.png)
+
+It's important to reiterate that Branch-Protection score is Titer-based. If a setting from Tier 1 is not satisfied, it does not matter that all other settings are met, the score will be truncated up the Tier's maximum. In this case, 3/10. The following table shows the relation between branch protection settings on GitHub and the score Tier:
+
+| Name                                                                                                     | Status                          | Required only for admin token | Tier |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------- | ----------------------------- | ---- |
+| Allow force pushes                                                                                       | Disabled                        | -                             | 1    |
+| Allow deletions                                                                                          | Disabled                        | -                             | 1    |
+| Do not allow bypassing the above settings                                                                | Enabled                         | Yes                           | 1    |
+| Require a pull request before merging > Require Approvals                                                | Enabled with at least 1         | -                             | 2    |
+| Require status checks to pass before merging > Require branches to be up to date before merging          | Enabled                         | Yes                           | 2    |
+| Require a pull request before merging > Require approval of the most recent reviewable push              | Enabled                         | Yes                           | 2    |
+| Require status checks to pass before merging > Status Checks                                             | At least 1                      | -                             | 3    |
+| Require a pull request before merging > Require Approvals                                                | Enabled with at least 2         | -                             | 4    |
+| Require a pull request before merging > Require review from Code Owners                                  | Enabled and has CODEOWNERS file | Yes                           | 4    |
+| Require a pull request before merging > Dismiss stale pull request approvals when new commits are pushed | Enabled                         | Yes                           | 5    |
