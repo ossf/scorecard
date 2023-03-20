@@ -608,8 +608,8 @@ func createDefaultLocationMessage(check *checker.CheckResult, score int) string 
 	return messageWithScore(check.Reason, score)
 }
 
-func toolName() string {
-	if options.IsInternalGitHubIntegrationEnabled() {
+func toolName(opts *options.Options) string {
+	if opts.IsInternalGitHubIntegrationEnabled() {
 		return strings.TrimSpace(os.Getenv("SCORECARD_INTERNAL_SARIF_TOOL_NAME"))
 	}
 	return "scorecard"
@@ -618,6 +618,7 @@ func toolName() string {
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
+	opts *options.Options,
 ) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
@@ -644,7 +645,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("computeCategory: %v: %s", err, check.Name))
 		}
-		run := getOrCreateSARIFRun(runs, category, "https://github.com/ossf/scorecard", toolName(),
+		run := getOrCreateSARIFRun(runs, category, "https://github.com/ossf/scorecard", toolName(opts),
 			r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date, "supply-chain")
 
 		// Always add rules to indicate which checks were run.
