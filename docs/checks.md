@@ -114,7 +114,7 @@ Tier 3 Requirements (7/10 points):
   
 Tier 4 Requirements (9/10 points):
   - Require at least 2 reviewers for approval before merging
-  - For administrators: Require review from code owners
+  - Require review from code owners
 
 Tier 5 Requirements (10/10 points):
   - For administrators: Dismiss stale reviews and approvals when new commits are pushed

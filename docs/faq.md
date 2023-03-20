@@ -104,5 +104,5 @@ It's important to reiterate that Branch-Protection score is Tier-based. If a set
 | Require a pull request before merging > Require approval of the most recent reviewable push              | Enabled                         | Yes                           | 2    |
 | Require status checks to pass before merging > Status Checks                                             | At least 1                      | -                             | 3    |
 | Require a pull request before merging > Require Approvals                                                | Enabled with at least 2         | -                             | 4    |
-| Require a pull request before merging > Require review from Code Owners                                  | Enabled and has CODEOWNERS file | Yes                           | 4    |
+| Require a pull request before merging > Require review from Code Owners                                  | Enabled and has CODEOWNERS file | -                           | 4    |
 | Require a pull request before merging > Dismiss stale pull request approvals when new commits are pushed | Enabled                         | Yes                           | 5    |
