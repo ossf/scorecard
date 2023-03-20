@@ -8,21 +8,13 @@ This page answers frequently asked questions about Scorecard, including its purp
   - [Wasn't this project called "Scorecards" (plural)?](#wasnt-this-project-called-scorecards-plural)
 
 ## Check-Specific Questions
-- [Frequently Asked Questions](#frequently-asked-questions)
-  - [Installation / Usage](#installation--usage)
-  - [Check-Specific Questions](#check-specific-questions)
-  - [Installation / Usage](#installation--usage-1)
-    - [Can I preview my project's score?](#can-i-preview-my-projects-score)
-    - [What is the difference between Scorecard and other Code Scanning tools?](#what-is-the-difference-between-scorecard-and-other-code-scanning-tools)
-    - [Wasn't this project called "Scorecards" (plural)?](#wasnt-this-project-called-scorecards-plural)
-  - [Check-specific Questions](#check-specific-questions-1)
-    - [Binary-Artifacts: Can I allowlist testing artifacts?](#binary-artifacts-can-i-allowlist-testing-artifacts)
-    - [Code-Review: Can it ignore bot commits?](#code-review-can-it-ignore-bot-commits)
-    - [Fuzzing: Does Scorecard accept custom fuzzers?](#fuzzing-does-scorecard-accept-custom-fuzzers)
-    - [Pinned-Dependencies: Will Scorecard detect unpinned dependencies in tests with Dockerfiles?](#pinned-dependencies-will-scorecard-detect-unpinned-dependencies-in-tests-with-dockerfiles)
-    - [Pinned-Dependencies: Can I use version pinning instead of hash pinning?](#pinned-dependencies-can-i-use-version-pinning-instead-of-hash-pinning)
-    - [Signed-Releases: Why sign releases?](#signed-releases-why-sign-releases)
-    - [Branch-Protection: How to setup a 10/10 branch protection on GitHub?](#branch-protection-how-to-setup-a-1010-branch-protection-on-github)
+  - [Binary-Artifacts: Can I allowlist testing artifacts?](#binary-artifacts-can-i-allowlist-testing-artifacts)
+  - [Code-Review: Can it ignore bot commits?](#code-review-can-it-ignore-bot-commits)
+  - [Fuzzing: Does Scorecard accept custom fuzzers?](#fuzzing-does-scorecard-accept-custom-fuzzers)
+  - [Pinned-Dependencies: Will Scorecard detect unpinned dependencies in tests with Dockerfiles?](#pinned-dependencies-will-scorecard-detect-unpinned-dependencies-in-tests-with-dockerfiles)
+  - [Pinned-Dependencies: Can I use version pinning instead of hash pinning?](#pinned-dependencies-can-i-use-version-pinning-instead-of-hash-pinning)
+  - [Signed-Releases: Why sign releases?](#signed-releases-why-sign-releases)
+  - [Branch-Protection: How to setup a 10/10 branch protection on GitHub?](#branch-protection-how-to-setup-a-1010-branch-protection-on-github)
 
 ---
 
