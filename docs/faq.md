@@ -94,11 +94,11 @@ Signing releases already has some relevance and it will soon offer even more sec
 
 To get a 10/10 score for Branch-Protection check using a non-admin token, you should have the following settings for your main branch:
 
-![image](/design/images/branch-protection-settings-non-admin-token.png)
+![image](/docs/design/images/branch-protection-settings-non-admin-token.png)
 
 When using an admin token, Scorecard can verify if a few other important settings are ensured:
 
-![image](/design/images/branch-protection-settings-admin-token.png)
+![image](/docs/design/images/branch-protection-settings-admin-token.png)
 
 It's important to reiterate that Branch-Protection score is Titer-based. If a setting from Tier 1 is not satisfied, it does not matter that all other settings are met, the score will be truncated up the Tier's maximum. In this case, 3/10. The following table shows the relation between branch protection settings on GitHub and the score Tier:
 
