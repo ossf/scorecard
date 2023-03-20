@@ -113,7 +113,7 @@ func rootCmd(o *options.Options) error {
 	if !strings.EqualFold(o.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
-	enabledChecks, err := policy.GetEnabled(pol, o.ChecksToRun, requiredRequestTypes)
+	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes)
 	if err != nil {
 		return fmt.Errorf("GetEnabled: %w", err)
 	}
