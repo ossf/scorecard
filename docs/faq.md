@@ -84,7 +84,7 @@ Signing releases already has some relevance and it will soon offer even more sec
 
 ### Branch-Protection: How to setup a 10/10 branch protection on GitHub?
 
-To get a 10/10 score for Branch-Protection check using a non-admin token, you should have the following settings for your main branch:
+To get a 10/10 score for Branch-Protection check using a non-admin token, you should have the following settings for your branches:
 
 ![image](/docs/design/images/branch-protection-settings-non-admin-token.png)
 
