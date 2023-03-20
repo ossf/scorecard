@@ -223,8 +223,12 @@ func (o *Options) IsInternalGitHubIntegrationEnabled() bool {
 func (o *Options) Checks() []string {
 	if o.IsInternalGitHubIntegrationEnabled() {
 		// Overwrite the list of checks.
-		s := strings.TrimSpace(os.Getenv("SCORECARD_INTERNAL_GITHUB_CHECKS"))
-		return strings.Split(s, ",")
+		s := os.Getenv("SCORECARD_INTERNAL_GITHUB_CHECKS")
+		l := strings.Split(s, ",")
+		for i := range l {
+			l[i] = strings.TrimSpace(l[i])
+		}
+		return l
 	}
 	return o.ChecksToRun
 }

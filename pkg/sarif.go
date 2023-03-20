@@ -610,7 +610,7 @@ func createDefaultLocationMessage(check *checker.CheckResult, score int) string 
 
 func toolName() string {
 	if options.IsInternalGitHubIntegrationEnabled() {
-		return os.Getenv("SCORECARD_INTERNAL_SARIF_TOOL_NAME")
+		return strings.TrimSpace(os.Getenv("SCORECARD_INTERNAL_SARIF_TOOL_NAME"))
 	}
 	return "scorecard"
 }
