@@ -105,20 +105,19 @@ Tier 1 Requirements (3/10 points):
   - For administrators: Do not allow bypassing the above settings
 
 Tier 2 Requirements (6/10 points):
-  - Required reviewers >=1
-  - For administrators: Last push review
-  - For administrators: Strict status checks (require branches to be up-to-date before merging)
+  - Require at least 1 reviewer for approval before merging
+  - For administrators: Require branch to be up to date before merging
+  - For administrators: Require approval of the most recent reviewable push
 
-Tier 3 Requirements (8/10 points):
-  - Status checks defined
-
+Tier 3 Requirements (7/10 points):
+  - Require branch to pass at least 1 status check before merging
+  
 Tier 4 Requirements (9/10 points):
-  - Required reviewers >= 2
+  - Require at least 2 reviewers for approval before merging
+  - For administrators: Require review from code owners
 
 Tier 5 Requirements (10/10 points):
-  - For administrators: Dismiss stale reviews
-  - For administrators: Require CODEOWNER review
- 
+  - For administrators: Dismiss stale reviews and approvals when new commits are pushed
 
 **Remediation steps**
 - Enable branch protection settings in your source hosting provider to avoid force pushes or deletion of your important branches.
