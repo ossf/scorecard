@@ -46,11 +46,6 @@ func (r *repoLocal) String() string {
 	return r.URI()
 }
 
-// Org implements Repo.Org.
-func (r *repoLocal) Org() clients.Repo {
-	return nil
-}
-
 // IsValid implements Repo.IsValid.
 func (r *repoLocal) IsValid() error {
 	f, err := os.Stat(r.path)

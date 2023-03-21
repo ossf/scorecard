@@ -22,7 +22,7 @@ import (
 	"time"
 
 	pubsub "cloud.google.com/go/pubsub/apiv1"
-	pubsubpb "google.golang.org/genproto/googleapis/pubsub/v1"
+	"cloud.google.com/go/pubsub/apiv1/pubsubpb"
 
 	"github.com/ossf/scorecard/v4/cron/data"
 )

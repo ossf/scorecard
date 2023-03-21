@@ -23,7 +23,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	clients "github.com/ossf/scorecard/v4/clients"
 )
 
 // MockRepo is a mock of Repo interface.
@@ -91,20 +90,6 @@ func (m *MockRepo) Metadata() []string {
 func (mr *MockRepoMockRecorder) Metadata() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Metadata", reflect.TypeOf((*MockRepo)(nil).Metadata))
-}
-
-// Org mocks base method.
-func (m *MockRepo) Org() clients.Repo {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Org")
-	ret0, _ := ret[0].(clients.Repo)
-	return ret0
-}
-
-// Org indicates an expected call of Org.
-func (mr *MockRepoMockRecorder) Org() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Org", reflect.TypeOf((*MockRepo)(nil).Org))
 }
 
 // String mocks base method.
