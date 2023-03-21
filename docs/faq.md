@@ -86,11 +86,11 @@ Signing releases already has some relevance and it will soon offer even more sec
 
 To get a 10/10 score for Branch-Protection check using a non-admin token, you should have the following settings for your branches:
 
-![image](/docs/design/images/branch-protection-settings-non-admin-token.png)
+![GitHub's branch protection settings with the following options selected: "Require a pull request before merging", "Require approvals" with 1 approver, "Require review from Code Owners", "Require status checks to pass before merging", "Require branches to be up to date before merging", and have at least one Status Check chosen. All other options are unchecked.](/docs/design/images/branch-protection-settings-non-admin-token.png)
 
 When using an admin token, Scorecard can verify if a few other important settings are ensured:
 
-![image](/docs/design/images/branch-protection-settings-admin-token.png)
+![GitHub's branch protection settings with the following options selected: "Require a pull request before merging", "Require approvals" with 2 approvers, "Dismiss stale pull request approvals when new commits are pushed", "Require review from Code Owners", "Require approval of the most recent reviewable push", "Require status checks to pass before merging", "Require branches to be up to date before merging", have at least one Status Check chosen, and "Do not allow bypassing the above settings". All other options are unchecked.](/docs/design/images/branch-protection-settings-admin-token.png)
 
 It's important to reiterate that Branch-Protection score is Tier-based. If a setting from Tier 1 is not satisfied, it does not matter that all other settings are met, the score will be truncated up the Tier's maximum. In this case, 3/10. The following table shows the relation between branch protection settings on GitHub and the score Tier:
 
