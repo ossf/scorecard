@@ -237,7 +237,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				mockRepoClient.EXPECT().ListSuccessfulWorkflowRuns(gomock.Any()).Return(tt.successfulWorkflowRuns, nil)
 			}
 			if tt.commits != nil {
-				mockRepoClient.EXPECT().ListCommits().Return(tt.commits, nil)
+				mockRepoClient.EXPECT().ListCommits().Return(clients.NewSliceBackedCommitIterator(tt.commits), nil)
 			}
 
 			f, err := BinaryArtifacts(mockRepoClient)

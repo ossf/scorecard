@@ -20,6 +20,8 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 )
 
+const commitsToAnalyze = 30
+
 // Maintained checks for maintenance.
 func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	var result checker.MaintainedData
@@ -32,11 +34,15 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	result.ArchivedStatus.Status = archived
 
 	// Recent commits.
-	commits, err := c.RepoClient.ListCommits()
+	commitIter, err := c.RepoClient.ListCommits()
 	if err != nil {
 		return result, fmt.Errorf("%w", err)
 	}
-	result.DefaultBranchCommits = commits
+
+	commit, err := commitIter.Next()
+	for i := 0; i < commitsToAnalyze && err == nil; func() { commit, err = commitIter.Next(); i++ }() {
+		result.DefaultBranchCommits = append(result.DefaultBranchCommits, commit)
+	}
 
 	// Recent issues.
 	issues, err := c.RepoClient.ListIssues()

@@ -202,7 +202,7 @@ func Test_getChangesets(t *testing.T) {
 				{
 					ReviewPlatform: checker.ReviewPlatformGitHub,
 					RevisionID:     "2",
-					Commits:        []clients.Commit{commitB, commitBUnsquashed},
+					Commits:        []clients.Commit{commitB},
 					Reviews: []clients.Review{
 						{
 							Author: &clients.User{},
@@ -230,7 +230,7 @@ func Test_getChangesets(t *testing.T) {
 				{
 					ReviewPlatform: checker.ReviewPlatformGitHub,
 					RevisionID:     "2",
-					Commits:        []clients.Commit{commitB, commitBUnsquashed},
+					Commits:        []clients.Commit{commitBUnsquashed},
 					Reviews: []clients.Review{
 						{
 							Author: &clients.User{},
@@ -279,7 +279,7 @@ func Test_getChangesets(t *testing.T) {
 				{
 					RevisionID:     "123",
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
-					Commits:        []clients.Commit{phabricatorCommitA, phabricatorCommitAUnsquashed, phabricatorCommitAUnsquashed2},
+					Commits:        []clients.Commit{phabricatorCommitA},
 				},
 			},
 		},
@@ -316,7 +316,7 @@ func Test_getChangesets(t *testing.T) {
 				{
 					ReviewPlatform: checker.ReviewPlatformGitHub,
 					RevisionID:     "2",
-					Commits:        []clients.Commit{commitB, commitBUnsquashed},
+					Commits:        []clients.Commit{commitB},
 					Reviews: []clients.Review{{
 						Author: &clients.User{},
 						State:  "APPROVED",
@@ -355,13 +355,14 @@ func Test_getChangesets(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Logf("test: %s", tt.name)
-		changesets := getChangesets(tt.commits)
+		changesets, err := getChangesets(clients.NewSliceBackedCommitIterator(tt.commits), 30)
+		if err != nil {
+			t.Log(err)
+			t.Fail()
+		}
 		if !cmp.Equal(tt.expected, changesets,
 			cmpopts.SortSlices(func(x, y checker.Changeset) bool {
 				return x.RevisionID < y.RevisionID
-			}),
-			cmpopts.SortSlices(func(x, y clients.Commit) bool {
-				return x.SHA < y.SHA
 			})) {
 			t.Log(cmp.Diff(tt.expected, changesets))
 			t.Fail()

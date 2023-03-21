@@ -14,7 +14,10 @@
 
 package clients
 
-import "time"
+import (
+	"io"
+	"time"
+)
 
 // Commit represents a Git commit.
 type Commit struct {
@@ -23,4 +26,31 @@ type Commit struct {
 	SHA                    string
 	AssociatedMergeRequest PullRequest
 	Committer              User
+}
+
+// CommitIterator returns the next commit if present, else returns io.EOF error.
+type CommitIterator interface {
+	Next() (Commit, error)
+}
+
+var _ CommitIterator = &SliceBackedCommitIterator{}
+
+type SliceBackedCommitIterator struct {
+	data  []Commit
+	index int
+}
+
+func (iter *SliceBackedCommitIterator) Next() (Commit, error) {
+	defer func() { iter.index++ }()
+	if len(iter.data) > iter.index {
+		return iter.data[iter.index], nil
+	}
+	return Commit{}, io.EOF
+}
+
+func NewSliceBackedCommitIterator(data []Commit) CommitIterator {
+	return &SliceBackedCommitIterator{
+		data:  data,
+		index: 0,
+	}
 }

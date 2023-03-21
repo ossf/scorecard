@@ -151,7 +151,7 @@ func (client *Client) GetFileContent(filename string) ([]byte, error) {
 	return client.tarball.getFileContent(filename)
 }
 
-func (client *Client) ListCommits() ([]clients.Commit, error) {
+func (client *Client) ListCommits() (clients.CommitIterator, error) {
 	return client.commits.listCommits()
 }
 

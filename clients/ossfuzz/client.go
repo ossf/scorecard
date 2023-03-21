@@ -34,8 +34,9 @@ const (
 )
 
 var (
-	errUnreachableStatusFile = errors.New("could not fetch OSS Fuzz status file")
-	errMalformedURL          = errors.New("malformed repo url")
+	errUnreachableStatusFile                    = errors.New("could not fetch OSS Fuzz status file")
+	errMalformedURL                             = errors.New("malformed repo url")
+	_                        clients.RepoClient = &client{}
 )
 
 type client struct {
@@ -200,7 +201,7 @@ func (c *client) GetDefaultBranchName() (string, error) {
 }
 
 // ListCommits implements RepoClient.ListCommits.
-func (c *client) ListCommits() ([]clients.Commit, error) {
+func (c *client) ListCommits() (clients.CommitIterator, error) {
 	return nil, fmt.Errorf("ListCommits: %w", clients.ErrUnsupportedFeature)
 }
 

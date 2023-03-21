@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"path"
 	"regexp"
 	"strings"
@@ -30,8 +31,11 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 )
 
-// CheckSAST is the registered name for SAST.
-const CheckSAST = "SAST"
+const (
+	// CheckSAST is the registered name for SAST.
+	CheckSAST        = "SAST"
+	commitsToAnalyze = 30
+)
 
 var errInvalid = errors.New("invalid")
 
@@ -125,7 +129,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 }
 
 func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
-	commits, err := c.RepoClient.ListCommits()
+	commitIter, err := c.RepoClient.ListCommits()
 	if err != nil {
 		return checker.InconclusiveResultScore,
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
@@ -133,8 +137,9 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 
 	totalMerged := 0
 	totalTested := 0
-	for i := range commits {
-		pr := commits[i].AssociatedMergeRequest
+	commit, err := commitIter.Next()
+	for i := 0; i < commitsToAnalyze && err == nil; func() { commit, err = commitIter.Next(); i++ }() {
+		pr := commit.AssociatedMergeRequest
 		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
 		// but the PR was created in the original repo.
 		if pr.MergedAt.IsZero() {
@@ -166,6 +171,11 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			}
 		}
 	}
+	if err != nil && !errors.Is(err, io.EOF) {
+		return checker.InconclusiveResultScore,
+			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("commitIter.Next: %v", err))
+	}
+
 	if totalMerged == 0 {
 		c.Dlogger.Warn(&checker.LogMessage{
 			Text: "no pull requests merged into dev branch",

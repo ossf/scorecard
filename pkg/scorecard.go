@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"sync"
 	"time"
 
@@ -65,19 +66,24 @@ func runEnabledChecks(ctx context.Context,
 }
 
 func getRepoCommitHash(r clients.RepoClient) (string, error) {
-	commits, err := r.ListCommits()
+	commitIter, err := r.ListCommits()
 	if err != nil {
 		// allow --local repos to still process
 		if errors.Is(err, clients.ErrUnsupportedFeature) {
 			return "unknown", nil
 		}
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCommits:%v", err.Error()))
+		if errors.Is(err, io.EOF) {
+			return "", nil
+		}
+
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCommits: %v", err.Error()))
 	}
 
-	if len(commits) > 0 {
-		return commits[0].SHA, nil
+	commit, err := commitIter.Next()
+	if err != nil && !errors.Is(err, io.EOF) {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("commitIter.Next: %v", err))
 	}
-	return "", nil
+	return commit.SHA, nil
 }
 
 // RunScorecard runs enabled Scorecard checks on a Repo.

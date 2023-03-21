@@ -29,7 +29,7 @@ import (
 
 // ignoring the linter for cyclomatic complexity because it is a test func
 // TestMaintained tests the maintained check.
-//nolint
+// nolint
 func Test_Maintained(t *testing.T) {
 	t.Parallel()
 	threeHundredDaysAgo := time.Now().AddDate(0, 0, -300)
@@ -342,11 +342,11 @@ func Test_Maintained(t *testing.T) {
 
 			if tt.archiveerr == nil {
 				mockRepo.EXPECT().ListCommits().DoAndReturn(
-					func() ([]clients.Commit, error) {
+					func() (clients.CommitIterator, error) {
 						if tt.commiterr != nil {
-							return nil, tt.commiterr
+							return clients.NewSliceBackedCommitIterator([]clients.Commit{}), tt.commiterr
 						}
-						return tt.commits, tt.err
+						return clients.NewSliceBackedCommitIterator(tt.commits), tt.err
 					},
 				).MinTimes(1)
 

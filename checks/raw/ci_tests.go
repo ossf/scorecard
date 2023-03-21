@@ -14,15 +14,19 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
+	"io"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
+const commitsToAnalye = 30
+
 func CITests(c clients.RepoClient) (checker.CITestData, error) {
-	commits, err := c.ListCommits()
+	commitIter, err := c.ListCommits()
 	if err != nil {
 		e := sce.WithMessage(
 			sce.ErrScorecardInternal,
@@ -35,8 +39,9 @@ func CITests(c clients.RepoClient) (checker.CITestData, error) {
 	commitStatuses := make(map[string][]clients.Status)
 	prNos := make(map[string]int)
 
-	for i := range commits {
-		pr := &commits[i].AssociatedMergeRequest
+	commit, err := commitIter.Next()
+	for i := 0; i < commitsToAnalye && err == nil; func() { commit, err = commitIter.Next(); i++ }() {
+		pr := &commit.AssociatedMergeRequest
 
 		if pr.MergedAt.IsZero() {
 			continue
@@ -67,6 +72,9 @@ func CITests(c clients.RepoClient) (checker.CITestData, error) {
 		}
 
 		commitStatuses[pr.HeadSHA] = append(commitStatuses[pr.HeadSHA], statuses...)
+	}
+	if err != nil && !errors.Is(err, io.EOF) {
+		return checker.CITestData{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("commitIter.Next: %v", err))
 	}
 
 	// Collate

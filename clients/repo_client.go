@@ -42,7 +42,7 @@ type RepoClient interface {
 	GetDefaultBranchName() (string, error)
 	GetDefaultBranch() (*BranchRef, error)
 	GetOrgRepoClient(context.Context) (RepoClient, error)
-	ListCommits() ([]Commit, error)
+	ListCommits() (CommitIterator, error)
 	ListIssues() ([]Issue, error)
 	ListLicenses() ([]License, error)
 	ListReleases() ([]Release, error)

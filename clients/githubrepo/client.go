@@ -146,7 +146,7 @@ func (client *Client) GetFileContent(filename string) ([]byte, error) {
 }
 
 // ListCommits implements RepoClient.ListCommits.
-func (client *Client) ListCommits() ([]clients.Commit, error) {
+func (client *Client) ListCommits() (clients.CommitIterator, error) {
 	return client.graphClient.getCommits()
 }
 

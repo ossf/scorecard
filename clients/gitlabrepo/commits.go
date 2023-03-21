@@ -149,12 +149,12 @@ func (handler *commitsHandler) setup() error {
 	return handler.errSetup
 }
 
-func (handler *commitsHandler) listCommits() ([]clients.Commit, error) {
+func (handler *commitsHandler) listCommits() (clients.CommitIterator, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during commitsHandler.setup: %w", err)
 	}
 
-	return handler.commits, nil
+	return clients.NewSliceBackedCommitIterator(handler.commits), nil
 }
 
 // Expected email form: <firstname>.<lastname>@<namespace>.com.

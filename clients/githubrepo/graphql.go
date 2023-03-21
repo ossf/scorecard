@@ -212,11 +212,11 @@ func (handler *graphqlHandler) setup() error {
 	return handler.errSetup
 }
 
-func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
+func (handler *graphqlHandler) getCommits() (clients.CommitIterator, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
 	}
-	return handler.commits, nil
+	return clients.NewSliceBackedCommitIterator(handler.commits), nil
 }
 
 func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {

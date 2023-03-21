@@ -51,15 +51,15 @@ func Test_getRepoCommitHash(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			defer ctrl.Finish()
-			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
+			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() (clients.CommitIterator, error) {
 				if tt.want == "" {
-					return []clients.Commit{}, nil
+					return clients.NewSliceBackedCommitIterator([]clients.Commit{}), nil
 				}
-				return []clients.Commit{
+				return clients.NewSliceBackedCommitIterator([]clients.Commit{
 					{
 						SHA: tt.want,
 					},
-				}, nil
+				}), nil
 			})
 
 			got, err := getRepoCommitHash(mockRepoClient)
@@ -152,15 +152,15 @@ func TestRunScorecard(t *testing.T) {
 				return nil
 			})
 
-			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
+			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() (clients.CommitIterator, error) {
 				if tt.args.commitSHA == "" {
-					return []clients.Commit{}, nil
+					return clients.NewSliceBackedCommitIterator([]clients.Commit{}), nil
 				}
-				return []clients.Commit{
+				return clients.NewSliceBackedCommitIterator([]clients.Commit{
 					{
 						SHA: tt.args.commitSHA,
 					},
-				}, nil
+				}), nil
 			})
 			defer ctrl.Finish()
 			got, err := RunScorecard(context.Background(), repo, tt.args.commitSHA, 0, nil, mockRepoClient, nil, nil, nil)

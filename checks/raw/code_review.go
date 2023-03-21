@@ -15,7 +15,9 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"regexp"
 	"strconv"
 	"strings"
@@ -24,16 +26,17 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
+const changesetsToAnalyze = 30
+
 // CodeReview retrieves the raw data for the Code-Review check.
 func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 	// Look at the latest commits.
-	commits, err := c.ListCommits()
+	commitIter, err := c.ListCommits()
 	if err != nil {
 		return checker.CodeReviewData{}, fmt.Errorf("%w", err)
 	}
 
-	changesets := getChangesets(commits)
-
+	changesets, err := getChangesets(commitIter, changesetsToAnalyze)
 	if err != nil {
 		return checker.CodeReviewData{}, fmt.Errorf("%w", err)
 	}
@@ -144,47 +147,50 @@ func detectCommitRevisionInfo(c *clients.Commit) revisionInfo {
 	return revisionInfo{}
 }
 
-// Group commits by the changeset they belong to
-// Commits must be in-order.
-func getChangesets(commits []clients.Commit) []checker.Changeset {
-	changesets := []checker.Changeset{}
+type changesetIterator struct {
+	commitIter          clients.CommitIterator
+	changesetsByRevInfo map[revisionInfo]checker.Changeset
+}
 
-	if len(commits) == 0 {
-		return changesets
-	}
-
-	changesetsByRevInfo := make(map[revisionInfo]checker.Changeset)
-
-	for i := range commits {
-		rev := detectCommitRevisionInfo(&commits[i])
+func (iter *changesetIterator) Next() (checker.Changeset, error) {
+	commit, err := iter.commitIter.Next()
+	for ; err == nil; commit, err = iter.commitIter.Next() {
+		rev := detectCommitRevisionInfo(&commit)
 		if rev.ID == "" {
-			rev.ID = commits[i].SHA
+			rev.ID = commit.SHA
 		}
 
-		if changeset, ok := changesetsByRevInfo[rev]; !ok {
+		if _, ok := iter.changesetsByRevInfo[rev]; !ok {
 			newChangeset := checker.Changeset{
 				ReviewPlatform: rev.Platform,
 				RevisionID:     rev.ID,
-				Commits:        []clients.Commit{commits[i]},
+				Commits:        []clients.Commit{commit},
 			}
-
 			if rev.Platform == checker.ReviewPlatformGitHub {
-				newChangeset.Reviews = getGithubReviews(&commits[i])
-				newChangeset.Author = getGithubAuthor(&commits[i])
+				newChangeset.Reviews = getGithubReviews(&commit)
+				newChangeset.Author = getGithubAuthor(&commit)
 			}
-
-			changesetsByRevInfo[rev] = newChangeset
-		} else {
-			// Part of a previously found changeset.
-			changeset.Commits = append(changeset.Commits, commits[i])
-			changesetsByRevInfo[rev] = changeset
+			iter.changesetsByRevInfo[rev] = newChangeset
+			return newChangeset, nil
 		}
 	}
+	return checker.Changeset{}, fmt.Errorf("commitIter.Next(): %w", err)
+}
 
-	// Changesets are returned in map order (i.e. randomized)
-	for ri := range changesetsByRevInfo {
-		changesets = append(changesets, changesetsByRevInfo[ri])
+func getChangesets(commitIter clients.CommitIterator, changesetsToAnalyze int) ([]checker.Changeset, error) {
+	changesets := []checker.Changeset{}
+
+	changesetIter := &changesetIterator{
+		commitIter:          commitIter,
+		changesetsByRevInfo: make(map[revisionInfo]checker.Changeset),
+	}
+	changeset, err := changesetIter.Next()
+	for i := 0; i < changesetsToAnalyze && err == nil; func() { changeset, err = changesetIter.Next(); i++ }() {
+		changesets = append(changesets, changeset)
 	}
 
-	return changesets
+	if err == nil || errors.Is(err, io.EOF) {
+		return changesets, nil
+	}
+	return changesets, fmt.Errorf("changesetIter.Next(): %w", err)
 }

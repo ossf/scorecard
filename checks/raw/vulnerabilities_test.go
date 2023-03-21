@@ -75,14 +75,14 @@ func TestVulnerabilities(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 
-			mockRepo.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
+			mockRepo.EXPECT().ListCommits().DoAndReturn(func() (clients.CommitIterator, error) {
 				if tt.err != nil {
-					return nil, tt.err
+					return clients.NewSliceBackedCommitIterator([]clients.Commit{}), tt.err
 				}
 				if tt.numberofCommits == 0 {
-					return nil, nil
+					return clients.NewSliceBackedCommitIterator([]clients.Commit{}), nil
 				}
-				return []clients.Commit{{SHA: "test"}}, nil
+				return clients.NewSliceBackedCommitIterator([]clients.Commit{{SHA: "test"}}), nil
 			}).AnyTimes()
 
 			mockRepo.EXPECT().LocalPath().DoAndReturn(func() (string, error) {

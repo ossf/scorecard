@@ -224,11 +224,11 @@ func Test_SAST(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
-			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
+			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() (clients.CommitIterator, error) {
 				if tt.err != nil {
-					return nil, tt.err
+					return clients.NewSliceBackedCommitIterator([]clients.Commit{}), tt.err
 				}
-				return tt.commits, tt.err
+				return clients.NewSliceBackedCommitIterator(tt.commits), tt.err
 			})
 			mockRepoClient.EXPECT().ListCheckRunsForRef("").Return(tt.checkRuns, nil).AnyTimes()
 			mockRepoClient.EXPECT().Search(searchRequest).Return(tt.searchresult, nil).AnyTimes()

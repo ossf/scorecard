@@ -15,6 +15,9 @@
 package git
 
 import (
+	"errors"
+	"io"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -24,12 +27,19 @@ import (
 var _ = DescribeTable("Test ListCommits commit-depth for HEAD",
 	func(uri string) {
 		const commitSHA = clients.HeadSHA
-		const commitDepth = 1
+		commitDepth := 1
 		client := &Client{}
 		Expect(client.InitRepo(uri, commitSHA, commitDepth)).To(BeNil())
-		commits, err := client.ListCommits()
+		commitIter, err := client.ListCommits()
 		Expect(err).To(BeNil())
-		Expect(len(commits)).Should(BeEquivalentTo(commitDepth))
+		_, err = commitIter.Next()
+		for ; err == nil; _, err = commitIter.Next() {
+			commitDepth--
+		}
+		if err != nil {
+			Expect(errors.Is(err, io.EOF)).Should(BeEquivalentTo(true))
+		}
+		Expect(commitDepth).Should(BeEquivalentTo(0))
 		Expect(client.Close()).To(BeNil())
 	},
 	Entry("GitHub", "https://github.com/ossf/scorecard"),
@@ -39,13 +49,22 @@ var _ = DescribeTable("Test ListCommits commit-depth for HEAD",
 
 var _ = DescribeTable("Test ListCommits commit-depth and latest commit at [0]",
 	func(uri, commitSHA string) {
-		const commitDepth = 10
+		commitDepth := 10
 		client := &Client{}
 		Expect(client.InitRepo(uri, commitSHA, commitDepth)).To(BeNil())
-		commits, err := client.ListCommits()
+		commitIter, err := client.ListCommits()
 		Expect(err).To(BeNil())
-		Expect(len(commits)).Should(BeEquivalentTo(commitDepth))
-		Expect(commits[0].SHA).Should(BeEquivalentTo(commitSHA))
+		commit, err := commitIter.Next()
+		for i := 0; err == nil; func() { commit, err = commitIter.Next(); i++ }() {
+			if i == 0 {
+				Expect(commit.SHA).Should(BeEquivalentTo(commitSHA))
+			}
+			commitDepth--
+		}
+		if err != nil {
+			Expect(errors.Is(err, io.EOF)).Should(BeEquivalentTo(true))
+		}
+		Expect(commitDepth).Should(BeEquivalentTo(0))
 		Expect(client.Close()).To(BeNil())
 	},
 	Entry("GitHub", "https://github.com/ossf/scorecard", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
@@ -56,13 +75,23 @@ var _ = DescribeTable("Test ListCommits commit-depth and latest commit at [0]",
 var _ = DescribeTable("Test ListCommits without enough commits",
 	func(uri string) {
 		const commitSHA = "dc1835b7ffe526969d65436b621e171e3386771e"
-		const commitDepth = 10
+		commitDepth := 10
 		client := &Client{}
 		Expect(client.InitRepo(uri, commitSHA, commitDepth)).To(BeNil())
-		commits, err := client.ListCommits()
+		commitIter, err := client.ListCommits()
 		Expect(err).To(BeNil())
-		Expect(len(commits)).Should(BeEquivalentTo(3))
-		Expect(commits[0].SHA).Should(BeEquivalentTo(commitSHA))
+		commit, err := commitIter.Next()
+		for i := 0; err == nil; func() { commit, err = commitIter.Next(); i++ }() {
+			if i == 0 {
+				Expect(commit.SHA).Should(BeEquivalentTo(commitSHA))
+			}
+			commitDepth--
+		}
+		if err != nil {
+			Expect(errors.Is(err, io.EOF)).Should(BeEquivalentTo(true))
+		}
+
+		Expect(commitDepth).Should(BeEquivalentTo(7))
 		Expect(client.Close()).To(BeNil())
 	},
 	Entry("GitHub", "https://github.com/ossf/scorecard"),

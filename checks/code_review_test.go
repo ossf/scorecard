@@ -282,7 +282,7 @@ func TestCodereview(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListCommits().Return(tt.commits, tt.err).AnyTimes()
+			mockRepo.EXPECT().ListCommits().Return(clients.NewSliceBackedCommitIterator(tt.commits), tt.err).AnyTimes()
 
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,

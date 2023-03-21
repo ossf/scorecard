@@ -100,7 +100,7 @@ func (c *Client) InitRepo(uri, commitSHA string, commitDepth int) error {
 	return nil
 }
 
-func (c *Client) ListCommits() ([]clients.Commit, error) {
+func (c *Client) ListCommits() (clients.CommitIterator, error) {
 	c.listCommits.Do(func() {
 		commitIter, err := c.gitRepo.Log(&git.LogOptions{
 			Order: git.LogOrderCommitterTime,
@@ -137,7 +137,7 @@ func (c *Client) ListCommits() ([]clients.Commit, error) {
 			})
 		}
 	})
-	return c.commits, c.errListCommits
+	return clients.NewSliceBackedCommitIterator(c.commits), c.errListCommits
 }
 
 func (c *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
