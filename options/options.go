@@ -215,7 +215,7 @@ func boolSum(bools ...bool) int {
 func (o *Options) IsInternalGitHubIntegrationEnabled() bool {
 	return (os.Getenv("CI") == "true") &&
 		(os.Getenv("SCORECARD_INTERNAL_GITHUB_INTEGRATION") == "1") &&
-		(os.Getenv("GITHUB_EVENT_NAME") == "<todo>")
+		(os.Getenv("GITHUB_EVENT_NAME") == "dynamic")
 }
 
 // Checks returns the list of checks and honours the
