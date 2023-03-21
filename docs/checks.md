@@ -97,7 +97,7 @@ commit.
 
 This test has tiered scoring. Each tier must be fully satisfied to achieve points at the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.
 
-Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” are ignored.
+Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” can be safely ignored, and scores will be determined as if all such requirements have been met.
 
 Tier 1 Requirements (3/10 points):
   - Prevent force push
