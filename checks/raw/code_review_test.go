@@ -87,7 +87,7 @@ func Test_getChangesets(t *testing.T) {
 			SHA:     "fab",
 		}
 		phabricatorCommitD = clients.Commit{
-			Message: "\nDifferential Revision: 2\nReviewed By: user-456",
+			Message: "\nDifferential Revision: 3\nReviewed By: user-456",
 			SHA:     "d",
 		}
 
@@ -310,7 +310,7 @@ func Test_getChangesets(t *testing.T) {
 				},
 				{
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
-					RevisionID:     "2",
+					RevisionID:     "3",
 					Commits:        []clients.Commit{phabricatorCommitD},
 				},
 				{
