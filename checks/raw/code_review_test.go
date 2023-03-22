@@ -87,17 +87,17 @@ func Test_getChangesets(t *testing.T) {
 			SHA:     "fab",
 		}
 		phabricatorCommitD = clients.Commit{
-			Message: "\nDifferential Revision: 3\nReviewed By: user-456",
+			Message: "\nDifferential Revision: 2\nReviewed By: user-456",
 			SHA:     "d",
 		}
 
 		gerritCommitB = clients.Commit{
 			Message: "first change\nReviewed-on: server.url \nReviewed-by:user-123",
-			SHA:     "abcg",
+			SHA:     "abc",
 		}
 		gerritCommitA = clients.Commit{
 			Message: "followup\nReviewed-on: server.url \nReviewed-by:user-123",
-			SHA:     "defg",
+			SHA:     "def",
 		}
 	)
 
@@ -289,12 +289,12 @@ func Test_getChangesets(t *testing.T) {
 			expected: []checker.Changeset{
 				{
 					ReviewPlatform: checker.ReviewPlatformGerrit,
-					RevisionID:     "abcg",
+					RevisionID:     "abc",
 					Commits:        []clients.Commit{gerritCommitB},
 				},
 				{
 					ReviewPlatform: checker.ReviewPlatformGerrit,
-					RevisionID:     "defg",
+					RevisionID:     "def",
 					Commits:        []clients.Commit{gerritCommitA},
 				},
 			},
@@ -310,7 +310,7 @@ func Test_getChangesets(t *testing.T) {
 				},
 				{
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
-					RevisionID:     "3",
+					RevisionID:     "2",
 					Commits:        []clients.Commit{phabricatorCommitD},
 				},
 				{
@@ -330,12 +330,12 @@ func Test_getChangesets(t *testing.T) {
 			expected: []checker.Changeset{
 				{
 					ReviewPlatform: checker.ReviewPlatformGerrit,
-					RevisionID:     "abcg",
+					RevisionID:     "abc",
 					Commits:        []clients.Commit{gerritCommitB},
 				},
 				{
 					ReviewPlatform: checker.ReviewPlatformGerrit,
-					RevisionID:     "defg",
+					RevisionID:     "def",
 					Commits:        []clients.Commit{gerritCommitA},
 				},
 				{
