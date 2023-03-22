@@ -97,8 +97,10 @@ const (
 	DependencyUseTypeChocoCommand DependencyUseType = "chocoCommand"
 	// DependencyUseTypeNpmCommand is an npm command.
 	DependencyUseTypeNpmCommand DependencyUseType = "npmCommand"
-	// DependencyUseTypePipCommand is a pipp command.
+	// DependencyUseTypePipCommand is a pip command.
 	DependencyUseTypePipCommand DependencyUseType = "pipCommand"
+	// DependencyUseTypeNugetCommand is a nuget command.
+	DependencyUseTypeNugetCommand DependencyUseType = "nugetCommand"
 )
 
 // PinningDependenciesData represents pinned dependency data.

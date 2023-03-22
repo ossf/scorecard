@@ -55,3 +55,10 @@ pip install --no-deps -e . git+https://github.com/username/repo.git@0123456789ab
 
 python -m pip install --no-deps -e git+https://github.com/username/repo.git
 python -m pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+
+nuget install some-package
+nuget install some-package -Version 1.2.3
+nuget install packages.config
+dotnet add package some-package
+dotnet add package some-package -v 1.2.3
+dotnet add package some-package --version 1.2.3

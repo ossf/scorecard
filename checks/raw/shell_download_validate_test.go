@@ -107,6 +107,67 @@ func TestValidateShellFile(t *testing.T) {
 	}
 }
 
+func Test_isDotNetUnpinnedDownload(t *testing.T) {
+	type args struct {
+		cmd []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "nuget install",
+			args: args{
+				cmd: []string{"nuget", "install", "Newtonsoft.Json"},
+			},
+			want: true,
+		},
+		{
+			name: "nuget install with -Version",
+			args: args{
+				cmd: []string{"nuget", "install", "Newtonsoft.Json", "-Version", "2"},
+			},
+			want: false,
+		},
+		{
+			name: "nuget install with packages.config",
+			args: args{
+				cmd: []string{"nuget", "install", "config\\packages.config"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet add",
+			args: args{
+				cmd: []string{"dotnet", "add", "package", "Newtonsoft.Json"},
+			},
+			want: true,
+		},
+		{
+			name: "dotnet add with -v",
+			args: args{
+				cmd: []string{"dotnet", "add", "package", "Newtonsoft.Json", "-v", "2.0"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet add with --version",
+			args: args{
+				cmd: []string{"dotnet", "add", "package", "Newtonsoft.Json", "--version", "2.0"},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isNugetUnpinnedDownload(tt.args.cmd); got != tt.want {
+				t.Errorf("isNugetUnpinnedDownload() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_isGoUnpinnedDownload(t *testing.T) {
 	type args struct {
 		cmd []string
