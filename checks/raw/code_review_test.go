@@ -93,11 +93,11 @@ func Test_getChangesets(t *testing.T) {
 
 		gerritCommitB = clients.Commit{
 			Message: "first change\nReviewed-on: server.url \nReviewed-by:user-123",
-			SHA:     "abc",
+			SHA:     "abcg",
 		}
 		gerritCommitA = clients.Commit{
 			Message: "followup\nReviewed-on: server.url \nReviewed-by:user-123",
-			SHA:     "def",
+			SHA:     "defg",
 		}
 	)
 
@@ -289,12 +289,12 @@ func Test_getChangesets(t *testing.T) {
 			expected: []checker.Changeset{
 				{
 					ReviewPlatform: checker.ReviewPlatformGerrit,
-					RevisionID:     "abc",
+					RevisionID:     "abcg",
 					Commits:        []clients.Commit{gerritCommitB},
 				},
 				{
 					ReviewPlatform: checker.ReviewPlatformGerrit,
-					RevisionID:     "def",
+					RevisionID:     "defg",
 					Commits:        []clients.Commit{gerritCommitA},
 				},
 			},
@@ -330,12 +330,12 @@ func Test_getChangesets(t *testing.T) {
 			expected: []checker.Changeset{
 				{
 					ReviewPlatform: checker.ReviewPlatformGerrit,
-					RevisionID:     "abc",
+					RevisionID:     "abcg",
 					Commits:        []clients.Commit{gerritCommitB},
 				},
 				{
 					ReviewPlatform: checker.ReviewPlatformGerrit,
-					RevisionID:     "def",
+					RevisionID:     "defg",
 					Commits:        []clients.Commit{gerritCommitA},
 				},
 				{
