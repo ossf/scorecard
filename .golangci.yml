@@ -61,6 +61,10 @@ linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
+  errorlint:
+    # TODO remove this when project migrates to golang 1.20
+    # https://golangci-lint.run/usage/linters/#errorlint
+    errorf-multi: false
   exhaustive:
     # https://golangci-lint.run/usage/linters/#exhaustive
     default-signifies-exhaustive: true
