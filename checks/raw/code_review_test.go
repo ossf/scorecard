@@ -358,6 +358,9 @@ func Test_getChangesets(t *testing.T) {
 		changesets := getChangesets(tt.commits)
 		if !cmp.Equal(tt.expected, changesets,
 			cmpopts.SortSlices(func(x, y checker.Changeset) bool {
+				if x.RevisionID == y.RevisionID {
+					return x.ReviewPlatform < y.ReviewPlatform
+				}
 				return x.RevisionID < y.RevisionID
 			}),
 			cmpopts.SortSlices(func(x, y clients.Commit) bool {
