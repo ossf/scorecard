@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/caarlos0/env/v6"
 
@@ -204,6 +205,33 @@ func boolSum(bools ...bool) int {
 }
 
 // Feature flags.
+
+// GitHub integration support.
+// See https://github.com/ossf/scorecard-action/issues/1107.
+// NOTE: We don't add a field to to the Option structure to simplify
+// integration. If we did, the Action would also need to be aware
+// of the integration and pass the relevant values. This
+// would add redundancy and complicate maintenance.
+func (o *Options) IsInternalGitHubIntegrationEnabled() bool {
+	return (os.Getenv("CI") == "true") &&
+		(os.Getenv("SCORECARD_INTERNAL_GITHUB_INTEGRATION") == "1") &&
+		(os.Getenv("GITHUB_EVENT_NAME") == "dynamic")
+}
+
+// Checks returns the list of checks and honours the
+// GitHub integration.
+func (o *Options) Checks() []string {
+	if o.IsInternalGitHubIntegrationEnabled() {
+		// Overwrite the list of checks.
+		s := os.Getenv("SCORECARD_INTERNAL_GITHUB_CHECKS")
+		l := strings.Split(s, ",")
+		for i := range l {
+			l[i] = strings.TrimSpace(l[i])
+		}
+		return l
+	}
+	return o.ChecksToRun
+}
 
 // isExperimentalEnabled returns true if experimental features were enabled via
 // environment variable.
