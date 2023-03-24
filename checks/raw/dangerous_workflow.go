@@ -25,7 +25,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 )
@@ -88,7 +87,9 @@ type validateGitHubActionWorkflowPatterns struct {
 	client clients.RepoClient
 }
 
-func (v *validateGitHubActionWorkflowPatterns) Validate(path string, content []byte, args ...interface{}) (bool, error) {
+func (v *validateGitHubActionWorkflowPatterns) Validate(path string, content []byte,
+	args ...interface{},
+) (bool, error) {
 	if !fileparser.IsWorkflowFile(path) {
 		return true, nil
 	}
@@ -292,38 +293,40 @@ func validateImposterCommits(client clients.RepoClient, workflow *actionlint.Wor
 	}
 	for _, job := range workflow.Jobs {
 		for _, step := range job.Steps {
-			switch e := step.Exec.(type) {
-			case *actionlint.ExecAction:
-				// Parse out repo / SHA.
-				ref := e.Uses.Value
-				trimmedRef := strings.TrimPrefix(ref, "actions://")
-				s := strings.Split(trimmedRef, "@")
-				if len(s) != 2 {
-					return fmt.Errorf("unexpected reference: %s", trimmedRef)
-				}
-				repo := s[0]
-				sha := s[1]
+			e, ok := step.Exec.(*actionlint.ExecAction)
+			if !ok {
+				continue
+			}
 
-				// Check if repo contains SHA - we use a cache to reduce duplicate calls to GitHub,
-				// since reachability queries can be expensive.
-				ok, err := cache.Contains(ctx, repo, sha)
-				if err != nil {
-					return err
-				}
-				if !ok {
-					pdata.Workflows = append(pdata.Workflows,
-						checker.DangerousWorkflow{
-							File: checker.File{
-								Path:    path,
-								Type:    finding.FileTypeSource,
-								Offset:  fileparser.GetLineNumber(step.Pos),
-								Snippet: trimmedRef,
-							},
-							Job:  createJob(job),
-							Type: checker.DangerousWorkflowImposterReference,
+			// Parse out repo / SHA.
+			ref := e.Uses.Value
+			trimmedRef := strings.TrimPrefix(ref, "actions://")
+			s := strings.Split(trimmedRef, "@")
+			if len(s) != 2 {
+				return sce.WithMessage(sce.ErrorCheckRuntime, fmt.Sprintf("unexpected reference: %s", trimmedRef))
+			}
+			repo := s[0]
+			sha := s[1]
+
+			// Check if repo contains SHA - we use a cache to reduce duplicate calls to GitHub,
+			// since reachability queries can be expensive.
+			ok, err := cache.Contains(ctx, repo, sha)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				pdata.Workflows = append(pdata.Workflows,
+					checker.DangerousWorkflow{
+						File: checker.File{
+							Path:    path,
+							Type:    finding.FileTypeSource,
+							Offset:  fileparser.GetLineNumber(step.Pos),
+							Snippet: trimmedRef,
 						},
-					)
-				}
+						Job:  createJob(job),
+						Type: checker.DangerousWorkflowImposterReference,
+					},
+				)
 			}
 		}
 	}
@@ -356,13 +359,9 @@ func (c *containsCache) Contains(ctx context.Context, repo, sha string) (bool, e
 
 	// If not, query subrepo for commit reachability.
 	// Make new client for referenced repo.
-	gh, err := githubrepo.MakeGithubRepo(repo)
+	subclient, err := c.client.NewClient(repo, "", 0)
 	if err != nil {
-		return false, err
-	}
-	subclient, err := c.client.NewClient(gh, "", 0)
-	if err != nil {
-		return false, err
+		return false, sce.WithMessage(sce.ErrorCheckRuntime, err.Error())
 	}
 
 	out, err := checkImposterCommit(subclient, sha)
@@ -371,5 +370,9 @@ func (c *containsCache) Contains(ctx context.Context, repo, sha string) (bool, e
 }
 
 func checkImposterCommit(c clients.RepoClient, target string) (bool, error) {
-	return c.ContainsRevision("HEAD", target)
+	ok, err := c.ContainsRevision(clients.HeadSHA, target)
+	if err != nil {
+		return false, sce.WithMessage(sce.ErrorCheckRuntime, err.Error())
+	}
+	return ok, nil
 }

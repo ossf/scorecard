@@ -125,8 +125,8 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 }
 
 // NewClient implements RepoClient.NewClient.
-func (client *Client) NewClient(inputRepo clients.Repo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
-	new := &Client{
+func (client *Client) NewClient(inputRepo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
+	newClient := &Client{
 		ctx:           client.ctx,
 		repoClient:    client.repoClient,
 		graphClient:   client.graphClient,
@@ -143,10 +143,14 @@ func (client *Client) NewClient(inputRepo clients.Repo, commitSHA string, commit
 		licenses:      client.licenses,
 		tarball:       client.tarball,
 	}
-	if err := new.InitRepo(inputRepo, commitSHA, commitDepth); err != nil {
+	repo, err := MakeGithubRepo(inputRepo)
+	if err != nil {
 		return nil, err
 	}
-	return new, nil
+	if err := newClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
+		return nil, err
+	}
+	return newClient, nil
 }
 
 // URI implements RepoClient.URI.

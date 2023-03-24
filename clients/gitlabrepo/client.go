@@ -136,8 +136,8 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 }
 
 // NewClient implements RepoClient.NewClient.
-func (client *Client) NewClient(inputRepo clients.Repo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
-	new := &Client{
+func (client *Client) NewClient(inputRepo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
+	newClient := &Client{
 		ctx:           client.ctx,
 		glClient:      client.glClient,
 		contributors:  client.contributors,
@@ -155,10 +155,14 @@ func (client *Client) NewClient(inputRepo clients.Repo, commitSHA string, commit
 		languages:     client.languages,
 		licenses:      client.licenses,
 	}
-	if err := new.InitRepo(inputRepo, commitSHA, commitDepth); err != nil {
+	repo, err := MakeGitlabRepo(inputRepo)
+	if err != nil {
 		return nil, err
 	}
-	return new, nil
+	if err := newClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
+		return nil, err
+	}
+	return newClient, nil
 }
 
 func (client *Client) URI() string {

@@ -86,10 +86,15 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			Expect(err).Should(BeNil())
 			defer os.RemoveAll(tmpDir)
 
-			_, e := git.PlainClone(tmpDir, false, &git.CloneOptions{
-				URL: "http://github.com/ossf-tests/scorecard-check-dangerous-workflow-e2e",
-			})
-			Expect(e).Should(BeNil())
+			for _, repo := range []string{
+				"http://github.com/actions/checkout",
+				"http://github.com/ossf-tests/scorecard-check-dangerous-workflow-e2e",
+			} {
+				_, e := git.PlainClone(tmpDir, false, &git.CloneOptions{
+					URL: repo,
+				})
+				Expect(e).Should(BeNil())
+			}
 
 			repo, err := localdir.MakeLocalDirRepo(tmpDir)
 			Expect(err).Should(BeNil())

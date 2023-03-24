@@ -160,7 +160,7 @@ func (c *client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 }
 
 // InitRepo implements RepoClient.InitRepo.
-func (c *client) NewClient(inputRepo clients.Repo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
+func (c *client) NewClient(inputRepo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("NewClient: %w", clients.ErrUnsupportedFeature)
 }
 

@@ -263,7 +263,8 @@ func getBranchRefFrom(data *branch) *clients.BranchRef {
 
 func (handler *branchesHandler) containsRevision(base, target string) (bool, error) {
 	url := handler.repourl
-	diff, resp, err := handler.ghClient.Repositories.CompareCommits(handler.ctx, url.owner, url.repo, base, target, &github.ListOptions{PerPage: 1})
+	diff, resp, err := handler.ghClient.Repositories.CompareCommits(handler.ctx, url.owner, url.repo, base, target,
+		&github.ListOptions{PerPage: 1})
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			// NotFound can be returned for some divergent cases: "404 No common ancestor between ..."

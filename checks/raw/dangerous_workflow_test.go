@@ -163,12 +163,13 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{tt.filename}, nil)
 			mockRepoClient.EXPECT().NewClient(gomock.Any(), gomock.Any(), gomock.Any()).Return(mockRepoClient, nil).AnyTimes()
-			mockRepoClient.EXPECT().ContainsRevision(gomock.Any(), gomock.Any()).DoAndReturn(func(base string, target string) (bool, error) {
-				if target == "imposter" {
-					return false, nil
-				}
-				return true, nil
-			}).AnyTimes()
+			mockRepoClient.EXPECT().ContainsRevision(gomock.Any(), gomock.Any()).DoAndReturn(
+				func(base string, target string) (bool, error) {
+					if target == "imposter" {
+						return false, nil
+					}
+					return true, nil
+				}).AnyTimes()
 			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
 				t.Log("mock: ", file)
 				// This will read the file and return the content

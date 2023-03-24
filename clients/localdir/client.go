@@ -267,15 +267,21 @@ func (client *localDirClient) GetOrgRepoClient(ctx context.Context) (clients.Rep
 	return nil, fmt.Errorf("GetOrgRepoClient: %w", clients.ErrUnsupportedFeature)
 }
 
-func (client *localDirClient) NewClient(repo clients.Repo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
-	new := &localDirClient{
+func (client *localDirClient) NewClient(repo string, commitSHA string,
+	commitDepth int,
+) (clients.RepoClient, error) {
+	newClient := &localDirClient{
 		ctx:    client.ctx,
 		logger: client.logger,
 	}
-	if err := new.InitRepo(repo, commitSHA, commitDepth); err != nil {
+	r, err := MakeLocalDirRepo(repo)
+	if err != nil {
 		return nil, err
 	}
-	return new, nil
+	if err := newClient.InitRepo(r, commitSHA, commitDepth); err != nil {
+		return nil, err
+	}
+	return newClient, nil
 }
 
 // CreateLocalDirClient returns a client which implements RepoClient interface.
