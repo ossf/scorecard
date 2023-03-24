@@ -261,23 +261,6 @@ func getBranchRefFrom(data *branch) *clients.BranchRef {
 	return branchRef
 }
 
-func (handler *branchesHandler) list() ([]*clients.BranchRef, error) {
-	url := handler.repourl
-	branches, _, err := handler.ghClient.Repositories.ListBranches(handler.ctx, url.owner, url.repo, &github.BranchListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("error during branchesHandler.list: %w", err)
-	}
-
-	out := make([]*clients.BranchRef, 0, len(branches))
-	for _, b := range branches {
-		out = append(out, &clients.BranchRef{
-			Name:      b.Name,
-			Protected: b.Protected,
-		})
-	}
-	return out, nil
-}
-
 func (handler *branchesHandler) containsRevision(base, target string) (bool, error) {
 	url := handler.repourl
 	diff, resp, err := handler.ghClient.Repositories.CompareCommits(handler.ctx, url.owner, url.repo, base, target, &github.ListOptions{PerPage: 1})
@@ -286,7 +269,7 @@ func (handler *branchesHandler) containsRevision(base, target string) (bool, err
 			// NotFound can be returned for some divergent cases: "404 No common ancestor between ..."
 			return false, nil
 		}
-		return false, fmt.Errorf("error during branchesHandler.list: %w", err)
+		return false, fmt.Errorf("error during branchesHandler.containsRevision: %w", err)
 	}
 
 	// Target should be behind the base ref if it is considered contained.

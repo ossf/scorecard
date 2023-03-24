@@ -273,13 +273,3 @@ func (c *client) GetCreatedAt() (time.Time, error) {
 func (c *client) ContainsRevision(base, target string) (bool, error) {
 	return false, fmt.Errorf("ContainsRevision: %w", clients.ErrUnsupportedFeature)
 }
-
-// ListBranches implements RepoClient.ListBranches.
-func (c *client) ListBranches() ([]*clients.BranchRef, error) {
-	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
-}
-
-// ListTags implements RepoClient.ListTags.
-func (c *client) ListTags() ([]clients.Tag, error) {
-	return nil, fmt.Errorf("ListTags: %w", clients.ErrUnsupportedFeature)
-}

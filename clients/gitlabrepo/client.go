@@ -254,14 +254,6 @@ func (client *Client) Close() error {
 	return nil
 }
 
-func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
-	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
-}
-
-func (client *Client) ListTags() ([]clients.Tag, error) {
-	return nil, fmt.Errorf("ListTags: %w", clients.ErrUnsupportedFeature)
-}
-
 func (client *Client) ContainsRevision(base, target string) (bool, error) {
 	return false, fmt.Errorf("ContainsRevision: %w", clients.ErrUnsupportedFeature)
 }

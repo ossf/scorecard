@@ -24,7 +24,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
@@ -160,12 +159,10 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			branch := "main"
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{tt.filename}, nil)
-			mockRepoClient.EXPECT().ListBranches().Return([]*clients.BranchRef{{Name: &branch}}, nil).AnyTimes()
-			mockRepoClient.EXPECT().ListTags().Return([]clients.Tag{{Name: branch}}, nil).AnyTimes()
+			mockRepoClient.EXPECT().NewClient(gomock.Any(), gomock.Any(), gomock.Any()).Return(mockRepoClient, nil).AnyTimes()
 			mockRepoClient.EXPECT().ContainsRevision(gomock.Any(), gomock.Any()).DoAndReturn(func(base string, target string) (bool, error) {
 				if target == "imposter" {
 					return false, nil

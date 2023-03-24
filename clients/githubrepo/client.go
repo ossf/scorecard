@@ -195,11 +195,6 @@ func (client *Client) IsArchived() (bool, error) {
 	return client.graphClient.isArchived()
 }
 
-// ListBranches implements RepoClient.ListBranches.
-func (client *Client) ListBranches() ([]*clients.BranchRef, error) {
-	return client.branches.list()
-}
-
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
 func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return client.branches.getDefaultBranch()
@@ -287,23 +282,6 @@ func (client *Client) Close() error {
 // ContainsRevision implements RepoClient.ContainsRevision.
 func (client *Client) ContainsRevision(base, target string) (bool, error) {
 	return client.branches.containsRevision(base, target)
-}
-
-// ListTags implements RepoClient.ListTags.
-func (client *Client) ListTags() ([]clients.Tag, error) {
-	url := client.repourl
-	tags, _, err := client.repoClient.Repositories.ListTags(client.ctx, url.owner, url.repo, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	out := make([]clients.Tag, 0, len(tags))
-	for _, t := range tags {
-		out = append(out, clients.Tag{
-			Name: t.GetName(),
-		})
-	}
-	return out, nil
 }
 
 // CreateGithubRepoClientWithTransport returns a Client which implements RepoClient interface.

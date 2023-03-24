@@ -39,10 +39,6 @@ type MockRepoClientMockRecorder struct {
 	mock *MockRepoClient
 }
 
-var (
-	_ clients.RepoClient = &MockRepoClient{}
-)
-
 // NewMockRepoClient creates a new mock instance.
 func NewMockRepoClient(ctrl *gomock.Controller) *MockRepoClient {
 	mock := &MockRepoClient{ctrl: ctrl}
@@ -197,21 +193,6 @@ func (mr *MockRepoClientMockRecorder) IsArchived() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsArchived", reflect.TypeOf((*MockRepoClient)(nil).IsArchived))
 }
 
-// ListBranches mocks base method.
-func (m *MockRepoClient) ListBranches() ([]*clients.BranchRef, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListBranches")
-	ret0, _ := ret[0].([]*clients.BranchRef)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListBranches indicates an expected call of ListBranches.
-func (mr *MockRepoClientMockRecorder) ListBranches() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBranches", reflect.TypeOf((*MockRepoClient)(nil).ListBranches))
-}
-
 // ListCheckRunsForRef mocks base method.
 func (m *MockRepoClient) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	m.ctrl.T.Helper()
@@ -362,21 +343,6 @@ func (mr *MockRepoClientMockRecorder) ListSuccessfulWorkflowRuns(filename interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSuccessfulWorkflowRuns", reflect.TypeOf((*MockRepoClient)(nil).ListSuccessfulWorkflowRuns), filename)
 }
 
-// ListTags mocks base method.
-func (m *MockRepoClient) ListTags() ([]clients.Tag, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListTags")
-	ret0, _ := ret[0].([]clients.Tag)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListTags indicates an expected call of ListTags.
-func (mr *MockRepoClientMockRecorder) ListTags() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTags", reflect.TypeOf((*MockRepoClient)(nil).ListTags))
-}
-
 // ListWebhooks mocks base method.
 func (m *MockRepoClient) ListWebhooks() ([]clients.Webhook, error) {
 	m.ctrl.T.Helper()
@@ -405,6 +371,21 @@ func (m *MockRepoClient) LocalPath() (string, error) {
 func (mr *MockRepoClientMockRecorder) LocalPath() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LocalPath", reflect.TypeOf((*MockRepoClient)(nil).LocalPath))
+}
+
+// NewClient mocks base method.
+func (m *MockRepoClient) NewClient(repo clients.Repo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewClient", repo, commitSHA, commitDepth)
+	ret0, _ := ret[0].(clients.RepoClient)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewClient indicates an expected call of NewClient.
+func (mr *MockRepoClientMockRecorder) NewClient(repo, commitSHA, commitDepth interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClient", reflect.TypeOf((*MockRepoClient)(nil).NewClient), repo, commitSHA, commitDepth)
 }
 
 // Search mocks base method.
@@ -450,8 +431,3 @@ func (mr *MockRepoClientMockRecorder) URI() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "URI", reflect.TypeOf((*MockRepoClient)(nil).URI))
 }
-
-func (m *MockRepoClient) NewClient(repo clients.Repo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
-	return m, nil
-}
-

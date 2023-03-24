@@ -371,33 +371,5 @@ func (c *containsCache) Contains(ctx context.Context, repo, sha string) (bool, e
 }
 
 func checkImposterCommit(c clients.RepoClient, target string) (bool, error) {
-	branches, err := c.ListBranches()
-	if err != nil {
-		return false, err
-	}
-	for _, b := range branches {
-		ok, err := c.ContainsRevision(fmt.Sprintf("refs/heads/%s", *b.Name), target)
-		if err != nil {
-			return false, err
-		}
-		if ok {
-			return true, nil
-		}
-	}
-
-	tags, err := c.ListTags()
-	if err != nil {
-		return false, err
-	}
-	for _, t := range tags {
-		ok, err := c.ContainsRevision(fmt.Sprintf("refs/tags/%s", t.Name), target)
-		if err != nil {
-			return false, err
-		}
-		if ok {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return c.ContainsRevision("HEAD", target)
 }
