@@ -698,6 +698,11 @@ func isChocoUnpinnedDownload(cmd []string) bool {
 }
 
 func isUnpinnedNugetCliInstall(cmd []string) bool {
+	// looking for command of type nuget install ...
+	if len(cmd) < 2 {
+		return false
+	}
+
 	// Search for nuget commands.
 	if !isBinaryName("nuget", cmd[0]) {
 		return false
@@ -708,61 +713,66 @@ func isUnpinnedNugetCliInstall(cmd []string) bool {
 		return false
 	}
 
+	// Asseume installing a project with PackageReference (with versions)
+	// or packages.config at the root of command
+	if len(cmd) == 2 {
+		return false
+	}
+
+	// Assume that the script is installing from a packages.config file (with versions)
 	// package.config schema has required version field
 	// https://learn.microsoft.com/en-us/nuget/reference/packages-config#schema
+	// and Nuget follows Semantic Versioning 2.0.0 (versions are immutable)
+	// https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#semantic-versioning-200
 	if strings.HasSuffix(cmd[2], "packages.config") {
 		return false
 	}
 
-	hasVersion := false
+	unpinnedDependency := true
 	for i := 2; i < len(cmd); i++ {
 		// look for version flag
 		if strings.EqualFold(cmd[i], "-Version") {
-			hasVersion = true
+			unpinnedDependency = false
 			break
 		}
 	}
 
-	if hasVersion {
-		return !hasVersion
-	}
-
-	return true
+	return unpinnedDependency
 }
 
 func isUnpinnedDotNetCliInstall(cmd []string) bool {
+	// Search for command of type dotnet add <PROJECT> package <PACKAGE_NAME>
+	if len(cmd) < 4 {
+		return false
+	}
 	// Search for dotnet commands.
 	if !isBinaryName("dotnet", cmd[0]) {
 		return false
 	}
 
-	// Search for add package commands.
-	if !strings.EqualFold(cmd[1], "add") && !strings.EqualFold(cmd[2], "package") {
+	// Search for add commands.
+	if !strings.EqualFold(cmd[1], "add") {
 		return false
 	}
 
-	hasVersion := false
+	// Search for package commands (can be either the second or the third word)
+	if !(strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package")) {
+		return false
+	}
+
+	unpinnedDependency := true
 	for i := 3; i < len(cmd); i++ {
 		// look for version flag
 		// https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-add-package
 		if strings.EqualFold(cmd[i], "-v") || strings.EqualFold(cmd[i], "--version") {
-			hasVersion = true
+			unpinnedDependency = false
 			break
 		}
 	}
-
-	if hasVersion {
-		return !hasVersion
-	}
-
-	return true
+	return unpinnedDependency
 }
 
 func isNugetUnpinnedDownload(cmd []string) bool {
-	if len(cmd) < 2 {
-		return false
-	}
-
 	if isUnpinnedDotNetCliInstall(cmd) {
 		return true
 	}

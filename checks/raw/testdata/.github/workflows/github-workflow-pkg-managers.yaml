@@ -165,7 +165,11 @@ jobs:
       - name:
         run: nuget install 'some-package'
       - name:
+        run: nuget restore
+      - name:
         run: dotnet add package 'some-package'
+      - name:
+        run: dotnet add SomeProject package 'some-package'
       - name:
         run: nuget install 'some-package' -Version 1.2.3
       - name:
@@ -175,4 +179,8 @@ jobs:
       - name:
         run: dotnet add package 'some-package' -v 1.2.3
       - name:
+        run: dotnet build
+      - name:
         run: dotnet add package 'some-package' --version 1.2.3
+      - name:
+        run: dotnet add SomeProject package 'some-package' --version 1.2.3

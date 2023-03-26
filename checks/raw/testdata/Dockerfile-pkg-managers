@@ -126,8 +126,12 @@ RUN choco install --require-checksums 'some-package'
 
 
 RUN nuget install some-package
+RUN nuget restore
 RUN nuget install some-package -Version 1.2.3
 RUN nuget install packages.config
 RUN dotnet add package some-package
+RUN dotnet add SomeProject package some-package
+RUN dotnet build
 RUN dotnet add package some-package -v 1.2.3
 RUN dotnet add package some-package --version 1.2.3
+RUN dotnet add SomeProject package some-package --version 1.2.3

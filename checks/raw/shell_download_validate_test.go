@@ -124,6 +124,13 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "nuget restore",
+			args: args{
+				cmd: []string{"nuget", "restore"},
+			},
+			want: false,
+		},
+		{
 			name: "nuget install with -Version",
 			args: args{
 				cmd: []string{"nuget", "install", "Newtonsoft.Json", "-Version", "2"},
@@ -145,9 +152,44 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "dotnet add to project",
+			args: args{
+				cmd: []string{"dotnet", "add", "project1", "package", "Newtonsoft.Json"},
+			},
+			want: true,
+		},
+		{
+			name: "dotnet add reference to project",
+			args: args{
+				cmd: []string{"dotnet", "add", "project1", "reference", "OtherProject"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet build",
+			args: args{
+				cmd: []string{"dotnet", "build"},
+			},
+			want: false,
+		},
+		{
 			name: "dotnet add with -v",
 			args: args{
 				cmd: []string{"dotnet", "add", "package", "Newtonsoft.Json", "-v", "2.0"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet add to project with -v",
+			args: args{
+				cmd: []string{"dotnet", "add", "project1", "package", "Newtonsoft.Json", "-v", "2.0"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet add reference to project with -v",
+			args: args{
+				cmd: []string{"dotnet", "add", "project1", "reference", "Newtonsoft.Json", "-v", "2.0"},
 			},
 			want: false,
 		},
