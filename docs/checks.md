@@ -99,7 +99,7 @@ This test has tiered scoring. Each tier must be fully satisfied to achieve point
 
 Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” can be safely ignored, and scores will be determined as if all such requirements have been met.
 
-Tier 1 Requirements (3/10 points):
+Tier 1 Requirements (3/10 points or 4/10 points):
   - Prevent force push
   - Prevent branch deletion
   - For administrators: Do not allow bypassing the above settings
@@ -109,7 +109,7 @@ Tier 2 Requirements (6/10 points):
   - For administrators: Require branch to be up to date before merging
   - For administrators: Require approval of the most recent reviewable push
 
-Tier 3 Requirements (7/10 points):
+Tier 3 Requirements (8/10 points):
   - Require branch to pass at least 1 status check before merging
   
 Tier 4 Requirements (9/10 points):
