@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"time"
 
 	"gocloud.dev/blob"
@@ -121,7 +122,8 @@ func WriteToBlobStore(ctx context.Context, bucketURL, filename string, data []by
 	if _, err = blobWriter.Write(data); err != nil {
 		return fmt.Errorf("error from blobWriter.Write: %w", err)
 	}
-	if err := blobWriter.Close(); err != nil {
+	storageEmulator := os.Getenv("STORAGE_EMULATOR_HOST")
+	if err := blobWriter.Close(); err != nil && storageEmulator != "" {
 		return fmt.Errorf("error from blobWriter.Close: %w", err)
 	}
 	return nil
