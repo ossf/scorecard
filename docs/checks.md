@@ -99,7 +99,7 @@ This test has tiered scoring. Each tier must be fully satisfied to achieve point
 
 Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” can be safely ignored, and scores will be determined as if all such requirements have been met.
 
-Tier 1 Requirements (3/10 points or 4/10 points):
+Tier 1 Requirements (with non-admin token 3/10 points, with admin token 4/10 points):
   - Prevent force push
   - Prevent branch deletion
   - For administrators: Do not allow bypassing the above settings
