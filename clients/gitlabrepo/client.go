@@ -52,6 +52,7 @@ type Client struct {
 	languages     *languagesHandler
 	licenses      *licensesHandler
 	tarball       *tarballHandler
+	graphql       *graphqlHandler
 	ctx           context.Context
 	commitDepth   int
 }
@@ -78,7 +79,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	client.repourl = &repoURL{
 		scheme:        glRepo.scheme,
 		host:          glRepo.host,
-		project:       fmt.Sprint(repo.ID),
+		owner:         glRepo.owner,
+		project:       glRepo.project,
+		projectID:     fmt.Sprint(repo.ID),
 		defaultBranch: repo.DefaultBranch,
 		commitSHA:     commitSHA,
 	}
@@ -132,6 +135,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	// Init tarballHandler
 	client.tarball.init(client.ctx, client.repourl, repo, commitSHA)
 
+	// Init graphqlHandler
+	client.graphql.init(client.ctx, client.repourl)
+
 	return nil
 }
 
@@ -152,7 +158,28 @@ func (client *Client) GetFileContent(filename string) ([]byte, error) {
 }
 
 func (client *Client) ListCommits() ([]clients.Commit, error) {
-	return client.commits.listCommits()
+	// Get commits from REST API
+	commitsRaw, err := client.commits.listRawCommits()
+	if err != nil {
+		return []clients.Commit{}, err
+	}
+
+	// Get Merge requests from REST API
+	mrsRaw, err := client.commits.listRawMergeRequests()
+	if err != nil {
+		return []clients.Commit{}, err
+	}
+
+	// Get merge request details from GraphQL
+	// GitLab REST API doesn't provide a way to link Merge Requests and Commits that
+	// are within them without making a REST call for each commit (~30 by default)
+	// Making 1 GraphQL query to combine the results of 2 REST calls, we avoid this
+	mrDetails, err := client.graphql.getMergeRequestsDetail(mrsRaw)
+	if err != nil {
+		return []clients.Commit{}, err
+	}
+
+	return client.commits.zip(mrsRaw, commitsRaw, mrDetails), nil
 }
 
 func (client *Client) ListIssues() ([]clients.Issue, error) {
@@ -278,6 +305,7 @@ func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients
 		},
 		licenses: &licensesHandler{},
 		tarball:  &tarballHandler{},
+		graphql:  &graphqlHandler{},
 	}, nil
 }
 
