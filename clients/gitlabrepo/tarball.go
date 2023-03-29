@@ -241,11 +241,8 @@ func (handler *tarballHandler) listFiles(predicate func(string) (bool, error)) (
 
 func (handler *tarballHandler) getFileContent(filename string) ([]byte, error) {
 	if err := handler.setup(); err != nil {
-		fmt.Printf("err: %v\n", err)
 		return nil, fmt.Errorf("error during tarballHandler.setup: %w", err)
 	}
-	fmt.Printf("handler.tempDir: %v\n", handler.tempDir)
-	fmt.Printf("filename: %v\n", filename)
 	content, err := os.ReadFile(filepath.Join(handler.tempDir, filename))
 	if err != nil {
 		return content, fmt.Errorf("os.ReadFile: %w", err)
