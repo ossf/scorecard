@@ -1,9 +1,21 @@
-### pubsub emulator:
-Install following directions at https://cloud.google.com/pubsub/docs/emulator
+## GCS emulator
+
+Use [fake-gcs-server](https://github.com/fsouza/fake-gcs-server). Install from source or `Releases`:
 
 ```
-docker run -d --name fake-gcs-server -e STORAGE_EMULATOR_HOST=0.0.0.0:4443 -p 4443:4443 -v ${PWD}:/data fsouza/fake-gcs-server -scheme http -public-host 0.0.0.0:4443
+go install github.com/fsouza/fake-gcs-server@latest
 ```
+
+From the base of the Scorecard git repo:
+```
+fake-gcs-server -scheme http -public-host 0.0.0.0:4443 \
+    -backend filesystem -filesystem-root cron/internal/emulator/mockgcs
+```
+
+## pubsub emulator:
+Install following directions at https://cloud.google.com/pubsub/docs/emulator
+
+
 #### Initial python-pubsub setup
 ```
 git clone https://github.com/googleapis/python-pubsub
@@ -33,15 +45,6 @@ python publisher.py $PUBSUB_PROJECT_ID create $TOPIC_ID
 python subscriber.py $PUBSUB_PROJECT_ID create $TOPIC_ID $SUBSCRIPTION_ID
 ```
 
-3. setup gcs server
-```
-docker rm -f scorecard-fake-gcs-server && \
-docker run -d --name scorecard-fake-gcs-server \
-    -e STORAGE_EMULATOR_HOST=0.0.0.0:4443 \
-    -p 4443:4443 \
-    -v ${PWD}:/data fsouza/fake-gcs-server \
-    -scheme http -public-host 0.0.0.0:4443
-```
 
 #### Drain the queue
 ```
@@ -55,8 +58,8 @@ python subscriber.py $PUBSUB_PROJECT_ID receive $SUBSCRIPTION_ID
 $(gcloud beta emulators pubsub env-init)
 export STORAGE_EMULATOR_HOST=0.0.0.0:4443
 go run cron/internal/worker/!(*_test).go \
-    --config cron/internal/emulator/config.yaml \
-    --ignoreRuntimeErrors=true
+    --ignoreRuntimeErrors=true \
+    --config cron/internal/emulator/config.yaml
 ```
 
 #### controller
