@@ -291,6 +291,9 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 
 func main() {
 	flag.Parse()
+	if err := config.ReadConfig(); err != nil {
+		panic(err)
+	}
 	sw, err := newScorecardWorker()
 	if err != nil {
 		panic(err)
