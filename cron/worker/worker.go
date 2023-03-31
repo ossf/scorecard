@@ -19,7 +19,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/ossf/scorecard/v4/cron/config"
 	"github.com/ossf/scorecard/v4/cron/data"
@@ -152,10 +151,7 @@ func ResultFilename(sbr *data.ScorecardBatchRequest) string {
 }
 
 func hasMetadataFile(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) (bool, error) {
-	if os.Getenv("STORAGE_EMULATOR_HOST") != "" {
-		return true, nil
-	}
-	filename := data.GetShardMetadataFilename(req.GetJobTime().AsTime())
+	filename := data.GetShardMetadataFilename(req.GetJobTime().AsTime().UTC())
 	exists, err := data.BlobExists(ctx, bucketURL, filename)
 	if err != nil {
 		return false, fmt.Errorf("data.BlobExists: %w", err)
