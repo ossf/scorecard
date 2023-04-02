@@ -8,7 +8,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/bigquery v1.48.0
+	cloud.google.com/go/bigquery v1.49.0
 	cloud.google.com/go/monitoring v1.12.0 // indirect
 	cloud.google.com/go/pubsub v1.30.0
 	cloud.google.com/go/trace v1.8.0 // indirect
@@ -61,7 +61,7 @@ require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/CycloneDX/cyclonedx-go v0.7.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/apache/arrow/go/v10 v10.0.1 // indirect
+	github.com/apache/arrow/go/v11 v11.0.0 // indirect
 	github.com/apache/thrift v0.16.0 // indirect
 	github.com/cloudflare/circl v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
