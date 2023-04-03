@@ -305,7 +305,12 @@ func validateImposterCommits(client clients.RepoClient, workflow *actionlint.Wor
 			if len(s) != 2 {
 				return sce.WithMessage(sce.ErrorCheckRuntime, fmt.Sprintf("unexpected reference: %s", trimmedRef))
 			}
-			repo := s[0]
+			// Repo references can include paths (e.g. github/codeql-action/init) - Trim first n
+			repoSplit := strings.SplitN(s[0], "/", 3)
+			if len(repoSplit) < 2 {
+				return sce.WithMessage(sce.ErrorCheckRuntime, fmt.Sprintf("unexpected repo reference: %s", s[0]))
+			}
+			repo := strings.Join(repoSplit[:2], "/")
 			sha := s[1]
 
 			// Check if repo contains SHA - we use a cache to reduce duplicate calls to GitHub,

@@ -16,4 +16,4 @@ name: Docker
 jobs:
   push:
     steps:
-      - uses: actions/checkout@imposter # imposter commit
+      - uses: actions/checkout/foo@imposter # imposter commit
