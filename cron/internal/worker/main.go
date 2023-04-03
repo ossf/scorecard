@@ -23,8 +23,6 @@ import (
 	"fmt"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
-	"os"
-	"strings"
 
 	"go.opencensus.io/stats/view"
 
@@ -32,7 +30,6 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
-	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/ossfuzz"
 	"github.com/ossf/scorecard/v4/cron/config"
 	"github.com/ossf/scorecard/v4/cron/data"
@@ -59,8 +56,7 @@ type ScorecardWorker struct {
 	logger            *log.Logger
 	checkDocs         docs.Doc
 	exporter          monitoring.Exporter
-	githubRepoClient  clients.RepoClient
-	gitlabRepoClient  clients.RepoClient
+	repoClient        clients.RepoClient
 	ciiClient         clients.CIIBestPracticesClient
 	ossFuzzRepoClient clients.RepoClient
 	vulnsClient       clients.VulnerabilitiesClient
@@ -95,17 +91,7 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 
 	sw.ctx = context.Background()
 	sw.logger = log.NewLogger(log.InfoLevel)
-	sw.githubRepoClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
-
-	gitlabToken := os.Getenv("GITLAB_AUTH_TOKEN")
-	gitlabRepo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
-	if err != nil {
-		return nil, fmt.Errorf("MakeGitlabRepo: %w", err)
-	}
-	sw.gitlabRepoClient, err = gitlabrepo.CreateGitlabClientWithToken(sw.ctx, gitlabToken, gitlabRepo)
-	if err != nil {
-		return nil, fmt.Errorf("gitlabrepo.CreateGitlabClientWithToken: %w", err)
-	}
+	sw.repoClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
 	sw.ciiClient = clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
 	if sw.ossFuzzRepoClient, err = ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL); err != nil {
 		return nil, fmt.Errorf("ossfuzz.CreateOSSFuzzClientEager: %w", err)
@@ -133,7 +119,7 @@ func (sw *ScorecardWorker) Close() {
 
 func (sw *ScorecardWorker) Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) error {
 	return processRequest(ctx, req, sw.blacklistedChecks, bucketURL, sw.rawBucketURL, sw.apiBucketURL,
-		sw.checkDocs, sw.githubRepoClient, sw.ossFuzzRepoClient, sw.ciiClient, sw.vulnsClient, sw.logger, sw)
+		sw.checkDocs, sw.repoClient, sw.ossFuzzRepoClient, sw.ciiClient, sw.vulnsClient, sw.logger)
 }
 
 func (sw *ScorecardWorker) PostProcess() {
@@ -149,7 +135,6 @@ func processRequest(ctx context.Context,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 	logger *log.Logger,
-	sw *ScorecardWorker,
 ) error {
 	filename := worker.ResultFilename(batchRequest)
 
@@ -158,19 +143,10 @@ func processRequest(ctx context.Context,
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoReq := range batchRequest.GetRepos() {
 		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", *repoReq.Url))
-
-		var repo clients.Repo
-		var err error
-		switch {
-		case strings.HasPrefix(*repoReq.Url, "github.com"):
-			repo, err = githubrepo.MakeGithubRepo(*repoReq.Url)
-		case strings.HasPrefix(*repoReq.Url, "gitlab.com"):
-			repo, err = gitlabrepo.MakeGitlabRepo(*repoReq.Url)
-			repoClient = sw.gitlabRepoClient
-		}
+		repo, err := githubrepo.MakeGithubRepo(*repoReq.Url)
 		if err != nil {
 			// TODO(log): Previously Warn. Consider logging an error here.
-			logger.Info(fmt.Sprintf("invalid URL: %v", err))
+			logger.Info(fmt.Sprintf("invalid GitHub URL: %v", err))
 			continue
 		}
 

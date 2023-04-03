@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"reflect"
-	"strings"
 
 	"github.com/jszwec/csvutil"
 
@@ -85,10 +84,8 @@ func (reader *csvIterator) Next() (RepoFormat, error) {
 		return reader.next, fmt.Errorf("reader has error: %w", reader.err)
 	}
 	// Sanity check valid GitHub URL.
-	if strings.HasPrefix(reader.next.Repo, "github.com") {
-		if _, err := githubrepo.MakeGithubRepo(reader.next.Repo); err != nil {
-			return reader.next, fmt.Errorf("invalid GitHub URL: %w", err)
-		}
+	if _, err := githubrepo.MakeGithubRepo(reader.next.Repo); err != nil {
+		return reader.next, fmt.Errorf("invalid GitHub URL: %w", err)
 	}
 	return reader.next, nil
 }
