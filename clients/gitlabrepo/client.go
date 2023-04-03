@@ -137,23 +137,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 // NewClient implements RepoClient.NewClient.
 func (client *Client) NewClient(inputRepo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
-	newClient := &Client{
-		ctx:           client.ctx,
-		glClient:      client.glClient,
-		contributors:  client.contributors,
-		branches:      client.branches,
-		releases:      client.releases,
-		workflows:     client.workflows,
-		checkruns:     client.checkruns,
-		commits:       client.commits,
-		issues:        client.issues,
-		project:       client.project,
-		statuses:      client.statuses,
-		search:        client.search,
-		searchCommits: client.searchCommits,
-		webhook:       client.webhook,
-		languages:     client.languages,
-		licenses:      client.licenses,
+	newClient, err := newFromClient(client.ctx, client.glClient)
+	if err != nil {
+		return nil, err
 	}
 	repo, err := MakeGitlabRepo(inputRepo)
 	if err != nil {
@@ -268,6 +254,10 @@ func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients
 		return nil, fmt.Errorf("could not create gitlab client with error: %w", err)
 	}
 
+	return newFromClient(ctx, client)
+}
+
+func newFromClient(ctx context.Context, client *gitlab.Client) (clients.RepoClient, error) {
 	return &Client{
 		ctx:      ctx,
 		glClient: client,

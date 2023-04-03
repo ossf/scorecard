@@ -126,23 +126,8 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 // NewClient implements RepoClient.NewClient.
 func (client *Client) NewClient(inputRepo, commitSHA string, commitDepth int) (clients.RepoClient, error) {
-	newClient := &Client{
-		ctx:           client.ctx,
-		repoClient:    client.repoClient,
-		graphClient:   client.graphClient,
-		contributors:  client.contributors,
-		branches:      client.branches,
-		releases:      client.releases,
-		workflows:     client.workflows,
-		checkruns:     client.checkruns,
-		statuses:      client.statuses,
-		search:        client.search,
-		searchCommits: client.searchCommits,
-		webhook:       client.webhook,
-		languages:     client.languages,
-		licenses:      client.licenses,
-		tarball:       client.tarball,
-	}
+	// Client has some state - extract out the stateless clients to create a new Client.
+	newClient := newFromClients(client.ctx, client.repoClient, client.graphClient.client, client.tarball.httpClient)
 	repo, err := MakeGithubRepo(inputRepo)
 	if err != nil {
 		return nil, err
@@ -296,6 +281,10 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 	client := github.NewClient(httpClient)
 	graphClient := githubv4.NewClient(httpClient)
 
+	return newFromClients(ctx, client, graphClient, httpClient)
+}
+
+func newFromClients(ctx context.Context, client *github.Client, graphClient *githubv4.Client, httpClient *http.Client) clients.RepoClient {
 	return &Client{
 		ctx:        ctx,
 		repoClient: client,
