@@ -69,7 +69,8 @@ drain-pubsub
 
 ## run Scorecard cron components
 
-Commands intended to be run from the base of the Scorecard repo. Since this is intended to be used during development, `go run` is used but there's no reason you can't use `go build`:
+Commands intended to be run from the base of the Scorecard repo. Since this is intended to be used during development, `go run` is used but there's no reason you can't use `go build`. 
+The repos in `cron/internal/emulator/projects.csv` and the `cron/internal/emulator/config.yaml` file can be changed as needed.
 
 ### controller
 ```
