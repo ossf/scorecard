@@ -54,11 +54,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -99,11 +99,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -147,11 +147,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -182,11 +182,11 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -230,11 +230,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -278,11 +278,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -326,11 +326,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -374,11 +374,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -422,11 +422,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -470,11 +470,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -518,11 +518,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -566,11 +566,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -614,11 +614,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -662,11 +662,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -710,11 +710,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -745,11 +745,11 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -782,11 +782,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -829,11 +829,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -864,11 +864,11 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
+       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -893,8 +893,8 @@ jobs:
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v2.3.4
-      - uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
