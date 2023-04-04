@@ -8,10 +8,10 @@ require (
 )
 
 require (
-	cloud.google.com/go/bigquery v1.49.0
-	cloud.google.com/go/monitoring v1.12.0 // indirect
+	cloud.google.com/go/bigquery v1.50.0
+	cloud.google.com/go/monitoring v1.13.0 // indirect
 	cloud.google.com/go/pubsub v1.30.0
-	cloud.google.com/go/trace v1.8.0 // indirect
+	cloud.google.com/go/trace v1.9.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	github.com/bombsimon/logrusr/v2 v2.0.1
 	github.com/bradleyfalzon/ghinstallation/v2 v2.2.0
@@ -36,7 +36,7 @@ require (
 	gocloud.dev v0.29.0
 	golang.org/x/text v0.8.0
 	golang.org/x/tools v0.7.0
-	google.golang.org/genproto v0.0.0-20230320184635-7606e756e683 // indirect
+	google.golang.org/genproto v0.0.0-20230330154414-c0448cd141ea // indirect
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -56,8 +56,8 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
-	cloud.google.com/go/containeranalysis v0.7.0 // indirect
-	cloud.google.com/go/kms v1.9.0 // indirect
+	cloud.google.com/go/containeranalysis v0.9.0 // indirect
+	cloud.google.com/go/kms v1.10.0 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/CycloneDX/cyclonedx-go v0.7.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
@@ -117,8 +117,8 @@ require (
 
 require (
 	cloud.google.com/go v0.110.0 // indirect
-	cloud.google.com/go/compute v1.18.0 // indirect
-	cloud.google.com/go/iam v0.12.0 // indirect
+	cloud.google.com/go/compute v1.19.0 // indirect
+	cloud.google.com/go/iam v0.13.0 // indirect
 	cloud.google.com/go/storage v1.29.0 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
@@ -176,7 +176,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.114.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/grpc v1.53.0 // indirect
+	google.golang.org/grpc v1.54.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
 
