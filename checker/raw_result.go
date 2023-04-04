@@ -333,6 +333,7 @@ type WorkflowJob struct {
 // TokenPermissionsData represents data about a permission failure.
 type TokenPermissionsData struct {
 	TokenPermissions []TokenPermission
+	NumTokens        int
 }
 
 // PermissionLocation represents a declaration type.
