@@ -48,7 +48,7 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 	nUnreviewedBotChanges := 0
 	for i := range r.DefaultBranchChangesets {
 		cs := &r.DefaultBranchChangesets[i]
-		isReviewed := reviewScoreForChangeset(cs) >= changesReviewed
+		isReviewed := reviewScoreForChangeset(cs, dl) >= changesReviewed
 		isBotCommit := cs.Author.IsBot
 
 		switch {
@@ -69,33 +69,29 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 	}
 
 	switch {
-	case nUnreviewedBotChanges > 0 && nUnreviewedHumanChanges > 0:
-		return checker.CreateMinScoreResult(
-			name,
-			fmt.Sprintf("found unreviewed changesets (%v human %v bot)", nUnreviewedHumanChanges, nUnreviewedBotChanges),
-		)
-	case nUnreviewedBotChanges > 0:
+	case nUnreviewedHumanChanges == 0 && nUnreviewedBotChanges > 0:
 		return checker.CreateResultWithScore(
 			name,
 			fmt.Sprintf("all human changesets reviewed, found %v unreviewed bot changesets", nUnreviewedBotChanges),
 			7,
 		)
 	case nUnreviewedHumanChanges > 0:
-		score := 3
-		if len(r.DefaultBranchChangesets) == 1 || nUnreviewedHumanChanges > 1 {
-			score = 0
-		}
-		return checker.CreateResultWithScore(
+		return checker.CreateProportionalScoreResult(
 			name,
-			fmt.Sprintf("found %v unreviewed human changesets", nUnreviewedHumanChanges),
-			score,
+			fmt.Sprintf(
+				"found %d unreviewed changesets out of %d",
+				nUnreviewedBotChanges+nUnreviewedHumanChanges,
+				len(r.DefaultBranchChangesets),
+			),
+			len(r.DefaultBranchChangesets)-(nUnreviewedBotChanges+nUnreviewedHumanChanges),
+			len(r.DefaultBranchChangesets),
 		)
 	}
 
 	return checker.CreateMaxScoreResult(name, "all changesets reviewed")
 }
 
-func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
+func reviewScoreForChangeset(changeset *checker.Changeset, dl checker.DetailLogger) (score reviewScore) {
 	if changeset.ReviewPlatform != "" && changeset.ReviewPlatform != checker.ReviewPlatformGitHub {
 		return reviewedOutsideGithub
 	}
@@ -109,5 +105,13 @@ func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
 		}
 	}
 
+	dl.Info(
+		&checker.LogMessage{
+			Text: fmt.Sprintf(
+				"couldn't find approvals for revision: %s platform: %s",
+				changeset.RevisionID, changeset.ReviewPlatform,
+			),
+		},
+	)
 	return noReview
 }
