@@ -26,12 +26,11 @@ import (
 )
 
 type commitsHandler struct {
-	glClient         *gitlab.Client
-	once             *sync.Once
-	errSetup         error
-	repourl          *repoURL
-	commitsRaw       []*gitlab.Commit
-	mergeRequestsRaw []*gitlab.MergeRequest
+	glClient   *gitlab.Client
+	once       *sync.Once
+	errSetup   error
+	repourl    *repoURL
+	commitsRaw []*gitlab.Commit
 }
 
 func (handler *commitsHandler) init(repourl *repoURL) {
@@ -48,20 +47,6 @@ func (handler *commitsHandler) setup() error {
 			return
 		}
 		handler.commitsRaw = commits
-
-		state := "merged"
-		scope := "all"
-		lmo := &gitlab.ListProjectMergeRequestsOptions{
-			State: &state,
-			Scope: &scope,
-		}
-
-		mergeRequests, _, err := handler.glClient.MergeRequests.ListProjectMergeRequests(handler.repourl.projectID, lmo)
-		if err != nil {
-			handler.errSetup = fmt.Errorf("request for merge requests failed with %w", err)
-			return
-		}
-		handler.mergeRequestsRaw = mergeRequests[:12]
 	})
 
 	return handler.errSetup
@@ -75,80 +60,57 @@ func (handler *commitsHandler) listRawCommits() ([]*gitlab.Commit, error) {
 	return handler.commitsRaw, nil
 }
 
-func (handler *commitsHandler) listRawMergeRequests() ([]*gitlab.MergeRequest, error) {
-	if err := handler.setup(); err != nil {
-		return nil, fmt.Errorf("error during commitsHandler.setup: %w", err)
-	}
-
-	return handler.mergeRequestsRaw, nil
-}
-
 // zip combines Commit and MergeRequest information from the GitLab REST API with
 // information from the GitLab GraphQL API. The REST API doesn't provide any way to
 // get from Commits -> MRs that they were part of or vice-versa (MRs -> commits they
 // contain), except through a separate API call. Instead of calling the REST API
 // len(commits) times to get the associated MR, we make 3 calls (2 REST, 1 GraphQL).
-func (handler *commitsHandler) zip(
-	mrsRaw []*gitlab.MergeRequest, commitsRaw []*gitlab.Commit, graphMRs []graphQlMergeRequest,
-) []clients.Commit {
-	commitToMRIID := make(map[string]string)
-	for _, mr := range graphMRs {
+func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlData) []clients.Commit {
+	commitToMRIID := make(map[string]string) // which mr does a commit belong to?
+	for i := range data.Project.MergeRequests.Nodes {
+		mr := data.Project.MergeRequests.Nodes[i]
 		for _, commit := range mr.Commits.Nodes {
 			commitToMRIID[commit.SHA] = mr.IID
 		}
+		commitToMRIID[mr.MergeCommitSHA] = mr.IID
 	}
 
 	iidToMr := make(map[string]clients.PullRequest)
-	for i := range mrsRaw {
-		mr := mrsRaw[i]
+	for i := range data.Project.MergeRequests.Nodes {
+		mr := data.Project.MergeRequests.Nodes[i]
 		// Two GitLab APIs for reviews (reviews vs. approvals)
-		// Use a map to consolidate results from both APIs by the user ID who performed the
-		reviews := make(map[int]clients.Review)
-		for _, reviewer := range mr.Reviewers {
-			reviews[reviewer.ID] = clients.Review{
-				Author: &clients.User{Login: reviewer.Username, ID: int64(reviewer.ID)},
+		// Use a map to consolidate results from both APIs by the user ID who performed review
+		reviews := make(map[string]clients.Review)
+		for _, reviewer := range mr.Reviewers.Nodes {
+			reviews[reviewer.Username] = clients.Review{
+				Author: &clients.User{Login: reviewer.Username},
 				State:  "COMMENTED",
 			}
 		}
 
-		for _, graphMr := range graphMRs {
-			if fmt.Sprintf("%d", mr.IID) != graphMr.IID {
+		if fmt.Sprintf("%v", mr.IID) != mr.IID {
+			continue
+		}
+
+		// Check approvers
+		for _, approver := range mr.Approvers.Nodes {
+			reviews[approver.Username] = clients.Review{
+				Author: &clients.User{Login: approver.Username},
+				State:  "APPROVED",
+			}
+			break
+		}
+
+		// Check reviewers (sometimes unofficial approvals end up here)
+		for _, reviewer := range mr.Reviewers.Nodes {
+			if reviewer.MergeRequestInteraction.ReviewState != "REVIEWED" {
 				continue
 			}
-
-			// Check approvers
-			for _, approver := range graphMr.Approvers.Nodes {
-				var approverID int64
-				var err error
-				approverID, err = strconv.ParseInt(approver.ID, 10, 64)
-				if err != nil {
-					continue
-				}
-				reviews[int(approverID)] = clients.Review{
-					Author: &clients.User{Login: approver.Username, ID: approverID},
-					State:  "APPROVED",
-				}
-				break
+			reviews[reviewer.Username] = clients.Review{
+				Author: &clients.User{Login: reviewer.Username},
+				State:  "APPROVED",
 			}
-
-			// Check reviewers (sometimes unofficial approvals end up here)
-			for _, reviewer := range graphMr.Reviewers.Nodes {
-				var reviewerID int64
-				var err error
-				reviewerID, err = strconv.ParseInt(reviewer.ID, 10, 64)
-				if err != nil {
-					continue
-				}
-				if reviewer.MergeRequestInteraction.ReviewState != "REVIEWED" {
-					continue
-				}
-				reviews[int(reviewerID)] = clients.Review{
-					Author: &clients.User{Login: reviewer.Username, ID: reviewerID},
-					State:  "APPROVED",
-				}
-				break
-			}
-
+			break
 		}
 
 		vals := []clients.Review{}
@@ -156,25 +118,35 @@ func (handler *commitsHandler) zip(
 			vals = append(vals, v)
 		}
 
-		// Casting the Labels into []clients.Label.
-		labels := []clients.Label{}
-		for _, label := range mr.Labels {
-			labels = append(labels, clients.Label{
-				Name: label,
-			})
+		var mrno int
+		mrno, err := strconv.Atoi(mr.IID)
+		if err != nil {
+			mrno = mr.ID.ID
 		}
 
-		iidToMr[fmt.Sprintf("%d", mr.IID)] = clients.PullRequest{
-			Number:   mr.ID,
-			MergedAt: *mr.MergedAt,
-			HeadSHA:  mr.SHA,
-			Author:   clients.User{Login: mr.Author.Username, ID: int64(mr.Author.ID)},
-			Labels:   labels,
+		iidToMr[mr.IID] = clients.PullRequest{
+			Number:   mrno,
+			MergedAt: mr.MergedAt,
+			HeadSHA:  mr.MergeCommitSHA,
+			Author:   clients.User{Login: mr.Author.Username, ID: int64(mr.Author.ID.ID)},
+			// Labels:   labels,
 			Reviews:  vals,
-			MergedBy: clients.User{Login: mr.MergedBy.Username, ID: int64(mr.MergedBy.ID)},
+			MergedBy: clients.User{Login: mr.MergedBy.Username, ID: int64(mr.MergedBy.ID.ID)},
 		}
 	}
 
+	fmt.Println("from commitsRaw==")
+	for _, craw := range commitsRaw {
+		// print mr iids needed for raw commits
+		fmt.Printf("%s ", craw.ID)
+	}
+
+	fmt.Println("\nfrom graphql==")
+	for commit := range commitToMRIID {
+		// print mr iids that we got from graphql
+		fmt.Printf("%s ", commit)
+	}
+	fmt.Println("")
 	// Associate Merge Requests with Commits based on the GitLab Merge Request IID
 	commits := []clients.Commit{}
 	for _, cRaw := range commitsRaw {

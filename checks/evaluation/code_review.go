@@ -87,7 +87,10 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		}
 		return checker.CreateResultWithScore(
 			name,
-			fmt.Sprintf("found %v unreviewed human changesets", nUnreviewedHumanChanges),
+			fmt.Sprintf(
+				"found %v unreviewed human changesets (%d total)",
+				nUnreviewedHumanChanges, len(r.DefaultBranchChangesets),
+			),
 			score,
 		)
 	}

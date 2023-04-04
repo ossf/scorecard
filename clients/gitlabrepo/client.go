@@ -164,22 +164,16 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 		return []clients.Commit{}, err
 	}
 
-	// Get Merge requests from REST API
-	mrsRaw, err := client.commits.listRawMergeRequests()
-	if err != nil {
-		return []clients.Commit{}, err
-	}
-
 	// Get merge request details from GraphQL
 	// GitLab REST API doesn't provide a way to link Merge Requests and Commits that
 	// are within them without making a REST call for each commit (~30 by default)
 	// Making 1 GraphQL query to combine the results of 2 REST calls, we avoid this
-	mrDetails, err := client.graphql.getMergeRequestsDetail(mrsRaw)
+	mrDetails, err := client.graphql.getMergeRequestsDetail()
 	if err != nil {
 		return []clients.Commit{}, err
 	}
 
-	return client.commits.zip(mrsRaw, commitsRaw, mrDetails), nil
+	return client.commits.zip(commitsRaw, mrDetails), nil
 }
 
 func (client *Client) ListIssues() ([]clients.Issue, error) {
