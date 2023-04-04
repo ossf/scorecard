@@ -56,6 +56,10 @@ type graphqlData struct {
 			Nodes []graphqlMergeRequestNode `graphql:"nodes"`
 		} `graphql:"mergeRequests(sort: MERGED_AT_DESC, state: merged)"`
 	} `graphql:"project(fullPath: $fullPath)"`
+	QueryComplexity struct {
+		Limit int `graphql:"limit"`
+		Score int `graphql:"score"`
+	} `graphql:"queryComplexity"`
 }
 
 //nolint:govet

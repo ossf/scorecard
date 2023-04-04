@@ -129,24 +129,11 @@ func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlData
 			MergedAt: mr.MergedAt,
 			HeadSHA:  mr.MergeCommitSHA,
 			Author:   clients.User{Login: mr.Author.Username, ID: int64(mr.Author.ID.ID)},
-			// Labels:   labels,
 			Reviews:  vals,
 			MergedBy: clients.User{Login: mr.MergedBy.Username, ID: int64(mr.MergedBy.ID.ID)},
 		}
 	}
 
-	fmt.Println("from commitsRaw==")
-	for _, craw := range commitsRaw {
-		// print mr iids needed for raw commits
-		fmt.Printf("%s ", craw.ID)
-	}
-
-	fmt.Println("\nfrom graphql==")
-	for commit := range commitToMRIID {
-		// print mr iids that we got from graphql
-		fmt.Printf("%s ", commit)
-	}
-	fmt.Println("")
 	// Associate Merge Requests with Commits based on the GitLab Merge Request IID
 	commits := []clients.Commit{}
 	for _, cRaw := range commitsRaw {
