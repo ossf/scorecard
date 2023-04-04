@@ -313,7 +313,8 @@ const (
 // DangerousWorkflowData contains raw results
 // for dangerous workflow check.
 type DangerousWorkflowData struct {
-	Workflows []DangerousWorkflow
+	Workflows    []DangerousWorkflow
+	NumWorkflows int
 }
 
 // DangerousWorkflow represents a dangerous workflow.
