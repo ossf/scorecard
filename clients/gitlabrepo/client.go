@@ -91,7 +91,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	client.contributors.init(client.repourl)
 
 	// Init commitsHandler
-	client.commits.init(client.repourl)
+	client.commits.init(client.repourl, client.commitDepth)
 
 	// Init branchesHandler
 	client.branches.init(client.repourl)
