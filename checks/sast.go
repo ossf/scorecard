@@ -23,9 +23,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/rhysd/actionlint"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
-	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 )
@@ -33,11 +34,15 @@ import (
 // CheckSAST is the registered name for SAST.
 const CheckSAST = "SAST"
 
-var errInvalid = errors.New("invalid")
+var (
+	errInvalid          = errors.New("invalid")
+	errInvalidArgLength = errors.New("invalid arg length")
+	errInvalidArgType   = errors.New("invalid arg type")
 
-var sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
+	sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
 
-var allowedConclusions = map[string]bool{"success": true, "neutral": true}
+	allowedConclusions = map[string]bool{"success": true, "neutral": true}
+)
 
 //nolint:gochecknoinits
 func init() {
@@ -187,19 +192,18 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 }
 
 func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
-	searchRequest := clients.SearchRequest{
-		Query: "github/codeql-action/analyze",
-		Path:  "/.github/workflows",
-	}
-	resp, err := c.RepoClient.Search(searchRequest)
+	var workflowPaths []string
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       ".github/workflows/*",
+		CaseSensitive: false,
+	}, searchGitHubActionWorkflowCodeQL, &workflowPaths)
 	if err != nil {
-		return checker.InconclusiveResultScore,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
+		return checker.InconclusiveResultScore, err
 	}
 
-	for _, result := range resp.Results {
+	for _, path := range workflowPaths {
 		c.Dlogger.Debug(&checker.LogMessage{
-			Path:   result.Path,
+			Path:   path,
 			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   "CodeQL detected",
@@ -208,7 +212,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 
 	// TODO: check if it's enabled as cron or presubmit.
 	// TODO: check which branches it is enabled on. We should find main.
-	if resp.Hits > 0 {
+	if len(workflowPaths) > 0 {
 		c.Dlogger.Info(&checker.LogMessage{
 			Text: "SAST tool detected: CodeQL",
 		})
@@ -219,6 +223,49 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 		Text: "CodeQL tool not detected",
 	})
 	return checker.MinResultScore, nil
+}
+
+// Check file content.
+var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(path string,
+	content []byte,
+	args ...interface{},
+) (bool, error) {
+	if !fileparser.IsWorkflowFile(path) {
+		return true, nil
+	}
+
+	if len(args) != 1 {
+		return false, fmt.Errorf(
+			"searchGitHubActionWorkflowCodeQL requires exactly 1 arguments: %w", errInvalidArgLength)
+	}
+
+	// Verify the type of the data.
+	paths, ok := args[0].(*[]string)
+	if !ok {
+		return false, fmt.Errorf(
+			"searchGitHubActionWorkflowCodeQL expects arg[0] of type []string: %w", errInvalidArgType)
+	}
+
+	workflow, errs := actionlint.Parse(content)
+	if len(errs) > 0 && workflow == nil {
+		return false, fileparser.FormatActionlintError(errs)
+	}
+
+	for _, job := range workflow.Jobs {
+		for _, step := range job.Steps {
+			e, ok := step.Exec.(*actionlint.ExecAction)
+			if !ok {
+				continue
+			}
+			// Parse out repo / SHA.
+			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
+			action, _, _ := strings.Cut(uses, "@")
+			if action == "github/codeql-action/analyze" {
+				*paths = append(*paths, path)
+			}
+		}
+	}
+	return true, nil
 }
 
 type sonarConfig struct {
