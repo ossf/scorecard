@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -105,9 +106,7 @@ func Test_SAST(t *testing.T) {
 					},
 				},
 			},
-			searchresult: clients.SearchResponse{Hits: 1, Results: []clients.SearchResult{{
-				Path: "test.go",
-			}}},
+			path: ".github/workflows/github-workflow-sast-codeql.yaml",
 			checkRuns: []clients.CheckRun{
 				{
 					Status: "completed",
@@ -144,7 +143,7 @@ func Test_SAST(t *testing.T) {
 					},
 				},
 			},
-			searchresult: clients.SearchResponse{},
+			path: ".github/workflows/github-workflow-sast-no-codeql.yaml",
 			checkRuns: []clients.CheckRun{
 				{
 					App: clients.CheckRunApp{
@@ -201,14 +200,14 @@ func Test_SAST(t *testing.T) {
 		},
 		{
 			name: "sonartype config 1 line",
-			path: "./testdata/pom-1line.xml",
+			path: "pom-1line.xml",
 			expected: checker.CheckResult{
 				Score: 10,
 			},
 		},
 		{
 			name: "sonartype config 2 lines",
-			path: "./testdata/pom-2lines.xml",
+			path: "pom-2lines.xml",
 			expected: checker.CheckResult{
 				Score: 10,
 			},
@@ -234,13 +233,16 @@ func Test_SAST(t *testing.T) {
 			mockRepoClient.EXPECT().Search(searchRequest).Return(tt.searchresult, nil).AnyTimes()
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
 				func(predicate func(string) (bool, error)) ([]string, error) {
-					return []string{"pom.xml"}, nil
+					if strings.Contains(tt.path, "pom") {
+						return []string{"pom.xml"}, nil
+					}
+					return []string{tt.path}, nil
 				}).AnyTimes()
 			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
 				if tt.path == "" {
 					return nil, nil
 				}
-				content, err := os.ReadFile(tt.path)
+				content, err := os.ReadFile("./testdata/" + tt.path)
 				if err != nil {
 					return content, fmt.Errorf("%w", err)
 				}
@@ -339,6 +341,58 @@ func Test_validateSonarConfig(t *testing.T) {
 				t.Errorf("Expected offset %v, got %v for %v", tt.url,
 					config[0].url, tt.name)
 			}
+		})
+	}
+}
+
+func Test_SAST_workflow_contents(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		expected int
+	}{
+		{
+			name:     "detects codeql",
+			filename: ".github/workflows/github-workflow-sast-codeql.yaml",
+			expected: checker.MaxResultScore,
+		},
+		{
+			name:     "no codeql present",
+			filename: ".github/workflows/github-workflow-sast-no-codeql.yaml",
+			expected: checker.MinResultScore,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListCommits().Return(nil, nil)
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{tt.filename}, nil).AnyTimes()
+			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
+				// This will read the file and return the content
+				content, err := os.ReadFile("testdata/" + file)
+				if err != nil {
+					return content, fmt.Errorf("%w", err)
+				}
+				return content, nil
+			}).AnyTimes()
+
+			dl := scut.TestDetailLogger{}
+			req := checker.CheckRequest{
+				RepoClient: mockRepoClient,
+				Ctx:        context.TODO(),
+				Dlogger:    &dl,
+			}
+			res := SAST(&req)
+
+			if res.Score != tt.expected {
+				t.Errorf("Expected score %d, got %d for %v", tt.expected, res.Score, tt.name)
+			}
+			ctrl.Finish()
 		})
 	}
 }
