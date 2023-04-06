@@ -127,7 +127,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	client.languages.init(client.repourl)
 
 	// Init languagesHandler
-	client.licenses.init(client.repourl)
+	client.licenses.init(client.repourl, repo)
 
 	// Init tarballHandler
 	client.tarball.init(client.ctx, client.repourl, repo, commitSHA)
