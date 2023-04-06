@@ -16,6 +16,7 @@ package gitlabrepo
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/xanzy/go-gitlab"
 
@@ -45,7 +46,7 @@ func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.Chec
 func checkRunsFrom(data []*gitlab.PipelineInfo, ref string) []clients.CheckRun {
 	var checkRuns []clients.CheckRun
 	for _, pipelineInfo := range data {
-		if pipelineInfo.SHA == ref {
+		if strings.EqualFold(pipelineInfo.Ref, ref) {
 			// TODO: Can get more info from GitLab API here (e.g. pipeline name, URL)
 			// https://docs.gitlab.com/ee/api/pipelines.html#get-a-pipelines-test-report
 			checkRuns = append(checkRuns, clients.CheckRun{
