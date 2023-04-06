@@ -16,6 +16,7 @@ package evaluation
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -46,6 +47,8 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 	foundBotReviewActivity := false
 	nUnreviewedHumanChanges := 0
 	nUnreviewedBotChanges := 0
+
+	var botReviewActivityRevisionIDs, unreviewedHumanRevisionIDs, unreviewedBotRevisionIDs []string
 	for i := range r.DefaultBranchChangesets {
 		cs := &r.DefaultBranchChangesets[i]
 		isReviewed := reviewScoreForChangeset(cs) >= changesReviewed
@@ -54,13 +57,35 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		switch {
 		case isReviewed && isBotCommit:
 			foundBotReviewActivity = true
+			botReviewActivityRevisionIDs = append(botReviewActivityRevisionIDs, cs.RevisionID)
 		case isReviewed && !isBotCommit:
 			foundHumanReviewActivity = true
 		case !isReviewed && isBotCommit:
 			nUnreviewedBotChanges += 1
+			unreviewedBotRevisionIDs = append(unreviewedBotRevisionIDs, cs.RevisionID)
 		case !isReviewed && !isBotCommit:
 			nUnreviewedHumanChanges += 1
+			unreviewedHumanRevisionIDs = append(unreviewedHumanRevisionIDs, cs.RevisionID)
 		}
+	}
+
+	// Let's include non-compliant revision IDs in details
+	if len(botReviewActivityRevisionIDs) > 0 {
+		dl.Warn(&checker.LogMessage{
+			Text: fmt.Sprintf("List of revision IDs by bots:%s", strings.Join(botReviewActivityRevisionIDs, ",")),
+		})
+	}
+
+	if len(unreviewedHumanRevisionIDs) > 0 {
+		dl.Warn(&checker.LogMessage{
+			Text: fmt.Sprintf("List of revision IDs not reviewed by humans:%s", strings.Join(unreviewedHumanRevisionIDs, ",")),
+		})
+	}
+
+	if len(unreviewedBotRevisionIDs) > 0 {
+		dl.Warn(&checker.LogMessage{
+			Text: fmt.Sprintf("List of bot revision IDs not reviewed by humans:%s", strings.Join(unreviewedBotRevisionIDs, ",")),
+		})
 	}
 
 	if foundBotReviewActivity && !foundHumanReviewActivity {
