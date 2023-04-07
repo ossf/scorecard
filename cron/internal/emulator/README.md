@@ -19,7 +19,7 @@ go install github.com/fsouza/fake-gcs-server@latest
 Now you can run the fake from the root of the Scorecard repo in your first window:
 ```
 fake-gcs-server -scheme http -public-host 0.0.0.0:4443 \
-    -backend filesystem -filesystem-root cron/internal/emulator/mockgcs
+    -backend filesystem -filesystem-root cron/internal/emulator/fakegcs
 ```
 
 ## pubsub emulator:
@@ -76,7 +76,7 @@ The repos in `cron/internal/emulator/projects.csv` and the `cron/internal/emulat
 ```
 $(gcloud beta emulators pubsub env-init)
 export STORAGE_EMULATOR_HOST=0.0.0.0:4443
-go run cron/internal/controller/!(*_test).go \
+go run $(ls cron/internal/controller/*.go | grep -v _test.go) \
     --config cron/internal/emulator/config.yaml \
     cron/internal/emulator/projects.csv
 ```
@@ -85,7 +85,7 @@ go run cron/internal/controller/!(*_test).go \
 ```
 $(gcloud beta emulators pubsub env-init)
 export STORAGE_EMULATOR_HOST=0.0.0.0:4443
-go run cron/internal/worker/!(*_test).go \
+go run $(ls cron/internal/worker/*.go | grep -v _test.go) \
     --ignoreRuntimeErrors=true \
     --config cron/internal/emulator/config.yaml
 ```
