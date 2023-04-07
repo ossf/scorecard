@@ -35,9 +35,7 @@ import (
 const CheckSAST = "SAST"
 
 var (
-	errInvalid          = errors.New("invalid")
-	errInvalidArgLength = errors.New("invalid arg length")
-	errInvalidArgType   = errors.New("invalid arg type")
+	errInvalid = errors.New("invalid")
 
 	sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
 
@@ -236,14 +234,14 @@ var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(
 
 	if len(args) != 1 {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowCodeQL requires exactly 1 arguments: %w", errInvalidArgLength)
+			"searchGitHubActionWorkflowCodeQL requires exactly 1 arguments: %w", errInvalid)
 	}
 
 	// Verify the type of the data.
 	paths, ok := args[0].(*[]string)
 	if !ok {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowCodeQL expects arg[0] of type []string: %w", errInvalidArgType)
+			"searchGitHubActionWorkflowCodeQL expects arg[0] of type []string: %w", errInvalid)
 	}
 
 	workflow, errs := actionlint.Parse(content)
