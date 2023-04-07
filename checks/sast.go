@@ -34,13 +34,11 @@ import (
 // CheckSAST is the registered name for SAST.
 const CheckSAST = "SAST"
 
-var (
-	errInvalid = errors.New("invalid")
+var errInvalid = errors.New("invalid")
 
-	sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
+var sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
 
-	allowedConclusions = map[string]bool{"success": true, "neutral": true}
-)
+var allowedConclusions = map[string]bool{"success": true, "neutral": true}
 
 //nolint:gochecknoinits
 func init() {
@@ -241,7 +239,7 @@ var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(
 	paths, ok := args[0].(*[]string)
 	if !ok {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowCodeQL expects arg[0] of type []string: %w", errInvalid)
+			"searchGitHubActionWorkflowCodeQL expects arg[0] of type *[]string: %w", errInvalid)
 	}
 
 	workflow, errs := actionlint.Parse(content)
