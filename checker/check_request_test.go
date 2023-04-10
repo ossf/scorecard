@@ -56,6 +56,7 @@ func TestListUnsupported(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := ListUnsupported(tt.args.required, tt.args.supported); cmp.Equal(got, tt.want) {
@@ -110,6 +111,7 @@ func Test_contains(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := contains(tt.args.in, tt.args.exists); got != tt.want {
