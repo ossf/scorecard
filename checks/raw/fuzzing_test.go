@@ -317,11 +317,11 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileContent: "func TestFoo (t *testing.T)",
 		},
 		{
-			name:   "Haskell QuickCheck",
-			fileName: []string{ "TestSpec.hs" },
+			name:     "Haskell QuickCheck",
+			fileName: []string{"ModuleSpec.hs"},
 			langs: []clients.Language{
 				{
-					Name: clients.Haskell,
+					Name:     clients.Haskell,
 					NumLines: 50,
 				},
 			},
@@ -365,11 +365,34 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileName: []string{"ArrowSpec.hs"},
 			langs: []clients.Language{
 				{
-					Name: clients.Haskell,
+					Name:     clients.Haskell,
 					NumLines: 50,
 				},
 			},
 			fileContent: "import Test.Hspec.QuickCheck",
+		},
+		{
+			name:     "Haskell QuickCheck through Tasty",
+			fileName: []string{"test.hs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Haskell,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import Test.Tasty.QuickCheck",
+		},
+		{
+			name:     "Haskell with no property-based testing",
+			fileName: []string{"PropertySpec.hs"},
+			wantErr:  true,
+			langs: []clients.Language{
+				{
+					Name:     clients.Haskell,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import Test.Hspec",
 		},
 	}
 	for _, tt := range tests {
