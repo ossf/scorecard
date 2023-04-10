@@ -31,7 +31,7 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
-	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
+	github.com/xeipuuv/gojsonschema v1.2.0
 	go.opencensus.io v0.24.0
 	gocloud.dev v0.29.0
 	golang.org/x/text v0.8.0
