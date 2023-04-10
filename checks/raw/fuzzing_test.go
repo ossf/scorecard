@@ -316,6 +316,61 @@ func Test_checkFuzzFunc(t *testing.T) {
 			},
 			fileContent: "func TestFoo (t *testing.T)",
 		},
+		{
+			name:   "Haskell QuickCheck",
+			fileName: []string{ "TestSpec.hs" },
+			langs: []clients.Language{
+				{
+					Name: clients.Haskell,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import Test.QuickCheck",
+		},
+		{
+			name:   "Haskell Hedgehog",
+			fileName: []string{ "TestSpec.hs" },
+			langs: []clients.Language{
+				{
+					Name:     clients.Haskell,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import Test.Hedgehog",
+		},
+		{
+			name:     "Haskell Validity",
+			fileName: []string{"validity_test.hs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Haskell,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import Test.Validity",
+		},
+		{
+			name:     "Haskell SmallCheck",
+			fileName: []string{"SmallSpec.hs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Haskell,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import Test.SmallCheck",
+		},
+		{
+			name:     "Haskell QuickCheck through Hspec",
+			fileName: []string{"ArrowSpec.hs"},
+			langs: []clients.Language{
+				{
+					Name: clients.Haskell,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import Test.Hspec.QuickCheck",
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

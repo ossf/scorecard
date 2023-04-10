@@ -28,10 +28,11 @@ import (
 )
 
 const (
-	fuzzerOSSFuzz         = "OSSFuzz"
-	fuzzerClusterFuzzLite = "ClusterFuzzLite"
-	oneFuzz               = "OneFuzz"
-	fuzzerBuiltInGo       = "GoBuiltInFuzzer"
+	fuzzerOSSFuzz              = "OSSFuzz"
+	fuzzerClusterFuzzLite      = "ClusterFuzzLite"
+	oneFuzz                    = "OneFuzz"
+	fuzzerBuiltInGo            = "GoBuiltInFuzzer"
+	fuzzerPropertyBasedHaskell = "HaskellPropertyBasedTesting"
 	// TODO: add more fuzzing check supports.
 )
 
@@ -58,6 +59,29 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		URL:         asPointer("https://go.dev/doc/fuzz/"),
 		Desc: asPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
+	},
+	// Fuzz patterns for Haskell based on property-based testing.
+	//
+	// Based on the import of one of these packages:
+	// * https://hackage.haskell.org/package/QuickCheck
+	// * https://hedgehog.qa/
+	// * https://github.com/NorfairKing/validity
+	// * https://hackage.haskell.org/package/smallcheck
+	//
+	// They can also be imported indirectly through these test frameworks:
+	// * https://hspec.github.io/
+	// * https://hackage.haskell.org/package/tasty
+	//
+	// This is not an exhaustive list.
+	clients.Haskell: {
+		filePattern: "*.hs,*.lhs",
+		// Look for direct imports of QuickCheck, Hedgehog, validity, or SmallCheck,
+		// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
+		funcPattern: `import\s+(qualified\s+)?Test\.(Hspec|Tasty\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
+		Name:        fuzzerPropertyBasedHaskell,
+		Desc: asPointer(
+			"Property-based testing in Haskell generates test instances randomly or exhaustively " +
+				"and test that specific properties are satisfied."),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
