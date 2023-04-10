@@ -54,7 +54,6 @@ func (handler *commitsHandler) setup() error {
 						PerPage: handler.commitDepth,
 					},
 				})
-
 			if err != nil {
 				handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
 				return
