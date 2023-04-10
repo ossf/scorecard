@@ -32,6 +32,13 @@ func TestAggregateScores(t *testing.T) {
 		want int
 	}{
 		{
+			name: "empty",
+			args: args{
+				scores: []int{},
+			},
+			want: 0,
+		},
+		{
 			name: "single",
 			args: args{
 				scores: []int{1},
@@ -47,7 +54,6 @@ func TestAggregateScores(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := AggregateScores(tt.args.scores...); got != tt.want { //nolint:govet
@@ -68,6 +74,13 @@ func TestAggregateScoresWithWeight(t *testing.T) {
 		want int
 	}{
 		{
+			name: "empty",
+			args: args{
+				scores: map[int]int{},
+			},
+			want: 0,
+		},
+		{
 			name: "single",
 			args: args{
 				scores: map[int]int{1: 1},
@@ -83,7 +96,6 @@ func TestAggregateScoresWithWeight(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := AggregateScoresWithWeight(tt.args.scores); got != tt.want { //nolint:govet
@@ -129,7 +141,6 @@ func TestCreateProportionalScore(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := CreateProportionalScore(tt.args.success, tt.args.total); got != tt.want { //nolint:govet
@@ -168,7 +179,6 @@ func TestNormalizeReason(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := NormalizeReason(tt.args.reason, tt.args.score); got != tt.want { //nolint:govet
@@ -198,10 +208,9 @@ func TestCreateResultWithScore(t *testing.T) {
 				score:  0,
 			},
 			want: CheckResult{
-				Name:    "",
-				Reason:  "",
-				Score:   0,
-				Version: 2,
+				Name:   "",
+				Reason: "",
+				Score:  0,
 			},
 		},
 		{
@@ -220,7 +229,6 @@ func TestCreateResultWithScore(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := CreateResultWithScore(tt.args.name, tt.args.reason, tt.args.score); !cmp.Equal(got, tt.want) { //nolint:lll,govet
@@ -275,7 +283,6 @@ func TestCreateProportionalScoreResult(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := CreateProportionalScoreResult(tt.args.name, tt.args.reason, tt.args.b, tt.args.t); !cmp.Equal(got, tt.want) { //nolint:govet,lll
@@ -324,7 +331,6 @@ func TestCreateMaxScoreResult(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := CreateMaxScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) { //nolint:govet
@@ -373,10 +379,9 @@ func TestCreateMinScoreResult(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateMinScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) { //nolint:govet
+			if got := CreateMinScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) {
 				t.Errorf("CreateMinScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
@@ -422,7 +427,6 @@ func TestCreateInconclusiveResult(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := CreateInconclusiveResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) {
@@ -459,11 +463,10 @@ func TestCreateRuntimeErrorResult(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateRuntimeErrorResult(tt.args.name, tt.args.e); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CreateRuntimeErrorResult() = %v, want %v", got, cmp.Diff(got, tt.want))
+			if got := CreateRuntimeErrorResult(tt.args.name, tt.args.e); !reflect.DeepEqual(got, tt.want) { //nolint:govet
+				t.Errorf("CreateRuntimeErrorResult() = %v, want %v", got, cmp.Diff(got, tt.want)) //nolint:govet
 			}
 		})
 	}
