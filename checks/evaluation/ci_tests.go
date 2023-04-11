@@ -61,7 +61,7 @@ func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checke
 		if !foundCI {
 			// Log message says commit, but really we only care about PRs, and
 			// use only one commit (branch HEAD) to refer to all commits in a PR
-			dl.Warn(&checker.LogMessage{
+			dl.Debug(&checker.LogMessage{
 				Text: fmt.Sprintf("merged PR %d without CI test at HEAD: %s", r.PullRequestNumber, r.HeadSHA),
 			})
 		}
