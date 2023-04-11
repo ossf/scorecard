@@ -71,19 +71,19 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 
 	// Let's include non-compliant revision IDs in details
 	if len(botReviewActivityRevisionIDs) > 0 {
-		dl.Warn(&checker.LogMessage{
+		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("List of revision IDs by bots:%s", strings.Join(botReviewActivityRevisionIDs, ",")),
 		})
 	}
 
 	if len(unreviewedHumanRevisionIDs) > 0 {
-		dl.Warn(&checker.LogMessage{
+		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("List of revision IDs not reviewed by humans:%s", strings.Join(unreviewedHumanRevisionIDs, ",")),
 		})
 	}
 
 	if len(unreviewedBotRevisionIDs) > 0 {
-		dl.Warn(&checker.LogMessage{
+		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("List of bot revision IDs not reviewed by humans:%s", strings.Join(unreviewedBotRevisionIDs, ",")),
 		})
 	}
