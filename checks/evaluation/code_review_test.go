@@ -50,8 +50,8 @@ func TestCodeReview(t *testing.T) {
 		{
 			name: "NoReviews",
 			expected: scut.TestReturn{
-				Score:        checker.MinResultScore,
-				NumberOfWarn: 1,
+				Score:         checker.MinResultScore,
+				NumberOfDebug: 1,
 			},
 			rawData: &checker.CodeReviewData{
 				DefaultBranchChangesets: []checker.Changeset{
@@ -67,8 +67,8 @@ func TestCodeReview(t *testing.T) {
 		{
 			name: "Unreviewed human and bot changes",
 			expected: scut.TestReturn{
-				Score:        checker.MinResultScore,
-				NumberOfWarn: 1,
+				Score:         checker.MinResultScore,
+				NumberOfDebug: 1,
 			},
 			rawData: &checker.CodeReviewData{
 				DefaultBranchChangesets: []checker.Changeset{
@@ -84,8 +84,8 @@ func TestCodeReview(t *testing.T) {
 		{
 			name: "all human changesets reviewed, missing review on bot changeset",
 			expected: scut.TestReturn{
-				Score:        7,
-				NumberOfWarn: 1,
+				Score:         7,
+				NumberOfDebug: 1,
 			},
 			rawData: &checker.CodeReviewData{
 				DefaultBranchChangesets: []checker.Changeset{
@@ -150,8 +150,8 @@ func TestCodeReview(t *testing.T) {
 		{
 			name: "bot commits only",
 			expected: scut.TestReturn{
-				Score:        checker.InconclusiveResultScore,
-				NumberOfWarn: 2,
+				Score:         checker.InconclusiveResultScore,
+				NumberOfDebug: 2,
 			},
 			rawData: &checker.CodeReviewData{
 				DefaultBranchChangesets: []checker.Changeset{
