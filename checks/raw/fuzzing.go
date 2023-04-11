@@ -43,8 +43,12 @@ type filesWithPatternStr struct {
 
 // Configurations for language-specified fuzzers.
 type languageFuzzConfig struct {
-	URL, Desc                      *string
-	filePattern, funcPattern, Name string
+	URL, Desc *string
+
+	// Pattern is according to path.Match.
+	filePattern string
+
+	funcPattern, Name string
 	// TODO: add more language fuzzing-related fields.
 }
 
@@ -74,10 +78,10 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	//
 	// This is not an exhaustive list.
 	clients.Haskell: {
-		filePattern: "*.hs,*.lhs",
+		filePattern: "*.hs",
 		// Look for direct imports of QuickCheck, Hedgehog, validity, or SmallCheck,
 		// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
-		funcPattern: `import\s+(qualified\s+)?Test\.(Hspec|Tasty\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
+		funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
 		Name:        fuzzerPropertyBasedHaskell,
 		Desc: asPointer(
 			"Property-based testing in Haskell generates test instances randomly or exhaustively " +

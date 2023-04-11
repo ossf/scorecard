@@ -318,6 +318,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 		},
 		{
 			name:     "Haskell QuickCheck",
+			want:     true,
 			fileName: []string{"ModuleSpec.hs"},
 			langs: []clients.Language{
 				{
@@ -328,8 +329,9 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileContent: "import Test.QuickCheck",
 		},
 		{
-			name:   "Haskell Hedgehog",
-			fileName: []string{ "TestSpec.hs" },
+			name:     "Haskell Hedgehog",
+			want:     true,
+			fileName: []string{"TestSpec.hs"},
 			langs: []clients.Language{
 				{
 					Name:     clients.Haskell,
@@ -340,6 +342,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 		},
 		{
 			name:     "Haskell Validity",
+			want:     true,
 			fileName: []string{"validity_test.hs"},
 			langs: []clients.Language{
 				{
@@ -351,6 +354,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 		},
 		{
 			name:     "Haskell SmallCheck",
+			want:     true,
 			fileName: []string{"SmallSpec.hs"},
 			langs: []clients.Language{
 				{
@@ -361,7 +365,20 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileContent: "import Test.SmallCheck",
 		},
 		{
+			name:     "Haskell QuickCheck with qualified import",
+			want:     true,
+			fileName: []string{"QualifiedSpec.hs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Haskell,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import qualified Test.QuickCheck",
+		},
+		{
 			name:     "Haskell QuickCheck through Hspec",
+			want:     true,
 			fileName: []string{"ArrowSpec.hs"},
 			langs: []clients.Language{
 				{
@@ -373,6 +390,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 		},
 		{
 			name:     "Haskell QuickCheck through Tasty",
+			want:     true,
 			fileName: []string{"test.hs"},
 			langs: []clients.Language{
 				{
@@ -384,6 +402,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 		},
 		{
 			name:     "Haskell with no property-based testing",
+			want:     false,
 			fileName: []string{"PropertySpec.hs"},
 			wantErr:  true,
 			langs: []clients.Language{
@@ -403,12 +422,12 @@ func Test_checkFuzzFunc(t *testing.T) {
 			defer ctrl.Finish()
 			mockClient := mockrepo.NewMockRepoClient(ctrl)
 			mockClient.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
-			mockClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
+			mockClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) ([]byte, error) {
 				if tt.wantErr {
 					//nolint
-					return "", errors.New("error")
+					return nil, errors.New("error")
 				}
-				return tt.fileContent, nil
+				return []byte(tt.fileContent), nil
 			}).AnyTimes()
 			req := checker.CheckRequest{
 				RepoClient: mockClient,
