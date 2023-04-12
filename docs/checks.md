@@ -336,7 +336,8 @@ This check tries to determine if the project uses
 [fuzzing](https://owasp.org/www-community/Fuzzing) by checking:
 1. if the repository name is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list;
 2. if [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) is deployed in the repository;
-3. if there are user-defined language-specified fuzzing functions (currently only supports [Go fuzzing](https://go.dev/doc/fuzz/)) in the repository.
+3. if there are user-defined language-specified fuzzing functions in the repository.
+   - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/) and a limited set of property-based testing libraries for Haskell.
 4. if it contains a [OneFuzz](https://github.com/microsoft/onefuzz) integration [detection file](https://github.com/microsoft/onefuzz/blob/main/docs/getting-started.md#detecting-the-use-of-onefuzz);
 
 Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
