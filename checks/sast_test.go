@@ -344,3 +344,46 @@ func Test_validateSonarConfig(t *testing.T) {
 		})
 	}
 }
+
+func Test_searchGitHubActionWorkflowCodeQL_invalid(t *testing.T) {
+	t.Parallel()
+
+	//nolint: govet
+	tests := []struct {
+		name string
+		path string
+		args []any
+	}{
+		{
+			name: "too few arguments",
+			path: ".github/workflows/github-workflow-sast-codeql.yaml",
+			args: []any{},
+		},
+		{
+			name: "wrong arguments",
+			path: ".github/workflows/github-workflow-sast-codeql.yaml",
+			args: []any{
+				&[]int{},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+			if tt.path != "" {
+				content, err = os.ReadFile("./testdata/" + tt.path)
+				if err != nil {
+					t.Errorf("ReadFile: %v", err)
+				}
+			}
+			_, err = searchGitHubActionWorkflowCodeQL(tt.path, content, tt.args...)
+			if err == nil {
+				t.Errorf("Expected error but err was nil")
+			}
+		})
+	}
+}
