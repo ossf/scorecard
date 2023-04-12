@@ -45,8 +45,16 @@ func (handler *contributorsHandler) setup() error {
 				clients.ErrUnsupportedFeature)
 			return
 		}
-		contribs, _, err := handler.glClient.Repositories.Contributors(
-			handler.repourl.project, &gitlab.ListContributorsOptions{})
+		order := "commits"
+		sort := "desc"
+		lco := &gitlab.ListContributorsOptions{
+			ListOptions: gitlab.ListOptions{
+				// PerPage: 100,
+			},
+			OrderBy: &order,
+			Sort:    &sort,
+		}
+		contribs, _, err := handler.glClient.Repositories.Contributors(handler.repourl.project, lco)
 		if err != nil {
 			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
 			return
@@ -57,32 +65,60 @@ func (handler *contributorsHandler) setup() error {
 				continue
 			}
 
-			// In Gitlab users only have one registered organization which is the company they work for, this means that
-			// the organizations field will not be filled in and the companies field will be a singular value.
-			users, _, err := handler.glClient.Search.Users(contrib.Name, &gitlab.SearchOptions{})
-			if err != nil {
-				handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
-				return
-			} else if len(users) == 0 {
-				// parseEmailToName is declared in commits.go
-				users, _, err = handler.glClient.Search.Users(parseEmailToName(contrib.Email), &gitlab.SearchOptions{})
+			var user *gitlab.User
+			queries := []string{contrib.Email, contrib.Name}
+			for _, q := range queries {
+				users, _, err := handler.glClient.Search.Users(q, &gitlab.SearchOptions{})
 				if err != nil {
-					handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
+					handler.errSetup = fmt.Errorf("error during Search.Users: %w", err)
 					return
+				}
+				if len(users) == 0 {
+					continue
+				}
+				user = exactMatchUser(users, contrib)
+				if user != nil {
+					break
 				}
 			}
 
-			contributor := clients.User{
-				Login:            contrib.Email,
-				Companies:        []string{users[0].Organization},
-				NumContributions: contrib.Commits,
-				ID:               int64(users[0].ID),
-				IsBot:            users[0].Bot,
+			var isBot bool
+			var id int
+			var companies []string
+			if user == nil {
+				continue
 			}
-			handler.contributors = append(handler.contributors, contributor)
+
+			user, _, err := handler.glClient.Users.GetUser(user.ID, gitlab.GetUsersOptions{})
+			if err != nil {
+				handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
+				return
+			}
+			isBot = user.Bot
+			id = user.ID
+			companies = []string{user.Organization}
+
+			handler.contributors = append(handler.contributors, clients.User{
+				Login:            contrib.Email,
+				Companies:        companies,
+				NumContributions: contrib.Commits,
+				ID:               int64(id),
+				IsBot:            isBot,
+			})
 		}
 	})
 	return handler.errSetup
+}
+
+func exactMatchUser(search []*gitlab.User, contrib *gitlab.Contributor) *gitlab.User {
+	for i := range search {
+		if search[i].Name == contrib.Name || search[i].PublicEmail == contrib.Email ||
+			search[i].Email == contrib.Email {
+			return search[i]
+		}
+	}
+
+	return nil
 }
 
 func (handler *contributorsHandler) getContributors() ([]clients.User, error) {
