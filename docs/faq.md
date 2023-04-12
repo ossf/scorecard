@@ -64,18 +64,18 @@ For more information, see the [Fuzzing check description](https://github.com/oss
 
 ### Pinned-Dependencies: Will Scorecard detect unpinned dependencies in tests with Dockerfiles?
 
-Scorecard can show the dependencies that are referred to in tests like Dockerfiles, so it could be a great way for you to fix those dependencies and avoid the vulnerabilities related to version pinning dependencies. To see more about the benefits of hash pinning instead of version pinning, please see the [Pinned-Dependencies check description](/checks.md#pinned-dependencies)
+Scorecard can show the dependencies that are referred to in tests like Dockerfiles, so it could be a great way for you to fix those dependencies and avoid the vulnerabilities related to version pinning dependencies. To see more about the benefits of hash pinning instead of version pinning, please see the [Pinned-Dependencies check description](checks.md#pinned-dependencies)
 
 ### Pinned-Dependencies: Can I use version pinning instead of hash pinning?
 Version pinning is a significant improvement over not pinning your dependencies. However, it still leaves your project vulnerable to tag-renaming attacks (where a dependency's tags are deleted and recreated to point to a malicious commit).
 
 The OpenSSF therefore recommends hash pinning instead of version pinning, along with the use of dependency update tools such as dependabot to keep your dependencies up-to-date.
 
-Please see the [Pinned-Dependencies check description](/checks.md#pinned-dependencies) for a better understanding of the benefits of the Hash Pinning.
+Please see the [Pinned-Dependencies check description](checks.md#pinned-dependencies) for a better understanding of the benefits of the Hash Pinning.
 
 ### Signed-Releases: Why sign releases?
 
-Currently, the main benefit of [signed releases](/checks.md#signed-releases) is the guarantee that a specific artifact was released by a source that you approve or attest is reliable.
+Currently, the main benefit of [signed releases](checks.md#signed-releases) is the guarantee that a specific artifact was released by a source that you approve or attest is reliable.
 
 However, there are already moves to make it even more relevant. For example, the OpenSSF is working on [implementing signature verification for NPM packages](https://github.blog/2022-08-08-new-request-for-comments-on-improving-npm-security-with-sigstore-is-now-open/) which would allow a consumer to automatically verify if the package they are downloading was generated through a reliable builder and if it is correctly signed.
 
