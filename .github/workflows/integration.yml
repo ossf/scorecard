@@ -67,7 +67,7 @@ jobs:
           command: make e2e-gh-token
 
       - name: codecov
-        uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
+        uses: codecov/codecov-action@40a12dcee2df644d47232dde008099a3e9e4f865 # 2.1.0
         with:
          files: ./e2e-coverage.out
          verbose: true
@@ -81,7 +81,7 @@ jobs:
           command: make e2e-gitlab
 
       - name: codecov
-        uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
+        uses: codecov/codecov-action@40a12dcee2df644d47232dde008099a3e9e4f865 # 2.1.0
         with:
          files: ./e2e-coverage.out
          verbose: true
