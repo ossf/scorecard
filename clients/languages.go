@@ -71,6 +71,9 @@ const (
 	// Dockerfile: https://docs.docker.com/engine/reference/builder/
 	Dockerfile LanguageName = "dockerfile"
 
+	// Haskell: https://www.haskell.org/
+	Haskell LanguageName = "haskell"
+
 	// Other indicates other languages not listed by the GitHub API.
 	Other LanguageName = "other"
 
