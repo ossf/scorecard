@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -105,9 +106,7 @@ func Test_SAST(t *testing.T) {
 					},
 				},
 			},
-			searchresult: clients.SearchResponse{Hits: 1, Results: []clients.SearchResult{{
-				Path: "test.go",
-			}}},
+			path: ".github/workflows/github-workflow-sast-codeql.yaml",
 			checkRuns: []clients.CheckRun{
 				{
 					Status: "completed",
@@ -144,7 +143,7 @@ func Test_SAST(t *testing.T) {
 					},
 				},
 			},
-			searchresult: clients.SearchResponse{},
+			path: ".github/workflows/github-workflow-sast-no-codeql.yaml",
 			checkRuns: []clients.CheckRun{
 				{
 					App: clients.CheckRunApp{
@@ -201,14 +200,14 @@ func Test_SAST(t *testing.T) {
 		},
 		{
 			name: "sonartype config 1 line",
-			path: "./testdata/pom-1line.xml",
+			path: "pom-1line.xml",
 			expected: checker.CheckResult{
 				Score: 10,
 			},
 		},
 		{
 			name: "sonartype config 2 lines",
-			path: "./testdata/pom-2lines.xml",
+			path: "pom-2lines.xml",
 			expected: checker.CheckResult{
 				Score: 10,
 			},
@@ -234,13 +233,16 @@ func Test_SAST(t *testing.T) {
 			mockRepoClient.EXPECT().Search(searchRequest).Return(tt.searchresult, nil).AnyTimes()
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
 				func(predicate func(string) (bool, error)) ([]string, error) {
-					return []string{"pom.xml"}, nil
+					if strings.Contains(tt.path, "pom") {
+						return []string{"pom.xml"}, nil
+					}
+					return []string{tt.path}, nil
 				}).AnyTimes()
 			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
 				if tt.path == "" {
 					return nil, nil
 				}
-				content, err := os.ReadFile(tt.path)
+				content, err := os.ReadFile("./testdata/" + tt.path)
 				if err != nil {
 					return content, fmt.Errorf("%w", err)
 				}
@@ -338,6 +340,49 @@ func Test_validateSonarConfig(t *testing.T) {
 			if config[0].url != tt.url {
 				t.Errorf("Expected offset %v, got %v for %v", tt.url,
 					config[0].url, tt.name)
+			}
+		})
+	}
+}
+
+func Test_searchGitHubActionWorkflowCodeQL_invalid(t *testing.T) {
+	t.Parallel()
+
+	//nolint: govet
+	tests := []struct {
+		name string
+		path string
+		args []any
+	}{
+		{
+			name: "too few arguments",
+			path: ".github/workflows/github-workflow-sast-codeql.yaml",
+			args: []any{},
+		},
+		{
+			name: "wrong arguments",
+			path: ".github/workflows/github-workflow-sast-codeql.yaml",
+			args: []any{
+				&[]int{},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+			if tt.path != "" {
+				content, err = os.ReadFile("./testdata/" + tt.path)
+				if err != nil {
+					t.Errorf("ReadFile: %v", err)
+				}
+			}
+			_, err = searchGitHubActionWorkflowCodeQL(tt.path, content, tt.args...)
+			if err == nil {
+				t.Errorf("Expected error but err was nil")
 			}
 		})
 	}
