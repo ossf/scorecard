@@ -11,17 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-name: 'Dependency Review'
-on: [pull_request]
-
-permissions:
-  contents: read
+name: absent workflow
+on: [push]
 
 jobs:
-  dependency-review:
+  Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     steps:
-      - name: 'Checkout Repository'
-        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247
-      - name: 'Dependency Review'
-        uses: actions/dependency-review-action@f46c48ed6d4f1227fb2d9ea62bf6bcbed315589e
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+      - name: some name
+        uses: docker/build-push-action@1.2.3

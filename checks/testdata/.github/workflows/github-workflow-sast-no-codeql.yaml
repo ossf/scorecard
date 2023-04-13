@@ -11,17 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-name: 'Dependency Review'
-on: [pull_request]
-
-permissions:
-  contents: read
+on:
+  push:
+    paths:
+    - 'source/common/**'
+  pull_request:
 
 jobs:
-  dependency-review:
+  Some-Build:
+
+    strategy:
+      fail-fast: false
+
+    # CodeQL runs on ubuntu-latest and windows-latest
     runs-on: ubuntu-latest
+
     steps:
-      - name: 'Checkout Repository'
-        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247
-      - name: 'Dependency Review'
-        uses: actions/dependency-review-action@f46c48ed6d4f1227fb2d9ea62bf6bcbed315589e
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+
+    - name: Acme CodeQL
+      uses: acme/codeql-action/init@v2 # some comment
+      with:
+         languages: cpp
