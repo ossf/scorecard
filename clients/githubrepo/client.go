@@ -258,9 +258,16 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 			// load the server url from the api url
 			ghithubSERVERURL = strings.TrimSuffix(githubAPIURL, "/api/v3")
 		}
+		// trim trailing slash to prevent issues with the graphql client
+		ghithubSERVERURL = strings.TrimSuffix(ghithubSERVERURL, "/")
 		githubGRAPHQLURL := fmt.Sprintf("%s/api/graphql", ghithubSERVERURL)
 
-		client, _ = github.NewEnterpriseClient(githubAPIURL, githubAPIURL, httpClient)
+		var err error
+		client, err = github.NewEnterpriseClient(githubAPIURL, githubAPIURL, httpClient)
+		if err != nil {
+			panic(fmt.Errorf("error during CreateGithubRepoClientWithTransport: %v", err))
+		}
+
 		graphClient = githubv4.NewEnterpriseClient(githubGRAPHQLURL, httpClient)
 	} else {
 		// use the defaul url values from the github client
