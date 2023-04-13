@@ -746,7 +746,7 @@ func isUnpinnedDotNetCliInstall(cmd []string) bool {
 		return false
 	}
 	// Search for dotnet commands.
-	if !isBinaryName("dotnet", cmd[0]) && !isBinaryName("dotnet.exe", cmd[0]){
+	if !isBinaryName("dotnet", cmd[0]) && !isBinaryName("dotnet.exe", cmd[0]) {
 		return false
 	}
 
