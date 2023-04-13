@@ -253,14 +253,14 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 	// check if GITHUB_API_URL is set
 	if githubAPIURL := os.Getenv("GITHUB_API_URL"); githubAPIURL != "https://api.github.com" {
 		// create a new enterprise client with custom URLs
-		ghithubSERVERURL := os.Getenv("GITHUB_SERVER_URL")
-		if ghithubSERVERURL == "" {
+		githubSERVERURL := os.Getenv("GITHUB_SERVER_URL")
+		if githubSERVERURL == "" {
 			// load the server url from the api url
-			ghithubSERVERURL = strings.TrimSuffix(githubAPIURL, "/api/v3")
+			githubSERVERURL = strings.TrimSuffix(githubAPIURL, "/api/v3")
 		}
 		// trim trailing slash to prevent issues with the graphql client
-		ghithubSERVERURL = strings.TrimSuffix(ghithubSERVERURL, "/")
-		githubGRAPHQLURL := fmt.Sprintf("%s/api/graphql", ghithubSERVERURL)
+		githubSERVERURL = strings.TrimSuffix(githubSERVERURL, "/")
+		githubGRAPHQLURL := fmt.Sprintf("%s/api/graphql", githubSERVERURL)
 
 		var err error
 		client, err = github.NewEnterpriseClient(githubAPIURL, githubAPIURL, httpClient)
