@@ -41,7 +41,7 @@ func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions
 		return nil, fmt.Errorf("handler.buildQuiery: %w", err)
 	}
 
-	commits, _, err := handler.glClient.Search.CommitsByProject(handler.repourl.projectID, query, &gitlab.SearchOptions{})
+	commits, _, err := handler.glClient.Search.CommitsByProject(handler.repourl.project, query, &gitlab.SearchOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("Search.Commits: %w", err)
 	}
@@ -75,7 +75,7 @@ func (handler *searchCommitsHandler) buildQuery(request clients.SearchCommitsOpt
 	var queryBuilder strings.Builder
 	if _, err := queryBuilder.WriteString(
 		fmt.Sprintf("project:%s/%s author:%s",
-			handler.repourl.owner, handler.repourl.projectID,
+			handler.repourl.owner, handler.repourl.project,
 			request.Author)); err != nil {
 		return "", fmt.Errorf("writestring: %w", err)
 	}

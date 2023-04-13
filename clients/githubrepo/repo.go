@@ -23,10 +23,6 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-const (
-	githubOrgRepo = ".github"
-)
-
 type repoURL struct {
 	host, owner, repo, defaultBranch, commitSHA string
 	metadata                                    []string
@@ -76,18 +72,13 @@ func (r *repoURL) URI() string {
 	return fmt.Sprintf("%s/%s/%s", r.host, r.owner, r.repo)
 }
 
+func (r *repoURL) Host() string {
+	return r.host
+}
+
 // String implements Repo.String.
 func (r *repoURL) String() string {
 	return fmt.Sprintf("%s-%s-%s", r.host, r.owner, r.repo)
-}
-
-// Org implements Repo.Org.
-func (r *repoURL) Org() clients.Repo {
-	return &repoURL{
-		host:  r.host,
-		owner: r.owner,
-		repo:  githubOrgRepo,
-	}
 }
 
 // IsValid implements Repo.IsValid.

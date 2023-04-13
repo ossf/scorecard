@@ -17,8 +17,8 @@ package clients
 // Repo interface uniquely identifies a repo.
 type Repo interface {
 	URI() string
+	Host() string
 	String() string
-	Org() Repo
 	IsValid() error
 	Metadata() []string
 	AppendMetadata(metadata ...string)

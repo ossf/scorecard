@@ -97,6 +97,10 @@ func TestRepoURL_IsValid(t *testing.T) {
 			if !tt.wantErr && !cmp.Equal(tt.expected, r, cmp.AllowUnexported(repoURL{})) {
 				t.Errorf("Got diff: %s", cmp.Diff(tt.expected, r))
 			}
+
+			if !cmp.Equal(r.Host(), tt.expected.host) {
+				t.Errorf("%s expected host: %s got host %s", tt.inputURL, tt.expected.host, r.Host())
+			}
 		})
 	}
 }

@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 
 	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -63,6 +64,11 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 	if err != nil {
 		return resp, nil
 	}
+	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
+	if err != nil {
+		return nil, fmt.Errorf("error updating context: %w", err)
+	}
+	stats.Record(ctx, githubstats.RemainingTokens.M(int64(remaining)))
 
 	if remaining <= 0 {
 		reset, err := strconv.Atoi(resp.Header.Get("X-RateLimit-Reset"))

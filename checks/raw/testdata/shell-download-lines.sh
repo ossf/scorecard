@@ -32,3 +32,26 @@ choco install 'some-other-package'
 choco install --requirechecksum 'some-package'
 choco install --requirechecksums 'some-package'
 choco install --require-checksums 'some-package'
+
+pip install --no-deps --editable .
+pip install --no-deps -e .
+pip install --no-deps -e hg+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e svn+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e bzr+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git+https://github.com/username/repo.git
+pip install --no-deps -e git+https://github.com/username/repo.git#egg=package
+pip install --no-deps -e git+https://github.com/username/repo.git@v1.0
+pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package
+pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567
+pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git+https://github.com/username/repo@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git+http://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git+ssh://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git+git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e . git+https://github.com/username/repo.git
+pip install --no-deps -e . git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+
+python -m pip install --no-deps -e git+https://github.com/username/repo.git
+python -m pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package

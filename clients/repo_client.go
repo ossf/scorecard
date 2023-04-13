@@ -16,6 +16,7 @@
 package clients
 
 import (
+	"context"
 	"errors"
 	"time"
 )
@@ -40,6 +41,7 @@ type RepoClient interface {
 	GetCreatedAt() (time.Time, error)
 	GetDefaultBranchName() (string, error)
 	GetDefaultBranch() (*BranchRef, error)
+	GetOrgRepoClient(context.Context) (RepoClient, error)
 	ListCommits() ([]Commit, error)
 	ListIssues() ([]Issue, error)
 	ListLicenses() ([]License, error)
