@@ -42,7 +42,10 @@ func Test_logger_Flush(t *testing.T) {
 		logs: []CheckDetail{},
 	}
 	l.Warn(&LogMessage{Text: "test"})
-	l.Flush()
+	ret := l.Flush()
+	if len(ret) != 1 {
+		t.Errorf("expected 1 log, got %d", len(ret))
+	}
 	if len(l.logs) != 0 {
 		t.Errorf("expected 0 log, got %d", len(l.logs))
 	}
