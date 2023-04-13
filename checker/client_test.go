@@ -50,6 +50,7 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			shouldOSSFuzzBeNil:    false,
 			shouldRepoClientBeNil: false,
 			shouldVulnClientBeNil: false,
+			shouldRepoBeNil:       true,
 			wantErr:               true,
 		},
 		{
@@ -62,6 +63,7 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			shouldOSSFuzzBeNil:    false,
 			shouldRepoClientBeNil: false,
 			shouldVulnClientBeNil: false,
+			shouldRepoBeNil:       true,
 			wantErr:               true,
 		},
 		{
@@ -74,6 +76,7 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			shouldOSSFuzzBeNil:    false,
 			shouldRepoClientBeNil: false,
 			shouldVulnClientBeNil: false,
+			shouldRepoBeNil:       true,
 			wantErr:               true,
 		},
 		{
@@ -101,10 +104,9 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			}
 			got, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := GetClients(tt.args.ctx, tt.args.repoURI, tt.args.localURI, tt.args.logger) //nolint:lll
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetClients() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				t.Fatalf("GetClients() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if tt.shouldRepoBeNil && got != nil {
+			if tt.shouldRepoBeNil != (got == nil) {
 				t.Errorf("GetClients() got = %v", got)
 			}
 			if repoClient != nil && tt.shouldRepoClientBeNil {
