@@ -704,7 +704,7 @@ func isUnpinnedNugetCliInstall(cmd []string) bool {
 	}
 
 	// Search for nuget commands.
-	if !isBinaryName("nuget", cmd[0]) {
+	if !isBinaryName("nuget", cmd[0]) && !isBinaryName("nuget.exe", cmd[0]) {
 		return false
 	}
 
@@ -746,7 +746,7 @@ func isUnpinnedDotNetCliInstall(cmd []string) bool {
 		return false
 	}
 	// Search for dotnet commands.
-	if !isBinaryName("dotnet", cmd[0]) {
+	if !isBinaryName("dotnet", cmd[0]) && !isBinaryName("dotnet.exe", cmd[0]){
 		return false
 	}
 
