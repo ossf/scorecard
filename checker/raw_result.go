@@ -81,7 +81,7 @@ type Package struct {
 	Runs []Run
 }
 
-// DependencyUseType reprensets a type of dependency use.
+// DependencyUseType represents a type of dependency use.
 type DependencyUseType string
 
 const (
@@ -325,7 +325,7 @@ type DangerousWorkflow struct {
 	File File
 }
 
-// WorkflowJob reprresents a workflow job.
+// WorkflowJob represents a workflow job.
 type WorkflowJob struct {
 	Name *string
 	ID   *string
@@ -350,7 +350,7 @@ const (
 type PermissionLevel string
 
 const (
-	// PermissionLevelUndeclared is an undecleared permission.
+	// PermissionLevelUndeclared is an undeclared permission.
 	PermissionLevelUndeclared PermissionLevel = "undeclared"
 	// PermissionLevelWrite is a permission set to `write` for a permission we consider potentially dangerous.
 	PermissionLevelWrite PermissionLevel = "write"
