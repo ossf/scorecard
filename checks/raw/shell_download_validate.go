@@ -713,7 +713,7 @@ func isUnpinnedNugetCliInstall(cmd []string) bool {
 		return false
 	}
 
-	// Asseume installing a project with PackageReference (with versions)
+	// Assume installing a project with PackageReference (with versions)
 	// or packages.config at the root of command
 	if len(cmd) == 2 {
 		return false
