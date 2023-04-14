@@ -32,7 +32,7 @@ const (
 )
 
 // CIIBestPractices applies the score policy for the CIIBestPractices check.
-func CIIBestPractices(name string, dl checker.DetailLogger, r *checker.CIIBestPracticesData) checker.CheckResult {
+func CIIBestPractices(name string, _ checker.DetailLogger, r *checker.CIIBestPracticesData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)
