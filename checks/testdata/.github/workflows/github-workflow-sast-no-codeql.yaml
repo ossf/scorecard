@@ -11,27 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-name: PR Verifier
 on:
-  pull_request_target:
-    types: [opened, edited, reopened]
-permissions: read-all
+  push:
+    paths:
+    - 'source/common/**'
+  pull_request:
 
 jobs:
-  verify:
-    permissions:
-      checks: write
-    name: Verify PR contents
-    runs-on: ubuntu-latest
-    steps:
-    - name: Harden Runner
-      uses: step-security/harden-runner@03bee3930647ebbf994244c21ddbc0d4933aab4f # v1
-      with:
-        egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+  Some-Build:
 
-    - name: Verifier action
-      id: verifier
-      uses: kubernetes-sigs/kubebuilder-release-tools@4f3d1085b4458a49ed86918b4b55505716715b77 # v0.3.0
+    strategy:
+      fail-fast: false
+
+    # CodeQL runs on ubuntu-latest and windows-latest
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 2
+
+    - name: Acme CodeQL
+      uses: acme/codeql-action/init@v2 # some comment
+      with:
+         languages: cpp

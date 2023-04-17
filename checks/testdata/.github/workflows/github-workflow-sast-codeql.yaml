@@ -11,27 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-name: PR Verifier
-on:
-  pull_request_target:
-    types: [opened, edited, reopened]
-permissions: read-all
+name: absent workflow
+on: [push]
 
 jobs:
-  verify:
-    permissions:
-      checks: write
-    name: Verify PR contents
+  Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     steps:
-    - name: Harden Runner
-      uses: step-security/harden-runner@03bee3930647ebbf994244c21ddbc0d4933aab4f # v1
-      with:
-        egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-
-    - name: Verifier action
-      id: verifier
-      uses: kubernetes-sigs/kubebuilder-release-tools@4f3d1085b4458a49ed86918b4b55505716715b77 # v0.3.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+      - name: some name
+        uses: docker/build-push-action@1.2.3

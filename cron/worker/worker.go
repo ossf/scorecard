@@ -151,7 +151,7 @@ func ResultFilename(sbr *data.ScorecardBatchRequest) string {
 }
 
 func hasMetadataFile(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) (bool, error) {
-	filename := data.GetShardMetadataFilename(req.GetJobTime().AsTime())
+	filename := data.GetShardMetadataFilename(req.GetJobTime().AsTime().UTC())
 	exists, err := data.BlobExists(ctx, bucketURL, filename)
 	if err != nil {
 		return false, fmt.Errorf("data.BlobExists: %w", err)
