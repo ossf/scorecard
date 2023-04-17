@@ -72,10 +72,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
 	}
 	if commitDepth <= 0 {
-		client.commitDepth = 30 // default
-	} else {
-		client.commitDepth = commitDepth
+		commitDepth = 30 // default
 	}
+	client.commitDepth = commitDepth
 	client.repo = repo
 	client.repourl = &repoURL{
 		owner:         repo.Owner.GetLogin(),
@@ -103,7 +102,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	client.workflows.init(client.ctx, client.repourl)
 
 	// Setup checkrunsHandler.
-	client.checkruns.init(client.ctx, client.repourl, commitDepth)
+	client.checkruns.init(client.ctx, client.repourl, client.commitDepth)
 
 	// Setup statusesHandler.
 	client.statuses.init(client.ctx, client.repourl)
@@ -193,6 +192,21 @@ func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 // GetCreatedAt is a getter for repo.CreatedAt.
 func (client *Client) GetCreatedAt() (time.Time, error) {
 	return client.repo.CreatedAt.Time, nil
+}
+
+func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	dotGithubRepo, err := MakeGithubRepo(fmt.Sprintf("%s/.github", client.repourl.owner))
+	if err != nil {
+		return nil, fmt.Errorf("error during MakeGithubRepo: %w", err)
+	}
+
+	logger := log.NewLogger(log.InfoLevel)
+	c := CreateGithubRepoClient(ctx, logger)
+	if err := c.InitRepo(dotGithubRepo, clients.HeadSHA, 0); err != nil {
+		return nil, fmt.Errorf("error during InitRepo: %w", err)
+	}
+
+	return c, nil
 }
 
 // ListWebhooks implements RepoClient.ListWebhooks.

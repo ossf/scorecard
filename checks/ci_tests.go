@@ -40,7 +40,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 	rawData, err := raw.CITests(c.RepoClient)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckCodeReview, e)
+		return checker.CreateRuntimeErrorResult(CheckCITests, e)
 	}
 
 	// Return raw results.

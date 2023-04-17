@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -534,6 +536,168 @@ func TestAttestationPolicyRead(t *testing.T) {
 				fmt.Printf("p.ToJSON(): %v\n", p.ToJSON())
 				fmt.Printf("tt.result.ToJSON(): %v\n", tt.result.ToJSON())
 				t.Fatalf("%s: invalid result", tt.name)
+			}
+		})
+	}
+}
+
+func TestAttestationPolicy_GetRequiredChecksForPolicy(t *testing.T) {
+	t.Parallel()
+	type fields struct { //nolint:govet
+		PreventBinaryArtifacts      bool
+		AllowedBinaryArtifacts      []string
+		PreventKnownVulnerabilities bool
+		PreventUnpinnedDependencies bool
+		AllowedUnpinnedDependencies []Dependency
+		EnsureCodeReviewed          bool
+		CodeReviewRequirements      CodeReviewRequirements
+	}
+	tests := []struct { //nolint:govet
+		name   string
+		fields fields
+		want   map[string]bool
+	}{
+		{
+			name: "all checks",
+			fields: fields{
+				PreventBinaryArtifacts:      true,
+				AllowedBinaryArtifacts:      []string{},
+				PreventKnownVulnerabilities: true,
+				PreventUnpinnedDependencies: true,
+				AllowedUnpinnedDependencies: []Dependency{},
+				EnsureCodeReviewed:          true,
+				CodeReviewRequirements:      CodeReviewRequirements{MinReviewers: 1},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ap := &AttestationPolicy{
+				PreventBinaryArtifacts:      tt.fields.PreventBinaryArtifacts,
+				AllowedBinaryArtifacts:      tt.fields.AllowedBinaryArtifacts,
+				PreventKnownVulnerabilities: tt.fields.PreventKnownVulnerabilities,
+				PreventUnpinnedDependencies: tt.fields.PreventUnpinnedDependencies,
+				AllowedUnpinnedDependencies: tt.fields.AllowedUnpinnedDependencies,
+				EnsureCodeReviewed:          tt.fields.EnsureCodeReviewed,
+				CodeReviewRequirements:      tt.fields.CodeReviewRequirements,
+			}
+			if got := ap.GetRequiredChecksForPolicy(); cmp.Equal(got, tt.want) {
+				t.Errorf("GetRequiredChecksForPolicy() %v, want %v", cmp.Diff(got, tt.want), tt.want)
+			}
+		})
+	}
+}
+
+func TestAttestationPolicy_EvaluateResults(t *testing.T) {
+	t.Parallel()
+	type fields struct { //nolint:govet
+		PreventBinaryArtifacts      bool
+		AllowedBinaryArtifacts      []string
+		PreventKnownVulnerabilities bool
+		PreventUnpinnedDependencies bool
+		AllowedUnpinnedDependencies []Dependency
+		EnsureCodeReviewed          bool
+		CodeReviewRequirements      CodeReviewRequirements
+	}
+	type args struct {
+		raw *checker.RawResults
+	}
+	tests := []struct { //nolint:govet
+		name    string
+		fields  fields
+		args    args
+		want    PolicyResult
+		wantErr bool
+	}{
+		{
+			name: "vulnerabilities",
+			fields: fields{
+				PreventKnownVulnerabilities: true,
+			},
+			args: args{
+				raw: &checker.RawResults{
+					VulnerabilitiesResults: checker.VulnerabilitiesData{
+						Vulnerabilities: []clients.Vulnerability{
+							{ID: "foo"},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "binary artifacts",
+			fields: fields{
+				PreventBinaryArtifacts: true,
+			},
+			args: args{
+				raw: &checker.RawResults{
+					BinaryArtifactResults: checker.BinaryArtifactData{Files: []checker.File{
+						{Path: "a"},
+						{Path: "b"},
+					}},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "unpinned dependencies",
+			fields: fields{
+				PreventUnpinnedDependencies: true,
+			},
+			args: args{
+				raw: &checker.RawResults{
+					PinningDependenciesResults: checker.PinningDependenciesData{
+						Dependencies: []checker.Dependency{
+							{Name: asPointer("foo"), PinnedAt: asPointer("abcdef")},
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "code review",
+			fields: fields{
+				EnsureCodeReviewed: true,
+			},
+			args: args{
+				raw: &checker.RawResults{
+					CodeReviewResults: checker.CodeReviewData{
+						DefaultBranchChangesets: []checker.Changeset{
+							{
+								RevisionID: "1",
+								Commits:    []clients.Commit{{SHA: "a"}},
+							},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ap := &AttestationPolicy{
+				PreventBinaryArtifacts:      tt.fields.PreventBinaryArtifacts,
+				AllowedBinaryArtifacts:      tt.fields.AllowedBinaryArtifacts,
+				PreventKnownVulnerabilities: tt.fields.PreventKnownVulnerabilities,
+				PreventUnpinnedDependencies: tt.fields.PreventUnpinnedDependencies,
+				AllowedUnpinnedDependencies: tt.fields.AllowedUnpinnedDependencies,
+				EnsureCodeReviewed:          tt.fields.EnsureCodeReviewed,
+				CodeReviewRequirements:      tt.fields.CodeReviewRequirements,
+			}
+			got, err := ap.EvaluateResults(tt.args.raw)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("EvaluateResults() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("EvaluateResults() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

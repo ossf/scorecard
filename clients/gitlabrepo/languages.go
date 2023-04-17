@@ -40,7 +40,7 @@ func (handler *languagesHandler) init(repourl *repoURL) {
 func (handler *languagesHandler) setup() error {
 	handler.once.Do(func() {
 		client := handler.glClient
-		languageMap, _, err := client.Projects.GetProjectLanguages(handler.repourl.projectID)
+		languageMap, _, err := client.Projects.GetProjectLanguages(handler.repourl.project)
 		if err != nil || languageMap == nil {
 			handler.errSetup = fmt.Errorf("request for repo languages failed with %w", err)
 			return

@@ -51,9 +51,9 @@ type Client struct {
 	webhook       *webhookHandler
 	languages     *languagesHandler
 	licenses      *licensesHandler
+	tarball       *tarballHandler
 	ctx           context.Context
-	// tarball       tarballHandler
-	commitDepth int
+	commitDepth   int
 }
 
 // InitRepo sets up the GitLab project in local storage for improving performance and GitLab token usage efficiency.
@@ -64,9 +64,10 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	}
 
 	// Sanity check.
-	repo, _, err := client.glClient.Projects.GetProject(glRepo.projectID, &gitlab.GetProjectOptions{})
+	proj := fmt.Sprintf("%s/%s", glRepo.owner, glRepo.project)
+	repo, _, err := client.glClient.Projects.GetProject(proj, &gitlab.GetProjectOptions{})
 	if err != nil {
-		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
+		return sce.WithMessage(sce.ErrRepoUnreachable, proj+"\t"+err.Error())
 	}
 	if commitDepth <= 0 {
 		client.commitDepth = 30 // default
@@ -75,8 +76,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	}
 	client.repo = repo
 	client.repourl = &repoURL{
-		hostname:      inputRepo.URI(),
-		projectID:     fmt.Sprint(repo.ID),
+		scheme:        glRepo.scheme,
+		host:          glRepo.host,
+		project:       fmt.Sprint(repo.ID),
 		defaultBranch: repo.DefaultBranch,
 		commitSHA:     commitSHA,
 	}
@@ -127,13 +129,14 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	// Init languagesHandler
 	client.licenses.init(client.repourl)
 
-	// Init tarballHandler.
-	// client.tarball.init(client.ctx, client.repourl, client.repo, commitSHA)
+	// Init tarballHandler
+	client.tarball.init(client.ctx, client.repourl, repo, commitSHA)
+
 	return nil
 }
 
 func (client *Client) URI() string {
-	return fmt.Sprintf("%s/%s/%s", client.repourl.hostname, client.repourl.owner, client.repourl.projectID)
+	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.project)
 }
 
 func (client *Client) LocalPath() (string, error) {
@@ -141,11 +144,11 @@ func (client *Client) LocalPath() (string, error) {
 }
 
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	return nil, nil
+	return client.tarball.listFiles(predicate)
 }
 
 func (client *Client) GetFileContent(filename string) ([]byte, error) {
-	return nil, nil
+	return client.tarball.getFileContent(filename)
 }
 
 func (client *Client) ListCommits() ([]clients.Commit, error) {
@@ -182,6 +185,10 @@ func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 
 func (client *Client) GetCreatedAt() (time.Time, error) {
 	return client.project.getCreatedAt()
+}
+
+func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	return nil, fmt.Errorf("GetOrgRepoClient (GitLab): %w", clients.ErrUnsupportedFeature)
 }
 
 func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
@@ -222,7 +229,7 @@ func (client *Client) Close() error {
 }
 
 func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients.Repo) (clients.RepoClient, error) {
-	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.URI()))
+	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.Host()))
 	if err != nil {
 		return nil, fmt.Errorf("could not create gitlab client with error: %w", err)
 	}
@@ -269,10 +276,23 @@ func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients
 		languages: &languagesHandler{
 			glClient: client,
 		},
+		licenses: &licensesHandler{},
+		tarball:  &tarballHandler{},
 	}, nil
 }
 
 // TODO(#2266): implement CreateOssFuzzRepoClient.
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("%w, oss fuzz currently only supported for github repos", clients.ErrUnsupportedFeature)
+}
+
+// DetectGitLab: check whether the repoURI is a GitLab URI
+// Makes HTTP request to GitLab API.
+func DetectGitLab(repoURI string) bool {
+	var repo repoURL
+	if err := repo.parse(repoURI); err != nil {
+		return false
+	}
+
+	return repo.IsValid() == nil
 }

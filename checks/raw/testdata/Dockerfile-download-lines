@@ -40,3 +40,26 @@ RUN echo hello && \
 #    pip install -r requirements.txt -i https://pypi.doubanio.com/simple --trusted-host pypi.doubanio.com || \
 RUN bla && \
 	pip install -r requirements.txt
+
+RUN pip install --no-deps --editable .
+RUN pip install --no-deps -e .
+RUN pip install --no-deps -e hg+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install --no-deps -e svn+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install --no-deps -e bzr+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install --no-deps -e git+https://github.com/username/repo.git
+RUN pip install --no-deps -e git+https://github.com/username/repo.git#egg=package
+RUN pip install --no-deps -e git+https://github.com/username/repo.git@v1.0
+RUN pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package
+RUN pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567
+RUN pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install --no-deps -e git+https://github.com/username/repo@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install --no-deps -e git+http://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install --no-deps -e git+ssh://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install --no-deps -e git+git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install --no-deps -e git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+RUN pip install --no-deps -e . git+https://github.com/username/repo.git
+RUN pip install --no-deps -e . git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+
+RUN python -m pip install --no-deps -e git+https://github.com/username/repo.git
+RUN python -m pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package

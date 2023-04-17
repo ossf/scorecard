@@ -91,6 +91,44 @@ jobs:
       - name:
         run: /bin/pip3 install -X -H somepkg
       - name:
+        run: pip install --no-deps --editable .
+      - name:
+        run: pip install --no-deps -e .
+      - name:
+        run: pip install --no-deps -e hg+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
+        run: pip install --no-deps -e svn+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
+        run: pip install --no-deps -e bzr+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
+        run: pip install --no-deps -e git+https://github.com/username/repo.git
+      - name:
+        run: pip install --no-deps -e git+https://github.com/username/repo.git#egg=package
+      - name:
+        run: pip install --no-deps -e git+https://github.com/username/repo.git@v1.0
+      - name:
+        run: pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package
+      - name:
+        run: pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567
+      - name:
+        run: pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
+        run: pip install --no-deps -e git+https://github.com/username/repo@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
+        run: pip install --no-deps -e git+http://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
+        run: pip install --no-deps -e git+ssh://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
+        run: pip install --no-deps -e git+git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
+        run: pip install --no-deps -e git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
+        run: pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
+        run: pip install --no-deps -e . git+https://github.com/username/repo.git
+      - name:
+        run: pip install --no-deps -e . git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
         run: python -m notpip -X bla
       - name:
         run: python2.7 -m pip install -X -H somepkg 'some-ther==1.2.3' 'somebla<3.4.5'
@@ -109,6 +147,10 @@ jobs:
       - name:
         run: python -m pip install 'some-pkg>1.2.3'
       - name:
+        run: python -m pip install --no-deps -e git+https://github.com/username/repo.git
+      - name:
+        run: python -m pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+      - name:
         run: pip3 install -r bla-requirements.txt --require-hashes && pip3 install --require-hashes -r bla-requirements.txt
       - name:
         run: choco install 'some-package'
@@ -120,3 +162,25 @@ jobs:
         run: choco install --requirechecksums 'some-package'
       - name:
         run: choco install --require-checksums 'some-package'
+      - name:
+        run: nuget install 'some-package'
+      - name:
+        run: nuget restore
+      - name:
+        run: dotnet add package 'some-package'
+      - name:
+        run: dotnet add SomeProject package 'some-package'
+      - name:
+        run: nuget install 'some-package' -Version 1.2.3
+      - name:
+        run: nuget install packages.config
+      - name:
+        run: nuget install packages/packages.config
+      - name:
+        run: dotnet add package 'some-package' -v 1.2.3
+      - name:
+        run: dotnet build
+      - name:
+        run: dotnet add package 'some-package' --version 1.2.3
+      - name:
+        run: dotnet add SomeProject package 'some-package' --version 1.2.3

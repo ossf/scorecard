@@ -75,7 +75,7 @@ The steps to writing a check are as follows:
 8.  Create e2e tests in `e2e/mycheck_test.go`. Use a dedicated repo that will
     not change over time, so that it's reliable for the tests.
 
-9.  Update the `checks/checks.yaml` with a description of your check.
+9.  Update the `docs/checks/internal/checks.yaml` with a description of your check.
 
 10. Generate `docs/check.md` using `make generate-docs`. This will validate and
     generate `docs/check.md`.
