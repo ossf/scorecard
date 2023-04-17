@@ -71,8 +71,10 @@ func (handler *branchesHandler) setup() error {
 
 			projectStatusChecks, resp, err := handler.glClient.ExternalStatusChecks.ListProjectStatusChecks(
 				handler.repourl.project, &gitlab.ListOptions{})
-			if err != nil && resp.StatusCode != 404 {
+			if (err != nil || resp.StatusCode != 404) &&
+				resp.StatusCode != 401 { // 401: permissions. pass token authorization issues silently
 				handler.errSetup = fmt.Errorf("request for external status checks failed with error %w", err)
+				return
 			}
 
 			projectApprovalRule, resp, err := handler.glClient.Projects.GetApprovalConfiguration(handler.repourl.project)

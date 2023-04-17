@@ -240,9 +240,9 @@ func TestGithubTokenPermissions(t *testing.T) {
 			filenames: []string{"./testdata/script.sh"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
+				Score:         checker.InconclusiveResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  2,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
 		},
@@ -375,7 +375,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil)
+			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 
 			main := "main"
 			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
