@@ -691,22 +691,17 @@ func isChocoUnpinnedDownload(cmd []string) bool {
 	return true
 }
 
-func isUnpinnedNugetCliInstall(cmd []string) bool {
+func isNugetCliInstall(cmd []string) bool {
 	// looking for command of type nuget install ...
 	if len(cmd) < 2 {
 		return false
 	}
 
-	// Search for nuget commands.
-	if !isBinaryName("nuget", cmd[0]) && !isBinaryName("nuget.exe", cmd[0]) {
-		return false
-	}
+	// Search for nuget install commands.
+	return (isBinaryName("nuget", cmd[0]) || isBinaryName("nuget.exe", cmd[0])) && strings.EqualFold(cmd[1], "install")
+}
 
-	// Search for install commands.
-	if !strings.EqualFold(cmd[1], "install") {
-		return false
-	}
-
+func isUnpinnedNugetCliInstall(cmd []string) bool {
 	// Assume installing a project with PackageReference (with versions)
 	// or packages.config at the root of command
 	if len(cmd) == 2 {
@@ -734,26 +729,17 @@ func isUnpinnedNugetCliInstall(cmd []string) bool {
 	return unpinnedDependency
 }
 
-func isUnpinnedDotNetCliInstall(cmd []string) bool {
+func isDotNetCliInstall(cmd []string) bool {
 	// Search for command of type dotnet add <PROJECT> package <PACKAGE_NAME>
 	if len(cmd) < 4 {
 		return false
 	}
-	// Search for dotnet commands.
-	if !isBinaryName("dotnet", cmd[0]) && !isBinaryName("dotnet.exe", cmd[0]) {
-		return false
-	}
+	// Search for dotnet add <PROJECT> package <PACKAGE_NAME>
+	// where package command can be either the second or the third word
+	return (isBinaryName("dotnet", cmd[0]) || isBinaryName("dotnet.exe", cmd[0])) && strings.EqualFold(cmd[1], "add") && (strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package"))
+}
 
-	// Search for add commands.
-	if !strings.EqualFold(cmd[1], "add") {
-		return false
-	}
-
-	// Search for package commands (can be either the second or the third word)
-	if !(strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package")) {
-		return false
-	}
-
+func isUnpinnedDotNetCliInstall(cmd []string) bool {
 	unpinnedDependency := true
 	for i := 3; i < len(cmd); i++ {
 		// look for version flag
@@ -766,12 +752,16 @@ func isUnpinnedDotNetCliInstall(cmd []string) bool {
 	return unpinnedDependency
 }
 
+func isNugetDownload(cmd []string) bool {
+	return isDotNetCliInstall(cmd) || isNugetCliInstall(cmd)
+}
+
 func isNugetUnpinnedDownload(cmd []string) bool {
-	if isUnpinnedDotNetCliInstall(cmd) {
+	if isDotNetCliInstall(cmd) && isUnpinnedDotNetCliInstall(cmd) {
 		return true
 	}
 
-	if isUnpinnedNugetCliInstall(cmd) {
+	if isNugetCliInstall(cmd) && isUnpinnedNugetCliInstall(cmd) {
 		return true
 	}
 
@@ -874,7 +864,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 	}
 
 	// Nuget install.
-	if isNugetUnpinnedDownload(c) {
+	if isNugetDownload(c) {
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
 				Location: &checker.File{
@@ -884,6 +874,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
+				Pinned: asBoolPointer(!isNugetUnpinnedDownload(c)),
 				Type: checker.DependencyUseTypeNugetCommand,
 			},
 		)
