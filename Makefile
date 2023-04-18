@@ -324,6 +324,11 @@ ifndef GITHUB_AUTH_TOKEN
 	$(error GITHUB_AUTH_TOKEN is undefined)
 endif
 
+check-env-gitlab:
+ifndef GITLAB_AUTH_TOKEN
+	$(error GITLAB_AUTH_TOKEN is undefined)
+endif
+
 e2e-pat: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
 e2e-pat: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
@@ -335,10 +340,11 @@ e2e-gh-token: build-scorecard check-env | $(GINKGO)
 	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
 
 e2e-gitlab-token: ## Runs e2e tests that require a GITLAB_TOKEN
+e2e-gitlab-token: build-scorecard check-env-gitlab | $(GINKGO)
 	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv --focus '.*GitLab Token' ./...
 
 e2e-gitlab: ## Runs e2e tests for GitLab only. TOKEN_TYPE is not used (since these are public APIs), but must be set to something
-e2e-gitlab: build-scorecard check-env | $(GINKGO)
+e2e-gitlab: build-scorecard check-env-gitlab | $(GINKGO)
 	TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv --focus '.*GitLab' ./...
 
 e2e-attestor: ## Runs e2e tests for scorecard-attestor
