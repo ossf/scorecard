@@ -15,7 +15,7 @@ jobs:
       ldflags: ${{ steps.ldflags.outputs.value }}
     steps:
       - id: checkout
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2.3.4
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
         with:
           fetch-depth: 0
       - id: ldflags
@@ -29,7 +29,7 @@ jobs:
       contents: write
       actions: read
     needs: args
-    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@bdd89e60dc5387d8f819bebc702987956bcd4913 # v1.2.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v1.5.0 # v1.2.0
     with:
       go-version: 1.19
       evaluated-envs: "VERSION_LDFLAGS:${{needs.args.outputs.ldflags}}"

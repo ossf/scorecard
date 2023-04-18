@@ -44,7 +44,7 @@ const (
 const (
 	// DetailInfo is info-level log.
 	DetailInfo DetailType = iota
-	// DetailWarn is warn log.
+	// DetailWarn is warned log.
 	DetailWarn
 	// DetailDebug is debug log.
 	DetailDebug
@@ -75,7 +75,7 @@ type CheckDetail struct {
 //
 //nolint:govet
 type LogMessage struct {
-	// Structured resuts.
+	// Structured results.
 	Finding *finding.Finding
 
 	// Non-structured results.
@@ -127,13 +127,11 @@ func NormalizeReason(reason string, score int) string {
 }
 
 // CreateResultWithScore is used when
-// the check runs without runtime errors and we want to assign a
+// the check runs without runtime errors, and we want to assign a
 // specific score.
 func CreateResultWithScore(name, reason string, score int) CheckResult {
 	return CheckResult{
-		Name: name,
-		// Old structure.
-		// New structure.
+		Name:    name,
 		Version: 2,
 		Error:   nil,
 		Score:   score,
@@ -144,8 +142,8 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 // CreateProportionalScoreResult is used when
 // the check runs without runtime errors and we assign a
 // proportional score. This may be used if a check contains
-// multiple tests and we want to assign a score proportional
-// the the number of tests that succeeded.
+// multiple tests, and we want to assign a score proportional
+// the number of tests that succeeded.
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	score := CreateProportionalScore(b, t)
 	return CheckResult{
@@ -178,9 +176,7 @@ func CreateMinScoreResult(name, reason string) CheckResult {
 // have enough evidence to set a score.
 func CreateInconclusiveResult(name, reason string) CheckResult {
 	return CheckResult{
-		Name: name,
-		// Old structure.
-		// New structure.
+		Name:    name,
 		Version: 2,
 		Score:   InconclusiveResultScore,
 		Reason:  reason,
@@ -190,9 +186,7 @@ func CreateInconclusiveResult(name, reason string) CheckResult {
 // CreateRuntimeErrorResult is used when the check fails to run because of a runtime error.
 func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	return CheckResult{
-		Name: name,
-		// Old structure.
-		// New structure.
+		Name:    name,
 		Version: 2,
 		Error:   e,
 		Score:   InconclusiveResultScore,

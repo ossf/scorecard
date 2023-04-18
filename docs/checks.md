@@ -102,7 +102,7 @@ Note: If Scorecard is run without an administrative access token, the requiremen
 Tier 1 Requirements (3/10 points):
   - Prevent force push
   - Prevent branch deletion
-  - For administrators: Do not allow bypassing the above settings
+  - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
   - Required reviewers >=1
@@ -336,7 +336,8 @@ This check tries to determine if the project uses
 [fuzzing](https://owasp.org/www-community/Fuzzing) by checking:
 1. if the repository name is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list;
 2. if [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) is deployed in the repository;
-3. if there are user-defined language-specified fuzzing functions (currently only supports [Go fuzzing](https://go.dev/doc/fuzz/)) in the repository.
+3. if there are user-defined language-specified fuzzing functions in the repository.
+   - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/) and a limited set of property-based testing libraries for Haskell.
 4. if it contains a [OneFuzz](https://github.com/microsoft/onefuzz) integration [detection file](https://github.com/microsoft/onefuzz/blob/main/docs/getting-started.md#detecting-the-use-of-onefuzz);
 
 Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
@@ -502,7 +503,7 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
  
 
 **Remediation steps**
-- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
+- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python, `packages.config` for nuget). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
 - If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
 - For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
 - For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
