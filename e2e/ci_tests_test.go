@@ -96,8 +96,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 12,
+				NumberOfInfo:  12,
+				NumberOfDebug: 0,
 			}
 			result := checks.CITests(&req)
 			Expect(scut.ValidateTestReturn(nil, "CI tests run", &expected, &result, &dl)).Should(BeTrue())
