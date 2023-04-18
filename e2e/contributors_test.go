@@ -56,8 +56,8 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 			Expect(scut.ValidateTestReturn(nil, "several contributors", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		It("Should return valid project contributors, but only from single org - GitLab", func() {
-			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
+		It("Should return valid project contributors, but only from single org - GitLab Token", func() {
+			skipIfTokenIsNot(gitlabPATTokenType, "GitLab token only")
 
 			dl := scut.TestDetailLogger{}
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/ossf-test/gitlab")
@@ -84,8 +84,8 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 			Expect(scut.ValidateTestReturn(nil, "several contributors", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		It("Should return valid project contributors from multiple orgs - GitLab", func() {
-			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
+		It("Should return valid project contributors from multiple orgs - GitLab Token", func() {
+			skipIfTokenIsNot(gitlabPATTokenType, "GitLab token only")
 
 			dl := scut.TestDetailLogger{}
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/ossf-test/fdroidclient")

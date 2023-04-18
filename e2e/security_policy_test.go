@@ -174,8 +174,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			Expect(x.Close()).Should(BeNil())
 		})
 		It("Should return valid security policy - GitLab", func() {
-			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
-
 			dl := scut.TestDetailLogger{}
 			// project url is gitlab.com/bramw/baserow.
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/ossf-test/baserow")
@@ -205,8 +203,6 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return valid security policy at commitSHA - GitLab", func() {
-			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
-
 			dl := scut.TestDetailLogger{}
 			// project url is gitlab.com/bramw/baserow.
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/ossf-test/baserow")

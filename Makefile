@@ -341,11 +341,11 @@ e2e-gh-token: build-scorecard check-env | $(GINKGO)
 
 e2e-gitlab-token: ## Runs e2e tests that require a GITLAB_TOKEN
 e2e-gitlab-token: build-scorecard check-env-gitlab | $(GINKGO)
-	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv --focus '.*GitLab Token' ./...
+	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv --focus '.*GitLab' ./...
 
 e2e-gitlab: ## Runs e2e tests for GitLab only. TOKEN_TYPE is not used (since these are public APIs), but must be set to something
-e2e-gitlab: build-scorecard check-env-gitlab | $(GINKGO)
-	TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv --focus '.*GitLab' ./...
+e2e-gitlab: build-scorecard | $(GINKGO)
+	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="PAT" $(GINKGO) --race -p -vv --focus ".*GitLab" ./...
 
 e2e-attestor: ## Runs e2e tests for scorecard-attestor
 	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..
