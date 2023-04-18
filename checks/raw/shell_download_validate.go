@@ -504,7 +504,6 @@ func isFlag(cmd string) bool {
 }
 
 func isUnpinnedPipInstall(cmd []string) bool {
-	isInstall := false
 	hasNoDeps := false
 	isEditableInstall := false
 	isPinnedEditableInstall := true
@@ -512,16 +511,6 @@ func isUnpinnedPipInstall(cmd []string) bool {
 	hasAdditionalArgs := false
 	hasWheel := false
 	for i := 2; i < len(cmd); i++ {
-		// Search for install commands.
-		if strings.EqualFold(cmd[i], "install") {
-			isInstall = true
-			continue
-		}
-
-		if !isInstall {
-			break
-		}
-
 		// Require --no-deps to not install the dependencies when doing editable install
 		// because we can't verify if dependencies are pinned
 		// https://pip.pypa.io/en/stable/topics/secure-installs/#do-not-use-setuptools-directly
