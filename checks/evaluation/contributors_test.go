@@ -128,7 +128,7 @@ func TestContributors(t *testing.T) {
 						NumContributions: 1,
 						Organizations: []clients.User{
 							{
-								Login: "org2",
+								Login: "org10",
 							},
 						},
 					},
