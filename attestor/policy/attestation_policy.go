@@ -267,7 +267,7 @@ func CheckNoUnpinnedDependencies(
 ) (PolicyResult, error) {
 	for i := range results.PinningDependenciesResults.Dependencies {
 		dep := results.PinningDependenciesResults.Dependencies[i]
-		if (dep.PinnedAt == nil || *dep.PinnedAt == "") && !isUnpinnedDependencyAllowed(dep, allowed) {
+		if *dep.Pinned == false && !isUnpinnedDependencyAllowed(dep, allowed) {
 			logger.Info(fmt.Sprintf("found unpinned dependency %v", dep))
 			return Fail, nil
 		}
