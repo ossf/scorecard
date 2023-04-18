@@ -867,7 +867,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					Snippet:   cmd,
 				},
 				Pinned: asBoolPointer(!isNugetUnpinnedDownload(c)),
-				Type:	checker.DependencyUseTypeNugetCommand,
+				Type:   checker.DependencyUseTypeNugetCommand,
 			},
 		)
 
