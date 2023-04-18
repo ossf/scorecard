@@ -79,6 +79,8 @@ jobs:
           retry_on: error
           timeout_minutes: 30
           command: make e2e-gitlab
+        env: # Or as an environment variable
+          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
 
       - name: codecov
         uses: codecov/codecov-action@40a12dcee2df644d47232dde008099a3e9e4f865 # 2.1.0
