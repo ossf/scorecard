@@ -338,6 +338,7 @@ e2e-gitlab-token: ## Runs e2e tests that require a GITLAB_TOKEN
 	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv --focus '.*GitLab Token' ./...
 
 e2e-gitlab: ## Runs e2e tests for GitLab only. TOKEN_TYPE is not used (since these are public APIs), but must be set to something
+e2e-gitlab: build-scorecard check-env | $(GINKGO)
 	TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv --focus '.*GitLab' ./...
 
 e2e-attestor: ## Runs e2e tests for scorecard-attestor
