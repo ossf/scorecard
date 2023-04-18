@@ -725,9 +725,10 @@ func isDotNetCliInstall(cmd []string) bool {
 	}
 	// Search for dotnet add <PROJECT> package <PACKAGE_NAME>
 	// where package command can be either the second or the third word
-	return (isBinaryName("dotnet", cmd[0]) || isBinaryName("dotnet.exe", cmd[0])) &&
-			strings.EqualFold(cmd[1], "add") &&
-			(strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package"))
+	isDotNetCmd := isBinaryName("dotnet", cmd[0]) || isBinaryName("dotnet.exe", cmd[0])
+	hasAddArg := strings.EqualFold(cmd[1], "add")
+	hasPackageArg := strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package")
+	return isDotNetCmd && hasAddArg && hasPackageArg
 }
 
 func isUnpinnedDotNetCliInstall(cmd []string) bool {
