@@ -18,9 +18,11 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -75,6 +77,13 @@ type tarballHandler struct {
 	files       []string
 }
 
+type gitLabLint struct {
+	Valid      bool     `json:"valid"`
+	MergedYaml string   `json:"merged_yaml"`
+	Errors     []string `json:"errors"`
+	Warnings   []string `json:"warnings"`
+}
+
 func (handler *tarballHandler) init(ctx context.Context, repourl *repoURL, repo *gitlab.Project, commitSHA string) {
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
@@ -114,22 +123,6 @@ func (handler *tarballHandler) setup() error {
 func (handler *tarballHandler) getTarball() error {
 	url := fmt.Sprintf("%s/api/v4/projects/%d/repository/archive.tar.gz?sha=%s",
 		handler.repourl.Host(), handler.repo.ID, handler.commitSHA)
-	req, err := http.NewRequestWithContext(handler.ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return fmt.Errorf("http.NewRequestWithContext: %w", err)
-	}
-	req.Header.Set("PRIVATE-TOKEN", os.Getenv("GITLAB_AUTH_TOKEN"))
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("http.DefaultClient.Do: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// Handler 400/404 errors.
-	switch resp.StatusCode {
-	case http.StatusNotFound, http.StatusBadRequest:
-		return fmt.Errorf("%w: %s", errTarballNotFound, url)
-	}
 
 	// Create a temp file.  This automatically appends a random number to the name.
 	tempDir, err := os.MkdirTemp("", repoDir)
@@ -138,16 +131,57 @@ func (handler *tarballHandler) getTarball() error {
 	}
 	repoFile, err := os.CreateTemp(tempDir, repoFilename)
 	if err != nil {
-		return fmt.Errorf("os.CreateTemp: %w", err)
-	}
-	defer repoFile.Close()
-	if _, err := io.Copy(repoFile, resp.Body); err != nil {
-		// If the incomming tarball is corrupted or the server times out.
 		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
 	}
+	defer repoFile.Close()
+	err = apiFunction(handler, url, tempDir, repoFile)
+	if err != nil {
+		return err
+	}
+	//Gitlab url for pulling combined ci
+	url = fmt.Sprintf("%s/api/v4/projects/%d/ci/lint",
+		handler.repourl.Host(), handler.repo.ID)
+	ciFile, _ := os.CreateTemp(tempDir, "qltz_ci_lint*.json")
+	err = apiFunction(handler, url, tempDir, ciFile)
+	if err != nil {
+		return err
+	}
+
+	byteValue, _ := ioutil.ReadFile(ciFile.Name())
+	var result gitLabLint
+	json.Unmarshal([]byte(byteValue), &result)
+
+	ciYaml, _ := os.CreateTemp(tempDir, "qltz_ci*.yaml")
+	defer ciYaml.Close()
+	ciYaml.WriteString(result.MergedYaml)
+	ciYaml.Sync()
 
 	handler.tempDir = tempDir
 	handler.tempTarFile = repoFile.Name()
+	return nil
+}
+
+func apiFunction(handler *tarballHandler, url string, tempDir string, repoFile *os.File) error {
+	req, err := http.NewRequestWithContext(handler.ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
+	}
+	req.Header.Set("PRIVATE-TOKEN", os.Getenv("GITLAB_AUTH_TOKEN"))
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
+	}
+	defer resp.Body.Close()
+
+	// Handler 400/404 errors.
+	switch resp.StatusCode {
+	case http.StatusNotFound, http.StatusBadRequest:
+		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
+	}
+	if _, err := io.Copy(repoFile, resp.Body); err != nil {
+		// If the incoming tarball is corrupted or the server times out.
+		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
+	}
 	return nil
 }
 
