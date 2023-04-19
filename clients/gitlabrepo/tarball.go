@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -78,10 +77,10 @@ type tarballHandler struct {
 }
 
 type gitLabLint struct {
-	Valid      bool     `json:"valid"`
 	MergedYaml string   `json:"merged_yaml"`
 	Errors     []string `json:"errors"`
 	Warnings   []string `json:"warnings"`
+	Valid      bool     `json:"valid"`
 }
 
 func (handler *tarballHandler) init(ctx context.Context, repourl *repoURL, repo *gitlab.Project, commitSHA string) {
@@ -136,32 +135,49 @@ func (handler *tarballHandler) getTarball() error {
 	defer repoFile.Close()
 	err = apiFunction(handler, url, tempDir, repoFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("gitlab.apiFunction: %w", err)
 	}
-	//Gitlab url for pulling combined ci
+	// Gitlab url for pulling combined ci
 	url = fmt.Sprintf("%s/api/v4/projects/%d/ci/lint",
 		handler.repourl.Host(), handler.repo.ID)
-	ciFile, _ := os.CreateTemp(tempDir, "qltz_ci_lint*.json")
+	ciFile, err := os.CreateTemp(tempDir, "qltz_ci_lint*.json")
+	if err != nil {
+		return fmt.Errorf("os.CreateTemp: %w", err)
+	}
 	err = apiFunction(handler, url, tempDir, ciFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("gitlab.apiFunction: %w", err)
+	}
+	byteValue, err := os.ReadFile(ciFile.Name())
+	if err != nil {
+		return fmt.Errorf("os.ReadFile: %w", err)
+	}
+	var result gitLabLint
+	err = json.Unmarshal(byteValue, &result)
+	if err != nil {
+		return fmt.Errorf("json.Unmarshal: %w", err)
 	}
 
-	byteValue, _ := ioutil.ReadFile(ciFile.Name())
-	var result gitLabLint
-	json.Unmarshal([]byte(byteValue), &result)
-
-	ciYaml, _ := os.CreateTemp(tempDir, "qltz_ci*.yaml")
+	ciYaml, err := os.CreateTemp(tempDir, "qltz_ci*.yaml")
+	if err != nil {
+		return fmt.Errorf("os.CreateTemp: %w", err)
+	}
 	defer ciYaml.Close()
-	ciYaml.WriteString(result.MergedYaml)
-	ciYaml.Sync()
+	_, err = ciYaml.WriteString(result.MergedYaml)
+	if err != nil {
+		return fmt.Errorf("os.File.WriteString: %w", err)
+	}
+	err = ciYaml.Sync()
+	if err != nil {
+		return fmt.Errorf("os.File.Sync: %w", err)
+	}
 
 	handler.tempDir = tempDir
 	handler.tempTarFile = repoFile.Name()
 	return nil
 }
 
-func apiFunction(handler *tarballHandler, url string, tempDir string, repoFile *os.File) error {
+func apiFunction(handler *tarballHandler, url, tempDir string, repoFile *os.File) error {
 	req, err := http.NewRequestWithContext(handler.ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
