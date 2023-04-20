@@ -174,6 +174,9 @@ func (handler *tarballHandler) getTarball() error {
 
 	handler.tempDir = tempDir
 	handler.tempTarFile = repoFile.Name()
+
+	handler.files = append(handler.files,
+		strings.TrimPrefix(ciYaml.Name(), filepath.Clean(handler.tempDir)+string(os.PathSeparator)))
 	return nil
 }
 
