@@ -140,7 +140,7 @@ func (handler *tarballHandler) getTarball() error {
 	// Gitlab url for pulling combined ci
 	url = fmt.Sprintf("%s/api/v4/projects/%d/ci/lint",
 		handler.repourl.Host(), handler.repo.ID)
-	ciFile, err := os.CreateTemp(tempDir, "qltz_ci_lint*.json")
+	ciFile, err := os.CreateTemp(tempDir, "gitlabscorecard_lint*.json")
 	if err != nil {
 		return fmt.Errorf("os.CreateTemp: %w", err)
 	}
@@ -158,7 +158,7 @@ func (handler *tarballHandler) getTarball() error {
 		return fmt.Errorf("json.Unmarshal: %w", err)
 	}
 
-	ciYaml, err := os.CreateTemp(tempDir, "qltz_ci*.yaml")
+	ciYaml, err := os.Create(tempDir + "/gitlabscorecard_flattened_ci.yaml")
 	if err != nil {
 		return fmt.Errorf("os.CreateTemp: %w", err)
 	}
