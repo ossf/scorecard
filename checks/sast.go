@@ -95,7 +95,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		case codeQlScore == checker.MaxResultScore:
 			const sastWeight = 3
 			const codeQlWeight = 7
-			c.Dlogger.Warn(&checker.LogMessage{
+			c.Dlogger.Debug(&checker.LogMessage{
 				Text: getNonCompliantPRMessage(nonCompliantPRs),
 			})
 			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, codeQlScore: codeQlWeight})
@@ -119,7 +119,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool is run on all commits")
 		}
 
-		c.Dlogger.Warn(&checker.LogMessage{
+		c.Dlogger.Debug(&checker.LogMessage{
 			Text: getNonCompliantPRMessage(nonCompliantPRs),
 		})
 		return checker.CreateResultWithScore(CheckSAST,
@@ -130,7 +130,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	return checker.CreateRuntimeErrorResult(CheckSAST, sce.WithMessage(sce.ErrScorecardInternal, "contact team"))
 }
 
-func sastToolInCheckRuns(c *checker.CheckRequest) (int, []int, error) {
+func sastToolInCheckRuns(c *checker.CheckRequest) (int, map[int]int, error) {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
 		return checker.InconclusiveResultScore, nil,
@@ -139,7 +139,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, []int, error) {
 
 	totalMerged := 0
 	totalTested := 0
-	nonCompliantPRs := []int{}
+	nonCompliantPRs := make(map[int]int)
 	for i := range commits {
 		pr := commits[i].AssociatedMergeRequest
 		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
@@ -175,7 +175,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, []int, error) {
 			}
 		}
 		if !checked {
-			nonCompliantPRs = append(nonCompliantPRs, pr.Number)
+			nonCompliantPRs[pr.Number] = pr.Number
 		}
 	}
 	if totalMerged == 0 {
@@ -336,10 +336,10 @@ func findLine(content, data []byte) (uint, error) {
 	return 0, nil
 }
 
-func getNonCompliantPRMessage(intSlice []int) string {
+func getNonCompliantPRMessage(intMap map[int]int) string {
 	var sb strings.Builder
-	for i, value := range intSlice {
-		if i > 0 {
+	for _, value := range intMap {
+		if len(sb.String()) != 0 {
 			sb.WriteString(", ")
 		}
 		sb.WriteString(fmt.Sprintf("%d", value))

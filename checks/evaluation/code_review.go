@@ -48,7 +48,7 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 	nUnreviewedHumanChanges := 0
 	nUnreviewedBotChanges := 0
 
-	var botReviewActivityRevisionIDs, unreviewedHumanRevisionIDs, unreviewedBotRevisionIDs []string
+	var unreviewedHumanRevisionIDs, unreviewedBotRevisionIDs []string
 	for i := range r.DefaultBranchChangesets {
 		cs := &r.DefaultBranchChangesets[i]
 		isReviewed := reviewScoreForChangeset(cs) >= changesReviewed
@@ -57,7 +57,6 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		switch {
 		case isReviewed && isBotCommit:
 			foundBotReviewActivity = true
-			botReviewActivityRevisionIDs = append(botReviewActivityRevisionIDs, cs.RevisionID)
 		case isReviewed && !isBotCommit:
 			foundHumanReviewActivity = true
 		case !isReviewed && isBotCommit:
@@ -70,12 +69,6 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 	}
 
 	// Let's include non-compliant revision IDs in details
-	if len(botReviewActivityRevisionIDs) > 0 {
-		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("List of revision IDs by bots:%s", strings.Join(botReviewActivityRevisionIDs, ",")),
-		})
-	}
-
 	if len(unreviewedHumanRevisionIDs) > 0 {
 		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("List of revision IDs not reviewed by humans:%s", strings.Join(unreviewedHumanRevisionIDs, ",")),

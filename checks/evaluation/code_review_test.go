@@ -151,7 +151,7 @@ func TestCodeReview(t *testing.T) {
 			name: "bot commits only",
 			expected: scut.TestReturn{
 				Score:         checker.InconclusiveResultScore,
-				NumberOfDebug: 2,
+				NumberOfDebug: 1,
 			},
 			rawData: &checker.CodeReviewData{
 				DefaultBranchChangesets: []checker.Changeset{
