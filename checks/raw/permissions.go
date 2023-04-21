@@ -374,6 +374,10 @@ func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissi
 		// allow our own action, which writes sarif files
 		// https://github.com/ossf/scorecard-action
 		"ossf/scorecard-action": true,
+
+		// Code scanning with HLint uploads a SARIF file to GitHub.
+		// https://github.com/haskell-actions/hlint-scan
+		"haskell-actions/hlint-scan": true,
 	}
 
 	tokenPermissions := checker.TokenPermission{

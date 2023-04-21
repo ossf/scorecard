@@ -313,6 +313,17 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
+			name:      "security-events write, known actions",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-secevent-known-actions.yaml"},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,  // This is constant.
+				NumberOfDebug: 8,  // This is 4 + (number of actions)
+			},
+		},
+		{
 			name: "two files mix run-level and top-level",
 			filenames: []string{
 				"./testdata/.github/workflows/github-workflow-permissions-top-level-only.yaml",
