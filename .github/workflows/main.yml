@@ -66,7 +66,7 @@ jobs:
      - name: Run unit-tests
        run: make unit-test
      - name: Upload codecoverage
-       uses: codecov/codecov-action@40a12dcee2df644d47232dde008099a3e9e4f865 # 2.1.0
+       uses: codecov/codecov-action@894ff025c7b54547a9a2a1e9f228beae737ad3c2 # 2.1.0
        with:
          files: ./unit-coverage.out
          verbose: true
