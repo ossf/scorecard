@@ -47,7 +47,6 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	if commit != "" {
 		gitCommits = append(gitCommits, commit)
 	}
-
 	res, err := osvscanner.DoScan(osvscanner.ScannerActions{
 		DirectoryPaths: directoryPaths,
 		SkipGit:        true,
