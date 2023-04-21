@@ -81,7 +81,7 @@ type Package struct {
 	Runs []Run
 }
 
-// DependencyUseType reprensets a type of dependency use.
+// DependencyUseType represents a type of dependency use.
 type DependencyUseType string
 
 const (
@@ -97,8 +97,10 @@ const (
 	DependencyUseTypeChocoCommand DependencyUseType = "chocoCommand"
 	// DependencyUseTypeNpmCommand is an npm command.
 	DependencyUseTypeNpmCommand DependencyUseType = "npmCommand"
-	// DependencyUseTypePipCommand is a pipp command.
+	// DependencyUseTypePipCommand is a pip command.
 	DependencyUseTypePipCommand DependencyUseType = "pipCommand"
+	// DependencyUseTypeNugetCommand is a nuget command.
+	DependencyUseTypeNugetCommand DependencyUseType = "nugetCommand"
 )
 
 // PinningDependenciesData represents pinned dependency data.
@@ -313,7 +315,8 @@ const (
 // DangerousWorkflowData contains raw results
 // for dangerous workflow check.
 type DangerousWorkflowData struct {
-	Workflows []DangerousWorkflow
+	Workflows    []DangerousWorkflow
+	NumWorkflows int
 }
 
 // DangerousWorkflow represents a dangerous workflow.
@@ -323,7 +326,7 @@ type DangerousWorkflow struct {
 	File File
 }
 
-// WorkflowJob reprresents a workflow job.
+// WorkflowJob represents a workflow job.
 type WorkflowJob struct {
 	Name *string
 	ID   *string
@@ -332,6 +335,7 @@ type WorkflowJob struct {
 // TokenPermissionsData represents data about a permission failure.
 type TokenPermissionsData struct {
 	TokenPermissions []TokenPermission
+	NumTokens        int
 }
 
 // PermissionLocation represents a declaration type.
@@ -348,7 +352,7 @@ const (
 type PermissionLevel string
 
 const (
-	// PermissionLevelUndeclared is an undecleared permission.
+	// PermissionLevelUndeclared is an undeclared permission.
 	PermissionLevelUndeclared PermissionLevel = "undeclared"
 	// PermissionLevelWrite is a permission set to `write` for a permission we consider potentially dangerous.
 	PermissionLevelWrite PermissionLevel = "write"

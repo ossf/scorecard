@@ -11,20 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+name: absent workflow
+on: [push]
 
-# golang:1.19
-FROM golang@sha256:403f48633fb5ebd49f9a2b6ad6719f912df23dae44974a0c9445be331e72ff5e AS base
-WORKDIR /src
-ENV CGO_ENABLED=0
-COPY go.* ./
-RUN go mod download
-COPY . ./
-
-FROM base AS worker
-ARG TARGETOS
-ARG TARGETARCH
-RUN CGO_ENABLED=0 make build-worker
-
-FROM gcr.io/distroless/base:nonroot@sha256:99133cb0878bb1f84d1753957c6fd4b84f006f2798535de22ebf7ba170bbf434
-COPY --from=worker /src/cron/internal/worker/worker cron/internal/worker/worker
-ENTRYPOINT ["cron/internal/worker/worker"]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+      - name: some name
+        uses: docker/build-push-action@1.2.3
