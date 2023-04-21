@@ -43,7 +43,23 @@ func TestDangerousWorkflow(t *testing.T) {
 				r:    &checker.DangerousWorkflowData{},
 			},
 			want: checker.CheckResult{
-				Score:   10,
+				Score:   checker.InconclusiveResultScore,
+				Reason:  "no workflows found",
+				Version: 2,
+				Name:    "DangerousWorkflow",
+			},
+		},
+		{
+			name: "DangerousWorkflow - found workflows, none dangerous",
+			args: args{
+				name: "DangerousWorkflow",
+				dl:   &scut.TestDetailLogger{},
+				r: &checker.DangerousWorkflowData{
+					NumWorkflows: 5,
+				},
+			},
+			want: checker.CheckResult{
+				Score:   checker.MaxResultScore,
 				Reason:  "no dangerous workflow patterns detected",
 				Version: 2,
 				Name:    "DangerousWorkflow",
@@ -55,6 +71,7 @@ func TestDangerousWorkflow(t *testing.T) {
 				name: "DangerousWorkflow",
 				dl:   &scut.TestDetailLogger{},
 				r: &checker.DangerousWorkflowData{
+					NumWorkflows: 1,
 					Workflows: []checker.DangerousWorkflow{
 						{
 							Type: checker.DangerousWorkflowUntrustedCheckout,
@@ -82,6 +99,7 @@ func TestDangerousWorkflow(t *testing.T) {
 				name: "DangerousWorkflow",
 				dl:   &scut.TestDetailLogger{},
 				r: &checker.DangerousWorkflowData{
+					NumWorkflows: 1,
 					Workflows: []checker.DangerousWorkflow{
 						{
 							Type: checker.DangerousWorkflowScriptInjection,
@@ -109,6 +127,7 @@ func TestDangerousWorkflow(t *testing.T) {
 				name: "DangerousWorkflow",
 				dl:   &scut.TestDetailLogger{},
 				r: &checker.DangerousWorkflowData{
+					NumWorkflows: 1,
 					Workflows: []checker.DangerousWorkflow{
 						{
 							Type: "foobar",
