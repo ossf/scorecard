@@ -14,6 +14,7 @@
 package evaluation
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -199,5 +200,259 @@ func Test_prHasSuccessfulCheck(t *testing.T) {
 		if got != tt.want {
 			t.Errorf("prHasSuccessfulCheck() = %v, want %v", got, tt.want)
 		}
+	}
+}
+
+func Test_prHasSuccessStatus(t *testing.T) {
+	t.Parallel()
+	type args struct { //nolint:govet
+		r  checker.RevisionCIInfo
+		dl checker.DetailLogger
+	}
+	tests := []struct { //nolint:govet
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "empty revision",
+			args: args{
+				r: checker.RevisionCIInfo{},
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "no statuses",
+			args: args{
+				r: checker.RevisionCIInfo{
+					Statuses: []clients.Status{},
+				},
+			},
+		},
+		{
+			name: "status is not success",
+			args: args{
+				r: checker.RevisionCIInfo{
+					Statuses: []clients.Status{
+						{
+							State: "failure",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "status is success",
+			args: args{
+				r: checker.RevisionCIInfo{
+					Statuses: []clients.Status{
+						{
+							State:   "success",
+							Context: CheckCITests,
+						},
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := prHasSuccessStatus(tt.args.r, tt.args.dl) //nolint:govet
+			if (err != nil) != tt.wantErr {                       //nolint:govet
+				t.Errorf("prHasSuccessStatus() error = %v, wantErr %v", err, tt.wantErr) //nolint:govet
+				return
+			}
+			if got != tt.want { //nolint:govet
+				t.Errorf("prHasSuccessStatus() got = %v, want %v", got, tt.want) //nolint:govet
+			}
+		})
+	}
+}
+
+func Test_prHasSuccessfulCheck1(t *testing.T) {
+	t.Parallel()
+	type args struct { //nolint:govet
+		r  checker.RevisionCIInfo
+		dl checker.DetailLogger
+	}
+	tests := []struct { //nolint:govet
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "empty revision",
+			args: args{
+				r: checker.RevisionCIInfo{},
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "status is not completed",
+			args: args{
+				r: checker.RevisionCIInfo{
+					CheckRuns: []clients.CheckRun{
+						{
+							Status: "notcompleted",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "status is not success",
+			args: args{
+				r: checker.RevisionCIInfo{
+					CheckRuns: []clients.CheckRun{
+						{
+							Status:     "completed",
+							Conclusion: "failure",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "conclusion is success",
+			args: args{
+				r: checker.RevisionCIInfo{
+					CheckRuns: []clients.CheckRun{
+						{
+							Status:     "completed",
+							Conclusion: "success",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "conclusion is succesls with a valid app slug",
+			args: args{
+				r: checker.RevisionCIInfo{
+					CheckRuns: []clients.CheckRun{
+						{
+							Status:     "completed",
+							Conclusion: "success",
+							App:        clients.CheckRunApp{Slug: "e2e"},
+						},
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := prHasSuccessfulCheck(tt.args.r, tt.args.dl)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("prHasSuccessfulCheck() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want { //nolint:govet
+				t.Errorf("prHasSuccessfulCheck() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCITests(t *testing.T) {
+	t.Parallel()
+	type args struct { //nolint:govet
+		in0 string
+		c   *checker.CITestData
+		dl  checker.DetailLogger
+	}
+	tests := []struct { //nolint:govet
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "Status completed with failure",
+			args: args{
+				in0: "",
+				c: &checker.CITestData{
+					CIInfo: []checker.RevisionCIInfo{
+						{
+							CheckRuns: []clients.CheckRun{
+								{
+									Status: "completed",
+									App:    clients.CheckRunApp{Slug: "e2e"},
+								},
+							},
+							Statuses: []clients.Status{
+								{
+									State:     "failure",
+									Context:   CheckCITests,
+									TargetURL: "e2e",
+								},
+							},
+						},
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want: 0,
+		},
+		{
+			name: "valid",
+			args: args{
+				in0: "",
+				c: &checker.CITestData{
+					CIInfo: []checker.RevisionCIInfo{
+						{
+							CheckRuns: []clients.CheckRun{
+								{
+									Status:     "completed",
+									Conclusion: "success",
+									App:        clients.CheckRunApp{Slug: "e2e"},
+								},
+							},
+							Statuses: []clients.Status{
+								{
+									State:     "success",
+									Context:   CheckCITests,
+									TargetURL: "e2e",
+								},
+							},
+						},
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want: 10,
+		},
+		{
+			name: "no ci info",
+			args: args{
+				in0: "",
+				c:   &checker.CITestData{},
+				dl:  &scut.TestDetailLogger{},
+			},
+			want: -1,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := CITests(tt.args.in0, tt.args.c, tt.args.dl); !reflect.DeepEqual(got.Score, tt.want) { //nolint:govet
+				t.Errorf("CITests() = %v, want %v", got.Score, tt.want) //nolint:govet
+			}
+		})
 	}
 }
