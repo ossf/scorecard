@@ -240,9 +240,9 @@ func TestGithubTokenPermissions(t *testing.T) {
 			filenames: []string{"./testdata/script.sh"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
+				Score:         checker.InconclusiveResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  2,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
 		},
@@ -313,6 +313,17 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
+			name:      "security-events write, known actions",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-secevent-known-actions.yaml"},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,  // This is constant.
+				NumberOfDebug: 8,  // This is 4 + (number of actions)
+			},
+		},
+		{
 			name: "two files mix run-level and top-level",
 			filenames: []string{
 				"./testdata/.github/workflows/github-workflow-permissions-top-level-only.yaml",
@@ -375,7 +386,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil)
+			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 
 			main := "main"
 			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()

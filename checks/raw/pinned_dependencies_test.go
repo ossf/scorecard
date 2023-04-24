@@ -261,7 +261,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 		{
 			name:     "npm packages without verification",
 			filename: "./testdata/.github/workflows/github-workflow-pkg-managers.yaml",
-			warns:    46,
+			warns:    49,
 		},
 	}
 	for _, tt := range tests {
@@ -819,6 +819,24 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 					endLine:   56,
 					t:         checker.DependencyUseTypePipCommand,
 				},
+				{
+					snippet:   "nuget install some-package",
+					startLine: 59,
+					endLine:   59,
+					t:         checker.DependencyUseTypeNugetCommand,
+				},
+				{
+					snippet:   "dotnet add package some-package",
+					startLine: 63,
+					endLine:   63,
+					t:         checker.DependencyUseTypeNugetCommand,
+				},
+				{
+					snippet:   "dotnet add SomeProject package some-package",
+					startLine: 64,
+					endLine:   64,
+					t:         checker.DependencyUseTypeNugetCommand,
+				},
 			},
 		},
 	}
@@ -971,7 +989,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/Dockerfile-pkg-managers",
-			warns:    57,
+			warns:    60,
 		},
 		{
 			name:     "download with some python",
@@ -1089,7 +1107,7 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/script-pkg-managers",
-			warns:    53,
+			warns:    56,
 		},
 		{
 			name:     "invalid shell script",

@@ -71,8 +71,7 @@ type Dependency struct {
 	Version     string `yaml:"version"`
 }
 
-// Allows us to run fewer scorecard checks if some policy values
-// are don't-cares.
+// GetRequiredChecksForPolicy Allows us to run fewer scorecard checks if some policy values are don't-cares.
 func (ap *AttestationPolicy) GetRequiredChecksForPolicy() map[string]bool {
 	requiredChecks := make(map[string]bool)
 
@@ -95,7 +94,7 @@ func (ap *AttestationPolicy) GetRequiredChecksForPolicy() map[string]bool {
 	return requiredChecks
 }
 
-// Run attestation policy checks on raw data.
+// EvaluateResults Run attestation policy checks on raw data.
 func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyResult, error) {
 	logger := sclog.NewLogger(sclog.DefaultLevel)
 	if ap.PreventBinaryArtifacts {
@@ -291,7 +290,7 @@ func isUnpinnedDependencyAllowed(d checker.Dependency, allowed []Dependency) boo
 	return false
 }
 
-// ParseFromFile takes a policy file and returns an AttestationPolicy.
+// ParseAttestationPolicyFromFile takes a policy file and returns an AttestationPolicy.
 func ParseAttestationPolicyFromFile(policyFile string) (*AttestationPolicy, error) {
 	if policyFile != "" {
 		data, err := os.ReadFile(policyFile)
@@ -315,7 +314,7 @@ func ParseAttestationPolicyFromFile(policyFile string) (*AttestationPolicy, erro
 	return nil, nil
 }
 
-// Parses a policy file and returns a AttestationPolicy.
+// ParseAttestationPolicyFromYAML parses a policy file and returns a AttestationPolicy.
 func ParseAttestationPolicyFromYAML(b []byte) (*AttestationPolicy, error) {
 	ap := AttestationPolicy{}
 
