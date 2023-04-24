@@ -133,7 +133,7 @@ func (handler *tarballHandler) getTarball() error {
 		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
 	}
 	defer repoFile.Close()
-	err = apiFunction(handler, url, tempDir, repoFile)
+	err = handler.apiFunction(url, tempDir, repoFile)
 	if err != nil {
 		return fmt.Errorf("gitlab.apiFunction: %w", err)
 	}
@@ -144,7 +144,7 @@ func (handler *tarballHandler) getTarball() error {
 	if err != nil {
 		return fmt.Errorf("os.CreateTemp: %w", err)
 	}
-	err = apiFunction(handler, url, tempDir, ciFile)
+	err = handler.apiFunction(url, tempDir, ciFile)
 	if err != nil {
 		return fmt.Errorf("gitlab.apiFunction: %w", err)
 	}
@@ -180,7 +180,7 @@ func (handler *tarballHandler) getTarball() error {
 	return nil
 }
 
-func apiFunction(handler *tarballHandler, url, tempDir string, repoFile *os.File) error {
+func (handler *tarballHandler) apiFunction(url, tempDir string, repoFile *os.File) error {
 	req, err := http.NewRequestWithContext(handler.ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
