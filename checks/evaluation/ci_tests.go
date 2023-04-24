@@ -62,7 +62,7 @@ func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checke
 			// Log message says commit, but really we only care about PRs, and
 			// use only one commit (branch HEAD) to refer to all commits in a PR
 			dl.Debug(&checker.LogMessage{
-				Text: fmt.Sprintf("merged PR without CI test at HEAD: %s", r.HeadSHA),
+				Text: fmt.Sprintf("merged PR %d without CI test at HEAD: %s", r.PullRequestNumber, r.HeadSHA),
 			})
 		}
 	}

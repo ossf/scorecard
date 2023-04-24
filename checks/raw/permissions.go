@@ -84,6 +84,8 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 		return true, nil
 	}
 
+	pdata.results.NumTokens += 1
+
 	workflow, errs := actionlint.Parse(content)
 	if len(errs) > 0 && workflow == nil {
 		return false, fileparser.FormatActionlintError(errs)
