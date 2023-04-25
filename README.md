@@ -433,7 +433,6 @@ These may be specified with the `--format` flag. For example, `--format=json`.
 
 The following checks are all run against the target project by default:
 
-[CII-Best-Practices](docs/checks.md#cii-best-practices)         | Has the project earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org) at the passing, silver, or gold level?                                                                                                                                                                                                                         | Low  | PAT, GITHUB_TOKEN   |
 Name        | Description                               | Risk Level | Token Required  | GitLab Support | Note
 ----------- | ----------------------------------------- | ---------- | --------------- | -------------- | --- |
 [Binary-Artifacts](docs/checks.md#binary-artifacts)             | Is the project free of checked-in binaries?     | High               | PAT, GITHUB_TOKEN   | Fully Supported |
