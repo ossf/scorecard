@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ const (
 	prodCompletionThreshold            = 0.99
 	prodWebhookURL                     = ""
 	prodCIIDataBucket                  = "gs://ossf-scorecard-cii-data"
-	prodBlacklistedChecks              = "CI-Tests,Contributors"
+	prodBlacklistedChecks              = "CI-Tests,Contributors,Dependency-Update-Tool,SAST,Vulnerabilities"
 	prodShardSize               int    = 10
 	prodMetricExporter          string = "stackdriver"
 	prodMetricStackdriverPrefix string = "scorecard-cron"

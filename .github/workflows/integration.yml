@@ -1,4 +1,4 @@
-# Copyright 2021 Security Scorecard Authors
+# Copyright 2021 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,18 +14,17 @@
 
 # Run secret-dependent integration tests only after approval
 name: Integration tests
-on: pull_request_target
+on: pull_request
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   approve:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+        uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -38,17 +37,17 @@ jobs:
     needs: [approve]
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+        uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
       - name: pull_request actions/checkout
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: setup-go
-        uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
         with:
           go-version: '1.19'
           check-latest: true
@@ -57,8 +56,22 @@ jobs:
         run: |
             go mod download
 
+      - name: Run GitLab E2E  #using retry because the GitHub token is being throttled.
+        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+        with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: make e2e-gitlab
+
+      - name: codecov
+        uses: codecov/codecov-action@894ff025c7b54547a9a2a1e9f228beae737ad3c2 # 2.1.0
+        with:
+         files: ./e2e-coverage.out
+         verbose: true
+
       - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled.
-        uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -67,46 +80,9 @@ jobs:
           timeout_minutes: 30
           command: make e2e-gh-token
 
-      - name: Run PAT E2E  #using retry because the GitHub token is being throttled.
-        uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
-        env:
-          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-        with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 30
-          command: make e2e-pat
-
-      - name: Run attestor e2e  #using retry because the GitHub token is being throttled.
-        uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
-        env:
-          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-        with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 10
-          command: make e2e-attestor
-
       - name: codecov
-        uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
+        uses: codecov/codecov-action@894ff025c7b54547a9a2a1e9f228beae737ad3c2 # 2.1.0
         with:
-         files: ./e2e-coverage.out,./attestor/e2e/e2e-coverage.out
+         files: ./e2e-coverage.out
          verbose: true
-
-      - name: find comment
-        uses: peter-evans/find-comment@b657a70ff16d17651703a84bee1cb9ad9d2be2ea # v2.0.1
-        id: fc
-        with:
-          issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: Integration tests ran for
-
-      - name: create or update comment
-        uses: peter-evans/create-or-update-comment@5adcb0bb0f9fb3f95ef05400558bdb3f329ee808 # v1.4.5
-        with:
-          issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          body: |
-            Integration tests ${{ job.status }} for
-            [${{ github.event.client_payload.slash_command.args.named.sha || github.event.pull_request.head.sha }}]
-            (https://github.com/ossf/scorecard/actions/runs/${{ github.run_id }})
+      

@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,10 +30,11 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
+	"github.com/ossf/scorecard/v4/clients/ossfuzz"
 	"github.com/ossf/scorecard/v4/cron/config"
 	"github.com/ossf/scorecard/v4/cron/data"
 	format "github.com/ossf/scorecard/v4/cron/internal/format"
-	"github.com/ossf/scorecard/v4/cron/internal/monitoring"
+	"github.com/ossf/scorecard/v4/cron/monitoring"
 	"github.com/ossf/scorecard/v4/cron/worker"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -92,8 +93,8 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	sw.logger = log.NewLogger(log.InfoLevel)
 	sw.repoClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
 	sw.ciiClient = clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
-	if sw.ossFuzzRepoClient, err = githubrepo.CreateOssFuzzRepoClient(sw.ctx, sw.logger); err != nil {
-		return nil, fmt.Errorf("githubrepo.CreateOssFuzzRepoClient: %w", err)
+	if sw.ossFuzzRepoClient, err = ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL); err != nil {
+		return nil, fmt.Errorf("ossfuzz.CreateOSSFuzzClientEager: %w", err)
 	}
 
 	sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
@@ -164,14 +165,14 @@ func processRequest(ctx context.Context,
 			delete(checksToRun, check)
 		}
 
-		result, err := pkg.RunScorecards(ctx, repo, commitSHA, checksToRun,
+		result, err := pkg.RunScorecard(ctx, repo, commitSHA, 0, checksToRun,
 			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
 		}
 		if err != nil {
-			return fmt.Errorf("error during RunScorecards: %w", err)
+			return fmt.Errorf("error during RunScorecard: %w", err)
 		}
 		for checkIndex := range result.Checks {
 			check := &result.Checks[checkIndex]
@@ -265,6 +266,9 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 
 func main() {
 	flag.Parse()
+	if err := config.ReadConfig(); err != nil {
+		panic(err)
+	}
 	sw, err := newScorecardWorker()
 	if err != nil {
 		panic(err)

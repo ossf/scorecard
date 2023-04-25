@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 const (
@@ -27,7 +28,7 @@ const (
 	success      = "success"
 )
 
-func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checker.CheckResult {
+func CITests(_ string, c *checker.CITestData, dl checker.DetailLogger) checker.CheckResult {
 	totalMerged := 0
 	totalTested := 0
 	for i := range c.CIInfo {
@@ -36,7 +37,7 @@ func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checke
 
 		var foundCI bool
 
-		// Github Statuses.
+		// GitHub Statuses.
 		prSuccessStatus, err := prHasSuccessStatus(r, dl)
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(CheckCITests, err)
@@ -47,7 +48,7 @@ func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checke
 			continue
 		}
 
-		// Github Check Runs.
+		// GitHub Check Runs.
 		prCheckSuccessful, err := prHasSuccessfulCheck(r, dl)
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(CheckCITests, err)
@@ -60,8 +61,9 @@ func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checke
 		if !foundCI {
 			// Log message says commit, but really we only care about PRs, and
 			// use only one commit (branch HEAD) to refer to all commits in a PR
+
 			dl.Debug(&checker.LogMessage{
-				Text: fmt.Sprintf("merged PR without CI test at HEAD: %s", r.HeadSHA),
+				Text: fmt.Sprintf("merged PR %d without CI test at HEAD: %s", r.PullRequestNumber, r.HeadSHA),
 			})
 		}
 	}
@@ -85,7 +87,7 @@ func prHasSuccessStatus(r checker.RevisionCIInfo, dl checker.DetailLogger) (bool
 		if isTest(status.Context) || isTest(status.TargetURL) {
 			dl.Debug(&checker.LogMessage{
 				Path: status.URL,
-				Type: checker.FileTypeURL,
+				Type: finding.FileTypeURL,
 				Text: fmt.Sprintf("CI test found: pr: %s, context: %s", r.HeadSHA,
 					status.Context),
 			})
@@ -109,7 +111,7 @@ func prHasSuccessfulCheck(r checker.RevisionCIInfo, dl checker.DetailLogger) (bo
 		if isTest(cr.App.Slug) {
 			dl.Debug(&checker.LogMessage{
 				Path: cr.URL,
-				Type: checker.FileTypeURL,
+				Type: finding.FileTypeURL,
 				Text: fmt.Sprintf("CI test found: pr: %d, context: %s", r.PullRequestNumber,
 					cr.App.Slug),
 			})
@@ -127,7 +129,7 @@ func isTest(s string) bool {
 	for _, pattern := range []string{
 		"appveyor", "buildkite", "circleci", "e2e", "github-actions", "jenkins",
 		"mergeable", "packit-as-a-service", "semaphoreci", "test", "travis-ci",
-		"flutter-dashboard", "Cirrus CI",
+		"flutter-dashboard", "Cirrus CI", "azure-pipelines",
 	} {
 		if strings.Contains(l, pattern) {
 			return true

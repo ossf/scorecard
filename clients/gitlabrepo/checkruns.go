@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ func (handler *checkrunsHandler) init(repourl *repoURL) {
 
 func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	pipelines, _, err := handler.glClient.Pipelines.ListProjectPipelines(
-		handler.repourl.projectID, &gitlab.ListProjectPipelinesOptions{})
+		handler.repourl.project, &gitlab.ListProjectPipelinesOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("request for pipelines returned error: %w", err)
 	}
@@ -47,11 +47,11 @@ func checkRunsFrom(data []*gitlab.PipelineInfo, ref string) []clients.CheckRun {
 	var checkRuns []clients.CheckRun
 	for _, pipelineInfo := range data {
 		if strings.EqualFold(pipelineInfo.Ref, ref) {
+			// TODO: Can get more info from GitLab API here (e.g. pipeline name, URL)
+			// https://docs.gitlab.com/ee/api/pipelines.html#get-a-pipelines-test-report
 			checkRuns = append(checkRuns, clients.CheckRun{
-				Status:     pipelineInfo.Status,
-				Conclusion: "",
-				URL:        pipelineInfo.WebURL,
-				App:        clients.CheckRunApp{Slug: pipelineInfo.Source},
+				Status: pipelineInfo.Status,
+				URL:    pipelineInfo.WebURL,
 			})
 		}
 	}

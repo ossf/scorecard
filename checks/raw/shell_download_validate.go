@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,10 +24,12 @@ import (
 	"regexp"
 	"strings"
 
+	"golang.org/x/exp/slices"
 	"mvdan.cc/sh/v3/syntax"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 var (
@@ -43,8 +45,9 @@ var (
 	pythonInterpreters = []string{"python", "python3", "python2.7"}
 	shellInterpreters  = append([]string{"exec", "su"}, shellNames...)
 	otherInterpreters  = []string{"perl", "ruby", "php", "node", "nodejs", "java"}
-	interpreters       = append(otherInterpreters,
-		append(shellInterpreters, append(shellNames, pythonInterpreters...)...)...)
+	dotnetInterpreters = []string{"dotnet", "nuget"}
+	interpreters       = append(dotnetInterpreters, append(otherInterpreters,
+		append(shellInterpreters, append(shellNames, pythonInterpreters...)...)...)...)
 )
 
 // Note: aws is handled separately because it uses different
@@ -329,7 +332,7 @@ func collectFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pat
 		checker.Dependency{
 			Location: &checker.File{
 				Path:      pathfn,
-				Type:      checker.FileTypeSource,
+				Type:      finding.FileTypeSource,
 				Offset:    startLine,
 				EndOffset: endLine,
 				Snippet:   cmd,
@@ -380,7 +383,7 @@ func collectExecuteFiles(startLine, endLine uint, node syntax.Node, cmd, pathfn 
 				checker.Dependency{
 					Location: &checker.File{
 						Path:      pathfn,
-						Type:      checker.FileTypeSource,
+						Type:      finding.FileTypeSource,
 						Offset:    startLine,
 						EndOffset: endLine,
 						Snippet:   cmd,
@@ -424,7 +427,6 @@ func isGoUnpinnedDownload(cmd []string) bool {
 	if !isBinaryName("go", cmd[0]) {
 		return false
 	}
-
 	// `Go install` will automatically look up the
 	// go.mod and go.sum, so we don't flag it.
 	if len(cmd) <= 2 {
@@ -432,11 +434,12 @@ func isGoUnpinnedDownload(cmd []string) bool {
 	}
 
 	found := false
+	insecure := false
 	hashRegex := regexp.MustCompile("^[A-Fa-f0-9]{40,}$")
+	semverRegex := regexp.MustCompile(`^v\d+\.\d+\.\d+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-.]+)?$`)
 	for i := 1; i < len(cmd)-1; i++ {
 		// Search for get and install commands.
-		if strings.EqualFold(cmd[i], "install") ||
-			strings.EqualFold(cmd[i], "get") {
+		if slices.Contains([]string{"get", "install"}, cmd[i]) {
 			found = true
 		}
 
@@ -444,6 +447,21 @@ func isGoUnpinnedDownload(cmd []string) bool {
 			continue
 		}
 
+		// Skip all flags
+		// TODO skip other build flags which might take arguments
+		for i < len(cmd)-1 && slices.Contains([]string{"-d", "-f", "-t", "-u", "-v", "-fix", "-insecure"}, cmd[i+1]) {
+			// Record the flag -insecure
+			if cmd[i+1] == "-insecure" {
+				insecure = true
+			}
+			i++
+		}
+
+		if i+1 >= len(cmd) {
+			// this is case go get -d -v
+			return false
+		}
+		// TODO check more than one package
 		pkg := cmd[i+1]
 		// Consider strings that are not URLs as local folders
 		// which are pinned.
@@ -457,13 +475,37 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		if len(parts) != 2 {
 			continue
 		}
-		hash := parts[1]
-		if hashRegex.MatchString(hash) {
+		version := parts[1]
+		/*
+			"none" is special. It removes a dependency. Hashes are always okay. Full semantic versions are okay
+			as long as "-insecure" is not passed.
+		*/
+		if version == "none" || hashRegex.MatchString(version) || (!insecure && semverRegex.MatchString(version)) {
 			return false
 		}
 	}
 
 	return found
+}
+
+func isPinnedEditableSource(pkgSource string) bool {
+	regexRemoteSource := regexp.MustCompile(`^(git|svn|hg|bzr).+$`)
+	// Is from local source
+	if !regexRemoteSource.MatchString(pkgSource) {
+		return true
+	}
+	// Is VCS install from Git and it's pinned
+	// https://pip.pypa.io/en/latest/topics/vcs-support/#vcs-support
+	regexGitSource := regexp.MustCompile(`^git(\+(https?|ssh|git))?\:\/\/.*(.git)?@[a-fA-F0-9]{40}(#egg=.*)?$`)
+	return regexGitSource.MatchString(pkgSource)
+	// Disclaimer: We are not handling if Subversion (svn),
+	// Mercurial (hg) or Bazaar (bzr) remote sources are pinned
+	// because they are not common on GitHub repos
+}
+
+func isFlag(cmd string) bool {
+	regexFlag := regexp.MustCompile(`^(\-\-?\w+)+$`)
+	return regexFlag.MatchString(cmd)
 }
 
 func isUnpinnedPipInstall(cmd []string) bool {
@@ -472,6 +514,9 @@ func isUnpinnedPipInstall(cmd []string) bool {
 	}
 
 	isInstall := false
+	hasNoDeps := false
+	isEditableInstall := false
+	isPinnedEditableInstall := true
 	hasRequireHashes := false
 	hasAdditionalArgs := false
 	hasWheel := false
@@ -486,12 +531,33 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			break
 		}
 
+		// Require --no-deps to not install the dependencies when doing editable install
+		// because we can't verify if dependencies are pinned
+		// https://pip.pypa.io/en/stable/topics/secure-installs/#do-not-use-setuptools-directly
+		// https://github.com/pypa/pip/issues/4995
+		if strings.EqualFold(cmd[i], "--no-deps") {
+			hasNoDeps = true
+			continue
+		}
+
+		// https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-e
+		if slices.Contains([]string{"-e", "--editable"}, cmd[i]) {
+			isEditableInstall = true
+			continue
+		}
+
 		// https://github.com/ossf/scorecard/issues/1306#issuecomment-974539197.
 		if strings.EqualFold(cmd[i], "--require-hashes") {
 			hasRequireHashes = true
 			break
 		}
 
+		// Catch not handled flags, otherwise is package
+		if isFlag(cmd[i]) {
+			continue
+		}
+
+		// Wheel package
 		// Exclude *.whl as they're mostly used
 		// for tests. See https://github.com/ossf/scorecard/pull/611.
 		if strings.HasSuffix(cmd[i], ".whl") {
@@ -501,7 +567,27 @@ func isUnpinnedPipInstall(cmd []string) bool {
 			continue
 		}
 
+		// Editable install package source
+		if isEditableInstall {
+			isPinned := isPinnedEditableSource(cmd[i])
+			if !isPinned {
+				isPinnedEditableInstall = false
+			}
+			continue
+		}
+
 		hasAdditionalArgs = true
+	}
+
+	// --require-hashes and -e flags cannot be used together in pip install
+	// -e and *.whl package cannot be used together in pip install
+
+	// If is editable install, it's secure if package is from local source
+	// or from remote (VCS install) pinned by hash, and if dependencies are
+	// not installed.
+	// Example: `pip install --no-deps -e git+https://git.repo/some_pkg.git@da39a3ee5e6b4b0d3255bfef95601890afd80709`
+	if isEditableInstall {
+		return !hasNoDeps || !isPinnedEditableInstall
 	}
 
 	// If hashes are required, it's pinned.
@@ -611,6 +697,93 @@ func isChocoUnpinnedDownload(cmd []string) bool {
 	return true
 }
 
+func isUnpinnedNugetCliInstall(cmd []string) bool {
+	// looking for command of type nuget install ...
+	if len(cmd) < 2 {
+		return false
+	}
+
+	// Search for nuget commands.
+	if !isBinaryName("nuget", cmd[0]) && !isBinaryName("nuget.exe", cmd[0]) {
+		return false
+	}
+
+	// Search for install commands.
+	if !strings.EqualFold(cmd[1], "install") {
+		return false
+	}
+
+	// Assume installing a project with PackageReference (with versions)
+	// or packages.config at the root of command
+	if len(cmd) == 2 {
+		return false
+	}
+
+	// Assume that the script is installing from a packages.config file (with versions)
+	// package.config schema has required version field
+	// https://learn.microsoft.com/en-us/nuget/reference/packages-config#schema
+	// and Nuget follows Semantic Versioning 2.0.0 (versions are immutable)
+	// https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#semantic-versioning-200
+	if strings.HasSuffix(cmd[2], "packages.config") {
+		return false
+	}
+
+	unpinnedDependency := true
+	for i := 2; i < len(cmd); i++ {
+		// look for version flag
+		if strings.EqualFold(cmd[i], "-Version") {
+			unpinnedDependency = false
+			break
+		}
+	}
+
+	return unpinnedDependency
+}
+
+func isUnpinnedDotNetCliInstall(cmd []string) bool {
+	// Search for command of type dotnet add <PROJECT> package <PACKAGE_NAME>
+	if len(cmd) < 4 {
+		return false
+	}
+	// Search for dotnet commands.
+	if !isBinaryName("dotnet", cmd[0]) && !isBinaryName("dotnet.exe", cmd[0]) {
+		return false
+	}
+
+	// Search for add commands.
+	if !strings.EqualFold(cmd[1], "add") {
+		return false
+	}
+
+	// Search for package commands (can be either the second or the third word)
+	if !(strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package")) {
+		return false
+	}
+
+	unpinnedDependency := true
+	for i := 3; i < len(cmd); i++ {
+		// look for version flag
+		// https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-add-package
+		if strings.EqualFold(cmd[i], "-v") || strings.EqualFold(cmd[i], "--version") {
+			unpinnedDependency = false
+			break
+		}
+	}
+	return unpinnedDependency
+}
+
+func isNugetUnpinnedDownload(cmd []string) bool {
+	if isUnpinnedDotNetCliInstall(cmd) {
+		return true
+	}
+
+	if isUnpinnedNugetCliInstall(cmd) {
+		return true
+	}
+
+	return false
+}
+
 func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 	cmd, pathfn string, r *checker.PinningDependenciesData,
 ) {
@@ -632,7 +805,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 			checker.Dependency{
 				Location: &checker.File{
 					Path:      pathfn,
-					Type:      checker.FileTypeSource,
+					Type:      finding.FileTypeSource,
 					Offset:    startLine,
 					EndOffset: endLine,
 					Snippet:   cmd,
@@ -650,7 +823,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 			checker.Dependency{
 				Location: &checker.File{
 					Path:      pathfn,
-					Type:      checker.FileTypeSource,
+					Type:      finding.FileTypeSource,
 					Offset:    startLine,
 					EndOffset: endLine,
 					Snippet:   cmd,
@@ -668,7 +841,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 			checker.Dependency{
 				Location: &checker.File{
 					Path:      pathfn,
-					Type:      checker.FileTypeSource,
+					Type:      finding.FileTypeSource,
 					Offset:    startLine,
 					EndOffset: endLine,
 					Snippet:   cmd,
@@ -686,12 +859,30 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 			checker.Dependency{
 				Location: &checker.File{
 					Path:      pathfn,
-					Type:      checker.FileTypeSource,
+					Type:      finding.FileTypeSource,
 					Offset:    startLine,
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
 				Type: checker.DependencyUseTypeChocoCommand,
+			},
+		)
+
+		return
+	}
+
+	// Nuget install.
+	if isNugetUnpinnedDownload(c) {
+		r.Dependencies = append(r.Dependencies,
+			checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      finding.FileTypeSource,
+					Offset:    startLine,
+					EndOffset: endLine,
+					Snippet:   cmd,
+				},
+				Type: checker.DependencyUseTypeNugetCommand,
 			},
 		)
 
@@ -781,7 +972,7 @@ func collectFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd,
 		checker.Dependency{
 			Location: &checker.File{
 				Path:      pathfn,
-				Type:      checker.FileTypeSource,
+				Type:      finding.FileTypeSource,
 				Offset:    startLine,
 				EndOffset: endLine,
 				Snippet:   cmd,

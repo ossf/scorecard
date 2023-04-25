@@ -1,4 +1,4 @@
-# Copyright 2020 Security Scorecard Authors
+# Copyright 2020 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # golang:1.19
-FROM golang@sha256:25de7b6b28219279a409961158c547aadd0960cf2dcbc533780224afa1157fd4 AS base
+FROM golang@sha256:403f48633fb5ebd49f9a2b6ad6719f912df23dae44974a0c9445be331e72ff5e AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./

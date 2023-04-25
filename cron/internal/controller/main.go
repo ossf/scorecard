@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ func localFiles(filenames []string) (data.Iterator, error) {
 
 func main() {
 	ctx := context.Background()
-	t := time.Now()
+	t := time.Now().UTC()
 
 	flag.Parse()
 	if err := config.ReadConfig(); err != nil {

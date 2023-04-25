@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,16 @@ import (
 
 // VulnerabilitiesClient checks for vulnerabilities in vuln DB.
 type VulnerabilitiesClient interface {
-	HasUnfixedVulnerabilities(context context.Context, commit string) (VulnerabilitiesResponse, error)
+	ListUnfixedVulnerabilities(
+		context context.Context,
+		commit string,
+		localDir string,
+	) (VulnerabilitiesResponse, error)
+}
+
+// DefaultVulnerabilitiesClient returns a new OSV Vulnerabilities client.
+func DefaultVulnerabilitiesClient() VulnerabilitiesClient {
+	return osvClient{}
 }
 
 // VulnerabilitiesResponse is the response from the vuln DB.
@@ -30,10 +39,6 @@ type VulnerabilitiesResponse struct {
 
 // Vulnerability uniquely identifies a reported security vuln.
 type Vulnerability struct {
-	ID string
-}
-
-// DefaultVulnerabilitiesClient returns a new OSV Vulnerabilities client.
-func DefaultVulnerabilitiesClient() VulnerabilitiesClient {
-	return osvClient{}
+	ID      string
+	Aliases []string
 }

@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ type RepoInfo struct {
 }
 
 // ScorecardResult struct is returned on a successful Scorecard run.
-//nolint
+// nolint
 type ScorecardResult struct {
 	Repo       RepoInfo
 	Date       time.Time
@@ -114,9 +114,11 @@ func FormatResults(
 		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
-		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), os.Stdout, doc, policy)
+		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), os.Stdout, doc, policy, opts)
 	case options.FormatJSON:
 		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+	case options.FormatSJSON:
+		err = results.AsSJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
 	case options.FormatRaw:
 		err = results.AsRawJSON(os.Stdout)
 	default:

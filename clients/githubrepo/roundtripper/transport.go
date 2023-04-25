@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,7 @@ package roundtripper
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
-	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens"
@@ -56,13 +54,5 @@ func (gt *githubTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 		return nil, fmt.Errorf("error in HTTP: %w", err)
 	}
 
-	ctx, err = tag.New(r.Context(), tag.Upsert(githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
-	if err != nil {
-		return nil, fmt.Errorf("error updating context: %w", err)
-	}
-	remaining, err := strconv.Atoi(resp.Header.Get("X-RateLimit-Remaining"))
-	if err == nil {
-		stats.Record(ctx, githubstats.RemainingTokens.M(int64(remaining)))
-	}
 	return resp, nil
 }

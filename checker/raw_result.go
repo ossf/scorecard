@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@ import (
 	"time"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // RawResults contains results before a policy
 // is applied.
-//nolint
+// nolint
 type RawResults struct {
 	PackagingResults            PackagingData
 	CIIBestPracticesResults     CIIBestPracticesData
@@ -68,7 +69,7 @@ type PackagingData struct {
 }
 
 // Package represents a package.
-//nolint
+// nolint
 type Package struct {
 	// TODO: not supported yet. This needs to be unique across
 	// ecosystems: purl, OSV, CPE, etc.
@@ -80,7 +81,7 @@ type Package struct {
 	Runs []Run
 }
 
-// DependencyUseType reprensets a type of dependency use.
+// DependencyUseType represents a type of dependency use.
 type DependencyUseType string
 
 const (
@@ -96,8 +97,10 @@ const (
 	DependencyUseTypeChocoCommand DependencyUseType = "chocoCommand"
 	// DependencyUseTypeNpmCommand is an npm command.
 	DependencyUseTypeNpmCommand DependencyUseType = "npmCommand"
-	// DependencyUseTypePipCommand is a pipp command.
+	// DependencyUseTypePipCommand is a pip command.
 	DependencyUseTypePipCommand DependencyUseType = "pipCommand"
+	// DependencyUseTypeNugetCommand is a nuget command.
+	DependencyUseTypeNugetCommand DependencyUseType = "nugetCommand"
 )
 
 // PinningDependenciesData represents pinned dependency data.
@@ -125,10 +128,34 @@ type MaintainedData struct {
 	ArchivedStatus       ArchivedStatus
 }
 
+type LicenseAttributionType string
+
+const (
+	// sources of license information used to assert repo's license.
+	LicenseAttributionTypeOther      LicenseAttributionType = "other"
+	LicenseAttributionTypeAPI        LicenseAttributionType = "repositoryAPI"
+	LicenseAttributionTypeHeuristics LicenseAttributionType = "builtinHeuristics"
+)
+
+// license details.
+type License struct {
+	Name        string                 // OSI standardized license name
+	SpdxID      string                 // SPDX standardized identifier
+	Attribution LicenseAttributionType // source of licensing information
+	Approved    bool                   // FSF or OSI Approved License
+}
+
+// one file contains one license.
+type LicenseFile struct {
+	LicenseInformation License
+	File               File
+}
+
 // LicenseData contains the raw results
 // for the License check.
+// Some repos may have more than one license.
 type LicenseData struct {
-	Files []File
+	LicenseFiles []LicenseFile
 }
 
 // CodeReviewData contains the raw results
@@ -228,7 +255,8 @@ type WebhooksData struct {
 // BranchProtectionsData contains the raw results
 // for the Branch-Protection check.
 type BranchProtectionsData struct {
-	Branches []clients.BranchRef
+	Branches        []clients.BranchRef
+	CodeownersFiles []string
 }
 
 // Tool represents a tool.
@@ -261,11 +289,11 @@ type ArchivedStatus struct {
 // File represents a file.
 type File struct {
 	Path      string
-	Snippet   string   // Snippet of code
-	Offset    uint     // Offset in the file of Path (line for source/text files).
-	EndOffset uint     // End of offset in the file, e.g. if the command spans multiple lines.
-	FileSize  uint     // Total size of file.
-	Type      FileType // Type of file.
+	Snippet   string           // Snippet of code
+	Offset    uint             // Offset in the file of Path (line for source/text files).
+	EndOffset uint             // End of offset in the file, e.g. if the command spans multiple lines.
+	FileSize  uint             // Total size of file.
+	Type      finding.FileType // Type of file.
 	// TODO: add hash.
 }
 
@@ -287,7 +315,8 @@ const (
 // DangerousWorkflowData contains raw results
 // for dangerous workflow check.
 type DangerousWorkflowData struct {
-	Workflows []DangerousWorkflow
+	Workflows    []DangerousWorkflow
+	NumWorkflows int
 }
 
 // DangerousWorkflow represents a dangerous workflow.
@@ -297,7 +326,7 @@ type DangerousWorkflow struct {
 	File File
 }
 
-// WorkflowJob reprresents a workflow job.
+// WorkflowJob represents a workflow job.
 type WorkflowJob struct {
 	Name *string
 	ID   *string
@@ -306,6 +335,7 @@ type WorkflowJob struct {
 // TokenPermissionsData represents data about a permission failure.
 type TokenPermissionsData struct {
 	TokenPermissions []TokenPermission
+	NumTokens        int
 }
 
 // PermissionLocation represents a declaration type.
@@ -322,7 +352,7 @@ const (
 type PermissionLevel string
 
 const (
-	// PermissionLevelUndeclared is an undecleared permission.
+	// PermissionLevelUndeclared is an undeclared permission.
 	PermissionLevelUndeclared PermissionLevel = "undeclared"
 	// PermissionLevelWrite is a permission set to `write` for a permission we consider potentially dangerous.
 	PermissionLevelWrite PermissionLevel = "write"

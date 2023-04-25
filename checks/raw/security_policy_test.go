@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -138,8 +138,6 @@ func TestSecurityPolicy(t *testing.T) {
 			mockRepo := mockrepo.NewMockRepo(ctrl)
 
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
-			mockRepo.EXPECT().Org().Return(nil).AnyTimes()
-			//
 			// the revised Security Policy will immediate go for the
 			// file contents once found. This test will return that
 			// mock file, but this specific unit test is not testing

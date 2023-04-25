@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ package githubrepo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -26,7 +25,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
 )
 
 const (
@@ -36,10 +34,7 @@ const (
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
-	commitsToAnalyze       = 30
 )
-
-var errNotCached = errors.New("result not cached")
 
 //nolint:govet
 type graphqlData struct {
@@ -76,7 +71,8 @@ type graphqlData struct {
 									}
 								}
 								Author struct {
-									Login githubv4.String
+									Login        githubv4.String
+									ResourcePath githubv4.String
 								}
 								Number     githubv4.Int
 								HeadRefOid githubv4.String
@@ -100,7 +96,12 @@ type graphqlData struct {
 							}
 						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 					}
-				} `graphql:"history(first: $commitsToAnalyze)"`
+					PageInfo struct {
+						StartCursor githubv4.String
+						EndCursor   githubv4.String
+						HasNextPage bool
+					}
+				} `graphql:"history(first: $commitsToAnalyze, after: $historyCursor)"`
 			} `graphql:"... on Commit"`
 		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
@@ -129,77 +130,58 @@ type graphqlData struct {
 	}
 }
 
-//nolint:govet
-type checkRunsGraphqlData struct {
-	Repository struct {
-		Object struct {
-			Commit struct {
-				History struct {
-					Nodes []struct {
-						AssociatedPullRequests struct {
-							Nodes []struct {
-								HeadRefOid githubv4.String
-								Commits    struct {
-									Nodes []struct {
-										Commit struct {
-											CheckSuites struct {
-												Nodes []struct {
-													App struct {
-														Slug githubv4.String
-													}
-													Conclusion githubv4.CheckConclusionState
-													Status     githubv4.CheckStatusState
-												}
-											} `graphql:"checkSuites(first: $checksToAnalyze)"`
-										}
-									}
-								} `graphql:"commits(last:1)"`
-							}
-						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
-					}
-				} `graphql:"history(first: $commitsToAnalyze)"`
-			} `graphql:"... on Commit"`
-		} `graphql:"object(expression: $commitExpression)"`
-	} `graphql:"repository(owner: $owner, name: $name)"`
-	RateLimit struct {
-		Cost *int
-	}
-}
-
-type checkRunCache = map[string][]clients.CheckRun
-
 type graphqlHandler struct {
-	checkRuns          checkRunCache
-	client             *githubv4.Client
-	data               *graphqlData
-	setupOnce          *sync.Once
-	checkData          *checkRunsGraphqlData
-	setupCheckRunsOnce *sync.Once
-	errSetupCheckRuns  error
-	logger             *log.Logger
-	ctx                context.Context
-	errSetup           error
-	repourl            *repoURL
-	commits            []clients.Commit
-	issues             []clients.Issue
-	archived           bool
+	client      *githubv4.Client
+	data        *graphqlData
+	setupOnce   *sync.Once
+	ctx         context.Context
+	errSetup    error
+	repourl     *repoURL
+	commits     []clients.Commit
+	issues      []clients.Issue
+	archived    bool
+	commitDepth int
 }
 
-func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
+func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commitDepth int) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 	handler.data = new(graphqlData)
 	handler.errSetup = nil
 	handler.setupOnce = new(sync.Once)
-	handler.checkData = new(checkRunsGraphqlData)
-	handler.setupCheckRunsOnce = new(sync.Once)
-	handler.checkRuns = checkRunCache{}
-	handler.logger = log.NewLogger(log.DefaultLevel)
+	handler.commitDepth = commitDepth
+	handler.commits = nil
+	handler.issues = nil
+}
+
+func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]clients.Commit, error) {
+	var allCommits []clients.Commit
+	var commitsLeft githubv4.Int
+	commitsLeft, ok := vars["commitsToAnalyze"].(githubv4.Int)
+	if !ok {
+		return nil, nil
+	}
+	for vars["commitsToAnalyze"] = githubv4.Int(100); commitsLeft > 0; commitsLeft = commitsLeft - 100 {
+		if commitsLeft < 100 {
+			vars["commitsToAnalyze"] = commitsLeft
+		}
+		err := handler.client.Query(handler.ctx, handler.data, vars)
+		if err != nil {
+			return nil, fmt.Errorf("failed to populate commits: %w", err)
+		}
+		vars["historyCursor"] = handler.data.Repository.Object.Commit.History.PageInfo.EndCursor
+		tmp, err := commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
+		if err != nil {
+			return nil, fmt.Errorf("failed to populate commits: %w", err)
+		}
+		allCommits = append(allCommits, tmp...)
+	}
+	return allCommits, nil
 }
 
 func (handler *graphqlHandler) setup() error {
 	handler.setupOnce.Do(func() {
-		commitExpression := handler.commitExpression()
+		commitExpression := handler.repourl.commitExpression()
 		vars := map[string]interface{}{
 			"owner":                  githubv4.String(handler.repourl.owner),
 			"name":                   githubv4.String(handler.repourl.repo),
@@ -208,46 +190,26 @@ func (handler *graphqlHandler) setup() error {
 			"issueCommentsToAnalyze": githubv4.Int(issueCommentsToAnalyze),
 			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
 			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
-			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
+			"commitsToAnalyze":       githubv4.Int(handler.commitDepth),
 			"commitExpression":       githubv4.String(commitExpression),
+			"historyCursor":          (*githubv4.String)(nil),
+		}
+		// if NumberOfCommits set to < 99 we are required by the graphql to page by 100 commits.
+		if handler.commitDepth > 99 {
+			handler.commits, handler.errSetup = populateCommits(handler, vars)
+			handler.issues = issuesFrom(handler.data)
+			handler.archived = bool(handler.data.Repository.IsArchived)
+			return
 		}
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
 		}
-		handler.archived = bool(handler.data.Repository.IsArchived)
 		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
-		if handler.errSetup != nil {
-			return
-		}
 		handler.issues = issuesFrom(handler.data)
+		handler.archived = bool(handler.data.Repository.IsArchived)
 	})
 	return handler.errSetup
-}
-
-func (handler *graphqlHandler) setupCheckRuns() error {
-	handler.setupCheckRunsOnce.Do(func() {
-		commitExpression := handler.commitExpression()
-		vars := map[string]interface{}{
-			"owner":                 githubv4.String(handler.repourl.owner),
-			"name":                  githubv4.String(handler.repourl.repo),
-			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
-			"commitExpression":      githubv4.String(commitExpression),
-			"checksToAnalyze":       githubv4.Int(checksToAnalyze),
-		}
-		if err := handler.client.Query(handler.ctx, handler.checkData, vars); err != nil {
-			// quit early without setting crsErrSetup for "Resource not accessible by integration" error
-			// for whatever reason, this check doesn't work with a GITHUB_TOKEN, only a PAT
-			if strings.Contains(err.Error(), "Resource not accessible by integration") {
-				return
-			}
-			handler.errSetupCheckRuns = err
-			return
-		}
-		handler.checkRuns = parseCheckRuns(handler.checkData)
-	})
-	return handler.errSetupCheckRuns
 }
 
 func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
@@ -255,22 +217,6 @@ func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
 		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
 	}
 	return handler.commits, nil
-}
-
-func (handler *graphqlHandler) cacheCheckRunsForRef(ref string, crs []clients.CheckRun) {
-	handler.checkRuns[ref] = crs
-}
-
-func (handler *graphqlHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	if err := handler.setupCheckRuns(); err != nil {
-		return nil, fmt.Errorf("error during graphqlHandler.setupCheckRuns: %w", err)
-	}
-	if crs, ok := handler.checkRuns[ref]; ok {
-		return crs, nil
-	}
-	msg := fmt.Sprintf("listCheckRunsForRef cache miss: %s/%s:%s", handler.repourl.owner, handler.repourl.repo, ref)
-	handler.logger.Info(msg)
-	return nil, errNotCached
 }
 
 func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
@@ -293,39 +239,7 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-func (handler *graphqlHandler) commitExpression() string {
-	if strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-		// TODO(#575): Confirm that this works as expected.
-		return fmt.Sprintf("heads/%s", handler.repourl.defaultBranch)
-	}
-	return handler.repourl.commitSHA
-}
-
-func parseCheckRuns(data *checkRunsGraphqlData) checkRunCache {
-	checkCache := checkRunCache{}
-	for _, commit := range data.Repository.Object.Commit.History.Nodes {
-		for _, pr := range commit.AssociatedPullRequests.Nodes {
-			var crs []clients.CheckRun
-			for _, c := range pr.Commits.Nodes {
-				for _, checkRun := range c.Commit.CheckSuites.Nodes {
-					crs = append(crs, clients.CheckRun{
-						// the REST API returns lowercase. the graphQL API returns upper
-						Status:     strings.ToLower(string(checkRun.Status)),
-						Conclusion: strings.ToLower(string(checkRun.Conclusion)),
-						App: clients.CheckRunApp{
-							Slug: string(checkRun.App.Slug),
-						},
-					})
-				}
-			}
-			headRef := string(pr.HeadRefOid)
-			checkCache[headRef] = crs
-		}
-	}
-	return checkCache
-}
-
-//nolint
+// nolint
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
@@ -352,12 +266,16 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 				string(pr.Repository.Name) != repoName {
 				continue
 			}
+			// ResourcePath: e.g., for dependabot, "/apps/dependabot", or "/apps/renovate"
+			// Path that can be appended to "https://github.com" for a Github resource
+			openedByBot := strings.HasPrefix(string(pr.Author.ResourcePath), "/apps/")
 			associatedPR = clients.PullRequest{
 				Number:   int(pr.Number),
 				HeadSHA:  string(pr.HeadRefOid),
 				MergedAt: pr.MergedAt.Time,
 				Author: clients.User{
 					Login: string(pr.Author.Login),
+					IsBot: openedByBot,
 				},
 				MergedBy: clients.User{
 					Login: string(pr.MergedBy.Login),

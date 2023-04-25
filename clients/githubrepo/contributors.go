@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ func (handler *contributorsHandler) init(ctx context.Context, repourl *repoURL) 
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
+	handler.contributors = nil
 }
 
 func (handler *contributorsHandler) setup() error {

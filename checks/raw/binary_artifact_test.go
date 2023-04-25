@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -41,6 +41,15 @@ func TestBinaryArtifacts(t *testing.T) {
 		getFileContentCount    int
 		expect                 int
 	}{
+		{
+			name: "Wasm file",
+			err:  nil,
+			files: [][]string{
+				{"../testdata/binaryartifacts/wasms/simple.wasm"},
+			},
+			getFileContentCount: 1,
+			expect:              1,
+		},
 		{
 			name: "Jar file",
 			err:  nil,

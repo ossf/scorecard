@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ func TestSearchCommitsBuildQuery(t *testing.T) {
 		{
 			name: "Basic",
 			repourl: &repoURL{
-				owner:     "testowner",
-				projectID: "1234",
+				owner:   "testowner",
+				project: "1234",
 			},
 			searchReq: clients.SearchCommitsOptions{
 				Author: "testAuthor",
@@ -45,8 +45,8 @@ func TestSearchCommitsBuildQuery(t *testing.T) {
 		{
 			name: "EmptyQuery:",
 			repourl: &repoURL{
-				owner:     "testowner",
-				projectID: "1234",
+				owner:   "testowner",
+				project: "1234",
 			},
 			searchReq:       clients.SearchCommitsOptions{},
 			hasError:        true,

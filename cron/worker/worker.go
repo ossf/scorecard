@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -151,7 +151,7 @@ func ResultFilename(sbr *data.ScorecardBatchRequest) string {
 }
 
 func hasMetadataFile(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) (bool, error) {
-	filename := data.GetShardMetadataFilename(req.GetJobTime().AsTime())
+	filename := data.GetShardMetadataFilename(req.GetJobTime().AsTime().UTC())
 	exists, err := data.BlobExists(ctx, bucketURL, filename)
 	if err != nil {
 		return false, fmt.Errorf("data.BlobExists: %w", err)

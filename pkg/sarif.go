@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -29,7 +30,9 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
 
@@ -37,7 +40,7 @@ type text struct {
 	Text string `json:"text,omitempty"`
 }
 
-//nolint
+// nolint
 type region struct {
 	StartLine   *uint `json:"startLine,omitempty"`
 	EndLine     *uint `json:"endLine,omitempty"`
@@ -68,7 +71,7 @@ type location struct {
 	HasRemediation bool  `json:"-"`
 }
 
-//nolint
+// nolint
 type relatedLocation struct {
 	ID               int              `json:"id"`
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
@@ -121,7 +124,7 @@ type tool struct {
 	Driver driver `json:"driver"`
 }
 
-//nolint
+// nolint
 type result struct {
 	RuleID           string            `json:"ruleId"`
 	Level            string            `json:"level,omitempty"` // Optional.
@@ -203,13 +206,62 @@ func generateDefaultConfig(risk string) string {
 	return "error"
 }
 
+func getPath(d *checker.CheckDetail) string {
+	f := d.Msg.Finding
+	if f != nil && f.Location != nil {
+		return f.Location.Value
+	}
+	return d.Msg.Path
+}
+
+func getLocationType(d *checker.CheckDetail) finding.FileType {
+	f := d.Msg.Finding
+	if f != nil && f.Location != nil {
+		return f.Location.Type
+	}
+	return d.Msg.Type
+}
+
+func getSnippet(d *checker.CheckDetail) *text {
+	f := d.Msg.Finding
+	if f != nil && f.Location != nil && f.Location.Snippet != nil {
+		// NOTE: Snippet may be nil.
+		return &text{Text: *f.Location.Snippet}
+	}
+	if d.Msg.Snippet != "" {
+		return &text{Text: d.Msg.Snippet}
+	}
+	return nil
+}
+
+func getStartLine(d *checker.CheckDetail) uint {
+	f := d.Msg.Finding
+	if f != nil && f.Location != nil && f.Location.LineStart != nil {
+		return *f.Location.LineStart
+	}
+	return d.Msg.Offset
+}
+
+func getEndLine(d *checker.CheckDetail) uint {
+	f := d.Msg.Finding
+	if f != nil && f.Location != nil && f.Location.LineEnd != nil {
+		return *f.Location.LineEnd
+	}
+	return d.Msg.EndOffset
+}
+
+func getText(d *checker.CheckDetail) *text {
+	f := d.Msg.Finding
+	if f != nil {
+		return &text{Text: f.Message}
+	}
+	return &text{Text: d.Msg.Text}
+}
+
 func detailToRegion(details *checker.CheckDetail) region {
 	var reg region
-	var snippet *text
-	if details.Msg.Snippet != "" {
-		snippet = &text{Text: details.Msg.Snippet}
-	}
-
+	snippet := getSnippet(details)
+	locType := getLocationType(details)
 	// https://github.com/github/codeql-action/issues/754.
 	// "code-scanning currently only supports character offset/length and start/end line/columns offsets".
 
@@ -217,36 +269,38 @@ func detailToRegion(details *checker.CheckDetail) region {
 	// "3.30.1 General".
 	// Line numbers > 0.
 	// byteOffset and charOffset >= 0.
-	switch details.Msg.Type {
+	switch locType {
 	default:
 		panic("invalid")
-	case checker.FileTypeURL:
-		line := maxOffset(checker.OffsetDefault, details.Msg.Offset)
+	case finding.FileTypeURL:
+		line := maxOffset(checker.OffsetDefault, getStartLine(details))
 		reg = region{
 			StartLine: &line,
 			Snippet:   snippet,
 		}
-	case checker.FileTypeNone:
+	case finding.FileTypeNone:
 		// Do nothing.
-	case checker.FileTypeSource:
-		startLine := maxOffset(checker.OffsetDefault, details.Msg.Offset)
-		endLine := maxOffset(startLine, details.Msg.EndOffset)
+	case finding.FileTypeSource:
+		startLine := maxOffset(checker.OffsetDefault, getStartLine(details))
+		endLine := maxOffset(startLine, getEndLine(details))
 		reg = region{
 			StartLine: &startLine,
 			EndLine:   &endLine,
 			Snippet:   snippet,
 		}
-	case checker.FileTypeText:
+	case finding.FileTypeText:
+		offset := getStartLine(details)
 		reg = region{
-			CharOffset: &details.Msg.Offset,
+			CharOffset: &offset,
 			Snippet:    snippet,
 		}
-	case checker.FileTypeBinary:
+	case finding.FileTypeBinary:
+		offset := getStartLine(details)
 		reg = region{
 			// Note: GitHub does not support ByteOffset, so we also set
 			// StartLine.
-			ByteOffset: &details.Msg.Offset,
-			StartLine:  &details.Msg.Offset,
+			ByteOffset: &offset,
+			StartLine:  &offset,
 		}
 	}
 	return reg
@@ -255,18 +309,34 @@ func detailToRegion(details *checker.CheckDetail) region {
 func shouldAddLocation(detail *checker.CheckDetail, showDetails bool,
 	minScore, score int,
 ) bool {
+	path := getPath(detail)
+	locType := getLocationType(detail)
+
 	switch {
 	default:
 		return false
-	case detail.Msg.Path == "",
+	case path == "",
 		!showDetails,
 		detail.Type != checker.DetailWarn,
-		detail.Msg.Type == checker.FileTypeURL:
+		locType == finding.FileTypeURL:
 		return false
 	case score == checker.InconclusiveResultScore:
 		return true
 	case minScore >= score:
 		return true
+	}
+}
+
+func setRemediation(loc *location, d *checker.CheckDetail) {
+	f := d.Msg.Finding
+	if f != nil && f.Remediation != nil {
+		loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, f.Remediation.Markdown)
+		loc.HasRemediation = true
+		return
+	}
+	if d.Msg.Remediation != nil {
+		loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, d.Msg.Remediation.Markdown)
+		loc.HasRemediation = true
 	}
 }
 
@@ -294,18 +364,15 @@ func detailsToLocations(details []checker.CheckDetail,
 		loc := location{
 			PhysicalLocation: physicalLocation{
 				ArtifactLocation: artifactLocation{
-					URI:       d.Msg.Path,
+					URI:       getPath(&d),
 					URIBaseID: "%SRCROOT%",
 				},
 			},
-			Message: &text{Text: d.Msg.Text},
+			Message: getText(&d),
 		}
 
-		// Add remediaiton information
-		if d.Msg.Remediation != nil {
-			loc.Message.Text = fmt.Sprintf("%s\nRemediation tip: %s", loc.Message.Text, d.Msg.Remediation.HelpMarkdown)
-			loc.HasRemediation = true
-		}
+		// Add remediation information
+		setRemediation(&loc, &d)
 
 		// Set the region depending on the file type.
 		loc.PhysicalLocation.Region = detailToRegion(&d)
@@ -541,9 +608,17 @@ func createDefaultLocationMessage(check *checker.CheckResult, score int) string 
 	return messageWithScore(check.Reason, score)
 }
 
+func toolName(opts *options.Options) string {
+	if opts.IsInternalGitHubIntegrationEnabled() {
+		return strings.TrimSpace(os.Getenv("SCORECARD_INTERNAL_GITHUB_SARIF_TOOL_NAME"))
+	}
+	return "scorecard"
+}
+
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
+	opts *options.Options,
 ) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
@@ -570,7 +645,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("computeCategory: %v: %s", err, check.Name))
 		}
-		run := getOrCreateSARIFRun(runs, category, "https://github.com/ossf/scorecard", "scorecard",
+		run := getOrCreateSARIFRun(runs, category, "https://github.com/ossf/scorecard", toolName(opts),
 			r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date, "supply-chain")
 
 		// Always add rules to indicate which checks were run.

@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,10 @@ func DangerousWorkflow(name string, dl checker.DetailLogger,
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)
+	}
+
+	if r.NumWorkflows == 0 {
+		return checker.CreateInconclusiveResult(name, "no workflows found")
 	}
 
 	for _, e := range r.Workflows {

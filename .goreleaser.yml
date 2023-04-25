@@ -31,8 +31,6 @@ builds:
   goarch:
     - amd64
     - arm64
-    - 386
-    - arm
   ldflags:
     - -s {{.Env.VERSION_LDFLAGS}} 
 
@@ -82,9 +80,7 @@ builds:
     - windows
   goarch:
     - amd64
-    - 386
     - arm64
-    - arm
   ldflags:
     - -buildmode=exe
     - -s {{.Env.VERSION_LDFLAGS}} 
@@ -101,10 +97,6 @@ changelog:
   # Set it to true if you wish to skip the changelog generation.
   # This may result in an empty release notes on GitHub/GitLab/Gitea.
   skip: false
-signs:
-  - artifacts: checksum
-    args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
-
 release:
   footer: |
     ### Thanks for all contributors!

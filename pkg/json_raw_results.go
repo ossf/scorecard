@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -72,6 +73,11 @@ type jsonBranchProtection struct {
 	Name       string                        `json:"name"`
 }
 
+type jsonBranchProtectionMetadata struct {
+	Branches        []jsonBranchProtection `json:"branches"`
+	CodeownersFiles []string               `json:"codeownersFiles"`
+}
+
 type jsonReview struct {
 	State    string   `json:"state"`
 	Reviewer jsonUser `json:"reviewer"`
@@ -85,6 +91,7 @@ type jsonUser struct {
 	// Companies refer to a claim by a user in their profile.
 	Companies        []jsonCompany `json:"company,omitempty"`
 	NumContributions int           `json:"NumContributions,omitempty"`
+	IsBot            bool          `json:"isBot"`
 }
 
 type jsonContributors struct {
@@ -166,9 +173,16 @@ type jsonOssfBestPractices struct {
 	Badge string `json:"badge"`
 }
 
+type jsonLicenseInfo struct {
+	File        string `json:"path"`
+	Name        string `json:"name,omitempty"`
+	SpdxID      string `json:"spdxid,omitempty"`
+	Attribution string `json:"attribution,omitempty"`
+	Approved    string `json:"approved,omitempty"`
+}
+
 type jsonLicense struct {
-	File jsonFile `json:"file"`
-	// TODO: add fields, like type of license, etc.
+	License jsonLicenseInfo `json:"file"`
 }
 
 type jsonWorkflow struct {
@@ -257,7 +271,7 @@ type jsonRawResults struct {
 	// Note: we return one at most.
 	DependencyUpdateTools []jsonTool `json:"dependencyUpdateTools"`
 	// Branch protection settings for development and release branches.
-	BranchProtections []jsonBranchProtection `json:"branchProtections"`
+	BranchProtections jsonBranchProtectionMetadata `json:"branchProtections"`
 	// Contributors. Note: we could use the list of commits instead to store this data.
 	// However, it's harder to get statistics using commit list, so we have a dedicated
 	// structure for it.
@@ -541,33 +555,21 @@ func (r *jsonScorecardRawResult) setDefaultCommitData(changesets []checker.Chang
 		}
 
 		reviews := []jsonReview{}
-		for j := range cs.Commits {
-			mr := cs.Commits[j].AssociatedMergeRequest
-			if mr.Reviews == nil {
-				continue
-			}
-			for k := range mr.Reviews {
-				r := mr.Reviews[k]
-				reviews = append(reviews, jsonReview{
-					State: r.State,
-					Reviewer: jsonUser{
-						Login: r.Author.Login,
-					},
-				})
-			}
+		for j := range cs.Reviews {
+			r := cs.Reviews[j]
+			reviews = append(reviews, jsonReview{
+				State: r.State,
+				Reviewer: jsonUser{
+					Login: r.Author.Login,
+					IsBot: r.Author.IsBot,
+				},
+			})
 		}
 
 		// Only add the Merge Request opener as the PR author
-		authors := []jsonUser{}
-		for j := range cs.Commits {
-			mr := cs.Commits[j].AssociatedMergeRequest
-			if mr.Author.Login != "" {
-				authors = append(authors, jsonUser{
-					Login: mr.Author.Login,
-				})
-				break
-			}
-		}
+		authors := []jsonUser{{
+			Login: cs.Author.Login,
+		}}
 
 		r.Results.DefaultBranchChangesets = append(r.Results.DefaultBranchChangesets,
 			jsonDefaultBranchChangeset{
@@ -595,11 +597,15 @@ func (r *jsonScorecardRawResult) addCodeReviewRawResults(cr *checker.CodeReviewD
 //nolint:unparam
 func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) error {
 	r.Results.Licenses = []jsonLicense{}
-	for _, file := range ld.Files {
+	for idx := range ld.LicenseFiles {
 		r.Results.Licenses = append(r.Results.Licenses,
 			jsonLicense{
-				File: jsonFile{
-					Path: file.Path,
+				License: jsonLicenseInfo{
+					File:        ld.LicenseFiles[idx].File.Path,
+					Name:        ld.LicenseFiles[idx].LicenseInformation.Name,
+					SpdxID:      ld.LicenseFiles[idx].LicenseInformation.SpdxID,
+					Attribution: string(ld.LicenseFiles[idx].LicenseInformation.Attribution),
+					Approved:    strconv.FormatBool(ld.LicenseFiles[idx].LicenseInformation.Approved),
 				},
 			},
 		)
@@ -699,7 +705,7 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 
 //nolint:unparam
 func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.BranchProtectionsData) error {
-	r.Results.BranchProtections = []jsonBranchProtection{}
+	branches := []jsonBranchProtection{}
 	for _, v := range bp.Branches {
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {
@@ -716,11 +722,15 @@ func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.Branc
 				StatusCheckContexts:                 v.BranchProtectionRule.CheckRules.Contexts,
 			}
 		}
-		r.Results.BranchProtections = append(r.Results.BranchProtections, jsonBranchProtection{
+		branches = append(branches, jsonBranchProtection{
 			Name:       *v.Name,
 			Protection: bp,
 		})
 	}
+	r.Results.BranchProtections.Branches = branches
+
+	r.Results.BranchProtections.CodeownersFiles = bp.CodeownersFiles
+
 	return nil
 }
 

@@ -1,4 +1,4 @@
-# Copyright 2021 Security Scorecard Authors
+# Copyright 2021 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -52,16 +52,17 @@ jobs:
 
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+      uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
       with:
         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
     - name: Checkout repository
-      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@c3b6fce4ee2ca25bc1066aa3bf73962fda0e8898 # v1
+
+      uses: github/codeql-action/init@b2c19fb9a2a485599ccf4ed5d65527d94bc57226 # v1
       with:
         languages: ${{ matrix.language }}
         queries: +security-extended
@@ -73,7 +74,7 @@ jobs:
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@c3b6fce4ee2ca25bc1066aa3bf73962fda0e8898 # v1
+      uses: github/codeql-action/autobuild@b2c19fb9a2a485599ccf4ed5d65527d94bc57226 # v1
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
@@ -87,4 +88,4 @@ jobs:
     #   make release
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@c3b6fce4ee2ca25bc1066aa3bf73962fda0e8898 # v1
+      uses: github/codeql-action/analyze@b2c19fb9a2a485599ccf4ed5d65527d94bc57226 # v1

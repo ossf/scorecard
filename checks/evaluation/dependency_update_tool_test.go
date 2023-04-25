@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -95,7 +96,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 										[dependency-update-tool]
 										enabled = true
 										`,
-									Type: checker.FileTypeSource,
+									Type: finding.FileTypeSource,
 								},
 							},
 						},

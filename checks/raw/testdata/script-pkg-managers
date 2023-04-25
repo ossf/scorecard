@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021 Security Scorecard Authors
+# Copyright 2021 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,17 @@ go get github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 go get somerepo.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 go get another-repo.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999
 go get somerepo.com/org/name@v1.2.3
+go get somerepo.com/org/name@v1.2.3-semver
+go get somerepo.com/org/name@v1.2.3-semver+great
+go get -insecure somerepo.com/org/name@v1.2.3
+go get -insecure somerepo.com/org/name@v1.2.3-semver
+go get -insecure somerepo.com/org/name@v1.2.3-semver+great
+go get somerepo.com/org/name@v1
+go get somerepo.com/org/name@v1.2
+go get somerepo.com/org/name@none
+go get somerepo.com/org/name@latest
+go get somerepo.com/org/name@patch
+go get somerepo.com/org/name@upgrade
 go get another-repo.com/org/name@release
 go get local-folder
 go get ./local-folder
@@ -49,6 +60,26 @@ pip install somepkg
 pip3 install somepkg==1.2.3
 /bin/pip3 install -X -H somepkg
 
+pip install --no-deps --editable .
+pip install --no-deps -e .
+pip install --no-deps -e hg+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e svn+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e bzr+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git+https://github.com/username/repo.git
+pip install --no-deps -e git+https://github.com/username/repo.git#egg=package
+pip install --no-deps -e git+https://github.com/username/repo.git@v1.0
+pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package
+pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567
+pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git+https://github.com/username/repo@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git+http://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git+ssh://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git+git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e git://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+pip install --no-deps -e . git+https://github.com/username/repo.git
+pip install --no-deps -e . git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
+
 python -m notpip -X bla
 
 python -m pip install -r file
@@ -73,6 +104,8 @@ python3 -m pip install -X -H somepkg \
     'some-ther==1.2.3' \
     'somebla<3.4.5'
 
+python -m pip install --no-deps -e git+https://github.com/username/repo.git
+python -m pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package
 
 npm install typescript
 npm install -g typescript
@@ -90,3 +123,13 @@ choco install 'some-other-package'
 choco install --requirechecksum 'some-package'
 choco install --requirechecksums 'some-package'
 choco install --require-checksums 'some-package'
+
+nuget install some-package
+nuget restore
+nuget install some-package -Version 1.2.3
+nuget install packages.config
+dotnet add package some-package
+dotnet add SomeProject package some-package
+dotnet build
+dotnet add package some-package -v 1.2.3
+dotnet add package some-package --version 1.2.3

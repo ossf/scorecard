@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 const (
@@ -349,7 +350,7 @@ func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp st
 			return JobMatchResult{
 				File: checker.File{
 					Path:   fp,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: GetLineNumber(job.Pos),
 				},
 				Msg: fmt.Sprintf("%v: %v", matcher.LogText, fp),
@@ -360,7 +361,7 @@ func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp st
 	return JobMatchResult{
 		File: checker.File{
 			Path:   fp,
-			Type:   checker.FileTypeSource,
+			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 		},
 		Msg: fmt.Sprintf("%v: %v", logMsgNoMatch, fp),
@@ -557,6 +558,9 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			Steps: []*JobMatcherStep{
 				{
 					Uses: "imjasonh/setup-ko",
+				},
+				{
+					Uses: "ko-build/setup-ko",
 				},
 			},
 			LogText: "candidate container publishing workflow using ko",

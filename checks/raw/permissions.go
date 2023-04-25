@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 type permission string
@@ -83,6 +84,8 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 		return true, nil
 	}
 
+	pdata.results.NumTokens += 1
+
 	workflow, errs := actionlint.Parse(content)
 	if len(errs) > 0 && workflow == nil {
 		return false, fileparser.FormatActionlintError(errs)
@@ -127,7 +130,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 				checker.TokenPermission{
 					File: &checker.File{
 						Path:    path,
-						Type:    checker.FileTypeSource,
+						Type:    finding.FileTypeSource,
 						Offset:  lineNumber,
 						Snippet: val,
 					},
@@ -144,7 +147,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 				checker.TokenPermission{
 					File: &checker.File{
 						Path:    path,
-						Type:    checker.FileTypeSource,
+						Type:    finding.FileTypeSource,
 						Offset:  lineNumber,
 						Snippet: val,
 					},
@@ -163,7 +166,7 @@ func validatePermission(permissionKey permission, permissionValue *actionlint.Pe
 		checker.TokenPermission{
 			File: &checker.File{
 				Path:   path,
-				Type:   checker.FileTypeSource,
+				Type:   finding.FileTypeSource,
 				Offset: lineNumber,
 				// TODO: set Snippet.
 			},
@@ -180,7 +183,7 @@ func typeOfPermission(val string) checker.PermissionLevel {
 	switch val {
 	case "read", "read-all":
 		return checker.PermissionLevelRead
-	case "none":
+	case "none": //nolint:goconst
 		return checker.PermissionLevelNone
 	}
 	return checker.PermissionLevelUnknown
@@ -210,7 +213,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 			checker.TokenPermission{
 				File: &checker.File{
 					Path:   path,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 				LocationType: &permLoc,
@@ -227,7 +230,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 				checker.TokenPermission{
 					File: &checker.File{
 						Path:    path,
-						Type:    checker.FileTypeSource,
+						Type:    finding.FileTypeSource,
 						Offset:  lineNumber,
 						Snippet: val,
 					},
@@ -244,7 +247,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 			checker.TokenPermission{
 				File: &checker.File{
 					Path:    path,
-					Type:    checker.FileTypeSource,
+					Type:    finding.FileTypeSource,
 					Offset:  lineNumber,
 					Snippet: val,
 				},
@@ -270,7 +273,7 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 			checker.TokenPermission{
 				File: &checker.File{
 					Path:   path,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 				LocationType: &permLoc,
@@ -299,7 +302,7 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 				checker.TokenPermission{
 					File: &checker.File{
 						Path:   path,
-						Type:   checker.FileTypeSource,
+						Type:   finding.FileTypeSource,
 						Offset: fileparser.GetLineNumber(job.Pos),
 					},
 					LocationType: &permLoc,
@@ -371,12 +374,16 @@ func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissi
 		// allow our own action, which writes sarif files
 		// https://github.com/ossf/scorecard-action
 		"ossf/scorecard-action": true,
+
+		// Code scanning with HLint uploads a SARIF file to GitHub.
+		// https://github.com/haskell-actions/hlint-scan
+		"haskell-actions/hlint-scan": true,
 	}
 
 	tokenPermissions := checker.TokenPermission{
 		File: &checker.File{
 			Path:   fp,
-			Type:   checker.FileTypeSource,
+			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			// TODO: set Snippet.
 		},
@@ -416,7 +423,7 @@ func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, pdata
 		checker.TokenPermission{
 			File: &checker.File{
 				Path:   fp,
-				Type:   checker.FileTypeSource,
+				Type:   finding.FileTypeSource,
 				Offset: checker.OffsetDefault,
 			},
 			Msg:  &match.Msg,
@@ -517,7 +524,7 @@ func isWorkflowOf(workflow *actionlint.Workflow, fp string,
 		checker.TokenPermission{
 			File: &checker.File{
 				Path:   fp,
-				Type:   checker.FileTypeSource,
+				Type:   finding.FileTypeSource,
 				Offset: checker.OffsetDefault,
 			},
 			Msg:  &match.Msg,

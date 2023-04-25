@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package clients
 // Repo interface uniquely identifies a repo.
 type Repo interface {
 	URI() string
+	Host() string
 	String() string
-	Org() Repo
 	IsValid() error
 	Metadata() []string
 	AppendMetadata(metadata ...string)

@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 //nolint:govet
@@ -69,8 +71,7 @@ type Dependency struct {
 	Version     string `yaml:"version"`
 }
 
-// Allows us to run fewer scorecard checks if some policy values
-// are don't-cares.
+// GetRequiredChecksForPolicy Allows us to run fewer scorecard checks if some policy values are don't-cares.
 func (ap *AttestationPolicy) GetRequiredChecksForPolicy() map[string]bool {
 	requiredChecks := make(map[string]bool)
 
@@ -93,26 +94,25 @@ func (ap *AttestationPolicy) GetRequiredChecksForPolicy() map[string]bool {
 	return requiredChecks
 }
 
-// Run attestation policy checks on raw data.
+// EvaluateResults Run attestation policy checks on raw data.
 func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyResult, error) {
-	dl := checker.NewLogger()
+	logger := sclog.NewLogger(sclog.DefaultLevel)
 	if ap.PreventBinaryArtifacts {
-		checkResult, err := CheckPreventBinaryArtifacts(ap.AllowedBinaryArtifacts, raw, dl)
-
+		checkResult, err := CheckPreventBinaryArtifacts(ap.AllowedBinaryArtifacts, raw, logger)
 		if !checkResult || err != nil {
 			return checkResult, err
 		}
 	}
 
 	if ap.PreventUnpinnedDependencies {
-		checkResult, err := CheckNoUnpinnedDependencies(ap.AllowedUnpinnedDependencies, raw, dl)
+		checkResult, err := CheckNoUnpinnedDependencies(ap.AllowedUnpinnedDependencies, raw, logger)
 		if !checkResult || err != nil {
 			return checkResult, err
 		}
 	}
 
 	if ap.PreventKnownVulnerabilities {
-		checkResult, err := CheckNoVulnerabilities(raw, dl)
+		checkResult, err := CheckNoVulnerabilities(raw, logger)
 		if !checkResult || err != nil {
 			return checkResult, err
 		}
@@ -126,7 +126,7 @@ func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyRes
 			ap.CodeReviewRequirements.MinReviewers = 1
 		}
 
-		checkResult, err := CheckCodeReviewed(ap.CodeReviewRequirements, raw, dl)
+		checkResult, err := CheckCodeReviewed(ap.CodeReviewRequirements, raw, logger)
 		if !checkResult || err != nil {
 			return checkResult, err
 		}
@@ -145,7 +145,7 @@ const (
 func CheckPreventBinaryArtifacts(
 	allowedBinaryArtifacts []string,
 	results *checker.RawResults,
-	dl checker.DetailLogger,
+	logger *sclog.Logger,
 ) (PolicyResult, error) {
 	for i := range results.BinaryArtifactResults.Files {
 		artifactFile := results.BinaryArtifactResults.Files[i]
@@ -157,37 +157,39 @@ func CheckPreventBinaryArtifacts(
 
 			if g := glob.MustCompile(allowGlob); g.Match(artifactFile.Path) {
 				ignoreArtifact = true
-				dl.Info(&checker.LogMessage{Text: fmt.Sprintf(
-					"ignoring binary artifact at %s due to ignored glob path %s",
-					artifactFile.Path,
-					g,
-				)})
+				logger.Info(
+					fmt.Sprintf(
+						"ignoring binary artifact at %s due to ignored glob path %s",
+						artifactFile.Path, g,
+					),
+				)
 			}
 		}
 
 		if !ignoreArtifact {
-			dl.Info(&checker.LogMessage{
-				Path: artifactFile.Path, Type: checker.FileTypeBinary,
-				Offset: artifactFile.Offset,
-				Text:   "binary detected",
-			})
+			logger.Info(
+				fmt.Sprintf(
+					"binary detected path:%s type: %v offset:%v",
+					artifactFile.Path, finding.FileTypeBinary, artifactFile.Offset,
+				),
+			)
 			return Fail, nil
 		}
 	}
 
-	dl.Info(&checker.LogMessage{Text: "repo was free of binary artifacts"})
+	logger.Info("repo was free of binary artifacts")
 	return Pass, nil
 }
 
-func CheckNoVulnerabilities(results *checker.RawResults, dl checker.DetailLogger) (PolicyResult, error) {
+func CheckNoVulnerabilities(results *checker.RawResults, logger *sclog.Logger) (PolicyResult, error) {
 	nVulns := len(results.VulnerabilitiesResults.Vulnerabilities)
 
-	dl.Info(&checker.LogMessage{Text: fmt.Sprintf("found %d vulnerabilities in package", nVulns)})
+	logger.Info(fmt.Sprintf("found %d vulnerabilities in package", nVulns))
 
 	return nVulns == 0, nil
 }
 
-func toString(cs checker.Changeset) string {
+func toString(cs *checker.Changeset) string {
 	platform := cs.ReviewPlatform
 	if platform == "" {
 		platform = "unknown"
@@ -198,13 +200,12 @@ func toString(cs checker.Changeset) string {
 func CheckCodeReviewed(
 	reqs CodeReviewRequirements,
 	results *checker.RawResults,
-	dl checker.DetailLogger,
+	logger *sclog.Logger,
 ) (PolicyResult, error) {
-	for _, changeset := range results.CodeReviewResults.DefaultBranchChangesets {
+	for i := range results.CodeReviewResults.DefaultBranchChangesets {
+		changeset := &results.CodeReviewResults.DefaultBranchChangesets[i]
 		numApprovers := 0
 		approvals := make(map[string]bool)
-		// CodeReview check is limited to github.com pull request reviews
-		// Log if a change isn't a github pr since it's a bit unintuitive
 		foundLinkedReviews := false
 
 		for i := range changeset.Commits {
@@ -218,44 +219,36 @@ func CheckCodeReviewed(
 			}
 		}
 
+		// CodeReview check is limited to github.com pull request reviews
+		// Log if a change isn't a github pr since it's a bit unintuitive
 		if !foundLinkedReviews {
-			dl.Warn(
-				&checker.LogMessage{
-					Text: fmt.Sprintf(
-						"no code reviews linked to %s",
-						toString(changeset),
-					),
-				},
-			)
+			logger.Info(fmt.Sprintf("no code reviews linked to %s", toString(changeset)))
 		}
 
 		if numApprovers < reqs.MinReviewers {
-			dl.Info(
-				&checker.LogMessage{
-					Text: fmt.Sprintf(
-						"not enough approvals for %s (needed:%d found:%d)",
-						toString(changeset),
-						reqs.MinReviewers,
-						numApprovers,
-					),
-				},
+			logger.Info(
+				fmt.Sprintf(
+					"not enough approvals for %s (needed:%d found:%d)",
+					toString(changeset),
+					reqs.MinReviewers,
+					numApprovers,
+				),
 			)
 			return Fail, nil
 		}
 
-		missingApprovers := false
+		if len(reqs.RequiredApprovers) == 0 {
+			continue
+		}
+
+		missingApprovers := true
 		for _, appr := range reqs.RequiredApprovers {
-			if approved, ok := approvals[appr]; !(ok && approved) {
-				dl.Info(
-					&checker.LogMessage{
-						Text: fmt.Sprintf(
-							"approver %s required but didn't approve %s",
-							appr,
-							toString(changeset),
-						),
-					},
+			if approved, ok := approvals[appr]; ok && approved {
+				logger.Info(
+					fmt.Sprintf("found approver %s for %s", appr, toString(changeset)),
 				)
-				missingApprovers = true
+				missingApprovers = false
+				break
 			}
 		}
 
@@ -270,17 +263,17 @@ func CheckCodeReviewed(
 func CheckNoUnpinnedDependencies(
 	allowed []Dependency,
 	results *checker.RawResults,
-	dl checker.DetailLogger,
+	logger *sclog.Logger,
 ) (PolicyResult, error) {
 	for i := range results.PinningDependenciesResults.Dependencies {
 		dep := results.PinningDependenciesResults.Dependencies[i]
 		if (dep.PinnedAt == nil || *dep.PinnedAt == "") && !isUnpinnedDependencyAllowed(dep, allowed) {
-			dl.Info(&checker.LogMessage{Text: fmt.Sprintf("found unpinned dependency %v", dep)})
+			logger.Info(fmt.Sprintf("found unpinned dependency %v", dep))
 			return Fail, nil
 		}
 	}
 
-	dl.Info(&checker.LogMessage{Text: "repo was free of unpinned dependencies"})
+	logger.Info("repo was free of unpinned dependencies")
 	return Pass, nil
 }
 
@@ -297,7 +290,7 @@ func isUnpinnedDependencyAllowed(d checker.Dependency, allowed []Dependency) boo
 	return false
 }
 
-// ParseFromFile takes a policy file and returns an AttestationPolicy.
+// ParseAttestationPolicyFromFile takes a policy file and returns an AttestationPolicy.
 func ParseAttestationPolicyFromFile(policyFile string) (*AttestationPolicy, error) {
 	if policyFile != "" {
 		data, err := os.ReadFile(policyFile)
@@ -321,7 +314,7 @@ func ParseAttestationPolicyFromFile(policyFile string) (*AttestationPolicy, erro
 	return nil, nil
 }
 
-// Parses a policy file and returns a AttestationPolicy.
+// ParseAttestationPolicyFromYAML parses a policy file and returns a AttestationPolicy.
 func ParseAttestationPolicyFromYAML(b []byte) (*AttestationPolicy, error) {
 	ap := AttestationPolicy{}
 

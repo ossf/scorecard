@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		{
 			name:     "Non-pinned workflow",
 			filename: "./testdata/.github/workflows/workflow-not-pinned.yaml",
-			warns:    1,
+			warns:    2,
 		},
 		{
 			name:     "Non-yaml file",
@@ -94,6 +94,87 @@ func TestGithubWorkflowPinning(t *testing.T) {
 
 			if tt.warns != len(r.Dependencies) {
 				t.Errorf("expected %v. Got %v", tt.warns, len(r.Dependencies))
+			}
+		})
+	}
+}
+
+func TestGithubWorkflowPinningPattern(t *testing.T) {
+	tests := []struct {
+		desc     string
+		uses     string
+		ispinned bool
+	}{
+		{
+			desc:     "checking out mutable tag",
+			uses:     "actions/checkout@v3",
+			ispinned: false,
+		},
+		{
+			desc:     "hecking out mutable tag",
+			uses:     "actions/checkout@v3.2.0",
+			ispinned: false,
+		},
+		{
+			desc:     "checking out mutable tag",
+			uses:     "actions/checkout@main",
+			ispinned: false,
+		},
+		{
+			desc:     "checking out mutable tag",
+			uses:     "actions/aws@v2.0.1",
+			ispinned: false,
+		},
+		{
+			desc:     "checking out mutable tag",
+			uses:     "actions/aws/ec2@main",
+			ispinned: false,
+		},
+		{
+			desc:     "checking out specific commmit from github with truncated SHA-1",
+			uses:     "actions/checkout@a81bbbf",
+			ispinned: false,
+		},
+		{
+			desc:     "checking out specific commmit from github with SHA-1",
+			uses:     "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+			ispinned: true,
+		},
+		{
+			desc:     "local workflow",
+			uses:     "./.github/uses.yml",
+			ispinned: true,
+		},
+		{
+			desc: "non-github docker image pinned by digest",
+			//nolint:lll
+			uses:     "docker://gcr.io/distroless/static-debian11@sha256:9e6f8952f12974d088f648ed6252ea1887cdd8641719c8acd36bf6d2537e71c0",
+			ispinned: true,
+		},
+		{
+			desc: "non-github docker image pinned to mutable tag",
+			//nolint:lll
+			uses:     "docker://gcr.io/distroless/static-debian11:sha256-3876708467ad6f38f263774aa107d331e8de6558a2874aa223b96fc0d9dfc820.sig",
+			ispinned: false,
+		},
+		{
+			desc:     "non-github docker image pinned to mutable version",
+			uses:     "docker://rhysd/actionlint:latest",
+			ispinned: false,
+		},
+		{
+			desc:     "non-github docker image pinned by digest",
+			uses:     "docker://rhysd/actionlint:latest@sha256:5f957b2a08d223e48133e1a914ed046bea12e578fe2f6ae4de47fdbe691a2468",
+			ispinned: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+			p := isActionDependencyPinned(tt.uses)
+			if p != tt.ispinned {
+				t.Fatalf("dependency %s ispinned?: %v expected?: %v", tt.uses, p, tt.ispinned)
 			}
 		})
 	}
@@ -180,7 +261,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 		{
 			name:     "npm packages without verification",
 			filename: "./testdata/.github/workflows/github-workflow-pkg-managers.yaml",
-			warns:    28,
+			warns:    49,
 		},
 	}
 	for _, tt := range tests {
@@ -476,6 +557,66 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 					endLine:   42,
 					t:         checker.DependencyUseTypePipCommand,
 				},
+				{
+					snippet:   "pip install --no-deps -e hg+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 46,
+					endLine:   46,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e svn+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 47,
+					endLine:   47,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e bzr+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 48,
+					endLine:   48,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git",
+					startLine: 49,
+					endLine:   49,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git#egg=package",
+					startLine: 50,
+					endLine:   50,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0",
+					startLine: 51,
+					endLine:   51,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package",
+					startLine: 52,
+					endLine:   52,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 60,
+					endLine:   60,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e . git+https://github.com/username/repo.git",
+					startLine: 61,
+					endLine:   61,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "python -m pip install --no-deps -e git+https://github.com/username/repo.git",
+					startLine: 64,
+					endLine:   64,
+					t:         checker.DependencyUseTypePipCommand,
+				},
 			},
 		},
 		{
@@ -617,6 +758,84 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 					startLine: 31,
 					endLine:   31,
 					t:         checker.DependencyUseTypeChocoCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e hg+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 38,
+					endLine:   38,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e svn+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 39,
+					endLine:   39,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e bzr+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 40,
+					endLine:   40,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git",
+					startLine: 41,
+					endLine:   41,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git#egg=package",
+					startLine: 42,
+					endLine:   42,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0",
+					startLine: 43,
+					endLine:   43,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package",
+					startLine: 44,
+					endLine:   44,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567#egg=package",
+					startLine: 52,
+					endLine:   52,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e . git+https://github.com/username/repo.git",
+					startLine: 53,
+					endLine:   53,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "python -m pip install --no-deps -e git+https://github.com/username/repo.git",
+					startLine: 56,
+					endLine:   56,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "nuget install some-package",
+					startLine: 59,
+					endLine:   59,
+					t:         checker.DependencyUseTypeNugetCommand,
+				},
+				{
+					snippet:   "dotnet add package some-package",
+					startLine: 63,
+					endLine:   63,
+					t:         checker.DependencyUseTypeNugetCommand,
+				},
+				{
+					snippet:   "dotnet add SomeProject package some-package",
+					startLine: 64,
+					endLine:   64,
+					t:         checker.DependencyUseTypeNugetCommand,
 				},
 			},
 		},
@@ -770,7 +989,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/Dockerfile-pkg-managers",
-			warns:    39,
+			warns:    60,
 		},
 		{
 			name:     "download with some python",
@@ -888,7 +1107,7 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/script-pkg-managers",
-			warns:    36,
+			warns:    56,
 		},
 		{
 			name:     "invalid shell script",

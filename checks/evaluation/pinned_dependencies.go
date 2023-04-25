@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/remediation"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 var errInvalidValue = errors.New("invalid value")
@@ -54,7 +56,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	pr := make(map[checker.DependencyUseType]pinnedResult)
 	dl := c.Dlogger
 	//nolint:errcheck
-	remediaitonMetadata, _ := remediation.New(c)
+	remediationMetadata, _ := remediation.New(c)
 
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]
@@ -86,7 +88,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				EndOffset:   rr.Location.EndOffset,
 				Text:        generateText(&rr),
 				Snippet:     rr.Location.Snippet,
-				Remediation: generateRemediation(remediaitonMetadata, &rr),
+				Remediation: generateRemediation(remediationMetadata, &rr),
 			})
 
 			// Update the pinning status.
@@ -136,12 +138,12 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		"dependency not pinned by hash detected", score, checker.MaxResultScore)
 }
 
-func generateRemediation(remediaitonMd remediation.RemediationMetadata, rr *checker.Dependency) *checker.Remediation {
+func generateRemediation(remediationMd *remediation.RemediationMetadata, rr *checker.Dependency) *rule.Remediation {
 	switch rr.Type {
 	case checker.DependencyUseTypeGHAction:
-		return remediaitonMd.CreateWorkflowPinningRemediation(rr.Location.Path)
+		return remediationMd.CreateWorkflowPinningRemediation(rr.Location.Path)
 	case checker.DependencyUseTypeDockerfileContainerImage:
-		return remediation.CreateDockerfilePinningRemediation(rr.Name)
+		return remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
 	default:
 		return nil
 	}
@@ -183,7 +185,6 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 }
 
 // TODO(laurent): need to support GCB pinning.
-//nolint
 func maxScore(s1, s2 int) int {
 	if s1 > s2 {
 		return s1
@@ -280,7 +281,7 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 	if r.gitHubOwned != notPinned {
 		score += 2
 		dl.Info(&checker.LogMessage{
-			Type:   checker.FileTypeSource,
+			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
 		})
@@ -289,7 +290,7 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, in
 	if r.thirdParties != notPinned {
 		score += 8
 		dl.Info(&checker.LogMessage{
-			Type:   checker.FileTypeSource,
+			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   fmt.Sprintf("%s %s", "Third-party", infoMsg),
 		})

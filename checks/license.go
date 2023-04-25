@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ const CheckLicense = "License"
 //nolint:gochecknoinits
 func init() {
 	supportedRequestTypes := []checker.RequestType{
-		checker.FileBased,
 		checker.CommitBased,
 	}
 	if err := registerCheck(CheckLicense, License, supportedRequestTypes); err != nil {

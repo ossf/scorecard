@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -80,17 +80,18 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 	return "", nil
 }
 
-// RunScorecards runs enabled Scorecard checks on a Repo.
-func RunScorecards(ctx context.Context,
+// RunScorecard runs enabled Scorecard checks on a Repo.
+func RunScorecard(ctx context.Context,
 	repo clients.Repo,
 	commitSHA string,
+	commitDepth int,
 	checksToRun checker.CheckNameToFnMap,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 ) (ScorecardResult, error) {
-	if err := repoClient.InitRepo(repo, commitSHA); err != nil {
+	if err := repoClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
 		return ScorecardResult{}, err

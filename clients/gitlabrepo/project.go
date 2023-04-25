@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ func (handler *projectHandler) init(repourl *repoURL) {
 
 func (handler *projectHandler) setup() error {
 	handler.once.Do(func() {
-		proj, _, err := handler.glClient.Projects.GetProject(handler.repourl.projectID, &gitlab.GetProjectOptions{})
+		proj, _, err := handler.glClient.Projects.GetProject(handler.repourl.project, &gitlab.GetProjectOptions{})
 		if err != nil {
 			handler.errSetup = fmt.Errorf("request for project failed with error %w", err)
 			return

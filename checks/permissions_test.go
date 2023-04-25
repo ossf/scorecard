@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-//nolint
+// nolint
 func TestGithubTokenPermissions(t *testing.T) {
 	t.Parallel()
 
@@ -44,7 +44,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 5,
 			},
 		},
@@ -77,7 +77,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 5,
 			},
 		},
@@ -99,7 +99,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 5,
 			},
 		},
@@ -110,7 +110,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 5,
 			},
 		},
@@ -121,7 +121,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 5,
 			},
 		},
@@ -132,7 +132,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				NumberOfDebug: 5,
 			},
 		},
@@ -143,7 +143,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 6,
 			},
 		},
@@ -154,7 +154,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  10,
+				NumberOfInfo:  11,
 				NumberOfDebug: 5,
 			},
 		},
@@ -165,7 +165,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  10,
+				NumberOfInfo:  11,
 				NumberOfDebug: 5,
 			},
 		},
@@ -176,7 +176,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 5,
 			},
 		},
@@ -187,7 +187,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  2,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 6,
 			},
 		},
@@ -198,7 +198,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore - 2,
 				NumberOfWarn:  2,
-				NumberOfInfo:  3,
+				NumberOfInfo:  4,
 				NumberOfDebug: 5,
 			},
 		},
@@ -209,7 +209,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 5,
 			},
 		},
@@ -220,7 +220,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 5,
 			},
 		},
@@ -231,7 +231,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 5,
 			},
 		},
@@ -240,7 +240,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			filenames: []string{"./testdata/script.sh"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
+				Score:         checker.InconclusiveResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
@@ -264,7 +264,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 4,
 			},
 		},
@@ -275,7 +275,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 4,
 			},
 		},
@@ -286,7 +286,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 5,
 			},
 		},
@@ -297,7 +297,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         9,
 				NumberOfWarn:  1,
-				NumberOfInfo:  3,
+				NumberOfInfo:  4,
 				NumberOfDebug: 4,
 			},
 		},
@@ -313,6 +313,17 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
+			name:      "security-events write, known actions",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-secevent-known-actions.yaml"},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,  // This is constant.
+				NumberOfDebug: 8,  // This is 4 + (number of actions)
+			},
+		},
+		{
 			name: "two files mix run-level and top-level",
 			filenames: []string{
 				"./testdata/.github/workflows/github-workflow-permissions-top-level-only.yaml",
@@ -322,7 +333,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  1,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 9,
 			},
 		},
@@ -336,7 +347,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  2,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 9,
 			},
 		},
@@ -350,7 +361,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 10,
 			},
 		},
@@ -363,7 +374,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  2,
 				NumberOfDebug: 5,
 			},
 		},
@@ -375,7 +386,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil)
+			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 
 			main := "main"
 			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
@@ -473,7 +484,11 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 
 			for _, expectedLog := range tt.expected {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Offset == expectedLog.lineNumber && logMessage.Path == p &&
+					return logMessage.Finding != nil &&
+						logMessage.Finding.Location != nil &&
+						logMessage.Finding.Location.LineStart != nil &&
+						*logMessage.Finding.Location.LineStart == expectedLog.lineNumber &&
+						logMessage.Finding.Location.Value == p &&
 						logType == checker.DetailWarn
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {

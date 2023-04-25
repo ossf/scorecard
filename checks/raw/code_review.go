@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -183,19 +183,7 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 
 	// Changesets are returned in map order (i.e. randomized)
 	for ri := range changesetsByRevInfo {
-		// Ungroup all commits that don't have revision info
-		cs := changesetsByRevInfo[ri]
-		missing := revisionInfo{}
-		if ri == missing {
-			for i := range cs.Commits {
-				c := cs.Commits[i]
-				changesets = append(changesets, checker.Changeset{
-					Commits: []clients.Commit{c},
-				})
-			}
-		} else {
-			changesets = append(changesets, cs)
-		}
+		changesets = append(changesets, changesetsByRevInfo[ri])
 	}
 
 	return changesets

@@ -1,4 +1,4 @@
-# Copyright 2021 Security Scorecard Authors
+# Copyright 2021 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,13 +37,13 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 #v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -54,21 +54,21 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run unit-tests
-       run: make unit-test unit-test-attestor
+       run: make unit-test
      - name: Upload codecoverage
-       uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
+       uses: codecov/codecov-action@894ff025c7b54547a9a2a1e9f228beae737ad3c2 # 2.1.0
        with:
-         files: ./unit-coverage.out,./attestor/unit-coverage.out
+         files: ./unit-coverage.out
          verbose: true
   generate-mocks:
     name: generate-mocks
@@ -77,7 +77,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -88,7 +88,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -99,17 +99,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: generate mocks
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -125,7 +125,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -136,7 +136,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -147,17 +147,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: generate docs
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -172,7 +172,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -182,17 +182,17 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-proto
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -208,7 +208,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -219,7 +219,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -230,17 +230,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -256,7 +256,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -267,7 +267,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -278,17 +278,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build cron
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -304,7 +304,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -315,7 +315,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -326,17 +326,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build worker
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -352,7 +352,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -363,7 +363,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -374,17 +374,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build cii-worker
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -400,7 +400,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -411,7 +411,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -422,17 +422,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build shuffler
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -448,7 +448,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -459,7 +459,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -470,17 +470,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build bq transfer
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -496,7 +496,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -507,7 +507,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -518,17 +518,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build bq transfer
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -544,7 +544,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -555,7 +555,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -566,17 +566,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build webhook
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -592,7 +592,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -603,7 +603,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -614,17 +614,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-add-script
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -640,7 +640,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -651,7 +651,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -662,17 +662,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-validate-script
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -688,7 +688,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -699,7 +699,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -710,17 +710,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: build-validate-script
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -735,7 +735,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -745,11 +745,11 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -765,13 +765,13 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -782,17 +782,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -808,7 +808,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Install Protoc
@@ -818,7 +818,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
+       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
        with:
          path: |
            ~/go/pkg/mod
@@ -829,17 +829,17 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -854,7 +854,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -864,17 +864,17 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
           max_attempts: 3
           retry_on: error
@@ -889,12 +889,12 @@ jobs:
       contents: read
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5 # v1
+        uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
-      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
@@ -903,5 +903,5 @@ jobs:
         run: |
           go env -w GOFLAGS=-mod=mod
           go install github.com/google/addlicense@2fe3ee94479d08be985a84861de4e6b06a1c7208
-          addlicense -ignore "**/script-empty.sh" -ignore "testdata/**" -ignore "**/testdata/**" -l apache -c 'Security Scorecard Authors' -v *
+          addlicense -ignore "**/script-empty.sh" -ignore "testdata/**" -ignore "**/testdata/**" -l apache -c 'OpenSSF Scorecard Authors' -v *
           git diff --exit-code

@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/ossfuzz"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/pkg"
@@ -60,7 +61,7 @@ func serveCmd(o *options.Options) *cobra.Command {
 				}
 				ctx := r.Context()
 				repoClient := githubrepo.CreateGithubRepoClient(ctx, logger)
-				ossFuzzRepoClient, err := githubrepo.CreateOssFuzzRepoClient(ctx, logger)
+				ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 				vulnsClient := clients.DefaultVulnerabilitiesClient()
 				if err != nil {
 					logger.Error(err, "initializing clients")
@@ -69,8 +70,8 @@ func serveCmd(o *options.Options) *cobra.Command {
 				defer ossFuzzRepoClient.Close()
 				ciiClient := clients.DefaultCIIBestPracticesClient()
 				checksToRun := checks.GetAll()
-				repoResult, err := pkg.RunScorecards(
-					ctx, repo, clients.HeadSHA /*commitSHA*/, checksToRun, repoClient,
+				repoResult, err := pkg.RunScorecard(
+					ctx, repo, clients.HeadSHA /*commitSHA*/, o.CommitDepth, checksToRun, repoClient,
 					ossFuzzRepoClient, ciiClient, vulnsClient)
 				if err != nil {
 					logger.Error(err, "running enabled scorecard checks on repo")

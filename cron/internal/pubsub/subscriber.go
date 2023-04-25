@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"google.golang.org/protobuf/encoding/protojson"
 
@@ -38,6 +39,10 @@ type Subscriber interface {
 // CreateSubscriber returns an implementation of Subscriber interface.
 // Currently returns an instance of gcsSubscriber.
 func CreateSubscriber(ctx context.Context, subscriptionURL string) (Subscriber, error) {
+	// the gocloud clients respect PUBSUB_EMULATOR_HOST, but our custom GCS subscriber does not
+	if os.Getenv("PUBSUB_EMULATOR_HOST") != "" {
+		return createGocloudSubscriber(ctx, subscriptionURL)
+	}
 	return createGCSSubscriber(ctx, subscriptionURL)
 }
 

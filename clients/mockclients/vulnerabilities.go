@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,17 +50,17 @@ func (m *MockVulnerabilitiesClient) EXPECT() *MockVulnerabilitiesClientMockRecor
 	return m.recorder
 }
 
-// HasUnfixedVulnerabilities mocks base method.
-func (m *MockVulnerabilitiesClient) HasUnfixedVulnerabilities(context context.Context, commit string) (clients.VulnerabilitiesResponse, error) {
+// ListUnfixedVulnerabilities mocks base method.
+func (m *MockVulnerabilitiesClient) ListUnfixedVulnerabilities(context context.Context, commit, localDir string) (clients.VulnerabilitiesResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasUnfixedVulnerabilities", context, commit)
+	ret := m.ctrl.Call(m, "ListUnfixedVulnerabilities", context, commit, localDir)
 	ret0, _ := ret[0].(clients.VulnerabilitiesResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// HasUnfixedVulnerabilities indicates an expected call of HasUnfixedVulnerabilities.
-func (mr *MockVulnerabilitiesClientMockRecorder) HasUnfixedVulnerabilities(context, commit interface{}) *gomock.Call {
+// ListUnfixedVulnerabilities indicates an expected call of ListUnfixedVulnerabilities.
+func (mr *MockVulnerabilitiesClientMockRecorder) ListUnfixedVulnerabilities(context, commit, localDir interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasUnfixedVulnerabilities", reflect.TypeOf((*MockVulnerabilitiesClient)(nil).HasUnfixedVulnerabilities), context, commit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUnfixedVulnerabilities", reflect.TypeOf((*MockVulnerabilitiesClient)(nil).ListUnfixedVulnerabilities), context, commit, localDir)
 }

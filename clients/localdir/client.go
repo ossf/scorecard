@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,21 +39,26 @@ var (
 
 //nolint:govet
 type localDirClient struct {
-	logger   *log.Logger
-	ctx      context.Context
-	path     string
-	once     sync.Once
-	errFiles error
-	files    []string
+	logger      *log.Logger
+	ctx         context.Context
+	path        string
+	once        sync.Once
+	errFiles    error
+	files       []string
+	commitDepth int
 }
 
 // InitRepo sets up the local repo.
-func (client *localDirClient) InitRepo(inputRepo clients.Repo, commitSHA string) error {
+func (client *localDirClient) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	localRepo, ok := inputRepo.(*repoLocal)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
 	}
-
+	if commitDepth <= 0 {
+		client.commitDepth = 30 // default
+	} else {
+		client.commitDepth = commitDepth
+	}
 	client.path = strings.TrimPrefix(localRepo.URI(), "file://")
 
 	return nil
@@ -135,6 +140,15 @@ func applyPredicate(
 	}
 
 	return files, nil
+}
+
+// LocalPath implements RepoClient.LocalPath.
+func (client *localDirClient) LocalPath() (string, error) {
+	clientPath, err := filepath.Abs(client.path)
+	if err != nil {
+		return "", fmt.Errorf("error during filepath.Abs: %w", err)
+	}
+	return clientPath, nil
 }
 
 // ListFiles implements RepoClient.ListFiles.
@@ -235,8 +249,18 @@ func (client *localDirClient) ListProgrammingLanguages() ([]clients.Language, er
 	return nil, fmt.Errorf("ListProgrammingLanguages: %w", clients.ErrUnsupportedFeature)
 }
 
+// ListLicenses implements RepoClient.ListLicenses.
+// TODO: add ListLicenses support for local directories.
+func (client *localDirClient) ListLicenses() ([]clients.License, error) {
+	return nil, fmt.Errorf("ListLicenses: %w", clients.ErrUnsupportedFeature)
+}
+
 func (client *localDirClient) GetCreatedAt() (time.Time, error) {
 	return time.Time{}, fmt.Errorf("GetCreatedAt: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *localDirClient) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	return nil, fmt.Errorf("GetOrgRepoClient: %w", clients.ErrUnsupportedFeature)
 }
 
 // CreateLocalDirClient returns a client which implements RepoClient interface.

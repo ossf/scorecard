@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 var (
@@ -133,6 +134,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 		"pyo":    true,
 		"par":    true,
 		"rpm":    true,
+		"wasm":   true,
 		"whl":    true,
 	}
 	var t types.Type
@@ -148,7 +150,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	if exists1 {
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
-			Type:   checker.FileTypeBinary,
+			Type:   finding.FileTypeBinary,
 			Offset: checker.OffsetDefault,
 		})
 		return true, nil
@@ -158,7 +160,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	if !isText(content) && exists2 {
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
-			Type:   checker.FileTypeBinary,
+			Type:   finding.FileTypeBinary,
 			Offset: checker.OffsetDefault,
 		})
 	}

@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ func Test_getRepoCommitHashLocal(t *testing.T) {
 				t.Errorf("MakeLocalDirRepo: %v", err)
 				return
 			}
-			if err := localDirClient.InitRepo(localRepo, clients.HeadSHA); err != nil {
+			if err := localDirClient.InitRepo(localRepo, clients.HeadSHA, 0); err != nil {
 				t.Errorf("InitRepo: %v", err)
 				return
 			}
@@ -118,7 +118,7 @@ func Test_getRepoCommitHashLocal(t *testing.T) {
 	}
 }
 
-func TestRunScorecards(t *testing.T) {
+func TestRunScorecard(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		commitSHA string
@@ -146,7 +146,7 @@ func TestRunScorecards(t *testing.T) {
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			repo := mockrepo.NewMockRepo(ctrl)
 
-			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA).Return(nil)
+			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA, 0).Return(nil)
 
 			mockRepoClient.EXPECT().Close().DoAndReturn(func() error {
 				return nil
@@ -163,14 +163,13 @@ func TestRunScorecards(t *testing.T) {
 				}, nil
 			})
 			defer ctrl.Finish()
-			got, err := RunScorecards(context.Background(), repo, tt.args.commitSHA, nil,
-				mockRepoClient, nil, nil, nil)
+			got, err := RunScorecard(context.Background(), repo, tt.args.commitSHA, 0, nil, mockRepoClient, nil, nil, nil)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RunScorecards() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RunScorecards() got = %v, want %v", got, tt.want)
+				t.Errorf("RunScorecard() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

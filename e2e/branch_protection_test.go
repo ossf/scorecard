@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -47,9 +47,9 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         6,
-				NumberOfWarn:  1,
+				NumberOfWarn:  2,
 				NumberOfInfo:  4,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			}
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
@@ -66,7 +66,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e-none")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -84,17 +84,17 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			result := checks.BranchProtection(&req)
 
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "branch protection accessible none", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		It("Should fail to return branch protection on other repositories", func() {
+		It("Should fail to return branch protection on other repositories patch", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e-patch-1")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -107,12 +107,12 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 				Score:         1,
 				NumberOfWarn:  3,
 				NumberOfInfo:  3,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			}
 			result := checks.BranchProtection(&req)
 
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(nil, "branch protection accessible patch", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
@@ -126,7 +126,7 @@ var _ = Describe("E2E TEST GITHUB_TOKEN:"+checks.CheckBranchProtection, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-branch-protection-e2e")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),

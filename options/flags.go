@@ -1,4 +1,4 @@
-// Copyright OpenSSF Authors.
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -59,6 +59,8 @@ const (
 
 	// FlagFormat is the flag name for specifying output format.
 	FlagFormat = "format"
+
+	FlagCommitDepth = "commit-depth"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -130,6 +132,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagShowDetails,
 		o.ShowDetails,
 		"show extra details about each check",
+	)
+
+	cmd.Flags().IntVar(
+		&o.CommitDepth,
+		FlagCommitDepth,
+		o.CommitDepth,
+		"number of commits to check, commits begin backwards from the HEAD",
 	)
 
 	checkNames := []string{}

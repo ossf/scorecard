@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ type User struct {
 	Organizations    []User
 	NumContributions int
 	ID               int64
+	IsBot            bool
 }
 
 // RepoAssociation is how a user is associated with a repository.
