@@ -81,9 +81,6 @@ const (
 	// Formats.
 	// FormatJSON specifies that results should be output in JSON format.
 	FormatJSON = "json"
-	// FormatPJSON specifies that results should be output in probe JSON format,
-	// i.e., with the structured results.
-	FormatPJSON = "probe-json"
 	// FormatSJSON specifies that results should be output in structured JSON format,
 	// i.e., with the structured results.
 	FormatSJSON = "structured-json"
@@ -174,12 +171,6 @@ func (o *Options) Validate() error {
 
 	if !o.isExperimentalEnabled() {
 		if o.Format == FormatSJSON {
-			errs = append(
-				errs,
-				errFormatSupportedWithExperimental,
-			)
-		}
-		if o.Format == FormatPJSON {
 			errs = append(
 				errs,
 				errFormatSupportedWithExperimental,
@@ -290,7 +281,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatSJSON, FormatPJSON, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatSJSON, FormatSarif, FormatDefault, FormatRaw:
 		return true
 	default:
 		return false
