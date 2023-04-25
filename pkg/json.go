@@ -147,7 +147,15 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(opts *options.Options,
+func (r *ScorecardResult) AsJSON2(showDetails bool,
+	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
+) error {
+	return r.withString(&options.Options{ShowDetails: showDetails},
+		logLevel, checkDocs, writer)
+}
+
+// AsJSON3 exports results as JSON for several detail format.
+func (r *ScorecardResult) AsJSON3(opts *options.Options,
 	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
 ) error {
 	if opts != nil && opts.DetailsFormat != options.DetailsFormatString {
