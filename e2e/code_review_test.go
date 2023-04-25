@@ -50,7 +50,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				NumberOfDebug: 1,
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
@@ -75,7 +75,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				NumberOfDebug: 1,
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
@@ -117,7 +117,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
-				Score: checker.InconclusiveResultScore,
+				Score:         checker.InconclusiveResultScore,
+				NumberOfDebug: 1,
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
@@ -138,7 +139,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
-				Score: checker.MinResultScore,
+				Score:         checker.MinResultScore,
+				NumberOfDebug: 1,
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())

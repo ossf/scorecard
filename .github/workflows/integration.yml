@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@03bee3930647ebbf994244c21ddbc0d4933aab4f # v1
+        uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -37,12 +37,12 @@ jobs:
     needs: [approve]
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@03bee3930647ebbf994244c21ddbc0d4933aab4f # v1
+        uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
       - name: pull_request actions/checkout
-        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # v2.3.4
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -56,6 +56,20 @@ jobs:
         run: |
             go mod download
 
+      - name: Run GitLab E2E  #using retry because the GitHub token is being throttled.
+        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+        with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: make e2e-gitlab
+
+      - name: codecov
+        uses: codecov/codecov-action@894ff025c7b54547a9a2a1e9f228beae737ad3c2 # 2.1.0
+        with:
+         files: ./e2e-coverage.out
+         verbose: true
+
       - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled.
         uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
         env:
@@ -67,23 +81,8 @@ jobs:
           command: make e2e-gh-token
 
       - name: codecov
-        uses: codecov/codecov-action@40a12dcee2df644d47232dde008099a3e9e4f865 # 2.1.0
+        uses: codecov/codecov-action@894ff025c7b54547a9a2a1e9f228beae737ad3c2 # 2.1.0
         with:
          files: ./e2e-coverage.out
          verbose: true
       
-      - name: Run GitLab E2E  #using retry because the GitHub token is being throttled.
-        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
-        with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 30
-          command: make e2e-gitlab
-        env: # Or as an environment variable
-          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-
-      - name: codecov
-        uses: codecov/codecov-action@40a12dcee2df644d47232dde008099a3e9e4f865 # 2.1.0
-        with:
-         files: ./e2e-coverage.out
-         verbose: true

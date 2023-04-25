@@ -45,8 +45,9 @@ var (
 	pythonInterpreters = []string{"python", "python3", "python2.7"}
 	shellInterpreters  = append([]string{"exec", "su"}, shellNames...)
 	otherInterpreters  = []string{"perl", "ruby", "php", "node", "nodejs", "java"}
-	interpreters       = append(otherInterpreters,
-		append(shellInterpreters, append(shellNames, pythonInterpreters...)...)...)
+	dotnetInterpreters = []string{"dotnet", "nuget"}
+	interpreters       = append(dotnetInterpreters, append(otherInterpreters,
+		append(shellInterpreters, append(shellNames, pythonInterpreters...)...)...)...)
 )
 
 // Note: aws is handled separately because it uses different
@@ -696,6 +697,93 @@ func isChocoUnpinnedDownload(cmd []string) bool {
 	return true
 }
 
+func isUnpinnedNugetCliInstall(cmd []string) bool {
+	// looking for command of type nuget install ...
+	if len(cmd) < 2 {
+		return false
+	}
+
+	// Search for nuget commands.
+	if !isBinaryName("nuget", cmd[0]) && !isBinaryName("nuget.exe", cmd[0]) {
+		return false
+	}
+
+	// Search for install commands.
+	if !strings.EqualFold(cmd[1], "install") {
+		return false
+	}
+
+	// Assume installing a project with PackageReference (with versions)
+	// or packages.config at the root of command
+	if len(cmd) == 2 {
+		return false
+	}
+
+	// Assume that the script is installing from a packages.config file (with versions)
+	// package.config schema has required version field
+	// https://learn.microsoft.com/en-us/nuget/reference/packages-config#schema
+	// and Nuget follows Semantic Versioning 2.0.0 (versions are immutable)
+	// https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#semantic-versioning-200
+	if strings.HasSuffix(cmd[2], "packages.config") {
+		return false
+	}
+
+	unpinnedDependency := true
+	for i := 2; i < len(cmd); i++ {
+		// look for version flag
+		if strings.EqualFold(cmd[i], "-Version") {
+			unpinnedDependency = false
+			break
+		}
+	}
+
+	return unpinnedDependency
+}
+
+func isUnpinnedDotNetCliInstall(cmd []string) bool {
+	// Search for command of type dotnet add <PROJECT> package <PACKAGE_NAME>
+	if len(cmd) < 4 {
+		return false
+	}
+	// Search for dotnet commands.
+	if !isBinaryName("dotnet", cmd[0]) && !isBinaryName("dotnet.exe", cmd[0]) {
+		return false
+	}
+
+	// Search for add commands.
+	if !strings.EqualFold(cmd[1], "add") {
+		return false
+	}
+
+	// Search for package commands (can be either the second or the third word)
+	if !(strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package")) {
+		return false
+	}
+
+	unpinnedDependency := true
+	for i := 3; i < len(cmd); i++ {
+		// look for version flag
+		// https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-add-package
+		if strings.EqualFold(cmd[i], "-v") || strings.EqualFold(cmd[i], "--version") {
+			unpinnedDependency = false
+			break
+		}
+	}
+	return unpinnedDependency
+}
+
+func isNugetUnpinnedDownload(cmd []string) bool {
+	if isUnpinnedDotNetCliInstall(cmd) {
+		return true
+	}
+
+	if isUnpinnedNugetCliInstall(cmd) {
+		return true
+	}
+
+	return false
+}
+
 func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
 	cmd, pathfn string, r *checker.PinningDependenciesData,
 ) {
@@ -777,6 +865,24 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					Snippet:   cmd,
 				},
 				Type: checker.DependencyUseTypeChocoCommand,
+			},
+		)
+
+		return
+	}
+
+	// Nuget install.
+	if isNugetUnpinnedDownload(c) {
+		r.Dependencies = append(r.Dependencies,
+			checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      finding.FileTypeSource,
+					Offset:    startLine,
+					EndOffset: endLine,
+					Snippet:   cmd,
+				},
+				Type: checker.DependencyUseTypeNugetCommand,
 			},
 		)
 

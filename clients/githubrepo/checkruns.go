@@ -89,10 +89,12 @@ func (handler *checkrunsHandler) init(ctx context.Context, repourl *repoURL, com
 	handler.checkData = new(checkRunsGraphqlData)
 	handler.setupOnce = new(sync.Once)
 	handler.checkRunsByRef = checkRunsByRef{}
+	handler.errSetup = nil
 }
 
 func (handler *checkrunsHandler) setup() error {
 	handler.setupOnce.Do(func() {
+		handler.errSetup = nil
 		commitExpression := handler.repourl.commitExpression()
 		vars := map[string]interface{}{
 			"owner":                 githubv4.String(handler.repourl.owner),

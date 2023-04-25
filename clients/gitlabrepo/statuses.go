@@ -46,7 +46,7 @@ func statusFromData(commitStatuses []*gitlab.CommitStatus) []clients.Status {
 	for _, commitStatus := range commitStatuses {
 		statuses = append(statuses, clients.Status{
 			State:     commitStatus.Status,
-			Context:   fmt.Sprint(commitStatus.ID),
+			Context:   commitStatus.Name,
 			URL:       commitStatus.TargetURL,
 			TargetURL: commitStatus.TargetURL,
 		})

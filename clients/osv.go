@@ -20,6 +20,8 @@ import (
 	"fmt"
 
 	"github.com/google/osv-scanner/pkg/osvscanner"
+
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 var _ VulnerabilitiesClient = osvClient{}
@@ -31,7 +33,12 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	ctx context.Context,
 	commit,
 	localPath string,
-) (VulnerabilitiesResponse, error) {
+) (_ VulnerabilitiesResponse, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = sce.CreateInternal(sce.ErrScorecardInternal, fmt.Sprintf("osv-scanner panic: %v", r))
+		}
+	}()
 	directoryPaths := []string{}
 	if localPath != "" {
 		directoryPaths = append(directoryPaths, localPath)
