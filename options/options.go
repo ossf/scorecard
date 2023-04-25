@@ -116,7 +116,6 @@ var (
 	errCommitIsEmpty                   = errors.New("commit should be non-empty")
 	errFormatNotSupported              = errors.New("unsupported format")
 	errFormatSupportedWithExperimental = errors.New("format supported only with SCORECARD_EXPERIMENTAL=1")
-	errChecksMutuallyExclusive         = errors.New("--checks-definition-file and --checks are mutually exclusive")
 	errPolicyFileNotSupported          = errors.New("policy file is not supported yet")
 	errRawOptionNotSupported           = errors.New("raw option is not supported yet")
 	errRepoOptionMustBeSet             = errors.New(
