@@ -25,6 +25,7 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
 	rules "github.com/ossf/scorecard/v4/rule"
 )
 
@@ -146,7 +147,17 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(showDetails bool,
+func (r *ScorecardResult) AsJSON2(opts *options.Options,
+	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
+) error {
+	if opts != nil && opts.DetailsFormat != options.DetailsFormatString {
+		return r.withFindings(opts, logLevel, checkDocs, writer)
+	}
+
+	return r.withString(opts, logLevel, checkDocs, writer)
+}
+
+func (r *ScorecardResult) withString(opts *options.Options,
 	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
 ) error {
 	score, err := r.GetAggregateScore(checkDocs)
@@ -184,7 +195,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 			Reason: checkResult.Reason,
 			Score:  checkResult.Score,
 		}
-		if showDetails {
+		if opts != nil && opts.ShowDetails {
 			for i := range checkResult.Details {
 				d := checkResult.Details[i]
 				m := DetailToString(&d, logLevel)
@@ -196,11 +207,18 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
+
 	if err := encoder.Encode(out); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 
 	return nil
+}
+
+func (r *ScorecardResult) withFindings(opts *options.Options,
+	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
+) error {
+	return sce.WithMessage(sce.ErrScorecardInternal, "WIP: not supported")
 }
 
 func (r *ScorecardResult) AsSJSON(showDetails bool,

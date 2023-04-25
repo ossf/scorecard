@@ -29,15 +29,17 @@ import (
 
 // Options define common options for configuring scorecard.
 type Options struct {
-	Repo       string
-	Local      string
-	Commit     string
-	LogLevel   string
-	Format     string
-	NPM        string
-	PyPI       string
-	RubyGems   string
-	PolicyFile string
+	Repo                 string
+	Local                string
+	Commit               string
+	LogLevel             string
+	Format               string
+	NPM                  string
+	PyPI                 string
+	RubyGems             string
+	PolicyFile           string
+	ChecksDefinitionFile string
+	DetailsFormat        string
 	// TODO(action): Add logic for writing results to file
 	ResultsFile string
 	ChecksToRun []string
@@ -64,6 +66,9 @@ func New() *Options {
 	if opts.Format == "" {
 		opts.Format = FormatDefault
 	}
+	if opts.DetailsFormat == "" {
+		opts.DetailsFormat = DetailsFormatString
+	}
 	if opts.LogLevel == "" {
 		opts.LogLevel = DefaultLogLevel
 	}
@@ -77,6 +82,9 @@ const (
 	// Formats.
 	// FormatJSON specifies that results should be output in JSON format.
 	FormatJSON = "json"
+	// FormatPJSON specifies that results should be output in probe JSON format,
+	// i.e., with the structured results.
+	FormatPJSON = "probe-json"
 	// FormatSJSON specifies that results should be output in structured JSON format,
 	// i.e., with the structured results.
 	FormatSJSON = "structured-json"
@@ -86,6 +94,12 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
+
+	// DetailsFormatString specifies that the details will be reported as human-readable strings.
+	DetailsFormatString = "string"
+	// DetailsFormatFindings specifies that the details will be reported as "structured" findings
+	// that are more suited for automated parsing.
+	DetailsFormatFinding = "finding"
 
 	// Environment variables.
 	// EnvVarEnableSarif is the environment variable which controls enabling
@@ -103,12 +117,15 @@ var (
 	// DefaultLogLevel retrieves the default log level.
 	DefaultLogLevel = log.DefaultLevel.String()
 
-	errCommitIsEmpty                   = errors.New("commit should be non-empty")
-	errFormatNotSupported              = errors.New("unsupported format")
-	errFormatSupportedWithExperimental = errors.New("format supported only with SCORECARD_EXPERIMENTAL=1")
-	errPolicyFileNotSupported          = errors.New("policy file is not supported yet")
-	errRawOptionNotSupported           = errors.New("raw option is not supported yet")
-	errRepoOptionMustBeSet             = errors.New(
+	errCommitIsEmpty                    = errors.New("commit should be non-empty")
+	errFormatNotSupported               = errors.New("unsupported format")
+	errFormatSupportedWithExperimental  = errors.New("format supported only with SCORECARD_EXPERIMENTAL=1")
+	errChecksDefinitionFileExperimental = errors.New("checks-definition-file supported only with SCORECARD_EXPERIMENTAL=1")
+	errChecksDefinitionFileNotSupported = errors.New("checks-definition-file only support format 'probe-json' and 'structured-json'")
+	errChecksMutuallyExclusive          = errors.New("--checks-definition-file and --checks are mutually exclusive")
+	errPolicyFileNotSupported           = errors.New("policy file is not supported yet")
+	errRawOptionNotSupported            = errors.New("raw option is not supported yet")
+	errRepoOptionMustBeSet              = errors.New(
 		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
@@ -165,6 +182,32 @@ func (o *Options) Validate() error {
 				errFormatSupportedWithExperimental,
 			)
 		}
+		if o.Format == FormatPJSON {
+			errs = append(
+				errs,
+				errFormatSupportedWithExperimental,
+			)
+		}
+		if o.ChecksDefinitionFile != "" {
+			errs = append(
+				errs,
+				errChecksDefinitionFileExperimental,
+			)
+		}
+		if o.DetailsFormat != DetailsFormatString {
+			errs = append(
+				errs,
+				errFormatSupportedWithExperimental,
+			)
+		}
+	}
+
+	// Validate DetailsFormat.
+	if !validateDetailsFormat(o.DetailsFormat) {
+		errs = append(
+			errs,
+			errFormatNotSupported,
+		)
 	}
 
 	// Validate format.
@@ -173,6 +216,23 @@ func (o *Options) Validate() error {
 			errs,
 			errFormatNotSupported,
 		)
+	}
+
+	// Validate check definition and format.
+	if o.ChecksDefinitionFile != "" {
+		if o.Format != FormatSJSON &&
+			o.Format != FormatPJSON {
+			errs = append(
+				errs,
+				errChecksDefinitionFileNotSupported,
+			)
+		}
+		if len(o.ChecksToRun) > 0 {
+			errs = append(
+				errs,
+				errChecksMutuallyExclusive,
+			)
+		}
 	}
 
 	// Validate `commit` is non-empty.
@@ -190,7 +250,6 @@ func (o *Options) Validate() error {
 			errs,
 		)
 	}
-
 	return nil
 }
 
@@ -257,7 +316,16 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatSJSON, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatSJSON, FormatPJSON, FormatSarif, FormatDefault, FormatRaw:
+		return true
+	default:
+		return false
+	}
+}
+
+func validateDetailsFormat(format string) bool {
+	switch format {
+	case DetailsFormatFinding, DetailsFormatString:
 		return true
 	default:
 		return false
