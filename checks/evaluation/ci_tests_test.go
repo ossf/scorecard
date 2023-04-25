@@ -14,7 +14,6 @@
 package evaluation
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -276,7 +275,7 @@ func Test_prHasSuccessStatus(t *testing.T) {
 	}
 }
 
-func Test_prHasSuccessfulCheck1(t *testing.T) {
+func Test_prHasSuccessfulCheckAdditional(t *testing.T) {
 	t.Parallel()
 	type args struct { //nolint:govet
 		r  checker.RevisionCIInfo
@@ -450,7 +449,7 @@ func TestCITests(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CITests(tt.args.in0, tt.args.c, tt.args.dl); !reflect.DeepEqual(got.Score, tt.want) { //nolint:govet
+			if got := CITests(tt.args.in0, tt.args.c, tt.args.dl); got.Score != tt.want { //nolint:govet
 				t.Errorf("CITests() = %v, want %v", got.Score, tt.want) //nolint:govet
 			}
 		})

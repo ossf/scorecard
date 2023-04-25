@@ -32,7 +32,6 @@ func CITests(_ string, c *checker.CITestData, dl checker.DetailLogger) checker.C
 	totalMerged := 0
 	totalTested := 0
 	for i := range c.CIInfo {
-		fmt.Println("CITests: ", len(c.CIInfo))
 		r := c.CIInfo[i]
 		totalMerged++
 
