@@ -21,7 +21,7 @@ import (
 )
 
 // Cannot run parallel tests because of the ENV variables.
-//nolint
+// nolint
 func TestOptions_Validate(t *testing.T) {
 	type fields struct {
 		Repo              string
@@ -37,6 +37,7 @@ func TestOptions_Validate(t *testing.T) {
 		ChecksToRun       []string
 		Metadata          []string
 		ShowDetails       bool
+		DetailsFormat     string
 		EnableSarif       bool
 		EnableScorecardV6 bool
 	}
@@ -53,36 +54,40 @@ func TestOptions_Validate(t *testing.T) {
 		{
 			name: "format sarif but the enable sarif flag is not set",
 			fields: fields{
-				Format: "sarif",
+				Format:        "sarif",
+				DetailsFormat: "string",
 			},
 			wantErr: true,
 		},
 		{
 			name: "format sarif and the enable sarif flag is set",
 			fields: fields{
-				Repo:        "github.com/oss/scorecard",
-				Commit:      "HEAD",
-				Format:      "sarif",
-				EnableSarif: true,
-				PolicyFile:  "testdata/policy.yaml",
+				Repo:          "github.com/oss/scorecard",
+				Commit:        "HEAD",
+				Format:        "sarif",
+				DetailsFormat: "string",
+				EnableSarif:   true,
+				PolicyFile:    "testdata/policy.yaml",
 			},
 			wantErr: false,
 		},
 		{
 			name: "format sarif and the disabled but the policy file is set",
 			fields: fields{
-				Repo:       "github.com/oss/scorecard",
-				Commit:     "HEAD",
-				PolicyFile: "testdata/policy.yaml",
+				Repo:          "github.com/oss/scorecard",
+				Commit:        "HEAD",
+				PolicyFile:    "testdata/policy.yaml",
+				DetailsFormat: "string",
 			},
 			wantErr: true,
 		},
 		{
 			name: "format raw is not supported when V6 is not enabled",
 			fields: fields{
-				Repo:   "github.com/oss/scorecard",
-				Commit: "HEAD",
-				Format: "raw",
+				Repo:          "github.com/oss/scorecard",
+				Commit:        "HEAD",
+				Format:        "raw",
+				DetailsFormat: "string",
 			},
 			wantErr: true,
 		},
@@ -104,6 +109,7 @@ func TestOptions_Validate(t *testing.T) {
 				ChecksToRun:       tt.fields.ChecksToRun,
 				Metadata:          tt.fields.Metadata,
 				ShowDetails:       tt.fields.ShowDetails,
+				DetailsFormat:     tt.fields.DetailsFormat,
 				EnableSarif:       tt.fields.EnableSarif,
 				EnableScorecardV6: tt.fields.EnableScorecardV6,
 			}
