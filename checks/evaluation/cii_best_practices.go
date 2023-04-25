@@ -41,7 +41,7 @@ func CIIBestPractices(name string, _ checker.DetailLogger, r *checker.CIIBestPra
 	var results checker.CheckResult
 	switch r.Badge {
 	case clients.NotFound:
-		results = checker.CreateMinScoreResult(name, "no badge detected")
+		results = checker.CreateMinScoreResult(name, "no effort to earn an OpenSSF best practices badge detected")
 	case clients.InProgress:
 		msg := fmt.Sprintf("badge detected: %v", r.Badge)
 		results = checker.CreateResultWithScore(name, msg, inProgressScore)

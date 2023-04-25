@@ -255,37 +255,21 @@ checks:
     description: |
       Risk: `Low` (possibly not following security best practices)
 
-      This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/),
-      which indicates that the project uses a set of security-focused best development practices for open
+      This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/) at the passing, silver, or gold level.
+      The OpenSSF Best Practices badge indicates whether or not that the project uses a set of security-focused best development practices for open
       source software. The check uses the URL for the Git repo and the OpenSSF Best Practices badge API.
 
       The OpenSSF Best Practices badge has 3 tiers: passing, silver, and gold. We give
-      full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/2), which is a
-      significant achievement for many projects. Lower scores represent a project that
-      is at least working to achieve a badge, with increasingly more points awarded as
-      more criteria are met.
+      full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/2), which is a significant achievement for projects and requires multiple developers in the project.
+      Lower scores represent a project that has met the silver criteria, met the passing criteria, or is working to achieve the passing badge, with increasingly more points awarded as more criteria are met. Note that even meeting the passing criteria is a significant achievement.
 
-      - [gold badge](https://bestpractices.coreinfrastructure.org/en/criteria/2): 10
-      - [silver badge](https://bestpractices.coreinfrastructure.org/en/criteria/1): 7
-      - [passing badge](https://bestpractices.coreinfrastructure.org/en/criteria/0): 5
+      - [gold badge](https://bestpractices.coreinfrastructure.org/criteria/2): 10
+      - [silver badge](https://bestpractices.coreinfrastructure.org/criteria/1): 7
+      - [passing badge](https://bestpractices.coreinfrastructure.org/criteria/0): 5
       - in progress badge: 2
 
-      To earn the passing badge, the project MUST:
-
-        - publish the process for reporting vulnerabilities on the project site
-        - provide a working build system that can automatically rebuild the software
-          from source code (where applicable)
-        - have a general policy that tests will be added to an automated test suite
-          when major new functionality is added
-        - meet various cryptography criteria where applicable
-        - have at least one primary developer who knows how to design secure software
-        - have at least one primary developer who knows of common kinds of errors
-          that lead to vulnerabilities in this kind of software (and at least one
-          method to counter or mitigate each of them)
-        - apply at least one static code analysis tool (beyond compiler warnings and
-          "safe" language modes) to any proposed major production release.
-
       Some of these criteria overlap with other Scorecard checks.
+      However, note that in those overlapping cases, Scorecard can only report what it can automatically detect, while the OpenSSF Best Practices badge can report on claims and claim justifications from people (this counters false negatives and positives but has the challenge of requiring additional work from people).
     remediation:
       - >-
         Sign up for the [OpenSSF Best Practices program](https://bestpractices.coreinfrastructure.org/).
