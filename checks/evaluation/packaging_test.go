@@ -20,6 +20,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/checker"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func Test_createLogMessage(t *testing.T) {
@@ -124,6 +125,44 @@ func TestPackaging(t *testing.T) {
 				Version: 2,
 				Score:   -1,
 				Reason:  "internal error: empty raw data",
+			},
+		},
+		{
+			name: "empty packaging data",
+			args: args{
+				name: "name",
+				dl:   &scut.TestDetailLogger{},
+				r:    &checker.PackagingData{},
+			},
+			want: checker.CheckResult{
+				Name:    "name",
+				Version: 2,
+				Score:   -1,
+				Reason:  "no published package detected",
+			},
+		},
+		{
+			name: "runs are not zero",
+			args: args{
+				dl: &scut.TestDetailLogger{},
+				r: &checker.PackagingData{
+					Packages: []checker.Package{
+						{
+							File: &checker.File{
+								Path: "path",
+							},
+							Runs: []checker.Run{
+								{},
+							},
+						},
+					},
+				},
+			},
+			want: checker.CheckResult{
+				Name:    "",
+				Version: 2,
+				Score:   10,
+				Reason:  "publishing workflow detected",
 			},
 		},
 	}
