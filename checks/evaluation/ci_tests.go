@@ -28,7 +28,7 @@ const (
 	success      = "success"
 )
 
-func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checker.CheckResult {
+func CITests(_ string, c *checker.CITestData, dl checker.DetailLogger) checker.CheckResult {
 	totalMerged := 0
 	totalTested := 0
 	for i := range c.CIInfo {
@@ -37,7 +37,7 @@ func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checke
 
 		var foundCI bool
 
-		// Github Statuses.
+		// GitHub Statuses.
 		prSuccessStatus, err := prHasSuccessStatus(r, dl)
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(CheckCITests, err)
@@ -48,7 +48,7 @@ func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checke
 			continue
 		}
 
-		// Github Check Runs.
+		// GitHub Check Runs.
 		prCheckSuccessful, err := prHasSuccessfulCheck(r, dl)
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(CheckCITests, err)
