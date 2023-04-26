@@ -84,7 +84,7 @@ Signing releases already has some relevance and it will soon offer even more sec
 
 ### Dependency-Update-Tool: Why should I trust recommended updates are safe?
 
-Both dependabot and renovatebot won't update your dependencies immediately. They have some precautions to make sure a release is reasonable / won't break your build (see [dependabot documentation](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores)).
+Both dependabot and renovatebot won't update your dependencies immediately. They have some precautions to make sure a release is reasonable / won't break your build (see [dependabot compatibility documentation](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores)).
 
 You can either configure the tools to only update your dependencies once a week or once a month. This way, if a malicious version is released, it's very likely that it'll be reported and removed before it even gets suggested to you. Besides, there's also the benefit that it gives you the chance to validate the new release before merging if you want to.
 
