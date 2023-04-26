@@ -80,11 +80,9 @@ const (
 	// FormatFJSON specifies that results should be output in JSON format,
 	// but with structured findings.
 	FormatFJSON = "finding"
-	// FormatPJSON specifies that results should be output in probe JSON format,
-	// i.e., with the structured results.
+	// FormatPJSON specifies that results should be output in probe JSON format.
 	FormatPJSON = "probe"
 	// FormatSJSON specifies that results should be output in structured JSON format,
-	// i.e., with the structured results.
 	FormatSJSON = "structured"
 	// FormatSarif specifies that results should be output in SARIF format.
 	FormatSarif = "sarif"
@@ -112,7 +110,6 @@ var (
 	errCommitIsEmpty                   = errors.New("commit should be non-empty")
 	errFormatNotSupported              = errors.New("unsupported format")
 	errFormatSupportedWithExperimental = errors.New("format supported only with SCORECARD_EXPERIMENTAL=1")
-	errChecksMutuallyExclusive         = errors.New("--checks-definition-file and --checks are mutually exclusive")
 	errPolicyFileNotSupported          = errors.New("policy file is not supported yet")
 	errRawOptionNotSupported           = errors.New("raw option is not supported yet")
 	errRepoOptionMustBeSet             = errors.New(
