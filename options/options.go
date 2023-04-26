@@ -29,16 +29,15 @@ import (
 
 // Options define common options for configuring scorecard.
 type Options struct {
-	Repo                 string
-	Local                string
-	Commit               string
-	LogLevel             string
-	Format               string
-	NPM                  string
-	PyPI                 string
-	RubyGems             string
-	PolicyFile           string
-	ChecksDefinitionFile string
+	Repo       string
+	Local      string
+	Commit     string
+	LogLevel   string
+	Format     string
+	NPM        string
+	PyPI       string
+	RubyGems   string
+	PolicyFile string
 	// TODO(action): Add logic for writing results to file
 	ResultsFile string
 	ChecksToRun []string
@@ -110,15 +109,13 @@ var (
 	// DefaultLogLevel retrieves the default log level.
 	DefaultLogLevel = log.DefaultLevel.String()
 
-	errCommitIsEmpty                    = errors.New("commit should be non-empty")
-	errFormatNotSupported               = errors.New("unsupported format")
-	errFormatSupportedWithExperimental  = errors.New("format supported only with SCORECARD_EXPERIMENTAL=1")
-	errChecksDefinitionFileExperimental = errors.New("checks-definition-file supported only with SCORECARD_EXPERIMENTAL=1")
-	errChecksDefinitionFileNotSupported = errors.New("checks-definition-file only support format 'probe-json' and 'structured-json'")
-	errChecksMutuallyExclusive          = errors.New("--checks-definition-file and --checks are mutually exclusive")
-	errPolicyFileNotSupported           = errors.New("policy file is not supported yet")
-	errRawOptionNotSupported            = errors.New("raw option is not supported yet")
-	errRepoOptionMustBeSet              = errors.New(
+	errCommitIsEmpty                   = errors.New("commit should be non-empty")
+	errFormatNotSupported              = errors.New("unsupported format")
+	errFormatSupportedWithExperimental = errors.New("format supported only with SCORECARD_EXPERIMENTAL=1")
+	errChecksMutuallyExclusive         = errors.New("--checks-definition-file and --checks are mutually exclusive")
+	errPolicyFileNotSupported          = errors.New("policy file is not supported yet")
+	errRawOptionNotSupported           = errors.New("raw option is not supported yet")
+	errRepoOptionMustBeSet             = errors.New(
 		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
@@ -177,12 +174,6 @@ func (o *Options) Validate() error {
 				errFormatSupportedWithExperimental,
 			)
 		}
-		if o.ChecksDefinitionFile != "" {
-			errs = append(
-				errs,
-				errChecksDefinitionFileExperimental,
-			)
-		}
 	}
 
 	// Validate format.
@@ -191,23 +182,6 @@ func (o *Options) Validate() error {
 			errs,
 			errFormatNotSupported,
 		)
-	}
-
-	// Validate check definition and format.
-	if o.ChecksDefinitionFile != "" {
-		if o.Format != FormatSJSON &&
-			o.Format != FormatPJSON {
-			errs = append(
-				errs,
-				errChecksDefinitionFileNotSupported,
-			)
-		}
-		if len(o.ChecksToRun) > 0 {
-			errs = append(
-				errs,
-				errChecksMutuallyExclusive,
-			)
-		}
 	}
 
 	// Validate `commit` is non-empty.
