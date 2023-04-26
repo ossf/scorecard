@@ -1,0 +1,35 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: gitHubWorkflowPermissionsTopNoWrite
+short: Checks that GitHub workflows do not have default write permissions
+motivation: >
+  If no permissions are declared, a workflow's GitHub token's permissions default to write for all scopes.
+  This include write permissions to push to the repository, to read encrypted secrets, etc.
+  For more information, see https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token. 
+implementation: >
+  The rule is implemented by checking whether the `permissions` keyword is defined at the top of the workflow,
+  and that no write permissions are given.
+remediation:
+  effort: Low
+  text:
+    - Visit https://app.stepsecurity.io/secureworkflow/${{ repo }}/${{ workflow }}/${{ branch }}?enable=permissions
+    - Tick the 'Restrict permissions for GITHUB_TOKEN'
+    - Untick other options
+    - "NOTE: If you want to resolve multiple issues at once, you can visit https://app.stepsecurity.io/securerepo instead."
+  markdown:
+    - Visit [https://app.stepsecurity.io/secureworkflow](https://app.stepsecurity.io/secureworkflow/${{ repo }}/${{ workflow }}/${{ branch }}?enable=permissions).
+    - Tick the 'Restrict permissions for GITHUB_TOKEN'
+    - Untick other options
+    - "NOTE: If you want to resolve multiple issues at once, you can visit [https://app.stepsecurity.io/securerepo](https://app.stepsecurity.io/securerepo) instead."
