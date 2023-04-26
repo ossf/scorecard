@@ -19,7 +19,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/rule"
+	"github.com/ossf/scorecard/v4/finding/probe"
+	"gopkg.in/yaml.v3"
 )
 
 // FileType is the type of a file.
@@ -42,7 +43,7 @@ const (
 // nolint: govet
 type Location struct {
 	Type      FileType `json:"type"`
-	Value     string   `json:"value"`
+	Path      string   `json:"path"`
 	LineStart *uint    `json:"lineStart,omitempty"`
 	LineEnd   *uint    `json:"lineEnd,omitempty"`
 	Snippet   *string  `json:"snippet,omitempty"`
@@ -52,12 +53,31 @@ type Location struct {
 type Outcome int
 
 const (
+	// NOTE: The additional '-' are intended for future use.
+	// This allows adding outcomes without breaking the values
+	// of existing outcomes.
 	// OutcomeNegative indicates a negative outcome.
 	OutcomeNegative Outcome = iota
+	_
+	_
+	_
+	// OutcomeNotAvailable indicates an unavailable outcome,
+	// typically because an API call did not return an answer.
+	OutcomeNotAvailable
+	_
+	_
+	_
+	// OutcomeError indicates an errors while running.
+	// The results could not be determined.
+	OutcomeError
+	_
+	_
+	_
 	// OutcomePositive indicates a positive outcome.
 	OutcomePositive
-	// OutcomeNotApplicable indicates a non-applicable outcome.
-	OutcomeNotApplicable
+	_
+	_
+	_
 	// OutcomeNotSupported indicates a non-supported outcome.
 	OutcomeNotSupported
 )
@@ -65,30 +85,86 @@ const (
 // Finding represents a finding.
 // nolint: govet
 type Finding struct {
-	Rule        string            `json:"rule"`
-	Outcome     Outcome           `json:"outcome"`
-	Risk        rule.Risk         `json:"risk"`
-	Message     string            `json:"message"`
-	Location    *Location         `json:"location,omitempty"`
-	Remediation *rule.Remediation `json:"remediation,omitempty"`
+	Probe       string             `json:"probe"`
+	Outcome     Outcome            `json:"outcome"`
+	Message     string             `json:"message"`
+	Location    *Location          `json:"location,omitempty"`
+	Remediation *probe.Remediation `json:"remediation,omitempty"`
+}
+
+type AnonymousFinding struct {
+	Finding
+	// Remove the probe ID from
+	// the structure until the probes are GA.
+	Probe string `json:"probe,omitempty"`
 }
 
 // New creates a new finding.
-func New(loc embed.FS, ruleID string) (*Finding, error) {
-	r, err := rule.New(loc, ruleID)
+func New(loc embed.FS, probeID string) (*Finding, error) {
+	r, err := probe.New(loc, probeID)
 	if err != nil {
 		// nolint
 		return nil, err
 	}
 	f := &Finding{
-		Rule:        ruleID,
+		Probe:       probeID,
 		Outcome:     OutcomeNegative,
 		Remediation: r.Remediation,
 	}
-	if r.Remediation != nil {
-		f.Risk = r.Risk
-	}
 	return f, nil
+}
+
+func NewWith(fs embed.FS, probeID, text string, loc *Location,
+	o Outcome,
+) (*Finding, error) {
+	f, err := New(fs, probeID)
+	if err != nil {
+		return nil, fmt.Errorf("finding.New: %w", err)
+	}
+
+	f = f.WithMessage(text).WithOutcome(o).WithLocation(loc)
+	return f, nil
+}
+
+func NewNegative(fs embed.FS, probeID, text string, loc *Location,
+) (*Finding, error) {
+	f, err := NewWith(fs, probeID, text, loc, OutcomeNegative)
+	if err != nil {
+		return nil, fmt.Errorf("finding.NewWith: %w", err)
+	}
+
+	f = f.WithMessage(text).WithLocation(loc)
+	return f, nil
+}
+
+func NewNotAvailable(fs embed.FS, probeID, text string, loc *Location,
+) (*Finding, error) {
+	f, err := NewWith(fs, probeID, text, loc, OutcomeNotAvailable)
+	if err != nil {
+		return nil, fmt.Errorf("finding.NewWith: %w", err)
+	}
+
+	f = f.WithMessage(text).WithLocation(loc)
+	return f, nil
+}
+
+func NewPositive(fs embed.FS, probeID, text string, loc *Location,
+) (*Finding, error) {
+	f, err := NewWith(fs, probeID, text, loc, OutcomePositive)
+	if err != nil {
+		return nil, fmt.Errorf("finding.NewWith: %w", err)
+	}
+
+	f = f.WithMessage(text).WithLocation(loc)
+	return f, nil
+}
+
+// Anonimize removes the probe ID and outcome
+// from the finding. It is a temporary solution
+// to integrate the code in the details without exposing
+// too much information.
+func (f *Finding) Anonimize() *AnonymousFinding {
+	return &AnonymousFinding{Finding: *f}
 }
 
 // WithMessage adds a message to an existing finding.
@@ -102,6 +178,14 @@ func (f *Finding) WithMessage(text string) *Finding {
 // No copy is made.
 func (f *Finding) WithLocation(loc *Location) *Finding {
 	f.Location = loc
+	if f.Remediation != nil && loc != nil {
+		// Replace location data.
+		f.Remediation.Text = strings.Replace(f.Remediation.Text,
+			"${{ finding.location.path }}", loc.Path, -1)
+		f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
+			"${{ finding.location.path }}", loc.Path, -1)
+
+	}
 	return f
 }
 
@@ -109,6 +193,8 @@ func (f *Finding) WithLocation(loc *Location) *Finding {
 // No copy is made.
 func (f *Finding) WithPatch(patch *string) *Finding {
 	f.Remediation.Patch = patch
+	// NOTE: we will update the remediation section
+	// using patch information, e.g. ${{ patch.content }}.
 	return f
 }
 
@@ -131,16 +217,37 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 	if f.Remediation != nil {
 		// Replace all dynamic values.
 		for k, v := range values {
+			// Replace metadata.
 			f.Remediation.Text = strings.Replace(f.Remediation.Text,
-				fmt.Sprintf("${{ %s }}", k), v, -1)
+				fmt.Sprintf("${{ metadata.%s }}", k), v, -1)
 			f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
-				fmt.Sprintf("${{ %s }}", k), v, -1)
+				fmt.Sprintf("${{ metadata.%s }}", k), v, -1)
 		}
 	}
 	return f
 }
 
-// WorseThan compares outcomes.
-func (o *Outcome) WorseThan(oo Outcome) bool {
-	return *o < oo
+// UnmarshalYAML is a custom unmarshalling function
+// to transform the string into an enum.
+func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
+	var str string
+	if err := n.Decode(&str); err != nil {
+		return fmt.Errorf("decode: %w", err)
+	}
+
+	switch n.Value {
+	case "Negative":
+		*o = OutcomeNegative
+	case "Positive":
+		*o = OutcomePositive
+	case "NotAvailable":
+		*o = OutcomeNotAvailable
+	case "NotSupported":
+		*o = OutcomeNotSupported
+	case "Error":
+		*o = OutcomeError
+	default:
+		return fmt.Errorf("invalid outcome: %q", str)
+	}
+	return nil
 }

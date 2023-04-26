@@ -77,14 +77,12 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 		if r.File != nil {
 			loc = &finding.Location{
 				Type:      r.File.Type,
-				Value:     r.File.Path,
+				Path:      r.File.Path,
 				LineStart: &r.File.Offset,
 			}
 			if r.File.Snippet != "" {
 				loc.Snippet = &r.File.Snippet
 			}
-
-			loc.Value = r.File.Path
 		}
 
 		text, err := createText(r)
@@ -146,11 +144,11 @@ func reportDefaultFindings(results *checker.TokenPermissionsData,
 	if len(results.TokenPermissions) == 0 {
 		text := "no workflows found in the repository"
 		if err := reportFinding("GitHubWorkflowPermissionsStepsNoWrite",
-			text, finding.OutcomeNotApplicable, dl); err != nil {
+			text, finding.OutcomeNotAvailable, dl); err != nil {
 			return err
 		}
 		if err := reportFinding("GitHubWorkflowPermissionsTopNoWrite",
-			text, finding.OutcomeNotApplicable, dl); err != nil {
+			text, finding.OutcomeNotAvailable, dl); err != nil {
 			return err
 		}
 		return nil
@@ -203,17 +201,17 @@ func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage,
 	rem *remediation.RemediationMetadata, loc *finding.Location,
 	negativeRuleResults map[string]bool,
 ) {
-	if loc != nil && loc.Value != "" {
+	if loc != nil && loc.Path != "" {
 		msg.Finding = msg.Finding.WithRemediationMetadata(map[string]string{
 			"repo":     rem.Repo,
 			"branch":   rem.Branch,
-			"workflow": strings.TrimPrefix(loc.Value, ".github/workflows/"),
+			"workflow": strings.TrimPrefix(loc.Path, ".github/workflows/"),
 		})
 	}
 	logger.Warn(msg)
 
 	// Record that we found a negative result.
-	negativeRuleResults[msg.Finding.Rule] = true
+	negativeRuleResults[msg.Finding.Probe] = true
 }
 
 func recordPermissionWrite(hm map[string]permissions, path string,

@@ -50,10 +50,10 @@ func nonStructuredResultString(d *checker.CheckDetail) string {
 func structuredResultString(d *checker.CheckDetail) string {
 	var sb strings.Builder
 	f := d.Msg.Finding
-	sb.WriteString(fmt.Sprintf("%s: %s severity: %s", typeToString(d.Type), f.Risk.String(), f.Message))
+	sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), f.Message))
 
 	if f.Location != nil {
-		sb.WriteString(fmt.Sprintf(": %s", f.Location.Value))
+		sb.WriteString(fmt.Sprintf(": %s", f.Location.Path))
 		if f.Location.LineStart != nil {
 			sb.WriteString(fmt.Sprintf(":%d", *f.Location.LineStart))
 		}

@@ -22,7 +22,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/rule"
+	"github.com/ossf/scorecard/v4/finding/probe"
 )
 
 func errCmp(e1, e2 error) bool {
@@ -54,13 +54,12 @@ func Test_New(t *testing.T) {
 			id:      "testdata/risk-high",
 			outcome: &negativeOutcome,
 			finding: &Finding{
-				Rule:    "testdata/risk-high",
+				Probe:   "testdata/risk-high",
 				Outcome: OutcomeNegative,
-				Risk:    rule.RiskHigh,
-				Remediation: &rule.Remediation{
+				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
-					Effort:   rule.RemediationEffortLow,
+					Effort:   probe.RemediationEffortLow,
 				},
 			},
 		},
@@ -69,13 +68,12 @@ func Test_New(t *testing.T) {
 			id:      "testdata/effort-low",
 			outcome: &negativeOutcome,
 			finding: &Finding{
-				Rule:    "testdata/effort-low",
+				Probe:   "testdata/effort-low",
 				Outcome: OutcomeNegative,
-				Risk:    rule.RiskHigh,
-				Remediation: &rule.Remediation{
+				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
-					Effort:   rule.RemediationEffortLow,
+					Effort:   probe.RemediationEffortLow,
 				},
 			},
 		},
@@ -84,13 +82,12 @@ func Test_New(t *testing.T) {
 			id:      "testdata/effort-high",
 			outcome: &negativeOutcome,
 			finding: &Finding{
-				Rule:    "testdata/effort-high",
+				Probe:   "testdata/effort-high",
 				Outcome: OutcomeNegative,
-				Risk:    rule.RiskHigh,
-				Remediation: &rule.Remediation{
+				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
-					Effort:   rule.RemediationEffortHigh,
+					Effort:   probe.RemediationEffortHigh,
 				},
 			},
 		},
@@ -100,13 +97,12 @@ func Test_New(t *testing.T) {
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Rule:    "testdata/metadata-variables",
+				Probe:   "testdata/metadata-variables",
 				Outcome: OutcomeNegative,
-				Risk:    rule.RiskHigh,
-				Remediation: &rule.Remediation{
+				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
-					Effort:   rule.RemediationEffortLow,
+					Effort:   probe.RemediationEffortLow,
 				},
 			},
 		},
@@ -116,13 +112,12 @@ func Test_New(t *testing.T) {
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Rule:    "testdata/metadata-variables",
+				Probe:   "testdata/metadata-variables",
 				Outcome: OutcomeNegative,
-				Risk:    rule.RiskHigh,
-				Remediation: &rule.Remediation{
+				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
-					Effort:   rule.RemediationEffortLow,
+					Effort:   probe.RemediationEffortLow,
 					Patch:    &patch,
 				},
 			},
@@ -133,13 +128,12 @@ func Test_New(t *testing.T) {
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Rule:    "testdata/metadata-variables",
+				Probe:   "testdata/metadata-variables",
 				Outcome: OutcomeNegative,
-				Risk:    rule.RiskHigh,
-				Remediation: &rule.Remediation{
+				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
-					Effort:   rule.RemediationEffortLow,
+					Effort:   probe.RemediationEffortLow,
 				},
 				Location: &Location{
 					Type:      FileTypeSource,
@@ -156,13 +150,12 @@ func Test_New(t *testing.T) {
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Rule:    "testdata/metadata-variables",
+				Probe:   "testdata/metadata-variables",
 				Outcome: OutcomeNegative,
-				Risk:    rule.RiskHigh,
-				Remediation: &rule.Remediation{
+				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
-					Effort:   rule.RemediationEffortLow,
+					Effort:   probe.RemediationEffortLow,
 				},
 				Message: "some text",
 			},
@@ -172,9 +165,8 @@ func Test_New(t *testing.T) {
 			id:      "testdata/metadata-variables",
 			outcome: &positiveOutcome,
 			finding: &Finding{
-				Rule:    "testdata/metadata-variables",
+				Probe:   "testdata/metadata-variables",
 				Outcome: OutcomePositive,
-				Risk:    rule.RiskHigh,
 				Message: "some text",
 			},
 		},
