@@ -82,7 +82,7 @@ const (
 	FormatFJSON = "finding"
 	// FormatPJSON specifies that results should be output in probe JSON format.
 	FormatPJSON = "probe"
-	// FormatSJSON specifies that results should be output in structured JSON format,
+	// FormatSJSON specifies that results should be output in structured JSON format.
 	FormatSJSON = "structured"
 	// FormatSarif specifies that results should be output in SARIF format.
 	FormatSarif = "sarif"
