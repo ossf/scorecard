@@ -15,12 +15,9 @@
 package probe
 
 import (
-	"bytes"
 	"embed"
 	"errors"
 	"fmt"
-	"io/fs"
-	"os"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -80,14 +77,9 @@ type Probe struct {
 
 var errInvalid = errors.New("invalid")
 
-// FromFile creates a probe from a file.
-func FromFile(file fs.File, probeID string) (*Probe, error) {
-	buf := new(bytes.Buffer)
-	_, err := buf.ReadFrom(file)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errInvalid, err)
-	}
-	r, err := parseFromJSON(buf.Bytes())
+// FromBytes creates a probe from a file.
+func FromBytes(content []byte, probeID string) (*Probe, error) {
+	r, err := parseFromJSON(content)
 	if err != nil {
 		return nil, err
 	}
@@ -111,12 +103,11 @@ func FromFile(file fs.File, probeID string) (*Probe, error) {
 
 // New create a new probe.
 func New(loc embed.FS, probeID string) (*Probe, error) {
-	file, err := os.Open("def.yml")
+	content, err := loc.ReadFile("def.yml")
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
-	defer file.Close()
-	return FromFile(file, probeID)
+	return FromBytes(content, probeID)
 }
 
 func validate(r *jsonProbe, probeID string) error {

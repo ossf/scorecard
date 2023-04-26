@@ -82,20 +82,18 @@ func Test_New(t *testing.T) {
 			path: "testdata/invalid-effort.yml",
 			err:  errInvalid,
 		},
-		// TODO: mismatch id
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			file, err := os.Open(tt.path)
+			content, err := os.ReadFile(tt.path)
 			if err != nil {
 				panic(err)
 			}
-			defer file.Close()
 
-			r, err := FromFile(file, tt.id)
+			r, err := FromBytes(content, tt.id)
 			if err != nil || tt.err != nil {
 				if !errCmp(err, tt.err) {
 					t.Fatalf("unexpected error: %v", cmp.Diff(err, tt.err, cmpopts.EquateErrors()))

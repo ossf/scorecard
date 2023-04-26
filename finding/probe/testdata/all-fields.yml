@@ -6,7 +6,6 @@ motivation: >
 implementation: >
   impl1
   impl2
-risk: High
 remediation:
   effort: Low
   text:

@@ -6,7 +6,6 @@ motivation: >
 implementation: >
   line1
   line2
-risk: High
 remediation:
   effort: High
   text:

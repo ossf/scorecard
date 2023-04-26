@@ -17,8 +17,6 @@ package finding
 import (
 	"embed"
 	"fmt"
-	"io/fs"
-	"os"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/finding/probe"
@@ -102,29 +100,34 @@ type AnonymousFinding struct {
 	Probe string `json:"probe,omitempty"`
 }
 
-// FromFile creates a finding for a probe given its config file.
-func FromFile(file fs.File, probeID string) (*Finding, error) {
-	r, err := probe.FromFile(file, probeID)
+// FromBytes creates a finding for a probe given its config file's content.
+func FromBytes(content []byte, probeID string) (*Finding, error) {
+	p, err := probe.FromBytes(content, probeID)
 	if err != nil {
 		// nolint
 		return nil, err
 	}
 	f := &Finding{
-		Probe:       probeID,
+		Probe:       p.Name,
 		Outcome:     OutcomeNegative,
-		Remediation: r.Remediation,
+		Remediation: p.Remediation,
 	}
 	return f, nil
 }
 
 // New creates a new finding.
 func New(loc embed.FS, probeID string) (*Finding, error) {
-	file, err := os.Open("def.yml")
+	p, err := probe.New(loc, probeID)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
-	defer file.Close()
-	return FromFile(file, probeID)
+
+	f := &Finding{
+		Probe:       p.Name,
+		Outcome:     OutcomeNegative,
+		Remediation: p.Remediation,
+	}
+	return f, nil
 }
 
 // NewWith create a finding with the desried location and outcome.
