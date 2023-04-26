@@ -20,12 +20,9 @@ on:
   push:
     branches:
       - main
-env:
-  GO_VERSION: 1.17
 
 jobs:
-  unit-test:
-    name: publishimage
+  publishimage:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -46,10 +43,10 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: go.mod # use version from go.mod so it stays in sync
          check-latest: true
      - name: install ko
-       uses: imjasonh/setup-ko@ace48d793556083a76f1e3e6068850c1f4a369aa
+       uses: ko-build/setup-ko@ace48d793556083a76f1e3e6068850c1f4a369aa # v0.6
      - name: publishimage
        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
@@ -61,7 +58,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@9e9de2292db7abb3f51b7f4808d98f0d347a8919
+       uses: sigstore/cosign-installer@204a51a57a74d190b284a0ce69b44bc37201f343
      - name: Sign image
        run: |
-          cosign sign ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}
+          cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}

@@ -315,7 +315,8 @@ const (
 // DangerousWorkflowData contains raw results
 // for dangerous workflow check.
 type DangerousWorkflowData struct {
-	Workflows []DangerousWorkflow
+	Workflows    []DangerousWorkflow
+	NumWorkflows int
 }
 
 // DangerousWorkflow represents a dangerous workflow.
@@ -334,6 +335,7 @@ type WorkflowJob struct {
 // TokenPermissionsData represents data about a permission failure.
 type TokenPermissionsData struct {
 	TokenPermissions []TokenPermission
+	NumTokens        int
 }
 
 // PermissionLocation represents a declaration type.

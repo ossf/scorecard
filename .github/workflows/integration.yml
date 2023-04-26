@@ -58,8 +58,6 @@ jobs:
 
       - name: Run GitLab E2E  #using retry because the GitHub token is being throttled.
         uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
-        env:
-          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         with:
           max_attempts: 3
           retry_on: error
@@ -85,6 +83,6 @@ jobs:
       - name: codecov
         uses: codecov/codecov-action@894ff025c7b54547a9a2a1e9f228beae737ad3c2 # 2.1.0
         with:
-         files: ./e2e-coverage.out
+         files: "*e2e-coverage.out"
          verbose: true
       
