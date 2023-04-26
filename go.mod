@@ -47,7 +47,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/gobwas/glob v0.2.3
-	github.com/google/osv-scanner v1.3.2-0.20230418234519-2c101c1b0e63
+	github.com/google/osv-scanner v1.3.2
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.9.2
 	github.com/otiai10/copy v1.11.0
@@ -59,7 +59,7 @@ require (
 	cloud.google.com/go/containeranalysis v0.9.0 // indirect
 	cloud.google.com/go/kms v1.10.0 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
-	github.com/CycloneDX/cyclonedx-go v0.7.0 // indirect
+	github.com/CycloneDX/cyclonedx-go v0.7.1 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apache/arrow/go/v11 v11.0.0 // indirect
 	github.com/apache/thrift v0.16.0 // indirect
@@ -168,7 +168,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
-	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
+	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
