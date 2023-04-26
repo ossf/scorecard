@@ -70,7 +70,7 @@ func scoreSecurityCriteria(f checker.File,
 	// #3: found whole number(s) and or match(es) to "Disclos" and or "Vuln": score += 1
 	//     rationale: works towards the intent of the security policy file
 	//     regarding whom to contact about vuls and disclosures and timing
-	//     e.g., we'll disclose, report a vulnerabily, 30 days, etc.
+	//     e.g., we'll disclose, report a vulnerability, 30 days, etc.
 	//     looking for at least 2 hits
 	if discvuls > 1 {
 		score += 1

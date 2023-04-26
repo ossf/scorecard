@@ -28,7 +28,7 @@ const (
 	success      = "success"
 )
 
-func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checker.CheckResult {
+func CITests(_ string, c *checker.CITestData, dl checker.DetailLogger) checker.CheckResult {
 	totalMerged := 0
 	totalTested := 0
 	for i := range c.CIInfo {
@@ -37,7 +37,7 @@ func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checke
 
 		var foundCI bool
 
-		// Github Statuses.
+		// GitHub Statuses.
 		prSuccessStatus, err := prHasSuccessStatus(r, dl)
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(CheckCITests, err)
@@ -48,7 +48,7 @@ func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checke
 			continue
 		}
 
-		// Github Check Runs.
+		// GitHub Check Runs.
 		prCheckSuccessful, err := prHasSuccessfulCheck(r, dl)
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(CheckCITests, err)
@@ -61,8 +61,9 @@ func CITests(name string, c *checker.CITestData, dl checker.DetailLogger) checke
 		if !foundCI {
 			// Log message says commit, but really we only care about PRs, and
 			// use only one commit (branch HEAD) to refer to all commits in a PR
+
 			dl.Debug(&checker.LogMessage{
-				Text: fmt.Sprintf("merged PR without CI test at HEAD: %s", r.HeadSHA),
+				Text: fmt.Sprintf("merged PR %d without CI test at HEAD: %s", r.PullRequestNumber, r.HeadSHA),
 			})
 		}
 	}

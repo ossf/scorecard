@@ -102,7 +102,7 @@ Note: If Scorecard is run without an administrative access token, the requiremen
 Tier 1 Requirements (3/10 points):
   - Prevent force push
   - Prevent branch deletion
-  - For administrators: Do not allow bypassing the above settings
+  - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
   - Required reviewers >=1
@@ -130,7 +130,8 @@ Risk: `Low` (possible unknown vulnerabilities)
 
 This check tries to determine if the project runs tests before pull requests are
 merged. It is currently limited to repositories hosted on GitHub, and does not
-support other source hosting repositories (i.e., Forges).
+support other source hosting repositories (i.e., Forges). All commits that are
+part of a PR must be tested by a CI Test for the check to pass.
 
 Running tests helps developers catch mistakes early on, which can reduce the
 number of vulnerabilities that find their way into a project.
@@ -157,38 +158,21 @@ If a project's system was not detected and you think it should be, please
 
 Risk: `Low` (possibly not following security best practices)
 
-This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/),
-which indicates that the project uses a set of security-focused best development practices for open
+This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/) at the passing, silver, or gold level.
+The OpenSSF Best Practices badge indicates whether or not that the project uses a set of security-focused best development practices for open
 source software. The check uses the URL for the Git repo and the OpenSSF Best Practices badge API.
 
 The OpenSSF Best Practices badge has 3 tiers: passing, silver, and gold. We give
-full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/2), which is a
-significant achievement for many projects. Lower scores represent a project that
-is at least working to achieve a badge, with increasingly more points awarded as
-more criteria are met.
+full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/2), which is a significant achievement for projects and requires multiple developers in the project.
+Lower scores represent a project that has met the silver criteria, met the passing criteria, or is working to achieve the passing badge, with increasingly more points awarded as more criteria are met. Note that even meeting the passing criteria is a significant achievement.
 
-- [gold badge](https://bestpractices.coreinfrastructure.org/en/criteria/2): 10
-- [silver badge](https://bestpractices.coreinfrastructure.org/en/criteria/1): 7
-- [passing badge](https://bestpractices.coreinfrastructure.org/en/criteria/0): 5
+- [gold badge](https://bestpractices.coreinfrastructure.org/criteria/2): 10
+- [silver badge](https://bestpractices.coreinfrastructure.org/criteria/1): 7
+- [passing badge](https://bestpractices.coreinfrastructure.org/criteria/0): 5
 - in progress badge: 2
 
-To earn the passing badge, the project MUST:
-
-  - publish the process for reporting vulnerabilities on the project site
-  - provide a working build system that can automatically rebuild the software
-    from source code (where applicable)
-  - have a general policy that tests will be added to an automated test suite
-    when major new functionality is added
-  - meet various cryptography criteria where applicable
-  - have at least one primary developer who knows how to design secure software
-  - have at least one primary developer who knows of common kinds of errors
-    that lead to vulnerabilities in this kind of software (and at least one
-    method to counter or mitigate each of them)
-  - apply at least one static code analysis tool (beyond compiler warnings and
-    "safe" language modes) to any proposed major production release.
-
 Some of these criteria overlap with other Scorecard checks.
- 
+However, note that in those overlapping cases, Scorecard can only report what it can automatically detect, while the OpenSSF Best Practices badge can report on claims and claim justifications from people (this counters false negatives and positives but has the challenge of requiring additional work from people).
 
 **Remediation steps**
 - Sign up for the [OpenSSF Best Practices program](https://bestpractices.coreinfrastructure.org/).
@@ -503,7 +487,7 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
  
 
 **Remediation steps**
-- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
+- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python, `packages.config` for nuget). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
 - If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
 - For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
 - For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
