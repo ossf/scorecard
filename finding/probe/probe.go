@@ -80,6 +80,7 @@ type Probe struct {
 
 var errInvalid = errors.New("invalid")
 
+// FromFile creates a probe from a file.
 func FromFile(file fs.File, probeID string) (*Probe, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(file)
@@ -108,7 +109,7 @@ func FromFile(file fs.File, probeID string) (*Probe, error) {
 	}, nil
 }
 
-// New create a new rule.
+// New create a new probe.
 func New(loc embed.FS, probeID string) (*Probe, error) {
 	file, err := os.Open("def.yml")
 	if err != nil {

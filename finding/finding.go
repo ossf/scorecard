@@ -102,6 +102,7 @@ type AnonymousFinding struct {
 	Probe string `json:"probe,omitempty"`
 }
 
+// FromFile creates a finding for a probe given its config file.
 func FromFile(file fs.File, probeID string) (*Finding, error) {
 	r, err := probe.FromFile(file, probeID)
 	if err != nil {
@@ -126,10 +127,11 @@ func New(loc embed.FS, probeID string) (*Finding, error) {
 	return FromFile(file, probeID)
 }
 
-func NewWith(fs embed.FS, probeID, text string, loc *Location,
+// NewWith create a finding with the desried location and outcome.
+func NewWith(efs embed.FS, probeID, text string, loc *Location,
 	o Outcome,
 ) (*Finding, error) {
-	f, err := New(fs, probeID)
+	f, err := New(efs, probeID)
 	if err != nil {
 		return nil, fmt.Errorf("finding.New: %w", err)
 	}
@@ -138,9 +140,10 @@ func NewWith(fs embed.FS, probeID, text string, loc *Location,
 	return f, nil
 }
 
-func NewNegative(fs embed.FS, probeID, text string, loc *Location,
+// NewWith create a negative finding with the desried location.
+func NewNegative(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	f, err := NewWith(fs, probeID, text, loc, OutcomeNegative)
+	f, err := NewWith(efs, probeID, text, loc, OutcomeNegative)
 	if err != nil {
 		return nil, fmt.Errorf("finding.NewWith: %w", err)
 	}
@@ -149,9 +152,10 @@ func NewNegative(fs embed.FS, probeID, text string, loc *Location,
 	return f, nil
 }
 
-func NewNotAvailable(fs embed.FS, probeID, text string, loc *Location,
+// NewNotAvailable create a finding with a NotAvailable outcome and the desried location.
+func NewNotAvailable(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	f, err := NewWith(fs, probeID, text, loc, OutcomeNotAvailable)
+	f, err := NewWith(efs, probeID, text, loc, OutcomeNotAvailable)
 	if err != nil {
 		return nil, fmt.Errorf("finding.NewWith: %w", err)
 	}
@@ -160,9 +164,10 @@ func NewNotAvailable(fs embed.FS, probeID, text string, loc *Location,
 	return f, nil
 }
 
-func NewPositive(fs embed.FS, probeID, text string, loc *Location,
+// NewPositive create a positive finding with the desried location.
+func NewPositive(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	f, err := NewWith(fs, probeID, text, loc, OutcomePositive)
+	f, err := NewWith(efs, probeID, text, loc, OutcomePositive)
 	if err != nil {
 		return nil, fmt.Errorf("finding.NewWith: %w", err)
 	}
