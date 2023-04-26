@@ -76,7 +76,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		It("Should return inconclusive results for a single-maintainer project with only self- or bot changesets", func() {
+		It("Should return min score for a single-maintainer project with only self- or bot changesets", func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("Kromey/fast_poisson")
 			Expect(err).Should(BeNil())
@@ -91,8 +91,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
-				Score:        checker.InconclusiveResultScore,
-				NumberOfInfo: 18,
+				Score:         0,
+				NumberOfDebug: 18,
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
@@ -113,8 +113,8 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
-				Score:        5,
-				NumberOfInfo: 10,
+				Score:         1,
+				NumberOfDebug: 10,
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())

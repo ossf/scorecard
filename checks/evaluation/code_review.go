@@ -38,53 +38,50 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if len(r.DefaultBranchChangesets) == 0 {
+	N := len(r.DefaultBranchChangesets)
+	if N == 0 {
 		return checker.CreateInconclusiveResult(name, "no commits found")
 	}
 
-	foundHumanReviewActivity := false
-	foundBotReviewActivity := false
 	nUnreviewedHumanChanges := 0
-	nUnreviewedBotChanges := 0
+	nHumanChangesTotal := 0
+	unreviewedBotChanges := false
+
 	for i := range r.DefaultBranchChangesets {
 		cs := &r.DefaultBranchChangesets[i]
 		isReviewed := reviewScoreForChangeset(cs, dl) >= changesReviewed
 		isBotCommit := cs.Author.IsBot
+		if !isBotCommit {
+			nHumanChangesTotal += 1
+		}
 
 		switch {
-		case isReviewed && isBotCommit:
-			foundBotReviewActivity = true
-		case isReviewed && !isBotCommit:
-			foundHumanReviewActivity = true
 		case !isReviewed && isBotCommit:
-			nUnreviewedBotChanges += 1
+			unreviewedBotChanges = true
 		case !isReviewed && !isBotCommit:
 			nUnreviewedHumanChanges += 1
 		}
 	}
 
-	if foundBotReviewActivity && !foundHumanReviewActivity {
-		reason := fmt.Sprintf("found no human review activity in the last %v changesets", len(r.DefaultBranchChangesets))
-		return checker.CreateInconclusiveResult(name, reason)
-	}
-
 	switch {
-	case nUnreviewedHumanChanges == 0 && nUnreviewedBotChanges > 0:
+	case nHumanChangesTotal == 0:
+		reason := fmt.Sprintf("found no human review activity in the last %v changesets", N)
+		return checker.CreateInconclusiveResult(name, reason)
+	case nUnreviewedHumanChanges == 0 && unreviewedBotChanges:
 		return checker.CreateResultWithScore(
 			name,
-			fmt.Sprintf("all human changesets reviewed, found %v unreviewed bot changesets", nUnreviewedBotChanges),
+			"all human changesets reviewed, found unreviewed bot changesets",
 			7,
 		)
 	case nUnreviewedHumanChanges > 0:
 		return checker.CreateProportionalScoreResult(
 			name,
 			fmt.Sprintf(
-				"found %d unreviewed changesets out of %d",
-				nUnreviewedBotChanges+nUnreviewedHumanChanges,
-				len(r.DefaultBranchChangesets),
+				"found %d unreviewed changesets out of %d", nUnreviewedHumanChanges,
+				nHumanChangesTotal,
 			),
-			len(r.DefaultBranchChangesets)-(nUnreviewedBotChanges+nUnreviewedHumanChanges),
-			len(r.DefaultBranchChangesets),
+			nHumanChangesTotal-nUnreviewedHumanChanges,
+			nHumanChangesTotal,
 		)
 	}
 
@@ -105,11 +102,15 @@ func reviewScoreForChangeset(changeset *checker.Changeset, dl checker.DetailLogg
 		}
 	}
 
-	dl.Info(
+	plat := changeset.ReviewPlatform
+	if plat == "" {
+		plat = "committed directly"
+	}
+	dl.Debug(
 		&checker.LogMessage{
 			Text: fmt.Sprintf(
 				"couldn't find approvals for revision: %s platform: %s",
-				changeset.RevisionID, changeset.ReviewPlatform,
+				changeset.RevisionID, plat,
 			),
 		},
 	)
