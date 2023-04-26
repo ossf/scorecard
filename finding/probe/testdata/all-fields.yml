@@ -1,0 +1,17 @@
+id: all-fields
+short: short description
+motivation: >
+  mot1
+  mot2
+implementation: >
+  impl1
+  impl2
+risk: High
+remediation:
+  effort: Low
+  text:
+    - step1
+    - step2 https://www.google.com/something
+  markdown:
+    - step1
+    - step2 [google.com](https://www.google.com/something)
