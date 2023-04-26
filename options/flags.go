@@ -54,6 +54,10 @@ const (
 	// FlagChecks is the flag name for specifying which checks to run.
 	FlagChecks = "checks"
 
+	// FlagChecksDefinitionFile is the flag name for specifying the file that
+	// defines the checks.
+	FlagChecksDefinitionFile = "checks-definition-file"
+
 	// FlagPolicyFile is the flag name for specifying a policy file.
 	FlagPolicyFile = "policy"
 
@@ -139,6 +143,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagCommitDepth,
 		o.CommitDepth,
 		"number of commits to check, commits begin backwards from the HEAD",
+	)
+
+	cmd.Flags().StringVar(
+		&o.ChecksDefinitionFile,
+		FlagChecksDefinitionFile,
+		o.ChecksDefinitionFile,
+		"file defining the checks",
 	)
 
 	checkNames := []string{}
