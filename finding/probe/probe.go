@@ -80,7 +80,7 @@ type Probe struct {
 
 var errInvalid = errors.New("invalid")
 
-func fromFile(file fs.File, probeID string) (*Probe, error) {
+func FromFile(file fs.File, probeID string) (*Probe, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(file)
 	if err != nil {
@@ -115,7 +115,7 @@ func New(loc embed.FS, probeID string) (*Probe, error) {
 		return nil, fmt.Errorf("%w", err)
 	}
 	defer file.Close()
-	return fromFile(file, probeID)
+	return FromFile(file, probeID)
 }
 
 func validate(r *jsonProbe, probeID string) error {

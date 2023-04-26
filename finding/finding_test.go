@@ -15,8 +15,8 @@
 package finding
 
 import (
-	"embed"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -28,9 +28,6 @@ import (
 func errCmp(e1, e2 error) bool {
 	return errors.Is(e1, e2) || errors.Is(e2, e1)
 }
-
-//go:embed testdata/*
-var testfs embed.FS
 
 func Test_New(t *testing.T) {
 	snippet := "some code snippet"
@@ -44,31 +41,19 @@ func Test_New(t *testing.T) {
 	tests := []struct {
 		name     string
 		id       string
+		path     string
 		outcome  *Outcome
 		err      error
 		metadata map[string]string
 		finding  *Finding
 	}{
 		{
-			name:    "risk high",
-			id:      "testdata/risk-high",
-			outcome: &negativeOutcome,
-			finding: &Finding{
-				Probe:   "testdata/risk-high",
-				Outcome: OutcomeNegative,
-				Remediation: &probe.Remediation{
-					Text:     "step1\nstep2 https://www.google.com/something",
-					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
-					Effort:   probe.RemediationEffortLow,
-				},
-			},
-		},
-		{
 			name:    "effort low",
-			id:      "testdata/effort-low",
+			id:      "effort-low",
+			path:    "testdata/effort-low.yml",
 			outcome: &negativeOutcome,
 			finding: &Finding{
-				Probe:   "testdata/effort-low",
+				Probe:   "effort-low",
 				Outcome: OutcomeNegative,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
@@ -79,10 +64,11 @@ func Test_New(t *testing.T) {
 		},
 		{
 			name:    "effort high",
-			id:      "testdata/effort-high",
+			id:      "effort-high",
+			path:    "testdata/effort-high.yml",
 			outcome: &negativeOutcome,
 			finding: &Finding{
-				Probe:   "testdata/effort-high",
+				Probe:   "effort-high",
 				Outcome: OutcomeNegative,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
@@ -93,11 +79,12 @@ func Test_New(t *testing.T) {
 		},
 		{
 			name:     "env variables",
-			id:       "testdata/metadata-variables",
+			id:       "metadata-variables",
+			path:     "testdata/metadata-variables.yml",
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Probe:   "testdata/metadata-variables",
+				Probe:   "metadata-variables",
 				Outcome: OutcomeNegative,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
@@ -108,11 +95,12 @@ func Test_New(t *testing.T) {
 		},
 		{
 			name:     "patch",
-			id:       "testdata/metadata-variables",
+			id:       "metadata-variables",
+			path:     "testdata/metadata-variables.yml",
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Probe:   "testdata/metadata-variables",
+				Probe:   "metadata-variables",
 				Outcome: OutcomeNegative,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
@@ -124,11 +112,12 @@ func Test_New(t *testing.T) {
 		},
 		{
 			name:     "location",
-			id:       "testdata/metadata-variables",
+			id:       "metadata-variables",
+			path:     "testdata/metadata-variables.yml",
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Probe:   "testdata/metadata-variables",
+				Probe:   "metadata-variables",
 				Outcome: OutcomeNegative,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
@@ -137,7 +126,7 @@ func Test_New(t *testing.T) {
 				},
 				Location: &Location{
 					Type:      FileTypeSource,
-					Value:     "path/to/file.txt",
+					Path:      "path/to/file.txt",
 					LineStart: &sline,
 					LineEnd:   &eline,
 					Snippet:   &snippet,
@@ -146,11 +135,12 @@ func Test_New(t *testing.T) {
 		},
 		{
 			name:     "text",
-			id:       "testdata/metadata-variables",
+			id:       "metadata-variables",
+			path:     "testdata/metadata-variables.yml",
 			outcome:  &negativeOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
-				Probe:   "testdata/metadata-variables",
+				Probe:   "metadata-variables",
 				Outcome: OutcomeNegative,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
@@ -161,11 +151,12 @@ func Test_New(t *testing.T) {
 			},
 		},
 		{
-			name:    "outcome",
-			id:      "testdata/metadata-variables",
+			name:    "positive outcome",
+			id:      "metadata-variables",
+			path:    "testdata/metadata-variables.yml",
 			outcome: &positiveOutcome,
 			finding: &Finding{
-				Probe:   "testdata/metadata-variables",
+				Probe:   "metadata-variables",
 				Outcome: OutcomePositive,
 				Message: "some text",
 			},
@@ -176,7 +167,13 @@ func Test_New(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			r, err := New(testfs, tt.id)
+			file, err := os.Open(tt.path)
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			r, err := FromFile(file, tt.id)
 			if err != nil || tt.err != nil {
 				if !errCmp(err, tt.err) {
 					t.Fatalf("unexpected error: %v", cmp.Diff(err, tt.err, cmpopts.EquateErrors()))

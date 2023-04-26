@@ -95,7 +95,7 @@ func Test_New(t *testing.T) {
 			}
 			defer file.Close()
 
-			r, err := fromFile(file, tt.id)
+			r, err := FromFile(file, tt.id)
 			if err != nil || tt.err != nil {
 				if !errCmp(err, tt.err) {
 					t.Fatalf("unexpected error: %v", cmp.Diff(err, tt.err, cmpopts.EquateErrors()))

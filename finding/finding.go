@@ -17,6 +17,8 @@ package finding
 import (
 	"embed"
 	"fmt"
+	"io/fs"
+	"os"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/finding/probe"
@@ -92,6 +94,7 @@ type Finding struct {
 	Remediation *probe.Remediation `json:"remediation,omitempty"`
 }
 
+// AnonymousFinding is a finding without a corerpsonding probe ID.
 type AnonymousFinding struct {
 	Finding
 	// Remove the probe ID from
@@ -99,9 +102,8 @@ type AnonymousFinding struct {
 	Probe string `json:"probe,omitempty"`
 }
 
-// New creates a new finding.
-func New(loc embed.FS, probeID string) (*Finding, error) {
-	r, err := probe.New(loc, probeID)
+func FromFile(file fs.File, probeID string) (*Probe, error) {
+	r, err := probe.FromFile(file, probeID)
 	if err != nil {
 		// nolint
 		return nil, err
@@ -112,6 +114,16 @@ func New(loc embed.FS, probeID string) (*Finding, error) {
 		Remediation: r.Remediation,
 	}
 	return f, nil
+}
+
+// New creates a new finding.
+func New(loc embed.FS, probeID string) (*Finding, error) {
+	file, err := os.Open("def.yml")
+	if err != nil {
+		return nil, fmt.Errorf("%w", err)
+	}
+	defer file.Close()
+	return FromFile(file, probeID)
 }
 
 func NewWith(fs embed.FS, probeID, text string, loc *Location,
