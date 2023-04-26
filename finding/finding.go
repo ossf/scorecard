@@ -102,7 +102,7 @@ type AnonymousFinding struct {
 	Probe string `json:"probe,omitempty"`
 }
 
-func FromFile(file fs.File, probeID string) (*Probe, error) {
+func FromFile(file fs.File, probeID string) (*Finding, error) {
 	r, err := probe.FromFile(file, probeID)
 	if err != nil {
 		// nolint
