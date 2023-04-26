@@ -10,11 +10,11 @@ This page answers frequently asked questions about Scorecard, including its purp
 ## Check-Specific Questions
   - [Binary-Artifacts: Can I allowlist testing artifacts?](#binary-artifacts-can-i-allowlist-testing-artifacts)
   - [Code-Review: Can it ignore bot commits?](#code-review-can-it-ignore-bot-commits)
+  - [Dependency-Update-Tool: Why should I trust recommended updates are safe?](#dependency-Update-Tool-why-should-i-trust-recommended-updates-are-safe) 
   - [Fuzzing: Does Scorecard accept custom fuzzers?](#fuzzing-does-scorecard-accept-custom-fuzzers)
   - [Pinned-Dependencies: Will Scorecard detect unpinned dependencies in tests with Dockerfiles?](#pinned-dependencies-will-scorecard-detect-unpinned-dependencies-in-tests-with-dockerfiles)
   - [Pinned-Dependencies: Can I use version pinning instead of hash pinning?](#pinned-dependencies-can-i-use-version-pinning-instead-of-hash-pinning)
   - [Signed-Releases: Why sign releases?](#signed-releases-why-sign-releases)
-  - [Dependency-Update-Tool: Why should I trust recommended updates are safe?](#dependency-Update-Tool-why-should-i-trust-recommended-updates-are-safe) 
 
 ---
 
@@ -57,6 +57,14 @@ This is quite a complex question. Right now, there is no way to do that. Here ar
 
 However, this is being discussed by the Scorecard Team ([#2302](https://github.com/ossf/scorecard/issues/2302)).
 
+### Dependency-Update-Tool: Why should I trust recommended updates are safe?
+
+Both dependabot and renovatebot won't update your dependencies immediately. They have some precautions to make sure a release is reasonable / won't break your build (see [dependabot compatibility documentation](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores)).
+
+You can either configure the tools to only update your dependencies once a week or once a month. This way, if a malicious version is released, it's very likely that it'll be reported and removed before it even gets suggested to you. Besides, there's also the benefit that it gives you the chance to validate the new release before merging if you want to.
+
+Another configuration possibility that would limit even more the release updates only to trusted releases is enabling to only perform Security Updates, which means you only be notified about releases that fixes a previous vulnerability you might be exposed to.
+
 ### Fuzzing: Does Scorecard accept custom fuzzers?
 
 Currently only for projects written in Go.
@@ -81,12 +89,4 @@ Currently, the main benefit of [signed releases](checks.md#signed-releases) is t
 However, there are already moves to make it even more relevant. For example, the OpenSSF is working on [implementing signature verification for NPM packages](https://github.blog/2022-08-08-new-request-for-comments-on-improving-npm-security-with-sigstore-is-now-open/) which would allow a consumer to automatically verify if the package they are downloading was generated through a reliable builder and if it is correctly signed.
 
 Signing releases already has some relevance and it will soon offer even more security benefits for both consumers and maintainers.
-
-### Dependency-Update-Tool: Why should I trust recommended updates are safe?
-
-Both dependabot and renovatebot won't update your dependencies immediately. They have some precautions to make sure a release is reasonable / won't break your build (see [dependabot compatibility documentation](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores)).
-
-You can either configure the tools to only update your dependencies once a week or once a month. This way, if a malicious version is released, it's very likely that it'll be reported and removed before it even gets suggested to you. Besides, there's also the benefit that it gives you the chance to validate the new release before merging if you want to.
-
-Another configuration possibility that would limit even more the release updates only to trusted releases is enabling to only perform Security Updates, which means you only be notified about releases that fixes a previous vulnerability you might be exposed to.
 
