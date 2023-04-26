@@ -88,3 +88,5 @@ Both dependabot and renovatebot won't update your dependencies immediately. They
 
 You can either configure the tools to only update your dependencies once a week or once a month. This way, if a malicious version is released, it's very likely that it'll be reported and removed before it even gets suggested to you. Besides, there's also the benefit that it gives you the chance to validate the new release before merging if you want to.
 
+Another configuration possibility that would limit even more the release updates only to trusted releases is enabling to only perform Security Updates, which means you only be notified about releases that fixes a previous vulnerability you might be exposed to.
+
