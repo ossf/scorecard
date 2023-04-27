@@ -16,11 +16,13 @@ package finding
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/finding/probe"
 	"gopkg.in/yaml.v3"
+
+	"github.com/ossf/scorecard/v4/finding/probe"
 )
 
 // FileType is the type of a file.
@@ -99,6 +101,8 @@ type AnonymousFinding struct {
 	// the structure until the probes are GA.
 	Probe string `json:"probe,omitempty"`
 }
+
+var errInvalid = errors.New("invalid")
 
 // FromBytes creates a finding for a probe given its config file's content.
 func FromBytes(content []byte, probeID string) (*Finding, error) {
@@ -267,7 +271,7 @@ func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
 	case "Error":
 		*o = OutcomeError
 	default:
-		return fmt.Errorf("invalid outcome: %q", str)
+		return fmt.Errorf("%w: %q", errInvalid, str)
 	}
 	return nil
 }
