@@ -195,6 +195,16 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfDebug: 1,
 			},
 		},
+		{
+			name: "all dependencies pinned",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         10,
+				NumberOfWarn:  0,
+				NumberOfInfo:  6,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 
 	for _, tt := range tests {
