@@ -178,6 +178,23 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name: "undefined pip install",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Msg:      asPointer("debug message"),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         10,
+				NumberOfWarn:  0,
+				NumberOfInfo:  6,
+				NumberOfDebug: 1,
+			},
+		},
 	}
 
 	for _, tt := range tests {
