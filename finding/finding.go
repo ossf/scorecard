@@ -208,7 +208,6 @@ func (f *Finding) WithLocation(loc *Location) *Finding {
 			"${{ finding.location.path }}", loc.Path, -1)
 		f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
 			"${{ finding.location.path }}", loc.Path, -1)
-
 	}
 	return f
 }
