@@ -29,7 +29,7 @@ func errCmp(e1, e2 error) bool {
 	return errors.Is(e1, e2) || errors.Is(e2, e1)
 }
 
-func Test_New(t *testing.T) {
+func Test_FromBytes(t *testing.T) {
 	snippet := "some code snippet"
 	patch := "some patch values"
 	sline := uint(10)
@@ -169,7 +169,7 @@ func Test_New(t *testing.T) {
 
 			content, err := os.ReadFile(tt.path)
 			if err != nil {
-				panic(err)
+				t.Fatalf(err.Error())
 			}
 
 			r, err := FromBytes(content, tt.id)

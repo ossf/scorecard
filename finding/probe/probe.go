@@ -23,6 +23,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var errInvalid = errors.New("invalid")
+
 // RemediationEffort indicates the estimated effort necessary to remediate a finding.
 type RemediationEffort int
 
@@ -50,36 +52,33 @@ type Remediation struct {
 }
 
 // nolint: govet
-type jsonRemediation struct {
+type yamlRemediation struct {
 	Text     []string          `yaml:"text"`
 	Markdown []string          `yaml:"markdown"`
 	Effort   RemediationEffort `yaml:"effort"`
 }
 
 // nolint: govet
-type jsonProbe struct {
+type yamlProbe struct {
 	ID             string          `yaml:"id"`
 	Short          string          `yaml:"short"`
-	Desc           string          `yaml:"desc"`
 	Motivation     string          `yaml:"motivation"`
 	Implementation string          `yaml:"implementation"`
-	Remediation    jsonRemediation `yaml:"remediation"`
+	Remediation    yamlRemediation `yaml:"remediation"`
 }
 
 // nolint: govet
 type Probe struct {
-	Name           string
+	ID             string
 	Short          string
 	Motivation     string
 	Implementation string
 	Remediation    *Remediation
 }
 
-var errInvalid = errors.New("invalid")
-
 // FromBytes creates a probe from a file.
 func FromBytes(content []byte, probeID string) (*Probe, error) {
-	r, err := parseFromJSON(content)
+	r, err := parseFromYAML(content)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +88,7 @@ func FromBytes(content []byte, probeID string) (*Probe, error) {
 	}
 
 	return &Probe{
-		Name:           r.ID,
+		ID:             r.ID,
 		Short:          r.Short,
 		Motivation:     r.Motivation,
 		Implementation: r.Implementation,
@@ -110,25 +109,25 @@ func New(loc embed.FS, probeID string) (*Probe, error) {
 	return FromBytes(content, probeID)
 }
 
-func validate(r *jsonProbe, probeID string) error {
+func validate(r *yamlProbe, probeID string) error {
 	if err := validateID(r.ID, probeID); err != nil {
-		return fmt.Errorf("%w: %v", errInvalid, err)
+		return err
 	}
 	if err := validateRemediation(r.Remediation); err != nil {
-		return fmt.Errorf("%w: %v", errInvalid, err)
+		return err
 	}
 	return nil
 }
 
 func validateID(actual, expected string) error {
 	if actual != expected {
-		return fmt.Errorf("%w: read '%v', expected '%v'", errInvalid,
+		return fmt.Errorf("%w: ID: read '%v', expected '%v'", errInvalid,
 			actual, expected)
 	}
 	return nil
 }
 
-func validateRemediation(r jsonRemediation) error {
+func validateRemediation(r yamlRemediation) error {
 	switch r.Effort {
 	case RemediationEffortHigh, RemediationEffortMedium, RemediationEffortLow:
 		return nil
@@ -137,8 +136,8 @@ func validateRemediation(r jsonRemediation) error {
 	}
 }
 
-func parseFromJSON(content []byte) (*jsonProbe, error) {
-	r := jsonProbe{}
+func parseFromYAML(content []byte) (*yamlProbe, error) {
+	r := yamlProbe{}
 
 	err := yaml.Unmarshal(content, &r)
 	if err != nil {
@@ -164,7 +163,7 @@ func (r *RemediationEffort) UnmarshalYAML(n *yaml.Node) error {
 	case "High":
 		*r = RemediationEffortHigh
 	default:
-		return fmt.Errorf("%w: %q", errInvalid, str)
+		return fmt.Errorf("%w: effort:%q", errInvalid, str)
 	}
 	return nil
 }

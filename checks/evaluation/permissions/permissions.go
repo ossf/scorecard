@@ -140,6 +140,7 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 func reportDefaultFindings(results *checker.TokenPermissionsData,
 	dl checker.DetailLogger, negativeProbeResults map[string]bool,
 ) error {
+	// TODO(#2928): re-visit the need for NotApplicable outcome.
 	// No workflow files exist.
 	if len(results.TokenPermissions) == 0 {
 		text := "no workflows found in the repository"

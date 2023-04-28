@@ -27,7 +27,7 @@ func errCmp(e1, e2 error) bool {
 	return errors.Is(e1, e2) || errors.Is(e2, e1)
 }
 
-func Test_New(t *testing.T) {
+func Test_FromBytes(t *testing.T) {
 	t.Parallel()
 	// nolint: govet
 	tests := []struct {
@@ -42,7 +42,7 @@ func Test_New(t *testing.T) {
 			id:   "all-fields",
 			path: "testdata/all-fields.yml",
 			probe: &Probe{
-				Name:           "all-fields",
+				ID:             "all-fields",
 				Short:          "short description",
 				Implementation: "impl1 impl2\n",
 				Motivation:     "mot1 mot2\n",
@@ -58,7 +58,7 @@ func Test_New(t *testing.T) {
 			id:   "mismatch-id",
 			path: "testdata/all-fields.yml",
 			probe: &Probe{
-				Name:           "all-fields",
+				ID:             "all-fields",
 				Short:          "short description",
 				Implementation: "impl1 impl2\n",
 				Motivation:     "mot1 mot2\n",
@@ -71,9 +71,9 @@ func Test_New(t *testing.T) {
 			err: errInvalid,
 		},
 		{
-			name: "invalid risk",
-			id:   "invalid-risk",
-			path: "testdata/invalid-risk.yml",
+			name: "missing id",
+			id:   "missing-id",
+			path: "testdata/missing-id.yml",
 			err:  errInvalid,
 		},
 		{
@@ -90,7 +90,7 @@ func Test_New(t *testing.T) {
 
 			content, err := os.ReadFile(tt.path)
 			if err != nil {
-				panic(err)
+				t.Fatalf(err.Error())
 			}
 
 			r, err := FromBytes(content, tt.id)

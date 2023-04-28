@@ -54,8 +54,9 @@ type Location struct {
 // Outcome is the result of a finding.
 type Outcome int
 
+// TODO(#2928): re-visit the finding definitions.
 const (
-	// NOTE: The additional '-' are intended for future use.
+	// NOTE: The additional '_' are intended for future use.
 	// This allows adding outcomes without breaking the values
 	// of existing outcomes.
 	// OutcomeNegative indicates a negative outcome.
@@ -112,7 +113,7 @@ func FromBytes(content []byte, probeID string) (*Finding, error) {
 		return nil, err
 	}
 	f := &Finding{
-		Probe:       p.Name,
+		Probe:       p.ID,
 		Outcome:     OutcomeNegative,
 		Remediation: p.Remediation,
 	}
@@ -127,7 +128,7 @@ func New(loc embed.FS, probeID string) (*Finding, error) {
 	}
 
 	f := &Finding{
-		Probe:       p.Name,
+		Probe:       p.ID,
 		Outcome:     OutcomeNegative,
 		Remediation: p.Remediation,
 	}
@@ -155,7 +156,7 @@ func NewNegative(efs embed.FS, probeID, text string, loc *Location,
 		return nil, fmt.Errorf("finding.NewWith: %w", err)
 	}
 
-	f = f.WithMessage(text).WithLocation(loc)
+	f = f.WithMessage(text)
 	return f, nil
 }
 
@@ -167,7 +168,7 @@ func NewNotAvailable(efs embed.FS, probeID, text string, loc *Location,
 		return nil, fmt.Errorf("finding.NewWith: %w", err)
 	}
 
-	f = f.WithMessage(text).WithLocation(loc)
+	f = f.WithMessage(text)
 	return f, nil
 }
 
@@ -179,15 +180,15 @@ func NewPositive(efs embed.FS, probeID, text string, loc *Location,
 		return nil, fmt.Errorf("finding.NewWith: %w", err)
 	}
 
-	f = f.WithMessage(text).WithLocation(loc)
+	f = f.WithMessage(text)
 	return f, nil
 }
 
-// Anonimize removes the probe ID and outcome
+// Anonymize removes the probe ID and outcome
 // from the finding. It is a temporary solution
 // to integrate the code in the details without exposing
 // too much information.
-func (f *Finding) Anonimize() *AnonymousFinding {
+func (f *Finding) Anonymize() *AnonymousFinding {
 	return &AnonymousFinding{Finding: *f}
 }
 
