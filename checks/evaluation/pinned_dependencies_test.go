@@ -109,7 +109,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  5,
+				NumberOfInfo:  6,
 				NumberOfDebug: 1,
 			},
 		},
@@ -128,9 +128,9 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         5,
+				Score:         6,
 				NumberOfWarn:  1,
-				NumberOfInfo:  3,
+				NumberOfInfo:  4,
 				NumberOfDebug: 1,
 			},
 		},
@@ -160,6 +160,49 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfWarn:  3,
 				NumberOfInfo:  2,
 				NumberOfDebug: 1,
+			},
+		},
+		{
+			name: "unpinned pip install",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         8,
+				NumberOfWarn:  1,
+				NumberOfInfo:  5,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "undefined pip install",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Msg:      asPointer("debug message"),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         10,
+				NumberOfWarn:  0,
+				NumberOfInfo:  6,
+				NumberOfDebug: 1,
+			},
+		},
+		{
+			name: "all dependencies pinned",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         10,
+				NumberOfWarn:  0,
+				NumberOfInfo:  6,
+				NumberOfDebug: 0,
 			},
 		},
 	}
