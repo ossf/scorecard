@@ -20,7 +20,9 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw/github"
+	"github.com/ossf/scorecard/v4/checks/raw/gitlab"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -42,6 +44,8 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 
 	if _, clientType := c.RepoClient.(*githubrepo.Client); clientType {
 		rawData, err = github.Packaging(c)
+	} else if _, clientType := c.RepoClient.(*gitlabrepo.Client); clientType {
+		rawData, err = gitlab.Packaging(c)
 	} else {
 		err = errors.New("invalid RepoClient")
 	}
