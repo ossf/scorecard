@@ -41,13 +41,11 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 
 		if found {
 			data.Packages = append(data.Packages, checker.Package{
-				Msg:  nil,
+				Name: new(string),
+				Job:  &checker.WorkflowJob{},
 				File: &file,
-				Runs: []checker.Run{
-					{
-						URL: c.Repo.URI(),
-					},
-				},
+				Msg:  nil,
+				Runs: []checker.Run{{URL: c.Repo.URI()}},
 			})
 			return data, nil
 		}
