@@ -22,10 +22,9 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
+	"github.com/ossf/scorecard/v4/checks/raw/github"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-
-	"github.com/ossf/scorecard/v4/checks/raw/github"
 )
 
 type permission string

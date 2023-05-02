@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+
 	"github.com/ossf/scorecard/v4/checker"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
@@ -135,6 +136,7 @@ func TestGitlabPackagingPackager(t *testing.T) {
 
 			moqRepoClient.EXPECT().GetFileContent(tt.filename).
 				DoAndReturn(func(b string) ([]byte, error) {
+					//nolint: errcheck
 					content, _ := os.ReadFile(b)
 					return content, nil
 				}).AnyTimes()
@@ -148,6 +150,7 @@ func TestGitlabPackagingPackager(t *testing.T) {
 				Repo:       moqRepo,
 			}
 
+			//nolint: errcheck
 			packagingData, _ := Packaging(&req)
 
 			if !tt.exists {

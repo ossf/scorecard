@@ -59,7 +59,7 @@ func StringPointer(s string) *string {
 }
 
 func isGitlabPackagingWorkflow(fc []byte, fp string) (checker.File, bool) {
-	var lineNumber uint = checker.OffsetDefault
+	lineNumber := checker.OffsetDefault
 
 	packagingStrings := []string{
 		"docker push",
