@@ -64,9 +64,10 @@ func isGitlabPackagingWorkflow(fc []byte, fp string) (checker.File, bool) {
 	var lineNumber uint = checker.OffsetDefault
 
 	packagingStrings := []string{
+		"docker push",
 		"nuget push",
 		"poetry publish",
-		"twine publish",
+		"twine upload",
 	}
 
 ParseLines:
