@@ -16,7 +16,9 @@ package githubrepo
 
 import (
 	"context"
+	"net/http"
 
+	"github.com/google/go-github/v38/github"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -47,5 +49,40 @@ var _ = Describe("E2E TEST: githubrepo.checkrunsHandler", func() {
 			Expect(checkrunshandler.checkData.RateLimit.Cost).ShouldNot(BeNil())
 			Expect(*checkrunshandler.checkData.RateLimit.Cost).Should(BeNumerically("<=", 1))
 		})
+	})
+	Context("E2E TEST: listCheckRunsForRef", func() {
+		It("Should return check runs for a valid ref", func() {
+			repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: clients.HeadSHA,
+			}
+			httpClient := &http.Client{}
+			client := github.NewClient(httpClient)
+			checkrunshandler.init(context.Background(), repourl, 30)
+			checkrunshandler.client = client
+			Expect(checkrunshandler.setup()).Should(BeNil())
+			Expect(checkrunshandler.checkData).ShouldNot(BeNil())
+
+			checkRuns, err := checkrunshandler.listCheckRunsForRef("main")
+			Expect(err).Should(BeNil())
+			Expect(checkRuns).ShouldNot(BeNil())
+			Expect(len(checkRuns)).Should(BeNumerically(">", 0))
+		})
+	})
+	It("Should return an error for an invalid ref", func() {
+		repourl := &repoURL{
+			owner:     "ossf",
+			repo:      "scorecard",
+			commitSHA: clients.HeadSHA,
+		}
+		checkrunshandler.init(context.Background(), repourl, 30)
+		Expect(checkrunshandler.setup()).Should(BeNil())
+		httpClient := &http.Client{}
+		client := github.NewClient(httpClient)
+		checkrunshandler.client = client
+		checkRuns, err := checkrunshandler.listCheckRunsForRef("invalid-ref")
+		Expect(err).ShouldNot(BeNil())
+		Expect(checkRuns).Should(BeNil())
 	})
 })
