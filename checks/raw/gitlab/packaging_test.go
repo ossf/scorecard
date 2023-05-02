@@ -15,14 +15,12 @@
 package gitlab
 
 import (
-	"context"
-	"errors"
 	"os"
 	"testing"
-	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
 func TestGitlabPackagingYamlCheck(t *testing.T) {
@@ -98,73 +96,8 @@ func TestGitlabPackagingYamlCheck(t *testing.T) {
 	}
 }
 
-type MoqRepo struct{}
-
-func (b MoqRepo) URI() string {
-	return "myurl.com/owner/project"
-}
-func (b MoqRepo) Host() string                      { return "" }
-func (b MoqRepo) String() string                    { return "" }
-func (b MoqRepo) IsValid() error                    { return nil }
-func (b MoqRepo) Metadata() []string                { return nil }
-func (b MoqRepo) AppendMetadata(metadata ...string) {}
-
-type MoqRepoClient struct{}
-
-var filename string = ""
-
-func (b MoqRepoClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	return []string{filename}, nil
-}
-func (b MoqRepoClient) GetFileContent(filename string) ([]byte, error) {
-	content, err := os.ReadFile(filename)
-
-	if err != nil {
-		return nil, errors.New("invalid file")
-	}
-	return content, nil
-}
-
-func (b MoqRepoClient) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
-	return nil
-}
-func (b MoqRepoClient) URI() string                                                  { return "" }
-func (b MoqRepoClient) IsArchived() (bool, error)                                    { return false, nil }
-func (b MoqRepoClient) LocalPath() (string, error)                                   { return "", nil }
-func (b MoqRepoClient) GetBranch(branch string) (*clients.BranchRef, error)          { return nil, nil }
-func (b MoqRepoClient) GetCreatedAt() (time.Time, error)                             { return time.Now(), nil }
-func (b MoqRepoClient) GetDefaultBranchName() (string, error)                        { return "", nil }
-func (b MoqRepoClient) GetDefaultBranch() (*clients.BranchRef, error)                { return nil, nil }
-func (b MoqRepoClient) GetOrgRepoClient(context.Context) (clients.RepoClient, error) { return nil, nil }
-func (b MoqRepoClient) ListCommits() ([]clients.Commit, error)                       { return nil, nil }
-func (b MoqRepoClient) ListIssues() ([]clients.Issue, error)                         { return nil, nil }
-func (b MoqRepoClient) ListLicenses() ([]clients.License, error)                     { return nil, nil }
-func (b MoqRepoClient) ListReleases() ([]clients.Release, error)                     { return nil, nil }
-func (b MoqRepoClient) ListContributors() ([]clients.User, error)                    { return nil, nil }
-func (b MoqRepoClient) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
-	return nil, nil
-}
-func (b MoqRepoClient) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) { return nil, nil }
-func (b MoqRepoClient) ListStatuses(ref string) ([]clients.Status, error)          { return nil, nil }
-func (b MoqRepoClient) ListWebhooks() ([]clients.Webhook, error)                   { return nil, nil }
-func (b MoqRepoClient) ListProgrammingLanguages() ([]clients.Language, error)      { return nil, nil }
-func (b MoqRepoClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
-	return clients.SearchResponse{}, nil
-}
-func (b MoqRepoClient) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
-	return nil, nil
-}
-func (b MoqRepoClient) Close() error { return nil }
-
 func TestGitlabPackagingPackager(t *testing.T) {
 	t.Parallel()
-
-	repo := MoqRepo{}
-	repoClient := MoqRepoClient{}
-	client := checker.CheckRequest{
-		Repo:       repo,
-		RepoClient: repoClient,
-	}
 
 	//nolint
 	tests := []struct {
@@ -192,9 +125,30 @@ func TestGitlabPackagingPackager(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			filename = tt.filename
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			moqRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			moqRepo := mockrepo.NewMockRepo(ctrl)
 
-			packagingData, _ := Packaging(&client)
+			moqRepoClient.EXPECT().ListFiles(gomock.Any()).
+				Return([]string{tt.filename}, nil).AnyTimes()
+
+			moqRepoClient.EXPECT().GetFileContent(tt.filename).
+				DoAndReturn(func(b string) ([]byte, error) {
+					content, _ := os.ReadFile(b)
+					return content, nil
+				}).AnyTimes()
+
+			if tt.exists {
+				moqRepo.EXPECT().URI().Return("myurl.com/owner/project")
+			}
+
+			req := checker.CheckRequest{
+				RepoClient: moqRepoClient,
+				Repo:       moqRepo,
+			}
+
+			packagingData, _ := Packaging(&req)
 
 			if !tt.exists {
 				if len(packagingData.Packages) != 0 {
