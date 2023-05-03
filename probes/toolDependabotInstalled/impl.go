@@ -24,12 +24,18 @@ var fs embed.FS
 
 var probe = "toolDependabotInstalled"
 
-func matches(tool checker.Tool) bool {
-	return tool.Name == "Dependabot"
+type dependabot struct {}
+
+func (t dependabot) Name() string{
+	return "Dependabot"
+}
+func (t dependabot) Matches(tool checker.Tool) bool{
+	return t.Name() == tool.Name
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	tools := raw.DependencyUpdateToolResults.Tools
+	var matcher dependabot
 	return utils.ToolsRun(tools, fs, probe,
-		finding.OutcomePositive, finding.OutcomeNegative, matches)
+		finding.OutcomePositive, finding.OutcomeNegative, matcher)
 }

@@ -24,12 +24,18 @@ var fs embed.FS
 
 var probe = "toolPyUpInstalled"
 
-func matches(tool checker.Tool) bool {
-	return tool.Name == "PyUp"
+type pyup struct {}
+
+func (t pyup) Name() string{
+	return "PyUp"
+}
+func (t pyup) Matches(tool checker.Tool) bool{
+	return t.Name() == tool.Name
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	tools := raw.DependencyUpdateToolResults.Tools
+	var matcher pyup
 	return utils.ToolsRun(tools, fs, probe,
-		finding.OutcomePositive, finding.OutcomeNegative, matches)
+		finding.OutcomePositive, finding.OutcomeNegative, matcher)
 }

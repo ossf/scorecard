@@ -57,5 +57,5 @@ func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.DependencyUpdateTool(CheckBinaryArtifacts, c.Dlogger, findings)
+	return evaluation.DependencyUpdateTool(CheckDependencyUpdateTool, c.Dlogger, findings)
 }

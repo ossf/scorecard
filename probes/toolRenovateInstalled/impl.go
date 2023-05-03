@@ -24,12 +24,18 @@ var fs embed.FS
 
 var probe = "toolRenovateInstalled"
 
-func matches(tool checker.Tool) bool {
-	return tool.Name == "RenovateBot"
+type renovate struct {}
+
+func (t renovate) Name() string{
+	return  "RenovateBot"
+}
+func (t renovate) Matches(tool checker.Tool) bool{
+	return t.Name() == tool.Name
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	tools := raw.DependencyUpdateToolResults.Tools
+	var matcher renovate
 	return utils.ToolsRun(tools, fs, probe,
-		finding.OutcomePositive, finding.OutcomeNegative, matches)
+		finding.OutcomePositive, finding.OutcomeNegative, matcher)
 }
