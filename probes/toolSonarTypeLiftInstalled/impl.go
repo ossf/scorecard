@@ -27,12 +27,18 @@ var fs embed.FS
 
 var probe = "toolSonarTypeLiftInstalled"
 
-func matches(tool checker.Tool) bool {
-	return tool.Name == "Sonatype Lift"
+type sonartypeLyft struct {}
+
+func (t sonartypeLyft) Name() string{
+	return  "Sonatype Lift"
+}
+func (t sonartypeLyft) Matches(tool checker.Tool) bool{
+	return t.Name() == tool.Name
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	tools := raw.DependencyUpdateToolResults.Tools
+	var matcher sonartypeLyft
 	return utils.ToolsRun(tools, fs, probe,
-		finding.OutcomePositive, finding.OutcomeNegative, matches)
+		finding.OutcomePositive, finding.OutcomeNegative, matcher)
 }

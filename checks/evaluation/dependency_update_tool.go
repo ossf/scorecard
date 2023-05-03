@@ -41,21 +41,15 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 	findings []finding.Finding,
 ) checker.CheckResult {
 	
-	// Compute the score.
-	score := checker.MinResultScore
 	for i := range findings {
 		f := findings[i]
 		if f.Outcome == finding.OutcomePositive {
-			score = checker.MaxResultScore
-			break
+			return checker.CreateMaxScoreResult(name, "update tool detected")
 		}
 	}
 
-	if score == checker.MaxResultScore {
-		return checker.CreateMaxScoreResult(name, "update tool detected")
-	}
-
 	return checker.CreateMinScoreResult(name, "no update tool detected")
+<<<<<<< HEAD
 	/*
 	// Apply the policy evaluation.
 	if r.Tools == nil || len(r.Tools) == 0 {
@@ -91,4 +85,6 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 	return checker.CreateMaxScoreResult(name, "update tool detected")
 	*/
 >>>>>>> 71718938 (update)
+=======
+>>>>>>> 10362e90 (update)
 }
