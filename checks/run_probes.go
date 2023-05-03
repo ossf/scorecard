@@ -23,6 +23,7 @@ import (
 	prunner "github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
+// evaluateProbes runs the probes in probesToRun and logs its findings.
 func evaluateProbes(c *checker.CheckRequest, checkName string, probesToRun []probes.ProbeImpl) ([]finding.Finding, error) {
 	// Run the probes.
 	findings, err := prunner.Run(c.RawResults, probesToRun)

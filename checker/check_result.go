@@ -194,6 +194,7 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	}
 }
 
+// LogFindings logs the list of findings.
 func LogFindings(findings []finding.Finding, dl DetailLogger) error {
 	for i := range findings {
 		f := findings[i]
