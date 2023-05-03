@@ -21,6 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes"
 )
 
+// Run runs the probes in probesToRun.
 func Run(raw *checker.RawResults, probesToRun []probes.ProbeImpl) ([]finding.Finding, error) {
 	var findings []finding.Finding
 	for _, item := range probesToRun {

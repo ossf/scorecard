@@ -24,10 +24,14 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolSonarTypeLiftInstalled"
 )
 
+// ProbeImpl is the implementation of a probe.
 type ProbeImpl func(*checker.RawResults) ([]finding.Finding, string, error)
 
 var (
+	// AllProbes represents all the probes.
 	AllProbes []ProbeImpl
+	// DependencyToolUpdates is all the probes for the
+	// DpendencyUpdateTool check.
 	DependencyToolUpdates = []ProbeImpl{
 		toolRenovateInstalled.Run,
 		toolDependabotInstalled.Run,

@@ -27,6 +27,7 @@ type toolMatcher interface {
     Matches(checker.Tool) bool
 }
 
+// ToolsRun runs the probe for a tool.
 func ToolsRun(tools []checker.Tool, fs embed.FS, probeID string,
 	foundOutcome, notFoundOutcome finding.Outcome, matcher toolMatcher,
 ) ([]finding.Finding, string, error) {
