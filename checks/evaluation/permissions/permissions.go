@@ -33,6 +33,11 @@ type permissions struct {
 	jobLevelWritePermissions map[string]bool
 }
 
+var (
+	stepsNoWriteID = "gitHubWorkflowPermissionsStepsNoWrite"
+	topNoWriteID   = "gitHubWorkflowPermissionsTopNoWrite"
+)
+
 // TokenPermissions applies the score policy for the Token-Permissions check.
 func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPermissionsData) checker.CheckResult {
 	if r == nil {
@@ -68,8 +73,8 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
 	negativeProbeResults := map[string]bool{
-		"gitHubWorkflowPermissionsStepsNoWrite": false,
-		"gitHubWorkflowPermissionsTopNoWrite":   false,
+		stepsNoWriteID: false,
+		topNoWriteID:   false,
 	}
 
 	for _, r := range results.TokenPermissions {
@@ -144,11 +149,11 @@ func reportDefaultFindings(results *checker.TokenPermissionsData,
 	// No workflow files exist.
 	if len(results.TokenPermissions) == 0 {
 		text := "no workflows found in the repository"
-		if err := reportFinding("gitHubWorkflowPermissionsStepsNoWrite",
+		if err := reportFinding(stepsNoWriteID,
 			text, finding.OutcomeNotAvailable, dl); err != nil {
 			return err
 		}
-		if err := reportFinding("gitHubWorkflowPermissionsTopNoWrite",
+		if err := reportFinding(topNoWriteID,
 			text, finding.OutcomeNotAvailable, dl); err != nil {
 			return err
 		}
@@ -157,12 +162,12 @@ func reportDefaultFindings(results *checker.TokenPermissionsData,
 
 	// Workflow files found, report positive findings if no
 	// negative findings were found.
-	// NOTE: we don't consider probe `gitHubWorkflowPermissionsTopNoWrite`
+	// NOTE: we don't consider probe `topNoWriteID`
 	// because positive results are already reported.
-	found := negativeProbeResults["gitHubWorkflowPermissionsStepsNoWrite"]
+	found := negativeProbeResults[stepsNoWriteID]
 	if !found {
 		text := fmt.Sprintf("no %s write permissions found", checker.PermissionLocationJob)
-		if err := reportFinding("gitHubWorkflowPermissionsStepsNoWrite",
+		if err := reportFinding(stepsNoWriteID,
 			text, finding.OutcomePositive, dl); err != nil {
 			return err
 		}
@@ -188,9 +193,9 @@ func reportFinding(probe, text string, o finding.Outcome, dl checker.DetailLogge
 }
 
 func createLogMsg(loct *checker.PermissionLocation) (*checker.LogMessage, error) {
-	probe := "gitHubWorkflowPermissionsStepsNoWrite"
+	probe := stepsNoWriteID
 	if loct == nil || *loct == checker.PermissionLocationTop {
-		probe = "gitHubWorkflowPermissionsTopNoWrite"
+		probe = topNoWriteID
 	}
 	content, err := probes.ReadFile(probe + ".yml")
 	if err != nil {

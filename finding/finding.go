@@ -151,37 +151,19 @@ func NewWith(efs embed.FS, probeID, text string, loc *Location,
 // NewWith create a negative finding with the desried location.
 func NewNegative(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	f, err := NewWith(efs, probeID, text, loc, OutcomeNegative)
-	if err != nil {
-		return nil, fmt.Errorf("finding.NewWith: %w", err)
-	}
-
-	f = f.WithMessage(text)
-	return f, nil
+	return NewWith(efs, probeID, text, loc, OutcomeNegative)
 }
 
 // NewNotAvailable create a finding with a NotAvailable outcome and the desried location.
 func NewNotAvailable(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	f, err := NewWith(efs, probeID, text, loc, OutcomeNotAvailable)
-	if err != nil {
-		return nil, fmt.Errorf("finding.NewWith: %w", err)
-	}
-
-	f = f.WithMessage(text)
-	return f, nil
+	return NewWith(efs, probeID, text, loc, OutcomeNotAvailable)
 }
 
 // NewPositive create a positive finding with the desried location.
 func NewPositive(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	f, err := NewWith(efs, probeID, text, loc, OutcomePositive)
-	if err != nil {
-		return nil, fmt.Errorf("finding.NewWith: %w", err)
-	}
-
-	f = f.WithMessage(text)
-	return f, nil
+	return NewWith(efs, probeID, text, loc, OutcomePositive)
 }
 
 // Anonymize removes the probe ID and outcome
@@ -203,12 +185,12 @@ func (f *Finding) WithMessage(text string) *Finding {
 // No copy is made.
 func (f *Finding) WithLocation(loc *Location) *Finding {
 	f.Location = loc
-	if f.Remediation != nil && loc != nil {
+	if f.Remediation != nil && f.Location != nil {
 		// Replace location data.
 		f.Remediation.Text = strings.Replace(f.Remediation.Text,
-			"${{ finding.location.path }}", loc.Path, -1)
+			"${{ finding.location.path }}", f.Location.Path, -1)
 		f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
-			"${{ finding.location.path }}", loc.Path, -1)
+			"${{ finding.location.path }}", f.Location.Path, -1)
 	}
 	return f
 }
