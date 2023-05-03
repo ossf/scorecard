@@ -209,7 +209,7 @@ func generateDefaultConfig(risk string) string {
 func getPath(d *checker.CheckDetail) string {
 	f := d.Msg.Finding
 	if f != nil && f.Location != nil {
-		return f.Location.Value
+		return f.Location.Path
 	}
 	return d.Msg.Path
 }
