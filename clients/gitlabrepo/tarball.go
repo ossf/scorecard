@@ -183,7 +183,7 @@ func (handler *tarballHandler) getTarball() error {
 func (handler *tarballHandler) apiFunction(url, tempDir string, repoFile *os.File) error {
 	req, err := http.NewRequestWithContext(handler.ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
+		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
 	req.Header.Set("PRIVATE-TOKEN", os.Getenv("GITLAB_AUTH_TOKEN"))
 	resp, err := http.DefaultClient.Do(req)
