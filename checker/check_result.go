@@ -193,3 +193,25 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
 	}
 }
+
+func LogFindings(findings []finding.Finding, dl DetailLogger) error {
+	for i := range findings {
+		f := findings[i]
+		switch f.Outcome {
+		case finding.OutcomeNegative:
+			dl.Warn(&LogMessage{
+				Finding: &f,
+			})
+		case finding.OutcomePositive:
+			dl.Info(&LogMessage{
+				Finding: &f,
+			})
+		default:
+			dl.Debug(&LogMessage{
+				Finding: &f,
+			})
+		}
+	}
+
+	return nil
+}

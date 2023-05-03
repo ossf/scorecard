@@ -15,21 +15,32 @@
 package evaluation
 
 import (
-	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // DependencyUpdateTool applies the score policy for the Dependency-Update-Tool check.
 func DependencyUpdateTool(name string, dl checker.DetailLogger,
-	r *checker.DependencyUpdateToolData,
+	findings []finding.Finding,
 ) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
-		return checker.CreateRuntimeErrorResult(name, e)
+	
+	// Compute the score.
+	score := checker.MinResultScore
+	for i := range findings {
+		f := findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			score = checker.MaxResultScore
+			break
+		}
 	}
 
+	if score == checker.MaxResultScore {
+		return checker.CreateMaxScoreResult(name, "update tool detected")
+	}
+
+	return checker.CreateMinScoreResult(name, "no update tool detected")
+	/*
 	// Apply the policy evaluation.
 	if r.Tools == nil || len(r.Tools) == 0 {
 		dl.Warn(&checker.LogMessage{
@@ -62,4 +73,5 @@ func DependencyUpdateTool(name string, dl checker.DetailLogger,
 
 	// High score result.
 	return checker.CreateMaxScoreResult(name, "update tool detected")
+	*/
 }

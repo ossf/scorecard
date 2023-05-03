@@ -18,6 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
+	"github.com/ossf/scorecard/v4/probes"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -48,6 +49,13 @@ func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 		c.RawResults.DependencyUpdateToolResults = rawData
 	}
 
+	// Evaluate the probes.
+	findings, err := evaluateProbes(c, CheckDependencyUpdateTool, probes.DependencyToolUpdates)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, e)
+	}
+
 	// Return the score evaluation.
-	return evaluation.DependencyUpdateTool(CheckDependencyUpdateTool, c.Dlogger, &rawData)
+	return evaluation.DependencyUpdateTool(CheckBinaryArtifacts, c.Dlogger, findings)
 }
