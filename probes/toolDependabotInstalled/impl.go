@@ -28,7 +28,6 @@ var fs embed.FS
 
 const probe = "toolDependabotInstalled"
 
-<<<<<<< HEAD
 type dependabot struct{}
 
 func (t dependabot) Name() string {
@@ -36,21 +35,12 @@ func (t dependabot) Name() string {
 }
 
 func (t dependabot) Matches(tool *checker.Tool) bool {
-=======
-type dependabot struct {}
-
-func (t dependabot) Name() string{
-	return "Dependabot"
-}
-func (t dependabot) Matches(tool checker.Tool) bool{
->>>>>>> 10362e90 (update)
 	return t.Name() == tool.Name
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	tools := raw.DependencyUpdateToolResults.Tools
 	var matcher dependabot
-<<<<<<< HEAD
 	// Check whether Dependabot tool is installed on the repo,
 	// and create the corresponding findings.
 	//nolint:wrapcheck
@@ -60,8 +50,4 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		// Tool not found will generate a negative result.
 		finding.OutcomeNegative,
 		matcher)
-=======
-	return utils.ToolsRun(tools, fs, probe,
-		finding.OutcomePositive, finding.OutcomeNegative, matcher)
->>>>>>> 10362e90 (update)
 }
