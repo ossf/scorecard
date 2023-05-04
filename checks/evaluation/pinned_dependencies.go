@@ -127,15 +127,22 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
+	// Npm installs.
+	npmScore, err := createReturnForIsNpmInstallPinned(pr, dl)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(name, err)
+	}
+
 	// Scores may be inconclusive.
 	actionScore = maxScore(0, actionScore)
 	dockerFromScore = maxScore(0, dockerFromScore)
 	dockerDownloadScore = maxScore(0, dockerDownloadScore)
 	scriptScore = maxScore(0, scriptScore)
 	pipScore = maxScore(0, pipScore)
+	npmScore = maxScore(0, npmScore)
 
 	score := checker.AggregateScores(actionScore, dockerFromScore,
-		dockerDownloadScore, scriptScore, pipScore)
+		dockerDownloadScore, scriptScore, pipScore, npmScore)
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "all dependencies are pinned")
@@ -257,6 +264,15 @@ func createReturnForIsPipInstallPinned(pr map[checker.DependencyUseType]pinnedRe
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypePipCommand,
 		"Pip installs are pinned",
+		dl)
+}
+
+// Create the result for npm install commands.
+func createReturnForIsNpmInstallPinned(pr map[checker.DependencyUseType]pinnedResult,
+	dl checker.DetailLogger,
+) (int, error) {
+	return createReturnValues(pr, checker.DependencyUseTypeNpmCommand,
+		"Npm installs are pinned",
 		dl)
 }
 
