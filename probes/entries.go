@@ -46,16 +46,14 @@ func init() {
 	})
 }
 
-// See https://freshman.tech/snippets/go/concatenate-slices/#concatenating-multiple-slices-at-once.
 func concatMultipleProbes(slices [][]ProbeImpl) []ProbeImpl {
 	var totalLen int
 	for _, s := range slices {
 		totalLen += len(s)
 	}
-	tmp := make([]ProbeImpl, totalLen)
-	var i int
+	tmp := make([]ProbeImpl, 0, totalLen)
 	for _, s := range slices {
-		i += copy(tmp[i:], s)
+		tmp = append(tmp, s...)
 	}
 	return tmp
 }
