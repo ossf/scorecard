@@ -16,8 +16,6 @@ package githubrepo
 
 import (
 	"context"
-	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
-	"github.com/ossf/scorecard/v4/log"
 	"net/http"
 
 	"github.com/google/go-github/v38/github"
@@ -25,6 +23,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 var _ = Describe("E2E TEST: githubrepo.checkrunsHandler", func() {
