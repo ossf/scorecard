@@ -16,13 +16,15 @@ package githubrepo
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/google/go-github/v38/github"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"golang.org/x/oauth2"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v4/log"
 )
 
 var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
@@ -30,13 +32,11 @@ var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
 
 	BeforeEach(func() {
 		ctx := context.Background()
-		token := getGithubToken()
-		ts := oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: token},
-		)
-
-		tc := oauth2.NewClient(ctx, ts)
-		client := github.NewClient(tc)
+		rt := roundtripper.NewTransport(context.Background(), &log.Logger{})
+		httpClient := &http.Client{
+			Transport: rt,
+		}
+		client := github.NewClient(httpClient)
 		contribHandler = &contributorsHandler{
 			ghClient: client,
 			ctx:      ctx,
@@ -50,6 +50,7 @@ var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
 			}
+
 			contribHandler.init(context.Background(), &repoURL)
 			Expect(contribHandler.getContributors()).ShouldNot(BeNil())
 			Expect(contribHandler.errSetup).Should(BeNil())

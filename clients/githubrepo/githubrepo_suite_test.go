@@ -59,14 +59,6 @@ func skipIfTokenIsNot(t tokenType, msg string) {
 	}
 }
 
-func getGithubToken() string {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		token = os.Getenv("GITHUB_AUTH_TOKEN")
-	}
-	return token
-}
-
 var _ = BeforeSuite(func() {
 	ctx := context.Background()
 	logger := log.NewLogger(log.DebugLevel)
