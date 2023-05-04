@@ -16,6 +16,8 @@ package githubrepo
 
 import (
 	"context"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v4/log"
 	"net/http"
 
 	"github.com/google/go-github/v38/github"
@@ -57,10 +59,12 @@ var _ = Describe("E2E TEST: githubrepo.checkrunsHandler", func() {
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
 			}
-			httpClient := &http.Client{}
-			client := github.NewClient(httpClient)
+			rt := roundtripper.NewTransport(context.Background(), &log.Logger{})
+			httpClient := &http.Client{
+				Transport: rt,
+			}
 			checkrunshandler.init(context.Background(), repourl, 30)
-			checkrunshandler.client = client
+			checkrunshandler.client = github.NewClient(httpClient)
 			Expect(checkrunshandler.setup()).Should(BeNil())
 			Expect(checkrunshandler.checkData).ShouldNot(BeNil())
 
@@ -78,9 +82,11 @@ var _ = Describe("E2E TEST: githubrepo.checkrunsHandler", func() {
 		}
 		checkrunshandler.init(context.Background(), repourl, 30)
 		Expect(checkrunshandler.setup()).Should(BeNil())
-		httpClient := &http.Client{}
-		client := github.NewClient(httpClient)
-		checkrunshandler.client = client
+		rt := roundtripper.NewTransport(context.Background(), &log.Logger{})
+		httpClient := &http.Client{
+			Transport: rt,
+		}
+		checkrunshandler.client = github.NewClient(httpClient)
 		checkRuns, err := checkrunshandler.listCheckRunsForRef("invalid-ref")
 		Expect(err).ShouldNot(BeNil())
 		Expect(checkRuns).Should(BeNil())
