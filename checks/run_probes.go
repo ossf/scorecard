@@ -33,7 +33,7 @@ func evaluateProbes(c *checker.CheckRequest, checkName string, probesToRun []pro
 
 	// Log the findings.
 	if err := checker.LogFindings(findings, c.Dlogger); err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, fmt.Errorf("LogFindings: %w", err)
 	}
 	return findings, nil
 }

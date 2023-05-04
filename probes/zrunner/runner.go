@@ -23,12 +23,11 @@ import (
 
 // Run runs the probes in probesToRun.
 func Run(raw *checker.RawResults, probesToRun []probes.ProbeImpl) ([]finding.Finding, error) {
-	var findings []finding.Finding
-	for _, item := range probesToRun {
-		f := item
-		ff, probeID, err := f(raw)
+	var results []finding.Finding
+	for _, probeFunc := range probesToRun {
+		findings, probeID, err := probeFunc(raw)
 		if err != nil {
-			findings = append(findings,
+			results = append(results,
 				finding.Finding{
 					Probe:   probeID,
 					Outcome: finding.OutcomeError,
@@ -36,9 +35,7 @@ func Run(raw *checker.RawResults, probesToRun []probes.ProbeImpl) ([]finding.Fin
 				})
 			continue
 		}
-		if len(ff) > 0 {
-			findings = append(findings, ff...)
-		}
+		results = append(results, findings...)
 	}
-	return findings, nil
+	return results, nil
 }

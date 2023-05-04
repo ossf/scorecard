@@ -22,20 +22,23 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-var probe = "toolDependabotInstalled"
+const probe = "toolDependabotInstalled"
 
-type dependabot struct {}
+type dependabot struct{}
 
-func (t dependabot) Name() string{
+func (t dependabot) Name() string {
 	return "Dependabot"
 }
-func (t dependabot) Matches(tool checker.Tool) bool{
+
+func (t dependabot) Matches(tool checker.Tool) bool {
 	return t.Name() == tool.Name
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	tools := raw.DependencyUpdateToolResults.Tools
 	var matcher dependabot
+	// Check whether Dependabot tool is installed on the repo,
+	// and create the correponding findings.
 	return utils.ToolsRun(tools, fs, probe,
 		finding.OutcomePositive, finding.OutcomeNegative, matcher)
 }

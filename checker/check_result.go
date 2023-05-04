@@ -197,19 +197,19 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 // LogFindings logs the list of findings.
 func LogFindings(findings []finding.Finding, dl DetailLogger) error {
 	for i := range findings {
-		f := findings[i]
+		f := &findings[i]
 		switch f.Outcome {
 		case finding.OutcomeNegative:
 			dl.Warn(&LogMessage{
-				Finding: &f,
+				Finding: f,
 			})
 		case finding.OutcomePositive:
 			dl.Info(&LogMessage{
-				Finding: &f,
+				Finding: f,
 			})
 		default:
 			dl.Debug(&LogMessage{
-				Finding: &f,
+				Finding: f,
 			})
 		}
 	}

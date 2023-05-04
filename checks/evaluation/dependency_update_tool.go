@@ -15,7 +15,6 @@
 package evaluation
 
 import (
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 )
@@ -24,9 +23,8 @@ import (
 func DependencyUpdateTool(name string, dl checker.DetailLogger,
 	findings []finding.Finding,
 ) checker.CheckResult {
-	
 	for i := range findings {
-		f := findings[i]
+		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			return checker.CreateMaxScoreResult(name, "update tool detected")
 		}

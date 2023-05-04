@@ -17,11 +17,11 @@ package probes
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	
+
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolSonarTypeLiftInstalled"
+	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
 )
 
 // ProbeImpl is the implementation of a probe.
@@ -36,30 +36,26 @@ var (
 		toolRenovateInstalled.Run,
 		toolDependabotInstalled.Run,
 		toolPyUpInstalled.Run,
-		toolSonarTypeLiftInstalled.Run,
+		toolSonatypeLiftInstalled.Run,
 	}
 )
 
-func concatMultipleSlices[T any](slices [][]T) []T {
-	var totalLen int
+func init() {
+	AllProbes = concatMultipleProbes([][]ProbeImpl{
+		DependencyToolUpdates,
+	})
+}
 
+// See https://freshman.tech/snippets/go/concatenate-slices/#concatenating-multiple-slices-at-once.
+func concatMultipleProbes(slices [][]ProbeImpl) []ProbeImpl {
+	var totalLen int
 	for _, s := range slices {
 		totalLen += len(s)
 	}
-
-	result := make([]T, totalLen)
-
+	tmp := make([]ProbeImpl, totalLen)
 	var i int
-
 	for _, s := range slices {
-		i += copy(result[i:], s)
+		i += copy(tmp[i:], s)
 	}
-
-	return result
-}
-
-func init() {
-	AllProbes = concatMultipleSlices([][]ProbeImpl{
-		DependencyToolUpdates,
-	})
+	return tmp
 }

@@ -23,38 +23,36 @@ import (
 )
 
 type toolMatcher interface {
-    Name() string
-    Matches(checker.Tool) bool
+	Name() string
+	Matches(checker.Tool) bool
 }
 
 // ToolsRun runs the probe for a tool.
+// The function iterates thru the raw results and searches for a tool of interest that is used on a repository.
+// The function uses 'matcher' to identify the tool of interest.
+// If a tool is used in the repository, it creates a finding with the 'foundOutcome'.
+// If not, it returns a finding with outcome 'notFoundOutcome'.
 func ToolsRun(tools []checker.Tool, fs embed.FS, probeID string,
 	foundOutcome, notFoundOutcome finding.Outcome, matcher toolMatcher,
 ) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
 	for i := range tools {
-		tool := tools[i]
-		if !matcher.Matches(tool) {
+		tool := &tools[i]
+		if !matcher.Matches(*tool) {
 			continue
 		}
 
-		if len(tool.Files) == 0 {
-			f, err := finding.NewWith(fs, probeID, fmt.Sprintf("tool '%s' is used", tool.Name),
-				nil, foundOutcome)
-			if err != nil {
-				return nil, probeID, fmt.Errorf("create finding: %w", err)
-			}
-			findings = append(findings, *f)
-		} else {
-			// Use only the first file.
-			f, err := finding.NewWith(fs, probeID, fmt.Sprintf("tool '%s' is used", tool.Name),
-				tool.Files[0].Location(), foundOutcome)
-			if err != nil {
-				return nil, probeID, fmt.Errorf("create finding: %w", err)
-			}
-			findings = append(findings, *f)
+		var loc *finding.Location
+		if len(tool.Files) > 0 {
+			loc = tool.Files[0].Location()
 		}
 
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("tool '%s' is used", tool.Name),
+			loc, foundOutcome)
+		if err != nil {
+			return nil, probeID, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
 	}
 
 	// No tools found.
