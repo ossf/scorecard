@@ -14,7 +14,14 @@
 
 # Run secret-dependent integration tests only after approval
 name: Integration tests
-on: pull_request
+
+on:
+  push:
+    branches:
+      - main # The e2e coverage is required to be run on main branch to get the coverage report
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
