@@ -209,9 +209,9 @@ another 3 are deducted if multiple changes are unreviewed.
 Review by bots, including bots powered by
 artificial intelligence / machine learning (AI/ML),
 do not count as code review.
-For example, Such reviews do not provide confidence that there will
+Such reviews do not provide confidence that there will
 be a second person who understands the
-code change (e.g., if the originator suddenly becomes available).
+code change (e.g., if the originator suddenly becomes unavailable).
 However, analysis by bots
 may be able to meet (at least in part) the [SAST](#sast) criterion.
 
