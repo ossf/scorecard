@@ -89,4 +89,3 @@ Currently, the main benefit of [signed releases](checks.md#signed-releases) is t
 However, there are already moves to make it even more relevant. For example, the OpenSSF is working on [implementing signature verification for NPM packages](https://github.blog/2022-08-08-new-request-for-comments-on-improving-npm-security-with-sigstore-is-now-open/) which would allow a consumer to automatically verify if the package they are downloading was generated through a reliable builder and if it is correctly signed.
 
 Signing releases already has some relevance and it will soon offer even more security benefits for both consumers and maintainers.
-
