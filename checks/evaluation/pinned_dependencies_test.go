@@ -205,6 +205,22 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name: "unpinned npm install",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         8,
+				NumberOfWarn:  1,
+				NumberOfInfo:  6,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 
 	for _, tt := range tests {
