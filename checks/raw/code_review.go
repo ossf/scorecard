@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,6 +49,20 @@ func getGithubRevisionID(c *clients.Commit) string {
 		return strconv.Itoa(mr.Number)
 	}
 	return ""
+}
+
+func getGithubReviews(c *clients.Commit) (reviews []clients.Review) {
+	reviews = []clients.Review{}
+	reviews = append(reviews, c.AssociatedMergeRequest.Reviews...)
+
+	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
+		reviews = append(reviews, clients.Review{Author: &c.AssociatedMergeRequest.MergedBy, State: "APPROVED"})
+	}
+	return
+}
+
+func getGithubAuthor(c *clients.Commit) (author clients.User) {
+	return c.AssociatedMergeRequest.Author
 }
 
 func getProwRevisionID(c *clients.Commit) string {
@@ -143,12 +157,20 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 
 	for i := range commits {
 		rev := detectCommitRevisionInfo(&commits[i])
+		if rev.ID == "" {
+			rev.ID = commits[i].SHA
+		}
 
 		if changeset, ok := changesetsByRevInfo[rev]; !ok {
 			newChangeset := checker.Changeset{
 				ReviewPlatform: rev.Platform,
 				RevisionID:     rev.ID,
 				Commits:        []clients.Commit{commits[i]},
+			}
+
+			if rev.Platform == checker.ReviewPlatformGitHub {
+				newChangeset.Reviews = getGithubReviews(&commits[i])
+				newChangeset.Author = getGithubAuthor(&commits[i])
 			}
 
 			changesetsByRevInfo[rev] = newChangeset
@@ -160,19 +182,8 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 	}
 
 	// Changesets are returned in map order (i.e. randomized)
-	for ri, cs := range changesetsByRevInfo {
-		// Ungroup all commits that don't have revision info
-		missing := revisionInfo{}
-		if ri == missing {
-			for i := range cs.Commits {
-				c := cs.Commits[i]
-				changesets = append(changesets, checker.Changeset{
-					Commits: []clients.Commit{c},
-				})
-			}
-		} else {
-			changesets = append(changesets, cs)
-		}
+	for ri := range changesetsByRevInfo {
+		changesets = append(changesets, changesetsByRevInfo[ri])
 	}
 
 	return changesets

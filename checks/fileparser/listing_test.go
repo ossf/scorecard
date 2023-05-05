@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -372,6 +372,13 @@ func Test_isTestdataFile(t *testing.T) {
 			name: "testdata file",
 			args: args{
 				fullpath: "testdata/Dockerfile.template.template.template.template",
+			},
+			want: true,
+		},
+		{
+			name: "testdata file",
+			args: args{
+				fullpath: "archiva-modules/archiva-base/archiva-checksum/src/test/resources/examples/redback-authz-open.jar",
 			},
 			want: true,
 		},

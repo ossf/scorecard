@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/crane"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 var errInvalidArg = errors.New("invalid argument")
@@ -35,71 +36,87 @@ var (
 
 // TODO fix how this info makes it checks/evaluation.
 type RemediationMetadata struct {
-	branch string
-	repo   string
+	Branch string
+	Repo   string
 }
 
 // New returns remediation relevant metadata from a CheckRequest.
-func New(c *checker.CheckRequest) (RemediationMetadata, error) {
+func New(c *checker.CheckRequest) (*RemediationMetadata, error) {
 	if c == nil || c.RepoClient == nil {
-		return RemediationMetadata{}, nil
+		return &RemediationMetadata{}, nil
 	}
 
 	// Get the branch for remediation.
 	branch, err := c.RepoClient.GetDefaultBranchName()
 	if err != nil {
-		return RemediationMetadata{}, fmt.Errorf("GetDefaultBranchName: %w", err)
+		return &RemediationMetadata{}, fmt.Errorf("GetDefaultBranchName: %w", err)
 	}
 
 	uri := c.RepoClient.URI()
 	parts := strings.Split(uri, "/")
 	if len(parts) != 3 {
-		return RemediationMetadata{}, fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
+		return &RemediationMetadata{}, fmt.Errorf("%w: empty: %s", errInvalidArg, uri)
 	}
 	repo := fmt.Sprintf("%s/%s", parts[1], parts[2])
-	return RemediationMetadata{branch: branch, repo: repo}, nil
-}
-
-// CreateWorkflowPermissionRemediation create remediation for workflow permissions.
-func (r *RemediationMetadata) CreateWorkflowPermissionRemediation(filepath string) *checker.Remediation {
-	return r.createWorkflowRemediation(filepath, "permissions")
+	return &RemediationMetadata{Branch: branch, Repo: repo}, nil
 }
 
 // CreateWorkflowPinningRemediation create remediaiton for pinninn GH Actions.
-func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) *checker.Remediation {
+func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) *rule.Remediation {
 	return r.createWorkflowRemediation(filepath, "pin")
 }
 
-func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *checker.Remediation {
+func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *rule.Remediation {
 	p := strings.TrimPrefix(path, ".github/workflows/")
-	if r.branch == "" || r.repo == "" {
+	if r.Branch == "" || r.Repo == "" {
 		return nil
 	}
 
-	text := fmt.Sprintf(workflowText, r.repo, p, r.branch, t)
-	markdown := fmt.Sprintf(workflowMarkdown, r.repo, p, r.branch, t)
+	text := fmt.Sprintf(workflowText, r.Repo, p, r.Branch, t)
+	markdown := fmt.Sprintf(workflowMarkdown, r.Repo, p, r.Branch, t)
 
-	return &checker.Remediation{
-		HelpText:     text,
-		HelpMarkdown: markdown,
+	return &rule.Remediation{
+		Text:     text,
+		Markdown: markdown,
 	}
 }
 
+func dockerImageName(d *checker.Dependency) (name string, ok bool) {
+	if d.Name == nil || *d.Name == "" {
+		return "", false
+	}
+	if d.PinnedAt != nil && *d.PinnedAt != "" {
+		return fmt.Sprintf("%s:%s", *d.Name, *d.PinnedAt), true
+	}
+	return *d.Name, true
+}
+
+type Digester interface{ Digest(string) (string, error) }
+
+type CraneDigester struct{}
+
+func (c CraneDigester) Digest(name string) (string, error) {
+	//nolint:wrapcheck // error value not used
+	return crane.Digest(name)
+}
+
 // CreateDockerfilePinningRemediation create remediaiton for pinning Dockerfile images.
-func CreateDockerfilePinningRemediation(name *string) *checker.Remediation {
-	if name == nil {
+func CreateDockerfilePinningRemediation(dep *checker.Dependency, digester Digester) *rule.Remediation {
+	name, ok := dockerImageName(dep)
+	if !ok {
 		return nil
 	}
-	hash, err := crane.Digest(*name)
+
+	hash, err := digester.Digest(name)
 	if err != nil {
 		return nil
 	}
 
-	text := fmt.Sprintf(dockerfilePinText, *name, hash)
+	text := fmt.Sprintf(dockerfilePinText, name, hash)
 	markdown := text
 
-	return &checker.Remediation{
-		HelpText:     text,
-		HelpMarkdown: markdown,
+	return &rule.Remediation{
+		Text:     text,
+		Markdown: markdown,
 	}
 }

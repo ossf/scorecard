@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,10 +23,12 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/rhysd/actionlint"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
-	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // CheckSAST is the registered name for SAST.
@@ -48,7 +50,7 @@ func init() {
 
 // SAST runs SAST check.
 func SAST(c *checker.CheckRequest) checker.CheckResult {
-	sastScore, sastErr := sastToolInCheckRuns(c)
+	sastScore, nonCompliantPRs, sastErr := sastToolInCheckRuns(c)
 	if sastErr != nil {
 		return checker.CreateRuntimeErrorResult(CheckSAST, sastErr)
 	}
@@ -94,6 +96,9 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 		case codeQlScore == checker.MaxResultScore:
 			const sastWeight = 3
 			const codeQlWeight = 7
+			c.Dlogger.Debug(&checker.LogMessage{
+				Text: getNonCompliantPRMessage(nonCompliantPRs),
+			})
 			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, codeQlScore: codeQlWeight})
 			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not run on all commmits", score)
 		default:
@@ -115,6 +120,9 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateMaxScoreResult(CheckSAST, "SAST tool is run on all commits")
 		}
 
+		c.Dlogger.Debug(&checker.LogMessage{
+			Text: getNonCompliantPRMessage(nonCompliantPRs),
+		})
 		return checker.CreateResultWithScore(CheckSAST,
 			checker.NormalizeReason("SAST tool is not run on all commits", sastScore), sastScore)
 	}
@@ -123,15 +131,16 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	return checker.CreateRuntimeErrorResult(CheckSAST, sce.WithMessage(sce.ErrScorecardInternal, "contact team"))
 }
 
-func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
+func sastToolInCheckRuns(c *checker.CheckRequest) (int, map[int]int, error) {
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
-		return checker.InconclusiveResultScore,
+		return checker.InconclusiveResultScore, nil,
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
 	}
 
 	totalMerged := 0
 	totalTested := 0
+	nonCompliantPRs := make(map[int]int)
 	for i := range commits {
 		pr := commits[i].AssociatedMergeRequest
 		// TODO(#575): We ignore associated PRs if Scorecard is being run on a fork
@@ -140,9 +149,10 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			continue
 		}
 		totalMerged++
+		checked := false
 		crs, err := c.RepoClient.ListCheckRunsForRef(pr.HeadSHA)
 		if err != nil {
-			return checker.InconclusiveResultScore,
+			return checker.InconclusiveResultScore, nil,
 				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Checks.ListCheckRunsForRef: %v", err))
 		}
 		// Note: crs may be `nil`: in this case
@@ -157,19 +167,23 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 			if sastTools[cr.App.Slug] {
 				c.Dlogger.Debug(&checker.LogMessage{
 					Path: cr.URL,
-					Type: checker.FileTypeURL,
+					Type: finding.FileTypeURL,
 					Text: fmt.Sprintf("tool detected: %v", cr.App.Slug),
 				})
 				totalTested++
+				checked = true
 				break
 			}
+		}
+		if !checked {
+			nonCompliantPRs[pr.Number] = pr.Number
 		}
 	}
 	if totalMerged == 0 {
 		c.Dlogger.Warn(&checker.LogMessage{
 			Text: "no pull requests merged into dev branch",
 		})
-		return checker.InconclusiveResultScore, nil
+		return checker.InconclusiveResultScore, nil, nil
 	}
 
 	if totalTested == totalMerged {
@@ -182,24 +196,23 @@ func sastToolInCheckRuns(c *checker.CheckRequest) (int, error) {
 		})
 	}
 
-	return checker.CreateProportionalScore(totalTested, totalMerged), nil
+	return checker.CreateProportionalScore(totalTested, totalMerged), nonCompliantPRs, nil
 }
 
 func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
-	searchRequest := clients.SearchRequest{
-		Query: "github/codeql-action/analyze",
-		Path:  "/.github/workflows",
-	}
-	resp, err := c.RepoClient.Search(searchRequest)
+	var workflowPaths []string
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       ".github/workflows/*",
+		CaseSensitive: false,
+	}, searchGitHubActionWorkflowCodeQL, &workflowPaths)
 	if err != nil {
-		return checker.InconclusiveResultScore,
-			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.Search.Code: %v", err))
+		return checker.InconclusiveResultScore, err
 	}
 
-	for _, result := range resp.Results {
+	for _, path := range workflowPaths {
 		c.Dlogger.Debug(&checker.LogMessage{
-			Path:   result.Path,
-			Type:   checker.FileTypeSource,
+			Path:   path,
+			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
 			Text:   "CodeQL detected",
 		})
@@ -207,7 +220,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 
 	// TODO: check if it's enabled as cron or presubmit.
 	// TODO: check which branches it is enabled on. We should find main.
-	if resp.Hits > 0 {
+	if len(workflowPaths) > 0 {
 		c.Dlogger.Info(&checker.LogMessage{
 			Text: "SAST tool detected: CodeQL",
 		})
@@ -218,6 +231,49 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 		Text: "CodeQL tool not detected",
 	})
 	return checker.MinResultScore, nil
+}
+
+// Check file content.
+var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(path string,
+	content []byte,
+	args ...interface{},
+) (bool, error) {
+	if !fileparser.IsWorkflowFile(path) {
+		return true, nil
+	}
+
+	if len(args) != 1 {
+		return false, fmt.Errorf(
+			"searchGitHubActionWorkflowCodeQL requires exactly 1 arguments: %w", errInvalid)
+	}
+
+	// Verify the type of the data.
+	paths, ok := args[0].(*[]string)
+	if !ok {
+		return false, fmt.Errorf(
+			"searchGitHubActionWorkflowCodeQL expects arg[0] of type *[]string: %w", errInvalid)
+	}
+
+	workflow, errs := actionlint.Parse(content)
+	if len(errs) > 0 && workflow == nil {
+		return false, fileparser.FormatActionlintError(errs)
+	}
+
+	for _, job := range workflow.Jobs {
+		for _, step := range job.Steps {
+			e, ok := step.Exec.(*actionlint.ExecAction)
+			if !ok || e == nil || e.Uses == nil {
+				continue
+			}
+			// Parse out repo / SHA.
+			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
+			action, _, _ := strings.Cut(uses, "@")
+			if action == "github/codeql-action/analyze" {
+				*paths = append(*paths, path)
+			}
+		}
+	}
+	return true, nil
 }
 
 type sonarConfig struct {
@@ -294,7 +350,7 @@ var validateSonarConfig fileparser.DoWhileTrueOnFileContent = func(pathfn string
 		url: string(match[1]),
 		file: checker.File{
 			Path:      pathfn,
-			Type:      checker.FileTypeSource,
+			Type:      finding.FileTypeSource,
 			Offset:    offset,
 			EndOffset: endOffset,
 		},
@@ -321,4 +377,15 @@ func findLine(content, data []byte) (uint, error) {
 	}
 
 	return 0, nil
+}
+
+func getNonCompliantPRMessage(intMap map[int]int) string {
+	var sb strings.Builder
+	for _, value := range intMap {
+		if len(sb.String()) != 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(fmt.Sprintf("%d", value))
+	}
+	return fmt.Sprintf("List of pull requests without CI test: %s", sb.String())
 }

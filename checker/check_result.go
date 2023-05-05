@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package checker
 import (
 	"fmt"
 	"math"
+
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 type (
 	// DetailType is the type of details.
 	DetailType int
-	// FileType is the type of a file.
-	FileType int
 )
 
 const (
@@ -43,24 +44,10 @@ const (
 const (
 	// DetailInfo is info-level log.
 	DetailInfo DetailType = iota
-	// DetailWarn is warn log.
+	// DetailWarn is warned log.
 	DetailWarn
 	// DetailDebug is debug log.
 	DetailDebug
-)
-
-const (
-	// FileTypeNone is a default, not defined.
-	// FileTypeNone must be `0`.
-	FileTypeNone FileType = iota
-	// FileTypeSource is for source code files.
-	FileTypeSource
-	// FileTypeBinary is for binary files.
-	FileTypeBinary
-	// FileTypeText is for text files.
-	FileTypeText
-	// FileTypeURL for URLs.
-	FileTypeURL
 )
 
 // CheckResult captures result from a check run.
@@ -70,21 +57,11 @@ type CheckResult struct {
 	Name    string
 	Version int
 	Error   error
-	Details []CheckDetail
 	Score   int
 	Reason  string
-}
-
-// Remediation represents a remediation.
-type Remediation struct {
-	// Code snippet for humans.
-	Snippet string
-	// Diff for machines.
-	Diff string
-	// Help text for humans.
-	HelpText string
-	// Help text in markdown format for humans.
-	HelpMarkdown string
+	Details []CheckDetail
+	// Structured results.
+	Rules []string // TODO(X): add support.
 }
 
 // CheckDetail contains information for each detail.
@@ -98,13 +75,17 @@ type CheckDetail struct {
 //
 //nolint:govet
 type LogMessage struct {
-	Text        string       // A short string explaining why the detail was recorded/logged.
-	Path        string       // Fullpath to the file.
-	Type        FileType     // Type of file.
-	Offset      uint         // Offset in the file of Path (line for source/text files).
-	EndOffset   uint         // End of offset in the file, e.g. if the command spans multiple lines.
-	Snippet     string       // Snippet of code
-	Remediation *Remediation // Remediation information, if any.
+	// Structured results.
+	Finding *finding.Finding
+
+	// Non-structured results.
+	Text        string            // A short string explaining why the detail was recorded/logged.
+	Path        string            // Fullpath to the file.
+	Type        finding.FileType  // Type of file.
+	Offset      uint              // Offset in the file of Path (line for source/text files).
+	EndOffset   uint              // End of offset in the file, e.g. if the command spans multiple lines.
+	Snippet     string            // Snippet of code
+	Remediation *rule.Remediation // Remediation information, if any.
 }
 
 // CreateProportionalScore creates a proportional score.
@@ -146,13 +127,11 @@ func NormalizeReason(reason string, score int) string {
 }
 
 // CreateResultWithScore is used when
-// the check runs without runtime errors and we want to assign a
+// the check runs without runtime errors, and we want to assign a
 // specific score.
 func CreateResultWithScore(name, reason string, score int) CheckResult {
 	return CheckResult{
-		Name: name,
-		// Old structure.
-		// New structure.
+		Name:    name,
 		Version: 2,
 		Error:   nil,
 		Score:   score,
@@ -163,8 +142,8 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 // CreateProportionalScoreResult is used when
 // the check runs without runtime errors and we assign a
 // proportional score. This may be used if a check contains
-// multiple tests and we want to assign a score proportional
-// the the number of tests that succeeded.
+// multiple tests, and we want to assign a score proportional
+// the number of tests that succeeded.
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	score := CreateProportionalScore(b, t)
 	return CheckResult{
@@ -197,9 +176,7 @@ func CreateMinScoreResult(name, reason string) CheckResult {
 // have enough evidence to set a score.
 func CreateInconclusiveResult(name, reason string) CheckResult {
 	return CheckResult{
-		Name: name,
-		// Old structure.
-		// New structure.
+		Name:    name,
 		Version: 2,
 		Score:   InconclusiveResultScore,
 		Reason:  reason,
@@ -209,9 +186,7 @@ func CreateInconclusiveResult(name, reason string) CheckResult {
 // CreateRuntimeErrorResult is used when the check fails to run because of a runtime error.
 func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	return CheckResult{
-		Name: name,
-		// Old structure.
-		// New structure.
+		Name:    name,
 		Version: 2,
 		Error:   e,
 		Score:   InconclusiveResultScore,

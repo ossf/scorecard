@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		score.scores.thoroughReview, score.maxes.thoroughReview = nonAdminThoroughReviewProtection(&b, dl)
 		// Do we want this?
 		score.scores.adminThoroughReview, score.maxes.adminThoroughReview = adminThoroughReviewProtection(&b, dl)
-		score.scores.codeownerReview, score.maxes.codeownerReview = codeownersBranchProtection(&b, dl)
+		score.scores.codeownerReview, score.maxes.codeownerReview = codeownerBranchProtection(&b, r.CodeownersFiles, dl)
 
 		scores = append(scores, score)
 	}
@@ -373,18 +373,31 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 	// Only log information if the branch is protected.
 	log := branch.Protected != nil && *branch.Protected
 
-	if branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge != nil {
+	// Process UpToDateBeforeMerge value.
+	if branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge == nil {
+		debug(dl, log, "unable to retrieve whether up-to-date branches are needed to merge on branch '%s'", *branch.Name)
+	} else {
 		// Note: `This setting will not take effect unless at least one status check is enabled`.
 		max++
-		switch *branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge {
-		case true:
+		if *branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge {
 			info(dl, log, "status checks require up-to-date branches for '%s'", *branch.Name)
 			score++
-		default:
+		} else {
 			warn(dl, log, "status checks do not require up-to-date branches for '%s'", *branch.Name)
 		}
+	}
+
+	// Process RequireLastPushApproval value.
+	if branch.BranchProtectionRule.RequireLastPushApproval == nil {
+		debug(dl, log, "unable to retrieve whether 'last push approval' is required to merge on branch '%s'", *branch.Name)
 	} else {
-		debug(dl, log, "unable to retrieve whether up-to-date branches are needed to merge on branch '%s'", *branch.Name)
+		max++
+		if *branch.BranchProtectionRule.RequireLastPushApproval {
+			info(dl, log, "'last push approval' enabled on branch '%s'", *branch.Name)
+			score++
+		} else {
+			warn(dl, log, "'last push approval' disabled on branch '%s'", *branch.Name)
+		}
 	}
 
 	return score, max
@@ -401,10 +414,10 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 		max++
 		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews {
 		case true:
-			info(dl, log, "Stale review dismissal enabled on branch '%s'", *branch.Name)
+			info(dl, log, "stale review dismissal enabled on branch '%s'", *branch.Name)
 			score++
 		case false:
-			warn(dl, log, "Stale review dismissal disabled on branch '%s'", *branch.Name)
+			warn(dl, log, "stale review dismissal disabled on branch '%s'", *branch.Name)
 		}
 	} else {
 		debug(dl, log, "unable to retrieve review dismissal on branch '%s'", *branch.Name)
@@ -436,7 +449,9 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 	return score, max
 }
 
-func codeownersBranchProtection(branch *clients.BranchRef, dl checker.DetailLogger) (int, int) {
+func codeownerBranchProtection(
+	branch *clients.BranchRef, codeownersFiles []string, dl checker.DetailLogger,
+) (int, int) {
 	score := 0
 	max := 1
 
@@ -446,7 +461,11 @@ func codeownersBranchProtection(branch *clients.BranchRef, dl checker.DetailLogg
 		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews {
 		case true:
 			info(dl, log, "codeowner review is required on branch '%s'", *branch.Name)
-			score++
+			if len(codeownersFiles) == 0 {
+				warn(dl, log, "codeowners branch protection is being ignored - but no codeowners file found in repo")
+			} else {
+				score++
+			}
 		default:
 			warn(dl, log, "codeowner review is not required on branch '%s'", *branch.Name)
 		}

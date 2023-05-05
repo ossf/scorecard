@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ func (handler *statusesHandler) init(repourl *repoURL) {
 // for gitlab this only works if ref is SHA.
 func (handler *statusesHandler) listStatuses(ref string) ([]clients.Status, error) {
 	commitStatuses, _, err := handler.glClient.Commits.GetCommitStatuses(
-		handler.repourl.projectID, ref, &gitlab.GetCommitStatusesOptions{})
+		handler.repourl.project, ref, &gitlab.GetCommitStatusesOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error getting commit statuses: %w", err)
 	}
@@ -46,7 +46,7 @@ func statusFromData(commitStatuses []*gitlab.CommitStatus) []clients.Status {
 	for _, commitStatus := range commitStatuses {
 		statuses = append(statuses, clients.Status{
 			State:     commitStatus.Status,
-			Context:   fmt.Sprint(commitStatus.ID),
+			Context:   commitStatus.Name,
 			URL:       commitStatus.TargetURL,
 			TargetURL: commitStatus.TargetURL,
 		})

@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/cron/internal/config"
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/config"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 const ciiBaseURL = "https://bestpractices.coreinfrastructure.org/projects.json"

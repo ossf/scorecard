@@ -1,4 +1,4 @@
-# Copyright 2021 Security Scorecard Authors
+# Copyright 2021 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -54,6 +54,9 @@ spec:
               image: gcr.io/openssf/scorecard-batch-controller:stable
               args: ["--config=/etc/scorecard/config.yaml", "cron/internal/data/projects.csv"]
               imagePullPolicy: Always
+              env:
+                - name: GOMEMLIMIT
+                  value: "950MiB"
               resources:
                 limits:
                   memory: 1Gi

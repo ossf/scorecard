@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/checks/raw"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 // TODO: use dedicated repo that don't change.
-// TODO: need negative results.
 var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 	Context("E2E TEST:Validating use of code reviews", func() {
 		It("Should return use of code reviews", func() {
@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -50,7 +50,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				NumberOfDebug: 1,
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
@@ -61,7 +61,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/airflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c")
+			err = repoClient.InitRepo(repo, "0a6850647e531b08f68118ff8ca20577a5b4062c", 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -75,7 +75,72 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				NumberOfDebug: 1,
+			}
+			result := checks.CodeReview(&req)
+			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return use of implicit code reviews at commit", func() {
+			repo, err := githubrepo.MakeGithubRepo("spring-projects/spring-framework")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "ca5e453f87f7e84033bb90a2fb54ee9f7fc94d61", 0)
+			Expect(err).Should(BeNil())
+
+			reviewData, err := raw.CodeReview(repoClient)
+			Expect(err).Should(BeNil())
+			Expect(reviewData.DefaultBranchChangesets).ShouldNot(BeEmpty())
+
+			gh := 0
+			for _, cs := range reviewData.DefaultBranchChangesets {
+				if cs.ReviewPlatform == checker.ReviewPlatformGitHub {
+					gh += 1
+				}
+			}
+			Expect(gh).Should(BeNumerically("==", 2))
+
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return inconclusive results for a single-maintainer project with only self- or bot changesets", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("Kromey/fast_poisson")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "bb7b9606690c2b386dc9e2cbe0216d389ed1f078", 0)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Score:         checker.InconclusiveResultScore,
+				NumberOfDebug: 1,
+			}
+			result := checks.CodeReview(&req)
+			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return minimum score for a single-maintainer project with some unreviewed human changesets", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("Kromey/fast_poisson")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "10aefa7c9a6669ef34e209c3c4b6ad48dd9844e3", 0)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Score:         checker.MinResultScore,
+				NumberOfDebug: 1,
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())

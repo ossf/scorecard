@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -241,6 +241,17 @@ func (handler *tarballHandler) listFiles(predicate func(string) (bool, error)) (
 		}
 	}
 	return ret, nil
+}
+
+func (handler *tarballHandler) getLocalPath() (string, error) {
+	if err := handler.setup(); err != nil {
+		return "", fmt.Errorf("error during tarballHandler.setup: %w", err)
+	}
+	absTempDir, err := filepath.Abs(handler.tempDir)
+	if err != nil {
+		return "", fmt.Errorf("error during filepath.Abs: %w", err)
+	}
+	return absTempDir, nil
 }
 
 func (handler *tarballHandler) getFileContent(filename string) ([]byte, error) {

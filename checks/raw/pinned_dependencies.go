@@ -1,4 +1,4 @@
-// Copyright Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 // PinningDependencies checks for (un)pinned dependencies.
@@ -267,7 +268,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 				checker.Dependency{
 					Location: &checker.File{
 						Path:      pathfn,
-						Type:      checker.FileTypeSource,
+						Type:      finding.FileTypeSource,
 						Offset:    uint(child.StartLine),
 						EndOffset: uint(child.EndLine),
 						Snippet:   child.Original,
@@ -286,7 +287,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 				dep := checker.Dependency{
 					Location: &checker.File{
 						Path:      pathfn,
-						Type:      checker.FileTypeSource,
+						Type:      finding.FileTypeSource,
 						Offset:    uint(child.StartLine),
 						EndOffset: uint(child.EndLine),
 						Snippet:   child.Original,
@@ -439,7 +440,6 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		return false, fileparser.FormatActionlintError(errs)
 	}
 
-	hashRegex := regexp.MustCompile(`^.*@[a-f\d]{40,}`)
 	for jobName, job := range workflow.Jobs {
 		jobName := jobName
 		job := job
@@ -470,14 +470,11 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 				continue
 			}
 
-			// Ensure a hash at least as large as SHA1 is used (40 hex characters).
-			// Example: action-name@hash
-			match := hashRegex.MatchString(execAction.Uses.Value)
-			if !match {
+			if !isActionDependencyPinned(execAction.Uses.Value) {
 				dep := checker.Dependency{
 					Location: &checker.File{
 						Path:      pathfn,
-						Type:      checker.FileTypeSource,
+						Type:      finding.FileTypeSource,
 						Offset:    uint(execAction.Uses.Pos.Line),
 						EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
 						Snippet:   execAction.Uses.Value,
@@ -497,4 +494,19 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	}
 
 	return true, nil
+}
+
+func isActionDependencyPinned(actionUses string) bool {
+	localActionRegex := regexp.MustCompile(`^\..+[^/]`)
+	if localActionRegex.MatchString(actionUses) {
+		return true
+	}
+
+	publicActionRegex := regexp.MustCompile(`.*@[a-fA-F\d]{40,}`)
+	if publicActionRegex.MatchString(actionUses) {
+		return true
+	}
+
+	dockerhubActionRegex := regexp.MustCompile(`docker://.*@sha256:[a-fA-F\d]{64}`)
+	return dockerhubActionRegex.MatchString(actionUses)
 }

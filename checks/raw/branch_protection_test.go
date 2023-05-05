@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ func TestBranchProtection(t *testing.T) {
 	tests := []struct {
 		name        string
 		branches    branchesArg
+		repoFiles   []string
 		releases    []clients.Release
 		releasesErr error
 		want        checker.BranchProtectionsData
@@ -80,6 +81,9 @@ func TestBranchProtection(t *testing.T) {
 					err:  errBPTest,
 				},
 			},
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
+			},
 		},
 		{
 			name: "null-default-branch-only",
@@ -89,6 +93,9 @@ func TestBranchProtection(t *testing.T) {
 					defaultBranch: true,
 					branchRef:     nil,
 				},
+			},
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
 			},
 		},
 		{
@@ -108,6 +115,7 @@ func TestBranchProtection(t *testing.T) {
 						Name: &defaultBranchName,
 					},
 				},
+				CodeownersFiles: []string{},
 			},
 		},
 		{
@@ -117,6 +125,9 @@ func TestBranchProtection(t *testing.T) {
 		},
 		{
 			name: "no-releases",
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
+			},
 		},
 		{
 			name: "empty-targetcommitish",
@@ -155,6 +166,9 @@ func TestBranchProtection(t *testing.T) {
 					branchRef: nil,
 				},
 			},
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
+			},
 		},
 		{
 			name: "add-release-branch",
@@ -177,6 +191,7 @@ func TestBranchProtection(t *testing.T) {
 						Name: &releaseBranchName,
 					},
 				},
+				CodeownersFiles: []string{},
 			},
 		},
 		{
@@ -200,6 +215,7 @@ func TestBranchProtection(t *testing.T) {
 						Name: &mainBranchName,
 					},
 				},
+				CodeownersFiles: []string{},
 			},
 		},
 		{
@@ -233,6 +249,7 @@ func TestBranchProtection(t *testing.T) {
 						Name: &releaseBranchName,
 					},
 				},
+				CodeownersFiles: []string{},
 			},
 		},
 		// TODO: Add tests for commitSHA regex matching.
@@ -255,7 +272,7 @@ func TestBranchProtection(t *testing.T) {
 				DoAndReturn(func() ([]clients.Release, error) {
 					return tt.releases, tt.releasesErr
 				})
-
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).AnyTimes().Return(tt.repoFiles, nil)
 			rawData, err := BranchProtection(mockRepoClient)
 			if !errors.Is(err, tt.wantErr) {
 				t.Errorf("failed. expected: %v, got: %v", tt.wantErr, err)

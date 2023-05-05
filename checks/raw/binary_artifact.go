@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"unicode"
+	"unicode/utf8"
 
 	semver "github.com/Masterminds/semver/v3"
 	"github.com/h2non/filetype"
@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 var (
@@ -133,6 +134,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 		"pyo":    true,
 		"par":    true,
 		"rpm":    true,
+		"wasm":   true,
 		"whl":    true,
 	}
 	var t types.Type
@@ -148,7 +150,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	if exists1 {
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
-			Type:   checker.FileTypeBinary,
+			Type:   finding.FileTypeBinary,
 			Offset: checker.OffsetDefault,
 		})
 		return true, nil
@@ -158,7 +160,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	if !isText(content) && exists2 {
 		*pfiles = append(*pfiles, checker.File{
 			Path:   path,
-			Type:   checker.FileTypeBinary,
+			Type:   finding.FileTypeBinary,
 			Offset: checker.OffsetDefault,
 		})
 	}
@@ -166,13 +168,22 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	return true, nil
 }
 
-// TODO: refine this function.
-func isText(content []byte) bool {
-	for _, c := range string(content) {
-		if c == '\t' || c == '\n' || c == '\r' {
-			continue
+// determines if the first 1024 bytes are text
+//
+//	A version of golang.org/x/tools/godoc/util modified to allow carriage returns
+//	and utf8.RuneError (0xFFFD), as the file may not be utf8 encoded.
+func isText(s []byte) bool {
+	const max = 1024 // at least utf8.UTFMax
+	if len(s) > max {
+		s = s[0:max]
+	}
+	for i, c := range string(s) {
+		if i+utf8.UTFMax > len(s) {
+			// last char may be incomplete - ignore
+			break
 		}
-		if !unicode.IsPrint(c) {
+		if c < ' ' && c != '\n' && c != '\t' && c != '\r' {
+			// control character - not a text file
 			return false
 		}
 	}

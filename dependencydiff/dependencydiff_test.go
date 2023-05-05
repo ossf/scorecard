@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,56 +20,11 @@ import (
 	"path"
 	"testing"
 
-	"github.com/ossf/scorecard/v4/clients"
 	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-// Test_fetchRawDependencyDiffData is a test function for fetchRawDependencyDiffData.
-func Test_fetchRawDependencyDiffData(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name      string
-		dCtx      dependencydiffContext
-		wantEmpty bool
-		wantErr   bool
-	}{
-		{
-			name: "error response",
-			dCtx: dependencydiffContext{
-				logger:    sclog.NewLogger(sclog.InfoLevel),
-				ctx:       context.Background(),
-				ownerName: "no_such_owner",
-				repoName:  "repo_not_exist",
-				base:      "main",
-				head:      clients.HeadSHA,
-			},
-			wantEmpty: true,
-			wantErr:   true,
-		},
-		// Considering of the token usage, normal responses are tested in the e2e test.
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			err := fetchRawDependencyDiffData(&tt.dCtx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("fetchRawDependencyDiffData() error = {%v}, want error: %v", err, tt.wantErr)
-				return
-			}
-			lenResults := len(tt.dCtx.dependencydiffs)
-			if (lenResults == 0) != tt.wantEmpty {
-				t.Errorf("want empty results: %v, got len of results:%d", tt.wantEmpty, lenResults)
-				return
-			}
-		})
-	}
-}
-
 func Test_initRepoAndClientByChecks(t *testing.T) {
-	t.Parallel()
 	//nolint
 	tests := []struct {
 		name                           string
@@ -129,8 +84,7 @@ func Test_initRepoAndClientByChecks(t *testing.T) {
 }
 
 func Test_getScorecardCheckResults(t *testing.T) {
-	t.Parallel()
-
+	//nolint
 	tests := []struct {
 		name    string
 		dCtx    dependencydiffContext
@@ -161,7 +115,6 @@ func Test_getScorecardCheckResults(t *testing.T) {
 }
 
 func Test_mapDependencyEcosystemNaming(t *testing.T) {
-	t.Parallel()
 	//nolint
 	tests := []struct {
 		name      string
@@ -217,7 +170,7 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			//nolint
 			err := mapDependencyEcosystemNaming(tt.deps)
 			if tt.errWanted != nil && errors.Is(tt.errWanted, err) {
 				t.Errorf("not a wanted error, want:%v, got:%v", tt.errWanted, err)
@@ -228,8 +181,7 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 }
 
 func Test_isSpecifiedByUser(t *testing.T) {
-	t.Parallel()
-
+	//nolint
 	tests := []struct {
 		name               string
 		ct                 pkg.ChangeType
@@ -267,7 +219,7 @@ func Test_isSpecifiedByUser(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			//nolint
 			result := isSpecifiedByUser(tt.ct, tt.changeTypesToCheck)
 			if result != tt.resultWanted {
 				t.Errorf("result (%v) != result wanted (%v)", result, tt.resultWanted)

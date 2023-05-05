@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/evaluation"
+	evaluation "github.com/ossf/scorecard/v4/checks/evaluation/permissions"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 )

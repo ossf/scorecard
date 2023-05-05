@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,13 +24,15 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 const (
-	fuzzerOSSFuzz         = "OSSFuzz"
-	fuzzerClusterFuzzLite = "ClusterFuzzLite"
-	oneFuzz               = "OneFuzz"
-	fuzzerBuiltInGo       = "GoBuiltInFuzzer"
+	fuzzerOSSFuzz              = "OSSFuzz"
+	fuzzerClusterFuzzLite      = "ClusterFuzzLite"
+	oneFuzz                    = "OneFuzz"
+	fuzzerBuiltInGo            = "GoBuiltInFuzzer"
+	fuzzerPropertyBasedHaskell = "HaskellPropertyBasedTesting"
 	// TODO: add more fuzzing check supports.
 )
 
@@ -41,8 +43,12 @@ type filesWithPatternStr struct {
 
 // Configurations for language-specified fuzzers.
 type languageFuzzConfig struct {
-	URL, Desc                      *string
-	filePattern, funcPattern, Name string
+	URL, Desc *string
+
+	// Pattern is according to path.Match.
+	filePattern string
+
+	funcPattern, Name string
 	// TODO: add more language fuzzing-related fields.
 }
 
@@ -57,6 +63,29 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		URL:         asPointer("https://go.dev/doc/fuzz/"),
 		Desc: asPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
+	},
+	// Fuzz patterns for Haskell based on property-based testing.
+	//
+	// Based on the import of one of these packages:
+	// * https://hackage.haskell.org/package/QuickCheck
+	// * https://hedgehog.qa/
+	// * https://github.com/NorfairKing/validity
+	// * https://hackage.haskell.org/package/smallcheck
+	//
+	// They can also be imported indirectly through these test frameworks:
+	// * https://hspec.github.io/
+	// * https://hackage.haskell.org/package/tasty
+	//
+	// This is not an exhaustive list.
+	clients.Haskell: {
+		filePattern: "*.hs",
+		// Look for direct imports of QuickCheck, Hedgehog, validity, or SmallCheck,
+		// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
+		funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
+		Name:        fuzzerPropertyBasedHaskell,
+		Desc: asPointer(
+			"Property-based testing in Haskell generates test instances randomly or exhaustively " +
+				"and test that specific properties are satisfied."),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
@@ -240,7 +269,7 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(
 			// FileTypeFuzz as Type, and # of lines as Offset.
 			pdata.files = append(pdata.files, checker.File{
 				Path:    path,
-				Type:    checker.FileTypeSource,
+				Type:    finding.FileTypeSource,
 				Snippet: found,
 				Offset:  uint(i + 1), // Since the # of lines starts from zero.
 			})

@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -939,6 +939,11 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "maven publish multi-line",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-maven-multi-line.yaml",
+			expected: true,
+		},
+		{
 			name:     "gradle publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-gradle.yaml",
 			expected: true,
@@ -1004,7 +1009,7 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			}
 			workflow, errs := actionlint.Parse(content)
 			if len(errs) > 0 && workflow == nil {
-				t.Errorf("cannot parse file: %v", err)
+				t.Errorf("cannot parse file: %v", errs)
 			}
 			p := strings.Replace(tt.filename, "../testdata/", "", 1)
 

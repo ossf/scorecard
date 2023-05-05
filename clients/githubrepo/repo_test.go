@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -96,6 +96,10 @@ func TestRepoURL_IsValid(t *testing.T) {
 			}
 			if !tt.wantErr && !cmp.Equal(tt.expected, r, cmp.AllowUnexported(repoURL{})) {
 				t.Errorf("Got diff: %s", cmp.Diff(tt.expected, r))
+			}
+
+			if !cmp.Equal(r.Host(), tt.expected.host) {
+				t.Errorf("%s expected host: %s got host %s", tt.inputURL, tt.expected.host, r.Host())
 			}
 		})
 	}

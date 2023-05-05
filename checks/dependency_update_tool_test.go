@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			SearchCommits:     []clients.Commit{{Committer: clients.User{ID: 111111111}}},
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
-				NumberOfWarn: 2,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -87,7 +87,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			SearchCommits:     []clients.Commit{},
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
-				NumberOfWarn: 2,
+				NumberOfWarn: 1,
 			},
 		},
 

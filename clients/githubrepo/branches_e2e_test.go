@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 			Expect(brancheshandler.data.RateLimit.Cost).ShouldNot(BeNil())
 			Expect(*brancheshandler.data.RateLimit.Cost).Should(BeNumerically("<=", 1))
 		})
+
 		It("Should fail for non-HEAD query", func() {
 			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
 
@@ -58,6 +59,77 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 			brancheshandler.init(context.Background(), repourl)
 			Expect(brancheshandler.setup()).ShouldNot(BeNil())
 			Expect(brancheshandler.data).Should(BeNil())
+		})
+	})
+
+	Context("E2E TEST: Get default branch", func() {
+		It("Should return the correct default branch", func() {
+			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+
+			repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: clients.HeadSHA,
+			}
+			brancheshandler.init(context.Background(), repourl)
+			Expect(brancheshandler.getDefaultBranch()).ShouldNot(BeNil())
+			Expect(brancheshandler.getDefaultBranch()).Should(Equal("main"))
+		})
+	})
+	Context("E2E TEST: getBranch", func() {
+		It("Should return a branch", func() {
+			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+
+			repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: clients.HeadSHA,
+			}
+			brancheshandler.init(context.Background(), repourl)
+
+			branchRef, err := brancheshandler.getBranch("main")
+			Expect(err).Should(BeNil())
+			Expect(branchRef).ShouldNot(BeNil())
+		})
+
+		It("Should return an error for non-existent branch", func() {
+			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+
+			repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: clients.HeadSHA,
+			}
+			brancheshandler.init(context.Background(), repourl)
+
+			branchRef, err := brancheshandler.getBranch("non-existent-branch")
+			Expect(err).ShouldNot(BeNil())
+			Expect(branchRef).Should(BeNil())
+		})
+	})
+	Context("E2E TEST: query branch", func() {
+		It("Should return a branch", func() {
+			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+
+			repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: clients.HeadSHA,
+			}
+			brancheshandler.init(context.Background(), repourl)
+			Expect(brancheshandler.query("main")).ShouldNot(BeNil())
+		})
+
+		It("Should fail for non-HEAD query", func() {
+			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+
+			repourl := &repoURL{
+				owner:     "ossf",
+				repo:      "scorecard",
+				commitSHA: "de5224bbc56eceb7a25aece55d2d53bbc561ed2d",
+			}
+			brancheshandler.init(context.Background(), repourl)
+			Expect(brancheshandler.query("main")).Should(BeNil())
 		})
 	})
 })

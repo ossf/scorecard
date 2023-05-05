@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,8 +42,9 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			inputFolder: "testdata/licensedir/withlicense",
 			expected: scut.TestReturn{
 				Error:        nil,
-				Score:        checker.MaxResultScore,
+				Score:        checker.MaxResultScore - 1,
 				NumberOfInfo: 1,
+				NumberOfWarn: 1,
 			},
 			err: nil,
 		},
@@ -75,7 +76,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			ctx := context.Background()
 
 			client := localdir.CreateLocalDirClient(ctx, logger)
-			if err := client.InitRepo(repo, clients.HeadSHA); err != nil {
+			if err := client.InitRepo(repo, clients.HeadSHA, 0); err != nil {
 				t.Errorf("InitRepo: %v", err)
 			}
 

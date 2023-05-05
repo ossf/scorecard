@@ -1,0 +1,16 @@
+id: metadata-variables
+short: short description
+motivation: >
+  line1
+  line2
+implementation: >
+  line1
+  line2
+remediation:
+  effort: Low
+  text:
+    - step1
+    - step2 google.com/${{ metadata.repo }}@${{ metadata.branch }}
+  markdown:
+    - step1
+    - step2 [google.com/${{ metadata.repo }}@${{ metadata.branch }}](google.com/${{ metadata.repo }}@${{ metadata.branch }})

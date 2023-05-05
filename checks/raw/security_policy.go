@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,29 +15,30 @@
 package raw
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 type securityPolicyFilesWithURI struct {
 	uri   string
-	files []checker.File
+	files []checker.SecurityPolicyFile
 }
 
-// SecurityPolicy checks for presence of security policy.
+// SecurityPolicy checks for presence of security policy
+// and applicable content discovered by checkSecurityPolicyFileContent().
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
 	data := securityPolicyFilesWithURI{
-		uri:   "",
-		files: make([]checker.File, 0),
+		uri: "", files: make([]checker.SecurityPolicyFile, 0),
 	}
 	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &data)
 	if err != nil {
@@ -45,32 +46,56 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	}
 	// If we found files in the repo, return immediately.
 	if len(data.files) > 0 {
-		return checker.SecurityPolicyData{Files: data.files}, nil
+		for idx := range data.files {
+			err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+				Pattern:       data.files[idx].File.Path,
+				CaseSensitive: false,
+			}, checkSecurityPolicyFileContent, &data.files[idx].File, &data.files[idx].Information)
+			if err != nil {
+				return checker.SecurityPolicyData{}, err
+			}
+		}
+		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
 	}
 
 	// Check if present in parent org.
 	// https#://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
-	// TODO(1491): Make this non-GitHub specific.
-	logger := log.NewLogger(log.InfoLevel)
-	dotGitHubClient := githubrepo.CreateGithubRepoClient(c.Ctx, logger)
-	err = dotGitHubClient.InitRepo(c.Repo.Org(), clients.HeadSHA)
+	client, err := c.RepoClient.GetOrgRepoClient(c.Ctx)
+
 	switch {
 	case err == nil:
-		defer dotGitHubClient.Close()
-		data.uri = dotGitHubClient.URI()
-		err = fileparser.OnAllFilesDo(dotGitHubClient, isSecurityPolicyFile, &data)
+		defer client.Close()
+		data.uri = client.URI()
+		err = fileparser.OnAllFilesDo(client, isSecurityPolicyFile, &data)
 		if err != nil {
-			return checker.SecurityPolicyData{}, err
+			return checker.SecurityPolicyData{}, fmt.Errorf("unable to create github client: %w", err)
 		}
 
-	case errors.Is(err, sce.ErrRepoUnreachable):
+	case errors.Is(err, sce.ErrRepoUnreachable), errors.Is(err, clients.ErrUnsupportedFeature):
 		break
 	default:
 		return checker.SecurityPolicyData{}, err
 	}
 
 	// Return raw results.
-	return checker.SecurityPolicyData{Files: data.files}, nil
+	if len(data.files) > 0 {
+		for idx := range data.files {
+			filePattern := data.files[idx].File.Path
+			// undo path.Join in isSecurityPolicyFile just
+			// for this call to OnMatchingFileContentsDo
+			if data.files[idx].File.Type == finding.FileTypeURL {
+				filePattern = strings.Replace(filePattern, data.uri+"/", "", 1)
+			}
+			err := fileparser.OnMatchingFileContentDo(client, fileparser.PathMatcher{
+				Pattern:       filePattern,
+				CaseSensitive: false,
+			}, checkSecurityPolicyFileContent, &data.files[idx].File, &data.files[idx].Information)
+			if err != nil {
+				return checker.SecurityPolicyData{}, err
+			}
+		}
+	}
+	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
 }
 
 // Check repository for repository-specific policy.
@@ -85,16 +110,27 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 	}
 	if isSecurityPolicyFilename(name) {
 		tempPath := name
-		tempType := checker.FileTypeSource
+		tempType := finding.FileTypeText
 		if pdata.uri != "" {
+			// report complete path for org-based policy files
 			tempPath = path.Join(pdata.uri, tempPath)
-			tempType = checker.FileTypeURL
+			// FileTypeURL is used in Security-Policy to
+			// only denote for the details report that the
+			// policy was found at the org level rather
+			// than the repo level
+			tempType = finding.FileTypeURL
 		}
-		pdata.files = append(pdata.files, checker.File{
-			Path:   tempPath,
-			Type:   tempType,
-			Offset: checker.OffsetDefault,
+		pdata.files = append(pdata.files, checker.SecurityPolicyFile{
+			File: checker.File{
+				Path:     tempPath,
+				Type:     tempType,
+				Offset:   checker.OffsetDefault,
+				FileSize: checker.OffsetDefault,
+			},
+			Information: make([]checker.SecurityPolicyInformation, 0),
 		})
+		// TODO: change 'false' to 'true' when multiple security policy files are supported
+		// otherwise this check stops at the first security policy found
 		return false, nil
 	}
 	return true, nil
@@ -104,6 +140,9 @@ func isSecurityPolicyFilename(name string) bool {
 	return strings.EqualFold(name, "security.md") ||
 		strings.EqualFold(name, ".github/security.md") ||
 		strings.EqualFold(name, "docs/security.md") ||
+		strings.EqualFold(name, "security.markdown") ||
+		strings.EqualFold(name, ".github/security.markdown") ||
+		strings.EqualFold(name, "docs/security.markdown") ||
 		strings.EqualFold(name, "security.adoc") ||
 		strings.EqualFold(name, ".github/security.adoc") ||
 		strings.EqualFold(name, "docs/security.adoc") ||
@@ -111,4 +150,105 @@ func isSecurityPolicyFilename(name string) bool {
 		strings.EqualFold(name, ".github/security.rst") ||
 		strings.EqualFold(name, "doc/security.rst") ||
 		strings.EqualFold(name, "docs/security.rst")
+}
+
+var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(path string, content []byte,
+	args ...interface{},
+) (bool, error) {
+	if len(args) != 2 {
+		return false, fmt.Errorf(
+			"checkSecurityPolicyFileContent requires exactly two arguments: %w", errInvalidArgLength)
+	}
+	pfiles, ok := args[0].(*checker.File)
+	if !ok {
+		return false, fmt.Errorf(
+			"checkSecurityPolicyFileContent requires argument of type *checker.File: %w", errInvalidArgType)
+	}
+	pinfo, ok := args[1].(*[]checker.SecurityPolicyInformation)
+	if !ok {
+		return false, fmt.Errorf(
+			"%s requires argument of type *[]checker.SecurityPolicyInformation: %w",
+			"checkSecurityPolicyFileContent", errInvalidArgType)
+	}
+
+	if len(content) == 0 {
+		// perhaps there are more policy files somewhere else,
+		// keep looking (true)
+		return true, nil
+	}
+
+	if pfiles != nil && (*pinfo) != nil {
+		pfiles.Offset = checker.OffsetDefault
+		pfiles.FileSize = uint(len(content))
+		policyHits := collectPolicyHits(content)
+		if len(policyHits) > 0 {
+			(*pinfo) = append((*pinfo), policyHits...)
+		}
+	} else {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "bad file or information reference")
+		return false, e
+	}
+
+	// stop here found something, no need to look further (false)
+	return false, nil
+}
+
+func collectPolicyHits(policyContent []byte) []checker.SecurityPolicyInformation {
+	var hits []checker.SecurityPolicyInformation
+
+	// pattern for URLs
+	reURL := regexp.MustCompile(`(http|https)://[a-zA-Z0-9./?=_%:-]*`)
+	// pattern for emails
+	reEML := regexp.MustCompile(`\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b`)
+	// pattern for 1 to 4 digit numbers
+	// or
+	// strings 'disclos' as in "disclosure" or 'vuln' as in "vulnerability"
+	reDIG := regexp.MustCompile(`(?i)(\b*[0-9]{1,4}\b|(Disclos|Vuln))`)
+
+	lineNum := 0
+	for {
+		advance, token, err := bufio.ScanLines(policyContent, true)
+		if advance == 0 || err != nil {
+			break
+		}
+
+		lineNum += 1
+		if len(token) != 0 {
+			for _, indexes := range reURL.FindAllIndex(token, -1) {
+				hits = append(hits, checker.SecurityPolicyInformation{
+					InformationType: checker.SecurityPolicyInformationTypeLink,
+					InformationValue: checker.SecurityPolicyValueType{
+						Match:      string(token[indexes[0]:indexes[1]]), // Snippet of match
+						LineNumber: uint(lineNum),                        // line number in file
+						Offset:     uint(indexes[0]),                     // Offset in the line
+					},
+				})
+			}
+			for _, indexes := range reEML.FindAllIndex(token, -1) {
+				hits = append(hits, checker.SecurityPolicyInformation{
+					InformationType: checker.SecurityPolicyInformationTypeEmail,
+					InformationValue: checker.SecurityPolicyValueType{
+						Match:      string(token[indexes[0]:indexes[1]]), // Snippet of match
+						LineNumber: uint(lineNum),                        // line number in file
+						Offset:     uint(indexes[0]),                     // Offset in the line
+					},
+				})
+			}
+			for _, indexes := range reDIG.FindAllIndex(token, -1) {
+				hits = append(hits, checker.SecurityPolicyInformation{
+					InformationType: checker.SecurityPolicyInformationTypeText,
+					InformationValue: checker.SecurityPolicyValueType{
+						Match:      string(token[indexes[0]:indexes[1]]), // Snippet of match
+						LineNumber: uint(lineNum),                        // line number in file
+						Offset:     uint(indexes[0]),                     // Offset in the line
+					},
+				})
+			}
+		}
+		if advance <= len(policyContent) {
+			policyContent = policyContent[advance:]
+		}
+	}
+
+	return hits
 }

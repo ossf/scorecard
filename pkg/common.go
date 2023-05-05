@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,12 +26,7 @@ func textToMarkdown(s string) string {
 	return strings.ReplaceAll(s, "\n", "\n\n")
 }
 
-// DetailToString turns a detail information into a string.
-func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
-	if d.Type == checker.DetailDebug && logLevel != log.DebugLevel {
-		return ""
-	}
-
+func nonStructuredResultString(d *checker.CheckDetail) string {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text))
 
@@ -46,10 +41,48 @@ func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
 	}
 
 	if d.Msg.Remediation != nil {
-		sb.WriteString(fmt.Sprintf(": %s", d.Msg.Remediation.HelpText))
+		sb.WriteString(fmt.Sprintf(": %s", d.Msg.Remediation.Text))
 	}
 
 	return sb.String()
+}
+
+func structuredResultString(d *checker.CheckDetail) string {
+	var sb strings.Builder
+	f := d.Msg.Finding
+	sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), f.Message))
+
+	if f.Location != nil {
+		sb.WriteString(fmt.Sprintf(": %s", f.Location.Path))
+		if f.Location.LineStart != nil {
+			sb.WriteString(fmt.Sprintf(":%d", *f.Location.LineStart))
+		}
+		if f.Location.LineEnd != nil && *f.Location.LineStart < *f.Location.LineEnd {
+			sb.WriteString(fmt.Sprintf("-%d", *f.Location.LineEnd))
+		}
+	}
+
+	// Effort to remediate.
+	if f.Remediation != nil {
+		sb.WriteString(fmt.Sprintf(": %s (%s effort)", f.Remediation.Text, f.Remediation.Effort.String()))
+	}
+	return sb.String()
+}
+
+// DetailToString turns a detail information into a string.
+func DetailToString(d *checker.CheckDetail, logLevel log.Level) string {
+	if d.Type == checker.DetailDebug && logLevel != log.DebugLevel {
+		return ""
+	}
+
+	// Non-structured results.
+	// NOTE: This is temporary until we have migrated all checks.
+	if d.Msg.Finding == nil {
+		return nonStructuredResultString(d)
+	}
+
+	// Structured results.
+	return structuredResultString(d)
 }
 
 func detailsToString(details []checker.CheckDetail, logLevel log.Level) (string, bool) {

@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,8 +24,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
+	rules "github.com/ossf/scorecard/v4/rule"
 )
 
 func sarifMockDocRead() *mockDoc {
@@ -96,7 +99,7 @@ func sarifMockDocRead() *mockDoc {
 	return &m
 }
 
-//nolint
+// nolint
 func TestSARIFOutput(t *testing.T) {
 	t.Parallel()
 
@@ -163,12 +166,12 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
-									Remediation: &checker.Remediation{
-										HelpMarkdown: "this is the custom markdown help",
-										HelpText:     "this is the custom text help",
+									Remediation: &rules.Remediation{
+										Markdown: "this is the custom markdown help",
+										Text:     "this is the custom text help",
 									},
 								},
 							},
@@ -217,7 +220,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -267,7 +270,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:   "warn message",
 									Path:   "bin/binary.elf",
-									Type:   checker.FileTypeBinary,
+									Type:   finding.FileTypeBinary,
 									Offset: 0,
 								},
 							},
@@ -320,7 +323,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:   "warn message",
 									Path:   "bin/binary.elf",
-									Type:   checker.FileTypeBinary,
+									Type:   finding.FileTypeBinary,
 									Offset: 0,
 								},
 							},
@@ -336,7 +339,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/doc.txt",
-									Type:    checker.FileTypeText,
+									Type:    finding.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
 								},
@@ -353,7 +356,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "info message",
 									Path:    "some/path.js",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -363,7 +366,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "some/path.py",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG2();}",
 								},
@@ -373,7 +376,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "debug message",
 									Path:    "some/path.go",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG5();}",
 								},
@@ -427,7 +430,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:   "warn message",
 									Path:   "bin/binary.elf",
-									Type:   checker.FileTypeBinary,
+									Type:   finding.FileTypeBinary,
 									Offset: 0,
 								},
 							},
@@ -443,7 +446,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/doc.txt",
-									Type:    checker.FileTypeText,
+									Type:    finding.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
 								},
@@ -460,7 +463,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "info message",
 									Path:    "some/path.js",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -470,7 +473,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "some/path.py",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG2();}",
 								},
@@ -480,7 +483,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "debug message",
 									Path:    "some/path.go",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG5();}",
 								},
@@ -526,7 +529,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -574,7 +577,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text: "warn message",
 									Path: "https://domain.com/something",
-									Type: checker.FileTypeURL,
+									Type: finding.FileTypeURL,
 								},
 							},
 						},
@@ -626,7 +629,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:   "warn message",
 									Path:   "bin/binary.elf",
-									Type:   checker.FileTypeBinary,
+									Type:   finding.FileTypeBinary,
 									Offset: 0,
 								},
 							},
@@ -642,7 +645,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/doc.txt",
-									Type:    checker.FileTypeText,
+									Type:    finding.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
 								},
@@ -659,7 +662,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "info message",
 									Path:    "some/path.js",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -669,7 +672,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "some/path.py",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG2();}",
 								},
@@ -679,7 +682,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "debug message",
 									Path:    "some/path.go",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  3,
 									Snippet: "if (bad) {BUG5();}",
 								},
@@ -737,7 +740,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -754,7 +757,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -764,7 +767,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file2.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad2) {BUG();}",
 								},
@@ -781,7 +784,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -791,7 +794,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file2.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad2) {BUG2();}",
 								},
@@ -808,7 +811,7 @@ func TestSARIFOutput(t *testing.T) {
 								Msg: checker.LogMessage{
 									Text:    "warn message",
 									Path:    "src/file1.cpp",
-									Type:    checker.FileTypeSource,
+									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
 								},
@@ -845,7 +848,7 @@ func TestSARIFOutput(t *testing.T) {
 
 			var result bytes.Buffer
 			err = tt.result.AsSARIF(tt.showDetails, tt.logLevel, &result,
-				checkDocs, &tt.policy)
+				checkDocs, &tt.policy, &options.Options{})
 			if err != nil {
 				t.Fatalf("%s: AsSARIF: %v", tt.name, err)
 			}

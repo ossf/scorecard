@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import (
 	"time"
 
 	pubsub "cloud.google.com/go/pubsub/apiv1"
-	pubsubpb "google.golang.org/genproto/googleapis/pubsub/v1"
+	"cloud.google.com/go/pubsub/apiv1/pubsubpb"
 
-	"github.com/ossf/scorecard/v4/cron/internal/data"
+	"github.com/ossf/scorecard/v4/cron/data"
 )
 
 const (

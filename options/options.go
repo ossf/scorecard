@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/caarlos0/env/v6"
 
@@ -42,11 +43,12 @@ type Options struct {
 	ResultsFile string
 	ChecksToRun []string
 	Metadata    []string
+	CommitDepth int
 	ShowDetails bool
-
 	// Feature flags.
-	EnableSarif       bool `env:"ENABLE_SARIF"`
-	EnableScorecardV6 bool `env:"SCORECARD_V6"`
+	EnableSarif                 bool `env:"ENABLE_SARIF"`
+	EnableScorecardV6           bool `env:"SCORECARD_V6"`
+	EnableScorecardExperimental bool `env:"SCORECARD_EXPERIMENTAL"`
 }
 
 // New creates a new instance of `Options`.
@@ -55,7 +57,6 @@ func New() *Options {
 	if err := env.Parse(opts); err != nil {
 		fmt.Printf("could not parse env vars, using default options: %v", err)
 	}
-
 	// Defaulting.
 	// TODO(options): Consider moving this to a separate function/method.
 	if opts.Commit == "" {
@@ -70,7 +71,6 @@ func New() *Options {
 	if opts.LogLevel == "" {
 		opts.LogLevel = DefaultLogLevel
 	}
-
 	return opts
 }
 
@@ -81,9 +81,15 @@ const (
 	// DefaultCommitDepth specifies the default commit depth to use.
 	DefaultCommitDepth = 30
 	// Formats.
-
 	// FormatJSON specifies that results should be output in JSON format.
 	FormatJSON = "json"
+	// FormatFJSON specifies that results should be output in JSON format,
+	// but with structured findings.
+	FormatFJSON = "finding"
+	// FormatPJSON specifies that results should be output in probe JSON format.
+	FormatPJSON = "probe"
+	// FormatSJSON specifies that results should be output in structured JSON format.
+	FormatSJSON = "structured"
 	// FormatSarif specifies that results should be output in SARIF format.
 	FormatSarif = "sarif"
 	// FormatDefault specifies that results should be output in default format.
@@ -92,24 +98,27 @@ const (
 	FormatRaw = "raw"
 
 	// Environment variables.
-
 	// EnvVarEnableSarif is the environment variable which controls enabling
 	// SARIF logging.
 	EnvVarEnableSarif = "ENABLE_SARIF"
 	// EnvVarScorecardV6 is the environment variable which enables scorecard v6
 	// options.
 	EnvVarScorecardV6 = "SCORECARD_V6"
+	// EnvVarScorecardExperimental is the environment variable which enables experimental
+	// features.
+	EnvVarScorecardExperimental = "SCORECARD_EXPERIMENTAL"
 )
 
 var (
 	// DefaultLogLevel retrieves the default log level.
 	DefaultLogLevel = log.DefaultLevel.String()
 
-	errCommitIsEmpty          = errors.New("commit should be non-empty")
-	errFormatNotSupported     = errors.New("unsupported format")
-	errPolicyFileNotSupported = errors.New("policy file is not supported yet")
-	errRawOptionNotSupported  = errors.New("raw option is not supported yet")
-	errRepoOptionMustBeSet    = errors.New(
+	errCommitIsEmpty                   = errors.New("commit should be non-empty")
+	errFormatNotSupported              = errors.New("unsupported format")
+	errFormatSupportedWithExperimental = errors.New("format supported only with SCORECARD_EXPERIMENTAL=1")
+	errPolicyFileNotSupported          = errors.New("policy file is not supported yet")
+	errRawOptionNotSupported           = errors.New("raw option is not supported yet")
+	errRepoOptionMustBeSet             = errors.New(
 		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
@@ -159,6 +168,17 @@ func (o *Options) Validate() error {
 		}
 	}
 
+	if !o.isExperimentalEnabled() {
+		if o.Format == FormatSJSON ||
+			o.Format == FormatFJSON ||
+			o.Format == FormatPJSON {
+			errs = append(
+				errs,
+				errFormatSupportedWithExperimental,
+			)
+		}
+	}
+
 	// Validate format.
 	if !validateFormat(o.Format) {
 		errs = append(
@@ -182,7 +202,6 @@ func (o *Options) Validate() error {
 			errs,
 		)
 	}
-
 	return nil
 }
 
@@ -197,6 +216,40 @@ func boolSum(bools ...bool) int {
 }
 
 // Feature flags.
+
+// GitHub integration support.
+// See https://github.com/ossf/scorecard-action/issues/1107.
+// NOTE: We don't add a field to to the Option structure to simplify
+// integration. If we did, the Action would also need to be aware
+// of the integration and pass the relevant values. This
+// would add redundancy and complicate maintenance.
+func (o *Options) IsInternalGitHubIntegrationEnabled() bool {
+	return (os.Getenv("CI") == "true") &&
+		(os.Getenv("SCORECARD_INTERNAL_GITHUB_INTEGRATION") == "1") &&
+		(os.Getenv("GITHUB_EVENT_NAME") == "dynamic")
+}
+
+// Checks returns the list of checks and honours the
+// GitHub integration.
+func (o *Options) Checks() []string {
+	if o.IsInternalGitHubIntegrationEnabled() {
+		// Overwrite the list of checks.
+		s := os.Getenv("SCORECARD_INTERNAL_GITHUB_CHECKS")
+		l := strings.Split(s, ",")
+		for i := range l {
+			l[i] = strings.TrimSpace(l[i])
+		}
+		return l
+	}
+	return o.ChecksToRun
+}
+
+// isExperimentalEnabled returns true if experimental features were enabled via
+// environment variable.
+func (o *Options) isExperimentalEnabled() bool {
+	value, _ := os.LookupEnv(EnvVarScorecardExperimental)
+	return value == "1"
+}
 
 // isSarifEnabled returns true if SARIF format was specified in options or via
 // environment variable.
@@ -215,7 +268,8 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatSJSON, FormatFJSON,
+		FormatPJSON, FormatSarif, FormatDefault, FormatRaw:
 		return true
 	default:
 		return false

@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,18 +23,19 @@ import (
 
 // Vulnerabilities retrieves the raw data for the Vulnerabilities check.
 func Vulnerabilities(c *checker.CheckRequest) (checker.VulnerabilitiesData, error) {
+	commitHash := ""
 	commits, err := c.RepoClient.ListCommits()
-	if err != nil {
-		return checker.VulnerabilitiesData{}, fmt.Errorf("repoClient.ListCommits: %w", err)
+	if err == nil && len(commits) > 0 && !allOf(commits, hasEmptySHA) {
+		commitHash = commits[0].SHA
 	}
 
-	if len(commits) < 1 || allOf(commits, hasEmptySHA) {
-		return checker.VulnerabilitiesData{}, nil
-	}
-
-	resp, err := c.VulnerabilitiesClient.HasUnfixedVulnerabilities(c.Ctx, commits[0].SHA)
+	localPath, err := c.RepoClient.LocalPath()
 	if err != nil {
-		return checker.VulnerabilitiesData{}, fmt.Errorf("vulnerabilitiesClient.HasUnfixedVulnerabilities: %w", err)
+		return checker.VulnerabilitiesData{}, fmt.Errorf("RepoClient.LocalPath: %w", err)
+	}
+	resp, err := c.VulnerabilitiesClient.ListUnfixedVulnerabilities(c.Ctx, commitHash, localPath)
+	if err != nil {
+		return checker.VulnerabilitiesData{}, fmt.Errorf("vulnerabilitiesClient.ListUnfixedVulnerabilities: %w", err)
 	}
 	return checker.VulnerabilitiesData{
 		Vulnerabilities: resp.Vulnerabilities,

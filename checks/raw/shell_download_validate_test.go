@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -104,5 +104,141 @@ func TestValidateShellFile(t *testing.T) {
 	err = validateShellFile(filename, 0, 0, content, map[string]bool{}, &r)
 	if err == nil {
 		t.Errorf("failed to detect shell parsing error: %v", err)
+	}
+}
+
+func Test_isDotNetUnpinnedDownload(t *testing.T) {
+	type args struct {
+		cmd []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "nuget install",
+			args: args{
+				cmd: []string{"nuget", "install", "Newtonsoft.Json"},
+			},
+			want: true,
+		},
+		{
+			name: "nuget restore",
+			args: args{
+				cmd: []string{"nuget", "restore"},
+			},
+			want: false,
+		},
+		{
+			name: "nuget install with -Version",
+			args: args{
+				cmd: []string{"nuget", "install", "Newtonsoft.Json", "-Version", "2"},
+			},
+			want: false,
+		},
+		{
+			name: "nuget install with packages.config",
+			args: args{
+				cmd: []string{"nuget", "install", "config\\packages.config"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet add",
+			args: args{
+				cmd: []string{"dotnet", "add", "package", "Newtonsoft.Json"},
+			},
+			want: true,
+		},
+		{
+			name: "dotnet add to project",
+			args: args{
+				cmd: []string{"dotnet", "add", "project1", "package", "Newtonsoft.Json"},
+			},
+			want: true,
+		},
+		{
+			name: "dotnet add reference to project",
+			args: args{
+				cmd: []string{"dotnet", "add", "project1", "reference", "OtherProject"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet build",
+			args: args{
+				cmd: []string{"dotnet", "build"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet add with -v",
+			args: args{
+				cmd: []string{"dotnet", "add", "package", "Newtonsoft.Json", "-v", "2.0"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet add to project with -v",
+			args: args{
+				cmd: []string{"dotnet", "add", "project1", "package", "Newtonsoft.Json", "-v", "2.0"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet add reference to project with -v",
+			args: args{
+				cmd: []string{"dotnet", "add", "project1", "reference", "Newtonsoft.Json", "-v", "2.0"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet add with --version",
+			args: args{
+				cmd: []string{"dotnet", "add", "package", "Newtonsoft.Json", "--version", "2.0"},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isNugetUnpinnedDownload(tt.args.cmd); got != tt.want {
+				t.Errorf("isNugetUnpinnedDownload() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_isGoUnpinnedDownload(t *testing.T) {
+	type args struct {
+		cmd []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "go get",
+			args: args{
+				cmd: []string{"go", "get", "github.com/ossf/scorecard"},
+			},
+			want: true,
+		},
+		{
+			name: "go get with -d -v",
+			args: args{
+				cmd: []string{"go", "get", "-d", "-v"},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isGoUnpinnedDownload(tt.args.cmd); got != tt.want {
+				t.Errorf("isGoUnpinnedDownload() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

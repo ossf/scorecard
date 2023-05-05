@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,28 +50,35 @@ type Client struct {
 	searchCommits *searchCommitsHandler
 	webhook       *webhookHandler
 	languages     *languagesHandler
+	licenses      *licensesHandler
+	tarball       *tarballHandler
 	ctx           context.Context
-	// tarball       tarballHandler
+	commitDepth   int
 }
 
 // InitRepo sets up the GitLab project in local storage for improving performance and GitLab token usage efficiency.
-func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
+func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	glRepo, ok := inputRepo.(*repoURL)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
 	}
 
 	// Sanity check.
-	repo, _, err := client.glClient.Projects.GetProject(glRepo.projectID, &gitlab.GetProjectOptions{})
+	proj := fmt.Sprintf("%s/%s", glRepo.owner, glRepo.project)
+	repo, _, err := client.glClient.Projects.GetProject(proj, &gitlab.GetProjectOptions{})
 	if err != nil {
-		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
+		return sce.WithMessage(sce.ErrRepoUnreachable, proj+"\t"+err.Error())
 	}
-
+	if commitDepth <= 0 {
+		client.commitDepth = 30 // default
+	} else {
+		client.commitDepth = commitDepth
+	}
 	client.repo = repo
-
 	client.repourl = &repoURL{
-		hostname:      inputRepo.URI(),
-		projectID:     fmt.Sprint(repo.ID),
+		scheme:        glRepo.scheme,
+		host:          glRepo.host,
+		project:       fmt.Sprint(repo.ID),
 		defaultBranch: repo.DefaultBranch,
 		commitSHA:     commitSHA,
 	}
@@ -119,21 +126,29 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string) error {
 	// Init languagesHandler
 	client.languages.init(client.repourl)
 
-	// Init tarballHandler.
-	// client.tarball.init(client.ctx, client.repourl, client.repo, commitSHA)
+	// Init languagesHandler
+	client.licenses.init(client.repourl)
+
+	// Init tarballHandler
+	client.tarball.init(client.ctx, client.repourl, repo, commitSHA)
+
 	return nil
 }
 
 func (client *Client) URI() string {
-	return fmt.Sprintf("%s/%s/%s", client.repourl.hostname, client.repourl.owner, client.repourl.projectID)
+	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.project)
+}
+
+func (client *Client) LocalPath() (string, error) {
+	return "", nil
 }
 
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	return nil, nil
+	return client.tarball.listFiles(predicate)
 }
 
 func (client *Client) GetFileContent(filename string) ([]byte, error) {
-	return nil, nil
+	return client.tarball.getFileContent(filename)
 }
 
 func (client *Client) ListCommits() ([]clients.Commit, error) {
@@ -172,6 +187,10 @@ func (client *Client) GetCreatedAt() (time.Time, error) {
 	return client.project.getCreatedAt()
 }
 
+func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	return nil, fmt.Errorf("GetOrgRepoClient (GitLab): %w", clients.ErrUnsupportedFeature)
+}
+
 func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return client.webhook.listWebhooks()
 }
@@ -192,6 +211,11 @@ func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 	return client.languages.listProgrammingLanguages()
 }
 
+// ListLicenses implements RepoClient.ListLicenses.
+func (client *Client) ListLicenses() ([]clients.License, error) {
+	return client.licenses.listLicenses()
+}
+
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return client.search.search(request)
 }
@@ -205,7 +229,7 @@ func (client *Client) Close() error {
 }
 
 func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients.Repo) (clients.RepoClient, error) {
-	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.URI()))
+	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.Host()))
 	if err != nil {
 		return nil, fmt.Errorf("could not create gitlab client with error: %w", err)
 	}
@@ -252,10 +276,23 @@ func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients
 		languages: &languagesHandler{
 			glClient: client,
 		},
+		licenses: &licensesHandler{},
+		tarball:  &tarballHandler{},
 	}, nil
 }
 
 // TODO(#2266): implement CreateOssFuzzRepoClient.
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("%w, oss fuzz currently only supported for github repos", clients.ErrUnsupportedFeature)
+}
+
+// DetectGitLab: check whether the repoURI is a GitLab URI
+// Makes HTTP request to GitLab API.
+func DetectGitLab(repoURI string) bool {
+	var repo repoURL
+	if err := repo.parse(repoURI); err != nil {
+		return false
+	}
+
+	return repo.IsValid() == nil
 }

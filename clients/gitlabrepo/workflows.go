@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ func (handler *workflowsHandler) init(repourl *repoURL) {
 func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	var buildStates []gitlab.BuildStateValue
 	buildStates = append(buildStates, gitlab.Success)
-	jobs, _, err := handler.glClient.Jobs.ListProjectJobs(handler.repourl.projectID,
+	jobs, _, err := handler.glClient.Jobs.ListProjectJobs(handler.repourl.project,
 		&gitlab.ListJobsOptions{Scope: &buildStates})
 	if err != nil {
 		return nil, fmt.Errorf("error getting project jobs: %w", err)

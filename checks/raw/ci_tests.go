@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ func CITests(c clients.RepoClient) (checker.CITestData, error) {
 	prNos := make(map[string]int)
 
 	for i := range commits {
-		commit := commits[i]
 		pr := &commits[i].AssociatedMergeRequest
 
 		if pr.MergedAt.IsZero() {
@@ -45,19 +44,21 @@ func CITests(c clients.RepoClient) (checker.CITestData, error) {
 
 		prNos[pr.HeadSHA] = pr.Number
 
-		crs, err := c.ListCheckRunsForRef(commit.SHA)
-		if err != nil {
-			return checker.CITestData{}, sce.WithMessage(
-				sce.ErrScorecardInternal,
-				fmt.Sprintf("Client.Repositories.ListCheckRunsForRef: %v", err),
-			)
+		// HeadSHA is the last commit before the merge. if squashing enabled,
+		// multiple commit SHAs will map to a single HeadSHA
+		if len(runs[pr.HeadSHA]) == 0 {
+			crs, err := c.ListCheckRunsForRef(pr.HeadSHA)
+			if err != nil {
+				return checker.CITestData{}, sce.WithMessage(
+					sce.ErrScorecardInternal,
+					fmt.Sprintf("Client.Repositories.ListCheckRunsForRef: %v", err),
+				)
+			}
+
+			runs[pr.HeadSHA] = crs
 		}
 
-		// Use HeadSHA instead of commit.SHA because GitHub repos that don't squash
-		// PRs will only display check runs/statuses on last commit in a changeset
-		runs[pr.HeadSHA] = append(runs[pr.HeadSHA], crs...)
-
-		statuses, err := c.ListStatuses(commit.SHA)
+		statuses, err := c.ListStatuses(pr.HeadSHA)
 		if err != nil {
 			return checker.CITestData{}, sce.WithMessage(
 				sce.ErrScorecardInternal,

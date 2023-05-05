@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func testScore(branch *clients.BranchRef, dl checker.DetailLogger) (int, error) {
+func testScore(branch *clients.BranchRef, codeownersFiles []string, dl checker.DetailLogger) (int, error) {
 	var score levelScore
 	score.scores.basic, score.maxes.basic = basicNonAdminProtection(branch, dl)
 	score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(branch, dl)
@@ -31,7 +31,7 @@ func testScore(branch *clients.BranchRef, dl checker.DetailLogger) (int, error) 
 	score.scores.context, score.maxes.context = nonAdminContextProtection(branch, dl)
 	score.scores.thoroughReview, score.maxes.thoroughReview = nonAdminThoroughReviewProtection(branch, dl)
 	score.scores.adminThoroughReview, score.maxes.adminThoroughReview = adminThoroughReviewProtection(branch, dl)
-	score.scores.codeownerReview, score.maxes.codeownerReview = codeownersBranchProtection(branch, dl)
+	score.scores.codeownerReview, score.maxes.codeownerReview = codeownerBranchProtection(branch, codeownersFiles, dl)
 
 	return computeScore([]levelScore{score})
 }
@@ -44,16 +44,17 @@ func TestIsBranchProtected(t *testing.T) {
 	var oneVal int32 = 1
 	branchVal := "branch-name"
 	tests := []struct {
-		name     string
-		branch   *clients.BranchRef
-		expected scut.TestReturn
+		name            string
+		branch          *clients.BranchRef
+		codeownersFiles []string
+		expected        scut.TestReturn
 	}{
 		{
 			name: "Nothing is enabled",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         2,
-				NumberOfWarn:  6,
+				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
@@ -61,10 +62,11 @@ func TestIsBranchProtected(t *testing.T) {
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					AllowDeletions:       &falseVal,
-					AllowForcePushes:     &falseVal,
-					RequireLinearHistory: &falseVal,
-					EnforceAdmins:        &falseVal,
+					AllowDeletions:          &falseVal,
+					AllowForcePushes:        &falseVal,
+					RequireLinearHistory:    &falseVal,
+					EnforceAdmins:           &falseVal,
+					RequireLastPushApproval: &falseVal,
 					RequiredPullRequestReviews: clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
@@ -85,7 +87,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  2,
 				NumberOfInfo:  0,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
@@ -97,7 +99,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         2,
-				NumberOfWarn:  4,
+				NumberOfWarn:  5,
 				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			},
@@ -115,10 +117,11 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &trueVal,
 						Contexts:             []string{"foo"},
 					},
-					EnforceAdmins:        &falseVal,
-					RequireLinearHistory: &falseVal,
-					AllowForcePushes:     &falseVal,
-					AllowDeletions:       &falseVal,
+					EnforceAdmins:           &falseVal,
+					RequireLastPushApproval: &falseVal,
+					RequireLinearHistory:    &falseVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
 				},
 			},
 		},
@@ -127,7 +130,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         2,
-				NumberOfWarn:  5,
+				NumberOfWarn:  6,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
@@ -135,10 +138,11 @@ func TestIsBranchProtected(t *testing.T) {
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:        &falseVal,
-					RequireLinearHistory: &falseVal,
-					AllowForcePushes:     &falseVal,
-					AllowDeletions:       &falseVal,
+					EnforceAdmins:           &falseVal,
+					RequireLastPushApproval: &falseVal,
+					RequireLinearHistory:    &falseVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
 					RequiredPullRequestReviews: clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
@@ -157,7 +161,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         2,
-				NumberOfWarn:  5,
+				NumberOfWarn:  6,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
@@ -165,10 +169,11 @@ func TestIsBranchProtected(t *testing.T) {
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:        &falseVal,
-					RequireLinearHistory: &trueVal,
-					AllowForcePushes:     &falseVal,
-					AllowDeletions:       &falseVal,
+					EnforceAdmins:           &falseVal,
+					RequireLastPushApproval: &falseVal,
+					RequireLinearHistory:    &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
 					CheckRules: clients.StatusChecksRule{
 						RequiresStatusChecks: &trueVal,
 						UpToDateBeforeMerge:  &falseVal,
@@ -187,7 +192,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         3,
-				NumberOfWarn:  4,
+				NumberOfWarn:  5,
 				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			},
@@ -195,10 +200,11 @@ func TestIsBranchProtected(t *testing.T) {
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:        &trueVal,
-					RequireLinearHistory: &trueVal,
-					AllowForcePushes:     &falseVal,
-					AllowDeletions:       &falseVal,
+					EnforceAdmins:           &trueVal,
+					RequireLastPushApproval: &falseVal,
+					RequireLinearHistory:    &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
 					CheckRules: clients.StatusChecksRule{
 						RequiresStatusChecks: &falseVal,
 						UpToDateBeforeMerge:  &falseVal,
@@ -217,7 +223,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         2,
-				NumberOfWarn:  5,
+				NumberOfWarn:  6,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
@@ -225,10 +231,11 @@ func TestIsBranchProtected(t *testing.T) {
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:        &falseVal,
-					RequireLinearHistory: &trueVal,
-					AllowForcePushes:     &falseVal,
-					AllowDeletions:       &falseVal,
+					EnforceAdmins:           &falseVal,
+					RequireLastPushApproval: &falseVal,
+					RequireLinearHistory:    &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
 					CheckRules: clients.StatusChecksRule{
 						RequiresStatusChecks: &falseVal,
 						UpToDateBeforeMerge:  &falseVal,
@@ -247,7 +254,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         1,
-				NumberOfWarn:  6,
+				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
@@ -255,10 +262,11 @@ func TestIsBranchProtected(t *testing.T) {
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:        &falseVal,
-					RequireLinearHistory: &falseVal,
-					AllowForcePushes:     &trueVal,
-					AllowDeletions:       &falseVal,
+					EnforceAdmins:           &falseVal,
+					RequireLastPushApproval: &falseVal,
+					RequireLinearHistory:    &falseVal,
+					AllowForcePushes:        &trueVal,
+					AllowDeletions:          &falseVal,
 
 					CheckRules: clients.StatusChecksRule{
 						RequiresStatusChecks: &falseVal,
@@ -278,7 +286,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         1,
-				NumberOfWarn:  6,
+				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
@@ -286,10 +294,11 @@ func TestIsBranchProtected(t *testing.T) {
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:        &falseVal,
-					RequireLinearHistory: &falseVal,
-					AllowForcePushes:     &falseVal,
-					AllowDeletions:       &trueVal,
+					EnforceAdmins:           &falseVal,
+					RequireLastPushApproval: &falseVal,
+					RequireLinearHistory:    &falseVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &trueVal,
 					CheckRules: clients.StatusChecksRule{
 						RequiresStatusChecks: &falseVal,
 						UpToDateBeforeMerge:  &falseVal,
@@ -308,18 +317,19 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         8,
-				NumberOfWarn:  1,
-				NumberOfInfo:  7,
+				NumberOfWarn:  2,
+				NumberOfInfo:  8,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:        &trueVal,
-					RequireLinearHistory: &trueVal,
-					AllowForcePushes:     &falseVal,
-					AllowDeletions:       &falseVal,
+					EnforceAdmins:           &trueVal,
+					RequireLinearHistory:    &trueVal,
+					RequireLastPushApproval: &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
 					CheckRules: clients.StatusChecksRule{
 						RequiresStatusChecks: &falseVal,
 						UpToDateBeforeMerge:  &trueVal,
@@ -338,18 +348,51 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         8,
-				NumberOfWarn:  2,
-				NumberOfInfo:  6,
+				NumberOfWarn:  1,
+				NumberOfInfo:  8,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:        &trueVal,
-					RequireLinearHistory: &trueVal,
-					AllowForcePushes:     &falseVal,
-					AllowDeletions:       &falseVal,
+					EnforceAdmins:           &trueVal,
+					RequireLinearHistory:    &trueVal,
+					RequireLastPushApproval: &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						RequiresStatusChecks: &trueVal,
+						UpToDateBeforeMerge:  &trueVal,
+						Contexts:             []string{"foo"},
+					},
+					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						DismissStaleReviews:          &trueVal,
+						RequireCodeOwnerReviews:      &trueVal,
+						RequiredApprovingReviewCount: &oneVal,
+					},
+				},
+			},
+			codeownersFiles: []string{".github/CODEOWNERS"},
+		},
+		{
+			name: "Branches are protected and require codeowner review, but file is not present",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         5,
+				NumberOfWarn:  3,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+			branch: &clients.BranchRef{
+				Name:      &branchVal,
+				Protected: &trueVal,
+				BranchProtectionRule: clients.BranchProtectionRule{
+					EnforceAdmins:           &trueVal,
+					RequireLastPushApproval: &falseVal,
+					RequireLinearHistory:    &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
 					CheckRules: clients.StatusChecksRule{
 						RequiresStatusChecks: &falseVal,
 						UpToDateBeforeMerge:  &trueVal,
@@ -357,7 +400,7 @@ func TestIsBranchProtected(t *testing.T) {
 					},
 					RequiredPullRequestReviews: clients.PullRequestReviewRule{
 						DismissStaleReviews:          &trueVal,
-						RequireCodeOwnerReviews:      &falseVal,
+						RequireCodeOwnerReviews:      &trueVal,
 						RequiredApprovingReviewCount: &oneVal,
 					},
 				},
@@ -369,7 +412,7 @@ func TestIsBranchProtected(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
-			score, err := testScore(tt.branch, &dl)
+			score, err := testScore(tt.branch, tt.codeownersFiles, &dl)
 			actual := &checker.CheckResult{
 				Score: score,
 				Error: err,

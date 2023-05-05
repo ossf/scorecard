@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -36,7 +37,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -49,7 +50,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
@@ -62,7 +63,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "e0cb70344e46276b37d65824f95eca478080de4a")
+			err = repoClient.InitRepo(repo, "e0cb70344e46276b37d65824f95eca478080de4a", 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -75,7 +76,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
@@ -88,7 +89,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			repo, err := githubrepo.MakeGithubRepo("randombit/botan")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -101,7 +102,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
@@ -114,7 +115,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			repo, err := githubrepo.MakeGithubRepo("randombit/botan")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, "bab40cdd29d19e0638cf1301dfd355c52b94d1c0")
+			err = repoClient.InitRepo(repo, "bab40cdd29d19e0638cf1301dfd355c52b94d1c0", 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -127,7 +128,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
@@ -151,7 +152,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			Expect(err).Should(BeNil())
 
 			x := localdir.CreateLocalDirClient(context.Background(), logger)
-			err = x.InitRepo(repo, clients.HeadSHA)
+			err = x.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
@@ -164,13 +165,76 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			}
 			result := checks.SecurityPolicy(&req)
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())
+		})
+		It("Should return valid security policy - GitLab", func() {
+			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
+
+			dl := scut.TestDetailLogger{}
+			// project url is gitlab.com/bramw/baserow.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/ossf-test/baserow")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			// TODO: update expected based on what is returned from gitlab project.
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         9,
+				NumberOfWarn:  1,
+				NumberOfInfo:  3,
+				NumberOfDebug: 0,
+			}
+			result := checks.SecurityPolicy(&req)
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return valid security policy at commitSHA - GitLab", func() {
+			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
+
+			dl := scut.TestDetailLogger{}
+			// project url is gitlab.com/bramw/baserow.
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/ossf-test/baserow")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			Expect(err).Should(BeNil())
+			// url to commit is https://gitlab.com/bramw/baserow/-/commit/28e6224b7d86f7b30bad6adb6b42f26a814c2f58
+			err = repoClient.InitRepo(repo, "28e6224b7d86f7b30bad6adb6b42f26a814c2f58", 0)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         9,
+				NumberOfWarn:  1,
+				NumberOfInfo:  3,
+				NumberOfDebug: 0,
+			}
+			result := checks.SecurityPolicy(&req)
+			// New version.
+			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

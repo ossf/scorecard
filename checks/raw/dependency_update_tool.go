@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 const (
@@ -78,7 +79,7 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 			Files: []checker.File{
 				{
 					Path:   name,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 			},
@@ -88,13 +89,13 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
 		"renovate.json5", ".renovaterc":
 		*ptools = append(*ptools, checker.Tool{
-			Name: "Renovabot",
+			Name: "RenovateBot",
 			URL:  asPointer("https://github.com/renovatebot/renovate"),
 			Desc: asPointer("Automated dependency updates. Multi-platform and multi-language."),
 			Files: []checker.File{
 				{
 					Path:   name,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 			},
@@ -107,7 +108,20 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 			Files: []checker.File{
 				{
 					Path:   name,
-					Type:   checker.FileTypeSource,
+					Type:   finding.FileTypeSource,
+					Offset: checker.OffsetDefault,
+				},
+			},
+		})
+	case ".lift.toml", ".lift/config.toml":
+		*ptools = append(*ptools, checker.Tool{
+			Name: "Sonatype Lift",
+			URL:  asPointer("https://lift.sonatype.com"),
+			Desc: asPointer("Automated dependency updates. Multi-platform and multi-language."),
+			Files: []checker.File{
+				{
+					Path:   name,
+					Type:   finding.FileTypeSource,
 					Offset: checker.OffsetDefault,
 				},
 			},

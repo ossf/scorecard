@@ -1,4 +1,4 @@
-// Copyright 2020 Security Scorecard Authors
+// Copyright 2020 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +21,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
-)
-
-const (
-	githubOrgRepo = ".github"
 )
 
 type repoURL struct {
@@ -64,7 +60,7 @@ func (r *repoURL) parse(input string) error {
 	const splitLen = 2
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
-		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("%v. Exepted full repository url", input))
+		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("%v. Expected full repository url", input))
 	}
 
 	r.host, r.owner, r.repo = u.Host, split[0], split[1]
@@ -76,18 +72,13 @@ func (r *repoURL) URI() string {
 	return fmt.Sprintf("%s/%s/%s", r.host, r.owner, r.repo)
 }
 
+func (r *repoURL) Host() string {
+	return r.host
+}
+
 // String implements Repo.String.
 func (r *repoURL) String() string {
 	return fmt.Sprintf("%s-%s-%s", r.host, r.owner, r.repo)
-}
-
-// Org implements Repo.Org.
-func (r *repoURL) Org() clients.Repo {
-	return &repoURL{
-		host:  r.host,
-		owner: r.owner,
-		repo:  githubOrgRepo,
-	}
 }
 
 // IsValid implements Repo.IsValid.
@@ -100,7 +91,7 @@ func (r *repoURL) IsValid() error {
 
 	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.repo) == "" {
 		return sce.WithMessage(sce.ErrorInvalidURL,
-			fmt.Sprintf("%v. Expected the full reposiroty url", r.URI()))
+			fmt.Sprintf("%v. Expected the full repository url", r.URI()))
 	}
 	return nil
 }
@@ -112,6 +103,14 @@ func (r *repoURL) AppendMetadata(metadata ...string) {
 // Metadata implements Repo.Metadata.
 func (r *repoURL) Metadata() []string {
 	return r.metadata
+}
+
+func (r *repoURL) commitExpression() string {
+	if strings.EqualFold(r.commitSHA, clients.HeadSHA) {
+		// TODO(#575): Confirm that this works as expected.
+		return fmt.Sprintf("heads/%s", r.defaultBranch)
+	}
+	return r.commitSHA
 }
 
 // MakeGithubRepo takes input of form "owner/repo" or "github.com/owner/repo"

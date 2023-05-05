@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@ package evaluation
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-type reviewScore = int
+type reviewScore int
 
 // TODO(raghavkaul) More partial credit? E.g. approval from non-contributor, discussion liveness,
 // number of resolved comments, number of approvers (more eyes on a project).
@@ -42,18 +43,74 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		return checker.CreateInconclusiveResult(name, "no commits found")
 	}
 
-	numReviewed := 0
+	foundHumanReviewActivity := false
+	foundBotReviewActivity := false
+	nUnreviewedHumanChanges := 0
+	nUnreviewedBotChanges := 0
+
+	var unreviewedHumanRevisionIDs, unreviewedBotRevisionIDs []string
 	for i := range r.DefaultBranchChangesets {
-		score := reviewScoreForChangeset(&r.DefaultBranchChangesets[i])
-		if score >= changesReviewed {
-			numReviewed += 1
+		cs := &r.DefaultBranchChangesets[i]
+		isReviewed := reviewScoreForChangeset(cs) >= changesReviewed
+		isBotCommit := cs.Author.IsBot
+
+		switch {
+		case isReviewed && isBotCommit:
+			foundBotReviewActivity = true
+		case isReviewed && !isBotCommit:
+			foundHumanReviewActivity = true
+		case !isReviewed && isBotCommit:
+			nUnreviewedBotChanges += 1
+			unreviewedBotRevisionIDs = append(unreviewedBotRevisionIDs, cs.RevisionID)
+		case !isReviewed && !isBotCommit:
+			nUnreviewedHumanChanges += 1
+			unreviewedHumanRevisionIDs = append(unreviewedHumanRevisionIDs, cs.RevisionID)
 		}
 	}
-	reason := fmt.Sprintf(
-		"%v out of last %v changesets reviewed before merge", numReviewed, len(r.DefaultBranchChangesets),
-	)
 
-	return checker.CreateProportionalScoreResult(name, reason, numReviewed, len(r.DefaultBranchChangesets))
+	// Let's include non-compliant revision IDs in details
+	if len(unreviewedHumanRevisionIDs) > 0 {
+		dl.Debug(&checker.LogMessage{
+			Text: fmt.Sprintf("List of revision IDs not reviewed by humans:%s", strings.Join(unreviewedHumanRevisionIDs, ",")),
+		})
+	}
+
+	if len(unreviewedBotRevisionIDs) > 0 {
+		dl.Debug(&checker.LogMessage{
+			Text: fmt.Sprintf("List of bot revision IDs not reviewed by humans:%s", strings.Join(unreviewedBotRevisionIDs, ",")),
+		})
+	}
+
+	if foundBotReviewActivity && !foundHumanReviewActivity {
+		reason := fmt.Sprintf("found no human review activity in the last %v changesets", len(r.DefaultBranchChangesets))
+		return checker.CreateInconclusiveResult(name, reason)
+	}
+
+	switch {
+	case nUnreviewedBotChanges > 0 && nUnreviewedHumanChanges > 0:
+		return checker.CreateMinScoreResult(
+			name,
+			fmt.Sprintf("found unreviewed changesets (%v human %v bot)", nUnreviewedHumanChanges, nUnreviewedBotChanges),
+		)
+	case nUnreviewedBotChanges > 0:
+		return checker.CreateResultWithScore(
+			name,
+			fmt.Sprintf("all human changesets reviewed, found %v unreviewed bot changesets", nUnreviewedBotChanges),
+			7,
+		)
+	case nUnreviewedHumanChanges > 0:
+		score := 3
+		if len(r.DefaultBranchChangesets) == 1 || nUnreviewedHumanChanges > 1 {
+			score = 0
+		}
+		return checker.CreateResultWithScore(
+			name,
+			fmt.Sprintf("found %v unreviewed human changesets", nUnreviewedHumanChanges),
+			score,
+		)
+	}
+
+	return checker.CreateMaxScoreResult(name, "all changesets reviewed")
 }
 
 func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
@@ -61,9 +118,10 @@ func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
 		return reviewedOutsideGithub
 	}
 
-	for i := range changeset.Commits {
-		for _, review := range changeset.Commits[i].AssociatedMergeRequest.Reviews {
-			if review.State == "APPROVED" {
+	if changeset.ReviewPlatform == checker.ReviewPlatformGitHub {
+		for i := range changeset.Reviews {
+			review := changeset.Reviews[i]
+			if review.State == "APPROVED" && review.Author.Login != changeset.Author.Login {
 				return changesReviewed
 			}
 		}

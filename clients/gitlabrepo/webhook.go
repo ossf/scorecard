@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ func (handler *webhookHandler) init(repourl *repoURL) {
 func (handler *webhookHandler) setup() error {
 	handler.once.Do(func() {
 		projectHooks, _, err := handler.glClient.Projects.ListProjectHooks(
-			handler.repourl.projectID, &gitlab.ListProjectHooksOptions{})
+			handler.repourl.project, &gitlab.ListProjectHooksOptions{})
 		if err != nil {
 			handler.errSetup = fmt.Errorf("request for project hooks failed with %w", err)
 			return

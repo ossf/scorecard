@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"time"
 
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -134,7 +135,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 			Version: r.Scorecard.Version,
 			Commit:  r.Scorecard.CommitSHA,
 		},
-		Date:           r.Date.Format("2006-01-02"),
+		Date:           r.Date.Format(time.RFC3339),
 		Metadata:       r.Metadata,
 		AggregateScore: jsonFloatScore(score),
 	}
@@ -166,9 +167,16 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
+
 	if err := encoder.Encode(out); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
 
 	return nil
+}
+
+func (r *ScorecardResult) AsFJSON(showDetails bool,
+	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
+) error {
+	return sce.WithMessage(sce.ErrScorecardInternal, "WIP: not supported")
 }

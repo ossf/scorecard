@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,19 +36,20 @@ const (
 	query {
   repository(owner: "laurentsimon", name: "test3") {
     branchProtectionRules(first: 100) {
-        allowsDeletions
-        allowsForcePushes
-        dismissesStaleReviews
-        isAdminEnforced
-        ...
-        pattern
-        matchingRefs(first: 100) {
-          nodes {
-            name
-
-          }
-        }
-      }
+		edges{
+			node{
+				allowsDeletions
+				allowsForcePushes
+				dismissesStaleReviews
+				isAdminEnforced
+				...
+				pattern
+				matchingRefs(first: 100) {
+				nodes {
+					name
+				}
+			}
+		}
     }
     refs(first: 100, refPrefix: "refs/heads/") {
       nodes {
@@ -86,6 +87,7 @@ type branchProtectionRule struct {
 	RequiredApprovingReviewCount *int32
 	RequiresCodeOwnerReviews     *bool
 	RequiresLinearHistory        *bool
+	RequireLastPushApproval      *bool
 	RequiredStatusCheckContexts  []string
 	// TODO: verify there is no conflicts.
 	// BranchProtectionRuleConflicts interface{}
@@ -127,6 +129,8 @@ func (handler *branchesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
+	handler.defaultBranchRef = nil
+	handler.data = nil
 }
 
 func (handler *branchesHandler) setup() error {
@@ -182,6 +186,7 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 
 func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
+	copyBoolPtr(src.RequireLastPushApproval, &dst.RequireLastPushApproval)
 	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
 	if src.RequiresStatusChecks != nil {
 		copyBoolPtr(src.RequiresStatusChecks, &dst.CheckRules.RequiresStatusChecks)

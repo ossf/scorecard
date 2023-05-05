@@ -1,4 +1,4 @@
-// Copyright Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ const (
 )
 
 // CIIBestPractices applies the score policy for the CIIBestPractices check.
-func CIIBestPractices(name string, dl checker.DetailLogger, r *checker.CIIBestPracticesData) checker.CheckResult {
+func CIIBestPractices(name string, _ checker.DetailLogger, r *checker.CIIBestPracticesData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
 		return checker.CreateRuntimeErrorResult(name, e)
@@ -41,7 +41,7 @@ func CIIBestPractices(name string, dl checker.DetailLogger, r *checker.CIIBestPr
 	var results checker.CheckResult
 	switch r.Badge {
 	case clients.NotFound:
-		results = checker.CreateMinScoreResult(name, "no badge detected")
+		results = checker.CreateMinScoreResult(name, "no effort to earn an OpenSSF best practices badge detected")
 	case clients.InProgress:
 		msg := fmt.Sprintf("badge detected: %v", r.Badge)
 		results = checker.CreateResultWithScore(name, msg, inProgressScore)

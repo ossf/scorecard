@@ -84,7 +84,7 @@ install: $(GOLANGCI_LINT) \
 ##@ Build
 ################################## make all ###################################
 all:  ## Runs build, test and verify
-all-targets = build check-linter validate-docs add-projects validate-projects
+all-targets = build unit-test check-linter validate-docs add-projects validate-projects
 .PHONY: all all-targets-update-dependencies $(all-targets) update-dependencies tree-status
 all-targets-update-dependencies: $(all-targets) | update-dependencies
 all: update-dependencies all-targets-update-dependencies tree-status
@@ -93,7 +93,6 @@ update-dependencies: ## Update go dependencies for all modules
 	# Update root go modules
 	go mod tidy && go mod verify
 	cd tools; go mod tidy && go mod verify; cd ../
-	cd attestor; go mod tidy && go mod verify; cd ../
 
 check-linter: ## Install and run golang linter
 check-linter: | $(GOLANGCI_LINT)
@@ -123,17 +122,17 @@ build-cron: build-controller build-worker build-cii-worker \
 	build-shuffler build-bq-transfer build-github-server \
 	build-webhook build-add-script build-validate-script build-update-script
 
-build-targets = generate-mocks generate-docs build-scorecard build-cron build-proto
+build-targets = generate-mocks generate-docs build-scorecard build-cron build-proto build-attestor
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
 
 build-proto: ## Compiles and generates all required protobufs
-build-proto: cron/internal/data/request.pb.go cron/internal/data/metadata.pb.go
-cron/internal/data/request.pb.go: cron/internal/data/request.proto | $(PROTOC) $(PROTOC_GEN_GO)
-	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/internal/data/request.proto
-cron/internal/data/metadata.pb.go: cron/internal/data/metadata.proto | $(PROTOC) $(PROTOC_GEN_GO)
-	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/internal/data/metadata.proto
+build-proto: cron/data/request.pb.go cron/data/metadata.pb.go
+cron/data/request.pb.go: cron/data/request.proto | $(PROTOC) $(PROTOC_GEN_GO)
+	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/data/request.proto
+cron/data/metadata.pb.go: cron/data/metadata.proto | $(PROTOC) $(PROTOC_GEN_GO)
+	$(PROTOC) --plugin=$(PROTOC_GEN_GO) --go_out=. --go_opt=paths=source_relative cron/data/metadata.proto
 
 generate-mocks: ## Compiles and generates all mocks using mockgen.
 generate-mocks: clients/mockclients/repo_client.go \
@@ -167,7 +166,7 @@ validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml
 	go run ./docs/checks/internal/validate/main.go
 
-SCORECARD_DEPS = $(shell find . -iname "*.go" | grep -v tools/ | grep -v attestor/)
+SCORECARD_DEPS = $(shell find . -iname "*.go" | grep -v tools/)
 build-scorecard: ## Build Scorecard CLI
 build-scorecard: scorecard
 scorecard: $(SCORECARD_DEPS)
@@ -219,14 +218,14 @@ cron/internal/cii/cii-worker.docker: cron/internal/cii/Dockerfile $(CRON_CII_DEP
 			--tag $(IMAGE_NAME)-cii-worker && \
 			touch cron/internal/cii/cii-worker.docker
 
-CRON_SHUFFLER_DEPS = $(shell find cron/internal/data/ cron/internal/shuffle/ -iname "*.go")
+CRON_SHUFFLER_DEPS = $(shell find cron/data/ cron/internal/shuffle/ -iname "*.go")
 build-shuffler: ## Build cron shuffle script
 build-shuffler: cron/internal/shuffle/shuffle
 cron/internal/shuffle/shuffle: $(CRON_SHUFFLER_DEPS)
 	# Run go build on the cron shuffle script
 	cd cron/internal/shuffle && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o shuffle
 
-CRON_TRANSFER_DEPS = $(shell find cron/internal/data/ cron/internal/config/ cron/internal/bq/ -iname "*.go")
+CRON_TRANSFER_DEPS = $(shell find cron/data/ cron/config/ cron/internal/bq/ -iname "*.go")
 build-bq-transfer: ## Build cron BQ transfer worker
 build-bq-transfer: cron/internal/bq/data-transfer
 cron/internal/bq/data-transfer: $(CRON_TRANSFER_DEPS)
@@ -238,6 +237,17 @@ cron/internal/bq/data-transfer.docker: cron/internal/bq/Dockerfile $(CRON_TRANSF
 	DOCKER_BUILDKIT=1 docker build . --file cron/internal/bq/Dockerfile \
 			--tag $(IMAGE_NAME)-bq-transfer && \
 			touch cron/internal/bq/data-transfer.docker
+
+build-attestor: ## Runs go build on scorecard attestor
+	# Run go build on scorecard attestor
+	cd attestor/; CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)' -o scorecard-attestor
+
+
+build-attestor-docker: ## Build scorecard-attestor Docker image
+build-attestor-docker:
+	DOCKER_BUILDKIT=1 docker build . --file attestor/Dockerfile \
+		--tag scorecard-attestor:latest \
+		--tag scorecard-atttestor:$(GIT_HASH)
 
 TOKEN_SERVER_DEPS = $(shell find clients/githubrepo/roundtripper/tokens/ -iname "*.go")
 build-github-server: ## Build GitHub token server
@@ -255,7 +265,7 @@ clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker: \
 			--tag ${IMAGE_NAME}-github-server && \
 			touch clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker
 
-CRON_WEBHOOK_DEPS = $(shell find cron/internal/webhook/ cron/internal/data/ -iname "*.go")
+CRON_WEBHOOK_DEPS = $(shell find cron/internal/webhook/ cron/data/ -iname "*.go")
 build-webhook: ## Build cron webhook server
 build-webhook: cron/internal/webhook/webhook
 cron/internal/webhook/webhook: $(CRON_WEBHOOK_DEPS)
@@ -271,19 +281,19 @@ cron/internal/webhook/webhook.docker: cron/internal/webhook/Dockerfile $(CRON_WE
 
 build-add-script: ## Runs go build on the add script
 build-add-script: cron/internal/data/add/add
-cron/internal/data/add/add: cron/internal/data/add/*.go cron/internal/data/*.go cron/internal/data/projects.csv
+cron/internal/data/add/add: cron/internal/data/add/*.go cron/data/*.go cron/internal/data/projects.csv
 	# Run go build on the add script
 	cd cron/internal/data/add && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o add
 
 build-validate-script: ## Runs go build on the validate script
 build-validate-script: cron/internal/data/validate/validate
-cron/internal/data/validate/validate: cron/internal/data/validate/*.go cron/internal/data/*.go cron/internal/data/projects.csv
+cron/internal/data/validate/validate: cron/internal/data/validate/*.go cron/data/*.go cron/internal/data/projects.csv
 	# Run go build on the validate script
 	cd cron/internal/data/validate && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o validate
 
 build-update-script: ## Runs go build on the update script
 build-update-script: cron/internal/data/update/projects-update
-cron/internal/data/update/projects-update:  cron/internal/data/update/*.go cron/internal/data/*.go
+cron/internal/data/update/projects-update:  cron/internal/data/update/*.go cron/data/*.go
 	# Run go build on the update script
 	cd cron/internal/data/update && CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'  -o projects-update
 
@@ -297,14 +307,14 @@ cron-worker-docker:
 
 ##@ Tests
 ################################# make test ###################################
-test-targets = unit-test unit-test-attestor e2e-pat e2e-gh-token ci-e2e
+test-targets = unit-test e2e-pat e2e-gh-token ci-e2e
 .PHONY: test $(test-targets)
 test: $(test-targets)
 
 unit-test: ## Runs unit test without e2e
 	# Run unit tests, ignoring e2e tests
 	# run the go tests and gen the file coverage-all used to do the integration with codecov
-	SKIP_GINKGO=1 go test -race -covermode=atomic  -coverprofile=unit-coverage.out `go list ./...`
+	SKIP_GINKGO=1 go test -race -covermode=atomic  -coverprofile=unit-coverage.out -coverpkg=./... `go list ./...`
 
 unit-test-attestor: ## Runs unit tests on scorecard-attestor
 	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage.out `go list ./...`; cd ..;
@@ -312,6 +322,11 @@ unit-test-attestor: ## Runs unit tests on scorecard-attestor
 check-env:
 ifndef GITHUB_AUTH_TOKEN
 	$(error GITHUB_AUTH_TOKEN is undefined)
+endif
+
+check-env-gitlab:
+ifndef GITLAB_AUTH_TOKEN
+	$(error GITLAB_AUTH_TOKEN is undefined)
 endif
 
 e2e-pat: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
@@ -323,6 +338,18 @@ e2e-gh-token: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to
 e2e-gh-token: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN set to secrets.GITHUB_TOKEN must be used to run this.
 	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
+
+e2e-gitlab-token: ## Runs e2e tests that require a GITLAB_TOKEN
+e2e-gitlab-token: build-scorecard check-env-gitlab | $(GINKGO)
+	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv --focus '.*GitLab' ./...
+
+e2e-gitlab: ## Runs e2e tests for GitLab only. TOKEN_TYPE is not used (since these are public APIs), but must be set to something
+e2e-gitlab: build-scorecard | $(GINKGO)
+	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="PAT" $(GINKGO) --race -p -vv --focus ".*GitLab" ./...
+
+e2e-attestor: ## Runs e2e tests for scorecard-attestor
+	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..
+
 ###############################################################################
 
 ##@ TODO(#744)

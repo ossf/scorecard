@@ -1,4 +1,4 @@
-// Copyright 2021 Security Scorecard Authors
+// Copyright 2021 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,14 +37,13 @@ func (r *repoLocal) URI() string {
 	return fmt.Sprintf("file://%s", r.path)
 }
 
+func (r *repoLocal) Host() string {
+	return ""
+}
+
 // String implements Repo.String.
 func (r *repoLocal) String() string {
 	return r.URI()
-}
-
-// Org implements Repo.Org.
-func (r *repoLocal) Org() clients.Repo {
-	return nil
 }
 
 // IsValid implements Repo.IsValid.

@@ -1,4 +1,4 @@
-// Copyright 2022 Security Scorecard Authors
+// Copyright 2022 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/log"
+	rules "github.com/ossf/scorecard/v4/rule"
 )
 
 func TestDetailString(t *testing.T) {
@@ -121,8 +122,8 @@ func TestDetailString(t *testing.T) {
 				Msg: checker.LogMessage{
 					Text: "some meaningful text",
 					Path: "Dockerfile",
-					Remediation: &checker.Remediation{
-						HelpText: "fix x by doing y",
+					Remediation: &rules.Remediation{
+						Text: "fix x by doing y",
 					},
 				},
 				Type: checker.DetailWarn,
