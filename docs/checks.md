@@ -34,7 +34,7 @@ Problems with generated executable (binary) artifacts:
     the source repository (since the executable generation process is less
     likely to have atrophied).
 
-Allowed by Scorecards:
+Allowed by Scorecard:
 
   - Files in the source repository that are simultaneously reviewable source
     code and executables, since these are reviewable. (Some interpretive
@@ -105,7 +105,8 @@ Tier 1 Requirements (3/10 points):
   - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
-  - Required reviewers >=1 ​
+  - Required reviewers >=1
+  - For administrators: Last push review
   - For administrators: Strict status checks (require branches to be up-to-date before merging)
 
 Tier 3 Requirements (8/10 points):
@@ -129,7 +130,8 @@ Risk: `Low` (possible unknown vulnerabilities)
 
 This check tries to determine if the project runs tests before pull requests are
 merged. It is currently limited to repositories hosted on GitHub, and does not
-support other source hosting repositories (i.e., Forges).
+support other source hosting repositories (i.e., Forges). All commits that are
+part of a PR must be tested by a CI Test for the check to pass.
 
 Running tests helps developers catch mistakes early on, which can reduce the
 number of vulnerabilities that find their way into a project.
@@ -156,33 +158,21 @@ If a project's system was not detected and you think it should be, please
 
 Risk: `Low` (possibly not following security best practices)
 
-This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/),
-which indicates that the project uses a set of security-focused best development practices for open
+This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/) at the passing, silver, or gold level.
+The OpenSSF Best Practices badge indicates whether or not that the project uses a set of security-focused best development practices for open
 source software. The check uses the URL for the Git repo and the OpenSSF Best Practices badge API.
 
 The OpenSSF Best Practices badge has 3 tiers: passing, silver, and gold. We give
-full credit to projects that meet the [passing criteria](https://bestpractices.coreinfrastructure.org/criteria/0), which is a
-significant achievement for many projects. Lower scores represent a project that
-is at least working to achieve a badge, with increasingly more points awarded as
-more criteria are met.
+full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/2), which is a significant achievement for projects and requires multiple developers in the project.
+Lower scores represent a project that has met the silver criteria, met the passing criteria, or is working to achieve the passing badge, with increasingly more points awarded as more criteria are met. Note that even meeting the passing criteria is a significant achievement.
 
-To earn the passing badge, the project MUST:
+- [gold badge](https://bestpractices.coreinfrastructure.org/criteria/2): 10
+- [silver badge](https://bestpractices.coreinfrastructure.org/criteria/1): 7
+- [passing badge](https://bestpractices.coreinfrastructure.org/criteria/0): 5
+- in progress badge: 2
 
-  - publish the process for reporting vulnerabilities on the project site
-  - provide a working build system that can automatically rebuild the software
-    from source code (where applicable)
-  - have a general policy that tests will be added to an automated test suite
-    when major new functionality is added
-  - meet various cryptography criteria where applicable
-  - have at least one primary developer who knows how to design secure software
-  - have at least one primary developer who knows of common kinds of errors
-    that lead to vulnerabilities in this kind of software (and at least one
-    method to counter or mitigate each of them)
-  - apply at least one static code analysis tool (beyond compiler warnings and
-    "safe" language modes) to any proposed major production release.
-
-Some of these criteria overlap with other Scorecards checks.
- 
+Some of these criteria overlap with other Scorecard checks.
+However, note that in those overlapping cases, Scorecard can only report what it can automatically detect, while the OpenSSF Best Practices badge can report on claims and claim justifications from people (this counters false negatives and positives but has the challenge of requiring additional work from people).
 
 **Remediation steps**
 - Sign up for the [OpenSSF Best Practices program](https://bestpractices.coreinfrastructure.org/).
@@ -202,13 +192,19 @@ malicious code (either as a malicious contributor or as an attacker who has
 subverted a contributor's account), because a reviewer might detect the
 subversion.
 
-The check first tries to detect whether [Branch-Protection](checks.md#branch-protection) is enabled on the
-default branch with at least one required reviewer. If this fails, the check
-determines whether the most recent (~30) commits have a Github-approved review
+The check determines whether the most recent changes (over the last ~30 commits) have 
+an approval on GitHub
 or if the merger is different from the committer (implicit review). It also
 performs a similar check for reviews using
 [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels
 "lgtm" or "approved") and [Gerrit](https://www.gerritcodereview.com/) ("Reviewed-on" and "Reviewed-by").
+If recent changes are solely bot activity (e.g. Dependabot, Renovate bot, or custom bots),
+the check returns inconclusively.
+
+Scoring is leveled instead of proportional to make the check more predictable.
+If any bot-originated changes are unreviewed, 3 points are deducted. If any human
+changes are unreviewed, 7 points are deducted if a single change is unreviewed, and
+another 3 are deducted if multiple changes are unreviewed.
 
 Note: Requiring reviews for all changes is infeasible for some projects, such as
 those with only one active participant. Even a project with multiple active
@@ -292,9 +288,12 @@ The highest score is awarded when all workflows avoid the dangerous code pattern
 Risk: `High` (possibly vulnerable to attacks on known flaws)
 
 This check tries to determine if the project uses a dependency update tool,
-specifically [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or
-[renovatebot](https://docs.renovatebot.com/configuration-options/). Out-of-date
-dependencies make a project vulnerable to known flaws and prone to attacks.
+specifically one of:
+- [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
+- [Renovate bot](https://docs.renovatebot.com/configuration-options/)
+- [Sonatype Lift](https://help.sonatype.com/lift/getting-started)
+- [PyUp](https://docs.pyup.io/docs) (Python)
+Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
 These tools automate the process of updating dependencies by scanning for
 outdated or insecure requirements, and opening a pull request to update them if
 found.
@@ -310,8 +309,8 @@ low score is therefore not a definitive indication that the project is at risk.
  
 
 **Remediation steps**
-- Signup for automatic dependency updates with [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) or [renovatebot](https://docs.renovatebot.com/configuration-options/) and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
-- Unlike dependabot, renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
+- Signup for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
+- Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
 
 ## Fuzzing 
 
@@ -321,7 +320,8 @@ This check tries to determine if the project uses
 [fuzzing](https://owasp.org/www-community/Fuzzing) by checking:
 1. if the repository name is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list;
 2. if [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) is deployed in the repository;
-3. if there are user-defined language-specified fuzzing functions (currently only supports [Go fuzzing](https://go.dev/doc/fuzz/)) in the repository.
+3. if there are user-defined language-specified fuzzing functions in the repository.
+   - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/) and a limited set of property-based testing libraries for Haskell.
 4. if it contains a [OneFuzz](https://github.com/microsoft/onefuzz) integration [detection file](https://github.com/microsoft/onefuzz/blob/main/docs/getting-started.md#detecting-the-use-of-onefuzz);
 
 Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
@@ -343,25 +343,36 @@ is therefore not a definitive indication that the project is at risk.
 Risk: `Low` (possible impediment to security review)
 
 This check tries to determine if the project has published a license. It
-works by checking standard locations for a file named according to common
-conventions for licenses.
+works by using either hosting APIs or by checking standard locations
+for a file named according to common conventions for licenses.
 
 A license can give users information about how the source code may or may
 not be used. The lack of a license will impede any kind of security review
 or audit and creates a legal risk for potential users.
 
-This check will detect files in the top-level directory with any combination
-of the following names and extensions:`LICENSE`, `LICENCE`, `COPYING`,
-`COPYRIGHT` and .html, .txt, .md. It will also detect these files in a
-directory named `LICENSES`. (Files in a `LICENSES` directory are typically
-named as their [SPDX](https://spdx.org/licenses/) license identifier followed
-by an appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
+Scorecard uses the
+[GitHub License API](https://docs.github.com/en/rest/licenses#get-the-license-for-a-repository)
+for GitHub hosted projects. Otherwise, Scorecard uses its own heuristics to
+detect a published license file.
+
+On its own, this check will detect files in the top-level directory with
+any combination of the following names and extensions:`LICENSE`, `LICENCE`,
+`COPYING`, `COPYRIGHT` and having common extensions such as `.html`, `.txt`,
+or `.md`. It will also detect these files in a directory named `LICENSES`.
+(Files in a `LICENSES` directory are typically named as their
+[SPDX](https://spdx.org/licenses/) license identifier followed by an
+appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
+
+License Requirements:
+  - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename (6/10 points)
+  - The detected file is at the top-level directory (3/10 points)
+  - A [FSF or OSI](https://spdx.org/licenses/) license is specified (1/10 points)
  
 
 **Remediation steps**
-- Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to apply to your project.
-- Create the license in a .txt, .html, or .md file named LICENSE or COPYING, and place it in the top-level directory.
-- Alternately, create a `LICENSE` directory and add license files with a name that matches your [SPDX license identifier](https://spdx.dev/ids/).
+- Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to apply to your project. For GitHub hosted projects, follow those instructions to establish a license for your project.
+- For other hosting environments, create the license in a `.adoc`, `.asc`, `.docx`, `.doc`, `.ext`, `.html`, `.markdown`, `.md`, `.rst`, `.txt`, or `.xml`, named `LICENSE`, `COPYRIGHT`, or `COPYING`, and place it in the top-level directory. To identify a specific license, use an [SPDX license identifier](https://spdx.org/licenses/) in the filename. Examples include `LICENSE.md`, `Apache-2.0-LICENSE.md` or `LICENSE-Apache-2.0`.
+- Alternately, create a `LICENSE` directory and add a license file(s) with a name that matches your [SPDX license identifier](https://spdx.org/licenses/). such as `LICENSES/Apache-2.0.txt`.
 
 ## Maintained 
 
@@ -423,9 +434,9 @@ You can create a package in several ways:
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to package software, and it is
-challenging for an automated tool like Scorecards to detect them all. A low
+challenging for an automated tool like Scorecard to detect them all. A low
 score is therefore not a definitive indication that the project is at risk. If
-Scorecards fails to detect the way you publish a package and you think we should
+Scorecard fails to detect the way you publish a package and you think we should
 support your use case, please let us know by [opening an
 issue](https://github.com/ossf/scorecard/issues/new/choose).
  
@@ -438,13 +449,16 @@ issue](https://github.com/ossf/scorecard/issues/new/choose).
 
 Risk: `Medium` (possible compromised dependencies)
 
-This check tries to determine if the project pins its dependencies.
+This check tries to determine if the project pins dependencies used during its build and release process.
 A "pinned dependency" is a dependency that is explicitly set to a specific hash instead of
 allowing a mutable version or range of versions. It
 is currently limited to repositories hosted on GitHub, and does not support
 other source hosting repositories (i.e., Forges).
 
-The check works by looking for unpinned dependencies in Dockerfiles, shell scripts and GitHub workflows.
+The check works by looking for unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows
+which are used during the build and release process of a project.
+Special considerations for Go modules treat full semantic versions as pinned
+due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module.
 
 Pinned dependencies reduce several security risks:
 
@@ -464,7 +478,6 @@ However, pinning dependencies can inhibit software updates, either because of a
 security vulnerability or because the pinned version is compromised. Mitigate
 this risk by:
 
-  - [having applications and _not_ libraries pin to specific hashes](https://jbeckwith.com/2019/12/18/package-lock/);
   - using automated tools to notify applications when their dependencies are
     outdated;
   - quickly updating applications that do pin dependencies.
@@ -474,14 +487,11 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
  
 
 **Remediation steps**
-- First determine if your project is producing a library or application. If it is a library, you generally don't want to pin dependencies of library users, and should not follow any remediation steps.
-- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
-- If the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
-- For Dockerfiles, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
-- For GitHub workflows, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
-- To help update your dependencies after pinning them, use tools such as
- Github's [dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/)
-or [renovate bot](https://github.com/renovatebot/renovate).
+- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python, `packages.config` for nuget). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
+- If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
+- For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
+- For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
+- To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
 
 ## SAST 
 
@@ -497,10 +507,10 @@ tools can prevent known classes of bugs from being inadvertently introduced in t
 codebase.
 
 The checks currently looks for known Github apps such as
-[CodeQL](https://codeql.github.com/) (github-code-scanning),
-[LGTM](https://lgtm.com/) and
+[CodeQL](https://codeql.github.com/) (github-code-scanning) or
 [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-of "github/codeql-action" in a GitHub workflow.
+of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
+[LGTM](https://lgtm.com/) service until its forthcoming shutdown.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to implement SAST, and it is
@@ -522,11 +532,33 @@ well-known directories.
 A security policy (typically a `SECURITY.md` file) can give users information
 about what constitutes a vulnerability and how to report one securely so that
 information about a bug is not publicly visible.
+
+This check examines the contents of the security policy file awarding points
+for those policies that express vulnerability process(es), disclosure timelines,
+and have links (e.g., URL(s) and email(s)) to support the users.
+
+Linking Requirements (one or more) (6/10 points):
+  - A valid form of an email address to contact for vulnerabilities
+  - A valid form of a http/https address to support vulnerability reporting
+
+Free Form Text (3/10 points):
+  - Free form text is present in the security policy file which is beyond
+    simply having a http/https address and/or email in the file
+  - The string length of any such links in the policy file do not count
+    towards detecting free form text
+
+Security Policy Specific Text (1/10 points):
+  - Specific text providing basic or general information about vulnerability
+    and disclosure practices, expectations, and/or timelines
+  - Text should include a total of 2 or more hits which match (case insensitive)
+    `vuln` and as in "Vulnerability" or "vulnerabilities";
+    `disclos` as "Disclosure" or "disclose";
+    and numbers which convey expectations of times, e.g., 30 days or 90 days
  
 
 **Remediation steps**
 - Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.
-- The file should contain information on what constitutes a vulnerability and a way to report it securely (e.g. issue tracker with private issue support, encrypted email with a published public key). Follow the [coordinated vulnerability disclosure guidelines](https://github.com/ossf/oss-vulnerability-guide/blob/main/guide.md) to respond to vulnerability disclosures.
+- The file should contain information on what constitutes a vulnerability and a way to report it securely (e.g. issue tracker with private issue support, encrypted email with a published public key). Follow the [coordinated vulnerability disclosure guidelines](https://github.com/ossf/oss-vulnerability-guide/blob/main/maintainer-guide.md) to respond to vulnerability disclosures.
 - For GitHub, see more information [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository).
 
 ## Signed-Releases 
@@ -542,7 +574,7 @@ Signed releases attest to the provenance of the artifact.
 This check looks for the following filenames in the project's last five
 [release assets](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases):
 [*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),
-*.sig, *.sign, [*.intoto.jsonl](slsa.dev).
+*.sig, *.sign, [*.intoto.jsonl](https://slsa.dev).
 
 If a signature is found in the assets for each release, a score of 8 is given.
 If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
@@ -604,14 +636,16 @@ Additionally, points are reduced if certain write permissions are defined for a 
 
 Risk: `High`  (known vulnerabilities)
 
-This check determines whether the project has open, unfixed vulnerabilities
-using the [OSV (Open Source Vulnerabilities)](https://osv.dev/) service. An open
-vulnerability is readily exploited by attackers and should be fixed as soon as
+This check determines whether the project has open, unfixed vulnerabilities 
+in its own codebase or its dependencies using the [OSV (Open Source Vulnerabilities)](https://osv.dev/) service.
+An open vulnerability is readily exploited by attackers and should be fixed as soon as
 possible.
  
 
 **Remediation steps**
-- Fix the vulnerabilities. The details of each vulnerability can be found on <https://osv.dev>.
+- Fix the vulnerabilities in your own code base. The details of each vulnerability can be found on <https://osv.dev>.
+- If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
+- If you believe the vulnerability does not affect your project, the  vulnerability can be ignored.  To ignore, create an `osv-scanner.toml` file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of `osv-scanner.toml` can be found on  [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).
 
 ## Webhooks 
 
