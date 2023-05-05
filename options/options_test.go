@@ -27,7 +27,6 @@ func TestOptions_Validate(t *testing.T) {
 		Repo              string
 		Local             string
 		Commit            string
-		CommitDepth       int64
 		LogLevel          string
 		Format            string
 		NPM               string
@@ -95,7 +94,6 @@ func TestOptions_Validate(t *testing.T) {
 				Repo:              tt.fields.Repo,
 				Local:             tt.fields.Local,
 				Commit:            tt.fields.Commit,
-				CommitDepth:       tt.fields.CommitDepth,
 				LogLevel:          tt.fields.LogLevel,
 				Format:            tt.fields.Format,
 				NPM:               tt.fields.NPM,

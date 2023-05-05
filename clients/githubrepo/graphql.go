@@ -180,10 +180,6 @@ func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]cl
 }
 
 func (handler *graphqlHandler) setup() error {
-	// changes
-	var allCommits []commits
-
-	// end changes
 	handler.setupOnce.Do(func() {
 		commitExpression := handler.repourl.commitExpression()
 		vars := map[string]interface{}{
@@ -205,32 +201,6 @@ func (handler *graphqlHandler) setup() error {
 			handler.archived = bool(handler.data.Repository.IsArchived)
 			return
 		}
-		// changes
-		commitDepth := 112 // make static for testing
-		commitPages := (commitDepth / commitsToAnalyze) + 1
-		commitRemainder := commitDepth % commitsToAnalyze
-		for i := 0; i < commitPages; i++ {
-			if i == (commitPages - 1) {
-				vars["commitsToAnalyze"] = commitRemainder
-			}
-			err := handler.client.Query(handler.ctx, handler.data, vars)
-			if err != nil {
-				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
-				return
-			}
-			handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
-			if handler.errSetup != nil {
-				return
-			}
-			allCommits = append(allCommits, handler.commits)
-			vars["commitsCursor"] = githubv4.NewString(handler.data.Repository.Object.Commit.History.PageInfo.EndCursor)
-			if !handler.data.Repository.Object.Commit.History.PageInfo.HasNextPage {
-				break
-			}
-		}
-
-		//end changes
-
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return

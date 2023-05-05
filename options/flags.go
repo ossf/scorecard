@@ -33,9 +33,6 @@ const (
 	// FlagCommit is the flag name for specifying a commit.
 	FlagCommit = "commit"
 
-	// FlagCommitDepth is the flag name for specifying a commit depth.
-	FlagCommitDepth = "commit-depth"
-
 	// FlagLogLevel is the flag name for specifying the log level.
 	FlagLogLevel = "verbosity"
 
@@ -93,13 +90,6 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagCommit,
 		o.Commit,
 		"commit to analyze",
-	)
-
-	cmd.Flags().Int64Var(
-		&o.CommitDepth,
-		FlagCommitDepth,
-		o.CommitDepth,
-		"commit depth to analyze",
 	)
 
 	cmd.Flags().StringVar(
