@@ -34,11 +34,6 @@ const (
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
-<<<<<<< HEAD
-	commitsToAnalyze       = 120
-	commitsCursor          = ""
-=======
->>>>>>> main
 )
 
 //nolint:govet
@@ -101,16 +96,12 @@ type graphqlData struct {
 							}
 						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
 					}
-<<<<<<< HEAD
-				} `graphql:"history(first: $commitsToAnalyze, after: $commitsCursor)"`
-=======
 					PageInfo struct {
 						StartCursor githubv4.String
 						EndCursor   githubv4.String
 						HasNextPage bool
 					}
 				} `graphql:"history(first: $commitsToAnalyze, after: $historyCursor)"`
->>>>>>> main
 			} `graphql:"... on Commit"`
 		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
@@ -139,52 +130,6 @@ type graphqlData struct {
 	}
 }
 
-<<<<<<< HEAD
-//nolint:govet
-type checkRunsGraphqlData struct {
-	Repository struct {
-		Object struct {
-			Commit struct {
-				History struct {
-					Nodes []struct {
-						AssociatedPullRequests struct {
-							Nodes []struct {
-								HeadRefOid githubv4.String
-								Commits    struct {
-									Nodes []struct {
-										Commit struct {
-											CheckSuites struct {
-												Nodes []struct {
-													App struct {
-														Slug githubv4.String
-													}
-													Conclusion githubv4.CheckConclusionState
-													Status     githubv4.CheckStatusState
-												}
-											} `graphql:"checkSuites(first: $checksToAnalyze)"`
-										}
-									}
-								} `graphql:"commits(last:1)"`
-							}
-						} `graphql:"associatedPullRequests(first: $pullRequestsToAnalyze)"`
-					}
-					PageInfo struct {
-						EndCursor   githubv4.String
-						HasNextPage bool
-					}
-				} `graphql:"history(first: $commitsToAnalyze, after: $commitsCursor)"`
-			} `graphql:"... on Commit"`
-		} `graphql:"object(expression: $commitExpression)"`
-	} `graphql:"repository(owner: $owner, name: $name)"`
-	RateLimit struct {
-		Cost *int
-	}
-}
-
-type checkRunCache = map[string][]clients.CheckRun
-
-=======
->>>>>>> main
 type graphqlHandler struct {
 	client      *githubv4.Client
 	data        *graphqlData
@@ -249,12 +194,7 @@ func (handler *graphqlHandler) setup() error {
 			"issueCommentsToAnalyze": githubv4.Int(issueCommentsToAnalyze),
 			"reviewsToAnalyze":       githubv4.Int(reviewsToAnalyze),
 			"labelsToAnalyze":        githubv4.Int(labelsToAnalyze),
-<<<<<<< HEAD
-			"commitsToAnalyze":       githubv4.Int(commitsToAnalyze),
-			"commitsCursor":          (*githubv4.String)(nil), // Null after argument to get first page.
-=======
 			"commitsToAnalyze":       githubv4.Int(handler.commitDepth),
->>>>>>> main
 			"commitExpression":       githubv4.String(commitExpression),
 			"historyCursor":          (*githubv4.String)(nil),
 		}
@@ -302,35 +242,6 @@ func (handler *graphqlHandler) setup() error {
 	return handler.errSetup
 }
 
-<<<<<<< HEAD
-func (handler *graphqlHandler) setupCheckRuns() error {
-	handler.setupCheckRunsOnce.Do(func() {
-		commitExpression := handler.commitExpression()
-		vars := map[string]interface{}{
-			"owner":                 githubv4.String(handler.repourl.owner),
-			"name":                  githubv4.String(handler.repourl.repo),
-			"pullRequestsToAnalyze": githubv4.Int(pullRequestsToAnalyze),
-			"commitsToAnalyze":      githubv4.Int(commitsToAnalyze),
-			"commitsCursor":         (*githubv4.String)(nil), // Null after argument to get first page.
-			"commitExpression":      githubv4.String(commitExpression),
-			"checksToAnalyze":       githubv4.Int(checksToAnalyze),
-		}
-		if err := handler.client.Query(handler.ctx, handler.checkData, vars); err != nil {
-			// quit early without setting crsErrSetup for "Resource not accessible by integration" error
-			// for whatever reason, this check doesn't work with a GITHUB_TOKEN, only a PAT
-			if strings.Contains(err.Error(), "Resource not accessible by integration") {
-				return
-			}
-			handler.errSetupCheckRuns = err
-			return
-		}
-		handler.checkRuns = parseCheckRuns(handler.checkData)
-	})
-	return handler.errSetupCheckRuns
-}
-
-=======
->>>>>>> main
 func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
