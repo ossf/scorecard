@@ -130,8 +130,7 @@ Risk: `Low` (possible unknown vulnerabilities)
 
 This check tries to determine if the project runs tests before pull requests are
 merged. It is currently limited to repositories hosted on GitHub, and does not
-support other source hosting repositories (i.e., Forges). All commits that are
-part of a PR must be tested by a CI Test for the check to pass.
+support other source hosting repositories (i.e., Forges).
 
 Running tests helps developers catch mistakes early on, which can reduce the
 number of vulnerabilities that find their way into a project.
@@ -173,6 +172,7 @@ Lower scores represent a project that has met the silver criteria, met the passi
 
 Some of these criteria overlap with other Scorecard checks.
 However, note that in those overlapping cases, Scorecard can only report what it can automatically detect, while the OpenSSF Best Practices badge can report on claims and claim justifications from people (this counters false negatives and positives but has the challenge of requiring additional work from people).
+ 
 
 **Remediation steps**
 - Sign up for the [OpenSSF Best Practices program](https://bestpractices.coreinfrastructure.org/).
