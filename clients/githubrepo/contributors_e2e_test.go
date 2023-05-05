@@ -43,7 +43,7 @@ var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
 		}
 	})
 	Context("getContributors()", func() {
-		skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+		skipIfTokenIsNot(githubWorkflowDefaultTokenType, "GITHUB_TOKEN only")
 		It("returns contributors for valid HEAD query", func() {
 			repoURL := repoURL{
 				owner:     "ossf",
