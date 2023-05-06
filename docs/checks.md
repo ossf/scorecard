@@ -130,8 +130,7 @@ Risk: `Low` (possible unknown vulnerabilities)
 
 This check tries to determine if the project runs tests before pull requests are
 merged. It is currently limited to repositories hosted on GitHub, and does not
-support other source hosting repositories (i.e., Forges). All commits that are
-part of a PR must be tested by a CI Test for the check to pass.
+support other source hosting repositories (i.e., Forges).
 
 Running tests helps developers catch mistakes early on, which can reduce the
 number of vulnerabilities that find their way into a project.
@@ -173,6 +172,7 @@ Lower scores represent a project that has met the silver criteria, met the passi
 
 Some of these criteria overlap with other Scorecard checks.
 However, note that in those overlapping cases, Scorecard can only report what it can automatically detect, while the OpenSSF Best Practices badge can report on claims and claim justifications from people (this counters false negatives and positives but has the challenge of requiring additional work from people).
+ 
 
 **Remediation steps**
 - Sign up for the [OpenSSF Best Practices program](https://bestpractices.coreinfrastructure.org/).
@@ -198,7 +198,7 @@ or if the merger is different from the committer (implicit review). It also
 performs a similar check for reviews using
 [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels
 "lgtm" or "approved") and [Gerrit](https://www.gerritcodereview.com/) ("Reviewed-on" and "Reviewed-by").
-If recent changes are solely bot activity (e.g. dependabot, renovatebot, or custom bots),
+If recent changes are solely bot activity (e.g. Dependabot, Renovate bot, or custom bots),
 the check returns inconclusively.
 
 Scoring is leveled instead of proportional to make the check more predictable.
@@ -289,8 +289,8 @@ Risk: `High` (possibly vulnerable to attacks on known flaws)
 
 This check tries to determine if the project uses a dependency update tool,
 specifically one of:
-- [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
-- [renovatebot](https://docs.renovatebot.com/configuration-options/)
+- [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
+- [Renovate bot](https://docs.renovatebot.com/configuration-options/)
 - [Sonatype Lift](https://help.sonatype.com/lift/getting-started)
 - [PyUp](https://docs.pyup.io/docs) (Python)
 Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
@@ -310,7 +310,7 @@ low score is therefore not a definitive indication that the project is at risk.
 
 **Remediation steps**
 - Signup for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
-- Unlike dependabot, renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
+- Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
 
 ## Fuzzing 
 
