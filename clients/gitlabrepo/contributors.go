@@ -45,11 +45,30 @@ func (handler *contributorsHandler) setup() error {
 				clients.ErrUnsupportedFeature)
 			return
 		}
-		contribs, _, err := handler.glClient.Repositories.Contributors(
-			handler.repourl.project, &gitlab.ListContributorsOptions{})
-		if err != nil {
-			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
-			return
+
+		var contribs []*gitlab.Contributor
+		i := 1
+
+		for {
+			c, _, err := handler.glClient.Repositories.Contributors(
+				handler.repourl.project,
+				&gitlab.ListContributorsOptions{
+					ListOptions: gitlab.ListOptions{
+						Page:    i,
+						PerPage: 100,
+					},
+				},
+			)
+			if err != nil {
+				handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
+				return
+			}
+
+			if len(c) == 0 {
+				break
+			}
+			i++
+			contribs = append(contribs, c...)
 		}
 
 		for _, contrib := range contribs {
@@ -57,8 +76,6 @@ func (handler *contributorsHandler) setup() error {
 				continue
 			}
 
-			// In Gitlab users only have one registered organization which is the company they work for, this means that
-			// the organizations field will not be filled in and the companies field will be a singular value.
 			users, _, err := handler.glClient.Search.Users(contrib.Name, &gitlab.SearchOptions{})
 			if err != nil {
 				handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
@@ -72,12 +89,22 @@ func (handler *contributorsHandler) setup() error {
 				}
 			}
 
+			user := &gitlab.User{}
+
+			if len(users) == 0 {
+				user.ID = 0
+				user.Organization = ""
+				user.Bot = true
+			} else {
+				user = users[0]
+			}
+
 			contributor := clients.User{
 				Login:            contrib.Email,
-				Companies:        []string{users[0].Organization},
+				Companies:        []string{user.Organization},
 				NumContributions: contrib.Commits,
-				ID:               int64(users[0].ID),
-				IsBot:            users[0].Bot,
+				ID:               int64(user.ID),
+				IsBot:            user.Bot,
 			}
 			handler.contributors = append(handler.contributors, contributor)
 		}
