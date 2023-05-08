@@ -55,7 +55,7 @@ func Packaging(name string, dl checker.DetailLogger, r *checker.PackagingData) c
 	}
 
 	dl.Warn(&checker.LogMessage{
-		Text: "no GitHub publishing workflow detected",
+		Text: "no GitHub/GitLab publishing workflow detected",
 	})
 
 	return checker.CreateInconclusiveResult(name,
@@ -83,7 +83,7 @@ func createLogMessage(p checker.Package) (checker.LogMessage, error) {
 		return msg, sce.WithMessage(sce.ErrScorecardInternal, "no run data")
 	}
 
-	msg.Text = fmt.Sprintf("GitHub publishing workflow used in run %s", p.Runs[0].URL)
+	msg.Text = fmt.Sprintf("GitHub/GitLab publishing workflow used in run %s", p.Runs[0].URL)
 
 	return msg, nil
 }
