@@ -45,7 +45,7 @@ additional-params:
     # TODO(#859): Re-add Contributors after fixing inconsistencies.
     # TODO: Dependency-Update-Tool and SAST are search heavy
     # TODO: Vulnerabilities is slow on repos with lots of dependencies
-    blacklisted-checks: CI-Tests,Contributors,Dependency-Update-Tool,SAST,Vulnerabilities
+    blacklisted-checks: CI-Tests,Contributors,Dependency-Update-Tool
     cii-data-bucket-url: gs://ossf-scorecard-cii-data
     # Raw results.
     raw-bigquery-table: scorecard-rawdata

@@ -59,7 +59,7 @@ However, this is being discussed by the Scorecard Team ([#2302](https://github.c
 
 ### Dependency-Update-Tool: Why should I trust recommended updates are safe?
 
-Both dependabot and renovatebot won't update your dependencies immediately. They have some precautions to make sure a release is reasonable / won't break your build (see [dependabot compatibility documentation](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores)).
+Both Dependabot and Renovate bot won't update your dependencies immediately. They have some precautions to make sure a release is reasonable / won't break your build (see [Dependabot compatibility documentation](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores)).
 
 You can either configure the tools to only update your dependencies once a week or once a month. This way, if a malicious version is released, it's very likely that it'll be reported and removed before it even gets suggested to you. Besides, there's also the benefit that it gives you the chance to validate the new release before merging if you want to.
 
@@ -78,7 +78,7 @@ Scorecard can show the dependencies that are referred to in tests like Dockerfil
 ### Pinned-Dependencies: Can I use version pinning instead of hash pinning?
 Version pinning is a significant improvement over not pinning your dependencies. However, it still leaves your project vulnerable to tag-renaming attacks (where a dependency's tags are deleted and recreated to point to a malicious commit).
 
-The OpenSSF therefore recommends hash pinning instead of version pinning, along with the use of dependency update tools such as dependabot to keep your dependencies up-to-date.
+The OpenSSF therefore recommends hash pinning instead of version pinning, along with the use of dependency update tools such as Dependabot to keep your dependencies up-to-date.
 
 Please see the [Pinned-Dependencies check description](checks.md#pinned-dependencies) for a better understanding of the benefits of the Hash Pinning.
 
@@ -89,4 +89,3 @@ Currently, the main benefit of [signed releases](checks.md#signed-releases) is t
 However, there are already moves to make it even more relevant. For example, the OpenSSF is working on [implementing signature verification for NPM packages](https://github.blog/2022-08-08-new-request-for-comments-on-improving-npm-security-with-sigstore-is-now-open/) which would allow a consumer to automatically verify if the package they are downloading was generated through a reliable builder and if it is correctly signed.
 
 Signing releases already has some relevance and it will soon offer even more security benefits for both consumers and maintainers.
-
