@@ -80,7 +80,7 @@ func Test_createLogMessage(t *testing.T) {
 				},
 			},
 			want: checker.LogMessage{
-				Text: "GitHub publishing workflow used in run ",
+				Text: "GitHub/GitLab publishing workflow used in run ",
 				Path: "path",
 			},
 		},

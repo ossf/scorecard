@@ -22,6 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
+	"github.com/ossf/scorecard/v4/checks/raw/github"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 )
@@ -307,7 +308,7 @@ func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
 					},
 					LocationType: &permLoc,
 					Type:         checker.PermissionLevelUndeclared,
-					Msg:          stringPointer(fmt.Sprintf("no %s permission defined", permLoc)),
+					Msg:          github.StringPointer(fmt.Sprintf("no %s permission defined", permLoc)),
 					// TODO: Job
 				})
 
@@ -401,13 +402,13 @@ func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissi
 			uses.Value = strings.Split(uses.Value, "@")[0]
 			if allowlist[uses.Value] {
 				tokenPermissions.File.Offset = fileparser.GetLineNumber(uses.Pos)
-				tokenPermissions.Msg = stringPointer("allowed SARIF workflow detected")
+				tokenPermissions.Msg = github.StringPointer("allowed SARIF workflow detected")
 				pdata.results.TokenPermissions = append(pdata.results.TokenPermissions, tokenPermissions)
 				return true
 			}
 		}
 	}
-	tokenPermissions.Msg = stringPointer("not a SARIF workflow, or not an allowed one")
+	tokenPermissions.Msg = github.StringPointer("not a SARIF workflow, or not an allowed one")
 	pdata.results.TokenPermissions = append(pdata.results.TokenPermissions, tokenPermissions)
 	return false
 }
