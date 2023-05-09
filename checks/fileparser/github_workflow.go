@@ -565,15 +565,15 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			},
 			LogText: "candidate container publishing workflow using ko",
 		},
-    {
-      // Commonly JavaScript packages, but supports multiple ecosystems
-      Steps: []*JobMatcherStep{
-        {
-          Run: "npx.*semantic-release",
-        },
-      },
-      LogText: "candidate publishing workflow using semantic-release",
-    },
+		{
+			// Commonly JavaScript packages, but supports multiple ecosystems
+			Steps: []*JobMatcherStep{
+				{
+					Run: "npx.*semantic-release",
+				},
+			},
+			LogText: "candidate publishing workflow using semantic-release",
+		},
 	}
 
 	return AnyJobsMatch(workflow, jobMatchers, fp, "not a publishing workflow")

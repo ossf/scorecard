@@ -998,11 +998,11 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			filename: "../testdata/.github/workflows/github-workflow-packaging-cargo.yaml",
 			expected: true,
 		},
-    {
-      name: "semantic-release publish",
-      filename: "../testdata/.github/workflows/github-workflow-packaging-semantic-release.yaml",
-      expected: true,
-    },
+		{
+			name:     "semantic-release publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-semantic-release.yaml",
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
