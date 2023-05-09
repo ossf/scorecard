@@ -44,7 +44,7 @@ func (handler *commitsHandler) init(repourl *repoURL, commitDepth int) {
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
 		var commits []*gitlab.Commit
-		i := 0
+		i := 1
 
 		for {
 			c, _, err := handler.glClient.Commits.ListCommits(handler.repourl.project,
