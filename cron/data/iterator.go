@@ -86,9 +86,10 @@ func (reader *csvIterator) Next() (RepoFormat, error) {
 	}
 
 	repoURI := reader.next.Repo
-	// Sanity check valid GitHub URL.
+
+	// validate gitlab or github url
 	if _, err := gitlabrepo.MakeGitlabRepo(repoURI); err != nil {
-		if _, err := githubrepo.MakeGithubRepo(reader.next.Repo); err != nil {
+		if _, err := githubrepo.MakeGithubRepo(repoURI); err != nil {
 			return reader.next, fmt.Errorf("invalid URL, neither github nor gitlab: %w", err)
 		}
 	}

@@ -17,6 +17,7 @@
 package gitlabrepo
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -46,6 +47,9 @@ type repoURL struct {
 The following input format is not supported:
 	* https://gitlab.<companyDomain:string>.com/projects/<projectID:int>
 */
+
+var errInvalidGitlabRepoURL = errors.New("repo is not a gitlab repo")
+
 func (r *repoURL) parse(input string) error {
 	var t string
 	c := strings.Split(input, "/")
@@ -95,6 +99,10 @@ func (r *repoURL) String() string {
 func (r *repoURL) IsValid() error {
 	if strings.Contains(r.host, "gitlab.") {
 		return nil
+	}
+
+	if strings.EqualFold(r.host, "github.com") {
+		return fmt.Errorf("%w: %s", errInvalidGitlabRepoURL, r.host)
 	}
 
 	client, err := gitlab.NewClient("", gitlab.WithBaseURL(fmt.Sprintf("%s://%s", r.scheme, r.host)))
