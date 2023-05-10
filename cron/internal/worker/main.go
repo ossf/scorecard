@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/ossfuzz"
 	"github.com/ossf/scorecard/v4/cron/config"
 	"github.com/ossf/scorecard/v4/cron/data"
@@ -49,14 +50,40 @@ const (
 	rawResultsFile = "raw.json"
 )
 
-var ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
+var (
+	ignoreRuntimeErrors = flag.Bool("ignoreRuntimeErrors", false, "if set to true any runtime errors will be ignored")
+
+	// TODO, should probably be its own config/env var, as the checks we want to run
+	// per-platform will differ based on API cost/efficiency/implementation.
+	gitlabDisabledChecks = []string{
+		"Binary-Artifacts",
+		"Branch-Protection",
+		"CII-Best-Practices",
+		"CI-Tests",
+		"Code-Review",
+		"Contributors",
+		"Dangerous-Workflow",
+		"Dependency-Update-Tool",
+		"Fuzzing",
+		"License",
+		"Maintained",
+		"Packaging",
+		"Pinned-Dependencies",
+		"SAST",
+		// "Security-Policy",
+		"Signed-Releases",
+		"Token-Permissions",
+		"Vulnerabilities",
+	}
+)
 
 type ScorecardWorker struct {
 	ctx               context.Context
 	logger            *log.Logger
 	checkDocs         docs.Doc
 	exporter          monitoring.Exporter
-	repoClient        clients.RepoClient
+	githubClient      clients.RepoClient
+	gitlabClient      clients.RepoClient
 	ciiClient         clients.CIIBestPracticesClient
 	ossFuzzRepoClient clients.RepoClient
 	vulnsClient       clients.VulnerabilitiesClient
@@ -91,7 +118,10 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 
 	sw.ctx = context.Background()
 	sw.logger = log.NewLogger(log.InfoLevel)
-	sw.repoClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
+	sw.githubClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
+	if sw.gitlabClient, err = gitlabrepo.CreateGitlabDotComClient(sw.ctx); err != nil {
+		return nil, fmt.Errorf("gitlabrepo.CreateGitlabClient: %w", err)
+	}
 	sw.ciiClient = clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
 	if sw.ossFuzzRepoClient, err = ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL); err != nil {
 		return nil, fmt.Errorf("ossfuzz.CreateOSSFuzzClientEager: %w", err)
@@ -119,7 +149,7 @@ func (sw *ScorecardWorker) Close() {
 
 func (sw *ScorecardWorker) Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) error {
 	return processRequest(ctx, req, sw.blacklistedChecks, bucketURL, sw.rawBucketURL, sw.apiBucketURL,
-		sw.checkDocs, sw.repoClient, sw.ossFuzzRepoClient, sw.ciiClient, sw.vulnsClient, sw.logger)
+		sw.checkDocs, sw.githubClient, sw.gitlabClient, sw.ossFuzzRepoClient, sw.ciiClient, sw.vulnsClient, sw.logger)
 }
 
 func (sw *ScorecardWorker) PostProcess() {
@@ -131,11 +161,12 @@ func processRequest(ctx context.Context,
 	batchRequest *data.ScorecardBatchRequest,
 	blacklistedChecks []string, bucketURL, rawBucketURL, apiBucketURL string,
 	checkDocs docs.Doc,
-	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
+	githubClient, gitlabClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 	logger *log.Logger,
 ) error {
+	fmt.Println("reached")
 	filename := worker.ResultFilename(batchRequest)
 
 	var buffer2 bytes.Buffer
@@ -143,10 +174,14 @@ func processRequest(ctx context.Context,
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoReq := range batchRequest.GetRepos() {
 		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", *repoReq.Url))
-		repo, err := githubrepo.MakeGithubRepo(*repoReq.Url)
-		if err != nil {
+		var repo clients.Repo
+		var err error
+		repoClient := githubClient
+		if repo, err = gitlabrepo.MakeGitlabRepo(*repoReq.Url); err != nil {
+			repoClient = gitlabClient
+		} else if repo, err = githubrepo.MakeGithubRepo(*repoReq.Url); err != nil {
 			// TODO(log): Previously Warn. Consider logging an error here.
-			logger.Info(fmt.Sprintf("invalid GitHub URL: %v", err))
+			logger.Info(fmt.Sprintf("URL was neither valid GitLab nor GitHub: %v", err))
 			continue
 		}
 		repo.AppendMetadata(repoReq.Metadata...)
@@ -161,7 +196,16 @@ func processRequest(ctx context.Context,
 		if err != nil {
 			return fmt.Errorf("error during policy.GetEnabled: %w", err)
 		}
-		for _, check := range blacklistedChecks {
+
+		disabledChecks := blacklistedChecks
+		if _, err := gitlabrepo.MakeGitlabRepo(*repoReq.Url); err != nil {
+			disabledChecks = gitlabDisabledChecks
+			if _, err := githubrepo.MakeGithubRepo(*repoReq.Url); err != nil {
+				return fmt.Errorf("invalid URL, neither github nor gitlab: %w", err)
+			}
+		}
+
+		for _, check := range disabledChecks {
 			delete(checksToRun, check)
 		}
 

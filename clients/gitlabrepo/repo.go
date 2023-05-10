@@ -140,7 +140,7 @@ func MakeGitlabRepo(input string) (clients.Repo, error) {
 		return nil, fmt.Errorf("error during parse: %w", err)
 	}
 	if err := repo.IsValid(); err != nil {
-		return nil, fmt.Errorf("error n IsValid: %w", err)
+		return nil, fmt.Errorf("error in IsValid: %w", err)
 	}
 	return &repo, nil
 }

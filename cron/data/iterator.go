@@ -24,6 +24,7 @@ import (
 	"github.com/jszwec/csvutil"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 )
 
 // Iterator interface is used to iterate through list of input repos for the cron job.
@@ -83,9 +84,13 @@ func (reader *csvIterator) Next() (RepoFormat, error) {
 	if reader.err != nil {
 		return reader.next, fmt.Errorf("reader has error: %w", reader.err)
 	}
+
+	repoURI := reader.next.Repo
 	// Sanity check valid GitHub URL.
-	if _, err := githubrepo.MakeGithubRepo(reader.next.Repo); err != nil {
-		return reader.next, fmt.Errorf("invalid GitHub URL: %w", err)
+	if _, err := gitlabrepo.MakeGitlabRepo(repoURI); err != nil {
+		if _, err := githubrepo.MakeGithubRepo(reader.next.Repo); err != nil {
+			return reader.next, fmt.Errorf("invalid URL, neither github nor gitlab: %w", err)
+		}
 	}
 	return reader.next, nil
 }

@@ -55,3 +55,49 @@ func TestResultFilename(t *testing.T) {
 		})
 	}
 }
+
+func asptr(s string) *string {
+	return &s
+}
+
+func TestGitlabRepo(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name string
+		req  *data.ScorecardBatchRequest
+		want string
+	}{
+		{
+			name: "interleaved",
+			req: &data.ScorecardBatchRequest{
+				JobTime:  timestamppb.New(time.Date(1979, time.October, 12, 1, 2, 3, 0, time.UTC)),
+				ShardNum: asPointer(42),
+				Repos: []*data.Repo{
+					{
+						Url: asptr("github.com/ossf/scorecard"),
+					},
+				},
+			},
+			want: "1979.10.12/010203/shard-0000042",
+		},
+		{
+			name: "gitlab repos only in the request",
+			req: &data.ScorecardBatchRequest{
+				JobTime:  timestamppb.New(time.Date(1979, time.October, 12, 1, 2, 3, 0, time.UTC)),
+				ShardNum: asPointer(42),
+			},
+			want: "1979.10.12/010203/shard-0000042",
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+			got := ResultFilename(testcase.req)
+			if got != testcase.want {
+				t.Errorf("\nexpected: \n%s \ngot: \n%s", testcase.want, got)
+			}
+		})
+	}
+}
