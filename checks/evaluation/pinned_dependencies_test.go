@@ -208,7 +208,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "Validate various wanrings and info",
+			name: "Validate various warnings and info",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
