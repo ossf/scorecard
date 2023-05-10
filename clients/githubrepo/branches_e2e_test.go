@@ -34,7 +34,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 
 	Context("E2E TEST: Validate query cost", func() {
 		It("Should not have increased for HEAD query", func() {
-			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+			skipIfTokenIsNot(patTokenType, "PAT only")
 
 			repourl := &repoURL{
 				owner:     "ossf",
@@ -49,7 +49,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 		})
 
 		It("Should fail for non-HEAD query", func() {
-			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+			skipIfTokenIsNot(patTokenType, "PAT only")
 
 			repourl := &repoURL{
 				owner:     "ossf",
@@ -64,7 +64,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 
 	Context("E2E TEST: Get default branch", func() {
 		It("Should return the correct default branch", func() {
-			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+			skipIfTokenIsNot(patTokenType, "PAT only")
 
 			repourl := &repoURL{
 				owner:     "ossf",
@@ -72,13 +72,16 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 				commitSHA: clients.HeadSHA,
 			}
 			brancheshandler.init(context.Background(), repourl)
-			Expect(brancheshandler.getDefaultBranch()).ShouldNot(BeNil())
-			Expect(brancheshandler.getDefaultBranch()).Should(Equal("main"))
+
+			branchRef, err := brancheshandler.getDefaultBranch()
+			Expect(err).Should(BeNil())
+			Expect(branchRef).ShouldNot(BeNil())
+			Expect(*branchRef.Name).Should(Equal("main"))
 		})
 	})
 	Context("E2E TEST: getBranch", func() {
 		It("Should return a branch", func() {
-			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+			skipIfTokenIsNot(patTokenType, "PAT only")
 
 			repourl := &repoURL{
 				owner:     "ossf",
@@ -93,7 +96,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 		})
 
 		It("Should return an error for non-existent branch", func() {
-			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+			skipIfTokenIsNot(patTokenType, "PAT only")
 
 			repourl := &repoURL{
 				owner:     "ossf",
@@ -103,13 +106,13 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 			brancheshandler.init(context.Background(), repourl)
 
 			branchRef, err := brancheshandler.getBranch("non-existent-branch")
-			Expect(err).ShouldNot(BeNil())
+			Expect(err).Should(BeNil())
 			Expect(branchRef).Should(BeNil())
 		})
 	})
 	Context("E2E TEST: query branch", func() {
 		It("Should return a branch", func() {
-			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+			skipIfTokenIsNot(patTokenType, "PAT only")
 
 			repourl := &repoURL{
 				owner:     "ossf",
@@ -121,7 +124,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 		})
 
 		It("Should fail for non-HEAD query", func() {
-			skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
+			skipIfTokenIsNot(patTokenType, "PAT only")
 
 			repourl := &repoURL{
 				owner:     "ossf",
@@ -129,7 +132,10 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 				commitSHA: "de5224bbc56eceb7a25aece55d2d53bbc561ed2d",
 			}
 			brancheshandler.init(context.Background(), repourl)
-			Expect(brancheshandler.query("main")).Should(BeNil())
+			branchRef, err := brancheshandler.query("main")
+
+			Expect(err).ShouldNot(BeNil())
+			Expect(branchRef).Should(BeNil())
 		})
 	})
 })
