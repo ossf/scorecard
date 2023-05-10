@@ -180,7 +180,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			// project url is gitlab.com/bramw/baserow.
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/ossf-test/baserow")
 			Expect(err).Should(BeNil())
-			repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo)
+			repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
 			Expect(err).Should(BeNil())
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
@@ -211,7 +211,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			// project url is gitlab.com/bramw/baserow.
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/ossf-test/baserow")
 			Expect(err).Should(BeNil())
-			repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo)
+			repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
 			Expect(err).Should(BeNil())
 			// url to commit is https://gitlab.com/bramw/baserow/-/commit/28e6224b7d86f7b30bad6adb6b42f26a814c2f58
 			err = repoClient.InitRepo(repo, "28e6224b7d86f7b30bad6adb6b42f26a814c2f58", 0)

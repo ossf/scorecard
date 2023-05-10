@@ -229,24 +229,13 @@ func (client *Client) Close() error {
 	return nil
 }
 
-func CreateGitlabDotComClient(ctx context.Context) (clients.RepoClient, error) {
-	var err error
-	var gitlabComRepo clients.Repo
-	if gitlabComRepo, err = MakeGitlabRepo("https://gitlab.com/gitlab-org/gitlab"); err != nil {
-		return nil, fmt.Errorf("gitlabrepo.MakeGitlabRepo: %w", err)
-	}
-
+func CreateGitlabClient(ctx context.Context, host string) (clients.RepoClient, error) {
 	token := os.Getenv("GITLAB_AUTH_TOKEN")
-	return CreateGitlabClientWithToken(ctx, token, gitlabComRepo)
+	return CreateGitlabClientWithToken(ctx, token, host)
 }
 
-func CreateGitlabClient(ctx context.Context, repo clients.Repo) (clients.RepoClient, error) {
-	token := os.Getenv("GITLAB_AUTH_TOKEN")
-	return CreateGitlabClientWithToken(ctx, token, repo)
-}
-
-func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients.Repo) (clients.RepoClient, error) {
-	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.Host()))
+func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clients.RepoClient, error) {
+	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(host))
 	if err != nil {
 		return nil, fmt.Errorf("could not create gitlab client with error: %w", err)
 	}

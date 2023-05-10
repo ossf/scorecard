@@ -119,7 +119,8 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	sw.ctx = context.Background()
 	sw.logger = log.NewLogger(log.InfoLevel)
 	sw.githubClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
-	if sw.gitlabClient, err = gitlabrepo.CreateGitlabDotComClient(sw.ctx); err != nil {
+	// TODO(raghavkaul): Read GitLab auth token from environment
+	if sw.gitlabClient, err = gitlabrepo.CreateGitlabClient(sw.ctx, "gitlab.com"); err != nil {
 		return nil, fmt.Errorf("gitlabrepo.CreateGitlabClient: %w", err)
 	}
 	sw.ciiClient = clients.BlobCIIBestPracticesClient(ciiDataBucketURL)

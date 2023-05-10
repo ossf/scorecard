@@ -57,7 +57,6 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 	_, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL")
 	var repoClient clients.RepoClient
 
-	//nolint:nestif
 	if experimental {
 		repo, makeRepoError = glrepo.MakeGitlabRepo(repoURI)
 		if makeRepoError != nil {
@@ -70,7 +69,7 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 		}
 
 		var err error
-		repoClient, err = glrepo.CreateGitlabClient(ctx, repo)
+		repoClient, err = glrepo.CreateGitlabClientWithToken(ctx, os.Getenv("GITLAB_AUTH_TOKEN"), repo.Host())
 		if err != nil {
 			return repo,
 				nil,
@@ -79,7 +78,9 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 				nil,
 				fmt.Errorf("error creating gitlab client: %w", err)
 		}
-	} else {
+	}
+
+	if repo == nil {
 		repo, makeRepoError = ghrepo.MakeGithubRepo(repoURI)
 		if makeRepoError != nil {
 			return repo,
