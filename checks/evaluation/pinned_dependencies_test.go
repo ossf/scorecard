@@ -17,6 +17,8 @@ package evaluation
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/ossf/scorecard/v4/checker"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -206,6 +208,34 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
+			name: "Validate various wanrings and info",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeDockerfileContainerImage,
+				},
+				{
+					Location: &checker.File{},
+					Msg:      asPointer("debug message"),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         2,
+				NumberOfWarn:  3,
+				NumberOfInfo:  2,
+				NumberOfDebug: 1,
+			},
+		},
+		{
 			name: "unpinned npm install",
 			dependencies: []checker.Dependency{
 				{
@@ -383,6 +413,176 @@ func Test_maxScore(t *testing.T) {
 			t.Parallel()
 			if got := maxScore(tt.args.s1, tt.args.s2); got != tt.want {
 				t.Errorf("maxScore() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_generateOwnerToDisplay(t *testing.T) {
+	t.Parallel()
+	tests := []struct { //nolint:govet
+		name        string
+		gitHubOwned bool
+		want        string
+	}{
+		{
+			name:        "returns GitHub if gitHubOwned is true",
+			gitHubOwned: true,
+			want:        "GitHub-owned",
+		},
+		{
+			name:        "returns GitHub if gitHubOwned is false",
+			gitHubOwned: false,
+			want:        "third-party",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := generateOwnerToDisplay(tt.gitHubOwned); got != tt.want {
+				t.Errorf("generateOwnerToDisplay() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_addWorkflowPinnedResult(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		w        *worklowPinningResult
+		to       bool
+		isGitHub bool
+	}
+	tests := []struct { //nolint:govet
+		name string
+		want pinnedResult
+		args args
+	}{
+		{
+			name: "sets pinned to true if to is true",
+			args: args{
+				w:        &worklowPinningResult{},
+				to:       true,
+				isGitHub: true,
+			},
+			want: pinned,
+		},
+		{
+			name: "sets pinned to false if to is false",
+			args: args{
+				w:        &worklowPinningResult{},
+				to:       false,
+				isGitHub: true,
+			},
+			want: notPinned,
+		},
+		{
+			name: "sets pinned to undefined if to is false and isGitHub is false",
+			args: args{
+				w:        &worklowPinningResult{},
+				to:       false,
+				isGitHub: false,
+			},
+			want: pinnedUndefined,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			addWorkflowPinnedResult(tt.args.w, tt.args.to, tt.args.isGitHub)
+			if tt.args.w.gitHubOwned != tt.want {
+				t.Errorf("addWorkflowPinnedResult() = %v, want %v", tt.args.w.gitHubOwned, tt.want)
+			}
+		})
+	}
+}
+
+func TestGenerateText(t *testing.T) {
+	tests := []struct {
+		name         string
+		dependency   *checker.Dependency
+		expectedText string
+	}{
+		{
+			name: "GitHub action not pinned by hash",
+			dependency: &checker.Dependency{
+				Type: checker.DependencyUseTypeGHAction,
+				Location: &checker.File{
+					Snippet: "actions/checkout@v2",
+				},
+			},
+			expectedText: "GitHub-owned GitHubAction not pinned by hash",
+		},
+		{
+			name: "Third-party action not pinned by hash",
+			dependency: &checker.Dependency{
+				Type: checker.DependencyUseTypeGHAction,
+				Location: &checker.File{
+					Snippet: "third-party/action@v1",
+				},
+			},
+			expectedText: "third-party GitHubAction not pinned by hash",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := generateText(tc.dependency)
+			if !cmp.Equal(tc.expectedText, result) {
+				t.Errorf("generateText mismatch (-want +got):\n%s", cmp.Diff(tc.expectedText, result))
+			}
+		})
+	}
+}
+
+func TestUpdatePinningResults(t *testing.T) {
+	t.Parallel()
+	tests := []struct { //nolint:govet
+		name                  string
+		dependency            *checker.Dependency
+		expectedPinningResult *worklowPinningResult
+		expectedPinnedResult  map[checker.DependencyUseType]pinnedResult
+	}{
+		{
+			name: "GitHub Action - GitHub-owned",
+			dependency: &checker.Dependency{
+				Type: checker.DependencyUseTypeGHAction,
+				Location: &checker.File{
+					Snippet: "actions/checkout@v2",
+				},
+			},
+			expectedPinningResult: &worklowPinningResult{
+				thirdParties: 0,
+				gitHubOwned:  2,
+			},
+			expectedPinnedResult: map[checker.DependencyUseType]pinnedResult{},
+		},
+		{
+			name: "Third party owned.",
+			dependency: &checker.Dependency{
+				Type: checker.DependencyUseTypeGHAction,
+				Location: &checker.File{
+					Snippet: "other/checkout@v2",
+				},
+			},
+			expectedPinningResult: &worklowPinningResult{
+				thirdParties: 2,
+				gitHubOwned:  0,
+			},
+			expectedPinnedResult: map[checker.DependencyUseType]pinnedResult{},
+		},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			wp := &worklowPinningResult{}
+			pr := make(map[checker.DependencyUseType]pinnedResult)
+			updatePinningResults(tc.dependency, wp, pr)
+			if tc.expectedPinningResult.thirdParties != wp.thirdParties && tc.expectedPinningResult.gitHubOwned != wp.gitHubOwned { //nolint:lll
+				t.Errorf("updatePinningResults mismatch (-want +got):\n%s", cmp.Diff(tc.expectedPinningResult, wp))
 			}
 		})
 	}
