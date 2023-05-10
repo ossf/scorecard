@@ -177,8 +177,10 @@ func processRequest(ctx context.Context,
 		var repo clients.Repo
 		var err error
 		repoClient := githubClient
+		disabledChecks := blacklistedChecks
 		if repo, err = gitlabrepo.MakeGitlabRepo(*repoReq.Url); err != nil {
 			repoClient = gitlabClient
+			disabledChecks = gitlabDisabledChecks
 		} else if repo, err = githubrepo.MakeGithubRepo(*repoReq.Url); err != nil {
 			// TODO(log): Previously Warn. Consider logging an error here.
 			logger.Info(fmt.Sprintf("URL was neither valid GitLab nor GitHub: %v", err))
@@ -195,14 +197,6 @@ func processRequest(ctx context.Context,
 		checksToRun, err := policy.GetEnabled(nil /*policy*/, nil /*checks*/, requiredRequestType)
 		if err != nil {
 			return fmt.Errorf("error during policy.GetEnabled: %w", err)
-		}
-
-		disabledChecks := blacklistedChecks
-		if _, err := gitlabrepo.MakeGitlabRepo(*repoReq.Url); err != nil {
-			disabledChecks = gitlabDisabledChecks
-			if _, err := githubrepo.MakeGithubRepo(*repoReq.Url); err != nil {
-				return fmt.Errorf("invalid URL, neither github nor gitlab: %w", err)
-			}
 		}
 
 		for _, check := range disabledChecks {
