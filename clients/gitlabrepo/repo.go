@@ -38,6 +38,8 @@ type repoURL struct {
 	metadata      []string
 }
 
+var errInvalidGitlabRepoURL = errors.New("repo is not a gitlab repo")
+
 // Parses input string into repoURL struct
 /*
 *  Accepted input string formats are as follows:
@@ -47,9 +49,6 @@ type repoURL struct {
 The following input format is not supported:
 	* https://gitlab.<companyDomain:string>.com/projects/<projectID:int>
 */
-
-var errInvalidGitlabRepoURL = errors.New("repo is not a gitlab repo")
-
 func (r *repoURL) parse(input string) error {
 	var t string
 	c := strings.Split(input, "/")

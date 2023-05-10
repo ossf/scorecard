@@ -167,7 +167,6 @@ func processRequest(ctx context.Context,
 	vulnsClient clients.VulnerabilitiesClient,
 	logger *log.Logger,
 ) error {
-	fmt.Println("reached")
 	filename := worker.ResultFilename(batchRequest)
 
 	var buffer2 bytes.Buffer

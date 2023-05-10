@@ -119,7 +119,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 	}
 }
 
-func TestRepoURL_DetectGitlab(t *testing.T) {
+func TestRepoURL_MakeGitLabRepo(t *testing.T) {
 	tests := []struct {
 		repouri      string
 		expected     bool
