@@ -17,7 +17,10 @@ package checks
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/evaluation"
-	"github.com/ossf/scorecard/v4/checks/raw"
+	"github.com/ossf/scorecard/v4/checks/raw/github"
+	"github.com/ossf/scorecard/v4/checks/raw/gitlab"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -34,7 +37,18 @@ func init() {
 
 // Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.Packaging(c)
+	var rawData checker.PackagingData
+	var err error
+
+	switch v := c.RepoClient.(type) {
+	case *githubrepo.Client:
+		rawData, err = github.Packaging(c)
+	case *gitlabrepo.Client:
+		rawData, err = gitlab.Packaging(c)
+	default:
+		_ = v
+	}
+
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)

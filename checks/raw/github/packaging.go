@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package raw
+package github
 
 import (
 	"fmt"
@@ -100,7 +100,7 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 		data.Packages = append(data.Packages,
 			checker.Package{
 				// Debug message.
-				Msg: stringPointer(fmt.Sprintf("GitHub publishing workflow not used in runs: %v", fp)),
+				Msg: StringPointer(fmt.Sprintf("GitHub publishing workflow not used in runs: %v", fp)),
 				File: &checker.File{
 					Path:   fp,
 					Type:   finding.FileTypeSource,
@@ -115,6 +115,6 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 	return data, nil
 }
 
-func stringPointer(s string) *string {
+func StringPointer(s string) *string {
 	return &s
 }

@@ -1,17 +1,16 @@
+id: metadata-variables
 short: short description
-desc: description
 motivation: >
   line1
   line2
 implementation: >
   line1
   line2
-risk: High
 remediation:
   effort: Low
   text:
     - step1
-    - step2 google.com/${{ repo }}@${{ branch }}
+    - step2 google.com/${{ metadata.repo }}@${{ metadata.branch }}
   markdown:
     - step1
-    - step2 [google.com/${{ repo }}@${{ branch }}](google.com/${{ repo }}@${{ branch }})
+    - step2 [google.com/${{ metadata.repo }}@${{ metadata.branch }}](google.com/${{ metadata.repo }}@${{ metadata.branch }})
