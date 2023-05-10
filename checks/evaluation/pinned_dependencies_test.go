@@ -208,7 +208,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "various wanrings and info",
+			name: "Validate various wanrings and info",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
@@ -527,7 +527,7 @@ func TestUpdatePinningResults(t *testing.T) {
 			expectedPinnedResult: map[checker.DependencyUseType]pinnedResult{},
 		},
 		{
-			name: "GitHub Action - GitHub-owned",
+			name: "Third party owned.",
 			dependency: &checker.Dependency{
 				Type: checker.DependencyUseTypeGHAction,
 				Location: &checker.File{
