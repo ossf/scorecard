@@ -319,8 +319,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  2,  // This is constant.
-				NumberOfDebug: 8,  // This is 4 + (number of actions)
+				NumberOfInfo:  2, // This is constant.
+				NumberOfDebug: 8, // This is 4 + (number of actions)
 			},
 		},
 		{
@@ -488,7 +488,7 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 						logMessage.Finding.Location != nil &&
 						logMessage.Finding.Location.LineStart != nil &&
 						*logMessage.Finding.Location.LineStart == expectedLog.lineNumber &&
-						logMessage.Finding.Location.Value == p &&
+						logMessage.Finding.Location.Path == p &&
 						logType == checker.DetailWarn
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {

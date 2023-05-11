@@ -262,7 +262,7 @@ var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(
 	for _, job := range workflow.Jobs {
 		for _, step := range job.Steps {
 			e, ok := step.Exec.(*actionlint.ExecAction)
-			if !ok {
+			if !ok || e == nil || e.Uses == nil {
 				continue
 			}
 			// Parse out repo / SHA.
