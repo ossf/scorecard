@@ -70,6 +70,8 @@ spec:
                   value: "gs://ossf-scorecard-rawdata-releasetest"
                 - name: SCORECARD_SHARD_SIZE
                   value: "5"
+                - name: "SCORECARD_EXPERIMENTAL"
+                  value: "true"
               resources:
                 limits:
                   memory: 1Gi
