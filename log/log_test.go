@@ -15,15 +15,10 @@ package log
 
 import (
 	"testing"
-
-	"github.com/sirupsen/logrus"
 )
 
 func TestNewLogger(t *testing.T) {
 	t.Parallel()
-
-	logrusLog := logrus.New()
-	logrusLog.SetLevel(logrus.TraceLevel)
 
 	tests := []struct {
 		name     string
@@ -48,7 +43,9 @@ func TestNewLogger(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			logger := NewLogger(tt.logLevel)
 			if logger == nil {
 				t.Errorf("NewLogger() returned nil")
@@ -106,7 +103,9 @@ func TestParseLevel(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			level := ParseLevel(tt.levelStr)
 			if level != tt.expectedLevel {
 				t.Errorf("ParseLevel(%s) = %v, expected %v", tt.levelStr, level, tt.expectedLevel)
