@@ -21,11 +21,8 @@ on:
     branches:
       - main
 
-
 jobs:
   gitlab-integration-trusted:
-    env:
-      GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
     runs-on: ubuntu-latest
     environment: gitlab
     steps:
@@ -50,8 +47,10 @@ jobs:
             go mod download
 
       - name: Run GitLab PAT E2E  # skip if auth token is not available
-        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        env:
+          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         with:
           max_attempts: 3
           retry_on: error
