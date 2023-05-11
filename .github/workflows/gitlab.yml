@@ -21,6 +21,9 @@ on:
     branches:
       - main
 
+env:
+    GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+
 jobs:
   gitlab-integration-trusted:
     runs-on: ubuntu-latest
@@ -46,10 +49,9 @@ jobs:
         run: |
             go mod download
 
-      - name: Run GitLab PAT E2E  #using retry because the GitHub token is being throttled.
+      - name: Run GitLab PAT E2E  # skip if auth token is not available
+        if: ${{ env.GITLAB_AUTH_TOKEN != '' }}
         uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
-        env:
-          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         with:
           max_attempts: 3
           retry_on: error
