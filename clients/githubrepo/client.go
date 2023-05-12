@@ -20,6 +20,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/google/go-github/v38/github"
@@ -126,7 +128,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 // URI implements RepoClient.URI.
 func (client *Client) URI() string {
-	return fmt.Sprintf("github.com/%s/%s", client.repourl.owner, client.repourl.repo)
+	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.repo)
 }
 
 // LocalPath implements RepoClient.LocalPath.
@@ -259,8 +261,26 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 	httpClient := &http.Client{
 		Transport: rt,
 	}
-	client := github.NewClient(httpClient)
-	graphClient := githubv4.NewClient(httpClient)
+
+	var client *github.Client
+	var graphClient *githubv4.Client
+	githubHost, isGhHost := os.LookupEnv("GH_HOST")
+
+	if isGhHost && githubHost != "github.com" {
+		githubRestUrl := fmt.Sprintf("https://%s/api/v3", strings.TrimSpace(githubHost))
+		githubGraphqlUrl := fmt.Sprintf("https://%s/api/graphql", strings.TrimSpace(githubHost))
+
+		var err error
+		client, err = github.NewEnterpriseClient(githubRestUrl, githubRestUrl, httpClient)
+		if err != nil {
+			panic(fmt.Errorf("Error during CreateGithubRepoClientWithTransport:EnterpriseClient: %v", err))
+		}
+
+		graphClient = githubv4.NewEnterpriseClient(githubGraphqlUrl, httpClient)
+	} else {
+		client = github.NewClient(httpClient)
+		graphClient = githubv4.NewClient(httpClient)
+	}
 
 	return &Client{
 		ctx:        ctx,

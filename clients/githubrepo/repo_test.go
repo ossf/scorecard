@@ -15,6 +15,7 @@
 package githubrepo
 
 import (
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -49,6 +50,16 @@ func TestRepoURL_IsValid(t *testing.T) {
 			wantErr:  false,
 		},
 		{
+			name: "Enterprise github repository",
+			expected: repoURL{
+				host:  "github.corp.com",
+				owner: "corpfoo",
+				repo:  "kubeflow",
+			},
+			inputURL: "https://github.corp.com/corpfoo/kubeflow",
+			wantErr:  false,
+		},
+		{
 			name: "Non github repository",
 			expected: repoURL{
 				host:  "gitlab.com",
@@ -69,6 +80,16 @@ func TestRepoURL_IsValid(t *testing.T) {
 			wantErr:  false,
 		},
 		{
+			name: "Enterprise github repository with host",
+			expected: repoURL{
+				host:  "github.corp.com",
+				owner: "corpfoo",
+				repo:  "kubeflow",
+			},
+			inputURL: "corpfoo/kubeflow",
+			wantErr:  false,
+		},
+		{
 			name: "github repository",
 			expected: repoURL{
 				host:  "github.com",
@@ -83,6 +104,9 @@ func TestRepoURL_IsValid(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			if tt.name == "Enterprise github repository with host" || tt.name == "Enterprise github repository" {
+				os.Setenv("GH_HOST", "github.corp.com")
+			}
 			r := repoURL{
 				host:  tt.expected.host,
 				owner: tt.expected.owner,
@@ -97,7 +121,6 @@ func TestRepoURL_IsValid(t *testing.T) {
 			if !tt.wantErr && !cmp.Equal(tt.expected, r, cmp.AllowUnexported(repoURL{})) {
 				t.Errorf("Got diff: %s", cmp.Diff(tt.expected, r))
 			}
-
 			if !cmp.Equal(r.Host(), tt.expected.host) {
 				t.Errorf("%s expected host: %s got host %s", tt.inputURL, tt.expected.host, r.Host())
 			}

@@ -39,6 +39,7 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 		shouldCIIBeNil        bool
 		wantErr               bool
 		experimental          bool
+		isGhHost              bool
 	}{
 		{
 			name: "localURI is not empty",
@@ -65,6 +66,33 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			shouldVulnClientBeNil: false,
 			shouldRepoBeNil:       true,
 			wantErr:               true,
+		},
+		{
+			name: "repoURI is github.com",
+			args: args{
+				ctx:      context.Background(),
+				repoURI:  "github.com/ossf/scorecard",
+				localURI: "",
+			},
+			shouldOSSFuzzBeNil:    false,
+			shouldRepoClientBeNil: false,
+			shouldVulnClientBeNil: false,
+			shouldRepoBeNil:       false,
+			wantErr:               false,
+		},
+		{
+			name: "repoURI is corp github host",
+			args: args{
+				ctx:      context.Background(),
+				repoURI:  "https://github.corp.com/ossf/scorecard",
+				localURI: "",
+			},
+			shouldOSSFuzzBeNil:    false,
+			shouldRepoClientBeNil: false,
+			shouldVulnClientBeNil: false,
+			shouldRepoBeNil:       false,
+			wantErr:               false,
+			isGhHost:              true,
 		},
 		{
 			name: "repoURI is gitlab which is not supported",
@@ -101,6 +129,9 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.experimental {
 				t.Setenv("SCORECARD_EXPERIMENTAL", "true")
+			}
+			if tt.isGhHost {
+				t.Setenv("GH_HOST", "github.corp.com")
 			}
 			got, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := GetClients(tt.args.ctx, tt.args.repoURI, tt.args.localURI, tt.args.logger) //nolint:lll
 			if (err != nil) != tt.wantErr {
