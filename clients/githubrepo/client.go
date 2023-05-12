@@ -267,16 +267,16 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 	githubHost, isGhHost := os.LookupEnv("GH_HOST")
 
 	if isGhHost && githubHost != "github.com" {
-		githubRestUrl := fmt.Sprintf("https://%s/api/v3", strings.TrimSpace(githubHost))
-		githubGraphqlUrl := fmt.Sprintf("https://%s/api/graphql", strings.TrimSpace(githubHost))
+		githubRestURL := fmt.Sprintf("https://%s/api/v3", strings.TrimSpace(githubHost))
+		githubGraphqlURL := fmt.Sprintf("https://%s/api/graphql", strings.TrimSpace(githubHost))
 
 		var err error
-		client, err = github.NewEnterpriseClient(githubRestUrl, githubRestUrl, httpClient)
+		client, err = github.NewEnterpriseClient(githubRestURL, githubRestURL, httpClient)
 		if err != nil {
-			panic(fmt.Errorf("Error during CreateGithubRepoClientWithTransport:EnterpriseClient: %v", err))
+			panic(fmt.Errorf("error during CreateGithubRepoClientWithTransport:EnterpriseClient: %w", err))
 		}
 
-		graphClient = githubv4.NewEnterpriseClient(githubGraphqlUrl, httpClient)
+		graphClient = githubv4.NewEnterpriseClient(githubGraphqlURL, httpClient)
 	} else {
 		client = github.NewClient(httpClient)
 		graphClient = githubv4.NewClient(httpClient)
