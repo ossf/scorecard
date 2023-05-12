@@ -470,6 +470,15 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permis
 			LogText: "candidate python publishing workflow using python-semantic-release",
 		},
 		{
+			// Commonly JavaScript packages, but supports multiple ecosystems
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Run: "npx.*semantic-release",
+				},
+			},
+			LogText: "candidate publishing workflow using semantic-release",
+		},
+		{
 			// Go binaries.
 			Steps: []*fileparser.JobMatcherStep{
 				{
