@@ -44,11 +44,10 @@ func (r *repoURL) parse(input string) error {
 	// By default it will use github.com
 	case l == two:
 		githubHost, isGhHost := os.LookupEnv("GH_HOST")
-		if isGhHost {
-			t = githubHost + "/" + c[0] + "/" + c[1]
-		} else {
-			t = "github.com/" + c[0] + "/" + c[1]
+		if !isGhHost {
+			githubHost = "github.com"
 		}
+		t = githubHost + "/" + c[0] + "/" + c[1]
 	case l >= three:
 		t = input
 	}

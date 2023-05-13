@@ -128,7 +128,11 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 // URI implements RepoClient.URI.
 func (client *Client) URI() string {
-	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.repo)
+	host, isHost := os.LookupEnv("GH_HOST")
+	if !isHost {
+		host = "github.com"
+	}
+	return fmt.Sprintf("%s/%s/%s", host, client.repourl.owner, client.repourl.repo)
 }
 
 // LocalPath implements RepoClient.LocalPath.
