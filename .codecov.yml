@@ -8,7 +8,16 @@ ignore:
   - "*.pb.go"
   - "cron/**/*"
   - "clients/mockclients/**/*"
-  - "attestor/command/**/*"
+  # ignoring them as these are part of the CLI tool.
+  - "attestor/command/check.go"
+  - "attestor/command/cli.go"
+  - "attestor/command/sign.go"
+  - "attestor/root.go"
+  # ignoring them as these are internal tools for generating docs.
+  - "docs"
+  # this is the runner
+  - "main.go"
+
 coverage:
   precision: 2
   round: down
