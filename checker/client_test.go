@@ -68,33 +68,6 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			wantErr:               true,
 		},
 		{
-			name: "repoURI is github.com",
-			args: args{
-				ctx:      context.Background(),
-				repoURI:  "github.com/ossf/scorecard",
-				localURI: "",
-			},
-			shouldOSSFuzzBeNil:    false,
-			shouldRepoClientBeNil: false,
-			shouldVulnClientBeNil: false,
-			shouldRepoBeNil:       false,
-			wantErr:               false,
-		},
-		{
-			name: "repoURI is corp github host",
-			args: args{
-				ctx:      context.Background(),
-				repoURI:  "https://github.corp.com/ossf/scorecard",
-				localURI: "",
-			},
-			shouldOSSFuzzBeNil:    false,
-			shouldRepoClientBeNil: false,
-			shouldVulnClientBeNil: false,
-			shouldRepoBeNil:       false,
-			wantErr:               false,
-			isGhHost:              true,
-		},
-		{
 			name: "repoURI is gitlab which is not supported",
 			args: args{
 				ctx:      context.Background(),
@@ -121,6 +94,20 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			shouldCIIBeNil:        false,
 			wantErr:               false,
 			experimental:          true,
+		},
+		{
+			name: "repoURI is corp github host",
+			args: args{
+				ctx:      context.Background(),
+				repoURI:  "https://github.corp.com/ossf/scorecard",
+				localURI: "",
+			},
+			shouldOSSFuzzBeNil:    false,
+			shouldRepoClientBeNil: false,
+			shouldVulnClientBeNil: false,
+			shouldRepoBeNil:       false,
+			wantErr:               false,
+			isGhHost:              true,
 		},
 	}
 

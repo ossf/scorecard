@@ -21,13 +21,15 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+// nolint:paralleltest
+// because we are using t.Setenv.
 func TestRepoURL_IsValid(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name     string
 		inputURL string
 		expected repoURL
 		wantErr  bool
+		ghHost   bool
 	}{
 		{
 			name: "Valid http address",
@@ -47,16 +49,6 @@ func TestRepoURL_IsValid(t *testing.T) {
 				repo:  "kubeflow",
 			},
 			inputURL: "https://github.com/foo/kubeflow/",
-			wantErr:  false,
-		},
-		{
-			name: "Enterprise github repository",
-			expected: repoURL{
-				host:  "github.corp.com",
-				owner: "corpfoo",
-				repo:  "kubeflow",
-			},
-			inputURL: "https://github.corp.com/corpfoo/kubeflow",
 			wantErr:  false,
 		},
 		{
@@ -89,14 +81,25 @@ func TestRepoURL_IsValid(t *testing.T) {
 			inputURL: "https://github.com/foo/kubeflow",
 			wantErr:  false,
 		},
+		{
+			name: "Enterprise github repository with host",
+			expected: repoURL{
+				host:  "github.corp.com",
+				owner: "corpfoo",
+				repo:  "kubeflow",
+			},
+			inputURL: "https://github.corp.com/corpfoo/kubeflow",
+			wantErr:  false,
+			ghHost:   true,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			if tt.name == "Enterprise github repository" {
+			if tt.ghHost {
 				os.Setenv("GH_HOST", "github.corp.com")
 			}
+
 			r := repoURL{
 				host:  tt.expected.host,
 				owner: tt.expected.owner,
