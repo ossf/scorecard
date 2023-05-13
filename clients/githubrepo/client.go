@@ -61,6 +61,8 @@ type Client struct {
 	commitDepth   int
 }
 
+const defaultGhHost = "github.com"
+
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
 func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	ghRepo, ok := inputRepo.(*repoURL)
@@ -130,7 +132,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 func (client *Client) URI() string {
 	host, isHost := os.LookupEnv("GH_HOST")
 	if !isHost {
-		host = "github.com"
+		host = defaultGhHost
 	}
 	return fmt.Sprintf("%s/%s/%s", host, client.repourl.owner, client.repourl.repo)
 }
@@ -270,7 +272,7 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 	var graphClient *githubv4.Client
 	githubHost, isGhHost := os.LookupEnv("GH_HOST")
 
-	if isGhHost && githubHost != "github.com" {
+	if isGhHost && githubHost != defaultGhHost {
 		githubRestURL := fmt.Sprintf("https://%s/api/v3", strings.TrimSpace(githubHost))
 		githubGraphqlURL := fmt.Sprintf("https://%s/api/graphql", strings.TrimSpace(githubHost))
 
