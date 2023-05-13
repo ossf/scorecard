@@ -1,4 +1,3 @@
----
 codecov:
   notify:
     after_n_builds: 1
@@ -8,6 +7,7 @@ ignore:
   - "cron/**/*"
   - "clients/mockclients/**/*"
   - "attestor/command/**/*"
+
 coverage:
   precision: 2
   round: down
@@ -17,7 +17,7 @@ coverage:
     project:
       default:
         enabled: true
-        # allowed to drop coverage and still result in a "success" commit status
+        target: 95%   # Fail the PR if the coverage falls below 95%
         threshold: null
         if_not_found: success
         if_no_uploads: success
@@ -35,5 +35,6 @@ comment:
   layout: "header, diff"
   behavior: default
   require_changes: false
+
 github_checks:
   annotations: true
