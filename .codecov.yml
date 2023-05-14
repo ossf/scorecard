@@ -5,6 +5,7 @@ codecov:
     require_ci_to_pass: yes
 
 ignore:
+  - "policy/policy.pb.go"
   - "cron/**/*"
   - "clients/mockclients/**/*"
   - "attestor/command/**/*"
