@@ -277,13 +277,13 @@ checks:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
     repos: GitHub
-    short: Determines if the project requires code review before pull requests (aka merge requests) are merged.
+    short: Determines if the project requires human code review before pull requests (aka merge requests) are merged.
     description: |
       Risk: `High` (unintentional vulnerabilities or possible injection of malicious
       code)
 
-      This check determines whether the project requires code review before pull
-      requests (merge requests) are merged.
+      This check determines whether the project requires human code review
+      before pull requests (merge requests) are merged.
 
       Reviews detect various unintentional problems, including vulnerabilities that
       can be fixed immediately before they are merged, which improves the quality of
@@ -305,6 +305,15 @@ checks:
       If any bot-originated changes are unreviewed, 3 points are deducted. If any human
       changes are unreviewed, 7 points are deducted if a single change is unreviewed, and
       another 3 are deducted if multiple changes are unreviewed.
+
+      Review by bots, including bots powered by
+      artificial intelligence / machine learning (AI/ML),
+      do not count as code review.
+      Such reviews do not provide confidence that there will
+      be a second person who understands the
+      code change (e.g., if the originator suddenly becomes unavailable).
+      However, analysis by bots
+      may be able to meet (at least in part) the [SAST](#sast) criterion.
 
       Note: Requiring reviews for all changes is infeasible for some projects, such as
       those with only one active participant. Even a project with multiple active
