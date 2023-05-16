@@ -118,42 +118,42 @@ func (handler *commitsHandler) setup() error {
 					Message:       commit.Message,
 					SHA:           commit.ID,
 				})
-			}
+			} else {
+				// Casting the Reviewers into clients.Review.
+				var reviews []clients.Review
+				for _, reviewer := range mergeRequest.Reviewers {
+					reviews = append(reviews, clients.Review{
+						Author: &clients.User{ID: int64(reviewer.ID)},
+						State:  "",
+					})
+				}
 
-			// Casting the Reviewers into clients.Review.
-			var reviews []clients.Review
-			for _, reviewer := range mergeRequest.Reviewers {
-				reviews = append(reviews, clients.Review{
-					Author: &clients.User{ID: int64(reviewer.ID)},
-					State:  "",
-				})
-			}
+				// Casting the Labels into []clients.Label.
+				var labels []clients.Label
+				for _, label := range mergeRequest.Labels {
+					labels = append(labels, clients.Label{
+						Name: label,
+					})
+				}
 
-			// Casting the Labels into []clients.Label.
-			var labels []clients.Label
-			for _, label := range mergeRequest.Labels {
-				labels = append(labels, clients.Label{
-					Name: label,
-				})
+				// append the commits to the handler.
+				handler.commits = append(handler.commits,
+					clients.Commit{
+						CommittedDate: *commit.CommittedDate,
+						Message:       commit.Message,
+						SHA:           commit.ID,
+						AssociatedMergeRequest: clients.PullRequest{
+							Number:   mergeRequest.ID,
+							MergedAt: *mergeRequest.MergedAt,
+							HeadSHA:  mergeRequest.SHA,
+							Author:   clients.User{ID: int64(mergeRequest.Author.ID)},
+							Labels:   labels,
+							Reviews:  reviews,
+							MergedBy: clients.User{ID: int64(mergeRequest.MergedBy.ID)},
+						},
+						Committer: clients.User{ID: int64(user.ID)},
+					})
 			}
-
-			// append the commits to the handler.
-			handler.commits = append(handler.commits,
-				clients.Commit{
-					CommittedDate: *commit.CommittedDate,
-					Message:       commit.Message,
-					SHA:           commit.ID,
-					AssociatedMergeRequest: clients.PullRequest{
-						Number:   mergeRequest.ID,
-						MergedAt: *mergeRequest.MergedAt,
-						HeadSHA:  mergeRequest.SHA,
-						Author:   clients.User{ID: int64(mergeRequest.Author.ID)},
-						Labels:   labels,
-						Reviews:  reviews,
-						MergedBy: clients.User{ID: int64(mergeRequest.MergedBy.ID)},
-					},
-					Committer: clients.User{ID: int64(user.ID)},
-				})
 		}
 	})
 
