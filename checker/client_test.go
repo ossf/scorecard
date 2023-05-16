@@ -106,6 +106,7 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			shouldRepoClientBeNil: false,
 			shouldVulnClientBeNil: false,
 			shouldRepoBeNil:       false,
+			shouldCIIBeNil:        false,
 			wantErr:               false,
 			isGhHost:              true,
 		},
@@ -119,6 +120,7 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			}
 			if tt.isGhHost {
 				t.Setenv("GH_HOST", "github.corp.com")
+				t.Setenv("GH_TOKEN", "PAT")
 			}
 			got, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := GetClients(tt.args.ctx, tt.args.repoURI, tt.args.localURI, tt.args.logger) //nolint:lll
 			if (err != nil) != tt.wantErr {
