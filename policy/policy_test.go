@@ -335,7 +335,7 @@ func TestGetEnabled(t *testing.T) {
 			sp:                    nil,
 			argsChecks:            []string{},
 			requiredRequestTypes:  []checker.RequestType{checker.FileBased, checker.CommitBased},
-			expectedEnabledChecks: 4,
+			expectedEnabledChecks: 4, // All checks are enabled by default
 			expectedError:         false,
 		},
 		{
