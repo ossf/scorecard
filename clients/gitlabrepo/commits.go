@@ -63,7 +63,7 @@ func (handler *commitsHandler) setup() error {
 
 				// For some reason some users have unknown names, so below we are going to parse their email into pieces.
 				// i.e. (firstname.lastname@domain.com) -> "firstname lastname".
-				if len(users) == 0 {
+				if len(users) == 0 && commit.CommitterEmail != "" {
 					users, _, err = handler.glClient.Search.Users(parseEmailToName(commit.CommitterEmail), &gitlab.SearchOptions{})
 					if err != nil {
 						handler.errSetup = fmt.Errorf("unable to find user associated with commit: %w", err)
@@ -170,8 +170,11 @@ func (handler *commitsHandler) listCommits() ([]clients.Commit, error) {
 
 // Expected email form: <firstname>.<lastname>@<namespace>.com.
 func parseEmailToName(email string) string {
-	s := strings.Split(email, ".")
-	firstName := s[0]
-	lastName := strings.Split(s[1], "@")[0]
-	return firstName + " " + lastName
+	if strings.Contains(".", email) {
+		s := strings.Split(email, ".")
+		firstName := s[0]
+		lastName := strings.Split(s[1], "@")[0]
+		return firstName + " " + lastName
+	}
+	return email
 }

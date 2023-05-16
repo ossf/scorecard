@@ -80,7 +80,7 @@ func (handler *contributorsHandler) setup() error {
 			if err != nil {
 				handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
 				return
-			} else if len(users) == 0 {
+			} else if len(users) == 0 && contrib.Email != "" {
 				// parseEmailToName is declared in commits.go
 				users, _, err = handler.glClient.Search.Users(parseEmailToName(contrib.Email), &gitlab.SearchOptions{})
 				if err != nil {
