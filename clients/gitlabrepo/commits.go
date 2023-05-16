@@ -70,8 +70,19 @@ func (handler *commitsHandler) setup() error {
 						return
 					}
 				}
-				userToEmail[commit.AuthorEmail] = users[0]
-				user = users[0]
+
+				tUser := &gitlab.User{}
+
+				if len(users) == 0 {
+					tUser.ID = 0
+					tUser.Organization = ""
+					tUser.Bot = false
+				} else {
+					tUser = users[0]
+				}
+
+				userToEmail[commit.AuthorEmail] = tUser
+				user = tUser
 			}
 
 			// Commits are able to be a part of multiple merge requests, but the only one that will be important
