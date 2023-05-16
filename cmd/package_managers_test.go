@@ -20,6 +20,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -702,6 +703,544 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("fetchGitRepositoryFromRubyGems() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_fetchGitRepositoryFromNuget(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		packageName        string
+		resultIndex        string
+		resultPackageIndex string
+		resultPackageSpec  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "fetchGitRepositoryFromNuget",
+
+			args: args{
+				packageName: "nuget-package",
+				resultIndex: `
+        {
+          "version": "3.0.0",
+          "resources": [
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://azuresearch-ussc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (secondary)"
+            },
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/autocomplete",
+              "@type": "SearchAutocompleteService",
+              "comment": "Autocomplete endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://api.nuget.org/v3/registration5-semver1/",
+              "@type": "RegistrationsBaseUrl",
+              "comment": "Base URL of Azure storage where NuGet package registration info is stored"
+            },
+            {
+              "@id": "https://api.nuget.org/v3-flatcontainer/",
+              "@type": "PackageBaseAddress/3.0.0",
+              "comment": "Base URL of where NuGet packages are stored, in the format ..."
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery/2.0.0"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2/package",
+              "@type": "PackagePublish/2.0.0"
+            }
+            ]
+        }
+        `,
+				resultPackageIndex: `
+        {
+          "versions": [
+            "13.0.2",
+            "13.0.3-beta1",
+            "13.0.3"
+          ]
+        }
+        `,
+				resultPackageSpec: `
+        <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+          <metadata minClientVersion="2.12">
+          <id>Foo</id>
+          <version>13.0.3</version>
+          <title>Foo.NET</title>
+          <authors>Foo Foo</authors>
+          <owners>Foo Foo</owners>
+          <requireLicenseAcceptance>false</requireLicenseAcceptance>
+          <license type="expression">MIT</license>
+          <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+          <projectUrl>https://www.newtonsoft.com/json</projectUrl>
+          <iconUrl>https://www.foo.com/content/images/nugeticon.png</iconUrl>
+          <description>Foo.NET is a popular foo framework for .NET</description>
+          <copyright>Copyright ©Foo Foo 2008</copyright>
+          <tags>foo</tags>
+          <repository type="git" url="foo" commit="123"/>
+          <dependencies>
+          <group targetFramework=".NETFramework2.0"/>
+          <group targetFramework=".NETFramework3.5"/>
+          <group targetFramework=".NETFramework4.0"/>
+          <group targetFramework=".NETFramework4.5"/>
+          <group targetFramework=".NETPortable0.0-Profile259"/>
+          <group targetFramework=".NETPortable0.0-Profile328"/>
+          <group targetFramework=".NETStandard1.0">
+          <dependency id="Microsoft.CSharp" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers"/>
+          <dependency id="System.ComponentModel.TypeConverter" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="System.Runtime.Serialization.Primitives" version="4.3.0" exclude="Build,Analyzers"/>
+          </group>
+          <group targetFramework=".NETStandard1.3">
+          <dependency id="Microsoft.CSharp" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers"/>
+          <dependency id="System.ComponentModel.TypeConverter" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="System.Runtime.Serialization.Formatters" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="System.Runtime.Serialization.Primitives" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="System.Xml.XmlDocument" version="4.3.0" exclude="Build,Analyzers"/>
+          </group>
+          <group targetFramework=".NETStandard2.0"/>
+          </dependencies>
+          </metadata>
+          </package>
+        `,
+			},
+			want:    "foo",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_error_index",
+
+			args: args{
+				packageName:        "nuget-package",
+				resultIndex:        "",
+				resultPackageIndex: "",
+				resultPackageSpec:  "",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_bad_index",
+
+			args: args{
+				packageName:        "nuget-package",
+				resultIndex:        "foo",
+				resultPackageIndex: "",
+				resultPackageSpec:  "",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_error_package_index",
+
+			args: args{
+				packageName: "nuget-package",
+				resultIndex: `
+        {
+          "version": "3.0.0",
+          "resources": [
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://azuresearch-ussc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (secondary)"
+            },
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/autocomplete",
+              "@type": "SearchAutocompleteService",
+              "comment": "Autocomplete endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://api.nuget.org/v3/registration5-semver1/",
+              "@type": "RegistrationsBaseUrl",
+              "comment": "Base URL of Azure storage where NuGet package registration info is stored"
+            },
+            {
+              "@id": "https://api.nuget.org/v3-flatcontainer/",
+              "@type": "PackageBaseAddress/3.0.0",
+              "comment": "Base URL of where NuGet packages are stored, in the format ..."
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery/2.0.0"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2/package",
+              "@type": "PackagePublish/2.0.0"
+            }
+            ]
+        }
+        `,
+				resultPackageIndex: "",
+				resultPackageSpec:  "",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_bad_package_index",
+
+			args: args{
+				packageName: "nuget-package",
+				resultIndex: `
+        {
+          "version": "3.0.0",
+          "resources": [
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://azuresearch-ussc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (secondary)"
+            },
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/autocomplete",
+              "@type": "SearchAutocompleteService",
+              "comment": "Autocomplete endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://api.nuget.org/v3/registration5-semver1/",
+              "@type": "RegistrationsBaseUrl",
+              "comment": "Base URL of Azure storage where NuGet package registration info is stored"
+            },
+            {
+              "@id": "https://api.nuget.org/v3-flatcontainer/",
+              "@type": "PackageBaseAddress/3.0.0",
+              "comment": "Base URL of where NuGet packages are stored, in the format ..."
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery/2.0.0"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2/package",
+              "@type": "PackagePublish/2.0.0"
+            }
+            ]
+        }
+        `,
+				resultPackageIndex: "foo",
+				resultPackageSpec:  "",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_error_package_spec",
+
+			args: args{
+				packageName: "nuget-package",
+				resultIndex: `
+        {
+          "version": "3.0.0",
+          "resources": [
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://azuresearch-ussc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (secondary)"
+            },
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/autocomplete",
+              "@type": "SearchAutocompleteService",
+              "comment": "Autocomplete endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://api.nuget.org/v3/registration5-semver1/",
+              "@type": "RegistrationsBaseUrl",
+              "comment": "Base URL of Azure storage where NuGet package registration info is stored"
+            },
+            {
+              "@id": "https://api.nuget.org/v3-flatcontainer/",
+              "@type": "PackageBaseAddress/3.0.0",
+              "comment": "Base URL of where NuGet packages are stored, in the format ..."
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery/2.0.0"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2/package",
+              "@type": "PackagePublish/2.0.0"
+            }
+            ]
+        }
+        `,
+				resultPackageIndex: `
+        {
+          "versions": [
+            "13.0.2",
+            "13.0.3-beta1",
+            "13.0.3"
+          ]
+        }
+        `,
+				resultPackageSpec: "",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_bad_package_spec",
+
+			args: args{
+				packageName: "nuget-package",
+				resultIndex: `
+        {
+          "version": "3.0.0",
+          "resources": [
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://azuresearch-ussc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (secondary)"
+            },
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/autocomplete",
+              "@type": "SearchAutocompleteService",
+              "comment": "Autocomplete endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://api.nuget.org/v3/registration5-semver1/",
+              "@type": "RegistrationsBaseUrl",
+              "comment": "Base URL of Azure storage where NuGet package registration info is stored"
+            },
+            {
+              "@id": "https://api.nuget.org/v3-flatcontainer/",
+              "@type": "PackageBaseAddress/3.0.0",
+              "comment": "Base URL of where NuGet packages are stored, in the format ..."
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery/2.0.0"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2/package",
+              "@type": "PackagePublish/2.0.0"
+            }
+            ]
+        }
+        `,
+				resultPackageIndex: `
+        {
+          "versions": [
+            "13.0.2",
+            "13.0.3-beta1",
+            "13.0.3"
+          ]
+        }
+        `,
+				resultPackageSpec: "foo",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_missing_repo",
+
+			args: args{
+				packageName: "nuget-package",
+				resultIndex: `
+        {
+          "version": "3.0.0",
+          "resources": [
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://azuresearch-ussc.nuget.org/query",
+              "@type": "SearchQueryService",
+              "comment": "Query endpoint of NuGet Search service (secondary)"
+            },
+            {
+              "@id": "https://azuresearch-usnc.nuget.org/autocomplete",
+              "@type": "SearchAutocompleteService",
+              "comment": "Autocomplete endpoint of NuGet Search service (primary)"
+            },
+            {
+              "@id": "https://api.nuget.org/v3/registration5-semver1/",
+              "@type": "RegistrationsBaseUrl",
+              "comment": "Base URL of Azure storage where NuGet package registration info is stored"
+            },
+            {
+              "@id": "https://api.nuget.org/v3-flatcontainer/",
+              "@type": "PackageBaseAddress/3.0.0",
+              "comment": "Base URL of where NuGet packages are stored, in the format ..."
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2",
+              "@type": "LegacyGallery/2.0.0"
+            },
+            {
+              "@id": "https://www.nuget.org/api/v2/package",
+              "@type": "PackagePublish/2.0.0"
+            }
+            ]
+        }
+        `,
+				resultPackageIndex: `
+        {
+          "versions": [
+            "13.0.2",
+            "13.0.3-beta1",
+            "13.0.3"
+          ]
+        }
+        `,
+				resultPackageSpec: `
+        <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+          <metadata minClientVersion="2.12">
+          <id>Foo</id>
+          <version>13.0.3</version>
+          <title>Foo.NET</title>
+          <authors>Foo Foo</authors>
+          <owners>Foo Foo</owners>
+          <requireLicenseAcceptance>false</requireLicenseAcceptance>
+          <license type="expression">MIT</license>
+          <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+          <projectUrl>https://www.newtonsoft.com/json</projectUrl>
+          <iconUrl>https://www.foo.com/content/images/nugeticon.png</iconUrl>
+          <description>Foo.NET is a popular foo framework for .NET</description>
+          <copyright>Copyright ©Foo Foo 2008</copyright>
+          <tags>foo</tags>
+          <dependencies>
+          <group targetFramework=".NETFramework2.0"/>
+          <group targetFramework=".NETFramework3.5"/>
+          <group targetFramework=".NETFramework4.0"/>
+          <group targetFramework=".NETFramework4.5"/>
+          <group targetFramework=".NETPortable0.0-Profile259"/>
+          <group targetFramework=".NETPortable0.0-Profile328"/>
+          <group targetFramework=".NETStandard1.0">
+          <dependency id="Microsoft.CSharp" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers"/>
+          <dependency id="System.ComponentModel.TypeConverter" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="System.Runtime.Serialization.Primitives" version="4.3.0" exclude="Build,Analyzers"/>
+          </group>
+          <group targetFramework=".NETStandard1.3">
+          <dependency id="Microsoft.CSharp" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers"/>
+          <dependency id="System.ComponentModel.TypeConverter" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="System.Runtime.Serialization.Formatters" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="System.Runtime.Serialization.Primitives" version="4.3.0" exclude="Build,Analyzers"/>
+          <dependency id="System.Xml.XmlDocument" version="4.3.0" exclude="Build,Analyzers"/>
+          </group>
+          <group targetFramework=".NETStandard2.0"/>
+          </dependencies>
+          </metadata>
+          </package>
+        `,
+			},
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			p := NewMockpackageManagerClient(ctrl)
+			p.EXPECT().GetURI(gomock.Any()).
+				DoAndReturn(func(url string) (*http.Response, error) {
+					if tt.wantErr && tt.args.resultIndex == "" {
+						//nolint
+						return nil, errors.New("error")
+					}
+
+					return &http.Response{
+						StatusCode: 200,
+						Body:       io.NopCloser(bytes.NewBufferString(tt.args.resultIndex)),
+					}, nil
+				}).AnyTimes()
+			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
+				DoAndReturn(func(url, packageName string) (*http.Response, error) {
+					if tt.wantErr && tt.args.resultPackageIndex == "" {
+						//nolint
+						return nil, errors.New("error")
+					}
+
+					if tt.wantErr && tt.args.resultPackageSpec == "" {
+						//nolint
+						return nil, errors.New("error")
+					}
+					if strings.HasSuffix(url, "index.json") {
+						return &http.Response{
+							StatusCode: 200,
+							Body:       io.NopCloser(bytes.NewBufferString(tt.args.resultPackageIndex)),
+						}, nil
+					} else if strings.HasSuffix(url, ".nuspec") {
+						return &http.Response{
+							StatusCode: 200,
+							Body:       io.NopCloser(bytes.NewBufferString(tt.args.resultPackageSpec)),
+						}, nil
+					}
+					return nil, nil
+				}).AnyTimes()
+			got, err := fetchGitRepositoryFromNuget(tt.args.packageName, p)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("fetchGitRepositoryFromNuget() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("fetchGitRepositoryFromNuget() = %v, want %v", got, tt.want)
 			}
 		})
 	}

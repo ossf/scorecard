@@ -17,7 +17,10 @@ package cmd
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
+
+	"golang.org/x/exp/slices"
 
 	sce "github.com/ossf/scorecard/v4/errors"
 )
@@ -27,7 +30,7 @@ type packageMangerResponse struct {
 	exists         bool
 }
 
-func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems string,
+func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
 	manager packageManagerClient,
 ) (packageMangerResponse, error) {
 	if npm != "" {
@@ -46,6 +49,13 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems string,
 	}
 	if rubygems != "" {
 		gitRepo, err := fetchGitRepositoryFromRubyGems(rubygems, manager)
+		return packageMangerResponse{
+			exists:         true,
+			associatedRepo: gitRepo,
+		}, err
+	}
+	if nuget != "" {
+		gitRepo, err := fetchGitRepositoryFromNuget(nuget, manager)
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
@@ -75,6 +85,34 @@ type pypiSearchResults struct {
 
 type rubyGemsSearchResults struct {
 	SourceCodeURI string `json:"source_code_uri"`
+}
+
+type nugetIndexResult struct {
+	ID   string `json:"@id"`
+	Type string `json:"@type"`
+}
+
+type nugetIndexResults struct {
+	Resources []nugetIndexResult `json:"resources"`
+}
+
+type nugetpackageIndexResults struct {
+	Versions []string `json:"versions"`
+}
+
+type nugetNuspec struct {
+	XMLName  xml.Name       `xml:"package"`
+	Metadata nuspecMetadata `xml:"metadata"`
+}
+
+type nuspecMetadata struct {
+	XMLName    xml.Name         `xml:"metadata"`
+	Repository nuspecRepository `xml:"repository"`
+}
+
+type nuspecRepository struct {
+	XMLName xml.Name `xml:"repository"`
+	URL     string   `xml:"url,attr"`
 }
 
 // Gets the GitHub repository URL for the npm package.
@@ -137,4 +175,61 @@ func fetchGitRepositoryFromRubyGems(packageName string, manager packageManagerCl
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("could not find source repo for ruby gem: %v", err))
 	}
 	return v.SourceCodeURI, nil
+}
+
+// Gets the GitHub repository URL for the nuget package.
+func fetchGitRepositoryFromNuget(packageName string, manager packageManagerClient) (string, error) {
+	nugetIndexURL := "https://api.nuget.org/v3/index.json"
+	respIndex, err := manager.GetURI(nugetIndexURL)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get nuget index json: %v", err))
+	}
+	defer respIndex.Body.Close()
+	nugetIndexResults := &nugetIndexResults{}
+	err = json.NewDecoder(respIndex.Body).Decode(nugetIndexResults)
+
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse nuget index json: %v", err))
+	}
+	packageBaseAddressIndex := slices.IndexFunc(nugetIndexResults.Resources,
+		func(n nugetIndexResult) bool { return n.Type == "PackageBaseAddress/3.0.0" })
+	if packageBaseAddressIndex == -1 {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, "failed to find package base URI at nuget index json")
+	}
+
+	nugetPackageBaseURL := nugetIndexResults.Resources[packageBaseAddressIndex].ID
+
+	respPackageIndex, err := manager.Get(nugetPackageBaseURL+"%s/index.json", packageName)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get nuget package index json: %v", err))
+	}
+	defer respPackageIndex.Body.Close()
+	packageIndexResults := &nugetpackageIndexResults{}
+	err = json.NewDecoder(respPackageIndex.Body).Decode(packageIndexResults)
+
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse nuget package index json: %v", err))
+	}
+
+	lastVersion := packageIndexResults.Versions[len(packageIndexResults.Versions)-1]
+
+	respPackageSpec, err := manager.Get(nugetPackageBaseURL+"%[1]v/"+lastVersion+"/%[1]v.nuspec", packageName)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get nuget package spec json: %v", err))
+	}
+	defer respPackageSpec.Body.Close()
+
+	packageSpecResults := &nugetNuspec{}
+	err = xml.NewDecoder(respPackageSpec.Body).Decode(packageSpecResults)
+
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse nuget nuspec xml: %v", err))
+	}
+	if packageSpecResults.Metadata == (nuspecMetadata{}) ||
+		packageSpecResults.Metadata.Repository == (nuspecRepository{}) ||
+		packageSpecResults.Metadata.Repository.URL == "" {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("source repo is not defined for nuget package %v", packageName))
+	}
+	return packageSpecResults.Metadata.Repository.URL, nil
 }

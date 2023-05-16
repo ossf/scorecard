@@ -58,8 +58,23 @@ func (m *MockpackageManagerClient) Get(URI, packagename string) (*http.Response,
 	return ret0, ret1
 }
 
+// GetURI mocks base method.
+func (m *MockpackageManagerClient) GetURI(URI string) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetURI", URI)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
 // Get indicates an expected call of Get.
 func (mr *MockpackageManagerClientMockRecorder) Get(URI, packagename interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockpackageManagerClient)(nil).Get), URI, packagename)
+}
+
+// GetURI indicates an expected call of GetURI.
+func (mr *MockpackageManagerClientMockRecorder) GetURI(URI interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetURI", reflect.TypeOf((*MockpackageManagerClient)(nil).GetURI), URI)
 }
