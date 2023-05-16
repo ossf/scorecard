@@ -140,3 +140,53 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateWorkflowPinningRemediation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct { //nolint:govet
+		name     string
+		branch   string
+		repo     string
+		filepath string
+		expected *rule.Remediation
+	}{
+		{
+			name:     "valid input",
+			branch:   "main",
+			repo:     "ossf/scorecard",
+			filepath: ".github/workflows/scorecard.yml",
+			expected: &rule.Remediation{
+				Text:     fmt.Sprintf(workflowText, "ossf/scorecard", "scorecard.yml", "main", "pin"),
+				Markdown: fmt.Sprintf(workflowMarkdown, "ossf/scorecard", "scorecard.yml", "main", "pin"),
+			},
+		},
+		{
+			name:     "empty branch",
+			branch:   "",
+			repo:     "ossf/scorecard",
+			filepath: ".github/workflows/<workflow-file>",
+			expected: nil,
+		},
+		{
+			name:     "empty repo",
+			branch:   "main",
+			repo:     "",
+			filepath: ".github/workflows/<workflow-file>",
+			expected: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := RemediationMetadata{
+				Branch: tt.branch,
+				Repo:   tt.repo,
+			}
+			got := r.CreateWorkflowPinningRemediation(tt.filepath)
+			if !cmp.Equal(got, tt.expected) {
+				t.Errorf(cmp.Diff(got, tt.expected))
+			}
+		})
+	}
+}
