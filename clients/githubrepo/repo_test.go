@@ -15,7 +15,6 @@
 package githubrepo
 
 import (
-	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -92,12 +91,23 @@ func TestRepoURL_IsValid(t *testing.T) {
 			wantErr:  false,
 			ghHost:   true,
 		},
+		{
+			name: "Enterprise github repository",
+			expected: repoURL{
+				host:  "github.corp.com",
+				owner: "corpfoo",
+				repo:  "kubeflow",
+			},
+			inputURL: "corpfoo/kubeflow",
+			wantErr:  false,
+			ghHost:   true,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.ghHost {
-				os.Setenv("GH_HOST", "github.corp.com")
+				t.Setenv("GH_HOST", "github.corp.com")
 			}
 
 			r := repoURL{
