@@ -94,7 +94,7 @@ func (handler *contributorsHandler) setup() error {
 			if len(users) == 0 {
 				user.ID = 0
 				user.Organization = ""
-				user.Bot = true
+				user.Bot = false
 			} else {
 				user = users[0]
 			}
