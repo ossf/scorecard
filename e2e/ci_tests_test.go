@@ -150,7 +150,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         3,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 1,

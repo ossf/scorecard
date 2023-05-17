@@ -33,6 +33,7 @@ type repoURL struct {
 	host          string
 	owner         string
 	project       string
+	projectID     string
 	defaultBranch string
 	commitSHA     string
 	metadata      []string
