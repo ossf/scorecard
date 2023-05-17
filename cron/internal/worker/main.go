@@ -120,7 +120,7 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	sw.logger = log.NewLogger(log.InfoLevel)
 	sw.githubClient = githubrepo.CreateGithubRepoClient(sw.ctx, sw.logger)
 	// TODO(raghavkaul): Read GitLab auth token from environment
-	if sw.gitlabClient, err = gitlabrepo.CreateGitlabClient(sw.ctx, "gitlab.com"); err != nil {
+	if sw.gitlabClient, err = gitlabrepo.CreateGitlabClient(sw.ctx, "https://gitlab.com"); err != nil {
 		return nil, fmt.Errorf("gitlabrepo.CreateGitlabClient: %w", err)
 	}
 	sw.ciiClient = clients.BlobCIIBestPracticesClient(ciiDataBucketURL)
@@ -178,7 +178,7 @@ func processRequest(ctx context.Context,
 		var err error
 		repoClient := githubClient
 		disabledChecks := blacklistedChecks
-		if repo, err = gitlabrepo.MakeGitlabRepo(*repoReq.Url); err != nil {
+		if repo, err = gitlabrepo.MakeGitlabRepo(*repoReq.Url); err == nil { // repo is a gitlab url
 			repoClient = gitlabClient
 			disabledChecks = gitlabDisabledChecks
 		} else if repo, err = githubrepo.MakeGithubRepo(*repoReq.Url); err != nil {
