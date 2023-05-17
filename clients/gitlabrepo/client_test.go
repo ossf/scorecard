@@ -19,7 +19,7 @@ import (
 	"testing"
 )
 
-func Test_Setup(t *testing.T) {
+func Test_InitRepo(t *testing.T) {
 	t.Parallel()
 	tcs := []struct {
 		name    string
@@ -28,7 +28,6 @@ func Test_Setup(t *testing.T) {
 		depth   int
 	}{
 		{
-			name:    "check that listcommits works",
 			repourl: "https://gitlab.com/fdroid/fdroidclient",
 			commit:  "a4bbef5c70fd2ac7c15437a22ef0f9ef0b447d08",
 			depth:   20,
@@ -50,53 +49,6 @@ func Test_Setup(t *testing.T) {
 			err = client.InitRepo(repo, tt.commit, tt.depth)
 			if err != nil {
 				t.Error("couldn't init gitlab repo", err)
-			}
-
-			c, err := client.ListCommits()
-			if err != nil {
-				t.Error("couldn't list gitlab repo commits", err)
-			}
-			if len(c) == 0 {
-				t.Error("couldn't get any commits from gitlab repo")
-			}
-		})
-	}
-}
-
-func TestParsingEmail(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name     string
-		email    string
-		expected string
-	}{
-		{
-			name:     "Perfect Match Email Parser",
-			email:    "john.doe@nowhere.com",
-			expected: "john doe",
-		},
-		{
-			name:     "Valid Email Not Formatted as expected",
-			email:    "johndoe@nowhere.com",
-			expected: "johndoe@nowhere com",
-		},
-		{
-			name:     "Invalid email format",
-			email:    "johndoe@nowherecom",
-			expected: "johndoe@nowherecom",
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			result := parseEmailToName(tt.email)
-
-			if tt.expected != result {
-				t.Errorf("Parser didn't work as expected: %s != %s", tt.expected, result)
 			}
 		})
 	}
