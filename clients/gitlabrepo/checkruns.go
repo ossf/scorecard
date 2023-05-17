@@ -34,7 +34,7 @@ func (handler *checkrunsHandler) init(repourl *repoURL) {
 
 func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	pipelines, _, err := handler.glClient.Pipelines.ListProjectPipelines(
-		handler.repourl.project, &gitlab.ListProjectPipelinesOptions{})
+		handler.repourl.projectID, &gitlab.ListProjectPipelinesOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("request for pipelines returned error: %w", err)
 	}
