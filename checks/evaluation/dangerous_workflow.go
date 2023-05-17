@@ -30,6 +30,10 @@ func DangerousWorkflow(name string, dl checker.DetailLogger,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	if r.NumWorkflows == 0 {
+		return checker.CreateInconclusiveResult(name, "no workflows found")
+	}
+
 	for _, e := range r.Workflows {
 		var text string
 		switch e.Type {

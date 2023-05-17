@@ -20,12 +20,9 @@ on:
   push:
     branches:
       - main
-env:
-  GO_VERSION: 1.17
 
 jobs:
-  unit-test:
-    name: publishimage
+  publishimage:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,21 +32,21 @@ jobs:
       COSIGN_EXPERIMENTAL: "true"
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@03bee3930647ebbf994244c21ddbc0d4933aab4f
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Clone the code
-       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: go.mod # use version from go.mod so it stays in sync
          check-latest: true
      - name: install ko
-       uses: imjasonh/setup-ko@ace48d793556083a76f1e3e6068850c1f4a369aa
+       uses: ko-build/setup-ko@ace48d793556083a76f1e3e6068850c1f4a369aa # v0.6
      - name: publishimage
        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
        with:
@@ -61,7 +58,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@c3667d99424e7e6047999fb6246c0da843953c65
+       uses: sigstore/cosign-installer@03d0fecf172873164a163bbc64bed0f3bf114ed7
      - name: Sign image
        run: |
-          cosign sign ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}
+          cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}

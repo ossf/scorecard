@@ -5,8 +5,14 @@ codecov:
     require_ci_to_pass: yes
 
 ignore:
+  - "*.pb.go"
   - "cron/**/*"
   - "clients/mockclients/**/*"
+  # ignoring them as these are internal tools for generating docs.
+  - "docs/**/*"
+  # this is the runner
+  - "main.go"
+
 coverage:
   precision: 2
   round: down
