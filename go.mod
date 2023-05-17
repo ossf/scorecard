@@ -49,7 +49,7 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/google/osv-scanner v1.3.3-0.20230509011216-baae1796eeea
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
-	github.com/onsi/ginkgo/v2 v2.9.4
+	github.com/onsi/ginkgo/v2 v2.9.5
 	github.com/otiai10/copy v1.11.0
 	sigs.k8s.io/release-utils v0.6.0
 )
