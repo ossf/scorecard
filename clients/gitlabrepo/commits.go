@@ -52,6 +52,7 @@ func (handler *commitsHandler) setup() error {
 		userToEmail := make(map[string]*gitlab.User)
 		for _, commit := range commits {
 			user, ok := userToEmail[commit.AuthorEmail]
+
 			if !ok {
 				users, _, err := handler.glClient.Search.Users(commit.CommitterName, &gitlab.SearchOptions{})
 				if err != nil {
@@ -60,9 +61,6 @@ func (handler *commitsHandler) setup() error {
 					handler.errSetup = fmt.Errorf("unable to find user associated with commit: %w", err)
 					return
 				}
-
-				// For some reason some users have unknown names, so below we are going to parse their email into pieces.
-				// i.e. (firstname.lastname@domain.com) -> "firstname lastname".
 				if len(users) == 0 && commit.CommitterEmail != "" {
 					users, _, err = handler.glClient.Search.Users(parseEmailToName(commit.CommitterEmail), &gitlab.SearchOptions{})
 					if err != nil {
@@ -71,18 +69,18 @@ func (handler *commitsHandler) setup() error {
 					}
 				}
 
-				tUser := &gitlab.User{}
+				user = users[0]
 
-				if len(users) == 0 {
-					tUser.ID = 0
-					tUser.Organization = ""
-					tUser.Bot = false
-				} else {
-					tUser = users[0]
-				}
+				userToEmail[commit.AuthorEmail] = user
+			}
 
-				userToEmail[commit.AuthorEmail] = tUser
-				user = tUser
+			if user == nil {
+				user = &gitlab.User{}
+				user.ID = 0
+				user.Organization = ""
+				user.Bot = false
+
+				userToEmail[commit.AuthorEmail] = user
 			}
 
 			// Commits are able to be a part of multiple merge requests, but the only one that will be important
