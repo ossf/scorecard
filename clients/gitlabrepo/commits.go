@@ -25,11 +25,18 @@ import (
 )
 
 type commitsHandler struct {
-	glClient *gitlab.Client
-	once     *sync.Once
-	errSetup error
-	repourl  *repoURL
-	commits  []clients.Commit
+	moqMethods TestMethods
+	glClient   *gitlab.Client
+	once       *sync.Once
+	errSetup   error
+	repourl    *repoURL
+	commits    []clients.Commit
+}
+
+type TestMethods interface {
+	ListCommits() []*gitlab.Commit
+	QueryUsers(queryVal string) []*gitlab.User
+	ListMergeRequestsByCommit() []*gitlab.MergeRequest
 }
 
 func (handler *commitsHandler) init(repourl *repoURL) {
@@ -41,10 +48,16 @@ func (handler *commitsHandler) init(repourl *repoURL) {
 // nolint: gocognit
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
-		commits, _, err := handler.glClient.Commits.ListCommits(handler.repourl.project, &gitlab.ListCommitsOptions{})
-		if err != nil {
-			handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
-			return
+		var commits []*gitlab.Commit
+		var err error
+		if handler.glClient != nil {
+			commits, _, err = handler.glClient.Commits.ListCommits(handler.repourl.project, &gitlab.ListCommitsOptions{})
+			if err != nil {
+				handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
+				return
+			}
+		} else {
+			commits = handler.moqMethods.ListCommits()
 		}
 
 		// To limit the number of user requests we are going to map every committer email
@@ -52,25 +65,34 @@ func (handler *commitsHandler) setup() error {
 		userToEmail := make(map[string]*gitlab.User)
 		for _, commit := range commits {
 			user, ok := userToEmail[commit.AuthorEmail]
-
+			// nolint: nestif
 			if !ok {
-				users, _, err := handler.glClient.Search.Users(commit.CommitterName, &gitlab.SearchOptions{})
-				if err != nil {
-					// Possibility this shouldn't be an issue as individuals can leave organizations
-					// (possibly taking their account with them)
-					handler.errSetup = fmt.Errorf("unable to find user associated with commit: %w", err)
-					return
-				}
-				if len(users) == 0 && commit.CommitterEmail != "" {
-					users, _, err = handler.glClient.Search.Users(parseEmailToName(commit.CommitterEmail), &gitlab.SearchOptions{})
+				var users []*gitlab.User
+				if handler.glClient != nil {
+					users, _, err = handler.glClient.Search.Users(commit.CommitterName, &gitlab.SearchOptions{})
+
 					if err != nil {
+						// Possibility this shouldn't be an issue as individuals can leave organizations
+						// (possibly taking their account with them)
 						handler.errSetup = fmt.Errorf("unable to find user associated with commit: %w", err)
 						return
+					}
+				} else {
+					users = handler.moqMethods.QueryUsers(commit.CommitterName)
+				}
+				if len(users) == 0 && commit.CommitterEmail != "" {
+					if handler.glClient != nil {
+						users, _, err = handler.glClient.Search.Users(parseEmailToName(commit.CommitterEmail), &gitlab.SearchOptions{})
+						if err != nil {
+							handler.errSetup = fmt.Errorf("unable to find user associated with commit: %w", err)
+							return
+						}
+					} else {
+						users = handler.moqMethods.QueryUsers(parseEmailToName(commit.CommitterEmail))
 					}
 				}
 
 				user = users[0]
-
 				userToEmail[commit.AuthorEmail] = user
 			}
 
@@ -85,11 +107,18 @@ func (handler *commitsHandler) setup() error {
 
 			// Commits are able to be a part of multiple merge requests, but the only one that will be important
 			// here is the earliest one.
-			mergeRequests, _, err := handler.glClient.Commits.ListMergeRequestsByCommit(handler.repourl.project, commit.ID)
-			if err != nil {
-				handler.errSetup = fmt.Errorf("unable to find merge requests associated with commit: %w", err)
-				return
+			var mergeRequests []*gitlab.MergeRequest
+
+			if handler.glClient != nil {
+				mergeRequests, _, err = handler.glClient.Commits.ListMergeRequestsByCommit(handler.repourl.project, commit.ID)
+				if err != nil {
+					handler.errSetup = fmt.Errorf("unable to find merge requests associated with commit: %w", err)
+					return
+				}
+			} else {
+				mergeRequests = handler.moqMethods.ListMergeRequestsByCommit()
 			}
+
 			var mergeRequest *gitlab.MergeRequest
 			if len(mergeRequests) > 0 {
 				mergeRequest = mergeRequests[0]
@@ -168,7 +197,7 @@ func (handler *commitsHandler) listCommits() ([]clients.Commit, error) {
 
 // Expected email form: <firstname>.<lastname>@<namespace>.com.
 func parseEmailToName(email string) string {
-	if strings.Contains(".", email) {
+	if strings.Contains(email, ".") {
 		s := strings.Split(email, ".")
 		firstName := s[0]
 		lastName := strings.Split(s[1], "@")[0]
