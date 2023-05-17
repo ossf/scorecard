@@ -21,6 +21,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/go-github/v38/github"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/shurcooL/githubv4"
@@ -38,7 +39,10 @@ func TestGithubrepo(t *testing.T) {
 	RunSpecs(t, "Githubrepo Suite")
 }
 
-var graphClient *githubv4.Client
+var (
+	graphClient *githubv4.Client
+	ghClient    *github.Client
+)
 
 type tokenType int
 
@@ -63,6 +67,7 @@ var _ = BeforeSuite(func() {
 		Transport: rt,
 	}
 	graphClient = githubv4.NewClient(httpClient)
+	ghClient = github.NewClient(httpClient)
 
 	tt := os.Getenv("TOKEN_TYPE")
 	switch tt {

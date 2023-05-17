@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+id: gitHubWorkflowPermissionsTopNoWrite
 short: Checks that GitHub workflows do not have default write permissions
-desc: This rule checks that GitHub workflows do not have default write permissions
 motivation: >
   If no permissions are declared, a workflow's GitHub token's permissions default to write for all scopes.
   This include write permissions to push to the repository, to read encrypted secrets, etc.
@@ -21,16 +21,15 @@ motivation: >
 implementation: >
   The rule is implemented by checking whether the `permissions` keyword is defined at the top of the workflow,
   and that no write permissions are given.
-risk: High
 remediation:
   effort: Low
   text:
-    - Visit https://app.stepsecurity.io/secureworkflow/${{ repo }}/${{ workflow }}/${{ branch }}?enable=permissions
+    - Visit https://app.stepsecurity.io/secureworkflow/${{ metadata.repo }}/${{ metadata.workflow }}/${{ metadata.branch }}?enable=permissions
     - Tick the 'Restrict permissions for GITHUB_TOKEN'
     - Untick other options
     - "NOTE: If you want to resolve multiple issues at once, you can visit https://app.stepsecurity.io/securerepo instead."
   markdown:
-    - Visit [https://app.stepsecurity.io/secureworkflow](https://app.stepsecurity.io/secureworkflow/${{ repo }}/${{ workflow }}/${{ branch }}?enable=permissions).
+    - Visit [https://app.stepsecurity.io/secureworkflow](https://app.stepsecurity.io/secureworkflow/${{ metadata.repo }}/${{ metadata.workflow }}/${{ metadata.branch }}?enable=permissions).
     - Tick the 'Restrict permissions for GITHUB_TOKEN'
     - Untick other options
     - "NOTE: If you want to resolve multiple issues at once, you can visit [https://app.stepsecurity.io/securerepo](https://app.stepsecurity.io/securerepo) instead."

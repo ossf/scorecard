@@ -1,0 +1,60 @@
+---
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_BUILDKIT: 1
+  DOCKER_IMAGE: docker.io/library/docker
+  DOCKER_TAG: 20.10.16
+  GIT_AUTHOR_NAME: "$GITLAB_USER_LOGIN"
+  GIT_AUTHOR_EMAIL: "$GITLAB_USER_EMAIL"
+  GIT_COMMITTER_NAME: "$GITLAB_USER_LOGIN"
+  GIT_COMMITTER_EMAIL: "$GITLAB_USER_EMAIL"
+  GIT_CREDENTIALS: gitlab-ci-token:${GITLAB_CI_TOKEN}
+  GITLAB_TOKEN: "$GITLAB_CI_TOKEN"
+.build-image:
+  image: "$DOCKER_IMAGE:$DOCKER_TAG"
+  stage: build
+  needs: []
+  services:
+  - name: "$DOCKER_IMAGE:$DOCKER_TAG-dind"
+    alias: docker
+  variables:
+    DOCKER_BUILD_DIR: ''
+    IMAGE_NAME: ''
+    IMAGE_TAG: ''
+  before_script:
+  - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+  - cd docker
+  - docker compose build
+  after_script:
+  - docker tag $IMAGE_NAME:$IMAGE_TAG
+unit-tests:
+  image: "$CI_REGISTRY_IMAGE/ci:$CI_COMMIT_REF_SLUG"
+  needs:
+  - job: poetry
+  variables:
+    POETRY_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pypoetry"
+    POETRY_VIRTUALENVS_CREATE: 'true'
+    POETRY_VIRTUALENVS_IN_PROJECT: 'true'
+    POETRY_VIRTUALENVS_PATH: "$CI_PROJECT_DIR/.venv"
+  cache:
+    key: poetry-$CI_COMMIT_SHORT_SHA
+    policy: pull
+    paths:
+    - ".cache"
+    - ".venv"
+  extends: ".base-python"
+  stage: check
+  script:
+  - poetry run pytest
+  coverage: "/(?i)total.*? (100(?:\\.0+)?\\%|[1-9]?\\d(?:\\.\\d+)?\\%)$/"
+  artifacts:
+    when: always
+    paths:
+    - coverage.xml
+    reports:
+      junit:
+      - test.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml

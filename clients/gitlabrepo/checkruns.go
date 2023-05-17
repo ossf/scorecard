@@ -47,11 +47,11 @@ func checkRunsFrom(data []*gitlab.PipelineInfo, ref string) []clients.CheckRun {
 	var checkRuns []clients.CheckRun
 	for _, pipelineInfo := range data {
 		if strings.EqualFold(pipelineInfo.Ref, ref) {
+			// TODO: Can get more info from GitLab API here (e.g. pipeline name, URL)
+			// https://docs.gitlab.com/ee/api/pipelines.html#get-a-pipelines-test-report
 			checkRuns = append(checkRuns, clients.CheckRun{
-				Status:     pipelineInfo.Status,
-				Conclusion: "",
-				URL:        pipelineInfo.WebURL,
-				App:        clients.CheckRunApp{Slug: pipelineInfo.Source},
+				Status: pipelineInfo.Status,
+				URL:    pipelineInfo.WebURL,
 			})
 		}
 	}
