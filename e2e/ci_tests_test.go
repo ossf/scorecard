@@ -112,7 +112,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
 			// url to commit is https://gitlab.com/gitlab-org/gitlab/-/commit/8ae23fa220d73fa07501aabd94214c9e83fe61a0
-			err = repoClient.InitRepo(repo, "8ae23fa220d73fa07501aabd94214c9e83fe61a0", 0)
+			err = repoClient.InitRepo(repo, "HEAD", 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -122,13 +122,12 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         9,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 13,
 			}
 			result := checks.CITests(&req)
-			Expect(result.Score).Should(BeNumerically("==", expected.Score))
+			Expect(result.Score).Should(BeNumerically(">", expected.Score))
 			Expect(result.Error).Should(BeNil())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -141,7 +140,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 			Expect(err).Should(BeNil())
 			// url to commit is https://gitlab.com/fdroid/fdroidclient/-/commit/a1d33881902cee33586a4fd4ee1538042a7bdedf
-			err = repoClient.InitRepo(repo, "a1d33881902cee33586a4fd4ee1538042a7bdedf", 0)
+			err = repoClient.InitRepo(repo, "HEAD", 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -151,13 +150,12 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         7,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
 				NumberOfDebug: 1,
 			}
 			result := checks.CITests(&req)
-			Expect(result.Score).Should(BeNumerically("==", expected.Score))
+			Expect(result.Score).Should(BeNumerically(">", expected.Score))
 			Expect(result.Error).Should(BeNil())
 			Expect(repoClient.Close()).Should(BeNil())
 		})

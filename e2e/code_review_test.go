@@ -159,7 +159,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 		Expect(err).Should(BeNil())
 		repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
 		Expect(err).Should(BeNil())
-		err = repoClient.InitRepo(repo, "1f7ed43c120047102862d9d1d644f5b2de7a47f2", 0)
+		err = repoClient.InitRepo(repo, "680a1154cf3806390c2e4a9e95a7c6d6107b470f", 0)
 		Expect(err).Should(BeNil())
 
 		req := checker.CheckRequest{
