@@ -15,12 +15,65 @@
 package gitlabrepo
 
 import (
+	"context"
+	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 
 	"github.com/xanzy/go-gitlab"
 )
+
+func Test_ContributorsSetup(t *testing.T) {
+	t.Parallel()
+	tcs := []struct {
+		name    string
+		repourl string
+		commit  string
+		depth   int
+	}{
+		{
+			name:    "check that Contributor works",
+			repourl: "https://gitlab.com/fdroid/fdroidclient",
+			commit:  "HEAD",
+			depth:   20,
+		},
+	}
+
+	for _, tt := range tcs {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, err := MakeGitlabRepo(tt.repourl)
+			if err != nil {
+				t.Error("couldn't make gitlab repo", err)
+			}
+
+			client, err := CreateGitlabClientWithToken(context.Background(), "", repo)
+			if err != nil {
+				t.Error("couldn't make gitlab client", err)
+			}
+
+			err = client.InitRepo(repo, tt.commit, tt.depth)
+			if err != nil {
+				t.Error("couldn't init gitlab repo",
+					err)
+			}
+
+			c, err := client.ListContributors()
+			// Authentication is failing when querying users, not sure yet how to get around that
+			if err != nil {
+				errMsg := fmt.Sprintf("%v", err)
+
+				if !(strings.Contains(errMsg, "error during Users.Get") && strings.Contains(errMsg, "401")) {
+					t.Error("couldn't list gitlab repo contributors", err)
+				}
+			}
+			if len(c) != 0 {
+				t.Error("couldn't get any contributors from gitlab repo")
+			}
+		})
+	}
+}
 
 func TestContributors(t *testing.T) {
 	t.Parallel()

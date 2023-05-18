@@ -92,7 +92,7 @@ func (handler *contributorsHandler) setup() error {
 			return
 		}
 
-		contribs, err := handler.fnContributors(handler.repourl.project)
+		contribs, err := handler.fnContributors(handler.repourl.projectID)
 		if err != nil {
 			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
 			return
