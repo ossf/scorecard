@@ -41,7 +41,12 @@ func (handler *commitsHandler) init(repourl *repoURL) {
 
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
-		commits, _, err := handler.glClient.Commits.ListCommits(handler.repourl.projectID, &gitlab.ListCommitsOptions{})
+		commits, _, err := handler.glClient.Commits.ListCommits(
+			handler.repourl.projectID,
+			&gitlab.ListCommitsOptions{
+				RefName: &handler.repourl.commitSHA,
+			},
+		)
 		if err != nil {
 			handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
 			return
