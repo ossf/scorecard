@@ -553,13 +553,7 @@ Community Meeting Calendar    | Biweekly Thursdays, 1:00pm-2:00pm PST <br>[Calen
 Meeting Notes                 | [Notes](https://docs.google.com/document/d/1dB2U7_qZpNW96vtuoG7ShmgKXzIg6R5XT5Tc-0yz6kE/edit#heading=h.4k8ml0qkh7tl)
 Slack Channel                 | [#security_scorecards](https://slack.openssf.org/#security_scorecards)
 
-&nbsp;                                                           | Facilitators      | Company | Profile
----------------------------------------------------------------- | ----------------- | ------- | -------
-<img width="30px" src="https://github.com/azeemshaikh38.png">    | Azeem Shaikh      | Google  | [azeemshaikh38](https://github.com/azeemshaikh38)
-<img width="30px" src="https://github.com/laurentsimon.png">     | Laurent Simon     | Google  | [laurentsimon](https://github.com/laurentsimon)
-<img width="30px" src="https://github.com/naveensrinivasan.png"> | Naveen Srinivasan | Endor Labs | [naveensrinivasan](https://github.com/naveensrinivasan)
-<img width="30px" src="https://github.com/chrismcgehee.png">     | Chris McGehee     | Datto   | [chrismcgehee](https://github.com/chrismcgehee)
-<img width="30px" src="https://github.com/justaugustus.png">     | Stephen Augustus  | Cisco   | [justaugustus](https://github.com/justaugustus)
+__Maintainers__ are listed in the [CODEOWNERS file](.github/CODEOWNERS).
 
 ### Report a Security Issue
 
