@@ -39,6 +39,7 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 		shouldCIIBeNil        bool
 		wantErr               bool
 		experimental          bool
+		isGhHost              bool
 	}{
 		{
 			name: "localURI is not empty",
@@ -94,6 +95,21 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			wantErr:               false,
 			experimental:          true,
 		},
+		{
+			name: "repoURI is corp github host",
+			args: args{
+				ctx:      context.Background(),
+				repoURI:  "https://github.corp.com/ossf/scorecard",
+				localURI: "",
+			},
+			shouldOSSFuzzBeNil:    false,
+			shouldRepoClientBeNil: false,
+			shouldVulnClientBeNil: false,
+			shouldRepoBeNil:       false,
+			shouldCIIBeNil:        false,
+			wantErr:               false,
+			isGhHost:              true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -101,6 +117,10 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.experimental {
 				t.Setenv("SCORECARD_EXPERIMENTAL", "true")
+			}
+			if tt.isGhHost {
+				t.Setenv("GH_HOST", "github.corp.com")
+				t.Setenv("GH_TOKEN", "PAT")
 			}
 			got, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := GetClients(tt.args.ctx, tt.args.repoURI, tt.args.localURI, tt.args.logger) //nolint:lll
 			if (err != nil) != tt.wantErr {
