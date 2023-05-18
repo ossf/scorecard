@@ -35,7 +35,7 @@ func (handler *workflowsHandler) init(repourl *repoURL) {
 func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	var buildStates []gitlab.BuildStateValue
 	buildStates = append(buildStates, gitlab.Success)
-	jobs, _, err := handler.glClient.Jobs.ListProjectJobs(handler.repourl.project,
+	jobs, _, err := handler.glClient.Jobs.ListProjectJobs(handler.repourl.projectID,
 		&gitlab.ListJobsOptions{Scope: &buildStates})
 	if err != nil {
 		return nil, fmt.Errorf("error getting project jobs: %w", err)
