@@ -45,7 +45,7 @@ func (handler *searchHandler) search(request clients.SearchRequest) (clients.Sea
 		return clients.SearchResponse{}, fmt.Errorf("handler.buildQuery: %w", err)
 	}
 
-	blobs, _, err := handler.glClient.Search.BlobsByProject(handler.repourl.project, query, &gitlab.SearchOptions{})
+	blobs, _, err := handler.glClient.Search.BlobsByProject(handler.repourl.projectID, query, &gitlab.SearchOptions{})
 	if err != nil {
 		return clients.SearchResponse{}, fmt.Errorf("Search.BlobsByProject: %w", err)
 	}
