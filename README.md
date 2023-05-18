@@ -404,6 +404,20 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
+##### Using GitHub Enterprise Server (GHES) based Repository
+
+To use a GitHub Enterprise host `github.corp.com`, use the `GH_HOST` environment variable.
+
+```shell
+# Set the GitHub Enterprise host without https prefix or slash with relevant authentication token
+export GH_HOST=github.corp.com
+export GITHUB_AUTH_TOKEN=token
+
+scorecard --repo=github.corp.com/org/repo
+# OR without github host url
+scorecard --repo=org/repo
+```
+
 ##### Using a Package manager
 
 For projects in the `--npm`, `--pypi`, `--rubygems`, or `--nuget` ecosystems, you have the
