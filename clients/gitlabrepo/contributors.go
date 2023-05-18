@@ -25,17 +25,63 @@ import (
 )
 
 type contributorsHandler struct {
-	glClient     *gitlab.Client
-	once         *sync.Once
-	errSetup     error
-	repourl      *repoURL
-	contributors []clients.User
+	fnContributors retrieveContributorFn
+	fnUsers        retrieveUserFn
+	glClient       *gitlab.Client
+	once           *sync.Once
+	errSetup       error
+	repourl        *repoURL
+	contributors   []clients.User
 }
 
 func (handler *contributorsHandler) init(repourl *repoURL) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
+	handler.fnContributors = handler.retrieveContributors
+	handler.fnUsers = handler.retrieveUsers
+}
+
+type (
+	retrieveContributorFn func(string) ([]*gitlab.Contributor, error)
+	retrieveUserFn        func(string) ([]*gitlab.User, error)
+)
+
+func (handler *contributorsHandler) retrieveContributors(project string) ([]*gitlab.Contributor, error) {
+	var contribs []*gitlab.Contributor
+	i := 1
+
+	for {
+		c, _, err := handler.glClient.Repositories.Contributors(
+			project,
+			&gitlab.ListContributorsOptions{
+				ListOptions: gitlab.ListOptions{
+					Page:    i,
+					PerPage: 100,
+				},
+			},
+		)
+		if err != nil {
+			//nolint wrapcheck
+			return nil, err
+		}
+
+		if len(c) == 0 {
+			break
+		}
+		i++
+		contribs = append(contribs, c...)
+	}
+	return contribs, nil
+}
+
+func (handler *contributorsHandler) retrieveUsers(queryName string) ([]*gitlab.User, error) {
+	users, _, err := handler.glClient.Search.Users(queryName, &gitlab.SearchOptions{})
+	if err != nil {
+		//nolint wrapcheck
+		return nil, err
+	}
+	return users, nil
 }
 
 func (handler *contributorsHandler) setup() error {
@@ -46,29 +92,10 @@ func (handler *contributorsHandler) setup() error {
 			return
 		}
 
-		var contribs []*gitlab.Contributor
-		i := 1
-
-		for {
-			c, _, err := handler.glClient.Repositories.Contributors(
-				handler.repourl.project,
-				&gitlab.ListContributorsOptions{
-					ListOptions: gitlab.ListOptions{
-						Page:    i,
-						PerPage: 100,
-					},
-				},
-			)
-			if err != nil {
-				handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
-				return
-			}
-
-			if len(c) == 0 {
-				break
-			}
-			i++
-			contribs = append(contribs, c...)
+		contribs, err := handler.fnContributors(handler.repourl.project)
+		if err != nil {
+			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
+			return
 		}
 
 		for _, contrib := range contribs {
@@ -76,13 +103,13 @@ func (handler *contributorsHandler) setup() error {
 				continue
 			}
 
-			users, _, err := handler.glClient.Search.Users(contrib.Name, &gitlab.SearchOptions{})
+			users, err := handler.fnUsers(contrib.Name)
 			if err != nil {
 				handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
 				return
 			} else if len(users) == 0 && contrib.Email != "" {
 				// parseEmailToName is declared in commits.go
-				users, _, err = handler.glClient.Search.Users(parseEmailToName(contrib.Email), &gitlab.SearchOptions{})
+				users, err = handler.fnUsers(parseEmailToName(contrib.Email))
 				if err != nil {
 					handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
 					return
