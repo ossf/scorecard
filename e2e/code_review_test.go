@@ -16,7 +16,6 @@ package e2e
 
 import (
 	"context"
-	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -157,7 +156,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 		dl := scut.TestDetailLogger{}
 		repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/fdroid/fdroidclient")
 		Expect(err).Should(BeNil())
-		repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+		repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
 		Expect(err).Should(BeNil())
 		err = repoClient.InitRepo(repo, "1f7ed43c120047102862d9d1d644f5b2de7a47f2", 0)
 		Expect(err).Should(BeNil())
@@ -184,7 +183,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 		dl := scut.TestDetailLogger{}
 		repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
 		Expect(err).Should(BeNil())
-		repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+		repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
 		Expect(err).Should(BeNil())
 		err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 		// err = repoClient.InitRepo(repo, "0b5ba5049f3e5b8e945305acfa45c44d63df21b1", 0)
