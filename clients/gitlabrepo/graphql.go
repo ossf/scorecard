@@ -129,7 +129,7 @@ func (g *GitlabGID) UnmarshalJSON(data []byte) error {
 
 func (handler *graphqlHandler) getMergeRequestsDetail() (graphqlData, error) {
 	data := graphqlData{}
-	path := fmt.Sprintf("%s/%s", handler.repourl.owner, handler.repourl.projectID)
+	path := fmt.Sprintf("%s/%s", handler.repourl.owner, handler.repourl.project)
 	params := map[string]interface{}{
 		"fullPath": path,
 	}

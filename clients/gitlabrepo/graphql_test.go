@@ -44,7 +44,7 @@ var _ = Describe("E2E TEST: gitlabrepo.graphqlHandler", func() {
 			graphqlhandler.init(context.Background(), repo.(*repoURL))
 			data := graphqlData{}
 
-			path := fmt.Sprintf("%s/%s", graphqlhandler.repourl.owner, graphqlhandler.repourl.projectID)
+			path := fmt.Sprintf("%s/%s", graphqlhandler.repourl.owner, graphqlhandler.repourl.project)
 			params := map[string]interface{}{
 				"fullPath": path,
 			}
@@ -63,7 +63,7 @@ var _ = Describe("E2E TEST: gitlabrepo.graphqlHandler", func() {
 			graphqlhandler.init(context.Background(), repo.(*repoURL))
 			data := graphqlData{}
 
-			path := fmt.Sprintf("%s/%s", graphqlhandler.repourl.owner, graphqlhandler.repourl.projectID)
+			path := fmt.Sprintf("%s/%s", graphqlhandler.repourl.owner, graphqlhandler.repourl.project)
 			params := map[string]interface{}{
 				"fullPath": path,
 			}
