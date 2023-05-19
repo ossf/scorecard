@@ -25,17 +25,63 @@ import (
 )
 
 type contributorsHandler struct {
-	glClient     *gitlab.Client
-	once         *sync.Once
-	errSetup     error
-	repourl      *repoURL
-	contributors []clients.User
+	fnContributors retrieveContributorFn
+	fnUsers        retrieveUserFn
+	glClient       *gitlab.Client
+	once           *sync.Once
+	errSetup       error
+	repourl        *repoURL
+	contributors   []clients.User
 }
 
 func (handler *contributorsHandler) init(repourl *repoURL) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
+	handler.fnContributors = handler.retrieveContributors
+	handler.fnUsers = handler.retrieveUsers
+}
+
+type (
+	retrieveContributorFn func(string) ([]*gitlab.Contributor, error)
+	retrieveUserFn        func(string) ([]*gitlab.User, error)
+)
+
+func (handler *contributorsHandler) retrieveContributors(project string) ([]*gitlab.Contributor, error) {
+	var contribs []*gitlab.Contributor
+	i := 1
+
+	for {
+		c, _, err := handler.glClient.Repositories.Contributors(
+			project,
+			&gitlab.ListContributorsOptions{
+				ListOptions: gitlab.ListOptions{
+					Page:    i,
+					PerPage: 100,
+				},
+			},
+		)
+		if err != nil {
+			//nolint wrapcheck
+			return nil, err
+		}
+
+		if len(c) == 0 {
+			break
+		}
+		i++
+		contribs = append(contribs, c...)
+	}
+	return contribs, nil
+}
+
+func (handler *contributorsHandler) retrieveUsers(queryName string) ([]*gitlab.User, error) {
+	users, _, err := handler.glClient.Search.Users(queryName, &gitlab.SearchOptions{})
+	if err != nil {
+		//nolint wrapcheck
+		return nil, err
+	}
+	return users, nil
 }
 
 func (handler *contributorsHandler) setup() error {
@@ -45,8 +91,8 @@ func (handler *contributorsHandler) setup() error {
 				clients.ErrUnsupportedFeature)
 			return
 		}
-		contribs, _, err := handler.glClient.Repositories.Contributors(
-			handler.repourl.project, &gitlab.ListContributorsOptions{})
+
+		contribs, err := handler.fnContributors(handler.repourl.projectID)
 		if err != nil {
 			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
 			return
@@ -57,27 +103,35 @@ func (handler *contributorsHandler) setup() error {
 				continue
 			}
 
-			// In Gitlab users only have one registered organization which is the company they work for, this means that
-			// the organizations field will not be filled in and the companies field will be a singular value.
-			users, _, err := handler.glClient.Search.Users(contrib.Name, &gitlab.SearchOptions{})
+			users, err := handler.fnUsers(contrib.Name)
 			if err != nil {
 				handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
 				return
-			} else if len(users) == 0 {
+			} else if len(users) == 0 && contrib.Email != "" {
 				// parseEmailToName is declared in commits.go
-				users, _, err = handler.glClient.Search.Users(parseEmailToName(contrib.Email), &gitlab.SearchOptions{})
+				users, err = handler.fnUsers(parseEmailToName(contrib.Email))
 				if err != nil {
 					handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
 					return
 				}
 			}
 
+			user := &gitlab.User{}
+
+			if len(users) == 0 {
+				user.ID = 0
+				user.Organization = ""
+				user.Bot = false
+			} else {
+				user = users[0]
+			}
+
 			contributor := clients.User{
 				Login:            contrib.Email,
-				Companies:        []string{users[0].Organization},
+				Companies:        []string{user.Organization},
 				NumContributions: contrib.Commits,
-				ID:               int64(users[0].ID),
-				IsBot:            users[0].Bot,
+				ID:               int64(user.ID),
+				IsBot:            user.Bot,
 			}
 			handler.contributors = append(handler.contributors, contributor)
 		}
