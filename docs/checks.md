@@ -73,10 +73,15 @@ result to meet most user needs.
 
 Different types of branch protection protect against different risks:
 
-  - Require code review: requires at least one reviewer, which greatly
+  - Require code review: 
+    - requires at least one reviewer, which greatly
     reduces the risk that a compromised contributor can inject malicious code.
     Review also increases the likelihood that an unintentional vulnerability in
     a contribution will be detected and fixed before the change is accepted.
+
+    - requiring two or more reviewers protects even more from the insider risk 
+    whereby a compromised contributor can be used by an attacker to LGTM 
+    the attacker PR and inject a malicious code as if it was legitm.
 
   - Prevent force push: prevents use of the `--force` command on public
     branches, which overwrites code irrevocably. This protection prevents the
@@ -182,8 +187,8 @@ However, note that in those overlapping cases, Scorecard can only report what it
 Risk: `High` (unintentional vulnerabilities or possible injection of malicious
 code)
 
-This check determines whether the project requires human code review before pull
-requests (merge requests) are merged.
+This check determines whether the project requires human code review
+before pull requests (merge requests) are merged.
 
 Reviews detect various unintentional problems, including vulnerabilities that
 can be fixed immediately before they are merged, which improves the quality of
