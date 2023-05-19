@@ -28,8 +28,8 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.27.6
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
-	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
-	github.com/sirupsen/logrus v1.9.1
+	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a
+	github.com/sirupsen/logrus v1.9.2
 	github.com/spf13/cobra v1.7.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.opencensus.io v0.24.0
@@ -47,7 +47,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/gobwas/glob v0.2.3
-	github.com/google/osv-scanner v1.3.3-0.20230509011216-baae1796eeea
+	github.com/google/osv-scanner v1.3.3
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.9.5
 	github.com/otiai10/copy v1.11.0
@@ -170,9 +170,9 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
-	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
+	golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea
 	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/oauth2 v0.8.0 // indirect
+	golang.org/x/oauth2 v0.8.0
 	golang.org/x/sync v0.2.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect

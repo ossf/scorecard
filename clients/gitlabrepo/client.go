@@ -142,7 +142,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 }
 
 func (client *Client) URI() string {
-	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.project)
+	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.projectID)
 }
 
 func (client *Client) LocalPath() (string, error) {

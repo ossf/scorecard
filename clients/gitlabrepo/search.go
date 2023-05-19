@@ -60,7 +60,7 @@ func (handler *searchHandler) buildQuery(request clients.SearchRequest) (string,
 	if _, err := queryBuilder.WriteString(
 		fmt.Sprintf("%s project:%s/%s",
 			strings.ReplaceAll(request.Query, "/", " "),
-			handler.repourl.owner, handler.repourl.project)); err != nil {
+			handler.repourl.owner, handler.repourl.projectID)); err != nil {
 		return "", fmt.Errorf("WriteString: %w", err)
 	}
 	if request.Filename != "" {

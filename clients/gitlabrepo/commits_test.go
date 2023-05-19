@@ -62,3 +62,42 @@ func Test_Setup(t *testing.T) {
 		})
 	}
 }
+
+func TestParsingEmail(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		email    string
+		expected string
+	}{
+		{
+			name:     "Perfect Match Email Parser",
+			email:    "john.doe@nowhere.com",
+			expected: "john doe",
+		},
+		{
+			name:     "Valid Email Not Formatted as expected",
+			email:    "johndoe@nowhere.com",
+			expected: "johndoe@nowhere com",
+		},
+		{
+			name:     "Invalid email format",
+			email:    "johndoe@nowherecom",
+			expected: "johndoe@nowherecom",
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := parseEmailToName(tt.email)
+
+			if tt.expected != result {
+				t.Errorf("Parser didn't work as expected: %s != %s", tt.expected, result)
+			}
+		})
+	}
+}

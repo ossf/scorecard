@@ -20,6 +20,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/google/go-github/v38/github"
@@ -58,6 +60,8 @@ type Client struct {
 	tarball       tarballHandler
 	commitDepth   int
 }
+
+const defaultGhHost = "github.com"
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
 func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
@@ -126,7 +130,11 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 // URI implements RepoClient.URI.
 func (client *Client) URI() string {
-	return fmt.Sprintf("github.com/%s/%s", client.repourl.owner, client.repourl.repo)
+	host, isHost := os.LookupEnv("GH_HOST")
+	if !isHost {
+		host = defaultGhHost
+	}
+	return fmt.Sprintf("%s/%s/%s", host, client.repourl.owner, client.repourl.repo)
 }
 
 // LocalPath implements RepoClient.LocalPath.
@@ -259,8 +267,26 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 	httpClient := &http.Client{
 		Transport: rt,
 	}
-	client := github.NewClient(httpClient)
-	graphClient := githubv4.NewClient(httpClient)
+
+	var client *github.Client
+	var graphClient *githubv4.Client
+	githubHost, isGhHost := os.LookupEnv("GH_HOST")
+
+	if isGhHost && githubHost != defaultGhHost {
+		githubRestURL := fmt.Sprintf("https://%s/api/v3", strings.TrimSpace(githubHost))
+		githubGraphqlURL := fmt.Sprintf("https://%s/api/graphql", strings.TrimSpace(githubHost))
+
+		var err error
+		client, err = github.NewEnterpriseClient(githubRestURL, githubRestURL, httpClient)
+		if err != nil {
+			panic(fmt.Errorf("error during CreateGithubRepoClientWithTransport:EnterpriseClient: %w", err))
+		}
+
+		graphClient = githubv4.NewEnterpriseClient(githubGraphqlURL, httpClient)
+	} else {
+		client = github.NewClient(httpClient)
+		graphClient = githubv4.NewClient(httpClient)
+	}
 
 	return &Client{
 		ctx:        ctx,
