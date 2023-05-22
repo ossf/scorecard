@@ -1,3 +1,6 @@
+// Copyright 2022 OpenSSF Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -39,6 +42,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var matcher pyup
 	// Check whether PyUp tool is installed on the repo,
 	// and create the corresponding findings.
+	//nolint:wrapcheck
 	return utils.ToolsRun(tools, fs, probe,
 		// Tool found will generate a positive result.
 		finding.OutcomePositive,

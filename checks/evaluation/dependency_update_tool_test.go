@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -30,6 +29,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 		name     string
 		findings []finding.Finding
 		err      bool
+		want     checker.CheckResult
 		expected scut.TestReturn
 	}{
 		{
@@ -125,10 +125,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 				t.Errorf("DependencyUpdateTool() error = %v, want %v for %v", got.Error, tt.want.Error, tt.name)
 				return
 			}
-
-			// if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &got, &dl) {
-			// 	t.Fatalf(tt.name)
-			// }
 		})
 	}
 }
