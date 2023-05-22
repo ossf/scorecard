@@ -40,7 +40,6 @@ var _ = Describe("E2E TEST: githubrepo.languagesHandler", func() {
 		}
 	})
 	Context("listProgrammingLanguages()", func() {
-		skipIfTokenIsNot(patTokenType, "GITHUB_TOKEN only")
 		It("returns a list of programming languages for a valid repository", func() {
 			repoURL := repoURL{
 				owner: "ossf",
