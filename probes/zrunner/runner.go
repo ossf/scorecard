@@ -29,17 +29,11 @@ var errProbeRun = errors.New("probe run failure")
 // Run runs the probes in probesToRun.
 func Run(raw *checker.RawResults, probesToRun []probes.ProbeImpl) ([]finding.Finding, error) {
 	var results []finding.Finding
-<<<<<<< HEAD
 	var errs []error
 	for _, probeFunc := range probesToRun {
 		findings, probeID, err := probeFunc(raw)
 		if err != nil {
 			errs = append(errs, err)
-=======
-	for _, probeFunc := range probesToRun {
-		findings, probeID, err := probeFunc(raw)
-		if err != nil {
->>>>>>> fbcf212a (update)
 			results = append(results,
 				finding.Finding{
 					Probe:   probeID,
@@ -50,11 +44,8 @@ func Run(raw *checker.RawResults, probesToRun []probes.ProbeImpl) ([]finding.Fin
 		}
 		results = append(results, findings...)
 	}
-<<<<<<< HEAD
 	if len(errs) > 0 {
 		return results, fmt.Errorf("%w: %v", errProbeRun, errs)
 	}
-=======
->>>>>>> fbcf212a (update)
 	return results, nil
 }
