@@ -1275,3 +1275,127 @@ func TestScorecardResult_AsRawJSON(t *testing.T) {
 		})
 	}
 }
+func TestAddBranchProtectionRawResults(t *testing.T) {
+	t.Parallel()
+	testCases := []struct { //nolint:govet
+		name     string
+		input    *checker.BranchProtectionsData
+		expected *jsonScorecardRawResult
+	}{
+		{
+			name: "no branch protections",
+			input: &checker.BranchProtectionsData{
+				Branches: nil,
+			},
+			expected: &jsonScorecardRawResult{
+				Results: jsonRawResults{
+					BranchProtections: jsonBranchProtectionMetadata{
+						Branches: []jsonBranchProtection{},
+					},
+				},
+			},
+		},
+		{
+			name: "one protected branch",
+			input: &checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name:      stringPtr("main"),
+						Protected: boolPtr(true),
+						BranchProtectionRule: clients.BranchProtectionRule{
+							AllowDeletions: boolPtr(false),
+						},
+					},
+				},
+			},
+			expected: &jsonScorecardRawResult{
+				Results: jsonRawResults{
+					BranchProtections: jsonBranchProtectionMetadata{
+						Branches: []jsonBranchProtection{
+							{
+								Name: "main",
+								Protection: &jsonBranchProtectionSettings{
+									AllowsDeletions: boolPtr(false),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc // capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			result := &jsonScorecardRawResult{}
+			err := result.addBranchProtectionRawResults(tc.input)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if diff := cmp.Diff(tc.expected, result); diff != "" {
+				t.Errorf("mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+func TestFillJSONRawResults(t *testing.T) {
+	raw := checker.RawResults{
+		LicenseResults: checker.LicenseData{
+			LicenseFiles: []checker.LicenseFile{
+				{LicenseInformation: checker.License{Name: "MIT"}},
+			},
+		},
+		VulnerabilitiesResults: checker.VulnerabilitiesData{
+			Vulnerabilities: []clients.Vulnerability{
+				{ID: "CVE-2020-1234"},
+			},
+		},
+		BinaryArtifactResults: checker.BinaryArtifactData{
+			Files: []checker.File{
+				{Path: "bin/app"},
+			},
+		},
+		SecurityPolicyResults: checker.SecurityPolicyData{
+			PolicyFiles: []checker.SecurityPolicyFile{
+				{File: checker.File{Path: "SECURITY.md"}},
+			},
+		},
+		DependencyUpdateToolResults: checker.DependencyUpdateToolData{
+			Tools: []checker.Tool{
+				{Name: "Dependabot"},
+			},
+		},
+		BranchProtectionResults: checker.BranchProtectionsData{
+			Branches: []clients.BranchRef{
+				{Name: stringPtr("main"), Protected: boolPtr(true)},
+			},
+		},
+		CodeReviewResults: checker.CodeReviewData{},
+		MaintainedResults: checker.MaintainedData{},
+		SignedReleasesResults: checker.SignedReleasesData{
+			Releases: []clients.Release{
+				{TagName: "v1.0.0"},
+			},
+		},
+		ContributorsResults: checker.ContributorsData{},
+		PinningDependenciesResults: checker.PinningDependenciesData{
+			Dependencies: []checker.Dependency{
+				{Name: stringPtr("requirements.txt")},
+			},
+		},
+		CIIBestPracticesResults:  checker.CIIBestPracticesData{},
+		DangerousWorkflowResults: checker.DangerousWorkflowData{},
+		FuzzingResults:           checker.FuzzingData{},
+		PackagingResults:         checker.PackagingData{},
+		TokenPermissionsResults:  checker.TokenPermissionsData{},
+	}
+
+	r := jsonScorecardRawResult{}
+	err := r.fillJSONRawResults(&raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
