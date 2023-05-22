@@ -1275,6 +1275,7 @@ func TestScorecardResult_AsRawJSON(t *testing.T) {
 		})
 	}
 }
+
 func TestAddBranchProtectionRawResults(t *testing.T) {
 	t.Parallel()
 	testCases := []struct { //nolint:govet
@@ -1341,6 +1342,7 @@ func TestAddBranchProtectionRawResults(t *testing.T) {
 		})
 	}
 }
+
 func TestFillJSONRawResults(t *testing.T) {
 	raw := checker.RawResults{
 		LicenseResults: checker.LicenseData{
