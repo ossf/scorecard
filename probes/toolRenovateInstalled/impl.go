@@ -30,7 +30,7 @@ func (t renovate) Name() string {
 	return "RenovateBot"
 }
 
-func (t renovate) Matches(tool checker.Tool) bool {
+func (t renovate) Matches(tool *checker.Tool) bool {
 	return t.Name() == tool.Name
 }
 
@@ -38,7 +38,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	tools := raw.DependencyUpdateToolResults.Tools
 	var matcher renovate
 	// Check whether Renovate tool is installed on the repo,
-	// and create the correponding findings.
+	// and create the corresponding findings.
 	return utils.ToolsRun(tools, fs, probe,
-		finding.OutcomePositive, finding.OutcomeNegative, matcher)
+		// Tool found will generate a positive result.
+		finding.OutcomePositive,
+		// Tool not found will generate a negative result.
+		finding.OutcomeNegative,
+		matcher)
 }

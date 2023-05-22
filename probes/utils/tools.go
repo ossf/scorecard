@@ -24,7 +24,7 @@ import (
 
 type toolMatcher interface {
 	Name() string
-	Matches(checker.Tool) bool
+	Matches(*checker.Tool) bool
 }
 
 // ToolsRun runs the probe for a tool.
@@ -38,7 +38,7 @@ func ToolsRun(tools []checker.Tool, fs embed.FS, probeID string,
 	var findings []finding.Finding
 	for i := range tools {
 		tool := &tools[i]
-		if !matcher.Matches(*tool) {
+		if !matcher.Matches(tool) {
 			continue
 		}
 

@@ -28,8 +28,8 @@ import (
 type ProbeImpl func(*checker.RawResults) ([]finding.Finding, string, error)
 
 var (
-	// AllProbes represents all the probes.
-	AllProbes []ProbeImpl
+	// All represents all the probes.
+	All []ProbeImpl
 	// DependencyToolUpdates is all the probes for the
 	// DpendencyUpdateTool check.
 	DependencyToolUpdates = []ProbeImpl{
@@ -40,8 +40,9 @@ var (
 	}
 )
 
+//nolint:gochecknoinits
 func init() {
-	AllProbes = concatMultipleProbes([][]ProbeImpl{
+	All = concatMultipleProbes([][]ProbeImpl{
 		DependencyToolUpdates,
 	})
 }

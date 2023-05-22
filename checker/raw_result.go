@@ -393,6 +393,5 @@ func (f *File) Location() *finding.Location {
 		loc.Snippet = &f.Snippet
 	}
 
-	loc.Path = f.Path
 	return loc
 }

@@ -20,15 +20,15 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes"
-	prunner "github.com/ossf/scorecard/v4/probes/zrunner"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 // evaluateProbes runs the probes in probesToRun and logs its findings.
 func evaluateProbes(c *checker.CheckRequest, checkName string, probesToRun []probes.ProbeImpl) ([]finding.Finding, error) {
 	// Run the probes.
-	findings, err := prunner.Run(c.RawResults, probesToRun)
+	findings, err := zrunner.Run(c.RawResults, probesToRun)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, fmt.Errorf("zrunner.Run: %w", err)
 	}
 
 	// Log the findings.

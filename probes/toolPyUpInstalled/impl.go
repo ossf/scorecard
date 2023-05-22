@@ -30,7 +30,7 @@ func (t pyup) Name() string {
 	return "PyUp"
 }
 
-func (t pyup) Matches(tool checker.Tool) bool {
+func (t pyup) Matches(tool *checker.Tool) bool {
 	return t.Name() == tool.Name
 }
 
@@ -38,7 +38,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	tools := raw.DependencyUpdateToolResults.Tools
 	var matcher pyup
 	// Check whether PyUp tool is installed on the repo,
-	// and create the correponding findings.
+	// and create the corresponding findings.
 	return utils.ToolsRun(tools, fs, probe,
-		finding.OutcomePositive, finding.OutcomeNegative, matcher)
+		// Tool found will generate a positive result.
+		finding.OutcomePositive,
+		// Tool not found will generate a negative result.
+		finding.OutcomeNegative,
+		matcher)
 }

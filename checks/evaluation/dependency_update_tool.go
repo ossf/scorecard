@@ -20,7 +20,7 @@ import (
 )
 
 // DependencyUpdateTool applies the score policy for the Dependency-Update-Tool check.
-func DependencyUpdateTool(name string, dl checker.DetailLogger,
+func DependencyUpdateTool(name string,
 	findings []finding.Finding,
 ) checker.CheckResult {
 	for i := range findings {

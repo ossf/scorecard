@@ -18,14 +18,14 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
-	"github.com/ossf/scorecard/v4/probes"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
 )
 
 // CheckDependencyUpdateTool is the exported name for Automatic-Depdendency-Update.
 const CheckDependencyUpdateTool = "Dependency-Update-Tool"
 
-//nolint
+// nolint
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.FileBased,
@@ -57,5 +57,5 @@ func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.DependencyUpdateTool(CheckDependencyUpdateTool, c.Dlogger, findings)
+	return evaluation.DependencyUpdateTool(CheckDependencyUpdateTool, findings)
 }
