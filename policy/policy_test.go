@@ -146,9 +146,10 @@ func TestChecksHavePolicies(t *testing.T) {
 			},
 		},
 	}
+	b := checks.BinaryArtifactsCheck{}
 	check := checker.CheckNameToFnMap{
 		"Binary-Artifacts": checker.Check{
-			Fn: checks.BinaryArtifacts,
+			Fn: b.RunCheck,
 		},
 	}
 

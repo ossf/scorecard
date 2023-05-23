@@ -82,8 +82,8 @@ func TestBinaryArtifacts(t *testing.T) {
 				RepoClient: client,
 				Dlogger:    &dl,
 			}
-
-			result := BinaryArtifacts(&req)
+			b := BinaryArtifactsCheck{}
+			result := b.RunCheck(&req)
 			if result.Score != tt.expected.Score {
 				t.Errorf("BinaryArtifacts: %v, expected %v for tests %v", result.Score, tt.expected.Score, tt.name)
 			}

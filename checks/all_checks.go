@@ -67,3 +67,17 @@ func registerCheck(name string, fn checker.CheckFn, supportedRequestTypes []chec
 	}
 	return nil
 }
+
+func registerCheckInterface(name string, check Check, supportedRequestTypes []checker.RequestType) error {
+	if name == "" {
+		return errInternalNameCannotBeEmpty
+	}
+	if check == nil {
+		return errInternalCheckFuncCannotBeNil
+	}
+	allChecks[name] = checker.Check{
+		Fn:                    check.RunCheck,
+		SupportedRequestTypes: supportedRequestTypes,
+	}
+	return nil
+}

@@ -55,8 +55,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-
-			result := checks.BinaryArtifacts(&req)
+			b := checks.BinaryArtifactsCheck{}
+			result := b.RunCheck(&req)
 			Expect(scut.ValidateTestReturn(nil, "no binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -83,7 +83,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.BinaryArtifacts(&req)
+			b := checks.BinaryArtifactsCheck{}
+			result := b.RunCheck(&req)
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -110,7 +111,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.BinaryArtifacts(&req)
+			b := checks.BinaryArtifactsCheck{}
+			result := b.RunCheck(&req)
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -137,7 +139,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.BinaryArtifacts(&req)
+			b := checks.BinaryArtifactsCheck{}
+			result := b.RunCheck(&req)
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -165,7 +168,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.BinaryArtifacts(&req)
+			b := checks.BinaryArtifactsCheck{}
+			result := b.RunCheck(&req)
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -204,7 +208,8 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.BinaryArtifacts(&req)
+			b := checks.BinaryArtifactsCheck{}
+			result := b.RunCheck(&req)
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())

@@ -24,19 +24,22 @@ import (
 // CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
 const CheckBinaryArtifacts string = "Binary-Artifacts"
 
-//nolint
+// nolint
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.CommitBased,
 	}
-	if err := registerCheck(CheckBinaryArtifacts, BinaryArtifacts, supportedRequestTypes); err != nil {
+	b := BinaryArtifactsCheck{}
+	if err := registerCheckInterface(CheckBinaryArtifacts, b, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}
 }
 
-// BinaryArtifacts  will check the repository contains binary artifacts.
-func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
+type BinaryArtifactsCheck struct{}
+
+func (bac BinaryArtifactsCheck) RunCheck(c *checker.CheckRequest) checker.CheckResult {
+	// your implementation here
 	rawData, err := raw.BinaryArtifacts(c.RepoClient)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
