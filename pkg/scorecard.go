@@ -95,17 +95,16 @@ func RunScorecard(ctx context.Context,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 ) (ScorecardResult, error) {
-	return RunScorecardV5(ctx, repo, commitSHA, commitDepth,
-		checksToRun, nil, repoClient, ossFuzzRepoClient,
+	return RunScorecardChecksV5(ctx, repo, commitSHA, commitDepth,
+		checksToRun, repoClient, ossFuzzRepoClient,
 		ciiClient, vulnsClient)
 }
 
-func RunScorecardV5(ctx context.Context,
+func RunScorecardChecksV5(ctx context.Context,
 	repo clients.Repo,
 	commitSHA string,
 	commitDepth int,
 	checksToRun checker.CheckNameToFnMap,
-	checksDefinitionFile *string,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
@@ -159,12 +158,12 @@ func RunScorecardV5(ctx context.Context,
 		ret.Checks = append(ret.Checks, result)
 	}
 
-	// Run the evaluation part.
+	// Run the probes.
 	var findings []finding.Finding
-	// TODO: only enable the checks that need to run for the check definition file.
-	// WARNING: we don't record the probes from the check runs on purpose:
-	// it lets users use probes that are implemented in scorecard but
-	// not used in the default built-in check definition file.
+	// TODO(#3049): only run the probes for checks.
+	// NOTE: We will need separate functions to support:
+	// - `--probes X,Y`
+	// - `--check-definitions-file path/to/config.yml`
 	findings, err = zrunner.Run(&ret.RawResults, probes.All)
 	if err != nil {
 		return ScorecardResult{}, err

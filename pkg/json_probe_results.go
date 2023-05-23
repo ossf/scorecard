@@ -39,9 +39,6 @@ func (r *ScorecardResult) AsPJSON(writer io.Writer,
 ) error {
 	encoder := json.NewEncoder(writer)
 	out := JSONScorecardProbeResult{
-		// TODO: for users to be able to retrieve probe results via
-		// REST API and apply a check definition file, metadata will need to
-		// be recorded.
 		Repo: jsonRepoV2{
 			Name:   r.Repo.Name,
 			Commit: r.Repo.CommitSHA,
