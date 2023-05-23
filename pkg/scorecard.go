@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,6 +28,9 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 func runEnabledChecks(ctx context.Context,
@@ -91,6 +95,22 @@ func RunScorecard(ctx context.Context,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 ) (ScorecardResult, error) {
+	return RunScorecardV5(ctx, repo, commitSHA, commitDepth,
+		checksToRun, nil, repoClient, ossFuzzRepoClient,
+		ciiClient, vulnsClient)
+}
+
+func RunScorecardV5(ctx context.Context,
+	repo clients.Repo,
+	commitSHA string,
+	commitDepth int,
+	checksToRun checker.CheckNameToFnMap,
+	checksDefinitionFile *string,
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient,
+	vulnsClient clients.VulnerabilitiesClient,
+) (ScorecardResult, error) {
 	if err := repoClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
@@ -98,10 +118,26 @@ func RunScorecard(ctx context.Context,
 	}
 	defer repoClient.Close()
 
-	commitSHA, err := getRepoCommitHash(repoClient)
+	evaluationRunner, err := evaluation.EvaluationRunnerNew(checksDefinitionFile)
+	if err != nil {
+		//nolint:wrapcheck
+		return ScorecardResult{}, err
+	}
+
+	if err != nil {
+		//nolint:wrapcheck
+		return ScorecardResult{}, err
+	}
+
+	commitSHA, err = getRepoCommitHash(repoClient)
 	if err != nil || commitSHA == "" {
 		return ScorecardResult{}, err
 	}
+	defaultBranch, err := repoClient.GetDefaultBranchName()
+	if err != nil {
+		return ScorecardResult{}, err
+	}
+
 	versionInfo := version.GetVersionInfo()
 	ret := ScorecardResult{
 		Repo: RepoInfo{
@@ -115,11 +151,44 @@ func RunScorecard(ctx context.Context,
 		Date: time.Now(),
 	}
 	resultsCh := make(chan checker.CheckResult)
-	go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun, repoClient, ossFuzzRepoClient,
+
+	// Set metadata for all checks to use. This is necessary
+	// to create remediations frmo the probe yaml files.
+	// TODO: for users to be able to retrieve probe results via
+	// REST API and apply a check definition file, metadata will need to
+	// be recorded in the probe results.
+	ret.RawResults.Metadata = map[string]string{
+		"repository.host":          repo.Host(),
+		"repository.name":          strings.TrimPrefix(repo.URI(), repo.Host()+"/"),
+		"repository.uri":           repo.URI(),
+		"repository.sha1":          commitSHA,
+		"repository.defaultBranch": defaultBranch,
+	}
+
+	// NOTE: we do not support `--checks` options for structured results.
+	// To support it, we will need to delete entries in checksToRun
+	// based on the content of evaluationRunner.RequiredChecks().
+	// We only want to do that for the default 'json' output that
+	// does not use a checksDefinitionFile.
+
+	go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun,
+		evaluationRunner, repoClient, ossFuzzRepoClient,
 		ciiClient, vulnsClient, resultsCh)
 
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}
+
+	// Run the evaluation part.
+	var findings []finding.Finding
+	// TODO: only enable the checks that need to run for the check definition file.
+	// WARNING: we don't record the probes from the check runs on purpose:
+	// it lets users use probes that are implemented in scorecard but
+	// not used in the default built-in check definition file.
+	findings, err = zrunner.Run(&ret.RawResults, probes.All)
+	if err != nil {
+		return ScorecardResult{}, err
+	}
+	ret.ProbeResults = findings
 	return ret, nil
 }
