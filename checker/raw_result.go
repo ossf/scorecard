@@ -43,6 +43,7 @@ type RawResults struct {
 	LicenseResults              LicenseData
 	TokenPermissionsResults     TokenPermissionsData
 	CITestResults               CITestData
+	Metadata                    map[string]string
 }
 
 type RevisionCIInfo struct {

@@ -118,18 +118,7 @@ func RunScorecardV5(ctx context.Context,
 	}
 	defer repoClient.Close()
 
-	evaluationRunner, err := evaluation.EvaluationRunnerNew(checksDefinitionFile)
-	if err != nil {
-		//nolint:wrapcheck
-		return ScorecardResult{}, err
-	}
-
-	if err != nil {
-		//nolint:wrapcheck
-		return ScorecardResult{}, err
-	}
-
-	commitSHA, err = getRepoCommitHash(repoClient)
+	commitSHA, err := getRepoCommitHash(repoClient)
 	if err != nil || commitSHA == "" {
 		return ScorecardResult{}, err
 	}
@@ -165,14 +154,8 @@ func RunScorecardV5(ctx context.Context,
 		"repository.defaultBranch": defaultBranch,
 	}
 
-	// NOTE: we do not support `--checks` options for structured results.
-	// To support it, we will need to delete entries in checksToRun
-	// based on the content of evaluationRunner.RequiredChecks().
-	// We only want to do that for the default 'json' output that
-	// does not use a checksDefinitionFile.
-
 	go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun,
-		evaluationRunner, repoClient, ossFuzzRepoClient,
+		repoClient, ossFuzzRepoClient,
 		ciiClient, vulnsClient, resultsCh)
 
 	for result := range resultsCh {
