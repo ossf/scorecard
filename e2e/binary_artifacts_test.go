@@ -56,7 +56,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			b := checks.BinaryArtifactsCheck{}
-			result := b.RunCheck(&req)
+			result := b.Run(&req)
 			Expect(scut.ValidateTestReturn(nil, "no binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -84,7 +84,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			b := checks.BinaryArtifactsCheck{}
-			result := b.RunCheck(&req)
+			result := b.Run(&req)
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -112,7 +112,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			b := checks.BinaryArtifactsCheck{}
-			result := b.RunCheck(&req)
+			result := b.Run(&req)
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -140,7 +140,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			b := checks.BinaryArtifactsCheck{}
-			result := b.RunCheck(&req)
+			result := b.Run(&req)
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -169,7 +169,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			b := checks.BinaryArtifactsCheck{}
-			result := b.RunCheck(&req)
+			result := b.Run(&req)
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
@@ -209,7 +209,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			b := checks.BinaryArtifactsCheck{}
-			result := b.RunCheck(&req)
+			result := b.Run(&req)
 			// New version.
 			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())
