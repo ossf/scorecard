@@ -142,10 +142,7 @@ func RunScorecardV5(ctx context.Context,
 	resultsCh := make(chan checker.CheckResult)
 
 	// Set metadata for all checks to use. This is necessary
-	// to create remediations frmo the probe yaml files.
-	// TODO: for users to be able to retrieve probe results via
-	// REST API and apply a check definition file, metadata will need to
-	// be recorded in the probe results.
+	// to create remediations from the probe yaml files.
 	ret.RawResults.Metadata = map[string]string{
 		"repository.host":          repo.Host(),
 		"repository.name":          strings.TrimPrefix(repo.URI(), repo.Host()+"/"),

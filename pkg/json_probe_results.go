@@ -31,7 +31,7 @@ type JSONScorecardProbeResult struct {
 	Repo      jsonRepoV2        `json:"repo"`
 	Scorecard jsonScorecardV2   `json:"scorecard"`
 	Findings  []finding.Finding `json:"findings"`
-	Metadata  []string          `json:"metadata"`
+	Metadata  map[string]string `json:"metadata"`
 }
 
 // TODO: finsinds should enventually be part of the scorecard structure.
@@ -51,7 +51,6 @@ func (r *ScorecardResult) AsPJSON(writer io.Writer,
 			Commit:  r.Scorecard.CommitSHA,
 		},
 		Date:     r.Date.Format("2006-01-02"),
-		Metadata: r.Metadata,
 		Findings: r.ProbeResults,
 	}
 
