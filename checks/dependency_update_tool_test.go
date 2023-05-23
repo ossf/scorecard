@@ -51,6 +51,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
+				NumberOfWarn: 3,
 				Score:        10,
 			},
 		},
@@ -63,6 +64,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
+				NumberOfWarn: 3,
 				Score:        10,
 			},
 		},
@@ -75,7 +77,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			SearchCommits:     []clients.Commit{{Committer: clients.User{ID: 111111111}}},
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
-				NumberOfWarn: 1,
+				NumberOfWarn: 4,
 			},
 		},
 		{
@@ -87,7 +89,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			SearchCommits:     []clients.Commit{},
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
-				NumberOfWarn: 1,
+				NumberOfWarn: 4,
 			},
 		},
 
@@ -101,6 +103,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
+				NumberOfWarn: 3,
 				Score:        10,
 			},
 		},
@@ -108,13 +111,14 @@ func TestDependencyUpdateTool(t *testing.T) {
 			name:    "found in commits 2",
 			wantErr: false,
 			files:   []string{},
-			SearchCommits: []clients.Commit{{Committer: clients.User{ID: 111111111}},
+			SearchCommits: []clients.Commit{
+				{Committer: clients.User{ID: 111111111}},
 				{Committer: clients.User{ID: dependabotID}},
 			},
-
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
+				NumberOfWarn: 3,
 				Score:        10,
 			},
 		},
@@ -125,12 +129,14 @@ func TestDependencyUpdateTool(t *testing.T) {
 			files: []string{
 				".github/foobar.yml",
 			},
-			SearchCommits: []clients.Commit{{Committer: clients.User{ID: 111111111}},
+			SearchCommits: []clients.Commit{
+				{Committer: clients.User{ID: 111111111}},
 				{Committer: clients.User{ID: dependabotID}},
 			},
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
+				NumberOfWarn: 3,
 				Score:        10,
 			},
 		},
@@ -144,9 +150,11 @@ func TestDependencyUpdateTool(t *testing.T) {
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
 			mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(tt.SearchCommits, nil).Times(tt.CallSearchCommits)
 			dl := scut.TestDetailLogger{}
+			raw := checker.RawResults{}
 			c := &checker.CheckRequest{
 				RepoClient: mockRepo,
 				Dlogger:    &dl,
+				RawResults: &raw,
 			}
 			res := DependencyUpdateTool(c)
 

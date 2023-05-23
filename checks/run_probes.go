@@ -1,4 +1,4 @@
-// Copyright 2020 OpenSSF Scorecard Authors
+// Copyright 2023 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,23 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package evaluation
+package checks
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
-// DependencyUpdateTool applies the score policy for the Dependency-Update-Tool check.
-func DependencyUpdateTool(name string,
-	findings []finding.Finding,
-) checker.CheckResult {
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
-			return checker.CreateMaxScoreResult(name, "update tool detected")
-		}
+// evaluateProbes runs the probes in probesToRun and logs its findings.
+func evaluateProbes(c *checker.CheckRequest, checkName string,
+	probesToRun []probes.ProbeImpl,
+) ([]finding.Finding, error) {
+	// Run the probes.
+	findings, err := zrunner.Run(c.RawResults, probesToRun)
+	if err != nil {
+		return nil, fmt.Errorf("zrunner.Run: %w", err)
 	}
 
-	return checker.CreateMinScoreResult(name, "no update tool detected")
+	// Log the findings.
+	if err := checker.LogFindings(findings, c.Dlogger); err != nil {
+		return nil, fmt.Errorf("LogFindings: %w", err)
+	}
+	return findings, nil
 }
