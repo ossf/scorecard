@@ -65,7 +65,7 @@ func (handler *commitsHandler) listRawCommits() ([]*gitlab.Commit, error) {
 	return handler.commitsRaw, nil
 }
 
-// zip combines Commit and MergeRequest information from the GitLab REST API with
+// zip combines Commit information from the GitLab REST API with MergeRequests
 // information from the GitLab GraphQL API. The REST API doesn't provide any way to
 // get from Commits -> MRs that they were part of or vice-versa (MRs -> commits they
 // contain), except through a separate API call. Instead of calling the REST API
