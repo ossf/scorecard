@@ -24,15 +24,7 @@ import (
 
 type toolMatcher interface {
 	Name() string
-<<<<<<< HEAD
-<<<<<<< HEAD
 	Matches(*checker.Tool) bool
-=======
-	Matches(checker.Tool) bool
->>>>>>> fbcf212a (update)
-=======
-	Matches(*checker.Tool) bool
->>>>>>> fd20299c (update)
 }
 
 // ToolsRun runs the probe for a tool.
