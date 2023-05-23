@@ -559,6 +559,17 @@ __Maintainers__ are listed in the [CODEOWNERS file](.github/CODEOWNERS).
 
 To report a security issue, please follow instructions [here](SECURITY.md).
 
+### Join the Scorecards Project Meeting
+
+#### Zoom 
+
+We meet every other Thursday - 4p ET on this [zoom link](https://zoom.us/j/98835923979?pwd=RG5JZ3czZEtmRDlGdms0ZktmMFQvUT09). 
+
+#### Agenda
+
+You can see the [agenda and meeting notes here](https://docs.google.com/document/d/1dB2U7_qZpNW96vtuoG7ShmgKXzIg6R5XT5Tc-0yz6kE/edit#). 
+
+
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/ossf/scorecard.svg)](https://starchart.cc/ossf/scorecard)
