@@ -1,0 +1,32 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: toolPyUpInstalled
+short: Check that PyUp is installed.
+motivation: >
+  Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
+  PyUp automates the process of updating dependencies by scanning for outdated or insecure requirements, and opening a pull request to update them if found.
+implementation: >
+  The implementation looks for the presence of a file named ".pyup.yml".
+  If the file is not found, PyUp is not installed.
+  NOTE: the implementation does not ensure that PyUp is run or that PyUp's pull requests are merged.
+outcome:
+  - If PyUp is installed, the probe returns OutcomePositive (1)
+  - If PyUp is not installed, the probe returns OutcomeNegative (0)
+remediation:
+  effort: Low
+  text:
+    - Follow the instructions from https://docs.pyup.io/docs.
+  markdown:
+    - Follow the instructions from [the official documentation](https://docs.pyup.io/docs).

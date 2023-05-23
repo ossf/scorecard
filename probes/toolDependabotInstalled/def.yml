@@ -1,0 +1,32 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: toolDependabotInstalled
+short: Check that Dependabot is enabled
+motivation: >
+  Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
+  Dependabot automates the process of updating dependencies by scanning for outdated or insecure requirements, and opening a pull request to update them if found.
+implementation: >
+  The implemtation looks for the presence of files named ".github/dependabot.yml" or ".github/dependabot.yaml". If none of these files are found,
+  the implementation checks whether commits are authored by Dependabot. If none of these succeed, Dependabot is not installed.
+  NOTE: if the configuration files are found, the probe does not ensure that the Dependabot is run or that the Dependabot's pull requests are merged.
+outcome:
+  - If dependendabot is installed, the probe returns OutcomePositive (1)
+  - If dependendabot is not installed, the probe returns OutcomeNegative (0)
+remediation:
+  effort: Low
+  text:
+    - Follow the instructions from https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates.
+  markdown:
+    - Follow the instructions from [the official documentation](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates).
