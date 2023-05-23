@@ -48,7 +48,7 @@ func (handler *branchesHandler) setup() error {
 
 		proj, _, err := handler.glClient.Projects.GetProject(handler.repourl.projectID, &gitlab.GetProjectOptions{})
 		if err != nil {
-			handler.errSetup = fmt.Errorf("requirest for project failed with error %w", err)
+			handler.errSetup = fmt.Errorf("request for project failed with error %w", err)
 			return
 		}
 
@@ -71,10 +71,9 @@ func (handler *branchesHandler) setup() error {
 
 			projectStatusChecks, resp, err := handler.glClient.ExternalStatusChecks.ListProjectStatusChecks(
 				handler.repourl.projectID, &gitlab.ListOptions{})
-			if (err != nil || resp.StatusCode != 404) &&
-				resp.StatusCode != 401 { // 401: permissions. pass token authorization issues silently
+
+			if resp.StatusCode != 200 || err != nil {
 				handler.errSetup = fmt.Errorf("request for external status checks failed with error %w", err)
-				return
 			}
 
 			projectApprovalRule, resp, err := handler.glClient.Projects.GetApprovalConfiguration(handler.repourl.projectID)
@@ -106,9 +105,19 @@ func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
 }
 
 func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, error) {
+	if strings.Contains(branch, "/-/commit/") {
+		// Gitlab's release commitish contains commit and is not easily tied to specific branch
+		p, b := true, ""
+		ret := &clients.BranchRef{
+			Name:      &b,
+			Protected: &p,
+		}
+		return ret, nil
+	}
+
 	bran, _, err := handler.glClient.Branches.GetBranch(handler.repourl.projectID, branch)
 	if err != nil {
-		return nil, fmt.Errorf("error getting branch in branchsHandler.getBranch: %w", err)
+		return nil, fmt.Errorf("error getting branch in branchesHandler.getBranch: %w", err)
 	}
 
 	if bran.Protected {

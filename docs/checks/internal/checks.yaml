@@ -213,6 +213,9 @@ checks:
         - For administrators: Dismiss stale reviews
         - For administrators: Require CODEOWNER review
 
+      GitLab Integration Status:
+        - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
+
     remediation:
       - >-
         Enable branch protection settings in your source hosting provider to
