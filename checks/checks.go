@@ -17,5 +17,5 @@ package checks
 import "github.com/ossf/scorecard/v4/checker"
 
 type Check interface {
-	RunCheck(c *checker.CheckRequest) checker.CheckResult
+	Run(c *checker.CheckRequest) checker.CheckResult
 }

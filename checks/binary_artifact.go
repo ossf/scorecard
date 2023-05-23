@@ -38,8 +38,26 @@ func init() {
 
 type BinaryArtifactsCheck struct{}
 
-func (bac BinaryArtifactsCheck) RunCheck(c *checker.CheckRequest) checker.CheckResult {
+func (bac BinaryArtifactsCheck) Run(c *checker.CheckRequest) checker.CheckResult {
 	// your implementation here
+	rawData, err := raw.BinaryArtifacts(c.RepoClient)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
+	}
+
+	// Return raw results.
+	if c.RawResults != nil {
+		c.RawResults.BinaryArtifactResults = rawData
+	}
+
+	// Return the score evaluation.
+	return evaluation.BinaryArtifacts(CheckBinaryArtifacts, c.Dlogger, &rawData)
+}
+
+// BinaryArtifacts  will check the repository contains binary artifacts.
+// This is being used by AllStar and that is the reason to keep it.
+func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	rawData, err := raw.BinaryArtifacts(c.RepoClient)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())

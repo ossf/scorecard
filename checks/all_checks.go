@@ -76,7 +76,7 @@ func registerCheckInterface(name string, check Check, supportedRequestTypes []ch
 		return errInternalCheckFuncCannotBeNil
 	}
 	allChecks[name] = checker.Check{
-		Fn:                    check.RunCheck,
+		Fn:                    check.Run,
 		SupportedRequestTypes: supportedRequestTypes,
 	}
 	return nil

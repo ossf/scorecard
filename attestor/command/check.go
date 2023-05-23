@@ -87,7 +87,7 @@ func RunCheckWithParams(repoURL, commitSHA, policyPath string) (policy.PolicyRes
 	b := checks.BinaryArtifactsCheck{}
 	enabledChecks := map[string]checker.Check{
 		checks.CheckBinaryArtifacts: {
-			Fn: b.RunCheck,
+			Fn: b.Run,
 		},
 		checks.CheckVulnerabilities: {
 			Fn: checks.Vulnerabilities,

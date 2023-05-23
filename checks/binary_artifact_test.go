@@ -83,7 +83,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				Dlogger:    &dl,
 			}
 			b := BinaryArtifactsCheck{}
-			result := b.RunCheck(&req)
+			result := b.Run(&req)
 			if result.Score != tt.expected.Score {
 				t.Errorf("BinaryArtifacts: %v, expected %v for tests %v", result.Score, tt.expected.Score, tt.name)
 			}
