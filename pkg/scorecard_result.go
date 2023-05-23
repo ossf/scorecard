@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
@@ -45,12 +46,13 @@ type RepoInfo struct {
 // ScorecardResult struct is returned on a successful Scorecard run.
 // nolint
 type ScorecardResult struct {
-	Repo       RepoInfo
-	Date       time.Time
-	Scorecard  ScorecardInfo
-	Checks     []checker.CheckResult
-	RawResults checker.RawResults
-	Metadata   []string
+	Repo         RepoInfo
+	Date         time.Time
+	Scorecard    ScorecardInfo
+	Checks       []checker.CheckResult
+	RawResults   checker.RawResults
+	ProbeResults []finding.Finding
+	Metadata     []string
 }
 
 func scoreToString(s float64) string {
