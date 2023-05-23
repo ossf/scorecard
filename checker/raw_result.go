@@ -242,7 +242,6 @@ type SignedReleasesData struct {
 // for the Dependency-Update-Tool check.
 type DependencyUpdateToolData struct {
 	// Tools contains a list of tools.
-	// Note: we only populate one entry at most.
 	Tools []Tool
 }
 
@@ -374,4 +373,25 @@ type TokenPermission struct {
 	File         *File
 	Msg          *string
 	Type         PermissionLevel
+}
+
+// Location generates location from a file.
+func (f *File) Location() *finding.Location {
+	// TODO(2626): merge location and path.
+	if f == nil {
+		return nil
+	}
+	loc := &finding.Location{
+		Type:      f.Type,
+		Path:      f.Path,
+		LineStart: &f.Offset,
+	}
+	if f.EndOffset != 0 {
+		loc.LineEnd = &f.EndOffset
+	}
+	if f.Snippet != "" {
+		loc.Snippet = &f.Snippet
+	}
+
+	return loc
 }

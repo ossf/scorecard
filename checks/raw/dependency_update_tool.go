@@ -126,13 +126,11 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 				},
 			},
 		})
-	default:
-		// Continue iterating.
-		return true, nil
 	}
 
-	// We found a file, no need to continue iterating.
-	return false, nil
+	// Continue iterating, even if we have found a tool.
+	// It's needed for all probes results to be populated.
+	return true, nil
 }
 
 func asPointer(s string) *string {
