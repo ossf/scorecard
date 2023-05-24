@@ -125,7 +125,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/scorecard-check-license-e2e")
 			Expect(err).Should(BeNil())
-			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
 			Expect(err).Should(BeNil())
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
@@ -153,7 +153,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			dl := scut.TestDetailLogger{}
 			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/N8BWert/scorecard-check-license-e2e")
 			Expect(err).Should(BeNil())
-			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), os.Getenv("GITLAB_AUTH_TOKEN"), repo)
+			repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
 			Expect(err).Should(BeNil())
 			err = repoClient.InitRepo(repo, "c3a8778e73ea95f937c228a34ee57d5e006f7304", 0)
 			Expect(err).Should(BeNil())
