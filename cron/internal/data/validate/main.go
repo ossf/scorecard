@@ -24,7 +24,7 @@ import (
 
 // Validates data.Iterator used by production PubSub cron job.
 // * Check for no duplicates in repoURLs.
-// * Check repoURL is a valid GitHub URL.
+// * Check repoURL is a valid GitHub/GitLab URL.
 func main() {
 	if len(os.Args) != 2 {
 		panic("must provide single argument")

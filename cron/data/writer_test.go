@@ -34,16 +34,26 @@ func TestCsvWriter(t *testing.T) {
 					Repo:     "github.com/owner1/repo1",
 					Metadata: []string{"meta1"},
 				},
+				{
+					Repo:     "gitlab.com/owner3/repo3",
+					Metadata: []string{"meta3"},
+				},
 			},
 			newRepos: []RepoFormat{
 				{
 					Repo:     "github.com/owner2/repo2",
 					Metadata: []string{"meta2"},
 				},
+				{
+					Repo:     "gitlab.com/owner4/repo4",
+					Metadata: []string{"meta4"},
+				},
 			},
 			out: `repo,metadata
 github.com/owner1/repo1,meta1
 github.com/owner2/repo2,meta2
+gitlab.com/owner3/repo3,meta3
+gitlab.com/owner4/repo4,meta4
 `,
 		},
 	}
