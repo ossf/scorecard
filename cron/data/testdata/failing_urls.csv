@@ -1,4 +1,4 @@
 repo,metadata
-gitlab.com/owner1/repo1,
+gitlab.com//repo1,
 github.com/owner2/,
 github.com//repo3,meta
