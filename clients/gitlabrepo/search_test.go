@@ -34,8 +34,8 @@ func TestBuildQuery(t *testing.T) {
 		{
 			name: "Basic",
 			repourl: &repoURL{
-				owner:   "testowner",
-				project: "1234",
+				owner:     "testowner",
+				projectID: "1234",
 			},
 			searchReq: clients.SearchRequest{
 				Query: "testquery",
@@ -45,8 +45,8 @@ func TestBuildQuery(t *testing.T) {
 		{
 			name: "EmptyQuery",
 			repourl: &repoURL{
-				owner:   "testowner",
-				project: "1234",
+				owner:     "testowner",
+				projectID: "1234",
 			},
 			searchReq:       clients.SearchRequest{},
 			hasError:        true,
@@ -55,8 +55,8 @@ func TestBuildQuery(t *testing.T) {
 		{
 			name: "WithFilename",
 			repourl: &repoURL{
-				owner:   "testowner",
-				project: "1234",
+				owner:     "testowner",
+				projectID: "1234",
 			},
 			searchReq: clients.SearchRequest{
 				Query:    "testquery",
@@ -67,8 +67,8 @@ func TestBuildQuery(t *testing.T) {
 		{
 			name: "WithPath",
 			repourl: &repoURL{
-				owner:   "testowner",
-				project: "1234",
+				owner:     "testowner",
+				projectID: "1234",
 			},
 			searchReq: clients.SearchRequest{
 				Query: "testquery",
@@ -79,8 +79,8 @@ func TestBuildQuery(t *testing.T) {
 		{
 			name: "WithFilenameAndPath",
 			repourl: &repoURL{
-				owner:   "testowner",
-				project: "1234",
+				owner:     "testowner",
+				projectID: "1234",
 			},
 			searchReq: clients.SearchRequest{
 				Query:    "testquery",
@@ -92,8 +92,8 @@ func TestBuildQuery(t *testing.T) {
 		{
 			name: "WithFilenameAndPathWithSeperator",
 			repourl: &repoURL{
-				owner:   "testowner",
-				project: "1234",
+				owner:     "testowner",
+				projectID: "1234",
 			},
 			searchReq: clients.SearchRequest{
 				Query:    "testquery/query",

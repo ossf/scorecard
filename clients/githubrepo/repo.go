@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/clients"
@@ -42,7 +43,11 @@ func (r *repoURL) parse(input string) error {
 	// This will takes care for repo/owner format.
 	// By default it will use github.com
 	case l == two:
-		t = "github.com/" + c[0] + "/" + c[1]
+		githubHost, isGhHost := os.LookupEnv("GH_HOST")
+		if !isGhHost {
+			githubHost = "github.com"
+		}
+		t = githubHost + "/" + c[0] + "/" + c[1]
 	case l >= three:
 		t = input
 	}
@@ -83,8 +88,10 @@ func (r *repoURL) String() string {
 
 // IsValid implements Repo.IsValid.
 func (r *repoURL) IsValid() error {
+	githubHost := os.Getenv("GH_HOST")
 	switch r.host {
 	case "github.com":
+	case githubHost:
 	default:
 		return sce.WithMessage(sce.ErrorUnsupportedHost, r.host)
 	}

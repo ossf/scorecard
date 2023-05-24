@@ -155,8 +155,11 @@ func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlData
 
 // Expected email form: <firstname>.<lastname>@<namespace>.com.
 func parseEmailToName(email string) string {
-	s := strings.Split(email, ".")
-	firstName := s[0]
-	lastName := strings.Split(s[1], "@")[0]
-	return firstName + " " + lastName
+	if strings.Contains(email, ".") {
+		s := strings.Split(email, ".")
+		firstName := s[0]
+		lastName := strings.Split(s[1], "@")[0]
+		return firstName + " " + lastName
+	}
+	return email
 }

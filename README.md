@@ -404,6 +404,20 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
+##### Using GitHub Enterprise Server (GHES) based Repository
+
+To use a GitHub Enterprise host `github.corp.com`, use the `GH_HOST` environment variable.
+
+```shell
+# Set the GitHub Enterprise host without https prefix or slash with relevant authentication token
+export GH_HOST=github.corp.com
+export GITHUB_AUTH_TOKEN=token
+
+scorecard --repo=github.corp.com/org/repo
+# OR without github host url
+scorecard --repo=org/repo
+```
+
 ##### Using a Package manager
 
 For projects in the `--npm`, `--pypi`, or `--rubygems` ecosystems, you have the
@@ -539,17 +553,22 @@ Community Meeting Calendar    | Biweekly Thursdays, 1:00pm-2:00pm PST <br>[Calen
 Meeting Notes                 | [Notes](https://docs.google.com/document/d/1dB2U7_qZpNW96vtuoG7ShmgKXzIg6R5XT5Tc-0yz6kE/edit#heading=h.4k8ml0qkh7tl)
 Slack Channel                 | [#security_scorecards](https://slack.openssf.org/#security_scorecards)
 
-&nbsp;                                                           | Facilitators      | Company | Profile
----------------------------------------------------------------- | ----------------- | ------- | -------
-<img width="30px" src="https://github.com/azeemshaikh38.png">    | Azeem Shaikh      | Google  | [azeemshaikh38](https://github.com/azeemshaikh38)
-<img width="30px" src="https://github.com/laurentsimon.png">     | Laurent Simon     | Google  | [laurentsimon](https://github.com/laurentsimon)
-<img width="30px" src="https://github.com/naveensrinivasan.png"> | Naveen Srinivasan | Endor Labs | [naveensrinivasan](https://github.com/naveensrinivasan)
-<img width="30px" src="https://github.com/chrismcgehee.png">     | Chris McGehee     | Datto   | [chrismcgehee](https://github.com/chrismcgehee)
-<img width="30px" src="https://github.com/justaugustus.png">     | Stephen Augustus  | Cisco   | [justaugustus](https://github.com/justaugustus)
+__Maintainers__ are listed in the [CODEOWNERS file](.github/CODEOWNERS).
 
 ### Report a Security Issue
 
 To report a security issue, please follow instructions [here](SECURITY.md).
+
+### Join the Scorecards Project Meeting
+
+#### Zoom 
+
+We meet every other Thursday - 4p ET on this [zoom link](https://zoom.us/j/98835923979?pwd=RG5JZ3czZEtmRDlGdms0ZktmMFQvUT09). 
+
+#### Agenda
+
+You can see the [agenda and meeting notes here](https://docs.google.com/document/d/1dB2U7_qZpNW96vtuoG7ShmgKXzIg6R5XT5Tc-0yz6kE/edit#). 
+
 
 ## Stargazers over time
 

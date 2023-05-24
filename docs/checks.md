@@ -73,10 +73,15 @@ result to meet most user needs.
 
 Different types of branch protection protect against different risks:
 
-  - Require code review: requires at least one reviewer, which greatly
+  - Require code review: 
+    - requires at least one reviewer, which greatly
     reduces the risk that a compromised contributor can inject malicious code.
     Review also increases the likelihood that an unintentional vulnerability in
     a contribution will be detected and fixed before the change is accepted.
+
+    - requiring two or more reviewers protects even more from the insider risk 
+    whereby a compromised contributor can be used by an attacker to LGTM 
+    the attacker PR and inject a malicious code as if it was legitm.
 
   - Prevent force push: prevents use of the `--force` command on public
     branches, which overwrites code irrevocably. This protection prevents the
@@ -88,7 +93,7 @@ Different types of branch protection protect against different risks:
 Although requiring code review can greatly reduce the chance that
 unintentional or malicious code enters the "main" branch, it is not feasible for
 all projects, such as those that don't have many active participants. For more
-discussion, see [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews).
+discussion, see [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-review).
 
 Additionally, in some cases these rules will need to be suspended. For example,
 if a past commit includes illegal content such as child pornography, it may be
@@ -182,8 +187,8 @@ However, note that in those overlapping cases, Scorecard can only report what it
 Risk: `High` (unintentional vulnerabilities or possible injection of malicious
 code)
 
-This check determines whether the project requires human code review before pull
-requests (merge requests) are merged.
+This check determines whether the project requires human code review
+before pull requests (merge requests) are merged.
 
 Reviews detect various unintentional problems, including vulnerabilities that
 can be fixed immediately before they are merged, which improves the quality of
@@ -252,7 +257,7 @@ those contributors must have had at least 5 commits in the last 30 commits.
 Note: Some projects cannot meet this requirement, such as small projects with
 only one active participant, or projects with a narrow scope that cannot attract
 the interest of multiple organizations. See
-[Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews)
+[Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-review)
 for more information about evaluating projects with a small number of
 participants.
  
@@ -499,7 +504,7 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
 - If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python, `packages.config` for nuget). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
 - If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
 - For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
-- For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
+- For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/secureworkflow/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
 - To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
 
 ## SAST 
@@ -639,7 +644,7 @@ Additionally, points are reduced if certain write permissions are defined for a 
 
 **Remediation steps**
 - Set permissions as `read-all` or `contents: read` as described in GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
-- To help determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Restrict permissions for GITHUB_TOKEN". You may also tick the "Pin actions to a full length commit SHA" to fix issues found by the Pinned-dependencies check.
+- To help determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/secureworkflow/) by ticking the "Restrict permissions for GITHUB_TOKEN". You may also tick the "Pin actions to a full length commit SHA" to fix issues found by the Pinned-dependencies check.
 
 ## Vulnerabilities 
 
