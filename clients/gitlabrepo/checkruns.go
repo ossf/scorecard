@@ -16,7 +16,6 @@ package gitlabrepo
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/xanzy/go-gitlab"
 
@@ -34,26 +33,27 @@ func (handler *checkrunsHandler) init(repourl *repoURL) {
 
 func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	pipelines, _, err := handler.glClient.Pipelines.ListProjectPipelines(
-		handler.repourl.projectID, &gitlab.ListProjectPipelinesOptions{})
+		handler.repourl.projectID, &gitlab.ListProjectPipelinesOptions{
+			SHA:         &ref,
+			ListOptions: gitlab.ListOptions{},
+		})
 	if err != nil {
 		return nil, fmt.Errorf("request for pipelines returned error: %w", err)
 	}
 
-	return checkRunsFrom(pipelines, ref), nil
+	return checkRunsFrom(pipelines), nil
 }
 
 // Conclusion does not exist in the pipelines for gitlab so I have a placeholder "" as the value.
-func checkRunsFrom(data []*gitlab.PipelineInfo, ref string) []clients.CheckRun {
+func checkRunsFrom(data []*gitlab.PipelineInfo) []clients.CheckRun {
 	var checkRuns []clients.CheckRun
 	for _, pipelineInfo := range data {
-		if strings.EqualFold(pipelineInfo.Ref, ref) {
-			// TODO: Can get more info from GitLab API here (e.g. pipeline name, URL)
-			// https://docs.gitlab.com/ee/api/pipelines.html#get-a-pipelines-test-report
-			checkRuns = append(checkRuns, clients.CheckRun{
-				Status: pipelineInfo.Status,
-				URL:    pipelineInfo.WebURL,
-			})
-		}
+		// TODO: Can get more info from GitLab API here (e.g. pipeline name, URL)
+		// https://docs.gitlab.com/ee/api/pipelines.html#get-a-pipelines-test-report
+		checkRuns = append(checkRuns, clients.CheckRun{
+			Status: pipelineInfo.Status,
+			URL:    pipelineInfo.WebURL,
+		})
 	}
 	return checkRuns
 }
