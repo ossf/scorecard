@@ -74,6 +74,7 @@ var (
 		"Signed-Releases",
 		"Token-Permissions",
 		"Vulnerabilities",
+		"Webhooks",
 	}
 )
 
