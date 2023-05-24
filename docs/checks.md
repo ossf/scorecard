@@ -93,7 +93,7 @@ Different types of branch protection protect against different risks:
 Although requiring code review can greatly reduce the chance that
 unintentional or malicious code enters the "main" branch, it is not feasible for
 all projects, such as those that don't have many active participants. For more
-discussion, see [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews).
+discussion, see [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-review).
 
 Additionally, in some cases these rules will need to be suspended. For example,
 if a past commit includes illegal content such as child pornography, it may be
@@ -257,7 +257,7 @@ those contributors must have had at least 5 commits in the last 30 commits.
 Note: Some projects cannot meet this requirement, such as small projects with
 only one active participant, or projects with a narrow scope that cannot attract
 the interest of multiple organizations. See
-[Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews)
+[Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-review)
 for more information about evaluating projects with a small number of
 participants.
  
