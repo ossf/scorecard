@@ -26,22 +26,17 @@ import (
 )
 
 type commitsHandler struct {
-	listMergeRequestByCommit fnListMergeRequestsByCommit
-	glClient                 *gitlab.Client
-	once                     *sync.Once
-	errSetup                 error
-	repourl                  *repoURL
-	commitsRaw               []*gitlab.Commit
+	glClient   *gitlab.Client
+	once       *sync.Once
+	errSetup   error
+	repourl    *repoURL
+	commitsRaw []*gitlab.Commit
 }
-
-type fnListMergeRequestsByCommit func(pid interface{}, sha string,
-	options ...gitlab.RequestOptionFunc) ([]*gitlab.MergeRequest, *gitlab.Response, error)
 
 func (handler *commitsHandler) init(repourl *repoURL) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
-	handler.listMergeRequestByCommit = handler.glClient.Commits.ListMergeRequestsByCommit
 }
 
 func (handler *commitsHandler) setup() error {
@@ -68,60 +63,6 @@ func (handler *commitsHandler) listRawCommits() ([]*gitlab.Commit, error) {
 	}
 
 	return handler.commitsRaw, nil
-}
-
-func (handler *commitsHandler) queryMergeRequestsByCommits(commitsRaw []*gitlab.Commit) []clients.Commit {
-	commits := []clients.Commit{}
-	for _, c := range commitsRaw {
-		associatedMr := clients.PullRequest{}
-
-		mergeRequests, _, err := handler.listMergeRequestByCommit(handler.repourl.projectID, c.ID)
-		if err != nil {
-			handler.errSetup = fmt.Errorf("unable to find merge requests associated with commit: %w", err)
-			continue
-		}
-
-		if len(mergeRequests) > 0 {
-			mr := mergeRequests[0]
-			reviews := []clients.Review{}
-
-			for _, r := range mr.Reviewers {
-				reviews = append(reviews, clients.Review{
-					Author: &clients.User{
-						Login: r.Username,
-						ID:    int64(r.ID),
-					},
-					State: r.State,
-				})
-			}
-
-			if mr.MergedAt != nil {
-				associatedMr = clients.PullRequest{
-					Number:   mr.IID,
-					MergedAt: *mr.MergedAt,
-					HeadSHA:  mr.MergeCommitSHA,
-					Author: clients.User{
-						Login: mr.Author.Username,
-						ID:    int64(mr.Author.ID),
-					},
-					Reviews: reviews,
-					MergedBy: clients.User{
-						Login: mr.MergedBy.Username,
-						ID:    int64(mr.MergedBy.ID),
-					},
-				}
-			}
-		}
-
-		commits = append(commits,
-			clients.Commit{
-				CommittedDate:          *c.CommittedDate,
-				Message:                c.Message,
-				SHA:                    c.ID,
-				AssociatedMergeRequest: associatedMr,
-			})
-	}
-	return commits
 }
 
 // zip combines Commit information from the GitLab REST API with MergeRequests
