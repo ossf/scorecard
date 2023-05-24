@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/xanzy/go-gitlab"
@@ -250,8 +251,13 @@ func (client *Client) Close() error {
 	return nil
 }
 
-func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients.Repo) (clients.RepoClient, error) {
-	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.Host()))
+func CreateGitlabClient(ctx context.Context, host string) (clients.RepoClient, error) {
+	token := os.Getenv("GITLAB_AUTH_TOKEN")
+	return CreateGitlabClientWithToken(ctx, token, host)
+}
+
+func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clients.RepoClient, error) {
+	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(host))
 	if err != nil {
 		return nil, fmt.Errorf("could not create gitlab client with error: %w", err)
 	}
@@ -307,15 +313,4 @@ func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients
 // TODO(#2266): implement CreateOssFuzzRepoClient.
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("%w, oss fuzz currently only supported for github repos", clients.ErrUnsupportedFeature)
-}
-
-// DetectGitLab: check whether the repoURI is a GitLab URI
-// Makes HTTP request to GitLab API.
-func DetectGitLab(repoURI string) bool {
-	var repo repoURL
-	if err := repo.parse(repoURI); err != nil {
-		return false
-	}
-
-	return repo.IsValid() == nil
 }
