@@ -16,7 +16,11 @@ package gitlabrepo
 
 import (
 	"context"
+	"sync"
 	"testing"
+	"time"
+
+	"github.com/xanzy/go-gitlab"
 )
 
 func Test_Setup(t *testing.T) {
@@ -97,6 +101,113 @@ func TestParsingEmail(t *testing.T) {
 
 			if tt.expected != result {
 				t.Errorf("Parser didn't work as expected: %s != %s", tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestQueryMergeRequestsByCommit(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		commits []*gitlab.Commit
+		mrs     []*gitlab.MergeRequest
+	}{
+		{
+			name: "Commit with no MR",
+			commits: []*gitlab.Commit{
+				{
+					ID:            "10",
+					CommittedDate: &time.Time{},
+				},
+			},
+			mrs: []*gitlab.MergeRequest{},
+		},
+		{
+			name: "Commit with a MR with Merged Date",
+			commits: []*gitlab.Commit{
+				{
+					ID:            "10",
+					CommittedDate: &time.Time{},
+				},
+			},
+			mrs: []*gitlab.MergeRequest{
+				{
+					ID:       10,
+					MergedAt: gitlab.Time(time.Now()),
+					Author: &gitlab.BasicUser{
+						ID:       100,
+						Username: "no-one",
+					},
+					MergedBy: &gitlab.BasicUser{
+						ID:       101,
+						Username: "da-approver",
+					},
+					Reviewers: []*gitlab.BasicUser{
+						{
+							ID:       102,
+							Username: "da-manager",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Commit with a MR Not Merged",
+			commits: []*gitlab.Commit{
+				{
+					ID:            "10",
+					CommittedDate: &time.Time{},
+				},
+			},
+			mrs: []*gitlab.MergeRequest{
+				{
+					ID:       10,
+					MergedAt: nil,
+					Author: &gitlab.BasicUser{
+						ID:       100,
+						Username: "no-one",
+					},
+					Reviewers: []*gitlab.BasicUser{},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler := commitsHandler{
+				once: new(sync.Once),
+				repourl: &repoURL{
+					projectID: "5000",
+				},
+				listMergeRequestByCommit: func(pid interface{}, sha string,
+					options ...gitlab.RequestOptionFunc) (
+					[]*gitlab.MergeRequest, *gitlab.Response, error,
+				) {
+					return tt.mrs, nil, nil
+				},
+			}
+			handler.once.Do(func() {})
+
+			c := handler.queryMergeRequestsByCommits(tt.commits)
+
+			if len(c) != len(tt.commits) {
+				t.Errorf("Return commit count should equal what was sent in")
+			}
+
+			if len(tt.mrs) > 0 && tt.mrs[0].MergedAt != nil &&
+				c[0].AssociatedMergeRequest.Author.ID != int64(tt.mrs[0].Author.ID) {
+				t.Errorf("MR should have been associated to the commit")
+			}
+
+			if len(tt.mrs) > 0 && tt.mrs[0].MergedAt == nil &&
+				c[0].AssociatedMergeRequest.Author.ID != 0 {
+				t.Errorf("MR should NOT have been associated to the commit")
 			}
 		})
 	}

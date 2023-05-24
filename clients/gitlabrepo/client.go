@@ -170,6 +170,11 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 	// are within them without making a REST call for each commit (~30 by default)
 	// Making 1 GraphQL query to combine the results of 2 REST calls, we avoid this
 	mrDetails, err := client.graphql.getMergeRequestsDetail(before)
+
+	if len(mrDetails.Project.MergeRequests.Nodes) == 0 {
+		return client.commits.queryMergeRequestsByCommits(commitsRaw), nil
+	}
+
 	if err != nil {
 		return []clients.Commit{}, err
 	}
