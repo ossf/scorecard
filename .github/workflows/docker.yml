@@ -24,7 +24,8 @@ on:
 
 env:
   PROTOC_VERSION: 3.17.3
-  GO_VERSION: 1.19
+  GO_VERSION_FILE: go.mod # no good way of getting a mutual version between go.mod and tools/go.mod
+  CACHE_DEPENDENCY_PATH: "**/go.sum" # include both go.sum and tools/go.sum
 
 jobs:
   docs_only_check:
@@ -38,7 +39,7 @@ jobs:
     - name: Check out code
       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
       with:
-        fetch-depth: 2
+        fetch-depth: 2 # needed to diff changed files
     - id: files
       name: Get changed files
       uses: tj-actions/changed-files@b2d17f51244a144849c6b37a3a6791b98a51d86f #v35.9.2
@@ -59,7 +60,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -68,33 +69,15 @@ jobs:
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make scorecard-docker
   cron-controller:
@@ -107,7 +90,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -116,33 +99,15 @@ jobs:
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make cron-controller-docker
   cron-worker:
@@ -155,7 +120,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -164,33 +129,15 @@ jobs:
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make cron-worker-docker
   cron-cii-worker:
@@ -203,7 +150,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -212,33 +159,15 @@ jobs:
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make cron-cii-worker-docker
   cron-bq-transfer:
@@ -251,7 +180,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -260,33 +189,15 @@ jobs:
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make cron-bq-transfer-docker
   cron-webhook:
@@ -299,7 +210,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -308,33 +219,15 @@ jobs:
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make cron-webhook-docker
   cron-github-server:
@@ -347,7 +240,7 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -356,31 +249,12 @@ jobs:
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
      - name: docker build
