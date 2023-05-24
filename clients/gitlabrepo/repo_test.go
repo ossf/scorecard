@@ -119,7 +119,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 	}
 }
 
-func TestRepoURL_DetectGitlab(t *testing.T) {
+func TestRepoURL_MakeGitLabRepo(t *testing.T) {
 	tests := []struct {
 		repouri      string
 		expected     bool
@@ -157,9 +157,13 @@ func TestRepoURL_DetectGitlab(t *testing.T) {
 		if tt.flagRequired && os.Getenv("TEST_GITLAB_EXTERNAL") == "" {
 			continue
 		}
-		g := DetectGitLab(tt.repouri)
-		if g != tt.expected {
-			t.Errorf("got %s isgitlab: %t expected %t", tt.repouri, g, tt.expected)
+		g, err := MakeGitlabRepo(tt.repouri)
+		if (g != nil) != (err == nil) {
+			t.Errorf("got gitlabrepo: %s with err %s", g, err)
+		}
+		isGitlab := g != nil && err == nil
+		if isGitlab != tt.expected {
+			t.Errorf("got %s isgitlab: %t expected %t", tt.repouri, isGitlab, tt.expected)
 		}
 	}
 }

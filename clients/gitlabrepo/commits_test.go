@@ -46,7 +46,7 @@ func Test_Setup(t *testing.T) {
 				t.Error("couldn't make gitlab repo", err)
 			}
 
-			client, err := CreateGitlabClientWithToken(context.Background(), "", repo)
+			client, err := CreateGitlabClient(context.Background(), repo.Host())
 			if err != nil {
 				t.Error("couldn't make gitlab client", err)
 			}
