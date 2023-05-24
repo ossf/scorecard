@@ -54,7 +54,7 @@ type graphqlData struct {
 	Project struct {
 		MergeRequests struct {
 			Nodes []graphqlMergeRequestNode `graphql:"nodes"`
-		} `graphql:"mergeRequests(sort: MERGED_AT_DESC, state: merged)"`
+		} `graphql:"mergeRequests(sort: MERGED_AT_DESC, state: merged, mergedBefore: $mergedBefore)"`
 	} `graphql:"project(fullPath: $fullPath)"`
 	QueryComplexity struct {
 		Limit int `graphql:"limit"`
@@ -127,11 +127,12 @@ func (g *GitlabGID) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (handler *graphqlHandler) getMergeRequestsDetail() (graphqlData, error) {
+func (handler *graphqlHandler) getMergeRequestsDetail(before *time.Time) (graphqlData, error) {
 	data := graphqlData{}
 	path := fmt.Sprintf("%s/%s", handler.repourl.owner, handler.repourl.project)
 	params := map[string]interface{}{
-		"fullPath": path,
+		"fullPath":     path,
+		"mergedBefore": before,
 	}
 	err := handler.graphClient.Query(context.Background(), &data, params)
 	if err != nil {

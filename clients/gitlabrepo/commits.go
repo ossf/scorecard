@@ -41,7 +41,12 @@ func (handler *commitsHandler) init(repourl *repoURL) {
 
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
-		commits, _, err := handler.glClient.Commits.ListCommits(handler.repourl.projectID, &gitlab.ListCommitsOptions{})
+		commits, _, err := handler.glClient.Commits.ListCommits(
+			handler.repourl.projectID,
+			&gitlab.ListCommitsOptions{
+				RefName: &handler.repourl.commitSHA,
+			},
+		)
 		if err != nil {
 			handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
 			return
@@ -60,7 +65,7 @@ func (handler *commitsHandler) listRawCommits() ([]*gitlab.Commit, error) {
 	return handler.commitsRaw, nil
 }
 
-// zip combines Commit and MergeRequest information from the GitLab REST API with
+// zip combines Commit information from the GitLab REST API with MergeRequests
 // information from the GitLab GraphQL API. The REST API doesn't provide any way to
 // get from Commits -> MRs that they were part of or vice-versa (MRs -> commits they
 // contain), except through a separate API call. Instead of calling the REST API
