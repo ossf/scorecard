@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -30,13 +31,13 @@ func TestGitlabRepoE2E(t *testing.T) {
 	}
 	t.Parallel()
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Githubrepo Suite")
+	RunSpecs(t, "GitLab Repo Suite")
 }
 
 var _ = Describe("E2E TEST: gitlabrepo.graphqlHandler", func() {
 	var graphqlhandler graphqlHandler
 
-	Context("E2E TEST: Confirm query result", func() {
+	Context("E2E TEST: Confirm query result - GitLab", func() {
 		It("Should have sufficient number of merge requests", func() {
 			repo, err := MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
 			Expect(err).Should(BeNil())
@@ -46,7 +47,8 @@ var _ = Describe("E2E TEST: gitlabrepo.graphqlHandler", func() {
 
 			path := fmt.Sprintf("%s/%s", graphqlhandler.repourl.owner, graphqlhandler.repourl.project)
 			params := map[string]interface{}{
-				"fullPath": path,
+				"fullPath":     path,
+				"mergedBefore": time.Now(),
 			}
 			err = graphqlhandler.graphClient.Query(context.Background(), &data, params)
 			Expect(err).Should(BeNil())
@@ -65,7 +67,8 @@ var _ = Describe("E2E TEST: gitlabrepo.graphqlHandler", func() {
 
 			path := fmt.Sprintf("%s/%s", graphqlhandler.repourl.owner, graphqlhandler.repourl.project)
 			params := map[string]interface{}{
-				"fullPath": path,
+				"fullPath":     path,
+				"mergedBefore": time.Now(),
 			}
 			err = graphqlhandler.graphClient.Query(context.Background(), &data, params)
 			Expect(err).Should(BeNil())
