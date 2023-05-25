@@ -95,12 +95,12 @@ func RunScorecard(ctx context.Context,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 ) (ScorecardResult, error) {
-	return RunScorecardChecksV5(ctx, repo, commitSHA, commitDepth,
+	return runScorecardChecksV5(ctx, repo, commitSHA, commitDepth,
 		checksToRun, repoClient, ossFuzzRepoClient,
 		ciiClient, vulnsClient)
 }
 
-func RunScorecardChecksV5(ctx context.Context,
+func runScorecardChecksV5(ctx context.Context,
 	repo clients.Repo,
 	commitSHA string,
 	commitDepth int,
@@ -119,11 +119,16 @@ func RunScorecardChecksV5(ctx context.Context,
 
 	commitSHA, err := getRepoCommitHash(repoClient)
 	if err != nil || commitSHA == "" {
+		//nolint:wrapcheck
 		return ScorecardResult{}, err
 	}
 	defaultBranch, err := repoClient.GetDefaultBranchName()
 	if err != nil {
-		return ScorecardResult{}, err
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			//nolint:wrapcheck
+			return ScorecardResult{}, err
+		}
+		defaultBranch = "<unknown>"
 	}
 
 	versionInfo := version.GetVersionInfo()
@@ -163,11 +168,12 @@ func RunScorecardChecksV5(ctx context.Context,
 	// TODO(#3049): only run the probes for checks.
 	// NOTE: We will need separate functions to support:
 	// - `--probes X,Y`
-	// - `--check-definitions-file path/to/config.yml`
-	findings, err = zrunner.Run(&ret.RawResults, probes.All)
-	if err != nil {
-		return ScorecardResult{}, err
-	}
-	ret.ProbeResults = findings
+	// - `--check-definitions-file path/to/config.yml
+	// NOTE: we discard the returned error because the errors are
+	// already cotained in the findings and we want to return the findings
+	// to users.
+	// See https://github.com/ossf/scorecard/blob/main/probes/zrunner/runner.go#L34-L45.
+	findings, _ = zrunner.Run(&ret.RawResults, probes.All)
+	ret.Findings = findings
 	return ret, nil
 }

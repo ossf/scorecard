@@ -46,13 +46,13 @@ type RepoInfo struct {
 // ScorecardResult struct is returned on a successful Scorecard run.
 // nolint
 type ScorecardResult struct {
-	Repo         RepoInfo
-	Date         time.Time
-	Scorecard    ScorecardInfo
-	Checks       []checker.CheckResult
-	RawResults   checker.RawResults
-	ProbeResults []finding.Finding
-	Metadata     []string
+	Repo       RepoInfo
+	Date       time.Time
+	Scorecard  ScorecardInfo
+	Checks     []checker.CheckResult
+	RawResults checker.RawResults
+	Findings   []finding.Finding
+	Metadata   []string
 }
 
 func scoreToString(s float64) string {
