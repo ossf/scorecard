@@ -110,7 +110,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
 		Name:        fuzzerPropertyBasedTypeScript,
 		Desc: asPointer(
-			"Property-based testing in JavaScript generates test instances randomly or exhaustively " +
+			"Property-based testing in TypeScript generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
