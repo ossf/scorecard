@@ -123,6 +123,9 @@ Tier 4 Requirements (9/10 points):
 Tier 5 Requirements (10/10 points):
   - For administrators: Dismiss stale reviews
   - For administrators: Require CODEOWNER review
+
+GitLab Integration Status:
+  - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
  
 
 **Remediation steps**
